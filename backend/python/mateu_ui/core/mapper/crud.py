@@ -69,7 +69,7 @@ from ..validation import client_validations
 from mateu_ui.uidl.export import ExportColumn
 
 from ..export import FORMATS
-from ..titles import record_title
+from ..titles import record_title, titled_by_data
 from ._base import MixinBase
 from ._common import (
     COMPACT_STYLE,
@@ -658,7 +658,11 @@ class CrudMapperMixin(MixinBase):
         # carries neither pageTitle nor pageType.
         form_page_type = "detail" if mode == "view" else "form"
         page = self.client(
-            PageMetadata(title=title, toolbar=toolbar),
+            PageMetadata(
+                title=title,
+                toolbar=toolbar,
+                title_is_text=True if titled_by_data(element, entity) else None,
+            ),
             None,
             self.form_cards(element, entity, read_only=mode == "view"),
         ).model_copy(update={"style": "max-width:900px;margin: auto;"})

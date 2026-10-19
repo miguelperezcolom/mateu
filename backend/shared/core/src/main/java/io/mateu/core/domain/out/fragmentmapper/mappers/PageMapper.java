@@ -91,6 +91,11 @@ public class PageMapper {
             .subtitle(page.subtitle())
             .overline(page.overline())
             .titlePlaceholder(page.titlePlaceholder())
+            .titleIsText(
+                io.mateu.core.domain.out.componentmapper.DataTitles.isData(
+                        httpRequest, page.title())
+                    ? Boolean.TRUE
+                    : null)
             // inside a record master that offers "← Parent" instead (@App(backLink = PARENT)),
             // its tabs' pages carry no trail of their own
             .noBreadcrumbs(

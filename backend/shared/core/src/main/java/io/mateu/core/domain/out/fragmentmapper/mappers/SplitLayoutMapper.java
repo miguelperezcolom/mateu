@@ -37,7 +37,7 @@ public class SplitLayoutMapper {
         List.of(
             mapComponentToDto(
                 null,
-                splitLayout.master(),
+                Children.orEmptySlot(splitLayout.master()),
                 baseUrl,
                 route,
                 consumedRoute,
@@ -45,7 +45,7 @@ public class SplitLayoutMapper {
                 httpRequest),
             mapComponentToDto(
                 null,
-                splitLayout.detail(),
+                Children.orEmptySlot(splitLayout.detail()),
                 baseUrl,
                 route,
                 consumedRoute,

@@ -24,7 +24,7 @@ public class ScrollerMapper {
         List.of(
             mapComponentToDto(
                 null,
-                scroller.content(),
+                Children.orEmptySlot(scroller.content()),
                 baseUrl,
                 route,
                 consumedRoute,

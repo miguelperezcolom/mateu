@@ -270,9 +270,18 @@ backend and the caller's identity and the route's access rules apply as to any a
 - `__validate__` — `parameters._yaml` = a YAML definition; the answer carries the validation report
   on `appData._validation` (`{valid, kind, errors[], warnings[]}`, each issue
   `{code, message, path, line?, column?}`) and renders nothing. `mateu_validate_uidl` is this call.
+  **Served only to an MCP tool call, or by an app running with `mateu.mcp.enabled=true` or in dev
+  mode** (`mateu.dev=true`; .NET `MateuOptions.Mcp` / development, Python `mcp=True` / `dev=True`):
+  anywhere else it answers 403, so a production app does not hand anonymous callers a validator over
+  its own catalogues. The sidecar's authoring tools therefore need the backend in one of those modes.
 - `__preview__` — the same text rendered as the page it describes (layout only, no view model);
   `mateu_preview_uidl` validates first and projects this answer with the rules above. A text that
   does not parse now renders the reason (`Invalid YAML — line N (path): …`), not a bare "invalid".
+  It stays open on every app — it is the render target of the chat's and live push's `render-screen`
+  and of the IDE's visual editor — and is safe to be: the 256 KiB cap applies before parsing, every
+  component of the catalogue previews with nothing set (an absent child list is an empty one), and a
+  failure in it, as in every reserved action, answers through the error boundary (the generic
+  message + reference), never a raw 500.
 
 The validation rules (scalar typing, root classification, the walk, the message texts, the
 semantic checks) and the tool/resource surface are normative and live with their corpus in

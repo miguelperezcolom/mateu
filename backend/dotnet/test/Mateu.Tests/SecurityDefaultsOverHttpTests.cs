@@ -197,6 +197,36 @@ public class SecurityDefaultsOverHttpTests
         Assert.DoesNotContain("approved", denied);
     }
 
+    // ── JSON bodies only (CSRF) ──────────────────────────────────────────────
+
+    // The bodies a cross-site page can make the browser send WITHOUT a CORS preflight: refused with
+    // 415 on sync, SSE and MCP, so a forged request with the user's cookies never reaches an action.
+    // Mirrors Java's AdapterParityITFoundation.refusesANonJsonBody… and Python's twin.
+    public static TheoryData<string?> SimpleRequestContentTypes() =>
+        new() { "text/plain", "application/x-www-form-urlencoded", "multipart/form-data; boundary=x", null };
+
+    [Theory]
+    [MemberData(nameof(SimpleRequestContentTypes))]
+    public async Task A_body_that_is_not_declared_json_is_refused_with_415(string? contentType)
+    {
+        await using var host = await Boot(o => o.Mcp = true);
+        var rq = "{\"route\":\"http-security-probe\",\"actionId\":\"\",\"componentState\":{}}";
+        var mcp = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\"}";
+        foreach (var (path, body) in new[]
+                 {
+                     ("/mateu/v3/sync/http-security-probe", rq), ("/mateu/v3/sse/http-security-probe", rq),
+                     ("/mateu/v3/components/_/action", rq), ("/mateu/mcp", mcp),
+                 })
+        {
+            var content = new ByteArrayContent(Encoding.UTF8.GetBytes(body));
+            if (contentType is not null) content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+            var r = await host.Http.PostAsync(path, content);
+            Assert.True(r.StatusCode == HttpStatusCode.UnsupportedMediaType, $"{path} {contentType} → {r.StatusCode}");
+        }
+        var ok = await host.Http.PostAsync("/mateu/mcp", new StringContent(mcp, Encoding.UTF8, "application/json"));
+        Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
+    }
+
     // ── sync endpoint ────────────────────────────────────────────────────────
 
     [Fact]

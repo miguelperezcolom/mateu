@@ -21,6 +21,9 @@ import java.util.Map;
  */
 public class McpService {
 
+  /** The request attribute that marks a run as an MCP tool call. */
+  public static final String MCP_REQUEST = "mateu.mcp.request";
+
   /**
    * Builds the concrete {@link HttpRequest} for a request from the (framework-specific) adapter —
    * the mvc controller wraps the servlet request (carrying the JWT for RBAC), a test wraps a fake.
@@ -256,8 +259,12 @@ public class McpService {
 
   private JsonNode sync(RunActionRqDto rq, String baseUrl, HttpRequestFactory httpRequests) {
     try {
+      var httpRequest = httpRequests.create(rq);
+      // marks the request as an MCP tool call (a server-side attribute, never client-settable):
+      // the reserved __validate__ action is served to MCP callers only (RunActionUseCase)
+      httpRequest.setAttribute(MCP_REQUEST, Boolean.TRUE);
       UIIncrementDto increment =
-          service.runAction(baseUrl, rq, baseUrl, httpRequests.create(rq)).next().block();
+          service.runAction(baseUrl, rq, baseUrl, httpRequest).next().block();
       return objectMapper.valueToTree(increment);
     } catch (Throwable t) {
       // The sync endpoint's error boundary, applied here too: a refused request is the tool
@@ -343,9 +350,26 @@ public class McpService {
       throw new io.mateu.uidl.UserFacingException(
           io.mateu.core.application.authoring.SpecWriter.refusal(path));
     }
+    if (io.mateu.core.application.authoring.SpecWriter.isCatalogueFile(path)) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.authoring.SpecWriter.catalogueRefusal(path));
+    }
     var out = objectMapper.createObjectNode();
     var validation = validation("", yaml, baseUrl, httpRequests);
-    if (!validation.path("valid").asBoolean()) {
+    var kind = validation.path("kind");
+    var refusal =
+        io.mateu.core.application.authoring.SpecWriter.agentRefusal(
+            kind.isTextual() ? kind.asText() : null, yaml);
+    if (refusal != null) {
+      // never written, and said loudly: an agent tried to author what decides a request
+      org.slf4j.LoggerFactory.getLogger(McpService.class)
+          .warn(
+              "mateu_save_spec refused {}: {}",
+              io.mateu.core.application.logging.LogSafe.of(path),
+              refusal);
+      out.put("saved", false);
+      out.put("reason", refusal);
+    } else if (!validation.path("valid").asBoolean()) {
       out.put("saved", false);
       out.put("reason", "The definition has errors; nothing was written.");
     } else {

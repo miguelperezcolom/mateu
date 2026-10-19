@@ -143,8 +143,19 @@ your JAX-RS `Application` and `mp.jwt.verify.publickey.location` /
 mounts run on Helidon's own routing, which does not carry the JAX-RS principal: register a
 `PrincipalResolver` if those need roles.)
 
+**JSON bodies only — on every adapter.** Mateu's action endpoints (`<baseUrl>/mateu/v3/**` —
+sync, SSE, a YAML mount's API — and `/mateu/mcp`) answer **415** to a `POST` whose body is not
+declared JSON (`application/json` or `application/*+json`): `text/plain`, the two form encodings and
+a request with no `Content-Type` are refused before they reach an action. Those are exactly the
+requests a cross-site page can make the browser send without a CORS preflight, with the user's
+cookies, so this is what keeps a cookie- or session-authenticated app safe from cross-site request
+forgery even where no CSRF filter runs (Quarkus, Micronaut, Helidon MP, ASP.NET Core, FastAPI). The
+renderers, the native apps and the MCP sidecar always send JSON; a script of yours calling the
+endpoints must too. (`/mateu/v3/client-log` and `/mateu/dev/**` are not covered: the first only
+writes a rate-limited log line, the second exists only with `mateu.dev=true`.)
+
 **CSRF on Quarkus, Micronaut and Helidon MP.** None of them adds CSRF protection to JSON requests
-by default, so Mateu needs nothing there. If you add a CSRF filter that checks every `POST`, exempt
+by default, and the JSON-only rule above covers the forged ones, so Mateu needs nothing there. If you add a CSRF filter that checks every `POST`, exempt
 `application/json` requests to `<baseUrl>/mateu/v3/**` and `/mateu/mcp` the same way
 (`io.mateu.core.infra.security.CsrfExemption.isMateuJsonCall(path, contentType)` is the rule).
 

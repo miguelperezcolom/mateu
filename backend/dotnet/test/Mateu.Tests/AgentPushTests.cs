@@ -50,9 +50,9 @@ public class AgentPushTests
         public readonly AgentSessions Sessions;
         public readonly SyncHandler Handler;
 
-        public Fixture(int rate = 30, int max = 1000, bool push = true, int perOwner = 20)
+        public Fixture(int rate = 30, int max = 1000, bool push = true, int perOwner = 20, int perAddress = 200)
         {
-            Sessions = new AgentSessions(rate, max, perOwner, () => Now);
+            Sessions = new AgentSessions(rate, max, perOwner, () => Now) { MaxAnonymousSessionsPerAddress = perAddress };
             Handler = new SyncHandler(Registry)
             {
                 AgentPush = push ? Sessions : null, Principal = () => Principal, ClientAddress = () => Address,
@@ -430,20 +430,33 @@ public class AgentPushTests
         Assert.Equal(2, f.Sessions.Count);
     }
 
+    // NM5: the per-owner cap is a SIGNED-IN user's; strangers behind one reverse proxy (one address)
+    // each count on their own, and anonymous sessions are capped per address by a higher limit.
     [Fact]
-    public void Anonymous_uis_count_against_their_client_address()
+    public void Anonymous_uis_behind_one_address_do_not_lock_each_other_out()
     {
         var f = new Fixture(perOwner: 1);
+        for (var i = 0; i < 30; i++) f.Open("proxy-" + i, "s-" + i, null, address: "192.0.2.1");
+        Assert.Equal(30, f.Sessions.Count);
+    }
+
+    [Fact]
+    public void Anonymous_uis_are_capped_per_client_address_by_their_own_higher_limit()
+    {
+        var f = new Fixture(perOwner: 1, perAddress: 2);
         f.Open("ui-1", "s-1", null, address: "10.0.0.1");
-        f.Open("ui-2", "s-2", null, address: "10.0.0.2");
+        var old = f.Open("ui-2", "s-2", null, address: "10.0.0.1");
         Assert.Equal(AgentSessions.TooManySessions,
             Assert.Throws<UserFacingException>(() => f.Open("ui-3", "s-3", null, address: "10.0.0.1")).Message);
-        // No address: they all share "unknown".
-        f.Open("ui-4", "s-4", null);
-        Assert.Throws<UserFacingException>(() => f.Open("ui-5", "s-5", null));
-        // A principal named like an address is another owner.
-        f.Open("ui-6", "s-6", "10.0.0.1");
-        Assert.Equal(4, f.Sessions.Count);
+        f.Open("ui-4", "s-4", null, address: "10.0.0.2"); // another address counts on its own
+        f.Open("ui-5", "s-5", "alice", address: "10.0.0.1"); // a signed-in user: their own cap
+        f.Sessions.Closed(old);
+        f.Open("ui-3", "s-3", null, address: "10.0.0.1"); // evicts the disconnected one
+        // an address the host cannot tell is not limited (only the global cap)
+        for (var i = 0; i < 10; i++) f.Open("unknown-" + i, "u-" + i, null);
+        Assert.Equal(14, f.Sessions.Count);
+        Assert.Equal(200, new MateuOptions().PushMaxAnonymousSessionsPerAddress);
+        Assert.Equal(9, new MateuOptions { McpPushMaxAnonymousSessionsPerAddress = 9 }.PushMaxAnonymousSessionsPerAddress);
     }
 
     [Fact]
@@ -661,5 +674,16 @@ public class AgentPushTests
             await app.DisposeAsync();
             MateuLogging.UseLoggerFactory(null);
         }
+    }
+}
+
+public class LogSafeTests
+{
+    [Fact]
+    public void A_logged_value_can_neither_forge_lines_nor_flood_the_log()
+    {
+        Assert.Equal("/orders??INFO forged", Mateu.Core.MateuLogging.Safe("/orders\r\nINFO forged"));
+        Assert.Equal(257, Mateu.Core.MateuLogging.Safe(new string('x', 10_000)).Length);
+        Assert.Equal("null", Mateu.Core.MateuLogging.Safe(null));
     }
 }

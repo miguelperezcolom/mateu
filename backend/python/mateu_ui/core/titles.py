@@ -35,6 +35,18 @@ def record_title(cls: type, instance: object | None) -> str:
     return template_literal(text)
 
 
+def titled_by_data(cls: type, instance: object | None) -> bool:
+    """Whether :func:`record_title` names ``instance`` with DATA — its own ``__str__`` — rather than
+    a declared ``@title`` or the class name (Java's ``PageMetadataExtractor.titledByData``): such a
+    title travels marked ``title_is_text`` so the web header renders it as text."""
+    actual = type(instance) if instance is not None else cls
+    if getattr(actual, "__mateu_title__", None) is not None:
+        return False
+    if instance is None or _is_component(instance) or not _names_itself(actual, instance):
+        return False
+    return bool(str(instance))
+
+
 def template_literal(text: str) -> str:
     """Escapes a value so a label interpolator leaves it as written (Java's ``Templates.literal``)."""
     if "${" not in text:

@@ -47,7 +47,7 @@ public class VerticalLayoutMapper {
         metadataDto,
         verticalLayout.id(),
         applyFlowGrows(
-            verticalLayout.content().stream()
+            Children.orEmpty(verticalLayout.content()).stream()
                 .map(
                     content ->
                         mapComponentToDto(

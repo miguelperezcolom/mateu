@@ -328,7 +328,25 @@ class CrudSyncTest {
     org.assertj.core.api.Assertions.assertThat(columnIds).contains("id", "name", "units", "active");
     org.assertj.core.api.Assertions.assertThat(component.actions())
         .extracting(io.mateu.dtos.ActionDto::id)
-        .contains("search", "delete", "update-row");
+        .contains("search", "delete")
+        // the write behind inline editing is offered only by a crud that edits inline (NM11)
+        .doesNotContain("update-row");
+    var stock =
+        (io.mateu.dtos.ServerSideComponentDto)
+            stock("", Map.of(), null).fragments().get(0).component();
+    var stockActions = new ArrayList<String>();
+    collectActions(stock, stockActions);
+    org.assertj.core.api.Assertions.assertThat(stockActions).contains("update-row");
+  }
+
+  private static void collectActions(Object component, List<String> ids) {
+    if (component instanceof io.mateu.dtos.ServerSideComponentDto server) {
+      server.actions().forEach(action -> ids.add(action.id()));
+      server.children().forEach(child -> collectActions(child, ids));
+    }
+    if (component instanceof io.mateu.dtos.ClientSideComponentDto client) {
+      client.children().forEach(child -> collectActions(child, ids));
+    }
   }
 
   private static void collectColumns(Object component, List<String> ids) {

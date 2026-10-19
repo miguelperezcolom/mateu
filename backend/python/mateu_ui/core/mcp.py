@@ -13,6 +13,7 @@ and resource lists are pinned byte for byte by ``conformance/mcp/authoring.json`
 """
 
 import json
+import logging
 
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_NAME = "mateu-mcp"
@@ -538,9 +539,22 @@ def _save_spec(args, sync_fn):
     yaml_text = _argument(args, "yaml")
     if not spec_writer.is_acceptable(path):
         raise McpCallerError(spec_writer.refusal(path))
+    if spec_writer.is_catalogue_file(path):
+        raise McpCallerError(spec_writer.catalogue_refusal(path))
     validation = _validation("", yaml_text, sync_fn)
     out = {}
-    if not validation.get("valid"):
+    from mateu_ui.core.agent_push import log_safe
+
+    kind = validation.get("kind")
+    refused = spec_writer.agent_refusal(kind if isinstance(kind, str) else None, yaml_text)
+    if refused is not None:
+        # never written, and said loudly: an agent tried to author what decides a request
+        logging.getLogger("mateu.mcp").warning(
+            "mateu_save_spec refused %s: %s", log_safe(path), refused
+        )
+        out["saved"] = False
+        out["reason"] = refused
+    elif not validation.get("valid"):
         out["saved"] = False
         out["reason"] = "The definition has errors; nothing was written."
     else:
@@ -554,7 +568,16 @@ def _save_spec(args, sync_fn):
 
 def dispatch_tool(name, args, sync_fn, push=None):
     """Run a tool. ``sync_fn(route, action_id, component_state, parameters) -> increment dict``;
-    ``push`` (an ``agent_push.PushContext``, None = push off) serves the live UI push tools."""
+    ``push`` (an ``agent_push.PushContext``, None = push off) serves the live UI push tools. The
+    runs inside are marked as an MCP tool call (``__validate__`` answers only those, or an app with
+    its authoring plane open — :mod:`mateu_ui.core.authoring_gate`)."""
+    from mateu_ui.core.authoring_gate import mcp_call
+
+    with mcp_call():
+        return _dispatch_tool(name, args, sync_fn, push)
+
+
+def _dispatch_tool(name, args, sync_fn, push=None):
     args = args if isinstance(args, dict) else {}
     if name in _PUSH_TOOL_NAMES and push is not None:
         from mateu_ui.core import agent_push

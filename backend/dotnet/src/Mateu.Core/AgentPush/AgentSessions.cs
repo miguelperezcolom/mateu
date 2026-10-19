@@ -80,8 +80,12 @@ internal sealed class AgentSession
     public string? Principal { get; }
 
     /// <summary>Who the session counts against for <c>max-sessions-per-owner</c>: the principal name,
-    /// or — for an anonymous UI — its client address (<c>unknown</c> when it cannot tell).</summary>
+    /// or — for an anonymous UI — the session itself (no stranger sharing its address can lock it out).</summary>
     public string Owner { get; }
+
+    /// <summary>The client address an ANONYMOUS session was opened from (null: signed in, or the
+    /// adapter cannot tell) — what <c>max-anonymous-sessions-per-address</c> counts.</summary>
+    public string? Address { get; internal set; }
     public long RegisteredOrder { get; }
     public string Route { get; internal set; } = "";
     public string Renderer { get; internal set; } = "";
@@ -133,6 +137,7 @@ internal sealed class AgentSessions
     public const int DefaultRatePerMinute = 30;
     public const int DefaultMaxSessions = 1000;
     public const int DefaultMaxSessionsPerOwner = 20;
+    public const int DefaultMaxAnonymousSessionsPerAddress = 200;
     static readonly TimeSpan Minute = TimeSpan.FromMinutes(1);
 
     /// <summary>The pairing code alphabet: no 0/O, 1/I — read off a screen and typed by a person.</summary>
@@ -169,10 +174,19 @@ internal sealed class AgentSessions
     public int MaxSessions { get; }
     public int MaxSessionsPerOwner { get; }
 
+    /// <summary>The most ANONYMOUS sessions one client address holds (much higher than the per-user
+    /// cap: behind a reverse proxy without forwarded-header handling every anonymous UI shares the
+    /// proxy's address). An address the host cannot tell is not limited — only the global cap.</summary>
+    public int MaxAnonymousSessionsPerAddress { get; init; } = DefaultMaxAnonymousSessionsPerAddress;
+
     /// <summary>The owner a NEW session counts against: <c>user:&lt;principal&gt;</c>, else
-    /// <c>address:&lt;client address&gt;</c> (<c>unknown</c> when null/blank).</summary>
-    internal static string OwnerOf(string? principal, string? clientAddress) =>
-        Blank(principal) is { } p ? "user:" + p : "address:" + (Blank(clientAddress)?.Trim() ?? "unknown");
+    /// <c>session:&lt;sessionId&gt;</c> — an anonymous session is nobody else's (keyed on the address,
+    /// every anonymous UI behind one reverse proxy shared a bucket of 20).</summary>
+    internal static string OwnerOf(string? principal, string sessionId) =>
+        Blank(principal) is { } p ? "user:" + p : "session:" + sessionId;
+
+    /// <summary>The address an anonymous session is capped by, or null when unknown.</summary>
+    internal static string? AddressOf(string? clientAddress) => Blank(clientAddress)?.Trim();
 
     /// <summary>How many sessions are registered (connected or within their disconnected grace).</summary>
     public int Count
@@ -200,17 +214,28 @@ internal sealed class AgentSessions
                 Check(session, secret, principal);
             else
             {
-                var owner = OwnerOf(principal, clientAddress);
-                if (_byId.Values.Count(s => s.Owner == owner) >= MaxSessionsPerOwner
+                var owner = OwnerOf(principal, sessionId);
+                var address = Blank(principal) is null ? AddressOf(clientAddress) : null;
+                if (Blank(principal) is not null
+                    && _byId.Values.Count(s => s.Owner == owner) >= MaxSessionsPerOwner
                     && !EvictOneDisconnected(s => s.Owner == owner))
+                    throw new UserFacingException(TooManySessions);
+                if (address is not null
+                    && _byId.Values.Count(s => s.Address == address) >= MaxAnonymousSessionsPerAddress
+                    && !EvictOneDisconnected(s => s.Address == address))
                     throw new UserFacingException(TooManySessions);
                 if (_byId.Count >= MaxSessions && !EvictOneDisconnected(_ => true))
                     throw new UserFacingException(TooManySessions);
-                session = new AgentSession(sessionId, NewHandle(), Sha256(secret), Blank(principal), owner, ++_order);
+                session = new AgentSession(sessionId, NewHandle(), Sha256(secret), Blank(principal), owner, ++_order)
+                {
+                    Address = address,
+                };
                 _byId[sessionId] = session;
                 _byHandle[session.Handle] = session;
             }
-            session.Route = route ?? "";
+            // clipped like Java's (512): a route is caller-chosen and is listed and logged
+            var r0 = route ?? "";
+            session.Route = r0.Length > 512 ? r0[..512] : r0;
             var r = string.IsNullOrWhiteSpace(renderer) ? "" : renderer.Trim();
             session.Renderer = r.Length > MaxRendererLength ? r[..MaxRendererLength] : r;
             session.ConnectedAt = now;

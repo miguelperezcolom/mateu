@@ -23,6 +23,8 @@ public class HelidonMPHttpRequest implements HttpRequest {
 
   private java.security.Principal principal;
 
+  private String remoteAddress;
+
   public HelidonMPHttpRequest(HttpHeaders headers, UriInfo uriInfo) {
     this.headers = headers;
     this.uriInfo = uriInfo;
@@ -35,6 +37,24 @@ public class HelidonMPHttpRequest implements HttpRequest {
   public HelidonMPHttpRequest withPrincipal(java.security.Principal principal) {
     this.principal = principal;
     return this;
+  }
+
+  /**
+   * Attaches the client's address: the SOCKET peer of the Helidon request ({@code
+   * ServerRequest.remotePeer()}), never a forwarded header. Null when the request is not available.
+   */
+  public HelidonMPHttpRequest withRemoteOf(io.helidon.webserver.http.ServerRequest serverRequest) {
+    try {
+      this.remoteAddress = serverRequest == null ? null : serverRequest.remotePeer().host();
+    } catch (RuntimeException e) {
+      this.remoteAddress = null;
+    }
+    return this;
+  }
+
+  @Override
+  public String getRemoteAddress() {
+    return remoteAddress;
   }
 
   @Override

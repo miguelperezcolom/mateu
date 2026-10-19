@@ -38,7 +38,7 @@ public class TabLayoutMapper {
     return new ClientSideComponentDto(
         metadataDto,
         tabLayout.id(),
-        tabLayout.tabs().stream()
+        Children.orEmpty(tabLayout.tabs()).stream()
             .map(
                 tab ->
                     mapComponentToDto(

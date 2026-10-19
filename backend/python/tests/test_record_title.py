@@ -240,3 +240,22 @@ def test_record_title_rule_directly():
     assert record_title(Note, Note("n", "t")) == "Note"
     assert record_title(Reading, Reading()) == "Reading"
     assert record_title(TitledCustomer, TitledCustomer()) == "Customer file"
+
+
+def _page(route: str):
+    inc = _load(route)
+    return next((p for p in (_find_page(f.component) for f in inc.fragments) if p is not None), None)
+
+
+def test_a_record_title_is_marked_text_and_a_declared_one_is_not():
+    """NM12: a title that is DATA travels marked title_is_text, so the web header renders it as
+    text — whoever names a record cannot plant markup (a beacon image, a phishing link) in it."""
+    assert _page("fasteners/b1/edit").title_is_text is True
+    assert _page("fasteners/b1").title_is_text is True
+    assert _page("self-named-form").title_is_text is True
+    assert _page("fasteners/b1/edit").model_dump(by_alias=True)["titleIsText"] is True
+
+
+def test_a_declared_or_class_name_title_is_not_marked():
+    assert _page("anonymous-records/a1/edit").title_is_text is None
+    assert _page("notes-records/n1/edit").title_is_text is None

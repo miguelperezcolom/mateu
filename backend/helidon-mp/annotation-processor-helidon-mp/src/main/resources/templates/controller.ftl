@@ -63,11 +63,13 @@ public class ${simpleClassName}MateuController implements MateuController {
             RunActionRqDto rq,
             @Context HttpHeaders headers,
             @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext)
+            @Context SecurityContext securityContext,
+            @Context io.helidon.webserver.http.ServerRequest serverRequest)
             throws Throwable {
         var httpRequest =
                 new HelidonMPHttpRequest(headers, uriInfo)
                         .withPrincipal(securityContext != null ? securityContext.getUserPrincipal() : null)
+                        .withRemoteOf(serverRequest)
                         .storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
@@ -85,11 +87,13 @@ public class ${simpleClassName}MateuController implements MateuController {
             RunActionRqDto rq,
             @Context HttpHeaders headers,
             @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext)
+            @Context SecurityContext securityContext,
+            @Context io.helidon.webserver.http.ServerRequest serverRequest)
             throws Throwable {
         var httpRequest =
                 new HelidonMPHttpRequest(headers, uriInfo)
                         .withPrincipal(securityContext != null ? securityContext.getUserPrincipal() : null)
+                        .withRemoteOf(serverRequest)
                         .storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);

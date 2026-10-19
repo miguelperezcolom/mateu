@@ -132,7 +132,7 @@ public abstract class EditableView<V, E> extends MultiView {
       toolbar.add(new Button("Edit", "edit"));
     }
     var inline = isInline(httpRequest);
-    String title = getTitle(view);
+    String title = getTitle(view, httpRequest);
     httpRequest.setAttribute("windowTitle", title);
     return PageView.builder()
         .title(title)
@@ -158,7 +158,7 @@ public abstract class EditableView<V, E> extends MultiView {
 
   private Component buildEditorComponent(E editor, HttpRequest httpRequest) {
     var inline = isInline(httpRequest);
-    String title = getTitle(editor);
+    String title = getTitle(editor, httpRequest);
     httpRequest.setAttribute("windowTitle", title);
     return PageView.builder()
         .title(title)

@@ -277,6 +277,11 @@ public class AdapterParityITFoundation {
           .header("X-Echo", "hola")
           .header("X-Multi", "one")
           .header("X-Multi", "two")
+          // a client claiming another address: by default the adapter reads the SOCKET's, never
+          // a header anyone can set (live push and the client-log limits are keyed on it)
+          .header("X-Forwarded-For", "203.0.113.9")
+          .header("Forwarded", "for=203.0.113.9")
+          .header("X-Real-IP", "203.0.113.9")
           .body(action("echo"))
           .when()
           .post("/echo/mateu/v3/" + leg + "/_no_route")
@@ -292,7 +297,8 @@ public class AdapterParityITFoundation {
    */
   public static final String ECHO_EXPECTED =
       "q=hello;tags=a,b;named=true;header=hola;multi=one,two;"
-          + "absentParam=null;absentParams=0;absentHeader=null;absentHeaders=0;path=true";
+          + "absentParam=null;absentParams=0;absentHeader=null;absentHeaders=0;path=true;"
+          + "remote=local";
 
   /**
    * The text {@code echo(HttpRequest)} answers — kept here so the five adapters' fixtures build it
@@ -318,7 +324,26 @@ public class AdapterParityITFoundation {
         + ";absentHeaders="
         + rq.getHeaderValues("X-Absent").size()
         + ";path="
-        + (rq.path() != null && rq.path().endsWith("_no_route"));
+        + (rq.path() != null && rq.path().endsWith("_no_route"))
+        + ";remote="
+        + localOr(rq.getRemoteAddress());
+  }
+
+  /** {@code local} for a loopback address (the tests' client), else the address as given. */
+  private static String localOr(String address) {
+    if (address == null) {
+      return "null";
+    }
+    var a = address.trim();
+    if (a.startsWith("/")) {
+      a = a.substring(1);
+    }
+    return a.startsWith("127.")
+            || a.equals("::1")
+            || a.equals("0:0:0:0:0:0:0:1")
+            || a.equals("[::1]")
+        ? "local"
+        : a;
   }
 
   /** The plain sync endpoint keeps answering one JSON body. */
@@ -332,6 +357,72 @@ public class AdapterParityITFoundation {
         .statusCode(200)
         .header("Content-Type", startsWith("application/json"))
         .body(containsString("\"fragments\""));
+  }
+
+  /**
+   * The content types a cross-site page can send WITHOUT a CORS preflight ({@code text/plain}, the
+   * two form encodings, or no Content-Type at all), each with a perfectly valid JSON body.
+   */
+  private static final String[] SIMPLE_REQUEST_CONTENT_TYPES = {
+    "text/plain", "application/x-www-form-urlencoded", "multipart/form-data; boundary=x", null
+  };
+
+  /**
+   * The sync and SSE endpoints answer 415 to any body that is not declared JSON: a CORS-simple
+   * request (which a cross-site page can make the browser send with the user's cookies) never
+   * reaches an action. This is the control {@code CsrfExemption} relies on, so it must hold on
+   * every adapter, not only where Spring's {@code @RequestBody} happens to give it for free.
+   */
+  public void refusesANonJsonBodyOnTheSyncAndSseEndpoints() throws Exception {
+    for (String path :
+        new String[] {"/hello/mateu/v3/sync/_no_route", "/hello/mateu/v3/sse/_no_route"}) {
+      for (String contentType : SIMPLE_REQUEST_CONTENT_TYPES) {
+        var status = postRaw(path, contentType, RQ);
+        if (status != 415) {
+          throw new AssertionError(
+              path + " with Content-Type " + contentType + " answered " + status + ", not 415");
+        }
+      }
+    }
+  }
+
+  /** The same 415 on {@code POST /mateu/mcp} (with the endpoint enabled). */
+  public void refusesANonJsonBodyOnTheMcpEndpoint() throws Exception {
+    var call =
+        "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\"params\":"
+            + "{\"name\":\"mateu_run_action\",\"arguments\":{\"route\":\"/hello\","
+            + "\"actionId\":\"x\"}}}";
+    for (String contentType : SIMPLE_REQUEST_CONTENT_TYPES) {
+      var status = postRaw("/mateu/mcp", contentType, call);
+      if (status != 415) {
+        throw new AssertionError(
+            "/mateu/mcp with Content-Type " + contentType + " answered " + status + ", not 415");
+      }
+    }
+    // and a JSON one with parameters still works
+    var status =
+        postRaw(
+            "/mateu/mcp",
+            "application/json; charset=utf-8",
+            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\"}");
+    if (status != 200) {
+      throw new AssertionError("a JSON MCP call answered " + status);
+    }
+  }
+
+  /** A POST with exactly this Content-Type header (none when null); answers the status. */
+  private static int postRaw(String path, String contentType, String body) throws Exception {
+    var builder =
+        java.net.http.HttpRequest.newBuilder(
+                URI.create("http://localhost:" + RestAssured.port + path))
+            .timeout(java.time.Duration.ofSeconds(20))
+            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body));
+    if (contentType != null) {
+      builder.header("Content-Type", contentType);
+    }
+    return HttpClient.newHttpClient()
+        .send(builder.build(), HttpResponse.BodyHandlers.discarding())
+        .statusCode();
   }
 
   /** Without {@code mateu.cors.allowed-origins}, no origin is ever granted access. */

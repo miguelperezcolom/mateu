@@ -180,7 +180,7 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.calendar` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.collectiondetail` | 1 | 1 | 0 | 0 | 0 |
-| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 12 | 4 | 0 | 0 | 8 |
+| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 13 | 4 | 0 | 0 | 9 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 12 | 0 | 0 | 0 | 12 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers` | 7 | 0 | 0 | 0 | 7 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.dashboard` | 3 | 1 | 0 | 0 | 2 |
@@ -207,7 +207,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **987** | **827** | **62** | **45** | **53** |
+| **Total** | | **988** | **827** | **62** | **45** | **54** |
 
 **Experimental types** (the whole type and its members):
 

@@ -24,8 +24,26 @@ internal sealed partial class SyncHandler
     /// <summary>Kinds the YAML loader turns into a component tree (the ones a load failure can hit).</summary>
     private static readonly HashSet<string> LoadedKinds = ["component", "envelope"];
 
+    /// <summary>Whether the app exposes its authoring plane (the MCP endpoint is on — the sidecar's
+    /// authoring tools call <c>__validate__</c> over the sync endpoint). Set by the adapter.</summary>
+    public bool AuthoringOpen { get; init; }
+
+    /// <summary>Marks the runs of an MCP tool call (McpService sets it around each one).</summary>
+    internal static readonly AsyncLocal<bool> InMcpCall = new();
+
+    /// <summary>Whether <c>__validate__</c> is served: to an MCP tool call, or by an app that exposes
+    /// its authoring plane or runs in dev mode (Java: <c>RunActionUseCase.validationServed</c>).
+    /// Otherwise it would hand any anonymous caller of a production app a validator over the app's
+    /// own catalogues (sources, partials, actions, routes).</summary>
+    private bool ValidationServed() =>
+        InMcpCall.Value || AuthoringOpen || DevSpecs.Enabled
+        || Environment.GetEnvironmentVariable("MATEU_MCP_ENABLED")?.Trim().ToLowerInvariant() is "true" or "1" or "yes" or "on";
+
     private UIIncrementDto ValidateResponse(RunActionRqDto rq)
     {
+        if (!ValidationServed())
+            throw new MateuForbiddenException(
+                "Forbidden: __validate__ is served only to MCP callers, or with the MCP endpoint enabled or in dev mode");
         var yaml = rq.Parameters.TryGetValue(YamlParameter, out var raw) ? StateString(raw) ?? "" : "";
         return UIIncrementDto.Of() with
         {

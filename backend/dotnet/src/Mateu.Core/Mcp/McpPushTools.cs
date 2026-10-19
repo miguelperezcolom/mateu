@@ -93,7 +93,7 @@ internal static partial class McpPushTools
         sessions.Send(session, kind, @event, detail);
         MateuLogging.For("Mateu.Mcp").LogInformation(
             "Mateu agent push: caller={Caller} session={Session} kind={Kind} {What} bytes={Bytes}",
-            svc.Caller.LogLabel, session.Handle, kind, what, Encoding.UTF8.GetByteCount(
+            svc.Caller.LogLabel, session.Handle, kind, MateuLogging.Safe(what), Encoding.UTF8.GetByteCount(
                 new JsonObject { ["kind"] = kind, ["event"] = @event, ["detail"] = detail.DeepClone() }.ToJsonString()));
     }
 

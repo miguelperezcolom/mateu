@@ -20,7 +20,7 @@ public class FormRowMapper {
     return new ClientSideComponentDto(
         metadataDto,
         formRow.id(),
-        formRow.content().stream()
+        Children.orEmpty(formRow.content()).stream()
             .map(
                 content ->
                     mapComponentToDto(

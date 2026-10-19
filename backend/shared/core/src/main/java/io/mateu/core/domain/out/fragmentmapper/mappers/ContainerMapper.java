@@ -24,7 +24,7 @@ public class ContainerMapper {
         List.of(
             mapComponentToDto(
                 null,
-                container.content(),
+                Children.orEmptySlot(container.content()),
                 baseUrl,
                 route,
                 consumedRoute,

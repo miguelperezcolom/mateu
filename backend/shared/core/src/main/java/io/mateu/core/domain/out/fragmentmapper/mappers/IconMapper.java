@@ -9,7 +9,7 @@ public class IconMapper {
 
   public static ClientSideComponentDto mapIconToDto(Icon icon) {
     return new ClientSideComponentDto(
-        new IconDto(icon.icon().iconName),
+        new IconDto(icon.icon() == null ? null : icon.icon().iconName),
         "fieldId",
         List.of(),
         icon.style(),

@@ -71,10 +71,17 @@ public sealed class MateuOptions
     /// <c>MATEU_MCP_PUSH_MAX_SESSIONS</c>, else 1000.</summary>
     public int? McpPushMaxSessions { get; set; }
 
-    /// <summary>The most live UI sessions one OWNER holds at once (the UI's principal name, or — for an
-    /// anonymous UI — its client address). Null (the default) reads
-    /// <c>MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER</c>, else 20.</summary>
+    /// <summary>The most live UI sessions one signed-in user (the UI's principal name) holds at once.
+    /// Null (the default) reads <c>MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER</c>, else 20.</summary>
     public int? McpPushMaxSessionsPerOwner { get; set; }
+
+    /// <summary>The most ANONYMOUS live UI sessions one client address holds at once. The address is
+    /// <c>HttpContext.Connection.RemoteIpAddress</c> — the socket peer, unless the app runs ASP.NET's
+    /// <c>ForwardedHeaders</c> middleware with its known proxies — so behind a reverse proxy without it
+    /// every anonymous UI shares the proxy's address. Null (the default) reads
+    /// <c>MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS</c>, else 200 (Java:
+    /// <c>mateu.mcp.push.max-anonymous-sessions-per-address</c>).</summary>
+    public int? McpPushMaxAnonymousSessionsPerAddress { get; set; }
 
     /// <summary>Whether <c>MATEU_MCP_PUSH_ENABLED</c> turns live UI push on (true/1/yes).</summary>
     public static bool McpPushEnabledByEnvironment() =>
@@ -93,6 +100,10 @@ public sealed class MateuOptions
     internal int PushMaxSessionsPerOwner => McpPushMaxSessionsPerOwner
         ?? IntFromEnvironment("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER")
         ?? Mateu.Core.AgentPush.AgentSessions.DefaultMaxSessionsPerOwner;
+
+    internal int PushMaxAnonymousSessionsPerAddress => McpPushMaxAnonymousSessionsPerAddress
+        ?? IntFromEnvironment("MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS")
+        ?? Mateu.Core.AgentPush.AgentSessions.DefaultMaxAnonymousSessionsPerAddress;
 
     private static int? IntFromEnvironment(string name) =>
         int.TryParse(System.Environment.GetEnvironmentVariable(name)?.Trim(), out var n) && n > 0 ? n : null;

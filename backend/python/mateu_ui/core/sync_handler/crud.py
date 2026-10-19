@@ -517,11 +517,35 @@ class CrudHandlerMixin(MixinBase):
         """Persists a single row edited in place in the listing grid (inline editing). The edited
         row travels in the _editedRow action parameter (mirrors Java's UpdateRowActionHandler →
         FilteredAutoCrud.updateRow: rebuild the entity, save)."""
+        # The write behind inline editing exists only where the crud edits inline (NM11): anywhere
+        # else a crafted update-row is refused like an action naming nothing.
+        if not getattr(type(crud), "__mateu_inline_editing__", False):
+            raise action_guard.MateuForbiddenException(
+                f"update-row: {type(crud).__name__} does not edit rows inline"
+            )
         row = (rq.parameters or {}).get("_editedRow")
         if not isinstance(row, dict):
             return self.error("update-row requires an _editedRow parameter")
-        entity = element()
-        self.bind_state(entity, row)
+        # The same protection as the editor's save: the row names a STORED record (an unknown id is
+        # refused, never inserted), it is laid over a detached copy of that record (the fields it
+        # does not carry are kept) and a ReadOnly() column's posted value never reaches the entity.
+        raw_id = row.get("id")
+        stored = crud.get(str(raw_id)) if raw_id not in (None, "") else None
+        if stored is None:
+            return self.error("This row no longer exists. Reload the list to see the current rows.")
+        import copy
+
+        from mateu_ui.uidl import ReadOnly
+        from ..reflection import class_flag
+
+        entity = copy.copy(stored)
+        read_only = bool(class_flag(element, "__mateu_read_only__", False))
+        locked = {camel_case(f.name) for f in view_fields(element) if read_only or f.has(ReadOnly)}
+        self.bind_state(entity, {k: v for k, v in row.items() if k not in locked})
+        entity.id = stored.id if hasattr(stored, "id") else raw_id
+        missing = self.required_missing(entity, element)
+        if missing:
+            return self.error("Please fill: " + ", ".join(missing))
         # Optimistic locking (Version()): an inline-edit over someone else's save is rejected
         # with the same reload/overwrite dialog; Overwrite re-sends the SAME edited row (the
         # button's parameters merge into the action request), Reload re-runs the search

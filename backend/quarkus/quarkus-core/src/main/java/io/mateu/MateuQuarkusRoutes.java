@@ -81,6 +81,7 @@ public class MateuQuarkusRoutes {
 
   void register(@Observes Router router) {
     cors(router);
+    jsonBodies(router);
     if (assetCachingEnabled) {
       assetCaching(router);
     }
@@ -126,6 +127,31 @@ public class MateuQuarkusRoutes {
                 return;
               }
               policy.responseHeaders(origin).forEach(rc.response()::putHeader);
+              rc.next();
+            });
+  }
+
+  /**
+   * 415 to a POST to Mateu's action endpoints whose body is not declared JSON ({@link
+   * io.mateu.core.infra.security.JsonBodyGuard}): the CORS-simple requests a cross-site page could
+   * forge with the user's cookies. Ahead of Quarkus REST, which bound a text/plain body anyway.
+   */
+  private void jsonBodies(Router router) {
+    router
+        .route()
+        .order(EARLY)
+        .handler(
+            rc -> {
+              var request = rc.request();
+              if (io.mateu.core.infra.security.JsonBodyGuard.refuses(
+                  request.method().name(), request.path(), request.getHeader("Content-Type"))) {
+                rc.response()
+                    .setStatusCode(
+                        io.mateu.core.infra.security.JsonBodyGuard.UNSUPPORTED_MEDIA_TYPE)
+                    .putHeader("Content-Type", "text/plain;charset=UTF-8")
+                    .end(io.mateu.core.infra.security.JsonBodyGuard.MESSAGE);
+                return;
+              }
               rc.next();
             });
   }
