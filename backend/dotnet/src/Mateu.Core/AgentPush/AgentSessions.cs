@@ -126,6 +126,32 @@ internal sealed class AgentSessions
     public static string NotConnected(string session) => $"Session \"{session}\" is not connected.";
     public static string ReservedEvent(string e) => $"Event \"{e}\" is reserved: use mateu_push_ui or mateu_navigate.";
     public static string InvalidEvent(string e) => $"Invalid event name \"{e}\".";
+    public static string FrameworkEvent(string e) =>
+        $"Event \"{e}\" is one of the framework's own events: dispatch an event a screen subscribes to (@SubscribeTo).";
+
+    /// <summary>The event names the renderers listen to themselves (and DOM ones): never an agent's to
+    /// dispatch (N16) — every renderer drops them already; refusing them here too means one renderer's
+    /// filter defect is not a bypass. The same list as <c>conformance/client/agent-events.json</c>.</summary>
+    public static readonly IReadOnlySet<string> FrameworkEvents = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "action-requested", "server-side-action-requested", "url-update-requested",
+        "route-changed", "navigate-to-requested", "page-banners-received", "dirty", "clean",
+        "value-changed", "data-changed", "app-data-updated", "close-modal-requested",
+        "column-prefs-changed", "compact-changed", "history-pushed", "selected-changed",
+        "search-requested", "filter-reset-requested", "picked", "pinged", "click", "dblclick",
+        "input", "change", "submit", "keydown", "keyup", "keypress", "focus", "blur", "focusin",
+        "focusout", "load", "error", "abort", "message", "storage", "popstate", "hashchange",
+        "beforeunload", "pagehide", "online", "offline", "resize", "scroll", "wheel",
+        "contextmenu", "pointerdown", "pointerup", "mousedown", "mouseup", "touchstart", "drop",
+        "dragstart", "dragend", "unhandledrejection", "DOMContentLoaded",
+    };
+
+    /// <summary>Prefixes of the framework's own event names.</summary>
+    public static readonly IReadOnlyList<string> FrameworkEventPrefixes = ["mateu-", "backend-", "vaadin-"];
+
+    /// <summary>Whether <paramref name="e"/> is one of the framework's own event names.</summary>
+    public static bool IsFrameworkEvent(string e) =>
+        FrameworkEvents.Contains(e) || FrameworkEventPrefixes.Any(p => e.StartsWith(p, StringComparison.Ordinal));
     public static string InvalidTarget(string t) => $"Invalid target \"{t}\": use content, drawer or dialog.";
 
     // ── the fixed limits ──────────────────────────────────────────────────────────────────────

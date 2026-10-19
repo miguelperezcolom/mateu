@@ -74,6 +74,36 @@ class McpPushCorpusTest {
     assertThat(listed.path("result").path("tools").toString()).contains("mateu_push_ui");
   }
 
+  /**
+   * N16: the server refuses the framework's own event names too — the same list the renderers drop
+   * ({@code conformance/client/agent-events.json}), so one renderer's filter defect is no bypass.
+   */
+  @Test
+  void theFrameworksOwnEventNamesAreTheRenderersOnes() throws Exception {
+    var events =
+        OM.readTree(
+            Files.readString(
+                McpAuthoringCorpusTest.corpusFile()
+                    .getParent()
+                    .resolveSibling("client")
+                    .resolve("agent-events.json")));
+    var reserved = new java.util.TreeSet<String>();
+    events.get("reserved").forEach(n -> reserved.add(n.asText()));
+    assertThat(
+            new java.util.TreeSet<>(io.mateu.core.application.agentpush.AgentPush.FRAMEWORK_EVENTS))
+        .isEqualTo(reserved);
+    var prefixes = new java.util.ArrayList<String>();
+    events.get("reservedPrefixes").forEach(n -> prefixes.add(n.asText()));
+    assertThat(io.mateu.core.application.agentpush.AgentPush.FRAMEWORK_EVENT_PREFIXES)
+        .isEqualTo(prefixes);
+    assertThat(
+            io.mateu.core.application.agentpush.AgentPush.FRAMEWORK_EVENT.replace("%s", "{event}"))
+        .isEqualTo(corpus().get("errors").get("frameworkEvent").asText());
+    assertThat(io.mateu.core.application.agentpush.AgentPush.isFrameworkEvent("vaadin-x")).isTrue();
+    assertThat(io.mateu.core.application.agentpush.AgentPush.isFrameworkEvent("highlight-row"))
+        .isFalse();
+  }
+
   @Test
   void theScenarioRunsAsWritten() throws Exception {
     AgentSessions.shared().reset();

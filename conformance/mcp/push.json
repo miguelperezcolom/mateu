@@ -140,6 +140,7 @@
     "tooManyAttempts": "Too many pairing attempts; try again in a minute.",
     "reservedEvent": "Event \"{event}\" is reserved: use mateu_push_ui or mateu_navigate.",
     "invalidEvent": "Invalid event name \"{event}\".",
+    "frameworkEvent": "Event \"{event}\" is one of the framework's own events: dispatch an event a screen subscribes to (@SubscribeTo).",
     "detailTooLarge": "The detail is larger than the 65536-byte limit.",
     "invalidTarget": "Invalid target \"{target}\": use content, drawer or dialog.",
     "channelRefused": "This UI session belongs to another channel.",
@@ -169,6 +170,7 @@
       { "as": "alice", "tool": "mateu_navigate", "args": { "session": "<session:ui-1>", "route": "/orders/42" }, "expect": { "delivered": true, "session": "<session:ui-1>" } },
       { "as": "alice", "tool": "mateu_dispatch_event", "args": { "session": "<session:ui-1>", "event": "render-screen" }, "expect": { "error": "Event \"render-screen\" is reserved: use mateu_push_ui or mateu_navigate." } },
       { "as": "alice", "tool": "mateu_dispatch_event", "args": { "session": "<session:ui-1>", "event": "bad name!" }, "expect": { "error": "Invalid event name \"bad name!\"." } },
+      { "as": "alice", "tool": "mateu_dispatch_event", "args": { "session": "<session:ui-1>", "event": "route-changed", "detail": { "route": "/admin" } }, "expect": { "error": "Event \"route-changed\" is one of the framework's own events: dispatch an event a screen subscribes to (@SubscribeTo)." } },
       { "as": "alice", "tool": "mateu_dispatch_event", "args": { "session": "<session:ui-1>", "event": "highlight-row", "detail": { "id": 7 } }, "expect": { "delivered": true, "session": "<session:ui-1>" } },
       { "received": "ui-1", "expect": [
         { "kind": "render", "event": "render-screen", "detail": { "yaml": "type: Text\ntext: Hello\n", "target": "drawer", "title": "Greeting" } },

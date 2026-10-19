@@ -125,6 +125,36 @@ def invalid_event(event: str) -> str:
     return f'Invalid event name "{event}".'
 
 
+def framework_event(event: str) -> str:
+    return (
+        f'Event "{event}" is one of the framework\'s own events: dispatch an event a screen subscribes to'
+        " (@SubscribeTo)."
+    )
+
+
+# The event names the renderers listen to themselves (and DOM ones): never an agent's to dispatch
+# (N16) — every renderer drops them already; refusing them here too means one renderer's filter
+# defect is not a bypass. The same list as conformance/client/agent-events.json.
+FRAMEWORK_EVENTS = frozenset({
+    "action-requested", "server-side-action-requested", "url-update-requested", "route-changed",
+    "navigate-to-requested", "page-banners-received", "dirty", "clean", "value-changed",
+    "data-changed", "app-data-updated", "close-modal-requested", "column-prefs-changed",
+    "compact-changed", "history-pushed", "selected-changed", "search-requested",
+    "filter-reset-requested", "picked", "pinged", "click", "dblclick", "input", "change",
+    "submit", "keydown", "keyup", "keypress", "focus", "blur", "focusin", "focusout", "load",
+    "error", "abort", "message", "storage", "popstate", "hashchange", "beforeunload", "pagehide",
+    "online", "offline", "resize", "scroll", "wheel", "contextmenu", "pointerdown", "pointerup",
+    "mousedown", "mouseup", "touchstart", "drop", "dragstart", "dragend", "unhandledrejection",
+    "DOMContentLoaded",
+})
+FRAMEWORK_EVENT_PREFIXES = ("mateu-", "backend-", "vaadin-")
+
+
+def is_framework_event(event: str) -> bool:
+    """Whether ``event`` is one of the framework's own event names."""
+    return event in FRAMEWORK_EVENTS or event.startswith(FRAMEWORK_EVENT_PREFIXES)
+
+
 def reserved_event(event: str) -> str:
     return f'Event "{event}" is reserved: use mateu_push_ui or mateu_navigate.'
 
@@ -709,6 +739,8 @@ def call_tool(
             raise UserFacingException(invalid_event(event))
         if event in RESERVED_EVENTS:
             raise UserFacingException(reserved_event(event))
+        if is_framework_event(event):
+            raise UserFacingException(framework_event(event))
         raw_detail = args.get("detail")
         event_detail = {} if raw_detail is None else raw_detail
         if len(json.dumps(event_detail, separators=(",", ":"), ensure_ascii=False).encode("utf-8")) > MAX_DETAIL_BYTES:

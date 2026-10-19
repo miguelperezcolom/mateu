@@ -82,6 +82,87 @@ public final class AgentPush {
   public static final String RESERVED_EVENT =
       "Event \"%s\" is reserved: use mateu_push_ui or mateu_navigate.";
   public static final String INVALID_EVENT = "Invalid event name \"%s\".";
+  public static final String FRAMEWORK_EVENT =
+      "Event \"%s\" is one of the framework's own events: dispatch an event a screen subscribes to"
+          + " (@SubscribeTo).";
+
+  /**
+   * The event names the renderers listen to themselves (and DOM ones): never an agent's to dispatch
+   * (N16). Every renderer drops them already (libs/mateu agentEventPolicy.ts, Redwood chat.mjs) —
+   * refusing them here too means one renderer's filter defect is not a bypass. The same list as
+   * {@code conformance/client/agent-events.json} ({@code reserved} + {@code reservedPrefixes}).
+   */
+  public static final java.util.Set<String> FRAMEWORK_EVENTS =
+      java.util.Set.of(
+          "action-requested",
+          "server-side-action-requested",
+          "url-update-requested",
+          "route-changed",
+          "navigate-to-requested",
+          "page-banners-received",
+          "dirty",
+          "clean",
+          "value-changed",
+          "data-changed",
+          "app-data-updated",
+          "close-modal-requested",
+          "column-prefs-changed",
+          "compact-changed",
+          "history-pushed",
+          "selected-changed",
+          "search-requested",
+          "filter-reset-requested",
+          "picked",
+          "pinged",
+          "click",
+          "dblclick",
+          "input",
+          "change",
+          "submit",
+          "keydown",
+          "keyup",
+          "keypress",
+          "focus",
+          "blur",
+          "focusin",
+          "focusout",
+          "load",
+          "error",
+          "abort",
+          "message",
+          "storage",
+          "popstate",
+          "hashchange",
+          "beforeunload",
+          "pagehide",
+          "online",
+          "offline",
+          "resize",
+          "scroll",
+          "wheel",
+          "contextmenu",
+          "pointerdown",
+          "pointerup",
+          "mousedown",
+          "mouseup",
+          "touchstart",
+          "drop",
+          "dragstart",
+          "dragend",
+          "unhandledrejection",
+          "DOMContentLoaded");
+
+  /** Prefixes of the framework's own event names. */
+  public static final java.util.List<String> FRAMEWORK_EVENT_PREFIXES =
+      java.util.List.of("mateu-", "backend-", "vaadin-");
+
+  /** Whether {@code event} is one of the framework's own event names. */
+  public static boolean isFrameworkEvent(String event) {
+    return event != null
+        && (FRAMEWORK_EVENTS.contains(event)
+            || FRAMEWORK_EVENT_PREFIXES.stream().anyMatch(event::startsWith));
+  }
+
   public static final String DETAIL_TOO_LARGE = "The detail is larger than the 65536-byte limit.";
   public static final String INVALID_TARGET =
       "Invalid target \"%s\": use content, drawer or dialog.";

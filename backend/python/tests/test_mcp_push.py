@@ -156,6 +156,7 @@ def test_error_texts_are_the_corpus():
     assert agent_push.TOO_MANY_ATTEMPTS == errors["tooManyAttempts"]
     assert agent_push.reserved_event("e") == errors["reservedEvent"].format(event="e")
     assert agent_push.invalid_event("e") == errors["invalidEvent"].format(event="e")
+    assert agent_push.framework_event("e") == errors["frameworkEvent"].format(event="e")
     assert agent_push.DETAIL_TOO_LARGE == errors["detailTooLarge"]
     assert agent_push.invalid_target("t") == errors["invalidTarget"].format(target="t")
     assert agent_push.CHANNEL_REFUSED == errors["channelRefused"]
@@ -851,3 +852,13 @@ def test_what_an_agent_sends_cannot_forge_log_lines_and_a_route_is_bounded(caplo
     line = [r.getMessage() for r in caplog.records if "agent push" in r.getMessage()][-1]
     assert "\n" not in line and "\r" not in line
     assert len(line) < 400
+
+
+# N16: the server refuses the framework's own event names too — the same list the renderers drop
+# (conformance/client/agent-events.json), so one renderer's filter defect is no bypass.
+def test_the_frameworks_own_event_names_are_the_renderers_ones():
+    events = json.loads((CORPUS_FILE.parent.parent / "client" / "agent-events.json").read_text(encoding="utf-8"))
+    assert agent_push.FRAMEWORK_EVENTS == frozenset(events["reserved"])
+    assert list(agent_push.FRAMEWORK_EVENT_PREFIXES) == events["reservedPrefixes"]
+    assert agent_push.is_framework_event("vaadin-x")
+    assert not agent_push.is_framework_event("highlight-row")

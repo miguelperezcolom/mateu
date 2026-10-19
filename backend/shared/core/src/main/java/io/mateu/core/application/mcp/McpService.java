@@ -532,6 +532,10 @@ public class McpService {
       throw new io.mateu.uidl.UserFacingException(
           String.format(io.mateu.core.application.agentpush.AgentPush.INVALID_EVENT, event));
     }
+    if (io.mateu.core.application.agentpush.AgentPush.isFrameworkEvent(event)) {
+      throw new io.mateu.uidl.UserFacingException(
+          String.format(io.mateu.core.application.agentpush.AgentPush.FRAMEWORK_EVENT, event));
+    }
     Map<String, Object> map =
         detail != null && detail.isObject()
             ? objectMapper.convertValue(

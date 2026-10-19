@@ -243,7 +243,10 @@ paired}`.
 - `mateu_dispatch_event {session, event, detail?}` — `event` must match
   `^[A-Za-z][A-Za-z0-9_.:-]{0,63}$` (else `Invalid event name "<e>".`) and not be `render-screen`,
   `navigation-requested`, `close-requested` or `mateu-agent-status` (`Event "<e>" is reserved: use
-  mateu_push_ui or mateu_navigate.`); the detail serialised ≤ 65536 UTF-8 bytes (`The detail is
+  mateu_push_ui or mateu_navigate.`), nor one of the framework's own event names — the `reserved`
+  list and `reservedPrefixes` of `conformance/client/agent-events.json`, which every renderer drops
+  too (`Event "<e>" is one of the framework's own events: dispatch an event a screen subscribes to
+  (@SubscribeTo).`); the detail serialised ≤ 65536 UTF-8 bytes (`The detail is
   larger than the 65536-byte limit.`) → `{delivered: true, session}`.
 
 Order of the checks for the three senders: arguments (missing → `Missing argument "x".`, target, event
