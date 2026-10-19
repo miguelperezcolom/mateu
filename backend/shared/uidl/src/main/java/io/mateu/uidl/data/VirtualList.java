@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/** A lazily rendered, scrollable list of components that loads pages on demand. */
 @Builder
 public record VirtualList(Page<Component> page, String style, String cssClasses)
     implements Component {}

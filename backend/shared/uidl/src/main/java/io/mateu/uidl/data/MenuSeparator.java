@@ -4,6 +4,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
 import lombok.Builder;
 
+/** A visual divider between entries of a menu. */
 @Builder
 public record MenuSeparator() implements Actionable {
 

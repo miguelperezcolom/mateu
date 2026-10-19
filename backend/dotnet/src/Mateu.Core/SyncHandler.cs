@@ -118,11 +118,21 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // screen): with no YAML it answers the same "Invalid or empty YAML" notice as Java.
         if (rq.ActionId == "__preview__")
         {
-            var yamlText = rq.Parameters.TryGetValue("_yaml", out var yamlParam) ? StateString(yamlParam) ?? "" : "";
-            var previewTree = (string.IsNullOrWhiteSpace(yamlText) ? null : YamlComponentBuilder.Parse(yamlText, types: _fieldTypes))
-                              ?? new Text("Invalid or empty YAML") { Style = "color: red;" };
+            var previewYaml = rq.Parameters.TryGetValue("_yaml", out var yamlParam) ? StateString(yamlParam) ?? "" : "";
+            if (System.Text.Encoding.UTF8.GetByteCount(previewYaml) > Authoring.UidlValidator.MaxYamlBytes)
+                return FragmentResponse("Preview", ComponentMapper.Map(new Text("The YAML is too large to preview") { Style = "color: red;" }), rq);
+            // Say WHY a definition cannot be read: "invalid" alone sent the author hunting through the file.
+            (IComponent? previewTree, string? problem) = string.IsNullOrWhiteSpace(previewYaml)
+                ? (null, null)
+                : YamlComponentBuilder.ParseReporting(previewYaml, types: _fieldTypes);
+            previewTree ??= new Text(problem is not null ? "Invalid YAML — " + problem : "Invalid or empty YAML") { Style = "color: red;" };
             return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
         }
+
+        // 0c'. Authoring: validate arbitrary YAML definition text (the MCP tool mateu_validate_uidl)
+        // and answer the report on appData._validation; renders nothing (mirrors Java's __validate__).
+        if (rq.ActionId == ValidateAction)
+            return ValidateResponse(rq);
 
         // 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
         // _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),

@@ -255,6 +255,21 @@ are shared by every renderer.
   to nothing.
 - the server encodes the root/empty route as **`"_empty"`** on the wire; a host normalizes it to `""`.
 
+**The authoring tools** (the phase-B half: an agent *writing* a screen rather than operating one)
+ride two reserved sync actions, so the sidecar and the native endpoint share one implementation per
+backend and the caller's identity and the route's access rules apply as to any action:
+
+- `__validate__` — `parameters._yaml` = a YAML definition; the answer carries the validation report
+  on `appData._validation` (`{valid, kind, errors[], warnings[]}`, each issue
+  `{code, message, path, line?, column?}`) and renders nothing. `mateu_validate_uidl` is this call.
+- `__preview__` — the same text rendered as the page it describes (layout only, no view model);
+  `mateu_preview_uidl` validates first and projects this answer with the rules above. A text that
+  does not parse now renders the reason (`Invalid YAML — line N (path): …`), not a bare "invalid".
+
+The validation rules (scalar typing, root classification, the walk, the message texts, the
+semantic checks) and the tool/resource surface are normative and live with their corpus in
+`conformance/mcp/README.md` + `conformance/mcp/authoring.json`, pinned by the four implementations.
+
 **Two hosts, one projection.** The **sidecar** (`frontend/mcp-server/`, zero-dependency Node) speaks only
 this wire, so it operates a Java, .NET or Python backend with no backend change. The **native endpoint**
 serves the same projection from `MateuService` directly, enforcing RBAC natively. Reference

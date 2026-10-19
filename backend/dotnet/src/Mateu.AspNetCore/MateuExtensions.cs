@@ -280,7 +280,7 @@ public static class MateuExtensions
                 return;
             }
             var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}";
-            var mcp = new McpService(handler, Json, baseUrl, rq => Guard(ctx, rq, () => handler.Handle(rq, baseUrl)));
+            var mcp = new McpService(handler, Json, baseUrl, rq => GuardMcp(ctx, rq, () => handler.Handle(rq, baseUrl)));
             var response = McpJsonRpc.Handle(message, mcp);
             if (response is null)
             {
@@ -363,6 +363,27 @@ public static class MateuExtensions
         try
         {
             return run();
+        }
+        catch (Exception e)
+        {
+            return ErrorIncrement(ctx, rq, e, out _);
+        }
+    }
+
+    /// <summary>The boundary for an MCP tool call: like <see cref="Guard"/>, except that a refused
+    /// request is RETHROWN (after the same warning) — the MCP service turns it into the tool error
+    /// "Forbidden", where an ordinary failure still answers its screen with the generic message.</summary>
+    internal static UIIncrementDto GuardMcp(HttpContext ctx, RunActionRqDto rq, Func<UIIncrementDto> run)
+    {
+        try
+        {
+            return run();
+        }
+        catch (MateuForbiddenException e)
+        {
+            Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
+                rq.Route, rq.ActionId, e.Message);
+            throw;
         }
         catch (Exception e)
         {

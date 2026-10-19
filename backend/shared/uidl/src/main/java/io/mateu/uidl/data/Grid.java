@@ -4,6 +4,7 @@ import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
 
+/** A data table with columns, rows and optional tree, striping and border options. */
 @Builder
 public record Grid(
     String id,

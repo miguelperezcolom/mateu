@@ -1,6 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mateu.Core.Authoring;
 using Mateu.Dtos;
+using Mateu.Uidl;
+using Microsoft.Extensions.Logging;
 
 namespace Mateu.Core.Mcp;
 
@@ -140,7 +143,107 @@ internal sealed class McpService
 
     JsonNode? Sync(RunActionRqDto rq)
     {
-        var increment = _run is not null ? _run(rq) : _handler.Handle(rq, _requestBaseUrl);
+        UIIncrementDto increment;
+        try
+        {
+            increment = _run is not null ? _run(rq) : _handler.Handle(rq, _requestBaseUrl);
+        }
+        catch (Exception e) when (IsForbidden(e))
+        {
+            // A refused request is the tool error "Forbidden" — never the guard's own wording, which
+            // names roles and annotations.
+            throw new UserFacingException("Forbidden");
+        }
+        catch (Exception e)
+        {
+            // The sync endpoint's error boundary, applied here too: an action that FAILS answers the
+            // generic message + reference as a screen message — never the raw exception text, which
+            // may carry SQL, paths or other users' data.
+            var cause = MateuErrors.Unwrap(e);
+            var (message, reference) = ErrorBoundary.Describe(cause);
+            if (reference is not null)
+                MateuLogging.For("Mateu.Mcp").LogError(cause,
+                    "Unhandled error in action {ActionId} on {Route} [{Reference}]", rq.ActionId, rq.Route, reference);
+            increment = UIIncrementDto.Of(messages: [message]);
+        }
         return JsonSerializer.SerializeToNode(increment, _json);
+    }
+
+    static bool IsForbidden(Exception? e)
+    {
+        for (; e is not null; e = e.InnerException)
+        {
+            if (e is MateuForbiddenException) return true;
+            if (e is AggregateException aggregate && aggregate.InnerExceptions.Any(IsForbidden)) return true;
+        }
+        return false;
+    }
+
+    // ── authoring (phase B): validate, preview, save ──────────────────────────────────────────
+
+    /// <summary><c>mateu_validate_uidl</c>: the app's <c>__validate__</c> answer for <paramref name="yaml"/>.</summary>
+    public JsonObject Validate(string yaml) => Validation("", yaml);
+
+    /// <summary><c>mateu_preview_uidl</c>: validate, then — when the definition is a page with no
+    /// error — render it through <c>__preview__</c> (layout only: no view model, nothing saved) and
+    /// project the answer: <c>{rendered, validation, screen | reason}</c>.</summary>
+    public JsonObject Preview(string yaml, string? route)
+    {
+        route ??= "";
+        var validation = Validation(route, yaml);
+        var kind = validation["kind"] is JsonValue k && k.TryGetValue<string>(out var ks) ? ks : "";
+        var out_ = new JsonObject();
+        if (validation["valid"]?.GetValue<bool>() != true)
+        {
+            out_["rendered"] = false;
+            out_["reason"] = "The definition has errors; fix them first.";
+        }
+        else if (kind != "component" && kind != "envelope")
+        {
+            out_["rendered"] = false;
+            out_["reason"] = "Only a page (a component, or a layout: envelope) can be previewed.";
+        }
+        else
+        {
+            var increment = Sync(Rq(route, "__preview__", null, new JsonObject { [SyncHandler.YamlParameter] = yaml }));
+            out_["rendered"] = true;
+            out_["screen"] = McpProjection.Project(increment);
+        }
+        out_["validation"] = validation;
+        return out_;
+    }
+
+    /// <summary><c>mateu_save_spec</c> (development mode only): validate and, with no error, write
+    /// the file into <paramref name="specsDir"/> — the dev-mode watcher then reloads the browsers.</summary>
+    public JsonObject SaveSpec(string path, string yaml, string specsDir)
+    {
+        if (!SpecWriter.IsAcceptable(path)) throw new UserFacingException(SpecWriter.Refusal(path));
+        var validation = Validation("", yaml);
+        var out_ = new JsonObject();
+        if (validation["valid"]?.GetValue<bool>() != true)
+        {
+            out_["saved"] = false;
+            out_["reason"] = "The definition has errors; nothing was written.";
+        }
+        else
+        {
+            var bytes = SpecWriter.Write(specsDir, path, yaml);
+            out_["saved"] = true;
+            out_["path"] = path;
+            out_["bytes"] = bytes;
+        }
+        out_["validation"] = validation;
+        return out_;
+    }
+
+    JsonObject Validation(string route, string? yaml)
+    {
+        var increment = Sync(Rq(route, SyncHandler.ValidateAction, null,
+            new JsonObject { [SyncHandler.YamlParameter] = yaml ?? "" }));
+        if (increment?["appData"]?[SyncHandler.ValidationKey] is JsonObject report)
+            return (JsonObject)report.DeepClone();
+        // refused, or failed: the increment's message says why
+        var text = increment?["messages"]?[0]?["text"] is JsonValue t && t.TryGetValue<string>(out var s) ? s : "validation failed";
+        throw new UserFacingException(text);
     }
 }

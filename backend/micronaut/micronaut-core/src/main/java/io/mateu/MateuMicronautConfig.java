@@ -19,6 +19,9 @@ import io.micronaut.serde.annotation.SerdeImport;
 @Import(
     packages = {
       "io.mateu.core.application",
+      // the YAML validator behind __validate__ / the MCP authoring tools (RunActionUseCase injects
+      // it)
+      "io.mateu.core.application.authoring",
       // the translation catalogue (YamlUidlLoader / YamlAppLoader inject it): without it the
       // first YAML-backed request fails with "No bean of type TranslationRegistry"
       "io.mateu.core.application.i18n",

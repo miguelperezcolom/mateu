@@ -25,7 +25,7 @@ class SecretResolverTest {
   void theUseCaseDelegatesUnchanged() {
     assertThat(RunActionUseCase.SECRET_ENV_PREFIX).isEqualTo(SecretResolver.SECRET_ENV_PREFIX);
     assertThat(RunActionUseCase.secretEnvName("K")).isEqualTo(SecretResolver.secretEnvName("K"));
-    assertThat(new RunActionUseCase(null, null, null, null, null, null).resolveSecret("PATH"))
+    assertThat(new RunActionUseCase(null, null, null, null, null, null, null).resolveSecret("PATH"))
         .isNull();
   }
 }

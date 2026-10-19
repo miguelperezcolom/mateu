@@ -96,7 +96,14 @@ class McpServiceSyncTest {
     list.get("result").get("tools").forEach(t -> names.add(t.get("name").asText()));
     assertThat(names)
         .containsExactly(
-            "mateu_describe_screen", "mateu_list_routes", "mateu_run_action", "mateu_search");
+            "mateu_describe_screen",
+            "mateu_get_component_schema",
+            "mateu_list_components",
+            "mateu_list_routes",
+            "mateu_preview_uidl",
+            "mateu_run_action",
+            "mateu_search",
+            "mateu_validate_uidl");
   }
 
   @Test

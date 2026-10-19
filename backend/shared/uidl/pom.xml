@@ -57,6 +57,22 @@
                     <include>contract.json</include>
                 </includes>
             </resource>
+            <!--
+              The authoring contract, packaged so a running app can serve it (the MCP authoring
+              resources mateu://schema/uidl, mateu://schema/specs, mateu://catalog, mateu://guide)
+              and validate YAML against it without reaching the network. Generated/authored at
+              the module root (pinned by UidlSchemaTest) and copied in at build time.
+            -->
+            <resource>
+                <directory>${project.basedir}</directory>
+                <targetPath>META-INF/mateu/schema</targetPath>
+                <includes>
+                    <include>uidl-schema.json</include>
+                    <include>specs-schema.json</include>
+                    <include>uidl-catalog.json</include>
+                    <include>authoring-guide.md</include>
+                </includes>
+            </resource>
         </resources>
         <plugins>
             <!-- Public-API compatibility check against the last release (see backend/pom.xml). -->

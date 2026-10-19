@@ -35,13 +35,29 @@ class RenderHandlerMixin(MixinBase):
 
     # ── Visual-builder live preview ────────────────────────────────────────────
     def _preview_response(self, yaml_text: str, rq: RunActionRq) -> UIIncrement:
-        from mateu_ui.core.yaml_preview import build_from_yaml
+        from mateu_ui.core.authoring.validator import MAX_YAML_BYTES
+        from mateu_ui.core.yaml_preview import parse_text_reporting
         from mateu_ui.uidl import components as fluent
 
-        tree = (
-            build_from_yaml(yaml_text, field_types=getattr(self, "field_types", None)) if yaml_text.strip() else None
-        ) or fluent.Text(text="Invalid or empty YAML", style="color: red;")
+        if len(yaml_text.encode("utf-8")) > MAX_YAML_BYTES:
+            tree: fluent.Component = fluent.Text(text="The YAML is too large to preview", style="color: red;")
+        else:
+            built, problem = parse_text_reporting(yaml_text, field_types=getattr(self, "field_types", None))
+            # Say WHY: "invalid" alone sent the author hunting through the whole file.
+            tree = built or fluent.Text(
+                text=f"Invalid YAML — {problem}" if problem else "Invalid or empty YAML", style="color: red;"
+            )
         return self.fragment_response("Preview", self.mapper.map_component(tree), rq)
+
+    # ── Authoring validation (Java's __validate__) ─────────────────────────────
+    def _validate_response(self, yaml_text) -> UIIncrement:
+        """The validation report of ``yaml_text`` against the schema and THIS app's catalogues,
+        on ``appData._validation`` — what ``mateu_validate_uidl`` is built on. Renders nothing,
+        changes nothing; it runs through the same request path, so the access rules apply."""
+        from mateu_ui.core.authoring.service import validate_uidl
+
+        report = validate_uidl(self, "" if yaml_text is None else str(yaml_text))
+        return UIIncrement(app_data={"_validation": report})
 
     # ── Component adapters ─────────────────────────────────────────────────────
     def handle_adapted(self, type_, adapter, rq: RunActionRq) -> UIIncrement:

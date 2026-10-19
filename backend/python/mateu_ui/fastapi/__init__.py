@@ -31,7 +31,7 @@ from mateu_ui.core import dev_specs, documents, mobile_manifest, ui_page
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
-from mateu_ui.uidl import Identity
+from mateu_ui.uidl import Identity, UserFacingException
 
 log = logging.getLogger("mateu.fastapi")
 
@@ -357,7 +357,9 @@ def add_mateu(
             try:
                 increment = handler.handle(rq, mateu_request.base_url)
             except MateuForbiddenException:
-                return dict(_FORBIDDEN_BODY)
+                # a refused request is the tool error "Forbidden" (never the guard's own wording,
+                # which names roles and annotations); a FAILING action stays a screen message
+                raise UserFacingException("Forbidden") from None
             except Exception as error:  # noqa: BLE001 - the error boundary, as on sync
                 cid = mateu_request.correlation_id or new_correlation_id()
                 increment = error_increment(error, cid, show_details, rq.action_id)
@@ -365,7 +367,7 @@ def add_mateu(
 
         try:
             response = await run_in_threadpool(
-                run_bound, mateu_request, lambda: handle_jsonrpc(message, sync_fn)
+                run_bound, mateu_request, lambda: handle_jsonrpc(message, sync_fn, show_details)
             )
         except Exception as error:  # noqa: BLE001
             return failed(error, mateu_request)

@@ -6,6 +6,7 @@ import io.mateu.uidl.interfaces.Actionable;
 import lombok.Builder;
 import lombok.With;
 
+/** A menu entry that navigates to a screen exposed by a field of the app class. */
 @Builder
 @With
 public record FieldLink(

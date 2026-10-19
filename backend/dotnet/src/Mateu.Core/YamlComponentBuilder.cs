@@ -49,6 +49,54 @@ internal static class YamlComponentBuilder
         return Single(node, new Ctx(partials ?? PartialRegistry.Default, types ?? FieldTypeRegistry.None), []);
     }
 
+    /// <summary><see cref="Parse"/>, keeping WHY a definition could not be read (mirrors Java's
+    /// YamlUidlLoader.parseTextReporting): the problem is null when there is a component, the text is
+    /// blank, or it builds nothing without failing.</summary>
+    public static (IComponent? Component, string? Problem) ParseReporting(
+        string? yaml, PartialRegistry? partials = null, FieldTypeRegistry? types = null)
+    {
+        if (string.IsNullOrWhiteSpace(yaml)) return (null, null);
+        object? root;
+        try
+        {
+            root = Yaml.Deserialize<object>(yaml);
+        }
+        catch (Exception e)
+        {
+            var problem = ProblemOf(e);
+            MateuLogging.For("Mateu.Yaml").LogWarning("Failed to parse YAML preview: {Problem}", problem);
+            return (null, problem);
+        }
+        if (root is null) return (null, null);
+        try
+        {
+            var node = root is IDictionary<object, object> map && map.TryGetValue("layout", out var layout) ? layout : root;
+            return (Single(node, new Ctx(partials ?? PartialRegistry.Default, types ?? FieldTypeRegistry.None), []), null);
+        }
+        catch (Exception e)
+        {
+            var problem = ProblemOf(e);
+            MateuLogging.For("Mateu.Yaml").LogWarning("Failed to build YAML preview: {Problem}", problem);
+            return (null, problem);
+        }
+    }
+
+    /// <summary>An exception as one line: YamlDotNet's "(Line: 2, Col: 9, …) - (…): what" becomes
+    /// "line 2, column 9: what".</summary>
+    private static string ProblemOf(Exception e)
+    {
+        if (e is YamlDotNet.Core.YamlException y)
+        {
+            var message = y.Message;
+            var cut = message.IndexOf("): ", StringComparison.Ordinal);
+            if (message.StartsWith('(') && cut >= 0) message = message[(cut + 3)..];
+            if (y.InnerException is { } inner && message.Contains("Exception during deserialization", StringComparison.Ordinal))
+                message = inner.Message;
+            return $"line {y.Start.Line}, column {y.Start.Column}: {message.Trim()}";
+        }
+        return e.Message;
+    }
+
     /// <summary>
     /// Parse a page spec (a file under specs/ui): the declared ModelView class name (or null for a
     /// bare, unbound layout) plus the layout component. Envelope-aware — a `layout:` key holds the

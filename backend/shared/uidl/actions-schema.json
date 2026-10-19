@@ -102,6 +102,7 @@
       }
     },
     "CloseOverlay" : {
+      "description" : "Close the top overlay (dialog/drawer), optionally emitting a named result event as it closes.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -141,6 +142,7 @@
       }
     },
     "Emit" : {
+      "description" : "Emit a named event on the app event bus (pub/sub — refinement R1), optionally with a payload.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -155,6 +157,7 @@
       }
     },
     "MarkClean" : {
+      "description" : "Mark the current view clean (e.g. after a save) — suppresses the unsaved-changes guard.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -165,6 +168,7 @@
       }
     },
     "MarkDirty" : {
+      "description" : "Mark the current view dirty — arms the unsaved-changes navigation guard.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -175,6 +179,7 @@
       }
     },
     "Navigate" : {
+      "description" : "Navigate to a route.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -241,6 +246,7 @@
       }
     },
     "RunAction" : {
+      "description" : "Run a server action by id (the \"call the server\" verb — needs a backend).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {

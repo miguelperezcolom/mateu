@@ -12,6 +12,34 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 ## [Unreleased]
 
 ### Added
+- **MCP for authoring UI.** The MCP endpoint (and the stdio sidecar) now also lets an agent *write*
+  screens: resources `mateu://guide`, `mateu://catalog`, `mateu://schema/specs`, `mateu://schema/uidl`
+  (shipped inside the app), and tools `mateu_list_components`, `mateu_get_component_schema`,
+  `mateu_validate_uidl` (every error and warning with its JSONPath and line/column — unknown types
+  and keys with a "did you mean", wrong values, `dataType: decimal`, undeclared actions, references
+  to sources/partials/components/field types that do not resolve, and whatever the real loader still
+  refuses), `mateu_preview_uidl` (renders the page and returns its projection) and, in development
+  mode only, `mateu_save_spec` (writes into the specs directory; live reload shows it). Identical in
+  Java, .NET, Python and the sidecar, pinned by `conformance/mcp/authoring.json`. (Java, .NET, Python,
+  sidecar)
+- A reserved sync action `__validate__` (`parameters._yaml` → report on `appData._validation`), what
+  the tools are built on.
+- The component catalogue `uidl-catalog.json`, generated with the schemas; every component's
+  schema `$def` now carries a one-line `description` taken from the record's Javadoc.
+
+### Changed
+- The MCP tool texts and input schemas are the same in the four implementations
+  (`additionalProperties: false` everywhere); `initialize` also advertises `resources`.
+
+### Fixed
+- The Java MCP endpoint answers a body that is not JSON with JSON-RPC `-32700` (and a non-object
+  message with `-32600`) instead of failing the request.
+- An MCP tool that fails unexpectedly answers the generic text with a reference id (logged under it)
+  instead of the exception's message; a refused call is `Error: Forbidden`. (Java, .NET, Python,
+  sidecar)
+- A YAML preview that cannot be parsed says why (`Invalid YAML — line N (path): …`) instead of
+  "Invalid or empty YAML"; `YamlUidlLoader.parseTextReporting` exposes the reason.
+
 - **`Image.alt`** — the text alternative a screen reader reads (`""` marks the image decorative):
   `Image.builder().alt(…)` / `new Image(src, alt)` in Java (the existing constructors stay),
   `Image { Alt = … }` in .NET, `fluent.Image(alt=…)` in Python and `alt:` in YAML. Rendered as the

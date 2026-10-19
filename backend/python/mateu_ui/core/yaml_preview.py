@@ -30,6 +30,10 @@ _DEFAULT_PARTIALS = PartialRegistry()
 #: every builder). Set by the entry points below.
 _types: ContextVar[Any] = ContextVar("mateu_field_types", default=None)
 
+#: Where a reporting build (:func:`parse_text_reporting`) collects the values a component refused —
+#: the lenient builder otherwise drops such a component silently.
+_problems: ContextVar[list[str] | None] = ContextVar("mateu_yaml_problems", default=None)
+
 
 def _types_of(field_types):
     if field_types is not None:
@@ -69,6 +73,49 @@ def build_from_yaml(
     if isinstance(data, dict) and "layout" in data:
         data = data["layout"]  # page envelope → render the layout
     return _with_types(field_types, _single, data, partials or _DEFAULT_PARTIALS, [])
+
+
+def parse_text_reporting(
+    text: str | None, partials: PartialRegistry | None = None, field_types=None
+) -> tuple[fluent.Component | None, str | None]:
+    """:func:`build_from_yaml`, keeping WHY a definition could not be read (Java's
+    ``YamlUidlLoader.parseTextReporting``): ``(component, problem)``. The problem is None when there
+    is a component, when the text is blank, and for a ``layoutDelta:`` envelope (which has no layout
+    of its own on purpose). A value a component refuses — swallowed by the lenient builder, which
+    renders the rest — is a problem here: what the preview and ``mateu_validate_uidl`` report."""
+    if text is None or not text.strip():
+        return None, None
+    try:
+        data = yaml.safe_load(text)
+    except yaml.YAMLError as e:
+        return None, _yaml_problem(e)
+    if isinstance(data, dict) and "layout" not in data and "layoutDelta" in data:
+        return None, None
+    if isinstance(data, dict) and "layout" in data:
+        data = data["layout"]
+    problems: list[str] = []
+    token = _problems.set(problems)
+    try:
+        tree = _with_types(field_types, _single, data, partials or _DEFAULT_PARTIALS, [])
+    except Exception as e:  # noqa: BLE001 — a builder failure is the definition's problem, reported
+        return None, f"{type(e).__name__}: {e}"
+    finally:
+        _problems.reset(token)
+    if problems:
+        return None, problems[0]
+    return tree, None
+
+
+def default_partials() -> PartialRegistry:
+    """The partial registry the YAML builder resolves ``type: Partial`` against."""
+    return _DEFAULT_PARTIALS
+
+
+def _yaml_problem(error: yaml.YAMLError) -> str:
+    mark = getattr(error, "problem_mark", None) or getattr(error, "context_mark", None)
+    problem = getattr(error, "problem", None) or str(error)
+    where = f"line {mark.line + 1}, column {mark.column + 1}: " if mark is not None else ""
+    return where + str(problem).strip()
 
 
 def build_node(
@@ -229,7 +276,10 @@ def _generic(kind: Any, node: dict, partials: PartialRegistry, chain: list[str])
         return None
     try:
         return _dataclass_of(cls, node, partials, chain)
-    except Exception:  # a value the dataclass refuses: say so, as for an unknown type
+    except Exception as e:  # a value the dataclass refuses: say so, as for an unknown type
+        problems = _problems.get()
+        if problems is not None:
+            problems.append(f"{kind}: {e}")
         return None
 
 

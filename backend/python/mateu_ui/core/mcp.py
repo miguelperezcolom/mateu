@@ -5,8 +5,11 @@ the SAME serialized wire, so they produce the SAME flat, agent-friendly screen �
 construction. The derivation rules are normative (``doc/.../reference/wire-specification.md`` §
 Agent operability). See ``design/riu-agent-operability-plan.md`` (P4).
 
-Pure ``dict -> dict`` (stdlib only, no pydantic), so the projection + protocol are unit-testable
-without the framework; the FastAPI layer supplies the ``sync_fn`` that runs the SyncHandler.
+Pure ``dict -> dict`` (stdlib-only at import time, no pydantic), so the projection + protocol are
+unit-testable without the framework; the FastAPI layer supplies the ``sync_fn`` that runs the
+SyncHandler. The authoring tools (phase B: validate, preview, schemas, resources, save_spec) and the
+error boundary import ``mateu_ui.core.authoring`` / ``error_boundary`` lazily, when called. The tool
+and resource lists are pinned byte for byte by ``conformance/mcp/authoring.json``.
 """
 
 import json
@@ -259,75 +262,296 @@ def _walk_menu(menu, out):
         _walk_menu(item.get("menu"), out)
 
 
+class McpCallerError(ValueError):
+    """A mistake of the CALLER (an unknown tool, a missing argument): shown to the agent as written."""
+
+
 def _obj_schema(props=None, required=None):
-    schema = {"type": "object", "properties": props or {}}
+    schema = {"type": "object", "properties": props or {}, "additionalProperties": False}
     if required:
-        schema["required"] = required
+        schema["required"] = list(required)
     return schema
 
 
+def _str(description=None):
+    prop = {"type": "string"}
+    if description is not None:
+        prop["description"] = description
+    return prop
+
+
+def _obj(description=None):
+    prop = {"type": "object"}
+    if description is not None:
+        prop["description"] = description
+    return prop
+
+
+#: The tool list — identical (names, descriptions, schemas, order) in the Java, .NET and Python
+#: backends and the sidecar; pinned by ``conformance/mcp/authoring.json``.
 TOOLS = [
     {
         "name": "mateu_list_routes",
-        "description": "List the navigable routes of the Mateu app (from its menu). Returns [{route, caption}].",
+        "description": "List the navigable routes of the Mateu app (derived from its menu). Returns [{route,"
+        " caption}].",
         "inputSchema": _obj_schema(),
     },
     {
         "name": "mateu_describe_screen",
-        "description": "Load a screen by route and return a flat description: title, fields (id, label, "
-        "dataType, required, value, options), actions (id, label), listing (if any), and current state.",
-        "inputSchema": _obj_schema({"route": {"type": "string", "description": 'route relative to the mount, "" = home'}}, ["route"]),
+        "description": "Load a screen by route and return a flat description an agent can act on: title,"
+        " fields (id, label, dataType, required, value, options), actions (id, label),"
+        ' listing (if any), and the current state. Use route "" for the home screen.',
+        "inputSchema": _obj_schema({"route": _str('route relative to the mount, "" = home')}, ["route"]),
     },
     {
         "name": "mateu_run_action",
-        "description": "Run an action id (optionally seeding field values via componentState). Returns the resulting screen.",
+        "description": "Run an action on a screen (an action id from mateu_describe_screen), optionally"
+        " seeding field values via componentState. Returns the resulting screen"
+        " projection (messages, navigation, new state).",
         "inputSchema": _obj_schema(
-            {"route": {"type": "string"}, "actionId": {"type": "string"}, "componentState": {"type": "object"}},
+            {
+                "route": _str(),
+                "actionId": _str(),
+                "componentState": _obj("field id -> value; seeds/overrides form state"),
+            },
             ["route", "actionId"],
         ),
     },
     {
         "name": "mateu_search",
-        "description": "Search a listing screen by free text (and optional filters). Returns the listing.",
-        "inputSchema": _obj_schema({"route": {"type": "string"}, "searchText": {"type": "string"}, "filters": {"type": "object"}}, ["route"]),
+        "description": "Search a listing screen with free text (and optional filter values). Returns the"
+        " listing.",
+        "inputSchema": _obj_schema({"route": _str(), "searchText": _str(), "filters": _obj()}, ["route"]),
+    },
+    {
+        "name": "mateu_list_components",
+        "description": "List the component types a YAML definition can use, each with a one-line description"
+        " and the names of its main attributes. Read mateu://guide first if you have not"
+        " authored Mateu YAML before.",
+        "inputSchema": _obj_schema(
+            {"query": _str("optional: only the types whose name or description contains it")}
+        ),
+    },
+    {
+        "name": "mateu_get_component_schema",
+        "description": "Return the JSON Schema of one component type: every key it accepts with its value"
+        " type, plus every definition it references (enums, nested records). A"
+        " #/$defs/Component reference means any component.",
+        "inputSchema": _obj_schema(
+            {"type": _str("a component type (e.g. FormField) or any other schema definition")}, ["type"]
+        ),
+    },
+    {
+        "name": "mateu_validate_uidl",
+        "description": "Validate a YAML definition (a page, an app shell or any specs/ui file kind) without"
+        " rendering it. Returns {valid, kind, errors, warnings}; each issue has a code, a"
+        " message, a JSONPath and its line/column. Errors make the definition fail to"
+        " load; warnings are ignored keys, undeclared actions and references that do not"
+        " resolve.",
+        "inputSchema": _obj_schema({"yaml": _str("the definition's YAML text")}, ["yaml"]),
+    },
+    {
+        "name": "mateu_preview_uidl",
+        "description": "Render a YAML page as the app would — layout only: no view model is bound and nothing"
+        " is saved — and return {rendered, screen, validation}: the screen projection"
+        " (title, fields, actions…) plus the validation report.",
+        "inputSchema": _obj_schema(
+            {
+                "yaml": _str("the page's YAML text"),
+                "route": _str("optional: the route to render it under (its access rules apply)"),
+            },
+            ["yaml"],
+        ),
     },
 ]
+
+#: Appended to :data:`TOOLS` in development mode only.
+DEV_TOOLS = [
+    {
+        "name": "mateu_save_spec",
+        "description": "Development mode only: validate a YAML definition and, when it has no errors, write"
+        " it into the app's specs directory (path relative to it, e.g. customers.yaml"
+        " or partials/address.yaml); live reload shows it in the open browsers. Paths"
+        " outside the specs directory are refused.",
+        "inputSchema": _obj_schema(
+            {
+                "path": _str("relative to the specs directory, e.g. customers.yaml"),
+                "yaml": _str("the definition's YAML text"),
+            },
+            ["path", "yaml"],
+        ),
+    },
+]
+
+#: The reserved sync actions the authoring tools are built on (Java's RunActionUseCase).
+VALIDATE_ACTION = "__validate__"
+PREVIEW_ACTION = "__preview__"
+YAML_KEY = "_yaml"
+VALIDATION_KEY = "_validation"
+
+
+def _dev_mode() -> bool:
+    from mateu_ui.core import dev_specs
+
+    return dev_specs.enabled()
+
+
+def tools(dev_mode: bool | None = None) -> list:
+    """``tools/list``: :data:`TOOLS`, plus :data:`DEV_TOOLS` in development mode."""
+    return TOOLS + DEV_TOOLS if (_dev_mode() if dev_mode is None else dev_mode) else list(TOOLS)
+
+
+def _argument(args, name):
+    """A required string argument, or the caller's mistake."""
+    value = args.get(name)
+    if not isinstance(value, str):
+        raise McpCallerError(f'Missing argument "{name}".')
+    return value
+
+
+def _text_arg(args, name):
+    value = args.get(name)
+    if value is None or isinstance(value, (dict, list)):
+        return ""
+    return value if isinstance(value, str) else json.dumps(value)
+
+
+def _validation(route, yaml_text, sync_fn):
+    """The app's ``__validate__`` answer for ``yaml_text`` (through ``sync_fn``: the caller's
+    identity and the route's access rules apply)."""
+    increment = sync_fn(route, VALIDATE_ACTION, None, {YAML_KEY: yaml_text or ""}) or {}
+    report = (increment.get("appData") or {}).get(VALIDATION_KEY)
+    if not isinstance(report, dict):
+        # refused, or failed: the increment's message says why
+        messages = increment.get("messages") or [{}]
+        raise McpCallerError((messages[0] or {}).get("text") or "validation failed")
+    return report
+
+
+def _preview(yaml_text, route, sync_fn):
+    validation = _validation(route, yaml_text, sync_fn)
+    out = {}
+    if not validation.get("valid"):
+        out["rendered"] = False
+        out["reason"] = "The definition has errors; fix them first."
+    elif validation.get("kind") not in ("component", "envelope"):
+        out["rendered"] = False
+        out["reason"] = "Only a page (a component, or a layout: envelope) can be previewed."
+    else:
+        out["rendered"] = True
+        out["screen"] = project_increment(sync_fn(route, PREVIEW_ACTION, None, {YAML_KEY: yaml_text}))
+    out["validation"] = validation
+    return out
+
+
+def _save_spec(args, sync_fn):
+    from mateu_ui.core import dev_specs
+    from mateu_ui.core.authoring import spec_writer
+
+    if not _dev_mode():
+        raise McpCallerError("Unknown tool: mateu_save_spec")
+    directory = dev_specs.specs_dir()
+    if not directory.is_dir():
+        raise McpCallerError("No specs directory found (set MATEU_DEV_SPECS_DIR).")
+    path = _argument(args, "path")
+    yaml_text = _argument(args, "yaml")
+    if not spec_writer.is_acceptable(path):
+        raise McpCallerError(spec_writer.refusal(path))
+    validation = _validation("", yaml_text, sync_fn)
+    out = {}
+    if not validation.get("valid"):
+        out["saved"] = False
+        out["reason"] = "The definition has errors; nothing was written."
+    else:
+        written = spec_writer.write(directory, path, yaml_text)
+        out["saved"] = True
+        out["path"] = path
+        out["bytes"] = written
+    out["validation"] = validation
+    return out
 
 
 def dispatch_tool(name, args, sync_fn):
     """Run a tool. ``sync_fn(route, action_id, component_state, parameters) -> increment dict``."""
+    args = args if isinstance(args, dict) else {}
     if name == "mateu_list_routes":
         return list_routes_from(sync_fn("", "", None, None))
     if name == "mateu_describe_screen":
-        return project_increment(sync_fn(normalize_route(args.get("route", "")), "", None, None))
+        return project_increment(sync_fn(normalize_route(_text_arg(args, "route")), "", None, None))
     if name == "mateu_run_action":
         return project_increment(
-            sync_fn(normalize_route(args.get("route", "")), args.get("actionId", ""), args.get("componentState"), None)
+            sync_fn(
+                normalize_route(_text_arg(args, "route")),
+                _text_arg(args, "actionId"),
+                args.get("componentState") if isinstance(args.get("componentState"), dict) else None,
+                None,
+            )
         )
     if name == "mateu_search":
-        text = args.get("searchText", "")
+        text = _text_arg(args, "searchText")
         params = {"searchText": text} if text else {}
         # A listing reads its search text from the component state (where its search box binds
         # it), like the filters; the parameter copy is what a lookup's search reads.
-        state = dict(args.get("filters") or {})
+        filters = args.get("filters")
+        state = dict(filters) if isinstance(filters, dict) else {}
         if text:
             state["searchText"] = text
         return project_increment(
-            sync_fn(normalize_route(args.get("route", "")), "search", state or None, params)
+            sync_fn(normalize_route(_text_arg(args, "route")), "search", state or None, params)
         )
-    raise ValueError(f"Unknown tool: {name}")
+    if name == "mateu_list_components":
+        from mateu_ui.core.authoring import list_components
+
+        return list_components(_text_arg(args, "query"))
+    if name == "mateu_get_component_schema":
+        from mateu_ui.core.authoring import schema_of
+
+        return schema_of(_argument(args, "type"))
+    if name == "mateu_validate_uidl":
+        return _validation("", _argument(args, "yaml"), sync_fn)
+    if name == "mateu_preview_uidl":
+        yaml_text = _argument(args, "yaml")
+        return _preview(yaml_text, normalize_route(_text_arg(args, "route")), sync_fn)
+    if name == "mateu_save_spec":
+        return _save_spec(args, sync_fn)
+    raise McpCallerError(f"Unknown tool: {name}")
 
 
-def handle_jsonrpc(message, sync_fn):
-    """Handle one JSON-RPC 2.0 message. Returns the response dict, or None for a notification."""
+def error_text(error, tool="", detailed=None):
+    """What a failed call tells the agent — the request path's error boundary: a mistake of the
+    caller (:class:`McpCallerError`, a ``UserFacingException``: an unknown tool, a missing argument,
+    a refused path, "Forbidden") is shown as written; anything else is the generic text with a
+    reference, logged at ERROR under it (the raw message only with ``MATEU_ERRORS_DETAILED``)."""
+    if isinstance(error, McpCallerError):
+        return str(error)
+    from mateu_ui.core import error_boundary
+    from mateu_ui.uidl import UserFacingException
+
+    if isinstance(error, UserFacingException):
+        return error.message
+    return error_boundary.describe(error, f"mcp:{tool}", detailed=detailed)["text"]
+
+
+def _resources_list():
+    from mateu_ui.core.authoring import RESOURCES
+
+    return [{"uri": r.uri, "name": r.name, "description": r.description, "mimeType": r.mime_type} for r in RESOURCES]
+
+
+def handle_jsonrpc(message, sync_fn, detailed=None):
+    """Handle one JSON-RPC 2.0 message. Returns the response dict, or None for a notification.
+    ``detailed`` shows the raw exception of a failed tool call (default: ``MATEU_ERRORS_DETAILED``)."""
+    if not isinstance(message, dict):
+        return _err(None, -32600, "Invalid Request")
     mid = message.get("id")
     is_notification = mid is None
     method = message.get("method", "")
+    params = message.get("params") if isinstance(message.get("params"), dict) else {}
     try:
         if method == "initialize":
             return _ok(mid, {
                 "protocolVersion": PROTOCOL_VERSION,
-                "capabilities": {"tools": {}},
+                "capabilities": {"tools": {}, "resources": {}},
                 "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
             })
         if method in ("notifications/initialized", "initialized"):
@@ -335,10 +559,25 @@ def handle_jsonrpc(message, sync_fn):
         if method == "ping":
             return _ok(mid, {})
         if method == "tools/list":
-            return _ok(mid, {"tools": TOOLS})
+            return _ok(mid, {"tools": tools()})
+        if method == "resources/list":
+            return _ok(mid, {"resources": _resources_list()})
+        if method == "resources/read":
+            from mateu_ui.core.authoring import resources
+
+            uri = params.get("uri")
+            if uri is None:
+                return _err(mid, -32602, "Invalid params: uri is required")
+            uri = uri if isinstance(uri, str) else json.dumps(uri)
+            resource = resources.by_uri(uri)
+            if resource is None:
+                return _err(mid, -32002, f"Resource not found: {uri}")
+            return _ok(mid, {"contents": [
+                {"uri": resource.uri, "mimeType": resource.mime_type, "text": resources.text(resource.file)}
+            ]})
         if method == "tools/call":
-            params = message.get("params") or {}
-            data = dispatch_tool(params.get("name", ""), params.get("arguments") or {}, sync_fn)
+            name = params.get("name")
+            data = dispatch_tool(name if isinstance(name, str) else "", params.get("arguments") or {}, sync_fn)
             return _ok(mid, {"content": [{"type": "text", "text": json.dumps(data, indent=2, default=str)}]})
         if is_notification:
             return None
@@ -346,9 +585,12 @@ def handle_jsonrpc(message, sync_fn):
     except Exception as e:  # noqa: BLE001
         if is_notification:
             return None
+        tool = params.get("name") if method == "tools/call" else ""
+        text = error_text(e, tool if isinstance(tool, str) else "", detailed)
         if method == "tools/call":
-            return _ok(mid, {"content": [{"type": "text", "text": f"Error: {e}"}], "isError": True})
-        return _err(mid, -32603, str(e))
+            # MCP convention: a tool error is a result with isError, not a protocol error.
+            return _ok(mid, {"isError": True, "content": [{"type": "text", "text": f"Error: {text}"}]})
+        return _err(mid, -32603, text)
 
 
 def _ok(mid, result):

@@ -5,6 +5,7 @@ import io.mateu.uidl.fluent.UserTrigger;
 import java.util.List;
 import lombok.Builder;
 
+/** A titled section of a form that groups fields, with an optional toolbar. */
 @Builder
 public record FormSection(
     String title,

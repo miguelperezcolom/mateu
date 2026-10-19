@@ -4,9 +4,12 @@
 # Beta integration (2026-10-18): settings read through MateuSettings (F2), the advertised-action
 # set shared with the strict action check (F2) and request-language validation messages
 # (fixes/extra) — reviewed, added together.
+# MCP authoring (2026-10-18): McpJsonRpc reads DevMode — mateu_save_spec exists only in development
+# mode — reviewed.
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
 application -> infra: io/mateu/core/application/i18n/TranslationRegistry.java
 application -> infra: io/mateu/core/application/mcp/McpEndpoint.java
+application -> infra: io/mateu/core/application/mcp/McpJsonRpc.java
 application -> infra: io/mateu/core/application/runaction/ActionInstanceCreator.java
 application -> infra: io/mateu/core/application/runaction/ActionRegistry.java
 application -> infra: io/mateu/core/application/runaction/AppMenuResolver.java
