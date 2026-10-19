@@ -630,6 +630,41 @@ test('Room Diary real: filas con sus atributos, estancias con color, ★ VIP, re
   assert.equal(planningAtomOf(m, 'x').end, '2026-10-25T00:00:00')
 })
 
+test('Planning/Gantt: degenerate dates never give oj-gantt a negative length', () => {
+  // end BEFORE start → a single day at the start; missing / unparseable dates → not drawn; a
+  // date-time keeps its day; an inverted from/to window is read the other way round
+  const p = planningAtomOf({ from: '2026-10-07', to: '2026-10-01', resources: [{ id: 'r', label: 'R' }], blocks: [
+    { id: 'inv', resourceId: 'r', start: '2026-10-05', end: '2026-10-03' },
+    { id: 'noEnd', resourceId: 'r', start: '2026-10-02' },
+    { id: 'bad', resourceId: 'r', start: 'soon', end: '2026-10-03' },
+    { id: 'dt', resourceId: 'r', start: '2026-10-02T10:00:00', end: '2026-10-03T08:00:00Z' },
+  ] }, 'x')
+  assert.deepEqual([p.start, p.end], ['2026-10-01T00:00:00', '2026-10-08T00:00:00'])
+  const tasks = Object.fromEntries(p.rows[0].tasks.map((t) => [t.id, [t.start, t.end]]))
+  assert.deepEqual(tasks, {
+    inv: ['2026-10-05T00:00:00', '2026-10-06T00:00:00'],
+    dt: ['2026-10-02T00:00:00', '2026-10-04T00:00:00'],
+  })
+  // without a window the axis spans every drawn day, the inverted task's start included
+  const g = ganttAtomOf({ tasks: [
+    { id: 'a', title: 'A', start: '2026-10-01', end: '2026-10-02' },
+    { id: 'b', title: 'B', start: '2026-10-12', end: '2026-10-03' },
+    { id: 'c', title: 'C', start: '2026-10-04' },
+    { id: 'd', title: 'D', start: '2026-01-31', end: '2026-01-31' },
+  ] }, 'g')
+  assert.deepEqual(g.rows.map((r) => r.id), ['a', 'b', 'd'])
+  assert.deepEqual([g.start, g.end], ['2026-01-31T00:00:00', '2026-10-13T00:00:00'])
+  for (const t of g.rows.flatMap((r) => r.tasks)) assert.ok(Date.parse(t.end) > Date.parse(t.start), t.id)
+  for (const t of p.rows[0].tasks) assert.ok(Date.parse(t.end) > Date.parse(t.start), t.id)
+  assert.ok(Date.parse(g.end) > Date.parse(g.start) && Date.parse(p.end) > Date.parse(p.start))
+  // no tasks at all: an empty, still valid axis
+  const none = ganttAtomOf({ tasks: [] }, 'n')
+  assert.equal(none.rows.length, 0)
+  assert.ok(Date.parse(none.end) > Date.parse(none.start))
+  // the layout floor: below ~160px oj-gantt draws its own chrome with negative widths
+  assert.match(webApp('resources/css/app.css'), /oj-gantt\.mateu-planning \{[^}]*min-width: 12rem/)
+})
+
 test('Room Diary: los eventos de oj-gantt se traducen a la acción de Mateu (días locales, fin inclusivo)', () => {
   const atom = planningAtomOf({ moveActionId: 'move', resizeActionId: 'resize', openActionId: 'open', rangeSelectActionId: 'range', resources: [], blocks: [] }, 'x')
   const local = (y, mo, d, h) => new Date(y, mo - 1, d, h).toISOString()

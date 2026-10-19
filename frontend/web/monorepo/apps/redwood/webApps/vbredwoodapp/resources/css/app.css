@@ -1255,7 +1255,12 @@ mateu-capture-field { display: block; }
 .mateu-menu-card-actions { display: flex; flex-wrap: wrap; gap: 0 0.25rem; margin-top: 0.25rem; margin-inline-start: -0.5rem; }
 
 /* ── tape chart (PlanningBoard → oj-gantt) ── */
-oj-gantt.mateu-planning { width: 100%; height: 34rem; }
+/* min-width: oj-gantt lays its fixed chrome (row axis, paddings, scrollbar) out of its own width
+   and, below ~160px, draws its rows and gridlines with NEGATIVE widths (one console error per
+   rect). That happens whenever an ancestor collapses for a moment — a full-page capture shrinks
+   the viewport to 1x1 to measure it, a squeezed flex row, a very narrow window. The floor keeps
+   it drawable (it overflows a narrower container instead); display:none is harmless. */
+oj-gantt.mateu-planning { width: 100%; min-width: 12rem; height: 34rem; }
 .mateu-planning-range {
   position: absolute; display: none; pointer-events: none; z-index: 10; box-sizing: border-box;
   background: rgba(34, 126, 158, .14); border: 1px solid rgba(34, 126, 158, .6); border-radius: 4px;

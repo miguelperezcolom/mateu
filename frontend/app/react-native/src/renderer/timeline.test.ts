@@ -69,3 +69,14 @@ test('the gantt drops tasks without dates, fits the day width and ticks each mon
   assert.equal(oneDay.dayW, 16);
   assert.equal(oneDay.bars[0].width, 16);
 });
+
+test('an end before the start is one day at the start, inside the lane — never a negative width', () => {
+  const l = ganttLayout([
+    { id: 'a', start: '2026-10-01', end: '2026-10-02' },
+    { id: 'b', start: '2026-10-12', end: '2026-10-03' },
+  ])!;
+  const b = l.bars.find((x) => x.task.id === 'b')!;
+  assert.equal(b.width, l.dayW);
+  assert.ok(b.left >= 0 && b.left + b.width <= l.laneW);
+  assert.equal(l.maxDay, day('2026-10-12'));
+});

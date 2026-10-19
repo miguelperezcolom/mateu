@@ -83,13 +83,17 @@ export interface GanttLayout {
   bars: { task: GanttTask; left: number; width: number; progress: number }[];
 }
 
+/** A task's last day: an end BEFORE the start is read as a single day at the start (the rule
+ *  every renderer follows), so a bar never runs backwards nor past the lane. */
+const lastDayOf = (t: GanttTask): number => Math.max(parseDay(t.start)!, parseDay(t.end)!);
+
 /** The Gantt's layout: tasks without both dates are dropped; the day width fits ~560px between
  *  4 and 16 px; a month tick wherever a month starts inside the range. Null = "No tasks.". */
 export function ganttLayout(all: GanttTask[]): GanttLayout | null {
   const tasks = all.filter((t) => parseDay(t.start) != null && parseDay(t.end) != null);
   if (tasks.length === 0) return null;
   const minDay = Math.min(...tasks.map((t) => parseDay(t.start)!));
-  const maxDay = Math.max(...tasks.map((t) => parseDay(t.end)!));
+  const maxDay = Math.max(...tasks.map(lastDayOf));
   const totalDays = Math.max(1, maxDay - minDay + 1);
   const dayW = Math.max(4, Math.min(16, Math.round(560 / totalDays)));
   const months: { label: string; left: number }[] = [];
@@ -102,7 +106,7 @@ export function ganttLayout(all: GanttTask[]): GanttLayout | null {
   }
   const bars = tasks.map((task) => {
     const start = parseDay(task.start)!;
-    const end = parseDay(task.end)!;
+    const end = lastDayOf(task);
     return {
       task,
       left: (start - minDay) * dayW,
