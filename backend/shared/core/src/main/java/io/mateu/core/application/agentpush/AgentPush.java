@@ -92,8 +92,11 @@ public final class AgentPush {
    * refusing them here too means one renderer's filter defect is not a bypass. The same list as
    * {@code conformance/client/agent-events.json} ({@code reserved} + {@code reservedPrefixes}).
    */
-  /** The corpus' reservedPatterns: a JET widget's own events ({@code ojValueChanged}, {@code oj-…}). */
-  private static final java.util.regex.Pattern JET_EVENT = java.util.regex.Pattern.compile("^oj[A-Z-]");
+  /**
+   * The corpus' reservedPatterns: a JET widget's own events ({@code ojValueChanged}, {@code oj-…}).
+   */
+  private static final java.util.regex.Pattern JET_EVENT =
+      java.util.regex.Pattern.compile("^oj[A-Z-]");
 
   public static final java.util.Set<String> FRAMEWORK_EVENTS =
       java.util.Set.of(

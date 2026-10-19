@@ -11,6 +11,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.7] — 2026-10-19
+
+The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
+
 ### Security
 - **The JSON-body guard decides on the canonical path.** MVC, WebFlux and Quarkus hand the filter
   the raw request URI while they route on the decoded one, so `POST /%6Dateu/mcp` or
