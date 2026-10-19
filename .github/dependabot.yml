@@ -56,3 +56,74 @@ updates:
     groups:
       actions-all:
         patterns: ["*"]
+
+  # ── Starters (Maven) — what a new project copies. io.mateu is moved by the release workflow's
+  # "Point the examples at …" PR (scripts/bump-example-version.sh), not here.
+  - package-ecosystem: maven
+    directory: "/starters"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "io.mateu:*"
+    groups:
+      starters-minor-patch:
+        update-types: ["minor", "patch"]
+
+  # ── Python port (pip, pyproject.toml) ────────────────────────────
+  - package-ecosystem: pip
+    directory: "/backend/python"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      python-all:
+        patterns: ["*"]
+
+  # ── .NET port (NuGet, central package management) ───────────────
+  - package-ecosystem: nuget
+    directory: "/backend/dotnet"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      dotnet-all:
+        patterns: ["*"]
+
+  # ── IntelliJ plugin (Gradle) ─────────────────────────────────────
+  - package-ecosystem: gradle
+    directory: "/frontend/app/intellij-plugin"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      intellij-all:
+        patterns: ["*"]
+
+  # ── VS Code extension (npm) ──────────────────────────────────────
+  - package-ecosystem: npm
+    directory: "/frontend/app/vscode-extension"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      vscode-all:
+        patterns: ["*"]
+
+  # ── React Native app (npm). Majors are tied to the Expo SDK and move with it, by hand
+  # (npx expo install --fix), so only minor/patch updates are proposed.
+  - package-ecosystem: npm
+    directory: "/frontend/app/react-native"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      react-native-minor-patch:
+        update-types: ["minor", "patch"]
+
+  # apps/redwood is a workspace of the monorepo entry above (one root lockfile); its Oracle grunt
+  # tooling comes as tarballs from Oracle's CDN, and JET itself is loaded from the CDN at run time,
+  # never bundled.
