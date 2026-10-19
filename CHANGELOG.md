@@ -25,6 +25,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   through the error boundary (a message + reference, never a raw 500), and every catalogue component
   previews with nothing set: an absent child list or child is an empty one (`type: VerticalLayout`
   alone used to be an anonymous, log-flooding 500). (Java, .NET, Python)
+- **`mateu_save_spec` (dev mode) saves only what a screen is made of.** A page, a layout envelope, a
+  partial or a business-component catalogue — never a sources / environment / routes / actions /
+  types / translations / mount / project definition, never a catalogue file name, and never a page
+  that references a `${secret.…}`, marks a request `proxy: true` or overrides the url / headers /
+  method / body of a source it names by `ref`. Before, an MCP caller in dev mode could re-point a
+  proxied source at its own server and have Mateu send it the secret. Refusals are logged at WARN.
+  (Java, .NET, Python, sidecar)
 
 ## [3.0-beta.5] — 2026-10-19
 

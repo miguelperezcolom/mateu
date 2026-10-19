@@ -24,6 +24,86 @@ internal static class SpecWriter
         return true;
     }
 
+    /// <summary>The kinds an agent may save: what a screen is made of, never what a request is made of.</summary>
+    private static readonly HashSet<string> SavableKinds = ["component", "envelope", "partial", "components"];
+
+    /// <summary>File names (any extension, any folder) the catalogues are read from by convention.</summary>
+    private static readonly HashSet<string> CatalogueNames = ["sources", "routes", "actions", "types", "project"];
+
+    /// <summary>Folders the catalogues are read from by convention.</summary>
+    private static readonly HashSet<string> CatalogueFolders = ["environments", "translations"];
+
+    /// <summary>The request keys a surface naming a catalogue source by <c>ref</c> may not override.</summary>
+    private static readonly string[] RequestKeys = ["url", "baseUrl", "method", "headers", "body", "proxy"];
+
+    /// <summary>The message of a definition that would decide a request (shown as written).</summary>
+    public const string RequestRefusal =
+        "A definition saved by an agent may not reference a secret, proxy a request through the"
+        + " server or override the request of a catalogue source; declare those in sources.yaml by hand.";
+
+    /// <summary>Whether <paramref name="path"/> names a catalogue file (<c>sources.yaml</c>,
+    /// <c>environments/…</c>…): an agent never writes those (Java's <c>SpecWriter.isCatalogueFile</c>).</summary>
+    public static bool IsCatalogueFile(string? path)
+    {
+        if (path is null) return false;
+        var segments = path.Split('/');
+        if (segments.Length > 1 && CatalogueFolders.Contains(segments[0])) return true;
+        var name = segments[^1];
+        var dot = name.LastIndexOf('.');
+        return CatalogueNames.Contains(dot >= 0 ? name[..dot] : name);
+    }
+
+    /// <summary>The message of a refused catalogue file (shown as written).</summary>
+    public static string CatalogueRefusal(string? path) =>
+        "Refused path " + UidlValidator.Quote(path ?? "")
+        + ": catalogue files (sources, routes, actions, types, project, environments, translations) are written by hand.";
+
+    /// <summary>Why an agent may not save this definition, or null when it may (Java's
+    /// <c>SpecWriter.agentRefusal</c>): only pages, envelopes, partials and business-component
+    /// catalogues, and none that references a secret, marks a request <c>proxy: true</c> or overrides
+    /// the request of a source it names by <c>ref</c> — in dev mode an agent could otherwise re-point a
+    /// proxied source at its own server and have Mateu send it the secret.</summary>
+    public static string? AgentRefusal(string? kind, string? yaml)
+    {
+        if (kind is not null && !SavableKinds.Contains(kind))
+            return "Only a page, a partial or a business-component catalogue can be saved by an agent; a "
+                   + UidlValidator.Quote(kind) + " definition is written by hand.";
+        YNode? tree;
+        try
+        {
+            tree = YamlTree.Compose(yaml ?? "");
+        }
+        catch (Exception)
+        {
+            return null; // not YAML: the validation report already says so
+        }
+        return CarriesARequest(tree, new HashSet<YNode>(ReferenceEqualityComparer.Instance)) ? RequestRefusal : null;
+    }
+
+    private static bool CarriesARequest(YNode? node, HashSet<YNode> seen)
+    {
+        switch (node)
+        {
+            case YScalar scalar:
+                return scalar.Value.Contains("${secret.", StringComparison.Ordinal);
+            case YSequence sequence:
+                if (!seen.Add(sequence)) return false; // an alias: already walked
+                return sequence.Items.Any(item => CarriesARequest(item, seen));
+            case YMapping mapping:
+                if (!seen.Add(mapping)) return false;
+                string? Text(string key) => mapping.Entries
+                    .Where(e => e.Key is YScalar k && k.Value == key)
+                    .Select(e => e.Value is YScalar v ? v.Value : "")
+                    .FirstOrDefault();
+                bool Has(string key) => mapping.Entries.Any(e => e.Key is YScalar k && k.Value == key);
+                if (string.Equals(Text("proxy")?.Trim(), "true", StringComparison.OrdinalIgnoreCase)) return true;
+                if (!string.IsNullOrWhiteSpace(Text("ref")) && RequestKeys.Any(Has)) return true;
+                return mapping.Entries.Any(e => CarriesARequest(e.Key, seen) || CarriesARequest(e.Value, seen));
+            default:
+                return false;
+        }
+    }
+
     /// <summary>The message of a refused path (shown as written).</summary>
     public static string Refusal(string? path) =>
         "Invalid path " + UidlValidator.Quote(path ?? "")

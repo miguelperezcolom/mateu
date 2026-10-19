@@ -350,9 +350,23 @@ public class McpService {
       throw new io.mateu.uidl.UserFacingException(
           io.mateu.core.application.authoring.SpecWriter.refusal(path));
     }
+    if (io.mateu.core.application.authoring.SpecWriter.isCatalogueFile(path)) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.authoring.SpecWriter.catalogueRefusal(path));
+    }
     var out = objectMapper.createObjectNode();
     var validation = validation("", yaml, baseUrl, httpRequests);
-    if (!validation.path("valid").asBoolean()) {
+    var kind = validation.path("kind");
+    var refusal =
+        io.mateu.core.application.authoring.SpecWriter.agentRefusal(
+            kind.isTextual() ? kind.asText() : null, yaml);
+    if (refusal != null) {
+      // never written, and said loudly: an agent tried to author what decides a request
+      org.slf4j.LoggerFactory.getLogger(McpService.class)
+          .warn("mateu_save_spec refused {}: {}", logSafe(path), refusal);
+      out.put("saved", false);
+      out.put("reason", refusal);
+    } else if (!validation.path("valid").asBoolean()) {
       out.put("saved", false);
       out.put("reason", "The definition has errors; nothing was written.");
     } else {
@@ -363,6 +377,15 @@ public class McpService {
     }
     out.set("validation", validation);
     return out;
+  }
+
+  /** A caller-sent string as a log argument: clipped, with control characters replaced. */
+  private static String logSafe(String value) {
+    if (value == null) {
+      return "null";
+    }
+    var clipped = value.length() > 256 ? value.substring(0, 256) + "…" : value;
+    return clipped.replaceAll("\\p{Cntrl}", "?");
   }
 
   private ObjectNode validation(

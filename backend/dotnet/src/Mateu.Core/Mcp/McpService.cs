@@ -235,9 +235,20 @@ internal sealed class McpService
     public JsonObject SaveSpec(string path, string yaml, string specsDir)
     {
         if (!SpecWriter.IsAcceptable(path)) throw new UserFacingException(SpecWriter.Refusal(path));
+        if (SpecWriter.IsCatalogueFile(path)) throw new UserFacingException(SpecWriter.CatalogueRefusal(path));
         var validation = Validation("", yaml);
         var out_ = new JsonObject();
-        if (validation["valid"]?.GetValue<bool>() != true)
+        var refusal = SpecWriter.AgentRefusal(
+            validation["kind"] is JsonValue k && k.TryGetValue<string>(out var kind) ? kind : null, yaml);
+        if (refusal is not null)
+        {
+            // never written, and said loudly: an agent tried to author what decides a request
+            MateuLogging.For("Mateu.Mcp").LogWarning("mateu_save_spec refused {Path}: {Reason}",
+                path.Length > 256 ? path[..256] : path, refusal);
+            out_["saved"] = false;
+            out_["reason"] = refusal;
+        }
+        else if (validation["valid"]?.GetValue<bool>() != true)
         {
             out_["saved"] = false;
             out_["reason"] = "The definition has errors; nothing was written.";

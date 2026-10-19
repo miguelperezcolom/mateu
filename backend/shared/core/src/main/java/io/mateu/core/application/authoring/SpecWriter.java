@@ -42,6 +42,116 @@ public final class SpecWriter {
     return true;
   }
 
+  /** The kinds an agent may save: what a screen is made of, never what a request is made of. */
+  private static final java.util.Set<String> SAVABLE_KINDS =
+      java.util.Set.of("component", "envelope", "partial", "components");
+
+  /** File names (any extension, any folder) the catalogues are read from by convention. */
+  private static final java.util.Set<String> CATALOGUE_NAMES =
+      java.util.Set.of("sources", "routes", "actions", "types", "project");
+
+  /** Folders the catalogues are read from by convention. */
+  private static final java.util.Set<String> CATALOGUE_FOLDERS =
+      java.util.Set.of("environments", "translations");
+
+  /** The request keys a surface naming a catalogue source by {@code ref} may not override. */
+  private static final java.util.Set<String> REQUEST_KEYS =
+      java.util.Set.of("url", "baseUrl", "method", "headers", "body", "proxy");
+
+  /**
+   * Whether {@code path} names a catalogue file ({@code sources.yaml}, {@code routes.yml}, {@code
+   * environments/…}, {@code translations/…}…): an agent never writes those (NM3).
+   */
+  public static boolean isCatalogueFile(String path) {
+    if (path == null) {
+      return false;
+    }
+    var segments = path.split("/", -1);
+    if (segments.length > 1 && CATALOGUE_FOLDERS.contains(segments[0])) {
+      return true;
+    }
+    var name = segments[segments.length - 1];
+    int dot = name.lastIndexOf('.');
+    return CATALOGUE_NAMES.contains(dot >= 0 ? name.substring(0, dot) : name);
+  }
+
+  /** The message of a refused catalogue file (shown as written). */
+  public static String catalogueRefusal(String path) {
+    return "Refused path "
+        + UidlValidator.quote(path == null ? "" : path)
+        + ": catalogue files (sources, routes, actions, types, project, environments, translations)"
+        + " are written by hand.";
+  }
+
+  /**
+   * Why an agent may not save this definition, or null when it may (NM3): an agent saves what a
+   * screen is made of — a page, a layout envelope, a partial, a business-component catalogue — and
+   * nothing that decides where a request goes or what it carries. Sources, environments, routes,
+   * actions, types, translations, mounts and project settings are written by hand; and a page may
+   * not reference a secret ({@code ${secret.…}}), mark a request {@code proxy: true}, or override
+   * the request ({@code url}, {@code baseUrl}, {@code method}, {@code headers}, {@code body},
+   * {@code proxy}) of a source it names by {@code ref} — otherwise, in dev mode, an agent could
+   * re-point a proxied source at its own server and have Mateu send it the source's secret.
+   *
+   * @param kind the validator's classification of the definition (null when unknown)
+   */
+  public static String agentRefusal(String kind, String yaml) {
+    if (kind != null && !SAVABLE_KINDS.contains(kind)) {
+      return "Only a page, a partial or a business-component catalogue can be saved by an agent; a "
+          + UidlValidator.quote(kind)
+          + " definition is written by hand.";
+    }
+    com.fasterxml.jackson.databind.JsonNode tree;
+    try {
+      tree =
+          new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(yaml == null ? "" : yaml);
+    } catch (IOException | RuntimeException e) {
+      return null; // not YAML: the validation report already says so
+    }
+    return carriesARequest(tree) ? REQUEST_REFUSAL : null;
+  }
+
+  /** The message of a definition that would decide a request (shown as written). */
+  public static final String REQUEST_REFUSAL =
+      "A definition saved by an agent may not reference a secret, proxy a request through the"
+          + " server or override the request of a catalogue source; declare those in sources.yaml"
+          + " by hand.";
+
+  private static boolean carriesARequest(com.fasterxml.jackson.databind.JsonNode node) {
+    if (node == null) {
+      return false;
+    }
+    if (node.isTextual()) {
+      return node.asText().contains("${secret.");
+    }
+    if (node.isObject()) {
+      var proxy = node.get("proxy");
+      if (proxy != null && (proxy.asBoolean(false) || "true".equalsIgnoreCase(proxy.asText()))) {
+        return true;
+      }
+      var ref = node.get("ref");
+      if (ref != null && ref.isTextual() && !ref.asText().isBlank()) {
+        for (var key : REQUEST_KEYS) {
+          if (node.has(key)) {
+            return true;
+          }
+        }
+      }
+      var names = node.fieldNames();
+      while (names.hasNext()) {
+        if (names.next().contains("${secret.")) {
+          return true;
+        }
+      }
+    }
+    for (var child : node) {
+      if (carriesARequest(child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** The message of a refused path (shown as written). */
   public static String refusal(String path) {
     return "Invalid path "

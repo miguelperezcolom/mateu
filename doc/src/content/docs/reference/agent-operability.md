@@ -96,7 +96,14 @@ and a preview renders only the text it is given — no view model, no data. A re
 tool error `Error: Forbidden`; an unexpected failure is `Error: An unexpected error occurred.
 Reference: <id>` (logged under that id; the raw message only with `MATEU_ERRORS_DETAILED=true`).
 Definitions are capped at 256 KiB. `mateu_save_spec` refuses any path that is not a relative
-`.yaml`/`.yml` inside the specs directory (no `..`, no absolute path, no symbolic link out).
+`.yaml`/`.yml` inside the specs directory (no `..`, no absolute path, no symbolic link out), and it
+saves only what a screen is made of — a page, a layout envelope, a partial or a business-component
+catalogue. Sources, environments, routes, actions, types, translations, mounts and project settings
+(and their conventional file names) are written by hand, and so is any page that references a
+`${secret.…}`, marks a request `proxy: true` or overrides the request of a source it names by `ref`:
+otherwise an agent in dev mode could re-point a proxied source at its own server and have Mateu send
+it the secret. `__validate__`, which these tools are built on, is served only to MCP tool calls, or by
+an app with `mateu.mcp.enabled=true` or in dev mode.
 
 ## Use it from an agent
 

