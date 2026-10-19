@@ -32,6 +32,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   method / body of a source it names by `ref`. Before, an MCP caller in dev mode could re-point a
   proxied source at its own server and have Mateu send it the secret. Refusals are logged at WARN.
   (Java, .NET, Python, sidecar)
+- **Live UI push: anonymous UIs behind one address no longer lock each other out.** The per-owner
+  cap (`max-sessions-per-owner`, 20) is now a signed-in user's only; an anonymous UI counts on its
+  own, and anonymous sessions are capped per client address by the new, much higher
+  `mateu.mcp.push.max-anonymous-sessions-per-address` (200; .NET
+  `MateuOptions.McpPushMaxAnonymousSessionsPerAddress`, Python
+  `add_mateu(mcp_push_max_anonymous_sessions_per_address=…)`). Before, 20 open tabs behind a reverse
+  proxy without forwarded-header handling locked every other anonymous user out. The address is the
+  framework-resolved one (never a forwarded header Mateu reads itself — pinned on every adapter);
+  Helidon MP's JAX-RS leg now reports it too (it was null). Behind a proxy, configure the framework's
+  forwarded-header handling (documented per framework). (Java 5 adapters, .NET, Python)
 
 ## [3.0-beta.5] — 2026-10-19
 

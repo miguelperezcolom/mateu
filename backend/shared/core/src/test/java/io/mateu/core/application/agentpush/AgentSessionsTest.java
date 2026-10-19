@@ -260,24 +260,43 @@ class AgentSessionsTest {
   }
 
   @Test
-  void anonymousUisAreCappedPerClientAddress() {
+  void anonymousUisBehindOneAddressDoNotLockEachOtherOut() {
+    // NM5: the per-owner cap is a SIGNED-IN user's; strangers behind one reverse proxy (one
+    // address)
+    // each count on their own, so 20 open tabs no longer lock the 21st anonymous user out
     var registry = new AgentSessions(clock, new Random(7), () -> rate, () -> 100, () -> 2);
-    openAs(registry, "x-1", null, "192.0.2.1");
-    openAs(registry, "x-2", null, "192.0.2.1");
-    assertThatThrownBy(() -> openAs(registry, "x-3", null, "192.0.2.1"))
-        .hasMessage(AgentPush.TOO_MANY_SESSIONS);
-    openAs(registry, "y-1", null, "192.0.2.2"); // another address counts on its own
-    // an adapter that cannot tell the address puts them all under "unknown"
-    openAs(registry, "z-1", null, null);
-    openAs(registry, "z-2", null, " ");
-    assertThatThrownBy(() -> openAs(registry, "z-3", null, null))
-        .hasMessage(AgentPush.TOO_MANY_SESSIONS);
+    for (int i = 0; i < 30; i++) {
+      openAs(registry, "proxy-" + i, null, "192.0.2.1");
+    }
   }
 
   @Test
-  void theOwnerIsThePrincipalElseTheAddress() {
-    assertThat(AgentSessions.ownerOf("alice", "10.0.0.1")).isEqualTo("user:alice");
-    assertThat(AgentSessions.ownerOf(null, "10.0.0.1")).isEqualTo("address:10.0.0.1");
-    assertThat(AgentSessions.ownerOf(null, null)).isEqualTo("address:unknown");
+  void anonymousUisAreCappedPerClientAddressByTheirOwnHigherLimit() {
+    var registry = new AgentSessions(clock, new Random(7), () -> rate, () -> 100, () -> 2, () -> 3);
+    openAs(registry, "x-1", null, "192.0.2.1");
+    var old = openAs(registry, "x-2", null, "192.0.2.1");
+    openAs(registry, "x-3", null, "192.0.2.1");
+    assertThatThrownBy(() -> openAs(registry, "x-4", null, "192.0.2.1"))
+        .hasMessage(AgentPush.TOO_MANY_SESSIONS);
+    openAs(registry, "y-1", null, "192.0.2.2"); // another address counts on its own
+    // a signed-in user at that address is not anonymous: their own cap applies
+    openAs(registry, "a-1", "alice", "192.0.2.1");
+    // a reconnect of a registered session is never refused
+    openAs(registry, "x-1", null, "192.0.2.1");
+    // once one is disconnected, a new one evicts it
+    old.close();
+    openAs(registry, "x-4", null, "192.0.2.1");
+    // an address the adapter cannot tell is not limited (only the global cap applies)
+    for (int i = 0; i < 10; i++) {
+      openAs(registry, "z-" + i, null, i % 2 == 0 ? null : " ");
+    }
+  }
+
+  @Test
+  void theOwnerIsThePrincipalElseTheSessionItself() {
+    assertThat(AgentSessions.ownerOf("alice", "s-1")).isEqualTo("user:alice");
+    assertThat(AgentSessions.ownerOf(null, "s-1")).isEqualTo("session:s-1");
+    assertThat(AgentSessions.addressOf(" 10.0.0.1 ")).isEqualTo("10.0.0.1");
+    assertThat(AgentSessions.addressOf(" ")).isNull();
   }
 }

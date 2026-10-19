@@ -110,6 +110,7 @@ from ..field_type_registry import FieldTypeRegistry
 from ..export import Exporters
 from ..agent_push import (
     DEFAULT_MAX_SESSIONS,
+    DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS,
     DEFAULT_MAX_SESSIONS_PER_OWNER,
     DEFAULT_RATE_PER_MINUTE,
     AgentSessions,
@@ -253,6 +254,7 @@ class SyncHandler(
         rate_per_minute: int = DEFAULT_RATE_PER_MINUTE,
         max_sessions: int = DEFAULT_MAX_SESSIONS,
         max_sessions_per_owner: int = DEFAULT_MAX_SESSIONS_PER_OWNER,
+        max_anonymous_sessions_per_address: int = DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS,
     ) -> AgentSessions:
         """Switch live UI push on (``add_mateu(..., mcp=True, mcp_push=True)`` calls it): the app
         metadata says ``agentPush: true``, the ``_agent-*`` actions answer and the MCP push tools
@@ -261,6 +263,7 @@ class SyncHandler(
             rate_per_minute=rate_per_minute,
             max_sessions=max_sessions,
             max_sessions_per_owner=max_sessions_per_owner,
+            max_anonymous_sessions_per_address=max_anonymous_sessions_per_address,
         )
         self.mapper.agent_push_enabled = True
         return self.agent_push

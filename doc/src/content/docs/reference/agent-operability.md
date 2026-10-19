@@ -173,9 +173,21 @@ Off by default, and it needs the MCP endpoint on too:
 | Python | `add_mateu(..., mcp=True, mcp_push=True)` (or the same environment variables) |
 
 Limits: `mateu.mcp.push.rate-per-minute` (30 messages per session per minute),
-`mateu.mcp.push.max-sessions` (1000 registered sessions) and `mateu.mcp.push.max-sessions-per-owner`
-(20 per signed-in user, or per client address for anonymous UIs); same names as `MATEU_MCP_PUSH_*`
-environment variables and as .NET/Python options.
+`mateu.mcp.push.max-sessions` (1000 registered sessions), `mateu.mcp.push.max-sessions-per-owner`
+(20 per signed-in user) and `mateu.mcp.push.max-anonymous-sessions-per-address` (200 anonymous UIs per
+client address; an address the server cannot tell is not limited); same names as `MATEU_MCP_PUSH_*`
+environment variables and as .NET (`MateuOptions.McpPush…`) / Python (`add_mateu(mcp_push_…)`) options.
+An anonymous UI counts on its own against the per-owner cap, so strangers sharing an address cannot
+lock each other out.
+
+**Behind a reverse proxy.** The client address is the one your framework resolves: the socket peer,
+unless you configured its forwarded-header handling with the proxies you trust — Spring
+`server.forward-headers-strategy=framework` (or `native`), Quarkus `quarkus.http.proxy.proxy-address-forwarding=true`
+with `quarkus.http.proxy.trusted-proxies`, Micronaut `micronaut.server.client-address-header`, ASP.NET Core `UseForwardedHeaders` with `KnownProxies`,
+uvicorn `--proxy-headers --forwarded-allow-ips=<proxy>`. Mateu never reads `X-Forwarded-For` itself
+(a header any client can set), and on Helidon MP it is always the socket peer. Without that configuration every anonymous UI shares the proxy's
+address, and the per-address limit applies to all of them together: configure the framework, or
+raise the limit.
 
 With it on, every app shell gets a **Connect AI** control in its header (a drawer row on React
 Native, a toolbar action in IntelliJ), and each UI keeps one small event stream open — its *agent

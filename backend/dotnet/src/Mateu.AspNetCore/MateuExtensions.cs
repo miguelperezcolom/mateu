@@ -47,6 +47,9 @@ public static class MateuExtensions
         var agentSessions = options.McpPushEffective
             ? new Mateu.Core.AgentPush.AgentSessions(options.PushRatePerMinute, options.PushMaxSessions,
                 options.PushMaxSessionsPerOwner)
+            {
+                MaxAnonymousSessionsPerAddress = options.PushMaxAnonymousSessionsPerAddress,
+            }
             : null;
         // ITranslator is optional — register an Mateu.Uidl.ITranslator to enable i18n.
         services.AddSingleton(sp =>

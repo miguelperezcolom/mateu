@@ -56,6 +56,10 @@ COMMAND_TYPE = "AgentPush"
 DEFAULT_RATE_PER_MINUTE = 30
 DEFAULT_MAX_SESSIONS = 1000
 DEFAULT_MAX_SESSIONS_PER_OWNER = 20
+#: Anonymous UI sessions per client address — much higher than the per-user cap: the address is the
+#: one the server reports (the socket peer, unless uvicorn runs with ``--proxy-headers`` and its
+#: ``--forwarded-allow-ips``), so behind a reverse proxy every anonymous UI shares the proxy's.
+DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS = 200
 #: The owner of an anonymous UI whose client address the adapter cannot tell.
 UNKNOWN_OWNER = "unknown"
 CODE_TTL_SECONDS = 300
@@ -122,14 +126,20 @@ def reserved_event(event: str) -> str:
     return f'Event "{event}" is reserved: use mateu_push_ui or mateu_navigate.'
 
 
-def owner_of(principal: str | None, client_address: str | None) -> str:
-    """Who a UI session counts against for ``max-sessions-per-owner``: its principal name, else
-    (an anonymous UI) its client address, else ``unknown``."""
+def owner_of(principal: str | None, session_id: str) -> str:
+    """Who a UI session counts against for ``max-sessions-per-owner``: its principal name, else (an
+    anonymous UI) the session itself — nobody else's: keyed on the client address, every anonymous
+    UI behind one reverse proxy shared a bucket of 20 (Java's ``AgentSessions.ownerOf``)."""
     if principal:
         return principal
+    return "session:" + session_id
+
+
+def address_of(client_address: str | None) -> str | None:
+    """The client address an anonymous session is capped by, or None when unknown."""
     if client_address and client_address.strip():
         return client_address.strip()
-    return UNKNOWN_OWNER
+    return None
 
 
 def _sha256(text: str) -> str:
@@ -231,8 +241,10 @@ class _Session:
     route: str
     renderer: str
     connected_at: datetime
-    #: who the per-owner cap counts it against: the principal name, else the client address
+    #: who the per-owner cap counts it against: the principal name, else the session itself
     owner: str = UNKNOWN_OWNER
+    #: the client address an ANONYMOUS session was opened from (None: signed in, or unknown)
+    address: str | None = None
     channel: AgentChannel | None = None
     disconnected_at: float | None = None
     #: pairing key → label, in pairing order (each anonymous pairing gets a key of its own)
@@ -258,10 +270,12 @@ class AgentSessions:
         clock: Callable[[], float] = time.monotonic,
         now: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
         max_sessions_per_owner: int = DEFAULT_MAX_SESSIONS_PER_OWNER,
+        max_anonymous_sessions_per_address: int = DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS,
     ):
         self.rate_per_minute = max(1, int(rate_per_minute))
         self.max_sessions = max(1, int(max_sessions))
         self.max_sessions_per_owner = max(1, int(max_sessions_per_owner))
+        self.max_anonymous_sessions_per_address = max(1, int(max_anonymous_sessions_per_address))
         self._clock = clock
         self._now = now
         self._lock = threading.RLock()
@@ -287,18 +301,25 @@ class AgentSessions:
         """Register (first time) or reconnect the session with ``channel``; answers the status
         message the stream starts with. A previous stream of the session ends.
 
-        A NEW session counts against its OWNER (``principal``, else ``client_address``, else
-        ``unknown``) — at ``max_sessions_per_owner`` that owner's longest-disconnected session is
-        evicted, else it is refused — and then against ``max_sessions`` over every owner. A
-        reconnect is never refused by either cap."""
+        A NEW session of a signed-in UI counts against its principal (``max_sessions_per_owner``);
+        an anonymous one counts on its own, and against ``max_anonymous_sessions_per_address`` for
+        its ``client_address`` (none when unknown); at a cap the longest-disconnected session among
+        those is evicted, else it is refused — then ``max_sessions`` over everyone. A reconnect is
+        never refused by any cap."""
         with self._lock:
             self._purge()
             session = self._sessions.get(session_id)
             if session is None:
-                owner = owner_of(principal, client_address)
-                owned = [s for s in self._sessions.values() if s.owner == owner]
-                if len(owned) >= self.max_sessions_per_owner and not self._evict_one(owned):
-                    raise UserFacingException(TOO_MANY_SESSIONS)
+                owner = owner_of(principal, session_id)
+                address = None if principal else address_of(client_address)
+                if principal:
+                    owned = [s for s in self._sessions.values() if s.owner == owner]
+                    if len(owned) >= self.max_sessions_per_owner and not self._evict_one(owned):
+                        raise UserFacingException(TOO_MANY_SESSIONS)
+                if address is not None:
+                    there = [s for s in self._sessions.values() if s.address == address]
+                    if len(there) >= self.max_anonymous_sessions_per_address and not self._evict_one(there):
+                        raise UserFacingException(TOO_MANY_SESSIONS)
                 if len(self._sessions) >= self.max_sessions and not self._evict_one():
                     raise UserFacingException(TOO_MANY_SESSIONS)
                 session = _Session(
@@ -310,6 +331,7 @@ class AgentSessions:
                     renderer=renderer,
                     connected_at=self._now(),
                     owner=owner,
+                    address=address,
                 )
                 self._sessions[session_id] = session
                 self._by_handle[session.handle] = session_id

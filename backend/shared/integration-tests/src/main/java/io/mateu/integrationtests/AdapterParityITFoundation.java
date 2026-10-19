@@ -277,6 +277,11 @@ public class AdapterParityITFoundation {
           .header("X-Echo", "hola")
           .header("X-Multi", "one")
           .header("X-Multi", "two")
+          // a client claiming another address: by default the adapter reads the SOCKET's, never
+          // a header anyone can set (live push and the client-log limits are keyed on it)
+          .header("X-Forwarded-For", "203.0.113.9")
+          .header("Forwarded", "for=203.0.113.9")
+          .header("X-Real-IP", "203.0.113.9")
           .body(action("echo"))
           .when()
           .post("/echo/mateu/v3/" + leg + "/_no_route")
@@ -292,7 +297,8 @@ public class AdapterParityITFoundation {
    */
   public static final String ECHO_EXPECTED =
       "q=hello;tags=a,b;named=true;header=hola;multi=one,two;"
-          + "absentParam=null;absentParams=0;absentHeader=null;absentHeaders=0;path=true";
+          + "absentParam=null;absentParams=0;absentHeader=null;absentHeaders=0;path=true;"
+          + "remote=local";
 
   /**
    * The text {@code echo(HttpRequest)} answers — kept here so the five adapters' fixtures build it
@@ -318,7 +324,26 @@ public class AdapterParityITFoundation {
         + ";absentHeaders="
         + rq.getHeaderValues("X-Absent").size()
         + ";path="
-        + (rq.path() != null && rq.path().endsWith("_no_route"));
+        + (rq.path() != null && rq.path().endsWith("_no_route"))
+        + ";remote="
+        + localOr(rq.getRemoteAddress());
+  }
+
+  /** {@code local} for a loopback address (the tests' client), else the address as given. */
+  private static String localOr(String address) {
+    if (address == null) {
+      return "null";
+    }
+    var a = address.trim();
+    if (a.startsWith("/")) {
+      a = a.substring(1);
+    }
+    return a.startsWith("127.")
+            || a.equals("::1")
+            || a.equals("0:0:0:0:0:0:0:1")
+            || a.equals("[::1]")
+        ? "local"
+        : a;
   }
 
   /** The plain sync endpoint keeps answering one JSON body. */

@@ -162,6 +162,7 @@ def add_mateu(
     mcp_push_rate_per_minute: int | None = None,
     mcp_push_max_sessions: int | None = None,
     mcp_push_max_sessions_per_owner: int | None = None,
+    mcp_push_max_anonymous_sessions_per_address: int | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -199,9 +200,12 @@ def add_mateu(
       ``MATEU_MCP_PUSH_ENABLED`` env var, else OFF; effective only with ``mcp`` on.
       ``mcp_push_rate_per_minute`` (``MATEU_MCP_PUSH_RATE_PER_MINUTE``, default 30 messages per
       session per rolling minute) and ``mcp_push_max_sessions`` (``MATEU_MCP_PUSH_MAX_SESSIONS``,
-      default 1000) bound it, and ``mcp_push_max_sessions_per_owner``
-      (``MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER``, default 20 per principal name, or per client
-      address for an anonymous UI) keeps one caller from filling the registry.
+      default 1000) bound it, ``mcp_push_max_sessions_per_owner``
+      (``MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER``, default 20 per principal name) keeps one user from
+      filling the registry, and ``mcp_push_max_anonymous_sessions_per_address``
+      (``MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS``, default 200) one client address — the
+      address the server reports, so behind a reverse proxy run uvicorn with ``--proxy-headers``
+      and ``--forwarded-allow-ips`` set to the proxy, or every anonymous UI shares its address.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -245,6 +249,14 @@ def add_mateu(
                 if mcp_push_max_sessions_per_owner is not None
                 else _int_from_env(
                     "MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", agent_push.DEFAULT_MAX_SESSIONS_PER_OWNER
+                )
+            ),
+            max_anonymous_sessions_per_address=(
+                mcp_push_max_anonymous_sessions_per_address
+                if mcp_push_max_anonymous_sessions_per_address is not None
+                else _int_from_env(
+                    "MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS",
+                    agent_push.DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS,
                 )
             ),
         )
