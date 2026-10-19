@@ -559,6 +559,94 @@ public class AdapterParityITFoundation {
     }
   }
 
+  /**
+   * With {@code mateu.mcp.enabled=true} and {@code mateu.mcp.push.enabled=true} (live UI push): a
+   * UI session opens its channel ({@code _agent-channel}) over THIS adapter's SSE endpoint, asks
+   * for a pairing code over its sync endpoint, an anonymous MCP caller pairs with it and pushes a
+   * screen — and the screen arrives on the open stream as an {@code AgentPush} {@code
+   * render-screen}.
+   */
+  public void pushesUiToALiveSessionOverTheSseStream() throws Exception {
+    var sessionId = "parity-" + System.nanoTime();
+    var parameters =
+        "{\"sessionId\":\""
+            + sessionId
+            + "\",\"secret\":\"parity-secret\",\"route\":\"/hello\",\"renderer\":\"parity\"}";
+    var channel =
+        "{\"route\":\"/hello\",\"actionId\":\"_agent-channel\",\"componentState\":{},"
+            + "\"appState\":{},\"parameters\":"
+            + parameters
+            + "}";
+    var client = HttpClient.newHttpClient();
+    var request =
+        java.net.http.HttpRequest.newBuilder(
+                URI.create(
+                    "http://localhost:" + RestAssured.port + "/hello/mateu/v3/sse/_no_route"))
+            .header("Accept", "text/event-stream")
+            .header("Content-Type", "application/json")
+            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(channel))
+            .build();
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    try {
+      var response =
+          executor
+              .submit(() -> client.send(request, HttpResponse.BodyHandlers.ofLines()))
+              .get(20, TimeUnit.SECONDS);
+      if (response.statusCode() != 200) {
+        throw new AssertionError("the agent channel answered " + response.statusCode());
+      }
+      try (var lines = response.body()) {
+        var it = lines.iterator();
+        var status = nextData(executor, it);
+        if (!status.contains("AgentPush") || !status.contains("mateu-agent-status")) {
+          throw new AssertionError("the channel did not start with its status: " + status);
+        }
+        var pairing =
+            given()
+                .contentType(ContentType.JSON)
+                .body(
+                    "{\"route\":\"/hello\",\"actionId\":\"_agent-pair\",\"componentState\":{},"
+                        + "\"appState\":{},\"parameters\":"
+                        + parameters
+                        + "}")
+                .when()
+                .post("/hello/mateu/v3/sync/_no_route")
+                .then()
+                .statusCode(200)
+                .extract()
+                .asString();
+        var code = pairing.replaceAll("(?s).*\"code\"\\s*:\\s*\"([A-Z0-9-]+)\".*", "$1");
+        if (!code.matches("[A-Z0-9]{4}-[A-Z0-9]{4}")) {
+          throw new AssertionError("no pairing code in " + pairing);
+        }
+        var paired =
+            mcpToolCall("mateu_pair_session", "{\"code\":\"" + code + "\"}").extract().asString();
+        var handle =
+            paired.replaceAll(
+                "(?s).*\\\\\"session\\\\\"\\s*:\\s*\\\\\"([A-Za-z0-9_-]+)\\\\\".*", "$1");
+        if (handle.equals(paired)) {
+          throw new AssertionError("pairing did not answer a session: " + paired);
+        }
+        mcpToolCall(
+                "mateu_push_ui",
+                "{\"session\":\""
+                    + handle
+                    + "\",\"yaml\":\"type: Text\\ntext: Pushed by an agent\\n\",\"target\":\"drawer\"}")
+            .body(containsString("\\\"delivered\\\" : true"));
+        // the pairing's status comes first, maybe a heartbeat: read on until the screen
+        String event = "";
+        for (int i = 0; i < 10 && !event.contains("render-screen"); i++) {
+          event = nextData(executor, it);
+        }
+        if (!event.contains("render-screen") || !event.contains("Pushed by an agent")) {
+          throw new AssertionError("the pushed screen did not reach the stream: " + event);
+        }
+      }
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
   private static String nextData(ExecutorService executor, Iterator<String> lines)
       throws Exception {
     return executor
