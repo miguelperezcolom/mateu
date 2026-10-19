@@ -38,6 +38,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+from mateu_ui.core.request_context import current_request
 from mateu_ui.uidl import UserFacingException
 
 log = logging.getLogger("mateu.agentpush")
@@ -61,6 +62,8 @@ UNKNOWN_OWNER = "unknown"
 CODE_TTL_SECONDS = 300
 DISCONNECTED_TTL_SECONDS = 120
 MAX_FAILED_PAIRINGS = 10
+#: The most pairing-failure buckets kept (the oldest goes past it).
+MAX_FAILURE_BUCKETS = 10_000
 WINDOW_SECONDS = 60
 CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 CODE_LENGTH = 8
@@ -379,23 +382,30 @@ class AgentSessions:
                 if self._visible(caller, s, listing=True)
             ]
 
-    def pair(self, caller: Caller, code: str) -> dict[str, Any]:
-        bucket = caller.key or _ANONYMOUS_PAIRING
+    def pair(self, caller: Caller, code: str, address: str | None = None) -> dict[str, Any]:
+        """Failed attempts count per caller AND per client ``address`` (when known): a caller
+        rotating its agent key is still one address, and anonymous callers at different
+        addresses do not share one bucket (which let one of them lock every other out)."""
+        where = address.strip() if address and address.strip() else None
+        bucket = caller.key or (_ANONYMOUS_PAIRING if where is None else f"{_ANONYMOUS_PAIRING}@{where}")
+        keys = [bucket] + ([f"address:{where}"] if where is not None else [])
         with self._lock:
             self._purge()
             now = self._clock()
-            failures = self._failures.setdefault(bucket, deque())
-            while failures and failures[0] <= now - WINDOW_SECONDS:
-                failures.popleft()
-            if len(failures) >= MAX_FAILED_PAIRINGS:
-                raise UserFacingException(TOO_MANY_ATTEMPTS)
+            buckets = [self._bucket(k) for k in keys]
+            for failures in buckets:
+                while failures and failures[0] <= now - WINDOW_SECONDS:
+                    failures.popleft()
+                if len(failures) >= MAX_FAILED_PAIRINGS:
+                    raise UserFacingException(TOO_MANY_ATTEMPTS)
             normalised = re.sub(r"[\s-]", "", code or "").upper()
             found = self._codes.get(normalised)
             session = self._sessions.get(found[0]) if found is not None else None
             if found is None or found[1] <= now or session is None:
                 if found is not None:
                     self._codes.pop(normalised, None)
-                failures.append(now)
+                for failures in buckets:
+                    failures.append(now)
                 raise UserFacingException(INVALID_CODE)
             self._drop_code(session)
             if caller.anonymous:
@@ -409,6 +419,16 @@ class AgentSessions:
                 caller.log_label, fingerprint(session.handle), session.principal,
             )
             return self._entry(session)
+
+    def _bucket(self, key: str) -> deque:
+        """The failure bucket of ``key`` (under the lock). Past MAX_FAILURE_BUCKETS the oldest goes,
+        so a caller rotating identities cannot grow the map without bound."""
+        failures = self._failures.get(key)
+        if failures is None:
+            if len(self._failures) >= MAX_FAILURE_BUCKETS:
+                self._failures.pop(next(iter(self._failures)))
+            failures = self._failures[key] = deque()
+        return failures
 
     def addressable(self, caller: Caller, handle: str) -> None:
         """Visibility, then connection — or the refusal."""
@@ -612,7 +632,8 @@ def call_tool(
     if name == "mateu_list_sessions":
         return {"sessions": sessions.list(caller)}
     if name == "mateu_pair_session":
-        return sessions.pair(caller, _required(args, "code"))
+        in_flight = current_request()
+        return sessions.pair(caller, _required(args, "code"), in_flight.client_address if in_flight else None)
     if name == "mateu_push_ui":
         handle = _required(args, "session")
         yaml_text = _required(args, "yaml")

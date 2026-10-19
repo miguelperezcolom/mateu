@@ -309,4 +309,45 @@ class AgentSessionsTest {
       logger.detachAppender(logs);
     }
   }
+
+  @Test
+  void rotatingTheAgentKeyDoesNotBuyMorePairingAttemptsFromTheSameAddress() {
+    open("ui-1", null);
+    var code = (String) sessions.pairingCode("ui-1", "secret-ui-1", null).get("code");
+    // a new X-Mateu-Agent-Key per guess: each is its own caller, but they come from one address
+    for (int i = 0; i < AgentPush.MAX_PAIRING_FAILURES; i++) {
+      var rotating = AgentCaller.agentKey("rotating-agent-key-" + i);
+      assertThatThrownBy(() -> sessions.pair(rotating, "ZZZZ-ZZZZ", "10.0.0.66"))
+          .hasMessage(AgentPush.INVALID_CODE);
+    }
+    assertThatThrownBy(
+            () -> sessions.pair(AgentCaller.agentKey("yet-another-key-123"), code, "10.0.0.66"))
+        .hasMessage(AgentPush.TOO_MANY_ATTEMPTS);
+    // an anonymous caller elsewhere is not locked out by them (no shared "anonymous" bucket)
+    assertThat(sessions.pair(anon, code, "10.0.0.7").paired()).isTrue();
+  }
+
+  @Test
+  void anonymousCallersAtDifferentAddressesDoNotLockEachOtherOut() {
+    open("ui-1", null);
+    var code = (String) sessions.pairingCode("ui-1", "secret-ui-1", null).get("code");
+    for (int i = 0; i < AgentPush.MAX_PAIRING_FAILURES; i++) {
+      assertThatThrownBy(() -> sessions.pair(anon, "ZZZZ-ZZZZ", "10.0.0.66"))
+          .hasMessage(AgentPush.INVALID_CODE);
+    }
+    assertThatThrownBy(() -> sessions.pair(anon, code, "10.0.0.66"))
+        .hasMessage(AgentPush.TOO_MANY_ATTEMPTS);
+    assertThat(sessions.pair(anon, code, "10.0.0.7").paired()).isTrue();
+  }
+
+  @Test
+  void theFailureBucketsAreBounded() {
+    for (int i = 0; i < AgentSessions.MAX_FAILURE_BUCKETS + 50; i++) {
+      var caller = AgentCaller.agentKey("agent-key-number-" + i);
+      assertThatThrownBy(() -> sessions.pair(caller, "ZZZZ-ZZZZ", null))
+          .hasMessage(AgentPush.INVALID_CODE);
+    }
+    assertThat(sessions.failureBuckets())
+        .isLessThanOrEqualTo(AgentSessions.MAX_FAILURE_BUCKETS + 1);
+  }
 }

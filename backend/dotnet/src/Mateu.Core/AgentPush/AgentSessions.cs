@@ -283,23 +283,32 @@ internal sealed class AgentSessions
     }
 
     /// <summary><c>mateu_pair_session</c>: redeem a code (case-insensitive, the dash optional).</summary>
-    public JsonObject Pair(AgentCaller caller, string code)
+    /// <remarks>Failed attempts count per caller AND per client <paramref name="address"/> (when
+    /// known): a caller rotating its agent key is still one address, and anonymous callers at
+    /// different addresses do not share one bucket (which let one of them lock every other out).</remarks>
+    public JsonObject Pair(AgentCaller caller, string code, string? address = null)
     {
         lock (_lock)
         {
             var now = _clock();
             Purge(now);
-            var bucket = caller.Id ?? "anonymous";
-            if (!_failures.TryGetValue(bucket, out var failures)) _failures[bucket] = failures = new();
-            while (failures.Count > 0 && now - failures.Peek() >= Minute) failures.Dequeue();
-            if (failures.Count >= MaxFailedPairings) throw new UserFacingException(TooManyAttempts);
+            var where = string.IsNullOrWhiteSpace(address) ? null : address.Trim();
+            var keys = new List<string> { caller.Id ?? (where is null ? "anonymous" : "anonymous@" + where) };
+            if (where is not null) keys.Add("address:" + where);
+            var buckets = keys.Select(Bucket).ToList();
+            foreach (var failures in buckets)
+            {
+                while (failures.Count > 0 && now - failures.Peek() >= Minute) failures.Dequeue();
+                if (failures.Count >= MaxFailedPairings) throw new UserFacingException(TooManyAttempts);
+            }
             var normalized = code.Replace("-", "").Trim().ToUpperInvariant();
             if (!_byCode.TryGetValue(normalized, out var session) || session.PendingCodeExpiresAt <= now)
             {
-                failures.Enqueue(now);
+                foreach (var failures in buckets) failures.Enqueue(now);
                 throw new UserFacingException(InvalidCode);
             }
-            if (failures.Count == 0) _failures.Remove(bucket);
+            foreach (var key in keys)
+                if (_failures.TryGetValue(key, out var left) && left.Count == 0) _failures.Remove(key);
             _byCode.Remove(normalized);
             session.PendingCode = null;
             // every anonymous pairing is its own (the handle is the capability); a caller pairs once
@@ -311,6 +320,20 @@ internal sealed class AgentSessions
                 caller.LogLabel, Fingerprint(session.Handle), session.Principal);
             return Entry(session);
         }
+    }
+
+    /// <summary>The most failure buckets kept: past it the oldest goes, so a caller rotating identities
+    /// cannot grow the map without bound (its address bucket still counts every guess).</summary>
+    public const int MaxFailureBuckets = 10_000;
+
+    /// <summary>How many failure buckets are held (tests).</summary>
+    internal int FailureBuckets { get { lock (_lock) return _failures.Count; } }
+
+    Queue<DateTimeOffset> Bucket(string key)
+    {
+        if (_failures.TryGetValue(key, out var failures)) return failures;
+        if (_failures.Count >= MaxFailureBuckets) _failures.Remove(_failures.Keys.First());
+        return _failures[key] = new Queue<DateTimeOffset>();
     }
 
     /// <summary>The checks every sender makes after its arguments: visibility, then connection.</summary>

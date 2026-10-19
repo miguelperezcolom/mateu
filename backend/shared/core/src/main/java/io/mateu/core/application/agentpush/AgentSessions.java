@@ -118,7 +118,20 @@ public final class AgentSessions {
   private final Map<String, Session> bySessionId = new HashMap<>();
   private final Map<String, Session> byHandle = new HashMap<>();
   private final Map<String, Session> byCode = new HashMap<>();
-  private final Map<String, Deque<Instant>> pairingFailures = new HashMap<>();
+
+  /**
+   * The most failure buckets kept: past it the least recently used one goes, so a caller rotating
+   * identities cannot grow the map without bound (its address bucket still counts every guess).
+   */
+  public static final int MAX_FAILURE_BUCKETS = 10_000;
+
+  private final Map<String, Deque<Instant>> pairingFailures =
+      new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Deque<Instant>> eldest) {
+          return size() > MAX_FAILURE_BUCKETS;
+        }
+      };
   private long seq;
 
   /** A registry with its own clock, randomness and limits (tests); apps use {@link #shared()}. */
@@ -287,18 +300,36 @@ public final class AgentSessions {
 
   /** Pairs the session whose code this is to the caller (the code dies), and tells the UI. */
   public synchronized Entry pair(AgentCaller caller, String rawCode) {
+    return pair(caller, rawCode, null);
+  }
+
+  /**
+   * Pairs the session whose code this is to the caller (the code dies), and tells the UI. Failed
+   * attempts are counted per caller AND per client {@code address} (when known): a caller rotating
+   * its agent key is still one address, and anonymous callers at different addresses do not share
+   * one bucket (which let one of them lock every other out).
+   */
+  public synchronized Entry pair(AgentCaller caller, String rawCode, String address) {
     var now = clock.instant();
     sweep(now);
-    var bucket = caller.isAnonymous() ? "anonymous" : caller.key();
-    var failures = pairingFailures.computeIfAbsent(bucket, k -> new ArrayDeque<>());
-    prune(failures, now);
-    if (failures.size() >= AgentPush.MAX_PAIRING_FAILURES) {
-      throw new UserFacingException(AgentPush.TOO_MANY_ATTEMPTS);
+    var where = address == null || address.isBlank() ? null : address.trim();
+    var callerBucket =
+        caller.isAnonymous() ? (where == null ? "anonymous" : "anonymous@" + where) : caller.key();
+    var buckets = new ArrayList<Deque<Instant>>();
+    buckets.add(pairingFailures.computeIfAbsent(callerBucket, k -> new ArrayDeque<>()));
+    if (where != null) {
+      buckets.add(pairingFailures.computeIfAbsent("address:" + where, k -> new ArrayDeque<>()));
+    }
+    for (var failures : buckets) {
+      prune(failures, now);
+      if (failures.size() >= AgentPush.MAX_PAIRING_FAILURES) {
+        throw new UserFacingException(AgentPush.TOO_MANY_ATTEMPTS);
+      }
     }
     var code = normalizeCode(rawCode);
     var session = code == null ? null : byCode.get(code);
     if (session == null) {
-      failures.addLast(now);
+      for (var failures : buckets) failures.addLast(now);
       throw new UserFacingException(AgentPush.INVALID_CODE);
     }
     byCode.remove(code);
@@ -440,6 +471,11 @@ public final class AgentSessions {
             : null,
         session.connected(),
         !session.pairings.isEmpty());
+  }
+
+  /** How many failure buckets are held (tests). */
+  synchronized int failureBuckets() {
+    return pairingFailures.size();
   }
 
   private void sweep(Instant now) {

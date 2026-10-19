@@ -407,7 +407,17 @@ public class McpService {
 
   /** {@code mateu_pair_session}. */
   public ObjectNode pairSession(String code, HttpRequestFactory httpRequests) {
-    return entryNode(sessions().pair(caller(httpRequests), code));
+    var httpRequest = httpRequests.create(rq("", "", null, null));
+    String address;
+    try {
+      address = httpRequest.getRemoteAddress();
+    } catch (RuntimeException e) {
+      address = null;
+    }
+    // failed attempts count per caller AND per client address (a rotated agent key is one address)
+    return entryNode(
+        sessions()
+            .pair(io.mateu.core.application.agentpush.AgentCaller.of(httpRequest), code, address));
   }
 
   /** {@code mateu_push_ui}: validate first, then deliver a render-screen message. */

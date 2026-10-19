@@ -217,7 +217,8 @@ as any other request.
 - **The UI side is pinned**: a session belongs to the secret its tab generated and to the principal
   it registered with; another tab, user or guess cannot take over its stream or ask for its codes.
 - **Limits**: 30 messages per session per minute, 256 KiB per screen, 64 KiB per event detail, 10
-  failed pairings per caller per minute, 1000 sessions and 20 per owner (a user, or an anonymous
+  failed pairings per minute per caller and per client address (rotating the agent key does not buy
+  more guesses, and anonymous callers elsewhere are not locked out), 1000 sessions and 20 per owner (a user, or an anonymous
   UI's client address — so one caller cannot fill the registry); a disconnected session is forgotten two
   minutes after its stream ended.
 - **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<fingerprint>

@@ -27,7 +27,7 @@ internal static partial class McpPushTools
     public static JsonNode? Dispatch(McpService svc, AgentSessions sessions, string name, JsonObject args) => name switch
     {
         "mateu_list_sessions" => sessions.List(svc.Caller),
-        "mateu_pair_session" => sessions.Pair(svc.Caller, Argument(args, "code")),
+        "mateu_pair_session" => sessions.Pair(svc.Caller, Argument(args, "code"), svc.ClientAddress),
         "mateu_push_ui" => PushUi(svc, sessions, args),
         "mateu_navigate" => Navigate(svc, sessions, args),
         "mateu_dispatch_event" => DispatchEvent(svc, sessions, args),

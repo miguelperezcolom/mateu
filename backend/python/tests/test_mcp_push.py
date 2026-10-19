@@ -781,3 +781,31 @@ def test_the_log_never_carries_a_session_handle_only_its_fingerprint(caplog):
     assert handle not in caplog.text
     assert f"session={fingerprint(handle)}" in caplog.text
     assert fingerprint("abc") == "s-ba7816bf8f01"  # the same digest as Java and .NET
+
+
+def test_rotating_the_agent_key_buys_no_more_pairing_attempts_from_the_same_address():
+    clock = Clock()
+    sessions = _sessions(clock)
+    _open(sessions, "ui-1", principal=None)
+    code, _ = sessions.new_code("ui-1", "s3cret", None)
+    for i in range(10):
+        with pytest.raises(UserFacingException, match="Invalid or expired"):
+            sessions.pair(Caller.of(None, f"rotating-agent-key-{i:04d}"), "ZZZZ-ZZZZ", "10.0.0.66")
+    with pytest.raises(UserFacingException, match="Too many pairing attempts"):
+        sessions.pair(Caller.of(None, "yet-another-agent-key"), code, "10.0.0.66")
+    with pytest.raises(UserFacingException, match="Too many pairing attempts"):
+        sessions.pair(Caller(), code, "10.0.0.66")
+    # an anonymous caller elsewhere is not locked out (no shared "anonymous" bucket)
+    assert sessions.pair(Caller(), code, "10.0.0.7")["paired"]
+
+
+def test_the_failure_buckets_are_bounded(monkeypatch):
+    import mateu_ui.core.agent_push as agent_push
+
+    assert agent_push.MAX_FAILURE_BUCKETS == 10_000  # the same bound as Java and .NET
+    monkeypatch.setattr(agent_push, "MAX_FAILURE_BUCKETS", 100)  # a smaller one, for speed
+    sessions = _sessions(Clock())
+    for i in range(150):
+        with pytest.raises(UserFacingException):
+            sessions.pair(Caller.of(None, f"agent-key-number-{i:06d}"), "ZZZZ-ZZZZ")
+    assert len(sessions._failures) <= 100
