@@ -113,6 +113,60 @@ internal static class UntrustedDefinition
         }
     }
 
+    /// <summary>Whether a definition (authored YAML read as a tree, or wire JSON) carries anything
+    /// <see cref="Neutralize(JsonNode?)"/> would take out (Java's <c>scriptCapable</c>):
+    /// <c>mateu_save_spec</c> refuses it (R6) — a saved spec is served through the ordinary, TRUSTED
+    /// render path, so an agent could otherwise persist what the strip keeps out of a pushed screen.</summary>
+    public static bool ScriptCapable(JsonNode? value)
+    {
+        switch (value)
+        {
+            case null:
+                return false;
+            case JsonValue v when v.TryGetValue<string>(out var s):
+                return IsScriptUrl(s);
+            case JsonArray array:
+                return array.Any(item => IsCode(item) || ScriptCapable(item));
+            case JsonObject obj:
+            {
+                var type = TextOf(obj["type"]);
+                if (type == "Element" && ElementRunsCode(obj)) return true;
+                if (type == "MicroFrontend" && TextOf(obj["baseUrl"]) is { } baseUrl && IsForeignBase(baseUrl)) return true;
+                if (TextOf(obj["js"]) is { } js && !string.IsNullOrWhiteSpace(js)) return true;
+                return obj.Any(entry => ScriptCapable(entry.Value));
+            }
+            default:
+                return false;
+        }
+    }
+
+    static bool ElementRunsCode(JsonObject node)
+    {
+        var name = (TextOf(node["name"]) ?? "").Trim().ToLowerInvariant();
+        if (BlockedElements.Contains(name) || name.StartsWith("mateu-", StringComparison.Ordinal)) return true;
+        var html = node["html"];
+        if (html is JsonValue hv && ((hv.TryGetValue<bool>(out var b) && b)
+                || (hv.TryGetValue<string>(out var hs) && string.Equals(hs.Trim(), "true", StringComparison.OrdinalIgnoreCase))))
+            return true;
+        if (node["attributes"] is JsonObject attributes)
+        {
+            foreach (var (key, v) in attributes)
+            {
+                var k = key.ToLowerInvariant();
+                if (k is "import" or "srcdoc" || k.StartsWith("on", StringComparison.Ordinal)) return true;
+                if (TextOf(v) is { } text && (IsScriptUrl(text) || (UrlAttributes.Contains(k) && !IsSafeUrl(text)))) return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>An absolute or network-path url, a backslash spelling of one included (<c>\\host</c>).</summary>
+    static bool IsForeignBase(string value)
+    {
+        var c = Cleaned(value);
+        return IsAbsoluteUrl(value) || c.StartsWith('\\') || c.StartsWith("/\\", StringComparison.Ordinal);
+    }
+
     static string? TextOf(JsonNode? node) =>
         node is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
 

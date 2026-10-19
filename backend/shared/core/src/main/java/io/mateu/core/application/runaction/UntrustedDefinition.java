@@ -135,6 +135,75 @@ public final class UntrustedDefinition {
     return out;
   }
 
+  /**
+   * Whether a definition (authored YAML read as a tree, or wire JSON) carries anything {@link
+   * #neutralize} would take out: an {@code Element} with an event-handler, {@code import} or {@code
+   * srcdoc} attribute, an unsafe url attribute, raw-HTML content or a script-capable/framework
+   * name; a {@code javascript:}/{@code vbscript:} url anywhere; a {@code RunJS} rule, an action's
+   * {@code js} or an {@code AddContentTo…} command; a {@code MicroFrontend} loaded from another
+   * server. {@code mateu_save_spec} refuses such a definition (R6): a saved spec is served through
+   * the ordinary, TRUSTED render path, so an agent could otherwise persist what the strip keeps out
+   * of a pushed screen.
+   */
+  public static boolean scriptCapable(JsonNode value) {
+    if (value == null) return false;
+    if (value.isTextual()) return isScriptUrl(value.asText());
+    if (value.isArray()) {
+      for (JsonNode item : value) {
+        if (isCode(item) || scriptCapable(item)) return true;
+      }
+      return false;
+    }
+    if (!value.isObject()) return false;
+    String type = value.path("type").isTextual() ? value.get("type").asText() : null;
+    if ("Element".equals(type) && elementRunsCode(value)) return true;
+    if ("MicroFrontend".equals(type)
+        && value.path("baseUrl").isTextual()
+        && isForeignBase(value.get("baseUrl").asText())) {
+      return true;
+    }
+    var js = value.get("js");
+    if (js != null && js.isTextual() && !js.asText().isBlank()) return true;
+    var fields = value.fields();
+    while (fields.hasNext()) {
+      if (scriptCapable(fields.next().getValue())) return true;
+    }
+    return false;
+  }
+
+  private static boolean elementRunsCode(JsonNode node) {
+    String name =
+        node.path("name").isTextual()
+            ? node.get("name").asText().trim().toLowerCase(Locale.ROOT)
+            : "";
+    if (BLOCKED_ELEMENTS.contains(name) || name.startsWith("mateu-")) return true;
+    var html = node.get("html");
+    if (html != null && (html.asBoolean(false) || "true".equalsIgnoreCase(html.asText()))) {
+      return true;
+    }
+    if (node.path("attributes").isObject()) {
+      var fields = node.get("attributes").fields();
+      while (fields.hasNext()) {
+        var entry = fields.next();
+        String k = entry.getKey().toLowerCase(Locale.ROOT);
+        if (k.equals("import") || k.equals("srcdoc") || k.startsWith("on")) return true;
+        JsonNode v = entry.getValue();
+        if (v.isTextual()
+            && (isScriptUrl(v.asText())
+                || (URL_ATTRIBUTES.contains(k) && !isSafeUrl(v.asText())))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /** An absolute or network-path url, a backslash spelling of one included ({@code \\host}). */
+  private static boolean isForeignBase(String value) {
+    var c = cleaned(value);
+    return isAbsoluteUrl(value) || c.startsWith("\\") || c.startsWith("/\\");
+  }
+
   private static void element(ObjectNode node) {
     String name =
         node.path("name").isTextual()

@@ -77,7 +77,63 @@ internal static class SpecWriter
         {
             return null; // not YAML: the validation report already says so
         }
-        return CarriesARequest(tree, new HashSet<YNode>(ReferenceEqualityComparer.Instance)) ? RequestRefusal : null;
+        if (CarriesARequest(tree, new HashSet<YNode>(ReferenceEqualityComparer.Instance))) return RequestRefusal;
+        // R6: a saved spec is served through the ordinary (trusted) render path, so it may not carry
+        // what the untrusted strip keeps out of an agent's pushed screen
+        System.Text.Json.Nodes.JsonNode? json;
+        try
+        {
+            var budget = MaxExpandedNodes;
+            json = ToJson(tree, new HashSet<YNode>(ReferenceEqualityComparer.Instance), ref budget);
+        }
+        catch (InvalidOperationException)
+        {
+            return ScriptRefusal; // aliases expanding past any page's size: not checkable, not saved
+        }
+        return UntrustedDefinition.ScriptCapable(json) ? ScriptRefusal : null;
+    }
+
+    /// <summary>How many nodes the alias-expanded tree may have before the check gives up (refusing).</summary>
+    private const int MaxExpandedNodes = 100_000;
+
+    /// <summary>The message of a definition that would run code in the browser (shown as written).</summary>
+    public const string ScriptRefusal =
+        "A definition saved by an agent may not run code in the browser: no event-handler, import or srcdoc attribute, "
+        + "no raw-HTML or script-capable element, no javascript: url, RunJS rule or action js, and no MicroFrontend "
+        + "loaded from another server.";
+
+    /// <summary>The composed tree as JSON (scalars as text; the last of duplicate keys wins, as the
+    /// loader reads it; an alias inside its own anchor is cut).</summary>
+    private static System.Text.Json.Nodes.JsonNode? ToJson(YNode? node, HashSet<YNode> path, ref int budget)
+    {
+        if (--budget < 0) throw new InvalidOperationException("too large");
+        switch (node)
+        {
+            case YScalar scalar:
+                return System.Text.Json.Nodes.JsonValue.Create(scalar.Value);
+            case YSequence sequence:
+            {
+                if (!path.Add(sequence)) return null;
+                var array = new System.Text.Json.Nodes.JsonArray();
+                foreach (var item in sequence.Items) array.Add(ToJson(item, path, ref budget));
+                path.Remove(sequence);
+                return array;
+            }
+            case YMapping mapping:
+            {
+                if (!path.Add(mapping)) return null;
+                var obj = new System.Text.Json.Nodes.JsonObject();
+                foreach (var entry in mapping.Entries)
+                {
+                    var key = entry.Key is YScalar k ? k.Value : "";
+                    obj[key] = ToJson(entry.Value, path, ref budget);
+                }
+                path.Remove(mapping);
+                return obj;
+            }
+            default:
+                return null;
+        }
     }
 
     private static bool CarriesARequest(YNode? node, HashSet<YNode> seen)

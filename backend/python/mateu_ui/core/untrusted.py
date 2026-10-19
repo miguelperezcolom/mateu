@@ -96,6 +96,73 @@ def _element(node: dict) -> dict:
     return out
 
 
+class TooLarge(Exception):
+    """The alias-expanded definition is larger than any page: not checkable (refused)."""
+
+
+_MAX_NODES = 100_000
+
+
+def script_capable(value: Any) -> bool:
+    """Whether a definition (authored YAML loaded as data, or wire JSON) carries anything
+    :func:`neutralize` would take out (Java's ``UntrustedDefinition.scriptCapable``):
+    ``mateu_save_spec`` refuses it (R6) — a saved spec is served through the ordinary, TRUSTED render
+    path, so an agent could otherwise persist what the strip keeps out of a pushed screen. Raises
+    :class:`TooLarge` when YAML aliases expand past any page's size."""
+    budget = [_MAX_NODES]
+    return _script_capable(value, budget, set())
+
+
+def _script_capable(value: Any, budget: list[int], path: set[int]) -> bool:
+    budget[0] -= 1
+    if budget[0] < 0:
+        raise TooLarge()
+    if isinstance(value, str):
+        return is_script_url(value)
+    if isinstance(value, (list, dict)):
+        if id(value) in path:  # an alias inside its own anchor
+            return False
+        path = path | {id(value)}
+    if isinstance(value, list):
+        return any(_is_code(item) or _script_capable(item, budget, path) for item in value)
+    if not isinstance(value, dict):
+        return False
+    if value.get("type") == "Element" and _element_runs_code(value):
+        return True
+    base = value.get("baseUrl")
+    if value.get("type") == "MicroFrontend" and isinstance(base, str) and _foreign_base(base):
+        return True
+    js = value.get("js")
+    if isinstance(js, str) and js.strip():
+        return True
+    return any(_script_capable(v, budget, path) for v in value.values())
+
+
+def _element_runs_code(node: dict) -> bool:
+    raw = node.get("name")
+    name = raw.strip().lower() if isinstance(raw, str) else ""
+    if name in _BLOCKED_ELEMENTS or name.startswith("mateu-"):
+        return True
+    html = node.get("html")
+    if html is True or (isinstance(html, str) and html.strip().lower() == "true"):
+        return True
+    attributes = node.get("attributes")
+    if isinstance(attributes, dict):
+        for key, value in attributes.items():
+            k = str(key).lower()
+            if k in ("import", "srcdoc") or k.startswith("on"):
+                return True
+            if isinstance(value, str) and (is_script_url(value) or (k in _URL_ATTRIBUTES and not _safe_url(value))):
+                return True
+    return False
+
+
+def _foreign_base(value: str) -> bool:
+    """An absolute or network-path url, a backslash spelling of one included (``\\\\host``)."""
+    c = _cleaned(value)
+    return _absolute_url(value) or c.startswith("\\") or c.startswith("/\\")
+
+
 def neutralize(value: Any) -> Any:
     """A sanitised copy of any wire JSON (a fragment, a component, an increment as a dict)."""
     if isinstance(value, str):

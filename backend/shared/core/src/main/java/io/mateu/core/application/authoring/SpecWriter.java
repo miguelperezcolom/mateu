@@ -108,8 +108,21 @@ public final class SpecWriter {
     } catch (IOException | RuntimeException e) {
       return null; // not YAML: the validation report already says so
     }
-    return carriesARequest(tree) ? REQUEST_REFUSAL : null;
+    if (carriesARequest(tree)) {
+      return REQUEST_REFUSAL;
+    }
+    // R6: a saved spec is served through the ordinary (trusted) render path, so it may not carry
+    // what the untrusted strip keeps out of an agent's pushed screen
+    return io.mateu.core.application.runaction.UntrustedDefinition.scriptCapable(tree)
+        ? SCRIPT_REFUSAL
+        : null;
   }
+
+  /** The message of a definition that would run code in the browser (shown as written). */
+  public static final String SCRIPT_REFUSAL =
+      "A definition saved by an agent may not run code in the browser: no event-handler, import or"
+          + " srcdoc attribute, no raw-HTML or script-capable element, no javascript: url, RunJS"
+          + " rule or action js, and no MicroFrontend loaded from another server.";
 
   /** The message of a definition that would decide a request (shown as written). */
   public static final String REQUEST_REFUSAL =

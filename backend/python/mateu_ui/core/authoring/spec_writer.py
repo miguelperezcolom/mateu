@@ -91,7 +91,23 @@ def agent_refusal(kind: str | None, text: str | None) -> str | None:
         tree = yaml.safe_load(text or "")
     except Exception:  # noqa: BLE001 - not YAML: the validation report already says so
         return None
-    return REQUEST_REFUSAL if _carries_a_request(tree, set()) else None
+    if _carries_a_request(tree, set()):
+        return REQUEST_REFUSAL
+    # R6: a saved spec is served through the ordinary (trusted) render path, so it may not carry
+    # what the untrusted strip keeps out of an agent's pushed screen
+    from mateu_ui.core import untrusted
+
+    try:
+        return SCRIPT_REFUSAL if untrusted.script_capable(tree) else None
+    except untrusted.TooLarge:
+        return SCRIPT_REFUSAL
+
+
+SCRIPT_REFUSAL = (
+    "A definition saved by an agent may not run code in the browser: no event-handler, import or"
+    " srcdoc attribute, no raw-HTML or script-capable element, no javascript: url, RunJS rule or"
+    " action js, and no MicroFrontend loaded from another server."
+)
 
 
 def _carries_a_request(node, seen: set[int]) -> bool:
