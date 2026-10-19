@@ -1,0 +1,675 @@
+{
+  "$comment" : "The MCP authoring contract shared by the Java, .NET and Python backends and the sidecar. See README.md. tools/resources are normative byte for byte; validate.expected is generated from the Java reference (-Dmcp.corpus.write=true) and then frozen.",
+  "tools" : [ {
+    "name" : "mateu_list_routes",
+    "description" : "List the navigable routes of the Mateu app (derived from its menu). Returns [{route, caption}].",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : { },
+      "additionalProperties" : false
+    }
+  }, {
+    "name" : "mateu_describe_screen",
+    "description" : "Load a screen by route and return a flat description an agent can act on: title, fields (id, label, dataType, required, value, options), actions (id, label), listing (if any), and the current state. Use route \"\" for the home screen.",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : {
+        "route" : {
+          "type" : "string",
+          "description" : "route relative to the mount, \"\" = home"
+        }
+      },
+      "additionalProperties" : false,
+      "required" : [ "route" ]
+    }
+  }, {
+    "name" : "mateu_run_action",
+    "description" : "Run an action on a screen (an action id from mateu_describe_screen), optionally seeding field values via componentState. Returns the resulting screen projection (messages, navigation, new state).",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : {
+        "route" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "componentState" : {
+          "type" : "object",
+          "description" : "field id -> value; seeds/overrides form state"
+        }
+      },
+      "additionalProperties" : false,
+      "required" : [ "route", "actionId" ]
+    }
+  }, {
+    "name" : "mateu_search",
+    "description" : "Search a listing screen with free text (and optional filter values). Returns the listing.",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : {
+        "route" : {
+          "type" : "string"
+        },
+        "searchText" : {
+          "type" : "string"
+        },
+        "filters" : {
+          "type" : "object"
+        }
+      },
+      "additionalProperties" : false,
+      "required" : [ "route" ]
+    }
+  }, {
+    "name" : "mateu_list_components",
+    "description" : "List the component types a YAML definition can use, each with a one-line description and the names of its main attributes. Read mateu://guide first if you have not authored Mateu YAML before.",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : {
+        "query" : {
+          "type" : "string",
+          "description" : "optional: only the types whose name or description contains it"
+        }
+      },
+      "additionalProperties" : false
+    }
+  }, {
+    "name" : "mateu_get_component_schema",
+    "description" : "Return the JSON Schema of one component type: every key it accepts with its value type, plus every definition it references (enums, nested records). A #/$defs/Component reference means any component.",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "description" : "a component type (e.g. FormField) or any other schema definition"
+        }
+      },
+      "additionalProperties" : false,
+      "required" : [ "type" ]
+    }
+  }, {
+    "name" : "mateu_validate_uidl",
+    "description" : "Validate a YAML definition (a page, an app shell or any specs/ui file kind) without rendering it. Returns {valid, kind, errors, warnings}; each issue has a code, a message, a JSONPath and its line/column. Errors make the definition fail to load; warnings are ignored keys, undeclared actions and references that do not resolve.",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : {
+        "yaml" : {
+          "type" : "string",
+          "description" : "the definition's YAML text"
+        }
+      },
+      "additionalProperties" : false,
+      "required" : [ "yaml" ]
+    }
+  }, {
+    "name" : "mateu_preview_uidl",
+    "description" : "Render a YAML page as the app would — layout only: no view model is bound and nothing is saved — and return {rendered, screen, validation}: the screen projection (title, fields, actions…) plus the validation report.",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : {
+        "yaml" : {
+          "type" : "string",
+          "description" : "the page's YAML text"
+        },
+        "route" : {
+          "type" : "string",
+          "description" : "optional: the route to render it under (its access rules apply)"
+        }
+      },
+      "additionalProperties" : false,
+      "required" : [ "yaml" ]
+    }
+  } ],
+  "devTools" : [ {
+    "name" : "mateu_save_spec",
+    "description" : "Development mode only: validate a YAML definition and, when it has no errors, write it into the app's specs directory (path relative to it, e.g. customers.yaml or partials/address.yaml); live reload shows it in the open browsers. Paths outside the specs directory are refused.",
+    "inputSchema" : {
+      "type" : "object",
+      "properties" : {
+        "path" : {
+          "type" : "string",
+          "description" : "relative to the specs directory, e.g. customers.yaml"
+        },
+        "yaml" : {
+          "type" : "string",
+          "description" : "the definition's YAML text"
+        }
+      },
+      "additionalProperties" : false,
+      "required" : [ "path", "yaml" ]
+    }
+  } ],
+  "resources" : [ {
+    "uri" : "mateu://guide",
+    "name" : "Authoring guide",
+    "description" : "How to write Mateu YAML definitions with these tools: the workflow, a sample page and the rules that keep a definition valid.",
+    "mimeType" : "text/markdown"
+  }, {
+    "uri" : "mateu://catalog",
+    "name" : "Component catalogue",
+    "description" : "Every component type with a one-line description and its main attributes (generated from the schema).",
+    "mimeType" : "application/json"
+  }, {
+    "uri" : "mateu://schema/specs",
+    "name" : "specs/ui schema",
+    "description" : "JSON Schema of every file under specs/ui: pages, app shells, mounts, routes, sources, actions, translations, environments, field types and the project descriptor.",
+    "mimeType" : "application/schema+json"
+  }, {
+    "uri" : "mateu://schema/uidl",
+    "name" : "Component schema",
+    "description" : "JSON Schema of the component catalogue (UIDL).",
+    "mimeType" : "application/schema+json"
+  } ],
+  "validate" : [ {
+    "name" : "a-valid-page-without-view-model",
+    "why" : "The guide's sample page: valid; its Save button names an action nothing declares (no view model, no actions:), so one undeclared_action warning.",
+    "yaml" : "type: VerticalLayout\nspacing: true\ncontent:\n  - type: Text\n    text: Customer\n    container: h2\n  - type: FormLayout\n    content:\n      - type: FormField\n        id: name\n        label: Name\n        dataType: string\n        required: true\n      - type: FormField\n        id: email\n        label: Email\n        dataType: string\n        stereotype: email\n  - type: HorizontalLayout\n    content:\n      - type: Button\n        label: Save\n        actionId: save\n        buttonStyle: primary\n",
+    "context" : null,
+    "expected" : {
+      "valid" : true,
+      "kind" : "component",
+      "errors" : [ ],
+      "warnings" : [ {
+        "code" : "undeclared_action",
+        "message" : "Action \"save\" is not declared in this page's actions: (or the action catalogue); it only runs if the view model bound to the page has an action of that name.",
+        "path" : "$.content[2].content[0].actionId",
+        "line" : 23,
+        "column" : 19
+      } ]
+    }
+  }, {
+    "name" : "a-page-bound-to-a-view-model",
+    "why" : "The same page naming its view model: the view model owns the actions, no warning.",
+    "yaml" : "viewModel: com.acme.CustomerView\ntype: VerticalLayout\nspacing: true\ncontent:\n  - type: Text\n    text: Customer\n    container: h2\n  - type: FormLayout\n    content:\n      - type: FormField\n        id: name\n        label: Name\n        dataType: string\n        required: true\n      - type: FormField\n        id: email\n        label: Email\n        dataType: string\n        stereotype: email\n  - type: HorizontalLayout\n    content:\n      - type: Button\n        label: Save\n        actionId: save\n        buttonStyle: primary\n",
+    "context" : null,
+    "expected" : {
+      "valid" : true,
+      "kind" : "component",
+      "errors" : [ ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "decimal-is-not-a-data-type",
+    "why" : "The CLAUDE.md gotcha: dataType: decimal does not exist; the error lists the allowed values.",
+    "yaml" : "type: FormLayout\ncontent:\n  - type: FormField\n    id: price\n    label: Price\n    dataType: decimal\n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : "component",
+      "errors" : [ {
+        "code" : "invalid_value",
+        "message" : "\"decimal\" is not a valid dataType — use one of: integer, string, number, date, time, dateTime, bool, array, file, status, money, component, menu, range, action, actionGroup, dateRange.",
+        "path" : "$.content[0].dataType",
+        "line" : 6,
+        "column" : 15
+      } ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "an-unknown-component-type",
+    "why" : "A misspelt type is suggested by edit distance; a wrong-case one by case-insensitive match.",
+    "yaml" : "type: VerticalLayout\ncontent:\n  - type: Buton\n    label: Go\n  - type: textField\n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : "component",
+      "errors" : [ {
+        "code" : "unknown_type",
+        "message" : "Unknown Component type \"Buton\". Did you mean \"Button\"?",
+        "path" : "$.content[0].type",
+        "line" : 3,
+        "column" : 11
+      }, {
+        "code" : "unknown_type",
+        "message" : "Unknown Component type \"textField\".",
+        "path" : "$.content[1].type",
+        "line" : 5,
+        "column" : 11
+      } ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "unknown-keys-are-warnings",
+    "why" : "The loader ignores unknown keys, so they are warnings: a near miss suggests the key, anything else lists the known ones; a non-identifier key is bracketed in the path.",
+    "yaml" : "type: FormField\nid: name\nlabl: Name\nfooBar: 1\nmy-key: x\n",
+    "context" : null,
+    "expected" : {
+      "valid" : true,
+      "kind" : "component",
+      "errors" : [ ],
+      "warnings" : [ {
+        "code" : "unknown_property",
+        "message" : "Unknown key \"labl\" (ignored). Did you mean \"label\"?",
+        "path" : "$.labl",
+        "line" : 3,
+        "column" : 1
+      }, {
+        "code" : "unknown_property",
+        "message" : "Unknown key \"fooBar\" (ignored). Known keys here: type, id, label, dataType, stereotype, readOnly, required, autofocus, placeholder, description, options, remoteCoordinates, optionsSource, initialValue, style, cssClasses, columns, inlineEditing, onItemSelectionActionId, rowSelectionShortcut, colspan, formPosition, formStyle, formTheme, formColumns, sliderMin, sliderMax, stepButtonsVisible, step, min, max, itemIdPath, attributes, detailPath, useButtonForDetail, minHeightWhenDetailVisible, optionsColumns, mainFilter, treeLeavesOnly, multiline, propertyRow, link, note, eyesOnly, readOnlyUnless, disabledUnless, fieldType, viewModel, modelView, actions, triggers, pageType.",
+        "path" : "$.fooBar",
+        "line" : 4,
+        "column" : 1
+      }, {
+        "code" : "unknown_property",
+        "message" : "Unknown key \"my-key\" (ignored). Known keys here: type, id, label, dataType, stereotype, readOnly, required, autofocus, placeholder, description, options, remoteCoordinates, optionsSource, initialValue, style, cssClasses, columns, inlineEditing, onItemSelectionActionId, rowSelectionShortcut, colspan, formPosition, formStyle, formTheme, formColumns, sliderMin, sliderMax, stepButtonsVisible, step, min, max, itemIdPath, attributes, detailPath, useButtonForDetail, minHeightWhenDetailVisible, optionsColumns, mainFilter, treeLeavesOnly, multiline, propertyRow, link, note, eyesOnly, readOnlyUnless, disabledUnless, fieldType, viewModel, modelView, actions, triggers, pageType.",
+        "path" : "$['my-key']",
+        "line" : 5,
+        "column" : 1
+      } ]
+    }
+  }, {
+    "name" : "a-component-without-type",
+    "why" : "A content entry with no type: is an error; a null entry is accepted (null fits anything).",
+    "yaml" : "type: VerticalLayout\ncontent:\n  - text: hello\n  - ~\n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : "component",
+      "errors" : [ {
+        "code" : "missing_type",
+        "message" : "Missing \"type\": a Component must say which one it is.",
+        "path" : "$.content[0]",
+        "line" : 3,
+        "column" : 5
+      } ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "values-of-the-wrong-type",
+    "why" : "Scalar typing by raw text: quoted \\\"true\\\" is still a boolean and \\\"1.5\\\" a number (the loader coerces), but maybe/two are not; a number is a valid string; a scalar is not a list.",
+    "yaml" : "type: FormField\nid: n\nrequired: maybe\ncolspan: two\nreadOnly: \"true\"\nmin: \"1.5\"\nlabel: 12\noptions: not-a-list\n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : "component",
+      "errors" : [ {
+        "code" : "wrong_type",
+        "message" : "Expected a boolean, found \"maybe\".",
+        "path" : "$.required",
+        "line" : 3,
+        "column" : 11
+      }, {
+        "code" : "wrong_type",
+        "message" : "Expected an integer, found \"two\".",
+        "path" : "$.colspan",
+        "line" : 4,
+        "column" : 10
+      }, {
+        "code" : "wrong_type",
+        "message" : "Expected a list, found \"not-a-list\".",
+        "path" : "$.options",
+        "line" : 8,
+        "column" : 10
+      } ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "references-that-do-not-resolve",
+    "why" : "Against a context: an unknown source, partial, business component and field type are warnings; create is declared in actions:, globalRefresh is in the action catalogue, export is neither.",
+    "yaml" : "type: VerticalLayout\nactions:\n  - id: create\n    restAction:\n      source:\n        ref: planets\ncontent:\n  - type: Listing\n    rowsSource:\n      ref: countries\n  - type: Partial\n    ref: billing\n  - type: Partial\n    ref: address\n  - type: ComponentRef\n    ref: OrderCard\n  - type: FormLayout\n    content:\n      - type: FormField\n        id: account\n        fieldType: swift\n  - type: Button\n    label: Create\n    actionId: create\n  - type: Button\n    label: Refresh\n    actionId: globalRefresh\n  - type: Button\n    label: Export\n    actionId: export\n",
+    "context" : {
+      "sources" : [ "countries" ],
+      "partials" : [ "address" ],
+      "components" : [ "CustomerCard" ],
+      "actions" : [ "globalRefresh" ],
+      "fieldTypes" : [ "iban" ]
+    },
+    "expected" : {
+      "valid" : true,
+      "kind" : "component",
+      "errors" : [ ],
+      "warnings" : [ {
+        "code" : "unresolved_source",
+        "message" : "Source \"planets\" is not in the source catalogue (sources.yaml).",
+        "path" : "$.actions[0].restAction.source.ref",
+        "line" : 6,
+        "column" : 14
+      }, {
+        "code" : "unresolved_partial",
+        "message" : "Partial \"billing\" does not exist (specs/ui/partials/).",
+        "path" : "$.content[1].ref",
+        "line" : 12,
+        "column" : 10
+      }, {
+        "code" : "unresolved_component",
+        "message" : "Component \"OrderCard\" is not in the business component catalogue (components.yaml).",
+        "path" : "$.content[3].ref",
+        "line" : 16,
+        "column" : 10
+      }, {
+        "code" : "unresolved_field_type",
+        "message" : "Field type \"swift\" is not in the field type catalogue (types.yaml).",
+        "path" : "$.content[4].content[0].fieldType",
+        "line" : 21,
+        "column" : 20
+      }, {
+        "code" : "undeclared_action",
+        "message" : "Action \"export\" is not declared in this page's actions: (or the action catalogue); it only runs if the view model bound to the page has an action of that name.",
+        "path" : "$.content[7].actionId",
+        "line" : 30,
+        "column" : 15
+      } ]
+    }
+  }, {
+    "name" : "a-layout-envelope",
+    "why" : "A page as a layout: envelope with page-level keys.",
+    "yaml" : "viewModel: com.acme.Orders\npageType: collection\nlayout:\n  type: VerticalLayout\n  content:\n    - type: Text\n      text: Orders\n",
+    "context" : null,
+    "expected" : {
+      "valid" : true,
+      "kind" : "envelope",
+      "errors" : [ ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "an-invalid-page-type",
+    "why" : "Page-level keys beside a root component are validated too: pageType is an enum.",
+    "yaml" : "type: VerticalLayout\npageType: list\ntriggers:\n  - type: OnLoadTrigger\n    actionId: load\ncontent: []\n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : "component",
+      "errors" : [ {
+        "code" : "invalid_value",
+        "message" : "\"list\" is not a valid pageType — use one of: landing, collection, detail, form, process, dashboard.",
+        "path" : "$.pageType",
+        "line" : 2,
+        "column" : 11
+      } ],
+      "warnings" : [ {
+        "code" : "undeclared_action",
+        "message" : "Action \"load\" is not declared in this page's actions: (or the action catalogue); it only runs if the view model bound to the page has an action of that name.",
+        "path" : "$.triggers[0].actionId",
+        "line" : 5,
+        "column" : 15
+      } ]
+    }
+  }, {
+    "name" : "a-routes-file",
+    "why" : "A route file: an unknown key of a route entry is a warning.",
+    "yaml" : "type: Routes\nroutes:\n  - route: customers\n    layout: customers.yaml\n    viewModell: com.acme.Customers\n  - route: orders\n    layout: orders.yaml\n",
+    "context" : null,
+    "expected" : {
+      "valid" : true,
+      "kind" : "routes",
+      "errors" : [ ],
+      "warnings" : [ {
+        "code" : "unknown_property",
+        "message" : "Unknown key \"viewModell\" (ignored). Did you mean \"viewModel\"?",
+        "path" : "$.routes[0].viewModell",
+        "line" : 5,
+        "column" : 5
+      } ]
+    }
+  }, {
+    "name" : "a-routes-file-without-routes",
+    "why" : "type: Routes requires routes:.",
+    "yaml" : "type: Routes\n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : "routes",
+      "errors" : [ {
+        "code" : "missing_required",
+        "message" : "Missing required key \"routes\".",
+        "path" : "$",
+        "line" : 1,
+        "column" : 1
+      } ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "a-sources-catalogue",
+    "why" : "A valid source catalogue.",
+    "yaml" : "type: Sources\nsources:\n  - name: countries\n    source:\n      url: https://restcountries.com/v3.1/all\n      itemsPath: $\n",
+    "context" : null,
+    "expected" : {
+      "valid" : true,
+      "kind" : "sources",
+      "errors" : [ ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "a-bare-route-list",
+    "why" : "A route file may be a bare list.",
+    "yaml" : "- route: home\n  layout: home.yaml\n",
+    "context" : null,
+    "expected" : {
+      "valid" : true,
+      "kind" : "routes",
+      "errors" : [ ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "not-a-definition",
+    "why" : "A mapping with no type: and no known top-level key is not any kind of definition.",
+    "yaml" : "foo: bar\n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : null,
+      "errors" : [ {
+        "code" : "unknown_kind",
+        "message" : "Cannot tell what kind of definition this is: give it a `type:` (a component such as VerticalLayout, or a file kind such as UI, Routes or Sources), or a `layout:`, `content:` or `components:` key.",
+        "path" : "$",
+        "line" : 1,
+        "column" : 1
+      } ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "an-empty-document",
+    "why" : "Blank text.",
+    "yaml" : "   \n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : null,
+      "errors" : [ {
+        "code" : "empty",
+        "message" : "The YAML is empty.",
+        "path" : "$"
+      } ],
+      "warnings" : [ ]
+    }
+  }, {
+    "name" : "a-yaml-syntax-error",
+    "why" : "A syntax error: only the code is normative (the message and position are the YAML parser's).",
+    "yaml" : "type: Text\ntext: a: b\n",
+    "context" : null,
+    "expected" : {
+      "valid" : false,
+      "kind" : null,
+      "errors" : [ {
+        "code" : "yaml_syntax",
+        "path" : "$"
+      } ],
+      "warnings" : [ ]
+    }
+  } ],
+  "preview" : [ {
+    "name" : "the-sample-page",
+    "yaml" : "type: VerticalLayout\nspacing: true\ncontent:\n  - type: Text\n    text: Customer\n    container: h2\n  - type: FormLayout\n    content:\n      - type: FormField\n        id: name\n        label: Name\n        dataType: string\n        required: true\n      - type: FormField\n        id: email\n        label: Email\n        dataType: string\n        stereotype: email\n  - type: HorizontalLayout\n    content:\n      - type: Button\n        label: Save\n        actionId: save\n        buttonStyle: primary\n",
+    "expected" : {
+      "rendered" : true,
+      "fields" : [ {
+        "id" : "name",
+        "label" : "Name",
+        "dataType" : "string",
+        "stereotype" : "regular",
+        "required" : true,
+        "readOnly" : false
+      }, {
+        "id" : "email",
+        "label" : "Email",
+        "dataType" : "string",
+        "stereotype" : "email",
+        "required" : false,
+        "readOnly" : false
+      } ],
+      "actions" : [ {
+        "id" : "save",
+        "label" : "Save"
+      } ],
+      "validation" : {
+        "valid" : true,
+        "kind" : "component",
+        "errors" : [ ],
+        "warnings" : [ {
+          "code" : "undeclared_action",
+          "message" : "Action \"save\" is not declared in this page's actions: (or the action catalogue); it only runs if the view model bound to the page has an action of that name.",
+          "path" : "$.content[2].content[0].actionId",
+          "line" : 23,
+          "column" : 19
+        } ]
+      }
+    }
+  } ],
+  "listComponents" : [ {
+    "query" : "chart",
+    "expected" : {
+      "components" : [ {
+        "type" : "Chart",
+        "description" : "A chart (bar, line, pie and others) drawn from labelled datasets.",
+        "attributes" : [ "chartType", "chartData", "chartOptions" ]
+      }, {
+        "type" : "Gantt",
+        "description" : "A Gantt/timeline chart: one row per GanttTask, bars spanning the task's dates on a shared time axis, with per-task progress and a today marker.",
+        "attributes" : [ "id", "tasks", "onTaskSelectionActionId" ]
+      }, {
+        "type" : "OrgChart",
+        "description" : "A read-only top-down hierarchy chart (org chart, category tree): a single root OrgNode whose children fan out below it, connected by lines.",
+        "attributes" : [ "id", "root" ]
+      }, {
+        "type" : "PlanningBoard",
+        "description" : "A planning board / tape chart: one row per PlanningResource, one column per day between from and to, and colored PlanningBlocks spanning their date ranges on their resource's row — the rooms × days grid every hotel/rental/staffing back-office needs.",
+        "attributes" : [ "id", "resources", "blocks", "from", "to", "moveActionId", "selectActionId", "attributeColumns", "resizeActionId", "openActionId", "rangeSelectActionId" ]
+      }, {
+        "type" : "TrendChart",
+        "description" : "A read-only lightweight line/area chart: a single series of values plotted as an SVG line (optionally area-filled), with optional x-axis labels, min/max markers and a hover tooltip.",
+        "attributes" : [ "id", "title", "values", "labels", "color", "area" ]
+      } ],
+      "count" : 5
+    }
+  }, {
+    "query" : "",
+    "expectedCount" : 125
+  } ],
+  "componentSchemas" : [ {
+    "type" : "Badge",
+    "expected" : {
+      "type" : "Badge",
+      "schema" : {
+        "description" : "A small colored label (chip) for a status or count, optionally with icons.",
+        "type" : "object",
+        "required" : [ "type" ],
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "const" : "Badge"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "iconOnLeft" : {
+            "type" : "string"
+          },
+          "iconOnRight" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "primary" : {
+            "type" : "boolean"
+          },
+          "small" : {
+            "type" : "boolean"
+          },
+          "pill" : {
+            "type" : "boolean"
+          },
+          "style" : {
+            "type" : "string"
+          },
+          "cssClasses" : {
+            "type" : "string"
+          },
+          "note" : {
+            "type" : "string",
+            "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+          },
+          "eyesOnly" : {
+            "$ref" : "#/$defs/Access",
+            "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+          },
+          "readOnlyUnless" : {
+            "$ref" : "#/$defs/Access",
+            "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+          },
+          "disabledUnless" : {
+            "$ref" : "#/$defs/Access",
+            "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+          }
+        }
+      },
+      "definitions" : {
+        "Access" : {
+          "type" : "object",
+          "properties" : {
+            "roles" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "groups" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "scopes" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "permissions" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "type" : "Trigger",
+    "expected" : {
+      "type" : "Trigger",
+      "schema" : {
+        "description" : "One of the Trigger implementations.",
+        "oneOf" : [ {
+          "$ref" : "#/$defs/AutoSaveTrigger"
+        }, {
+          "$ref" : "#/$defs/OnCustomEventTrigger"
+        }, {
+          "$ref" : "#/$defs/OnErrorTrigger"
+        }, {
+          "$ref" : "#/$defs/OnLoadTrigger"
+        }, {
+          "$ref" : "#/$defs/OnSuccessTrigger"
+        }, {
+          "$ref" : "#/$defs/OnValueChangeTrigger"
+        } ]
+      },
+      "definitions" : { }
+    }
+  }, {
+    "type" : "Buton",
+    "expectedError" : "Unknown type \"Buton\". Did you mean \"Button\"? See mateu_list_components."
+  } ]
+}

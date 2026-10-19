@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/** A small key-performance-indicator pair showing a title and a value. */
 @Builder
 public record KPI(String title, String text, String style, String cssClasses) implements Component {
 

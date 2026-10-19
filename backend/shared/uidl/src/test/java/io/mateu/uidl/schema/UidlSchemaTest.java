@@ -86,6 +86,39 @@ class UidlSchemaTest {
         .isEqualTo(generated);
   }
 
+  /** The component catalogue the MCP authoring tools serve, alongside the schemas. */
+  private static Path catalogFile() {
+    return Path.of(System.getProperty("user.dir")).resolve("uidl-catalog.json");
+  }
+
+  @Test
+  void theCheckedInCatalogueMatchesTheSchema() throws IOException {
+    var generated = UidlSchemaGenerator.generateCatalog();
+
+    if (Boolean.getBoolean("uidl.schema.write")) {
+      UidlSchemaGenerator.write(catalogFile(), generated);
+      return;
+    }
+
+    assertThat(MAPPER.readTree(Files.readString(catalogFile())))
+        .as("uidl-catalog.json is stale — regenerate it (see this class's javadoc)")
+        .isEqualTo(generated);
+  }
+
+  @Test
+  void everyComponentIsDescribedByItsJavadoc() {
+    // The catalogue's one-liners are the records' own Javadoc (first sentence): a component
+    // added without one would reach agents and editors as a bare name.
+    var undescribed = new ArrayList<String>();
+    UidlSchemaGenerator.generateCatalog()
+        .get("components")
+        .forEach(
+            c -> {
+              if (c.get("description").asText().isBlank()) undescribed.add(c.get("type").asText());
+            });
+    assertThat(undescribed).as("components with no class Javadoc").isEmpty();
+  }
+
   @Test
   void theCheckedInRoutesSchemaMatchesTheRouteEntryRecord() throws IOException {
     var generated = UidlSchemaGenerator.generateRoutes();

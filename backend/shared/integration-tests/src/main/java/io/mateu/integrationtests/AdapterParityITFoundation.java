@@ -406,6 +406,30 @@ public class AdapterParityITFoundation {
         .post("/mateu/mcp")
         .then()
         .statusCode(202);
+    // a body that is not JSON is a JSON-RPC parse error, not an HTTP failure
+    given()
+        .contentType(ContentType.JSON)
+        .body("{not json")
+        .when()
+        .post("/mateu/mcp")
+        .then()
+        .statusCode(200)
+        .body(containsString("-32700"));
+    // the authoring plane: the resources ship in the app, and validation reaches the app's
+    // validator through its own sync path (the reserved __validate__ action)
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"resources/list\"}")
+        .when()
+        .post("/mateu/mcp")
+        .then()
+        .statusCode(200)
+        .body(containsString("mateu://schema/specs"));
+    mcpToolCall(
+            "mateu_validate_uidl",
+            "{\"yaml\":\"type: FormField\\nid: price\\ndataType: decimal\\n\"}")
+        .body(containsString("invalid_value"))
+        .body(containsString("\\\"line\\\" : 3"));
   }
 
   private static io.restassured.response.ValidatableResponse mcpToolCall(

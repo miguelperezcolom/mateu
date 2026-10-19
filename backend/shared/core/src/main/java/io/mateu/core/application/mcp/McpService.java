@@ -260,9 +260,127 @@ public class McpService {
           service.runAction(baseUrl, rq, baseUrl, httpRequests.create(rq)).next().block();
       return objectMapper.valueToTree(increment);
     } catch (Throwable t) {
-      throw new RuntimeException(
-          "MCP sync failed for route '" + rq.route() + "': " + t.getMessage(), t);
+      // The sync endpoint's error boundary, applied here too: a refused request is the tool
+      // error "Forbidden" (never the guard's own wording, which names roles and annotations);
+      // anything else answers the generic message + reference as a screen message — never the
+      // raw exception text, which may carry SQL, paths or other users' data.
+      if (findCause(t, io.mateu.core.application.security.MateuForbiddenException.class)) {
+        throw new io.mateu.uidl.UserFacingException("Forbidden");
+      }
+      var increment = objectMapper.createObjectNode();
+      var message = increment.putArray("messages").addObject();
+      message.put("variant", "error");
+      var toast =
+          io.mateu.core.application.runaction.ErrorBoundary.toMessage(t, rq.actionId(), null);
+      message.put("title", toast.title());
+      message.put("text", toast.text());
+      return increment;
     }
+  }
+
+  private static boolean findCause(Throwable t, Class<? extends Throwable> type) {
+    for (var c = t; c != null; c = c.getCause() == c ? null : c.getCause()) {
+      if (type.isInstance(c)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ── authoring (phase B): validate, preview, save ──────────────────────────────────────────
+
+  /** {@code mateu_validate_uidl}: the app's {@code __validate__} answer for {@code yaml}. */
+  public ObjectNode validate(String yaml, String baseUrl, HttpRequestFactory httpRequests) {
+    return validation("", yaml, baseUrl, httpRequests);
+  }
+
+  /**
+   * {@code mateu_preview_uidl}: validate, then — when the definition is a page with no error —
+   * render it through {@code __preview__} (layout only: no view model, nothing saved) and project
+   * the answer: {@code {rendered, validation, screen | reason}}.
+   */
+  public ObjectNode preview(
+      String yaml, String route, String baseUrl, HttpRequestFactory httpRequests) {
+    var out = objectMapper.createObjectNode();
+    var validation = validation(route, yaml, baseUrl, httpRequests);
+    var kind = validation.path("kind").asText("");
+    if (!validation.path("valid").asBoolean()) {
+      out.put("rendered", false);
+      out.put("reason", "The definition has errors; fix them first.");
+    } else if (!"component".equals(kind) && !"envelope".equals(kind)) {
+      out.put("rendered", false);
+      out.put("reason", "Only a page (a component, or a layout: envelope) can be previewed.");
+    } else {
+      var increment =
+          sync(
+              rq(
+                  route,
+                  io.mateu.core.application.runaction.RunActionUseCase.PREVIEW_ACTION,
+                  null,
+                  Map.of(
+                      io.mateu.core.application.runaction.RunActionUseCase.PREVIEW_YAML_KEY, yaml)),
+              baseUrl,
+              httpRequests);
+      out.put("rendered", true);
+      out.set("screen", project(increment));
+    }
+    out.set("validation", validation);
+    return out;
+  }
+
+  /**
+   * {@code mateu_save_spec} (development mode only): validate and, with no error, write the file
+   * into the first specs directory — the dev-mode watcher then reloads the open browsers.
+   */
+  public ObjectNode saveSpec(
+      String path,
+      String yaml,
+      java.nio.file.Path specsDir,
+      String baseUrl,
+      HttpRequestFactory httpRequests)
+      throws java.io.IOException {
+    if (!io.mateu.core.application.authoring.SpecWriter.isAcceptable(path)) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.authoring.SpecWriter.refusal(path));
+    }
+    var out = objectMapper.createObjectNode();
+    var validation = validation("", yaml, baseUrl, httpRequests);
+    if (!validation.path("valid").asBoolean()) {
+      out.put("saved", false);
+      out.put("reason", "The definition has errors; nothing was written.");
+    } else {
+      var bytes = io.mateu.core.application.authoring.SpecWriter.write(specsDir, path, yaml);
+      out.put("saved", true);
+      out.put("path", path);
+      out.put("bytes", bytes);
+    }
+    out.set("validation", validation);
+    return out;
+  }
+
+  private ObjectNode validation(
+      String route, String yaml, String baseUrl, HttpRequestFactory httpRequests) {
+    var increment =
+        sync(
+            rq(
+                route,
+                io.mateu.core.application.runaction.RunActionUseCase.VALIDATE_ACTION,
+                null,
+                Map.of(
+                    io.mateu.core.application.runaction.RunActionUseCase.PREVIEW_YAML_KEY,
+                    yaml == null ? "" : yaml)),
+            baseUrl,
+            httpRequests);
+    var report =
+        increment
+            .path("appData")
+            .path(io.mateu.core.application.runaction.RunActionUseCase.VALIDATION_KEY);
+    if (!report.isObject()) {
+      // refused, or failed: the increment's message says why
+      var text = increment.path("messages").path(0).path("text").asText("validation failed");
+      throw new io.mateu.uidl.UserFacingException(text);
+    }
+    return (ObjectNode) report;
   }
 
   private ObjectNode project(JsonNode increment) {

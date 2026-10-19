@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/** One collapsible panel of an accordion, with a label and its content. */
 @Builder
 public record AccordionPanel(
     String label,

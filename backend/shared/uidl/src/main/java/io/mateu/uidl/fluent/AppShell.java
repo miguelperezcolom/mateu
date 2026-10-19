@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.With;
 
+/** The application frame: title, menu, header widgets, layout variant and home route of an app. */
 @Builder
 @With
 public record AppShell(

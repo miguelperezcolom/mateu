@@ -33,7 +33,8 @@ class MateuBeanGraphTest {
           TranslationRegistry.class,
           ActionRegistry.class,
           FieldTypeRegistry.class,
-          RestSourceRegistry.class
+          RestSourceRegistry.class,
+          io.mateu.core.application.authoring.UidlValidationService.class
         }) {
       assertNotNull(context.getBean(type), type.getName());
     }

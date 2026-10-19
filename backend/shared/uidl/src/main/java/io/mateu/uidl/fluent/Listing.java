@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Singular;
 
+/** A searchable, filterable, paginated list of rows with columns, a toolbar and row actions. */
 @Builder(toBuilder = true)
 public record Listing(
     ListingType listingType,

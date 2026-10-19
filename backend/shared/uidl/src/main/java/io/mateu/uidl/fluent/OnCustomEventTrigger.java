@@ -3,6 +3,7 @@ package io.mateu.uidl.fluent;
 import io.mateu.uidl.annotations.SubscriptionSource;
 import lombok.Builder;
 
+/** Runs an action when a named custom event is dispatched by another component or the page. */
 @Builder
 public record OnCustomEventTrigger(
     String actionId, String eventName, String condition, SubscriptionSource source, String from)

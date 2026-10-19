@@ -100,6 +100,24 @@ public final class YamlSpecProblems {
         + " found\".";
   }
 
+  /**
+   * The same diagnosis for a definition that is not a file (a preview, an agent's draft): {@code
+   * "line 11 (content[0].dataType): "decimal" is not a valid value — use one of: …"}, with no file
+   * name and no "until this is fixed" tail.
+   */
+  public static String describeText(String yamlText, Throwable error) {
+    var where = new StringBuilder();
+    var path = error instanceof JsonMappingException mapping ? pathOf(mapping) : List.<Object>of();
+    var line = lineOf(error, yamlText, path);
+    if (line > 0) {
+      where.append("line ").append(line);
+    }
+    if (!path.isEmpty()) {
+      where.append(where.isEmpty() ? "" : " ").append("(").append(dotted(path)).append(")");
+    }
+    return (where.isEmpty() ? "" : where + ": ") + whatIsWrong(error);
+  }
+
   private static String whatIsWrong(Throwable error) {
     if (error instanceof InvalidFormatException invalid) {
       var target = invalid.getTargetType();

@@ -109,8 +109,11 @@ class JsonRpcTest(unittest.TestCase):
 
     def test_tools_list(self):
         r = mcp.handle_jsonrpc({"id": 2, "method": "tools/list"}, self._sync_fn)
-        names = sorted(t["name"] for t in r["result"]["tools"])
-        self.assertEqual(names, ["mateu_describe_screen", "mateu_list_routes", "mateu_run_action", "mateu_search"])
+        names = [t["name"] for t in r["result"]["tools"]]
+        # the operating tools first, then the authoring ones (the full list is pinned by the
+        # conformance corpus, test_mcp_authoring_corpus.py)
+        self.assertEqual(names[:4], ["mateu_list_routes", "mateu_describe_screen", "mateu_run_action", "mateu_search"])
+        self.assertIn("mateu_validate_uidl", names)
 
     def test_tools_call_describe(self):
         import json
@@ -123,7 +126,10 @@ class JsonRpcTest(unittest.TestCase):
             raise RuntimeError("boom")
         r = mcp.handle_jsonrpc({"id": 4, "method": "tools/call", "params": {"name": "mateu_run_action", "arguments": {"route": "x", "actionId": "y"}}}, boom)
         self.assertTrue(r["result"]["isError"])
-        self.assertIn("boom", r["result"]["content"][0]["text"])
+        # a bug is never shown as raised (it may carry SQL, paths, other users' data)
+        text = r["result"]["content"][0]["text"]
+        self.assertNotIn("boom", text)
+        self.assertTrue(text.startswith("Error: An unexpected error occurred. Reference: "), text)
 
     def test_notification_yields_none(self):
         self.assertIsNone(mcp.handle_jsonrpc({"method": "notifications/initialized"}, self._sync_fn))

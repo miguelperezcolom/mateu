@@ -4,6 +4,7 @@ import io.mateu.uidl.fluent.Component;
 import java.util.Map;
 import lombok.Builder;
 
+/** An arbitrary HTML element or web component with attributes, event bindings and content. */
 @Builder
 public record Element(
     String name,

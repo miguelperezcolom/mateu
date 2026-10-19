@@ -34,6 +34,7 @@ public class RunActionUseCase {
   private final YamlUidlLoader yamlUidlLoader;
   private final RestSourceRegistry restSourceRegistry;
   private final io.mateu.core.application.security.WireTypePolicy wireTypePolicy;
+  private final io.mateu.core.application.authoring.UidlValidationService uidlValidationService;
 
   // ── Public static helpers: delegates, the implementation is domain-side ──────────────────
   // io.mateu.core.domain.ComponentState holds them; wrap / getState are deprecated in its favour.
@@ -107,6 +108,9 @@ public class RunActionUseCase {
     }
     if (PREVIEW_ACTION.equals(command.actionId())) {
       return handlePreview(command);
+    }
+    if (VALIDATE_ACTION.equals(command.actionId())) {
+      return handleValidate(command);
     }
     if (RESTFETCH_ACTION.equals(command.actionId())) {
       return handleRestFetch(command);
@@ -250,13 +254,43 @@ public class RunActionUseCase {
     var parameters = rq != null ? rq.parameters() : null;
     var yaml =
         parameters != null ? String.valueOf(parameters.getOrDefault(PREVIEW_YAML_KEY, "")) : "";
-    var component = yamlUidlLoader.parseText(yaml);
-    if (component == null) {
+    if (yaml.getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+        > io.mateu.core.application.authoring.UidlValidator.MAX_YAML_BYTES) {
       return mapToUiIncrement(
-              Text.builder().text("Invalid or empty YAML").style("color: red;").build(), command)
+              Text.builder().text("The YAML is too large to preview").style("color: red;").build(),
+              command)
+          .flux();
+    }
+    var parsed = yamlUidlLoader.parseTextReporting(yaml);
+    var component = parsed.component();
+    if (component == null) {
+      // Say WHY: "invalid" alone sent the author hunting through the whole file.
+      var text =
+          parsed.problem() != null ? "Invalid YAML — " + parsed.problem() : "Invalid or empty YAML";
+      return mapToUiIncrement(Text.builder().text(text).style("color: red;").build(), command)
           .flux();
     }
     return mapToUiIncrement(component, command).flux();
+  }
+
+  // Validates arbitrary YAML definition TEXT (parameters._yaml) against the generated schema and
+  // this app's catalogues, answering the report on appData._validation — what the MCP authoring
+  // tool mateu_validate_uidl (native endpoint and sidecar alike) is built on. Like __preview__ it
+  // renders nothing and changes nothing; it runs through the same request path, so the caller's
+  // identity and the route's access rules apply to it as to any other action.
+  public static final String VALIDATE_ACTION = "__validate__";
+  public static final String VALIDATION_KEY = "_validation";
+
+  private Flux<UIIncrementDto> handleValidate(RunActionCommand command) {
+    var rq = command.httpRequest() != null ? command.httpRequest().runActionRq() : null;
+    var parameters = rq != null ? rq.parameters() : null;
+    var raw = parameters != null ? parameters.get(PREVIEW_YAML_KEY) : null;
+    var report = uidlValidationService.validate(raw == null ? "" : String.valueOf(raw));
+    var appData = new java.util.LinkedHashMap<String, Object>();
+    appData.put(
+        VALIDATION_KEY,
+        io.mateu.core.infra.WireMapper.shared().convertValue(report, java.util.Map.class));
+    return Flux.just(UIIncrementDto.builder().appData(appData).build());
   }
 
   // ── Server-side proxy fetch ────────────────────────────────────────────────

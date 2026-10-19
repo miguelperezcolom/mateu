@@ -198,14 +198,32 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
    * Null on blank/invalid input.
    */
   public Component parseText(String yaml) {
+    return parseTextReporting(yaml).component();
+  }
+
+  /**
+   * What {@link #parseText} read, and — when it read nothing — WHY, in the same one-paragraph form
+   * a broken spec file is reported in ({@code line N (path): what is wrong}). {@code parseText}
+   * answers null for blank and for invalid input alike, which left the visual builder's preview and
+   * the MCP authoring tools saying "invalid" with no reason.
+   *
+   * @param component the layout, or null
+   * @param problem why there is no layout (null when there is one, or the text is blank, or it is a
+   *     {@code layoutDelta:} envelope — which has no explicit layout on purpose)
+   */
+  public record ParsedText(Component component, String problem) {}
+
+  /** {@link #parseText}, keeping the reason a definition could not be read. */
+  public ParsedText parseTextReporting(String yaml) {
     if (yaml == null || yaml.isBlank()) {
-      return null;
+      return new ParsedText(null, null);
     }
     try {
-      return layoutOf(mapper.readTree(yaml));
+      return new ParsedText(layoutOf(mapper.readTree(yaml)), null);
     } catch (Exception e) {
-      log.warn("Failed to parse YAML preview: {}", e.getMessage());
-      return null;
+      var problem = YamlSpecProblems.describeText(yaml, e);
+      log.warn("Failed to parse YAML preview: {}", problem);
+      return new ParsedText(null, problem);
     }
   }
 
