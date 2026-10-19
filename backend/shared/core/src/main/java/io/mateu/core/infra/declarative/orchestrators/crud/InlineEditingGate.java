@@ -9,6 +9,7 @@ import io.mateu.uidl.annotations.InlineEditing;
  * lets the user edit at all ({@code canEdit()}). It used to be advertised by every crud, so any
  * listing accepted a crafted row write.
  */
+@io.mateu.uidl.annotations.Internal
 public final class InlineEditingGate {
 
   private InlineEditingGate() {}
