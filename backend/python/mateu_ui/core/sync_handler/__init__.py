@@ -108,6 +108,7 @@ from ..action_registry import ActionRegistry
 from ..rest_source_registry import RestSourceRegistry
 from ..field_type_registry import FieldTypeRegistry
 from ..export import Exporters
+from ..agent_push import DEFAULT_MAX_SESSIONS, DEFAULT_RATE_PER_MINUTE, AgentSessions
 from .. import action_guard, islands
 from ._base import MixinBase
 from .dispatch import DispatchMixin
@@ -235,6 +236,18 @@ class SyncHandler(
             registry=self.routes, translations=self.translations, field_types=self.field_types
         )
         self.yaml_specs.action_catalog = self.action_catalog
+        #: The live UI sessions an MCP caller may push UI to; None = live UI push is off.
+        self.agent_push: AgentSessions | None = None
+
+    def enable_agent_push(
+        self, rate_per_minute: int = DEFAULT_RATE_PER_MINUTE, max_sessions: int = DEFAULT_MAX_SESSIONS
+    ) -> AgentSessions:
+        """Switch live UI push on (``add_mateu(..., mcp=True, mcp_push=True)`` calls it): the app
+        metadata says ``agentPush: true``, the ``_agent-*`` actions answer and the MCP push tools
+        reach the sessions registered here."""
+        self.agent_push = AgentSessions(rate_per_minute=rate_per_minute, max_sessions=max_sessions)
+        self.mapper.agent_push_enabled = True
+        return self.agent_push
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         return self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))

@@ -86,6 +86,35 @@ class AppHandlerMixin(MixinBase):
             ]
         )
 
+    # ── Live UI push: the UI side of the agent channel (conformance/mcp "Live UI push") ──
+    def agent_push_action(self, rq: RunActionRq) -> UIIncrement:
+        """``_agent-channel`` (the first increment of the stream: the session's status; the
+        stream itself is served by the adapter's SSE endpoint), ``_agent-pair`` (Data
+        ``{_agentPairing: {code, expiresInSeconds}}``) and ``_agent-unpair`` (Data
+        ``{_agentPairing: null}``). App-level: whatever the type and route. The session's owner
+        is the caller's principal NAME (None when anonymous)."""
+        from .. import agent_push
+
+        identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
+        principal = getattr(identity, "name", None) or None
+        answer = agent_push.channel_action(
+            self.agent_push, rq.action_id or "", rq.parameters, principal
+        )
+        if rq.action_id == agent_push.CHANNEL_ACTION:
+            assert answer is not None
+            return UIIncrement.of(
+                commands=[UICommand.agent_push(answer["kind"], answer["event"], answer["detail"])]
+            )
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(
+                    target_component_id=self.target(rq),
+                    data={agent_push.PAIRING_KEY: (answer or {}).get("pairing")},
+                    action="Replace",
+                )
+            ]
+        )
+
     # ── Notification inbox (NotificationsSupplier, mirrors Java's NotificationsActionRunner) ──
     def notifications_action(self, cls, rq: RunActionRq) -> UIIncrement:
         """The notification inbox's app-level actions: ``_notifications-list`` answers the

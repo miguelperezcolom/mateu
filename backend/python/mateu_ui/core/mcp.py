@@ -365,6 +365,85 @@ TOOLS = [
     },
 ]
 
+def _session_arg():
+    return _str("a session from mateu_list_sessions or mateu_pair_session")
+
+
+#: The live UI push tools (phase C) — listed after :data:`TOOLS` and before :data:`DEV_TOOLS`,
+#: only when push is on; pinned by ``conformance/mcp/push.json``.
+PUSH_TOOLS = [
+    {
+        "name": "mateu_list_sessions",
+        "description": "List the live UI sessions (browser tabs, app windows) this caller may send UI to:"
+        " its own (same signed-in user) and the ones paired to it with mateu_pair_session."
+        " Returns {sessions: [{session, user, route, renderer, connectedAt, connected, paired}]}.",
+        "inputSchema": _obj_schema(),
+    },
+    {
+        "name": "mateu_pair_session",
+        "description": "Pair a live UI session with this caller, using the one-time code the user sees after"
+        ' clicking "Connect AI" in the app. Returns the session; it can then be addressed by'
+        " mateu_push_ui, mateu_navigate and mateu_dispatch_event. The code expires in minutes"
+        " and works once.",
+        "inputSchema": _obj_schema(
+            {"code": _str("the pairing code shown in the app, e.g. K7QF-4MZP")}, ["code"]
+        ),
+    },
+    {
+        "name": "mateu_push_ui",
+        "description": "Show a screen in a live UI session: validate the YAML page first (nothing is sent"
+        " when it has errors), then render it in that tab, in the content area (default), a"
+        " drawer or a dialog. Layout only: no view model is bound. Returns {delivered,"
+        " session, target, validation} or {delivered: false, reason, validation}.",
+        "inputSchema": _obj_schema(
+            {
+                "session": _session_arg(),
+                "yaml": _str("the page's YAML text"),
+                "target": {
+                    "type": "string",
+                    "enum": ["content", "drawer", "dialog"],
+                    "description": "where to show it (default content)",
+                },
+                "title": _str("optional: the drawer's or dialog's header"),
+            },
+            ["session", "yaml"],
+        ),
+    },
+    {
+        "name": "mateu_navigate",
+        "description": "Navigate a live UI session to a route of the app, like a click on the menu entry"
+        " carrying these fields. Returns {delivered, session}.",
+        "inputSchema": _obj_schema(
+            {
+                "session": _session_arg(),
+                "route": _str("the target route, e.g. /orders/42"),
+                "consumedRoute": _str('optional: the route consumed by the app shell (usually "")'),
+                "actionId": _str("optional: an action to run on arrival"),
+                "baseUrl": _str("optional: the base URL of the target micro-frontend"),
+                "serverSideType": _str("optional: the server-side type of the target UI"),
+                "uriPrefix": _str('optional: the URI prefix (usually "")'),
+            },
+            ["session", "route"],
+        ),
+    },
+    {
+        "name": "mateu_dispatch_event",
+        "description": "Dispatch a named UI event in a live UI session, for the components that subscribe"
+        " to it (@SubscribeTo). The built-in events are reserved: use mateu_push_ui and"
+        " mateu_navigate for them. Returns {delivered, session}.",
+        "inputSchema": _obj_schema(
+            {
+                "session": _session_arg(),
+                "event": _str("the event name, e.g. highlight-row"),
+                "detail": _obj("optional: the event's detail"),
+            },
+            ["session", "event"],
+        ),
+    },
+]
+
+_PUSH_TOOL_NAMES = frozenset(t["name"] for t in PUSH_TOOLS)
+
 #: Appended to :data:`TOOLS` in development mode only.
 DEV_TOOLS = [
     {
@@ -396,9 +475,11 @@ def _dev_mode() -> bool:
     return dev_specs.enabled()
 
 
-def tools(dev_mode: bool | None = None) -> list:
-    """``tools/list``: :data:`TOOLS`, plus :data:`DEV_TOOLS` in development mode."""
-    return TOOLS + DEV_TOOLS if (_dev_mode() if dev_mode is None else dev_mode) else list(TOOLS)
+def tools(dev_mode: bool | None = None, push: bool = False) -> list:
+    """``tools/list``: :data:`TOOLS`, then :data:`PUSH_TOOLS` when live UI push is on, then
+    :data:`DEV_TOOLS` in development mode."""
+    listed = TOOLS + (PUSH_TOOLS if push else [])
+    return listed + DEV_TOOLS if (_dev_mode() if dev_mode is None else dev_mode) else list(listed)
 
 
 def _argument(args, name):
@@ -471,9 +552,16 @@ def _save_spec(args, sync_fn):
     return out
 
 
-def dispatch_tool(name, args, sync_fn):
-    """Run a tool. ``sync_fn(route, action_id, component_state, parameters) -> increment dict``."""
+def dispatch_tool(name, args, sync_fn, push=None):
+    """Run a tool. ``sync_fn(route, action_id, component_state, parameters) -> increment dict``;
+    ``push`` (an ``agent_push.PushContext``, None = push off) serves the live UI push tools."""
     args = args if isinstance(args, dict) else {}
+    if name in _PUSH_TOOL_NAMES and push is not None:
+        from mateu_ui.core import agent_push
+
+        return agent_push.call_tool(
+            push.sessions, push.caller, name, args, lambda yaml_text: _validation("", yaml_text, sync_fn)
+        )
     if name == "mateu_list_routes":
         return list_routes_from(sync_fn("", "", None, None))
     if name == "mateu_describe_screen":
@@ -538,9 +626,10 @@ def _resources_list():
     return [{"uri": r.uri, "name": r.name, "description": r.description, "mimeType": r.mime_type} for r in RESOURCES]
 
 
-def handle_jsonrpc(message, sync_fn, detailed=None):
+def handle_jsonrpc(message, sync_fn, detailed=None, push=None):
     """Handle one JSON-RPC 2.0 message. Returns the response dict, or None for a notification.
-    ``detailed`` shows the raw exception of a failed tool call (default: ``MATEU_ERRORS_DETAILED``)."""
+    ``detailed`` shows the raw exception of a failed tool call (default: ``MATEU_ERRORS_DETAILED``);
+    ``push`` (an ``agent_push.PushContext``) lists and serves the live UI push tools."""
     if not isinstance(message, dict):
         return _err(None, -32600, "Invalid Request")
     mid = message.get("id")
@@ -559,7 +648,7 @@ def handle_jsonrpc(message, sync_fn, detailed=None):
         if method == "ping":
             return _ok(mid, {})
         if method == "tools/list":
-            return _ok(mid, {"tools": tools()})
+            return _ok(mid, {"tools": tools(push=push is not None)})
         if method == "resources/list":
             return _ok(mid, {"resources": _resources_list()})
         if method == "resources/read":
@@ -577,7 +666,9 @@ def handle_jsonrpc(message, sync_fn, detailed=None):
             ]})
         if method == "tools/call":
             name = params.get("name")
-            data = dispatch_tool(name if isinstance(name, str) else "", params.get("arguments") or {}, sync_fn)
+            data = dispatch_tool(
+                name if isinstance(name, str) else "", params.get("arguments") or {}, sync_fn, push
+            )
             return _ok(mid, {"content": [{"type": "text", "text": json.dumps(data, indent=2, default=str)}]})
         if is_notification:
             return None

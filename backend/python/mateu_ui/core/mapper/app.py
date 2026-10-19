@@ -203,6 +203,8 @@ class AppMapperMixin(MixinBase):
             header_values=self._header_values(cls, shell),
             live_updates=self._live_updates(cls, shell),
             idle_session=self._idle_session(cls, shell, mount),
+            # Live UI push (phase C): set by add_mateu when MCP push is on (mirrors AppDto.agentPush)
+            agent_push=self.agent_push_enabled,
             required_capabilities=self._required_capabilities(
                 cls,
                 sse_url=sse_url,
