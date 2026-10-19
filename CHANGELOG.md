@@ -11,6 +11,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.6] — 2026-10-19
+
+Fixes from the second independent pre-GA review: agent-authored screens are untrusted everywhere, JSON-only request bodies, safer authoring actions, `update-row` and data titles hardened, release secrets scoped. Upgrade recommended.
+
 ### Security
 - **A page title that is data renders as text.** A CRUD detail page (and any routed object) is
   titled by the record's own `toString()`; the web header rendered it as HTML, so whoever could name
