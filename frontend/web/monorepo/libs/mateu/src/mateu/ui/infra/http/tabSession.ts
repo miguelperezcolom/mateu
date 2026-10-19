@@ -22,13 +22,14 @@ import { SESSION_ID_KEY } from '@infra/http/authToken.ts'
  * exactly the behaviour before this existed. With no sessionStorage there is nothing to copy, so a
  * duplicate cannot share anything in the first place (the ids live in memory, per page).
  *
- * Ordering: `mateu-ui` starts the claim at boot (module load, before any request); the axios
- * interceptor (every X-Session-Id of an ordinary request), the agent channel and its pair/unpair
- * actions wait for it ({@link tabSessionReady}) before they first read the id, so a duplicate never
- * sends its original's. The bare-fetch streams (SSE actions, live updates, the chat) read the id when
- * they start, which is after the first route load — itself an axios request that waited — and the
- * chat reads it per message. The wait is at most `waitMs`, only for a tab that already had an id,
- * skipped on a reload (the navigation type says nobody else can hold it) and gone once settled.
+ * Ordering: `mateu-ui` starts the claim at boot (module load, before any request); the agent
+ * channel and its pair/unpair actions wait for it ({@link tabSessionReady}) before they first read
+ * the id and the secret, so a duplicate never opens its original's channel. Ordinary requests do
+ * NOT wait: holding the first requests of a page back let them overtake each other (a listing's
+ * search answered before its load, a shell's window title after its content's), so a duplicate's
+ * very first requests may still carry the copied X-Session-Id. The chat reads the id per message.
+ * The wait is at most `waitMs`, only for a tab that already had an id, skipped on a reload (the
+ * navigation type says nobody else can hold it) and gone once settled.
  */
 
 /** The live UI push channel's secret, kept next to the session id (sent only on the agent actions). */

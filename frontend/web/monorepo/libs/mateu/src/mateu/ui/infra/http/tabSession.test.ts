@@ -142,11 +142,12 @@ describe('the real session id and secret', () => {
         expect(tabSessionReady()).toBeNull()
     })
 
-    it('a request waits for the claim and carries the tab\'s OWN id', async () => {
+    it('an ordinary request is NOT held back by the claim (requests keep their order)', async () => {
         const { Channel } = busOf()
         await claimTabSession({ storage: storageOf({ [SESSION_ID_KEY]: 'id-1' }), Channel, waitMs: 5 })
         sessionStorage.setItem(SESSION_ID_KEY, 'id-1')
-        startTabSessionClaim({ Channel, waitMs: 20, navigationType: 'navigate' })
+        // a claim that takes far longer than the request: if the request waited, it would not be sent
+        const ready = startTabSessionClaim({ Channel, waitMs: 60_000, navigationType: 'navigate' })
         const client = new AxiosMateuApiClient()
         const sent: string[] = []
         client.axiosInstance.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
@@ -157,12 +158,8 @@ describe('the real session id and secret', () => {
         const initiator = document.createElement('div')
         document.body.appendChild(initiator)
         await client.runAction('/base', '/orders', '_empty', 'save', 'cmp-1', undefined, 'X', {}, {}, initiator, true, {})
-        expect(sent).toHaveLength(1)
-        expect(sent[0]).not.toBe('id-1')
-        expect(sent[0]).toBe(sessionId())
-        // after boot, no wait at all
-        await client.runAction('/base', '/orders', '_empty', 'save', 'cmp-1', undefined, 'X', {}, {}, initiator, true, {})
-        expect(sent[1]).toBe(sent[0])
+        expect(sent).toEqual(['id-1'])
+        expect(tabSessionReady()).toBe(ready) // still pending: the request did not wait for it
         initiator.remove()
     })
 })
