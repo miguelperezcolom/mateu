@@ -350,4 +350,27 @@ class AgentSessionsTest {
     assertThat(sessions.failureBuckets())
         .isLessThanOrEqualTo(AgentSessions.MAX_FAILURE_BUCKETS + 1);
   }
+
+  @Test
+  void whatAnAgentSendsCannotForgeLogLines() {
+    var logger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(AgentSessions.class);
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    logger.addAppender(logs);
+    try {
+      open("ui-1", "alice");
+      var handle = handleOf(alice);
+      var forged =
+          "route=/x\r\n2026-10-19 INFO Mateu agent push: caller=admin session=forged"
+              + "y".repeat(500);
+      sessions.deliver(alice, handle, message(), forged, 1);
+      var line = logs.list.get(logs.list.size() - 1).getFormattedMessage();
+      assertThat(line).doesNotContain("\n").doesNotContain("\r");
+      assertThat(line.length()).isLessThan(400);
+    } finally {
+      logger.detachAppender(logs);
+    }
+  }
 }

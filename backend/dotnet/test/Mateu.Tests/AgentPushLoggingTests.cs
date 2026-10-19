@@ -75,6 +75,36 @@ public class AgentPushLoggingTests
         Assert.Equal("s-ba7816bf8f01", AgentSessions.Fingerprint("abc"));
     }
 
+    [Fact]
+    public void What_an_agent_sends_cannot_forge_log_lines_and_a_route_is_bounded()
+    {
+        var sessions = new AgentSessions(30, 1000, 20, () => DateTimeOffset.UtcNow);
+        var handler = new SyncHandler(new MateuRegistry(typeof(AgentPushLoggingTests).Assembly))
+        {
+            AgentPush = sessions, Principal = () => "alice", ClientAddress = () => "10.0.0.1",
+        };
+        handler.OpenAgentChannel(Rq(SyncHandler.AgentChannelAction, "ui-1", "secret-1", ("route", "/" + new string('r', 2000)), ("renderer", "vaadin")));
+        var mcp = new McpService(handler, Json) { Push = sessions, Caller = AgentCaller.From("alice", null) };
+        var listed = Tool(mcp, "mateu_list_sessions", new());
+        var handle = (string)listed["sessions"]![0]!["session"]!;
+        Assert.True(((string)listed["sessions"]![0]!["route"]!).Length <= 512);
+
+        var capture = new Capture();
+        MateuLogging.UseLoggerFactory(capture);
+        try
+        {
+            Tool(mcp, "mateu_navigate", new() { ["session"] = handle, ["route"] = "/x\r\nINFO Mateu agent push: caller=admin" + new string('y', 500) });
+        }
+        finally
+        {
+            MateuLogging.UseLoggerFactory(null);
+        }
+        var line = capture.Entries.Select(e => e.Message).Single(m => m.Contains("agent push"));
+        Assert.DoesNotContain("\n", line);
+        Assert.DoesNotContain("\r", line);
+        Assert.True(line.Length < 400, line);
+    }
+
     sealed class Capture : Microsoft.Extensions.Logging.ILoggerFactory
     {
         public readonly System.Collections.Concurrent.ConcurrentQueue<(Microsoft.Extensions.Logging.LogLevel Level, string Message)> Entries = new();

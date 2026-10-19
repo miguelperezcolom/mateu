@@ -381,7 +381,7 @@ public final class AgentSessions {
         caller.logLabel(),
         fingerprint(handle),
         message.kind(),
-        what,
+        logSafe(what),
         bytes);
   }
 
@@ -562,6 +562,26 @@ public final class AgentSessions {
     if (raw == null) return null;
     var code = raw.replace("-", "").replace(" ", "").toUpperCase(java.util.Locale.ROOT);
     return code.length() == CODE_LENGTH ? code : null;
+  }
+
+  /**
+   * The most characters of an agent-supplied detail (a route, an event name) a log line carries.
+   */
+  static final int MAX_LOGGED_DETAIL = 200;
+
+  /**
+   * An agent-supplied text as a log line may carry it: control characters (CR/LF above all, which
+   * would forge log lines) become {@code ?} and it is clipped — the same in .NET and Python.
+   */
+  static String logSafe(String text) {
+    if (text == null) return "";
+    var clipped = clip(text, MAX_LOGGED_DETAIL);
+    var out = new StringBuilder(clipped.length());
+    for (int i = 0; i < clipped.length(); i++) {
+      char c = clipped.charAt(i);
+      out.append(c < 0x20 || c == 0x7f ? '?' : c);
+    }
+    return out.toString();
   }
 
   private static String clip(String text, int max) {

@@ -139,6 +139,20 @@ def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+#: The most characters of a session's route kept (as Java and .NET).
+MAX_ROUTE_LENGTH = 512
+#: The most characters of an agent-supplied detail (a route, an event name) a log line carries.
+MAX_LOGGED_DETAIL = 200
+
+
+def log_safe(text: str | None) -> str:
+    """An agent-supplied text as a log line may carry it: control characters (CR/LF above all,
+    which would forge log lines) become ``?`` and it is clipped — the same in Java and .NET."""
+    if text is None:
+        return ""
+    return "".join("?" if ord(c) < 0x20 or ord(c) == 0x7F else c for c in text[:MAX_LOGGED_DETAIL])
+
+
 def fingerprint(handle: str | None) -> str:
     """How the log names a session: ``s-`` + the first 12 hex digits of the handle's SHA-256. The
     handle is a bearer capability (whoever holds it reaches an anonymously paired session), so it
@@ -301,6 +315,8 @@ class AgentSessions:
         ``unknown``) — at ``max_sessions_per_owner`` that owner's longest-disconnected session is
         evicted, else it is refused — and then against ``max_sessions`` over every owner. A
         reconnect is never refused by either cap."""
+        route = (route or "")[:MAX_ROUTE_LENGTH]
+        renderer = (renderer or "").strip()[:MAX_RENDERER_LENGTH]
         with self._lock:
             self._purge()
             session = self._sessions.get(session_id)
@@ -452,7 +468,7 @@ class AgentSessions:
         size = len(json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
         log.info(
             "Mateu agent push: caller=%s session=%s kind=%s %s bytes=%d",
-            caller.log_label, fingerprint(handle), data.get("kind"), log_detail, size,
+            caller.log_label, fingerprint(handle), data.get("kind"), log_safe(log_detail), size,
         )
 
     # ── internals (under the lock) ──

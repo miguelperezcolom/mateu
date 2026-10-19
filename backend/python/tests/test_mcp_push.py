@@ -809,3 +809,18 @@ def test_the_failure_buckets_are_bounded(monkeypatch):
         with pytest.raises(UserFacingException):
             sessions.pair(Caller.of(None, f"agent-key-number-{i:06d}"), "ZZZZ-ZZZZ")
     assert len(sessions._failures) <= 100
+
+
+def test_what_an_agent_sends_cannot_forge_log_lines_and_a_route_is_bounded(caplog):
+    sessions = _sessions(Clock())
+    channel = AgentChannel(lambda d: None)
+    sessions.open_channel("ui-1", "s3cret", "alice", "/" + "r" * 2000, "v" * 100, channel)
+    entry = sessions.list(ALICE)[0]
+    assert len(entry["route"]) <= 512
+    assert len(entry["renderer"]) <= 32
+    forged = "route=/x\r\nINFO Mateu agent push: caller=admin" + "y" * 500
+    with caplog.at_level(logging.INFO, logger="mateu.agentpush"):
+        sessions.send(ALICE, entry["session"], {"kind": "navigate"}, forged)
+    line = [r.getMessage() for r in caplog.records if "agent push" in r.getMessage()][-1]
+    assert "\n" not in line and "\r" not in line
+    assert len(line) < 400

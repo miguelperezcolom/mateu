@@ -210,7 +210,8 @@ internal sealed class AgentSessions
                 _byId[sessionId] = session;
                 _byHandle[session.Handle] = session;
             }
-            session.Route = route ?? "";
+            var path = route ?? "";
+            session.Route = path.Length > MaxRouteLength ? path[..MaxRouteLength] : path;
             var r = string.IsNullOrWhiteSpace(renderer) ? "" : renderer.Trim();
             session.Renderer = r.Length > MaxRendererLength ? r[..MaxRendererLength] : r;
             session.ConnectedAt = now;
@@ -483,6 +484,24 @@ internal sealed class AgentSessions
     /// SHA-256. The handle is a bearer capability (whoever holds it reaches an anonymously paired
     /// session), so it never goes to a log; the fingerprint tells sessions apart and is the same in
     /// Java and Python.</summary>
+    /// <summary>The most characters of a session's route kept (as Java).</summary>
+    internal const int MaxRouteLength = 512;
+
+    /// <summary>The most characters of an agent-supplied detail (a route, an event name) a log line carries.</summary>
+    internal const int MaxLoggedDetail = 200;
+
+    /// <summary>An agent-supplied text as a log line may carry it: control characters (CR/LF above
+    /// all, which would forge log lines) become <c>?</c> and it is clipped — the same in Java and Python.</summary>
+    internal static string LogSafe(string? text)
+    {
+        if (text is null) return "";
+        var clipped = text.Length > MaxLoggedDetail ? text[..MaxLoggedDetail] : text;
+        return string.Create(clipped.Length, clipped, (span, src) =>
+        {
+            for (var i = 0; i < src.Length; i++) span[i] = src[i] < 0x20 || src[i] == 0x7f ? '?' : src[i];
+        });
+    }
+
     internal static string Fingerprint(string? handle) => handle is null ? "s-none" : "s-" + Sha256(handle)[..12];
 
     internal static string Sha256(string text) =>
