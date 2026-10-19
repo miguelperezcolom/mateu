@@ -55,9 +55,12 @@ public class MyApp { ... }
 
 1. Mateu reads the `sse` value from `@AI` at startup.
 2. It propagates the URL through `AppDto.sseUrl` to the frontend.
-3. The frontend renders a `mateu-chat` component inside a `vaadin-master-detail-layout`.
-4. An **IA** button is added to the navigation bar (or sidebar, depending on the app variant).
-5. Clicking the button shows or hides the chat panel.
+3. The app shell renders a `mateu-chat` panel in its content row, on the content's start side: on a
+   wide viewport it pushes the page aside (resizable, with a ⤢ wide mode), on a narrow one it covers
+   the content area — never the header.
+4. A **chat** toggle (the conversation icon) is added to the shell's header widgets (or the sidebar,
+   depending on the app variant — see below).
+5. Clicking it shows or hides the chat panel.
 6. The chat panel connects to the SSE endpoint and streams responses back to the user.
 
 ## SSE endpoint contract
@@ -191,14 +194,16 @@ The chat bubble sizes both to its width (`max-width: 100%`, height auto), so dia
 
 ## Supported app variants
 
-The AI chat panel is available in all application shell variants:
+The chat panel is drawn by every navigating shell variant of the web renderer; where its toggle
+sits depends on the variant:
 
-| Variant            | IA button location               |
-|--------------------|----------------------------------|
-| `MENU_ON_TOP`      | Top navigation bar, right side   |
-| `HAMBURGER_MENU`  | Top navbar slot                  |
-| `MENU_ON_LEFT`     | Bottom of the left sidebar       |
-| `TABS`             | Tab bar, right side              |
+| Variant | Chat toggle |
+|---|---|
+| `MENU_ON_TOP`, `HAMBURGER_MENU`, `HAMBURGER_SECTIONS`, `TILES`, `TABS` | In the header's widget zone (end side), before the app's own widgets |
+| `MENU_ON_LEFT` | At the bottom of the left sidebar |
+| `RAIL`, and a `chromeless` app | No toggle: open it from the [command center](/ux-patterns/command-center/)'s "Ask AI" row |
+
+The embedded `MEDIATOR` shell (a CRUD nested in a page) draws no chat of its own.
 
 ## Example: Spring AI SSE endpoint
 
