@@ -34,8 +34,10 @@ define([
       // a message with only attachments (no text) is sent too, as in the web chat
       if ((!text && !attachments.length) || vars.mateuChatBusy) return;
 
+      // the tab's UI session id (the one live UI push registers too — poc/agentPush.mjs): an
+      // agent the user talks to can address THIS tab with the same id
       if (!vars.mateuChatSessionId) {
-        vars.mateuChatSessionId = 'chat-' + crypto.randomUUID();
+        vars.mateuChatSessionId = bridge.uiSessionId();
       }
       const sessionId = vars.mateuChatSessionId;
       const registry = vars.mateuRegistry || {};

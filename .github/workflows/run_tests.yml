@@ -153,7 +153,7 @@ jobs:
           --test-coverage-exclude='parity-check.mjs' --test-coverage-exclude='coverage.mjs'
           --test-coverage-lines=98 --test-coverage-functions=95 --test-coverage-branches=85
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
-          test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-e2.mjs test-e2-dom.mjs test-mobile.mjs
+          test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-e2.mjs test-agent-push.mjs test-e2-dom.mjs test-mobile.mjs
           test-vb-chains.mjs test-projections.mjs test-conformance.mjs test-security.mjs
 
       - name: Redwood atom template is expanded in every surface

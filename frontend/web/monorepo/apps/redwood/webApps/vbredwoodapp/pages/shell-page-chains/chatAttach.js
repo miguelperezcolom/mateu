@@ -46,7 +46,7 @@ define(['vb/action/actionChain', 'resources/js/mateu-bridge'], (ActionChain, bri
       if (op !== 'pick' || !vars.mateuChatUploadUrl || vars.mateuChatUploading) return;
       const files = await pickFiles();
       if (!files.length) return;
-      if (!vars.mateuChatSessionId) vars.mateuChatSessionId = 'chat-' + crypto.randomUUID();
+      if (!vars.mateuChatSessionId) vars.mateuChatSessionId = bridge.uiSessionId();
       vars.mateuChatUploading = true;
       try {
         const saved = await bridge.uploadChatFiles({

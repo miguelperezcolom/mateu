@@ -245,6 +245,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         idleSession: md.idleSession || null,
         // @App(mobileQr): the header's "Open on mobile" action (qr.mjs)
         mobileQr: !!md.mobileQr,
+        // AppDto.agentPush: the tab opens its live UI push channel and shows "Connect AI" (agentPush.mjs)
+        agentPush: !!md.agentPush,
         // The App's NotificationsSupplier → the header bell (notify.mjs)
         notificationsEnabled: !!md.notificationsEnabled,
         // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)

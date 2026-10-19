@@ -35,7 +35,7 @@ export const MODULES = [
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'a11y.mjs', 'elements.mjs', 'foldouts.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'toc.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
-  'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs', 'qr.mjs',
+  'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'agentPush.mjs', 'theme.mjs', 'qr.mjs',
   'editorPreview.mjs', 'embedded.mjs',
   'liveReload.mjs',
 ]
@@ -507,6 +507,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     setChatEventHost,
     dispatchChatEvent,
     CHAT_PREVIEW_PAINT_ACTION,
+    // live UI push (agentPush.mjs): the tab's UI session (also the chat's sessionId), its channel
+    // and the "Connect AI" control
+    uiSessionId,
+    installAgentPush,
+    syncAgentPush,
+    agentControlState,
     // un <a href="/ruta"> del contenido navega dentro de la shell (links.mjs)
     inAppRouteOfLink,
     transcriptOf,

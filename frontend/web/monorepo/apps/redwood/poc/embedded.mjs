@@ -546,6 +546,8 @@ export const NOT_IN_EMBEDDED = Object.freeze({
   // app shortcuts, the header values and the idle warning are the SHELL's (the app's header and
   // session): in a host page they are the host's business
   installAppExtras: 'shell-level: app shortcuts, header values and the idle session belong to the host page',
+  // live UI push: the "Connect AI" control lives in the app header, which a host page does not have
+  installAgentPush: 'shell-level: the Connect AI control and the tab channel belong to the app header',
 })
 
 /**
