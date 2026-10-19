@@ -12,7 +12,10 @@
 // Config (env): MATEU_BASE_URL (required, e.g. http://localhost:8080), MATEU_TOKEN (optional Bearer
 // passed through to the backend — RBAC is enforced by the backend, this server only relays it),
 // MATEU_DEV ("true"/"1": offer mateu_save_spec), MATEU_SPECS_DIR (where it writes; default
-// src/main/resources/specs/ui under the working directory), MATEU_ERRORS_DETAILED (raw errors).
+// src/main/resources/specs/ui under the working directory), MATEU_ERRORS_DETAILED (raw errors),
+// MATEU_PUSH ("true"/"1": offer the live UI push tools, forwarded to the backend's MCP endpoint),
+// MATEU_MCP_URL (that endpoint; default <MATEU_BASE_URL>/mateu/mcp), MATEU_AGENT_KEY (the
+// X-Mateu-Agent-Key sent with them; default a random key generated once per process).
 
 import { createInterface } from "node:readline";
 import { randomBytes } from "node:crypto";
@@ -30,6 +33,7 @@ import {
   resourceByUri,
   resourceText,
 } from "./authoring.mjs";
+import { PUSH_TOOLS, isPushMode, isPushTool, forwardPushTool } from "./push.mjs";
 
 const PROTOCOL_VERSION = "2024-11-05";
 const SERVER_INFO = { name: "mateu-mcp", version: "0.1.0" };
@@ -146,9 +150,12 @@ const truthy = (v) => v === "true" || v === "1";
 /** Development mode: MATEU_DEV = "true" | "1". */
 export const isDevMode = (env = process.env) => truthy(env.MATEU_DEV);
 
-/** The tools/list answer for the given environment. */
+/**
+ * The tools/list answer for the given environment: the base tools, then the push tools (MATEU_PUSH),
+ * then mateu_save_spec (MATEU_DEV) — the same order as the backends.
+ */
 export function toolsFor(env = process.env) {
-  return isDevMode(env) ? [...TOOLS, ...DEV_TOOLS] : TOOLS;
+  return [...TOOLS, ...(isPushMode(env) ? PUSH_TOOLS : []), ...(isDevMode(env) ? DEV_TOOLS : [])];
 }
 
 /** A required string argument, or the caller's mistake. */
@@ -215,7 +222,9 @@ export function errorText(err, tool, env = process.env) {
 
 /**
  * Handle a single parsed JSON-RPC message; returns a response object, or null for notifications.
- * `options.env` (default process.env) carries MATEU_DEV / MATEU_SPECS_DIR / MATEU_ERRORS_DETAILED.
+ * `options.env` (default process.env) carries MATEU_DEV / MATEU_SPECS_DIR / MATEU_ERRORS_DETAILED /
+ * MATEU_PUSH / MATEU_MCP_URL / MATEU_AGENT_KEY; `options.fetch` overrides the fetch used to forward
+ * the push tools.
  */
 export async function handleRpc(message, wire, options = {}) {
   const env = options.env ?? process.env;
@@ -253,6 +262,12 @@ export async function handleRpc(message, wire, options = {}) {
         });
       }
       case "tools/call": {
+        if (isPushMode(env) && isPushTool(params?.name)) {
+          // Forwarded to the backend's MCP endpoint; its tool result is relayed as is.
+          return respond(
+            await forwardPushTool(params.name, params?.arguments ?? {}, env, options.fetch ?? globalThis.fetch),
+          );
+        }
         const data = await dispatchTool(wire, params?.name, params?.arguments ?? {}, env);
         return respond({ content: [{ type: "text", text: JSON.stringify(data, null, 2) }] });
       }
