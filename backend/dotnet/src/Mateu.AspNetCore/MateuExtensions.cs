@@ -45,7 +45,8 @@ public static class MateuExtensions
         services.AddSingleton(new MateuRegistry(assemblies));
         // Live UI push (phase C): ONE in-memory session registry per host, shared by every mount.
         var agentSessions = options.McpPushEffective
-            ? new Mateu.Core.AgentPush.AgentSessions(options.PushRatePerMinute, options.PushMaxSessions)
+            ? new Mateu.Core.AgentPush.AgentSessions(options.PushRatePerMinute, options.PushMaxSessions,
+                options.PushMaxSessionsPerOwner)
             : null;
         // ITranslator is optional — register an Mateu.Uidl.ITranslator to enable i18n.
         services.AddSingleton(sp =>
@@ -77,6 +78,7 @@ public static class MateuExtensions
                 MockSources = options.MockSources,
                 AgentPush = agentSessions,
                 Principal = () => accessor.HttpContext is { } ctx ? PrincipalName(ctx) : null,
+                ClientAddress = () => accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 // Listing exports: Mateu ships no Excel / PDF engine — every IListingExporter the app
                 // registers as a service writes its format (Java: the ListingExporter beans); CSV
                 // falls back to the built-in writer.

@@ -28,13 +28,18 @@ internal sealed partial class SyncHandler
     /// UI session belongs to.</summary>
     public Func<string?>? Principal { get; init; }
 
+    /// <summary>The client address of the request in flight (null = cannot tell): who an ANONYMOUS UI
+    /// session counts against for <c>max-sessions-per-owner</c>.</summary>
+    public Func<string?>? ClientAddress { get; init; }
+
     /// <summary><c>_agent-channel</c>: register (or re-check) the session and open its channel — the
     /// SSE endpoint streams it.</summary>
     public AgentChannel OpenAgentChannel(RunActionRqDto rq)
     {
         var sessions = AgentPush ?? throw new UserFacingException(AgentSessions.Disabled);
         return sessions.Open(Param(rq, "sessionId"), Param(rq, "secret"), Principal?.Invoke(),
-            StateString(GetState(rq.Parameters, "route")), StateString(GetState(rq.Parameters, "renderer")));
+            StateString(GetState(rq.Parameters, "route")), StateString(GetState(rq.Parameters, "renderer")),
+            ClientAddress?.Invoke());
     }
 
     private static bool IsAgentAction(string? actionId) =>

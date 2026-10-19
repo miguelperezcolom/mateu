@@ -31,7 +31,7 @@ import secrets
 import threading
 import time
 from collections import deque
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
@@ -55,6 +55,9 @@ COMMAND_TYPE = "AgentPush"
 # ── Fixed limits (README "Switches") ─────────────────────────────────────────────────────────
 DEFAULT_RATE_PER_MINUTE = 30
 DEFAULT_MAX_SESSIONS = 1000
+DEFAULT_MAX_SESSIONS_PER_OWNER = 20
+#: The owner of an anonymous UI whose client address the adapter cannot tell.
+UNKNOWN_OWNER = "unknown"
 CODE_TTL_SECONDS = 300
 DISCONNECTED_TTL_SECONDS = 120
 MAX_FAILED_PAIRINGS = 10
@@ -117,6 +120,16 @@ def invalid_event(event: str) -> str:
 
 def reserved_event(event: str) -> str:
     return f'Event "{event}" is reserved: use mateu_push_ui or mateu_navigate.'
+
+
+def owner_of(principal: str | None, client_address: str | None) -> str:
+    """Who a UI session counts against for ``max-sessions-per-owner``: its principal name, else
+    (an anonymous UI) its client address, else ``unknown``."""
+    if principal:
+        return principal
+    if client_address and client_address.strip():
+        return client_address.strip()
+    return UNKNOWN_OWNER
 
 
 def _sha256(text: str) -> str:
@@ -218,6 +231,8 @@ class _Session:
     route: str
     renderer: str
     connected_at: datetime
+    #: who the per-owner cap counts it against: the principal name, else the client address
+    owner: str = UNKNOWN_OWNER
     channel: AgentChannel | None = None
     disconnected_at: float | None = None
     #: pairing key → label, in pairing order (each anonymous pairing gets a key of its own)
@@ -242,9 +257,11 @@ class AgentSessions:
         max_sessions: int = DEFAULT_MAX_SESSIONS,
         clock: Callable[[], float] = time.monotonic,
         now: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
+        max_sessions_per_owner: int = DEFAULT_MAX_SESSIONS_PER_OWNER,
     ):
         self.rate_per_minute = max(1, int(rate_per_minute))
         self.max_sessions = max(1, int(max_sessions))
+        self.max_sessions_per_owner = max(1, int(max_sessions_per_owner))
         self._clock = clock
         self._now = now
         self._lock = threading.RLock()
@@ -265,13 +282,23 @@ class AgentSessions:
         route: str,
         renderer: str,
         channel: AgentChannel,
+        client_address: str | None = None,
     ) -> dict[str, Any]:
         """Register (first time) or reconnect the session with ``channel``; answers the status
-        message the stream starts with. A previous stream of the session ends."""
+        message the stream starts with. A previous stream of the session ends.
+
+        A NEW session counts against its OWNER (``principal``, else ``client_address``, else
+        ``unknown``) — at ``max_sessions_per_owner`` that owner's longest-disconnected session is
+        evicted, else it is refused — and then against ``max_sessions`` over every owner. A
+        reconnect is never refused by either cap."""
         with self._lock:
             self._purge()
             session = self._sessions.get(session_id)
             if session is None:
+                owner = owner_of(principal, client_address)
+                owned = [s for s in self._sessions.values() if s.owner == owner]
+                if len(owned) >= self.max_sessions_per_owner and not self._evict_one(owned):
+                    raise UserFacingException(TOO_MANY_SESSIONS)
                 if len(self._sessions) >= self.max_sessions and not self._evict_one():
                     raise UserFacingException(TOO_MANY_SESSIONS)
                 session = _Session(
@@ -282,6 +309,7 @@ class AgentSessions:
                     route=route,
                     renderer=renderer,
                     connected_at=self._now(),
+                    owner=owner,
                 )
                 self._sessions[session_id] = session
                 self._by_handle[session.handle] = session_id
@@ -475,10 +503,11 @@ class AgentSessions:
             if not times or times[-1] <= now - WINDOW_SECONDS:
                 del self._failures[bucket]
 
-    def _evict_one(self) -> bool:
-        """Room for a new session: the one disconnected longest ago goes. False when every
-        session is connected."""
-        disconnected = [s for s in self._sessions.values() if s.disconnected_at is not None]
+    def _evict_one(self, among: Sequence[_Session] | None = None) -> bool:
+        """Room for a new session: the one (of ``among``, default every session) disconnected
+        longest ago goes. False when every one of them is connected."""
+        candidates = self._sessions.values() if among is None else among
+        disconnected = [s for s in candidates if s.disconnected_at is not None]
         if not disconnected:
             return False
         self._forget(min(disconnected, key=lambda s: s.disconnected_at or 0.0))
@@ -520,7 +549,11 @@ def _parameter(parameters: dict, name: str, limit: int) -> str:
 
 
 def channel_action(
-    sessions: AgentSessions | None, action_id: str, parameters: dict | None, principal: str | None
+    sessions: AgentSessions | None,
+    action_id: str,
+    parameters: dict | None,
+    principal: str | None,
+    client_address: str | None = None,
 ) -> dict[str, Any] | None:
     """Run one of :data:`ACTIONS`. ``_agent-channel`` answers its status message (the first
     command of the stream); ``_agent-pair`` / ``_agent-unpair`` answer the ``_agentPairing``
@@ -543,6 +576,7 @@ def channel_action(
             route if isinstance(route, str) else "",
             renderer[:MAX_RENDERER_LENGTH] if isinstance(renderer, str) else "",
             channel,
+            client_address,
         )
     if action_id == PAIR_ACTION:
         code, ttl = sessions.new_code(session_id, secret, principal)

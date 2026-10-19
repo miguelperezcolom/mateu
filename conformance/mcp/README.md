@@ -164,7 +164,10 @@ OFF by default. Push needs BOTH the MCP endpoint and its own switch: Java `mateu
 `MATEU_MCP_PUSH_ENABLED`, read through `MateuSettings`); .NET `MateuOptions.Mcp` + `MateuOptions.McpPush`
 (or `MATEU_MCP_ENABLED` / `MATEU_MCP_PUSH_ENABLED`); Python `add_mateu(..., mcp=True, mcp_push=True)`
 (or the same env vars). Limits (same names everywhere, `mateu.mcp.push.*` / `MATEU_MCP_PUSH_*`):
-`rate-per-minute` (30 messages per session per rolling minute), `max-sessions` (1000).
+`rate-per-minute` (30 messages per session per rolling minute), `max-sessions` (1000 in all) and
+`max-sessions-per-owner` (20 registered sessions per OWNER: the UI's principal name, or — for an
+anonymous UI — its client address as the adapter reports it, `unknown` when it cannot tell), so one
+caller cannot fill the registry.
 Fixed: a pairing code lives 300 s; a disconnected session is forgotten (pairings included) 120 s after
 its stream ended; at most 10 failed `mateu_pair_session` per caller per minute.
 
@@ -189,9 +192,12 @@ name (null when anonymous), the secret's SHA-256, the route and the renderer (`v
 `react-native`, `intellij`, or what the UI says, ≤ 32 chars). Every later call for that sessionId must
 come with the same secret AND the same principal, else the error `This UI session belongs to another
 channel.` A new channel for a connected session replaces the old stream (the old one ends). With
-push off every one of them is the error `Live UI push is not enabled.`; with `max-sessions` reached and
-nothing disconnected to evict, `Too many live UI sessions; try again later.` `_agent-pair` needs a
-registered session.
+push off every one of them is the error `Live UI push is not enabled.` Registering a NEW session
+checks its owner first: with `max-sessions-per-owner` of that owner's sessions registered, the
+owner's longest-disconnected one is evicted, and when all of them are connected the answer is `Too
+many live UI sessions; try again later.`; then the same against `max-sessions` over every owner. A
+reconnect of a registered session is never refused by either cap. `_agent-pair` needs a registered
+session.
 
 Each message is an increment carrying ONE command `{type: "AgentPush", data: {kind, event, detail}}`:
 

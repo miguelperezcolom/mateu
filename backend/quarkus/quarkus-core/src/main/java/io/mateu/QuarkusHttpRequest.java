@@ -118,6 +118,12 @@ public class QuarkusHttpRequest implements HttpRequest {
   }
 
   @Override
+  public String getRemoteAddress() {
+    var remote = delegate.remoteAddress();
+    return remote == null ? null : remote.hostAddress();
+  }
+
+  @Override
   public String getHeaderValue(String key) {
     return delegate.getHeader(key);
   }

@@ -432,7 +432,8 @@ backend runs: Java `McpPushCorpusTest`, .NET `AgentPushTests`, Python `test_mcp_
   pinned to its secret's hash + principal; a caller (= principal, else `X-Mateu-Agent-Key` ≥ 16
   chars, else anonymous) reaches its own user's sessions or ones PAIRED to it; an anonymous pairing
   makes the opaque handle the capability; anything else = `Unknown session` (indistinguishable).
-  Rate limit 30/min/session, 10 failed pairings/min/caller, 120 s grace after disconnect, every
+  Caps: 1000 sessions + 20 per owner (principal, else the UI's client address via
+  `HttpRequest.getRemoteAddress()`; Helidon MP's Jersey leg cannot tell → `unknown`). Rate limit 30/min/session, 10 failed pairings/min/caller, 120 s grace after disconnect, every
   delivery logged at INFO. `mateu_push_ui` validates through `__validate__` AS THE CALLER first; the
   UI renders through `__preview__` with ITS identity. The sidecar holds no sessions: `MATEU_PUSH=true`
   forwards the tools to the app's `/mateu/mcp` with a per-process agent key.

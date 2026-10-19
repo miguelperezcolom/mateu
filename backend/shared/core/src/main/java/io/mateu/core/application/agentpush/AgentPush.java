@@ -22,6 +22,11 @@ public final class AgentPush {
   /** Registered UI sessions, at most. */
   public static final String MAX_SESSIONS_PROPERTY = "mateu.mcp.push.max-sessions";
 
+  /** Registered UI sessions per owner (a principal, or an anonymous UI's client address). */
+  public static final String MAX_SESSIONS_PER_OWNER_PROPERTY =
+      "mateu.mcp.push.max-sessions-per-owner";
+
+  public static final int DEFAULT_MAX_SESSIONS_PER_OWNER = 20;
   public static final int DEFAULT_RATE_PER_MINUTE = 30;
   public static final int DEFAULT_MAX_SESSIONS = 1000;
 
@@ -91,6 +96,13 @@ public final class AgentPush {
   /** {@value #MAX_SESSIONS_PROPERTY}, default {@value #DEFAULT_MAX_SESSIONS}. */
   public static int maxSessions() {
     return positive(MAX_SESSIONS_PROPERTY, DEFAULT_MAX_SESSIONS);
+  }
+
+  /**
+   * {@value #MAX_SESSIONS_PER_OWNER_PROPERTY}, default {@value #DEFAULT_MAX_SESSIONS_PER_OWNER}.
+   */
+  public static int maxSessionsPerOwner() {
+    return positive(MAX_SESSIONS_PER_OWNER_PROPERTY, DEFAULT_MAX_SESSIONS_PER_OWNER);
   }
 
   private static int positive(String key, int fallback) {

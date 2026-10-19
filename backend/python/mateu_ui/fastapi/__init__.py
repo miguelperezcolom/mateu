@@ -139,6 +139,7 @@ def add_mateu(
     mcp_push: bool | None = None,
     mcp_push_rate_per_minute: int | None = None,
     mcp_push_max_sessions: int | None = None,
+    mcp_push_max_sessions_per_owner: int | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -176,7 +177,9 @@ def add_mateu(
       ``MATEU_MCP_PUSH_ENABLED`` env var, else OFF; effective only with ``mcp`` on.
       ``mcp_push_rate_per_minute`` (``MATEU_MCP_PUSH_RATE_PER_MINUTE``, default 30 messages per
       session per rolling minute) and ``mcp_push_max_sessions`` (``MATEU_MCP_PUSH_MAX_SESSIONS``,
-      default 1000) bound it.
+      default 1000) bound it, and ``mcp_push_max_sessions_per_owner``
+      (``MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER``, default 20 per principal name, or per client
+      address for an anonymous UI) keeps one caller from filling the registry.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -213,6 +216,13 @@ def add_mateu(
                 if mcp_push_max_sessions is not None
                 else _int_from_env("MATEU_MCP_PUSH_MAX_SESSIONS", agent_push.DEFAULT_MAX_SESSIONS)
             ),
+            max_sessions_per_owner=(
+                mcp_push_max_sessions_per_owner
+                if mcp_push_max_sessions_per_owner is not None
+                else _int_from_env(
+                    "MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", agent_push.DEFAULT_MAX_SESSIONS_PER_OWNER
+                )
+            ),
         )
         if push_on and mcp_on
         else None
@@ -241,6 +251,7 @@ def add_mateu(
             base_url=request_base_url,
             correlation_id=new_correlation_id(),
             principal=authenticated_principal(request),
+            client_address=request.client.host if request.client is not None else None,
         )
 
     def run_bound(mateu_request: MateuRequest, fn: Callable[[], Any]) -> Any:

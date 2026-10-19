@@ -37,6 +37,9 @@ class MateuRequest:
     #: The identity the hosting framework AUTHENTICATED (e.g. Starlette's AuthenticationMiddleware),
     #: or None. Trusted as is — never fill it from anything the client can forge.
     principal: Identity | None = None
+    #: The caller's network address as the framework reports it (FastAPI ``request.client.host``),
+    #: or None when it cannot tell.
+    client_address: str | None = None
 
     def header(self, name: str) -> str | None:
         return self.headers.get(name.lower())

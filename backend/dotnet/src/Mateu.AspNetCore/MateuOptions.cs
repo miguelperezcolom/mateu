@@ -71,6 +71,11 @@ public sealed class MateuOptions
     /// <c>MATEU_MCP_PUSH_MAX_SESSIONS</c>, else 1000.</summary>
     public int? McpPushMaxSessions { get; set; }
 
+    /// <summary>The most live UI sessions one OWNER holds at once (the UI's principal name, or — for an
+    /// anonymous UI — its client address). Null (the default) reads
+    /// <c>MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER</c>, else 20.</summary>
+    public int? McpPushMaxSessionsPerOwner { get; set; }
+
     /// <summary>Whether <c>MATEU_MCP_PUSH_ENABLED</c> turns live UI push on (true/1/yes).</summary>
     public static bool McpPushEnabledByEnvironment() =>
         System.Environment.GetEnvironmentVariable("MATEU_MCP_PUSH_ENABLED")?.Trim().ToLowerInvariant() is "true" or "1" or "yes";
@@ -84,6 +89,10 @@ public sealed class MateuOptions
 
     internal int PushMaxSessions => McpPushMaxSessions ?? IntFromEnvironment("MATEU_MCP_PUSH_MAX_SESSIONS")
         ?? Mateu.Core.AgentPush.AgentSessions.DefaultMaxSessions;
+
+    internal int PushMaxSessionsPerOwner => McpPushMaxSessionsPerOwner
+        ?? IntFromEnvironment("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER")
+        ?? Mateu.Core.AgentPush.AgentSessions.DefaultMaxSessionsPerOwner;
 
     private static int? IntFromEnvironment(string name) =>
         int.TryParse(System.Environment.GetEnvironmentVariable(name)?.Trim(), out var n) && n > 0 ? n : null;

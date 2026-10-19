@@ -46,20 +46,26 @@ public class AgentPushTests
     {
         public DateTimeOffset Now = new(2026, 10, 19, 10, 0, 0, TimeSpan.Zero);
         public string? Principal;
+        public string? Address;
         public readonly AgentSessions Sessions;
         public readonly SyncHandler Handler;
 
-        public Fixture(int rate = 30, int max = 1000, bool push = true)
+        public Fixture(int rate = 30, int max = 1000, bool push = true, int perOwner = 20)
         {
-            Sessions = new AgentSessions(rate, max, () => Now);
-            Handler = new SyncHandler(Registry) { AgentPush = push ? Sessions : null, Principal = () => Principal };
+            Sessions = new AgentSessions(rate, max, perOwner, () => Now);
+            Handler = new SyncHandler(Registry)
+            {
+                AgentPush = push ? Sessions : null, Principal = () => Principal, ClientAddress = () => Address,
+            };
         }
 
         public McpService Mcp(AgentCaller caller) => new(Handler, Json) { Push = Handler.AgentPush, Caller = caller };
 
-        public AgentChannel Open(string sessionId, string secret, string? principal, string route = "/", string renderer = "vaadin")
+        public AgentChannel Open(string sessionId, string secret, string? principal, string route = "/",
+            string renderer = "vaadin", string? address = null)
         {
             Principal = principal;
+            Address = address;
             return Handler.OpenAgentChannel(Rq(SyncHandler.AgentChannelAction, sessionId, secret,
                 ("route", route), ("renderer", renderer)));
         }
@@ -379,6 +385,85 @@ public class AgentPushTests
         Assert.Equal(2, f.Sessions.Count);
         var listed = ToolOk(f.Mcp(AgentCaller.From("alice", null)), "mateu_list_sessions", new())["sessions"]!.AsArray();
         Assert.DoesNotContain(listed, s => (string)s!["session"]! == a.Session.Handle);
+    }
+
+    [Fact]
+    public void Max_sessions_per_owner_refuses_a_new_session_of_that_owner_when_all_are_connected()
+    {
+        var f = new Fixture(perOwner: 2);
+        f.Open("ui-1", "s-1", "alice");
+        f.Open("ui-2", "s-2", "alice");
+        Assert.Equal(AgentSessions.TooManySessions,
+            Assert.Throws<UserFacingException>(() => f.Open("ui-3", "s-3", "alice")).Message);
+        Assert.Equal(2, f.Sessions.Count);
+    }
+
+    [Fact]
+    public void Max_sessions_per_owner_evicts_that_owners_longest_disconnected_session()
+    {
+        var f = new Fixture(perOwner: 3);
+        var a = f.Open("ui-1", "s-1", "alice");
+        var b = f.Open("ui-2", "s-2", "alice");
+        f.Open("ui-3", "s-3", "alice");
+        var bob = f.Open("ui-b", "s-b", "bob");
+        f.Sessions.Closed(bob);
+        f.Sessions.Closed(a);
+        f.Now = f.Now.AddSeconds(10);
+        f.Sessions.Closed(b);
+        f.Open("ui-4", "s-4", "alice");
+        var listed = ToolOk(f.Mcp(AgentCaller.From("alice", null)), "mateu_list_sessions", new())["sessions"]!.AsArray();
+        var handles = listed.Select(s => (string)s!["session"]!).ToList();
+        Assert.DoesNotContain(a.Session.Handle, handles); // the longest-disconnected one went
+        Assert.Contains(b.Session.Handle, handles);
+        Assert.Equal(3, handles.Count);
+        // Bob's disconnected session is another owner's: untouched.
+        Assert.Single(ToolOk(f.Mcp(AgentCaller.From("bob", null)), "mateu_list_sessions", new())["sessions"]!.AsArray());
+    }
+
+    [Fact]
+    public void Max_sessions_per_owner_leaves_another_owner_unaffected()
+    {
+        var f = new Fixture(perOwner: 1);
+        f.Open("ui-1", "s-1", "alice");
+        Assert.Throws<UserFacingException>(() => f.Open("ui-2", "s-2", "alice"));
+        f.Open("ui-3", "s-3", "bob");
+        Assert.Equal(2, f.Sessions.Count);
+    }
+
+    [Fact]
+    public void Anonymous_uis_count_against_their_client_address()
+    {
+        var f = new Fixture(perOwner: 1);
+        f.Open("ui-1", "s-1", null, address: "10.0.0.1");
+        f.Open("ui-2", "s-2", null, address: "10.0.0.2");
+        Assert.Equal(AgentSessions.TooManySessions,
+            Assert.Throws<UserFacingException>(() => f.Open("ui-3", "s-3", null, address: "10.0.0.1")).Message);
+        // No address: they all share "unknown".
+        f.Open("ui-4", "s-4", null);
+        Assert.Throws<UserFacingException>(() => f.Open("ui-5", "s-5", null));
+        // A principal named like an address is another owner.
+        f.Open("ui-6", "s-6", "10.0.0.1");
+        Assert.Equal(4, f.Sessions.Count);
+    }
+
+    [Fact]
+    public void A_reconnect_is_never_refused_by_either_cap()
+    {
+        var f = new Fixture(max: 2, perOwner: 1);
+        var a = f.Open("ui-1", "s-1", "alice");
+        f.Open("ui-2", "s-2", "bob");
+        f.Sessions.Closed(a);
+        var again = f.Open("ui-1", "s-1", "alice");
+        Assert.Same(a.Session, again.Session);
+        f.Open("ui-2", "s-2", "bob"); // connected and at both caps
+        Assert.Equal(2, f.Sessions.Count);
+    }
+
+    [Fact]
+    public void The_per_owner_cap_option_defaults_to_20()
+    {
+        Assert.Equal(20, new MateuOptions().PushMaxSessionsPerOwner);
+        Assert.Equal(5, new MateuOptions { McpPushMaxSessionsPerOwner = 5 }.PushMaxSessionsPerOwner);
     }
 
     [Fact]

@@ -63,8 +63,10 @@ internal sealed class AgentChannel
 /// <summary>A registered UI session (a browser tab, an app window, an IDE project).</summary>
 internal sealed class AgentSession
 {
-    internal AgentSession(string sessionId, string handle, string secretHash, string? principal, long registeredOrder)
+    internal AgentSession(string sessionId, string handle, string secretHash, string? principal, string owner,
+        long registeredOrder)
     {
+        Owner = owner;
         SessionId = sessionId;
         Handle = handle;
         SecretHash = secretHash;
@@ -76,6 +78,10 @@ internal sealed class AgentSession
     public string Handle { get; }
     public string SecretHash { get; }
     public string? Principal { get; }
+
+    /// <summary>Who the session counts against for <c>max-sessions-per-owner</c>: the principal name,
+    /// or — for an anonymous UI — its client address (<c>unknown</c> when it cannot tell).</summary>
+    public string Owner { get; }
     public long RegisteredOrder { get; }
     public string Route { get; internal set; } = "";
     public string Renderer { get; internal set; } = "";
@@ -126,6 +132,7 @@ internal sealed class AgentSessions
     public const int MaxRendererLength = 32;
     public const int DefaultRatePerMinute = 30;
     public const int DefaultMaxSessions = 1000;
+    public const int DefaultMaxSessionsPerOwner = 20;
     static readonly TimeSpan Minute = TimeSpan.FromMinutes(1);
 
     /// <summary>The pairing code alphabet: no 0/O, 1/I — read off a screen and typed by a person.</summary>
@@ -150,8 +157,9 @@ internal sealed class AgentSessions
     long _order;
 
     public AgentSessions(int ratePerMinute = DefaultRatePerMinute, int maxSessions = DefaultMaxSessions,
-        Func<DateTimeOffset>? clock = null)
+        int maxSessionsPerOwner = DefaultMaxSessionsPerOwner, Func<DateTimeOffset>? clock = null)
     {
+        MaxSessionsPerOwner = maxSessionsPerOwner > 0 ? maxSessionsPerOwner : DefaultMaxSessionsPerOwner;
         RatePerMinute = ratePerMinute > 0 ? ratePerMinute : DefaultRatePerMinute;
         MaxSessions = maxSessions > 0 ? maxSessions : DefaultMaxSessions;
         _clock = clock ?? (() => DateTimeOffset.UtcNow);
@@ -159,6 +167,12 @@ internal sealed class AgentSessions
 
     public int RatePerMinute { get; }
     public int MaxSessions { get; }
+    public int MaxSessionsPerOwner { get; }
+
+    /// <summary>The owner a NEW session counts against: <c>user:&lt;principal&gt;</c>, else
+    /// <c>address:&lt;client address&gt;</c> (<c>unknown</c> when null/blank).</summary>
+    internal static string OwnerOf(string? principal, string? clientAddress) =>
+        Blank(principal) is { } p ? "user:" + p : "address:" + (Blank(clientAddress)?.Trim() ?? "unknown");
 
     /// <summary>How many sessions are registered (connected or within their disconnected grace).</summary>
     public int Count
@@ -170,8 +184,12 @@ internal sealed class AgentSessions
 
     /// <summary><c>_agent-channel</c>: register the session on its first channel, or check that a later
     /// one comes with the same secret and principal; the new channel replaces the old stream, and its
-    /// first message is the session's status.</summary>
-    public AgentChannel Open(string sessionId, string secret, string? principal, string? route, string? renderer)
+    /// first message is the session's status. A NEW session is checked against its owner's cap (the
+    /// principal, else <paramref name="clientAddress"/>) and then the global one; at either cap the
+    /// longest-disconnected session (of that owner / of anyone) is evicted, else it is refused. A
+    /// reconnect of a registered session is never refused by either cap.</summary>
+    public AgentChannel Open(string sessionId, string secret, string? principal, string? route, string? renderer,
+        string? clientAddress = null)
     {
         RequireIds(sessionId, secret);
         lock (_lock)
@@ -182,9 +200,13 @@ internal sealed class AgentSessions
                 Check(session, secret, principal);
             else
             {
-                if (_byId.Count >= MaxSessions && !EvictOneDisconnected())
+                var owner = OwnerOf(principal, clientAddress);
+                if (_byId.Values.Count(s => s.Owner == owner) >= MaxSessionsPerOwner
+                    && !EvictOneDisconnected(s => s.Owner == owner))
                     throw new UserFacingException(TooManySessions);
-                session = new AgentSession(sessionId, NewHandle(), Sha256(secret), Blank(principal), ++_order);
+                if (_byId.Count >= MaxSessions && !EvictOneDisconnected(_ => true))
+                    throw new UserFacingException(TooManySessions);
+                session = new AgentSession(sessionId, NewHandle(), Sha256(secret), Blank(principal), owner, ++_order);
                 _byId[sessionId] = session;
                 _byHandle[session.Handle] = session;
             }
@@ -395,9 +417,9 @@ internal sealed class AgentSessions
         }
     }
 
-    bool EvictOneDisconnected()
+    bool EvictOneDisconnected(Func<AgentSession, bool> among)
     {
-        var victim = _byId.Values.Where(s => !s.Connected).OrderBy(s => s.DisconnectedAt).FirstOrDefault();
+        var victim = _byId.Values.Where(s => among(s) && !s.Connected).OrderBy(s => s.DisconnectedAt).FirstOrDefault();
         if (victim is null) return false;
         Forget(victim);
         return true;

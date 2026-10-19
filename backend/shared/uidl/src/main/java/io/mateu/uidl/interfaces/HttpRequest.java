@@ -36,6 +36,16 @@ public interface HttpRequest {
     return null;
   }
 
+  /**
+   * The client's address (IP) as the adapter's socket reports it — after whatever forwarded-header
+   * handling the host framework itself is configured for, never parsed by Mateu from a request
+   * header. {@code null} when the adapter cannot tell (the default). Used to cap the live UI
+   * sessions of anonymous callers per address.
+   */
+  default String getRemoteAddress() {
+    return null;
+  }
+
   default RunActionRqDto runActionRq() {
     var value = getAttribute("payload_run_action_rq");
     if (value instanceof Optional<?> optional) {

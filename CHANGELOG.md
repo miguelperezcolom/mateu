@@ -19,8 +19,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   pairing code, the connected agents, Disconnect. MCP tools `mateu_list_sessions`,
   `mateu_pair_session`, `mateu_push_ui` (validates first, then renders the page in that tab — content,
   drawer or dialog — through `__preview__`), `mateu_navigate` and `mateu_dispatch_event`. A caller
-  reaches only its own user's sessions and the ones paired to it; rate and size limits; every push
-  logged. Wire: `AppDto.agentPush`, command `AgentPush {kind, event, detail}`. Identical in Java (5
+  reaches only its own user's sessions and the ones paired to it; rate and size limits, at most 20 live UI sessions per user (or
+  per client address for anonymous UIs) besides the global 1000; every push logged. Wire: `AppDto.agentPush`, command `AgentPush {kind, event, detail}`. Identical in Java (5
   adapters), .NET, Python and the sidecar (which forwards to the app's `/mateu/mcp`), pinned by
   `conformance/mcp/push.json`; applied by Vaadin, Redwood, React Native and IntelliJ with the same
   code as the chat's events. (Java, .NET, Python, sidecar, Vaadin, Redwood, React Native, IntelliJ)

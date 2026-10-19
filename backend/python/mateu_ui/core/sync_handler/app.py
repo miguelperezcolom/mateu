@@ -92,13 +92,20 @@ class AppHandlerMixin(MixinBase):
         stream itself is served by the adapter's SSE endpoint), ``_agent-pair`` (Data
         ``{_agentPairing: {code, expiresInSeconds}}``) and ``_agent-unpair`` (Data
         ``{_agentPairing: null}``). App-level: whatever the type and route. The session's owner
-        is the caller's principal NAME (None when anonymous)."""
+        is the caller's principal NAME (None when anonymous); the per-owner cap counts an
+        anonymous UI by its client address."""
         from .. import agent_push
+        from ..request_context import current_request
 
         identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
         principal = getattr(identity, "name", None) or None
+        in_flight = current_request()
         answer = agent_push.channel_action(
-            self.agent_push, rq.action_id or "", rq.parameters, principal
+            self.agent_push,
+            rq.action_id or "",
+            rq.parameters,
+            principal,
+            in_flight.client_address if in_flight is not None else None,
         )
         if rq.action_id == agent_push.CHANNEL_ACTION:
             assert answer is not None

@@ -165,8 +165,9 @@ Off by default, and it needs the MCP endpoint on too:
 | .NET | `MateuOptions.Mcp = true` + `MateuOptions.McpPush = true` (or `MATEU_MCP_ENABLED` / `MATEU_MCP_PUSH_ENABLED`) |
 | Python | `add_mateu(..., mcp=True, mcp_push=True)` (or the same environment variables) |
 
-Limits: `mateu.mcp.push.rate-per-minute` (30 messages per session per minute) and
-`mateu.mcp.push.max-sessions` (1000 registered sessions); same names as `MATEU_MCP_PUSH_*`
+Limits: `mateu.mcp.push.rate-per-minute` (30 messages per session per minute),
+`mateu.mcp.push.max-sessions` (1000 registered sessions) and `mateu.mcp.push.max-sessions-per-owner`
+(20 per signed-in user, or per client address for anonymous UIs); same names as `MATEU_MCP_PUSH_*`
 environment variables and as .NET/Python options.
 
 With it on, every app shell gets a **Connect AI** control in its header (a drawer row on React
@@ -216,7 +217,8 @@ as any other request.
 - **The UI side is pinned**: a session belongs to the secret its tab generated and to the principal
   it registered with; another tab, user or guess cannot take over its stream or ask for its codes.
 - **Limits**: 30 messages per session per minute, 256 KiB per screen, 64 KiB per event detail, 10
-  failed pairings per caller per minute, 1000 sessions; a disconnected session is forgotten two
+  failed pairings per caller per minute, 1000 sessions and 20 per owner (a user, or an anonymous
+  UI's client address — so one caller cannot fill the registry); a disconnected session is forgotten two
   minutes after its stream ended.
 - **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<handle>
   kind=<render|navigate|event> … bytes=<n>` — and every pairing too.

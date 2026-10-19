@@ -232,4 +232,52 @@ class AgentSessionsTest {
         .hasSizeGreaterThanOrEqualTo(22)
         .matches("[A-Za-z0-9_-]+");
   }
+
+  AgentSessions.Channel openAs(
+      AgentSessions registry, String id, String principal, String address) {
+    return registry.open(id, "s", principal, address, "/", "vaadin", m -> {}, () -> {});
+  }
+
+  @Test
+  void oneOwnerCannotFillTheRegistry() {
+    var registry = new AgentSessions(clock, new Random(7), () -> rate, () -> 100, () -> 2);
+    openAs(registry, "a-1", "alice", "10.0.0.1");
+    var old = openAs(registry, "a-2", "alice", "10.0.0.2");
+    // a third session of alice is refused while both are connected — whatever address it uses
+    assertThatThrownBy(() -> openAs(registry, "a-3", "alice", "10.0.0.3"))
+        .hasMessage(AgentPush.TOO_MANY_SESSIONS);
+    // another owner is unaffected
+    openAs(registry, "b-1", "bob", "10.0.0.1");
+    // a reconnect of a registered session is never refused
+    openAs(registry, "a-1", "alice", "10.0.0.1");
+    // once one of alice's is disconnected, a new one evicts it
+    old.close();
+    openAs(registry, "a-3", "alice", "10.0.0.3");
+    assertThat(registry.visible(alice))
+        .extracting(AgentSessions.Entry::connected)
+        .containsExactly(true, true);
+    assertThat(registry.visible(bob)).hasSize(1);
+  }
+
+  @Test
+  void anonymousUisAreCappedPerClientAddress() {
+    var registry = new AgentSessions(clock, new Random(7), () -> rate, () -> 100, () -> 2);
+    openAs(registry, "x-1", null, "192.0.2.1");
+    openAs(registry, "x-2", null, "192.0.2.1");
+    assertThatThrownBy(() -> openAs(registry, "x-3", null, "192.0.2.1"))
+        .hasMessage(AgentPush.TOO_MANY_SESSIONS);
+    openAs(registry, "y-1", null, "192.0.2.2"); // another address counts on its own
+    // an adapter that cannot tell the address puts them all under "unknown"
+    openAs(registry, "z-1", null, null);
+    openAs(registry, "z-2", null, " ");
+    assertThatThrownBy(() -> openAs(registry, "z-3", null, null))
+        .hasMessage(AgentPush.TOO_MANY_SESSIONS);
+  }
+
+  @Test
+  void theOwnerIsThePrincipalElseTheAddress() {
+    assertThat(AgentSessions.ownerOf("alice", "10.0.0.1")).isEqualTo("user:alice");
+    assertThat(AgentSessions.ownerOf(null, "10.0.0.1")).isEqualTo("address:10.0.0.1");
+    assertThat(AgentSessions.ownerOf(null, null)).isEqualTo("address:unknown");
+  }
 }

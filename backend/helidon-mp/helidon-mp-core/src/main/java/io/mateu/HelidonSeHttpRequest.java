@@ -47,6 +47,15 @@ public class HelidonSeHttpRequest implements HttpRequest {
   }
 
   @Override
+  public String getRemoteAddress() {
+    try {
+      return delegate.remotePeer().host();
+    } catch (RuntimeException e) {
+      return null;
+    }
+  }
+
+  @Override
   public String getHeaderValue(String key) {
     return delegate.headers().first(HeaderNames.create(key)).orElse(null);
   }

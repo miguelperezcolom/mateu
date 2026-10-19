@@ -91,6 +91,7 @@ public class AgentChannelActionRunner implements ActionRunner {
                         sessionId,
                         secret,
                         principal,
+                        remoteAddress(httpRequest),
                         route,
                         renderer,
                         message -> sink.next(increment(message)),
@@ -121,6 +122,14 @@ public class AgentChannelActionRunner implements ActionRunner {
                     UICommandTypeDto.AgentPush,
                     new AgentPushDto(message.kind(), message.event(), message.detail()))))
         .build();
+  }
+
+  private static String remoteAddress(HttpRequest httpRequest) {
+    try {
+      return httpRequest.getRemoteAddress();
+    } catch (RuntimeException e) {
+      return null;
+    }
   }
 
   private static String text(Map<String, Object> parameters, String key) {

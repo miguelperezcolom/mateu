@@ -40,7 +40,11 @@ public final class AgentSessions {
 
   private static final AgentSessions SHARED =
       new AgentSessions(
-          Clock.systemUTC(), new SecureRandom(), AgentPush::ratePerMinute, AgentPush::maxSessions);
+          Clock.systemUTC(),
+          new SecureRandom(),
+          AgentPush::ratePerMinute,
+          AgentPush::maxSessions,
+          AgentPush::maxSessionsPerOwner);
 
   /** The process-wide registry (the SSE stream and the MCP endpoint meet here). */
   public static AgentSessions shared() {
@@ -71,6 +75,7 @@ public final class AgentSessions {
     final String handle;
     final String secretHash;
     final String principal;
+    final String owner;
     final long registeredSeq;
     String route;
     String renderer;
@@ -85,7 +90,14 @@ public final class AgentSessions {
     String code;
     Instant codeExpiresAt;
 
-    Session(String sessionId, String handle, String secretHash, String principal, long seq) {
+    Session(
+        String sessionId,
+        String handle,
+        String secretHash,
+        String principal,
+        String owner,
+        long seq) {
+      this.owner = owner;
       this.sessionId = sessionId;
       this.handle = handle;
       this.secretHash = secretHash;
@@ -102,6 +114,7 @@ public final class AgentSessions {
   private final Random random;
   private final IntSupplier ratePerMinute;
   private final IntSupplier maxSessions;
+  private final IntSupplier maxSessionsPerOwner;
   private final Map<String, Session> bySessionId = new HashMap<>();
   private final Map<String, Session> byHandle = new HashMap<>();
   private final Map<String, Session> byCode = new HashMap<>();
@@ -111,6 +124,17 @@ public final class AgentSessions {
   /** A registry with its own clock, randomness and limits (tests); apps use {@link #shared()}. */
   public AgentSessions(
       Clock clock, Random random, IntSupplier ratePerMinute, IntSupplier maxSessions) {
+    this(clock, random, ratePerMinute, maxSessions, () -> AgentPush.DEFAULT_MAX_SESSIONS_PER_OWNER);
+  }
+
+  /** The same, with its own cap of sessions per owner. */
+  public AgentSessions(
+      Clock clock,
+      Random random,
+      IntSupplier ratePerMinute,
+      IntSupplier maxSessions,
+      IntSupplier maxSessionsPerOwner) {
+    this.maxSessionsPerOwner = maxSessionsPerOwner;
     this.clock = clock;
     this.random = random;
     this.ratePerMinute = ratePerMinute;
@@ -136,15 +160,36 @@ public final class AgentSessions {
       String renderer,
       Consumer<Message> sink,
       Runnable onReplaced) {
+    return open(sessionId, secret, principal, null, route, renderer, sink, onReplaced);
+  }
+
+  /**
+   * The same, knowing the UI's client address: an anonymous UI's sessions are capped per address
+   * ({@value AgentPush#MAX_SESSIONS_PER_OWNER_PROPERTY}), a signed-in one's per principal.
+   */
+  public synchronized Channel open(
+      String sessionId,
+      String secret,
+      String principal,
+      String clientAddress,
+      String route,
+      String renderer,
+      Consumer<Message> sink,
+      Runnable onReplaced) {
     var now = clock.instant();
     sweep(now);
     requireIds(sessionId, secret);
     var session = bySessionId.get(sessionId);
     if (session == null) {
-      if (bySessionId.size() >= maxSessions.getAsInt() && !evictOldestDisconnected()) {
+      var owner = ownerOf(principal, clientAddress);
+      if (countOf(owner) >= maxSessionsPerOwner.getAsInt() && !evictOldestDisconnected(owner)) {
         throw new UserFacingException(AgentPush.TOO_MANY_SESSIONS);
       }
-      session = new Session(sessionId, newHandle(), AgentCaller.sha256(secret), principal, ++seq);
+      if (bySessionId.size() >= maxSessions.getAsInt() && !evictOldestDisconnected(null)) {
+        throw new UserFacingException(AgentPush.TOO_MANY_SESSIONS);
+      }
+      session =
+          new Session(sessionId, newHandle(), AgentCaller.sha256(secret), principal, owner, ++seq);
       bySessionId.put(sessionId, session);
       byHandle.put(session.handle, session);
     } else {
@@ -403,10 +448,27 @@ public final class AgentSessions {
     pairingFailures.values().removeIf(d -> prune(d, now).isEmpty());
   }
 
-  private boolean evictOldestDisconnected() {
+  /** Who a session counts against: its principal, else its client address. */
+  static String ownerOf(String principal, String clientAddress) {
+    if (principal != null) return "user:" + principal;
+    return "address:"
+        + (clientAddress == null || clientAddress.isBlank() ? "unknown" : clientAddress.trim());
+  }
+
+  private int countOf(String owner) {
+    int n = 0;
+    for (var session : bySessionId.values()) {
+      if (owner.equals(session.owner)) n++;
+    }
+    return n;
+  }
+
+  /** Evicts the longest-disconnected session (of {@code owner}, or of anyone when null). */
+  private boolean evictOldestDisconnected(String owner) {
     Session oldest = null;
     for (var session : bySessionId.values()) {
-      if (!session.connected()
+      if ((owner == null || owner.equals(session.owner))
+          && !session.connected()
           && (oldest == null || session.disconnectedAt.isBefore(oldest.disconnectedAt))) {
         oldest = session;
       }

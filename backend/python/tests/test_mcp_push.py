@@ -398,7 +398,7 @@ def test_handles_are_opaque_url_safe_and_long():
 
 
 def test_the_registry_is_thread_safe():
-    sessions = _sessions(Clock(), max_sessions=10_000)
+    sessions = _sessions(Clock(), max_sessions=10_000, max_sessions_per_owner=10_000)
 
     def register(n):
         for i in range(100):
@@ -637,3 +637,117 @@ def test_the_channel_heartbeats_and_ends_on_its_own(monkeypatch):
     assert len(events) >= 2 and all(e["commands"] == [] for e in events[1:])
     # the stream ended: the session counts as disconnected
     assert handler.agent_push._sessions["t"].connected is False
+
+
+# ── max-sessions-per-owner ───────────────────────────────────────────────────────────────────
+def _open_from(sessions, sid, principal=None, address=None):
+    channel = AgentChannel(lambda d: None)
+    sessions.open_channel(sid, "s3cret", principal, "/r", "vaadin", channel, address)
+    return channel
+
+
+def test_the_owner_is_the_principal_else_the_client_address_else_unknown():
+    assert agent_push.owner_of("alice", "10.0.0.1") == "alice"
+    assert agent_push.owner_of(None, " 10.0.0.1 ") == "10.0.0.1"
+    assert agent_push.owner_of(None, "  ") == agent_push.UNKNOWN_OWNER == "unknown"
+    assert agent_push.owner_of("", None) == "unknown"
+    assert agent_push.DEFAULT_MAX_SESSIONS_PER_OWNER == 20
+    assert AgentSessions().max_sessions_per_owner == 20
+
+
+def test_a_new_session_over_its_owners_cap_is_refused_when_all_of_them_are_connected():
+    sessions = _sessions(Clock(), max_sessions_per_owner=2)
+    _open_from(sessions, "ui-1", "alice")
+    _open_from(sessions, "ui-2", "alice")
+    with pytest.raises(UserFacingException) as refused:
+        _open_from(sessions, "ui-3", "alice")
+    assert refused.value.message == agent_push.TOO_MANY_SESSIONS
+    assert "ui-3" not in sessions._sessions
+
+
+def test_the_owners_longest_disconnected_session_is_evicted():
+    clock = Clock()
+    sessions = _sessions(clock, max_sessions_per_owner=3)
+    oldest = _open_from(sessions, "ui-1", "alice")
+    newer = _open_from(sessions, "ui-2", "alice")
+    _open_from(sessions, "ui-3", "alice")
+    bobs = _open_from(sessions, "bob-1", "bob")
+    sessions.channel_closed(bobs)  # disconnected longest ago, but another owner's
+    clock.t += 1
+    sessions.channel_closed(oldest)
+    clock.t += 1
+    sessions.channel_closed(newer)
+    clock.t += 1
+    _open_from(sessions, "ui-4", "alice")
+    assert set(sessions._sessions) == {"ui-2", "ui-3", "ui-4", "bob-1"}
+
+
+def test_another_owner_is_unaffected_by_a_full_owner():
+    sessions = _sessions(Clock(), max_sessions_per_owner=1)
+    _open_from(sessions, "ui-1", "alice")
+    with pytest.raises(UserFacingException, match="Too many live UI sessions"):
+        _open_from(sessions, "ui-2", "alice")
+    _open_from(sessions, "bob-1", "bob")
+    assert {s.owner for s in sessions._sessions.values()} == {"alice", "bob"}
+
+
+def test_anonymous_uis_are_counted_by_client_address():
+    sessions = _sessions(Clock(), max_sessions_per_owner=1)
+    _open_from(sessions, "a-1", None, "10.0.0.1")
+    _open_from(sessions, "b-1", None, "10.0.0.2")
+    with pytest.raises(UserFacingException, match="Too many live UI sessions"):
+        _open_from(sessions, "a-2", None, "10.0.0.1")
+    _open_from(sessions, "u-1", None, None)  # no address: the owner "unknown"
+    with pytest.raises(UserFacingException, match="Too many live UI sessions"):
+        _open_from(sessions, "u-2", None, None)
+    # a signed-in UI from the same address is its principal's, not the address's
+    _open_from(sessions, "c-1", "carol", "10.0.0.1")
+    assert sessions._sessions["a-1"].owner == "10.0.0.1"
+    assert sessions._sessions["u-1"].owner == "unknown"
+
+
+def test_a_reconnect_is_never_refused_by_either_cap():
+    sessions = _sessions(Clock(), max_sessions_per_owner=1, max_sessions=1)
+    first = _open_from(sessions, "ui-1", "alice")
+    with pytest.raises(UserFacingException, match="Too many live UI sessions"):
+        _open_from(sessions, "ui-2", "bob")  # the global cap, every session connected
+    _open_from(sessions, "ui-1", "alice")  # a new channel for the connected session
+    sessions.channel_closed(first)
+    _open_from(sessions, "ui-1", "alice")
+    assert list(sessions._sessions) == ["ui-1"]
+
+
+def test_the_owner_cap_then_the_global_cap():
+    sessions = _sessions(Clock(), max_sessions_per_owner=5, max_sessions=2)
+    _open_from(sessions, "ui-1", "alice")
+    _open_from(sessions, "ui-2", "bob")
+    with pytest.raises(UserFacingException, match="Too many live UI sessions"):
+        _open_from(sessions, "ui-3", "carol")
+
+
+def test_over_fastapi_an_anonymous_ui_is_owned_by_its_client_address(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import mateu_ui.fastapi
+
+    api, handler = _api(monkeypatch, mcp=True, mcp_push=True, mcp_push_max_sessions_per_owner=1)
+    monkeypatch.setattr(mateu_ui.fastapi, "AGENT_MAX_SECONDS", 0.2)
+    assert handler.agent_push.max_sessions_per_owner == 1
+    rs = TestClient(api).post("/mateu/v3/sse/_empty", json={
+        "actionId": "_agent-channel", "parameters": {"sessionId": "t", "secret": "s"}})
+    assert rs.status_code == 200
+    assert handler.agent_push._sessions["t"].owner == "testclient"  # Starlette's TestClient address
+    signed = TestClient(api).post("/mateu/v3/sse/_empty", json={
+        "actionId": "_agent-channel", "parameters": {"sessionId": "t2", "secret": "s"}},
+        headers={"x-test-user": "alice"})
+    assert signed.status_code == 200
+    assert handler.agent_push._sessions["t2"].owner == "alice"
+
+
+def test_the_per_owner_cap_comes_from_the_environment(monkeypatch):
+    monkeypatch.setenv("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", "3")
+    _, handler = _api(monkeypatch, mcp=True, mcp_push=True)
+    assert handler.agent_push.max_sessions_per_owner == 3
+    monkeypatch.setenv("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", "nope")
+    _, handler = _api(monkeypatch, mcp=True, mcp_push=True)
+    assert handler.agent_push.max_sessions_per_owner == 20

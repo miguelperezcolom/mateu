@@ -108,7 +108,12 @@ from ..action_registry import ActionRegistry
 from ..rest_source_registry import RestSourceRegistry
 from ..field_type_registry import FieldTypeRegistry
 from ..export import Exporters
-from ..agent_push import DEFAULT_MAX_SESSIONS, DEFAULT_RATE_PER_MINUTE, AgentSessions
+from ..agent_push import (
+    DEFAULT_MAX_SESSIONS,
+    DEFAULT_MAX_SESSIONS_PER_OWNER,
+    DEFAULT_RATE_PER_MINUTE,
+    AgentSessions,
+)
 from .. import action_guard, islands
 from ._base import MixinBase
 from .dispatch import DispatchMixin
@@ -240,12 +245,19 @@ class SyncHandler(
         self.agent_push: AgentSessions | None = None
 
     def enable_agent_push(
-        self, rate_per_minute: int = DEFAULT_RATE_PER_MINUTE, max_sessions: int = DEFAULT_MAX_SESSIONS
+        self,
+        rate_per_minute: int = DEFAULT_RATE_PER_MINUTE,
+        max_sessions: int = DEFAULT_MAX_SESSIONS,
+        max_sessions_per_owner: int = DEFAULT_MAX_SESSIONS_PER_OWNER,
     ) -> AgentSessions:
         """Switch live UI push on (``add_mateu(..., mcp=True, mcp_push=True)`` calls it): the app
         metadata says ``agentPush: true``, the ``_agent-*`` actions answer and the MCP push tools
         reach the sessions registered here."""
-        self.agent_push = AgentSessions(rate_per_minute=rate_per_minute, max_sessions=max_sessions)
+        self.agent_push = AgentSessions(
+            rate_per_minute=rate_per_minute,
+            max_sessions=max_sessions,
+            max_sessions_per_owner=max_sessions_per_owner,
+        )
         self.mapper.agent_push_enabled = True
         return self.agent_push
 
