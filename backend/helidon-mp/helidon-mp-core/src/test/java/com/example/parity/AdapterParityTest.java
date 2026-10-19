@@ -30,6 +30,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void refusesANonJsonBodyOnTheSyncAndSseEndpoints() throws Exception {
+    contract.refusesANonJsonBodyOnTheSyncAndSseEndpoints();
+  }
+
+  @Test
   void refusesARestrictedActionToAnAnonymousCaller() {
     contract.refusesARestrictedActionToAnAnonymousCaller();
   }

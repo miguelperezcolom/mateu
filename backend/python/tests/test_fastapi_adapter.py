@@ -234,7 +234,7 @@ def test_a_user_facing_error_is_shown_as_written():
 
 
 def test_a_malformed_body_is_an_error_toast_not_a_500():
-    r = client().post("/mateu/v3/sync/adapter-boom", content=b"{not json")
+    r = client().post("/mateu/v3/sync/adapter-boom", content=b"{not json", headers={"content-type": "application/json"})
     assert r.status_code == 200 and r.json()["messages"][0]["variant"] == "error"
 
 

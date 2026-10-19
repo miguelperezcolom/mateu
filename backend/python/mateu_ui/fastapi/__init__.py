@@ -52,6 +52,28 @@ _FORBIDDEN_BODY = {
 }
 
 
+#: The (plain text) body of the 415 a non-JSON POST to a Mateu endpoint gets.
+_JSON_BODIES_ONLY_MESSAGE = "Mateu endpoints accept only application/json bodies"
+
+
+def _is_json_content_type(content_type: str | None) -> bool:
+    """``application/json`` or any ``application/*+json``, parameters ignored."""
+    if not content_type or not content_type.strip():
+        return False
+    media = content_type.split(";", 1)[0].strip().lower()
+    return media == "application/json" or (media.startswith("application/") and media.endswith("+json"))
+
+
+def _non_json_refusal(request: Request) -> Response | None:
+    """The 415 a body NOT declared JSON gets on sync, SSE and MCP: ``text/plain``, the form encodings
+    or no Content-Type are exactly what a cross-site page can make the browser send without a CORS
+    preflight, with the user's cookies — refusing them keeps a cookie-authenticated app safe from
+    cross-site request forgery (Java: ``JsonBodyGuard``; .NET: ``JsonBodiesOnly``)."""
+    if _is_json_content_type(request.headers.get("content-type")):
+        return None
+    return Response(_JSON_BODIES_ONLY_MESSAGE, status_code=415, media_type="text/plain")
+
+
 def mcp_enabled_from_env() -> bool:
     """``MATEU_MCP_ENABLED`` (true/1/yes) — the native MCP endpoint is OFF unless enabled."""
     return os.environ.get("MATEU_MCP_ENABLED", "").strip().lower() in ("1", "true", "yes")
@@ -269,7 +291,10 @@ def add_mateu(
             increment.model_dump(by_alias=True, mode="json"), headers={CORRELATION_HEADER: cid}
         )
 
-    async def sync(request: Request, route: str = "") -> JSONResponse:
+    async def sync(request: Request, route: str = "") -> Response:
+        refused = _non_json_refusal(request)
+        if refused is not None:
+            return refused
         mateu_request = request_of(request)
         rq: RunActionRq | None = None
         try:
@@ -297,7 +322,7 @@ def add_mateu(
     # The documented contract (Java answers every POST v3/<operation>/**): the Redwood renderer
     # calls POST /mateu/v3/components/_/action, and this port answered it 404 — Redwood could not
     # render a Python backend at all. The route travels in the body, never in that path.
-    async def component_action(request: Request, rest: str = "") -> JSONResponse:
+    async def component_action(request: Request, rest: str = "") -> Response:
         return await sync(request, "")
 
     app.add_api_route(
@@ -315,6 +340,9 @@ def add_mateu(
 
         from mateu_ui.uidl import LiveHeaderValues
 
+        refused = _non_json_refusal(request)
+        if refused is not None:
+            return refused
         mateu_request = request_of(request)
         rq: RunActionRq | None = None
         loop = asyncio.get_running_loop()
@@ -431,7 +459,10 @@ def add_mateu(
     # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync, and the
     # SAME error boundary: a tool call that fails shows the generic text + reference, never the raw
     # exception (which may carry SQL, paths, other users' data). OFF unless enabled.
-    async def mcp_endpoint(request: Request) -> JSONResponse:
+    async def mcp_endpoint(request: Request) -> Response:
+        refused = _non_json_refusal(request)
+        if refused is not None:
+            return refused
         mateu_request = request_of(request)
         try:
             message = await request.json()

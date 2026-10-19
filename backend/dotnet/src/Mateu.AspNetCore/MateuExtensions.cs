@@ -105,8 +105,8 @@ public static class MateuExtensions
         // The documented contract (Java answers every POST v3/<operation>/**): the Redwood renderer
         // calls POST /mateu/v3/components/_/action, which this port answered 404 — Redwood could not
         // render a .NET backend at all. The route travels in the body, never in that path.
-        app.MapPost(prefix + "/mateu/v3/components/{**rest}", SyncEndpoint);
-        app.MapPost(prefix + "/mateu/v3/sync/{**route}", SyncEndpoint);
+        app.MapPost(prefix + "/mateu/v3/components/{**rest}", SyncEndpoint).JsonBodiesOnly();
+        app.MapPost(prefix + "/mateu/v3/sync/{**route}", SyncEndpoint).JsonBodiesOnly();
 
         async Task SyncEndpoint(HttpContext ctx, SyncHandler handler)
         {
@@ -167,7 +167,7 @@ public static class MateuExtensions
             {
                 // the browser went away, or the stream reached its maximum life
             }
-        });
+        }).JsonBodiesOnly();
 
         // A document an action parked (Mateu.Core.DocumentStore), served ONCE. No auth beyond the
         // token: a new tab or a download link cannot carry a bearer token, and the 256-bit,
@@ -307,7 +307,30 @@ public static class MateuExtensions
             }
             ctx.Response.ContentType = "application/json";
             await ctx.Response.WriteAsync(response.ToJsonString(Json));
-        });
+        }).JsonBodiesOnly();
+    }
+
+    /// <summary>The (plain text) body of the 415 a non-JSON POST to a Mateu endpoint gets.</summary>
+    internal const string JsonBodiesOnlyMessage = "Mateu endpoints accept only application/json bodies";
+
+    /// <summary>Answers 415 to a body not declared JSON (<c>application/json</c> or
+    /// <c>application/*+json</c>): <c>text/plain</c>, the form encodings or no Content-Type are exactly
+    /// what a cross-site page can make the browser send WITHOUT a CORS preflight, with the user's
+    /// cookies — refusing them is what keeps a cookie-authenticated app safe from cross-site request
+    /// forgery on sync, SSE and MCP (Java: <c>JsonBodyGuard</c>; Python: <c>json_bodies_only</c>).</summary>
+    private static RouteHandlerBuilder JsonBodiesOnly(this RouteHandlerBuilder endpoint) =>
+        endpoint.AddEndpointFilter(async (context, next) =>
+            IsJsonContentType(context.HttpContext.Request.ContentType)
+                ? await next(context)
+                : Results.Text(JsonBodiesOnlyMessage, "text/plain", System.Text.Encoding.UTF8, StatusCodes.Status415UnsupportedMediaType));
+
+    /// <summary><c>application/json</c> or any <c>application/*+json</c>, parameters ignored.</summary>
+    internal static bool IsJsonContentType(string? contentType)
+    {
+        if (string.IsNullOrWhiteSpace(contentType)) return false;
+        var semi = contentType.IndexOf(';');
+        var media = (semi >= 0 ? contentType[..semi] : contentType).Trim().ToLowerInvariant();
+        return media == "application/json" || (media.StartsWith("application/") && media.EndsWith("+json"));
     }
 
     /// <summary>The authenticated principal name of <paramref name="ctx"/>, null when anonymous.</summary>

@@ -103,6 +103,17 @@ public class MateuHelidonRoutes {
               policy.responseHeaders(origin).forEach(res::header);
             }
           }
+          // 415 to a non-JSON POST to the action endpoints (JsonBodyGuard): the CORS-simple
+          // requests a cross-site page could forge with the user's cookies — Jersey bound them
+          if (io.mateu.core.infra.security.JsonBodyGuard.refuses(
+              req.prologue().method().text(), path, header(req, "Content-Type"))) {
+            res.status(
+                    Status.create(
+                        io.mateu.core.infra.security.JsonBodyGuard.UNSUPPORTED_MEDIA_TYPE))
+                .header("Content-Type", "text/plain;charset=UTF-8")
+                .send(io.mateu.core.infra.security.JsonBodyGuard.MESSAGE);
+            return;
+          }
           if (caching) {
             String cacheControl = StaticAssetCaching.cacheControlFor(path);
             if (cacheControl != null) {

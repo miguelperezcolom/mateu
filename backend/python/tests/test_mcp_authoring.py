@@ -209,7 +209,7 @@ def test_a_failing_action_is_a_screen_with_the_generic_message_not_a_tool_error(
 def test_a_non_object_message_over_http_is_an_invalid_request(client):
     r = client.post("/mateu/mcp", json=[1, 2])
     assert r.json()["error"] == {"code": -32600, "message": "Invalid Request"}
-    r = client.post("/mateu/mcp", content=b"{nope")
+    r = client.post("/mateu/mcp", content=b"{nope", headers={"content-type": "application/json"})
     assert r.json()["error"]["code"] == -32700
 
 

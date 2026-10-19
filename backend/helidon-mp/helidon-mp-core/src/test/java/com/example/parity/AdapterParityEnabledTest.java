@@ -45,6 +45,11 @@ class AdapterParityEnabledTest {
   }
 
   @Test
+  void refusesANonJsonBodyOnTheMcpEndpoint() throws Exception {
+    contract.refusesANonJsonBodyOnTheMcpEndpoint();
+  }
+
+  @Test
   void servesDevEndpointsWhenEnabled() throws Exception {
     contract.servesDevEndpointsWhenEnabled();
   }

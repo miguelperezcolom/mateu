@@ -11,6 +11,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Security
+- **Mateu's action endpoints accept only JSON bodies, on every adapter.** A `POST` to
+  `<baseUrl>/mateu/v3/**` (sync, SSE, YAML mounts) or `/mateu/mcp` whose `Content-Type` is not
+  `application/json` / `application/*+json` — `text/plain`, a form encoding, or none — answers 415.
+  Those are the requests a cross-site page can forge without a CORS preflight; before, Micronaut,
+  Quarkus and Helidon MP (and the MCP endpoint everywhere, and .NET/Python) ran them, so a
+  cookie-authenticated app was open to cross-site request forgery. (Java 5 adapters, .NET, Python)
+
 ## [3.0-beta.5] — 2026-10-19
 
 Live UI push: an MCP agent can show a screen, navigate or dispatch an event in an open tab or app, paired by a one-time code.

@@ -334,6 +334,72 @@ public class AdapterParityITFoundation {
         .body(containsString("\"fragments\""));
   }
 
+  /**
+   * The content types a cross-site page can send WITHOUT a CORS preflight ({@code text/plain}, the
+   * two form encodings, or no Content-Type at all), each with a perfectly valid JSON body.
+   */
+  private static final String[] SIMPLE_REQUEST_CONTENT_TYPES = {
+    "text/plain", "application/x-www-form-urlencoded", "multipart/form-data; boundary=x", null
+  };
+
+  /**
+   * The sync and SSE endpoints answer 415 to any body that is not declared JSON: a CORS-simple
+   * request (which a cross-site page can make the browser send with the user's cookies) never
+   * reaches an action. This is the control {@code CsrfExemption} relies on, so it must hold on
+   * every adapter, not only where Spring's {@code @RequestBody} happens to give it for free.
+   */
+  public void refusesANonJsonBodyOnTheSyncAndSseEndpoints() throws Exception {
+    for (String path :
+        new String[] {"/hello/mateu/v3/sync/_no_route", "/hello/mateu/v3/sse/_no_route"}) {
+      for (String contentType : SIMPLE_REQUEST_CONTENT_TYPES) {
+        var status = postRaw(path, contentType, RQ);
+        if (status != 415) {
+          throw new AssertionError(
+              path + " with Content-Type " + contentType + " answered " + status + ", not 415");
+        }
+      }
+    }
+  }
+
+  /** The same 415 on {@code POST /mateu/mcp} (with the endpoint enabled). */
+  public void refusesANonJsonBodyOnTheMcpEndpoint() throws Exception {
+    var call =
+        "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\"params\":"
+            + "{\"name\":\"mateu_run_action\",\"arguments\":{\"route\":\"/hello\","
+            + "\"actionId\":\"x\"}}}";
+    for (String contentType : SIMPLE_REQUEST_CONTENT_TYPES) {
+      var status = postRaw("/mateu/mcp", contentType, call);
+      if (status != 415) {
+        throw new AssertionError(
+            "/mateu/mcp with Content-Type " + contentType + " answered " + status + ", not 415");
+      }
+    }
+    // and a JSON one with parameters still works
+    var status =
+        postRaw(
+            "/mateu/mcp",
+            "application/json; charset=utf-8",
+            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\"}");
+    if (status != 200) {
+      throw new AssertionError("a JSON MCP call answered " + status);
+    }
+  }
+
+  /** A POST with exactly this Content-Type header (none when null); answers the status. */
+  private static int postRaw(String path, String contentType, String body) throws Exception {
+    var builder =
+        java.net.http.HttpRequest.newBuilder(
+                URI.create("http://localhost:" + RestAssured.port + path))
+            .timeout(java.time.Duration.ofSeconds(20))
+            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body));
+    if (contentType != null) {
+      builder.header("Content-Type", contentType);
+    }
+    return HttpClient.newHttpClient()
+        .send(builder.build(), HttpResponse.BodyHandlers.discarding())
+        .statusCode();
+  }
+
   /** Without {@code mateu.cors.allowed-origins}, no origin is ever granted access. */
   public void grantsNoCrossOriginAccessByDefault() {
     for (String path : new String[] {"/hello/mateu/v3/sync/x", "/hello/mateu/v3/sse/x"}) {
