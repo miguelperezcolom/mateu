@@ -415,21 +415,7 @@ public static class MateuExtensions
         }
     }
 
-    /// <summary>The same boundary for a request run synchronously inside another response (an MCP
-    /// tool call): the error message increment, without touching the HTTP status of the envelope.</summary>
-    internal static UIIncrementDto Guard(HttpContext ctx, RunActionRqDto rq, Func<UIIncrementDto> run)
-    {
-        try
-        {
-            return run();
-        }
-        catch (Exception e)
-        {
-            return ErrorIncrement(ctx, rq, e, out _);
-        }
-    }
-
-    /// <summary>The boundary for an MCP tool call: like <see cref="Guard"/>, except that a refused
+    /// <summary>The boundary for an MCP tool call: like <see cref="RunGuarded"/>, except that a refused
     /// request is RETHROWN (after the same warning) — the MCP service turns it into the tool error
     /// "Forbidden", where an ordinary failure still answers its screen with the generic message.</summary>
     internal static UIIncrementDto GuardMcp(HttpContext ctx, RunActionRqDto rq, Func<UIIncrementDto> run)

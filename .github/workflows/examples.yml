@@ -70,8 +70,9 @@ jobs:
       # once artifacts are renamed before they are released). Rewrite the pin to the reactor.
       - name: Point the pinned examples at the reactor
         run: |
-          grep -rl --include=pom.xml '<mateu.version>3\.0-alpha' starters demo \
-            | xargs sed -i 's#<mateu.version>3\.0-alpha[^<]*</mateu.version>#<mateu.version>0.0.1-MATEU</mateu.version>#'
+          # any released pin (3.0-alpha.N, 3.0-beta.N, 3.0.0, …), never the reactor's own 0.0.1-MATEU
+          grep -rlE --include=pom.xml '<mateu.version>[0-9]+\.[0-9]' starters demo \
+            | xargs -r sed -i -E 's#<mateu.version>[0-9]+\.[0-9][^<]*</mateu.version>#<mateu.version>0.0.1-MATEU</mateu.version>#'
 
       # Starters: compile, package, then boot each one and load its CRUD through the action endpoint.
       # -Dmateu.bundle.mock=true: the static starter ships its sources' sample data (its own

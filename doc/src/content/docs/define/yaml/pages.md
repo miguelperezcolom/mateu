@@ -227,7 +227,7 @@ component catalogue `uidl-schema.json` alone would flag those as invalid.
 Start the file with a `$schema` key (the loaders ignore it; this is what the starters do), or with the
 YAML language server's comment:
 
-```yaml
+```yaml nocheck
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: VerticalLayout
 ...
