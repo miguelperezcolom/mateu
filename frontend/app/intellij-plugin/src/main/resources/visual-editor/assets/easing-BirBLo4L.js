@@ -1,1 +1,0 @@
-function e(e){return e**3}function t(t){return 1-e(1-t)}function n(e){return 3*e*e-2*e*e*e}function r(e){return e}export{r as i,t as n,n as r,e as t};
