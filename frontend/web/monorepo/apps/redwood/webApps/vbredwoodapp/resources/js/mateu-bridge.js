@@ -18798,14 +18798,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'pagehide', 'online', 'offline', 'resize', 'scroll', 'wheel', 'contextmenu', 'pointerdown', 'pointerup',
     'mousedown', 'mouseup', 'touchstart', 'drop', 'dragstart', 'dragend', 'unhandledrejection',
     'DOMContentLoaded',
+    // a design-system widget's own events (vaadin *-changed, a dialog's confirm/cancel, JET oj…): not
+    // reachable today (listened on descendants), insurance; an author's booking-changed stays allowed
+    'opened-changed', 'checked-changed', 'active-item-changed', 'selected-items-changed', 'items-changed',
+    'expanded-items-changed', 'detail-opened-items-changed', 'invalid-changed', 'has-value-changed',
+    'filter-changed', 'size-changed', 'loading-changed', 'opened', 'closed', 'close', 'confirm', 'cancel',
+    'reject', 'toggle', 'select', 'validated', 'unparsable-change', 'cell-activate', 'item-click',
+    'grid-dragstart', 'grid-dragend', 'grid-drop',
   ])
   const CHAT_RESERVED_EVENT_PREFIXES = ['mateu-', 'backend-', 'vaadin-']
+  const CHAT_RESERVED_EVENT_PATTERNS = [/^oj[A-Z-]/]
 
   /** Whether an agent may dispatch `name`, given whether a surface on screen subscribes to it. */
   function agentMayDispatchEvent(name, subscribed) {
     if (typeof name !== 'string' || !name) return false
     if (CHAT_AGENT_BUILT_IN_EVENTS.has(name)) return true
-    if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))) return false
+    if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))
+      || CHAT_RESERVED_EVENT_PATTERNS.some((p) => p.test(name))) return false
     return !!subscribed
   }
 
