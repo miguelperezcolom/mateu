@@ -11,6 +11,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.5] — 2026-10-19
+
+Live UI push: an MCP agent can show a screen, navigate or dispatch an event in an open tab or app, paired by a one-time code.
+
 ### Added
 - **Live UI push: an agent sends UI to a UI that is open.** With the MCP endpoint and
   `mateu.mcp.push.enabled=true` (.NET `MateuOptions.McpPush`, Python `add_mateu(mcp_push=True)`,
