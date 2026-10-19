@@ -513,6 +513,7 @@ export default defineConfig({
 						{
 							label: 'With AI',
 							items: [
+								{ slug: 'build-uis-with-ai', label: 'Build UIs with AI' },
 								{ slug: 'ai-assistant-reference', label: 'AI assistant reference' },
 								{ slug: 'reference/prompt-to-app', label: 'Prompt-to-app (AI authoring)' },
 							],

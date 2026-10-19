@@ -43,7 +43,15 @@ or the React Native app with `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:808
 - **View models are per request.** A `@ui` class is instantiated fresh for every request: keep
   shared data in a module-level store or a service, never in instance attributes you expect to
   survive between requests.
-- A CRUD is a `Crud[T]` implementing `fetch`, `get`, `save` and `delete`.
+- A CRUD is a `Crud[T]` implementing `fetch`, `get`, `save` and `delete`. Implement `save` and
+  `delete` for real: their defaults do nothing, so a CRUD without them answers "Saved" and drops
+  the data.
+- **Actions are declared.** Only a `@button`/`@toolbar`/`@action` method, or an action id the view
+  itself names (a fluent button, a trigger), runs; any other action id answers 403. An action that
+  changes attributes re-renders the view by returning `self` (returning `None` shows nothing new;
+  a list `[self, Message(...)]` shows the toast but does not re-render).
+- A read-only form field is `PlainText()` (or `@read_only` on the whole view); the `ReadOnly()`
+  marker only applies to columns of an `@inline_editing` Crud.
 - Field behaviour comes from `Annotated[...]` markers (`Required()`, `Section(...)`…); class and
   method features from decorators (`@title`, `@ui`…). Use snake_case. Check the docs before
   inventing an API.
@@ -51,8 +59,12 @@ or the React Native app with `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:808
 
 ## References
 
+- **Claude Code plugin `mateu`** (the skills that know this API): `/plugin marketplace add
+  miguelperezcolom/mateu`, then `/plugin install mateu@mateu`. A project made by the New Project
+  wizards already enables it in `.claude/settings.json` — trust the folder and install it once.
+  Skills for this project: `mateu-python` (Python screens, Crud[...], the app shell), `mateu-run` (run + screenshot), `mateu-yaml` (YAML specs). Guide: https://mateu.io/build-uis-with-ai/
 - Docs: https://mateu.io (Python user manual: https://mateu.io/python-user-manual/).
 - For AI tools: https://mateu.io/llms.txt, https://mateu.io/mateu-ai-compact.md and
   https://mateu.io/mateu-ai-full.md (Java-first; https://mateu.io/reference/language-rosetta/
   maps every annotation to its Python marker/decorator).
-- Source and Claude Code skills: https://github.com/miguelperezcolom/mateu (`.claude/skills/`).
+- Source: https://github.com/miguelperezcolom/mateu

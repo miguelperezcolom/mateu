@@ -1,0 +1,13 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Types
+types:
+  - id: OrderStatus
+    label: Status
+    dataType: status
+    options:
+      - {value: OPEN, label: Open}
+      - {value: SHIPPED, label: Shipped}
+    tones: {OPEN: warning, SHIPPED: success}
+  - id: Money
+    dataType: money
+    align: end

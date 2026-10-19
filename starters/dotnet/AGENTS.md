@@ -40,15 +40,26 @@ or the React Native app with `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:808
 - **View models are per request.** A `[UI]` class is instantiated fresh for every request: keep
   shared data in a static store or an injected service, never in instance fields you expect to
   survive between requests.
-- A CRUD is a `Crud<T>` overriding `Fetch`, `Get`, `Save` and `Delete`.
+- A CRUD is a `Crud<T>` overriding `Fetch`, `Get`, `Save` and `Delete` — the `Save`/`Delete`
+  defaults REFUSE ("Not implemented"), so a CRUD that writes must override both. The entity's id is
+  its `Id` property, or the one marked `[Id]`.
+- **Actions are declared.** Only a `[Button]`/`[Toolbar]`/`[Action]`/`[Fab]` method, or an action id
+  the view itself names (a fluent button, a trigger), runs; any other action id answers 403. An
+  action that changes fields re-renders the view by returning `this`.
+- `using System.ComponentModel;` next to `using Mateu.Uidl;` makes `[ReadOnly]` ambiguous — use
+  Mateu's (qualify it or drop the other using).
 - Field behaviour comes from attributes (`[Required]`, `[Range]`, Mateu's `[Section]`, `[Tab]`,
   `[ReadOnly]`…); methods become actions. Check the docs before inventing an API.
 - Do not hand-write controllers or frontend code for the UI — declare the model.
 
 ## References
 
+- **Claude Code plugin `mateu`** (the skills that know this API): `/plugin marketplace add
+  miguelperezcolom/mateu`, then `/plugin install mateu@mateu`. A project made by the New Project
+  wizards already enables it in `.claude/settings.json` — trust the folder and install it once.
+  Skills for this project: `mateu-dotnet` (C# screens, Crud<T>, the app shell), `mateu-run` (run + screenshot), `mateu-yaml` (YAML specs). Guide: https://mateu.io/build-uis-with-ai/
 - Docs: https://mateu.io (C# user manual: https://mateu.io/csharp-user-manual/).
 - For AI tools: https://mateu.io/llms.txt, https://mateu.io/mateu-ai-compact.md and
   https://mateu.io/mateu-ai-full.md (Java-first; https://mateu.io/reference/language-rosetta/
   maps every annotation to its C# attribute).
-- Source and Claude Code skills: https://github.com/miguelperezcolom/mateu (`.claude/skills/`).
+- Source: https://github.com/miguelperezcolom/mateu

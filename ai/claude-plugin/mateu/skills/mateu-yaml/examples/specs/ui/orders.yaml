@@ -1,0 +1,19 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Listing
+title: ${i18n.orders.title}
+pageType: collection
+searchable: true
+rowRoute: orders/${row.id}       # a click on a row opens orders/:id
+rowsSource: {ref: orders}
+toolbar:
+  - type: Button
+    label: New order
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: orders/new}
+filters:
+  - {type: FormField, id: status, fieldType: OrderStatus, stereotype: select}
+columns:
+  - {type: GridColumn, id: id, label: Order, identifier: true, sortable: true}
+  - {type: GridColumn, id: customerName, label: Customer}
+  - {type: GridColumn, id: status, fieldType: OrderStatus}
+  - {type: GridColumn, id: total, label: Total, fieldType: Money}

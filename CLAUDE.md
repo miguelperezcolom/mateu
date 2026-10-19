@@ -81,6 +81,11 @@ demo/             ← Runnable demo apps (Spring MVC, WebFlux, Micronaut, Quarku
                     UX components: Check-In queue + wizard, Check-Out folio/payment, En Casa
                     360, Automatizaciones, with @AppContext + @Audience Staff/Cliente modes.
 e2e/              ← Playwright end-to-end tests + SUT (subject under test) apps
+ai/claude-plugin/ ← The Claude Code plugin `mateu` (marketplace: .claude-plugin/marketplace.json at the
+                    root → `/plugin install mateu@mateu`). Its skills/ are THE source of the AI skills;
+                    .claude/skills/<name> are symlinks into it (never copies) and generated projects
+                    enable the plugin via starters/generator/overlays/common/claude/settings.json.
+                    Guarded by scripts/check-ai-plugin.mjs (CI). Docs: doc/.../build-uis-with-ai.md.
 ```
 
 ## Key Architecture Concepts
@@ -701,7 +706,7 @@ Screenshots for the documentation in `doc/src/content/docs/` are generated progr
    ```
 5. **Reference** the images in the doc Markdown as `/images/docs/<topic>/<name>.png`.
 
-The script waits for `mateu-page` to appear, then adds a 1.5 s settle delay so web components finish rendering before the screenshot is taken. Options: `--wait-for`, `--element`, `--width`, `--height`, `--full-page`, `--settle`, `--timeout`.
+The script waits for `mateu-component` (present on every Mateu screen; `--wait-for mateu-page` for form pages) to appear, then adds a 1.5 s settle delay so web components finish rendering before the screenshot is taken. Options: `--wait-for`, `--element`, `--width`, `--height`, `--full-page`, `--settle`, `--timeout`.
 
 > This approach also **validates** the documentation code examples — if a class does not compile or does not produce the expected UI, the screenshot will be blank or missing.
 

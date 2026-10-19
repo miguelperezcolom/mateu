@@ -1,0 +1,14 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Order ${state.id}
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to orders
+    actionable: {type: RouteLink, route: orders}
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: id, label: Order, readOnly: true}
+      - {type: FormField, id: status, label: Status, readOnly: true}
+      - {type: FormField, id: total, label: Total, dataType: number, readOnly: true}

@@ -1,0 +1,31 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Sources
+sources:
+  - name: products
+    source: {url: /api/products}
+    sample:
+      - {id: P-001, name: Espresso machine, price: 249.0, status: AVAILABLE}
+      - {id: P-002, name: Coffee grinder, price: 89.5, status: AVAILABLE}
+  - name: orders
+    description: Orders, server-paged
+    source:
+      url: /api/orders?page=${state.page ?? 0}&size=${state.size ?? 20}&q=${encodeURIComponent(state.searchText ?? '')}
+      itemsPath: content
+    totalPath: totalElements
+    fields:
+      customerName: customer.name     # a nested value read under a flat column id
+    sample:                           # the RESPONSE: itemsPath/totalPath/fields apply to it
+      content:
+        - {id: "1001", customer: {name: Acme}, status: OPEN, total: 120.5}
+        - {id: "1002", customer: {name: Globex}, status: SHIPPED, total: 80}
+      totalElements: 2
+  - name: order
+    source: {url: "/api/orders/${state.id}"}
+    sample: {id: "1001", customer: {name: Acme}, status: OPEN, total: 120.5}
+  - name: order-create
+    source:
+      url: /api/orders
+      method: POST
+      headers: {Content-Type: application/json}
+      body: '{"customer":"${state.customer}","total":"${state.total}"}'
+    sample: {id: "1003"}

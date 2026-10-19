@@ -1,13 +1,15 @@
 /**
  * One-shot screenshot tool for Mateu apps.
  *
+ * Needs Playwright: npm i -D playwright && npx playwright install chromium
+ *
  * Usage:
  *   node screenshot.mjs --url <url> --output <path> [options]
  *
  * Options:
  *   --url          URL to capture (required)
  *   --output       Destination file path, e.g. docs/images/form.png (required)
- *   --wait-for     CSS selector to wait for before capturing (default: mateu-page)
+ *   --wait-for     CSS selector to wait for before capturing (default: mateu-component — present on every Mateu screen; use mateu-page for form pages)
  *   --element      CSS selector of a specific element to screenshot instead of the full page
  *   --width        Viewport width in pixels (default: 1280)
  *   --height       Viewport height in pixels (default: 800)
@@ -16,8 +18,8 @@
  *   --timeout      Max ms to wait for --wait-for selector (default: 20000)
  *
  * Examples:
- *   node screenshot.mjs --url http://localhost:8080/field-types --output ../docs/images/field-types.png
- *   node screenshot.mjs --url http://localhost:8080/sections --output ../docs/images/sections.png --element vaadin-form-layout
+ *   node screenshot.mjs --url http://localhost:8080/products --output /tmp/products.png
+ *   node screenshot.mjs --url http://localhost:8080/greeting --output /tmp/greeting.png --element vaadin-form-layout
  */
 
 import { chromium } from 'playwright';
@@ -29,7 +31,7 @@ const { values } = parseArgs({
   options: {
     url:         { type: 'string' },
     output:      { type: 'string' },
-    'wait-for':  { type: 'string', default: 'mateu-page' },
+    'wait-for':  { type: 'string', default: 'mateu-component' },
     element:     { type: 'string' },
     width:       { type: 'string', default: '1280' },
     height:      { type: 'string', default: '800' },

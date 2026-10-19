@@ -1,0 +1,30 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+pageType: dashboard
+layout:
+  type: VerticalLayout
+  fullWidth: true
+  horizontalAlignment: STRETCH
+  content:
+    - type: Scoreboard
+      metrics:
+        - {type: MetricCard, title: Revenue, value: "1.2M", unit: EUR, trend: up, trendLabel: +8%, timeframe: This month}
+        - {type: MetricCard, title: Orders, value: "3,480", actionId: openOrders}
+    - type: DashboardLayout
+      columns: 2
+      items:
+        - type: DashboardPanel
+          title: Sales by region
+          content:
+            type: Chart
+            chartType: bar
+            chartData:
+              labels: [Q1, Q2, Q3]
+              datasets:
+                - {label: North, data: [120, 135, 128]}
+        - type: DashboardPanel
+          title: Notes
+          content: {type: Markdown, markdown: "**All good.**"}
+actions:
+  - id: openOrders
+    steps:
+      - {type: Navigate, route: orders}

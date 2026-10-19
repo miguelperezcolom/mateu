@@ -52,9 +52,15 @@ exists); run with `-Dmateu.sources.mock=false` to call the real endpoints.
 - Routes are relative to the mount; a literal route (`products/new`) goes before a parameterised
   sibling (`products/:id`).
 - Open the files in the Mateu visual editor (IntelliJ or VS Code plugin) to edit them on a canvas.
+- An **unknown key is ignored silently** (by the schema and by the loader): a misspelt key looks
+  like a feature that does not work, not like an error — check spellings against the schema.
 
 ## References
 
+- **Claude Code plugin `mateu`** (the skills that know this API): `/plugin marketplace add
+  miguelperezcolom/mateu`, then `/plugin install mateu@mateu`. A project made by the New Project
+  wizards already enables it in `.claude/settings.json` — trust the folder and install it once.
+  Skills for this project: `mateu-yaml` (the YAML file kinds, sources, app shell, static bundles), `mateu-run` (run + screenshot); `mateu` if you later add Java view models. Guide: https://mateu.io/build-uis-with-ai/
 - Docs: https://mateu.io — route registry https://mateu.io/concepts/routes-and-mounts/,
   REST sources https://mateu.io/concepts/data-sources/, the YAML app shell
   https://mateu.io/define/yaml/app-shell/.

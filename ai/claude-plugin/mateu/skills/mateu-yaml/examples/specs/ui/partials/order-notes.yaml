@@ -1,0 +1,3 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+content:
+  - {type: FormField, id: notes, label: Notes, dataType: string, stereotype: textarea, colspan: 2}

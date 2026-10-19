@@ -1,0 +1,160 @@
+---
+name: mateu-screen
+description: Conversational scaffolder for a single Mateu screen in Java — three business questions pick the template family, the family picks the starting archetype, and the class is generated in the right module. Use when the user wants a new screen, page, view, listing, form, wizard, dashboard or landing and hasn't named the archetype themselves. Triggers on new screen, nueva pantalla, add a page, create a view, scaffold a screen, "which archetype", "qué arquetipo".
+---
+
+# Scaffolding a Mateu screen from three questions
+
+Java path (a `@UI` class). For a page declared as data (YAML under `specs/ui/`) use the
+**mateu-yaml** skill; C#/Python: **mateu-dotnet** / **mateu-python** — the three questions below
+pick the page kind for them too.
+
+This skill automates "The Mateu Way" (https://mateu.io/the-mateu-way/): **family →
+starting archetype → refine only on disagreement**. Your job is to ask the *business*
+questions, never the framework ones — the user should not need to know the catalog.
+
+## Step 1 — Ask the three questions (only the unanswered ones)
+
+Read the user's request first: any question it already answers is not asked again. For the
+rest, use AskUserQuestion, in this order:
+
+1. **¿Muestra muchos registros o uno?** — many → *Collection* · one → *Detail*
+2. **¿El usuario cambia algo?** — in one shot → *Form* · across steps → *Process*
+3. **¿Ninguna de las dos?** — watching numbers → *Dashboard* · it's the front door → *Landing*
+
+Useful follow-ups (one each, only when the family needs it):
+- Collection: "¿CRUD completo de una entidad, o un listado (quizá con algo más)?" — full-pack CRUD
+  → `AutoCrud`; listado que crece → `implements Listing<Row>` + capacidades (see below). Then, if
+  needed: "¿tabla que se edita, cola de trabajo, calendario, o lista con panel de detalle?"
+  → `AutoCrud` / `TodoList` / `CalendarPage` / `CollectionDetail`
+- Detail: "¿ficha con pestañas, con paneles laterales plegables, o con selector de registro
+  arriba?" → `ItemOverview` / `Foldout` / `GeneralOverview`
+
+## Step 2 — Family → starting class
+
+| Family | Default | Siblings (only if the follow-up says so) |
+|---|---|---|
+| Collection | `AutoCrud<T>` (full pack) or `Listing<Row>` + capabilities (grows à la carte) | `SmartSearchPage`, `TodoList`, `CalendarPage`, `CollectionDetail`, `DataManagement` |
+| Detail | `ItemOverview` | `Foldout`, `GeneralOverview`, read-only `Drawer` |
+| Form | plain `@UI` class + `@AutoLayout` | — |
+| Process | `Wizard` | `ImportWizard` (CSV/import flows) |
+| Dashboard | `Dashboard` | `GanttPage` (time-phased work) |
+| Landing | `Welcome` | `HeroSearch` (search-first landing) |
+
+**Inference is on by default — sometimes there's no archetype to pick.** A plain `@UI` class whose
+*shape* already spells a template composes it automatically: consecutive `MetricCard` fields → a
+Dashboard; only `Button` fields + `@Panel` tiles → a Welcome landing. So for those two, you can just
+declare the fields and skip the archetype entirely (the class stays overridable; `@AutoPage(false)`
+opts out). Prefer this "declare data, let it infer" path when it fits; reach for the explicit
+archetype when you need its knobs (`columns()`, custom composition) or when the shape isn't
+self-evident.
+
+## Step 3 — Where the class goes
+
+- **First find the app shell** — it decides how a screen is routed and reached:
+  - **Java shell** (a `@UI("")` class with `@Menu` fields): add a `@Menu` field of the screen's
+    type on the shell — the field name is the route (`@Menu Suppliers suppliers;` → `/suppliers`),
+    no `@UI` needed (the starters' `Products` has none; `@UI("/route")` is for a screen that is a
+    mount of its own).
+  - **YAML shell** (`specs/ui/app.yaml`, `type: AppShell` — the code + YAML projects): do NOT put
+    `@UI` on the screen. Bind it in `specs/ui/routes.yaml` (`- route: suppliers` +
+    `viewModel: com.acme.app.Suppliers`, routes are relative to the mount) and add a menu entry to
+    `app.yaml` (`- type: RouteLink`, `label:`, `route: suppliers`). The `@UI`/`@Menu` lines of the
+    examples below are then left out.
+- Put the class beside its peers (`grep -rl "@UI(" --include='*.java' .`, or the package of the
+  view models `routes.yaml` names), same package conventions.
+- **No Mateu module yet?** Stop and invoke the `mateu-scaffold` skill first — the build wiring
+  (indexer + framework AP) is the part that fails silently.
+- Pick an unused route (`grep -rn '@UI("/route")' .` and `routes.yaml` — two `@UI` classes on
+  one path fail the build).
+
+## Step 4 — Write the class from a reference, not from memory
+
+Open the matching demo class (fetch the GitHub URL) and mirror its structure — they compile
+against the current API:
+
+| Archetype | Reference (GitHub) | Demo route |
+|---|---|---|
+| `AutoCrud` | [Products.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/Products.java) | `/products` |
+| `CollectionDetail` | [HotelDirectory.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/collectiondetail/HotelDirectory.java) | `/collection-detail-demo` |
+| `CalendarPage` | [TeamCalendar.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/calendar/TeamCalendar.java) | `/calendar-demo` |
+| `TodoList` | [FrontDeskTasks.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-redwood-showcase/src/main/java/io/mateu/mdd/redwoodshowcase/ui/todolist/FrontDeskTasks.java) | `/todo-list-demo` |
+| `SmartSearchPage` | [AssetSearch.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-redwood-showcase/src/main/java/io/mateu/mdd/redwoodshowcase/ui/smartsearch/AssetSearch.java) | `/smart-search-demo` |
+| `ItemOverview` | [ProductOverview.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/itemoverview/ProductOverview.java) | `/product-overview` |
+| `Foldout` | [BookingFoldout.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/foldout/BookingFoldout.java) | `/foldout-demo` |
+| `GeneralOverview` | [RequisitionOverview.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/generaloverview/RequisitionOverview.java) | `/general-overview-demo` |
+| `Wizard` | [BranchingSignupWizard.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/wizards/BranchingSignupWizard.java) | `/branching-wizard` |
+| `Dashboard` | [SalesDashboard.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/dashboard/SalesDashboard.java) | `/dashboard-demo` |
+| `Welcome` | [WelcomeDemo.java](https://github.com/miguelperezcolom/mateu/blob/master/demo/demo-admin-panel/src/main/java/io/mateu/mdd/demoadminpanel/infra/in/ui/welcome/WelcomeDemo.java) | `/welcome-demo` |
+
+(Inside the Mateu repo the same files are under `demo/`.) The `mateu` skill's references also
+carry a compiled example per archetype.
+
+Minimal seeds for the two families that need no reference:
+
+```java
+// Collection — full-pack CRUD
+@UI("/things")
+public class Things extends AutoCrud<Thing> { // Thing implements Identifiable
+    @Override
+    public CrudStore<Thing> store() {
+        return new ThingStore(); // your CrudStore<Thing>
+    }
+}
+
+// Collection — listing that grows by declaring capabilities (additive):
+// add Searchable (search box), Filterable<F> (filter bar), Navigable<Detail,Id>
+// (clickable rows + /:id), Editable<Editor,Id> (edit; drawer if not navigable),
+// Creatable<Form,Id> (New), Deletable<Id> (selection + Delete) as needed
+// (Listing and Searchable are the io.mateu.uidl.interfaces types)
+@UI("/orders")
+public class Orders implements Listing<Orders.OrderRow>, Searchable {
+  public record OrderRow(String id, String customer, double total) {}
+
+  public ListingData<OrderRow> search(SearchRequest request, HttpRequest http) {
+    return ListingData.of(orders.search(request.searchText()));   // a List<OrderRow>; Mateu pages it
+  }
+}
+
+// Form
+@UI("/feedback")
+@AutoLayout
+public class Feedback {
+  @NotEmpty String subject;
+  @Stereotype(FieldStereotype.textarea) String details;
+
+  @Button
+  Message send() { /* call the use case */ return new Message("Thanks!"); }
+}
+```
+
+For `AutoCrud`, implement `CrudStore<T>` (in-memory with a `static` map for a first version, or a
+Spring `@Service` over the real repository) and return it from `store()` — it is abstract, every
+`AutoCrud` overrides it. The `mateu` skill's `reference/crud.md` has a complete store.
+
+A **form with a supporting side panel** (help text, a summary card, related links) needs no
+archetype — mark that one component-holder field `@Aside` and the form composes a content-page
+(the field goes to the side, the form is the main region):
+
+```java
+@UI("/profile")
+public class Profile {
+  @NotEmpty String name;
+  String email;
+
+  @Aside(width = "20rem")               // side panel; the rest of the form is the main region
+  Markdown help = new Markdown("Need help? Contact support.", null, null);
+}
+```
+
+## Step 5 — Refine (rung 2, only where the user disagrees)
+
+Offer, don't pile on: `@Aside` (a supporting side panel → content-page layout), `@Section`/`@Zones`
+(grouping/columns), `@Toc` (long pages), `@Compact` (dense ops screens), `@PageWidth`, validation
+annotations, `@Lookup` for foreign keys. Explicit always wins over inference.
+
+## Step 6 — Verify
+
+Build the UI module, then the app, then use the `mateu-run` skill to boot and screenshot the
+new route; run the `mateu` skill's `reference/view-checklist.md` first. A screen is not delivered
+until it has rendered.
