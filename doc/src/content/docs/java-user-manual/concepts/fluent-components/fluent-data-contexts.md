@@ -153,12 +153,17 @@ A nested component (a `ComponentTreeSupplier` embedded in another's content list
 
 ```java
 // Parent page — embeds NestedForm in its content
-Form.builder()
-        .content(List.of(
-                new Text("${JSON.stringify(appData)}"),
-                new NestedForm()
-        ))
-        .build()
+class ParentPage implements ComponentTreeSupplier {
+    @Override
+    public Component component(HttpRequest httpRequest) {
+        return Form.builder()
+                .content(List.of(
+                        new Text("${JSON.stringify(appData)}"),
+                        new NestedForm()
+                ))
+                .build();
+    }
+}
 
 // NestedForm — updates appData
 class NestedForm implements ComponentTreeSupplier, ActionHandler {

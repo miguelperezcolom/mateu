@@ -133,7 +133,7 @@ FormField.builder().id("rating").label("Rating")
 
 ```java
 FormField.builder().id("active").label("Active")
-    .dataType(FieldDataType.boolean_).build()
+    .dataType(FieldDataType.bool).build()
 ```
 
 ## Date / time fields

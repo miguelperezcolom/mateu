@@ -60,7 +60,7 @@ Instead of a custom page to change a product's status:
 
 ```java
 @Stereotype(FieldStereotype.radio)
-Status status;
+ProductStatus status;
 ```
 
 Mateu renders the radio group in the existing form. No extra page needed.
@@ -92,7 +92,7 @@ public class ProductOnboardingWizard {
 
     // Step 1
     String name;
-    Status status;
+    ProductStatus status;
 
     // Step 2
     String description;

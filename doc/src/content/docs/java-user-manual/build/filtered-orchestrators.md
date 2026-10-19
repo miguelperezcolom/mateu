@@ -90,17 +90,17 @@ Add `@ReadOnly` (and optionally `@NotNavigable`) to make the listing read-only:
 @Service
 @UI("/audit-log")
 @ReadOnly
-public class AuditLog extends FilteredAutoCrud<AuditFilters, AuditEntry> {
+public class AuditLog extends FilteredAutoCrud<AuditLogFilters, AuditLogEntry> {
 
     private final AuditRepository repository;
 
     public AuditLog(AuditRepository repository) { this.repository = repository; }
 
     @Override
-    public Class filtersClass() { return AuditFilters.class; }
+    public Class filtersClass() { return AuditLogFilters.class; }
 
     @Override
-    public CrudStore<AuditEntry> store() { return repository; }
+    public CrudStore<AuditLogEntry> store() { return repository; }
 }
 ```
 

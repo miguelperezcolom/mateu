@@ -13,7 +13,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 
 All fluent components implement:
 
-```java
+```text
 io.mateu.uidl.fluent.Component
 ```
 

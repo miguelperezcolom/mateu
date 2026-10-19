@@ -32,14 +32,16 @@ public class FrontDeskTasks extends TodoList<FrontDeskTasks.Task> {
     public record Task(String id, String title, String guest, String bucket,
                        String due, String priority) {}
 
+    @Autowired FrontDeskTaskService tasks;
+
     @Override protected List<Task> rows(HttpRequest httpRequest) {
-        return myPendingTasks();           // your use case / repository
+        return tasks.pending();            // your use case / repository
     }
     @Override protected String idOf(Task t) { return t.id(); }
     @Override protected String titleOf(Task t) { return t.title(); }
     @Override protected String captionOf(Task t) { return t.guest(); }
     @Override protected List<Chip> badgesOf(Task t) {
-        return List.of(new Chip(t.due()), new Chip(t.priority()));
+        return List.of(new Chip(t.due(), "normal"), new Chip(t.priority(), "warning"));
     }
     @Override protected String groupOf(Task t) { return t.bucket(); }
     @Override protected Object actionOn(Task t, HttpRequest httpRequest) {

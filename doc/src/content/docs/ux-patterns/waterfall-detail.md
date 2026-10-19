@@ -25,9 +25,11 @@ The waterfall is a plain `VerticalLayout` of the existing building blocks — an
 @Title("Contract CT-2026-018")
 public class ContractView implements ComponentTreeSupplier {
 
+    @Autowired ContractService contracts;
+
     @Override
     public Component component(HttpRequest httpRequest) {
-        var contract = loadContract(httpRequest);
+        var contract = contracts.byRoute(httpRequest);
         return VerticalLayout.builder()
                 .fullWidth(true)
                 .spacing(true)

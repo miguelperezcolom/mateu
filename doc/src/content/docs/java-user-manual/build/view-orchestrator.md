@@ -46,7 +46,7 @@ The subclass (`Crud`) provides the concrete `resolveInternalRoute()` that maps U
 
 ## Abstract method
 
-```java
+```java nocheck
 protected abstract OrchestrationResult resolveInternalRoute(
     String route, HttpRequest httpRequest);
 ```

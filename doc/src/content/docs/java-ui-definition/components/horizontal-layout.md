@@ -27,8 +27,8 @@ new HorizontalLayout(new Text("Left"), new Text("Right"))
 | `padding` | boolean | false | Adds inner padding |
 | `margin` | boolean | false | Adds outer margin |
 | `spacingVariant` | `SpacingVariant` | — | Controls spacing size |
-| `verticalAlignment` | `VerticalAlignment` | — | Aligns children vertically (start, center, end, stretch) |
-| `justification` | `HorizontalLayoutJustification` | — | Space distribution (start, end, between, around, evenly) |
+| `verticalAlignment` | `VerticalAlignment` | — | Aligns children vertically (`START`, `CENTER`, `END`, `BETWEEN`, `AROUND`, `EVENLY`, `BASELINE`) |
+| `justification` | `HorizontalLayoutJustification` | — | Space distribution (`START`, `CENTER`, `END`, `BETWEEN`, `AROUND`, `EVENLY`) |
 | `wrap` | boolean | false | Wraps children to the next row when they overflow |
 | `flexGrows` | `List<Integer>` | `[]` | Flex-grow values per child |
 | `fullWidth` | boolean | false | Stretches to full width |
@@ -51,8 +51,8 @@ new HorizontalLayout(List.of(comp1, comp2))
 HorizontalLayout.builder()
     .content(List.of(new Text("A"), new Text("B"), new Text("C")))
     .spacing(true)
-    .verticalAlignment(VerticalAlignment.center)
-    .justification(HorizontalLayoutJustification.between)
+    .verticalAlignment(VerticalAlignment.CENTER)
+    .justification(HorizontalLayoutJustification.BETWEEN)
     .build()
 ```
 
@@ -62,7 +62,7 @@ HorizontalLayout.builder()
 HorizontalLayout.builder()
     .content(List.of(new Text("Left"), new Text("Right")))
     .fullWidth(true)
-    .justification(HorizontalLayoutJustification.between)
+    .justification(HorizontalLayoutJustification.BETWEEN)
     .build()
 ```
 

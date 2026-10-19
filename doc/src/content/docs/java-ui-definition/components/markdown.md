@@ -31,12 +31,12 @@ Markdown.builder()
 
 ```java
 // Simple paragraph
-Markdown.builder()
+var simple = Markdown.builder()
     .markdown("This is a **simple** example.")
-    .build()
+    .build();
 
 // Multi-line with headings and lists
-Markdown.builder()
+var gettingStarted = Markdown.builder()
     .markdown("""
         ## Getting started
         
@@ -46,13 +46,13 @@ Markdown.builder()
         
         > **Tip:** you can mix declarative and fluent components freely.
         """)
-    .build()
+    .build();
 
 // From a resource file
 String content = new String(
     getClass().getResourceAsStream("/docs/readme.md").readAllBytes()
 );
-Markdown.builder().markdown(content).build()
+var readme = Markdown.builder().markdown(content).build();
 ```
 
 ## Tip

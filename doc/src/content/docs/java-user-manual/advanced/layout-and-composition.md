@@ -46,8 +46,9 @@ Consecutive fields sharing a `@Tab` name become one tab. Mateu renders the conta
 
 ```java
 public class StyleConstants {
-    public static final String CONTAINER = "max-width:900px;margin:auto;";
-    public static final String WIDE      = "max-width:1200px;margin:auto;";
+    public static final String CONTAINER  = "max-width:900px;margin: auto;display: block;";
+    public static final String FULL_WIDTH = "width: 100%;";
+    // also FULL_WIDTH_WITH_PADDING and COMPACT
 }
 ```
 

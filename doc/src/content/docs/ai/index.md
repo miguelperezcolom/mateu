@@ -295,8 +295,8 @@ You can define your own events and handle them anywhere in your component tree.
 Backend — emit the event mid-stream:
 
 ```java
-// Inside your SSE Flux, after the answer tokens:
-yield "data: " + objectMapper.writeValueAsString(Map.of(
+// Inside your SSE Flux, emit this frame after the answer tokens:
+String frame = "data: " + objectMapper.writeValueAsString(Map.of(
     "event", "highlight-row",
     "detail", Map.of("id", orderId)
 )) + "\n\n";

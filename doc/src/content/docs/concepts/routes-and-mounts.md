@@ -280,7 +280,8 @@ name:
 @Title("Orders")
 public class CustomerOrders extends AutoCrud<Order> {
   String customerId;                   // from :customerId, on every request
-  // store() lists the orders of customerId
+
+  @Override public CrudStore<Order> store() { … }   // lists the orders of customerId
 }
 ```
 

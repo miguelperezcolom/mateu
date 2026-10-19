@@ -82,10 +82,10 @@ A long **read-only** view (the render context is read-only, or the class is `@Re
 @ReadOnly
 public class Customer360 {
 
-    @Section("Profile")  @Stereotype(FieldStereotype.textarea) String summary = ...;
-    @Stereotype(FieldStereotype.textarea) String address = ...;
+    @Section("Profile")  @Stereotype(FieldStereotype.textarea) String summary;
+    @Stereotype(FieldStereotype.textarea) String address;
 
-    @Section("Billing")  @Stereotype(FieldStereotype.textarea) String billingTerms = ...;
+    @Section("Billing")  @Stereotype(FieldStereotype.textarea) String billingTerms;
     // ... Shipping, Activity, Notes ...
 }
 ```
@@ -119,7 +119,7 @@ public class Ops {
   MetricCard occupancy = MetricCard.builder().title("Occupancy").value("87%").build();
 
   @Panel(title = "Monthly sales")
-  Text sales = ...;
+  Text sales = new Text("Sales are up 12% on last month.");
 }
 ```
 
@@ -164,7 +164,7 @@ public class Profile {
   String email;
 
   @Aside(width = "20rem")
-  Markdown help = new Markdown("Need help? Contact support.");
+  Markdown help = new Markdown("Need help? Contact support.", null, null);
 }
 ```
 

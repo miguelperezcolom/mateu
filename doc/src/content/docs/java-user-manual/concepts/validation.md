@@ -13,14 +13,20 @@ The samples leave out their `import` lines and compile with single-type imports.
 in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
 wildcard imports of both packages fail with "reference is ambiguous" — see
 [Java imports](/reference/java-imports/).
+
+The `@Size` constraint is Bean Validation's (`jakarta.validation.constraints.Size`). Mateu has an
+unrelated `io.mateu.uidl.annotations.Size` (how a component sizes itself), so import the jakarta one
+explicitly, as the samples below do.
 :::
 
 ```java
+import jakarta.validation.constraints.Size;
+
 @NotBlank
 String name;
 
 @NotNull
-Status status;
+ProductStatus status;
 
 @Email
 String contactEmail;
@@ -60,6 +66,8 @@ If any field fails validation, the method is not called. Errors appear next to t
 ## Full example
 
 ```java
+import jakarta.validation.constraints.Size;
+
 @UI("/products/new")
 public class NewProductForm {
 
@@ -68,7 +76,7 @@ public class NewProductForm {
 
     @NotNull(message = "Status is required")
     @Stereotype(FieldStereotype.radio)
-    Status status;
+    ProductStatus status;
 
     @Size(max = 500)
     @Stereotype(FieldStereotype.textarea)

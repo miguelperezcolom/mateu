@@ -31,23 +31,23 @@ new Anchor("Mateu documentation", "https://mateu.io")
 
 ```java
 // External link
-new Anchor("Visit our website", "https://example.com")
+var website = new Anchor("Visit our website", "https://example.com");
 
 // Internal navigation
-new Anchor("View all orders", "/orders")
+var orders = new Anchor("View all orders", "/orders");
 
 // Open in a new tab (rendered with rel="noopener")
-Anchor.builder()
+var newTab = Anchor.builder()
     .text("Visit our website")
     .url("https://example.com")
     .target("_blank")
-    .build()
+    .build();
 
 // Builder form
-Anchor.builder()
+var pdf = Anchor.builder()
     .text("Download PDF")
     .url("/reports/monthly.pdf")
-    .build()
+    .build();
 ```
 
 ## Inside other components

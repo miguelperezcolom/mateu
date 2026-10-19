@@ -27,8 +27,8 @@ Extend `DataManagement` and supply the two views:
 @Title("Project plan")
 public class ProjectPlanBoard extends DataManagement {
 
-    @Override protected Component gridView(HttpRequest rq)  { return theDenseTable(); }
-    @Override protected Component ganttView(HttpRequest rq) { return theGanttCanvas(); }
+    @Override protected Component gridView(HttpRequest rq)  { ... }   // the dense table
+    @Override protected Component ganttView(HttpRequest rq) { ... }   // the Gantt canvas
 }
 ```
 

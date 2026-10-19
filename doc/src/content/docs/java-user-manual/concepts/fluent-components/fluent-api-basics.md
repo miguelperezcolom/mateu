@@ -176,7 +176,7 @@ public class Counter5 implements ComponentTreeSupplier, ActionSupplier, Triggers
     int count = 0;
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
             Action.builder()
                 .id("increment")
@@ -267,7 +267,7 @@ Use `${state.field}` for values that come from action results. Use `${data.field
 Form.builder()
     .title("Page title")
     .subtitle("Optional subtitle")
-    .content(List.of(component1, component2, ...))
+    .content(List.of(component1, component2))
     .header(List.of(headerComponent))      // above content
     .footer(List.of(footerComponent))      // below content
     .toolbar(List.of(toolbarTrigger))      // action buttons in the header bar

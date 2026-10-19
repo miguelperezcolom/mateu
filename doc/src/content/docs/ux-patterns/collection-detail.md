@@ -28,7 +28,7 @@ public class HotelDirectory extends CollectionDetail<Hotel> {
 
   @Override
   protected Component detail(Hotel h, HttpRequest rq) {
-    return Card.builder()...build();   // any component
+    return Card.builder().title(new Text(h.name())).build();   // any component
   }
 }
 ```

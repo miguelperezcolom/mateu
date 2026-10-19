@@ -84,7 +84,7 @@ It all lives in the shared frontend (`libs/mateu`), so it applies to every rende
 `@StaticView` has the same effect in the C# and Python backends:
 
 ```csharp
-[Route("/about")]
+[UI("/about")]
 [Title("About")]
 [StaticView]
 public class About

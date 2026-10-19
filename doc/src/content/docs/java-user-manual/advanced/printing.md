@@ -61,19 +61,16 @@ Or target the component's shadow DOM parts if the design system exposes them.
 
 ## Triggering print programmatically
 
-Return a `UICommand` that executes `window.print()` from a toolbar action:
+Return `UICommand.print()` from a toolbar action:
 
 ```java
 @Toolbar
 Object print() {
-    return UICommand.builder()
-        .type(UICommandType.ExecJs)
-        .data("window.print()")
-        .build();
+    return UICommand.print();
 }
 ```
 
-This lets you place a "Print" button on the page that opens the native print dialog directly.
+This lets you place a "Print" button on the page that opens the native print dialog directly, with a print stylesheet that leaves out the app chrome (menus, toolbars, buttons, overlays). To print a generated document instead, return a `Document` marked with `.printed()`.
 
 ---
 

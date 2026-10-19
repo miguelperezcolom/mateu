@@ -102,7 +102,11 @@ import the other type explicitly:
 import io.mateu.uidl.annotations.*;   // @Section, @Toolbar, @Badge…
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Badge;      // the record wins for the bare name `Badge`…
-// …and the annotation is then written qualified: @io.mateu.uidl.annotations.Badge
+
+class Example {
+  @io.mateu.uidl.annotations.Badge boolean active;  // …and the annotation is written qualified
+  Badge chip;                                       // the record
+}
 ```
 
 The shared names (pinned by `NameCollisionsTest` in `mateu-uidl`, so a new one is a reviewed

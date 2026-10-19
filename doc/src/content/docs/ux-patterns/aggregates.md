@@ -29,6 +29,8 @@ public class Sale implements Identifiable {
     String product;
     @Aggregate(AggregateFunction.sum) double amount; // totals footer + per-group subtotal
     @Aggregate(AggregateFunction.count) String invoice;
+
+    @Override public String id() { return id; }
 }
 ```
 

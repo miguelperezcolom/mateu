@@ -109,7 +109,7 @@ children dispatch. The supplier is evaluated on every shell build, so actions ca
 disappear with server-side state.
 
 ```java
-@UI
+@UI("")
 public class BackofficeApp implements AppActionsSupplier {
 
   @Override
@@ -169,7 +169,7 @@ public class BackofficeApp
     [AppContext("Hotel")]
     public IReadOnlyList<OptionDto> Hotel() => hotels.Select(h => new OptionDto(h.Id, h.Name)).ToList();
 
-    [AppContext] public Environment Environment { get; set; }   // enum property
+    [AppContext] public FiscalYear Year { get; set; }   // enum property
 }
 ```
 

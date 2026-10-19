@@ -25,14 +25,16 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 Implement `NotificationsSupplier` on the `@UI` app class:
 
 ```java
-@UI
+@UI("")
 public class BackofficeApp implements NotificationsSupplier {
+
+    @Autowired NotificationStore notificationStore;   // your inbox
 
     @Override
     public List<AppNotification> notifications(HttpRequest httpRequest) {
-        // per-user inbox: resolve the user from the request (e.g. the Authorization header's
-        // Bearer token, the same way @EyesOnly authorization does)
-        var user = currentUser(httpRequest.getHeaderValue("Authorization"));
+        // per-user inbox: the user the host framework authenticated (the same identity
+        // @EyesOnly authorization uses)
+        var user = httpRequest.getUserPrincipal().getName();
         return notificationStore.latest(user).stream()
             .map(n -> new AppNotification(n.id(), n.title(), n.text(), n.route(),
                                           n.unread(), n.relativeTime()))
@@ -41,7 +43,7 @@ public class BackofficeApp implements NotificationsSupplier {
 
     @Override
     public void markNotificationsRead(List<String> ids, HttpRequest httpRequest) {
-        notificationStore.markRead(currentUser(httpRequest.getHeaderValue("Authorization")), ids);
+        notificationStore.markRead(httpRequest.getUserPrincipal().getName(), ids);
     }
 }
 ```

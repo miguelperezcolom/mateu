@@ -13,8 +13,11 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 [Java imports](/reference/java-imports/).
 :::
 
+The record is `io.mateu.uidl.data.Map`, which shares its name with `java.util.Map`: import one and
+qualify the other (the samples qualify the record).
+
 ```java
-Map.builder()
+io.mateu.uidl.data.Map.builder()
     .position("39.5696005,2.6501603")  // latitude,longitude
     .zoom("14")
     .build()
@@ -37,7 +40,7 @@ Map.builder()
 ## Markers
 
 ```java
-Map.builder()
+io.mateu.uidl.data.Map.builder()
     .id("properties")
     .markers(List.of(
         MapMarker.builder()
@@ -52,7 +55,9 @@ Map.builder()
     .markerActionId("openProperty")
     .style("height: 34rem;")
     .build()
+```
 
+```java
 public Object openProperty(HttpRequest rq) {
   var id = rq.runActionRq().parameters().get("_markerId");
   // …return a Drawer, a Message, navigate…
@@ -85,7 +90,7 @@ The view needs a method named after `markerActionId` (public, or marked `@Action
 By default the map draws OpenStreetMap's public tiles, which are not meant for heavy production traffic. A deployment with real load should point each map at its own or a contracted tile provider:
 
 ```java
-Map.builder()
+io.mateu.uidl.data.Map.builder()
     .position("39.57, 2.65")
     .zoom("12")
     .tileUrl("https://{s}.tiles.example.com/{z}/{x}/{y}.png")
@@ -100,7 +105,7 @@ The .NET (`Map`, `MapMarker`, with `TileUrl`/`Attribution`) and Python (`fluent.
 ## Example with fixed height
 
 ```java
-Map.builder()
+io.mateu.uidl.data.Map.builder()
     .position("51.5074,-0.1278")   // London
     .zoom("12")
     .style("height: 400px; width: 100%;")

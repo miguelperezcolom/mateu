@@ -35,7 +35,7 @@ public class MyPage implements ComponentTreeSupplier, ActionSupplier, ActionHand
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
                 Action.builder()
                         .id("increment")
@@ -59,7 +59,7 @@ routes:
 ```
 
 1. The `Button` declares which action it triggers via `actionId`
-2. `actions()` declares the action and its behavior
+2. `actions(HttpRequest)` declares the action and its behavior
 3. `handleAction()` is called when the action fires
 
 ---
@@ -99,7 +99,7 @@ Stream multiple updates from the backend to the browser as the action progresses
 
 ```java
 @Override
-public List<Action> actions() {
+public List<Action> actions(HttpRequest httpRequest) {
     return List.of(
         Action.builder()
                 .id("to-server")

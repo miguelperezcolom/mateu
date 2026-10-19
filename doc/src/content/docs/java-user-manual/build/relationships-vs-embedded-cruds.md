@@ -70,7 +70,7 @@ Callable<?> steps = () -> MateuBeanProvider.getBean(Steps.class).withProcessId(i
 Where:
 
 ```java
-public class Steps extends AutoCrud<Step> { ... }
+public class Steps extends AutoCrud<ProcessStep> { ... }
 ```
 
 This gives you:

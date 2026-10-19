@@ -788,13 +788,16 @@ public class OrderForm implements VisibilitySupplier {
     public String internalNote;
     public double discount;
 
+    @Autowired
+    AccessPolicy accessPolicy;  // your own service: who may see what
+
     @Button
     public void approve() { ... }
 
     @Override
     public boolean isHidden(String memberName, HttpRequest httpRequest) {
         return switch (memberName) {
-            case "internalNote" -> !httpRequest.isUserInRole("ADMIN");
+            case "internalNote" -> !accessPolicy.isAdmin(httpRequest);
             case "discount"     -> !"draft".equals(status);
             case "approve"      -> !"pending".equals(status);
             default             -> false;

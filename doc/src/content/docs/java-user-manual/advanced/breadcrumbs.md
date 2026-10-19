@@ -51,7 +51,7 @@ public class UserDetail implements BreadcrumbsSupplier {
 
     @Override
     public List<Breadcrumb> breadcrumbs(HttpRequest httpRequest) {
-        String id = httpRequest.getPathVariable("id");
+        String id = httpRequest.lastPathItem(); // users/:id
         String name = userQueryService.findNameById(id).orElse("User " + id);
         return List.of(
             new Breadcrumb("Home", "/"),
@@ -62,7 +62,7 @@ public class UserDetail implements BreadcrumbsSupplier {
 }
 ```
 
-The `HttpRequest` gives access to path variables, query parameters, and request headers, so you can look up any data needed to build the labels.
+The `HttpRequest` gives access to the request path (`path()`, `lastPathItem()`), query parameters, and request headers, so you can look up any data needed to build the labels.
 
 ---
 

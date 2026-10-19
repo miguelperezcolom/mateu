@@ -17,15 +17,15 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 BoardLayout.builder()
     .rows(List.of(
         BoardLayoutRow.builder()
-            .items(List.of(
+            .content(List.of(
                 BoardLayoutItem.builder().content(kpi1).build(),
                 BoardLayoutItem.builder().content(kpi2).build(),
                 BoardLayoutItem.builder().content(kpi3).build()
             ))
             .build(),
         BoardLayoutRow.builder()
-            .items(List.of(
-                BoardLayoutItem.builder().content(chart).colspan(2).build(),
+            .content(List.of(
+                BoardLayoutItem.builder().content(chart).boardCols(2).build(),
                 BoardLayoutItem.builder().content(table).build()
             ))
             .build()
@@ -48,14 +48,14 @@ BoardLayout.builder()
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `items` | `List<BoardLayoutItem>` | — | Items in this row |
+| `content` | `List<Component>` | — | Items in this row — usually `BoardLayoutItem`s |
 
 ### BoardLayoutItem
 
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `content` | `Component` | — | Component to place in this cell |
-| `colspan` | int | 1 | Number of columns this item spans |
+| `boardCols` | int | 0 | Number of board columns this item spans (0 = the default single column) |
 
 ## Dashboard example
 
@@ -64,7 +64,7 @@ BoardLayout.builder()
     .rows(List.of(
         // KPI row: three tiles side by side
         BoardLayoutRow.builder()
-            .items(List.of(
+            .content(List.of(
                 BoardLayoutItem.builder().content(new KPI("Revenue", "€ 42,000")).build(),
                 BoardLayoutItem.builder().content(new KPI("Orders", "1,234")).build(),
                 BoardLayoutItem.builder().content(new KPI("Customers", "567")).build()
@@ -72,8 +72,8 @@ BoardLayout.builder()
             .build(),
         // Chart + list row
         BoardLayoutRow.builder()
-            .items(List.of(
-                BoardLayoutItem.builder().content(revenueChart).colspan(2).build(),
+            .content(List.of(
+                BoardLayoutItem.builder().content(revenueChart).boardCols(2).build(),
                 BoardLayoutItem.builder().content(recentOrdersGrid).build()
             ))
             .build()

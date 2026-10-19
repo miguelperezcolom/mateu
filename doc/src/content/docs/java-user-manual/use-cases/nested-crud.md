@@ -122,6 +122,10 @@ Each level only needs to declare its fields and its children as a `List<ChildRec
 @Service
 public class Level1ViewStore implements CrudStore<Level1View> {
     // standard CRUD implementation
+    @Override public Optional<Level1View> findById(String id) { ... }
+    @Override public String save(Level1View entity) { ... }
+    @Override public List<Level1View> findAll() { ... }
+    @Override public void deleteAllById(List<String> ids) { ... }
 }
 ```
 
@@ -150,7 +154,7 @@ The orchestrator is registered at `/nested-crud` and uses the full Spring inject
 
 ```java
 @DetailFormCustomisation(columns = 1, position = FormPosition.modal)
-List<Level2View> level2
+List<Level2View> level2;
 ```
 
 This annotation controls how Mateu renders the detail form when the user clicks on a row in the nested list.

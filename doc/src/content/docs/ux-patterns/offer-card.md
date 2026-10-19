@@ -48,9 +48,12 @@ The CTA dispatches the standard `action-requested` event with the card's `action
 When the offer can be added *and removed* (an optional upgrade), drive the CTA as a toggle from the server state: set `added(boolean)` and `addedLabel("✓ Upgrade añadido")` when building the card — while `added` is true the button turns success green and shows `addedLabel` (the `priceLabel` stays right-aligned); clicking dispatches the same `actionId` again, so the action just flips its flag and re-renders:
 
 ```java
-case "upgrade" -> {
-    habitacion.setUpgradeAnadido(!habitacion.isUpgradeAnadido());
-    return this; // the card re-renders with the flipped added state
+public Object handleAction(String actionId, HttpRequest httpRequest) {
+    if ("upgrade".equals(actionId)) {
+        habitacion.setUpgradeAnadido(!habitacion.isUpgradeAnadido());
+        return this; // the card re-renders with the flipped added state
+    }
+    return null;
 }
 ```
 

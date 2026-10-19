@@ -226,11 +226,11 @@ public class AccountForm implements RuleSupplier {
     public List<Rule> rules() {
         return List.of(
             Rule.builder()
-                .filter("state.accountType == 'BUSINESS'")
-                .action(RuleAction.set)
+                .filter("state.accountType != 'BUSINESS'")
+                .action(RuleAction.SetAttributeValue)
                 .fieldName("vatNumber")
-                .fieldAttribute(RuleFieldAttribute.visible)
-                .value("true")
+                .fieldAttribute(RuleFieldAttribute.hidden)
+                .value(true)
                 .build()
         );
     }
@@ -298,7 +298,7 @@ public class SetupPage implements ComponentTreeSupplier, CommandSupplier {
 
     @Override
     public List<UICommand> commands(HttpRequest httpRequest) {
-        return List.of(new UICommand("navigate", "/dashboard"));
+        return List.of(UICommand.navigateTo("/dashboard"));
     }
 }
 ```

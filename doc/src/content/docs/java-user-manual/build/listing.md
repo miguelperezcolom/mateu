@@ -84,9 +84,9 @@ public class OrderListing implements Listing<OrderRow>, Searchable {
 
     @Toolbar
     public Object exportSelected(HttpRequest httpRequest) {
-        var selectedIds = httpRequest.getSelectedIds();
-        exportService.export(selectedIds);
-        return new Message("Export started for " + selectedIds.size() + " orders");
+        var selected = httpRequest.getSelectedRows(OrderRow.class);
+        exportService.export(selected);
+        return new Message("Export started for " + selected.size() + " orders");
     }
 
     @Override

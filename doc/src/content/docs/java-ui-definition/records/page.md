@@ -1,5 +1,5 @@
 ---
-title: "Page"
+title: "PageView"
 ---
 
 :::note[Imports]
@@ -11,9 +11,12 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 
 A rich page wrapper that adds breadcrumbs, badges, KPI tiles, toolbar, and header/footer slots around its content. Use it when you need more than `Form` provides.
 
+The record is `io.mateu.uidl.fluent.PageView` (it used to be called `Page`; the name now belongs to
+`io.mateu.uidl.data.Page<T>`, the paged result of a `CrudStore` search). Main components:
+
 ```java
 @Builder
-public record Page(
+public record PageView(
     String id,
     String pageTitle,
     String favicon,
@@ -21,17 +24,17 @@ public record Page(
     String subtitle,
     List<Breadcrumb> breadcrumbs,
     Component avatar,
-    List<Component> content,
-    List<Component> header,
-    List<Component> footer,
-    List<UserTrigger> toolbar,
-    List<UserTrigger> buttons,
-    List<Badge> badges,
-    List<KPI> kpis,
+    @Singular("contentItem") List<Component> content,
+    @Singular("headerItem") List<Component> header,
+    @Singular("footerItem") List<Component> footer,
+    @Singular("toolbarItem") List<UserTrigger> toolbar,
+    @Singular List<UserTrigger> buttons,
+    @Singular("badgeItem") List<Badge> badges,
+    @Singular("kpiItem") List<KPI> kpis,
     String style,
     String cssClasses,
-    List<Action> actions)
-    implements Component, ActionSupplier { }
+    @Singular("actionItem") List<Action> actions)
+    implements Component, ActionSupplier { /* … more components … */ }
 ```
 
 ## Properties
@@ -59,12 +62,13 @@ public record Page(
 ## Basic usage
 
 ```java
-return Page.builder()
+return PageView.builder()
     .title("Invoice #1234")
     .subtitle("Created 2025-01-15")
-    .breadcrumb(new Breadcrumb("Home", "/"))
-    .breadcrumb(new Breadcrumb("Invoices", "/invoices"))
-    .breadcrumb(new Breadcrumb("#1234", "/invoices/1234"))
+    .breadcrumbs(List.of(
+        new Breadcrumb("Home", "/"),
+        new Breadcrumb("Invoices", "/invoices"),
+        new Breadcrumb("#1234", "/invoices/1234")))
     .contentItem(invoiceContent)
     .build();
 ```
@@ -72,11 +76,11 @@ return Page.builder()
 ## With KPIs and badges
 
 ```java
-return Page.builder()
+return PageView.builder()
     .title("Order #5678")
-    .kpiItem(KPI.builder().label("Total").value("€ 1,250").build())
-    .kpiItem(KPI.builder().label("Items").value("7").build())
-    .badgeItem(Badge.builder().label("PAID").variant(BadgeVariant.success).build())
+    .kpiItem(KPI.builder().title("Total").text("€ 1,250").build())
+    .kpiItem(KPI.builder().title("Items").text("7").build())
+    .badgeItem(Badge.builder().text("PAID").color(BadgeColor.success.name()).build())
     .contentItem(orderContent)
     .build();
 ```
@@ -84,7 +88,7 @@ return Page.builder()
 ## With actions
 
 ```java
-return Page.builder()
+return PageView.builder()
     .title("Customer")
     .actionItem(Action.builder().id("save").build())
     .actionItem(Action.builder().id("delete").confirmationRequired(true).build())

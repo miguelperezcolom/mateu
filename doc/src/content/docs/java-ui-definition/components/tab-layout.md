@@ -47,9 +47,9 @@ TabLayout.builder()
 |---|---|---|---|
 | `label` | String | — | Tab header label |
 | `content` | `Component` | — | Tab body content |
-| `iconOnLeft` | String | — | Icon name rendered before the label |
-| `iconOnRight` | String | — | Icon name rendered after the label |
-| `selected` | boolean | false | Whether this tab is initially selected |
+| `badge` | String | — | Small chip next to the label (a count, a status) |
+| `active` | boolean | false | Whether this tab is initially selected |
+| `shortcut` | String | — | Keyboard shortcut that selects the tab (`alt+1`) |
 
 ## Vertical tabs
 
@@ -63,20 +63,21 @@ TabLayout.builder()
     .build()
 ```
 
-## Tabs with icons
+## Tabs with a badge
+
+A tab's header is its text label, optionally with a small `badge` (a count, a status):
 
 ```java
 TabLayout.builder()
     .tabs(List.of(
         Tab.builder()
             .label("Orders")
-            .iconOnLeft(IconKey.Cart.iconName)
+            .badge("12")
             .content(ordersGrid)
-            .selected(true)
+            .active(true)
             .build(),
         Tab.builder()
             .label("Invoices")
-            .iconOnLeft(IconKey.Document.iconName)
             .content(invoicesGrid)
             .build()
     ))
