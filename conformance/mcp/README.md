@@ -150,3 +150,105 @@ than the value's length; else none. Values in messages are double-quoted with `\
 A report with no errors for kind `component`/`envelope` is handed to the real YAML loader; when it
 cannot build the page, error `load_failed` `The definition could not be loaded: <reason>` (path
 `$`) — so "valid" never means "and then the page answers Not found".
+
+## Live UI push (phase C)
+
+`push.json` pins the tools an MCP caller uses to send UI to a UI that is **open** in a browser tab or
+an app window, and a scripted scenario every backend runs. The sidecar does not hold sessions: its
+push tools forward to the backend's own `/mateu/mcp` (see below).
+
+### Switches
+
+OFF by default. Push needs BOTH the MCP endpoint and its own switch: Java `mateu.mcp.enabled=true`
++ `mateu.mcp.push.enabled=true` (any of system property, framework configuration, or
+`MATEU_MCP_PUSH_ENABLED`, read through `MateuSettings`); .NET `MateuOptions.Mcp` + `MateuOptions.McpPush`
+(or `MATEU_MCP_ENABLED` / `MATEU_MCP_PUSH_ENABLED`); Python `add_mateu(..., mcp=True, mcp_push=True)`
+(or the same env vars). Limits (same names everywhere, `mateu.mcp.push.*` / `MATEU_MCP_PUSH_*`):
+`rate-per-minute` (30 messages per session per rolling minute), `max-sessions` (1000).
+Fixed: a pairing code lives 300 s; a disconnected session is forgotten (pairings included) 120 s after
+its stream ended; at most 10 failed `mateu_pair_session` per caller per minute.
+
+### The UI session and its channel
+
+Each UI (a browser TAB, an app window, an IDE project) has a **UI session id** — the web uses its
+per-tab `X-Session-Id` (`sessionStorage`), which the chat sends as its `sessionId` too — and a
+**channel secret** (random, kept with it, sent only on the actions below). The app tells the UI that
+push is on with `AppDto.agentPush: true`; only then does the UI open its channel and show "Connect AI".
+
+Three app-level actions (dispatched like `_live-updates`: the app's `serverSideType`, route = the
+app's root route, exempt from menu resolution), all with `parameters: {sessionId, secret}`:
+
+| Action | Where | Answer |
+|---|---|---|
+| `_agent-channel` (+ `route`, `renderer`) | the SSE endpoint (`/mateu/v3/sse/…`) | an open-ended stream: a first increment with the session's status, then one increment per message, an empty increment every 20 s, and the end after 5 minutes (the UI reconnects at once) |
+| `_agent-pair` | the sync endpoint | `Data{_agentPairing: {code, expiresInSeconds}}` — a new one-time code (the previous unused one dies) |
+| `_agent-unpair` | the sync endpoint | `Data{_agentPairing: null}` — every pairing of the session removed; the channel is told |
+
+Registration: the first `_agent-channel` for a sessionId registers it with the caller's principal
+name (null when anonymous), the secret's SHA-256, the route and the renderer (`vaadin`, `redwood`,
+`react-native`, `intellij`, or what the UI says, ≤ 32 chars). Every later call for that sessionId must
+come with the same secret AND the same principal, else the error `This UI session belongs to another
+channel.` A new channel for a connected session replaces the old stream (the old one ends). With
+push off every one of them is the error `Live UI push is not enabled.`; with `max-sessions` reached and
+nothing disconnected to evict, `Too many live UI sessions; try again later.` `_agent-pair` needs a
+registered session.
+
+Each message is an increment carrying ONE command `{type: "AgentPush", data: {kind, event, detail}}`:
+
+| kind | event | detail | The UI does |
+|---|---|---|---|
+| `status` | `mateu-agent-status` | `{paired, agents: [label…]}` (label = the paired caller's principal name, else `an agent`), in pairing order | update its "Connect AI" control (connected indicator + Disconnect) — not dispatched |
+| `render` | `render-screen` | `{yaml, target, title?}` | exactly what it does with the chat's `render-screen`: a subscriber first, else the built-in render target (`__preview__` → content / drawer / dialog) |
+| `navigate` | `navigation-requested` | `{route, consumedRoute, actionId?, baseUrl?, serverSideType?, uriPrefix?}` | like the chat's `navigation-requested` (a menu click with those fields) |
+| `event` | the name | the detail (`{}` when none) | like any other chat event: a DOM `CustomEvent` / the session event bus |
+
+### Who may reach a session
+
+The caller of an MCP tool is identified by, in order: its authenticated principal name (`user:<name>`),
+else the header `X-Mateu-Agent-Key` when ≥ 16 characters (`key:<sha256 of it>` — what the sidecar
+sends), else nobody (anonymous). A session is **visible** to a caller when the caller is signed in
+with the session's principal, or when the session was paired to that caller. A session paired by an
+**anonymous** caller is reachable by an anonymous caller knowing its handle (the handle is the
+capability; it is returned only to whoever paired). Everything else answers `Unknown session "<s>".`
+— a session another user owns and one that does not exist are indistinguishable.
+
+The `session` handle is opaque (≥ 128 random bits, URL-safe), distinct from the UI session id, stable
+while the session is registered. `mateu_list_sessions` lists the visible sessions, most recently
+REGISTERED first: `{session, user, route, renderer, connectedAt (ISO-8601 UTC, seconds), connected,
+paired}`.
+
+### Tools (only when push is on; listed after the base tools, before `mateu_save_spec`)
+
+- `mateu_pair_session {code}` — case-insensitive, the dash optional; a code works once, for 300 s.
+  Wrong/expired/used → `Invalid or expired pairing code.`; more than 10 failures by the caller in a
+  minute → `Too many pairing attempts; try again in a minute.` Pairing binds the session to the caller
+  (an anonymous caller → the capability rule above), sends a `status` message and answers the session
+  entry (`paired: true`).
+- `mateu_push_ui {session, yaml, target?, title?}` — target not in content|drawer|dialog → `Invalid
+  target "<t>": use content, drawer or dialog.`; then visibility, connection (`Session "<s>" is not
+  connected.`), validation through the app's `__validate__` AS THE CALLER (the 256 KiB limit included):
+  errors → `{delivered: false, reason: "The definition has errors; nothing was sent.", validation}`,
+  a kind other than component/envelope → `{delivered: false, reason: "Only a page (a component, or a
+  layout: envelope) can be pushed.", validation}`; then the rate limit; then `{delivered: true, session,
+  target, validation}`. The UI renders it through `__preview__` with its own identity: the route
+  guard and the wire-type policy apply there again.
+- `mateu_navigate {session, route, consumedRoute?, actionId?, baseUrl?, serverSideType?, uriPrefix?}`
+  → `{delivered: true, session}` (`consumedRoute` defaults to `""`; absent optional fields are not sent).
+- `mateu_dispatch_event {session, event, detail?}` — `event` must match
+  `^[A-Za-z][A-Za-z0-9_.:-]{0,63}$` (else `Invalid event name "<e>".`) and not be `render-screen`,
+  `navigation-requested`, `close-requested` or `mateu-agent-status` (`Event "<e>" is reserved: use
+  mateu_push_ui or mateu_navigate.`); the detail serialised ≤ 65536 UTF-8 bytes (`The detail is
+  larger than the 65536-byte limit.`) → `{delivered: true, session}`.
+
+Order of the checks for the three senders: arguments (missing → `Missing argument "x".`, target, event
+name/size), visibility, connection, validation (push only), rate limit (`Too many messages to this
+session; try again in a minute.`). Every delivery is logged at INFO: `Mateu agent push: caller=<label>
+session=<handle> kind=<kind> <target=…|event=…|route=…> bytes=<n>`. With push off the push tools are
+neither listed nor callable (`Unknown tool: <name>`).
+
+### The sidecar
+
+`MATEU_PUSH=true` lists the five tools; each call is forwarded as `tools/call` to the backend's
+`MATEU_MCP_URL` (default `<MATEU_BASE_URL>/mateu/mcp`) with the `MATEU_TOKEN` bearer and an
+`X-Mateu-Agent-Key` (`MATEU_AGENT_KEY`, else a random key generated per sidecar process), and the
+backend's result is returned as is.
