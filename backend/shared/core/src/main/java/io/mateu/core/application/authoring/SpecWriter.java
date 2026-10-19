@@ -130,12 +130,18 @@ public final class SpecWriter {
           + " server or override the request of a catalogue source; declare those in sources.yaml"
           + " by hand.";
 
+  /**
+   * A {@code ${secret.…}} reference as the interpolator reads it: the expression is trimmed, so
+   * {@code ${ secret.KEY }} resolves a secret too (the sidecar's text rule already said so).
+   */
+  private static final Pattern SECRET_REFERENCE = Pattern.compile("\\$\\{\\s*secret\\.");
+
   private static boolean carriesARequest(com.fasterxml.jackson.databind.JsonNode node) {
     if (node == null) {
       return false;
     }
     if (node.isTextual()) {
-      return node.asText().contains("${secret.");
+      return SECRET_REFERENCE.matcher(node.asText()).find();
     }
     if (node.isObject()) {
       var proxy = node.get("proxy");
@@ -152,7 +158,7 @@ public final class SpecWriter {
       }
       var names = node.fieldNames();
       while (names.hasNext()) {
-        if (names.next().contains("${secret.")) {
+        if (SECRET_REFERENCE.matcher(names.next()).find()) {
           return true;
         }
       }

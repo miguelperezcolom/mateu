@@ -110,9 +110,14 @@ SCRIPT_REFUSAL = (
 )
 
 
+# A ${secret.…} reference as the interpolator reads it: the expression is trimmed, so
+# ${ secret.KEY } resolves a secret too.
+_SECRET_REFERENCE = re.compile(r"\$\{\s*secret\.")
+
+
 def _carries_a_request(node, seen: set[int]) -> bool:
     if isinstance(node, str):
-        return "${secret." in node
+        return _SECRET_REFERENCE.search(node) is not None
     if isinstance(node, (dict, list)):
         if id(node) in seen:  # an alias: already walked
             return False
@@ -124,7 +129,7 @@ def _carries_a_request(node, seen: set[int]) -> bool:
         ref = node.get("ref")
         if isinstance(ref, str) and ref.strip() and any(key in node for key in _REQUEST_KEYS):
             return True
-        if any(isinstance(key, str) and "${secret." in key for key in node):
+        if any(isinstance(key, str) and _SECRET_REFERENCE.search(key) for key in node):
             return True
         return any(_carries_a_request(value, seen) for value in node.values())
     if isinstance(node, list):

@@ -136,12 +136,16 @@ internal static class SpecWriter
         }
     }
 
+    /// <summary>A <c>${secret.…}</c> reference as the interpolator reads it: the expression is
+    /// trimmed, so <c>${ secret.KEY }</c> resolves a secret too.</summary>
+    private static readonly System.Text.RegularExpressions.Regex SecretReference = new(@"\$\{\s*secret\.");
+
     private static bool CarriesARequest(YNode? node, HashSet<YNode> seen)
     {
         switch (node)
         {
             case YScalar scalar:
-                return scalar.Value.Contains("${secret.", StringComparison.Ordinal);
+                return SecretReference.IsMatch(scalar.Value);
             case YSequence sequence:
                 if (!seen.Add(sequence)) return false; // an alias: already walked
                 return sequence.Items.Any(item => CarriesARequest(item, seen));
