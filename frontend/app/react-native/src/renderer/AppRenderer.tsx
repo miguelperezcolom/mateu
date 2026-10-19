@@ -121,6 +121,11 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
     setStack([]);
     // The session-level opener (NavigateTo from any view) pushes onto whichever screen is live.
     session.openView = (target) => setStack((s) => [...s, target]);
+    // what the agent's render-screen into the content asks about before replacing this screen
+    session.hasUnsavedChanges = () => {
+      const c = topController.current;
+      return !!(c && c.trackDirty && c.dirty);
+    };
   }, [routeArg, consumedRoute, serverSideType, session]);
 
   const push = useCallback((target: NavTarget) => setStack((s) => [...s, target]), []);

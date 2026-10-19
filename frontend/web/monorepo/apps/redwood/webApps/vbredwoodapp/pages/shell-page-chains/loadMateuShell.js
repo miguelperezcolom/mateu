@@ -413,6 +413,11 @@ define([
         }),
         paintPreview: (increment, request) => {
           if (request.target === 'content') {
+            // it replaces the screen on show: unsaved changes there are asked about first, like
+            // any navigation away (onMateuNavigate's dirtyGuard); kept → not painted
+            const app = liveContext().$application.variables;
+            if (app.mateuDirty && !window.confirm(bridge.chromeText('unsavedLeave'))) return undefined;
+            app.mateuDirty = false;
             window.__mateuChatPreviewShown = true;
             liveContext().$application.variables.mateuSelectedNavId = '';
           }

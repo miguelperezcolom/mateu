@@ -25,10 +25,15 @@ export function uiEventHooks(session: MateuSession, close: () => void): ChatEven
     close,
     renderScreen: (req) => {
       const route = session.currentScreen()?.route ?? '';
-      session.api
-        .runAction({ ...previewActionOf(req, route), appState: session.appState })
-        .then((increment) => session.showPreview(increment, req.target, req.title))
-        .catch((e) => session.notify(null, errorText(e), 'error'));
+      // into the CONTENT it replaces the screen on show: unsaved changes there are asked about
+      // first, like any navigation away (a drawer or a dialog covers nothing it would lose)
+      const go = req.target === 'content' && session.hasUnsavedChanges() ? session.confirmDiscard() : Promise.resolve(true);
+      go.then((proceed) => {
+        if (!proceed) return undefined;
+        return session.api
+          .runAction({ ...previewActionOf(req, route), appState: session.appState })
+          .then((increment) => session.showPreview(increment, req.target, req.title));
+      }).catch((e) => session.notify(null, errorText(e), 'error'));
       close();
     },
   };

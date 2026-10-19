@@ -338,7 +338,8 @@ It is handled the moment it arrives — the reply can go on streaming under it �
    the backend's reserved `__preview__` action (the one the visual editor uses), which turns it into
    a normal UI increment through the real mapper, and shows it in the content area, or in a drawer
    or a dialog over the current page. In the content area it is transient: any navigation — the same
-   menu entry included — brings the route's own screen back. An invalid definition shows the
+   menu entry included — brings the route's own screen back; and, like a navigation, it first asks
+   before discarding unsaved changes of the screen it replaces (a drawer or dialog replaces nothing). An invalid definition shows the
    preview's own "Invalid or empty YAML" notice. A static bundle has no backend: there, a `uidl`
    (JSON) screen is expanded in the browser and a YAML one shows why it cannot be.
 

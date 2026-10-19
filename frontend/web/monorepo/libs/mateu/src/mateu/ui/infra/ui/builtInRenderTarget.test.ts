@@ -6,6 +6,7 @@ vi.mock('@infra/http/AxiosMateuApiClient', () => ({ mateuApiClient: { runAction:
 
 import { contentViewFor, GENERATED_HOST_ID, GENERATED_SCREEN_ID, overlayOf, renderScreenInShell } from './builtInRenderTarget'
 import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction'
+import { dirtyGuard } from './dirtyGuard'
 
 /**
  * The shell's own render target for a generated screen: it finds the content area the chat
@@ -151,6 +152,27 @@ describe('renderScreenInShell', () => {
         await renderScreenInShell(chat, { yaml: JSON.stringify({ type: 'Element', name: 'script', content: 'alert(1)' }), target: 'content' })
         expect(JSON.stringify(ux.shown[1])).not.toContain('alert(1)')
         expect(JSON.stringify(ux.shown[1])).not.toContain('"script"')
+    })
+
+    it('into the CONTENT it asks before discarding unsaved changes; a drawer covers nothing it would lose', async () => {
+        const { ux, chat } = shell()
+        runAction.mockResolvedValue({ fragments: [fragment] })
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        try {
+            await renderScreenInShell(chat, { yaml: 'type: Text', target: 'content' })
+            expect(confirm).toHaveBeenCalledTimes(1)
+            expect(runAction).not.toHaveBeenCalled()
+            expect(ux.shown).toHaveLength(0)
+            await renderScreenInShell(chat, { yaml: 'type: Text', target: 'drawer' })
+            expect(confirm).toHaveBeenCalledTimes(1)
+            confirm.mockReturnValue(true)
+            await renderScreenInShell(chat, { yaml: 'type: Text', target: 'content' })
+            expect(ux.shown).toEqual([fragment])
+        } finally {
+            confirm.mockRestore()
+            dirtyGuard.markClean()
+        }
     })
 
     it('an overlay without a title is the generated screen', () => {

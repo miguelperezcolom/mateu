@@ -94,6 +94,9 @@ export class MateuSession {
   /** Host hook: dirty-guard confirmation — resolve true to discard unsaved changes and leave. */
   confirmDiscard: () => Promise<boolean> = async () => true;
 
+  /** Host hook: whether the screen on show has unsaved changes (its controller tracks them). */
+  hasUnsavedChanges: () => boolean = () => false;
+
   /** Host hook: an @Action(confirmationRequired) question — resolve true to run the action. */
   confirmAction: (texts: ConfirmationDialogTexts) => Promise<boolean> = async () => true;
 
