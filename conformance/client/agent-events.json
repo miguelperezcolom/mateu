@@ -1,0 +1,143 @@
+{
+  "description": "Which event names an AGENT (the chat stream, a live push) may dispatch onto a renderer. The built-in ones always; any other only when a component on screen declares it (an OnCustomEvent trigger: @SubscribeTo) and it is not one of the framework's own event names. Read by libs/mateu agentEventPolicy.test.ts and Redwood test-chat-events.mjs.",
+  "builtIn": [
+    "navigation-requested",
+    "close-requested",
+    "render-screen"
+  ],
+  "reserved": [
+    "action-requested",
+    "server-side-action-requested",
+    "url-update-requested",
+    "route-changed",
+    "navigate-to-requested",
+    "page-banners-received",
+    "dirty",
+    "clean",
+    "value-changed",
+    "data-changed",
+    "app-data-updated",
+    "close-modal-requested",
+    "column-prefs-changed",
+    "compact-changed",
+    "history-pushed",
+    "selected-changed",
+    "search-requested",
+    "filter-reset-requested",
+    "picked",
+    "pinged",
+    "click",
+    "dblclick",
+    "input",
+    "change",
+    "submit",
+    "keydown",
+    "keyup",
+    "keypress",
+    "focus",
+    "blur",
+    "focusin",
+    "focusout",
+    "load",
+    "error",
+    "abort",
+    "message",
+    "storage",
+    "popstate",
+    "hashchange",
+    "beforeunload",
+    "pagehide",
+    "online",
+    "offline",
+    "resize",
+    "scroll",
+    "wheel",
+    "contextmenu",
+    "pointerdown",
+    "pointerup",
+    "mousedown",
+    "mouseup",
+    "touchstart",
+    "drop",
+    "dragstart",
+    "dragend",
+    "unhandledrejection",
+    "DOMContentLoaded"
+  ],
+  "reservedPrefixes": [
+    "mateu-",
+    "backend-",
+    "vaadin-"
+  ],
+  "cases": [
+    {
+      "name": "navigation-requested",
+      "subscribed": [],
+      "allowed": true
+    },
+    {
+      "name": "render-screen",
+      "subscribed": [],
+      "allowed": true
+    },
+    {
+      "name": "highlight-row",
+      "subscribed": [],
+      "allowed": false
+    },
+    {
+      "name": "highlight-row",
+      "subscribed": [
+        "highlight-row"
+      ],
+      "allowed": true
+    },
+    {
+      "name": "server-side-action-requested",
+      "subscribed": [
+        "server-side-action-requested"
+      ],
+      "allowed": false
+    },
+    {
+      "name": "page-banners-received",
+      "subscribed": [],
+      "allowed": false
+    },
+    {
+      "name": "dirty",
+      "subscribed": [
+        "dirty"
+      ],
+      "allowed": false
+    },
+    {
+      "name": "mateu-open-ai",
+      "subscribed": [
+        "mateu-open-ai"
+      ],
+      "allowed": false
+    },
+    {
+      "name": "backend-succeeded-event",
+      "subscribed": [
+        "backend-succeeded-event"
+      ],
+      "allowed": false
+    },
+    {
+      "name": "",
+      "subscribed": [
+        ""
+      ],
+      "allowed": false
+    },
+    {
+      "name": "special-offer",
+      "subscribed": [
+        "special-offer"
+      ],
+      "allowed": true
+    }
+  ]
+}

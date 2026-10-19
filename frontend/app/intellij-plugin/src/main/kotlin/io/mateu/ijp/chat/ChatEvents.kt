@@ -91,6 +91,7 @@ object ChatEvents {
         return Effect.RenderScreen(source, target, detail.path("title").asText("").ifBlank { null })
     }
 
-    /** The parameters of the `__preview__` sync action. */
-    fun previewParameters(yaml: String): Map<String, Any?> = mapOf("_yaml" to yaml)
+    /** The parameters of the `__preview__` sync action. An agent wrote the definition, so it is marked
+     *  UNTRUSTED: the backend strips everything script-capable from it (conformance/untrusted). */
+    fun previewParameters(yaml: String): Map<String, Any?> = mapOf("_yaml" to yaml, "_untrusted" to true)
 }

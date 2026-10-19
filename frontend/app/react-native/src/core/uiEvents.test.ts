@@ -37,7 +37,7 @@ test('render-screen: a subscriber first, else __preview__ on the current route, 
       serverSideType: null,
       initiatorComponentId: 'chat-render-screen',
       componentState: {},
-      parameters: { _yaml: 'type: Text\n' },
+      parameters: { _yaml: 'type: Text\n', _untrusted: true },
       appState: {},
     },
   ]);
@@ -106,4 +106,24 @@ test('a hub UI and the single-backend app each have their own UI session; an isl
   assert.notEqual(a.agent.session.sessionId, b.agent.session.sessionId);
   const { islandSession } = await import('./MateuSession.ts');
   assert.equal(islandSession(a, 'http://remote').agent, a.agent);
+});
+
+test('a render-screen into the CONTENT asks before discarding unsaved changes (drawers and dialogs do not)', async () => {
+  const { session, log, requests } = fakeSession();
+  let answer = false;
+  const asked: string[] = [];
+  session.hasUnsavedChanges = () => true;
+  session.confirmDiscard = async () => { asked.push('asked'); return answer; };
+  applyUiEvent(session, { event: 'render-screen', detail: { yaml: 'type: Text\n' } });
+  await flush();
+  assert.deepEqual(asked, ['asked']);
+  assert.equal(requests.length, 0, 'kept: nothing rendered over the edit');
+  answer = true;
+  applyUiEvent(session, { event: 'render-screen', detail: { yaml: 'type: Text\n' } });
+  await flush();
+  assert.equal(requests.length, 1, 'discarded on purpose: rendered');
+  applyUiEvent(session, { event: 'render-screen', detail: { yaml: 'type: Text\n', target: 'drawer' } });
+  await flush();
+  assert.deepEqual(asked, ['asked', 'asked'], 'a drawer covers nothing it would lose');
+  assert.equal(log.filter((l) => (l as unknown[])[0] === 'preview').length, 2);
 });

@@ -14,6 +14,7 @@ vi.mock('./rowRoute', () => ({ navigateToRoute: (_from: unknown, route: string) 
 
 import { applyAgentEvent, navigatingShellOf } from './agentEvents'
 import { claimEvent } from './chatEvents'
+import { declareAgentEvent } from './agentEventPolicy'
 
 /**
  * The ONE place an agent event is applied — the chat's stream and the live UI push channel both
@@ -95,15 +96,30 @@ describe('applyAgentEvent', () => {
         expect(navigated).toEqual(['/orders'])
     })
 
-    it('any other event goes out as a bubbling, composed DOM event for whoever subscribes to it', () => {
+    it('any other event a component on screen DECLARES goes out as a bubbling, composed DOM event', () => {
         const app = shell()
         const heard: unknown[] = []
         const listener = (e: Event) => heard.push((e as CustomEvent).detail)
         document.addEventListener('highlight-row', listener)
+        applyAgentEvent(app, 'highlight-row', { id: 6 }) // nobody on screen declares it: dropped
+        const release = declareAgentEvent('highlight-row') // a @SubscribeTo on screen
         applyAgentEvent(app, 'highlight-row', { id: 7 })
+        release()
+        applyAgentEvent(app, 'highlight-row', { id: 8 }) // the subscriber left
         document.removeEventListener('highlight-row', listener)
         expect(heard).toEqual([{ id: 7 }])
         expect(rendered).toEqual([])
         expect(app.updateRoute).not.toHaveBeenCalled()
+    })
+
+    it('NM9: the framework\'s own event names never go out, declared or not', () => {
+        const app = shell()
+        const heard: string[] = []
+        const names = ['server-side-action-requested', 'page-banners-received', 'route-changed', 'url-update-requested', 'dirty', 'clean', 'mateu-open-ai']
+        const listener = (e: Event) => heard.push(e.type)
+        const releases = names.map((n) => { document.addEventListener(n, listener); return declareAgentEvent(n) })
+        for (const n of names) applyAgentEvent(app, n, { actionId: 'delete', parameters: {} })
+        names.forEach((n, i) => { document.removeEventListener(n, listener); releases[i]() })
+        expect(heard).toEqual([])
     })
 })

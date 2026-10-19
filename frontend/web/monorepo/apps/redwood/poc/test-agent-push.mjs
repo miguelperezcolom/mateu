@@ -401,7 +401,7 @@ test('a pushed render is the chat\'s render-screen: nobody subscribed → __prev
     const plan = await applyAgentPush({ kind: 'render', event: 'render-screen', detail: { yaml: 'type: Text\ntext: Hello\n', target: 'drawer', title: 'Greeting' } }, host)
     assert.equal(plan.kind, 'chat')
     assert.deepEqual(did, [
-      ['call', 'http://b', '__preview__', { _yaml: 'type: Text\ntext: Hello\n' }],
+      ['call', 'http://b', '__preview__', { _yaml: 'type: Text\ntext: Hello\n', _untrusted: true }],
       ['paint', 'drawer', 'Drawer'],
     ])
     assert.equal(heard.length, 1, 'it also goes out as a document CustomEvent')

@@ -47,6 +47,9 @@ internal sealed class McpService
     /// <summary>Who is calling, for the push tools.</summary>
     public AgentPush.AgentCaller Caller { get; init; } = AgentPush.AgentCaller.Anonymous;
 
+    /// <summary>The caller's client address (the handler's), for the pairing-failure buckets.</summary>
+    internal string? ClientAddress => _handler.ClientAddress?.Invoke();
+
     /// <summary>Load a screen (route) → flat projection. The load is dispatched as actionId "".</summary>
     public JsonObject DescribeScreen(string route) =>
         McpProjection.Project(Sync(Rq(route, "", null, null)));

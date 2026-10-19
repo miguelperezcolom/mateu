@@ -27,7 +27,7 @@ internal static partial class McpPushTools
     public static JsonNode? Dispatch(McpService svc, AgentSessions sessions, string name, JsonObject args) => name switch
     {
         "mateu_list_sessions" => sessions.List(svc.Caller),
-        "mateu_pair_session" => sessions.Pair(svc.Caller, Argument(args, "code")),
+        "mateu_pair_session" => sessions.Pair(svc.Caller, Argument(args, "code"), svc.ClientAddress),
         "mateu_push_ui" => PushUi(svc, sessions, args),
         "mateu_navigate" => Navigate(svc, sessions, args),
         "mateu_dispatch_event" => DispatchEvent(svc, sessions, args),
@@ -93,7 +93,7 @@ internal static partial class McpPushTools
         sessions.Send(session, kind, @event, detail);
         MateuLogging.For("Mateu.Mcp").LogInformation(
             "Mateu agent push: caller={Caller} session={Session} kind={Kind} {What} bytes={Bytes}",
-            svc.Caller.LogLabel, session.Handle, kind, MateuLogging.Safe(what), Encoding.UTF8.GetByteCount(
+            svc.Caller.LogLabel, AgentSessions.Fingerprint(session.Handle), kind, AgentSessions.LogSafe(what), Encoding.UTF8.GetByteCount(
                 new JsonObject { ["kind"] = kind, ["event"] = @event, ["detail"] = detail.DeepClone() }.ToJsonString()));
     }
 

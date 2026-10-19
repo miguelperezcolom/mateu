@@ -219,7 +219,7 @@ Listed only when push is on, after the operating and authoring tools:
 | `mateu_pair_session` | Pair a session with the code its user sees. |
 | `mateu_push_ui` | Validate a YAML page (nothing is sent when it has errors), then show it in that tab: `target` = `content` (default), `drawer` or `dialog`, optional `title`. |
 | `mateu_navigate` | Navigate that tab to a route, like a menu click (`route`, plus the optional `consumedRoute`, `actionId`, `baseUrl`, `serverSideType`, `uriPrefix`). |
-| `mateu_dispatch_event` | Dispatch a named event (`@SubscribeTo` views take it). The built-in events are reserved for the two tools above. |
+| `mateu_dispatch_event` | Dispatch a named event (`@SubscribeTo` views take it). The built-in events are reserved for the two tools above. The tab delivers it only while a view on screen subscribes to it, and never a framework event name (see [the event catalogue](/ai/#the-event-catalogue)). |
 
 The pushed screen is rendered by the UI through the same reserved `__preview__` action as the chat's
 `render-screen`: layout only, no view model is created or bound, and it is requested **with the
@@ -238,11 +238,14 @@ as any other request.
 - **The UI side is pinned**: a session belongs to the secret its tab generated and to the principal
   it registered with; another tab, user or guess cannot take over its stream or ask for its codes.
 - **Limits**: 30 messages per session per minute, 256 KiB per screen, 64 KiB per event detail, 10
-  failed pairings per caller per minute, 1000 sessions and 20 per owner (a user, or an anonymous
+  failed pairings per minute per caller and per client address (rotating the agent key does not buy
+  more guesses, and anonymous callers elsewhere are not locked out), 1000 sessions and 20 per owner (a user, or an anonymous
   UI's client address — so one caller cannot fill the registry); a disconnected session is forgotten two
   minutes after its stream ended.
-- **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<handle>
-  kind=<render|navigate|event> … bytes=<n>` — and every pairing too.
+- **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<fingerprint>
+  kind=<render|navigate|event> … bytes=<n>` — and every pairing too. The session is named by its
+  fingerprint (`s-` + the first 12 hex digits of the handle's SHA-256, the same in Java, .NET and
+  Python), never by its handle: the handle is what reaches the session, so it must not sit in a log.
 - In-process: in a cluster, the stream and the MCP call must reach the same node (sticky sessions).
 
 ### Example with Claude Code

@@ -126,7 +126,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                 ? (null, null)
                 : YamlComponentBuilder.ParseReporting(previewYaml, types: _fieldTypes);
             previewTree ??= new Text(problem is not null ? "Invalid YAML — " + problem : "Invalid or empty YAML") { Style = "color: red;" };
-            return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
+            var preview = FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
+            // an agent's definition (render-screen, a live push): nothing in it may run script in the tab
+            return UntrustedDefinition.Requested(rq.Parameters) ? UntrustedDefinition.Neutralize(preview) : preview;
         }
 
         // 0c'. Authoring: validate arbitrary YAML definition text (the MCP tool mateu_validate_uidl)

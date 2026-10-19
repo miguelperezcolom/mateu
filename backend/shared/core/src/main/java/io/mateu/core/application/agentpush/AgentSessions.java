@@ -124,7 +124,20 @@ public final class AgentSessions {
   private final Map<String, Session> bySessionId = new HashMap<>();
   private final Map<String, Session> byHandle = new HashMap<>();
   private final Map<String, Session> byCode = new HashMap<>();
-  private final Map<String, Deque<Instant>> pairingFailures = new HashMap<>();
+
+  /**
+   * The most failure buckets kept: past it the least recently used one goes, so a caller rotating
+   * identities cannot grow the map without bound (its address bucket still counts every guess).
+   */
+  public static final int MAX_FAILURE_BUCKETS = 10_000;
+
+  private final Map<String, Deque<Instant>> pairingFailures =
+      new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Deque<Instant>> eldest) {
+          return size() > MAX_FAILURE_BUCKETS;
+        }
+      };
   private long seq;
 
   /** A registry with its own clock, randomness and limits (tests); apps use {@link #shared()}. */
@@ -311,20 +324,49 @@ public final class AgentSessions {
     return out.stream().map(AgentSessions::entry).toList();
   }
 
+  /**
+   * How the log names a session: {@code s-} and the first 12 hex digits of the handle's SHA-256.
+   * The handle itself is a bearer capability — for an anonymously paired session, whoever holds it
+   * can push UI into that tab — so it never goes to a log; the fingerprint lets an operator tell
+   * sessions apart and correlate lines, and is the same in .NET and Python.
+   */
+  public static String fingerprint(String handle) {
+    if (handle == null) return "s-none";
+    return "s-" + AgentCaller.sha256(handle).substring(0, 12);
+  }
+
   /** Pairs the session whose code this is to the caller (the code dies), and tells the UI. */
   public synchronized Entry pair(AgentCaller caller, String rawCode) {
+    return pair(caller, rawCode, null);
+  }
+
+  /**
+   * Pairs the session whose code this is to the caller (the code dies), and tells the UI. Failed
+   * attempts are counted per caller AND per client {@code address} (when known): a caller rotating
+   * its agent key is still one address, and anonymous callers at different addresses do not share
+   * one bucket (which let one of them lock every other out).
+   */
+  public synchronized Entry pair(AgentCaller caller, String rawCode, String address) {
     var now = clock.instant();
     sweep(now);
-    var bucket = caller.isAnonymous() ? "anonymous" : caller.key();
-    var failures = pairingFailures.computeIfAbsent(bucket, k -> new ArrayDeque<>());
-    prune(failures, now);
-    if (failures.size() >= AgentPush.MAX_PAIRING_FAILURES) {
-      throw new UserFacingException(AgentPush.TOO_MANY_ATTEMPTS);
+    var where = address == null || address.isBlank() ? null : address.trim();
+    var callerBucket =
+        caller.isAnonymous() ? (where == null ? "anonymous" : "anonymous@" + where) : caller.key();
+    var buckets = new ArrayList<Deque<Instant>>();
+    buckets.add(pairingFailures.computeIfAbsent(callerBucket, k -> new ArrayDeque<>()));
+    if (where != null) {
+      buckets.add(pairingFailures.computeIfAbsent("address:" + where, k -> new ArrayDeque<>()));
+    }
+    for (var failures : buckets) {
+      prune(failures, now);
+      if (failures.size() >= AgentPush.MAX_PAIRING_FAILURES) {
+        throw new UserFacingException(AgentPush.TOO_MANY_ATTEMPTS);
+      }
     }
     var code = normalizeCode(rawCode);
     var session = code == null ? null : byCode.get(code);
     if (session == null) {
-      failures.addLast(now);
+      for (var failures : buckets) failures.addLast(now);
       throw new UserFacingException(AgentPush.INVALID_CODE);
     }
     byCode.remove(code);
@@ -339,7 +381,7 @@ public final class AgentSessions {
     log.info(
         "Mateu agent push: caller={} paired session={} (user={})",
         caller.logLabel(),
-        session.handle,
+        fingerprint(session.handle),
         session.principal);
     return entry(session);
   }
@@ -374,7 +416,7 @@ public final class AgentSessions {
     log.info(
         "Mateu agent push: caller={} session={} kind={} {} bytes={}",
         caller.logLabel(),
-        handle,
+        fingerprint(handle),
         message.kind(),
         io.mateu.core.application.logging.LogSafe.of(what),
         bytes);
@@ -410,9 +452,10 @@ public final class AgentSessions {
   }
 
   private static void owned(Session session, String secret, String principal) {
+    // constant-time, like the .NET and Python registries: the time a mismatch takes says nothing
     if (!java.security.MessageDigest.isEqual(
-            session.secretHash.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-            AgentCaller.sha256(secret).getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            session.secretHash.getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+            AgentCaller.sha256(secret).getBytes(java.nio.charset.StandardCharsets.US_ASCII))
         || !java.util.Objects.equals(session.principal, principal)) {
       throw new UserFacingException(AgentPush.CHANNEL_REFUSED);
     }
@@ -445,7 +488,8 @@ public final class AgentSessions {
     try {
       sink.accept(message);
     } catch (RuntimeException e) {
-      log.debug("agent push: the stream of session {} refused a message", session.handle, e);
+      log.debug(
+          "agent push: the stream of session {} refused a message", fingerprint(session.handle), e);
     }
   }
 
@@ -467,6 +511,11 @@ public final class AgentSessions {
             : null,
         session.connected(),
         !session.pairings.isEmpty());
+  }
+
+  /** How many failure buckets are held (tests). */
+  synchronized int failureBuckets() {
+    return pairingFailures.size();
   }
 
   private void sweep(Instant now) {
@@ -558,6 +607,26 @@ public final class AgentSessions {
     if (raw == null) return null;
     var code = raw.replace("-", "").replace(" ", "").toUpperCase(java.util.Locale.ROOT);
     return code.length() == CODE_LENGTH ? code : null;
+  }
+
+  /**
+   * The most characters of an agent-supplied detail (a route, an event name) a log line carries.
+   */
+  static final int MAX_LOGGED_DETAIL = 200;
+
+  /**
+   * An agent-supplied text as a log line may carry it: control characters (CR/LF above all, which
+   * would forge log lines) become {@code ?} and it is clipped — the same in .NET and Python.
+   */
+  static String logSafe(String text) {
+    if (text == null) return "";
+    var clipped = clip(text, MAX_LOGGED_DETAIL);
+    var out = new StringBuilder(clipped.length());
+    for (int i = 0; i < clipped.length(); i++) {
+      char c = clipped.charAt(i);
+      out.append(c < 0x20 || c == 0x7f ? '?' : c);
+    }
+    return out.toString();
   }
 
   private static String clip(String text, int max) {

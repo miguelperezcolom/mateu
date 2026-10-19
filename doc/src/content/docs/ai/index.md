@@ -78,6 +78,10 @@ public class MyApp { ... }
 | `Content-Type`  | `application/json`                               |
 | `Accept`        | `text/event-stream`                              |
 
+`Authorization` and `X-Session-Id` go only to an endpoint on an origin trusted with the user's
+credentials — the app's own backend and the remotes its menu names. A chat endpoint (or upload
+endpoint) on any other origin is called without them, on every renderer.
+
 **Body**
 
 ```json
@@ -339,7 +343,8 @@ It is handled the moment it arrives — the reply can go on streaming under it �
    the backend's reserved `__preview__` action (the one the visual editor uses), which turns it into
    a normal UI increment through the real mapper, and shows it in the content area, or in a drawer
    or a dialog over the current page. In the content area it is transient: any navigation — the same
-   menu entry included — brings the route's own screen back. An invalid definition shows the
+   menu entry included — brings the route's own screen back; and, like a navigation, it first asks
+   before discarding unsaved changes of the screen it replaces (a drawer or dialog replaces nothing). An invalid definition shows the
    preview's own "Invalid or empty YAML" notice. A static bundle has no backend: there, a `uidl`
    (JSON) screen is expanded in the browser and a YAML one shows why it cannot be.
 
@@ -349,6 +354,27 @@ route whose `access:` refuses the caller answers 403) and the wire-type policy, 
 component types (a `ServerSideComponent` naming a class) are not authorable, so a definition cannot
 smuggle in an island bound to a view model. Whatever the rendered screen does afterwards — its
 buttons, its REST sources — goes through the same checks as any other request.
+
+**An agent's screen is untrusted, and runs no code.** An LLM can be steered by the data it reads
+(prompt injection), so pairing an agent grants "drive my UI" — navigate, fill, click, which the user
+could do anyway — never "run code in my signed-in tab". Every shell renders an agent's screen
+(`render-screen` from the chat or from a live push) through `__preview__` with `_untrusted: true`,
+and the backend — Java, .NET and Python alike — takes out of it everything that could run script:
+
+- an `Element` keeps no event-handler attribute (`on…`), no `srcdoc`, no `import` module and no
+  unsafe URL attribute (only relative, `http(s):`, `mailto:` and `tel:` links); its content is shown
+  as text (`html: false`); an element that loads or runs code (`script`, `iframe`, `object`, `embed`,
+  `style`, `base`, `link`, `meta`, `template`, …) or a framework element (`mateu-*`) becomes an empty
+  `div`. Its `on:` events still run the screen's own actions, like a button;
+- `RunJS` rules, an action's `js` and `AddContentToHead` / `AddContentToBody` commands are dropped;
+- a `javascript:` / `vbscript:` URL anywhere is blanked;
+- a `MicroFrontend` does not load from another server (an absolute `baseUrl` is dropped).
+
+Everything else renders as authored. The web renderers (Vaadin and Redwood) apply the same rules
+again in the browser — a static bundle expands a JSON screen locally, and an older backend ignores
+the flag. The rules are pinned by one set of cases, `conformance/untrusted/cases.json`, run by every
+implementation. The visual editor's preview — your own YAML — does not send the flag and renders as
+written.
 
 ### The event catalogue
 
@@ -360,10 +386,16 @@ Every renderer reads the stream the same way and handles the same events:
 | `agent-status` / `agent-tool` | Progress line + the turn's tool steps | Progress line + tool steps | Progress line | Progress line |
 | usage | Token bar (last usage) | Token bar | Token line | Token line |
 | `agent-error` | Warning in the reply | Warning in the reply | Warning in the reply | Warning in the reply |
-| `navigation-requested` | Like a menu click with all the fields; outside an app shell, route resolution | Like a menu click with all the fields (`baseUrl`/`uriPrefix` register a remote) | Like a menu click (route, consumedRoute, serverSideType, baseUrl — another backend gets its own session; an `actionId` with no route runs as an app action) | Like a menu click (one backend per session, so `baseUrl`/`uriPrefix` are not used) |
+| `navigation-requested` | Like a menu click with all the fields; outside an app shell, route resolution | Like a menu click with all the fields (`baseUrl`/`uriPrefix` register a remote) | Like a menu click (route, consumedRoute, serverSideType, baseUrl — another backend gets its own session, which carries the user's credentials only when the app's menu names that backend; an `actionId` with no route runs as an app action) | Like a menu click (one backend per session, so `baseUrl`/`uriPrefix` are not used) |
 | `close-requested` | Closes the panel (ignored by a `Chat` on a page) | Closes the panel | Closes the panel | Closes the dialog / hides the inline panel |
 | `render-screen` | Subscriber first, else content / drawer / dialog | Subscriber first, else content / drawer / dialog | Subscriber first, else content / sheet | Subscriber first, else a transient Preview tab / side window / dialog |
-| anything else | A DOM `CustomEvent` (bubbling, composed) for `@SubscribeTo` views and page scripts | A DOM `CustomEvent` + the `@SubscribeTo` views on screen | The session event bus (`@SubscribeTo` views) | The session event bus (`@SubscribeTo` views) |
+| anything else — only an event a view on screen subscribes to | A DOM `CustomEvent` (bubbling, composed) for the `@SubscribeTo` views — page scripts hear it too | A DOM `CustomEvent` + the `@SubscribeTo` views on screen | The session event bus (`@SubscribeTo` views) | The session event bus (`@SubscribeTo` views) |
+
+An agent cannot fire just any event at the app. Besides the three built-in ones, an event goes out
+only while a view on screen declares it (`@SubscribeTo(event = …)`), and never when it is one of
+the framework's own event names (`server-side-action-requested`, `route-changed`,
+`page-banners-received`, `dirty`, `mateu-…`, DOM events…) — whatever a view declares. Anything else
+is dropped. The lists are pinned by `conformance/client/agent-events.json`.
 
 Links in an answer to a screen of the app (`[Nora Duarte](/booking/bookings/4MBZS7)`) open it in the
 app through the menu entry that serves it, on every renderer. Attachments are offered wherever an

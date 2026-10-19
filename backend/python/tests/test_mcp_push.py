@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from mateu_ui.core import MateuRegistry, MateuRequest, RunActionRq, SyncHandler, agent_push, mcp
-from mateu_ui.core.agent_push import AgentChannel, AgentSessions, Caller, PushContext
+from mateu_ui.core.agent_push import AgentChannel, AgentSessions, Caller, PushContext, fingerprint
 from mateu_ui.core.identity import framework_identity_provider
 from mateu_ui.core.request_context import bound_request
 from mateu_ui.uidl import Identity, UserFacingException, title, ui
@@ -436,7 +436,9 @@ def test_dispatch_event_checks_and_logs_every_delivery(caplog):
         {"kind": "navigate", "event": "navigation-requested",
          "detail": {"route": "/x", "consumedRoute": "", "serverSideType": "T", "uriPrefix": ""}},
     ]
-    assert f"Mateu agent push: caller=alice session={handle} kind=event event=ping bytes=" in caplog.text
+    # the handle is a capability: the log names the session by its fingerprint only (NM4)
+    assert handle not in caplog.text
+    assert f"Mateu agent push: caller=alice session={fingerprint(handle)} kind=event event=ping bytes=" in caplog.text
     assert "kind=navigate route=/x" in caplog.text
 
 
@@ -794,3 +796,58 @@ def test_a_ui_route_is_clipped_to_512():
     channel = AgentChannel(lambda d: None)
     sessions.open_channel("long", "s3cret", None, "/" + "r" * 2000, "vaadin", channel, None)
     assert len(sessions._sessions["long"].route) == 512
+
+
+def test_the_log_never_carries_a_session_handle_only_its_fingerprint(caplog):
+    clock = Clock()
+    sessions = _sessions(clock)
+    _open(sessions, "ui-1", principal=None)
+    code, _ = sessions.new_code("ui-1", "s3cret", None)
+    with caplog.at_level(logging.INFO, logger="mateu.agentpush"):
+        handle = sessions.pair(Caller(), code)["session"]  # anonymous: the handle IS the capability
+    assert handle not in caplog.text
+    assert f"session={fingerprint(handle)}" in caplog.text
+    assert fingerprint("abc") == "s-ba7816bf8f01"  # the same digest as Java and .NET
+
+
+def test_rotating_the_agent_key_buys_no_more_pairing_attempts_from_the_same_address():
+    clock = Clock()
+    sessions = _sessions(clock)
+    _open(sessions, "ui-1", principal=None)
+    code, _ = sessions.new_code("ui-1", "s3cret", None)
+    for i in range(10):
+        with pytest.raises(UserFacingException, match="Invalid or expired"):
+            sessions.pair(Caller.of(None, f"rotating-agent-key-{i:04d}"), "ZZZZ-ZZZZ", "10.0.0.66")
+    with pytest.raises(UserFacingException, match="Too many pairing attempts"):
+        sessions.pair(Caller.of(None, "yet-another-agent-key"), code, "10.0.0.66")
+    with pytest.raises(UserFacingException, match="Too many pairing attempts"):
+        sessions.pair(Caller(), code, "10.0.0.66")
+    # an anonymous caller elsewhere is not locked out (no shared "anonymous" bucket)
+    assert sessions.pair(Caller(), code, "10.0.0.7")["paired"]
+
+
+def test_the_failure_buckets_are_bounded(monkeypatch):
+    import mateu_ui.core.agent_push as agent_push
+
+    assert agent_push.MAX_FAILURE_BUCKETS == 10_000  # the same bound as Java and .NET
+    monkeypatch.setattr(agent_push, "MAX_FAILURE_BUCKETS", 100)  # a smaller one, for speed
+    sessions = _sessions(Clock())
+    for i in range(150):
+        with pytest.raises(UserFacingException):
+            sessions.pair(Caller.of(None, f"agent-key-number-{i:06d}"), "ZZZZ-ZZZZ")
+    assert len(sessions._failures) <= 100
+
+
+def test_what_an_agent_sends_cannot_forge_log_lines_and_a_route_is_bounded(caplog):
+    sessions = _sessions(Clock())
+    channel = AgentChannel(lambda d: None)
+    sessions.open_channel("ui-1", "s3cret", "alice", "/" + "r" * 2000, "v" * 100, channel)
+    entry = sessions.list(ALICE)[0]
+    assert len(entry["route"]) <= 512
+    assert len(entry["renderer"]) <= 32
+    forged = "route=/x\r\nINFO Mateu agent push: caller=admin" + "y" * 500
+    with caplog.at_level(logging.INFO, logger="mateu.agentpush"):
+        sessions.send(ALICE, entry["session"], {"kind": "navigate"}, forged)
+    line = [r.getMessage() for r in caplog.records if "agent push" in r.getMessage()][-1]
+    assert "\n" not in line and "\r" not in line
+    assert len(line) < 400

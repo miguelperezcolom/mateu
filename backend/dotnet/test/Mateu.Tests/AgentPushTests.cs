@@ -522,6 +522,34 @@ public class AgentPushTests
     }
 
     [Fact]
+    public void Rotating_the_agent_key_buys_no_more_pairing_attempts_from_the_same_address()
+    {
+        var f = new Fixture();
+        f.Open("ui-1", "secret-1", null);
+        var code = f.PairCode("ui-1", "secret-1", null);
+        f.Address = "10.0.0.66";
+        for (var i = 0; i < 10; i++)
+            Assert.Equal(AgentSessions.InvalidCode, ToolError(f.Mcp(AgentCaller.From(null, "rotating-agent-key-" + i)),
+                "mateu_pair_session", new() { ["code"] = "2222-2222" }));
+        Assert.Equal(AgentSessions.TooManyAttempts, ToolError(f.Mcp(AgentCaller.From(null, "yet-another-agent-key")),
+            "mateu_pair_session", new() { ["code"] = code }));
+        Assert.Equal(AgentSessions.TooManyAttempts, ToolError(f.Mcp(AgentCaller.Anonymous),
+            "mateu_pair_session", new() { ["code"] = code }));
+        // an anonymous caller elsewhere is not locked out (no shared "anonymous" bucket)
+        f.Address = "10.0.0.7";
+        Assert.True(ToolOk(f.Mcp(AgentCaller.Anonymous), "mateu_pair_session", new() { ["code"] = code })["paired"]!.GetValue<bool>());
+    }
+
+    [Fact]
+    public void The_failure_buckets_are_bounded()
+    {
+        var f = new Fixture();
+        for (var i = 0; i < AgentSessions.MaxFailureBuckets + 50; i++)
+            Assert.Throws<UserFacingException>(() => f.Sessions.Pair(AgentCaller.From(null, "agent-key-number-" + i), "2222-2222"));
+        Assert.True(f.Sessions.FailureBuckets <= AgentSessions.MaxFailureBuckets);
+    }
+
+    [Fact]
     public void Every_anonymous_pairing_counts_on_its_own()
     {
         var f = new Fixture();

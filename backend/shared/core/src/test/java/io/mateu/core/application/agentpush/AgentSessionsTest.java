@@ -299,4 +299,97 @@ class AgentSessionsTest {
     assertThat(AgentSessions.addressOf(" 10.0.0.1 ")).isEqualTo("10.0.0.1");
     assertThat(AgentSessions.addressOf(" ")).isNull();
   }
+
+  @Test
+  void theLogNeverCarriesASessionHandleOnlyAFingerprint() {
+    var logger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(AgentSessions.class);
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    logger.addAppender(logs);
+    try {
+      open("ui-1", null);
+      var code = (String) sessions.pairingCode("ui-1", "secret-ui-1", null).get("code");
+      var handle =
+          sessions.pair(anon, code).session(); // an anonymous pairing: the handle IS the capability
+      sessions.deliver(anon, handle, message(), "event=x", 1);
+      var lines =
+          logs.list.stream()
+              .map(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+              .toList();
+      assertThat(lines).isNotEmpty();
+      assertThat(lines).noneMatch(l -> l.contains(handle));
+      assertThat(lines).allMatch(l -> l.contains(AgentSessions.fingerprint(handle)));
+      assertThat(AgentSessions.fingerprint(handle)).startsWith("s-").hasSize(14);
+      assertThat(AgentSessions.fingerprint("abc"))
+          .isEqualTo("s-ba7816bf8f01"); // as in .NET, Python
+    } finally {
+      logger.detachAppender(logs);
+    }
+  }
+
+  @Test
+  void rotatingTheAgentKeyDoesNotBuyMorePairingAttemptsFromTheSameAddress() {
+    open("ui-1", null);
+    var code = (String) sessions.pairingCode("ui-1", "secret-ui-1", null).get("code");
+    // a new X-Mateu-Agent-Key per guess: each is its own caller, but they come from one address
+    for (int i = 0; i < AgentPush.MAX_PAIRING_FAILURES; i++) {
+      var rotating = AgentCaller.agentKey("rotating-agent-key-" + i);
+      assertThatThrownBy(() -> sessions.pair(rotating, "ZZZZ-ZZZZ", "10.0.0.66"))
+          .hasMessage(AgentPush.INVALID_CODE);
+    }
+    assertThatThrownBy(
+            () -> sessions.pair(AgentCaller.agentKey("yet-another-key-123"), code, "10.0.0.66"))
+        .hasMessage(AgentPush.TOO_MANY_ATTEMPTS);
+    // an anonymous caller elsewhere is not locked out by them (no shared "anonymous" bucket)
+    assertThat(sessions.pair(anon, code, "10.0.0.7").paired()).isTrue();
+  }
+
+  @Test
+  void anonymousCallersAtDifferentAddressesDoNotLockEachOtherOut() {
+    open("ui-1", null);
+    var code = (String) sessions.pairingCode("ui-1", "secret-ui-1", null).get("code");
+    for (int i = 0; i < AgentPush.MAX_PAIRING_FAILURES; i++) {
+      assertThatThrownBy(() -> sessions.pair(anon, "ZZZZ-ZZZZ", "10.0.0.66"))
+          .hasMessage(AgentPush.INVALID_CODE);
+    }
+    assertThatThrownBy(() -> sessions.pair(anon, code, "10.0.0.66"))
+        .hasMessage(AgentPush.TOO_MANY_ATTEMPTS);
+    assertThat(sessions.pair(anon, code, "10.0.0.7").paired()).isTrue();
+  }
+
+  @Test
+  void theFailureBucketsAreBounded() {
+    for (int i = 0; i < AgentSessions.MAX_FAILURE_BUCKETS + 50; i++) {
+      var caller = AgentCaller.agentKey("agent-key-number-" + i);
+      assertThatThrownBy(() -> sessions.pair(caller, "ZZZZ-ZZZZ", null))
+          .hasMessage(AgentPush.INVALID_CODE);
+    }
+    assertThat(sessions.failureBuckets())
+        .isLessThanOrEqualTo(AgentSessions.MAX_FAILURE_BUCKETS + 1);
+  }
+
+  @Test
+  void whatAnAgentSendsCannotForgeLogLines() {
+    var logger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(AgentSessions.class);
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    logger.addAppender(logs);
+    try {
+      open("ui-1", "alice");
+      var handle = handleOf(alice);
+      var forged =
+          "route=/x\r\n2026-10-19 INFO Mateu agent push: caller=admin session=forged"
+              + "y".repeat(500);
+      sessions.deliver(alice, handle, message(), forged, 1);
+      var line = logs.list.get(logs.list.size() - 1).getFormattedMessage();
+      assertThat(line).doesNotContain("\n").doesNotContain("\r");
+      assertThat(line.length()).isLessThan(400);
+    } finally {
+      logger.detachAppender(logs);
+    }
+  }
 }

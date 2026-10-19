@@ -17801,6 +17801,87 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // What an UNTRUSTED definition may not do — the Redwood twin of libs/mateu untrustedDefinition.ts,
+  // same rules, same shared cases (conformance/untrusted/cases.json, test-security.mjs).
+  //
+  // A screen an agent authored (the chat's render-screen, a live push of kind render) is written by
+  // an LLM, which can be steered by the data it reads. Pairing grants "drive my UI", not "run code in
+  // my signed-in tab", so before such a screen is painted everything script-capable is taken out:
+  //  - an Element keeps no `on…` attribute, no srcdoc, no import and no unsafe url attribute; its
+  //    content is TEXT (html false); an element that loads or runs code (script, iframe, object,
+  //    style, base, link, meta, …) or a framework element (mateu-*) becomes an empty div;
+  //  - RunJS rules, an action's `js` and AddContentToHead/AddContentToBody commands go;
+  //  - a javascript:/vbscript: url anywhere is blanked;
+  //  - a MicroFrontend does not load from another server (its absolute baseUrl is dropped).
+  // The backend applies the same rules (`__preview__` with `_untrusted`); this is the renderer's own
+  // line for an older backend. Works on wire JSON and returns a sanitised COPY.
+  // (Every top-level name is prefixed: make-amd.mjs puts all modules in ONE scope.)
+
+  const UNTRUSTED_BLOCKED_ELEMENTS = new Set(['script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed',
+    'applet', 'base', 'link', 'meta', 'template', 'portal', 'noscript'])
+  const UNTRUSTED_URL_ATTRIBUTES = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'background', 'poster',
+    'data', 'cite', 'ping', 'srcset', 'manifest', 'codebase', 'longdesc', 'usemap', 'icon'])
+  const UNTRUSTED_SAFE_SCHEMES = new Set(['http', 'https', 'mailto', 'tel'])
+  const UNTRUSTED_CODE_COMMANDS = new Set(['AddContentToHead', 'AddContentToBody'])
+
+  // eslint-disable-next-line no-control-regex
+  const untrustedCleanedUrl = (value) => value.replace(/[\t\n\r]/g, '').replace(/^[\u0000- ]+/, '')
+  const untrustedSchemeOf = (value) => {
+    const m = /^([a-z][a-z0-9+.-]*):/i.exec(untrustedCleanedUrl(value))
+    return m ? m[1].toLowerCase() : undefined
+  }
+  const isUntrustedScriptUrl = (value) => {
+    const scheme = untrustedSchemeOf(value)
+    return scheme === 'javascript' || scheme === 'vbscript'
+  }
+  const untrustedSafeUrl = (value) => {
+    const scheme = untrustedSchemeOf(value)
+    return !scheme || UNTRUSTED_SAFE_SCHEMES.has(scheme)
+  }
+  const untrustedAbsoluteUrl = (value) => !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).startsWith('//')
+  const untrustedIsObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v)
+  const untrustedIsCode = (v) =>
+    untrustedIsObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && UNTRUSTED_CODE_COMMANDS.has(v.type)))
+
+  function untrustedElement(node) {
+    const name = typeof node.name === 'string' ? node.name.trim().toLowerCase() : ''
+    if (UNTRUSTED_BLOCKED_ELEMENTS.has(name) || name.startsWith('mateu-')) {
+      return { ...node, name: 'div', attributes: {}, on: {}, content: null, html: false }
+    }
+    if (!untrustedIsObject(node.attributes)) return { ...node, html: false }
+    const attributes = {}
+    for (const [key, value] of Object.entries(node.attributes)) {
+      const k = key.toLowerCase()
+      if (k === 'import' || k === 'srcdoc' || k.startsWith('on')) continue
+      if (typeof value === 'string' && (isUntrustedScriptUrl(value) || (UNTRUSTED_URL_ATTRIBUTES.has(k) && !untrustedSafeUrl(value)))) continue
+      attributes[key] = value
+    }
+    return { ...node, attributes, html: false }
+  }
+
+  function untrustedWalk(value) {
+    if (typeof value === 'string') return isUntrustedScriptUrl(value) ? '' : value
+    if (Array.isArray(value)) return value.filter((v) => !untrustedIsCode(v)).map(untrustedWalk)
+    if (!untrustedIsObject(value)) return value
+    let node = value
+    if (node.type === 'Element') node = untrustedElement(node)
+    if (node.type === 'MicroFrontend' && typeof node.baseUrl === 'string' && untrustedAbsoluteUrl(node.baseUrl)) {
+      node = { ...node, baseUrl: '' }
+    }
+    const out = {}
+    for (const [key, v] of Object.entries(node)) {
+      if (key === 'js' && typeof v === 'string') continue
+      out[key] = untrustedWalk(v)
+    }
+    return out
+  }
+
+  /** The definition (an increment, a component, any wire JSON) with every script-capable construct taken out. */
+  function neutralizeUntrusted(definition) {
+    return untrustedWalk(definition)
+  }
+
+
   // poc/chat.mjs — the AI CHAT core, renderer-neutral (Redwood/VB parity with the web chat).
   //
   // The web chat (libs/mateu/.../mateu-chat.ts + chatStream.ts + chatEvents.ts) keeps its transport
@@ -17811,6 +17892,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // lines, and what to do with the UI events the agent sends (navigation-requested, close-requested,
   // render-screen and any other). Tested in Node (poc/test.mjs); the streaming loop takes an injectable
   // `fetchImpl`. It is concatenated into the AMD bundle (make-amd strips the imports).
+
+
 
 
 
@@ -17889,11 +17972,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** Uploads files to the `@AI(upload=…)` endpoint as multipart; returns the saved `{name, path}`. */
+  /**
+   * The credential headers a chat request to `url` may carry: all of them to an origin trusted with
+   * the user's token (the page's, the shell's backend, the remotes its app names —
+   * hostHeaders.storedTokenMayGoTo), NONE to any other. A `Chat` names its `sseUrl`/`uploadUrl` in a
+   * screen, and a screen may come from a remote or an agent: the token must not follow it there (the
+   * web client's credentialHeadersFor does the same).
+   */
+  function chatHeadersFor(url, headers) {
+    return storedTokenMayGoTo(url) ? (headers || {}) : {}
+  }
+
   async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {}, fetchImpl = globalThis.fetch, FormDataImpl = globalThis.FormData }) {
     const form = new FormDataImpl()
     for (const f of files || []) form.append('files', f)
     if (sessionId) form.append('sessionId', sessionId)
-    const response = await fetchImpl(uploadUrl, { method: 'POST', headers, body: form })
+    const response = await fetchImpl(uploadUrl, { method: 'POST', headers: chatHeadersFor(uploadUrl, headers), body: form })
     if (!response.ok) throw new Error(chromeText('chatUploadFailed', { status: response.status }))
     const result = await response.json()
     return ((result && result.files) || []).filter((f) => f && f.path)
@@ -18064,7 +18158,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       method: 'POST',
       headers: {
         Accept: 'text/event-stream', 'Content-Type': 'application/json',
-        ...((typeof headers === 'function' ? headers() : headers) || {}),
+        ...chatHeadersFor(url, typeof headers === 'function' ? headers() : headers),
       },
       body: payload,
     })
@@ -18593,7 +18687,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //     none is, the shell renders it itself (the BUILT-IN render target): the reserved `__preview__`
   //     sync action turns the definition into an ordinary increment, painted in the content (default,
   //     transient), a drawer or a dialog;
-  //   - anything else → a document CustomEvent and the registry's bus (its OnCustomEvent subscribers).
+  //   - anything else a surface on screen subscribes to → a document CustomEvent and the registry's
+  //     bus (its OnCustomEvent subscribers); an undeclared or framework event name goes nowhere.
   // Each event is handled AS SOON AS it arrives, while the answer keeps streaming.
 
   const CHAT_NAVIGATION_REQUESTED = 'navigation-requested'
@@ -18602,6 +18697,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The reserved sync action that turns a definition into a normal UI increment. */
   const CHAT_PREVIEW_ACTION = '__preview__'
   const CHAT_PREVIEW_YAML_KEY = '_yaml'
+  /** Marks the preview as rendering an UNTRUSTED (agent-authored) definition: the backend strips what
+   *  could run script (conformance/untrusted). The visual editor's preview does not send it. */
+  const CHAT_PREVIEW_UNTRUSTED_KEY = '_untrusted'
   /** The pseudo action id the content page runs a ready-made preview increment under. */
   const CHAT_PREVIEW_PAINT_ACTION = '__chatPreview__'
   const CHAT_RENDER_TARGETS = ['content', 'drawer', 'dialog']
@@ -18647,12 +18745,42 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
+  // ── which events an agent may dispatch (NM9) ─────────────────────────────────────────────────
+  // The built-in ones always; any other only when a surface on screen subscribes to it (its
+  // OnCustomEvent trigger: @SubscribeTo) and it is not one of the framework's own event names — an
+  // agent must not fire the renderer's or the DOM's own events at the app. Same lists as libs/mateu
+  // agentEventPolicy.ts, pinned by conformance/client/agent-events.json.
+  const CHAT_AGENT_BUILT_IN_EVENTS = new Set([
+    'navigation-requested', 'close-requested', 'render-screen',
+  ])
+  const CHAT_RESERVED_EVENT_NAMES = new Set([
+    'action-requested', 'server-side-action-requested', 'url-update-requested', 'route-changed',
+    'navigate-to-requested', 'page-banners-received', 'dirty', 'clean', 'value-changed', 'data-changed',
+    'app-data-updated', 'close-modal-requested', 'column-prefs-changed', 'compact-changed', 'history-pushed',
+    'selected-changed', 'search-requested', 'filter-reset-requested', 'picked', 'pinged', 'click',
+    'dblclick', 'input', 'change', 'submit', 'keydown', 'keyup', 'keypress', 'focus', 'blur', 'focusin',
+    'focusout', 'load', 'error', 'abort', 'message', 'storage', 'popstate', 'hashchange', 'beforeunload',
+    'pagehide', 'online', 'offline', 'resize', 'scroll', 'wheel', 'contextmenu', 'pointerdown', 'pointerup',
+    'mousedown', 'mouseup', 'touchstart', 'drop', 'dragstart', 'dragend', 'unhandledrejection',
+    'DOMContentLoaded',
+  ])
+  const CHAT_RESERVED_EVENT_PREFIXES = ['mateu-', 'backend-', 'vaadin-']
+
+  /** Whether an agent may dispatch `name`, given whether a surface on screen subscribes to it. */
+  function agentMayDispatchEvent(name, subscribed) {
+    if (typeof name !== 'string' || !name) return false
+    if (CHAT_AGENT_BUILT_IN_EVENTS.has(name)) return true
+    if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))) return false
+    return !!subscribed
+  }
+
   /**
    * What an agent event means on this screen (`reg` = the registry, for its subscribers):
    *   {kind:'navigate', navigation} | {kind:'close'} | {kind:'ignore'}
    *   {kind:'subscribers', name, detail, subscribers:[{ctxId, actionId, parameters}], dispatch}
    *   {kind:'preview', request, dispatch}  (render-screen nobody on screen takes)
-   *   {kind:'custom', name, detail, subscribers, dispatch}
+   *   {kind:'custom', name, detail, subscribers, dispatch}  (only one a surface subscribes to and
+   *     not a framework event name: anything else is {kind:'ignore'})
    * `dispatch`: it also goes out as a document CustomEvent (a page's web component may listen).
    */
   function chatEventPlanOf(ev, reg) {
@@ -18671,6 +18799,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const request = renderScreenRequestOf(detail)
       return request ? { kind: 'preview', request, dispatch: true } : { kind: 'ignore' }
     }
+    // nobody on screen declares it (or it is one of the framework's own): it goes nowhere
+    if (!agentMayDispatchEvent(name, subscribers.length > 0)) return { kind: 'ignore' }
     return { kind: 'custom', name, detail, subscribers, dispatch: true }
   }
 
@@ -18683,7 +18813,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       consumedRoute: r,
       actionId: CHAT_PREVIEW_ACTION,
       componentState: {},
-      parameters: { [CHAT_PREVIEW_YAML_KEY]: request.yaml },
+      parameters: { [CHAT_PREVIEW_YAML_KEY]: request.yaml, [CHAT_PREVIEW_UNTRUSTED_KEY]: true },
       serverSideType: undefined,
       initiatorComponentId: '',
     }
@@ -18696,9 +18826,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *             the real screen again);
    *   drawer / dialog → an Add of a Drawer / Dialog overlay whose content it is, `title` in its header
    *             — exactly what a server answering a Drawer/Dialog sends, so the usual overlay paints it.
-   * The answer's commands and messages travel with it.
+   * The answer's commands and messages travel with it — all of it UNTRUSTED (neutralizeUntrusted).
    */
-  function chatPreviewIncrementOf(increment, request, route = '') {
+  function chatPreviewIncrementOf(answer, request, route = '') {
+    // an agent wrote it: nothing in it may run script in this tab, whatever the backend sent (untrusted.mjs)
+    const increment = answer ? neutralizeUntrusted(answer) : answer
     const fragment = ((increment && increment.fragments) || []).find((f) => f && f.component)
     if (!fragment) return null
     const target = (request && request.target) || 'content'

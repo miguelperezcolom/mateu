@@ -12,6 +12,7 @@
  *  - `status` messages update the "Connect AI" control; `render` / `navigate` / `event` are applied
  *    EXACTLY like the chat's own UI events (core/uiEvents.ts — one function for both).
  */
+import { secureRandomBytes } from './secureRandom.ts';
 import { randomUuid } from './sessionId.ts';
 import { reconnectDelay } from './appShellExtras.ts';
 import type { ChatUiEvent } from './chatStream.ts';
@@ -42,13 +43,8 @@ export interface UiSessionIdentity {
 
 type Random = (bytes: Uint8Array) => Uint8Array;
 
-function cryptoRandom(bytes: Uint8Array): Uint8Array {
-  const c = (globalThis as { crypto?: { getRandomValues?: (a: Uint8Array) => Uint8Array } }).crypto;
-  if (c?.getRandomValues) return c.getRandomValues(bytes);
-  // last resort only (a runtime with no CSPRNG): still unique per launch
-  for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
-  return bytes;
-}
+// the channel secret must be unguessable: a secure source or nothing (never Math.random)
+const cryptoRandom: Random = secureRandomBytes;
 
 const hex = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 

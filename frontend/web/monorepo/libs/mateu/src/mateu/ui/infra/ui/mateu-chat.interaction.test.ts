@@ -4,6 +4,7 @@ import './mateu-chat'
 import type { MateuChat } from './mateu-chat'
 import { CHAT_WIDTH_KEY } from './chatPanel'
 import { chromeText } from './chromeTexts'
+import { declareAgentEvent } from './agentEventPolicy'
 
 /**
  * The chat beyond the happy stream: dragging its edge, attaching files, the agent's events reaching
@@ -123,7 +124,9 @@ describe('what the agent streams besides text', () => {
         const el = await chat()
         const seen: unknown[] = []
         document.addEventListener('booking-changed', (e) => seen.push((e as CustomEvent).detail), { once: true })
+        const release = declareAgentEvent('booking-changed') // a page on screen subscribes to it
         await el.send(new CustomEvent('submit', { detail: { value: 'hi' } }))
+        release()
         expect(seen).toEqual([{ id: 7 }])
         expect(items(el).at(-1)?.text).toContain('quota exceeded')
     })

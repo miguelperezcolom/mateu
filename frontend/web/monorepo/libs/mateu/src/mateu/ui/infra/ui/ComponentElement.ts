@@ -16,6 +16,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import {evaluateExpression, evaluateTemplate, InterpolationContext} from "@infra/ui/interpolation.ts";
 import {onLoadBackground} from "@infra/http/localRequests.ts";
 import {claimEvent} from "@infra/ui/chatEvents.ts";
+import {declareAgentEvent} from "@infra/ui/agentEventPolicy.ts";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
@@ -447,14 +448,16 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
     // Listeners currently attached for OnCustomEvent triggers, so they can be removed on
     // re-registration (idempotency) and on disconnect (to avoid leaking document-level listeners).
-    private _registeredCustomEventListeners: { target: EventTarget, name: string }[] = []
+    private _registeredCustomEventListeners: { target: EventTarget, name: string, release: () => void }[] = []
 
     // (Re)attach a listener per OnCustomEvent trigger, on the target dictated by its source:
     //   DOCUMENT / COMPONENT -> document (global bus, reaches sibling/unrelated components)
     //   SELF (or unset)      -> this element (legacy: only events bubbling up from descendants)
     private registerCustomEventListeners() {
-        this._registeredCustomEventListeners.forEach(({ target, name }) =>
-            target.removeEventListener(name, this.customEventManager))
+        this._registeredCustomEventListeners.forEach(({ target, name, release }) => {
+            target.removeEventListener(name, this.customEventManager)
+            release()
+        })
         this._registeredCustomEventListeners = []
         const serverSideComponent = this.component as ServerSideComponent
         serverSideComponent?.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
@@ -463,13 +466,16 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     (trigger.source === 'DOCUMENT' || trigger.source === 'COMPONENT')
                         ? document : this
                 target.addEventListener(trigger.eventName, this.customEventManager)
-                this._registeredCustomEventListeners.push({ target, name: trigger.eventName })
+                // an agent may dispatch the event while this component is on screen (agentEventPolicy)
+                this._registeredCustomEventListeners.push({ target, name: trigger.eventName, release: declareAgentEvent(trigger.eventName) })
             })
     }
 
     disconnectedCallback() {
-        this._registeredCustomEventListeners.forEach(({ target, name }) =>
-            target.removeEventListener(name, this.customEventManager))
+        this._registeredCustomEventListeners.forEach(({ target, name, release }) => {
+            target.removeEventListener(name, this.customEventManager)
+            release()
+        })
         this._registeredCustomEventListeners = []
         super.disconnectedCallback()
     }

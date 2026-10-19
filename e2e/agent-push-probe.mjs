@@ -163,13 +163,22 @@ async function main() {
   check(navigated, "tab A navigated to " + navigateTo, tabA.url());
   check(tabB.url() === urlB, "tab B did not move", tabB.url());
 
-  // 4. a custom event reaches tab A's document
-  await tabA.evaluate(() => { window.__agentEvents = []; document.addEventListener("highlight-row", (e) => window.__agentEvents.push(e.detail)); });
+  // 4. a custom event reaches tab A's document only when a view on screen declares it (NM9): the
+  // probed screen subscribes to nothing, so neither an undeclared event nor a framework one arrives
+  await tabA.evaluate(() => {
+    window.__agentEvents = [];
+    for (const n of ["highlight-row", "server-side-action-requested", "page-banners-received"]) {
+      document.addEventListener(n, (e) => window.__agentEvents.push(n), true);
+    }
+  });
   const ev = await native("mateu_dispatch_event", { session: pairedA.session, event: "highlight-row", detail: { id: 7 } });
   check(ev.delivered === true, "dispatch_event delivered");
+  for (const name of ["server-side-action-requested", "page-banners-received"]) {
+    await native("mateu_dispatch_event", { session: pairedA.session, event: name, detail: { actionId: "delete" } });
+  }
   await tabA.waitForTimeout(1000);
   const got = await tabA.evaluate(() => window.__agentEvents);
-  check(Array.isArray(got) && got.some((d) => d?.id === 7), "the event reached tab A's document", JSON.stringify(got));
+  check(Array.isArray(got) && got.length === 0, "an event no view declares, or a framework one, does not reach the document", JSON.stringify(got));
 
   // 5. the sidecar: pairs tab B with its own agent key
   const sidecar = startSidecar();
