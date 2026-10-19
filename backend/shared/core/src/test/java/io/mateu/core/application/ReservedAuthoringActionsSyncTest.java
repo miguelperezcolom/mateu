@@ -70,6 +70,45 @@ class ReservedAuthoringActionsSyncTest {
         .build();
   }
 
+  /**
+   * N4: a crafted definition an anonymous caller can preview — a Partial with no ref, list items
+   * written as {@code null} — answers cleanly AND logs no ERROR with a stack: otherwise every such
+   * request floods the log. Null list items are dropped by the loader; a ref-less partial renders
+   * nothing (WARN).
+   */
+  @Test
+  void craftedNullsAndARefLessPartialLogNoError() {
+    var logger =
+        (ch.qos.logback.classic.Logger)
+            org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    logger.addAppender(logs);
+    try {
+      for (var yaml :
+          List.of(
+              "type: Partial\n",
+              "type: VerticalLayout\ncontent:\n  - type: Partial\n",
+              "type: VerticalLayout\ncontent:\n  - null\n  - type: Text\n    text: a\n",
+              "type: MatrixGrid\ncolumns: []\nsections:\n  - title: s\n    rows: [null]\n",
+              "type: MatrixGrid\nsections: [null]\n",
+              "type: RecordMerge\nrecords: [null]\nfields: [null]\n",
+              "type: PlanningBoard\nresources: [null]\nblocks: [null]\n",
+              "type: FoldoutLayout\npanels: [null]\n",
+              "type: ActionPanel\ncategories: [null]\n")) {
+        var increment = mateu.run(preview(yaml));
+        assertThat(increment.fragments()).as(yaml).isNotNull();
+      }
+    } finally {
+      logger.detachAppender(logs);
+    }
+    assertThat(logs.list)
+        .filteredOn(e -> e.getLevel() == ch.qos.logback.classic.Level.ERROR)
+        .extracting(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+        .isEmpty();
+  }
+
   @Test
   void anEmptyContainerPreviewsCleanly() {
     UIIncrementDto increment = mateu.run(preview("type: VerticalLayout"));

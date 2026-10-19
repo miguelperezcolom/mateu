@@ -169,6 +169,40 @@ class InlineEditWriteProtectionSyncTest {
     assertThat(increment.messages()).isNotEmpty();
   }
 
+  /** N4: a non-map _editedRow is a crafted request — said as written, never an ERROR + stack. */
+  @Test
+  void aNonMapEditedRowIsAMessageNotAnErrorInTheLog() {
+    var logger =
+        (ch.qos.logback.classic.Logger)
+            org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    logger.addAppender(logs);
+    UIIncrementDto increment;
+    try {
+      increment =
+          mateu.run(
+              RunActionRqDto.builder()
+                  .route("/inline-parts")
+                  .consumedRoute("/inline-parts")
+                  .serverSideType(InlineParts.class.getName())
+                  .actionId("update-row")
+                  .initiatorComponentId("c1")
+                  .componentState(Map.of())
+                  .parameters(Map.of("_editedRow", "p1"))
+                  .build());
+    } finally {
+      logger.detachAppender(logs);
+    }
+    assertThat(increment.messages())
+        .anySatisfy(m -> assertThat(m.text()).contains("update-row requires an _editedRow"));
+    assertThat(logs.list)
+        .filteredOn(e -> e.getLevel() == ch.qos.logback.classic.Level.ERROR)
+        .isEmpty();
+    assertThat(stored("p1").name).isEqualTo("Bolt");
+  }
+
   @Test
   void aRowCarryingOnlySomeColumnsKeepsTheOtherFields() {
     updateRow(InlineParts.class, "/inline-parts", Map.of("id", "p1", "units", 99));
