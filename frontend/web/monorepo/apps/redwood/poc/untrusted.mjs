@@ -35,7 +35,10 @@ const untrustedSafeUrl = (value) => {
   const scheme = untrustedSchemeOf(value)
   return !scheme || UNTRUSTED_SAFE_SCHEMES.has(scheme)
 }
-const untrustedAbsoluteUrl = (value) => !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).startsWith('//')
+// another server's url: a scheme, or //host — a browser reads a backslash as '/', so \\host,
+// /\host and \/host are //host too
+const untrustedAbsoluteUrl = (value) =>
+  !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).replace(/\\/g, '/').startsWith('//')
 const untrustedIsObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v)
 const untrustedIsCode = (v) =>
   untrustedIsObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && UNTRUSTED_CODE_COMMANDS.has(v.type)))

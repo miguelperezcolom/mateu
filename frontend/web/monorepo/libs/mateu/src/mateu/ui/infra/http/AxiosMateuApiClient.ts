@@ -16,6 +16,7 @@ import { getAuthToken, sessionId } from '@infra/http/authToken.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
 import { mayCarryCredentials } from '@infra/http/credentialScope.ts'
+import { asAnsweredBy } from '@infra/ui/untrustedDefinition.ts'
 import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
 
 let abortControllers: AbortController[] = []
@@ -269,11 +270,11 @@ export class AxiosMateuApiClient implements MateuApiClient {
                 ? await resolveRemoteBundledLoad(baseUrl, toSyncPath(route), consumedRoute)
                 : undefined
             const answer = (): Promise<UIIncrement> => bundled
-                ? Promise.resolve({
+                ? Promise.resolve(asAnsweredBy(baseUrl, {
                     ...bundled,
                     fragments: (bundled.fragments ?? []).map(f =>
                         f.targetComponentId ? f : { ...f, targetComponentId: initiatorComponentId }),
-                })
+                }))
                 : Promise.reject(new Error(actionId === ''
                     ? `the static bundle ${baseUrl} does not answer the route "${route}"`
                     : `the static bundle ${baseUrl} has no server to run "${actionId}"`))
@@ -359,7 +360,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
         const send = () => this.post(uri, payload, options.timeoutMillis, options.isStale)
             .then((response) => {
                 observeWireVersion(response.data)
-                return response.data as UIIncrement
+                // an origin the app does not trust answers through the untrusted strip (R1)
+                return asAnsweredBy(uri, response.data as UIIncrement)
             })
         return await this.wrap<UIIncrement>(
             () => this.sendWithRetry(send, idempotent, options.quiet, options.isStale), initiator, background,

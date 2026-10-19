@@ -9,6 +9,7 @@ import { ComponentState } from "@infra/ui/renderers/types.ts";
 import { RunActionOptions } from "@domain/MateuApiClient";
 import { isStaleResponse, StaleResponse } from "@infra/ui/staleViewGuard.ts";
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
+import { asAnsweredBy } from '@infra/ui/untrustedDefinition.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
 
 export class SSEService implements Service {
@@ -103,8 +104,10 @@ export class SSEService implements Service {
                         if (!line) continue
                         if (line.startsWith('data:')) {
                             dropIfStale('answered')
-                            const uiIncrement = JSON.parse(line.substring('data:'.length).trim())
-                            observeWireVersion(uiIncrement)
+                            const parsed = JSON.parse(line.substring('data:'.length).trim())
+                            observeWireVersion(parsed)
+                            // an origin the app does not trust answers through the untrusted strip (R1)
+                            const uiIncrement = asAnsweredBy(baseUrl + '/mateu/v3/sse/' + route, parsed)
 
                             if (callback) {
                                 callback(uiIncrement)

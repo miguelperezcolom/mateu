@@ -16363,6 +16363,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
    *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
    *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
@@ -16386,13 +16387,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         route: bare ? `/${bare}` : '',
       }),
     }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
-    const increment = await res.json()
+    // R1: an origin the shell does not trust (an agent-named base, a remote's own remote) answers
+    // through the untrusted strip: what it sends cannot run code in this tab
+    const increment = answeredBy(base, await res.json())
     observeWireVersion(increment)
     // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
     adoptReferencedSources(increment)
     // the body takes time too: whatever arrives after the screen changed is not applied either
     if (isViewStale(view)) throw staleResponseError(body.actionId)
     return increment
+  }
+
+  /** An answer as it may be painted: as written from a trusted origin (hostHeaders.isTrustedOrigin),
+   *  through the untrusted strip (untrusted.mjs) from any other. */
+  function answeredBy(base, increment) {
+    return isTrustedOrigin(`${base}/mateu/v3/`) ? increment : neutralizeUntrusted(increment)
   }
 
   /** Shell bootstrap: the root App only resolves through the generic endpoint.
@@ -16679,7 +16688,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (reader && reader.cancel) reader.cancel().catch(() => undefined)
         throw staleResponseError(actionId)
       }
-      const inc = JSON.parse(line.slice(5).trim())
+      const inc = answeredBy(base, JSON.parse(line.slice(5).trim()))
       observeWireVersion(inc)
       adoptReferencedSources(inc)
       const consumed = onIncrement ? await onIncrement(inc) : false
@@ -17858,7 +17867,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const scheme = untrustedSchemeOf(value)
     return !scheme || UNTRUSTED_SAFE_SCHEMES.has(scheme)
   }
-  const untrustedAbsoluteUrl = (value) => !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).startsWith('//')
+  // another server's url: a scheme, or //host — a browser reads a backslash as '/', so \\host,
+  // /\host and \/host are //host too
+  const untrustedAbsoluteUrl = (value) =>
+    !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).replace(/\\/g, '/').startsWith('//')
   const untrustedIsObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v)
   const untrustedIsCode = (v) =>
     untrustedIsObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && UNTRUSTED_CODE_COMMANDS.has(v.type)))
@@ -18809,7 +18821,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const detail = ev.detail && typeof ev.detail === 'object' ? ev.detail : {}
     if (name === CHAT_NAVIGATION_REQUESTED) {
       const navigation = chatNavigationOf(detail)
-      return navigation ? { kind: 'navigate', navigation } : { kind: 'ignore' }
+      if (!navigation) return { kind: 'ignore' }
+      // R1: an agent may only name a base url the shell trusts — its own, a remote its app names
+      // (the token's rule); any other is dropped and the route opens in the app. Otherwise it was
+      // registered as a remote route and its answer painted with the author's trust.
+      if (navigation.baseUrl && !isTrustedOrigin(navigation.baseUrl)) {
+        delete navigation.baseUrl
+      }
+      return { kind: 'navigate', navigation }
     }
     if (name === CHAT_CLOSE_REQUESTED) return { kind: 'close' }
     const subscribers = (reg ? busSubscribersOf(reg, { name, detail, source: null }) : [])

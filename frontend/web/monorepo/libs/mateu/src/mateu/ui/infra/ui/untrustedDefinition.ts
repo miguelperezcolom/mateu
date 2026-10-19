@@ -23,6 +23,8 @@
  * Works on the wire JSON (a fragment, a component, anything) and returns a sanitised COPY.
  */
 
+import { isTrustedOrigin } from '@infra/http/credentialScope.ts'
+
 const BLOCKED_ELEMENTS = new Set(['script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed',
     'applet', 'base', 'link', 'meta', 'template', 'portal', 'noscript'])
 const URL_ATTRIBUTES = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'background', 'poster',
@@ -48,7 +50,10 @@ const isSafeUrl = (value: string): boolean => {
     return !scheme || SAFE_SCHEMES.has(scheme)
 }
 
-const isAbsoluteUrl = (value: string): boolean => !!schemeOf(value) || cleanedUrl(value).startsWith('//')
+/** Another server's url: a scheme, or `//host` — where a browser reads a backslash as `/`, so
+ *  `\\host`, `/\host` and `\/host` are `//host` too. */
+const isAbsoluteUrl = (value: string): boolean =>
+    !!schemeOf(value) || cleanedUrl(value).replace(/\\/g, '/').startsWith('//')
 
 type Json = unknown
 type JsonObject = Record<string, Json>
@@ -96,4 +101,14 @@ const walk = (value: Json): Json => {
 /** The definition (a fragment, a component, any wire JSON) with every script-capable construct taken out. */
 export function neutralizeUntrusted<T>(definition: T): T {
     return walk(definition) as T
+}
+
+/**
+ * An answer as it may be applied: with the author's trust when `url` is on an origin the app trusts
+ * (its own, a remote its menu declares — credentialScope.isTrustedOrigin), through the untrusted
+ * strip otherwise. The second line behind R1: whatever names a foreign server (an agent, a remote's
+ * own remote, a record value in a base url), what that server answers cannot run code here.
+ */
+export function asAnsweredBy<T>(url: string, answer: T): T {
+    return isTrustedOrigin(url) ? answer : neutralizeUntrusted(answer)
 }

@@ -197,7 +197,11 @@ public final class UntrustedDefinition {
     return scheme == null || SAFE_SCHEMES.contains(scheme);
   }
 
+  /**
+   * Another server's url: a scheme, or {@code //host} — a browser reads a backslash as {@code /},
+   * so {@code \\host}, {@code /\host} and {@code \/host} are {@code //host} too.
+   */
   private static boolean isAbsoluteUrl(String value) {
-    return schemeOf(value) != null || cleaned(value).startsWith("//");
+    return schemeOf(value) != null || cleaned(value).replace('\\', '/').startsWith("//");
   }
 }

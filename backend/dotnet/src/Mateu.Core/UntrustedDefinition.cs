@@ -165,5 +165,8 @@ internal static class UntrustedDefinition
 
     static bool IsSafeUrl(string value) => SchemeOf(value) is not { } scheme || SafeSchemes.Contains(scheme);
 
-    static bool IsAbsoluteUrl(string value) => SchemeOf(value) is not null || Cleaned(value).StartsWith("//", StringComparison.Ordinal);
+    // another server's url: a scheme, or //host — a browser reads a backslash as '/', so \\host,
+    // /\host and \/host are //host too
+    static bool IsAbsoluteUrl(string value) =>
+        SchemeOf(value) is not null || Cleaned(value).Replace('\\', '/').StartsWith("//", StringComparison.Ordinal);
 }

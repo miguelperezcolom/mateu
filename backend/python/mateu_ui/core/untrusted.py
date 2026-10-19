@@ -68,7 +68,9 @@ def _safe_url(value: str) -> bool:
 
 
 def _absolute_url(value: str) -> bool:
-    return _scheme_of(value) is not None or _cleaned(value).startswith("//")
+    # another server's url: a scheme, or //host — a browser reads a backslash as "/", so
+    # \\host, /\host and \/host are //host too
+    return _scheme_of(value) is not None or _cleaned(value).replace("\\", "/").startswith("//")
 
 
 def _is_code(item: Any) -> bool:

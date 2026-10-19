@@ -44,6 +44,11 @@
       "name": "a micro frontend of this backend stays",
       "input": {"type": "MicroFrontend", "baseUrl": "/remote", "route": "/x"},
       "expected": {"type": "MicroFrontend", "baseUrl": "/remote", "route": "/x"}
+    },
+    {
+      "name": "a micro frontend named with backslashes is another server too: the browser reads \\ as /",
+      "input": {"type": "VerticalLayout", "content": [{"type": "MicroFrontend", "baseUrl": "\\\\attacker.example", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "/\\attacker.example", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "\\/attacker.example", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "/\t/attacker.example", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": " \\\\attacker.example/x", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "/remote\\x", "route": "/x"}]},
+      "expected": {"type": "VerticalLayout", "content": [{"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "/remote\\x", "route": "/x"}]}
     }
   ]
 }

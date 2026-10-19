@@ -119,6 +119,20 @@ describe('SSEService streaming', () => {
         expect(events.map(e => e.type)).toEqual([])
     })
 
+    it('R1: a stream from an origin the app does not trust is applied through the untrusted strip', async () => {
+        const line = 'data: ' + JSON.stringify({ fragments: [{ targetComponentId: 'x', component: { type: 'ClientSide',
+            metadata: { type: 'Element', name: 'img', attributes: { src: 'a.png', onerror: 'steal()' }, on: {}, content: null, html: false } } }] }) + '\n\n'
+        const seen: any[] = []
+        respond({ chunks: [line] })
+        service.runAction({} as never, 'https://attacker.example', 'deploy', '', 'go', 'cmp-1', {}, 'my.Type', {}, {},
+            initiator, true, (r) => seen.push(r), false, 'tok')
+        for (let i = 0; i < 20; i++) await new Promise(r => setTimeout(r, 0))
+        expect(seen[0].fragments[0].component.metadata.attributes).toEqual({ src: 'a.png' })
+        respond({ chunks: [line] })
+        await run((r) => seen.push(r))
+        expect(seen[1].fragments[0].component.metadata.attributes.onerror).toBe('steal()')
+    })
+
     it('appState/appData in a streamed increment notify app-data-updated', async () => {
         respond({ chunks: ['data: {"appState":{"hotel":"h1"}}\n\n'] })
         const updates: unknown[] = []

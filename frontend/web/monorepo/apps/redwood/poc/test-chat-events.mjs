@@ -14,6 +14,7 @@ import {
 } from './chat.mjs'
 import { readFileSync } from 'node:fs'
 import { setChromeLanguage } from './i18n.mjs'
+import { trustShellBase, trustDeclaredRemoteBases, resetCredentialOrigins } from './hostHeaders.mjs'
 
 setChromeLanguage('en')
 let passed = 0
@@ -148,6 +149,22 @@ test('navigation-requested: every menu-click field travels, not only the route',
   assert.deepEqual(navigationLoadExtraOf(chatNavigationOf(detail)), { serverSideType: 'a.B', actionId: 'open' })
   assert.deepEqual(navigationLoadExtraOf({ route: '/x', consumedRoute: '/x' }), { consumedRoute: '/x' })
   assert.deepEqual(navigationLoadExtraOf(undefined), {})
+})
+
+test('R1: an agent navigation keeps a base url only for the shell\'s own origin or a remote its app names', () => {
+  resetCredentialOrigins()
+  try {
+    trustShellBase('https://app.example')
+    trustDeclaredRemoteBases(['https://forms.example'])
+    const baseOf = (baseUrl) => chatEventPlanOf({ event: 'navigation-requested', detail: { route: '/x', baseUrl } }, regWith()).navigation.baseUrl
+    for (const foreign of ['https://attacker.example', '//attacker.example', '\\\\attacker.example', '/\\attacker.example', 'javascript:alert(1)']) {
+      assert.equal(baseOf(foreign), undefined, foreign)
+    }
+    assert.equal(baseOf('https://forms.example'), 'https://forms.example')
+    assert.equal(baseOf('/_pod'), '/_pod')
+  } finally {
+    resetCredentialOrigins()
+  }
 })
 
 test('close-requested closes; any other event goes to the document AND to its subscribers on screen', () => {

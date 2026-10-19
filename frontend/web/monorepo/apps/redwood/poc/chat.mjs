@@ -12,7 +12,7 @@
 import { chromeText } from './i18n.mjs'
 import { busSubscribersOf, callMateu } from './transport.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
-import { storedTokenMayGoTo } from './hostHeaders.mjs'
+import { storedTokenMayGoTo, isTrustedOrigin } from './hostHeaders.mjs'
 
 /** Recognises a `data:` payload that is a token-usage object ({inputTokens|outputTokens|totalTokens}). */
 export function tryParseTokenUsage(payload) {
@@ -906,7 +906,14 @@ export function chatEventPlanOf(ev, reg) {
   const detail = ev.detail && typeof ev.detail === 'object' ? ev.detail : {}
   if (name === CHAT_NAVIGATION_REQUESTED) {
     const navigation = chatNavigationOf(detail)
-    return navigation ? { kind: 'navigate', navigation } : { kind: 'ignore' }
+    if (!navigation) return { kind: 'ignore' }
+    // R1: an agent may only name a base url the shell trusts — its own, a remote its app names
+    // (the token's rule); any other is dropped and the route opens in the app. Otherwise it was
+    // registered as a remote route and its answer painted with the author's trust.
+    if (navigation.baseUrl && !isTrustedOrigin(navigation.baseUrl)) {
+      delete navigation.baseUrl
+    }
+    return { kind: 'navigate', navigation }
   }
   if (name === CHAT_CLOSE_REQUESTED) return { kind: 'close' }
   const subscribers = (reg ? busSubscribersOf(reg, { name, detail, source: null }) : [])
