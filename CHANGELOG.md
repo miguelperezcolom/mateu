@@ -11,6 +11,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.4] — 2026-10-19
+
+The closing batch: the 3.x API frozen and enforced, a first-hour smoke against every release, the docs' code samples compiled, an AI plugin for Claude Code, one chat contract on every renderer, an MCP for authoring screens, and the product bugs those efforts found.
+
 ### Added
 - **MCP for authoring UI.** The MCP endpoint (and the stdio sidecar) now also lets an agent *write*
   screens: resources `mateu://guide`, `mateu://catalog`, `mateu://schema/specs`, `mateu://schema/uidl`
