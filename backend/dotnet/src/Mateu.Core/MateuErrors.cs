@@ -16,6 +16,16 @@ internal static class MateuLogging
     public static void UseLoggerFactory(ILoggerFactory? factory) =>
         _factory = factory ?? NullLoggerFactory.Instance;
 
+    /// <summary>A caller-sent string as a log argument: clipped to 256 characters, every control
+    /// character (CR, LF, tabs) replaced by <c>?</c> — it can neither forge log lines nor flood the
+    /// log (Java's <c>LogSafe</c>, Python's <c>log_safe</c>).</summary>
+    internal static string Safe(string? value)
+    {
+        if (value is null) return "null";
+        var clipped = value.Length > 256 ? value[..256] + "…" : value;
+        return new string(clipped.Select(c => char.IsControl(c) ? '?' : c).ToArray());
+    }
+
     internal static ILogger For(string category)
     {
         try

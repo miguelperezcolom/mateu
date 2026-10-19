@@ -126,6 +126,16 @@ def reserved_event(event: str) -> str:
     return f'Event "{event}" is reserved: use mateu_push_ui or mateu_navigate.'
 
 
+def log_safe(value: str | None) -> str:
+    """A caller-sent string as a log argument: clipped to 256 characters, every control character
+    (CR, LF, tabs) replaced by ``?`` — it can neither forge log lines nor flood the log (Java's
+    ``LogSafe``, .NET's ``MateuLogging.Safe``)."""
+    if value is None:
+        return "None"
+    clipped = value if len(value) <= 256 else value[:256] + "…"
+    return "".join("?" if (ord(c) < 32 or 127 <= ord(c) < 160) else c for c in clipped)
+
+
 def owner_of(principal: str | None, session_id: str) -> str:
     """Who a UI session counts against for ``max-sessions-per-owner``: its principal name, else (an
     anonymous UI) the session itself — nobody else's: keyed on the client address, every anonymous
@@ -327,7 +337,7 @@ class AgentSessions:
                     handle=self._new_handle(),
                     secret_hash=_sha256(secret),
                     principal=principal,
-                    route=route,
+                    route=(route or "")[:512],
                     renderer=renderer,
                     connected_at=self._now(),
                     owner=owner,
@@ -337,7 +347,7 @@ class AgentSessions:
                 self._by_handle[session.handle] = session_id
             else:
                 self._check_owner(session, secret, principal)
-                session.route = route
+                session.route = (route or "")[:512]
                 session.renderer = renderer
                 session.connected_at = self._now()
             previous = session.channel
@@ -447,7 +457,7 @@ class AgentSessions:
         size = len(json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
         log.info(
             "Mateu agent push: caller=%s session=%s kind=%s %s bytes=%d",
-            caller.log_label, handle, data.get("kind"), log_detail, size,
+            caller.log_label, handle, data.get("kind"), log_safe(log_detail), size,
         )
 
     # ── internals (under the lock) ──

@@ -543,12 +543,14 @@ def _save_spec(args, sync_fn):
         raise McpCallerError(spec_writer.catalogue_refusal(path))
     validation = _validation("", yaml_text, sync_fn)
     out = {}
+    from mateu_ui.core.agent_push import log_safe
+
     kind = validation.get("kind")
     refused = spec_writer.agent_refusal(kind if isinstance(kind, str) else None, yaml_text)
     if refused is not None:
         # never written, and said loudly: an agent tried to author what decides a request
         logging.getLogger("mateu.mcp").warning(
-            "mateu_save_spec refused %r: %s", (path or "")[:256], refused
+            "mateu_save_spec refused %s: %s", log_safe(path), refused
         )
         out["saved"] = False
         out["reason"] = refused

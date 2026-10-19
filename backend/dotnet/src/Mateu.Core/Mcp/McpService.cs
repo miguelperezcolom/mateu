@@ -244,7 +244,7 @@ internal sealed class McpService
         {
             // never written, and said loudly: an agent tried to author what decides a request
             MateuLogging.For("Mateu.Mcp").LogWarning("mateu_save_spec refused {Path}: {Reason}",
-                path.Length > 256 ? path[..256] : path, refusal);
+                MateuLogging.Safe(path), refusal);
             out_["saved"] = false;
             out_["reason"] = refusal;
         }

@@ -676,3 +676,14 @@ public class AgentPushTests
         }
     }
 }
+
+public class LogSafeTests
+{
+    [Fact]
+    public void A_logged_value_can_neither_forge_lines_nor_flood_the_log()
+    {
+        Assert.Equal("/orders??INFO forged", Mateu.Core.MateuLogging.Safe("/orders\r\nINFO forged"));
+        Assert.Equal(257, Mateu.Core.MateuLogging.Safe(new string('x', 10_000)).Length);
+        Assert.Equal("null", Mateu.Core.MateuLogging.Safe(null));
+    }
+}

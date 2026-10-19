@@ -376,7 +376,7 @@ public final class AgentSessions {
         caller.logLabel(),
         handle,
         message.kind(),
-        what,
+        io.mateu.core.application.logging.LogSafe.of(what),
         bytes);
   }
 
@@ -410,7 +410,9 @@ public final class AgentSessions {
   }
 
   private static void owned(Session session, String secret, String principal) {
-    if (!session.secretHash.equals(AgentCaller.sha256(secret))
+    if (!java.security.MessageDigest.isEqual(
+            session.secretHash.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+            AgentCaller.sha256(secret).getBytes(java.nio.charset.StandardCharsets.UTF_8))
         || !java.util.Objects.equals(session.principal, principal)) {
       throw new UserFacingException(AgentPush.CHANNEL_REFUSED);
     }

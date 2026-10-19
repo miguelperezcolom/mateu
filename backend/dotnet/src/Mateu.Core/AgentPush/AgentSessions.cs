@@ -233,7 +233,9 @@ internal sealed class AgentSessions
                 _byId[sessionId] = session;
                 _byHandle[session.Handle] = session;
             }
-            session.Route = route ?? "";
+            // clipped like Java's (512): a route is caller-chosen and is listed and logged
+            var r0 = route ?? "";
+            session.Route = r0.Length > 512 ? r0[..512] : r0;
             var r = string.IsNullOrWhiteSpace(renderer) ? "" : renderer.Trim();
             session.Renderer = r.Length > MaxRendererLength ? r[..MaxRendererLength] : r;
             session.ConnectedAt = now;

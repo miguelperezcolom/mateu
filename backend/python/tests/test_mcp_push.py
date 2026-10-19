@@ -781,3 +781,16 @@ def test_the_per_owner_cap_comes_from_the_environment(monkeypatch):
     monkeypatch.setenv("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", "nope")
     _, handler = _api(monkeypatch, mcp=True, mcp_push=True)
     assert handler.agent_push.max_sessions_per_owner == 20
+
+
+def test_a_logged_value_can_neither_forge_lines_nor_flood_the_log():
+    assert agent_push.log_safe("/orders\r\nINFO forged") == "/orders??INFO forged"
+    assert len(agent_push.log_safe("x" * 10_000)) == 257
+    assert agent_push.log_safe(None) == "None"
+
+
+def test_a_ui_route_is_clipped_to_512():
+    sessions = _sessions(Clock())
+    channel = AgentChannel(lambda d: None)
+    sessions.open_channel("long", "s3cret", None, "/" + "r" * 2000, "vaadin", channel, None)
+    assert len(sessions._sessions["long"].route) == 512
