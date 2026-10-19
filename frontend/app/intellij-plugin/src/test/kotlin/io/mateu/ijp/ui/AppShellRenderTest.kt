@@ -67,6 +67,19 @@ class AppShellRenderTest : BasePlatformTestCase() {
         assertEquals("Back office", ctx.lastWindowTitle)
     }
 
+    fun testConnectAiShowsOnlyWhenTheAppHasLiveUiPushOn() {
+        fun connectLinks(c: JComponent) = all(c).filterIsInstance<ActionLink>().filter { it.text.contains("Connect AI") }.toList()
+        val off = context(shell = true)
+        assertTrue(connectLinks(render(off)).isEmpty())
+        assertFalse(off.session.agentPush)
+
+        val on = context(shell = true)
+        val links = connectLinks(render(on, app.replaceFirst("\"accessKeys\":true", "\"accessKeys\":true,\"agentPush\":true")))
+        assertTrue(on.session.agentPush)
+        assertEquals("Connect AI", links.single().accessibleContext.accessibleName)
+        on.session.dispose()
+    }
+
     fun testAMediatorAppInsideAViewDoesNotTakeOverTheNavigator() {
         val ctx = context(shell = false)
         render(ctx)

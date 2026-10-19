@@ -2,7 +2,6 @@ package io.mateu.ijp.state
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mateu.ijp.api.MateuApiClient
-import java.util.UUID
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.swing.JFrame
@@ -25,7 +24,9 @@ class AppSession(
     val credentials: io.mateu.ijp.api.CredentialScope = io.mateu.ijp.api.CredentialScope(baseUrl),
 ) {
     val mapper: ObjectMapper = ObjectMapper()
-    val sessionId: String = UUID.randomUUID().toString().replace("-", "")
+    /** The UI SESSION id: the `X-Session-Id` of every request, the chat's `sessionId` and the live UI
+     *  push channel's session (one id, as the web's per-tab id) — unguessable (CSPRNG). */
+    val sessionId: String = io.mateu.ijp.chat.ChatRequests.newSessionId()
     val apiClient: MateuApiClient = MateuApiClient(baseUrl, sessionId, mapper, tokenProvider, credentials::mayCarryCredentials)
 
     /** Control/context data echoed back on every request; seeded from the launch config. */
@@ -246,6 +247,91 @@ class AppSession(
         if (!wanted) { liveStream?.stop(); liveStream = null }
     }
 
+    // ── live UI push (phase C): an agent sends UI to this window through MCP ─────────────────
+
+    /** The channel secret: random, kept here, sent only on `_agent-channel/-pair/-unpair`. */
+    val agentSecret: String = AgentPush.newSecret()
+
+    /** Whether the app has push on (`AppDto.agentPush`): the channel is open and "Connect AI" shows. */
+    @Volatile var agentPush: Boolean = false
+        private set
+
+    /** Who is paired + the code being shown; what "Connect AI" renders. EDT. */
+    val agentPairing = AgentPairingState()
+
+    private var agentChannel: AgentChannelStream? = null
+
+    /** Fired (EDT) when [agentPush] flips, so the host shows/hides its "Connect AI" action. */
+    var onAgentPushChanged: (() -> Unit)? = null
+
+    /** Opens the channel when the app has push on (and closes it when it has not). */
+    fun syncAgentPush(wanted: Boolean) {
+        if (wanted && agentChannel == null) agentChannel = AgentChannelStream(this).also { it.start() }
+        if (!wanted && agentChannel != null) {
+            agentChannel?.stop()
+            agentChannel = null
+            agentPairing.reset()
+        }
+        if (agentPush != wanted) {
+            agentPush = wanted
+            onAgentPushChanged?.invoke()
+        }
+    }
+
+    /** The route the UI shows, as the channel reports it (the view last navigated in, else home). */
+    fun currentUiRoute(): String = activeView?.currentRoute?.ifBlank { null } ?: homeRoute ?: appRootRoute
+
+    /**
+     * One pushed message, applied EXACTLY like the chat's event of the same name (the shared
+     * [io.mateu.ijp.ui.AgentEvents]) — a `status` updates [agentPairing] instead. EDT.
+     */
+    fun applyAgentPush(message: AgentPush.Message) {
+        when (val effect = AgentPush.decide(message)) {
+            is AgentPush.Effect.Status -> agentPairing.status(effect.paired, effect.agents)
+            is AgentPush.Effect.UiEvent -> io.mateu.ijp.ui.AgentEvents.apply(this, effect.event, effect.detail)
+            AgentPush.Effect.Ignore -> Unit
+        }
+    }
+
+    /** Asks for a new one-time pairing code (`_agent-pair`); the answer lands in [agentPairing]. */
+    fun requestAgentPairing(now: () -> Long = System::currentTimeMillis) {
+        agentPairing.requesting()
+        runAgentAction(AgentPush.PAIR_ACTION) { answer ->
+            when (answer) {
+                is AgentPush.PairAnswer.Code -> agentPairing.codeReceived(answer.pairing, now())
+                AgentPush.PairAnswer.Cleared -> agentPairing.failed(AgentPush.NO_CODE)
+                is AgentPush.PairAnswer.Failed -> agentPairing.failed(answer.message)
+            }
+        }
+    }
+
+    /** Disconnects every paired agent (`_agent-unpair`); [onDone] gets the error, null when it worked. */
+    fun disconnectAgents(onDone: (String?) -> Unit = {}) {
+        runAgentAction(AgentPush.UNPAIR_ACTION) { answer ->
+            if (answer is AgentPush.PairAnswer.Failed) {
+                onDone(answer.message)
+            } else {
+                agentPairing.forgetCode()
+                agentPairing.unpaired()
+                onDone(null)
+            }
+        }
+    }
+
+    /** An app-level pairing action on the APP class (route = the app's root route), answered on the EDT. */
+    private fun runAgentAction(actionId: String, onAnswer: (AgentPush.PairAnswer) -> Unit) {
+        val parameters = AgentPush.credentials(sessionId, agentSecret)
+        val state = HashMap(appState)
+        executor.submit {
+            val answer = runCatching {
+                AgentPush.pairAnswerOf(
+                    apiClient.runAction(appRootRoute, "", actionId, appServerSideType, "mateu-agent-pairing", emptyMap(), state, parameters),
+                )
+            }.getOrElse { AgentPush.PairAnswer.Failed(AgentPush.failureText(it)) }
+            SwingUtilities.invokeLater { onAnswer(answer) }
+        }
+    }
+
     /** The idle-session watcher (Swing side), installed by renderApp; stopped on dispose. */
     var idleWatcher: AutoCloseable? = null
 
@@ -282,6 +368,8 @@ class AppSession(
     /** The session ends (project closed): the stream and the idle watcher stop, the pool too. */
     fun dispose() {
         syncLiveUpdates(false)
+        agentChannel?.stop()
+        agentChannel = null
         runCatching { idleWatcher?.close() }
         idleWatcher = null
         executor.shutdownNow()
