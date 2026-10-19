@@ -63,15 +63,6 @@ itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ## Renderers
 
-### Vaadin: foldout panels start expanded
-
-The Vaadin shell renders a `Foldout` as a horizontal carousel of sections that are always
-expanded: it ignores `@Panel(open = false)` / `FoldoutPanel.open`, so a panel declared folded
-starts open there. Redwood starts it folded.
-
-**Workaround:** none needed for the content — every panel is reachable by scrolling the carousel.
-Size wide panels with `FoldoutPanel.width`. See [Foldout](/ux-patterns/foldout/).
-
 ### Redwood: light theme only
 
 The Redwood renderer has no dark mode. It ignores `@App(themeToggle = true)`, a stored dark choice
