@@ -725,6 +725,17 @@ def test_the_owner_cap_then_the_global_cap():
         _open_from(sessions, "ui-3", "carol")
 
 
+def _from_client(app, client):
+    """The app as seen from ``client`` (a ``(host, port)`` pair, or None): TestClient's own client
+    address differs across Starlette versions (``testclient`` today, None in the lowest supported),
+    so the test pins the ASGI scope's ``client`` itself instead of relying on it."""
+    async def asgi(scope, receive, send):
+        if scope["type"] in ("http", "websocket"):
+            scope = {**scope, "client": client}
+        await app(scope, receive, send)
+    return asgi
+
+
 def test_over_fastapi_an_anonymous_ui_is_owned_by_its_client_address(monkeypatch):
     from fastapi.testclient import TestClient
 
@@ -733,10 +744,15 @@ def test_over_fastapi_an_anonymous_ui_is_owned_by_its_client_address(monkeypatch
     api, handler = _api(monkeypatch, mcp=True, mcp_push=True, mcp_push_max_sessions_per_owner=1)
     monkeypatch.setattr(mateu_ui.fastapi, "AGENT_MAX_SECONDS", 0.2)
     assert handler.agent_push.max_sessions_per_owner == 1
-    rs = TestClient(api).post("/mateu/v3/sse/_empty", json={
+    rs = TestClient(_from_client(api, ("10.0.0.7", 51000))).post("/mateu/v3/sse/_empty", json={
         "actionId": "_agent-channel", "parameters": {"sessionId": "t", "secret": "s"}})
     assert rs.status_code == 200
-    assert handler.agent_push._sessions["t"].owner == "testclient"  # Starlette's TestClient address
+    assert handler.agent_push._sessions["t"].owner == "10.0.0.7"
+    # no client address reported by the server: the owner is "unknown"
+    rs = TestClient(_from_client(api, None)).post("/mateu/v3/sse/_empty", json={
+        "actionId": "_agent-channel", "parameters": {"sessionId": "t3", "secret": "s"}})
+    assert rs.status_code == 200
+    assert handler.agent_push._sessions["t3"].owner == agent_push.UNKNOWN_OWNER
     signed = TestClient(api).post("/mateu/v3/sse/_empty", json={
         "actionId": "_agent-channel", "parameters": {"sessionId": "t2", "secret": "s"}},
         headers={"x-test-user": "alice"})

@@ -171,7 +171,7 @@ class CrudHandlerMixin(MixinBase):
                     crud_type, element, self.get_or_new(crud, element, id_), "edit", f"{base_route}/{id_}/edit", rq
                 )
             return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
-        if aid.startswith("action-on-row-"):
+        if aid and aid.startswith("action-on-row-"):
             return self.action_on_rows(crud, crud_type, element, rq)
         action_guard.no_such_action(crud_type, aid)
 
