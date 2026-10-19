@@ -8,6 +8,7 @@ import { AppRenderer } from '../renderer/AppRenderer';
 import { MateuViewHost } from '../renderer/MateuViewHost';
 import { overlayContentWithData, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
 import { interpolate } from '../core/expressions';
+import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 
 /**
  * One running Mateu UI inside a MateuAppProvider: the root load (App shell or a single view) plus the
@@ -161,14 +162,17 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
   const top = overlays[overlays.length - 1];
   const meta = ((top.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
   const content = overlayContentWithData({ ...meta, initialData: top.state });
+  const title = interpolate(top.title, { state: top.state });
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
+    // a drawer/dialog: screen readers stop at its edge, and its ✕ is a named button (it was
+    // announced as bare text, unreachable as a control)
+    <Modal {...modalA11y(title || 'Dialog')} accessibilityViewIsModal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
       <View style={styles.overlayBackdrop}>
         <View style={styles.overlaySheet}>
           <View style={styles.overlayHeader}>
-            <Text style={styles.overlayTitle}>{interpolate(top.title, { state: top.state })}</Text>
-            <TouchableOpacity onPress={() => session.closeTopOverlay()}>
+            <Text {...headingA11y(2)} style={styles.overlayTitle}>{title}</Text>
+            <TouchableOpacity {...buttonA11y({ label: title ? `Close ${title}` : 'Close' })} hitSlop={theme.hitSlop} onPress={() => session.closeTopOverlay()}>
               <Text style={styles.overlayClose}>✕</Text>
             </TouchableOpacity>
           </View>

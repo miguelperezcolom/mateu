@@ -400,6 +400,11 @@
       "defaultValue": false,
       "description": "@App(mobileQr): the header shows the 'Open on mobile' action (the QR of the mateu.io/add link)"
     },
+    "mateuAgentPush": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "AppDto.agentPush: the header shows 'Connect AI' and the tab keeps its live UI push channel open (poc/agentPush.mjs)"
+    },
     "mateuShellSST": {
       "type": "string",
       "defaultValue": "",

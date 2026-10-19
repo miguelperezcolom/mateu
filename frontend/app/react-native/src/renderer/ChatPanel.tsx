@@ -12,13 +12,12 @@ import {
   chatLinkNavigation,
   chatRequestBody,
   menuContextOf,
-  previewActionOf,
   resolveChatUrl,
   uploadedFiles,
   usageLine,
-  type ChatEventHooks,
   type ChatTurnUpdate,
 } from '../core/chatStream';
+import { uiEventHooks } from '../core/uiEvents';
 
 interface Message {
   id: number;
@@ -29,21 +28,6 @@ interface Message {
 interface Attachment {
   name: string;
   path: string;
-}
-
-/**
- * The chat's session id. The agent backend keys the conversation (and its uploads) by it, so it
- * must not be guessable: a CSPRNG when the runtime has one (web, Hermes with a getRandomValues
- * polyfill), Math.random only as a last resort.
- */
-function newChatSessionId(): string {
-  const c = (globalThis as { crypto?: { randomUUID?: () => string; getRandomValues?: (a: Uint8Array) => Uint8Array } }).crypto;
-  if (c?.randomUUID) return `chat-${c.randomUUID()}`;
-  if (c?.getRandomValues) {
-    const bytes = c.getRandomValues(new Uint8Array(16));
-    return `chat-${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
-  }
-  return `chat-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
 }
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -79,7 +63,9 @@ export function ChatPanel({
   const [usage, setUsage] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploading, setUploading] = useState(false);
-  const chatSessionId = useRef(newChatSessionId());
+  // the UI session's id: the agent backend keys the conversation (and its uploads) by it, and it is
+  // the same session the live-push channel registers — one session, as on the web
+  const chatSessionId = () => session.agent.session.sessionId;
   const menuContextSent = useRef(false);
   const scroll = useRef<ScrollView>(null);
   const turnRef = useRef<ChatTurn | null>(null);
@@ -107,22 +93,8 @@ export function ChatPanel({
     scrollToEnd();
   };
 
-  const hooks: ChatEventHooks = {
-    dispatch: (event, detail) => session.dispatchEvent(event, detail),
-    navigate: (nav) => {
-      session.navigateTo(nav);
-      onClose(); // on a phone the sheet would cover where the user was sent; the chat stays mounted
-    },
-    close: onClose,
-    renderScreen: (req) => {
-      const route = session.currentScreen()?.route ?? '';
-      session.api
-        .runAction({ ...previewActionOf(req, route), appState: session.appState })
-        .then((increment) => session.showPreview(increment, req.target, req.title))
-        .catch((e) => session.notify(null, errorText(e), 'error'));
-      onClose();
-    },
-  };
+  // the agent's UI events are applied by THE shared function the live-push channel uses too
+  const hooks = uiEventHooks(session, onClose);
 
   // a link to a screen of the app ([Nora](/booking/bookings/4MBZS7)) opens it in the app, through
   // the menu entry that serves it — like the agent's own navigation-requested
@@ -139,7 +111,7 @@ export function ChatPanel({
     setUploading(true);
     try {
       const form = new FormData();
-      form.append('sessionId', chatSessionId.current);
+      form.append('sessionId', chatSessionId());
       assets.forEach((asset, i) => {
         const name = asset.fileName ?? `image-${i + 1}.jpg`;
         // web: the picked File itself; native: the {uri, name, type} part React Native uploads
@@ -187,7 +159,7 @@ export function ChatPanel({
       const mcpUrl = session.chatApp.mcpUrl ? resolveChatUrl(session.chatApp.mcpUrl, base) : undefined;
       const body = chatRequestBody({
         message: text,
-        sessionId: chatSessionId.current,
+        sessionId: chatSessionId(),
         attachments: files,
         screen: session.currentScreen(),
         appState: session.appState,

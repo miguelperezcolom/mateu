@@ -83,7 +83,7 @@ export class MateuApiClient {
    * An `sse` action (a LongTask): POST to the stream endpoint and apply each increment AS IT
    * ARRIVES — the progress dialog moves while the task runs, as on the web. Same body as a sync call.
    */
-  async runActionStream(params: RunActionParams, onIncrement: (increment: unknown) => void): Promise<void> {
+  async runActionStream(params: RunActionParams, onIncrement: (increment: unknown) => void, signal?: AbortSignal): Promise<void> {
     const { urlSegment, payload } = this.requestOf(params);
     const url = `${this.baseUrl}/mateu/v3/sse/${urlSegment}`;
     devLog('[Mateu] --> POST (stream)', url);
@@ -96,10 +96,15 @@ export class MateuApiClient {
         onIncrement(increment);
       }
     };
-    await this.postStream(url, payload, (text) => {
-      buffer += text;
-      deliver(false);
-    });
+    await this.postStream(
+      url,
+      payload,
+      (text) => {
+        buffer += text;
+        deliver(false);
+      },
+      signal,
+    );
     deliver(true);
   }
 
@@ -110,10 +115,11 @@ export class MateuApiClient {
    * Session expiry, exactly as runAction: a 401 gives the app (or this client's own provider) one
    * chance to re-authenticate, then the request is retried once — nothing has been streamed yet.
    */
-  async postStream(url: string, body: string, onText: (text: string) => void): Promise<void> {
+  async postStream(url: string, body: string, onText: (text: string) => void, signal?: AbortSignal): Promise<void> {
     const send = streamingFetch ?? fetch;
     // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
-    const doFetch = async () => send(url, { method: 'POST', headers: await this.headers({ Accept: 'text/event-stream' }, url), body });
+    const doFetch = async () =>
+      send(url, { method: 'POST', headers: await this.headers({ Accept: 'text/event-stream' }, url), body, ...(signal ? { signal } : {}) });
     const response = await this.withReauth(url, doFetch);
     if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     const reader = (response.body as ReadableStream<Uint8Array> | null)?.getReader?.();

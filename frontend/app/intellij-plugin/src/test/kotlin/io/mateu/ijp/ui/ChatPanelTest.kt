@@ -82,7 +82,8 @@ class ChatPanelTest : TestCase() {
 
         val body = chatBodies.single()
         assertEquals("show me the orders", body.path("message").asText())
-        assertTrue(body.path("sessionId").asText().startsWith("chat-"))
+        // one UI session id: the chat names the session its requests (and the push channel) carry
+        assertEquals(session.sessionId, body.path("sessionId").asText())
         assertEquals("http://127.0.0.1:${server.address.port}/mcp", body.path("mcpUrl").asText())
         assertEquals("Orders", body.path("menuContext").path(0).path("path").path(0).asText())
         assertTrue(body.has("context"))

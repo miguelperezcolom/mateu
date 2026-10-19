@@ -1377,6 +1377,13 @@ body:not(.mateu-scrolled) .mateu-sticky-header ~ .oj-sp-public-primary-content-c
 .mateu-cal-neutral { background-color: rgba(0, 0, 0, 0.035); }
 
 /* ── Inbox bell ── */
+/* live UI push (poc/agentPush.mjs): the header's "Connect AI" + the paired dot; the pairing code */
+.mateu-agent-connect { position: relative; display: inline-flex; align-items: center; }
+.mateu-agent-dot { width: .5rem; height: .5rem; border-radius: 50%; margin-inline-start: -.35rem; background: var(--oj-core-success-color, #508223); box-shadow: 0 0 0 2px var(--oj-sp-header-welcome-banner-background-color, #312d2a); }
+.mateu-agent-dot[hidden], #mateuAgentDialog oj-button[hidden] { display: none !important; }
+.mateu-agent-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 2rem; font-weight: 600; letter-spacing: .2em; text-align: center; margin: 1rem 0 .25rem; }
+.mateu-agent-countdown { text-align: center; margin: 0 0 .5rem; }
+.mateu-agent-list { margin: .25rem 0 0; padding-inline-start: 1.25rem; }
 .mateu-bell { position: relative; display: inline-flex; }
 .mateu-bell-badge { position: absolute; top: -4px; right: -6px; transform: scale(0.85); pointer-events: none; min-width: 1.1rem; text-align: center; }
 .mateu-bell-panel { width: 22rem; max-width: 90vw; }

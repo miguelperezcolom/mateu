@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
 import { BackHandler, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -20,6 +20,7 @@ import { fetchExternalJson } from '../core/restFetch';
 import { interpolate } from '../core/expressions';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
+import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
 import { openExternal } from './openExternal';
 
 const Stack = createStackNavigator();
@@ -52,7 +53,7 @@ interface AppContextSelector {
   options?: { value: unknown; label?: string }[];
 }
 
-interface AppMeta extends ShellExtrasMeta {
+interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   title?: string;
   sseUrl?: string | null;
   /** The app's MCP endpoint (@AI(mcp=…)): forwarded, absolute, with every chat message. */
@@ -666,6 +667,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       <QuickLaunch meta={appMeta} onLaunch={onLaunch} />
       {appMeta.globalSearchEnabled === true && <GlobalSearchBox appMeta={appMeta} onNavigate={onNavigate} />}
       {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
+      <ConnectAiEntry meta={appMeta} />
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
       {canOut && (
@@ -702,13 +704,19 @@ function useRunAppAction(appMeta: AppMeta) {
   };
 }
 
-function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
+/** `connectAiFab`: a shell with no drawer offers "Connect AI" (live UI push) as a floating button. */
+function AppOverlays({ appMeta, connectAiFab = false }: { appMeta: AppMeta; connectAiFab?: boolean }) {
   const { session } = useAppContext();
   const [chatOpen, setChatOpen] = useState(false);
   const fabs = appMeta.fabs ?? [];
   const runAppAction = useRunAppAction(appMeta);
+  // a pushed navigation / screen hides the assistant, exactly like the same event from the chat
+  React.useEffect(() => {
+    session.closeAssistant = () => setChatOpen(false);
+  }, [session]);
+  const connectAi = connectAiFab && appMeta.agentPush === true;
 
-  if (fabs.length === 0 && !appMeta.sseUrl) return null;
+  if (fabs.length === 0 && !appMeta.sseUrl && !connectAi) return null;
   return (
     <>
       <View style={styles.appFabStack} pointerEvents="box-none">
@@ -717,6 +725,7 @@ function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
             <Text style={styles.appFabText}>{fab.label || '+'}</Text>
           </TouchableOpacity>
         ))}
+        {connectAi && <ConnectAiEntry meta={appMeta} asFab />}
         {!!appMeta.sseUrl && (
           <TouchableOpacity {...buttonA11y({ label: 'Open assistant' })} style={[styles.appFab, styles.chatFab]} onPress={() => setChatOpen(true)}>
             <Text style={styles.appFabText}>💬</Text>
@@ -756,6 +765,17 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   };
   // each tab's "back to my own screen", called when the ACTIVE tab is pressed again
   const tabRoots = React.useRef<Record<number, () => void>>({});
+  // TABS: the navigator (a navigation to a tab's own route selects that tab, like tapping it) and a
+  // destination waiting for the live tab's screen to be back (a preview replaced it: its opener is
+  // the unmounted screen's until the real one mounts again)
+  const tabsNav = React.useRef(createNavigationContainerRef<Record<string, undefined>>()).current;
+  const pendingTabView = React.useRef<NavTarget | null>(null);
+  React.useEffect(() => {
+    if (preview || !pendingTabView.current) return;
+    const target = pendingTabView.current;
+    pendingTabView.current = null;
+    session.openView(target);
+  }, [preview, session]);
 
   // A menu leaf with rules RUNS them: a RunAction naming a flow the shell declares applies its
   // lowered commands here (no server round-trip); any other id is an app-level server action.
@@ -772,9 +792,22 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     }
     const target = { route: nav.route, consumedRoute: nav.consumedRoute, serverSideType: nav.serverSideType ?? '', baseUrl: nav.baseUrl && nav.baseUrl !== session.api.baseUrl ? nav.baseUrl : undefined };
     if (variant === 'TABS' && menuItems.length > 0) {
-      // tabs keep their own screens: the destination opens on the live tab's stack
-      setPreview(null);
-      session.openView({ label: '', ...target });
+      const tab = menuItems.findIndex((item) => isCurrentDestination(item, target.route));
+      if (tab >= 0 && tabsNav.isReady()) {
+        // a tab's own route: select it (and show its own screen), exactly what tapping it does
+        setPreview(null);
+        tabRoots.current[tab]?.();
+        tabsNav.navigate(menuItems[tab].label ?? `Tab${tab}`);
+        return;
+      }
+      // tabs keep their own screens: the destination opens on the live tab's stack — once that
+      // screen is back, when a preview was covering it
+      if (preview) {
+        pendingTabView.current = { label: '', ...target };
+        setPreview(null);
+      } else {
+        session.openView({ label: '', ...target });
+      }
     } else {
       setCurrentNav(target);
     }
@@ -796,6 +829,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // live header values: seeded from the shell, changed by UpdateHeaderValue / the event stream
   React.useEffect(() => session.headerValues.seed(appMeta.headerValues), [session, appMeta.headerValues]);
   useLiveUpdates(appMeta);
+  // live UI push (AppDto.agentPush): the channel an MCP agent's screens / navigations arrive on
+  useAgentChannel(appMeta);
 
   // QUICK LAUNCH: a shortcut's route goes there (mount-absolute, like a menu route); an actionId
   // runs app-level, like a header action
@@ -879,11 +914,13 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // The app FABs live INSIDE the screen (so the drawer and the tab bar cover them, instead of a FAB
   // floating over an open drawer), and the screen keeps a band free at its bottom for them so they
   // never cover the content's last controls (RN-13).
-  const bottomInset = fabInset((appMeta.fabs?.length ?? 0) + (appMeta.sseUrl ? 1 : 0));
+  const drawerShell = variant !== 'TABS' && menuItems.length > 0;
+  const connectAiFab = !drawerShell && appMeta.agentPush === true;
+  const bottomInset = fabInset((appMeta.fabs?.length ?? 0) + (appMeta.sseUrl ? 1 : 0) + (connectAiFab ? 1 : 0));
   const withOverlays = (screen: React.ReactNode) => (
     <View style={styles.stackHost}>
       {preview ? <PreviewScreen preview={preview} onDismiss={() => setPreview(null)} bottomInset={bottomInset} /> : screen}
-      <AppOverlays appMeta={appMeta} />
+      <AppOverlays appMeta={appMeta} connectAiFab={connectAiFab} />
     </View>
   );
 
@@ -900,7 +937,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   if (variant === 'TABS' && menuItems.length > 0) {
     return guard(
-      <NavigationContainer theme={navTheme}>
+      <NavigationContainer theme={navTheme} ref={tabsNav}>
         <Tab.Navigator screenOptions={{ headerShown: false }}>
           {menuItems.map((item, i) => (
             <Tab.Screen

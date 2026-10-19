@@ -516,6 +516,29 @@ describe('the header', () => {
         expect(mocks.dispatchAppHeaderAction).not.toHaveBeenCalled()
     })
 
+    it('live UI push: the header offers "Connect AI" and a pushed navigation is a menu click', async () => {
+        const encoder = new TextEncoder()
+        const pushed = 'data: ' + JSON.stringify({ commands: [{ type: 'AgentPush', data: {
+            kind: 'navigate', event: 'navigation-requested', detail: { route: '/customers', consumedRoute: '' },
+        } }] }) + '\n\n'
+        const fetchMock = vi.fn((_url: string, _init: RequestInit) => Promise.resolve(new Response(new ReadableStream<Uint8Array>({
+            start(c) { c.enqueue(encoder.encode(pushed)) },
+        }), { status: 200 })))
+        vi.stubGlobal('fetch', fetchMock)
+        try {
+            const el = await mount(app({ agentPush: true }))
+            expect($(el, 'mateu-agent-connect')).toBeTruthy()
+            await vi.waitFor(() => expect(routes).toEqual(['/customers']))
+            expect(el.selectedRoute).toBe('/customers')
+            expect(JSON.parse(fetchMock.mock.calls[0][1].body as string).actionId).toBe('_agent-channel')
+            el.component = app() as never
+            await el.updateComplete
+            expect($(el, 'mateu-agent-connect')).toBeNull()
+        } finally {
+            vi.unstubAllGlobals()
+        }
+    })
+
     it('the chat toggle opens and closes the assistant, and the command center\'s "Ask AI" opens it', async () => {
         const el = await mount(app({ sseUrl: '/chat' }))
         const toggle = $(el, '.mateu-chat-toggle')

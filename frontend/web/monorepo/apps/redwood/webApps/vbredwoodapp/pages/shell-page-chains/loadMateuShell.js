@@ -424,6 +424,17 @@ define([
         onError: (e) => { console.warn('[mateu-chat] agent event', e); },
       });
 
+      // LIVE UI PUSH (AppDto.agentPush, poc/agentPush.mjs): this TAB is a UI session an MCP agent
+      // can send UI to once the user pairs it ("Connect AI" in the header → a one-time code). The
+      // tab's own channel (`_agent-channel`, one per tab) delivers each message, applied exactly
+      // like the chat's event of the same name — through the chat event host set just above.
+      bridge.installAgentPush();
+      $application.variables.mateuAgentPush = !!(reg.shell && reg.shell.agentPush);
+      bridge.syncAgentPush(reg.shell, {
+        base,
+        route: () => liveContext().$application.variables.mateuSelectedRoute || '',
+      }).catch((e) => { console.warn('[mateu] live UI push', e); });
+
       // An ordinary HTML link in the content (`<a href="/journey/bookings/ZUAAKJ">`, one from an
       // app's Text/Html) navigates INSIDE the shell, as in Vaadin (Flow's RouterLinkHandler):
       // without this the browser loaded the whole page and the shell booted again, 20–40 s

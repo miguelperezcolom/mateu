@@ -6,6 +6,10 @@
 # (fixes/extra) — reviewed, added together.
 # MCP authoring (2026-10-18): McpJsonRpc reads DevMode — mateu_save_spec exists only in development
 # mode — reviewed.
+# Live UI push (2026-10-19): AgentPush reads its switches through MateuSettings, AgentCaller the
+# caller through IdentityResolver; the _agent-channel runner is an action runner like the others — reviewed.
+application -> infra: io/mateu/core/application/agentpush/AgentCaller.java
+application -> infra: io/mateu/core/application/agentpush/AgentPush.java
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
 application -> infra: io/mateu/core/application/i18n/TranslationRegistry.java
 application -> infra: io/mateu/core/application/mcp/McpEndpoint.java
@@ -38,6 +42,7 @@ application -> infra: io/mateu/core/application/security/WireTypePolicy.java
 application -> infra: io/mateu/core/application/security/WireTypes.java
 domain -> application: io/mateu/core/domain/ComponentState.java
 domain -> application: io/mateu/core/domain/act/ActionRunner.java
+domain -> application: io/mateu/core/domain/act/AgentChannelActionRunner.java
 domain -> application: io/mateu/core/domain/act/AppContextSearchActionRunner.java
 domain -> application: io/mateu/core/domain/act/AuditActionRunner.java
 domain -> application: io/mateu/core/domain/act/CodeFieldActionRunner.java

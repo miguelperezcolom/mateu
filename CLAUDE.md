@@ -413,6 +413,33 @@ Python `mateu_ui/core/mcp.py`, sidecar `frontend/mcp-server`), pinned by
   `Error: An unexpected error occurred. Reference: <id>`; a refused call `Error: Forbidden`.
   Protocol version stays `2024-11-05` (no Streamable-HTTP session semantics implemented).
 
+### Live UI push (phase C, 2026-10-19)
+
+An MCP caller sends UI to a UI that is OPEN (tab / app window / IDE). OFF unless `mateu.mcp.enabled`
+AND `mateu.mcp.push.enabled` (`AgentPush.enabled()` via `MateuSettings`; .NET `MateuOptions.McpPush`,
+Python `mcp_push=True`, env `MATEU_MCP_PUSH_ENABLED`). Spec + golden: `conformance/mcp/README.md`
+"Live UI push" + `conformance/mcp/push.json` (pushTools byte for byte + a scripted scenario every
+backend runs: Java `McpPushCorpusTest`, .NET `AgentPushTests`, Python `test_mcp_push.py`).
+- UI side = three app-level actions (exempt in `ActionInstanceCreator.isAppLevelAction`), runner
+  `AgentChannelActionRunner`: `_agent-channel` (SSE, per TAB — no leader election, a push is for one
+  tab; status first, 20 s heartbeat, ends after 5 min), `_agent-pair` (one-time code, 300 s),
+  `_agent-unpair`; all with `{sessionId, secret}` — sessionId = the per-tab UI session id, which the
+  chat now sends as its `sessionId` too. Wire: `AppDto.agentPush`, command `AgentPush {kind, event,
+  detail}` whose events ARE the chat's catalogue (`render-screen`, `navigation-requested`, custom), so
+  every renderer applies a push with the chat's own code (web `agentEvents.applyAgentEvent`, RN
+  `core/uiEvents.ts`, IntelliJ `ui/AgentEvents.kt`, Redwood `poc/agentPush.mjs`).
+- Registry `application/agentpush/AgentSessions` (process-wide, in memory, bounded): a session is
+  pinned to its secret's hash + principal; a caller (= principal, else `X-Mateu-Agent-Key` ≥ 16
+  chars, else anonymous) reaches its own user's sessions or ones PAIRED to it; an anonymous pairing
+  makes the opaque handle the capability; anything else = `Unknown session` (indistinguishable).
+  Caps: 1000 sessions + 20 per owner (principal, else the UI's client address via
+  `HttpRequest.getRemoteAddress()`; Helidon MP's Jersey leg cannot tell → `unknown`). Rate limit 30/min/session, 10 failed pairings/min/caller, 120 s grace after disconnect, every
+  delivery logged at INFO. `mateu_push_ui` validates through `__validate__` AS THE CALLER first; the
+  UI renders through `__preview__` with ITS identity. The sidecar holds no sessions: `MATEU_PUSH=true`
+  forwards the tools to the app's `/mateu/mcp` with a per-process agent key.
+- Parity: `AdapterParityITFoundation.pushesUiToALiveSessionOverTheSseStream` (5 adapters). Docs
+  `reference/agent-operability.md#drive-a-live-ui`, wire spec "Live UI push".
+
 ### Frontend Renderers
 
 Each renderer in `frontend/web/monorepo/apps/<name>/` is a standalone Vite app. Its `copy` npm script builds and copies artifacts directly into the matching `backend/shared/frontend/<name>-lit/src/main/resources` folder so they are served as static assets.

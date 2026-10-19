@@ -319,6 +319,9 @@
             "$ref" : "#/$defs/ActionDto"
           }
         },
+        "agentPush" : {
+          "type" : "boolean"
+        },
         "appDataSource" : {
           "$ref" : "#/$defs/RestDataSourceDto"
         },
@@ -5821,7 +5824,7 @@
     },
     "UICommandTypeDto" : {
       "type" : "string",
-      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue" ]
+      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush" ]
     },
     "UIFragmentActionDto" : {
       "type" : "string",

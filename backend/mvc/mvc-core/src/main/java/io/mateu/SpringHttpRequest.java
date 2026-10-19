@@ -43,6 +43,11 @@ public class SpringHttpRequest implements HttpRequest {
   }
 
   @Override
+  public String getRemoteAddress() {
+    return delegate.getRemoteAddr();
+  }
+
+  @Override
   public String getHeaderValue(String key) {
     return delegate.getHeader(key);
   }

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const runAction = vi.fn()
 vi.mock('@infra/http/AxiosMateuApiClient', () => ({ mateuApiClient: { runAction: (...args: unknown[]) => runAction(...args) } }))
 
-import { contentViewFor, GENERATED_SCREEN_ID, overlayOf, renderScreenInShell } from './builtInRenderTarget'
+import { contentViewFor, GENERATED_HOST_ID, GENERATED_SCREEN_ID, overlayOf, renderScreenInShell } from './builtInRenderTarget'
 import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction'
 
 /**
@@ -17,7 +17,8 @@ class FakeUx extends HTMLElement {
     route = '/bookings'
     consumedRoute = ''
     shown: unknown[] = []
-    showTransient(fragment: unknown) { this.shown.push(fragment) }
+    fragment: unknown = undefined
+    showTransient(fragment: unknown) { this.shown.push(fragment); this.fragment = fragment }
 }
 customElements.define('mateu-ux', FakeUx)
 class FakeApp extends HTMLElement {
@@ -103,6 +104,23 @@ describe('renderScreenInShell', () => {
         runAction.mockResolvedValue({ fragments: [fragment] })
         await renderScreenInShell(chat, { yaml: 'type: Text', target: 'dialog' })
         expect(ux.shown).toHaveLength(1)
+    })
+
+    it('a drawer over a generated screen already in the content area opens over it, not instead of it', async () => {
+        const { ux, page, chat } = shell()
+        page.remove()
+        runAction.mockResolvedValue({ fragments: [fragment] })
+        await renderScreenInShell(chat, { yaml: 'type: Text', target: 'content' })
+        await renderScreenInShell(chat, { yaml: 'type: Text', target: 'drawer', title: 'More' })
+        const host = (ux.shown[1] as { component: { id: string, children: { id: string, metadata?: { type: string } }[] } }).component
+        expect(host.id).toBe(GENERATED_HOST_ID)
+        expect(host.children.map(c => c.id)).toEqual(['gen', GENERATED_SCREEN_ID])
+        expect(host.children[1].metadata?.type).toBe('Drawer')
+        // a second overlay replaces the first, over the same screen
+        await renderScreenInShell(chat, { yaml: 'type: Text', target: 'dialog' })
+        const again = (ux.shown[2] as { component: { children: { id: string, metadata?: { type: string } }[] } }).component
+        expect(again.children.map(c => c.id)).toEqual(['gen', GENERATED_SCREEN_ID])
+        expect(again.children[1].metadata?.type).toBe('Dialog')
     })
 
     it('says why when it cannot show it, and expands a JSON screen itself when the backend fails', async () => {

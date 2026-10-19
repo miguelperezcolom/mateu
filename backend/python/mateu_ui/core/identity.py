@@ -44,7 +44,8 @@ def _as_list(value: Any) -> list[str]:
 def identity_from_claims(claims: dict[str, Any]) -> Identity:
     """Map the claims of a token YOUR APP verified onto an ``Identity`` (mirrors Java's
     ``CallerIdentities.fromClaims``): Keycloak ``realm_access``/``resource_access`` roles plus a
-    top-level ``roles``, ``groups``, ``scope``/``scp`` and ``permissions``."""
+    top-level ``roles``, ``groups``, ``scope``/``scp`` and ``permissions``; the name is
+    ``preferred_username``, else ``sub``."""
     roles: list[str] = []
     realm = claims.get("realm_access")
     if isinstance(realm, dict):
@@ -62,7 +63,15 @@ def identity_from_claims(claims: dict[str, Any]) -> Identity:
         groups=tuple(_as_list(claims.get("groups"))),
         scopes=tuple(scopes),
         permissions=tuple(_as_list(claims.get("permissions"))),
+        name=_name_of(claims),
     )
+
+
+def _name_of(claims: dict[str, Any]) -> str | None:
+    for key in ("preferred_username", "sub"):
+        if claims.get(key) is not None:
+            return str(claims[key])
+    return None
 
 
 def warn_on_startup() -> None:

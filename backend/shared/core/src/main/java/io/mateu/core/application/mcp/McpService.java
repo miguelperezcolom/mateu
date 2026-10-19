@@ -383,6 +383,173 @@ public class McpService {
     return (ObjectNode) report;
   }
 
+  // ── live UI push (phase C): list, pair, push, navigate, dispatch ────────────────────────────
+
+  /** The caller of the tool call, as live UI push identifies it. */
+  public io.mateu.core.application.agentpush.AgentCaller caller(HttpRequestFactory httpRequests) {
+    return io.mateu.core.application.agentpush.AgentCaller.of(
+        httpRequests.create(rq("", "", null, null)));
+  }
+
+  private static io.mateu.core.application.agentpush.AgentSessions sessions() {
+    return io.mateu.core.application.agentpush.AgentSessions.shared();
+  }
+
+  /** {@code mateu_list_sessions}. */
+  public ObjectNode listSessions(HttpRequestFactory httpRequests) {
+    var out = objectMapper.createObjectNode();
+    var list = out.putArray("sessions");
+    for (var entry : sessions().visible(caller(httpRequests))) {
+      list.add(entryNode(entry));
+    }
+    return out;
+  }
+
+  /** {@code mateu_pair_session}. */
+  public ObjectNode pairSession(String code, HttpRequestFactory httpRequests) {
+    return entryNode(sessions().pair(caller(httpRequests), code));
+  }
+
+  /** {@code mateu_push_ui}: validate first, then deliver a render-screen message. */
+  public ObjectNode pushUi(
+      String session,
+      String yaml,
+      String target,
+      String title,
+      String baseUrl,
+      HttpRequestFactory httpRequests) {
+    var where = target == null ? "content" : target;
+    if (!java.util.List.of("content", "drawer", "dialog").contains(where)) {
+      throw new io.mateu.uidl.UserFacingException(
+          String.format(io.mateu.core.application.agentpush.AgentPush.INVALID_TARGET, where));
+    }
+    var caller = caller(httpRequests);
+    sessions().requireReachable(caller, session);
+    var validation = validation("", yaml, baseUrl, httpRequests);
+    var kind = validation.path("kind").asText("");
+    var out = objectMapper.createObjectNode();
+    if (!validation.path("valid").asBoolean()) {
+      out.put("delivered", false);
+      out.put("reason", io.mateu.core.application.agentpush.AgentPush.HAS_ERRORS);
+      out.set("validation", validation);
+      return out;
+    }
+    if (!"component".equals(kind) && !"envelope".equals(kind)) {
+      out.put("delivered", false);
+      out.put("reason", io.mateu.core.application.agentpush.AgentPush.NOT_A_PAGE);
+      out.set("validation", validation);
+      return out;
+    }
+    var detail = new java.util.LinkedHashMap<String, Object>();
+    detail.put("yaml", yaml);
+    detail.put("target", where);
+    if (title != null && !title.isBlank()) detail.put("title", title);
+    deliver(
+        caller,
+        session,
+        "render",
+        io.mateu.core.application.agentpush.AgentPush.RENDER_EVENT,
+        detail,
+        "target=" + where);
+    out.put("delivered", true);
+    out.put("session", session);
+    out.put("target", where);
+    out.set("validation", validation);
+    return out;
+  }
+
+  /** {@code mateu_navigate}. */
+  public ObjectNode navigate(
+      String session, Map<String, String> navigation, HttpRequestFactory httpRequests) {
+    var detail = new java.util.LinkedHashMap<String, Object>();
+    detail.put("route", navigation.get("route"));
+    detail.put("consumedRoute", navigation.getOrDefault("consumedRoute", ""));
+    for (var key : java.util.List.of("actionId", "baseUrl", "serverSideType", "uriPrefix")) {
+      if (navigation.get(key) != null) detail.put(key, navigation.get(key));
+    }
+    deliver(
+        caller(httpRequests),
+        session,
+        "navigate",
+        io.mateu.core.application.agentpush.AgentPush.NAVIGATE_EVENT,
+        detail,
+        "route=" + navigation.get("route"));
+    return delivered(session);
+  }
+
+  private static final java.util.regex.Pattern EVENT_NAME =
+      java.util.regex.Pattern.compile("^[A-Za-z][A-Za-z0-9_.:-]{0,63}$");
+
+  private static final java.util.Set<String> RESERVED_EVENTS =
+      java.util.Set.of(
+          io.mateu.core.application.agentpush.AgentPush.RENDER_EVENT,
+          io.mateu.core.application.agentpush.AgentPush.NAVIGATE_EVENT,
+          io.mateu.core.application.agentpush.AgentPush.CLOSE_EVENT,
+          io.mateu.core.application.agentpush.AgentPush.STATUS_EVENT);
+
+  /** {@code mateu_dispatch_event}. */
+  public ObjectNode dispatchEvent(
+      String session, String event, JsonNode detail, HttpRequestFactory httpRequests) {
+    if (RESERVED_EVENTS.contains(event)) {
+      throw new io.mateu.uidl.UserFacingException(
+          String.format(io.mateu.core.application.agentpush.AgentPush.RESERVED_EVENT, event));
+    }
+    if (!EVENT_NAME.matcher(event).matches()) {
+      throw new io.mateu.uidl.UserFacingException(
+          String.format(io.mateu.core.application.agentpush.AgentPush.INVALID_EVENT, event));
+    }
+    Map<String, Object> map =
+        detail != null && detail.isObject()
+            ? objectMapper.convertValue(
+                detail, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {})
+            : new java.util.LinkedHashMap<>();
+    if (bytes(map) > io.mateu.core.application.agentpush.AgentPush.MAX_DETAIL_BYTES) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.agentpush.AgentPush.DETAIL_TOO_LARGE);
+    }
+    deliver(caller(httpRequests), session, "event", event, map, "event=" + event);
+    return delivered(session);
+  }
+
+  private void deliver(
+      io.mateu.core.application.agentpush.AgentCaller caller,
+      String session,
+      String kind,
+      String event,
+      Map<String, Object> detail,
+      String what) {
+    var message =
+        new io.mateu.core.application.agentpush.AgentSessions.Message(kind, event, detail);
+    sessions().deliver(caller, session, message, what, bytes(message));
+  }
+
+  private int bytes(Object value) {
+    try {
+      return objectMapper.writeValueAsBytes(value).length;
+    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+      return Integer.MAX_VALUE;
+    }
+  }
+
+  private ObjectNode delivered(String session) {
+    var out = objectMapper.createObjectNode();
+    out.put("delivered", true);
+    out.put("session", session);
+    return out;
+  }
+
+  private ObjectNode entryNode(io.mateu.core.application.agentpush.AgentSessions.Entry entry) {
+    var node = objectMapper.createObjectNode();
+    node.put("session", entry.session());
+    node.put("user", entry.user());
+    node.put("route", entry.route());
+    node.put("renderer", entry.renderer());
+    node.put("connectedAt", entry.connectedAt());
+    node.put("connected", entry.connected());
+    node.put("paired", entry.paired());
+    return node;
+  }
+
   private ObjectNode project(JsonNode increment) {
     return McpProjection.project(increment, objectMapper);
   }

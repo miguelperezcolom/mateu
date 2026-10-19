@@ -1691,6 +1691,11 @@
      "permissions",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },

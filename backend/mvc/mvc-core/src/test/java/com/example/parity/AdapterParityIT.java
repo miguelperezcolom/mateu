@@ -170,6 +170,7 @@ class AdapterParityIT {
       properties = {
         "mateu.cors.allowed-origins=" + AdapterParityITFoundation.ALLOWED_ORIGIN,
         "mateu.mcp.enabled=true",
+        "mateu.mcp.push.enabled=true",
         "mateu.dev=true"
       })
   @org.junit.jupiter.api.Order(2)
@@ -205,6 +206,11 @@ class AdapterParityIT {
     @Test
     void servesDevEndpointsWhenEnabled() throws Exception {
       contract.servesDevEndpointsWhenEnabled();
+    }
+
+    @Test
+    void pushesUiToALiveSessionOverTheSseStream() throws Exception {
+      contract.pushesUiToALiveSessionOverTheSseStream();
     }
   }
 

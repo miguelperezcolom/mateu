@@ -364,6 +364,11 @@ Links in an answer to a screen of the app (`[Nora Duarte](/booking/bookings/4MBZ
 app through the menu entry that serves it, on every renderer. Attachments are offered wherever an
 upload endpoint is declared (React Native: images, through the photo picker).
 
+The same events can also come from **outside the chat**: an MCP agent paired with the tab sends
+them through the app's live UI push channel (`mateu_push_ui`, `mateu_navigate`,
+`mateu_dispatch_event`), and every renderer applies them with the code above. See
+[Agent operability → Drive a live UI](/reference/agent-operability/#drive-a-live-ui).
+
 ### Custom events
 
 You can define your own events and handle them anywhere in your component tree.

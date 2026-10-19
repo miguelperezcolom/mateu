@@ -618,6 +618,12 @@ tasks.register<JavaExec>("renderProbe") {
 // on the Linux runner; one environment for both removes that class of "works on my machine".
 tasks.test {
     jvmArgs("-Djava.awt.headless=true")
+    // Opt-in LIVE probes against a running backend (AgentPushLiveProbeTest): -Pmateu.live.baseUrl=…
+    for (key in listOf("mateu.live.baseUrl", "mateu.live.route")) {
+        (findProperty(key) as String?)?.let { systemProperty(key, it) }
+    }
+    // a live run must not be answered from the cache of a run without (or against another) backend
+    inputs.property("mateuLiveBaseUrl", (findProperty("mateu.live.baseUrl") as String?) ?: "")
     // ConformanceCorpusRenderTest reads the repo's corpus at run time: declare it, or a cached test
     // result outlives a change to the cases.
     inputs.dir(rootProject.file("../../../conformance/cases"))

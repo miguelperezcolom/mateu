@@ -125,6 +125,12 @@ public record AppMetadataDto(
     /// never silently in production. (Mirrors io.mateu.dtos.AppDto.mockSources.)</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public bool? MockSources { get; init; }
+
+    /// <summary>True when live UI push is on (the MCP endpoint and its push switch): the UI opens its
+    /// agent channel (the _agent-channel app-level action over the SSE endpoint) and shows "Connect
+    /// AI". Null (omitted) otherwise. (Mirrors io.mateu.dtos.AppDto.agentPush.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public bool? AgentPush { get; init; }
 }
 
 /// <summary>One named entry of the REST source catalogue as it travels to the renderer. Provenance is

@@ -43,6 +43,11 @@ public static class MateuExtensions
         services.AddSingleton(options);
         services.AddHttpContextAccessor();
         services.AddSingleton(new MateuRegistry(assemblies));
+        // Live UI push (phase C): ONE in-memory session registry per host, shared by every mount.
+        var agentSessions = options.McpPushEffective
+            ? new Mateu.Core.AgentPush.AgentSessions(options.PushRatePerMinute, options.PushMaxSessions,
+                options.PushMaxSessionsPerOwner)
+            : null;
         // ITranslator is optional — register an Mateu.Uidl.ITranslator to enable i18n.
         services.AddSingleton(sp =>
         {
@@ -71,6 +76,9 @@ public static class MateuExtensions
                     : null)
             {
                 MockSources = options.MockSources,
+                AgentPush = agentSessions,
+                Principal = () => accessor.HttpContext is { } ctx ? PrincipalName(ctx) : null,
+                ClientAddress = () => accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 // Listing exports: Mateu ships no Excel / PDF engine — every IListingExporter the app
                 // registers as a service writes its format (Java: the ListingExporter beans); CSV
                 // falls back to the built-in writer.
@@ -129,6 +137,11 @@ public static class MateuExtensions
             {
                 await ctx.Response.WriteAsync("data: " + JsonSerializer.Serialize(increment, Json) + "\n\n", token);
                 await ctx.Response.Body.FlushAsync(token);
+            }
+            if (rq.ActionId == SyncHandler.AgentChannelAction)
+            {
+                await StreamAgentChannel(ctx, rq, handler, Send);
+                return;
             }
             if (rq.ActionId != ReflectionMapper.LiveUpdatesActionId)
             {
@@ -280,7 +293,12 @@ public static class MateuExtensions
                 return;
             }
             var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}";
-            var mcp = new McpService(handler, Json, baseUrl, rq => GuardMcp(ctx, rq, () => handler.Handle(rq, baseUrl)));
+            var mcp = new McpService(handler, Json, baseUrl, rq => GuardMcp(ctx, rq, () => handler.Handle(rq, baseUrl)))
+            {
+                Push = handler.AgentPush,
+                Caller = Mateu.Core.AgentPush.AgentCaller.From(PrincipalName(ctx),
+                    ctx.Request.Headers[Mateu.Core.AgentPush.AgentCaller.AgentKeyHeader].FirstOrDefault()),
+            };
             var response = McpJsonRpc.Handle(message, mcp);
             if (response is null)
             {
@@ -290,6 +308,49 @@ public static class MateuExtensions
             ctx.Response.ContentType = "application/json";
             await ctx.Response.WriteAsync(response.ToJsonString(Json));
         });
+    }
+
+    /// <summary>The authenticated principal name of <paramref name="ctx"/>, null when anonymous.</summary>
+    internal static string? PrincipalName(HttpContext ctx) =>
+        ctx.User?.Identities.Any(i => i.IsAuthenticated) == true && !string.IsNullOrWhiteSpace(ctx.User.Identity?.Name)
+            ? ctx.User.Identity!.Name
+            : null;
+
+    /// <summary>The <c>_agent-channel</c> stream of a UI session (live UI push): the session's status
+    /// first, then one increment per message, an empty heartbeat every 20 s, and the END after 5
+    /// minutes (the UI reconnects at once); a newer channel of the same session ends it too. A
+    /// refused channel streams its single error increment.</summary>
+    private static async Task StreamAgentChannel(HttpContext ctx, RunActionRqDto rq, SyncHandler handler,
+        Func<UIIncrementDto, CancellationToken, Task> send)
+    {
+        Mateu.Core.AgentPush.AgentChannel? channel = null;
+        var refusal = await RunGuarded(ctx, rq, () =>
+        {
+            channel = handler.OpenAgentChannel(rq);
+            return Task.FromResult(UIIncrementDto.Of());
+        });
+        if (channel is null)
+        {
+            await send(refusal, ctx.RequestAborted);
+            return;
+        }
+        using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
+        lifetime.CancelAfter(LiveUpdatesMaxDuration);
+        using var heartbeat = new Timer(_ => channel.Queue.Writer.TryWrite(UIIncrementDto.Of()), null,
+            LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
+        try
+        {
+            await foreach (var increment in channel.Queue.Reader.ReadAllAsync(lifetime.Token))
+                await send(increment, lifetime.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // the UI went away, or the stream reached its maximum life
+        }
+        finally
+        {
+            handler.AgentPush?.Closed(channel);
+        }
     }
 
     /// <summary>Heartbeat of the live-updates stream (keeps proxies from closing an idle connection).</summary>

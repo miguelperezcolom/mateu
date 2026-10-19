@@ -192,7 +192,7 @@ export const PRINT_CSS = `
     [slot="navbar"], [slot="drawer"], vaadin-drawer-toggle,
     vaadin-side-nav, vaadin-menu-bar, vaadin-tabs.app-tabs, nav,
     vaadin-button:not([data-mateu-print="show"]), button:not([data-mateu-print="show"]),
-    .ai-fab, .app-fab, .page-fab, .page-toc, mateu-command-center, mateu-notification-bell,
+    .ai-fab, .app-fab, .page-fab, .page-toc, mateu-command-center, mateu-notification-bell, mateu-agent-connect, mateu-agent-connect-dialog,
     mateu-skip-link, mateu-connectivity-banner, mateu-app-context-picker,
     mateu-vaadin-app-context-picker, mateu-chat, mateu-filter-bar, mateu-action-panel,
     vaadin-notification-card, vaadin-tooltip-overlay, mateu-api-caller-veil,

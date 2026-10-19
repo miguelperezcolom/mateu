@@ -13,6 +13,7 @@ Per request the adapter
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from collections.abc import Callable, Sequence
@@ -27,7 +28,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, warn_on_startup
-from mateu_ui.core import dev_specs, documents, mobile_manifest, ui_page
+from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, ui_page
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -56,13 +57,31 @@ def mcp_enabled_from_env() -> bool:
     return os.environ.get("MATEU_MCP_ENABLED", "").strip().lower() in ("1", "true", "yes")
 
 
+def mcp_push_enabled_from_env() -> bool:
+    """``MATEU_MCP_PUSH_ENABLED`` (true/1/yes) — live UI push is OFF unless enabled (and it needs
+    the MCP endpoint too)."""
+    return os.environ.get("MATEU_MCP_PUSH_ENABLED", "").strip().lower() in ("1", "true", "yes")
+
+
+def _int_from_env(name: str, default: int) -> int:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        log.warning("Mateu: %s=%r is not a number; using %d", name, raw, default)
+        return default
+
+
 def authenticated_principal(request: Request) -> Identity | None:
     """The identity the app's own authentication established, or None: an ``Identity`` its
     dependency/middleware put in ``request.state.mateu_identity``, else Starlette's
     ``AuthenticationMiddleware`` (``request.user`` + ``request.auth.scopes``).
 
     Roles, groups and permissions are read from the user object's ``roles`` / ``groups`` /
-    ``permissions`` attributes when it has them. Trusted as is: the app authenticated it."""
+    ``permissions`` attributes when it has them, its name from ``username`` / ``display_name``.
+    Trusted as is: the app authenticated it."""
     state_identity = getattr(request.state, "mateu_identity", None)
     if isinstance(state_identity, Identity):
         return state_identity
@@ -86,7 +105,20 @@ def authenticated_principal(request: Request) -> Identity | None:
         groups=values(user, "groups"),
         scopes=values(auth, "scopes"),
         permissions=values(user, "permissions"),
+        name=_user_name(user),
     )
+
+
+def _user_name(user: Any) -> str | None:
+    """The authenticated user's name: ``username``, else Starlette's ``display_name``."""
+    for attribute in ("username", "display_name"):
+        try:
+            value = getattr(user, attribute, None)
+        except NotImplementedError:  # BaseUser leaves display_name abstract
+            value = None
+        if isinstance(value, str) and value:
+            return value
+    return None
 
 
 def add_mateu(
@@ -104,6 +136,10 @@ def add_mateu(
     live_reload: bool | None = None,
     mcp: bool | None = None,
     ui: str | os.PathLike[str] | None = None,
+    mcp_push: bool | None = None,
+    mcp_push_rate_per_minute: int | None = None,
+    mcp_push_max_sessions: int | None = None,
+    mcp_push_max_sessions_per_owner: int | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -135,6 +171,15 @@ def add_mateu(
       link under it, the renderer's assets are served at the origin root, and nothing under
       ``/mateu`` is ever answered with the page. Your own routes keep winning: the page only answers
       what nothing else did.
+    - ``mcp_push`` — live UI push (phase C): an MCP caller sends UI to a UI that is OPEN in a tab
+      (the ``mateu_list_sessions`` / ``mateu_pair_session`` / ``mateu_push_ui`` / ``mateu_navigate``
+      / ``mateu_dispatch_event`` tools, the ``_agent-*`` app actions). Default: the
+      ``MATEU_MCP_PUSH_ENABLED`` env var, else OFF; effective only with ``mcp`` on.
+      ``mcp_push_rate_per_minute`` (``MATEU_MCP_PUSH_RATE_PER_MINUTE``, default 30 messages per
+      session per rolling minute) and ``mcp_push_max_sessions`` (``MATEU_MCP_PUSH_MAX_SESSIONS``,
+      default 1000) bound it, and ``mcp_push_max_sessions_per_owner``
+      (``MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER``, default 20 per principal name, or per client
+      address for an anonymous UI) keeps one caller from filling the registry.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -155,6 +200,33 @@ def add_mateu(
         environment=environment,
     )
     show_details = dev_mode_from_env() if dev is None else dev
+    mcp_on = mcp_enabled_from_env() if mcp is None else mcp
+    push_on = mcp_push_enabled_from_env() if mcp_push is None else mcp_push
+    if push_on and not mcp_on:
+        log.warning("Mateu: live UI push needs the MCP endpoint (mcp=True / MATEU_MCP_ENABLED); it stays off")
+    sessions = (
+        handler.enable_agent_push(
+            rate_per_minute=(
+                mcp_push_rate_per_minute
+                if mcp_push_rate_per_minute is not None
+                else _int_from_env("MATEU_MCP_PUSH_RATE_PER_MINUTE", agent_push.DEFAULT_RATE_PER_MINUTE)
+            ),
+            max_sessions=(
+                mcp_push_max_sessions
+                if mcp_push_max_sessions is not None
+                else _int_from_env("MATEU_MCP_PUSH_MAX_SESSIONS", agent_push.DEFAULT_MAX_SESSIONS)
+            ),
+            max_sessions_per_owner=(
+                mcp_push_max_sessions_per_owner
+                if mcp_push_max_sessions_per_owner is not None
+                else _int_from_env(
+                    "MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", agent_push.DEFAULT_MAX_SESSIONS_PER_OWNER
+                )
+            ),
+        )
+        if push_on and mcp_on
+        else None
+    )
 
     if cors_origins:
         app.add_middleware(
@@ -179,6 +251,7 @@ def add_mateu(
             base_url=request_base_url,
             correlation_id=new_correlation_id(),
             principal=authenticated_principal(request),
+            client_address=request.client.host if request.client is not None else None,
         )
 
     def run_bound(mateu_request: MateuRequest, fn: Callable[[], Any]) -> Any:
@@ -238,22 +311,39 @@ def add_mateu(
     # LIVE_HEARTBEAT_SECONDS, closing after LIVE_MAX_SECONDS or when the browser goes away. Any
     # other action runs through the sync handler and streams its one increment.
     async def sse(request: Request, route: str = "") -> Response:
-        import asyncio
         import json as json_module
 
         from mateu_ui.uidl import LiveHeaderValues
 
         mateu_request = request_of(request)
         rq: RunActionRq | None = None
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue = asyncio.Queue()
+
+        def enqueue(item) -> None:
+            try:
+                loop.call_soon_threadsafe(queue.put_nowait, item)
+            except RuntimeError:  # the loop is gone: nobody is reading this stream any more
+                pass
+
+        # the stream an `_agent-channel` opens: the registry delivers to it from any thread
+        channel = agent_push.AgentChannel(
+            deliver=lambda data: enqueue(("message", data)), close=lambda: enqueue(("close", None))
+        )
         try:
             body = await request.body()
             rq = RunActionRq.model_validate_json(body) if body else RunActionRq()
             if not rq.route:
                 rq.route = route
             parsed = rq
-            first = await run_in_threadpool(
-                run_bound, mateu_request, lambda: handler.handle(parsed, mateu_request.base_url)
-            )
+
+            def first_increment():
+                if parsed.action_id != agent_push.CHANNEL_ACTION:
+                    return handler.handle(parsed, mateu_request.base_url)
+                with agent_push.bound_channel(channel):
+                    return handler.handle(parsed, mateu_request.base_url)
+
+            first = await run_in_threadpool(run_bound, mateu_request, first_increment)
         except MateuForbiddenException:
             return JSONResponse(status_code=403, content=_FORBIDDEN_BODY)
         except Exception as error:  # noqa: BLE001 - the error boundary: never a raw 500
@@ -269,6 +359,12 @@ def add_mateu(
             return "data: " + json_module.dumps(increment.model_dump(by_alias=True, mode="json")) + "\n\n"
 
         headers = {"Cache-Control": "no-cache", CORRELATION_HEADER: mateu_request.correlation_id or ""}
+        if rq.action_id == agent_push.CHANNEL_ACTION:
+            return StreamingResponse(
+                _agent_stream(request, queue, channel, handler, event(first), event),
+                media_type="text/event-stream",
+                headers=headers,
+            )
         if rq.action_id != "_live-updates":
 
             async def single():
@@ -278,11 +374,8 @@ def add_mateu(
 
         from mateu_ui.dtos import UICommand, UIIncrement
 
-        loop = asyncio.get_running_loop()
-        queue: asyncio.Queue = asyncio.Queue()
-
         def push(change) -> None:
-            loop.call_soon_threadsafe(queue.put_nowait, change)
+            enqueue(change)
 
         unsubscribe = LiveHeaderValues.subscribe(push)
 
@@ -365,17 +458,27 @@ def add_mateu(
                 increment = error_increment(error, cid, show_details, rq.action_id)
             return increment.model_dump(by_alias=True, mode="json")
 
+        def respond():
+            push = None
+            if sessions is not None:
+                # who is calling: its principal name, else its agent key (what the sidecar sends)
+                provider = handler.mapper.identity_provider
+                identity = provider() if provider else None
+                caller = agent_push.Caller.of(
+                    getattr(identity, "name", None), mateu_request.header(agent_push.AGENT_KEY_HEADER)
+                )
+                push = agent_push.PushContext(sessions, caller)
+            return handle_jsonrpc(message, sync_fn, show_details, push)
+
         try:
-            response = await run_in_threadpool(
-                run_bound, mateu_request, lambda: handle_jsonrpc(message, sync_fn, show_details)
-            )
+            response = await run_in_threadpool(run_bound, mateu_request, respond)
         except Exception as error:  # noqa: BLE001
             return failed(error, mateu_request)
         if response is None:
             return JSONResponse(status_code=202, content=None)
         return JSONResponse(response)
 
-    if mcp_enabled_from_env() if mcp is None else mcp:
+    if mcp_on:
         app.add_api_route(f"{prefix}/mateu/mcp", mcp_endpoint, methods=["POST"])
 
     if dev_specs.enabled() if live_reload is None else live_reload:
@@ -402,6 +505,49 @@ def add_mateu(
         # no renderer: a browser opening the mount gets a hint (still a 404), not a bare JSON 404
         app.add_middleware(MateuApiHintMiddleware, base_url=prefix)
     return handler
+
+
+#: The agent channel (``_agent-channel``, live UI push): an empty heartbeat this often, and the
+#: stream ends after AGENT_MAX_SECONDS (the UI reconnects at once). Module-level so tests can
+#: shorten them.
+AGENT_HEARTBEAT_SECONDS: float = 20
+AGENT_MAX_SECONDS: float = 300
+
+
+async def _agent_stream(request: Request, queue, channel, handler: SyncHandler, first: str, event):
+    """The ``_agent-channel`` stream: the status first, then one increment per message (an
+    ``AgentPush`` command), an empty heartbeat every AGENT_HEARTBEAT_SECONDS; ends after
+    AGENT_MAX_SECONDS, when a newer channel of the session replaced it or when the UI goes away.
+    Whatever ends it, the session counts as disconnected from then on."""
+    import asyncio
+
+    from mateu_ui.dtos import UICommand, UIIncrement
+
+    loop = asyncio.get_running_loop()
+    try:
+        yield first
+        deadline = loop.time() + AGENT_MAX_SECONDS
+        while True:
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                break
+            try:
+                kind, data = await asyncio.wait_for(
+                    queue.get(), timeout=min(AGENT_HEARTBEAT_SECONDS, remaining)
+                )
+                if kind == "close":
+                    break
+                increment = UIIncrement.of(
+                    commands=[UICommand.agent_push(data["kind"], data["event"], data["detail"])]
+                )
+            except asyncio.TimeoutError:
+                increment = UIIncrement.of()
+            if await request.is_disconnected():
+                break
+            yield event(increment)
+    finally:
+        if handler.agent_push is not None:
+            handler.agent_push.channel_closed(channel)
 
 
 class MateuUiMiddleware:

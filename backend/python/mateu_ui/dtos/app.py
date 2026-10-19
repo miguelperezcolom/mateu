@@ -111,6 +111,10 @@ class AppMetadata(Wire):
     #: @app(idle_timeout_minutes=...): the idle-session warning; None = off (mirrors
     #: AppDto.idleSession).
     idle_session: "IdleSession | None" = None
+    #: Live UI push is on (``add_mateu(..., mcp=True, mcp_push=True)``): the UI opens its agent
+    #: channel (``_agent-channel`` over the SSE endpoint) and shows "Connect AI" (mirrors
+    #: AppDto.agentPush; conformance/mcp/README.md "Live UI push").
+    agent_push: bool = False
 
 
 class AppContextSelector(Wire):

@@ -683,6 +683,12 @@ public class ActionInstanceCreator {
         || io.mateu.core.domain.act.LiveUpdatesActionRunner.ACTION_ID.equals(actionId)) {
       return true;
     }
+    // So do the live UI push channel and its pairing (the "Connect AI" control is on the shell).
+    if (io.mateu.core.application.agentpush.AgentPush.CHANNEL_ACTION.equals(actionId)
+        || io.mateu.core.application.agentpush.AgentPush.PAIR_ACTION.equals(actionId)
+        || io.mateu.core.application.agentpush.AgentPush.UNPAIR_ACTION.equals(actionId)) {
+      return true;
+    }
     // Header actions declared by the app's AppActionsSupplier dispatch to the app
     // instance too — same reasoning as the context selectors' remote search.
     if (command.serverSideType() == null) {

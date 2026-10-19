@@ -15,7 +15,8 @@ Think of it as **"a renderer of agents"**: same self-describing model, tools ins
 The same server also lets an agent **author** screens: it serves the authoring contract (the schemas,
 a component catalogue, a guide) and tools to validate, preview and — in development mode — save a
 YAML definition. See [Authoring tools](#authoring-tools) and
-[Let an AI author screens via MCP](#let-an-ai-author-screens-via-mcp). For prompt-to-app without an
+[Let an AI author screens via MCP](#let-an-ai-author-screens-via-mcp). And it can send UI to a UI
+that is open in a browser or an app — see [Drive a live UI](#drive-a-live-ui). For prompt-to-app without an
 MCP client, see [Prompt-to-app (AI authoring)](/reference/prompt-to-app/).
 
 ## The tools
@@ -145,6 +146,101 @@ iterates with `mateu_validate_uidl` until there are no errors, checks the result
 
 The protocol version advertised is `2024-11-05` (clients negotiate down to it); the endpoint is a
 stateless JSON POST.
+
+## Drive a live UI
+
+An agent can also send UI to a UI that is **open** — a browser tab, the React Native app, the
+IntelliJ tool window: show a screen it authored, navigate the user somewhere, or dispatch an event
+the page reacts to. It is the MCP twin of the in-app chat's `render-screen` /
+`navigation-requested` events: the UI applies a pushed message exactly as it applies the chat's,
+through the same code.
+
+### Enable it
+
+Off by default, and it needs the MCP endpoint on too:
+
+| Host | Switch |
+|---|---|
+| Java (every adapter) | `mateu.mcp.enabled=true` + `mateu.mcp.push.enabled=true` (or `MATEU_MCP_PUSH_ENABLED=true`) |
+| .NET | `MateuOptions.Mcp = true` + `MateuOptions.McpPush = true` (or `MATEU_MCP_ENABLED` / `MATEU_MCP_PUSH_ENABLED`) |
+| Python | `add_mateu(..., mcp=True, mcp_push=True)` (or the same environment variables) |
+
+Limits: `mateu.mcp.push.rate-per-minute` (30 messages per session per minute),
+`mateu.mcp.push.max-sessions` (1000 registered sessions) and `mateu.mcp.push.max-sessions-per-owner`
+(20 per signed-in user, or per client address for anonymous UIs); same names as `MATEU_MCP_PUSH_*`
+environment variables and as .NET/Python options.
+
+With it on, every app shell gets a **Connect AI** control in its header (a drawer row on React
+Native, a toolbar action in IntelliJ), and each UI keeps one small event stream open — its *agent
+channel*, the app-level `_agent-channel` action over the SSE endpoint every adapter already has. One
+channel per **tab**: a push is meant for the tab the user is looking at, not for every tab of the
+browser.
+
+### Pair
+
+A signed-in user's own agent needs no pairing: an MCP caller authenticated as the same principal sees
+that user's sessions in `mateu_list_sessions`. Any other agent — a local Claude Code, the sidecar,
+an anonymous caller — must be **paired**:
+
+1. the user clicks **Connect AI**; the UI shows a one-time code (`K7QF-4MZP`) with a countdown;
+2. the user tells the agent the code; the agent calls `mateu_pair_session {code}`;
+3. the UI shows "AI connected" and who; **Disconnect** removes the pairing at once.
+
+A code works once and dies after five minutes (or when a new one is asked for).
+
+### The tools
+
+Listed only when push is on, after the operating and authoring tools:
+
+| Tool | What it does |
+|---|---|
+| `mateu_list_sessions` | The sessions this caller may reach (its own + paired): `{session, user, route, renderer, connectedAt, connected, paired}`. |
+| `mateu_pair_session` | Pair a session with the code its user sees. |
+| `mateu_push_ui` | Validate a YAML page (nothing is sent when it has errors), then show it in that tab: `target` = `content` (default), `drawer` or `dialog`, optional `title`. |
+| `mateu_navigate` | Navigate that tab to a route, like a menu click (`route`, plus the optional `consumedRoute`, `actionId`, `baseUrl`, `serverSideType`, `uriPrefix`). |
+| `mateu_dispatch_event` | Dispatch a named event (`@SubscribeTo` views take it). The built-in events are reserved for the two tools above. |
+
+The pushed screen is rendered by the UI through the same reserved `__preview__` action as the chat's
+`render-screen`: layout only, no view model is created or bound, and it is requested **with the
+UI's own identity**, so the route guard and the wire-type policy apply again on the receiving side.
+Whatever the screen does afterwards — its buttons, its REST sources — goes through the same checks
+as any other request.
+
+### Security model
+
+- **Off by default**, and only with the MCP endpoint on.
+- **Who may reach a session**: a caller signed in as the session's user, or a caller the session
+  was **paired** to. The caller is its authenticated principal; else the `X-Mateu-Agent-Key` header
+  (what the sidecar sends, ≥ 16 characters); else anonymous — and an anonymous caller only reaches a
+  session it paired, by the opaque handle the pairing answered. Anything else answers `Unknown
+  session` — a session of another user and one that does not exist look the same.
+- **The UI side is pinned**: a session belongs to the secret its tab generated and to the principal
+  it registered with; another tab, user or guess cannot take over its stream or ask for its codes.
+- **Limits**: 30 messages per session per minute, 256 KiB per screen, 64 KiB per event detail, 10
+  failed pairings per caller per minute, 1000 sessions and 20 per owner (a user, or an anonymous
+  UI's client address — so one caller cannot fill the registry); a disconnected session is forgotten two
+  minutes after its stream ended.
+- **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<handle>
+  kind=<render|navigate|event> … bytes=<n>` — and every pairing too.
+- In-process: in a cluster, the stream and the MCP call must reach the same node (sticky sessions).
+
+### Example with Claude Code
+
+```bash
+# the app: mateu.mcp.enabled=true + mateu.mcp.push.enabled=true
+claude mcp add --transport http mateu http://localhost:8080/mateu/mcp
+# or through the sidecar (it forwards the push tools to the app's /mateu/mcp)
+claude mcp add mateu --env MATEU_BASE_URL=http://localhost:8080 --env MATEU_PUSH=true \
+  -- node frontend/mcp-server/index.mjs
+```
+
+Open the app, click **Connect AI**, and tell Claude: *"pair with K7QF-4MZP and show me a check-in
+form for Nora Duarte in a drawer"*. It calls `mateu_pair_session`, writes the page (checking it with
+`mateu_validate_uidl`), and `mateu_push_ui` puts it in front of you; *"now take me to her
+booking"* is a `mateu_navigate`.
+
+The wire is specified in [Wire specification → Live UI push](/reference/wire-specification/#live-ui-push)
+and pinned, with the security rules, by `conformance/mcp/push.json`.
 
 ## The in-app assistant uses the same projection
 

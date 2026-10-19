@@ -75,6 +75,25 @@ class UICommand(Wire):
             data=CustomEventRecord(event_name=event_name, detail=detail),
         )
 
+    @staticmethod
+    def agent_push(kind: str, event: str, detail: Any) -> "UICommand":
+        """One message of a live UI session's agent channel (``_agent-channel``): ``kind`` is
+        status | render | navigate | event, ``event`` the UI event it maps to and ``detail`` its
+        payload (mirrors Java's AgentPush command; see conformance/mcp/README.md "Live UI push")."""
+        return UICommand(
+            target_component_id="ux_main",
+            type="AgentPush",
+            data=AgentPushMessage(kind=kind, event=event, detail=detail),
+        )
+
+
+class AgentPushMessage(Wire):
+    """The payload of an ``AgentPush`` command: ``{kind, event, detail}``."""
+
+    kind: str
+    event: str
+    detail: Any | None = None
+
 
 class Announcement(Wire):
     """The payload of an ``Announce`` command (mirrors ``io.mateu.uidl.data.Announcement``): a

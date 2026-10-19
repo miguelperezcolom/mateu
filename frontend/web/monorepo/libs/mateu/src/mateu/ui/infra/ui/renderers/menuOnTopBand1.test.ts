@@ -27,6 +27,7 @@ describe('MENU_ON_TOP band 1', () => {
             { themeToggle: true },
             { mobileQr: true },
             { notificationsEnabled: true },
+            { agentPush: true },
             { contextSelectors: [{ fieldName: 'hotel', label: 'Hotel', options: [] }] },
             { contextActions: [{ actionId: 'x', label: 'X' }] },
             { headerValues: [{ id: 'bd', label: 'Business date', value: '2026-10-18' }] },

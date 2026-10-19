@@ -20,6 +20,8 @@ class AdapterParityEnabledTest {
           AdapterParityITFoundation.ALLOWED_ORIGIN,
           "mateu.mcp.enabled",
           "true",
+          "mateu.mcp.push.enabled",
+          "true",
           "mateu.dev",
           "true");
     }
@@ -50,5 +52,10 @@ class AdapterParityEnabledTest {
   @Test
   void servesDevEndpointsWhenEnabled() throws Exception {
     contract.servesDevEndpointsWhenEnabled();
+  }
+
+  @Test
+  void pushesUiToALiveSessionOverTheSseStream() throws Exception {
+    contract.pushesUiToALiveSessionOverTheSseStream();
   }
 }

@@ -43,12 +43,14 @@ class _Dimensions:
 class Identity(_Dimensions):
     """The caller's identity, as the framework adapter resolves it (e.g. from the JWT Bearer
     token): the dimensions EyesOnly/ReadOnlyUnless/DisabledUnless match against. The Python
-    analogue of what Java's Authorizer reads."""
+    analogue of what Java's Authorizer reads. ``name`` is the principal's name (None when
+    unknown): never matched by a gate — it identifies the owner of a live UI session (MCP push)."""
 
     roles: tuple[str, ...] = ()
     groups: tuple[str, ...] = ()
     scopes: tuple[str, ...] = ()
     permissions: tuple[str, ...] = ()
+    name: str | None = None
 
 
 @dataclass(frozen=True)

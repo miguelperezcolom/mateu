@@ -44,7 +44,9 @@ internal class ChatPanel(
     private val sseUrl = ChatRequests.resolve(sseUrl, session.baseUrl) ?: sseUrl
     private val uploadUrl = ChatRequests.resolve(uploadUrl, session.baseUrl)
     private val mcpUrl = ChatRequests.resolve(session.appMcpUrl, session.baseUrl)
-    private val sessionId = ChatRequests.newSessionId()
+    /** The UI session id — the app session's (its `X-Session-Id`), so the chat and the live UI push
+     *  channel name the same session, as on the web. */
+    private val sessionId = session.sessionId
     private val transport = ChatTransport(session.apiClient)
 
     private data class Entry(val user: Boolean, var text: String)
@@ -180,67 +182,12 @@ internal class ChatPanel(
 
     // ── events ──────────────────────────────────────────────────────────────────────────────
 
+    /** The SAME applier the live UI push channel uses (see [AgentEvents]): one behaviour for both. */
     private fun applyEvent(event: String, detail: JsonNode) {
-        when (val effect = ChatEvents.decide(event, detail, session::hasSubscriber, session.appMenu)) {
-            is ChatEvents.Effect.Navigate -> session.openMenuEntry(effect.entry)
-            ChatEvents.Effect.Close -> onClose()
-            is ChatEvents.Effect.RenderScreen -> renderScreen(effect)
-            is ChatEvents.Effect.Bus -> session.dispatchEvent(effect.event, effect.detail)
-            ChatEvents.Effect.Ignore -> Unit
+        AgentEvents.apply(session, event, detail, host, component, onClose) { message ->
+            entries.add(Entry(false, ChatTurn.ERROR_PREFIX + message))
+            repaintConversation()
         }
-    }
-
-    /** The shell renders the screen itself: the reserved `__preview__` sync action, then its fragments. */
-    private fun renderScreen(effect: ChatEvents.Effect.RenderScreen) {
-        val view = host ?: session.activeView
-        val route = view?.currentRoute?.ifBlank { null } ?: session.homeRoute ?: session.appRootRoute
-        val consumed = view?.currentConsumedRoute ?: ""
-        session.executor.submit {
-            val increment = runCatching {
-                session.apiClient.runAction(
-                    route, consumed, ChatEvents.PREVIEW_ACTION, null, "chat",
-                    emptyMap(), HashMap(session.appState), ChatEvents.previewParameters(effect.yaml),
-                )
-            }.getOrElse { e ->
-                onEdt { entries.add(Entry(false, ChatTurn.ERROR_PREFIX + (e.message ?: "preview failed"))); repaintConversation() }
-                return@submit
-            }
-            onEdt { presentPreview(effect, route, consumed, increment) }
-        }
-    }
-
-    private fun presentPreview(effect: ChatEvents.Effect.RenderScreen, route: String, consumed: String, increment: JsonNode) {
-        val ctx = AppContext(session)
-        ctx.titleConsumer = {}
-        val panel = ctx.newSlot()
-        ctx.contentPane = panel
-        ctx.currentRoute = route
-        ctx.currentConsumedRoute = consumed
-        ctx.applyIncrement(increment)
-        val title = effect.title ?: ctx.lastWindowTitle ?: "Preview"
-        if (effect.target == "content") {
-            session.contentPreviewHandler?.let { it(title, panel, ctx); return }
-        }
-        if (java.awt.GraphicsEnvironment.isHeadless()) return
-        val owner = SwingUtilities.getWindowAncestor(component)
-        val modality = if (effect.target == "dialog") java.awt.Dialog.ModalityType.DOCUMENT_MODAL else java.awt.Dialog.ModalityType.MODELESS
-        val dialog = javax.swing.JDialog(owner, title, modality)
-        dialog.contentPane.add(JBScrollPane(panel).apply { border = null })
-        val ideFrame = owner?.owner ?: owner
-        if (effect.target == "drawer" && ideFrame != null) {
-            // a side panel over the content, anchored to the right edge of the IDE window
-            val width = JBUI.scale(520)
-            dialog.setSize(width, (ideFrame.height - 80).coerceAtLeast(300))
-            dialog.setLocation(ideFrame.x + ideFrame.width - width - 10, ideFrame.y + 60)
-        } else {
-            dialog.setSize(JBUI.scale(720), JBUI.scale(560))
-            dialog.setLocationRelativeTo(ideFrame)
-        }
-        dialog.addWindowListener(object : java.awt.event.WindowAdapter() {
-            override fun windowClosed(e: java.awt.event.WindowEvent) = ctx.dispose()
-        })
-        dialog.rootPane.registerKeyboardAction({ dialog.dispose() }, javax.swing.KeyStroke.getKeyStroke("ESCAPE"), JComponent.WHEN_IN_FOCUSED_WINDOW)
-        dialog.isVisible = true
     }
 
     /** A link in an answer: an app route opens through the menu entry serving it, a url in the browser. */

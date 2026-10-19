@@ -11,6 +11,7 @@ vi.mock('./rowRoute', () => ({ navigateToRoute: (_from: unknown, route: string) 
 import './mateu-chat'
 import type { MateuChat } from './mateu-chat'
 import { claimEvent } from './chatEvents'
+import { sessionId } from '@infra/http/authToken.ts'
 
 /**
  * The UI events of the agent's stream, as the panel handles them: dispatched out of it as they
@@ -122,5 +123,15 @@ describe('mateu-chat, the events of the stream', () => {
         expect(body.currentRoute).toBe(window.location.pathname)
         expect(body.mcpUrl).toBe(new URL('/mcp', window.location.origin).href)
         expect(body.menuContext[0].path).toEqual(['Bookings'])
+    })
+
+    it('the conversation\'s sessionId is the tab\'s UI session id — the one the live UI push channel names', async () => {
+        const fetchMock = vi.fn(() => Promise.resolve(new Response('data:ok\n\n', { status: 200 })))
+        vi.stubGlobal('fetch', fetchMock)
+        const el = chat()
+        await el.send(new CustomEvent('submit', { detail: { value: 'hi' } }))
+        const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1].body)
+        expect(body.sessionId).toBe(sessionId(false))
+        expect(body.sessionId).toBeTruthy()
     })
 })

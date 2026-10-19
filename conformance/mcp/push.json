@@ -1,0 +1,210 @@
+{
+  "$comment": "The MCP live-UI push contract (phase C) shared by the Java, .NET and Python backends and the sidecar. See README.md, section 'Live UI push'. pushTools are normative byte for byte (listed after the eight base tools and before mateu_save_spec, only when push is enabled); scenario is run by each backend's test with the volatile values normalised: a session handle -> \"<session:NAME>\" (NAME = the UI session's sessionId), connectedAt -> \"<time>\", a pairing code -> \"<code>\".",
+  "pushTools": [
+    {
+      "name": "mateu_list_sessions",
+      "description": "List the live UI sessions (browser tabs, app windows) this caller may send UI to: its own (same signed-in user) and the ones paired to it with mateu_pair_session. Returns {sessions: [{session, user, route, renderer, connectedAt, connected, paired}]}.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "mateu_pair_session",
+      "description": "Pair a live UI session with this caller, using the one-time code the user sees after clicking \"Connect AI\" in the app. Returns the session; it can then be addressed by mateu_push_ui, mateu_navigate and mateu_dispatch_event. The code expires in minutes and works once.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "the pairing code shown in the app, e.g. K7QF-4MZP"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code"
+        ]
+      }
+    },
+    {
+      "name": "mateu_push_ui",
+      "description": "Show a screen in a live UI session: validate the YAML page first (nothing is sent when it has errors), then render it in that tab, in the content area (default), a drawer or a dialog. Layout only: no view model is bound. Returns {delivered, session, target, validation} or {delivered: false, reason, validation}.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "a session from mateu_list_sessions or mateu_pair_session"
+          },
+          "yaml": {
+            "type": "string",
+            "description": "the page's YAML text"
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "content",
+              "drawer",
+              "dialog"
+            ],
+            "description": "where to show it (default content)"
+          },
+          "title": {
+            "type": "string",
+            "description": "optional: the drawer's or dialog's header"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "session",
+          "yaml"
+        ]
+      }
+    },
+    {
+      "name": "mateu_navigate",
+      "description": "Navigate a live UI session to a route of the app, like a click on the menu entry carrying these fields. Returns {delivered, session}.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "a session from mateu_list_sessions or mateu_pair_session"
+          },
+          "route": {
+            "type": "string",
+            "description": "the target route, e.g. /orders/42"
+          },
+          "consumedRoute": {
+            "type": "string",
+            "description": "optional: the route consumed by the app shell (usually \"\")"
+          },
+          "actionId": {
+            "type": "string",
+            "description": "optional: an action to run on arrival"
+          },
+          "baseUrl": {
+            "type": "string",
+            "description": "optional: the base URL of the target micro-frontend"
+          },
+          "serverSideType": {
+            "type": "string",
+            "description": "optional: the server-side type of the target UI"
+          },
+          "uriPrefix": {
+            "type": "string",
+            "description": "optional: the URI prefix (usually \"\")"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "session",
+          "route"
+        ]
+      }
+    },
+    {
+      "name": "mateu_dispatch_event",
+      "description": "Dispatch a named UI event in a live UI session, for the components that subscribe to it (@SubscribeTo). The built-in events are reserved: use mateu_push_ui and mateu_navigate for them. Returns {delivered, session}.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "a session from mateu_list_sessions or mateu_pair_session"
+          },
+          "event": {
+            "type": "string",
+            "description": "the event name, e.g. highlight-row"
+          },
+          "detail": {
+            "type": "object",
+            "description": "optional: the event's detail"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "session",
+          "event"
+        ]
+      }
+    }
+  ],
+  "errors": {
+    "disabled": "Live UI push is not enabled.",
+    "unknownSession": "Unknown session \"{session}\".",
+    "notConnected": "Session \"{session}\" is not connected.",
+    "rateLimited": "Too many messages to this session; try again in a minute.",
+    "invalidCode": "Invalid or expired pairing code.",
+    "tooManyAttempts": "Too many pairing attempts; try again in a minute.",
+    "reservedEvent": "Event \"{event}\" is reserved: use mateu_push_ui or mateu_navigate.",
+    "invalidEvent": "Invalid event name \"{event}\".",
+    "detailTooLarge": "The detail is larger than the 65536-byte limit.",
+    "invalidTarget": "Invalid target \"{target}\": use content, drawer or dialog.",
+    "channelRefused": "This UI session belongs to another channel.",
+    "tooManySessions": "Too many live UI sessions; try again later."
+  },
+  "reasons": {
+    "hasErrors": "The definition has errors; nothing was sent.",
+    "notAPage": "Only a page (a component, or a layout: envelope) can be pushed."
+  },
+  "scenario": {
+    "$comment": "UI sessions are opened in this order (sessionId, secret, principal or null, route, renderer). Callers: alice / bob (signed-in principals), anon (no identity, no agent key). Each step: as (caller), and either tool+args (args strings may name a session as <session:ID>, a code as <code:ID> = the last code the UI session ID asked for) with expect (the tool result JSON, or {error: text}), or ui (a UI-side operation: pair | unpair | disconnect) on sessionId, or received (the messages the session's channel received since the last check, in order, AgentPush data).",
+    "sessions": [
+      { "sessionId": "ui-1", "secret": "secret-1", "principal": "alice", "route": "/orders", "renderer": "vaadin" },
+      { "sessionId": "ui-2", "secret": "secret-2", "principal": "bob", "route": "", "renderer": "redwood" },
+      { "sessionId": "ui-3", "secret": "secret-3", "principal": null, "route": "/", "renderer": "react-native" }
+    ],
+    "steps": [
+      { "received": "ui-1", "expect": [ { "kind": "status", "event": "mateu-agent-status", "detail": { "paired": false, "agents": [] } } ] },
+      { "as": "alice", "tool": "mateu_list_sessions", "args": {}, "expect": { "sessions": [ { "session": "<session:ui-1>", "user": "alice", "route": "/orders", "renderer": "vaadin", "connectedAt": "<time>", "connected": true, "paired": false } ] } },
+      { "as": "bob", "tool": "mateu_list_sessions", "args": {}, "expect": { "sessions": [ { "session": "<session:ui-2>", "user": "bob", "route": "", "renderer": "redwood", "connectedAt": "<time>", "connected": true, "paired": false } ] } },
+      { "as": "anon", "tool": "mateu_list_sessions", "args": {}, "expect": { "sessions": [] } },
+      { "as": "alice", "tool": "mateu_push_ui", "args": { "session": "<session:ui-2>", "yaml": "type: Text\ntext: Hello\n" }, "expect": { "error": "Unknown session \"<session:ui-2>\"." } },
+      { "as": "alice", "tool": "mateu_push_ui", "args": { "session": "nope", "yaml": "type: Text\ntext: Hello\n" }, "expect": { "error": "Unknown session \"nope\"." } },
+      { "as": "alice", "tool": "mateu_push_ui", "args": { "session": "<session:ui-1>", "yaml": "type: Nope\n" }, "expect": { "delivered": false, "reason": "The definition has errors; nothing was sent.", "validation": { "valid": false, "kind": "component", "errors": [ { "code": "unknown_type", "message": "Unknown Component type \"Nope\".", "path": "$.type", "line": 1, "column": 7 } ], "warnings": [] } } },
+      { "as": "alice", "tool": "mateu_push_ui", "args": { "session": "<session:ui-1>", "yaml": "type: Text\ntext: Hello\n", "target": "sidebar" }, "expect": { "error": "Invalid target \"sidebar\": use content, drawer or dialog." } },
+      { "as": "alice", "tool": "mateu_push_ui", "args": { "session": "<session:ui-1>", "yaml": "type: Text\ntext: Hello\n", "target": "drawer", "title": "Greeting" }, "expect": { "delivered": true, "session": "<session:ui-1>", "target": "drawer", "validation": { "valid": true, "kind": "component", "errors": [], "warnings": [] } } },
+      { "as": "alice", "tool": "mateu_navigate", "args": { "session": "<session:ui-1>", "route": "/orders/42" }, "expect": { "delivered": true, "session": "<session:ui-1>" } },
+      { "as": "alice", "tool": "mateu_dispatch_event", "args": { "session": "<session:ui-1>", "event": "render-screen" }, "expect": { "error": "Event \"render-screen\" is reserved: use mateu_push_ui or mateu_navigate." } },
+      { "as": "alice", "tool": "mateu_dispatch_event", "args": { "session": "<session:ui-1>", "event": "bad name!" }, "expect": { "error": "Invalid event name \"bad name!\"." } },
+      { "as": "alice", "tool": "mateu_dispatch_event", "args": { "session": "<session:ui-1>", "event": "highlight-row", "detail": { "id": 7 } }, "expect": { "delivered": true, "session": "<session:ui-1>" } },
+      { "received": "ui-1", "expect": [
+        { "kind": "render", "event": "render-screen", "detail": { "yaml": "type: Text\ntext: Hello\n", "target": "drawer", "title": "Greeting" } },
+        { "kind": "navigate", "event": "navigation-requested", "detail": { "route": "/orders/42", "consumedRoute": "" } },
+        { "kind": "event", "event": "highlight-row", "detail": { "id": 7 } }
+      ] },
+      { "received": "ui-2", "expect": [ { "kind": "status", "event": "mateu-agent-status", "detail": { "paired": false, "agents": [] } } ] },
+      { "ui": "pair", "sessionId": "ui-2" },
+      { "as": "anon", "tool": "mateu_pair_session", "args": { "code": "ZZZZ-ZZZZ" }, "expect": { "error": "Invalid or expired pairing code." } },
+      { "as": "anon", "tool": "mateu_pair_session", "args": { "code": "<code:ui-2>" }, "expect": { "session": "<session:ui-2>", "user": "bob", "route": "", "renderer": "redwood", "connectedAt": "<time>", "connected": true, "paired": true } },
+      { "as": "anon", "tool": "mateu_pair_session", "args": { "code": "<code:ui-2>" }, "expect": { "error": "Invalid or expired pairing code." } },
+      { "as": "anon", "tool": "mateu_push_ui", "args": { "session": "<session:ui-2>", "yaml": "type: Text\ntext: From an agent\n" }, "expect": { "delivered": true, "session": "<session:ui-2>", "target": "content", "validation": { "valid": true, "kind": "component", "errors": [], "warnings": [] } } },
+      { "as": "bob", "tool": "mateu_list_sessions", "args": {}, "expect": { "sessions": [ { "session": "<session:ui-2>", "user": "bob", "route": "", "renderer": "redwood", "connectedAt": "<time>", "connected": true, "paired": true } ] } },
+      { "received": "ui-2", "expect": [
+        { "kind": "status", "event": "mateu-agent-status", "detail": { "paired": true, "agents": [ "an agent" ] } },
+        { "kind": "render", "event": "render-screen", "detail": { "yaml": "type: Text\ntext: From an agent\n", "target": "content" } }
+      ] },
+      { "ui": "pair", "sessionId": "ui-3" },
+      { "as": "alice", "tool": "mateu_pair_session", "args": { "code": "<code:ui-3>" }, "expect": { "session": "<session:ui-3>", "user": null, "route": "/", "renderer": "react-native", "connectedAt": "<time>", "connected": true, "paired": true } },
+      { "as": "alice", "tool": "mateu_list_sessions", "args": {}, "expect": { "sessions": [
+        { "session": "<session:ui-3>", "user": null, "route": "/", "renderer": "react-native", "connectedAt": "<time>", "connected": true, "paired": true },
+        { "session": "<session:ui-1>", "user": "alice", "route": "/orders", "renderer": "vaadin", "connectedAt": "<time>", "connected": true, "paired": false }
+      ] } },
+      { "received": "ui-3", "expect": [
+        { "kind": "status", "event": "mateu-agent-status", "detail": { "paired": false, "agents": [] } },
+        { "kind": "status", "event": "mateu-agent-status", "detail": { "paired": true, "agents": [ "alice" ] } }
+      ] },
+      { "ui": "unpair", "sessionId": "ui-2" },
+      { "as": "anon", "tool": "mateu_push_ui", "args": { "session": "<session:ui-2>", "yaml": "type: Text\ntext: Again\n" }, "expect": { "error": "Unknown session \"<session:ui-2>\"." } },
+      { "received": "ui-2", "expect": [ { "kind": "status", "event": "mateu-agent-status", "detail": { "paired": false, "agents": [] } } ] },
+      { "ui": "disconnect", "sessionId": "ui-1" },
+      { "as": "alice", "tool": "mateu_navigate", "args": { "session": "<session:ui-1>", "route": "/" }, "expect": { "error": "Session \"<session:ui-1>\" is not connected." } },
+      { "as": "alice", "tool": "mateu_list_sessions", "args": {}, "expect": { "sessions": [
+        { "session": "<session:ui-3>", "user": null, "route": "/", "renderer": "react-native", "connectedAt": "<time>", "connected": true, "paired": true },
+        { "session": "<session:ui-1>", "user": "alice", "route": "/orders", "renderer": "vaadin", "connectedAt": "<time>", "connected": false, "paired": false }
+      ] } }
+    ]
+  }
+}

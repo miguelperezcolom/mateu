@@ -45,6 +45,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.appShortcuts = io.mateu.ijp.state.AppShortcuts.of(metadata)
         session.seedHeaderValues(io.mateu.ijp.state.HeaderValues.of(metadata))
         session.syncLiveUpdates(metadata.bool("liveUpdates"))
+        // Live UI push (AppDto.agentPush): the agent channel opens and "Connect AI" shows.
+        session.syncAgentPush(io.mateu.ijp.state.AgentPush.enabled(metadata))
         val idle = io.mateu.ijp.state.IdleClock.of(metadata)
         val watcher = session.idleWatcher
         when {
@@ -133,6 +135,10 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         }
         chat.border = JBUI.Borders.empty(8)
         sidebar.addStacked(chat, 2)
+    }
+    // "Connect AI" (live UI push): pairs this window with an agent; also on the tool window's title bar.
+    if (r.ctx.appShell && session.agentPush) {
+        sidebar.addStacked(connectAiLink(session), 2)
     }
     return JBScrollPane(sidebar)
 }

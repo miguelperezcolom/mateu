@@ -200,6 +200,7 @@ from .records import (  # noqa: F401
     Trigger,
 )
 from .envelope import (  # noqa: F401
+    AgentPushMessage,
     Announcement,
     CustomEventRecord,
     Message,

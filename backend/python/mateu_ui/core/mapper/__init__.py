@@ -296,6 +296,8 @@ class ReflectionMapper(
         self.exporters: Any = Exporters()
         #: The translation catalogue (a TranslationRegistry, set by the SyncHandler); None = none.
         self.translations: Any = None
+        #: Live UI push is on (set by SyncHandler.enable_agent_push): the app says so on the wire.
+        self.agent_push_enabled: bool = False
         #: The app's field type catalogue (a FieldTypeRegistry) for FieldType() markers on
         #: listing columns; None = the default one over MATEU_SPECS_DIR.
         self.field_types: Any = None

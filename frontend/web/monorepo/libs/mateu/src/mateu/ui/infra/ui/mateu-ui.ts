@@ -23,7 +23,11 @@ import { installPrintSupport } from '@infra/ui/documents.ts'
 import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
 import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
 import { routeQueryOf } from '@infra/ui/routeQuery.ts'
+import { startTabSessionClaim } from '@infra/http/tabSession.ts'
 
+// A duplicated tab copied this tab's sessionStorage, its UI session id included: find out FIRST
+// (before any request carries the id) whether another tab holds it, and take a fresh one if so.
+startTabSessionClaim()
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
 registerNeutralNotifier()

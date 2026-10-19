@@ -15,5 +15,10 @@ public enum UICommandTypeDto {
   DownloadFile,
   Announce,
   Print,
-  UpdateHeaderValue
+  UpdateHeaderValue,
+  /**
+   * A message an MCP caller sent to this UI session (live UI push): data is an {@link
+   * AgentPushDto}. Only on the {@code _agent-channel} stream.
+   */
+  AgentPush
 }

@@ -55,6 +55,47 @@ public sealed class MateuOptions
     /// <summary>Whether <c>MATEU_MCP_ENABLED</c> turns the MCP endpoint on (true/1/yes).</summary>
     public static bool McpEnabledByEnvironment() =>
         System.Environment.GetEnvironmentVariable("MATEU_MCP_ENABLED")?.Trim().ToLowerInvariant() is "true" or "1" or "yes";
+
+    /// <summary>Live UI push (phase C): the MCP tools that send UI to a UI that is OPEN in a browser
+    /// tab or an app window (mateu_list_sessions, mateu_pair_session, mateu_push_ui, mateu_navigate,
+    /// mateu_dispatch_event) and the UI's agent channel. Effective only when the MCP endpoint is on
+    /// (<see cref="Mcp"/>). Null (the default) reads <c>MATEU_MCP_PUSH_ENABLED</c>; otherwise OFF, as
+    /// on Java (<c>mateu.mcp.push.enabled</c>).</summary>
+    public bool? McpPush { get; set; }
+
+    /// <summary>Messages an agent may send to one UI session per rolling minute. Null (the default)
+    /// reads <c>MATEU_MCP_PUSH_RATE_PER_MINUTE</c>, else 30.</summary>
+    public int? McpPushRatePerMinute { get; set; }
+
+    /// <summary>The most live UI sessions held at once. Null (the default) reads
+    /// <c>MATEU_MCP_PUSH_MAX_SESSIONS</c>, else 1000.</summary>
+    public int? McpPushMaxSessions { get; set; }
+
+    /// <summary>The most live UI sessions one OWNER holds at once (the UI's principal name, or — for an
+    /// anonymous UI — its client address). Null (the default) reads
+    /// <c>MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER</c>, else 20.</summary>
+    public int? McpPushMaxSessionsPerOwner { get; set; }
+
+    /// <summary>Whether <c>MATEU_MCP_PUSH_ENABLED</c> turns live UI push on (true/1/yes).</summary>
+    public static bool McpPushEnabledByEnvironment() =>
+        System.Environment.GetEnvironmentVariable("MATEU_MCP_PUSH_ENABLED")?.Trim().ToLowerInvariant() is "true" or "1" or "yes";
+
+    /// <summary>Whether this configuration turns live UI push on: the MCP endpoint AND its push switch.</summary>
+    internal bool McpPushEffective =>
+        (Mcp ?? McpEnabledByEnvironment()) && (McpPush ?? McpPushEnabledByEnvironment());
+
+    internal int PushRatePerMinute => McpPushRatePerMinute ?? IntFromEnvironment("MATEU_MCP_PUSH_RATE_PER_MINUTE")
+        ?? Mateu.Core.AgentPush.AgentSessions.DefaultRatePerMinute;
+
+    internal int PushMaxSessions => McpPushMaxSessions ?? IntFromEnvironment("MATEU_MCP_PUSH_MAX_SESSIONS")
+        ?? Mateu.Core.AgentPush.AgentSessions.DefaultMaxSessions;
+
+    internal int PushMaxSessionsPerOwner => McpPushMaxSessionsPerOwner
+        ?? IntFromEnvironment("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER")
+        ?? Mateu.Core.AgentPush.AgentSessions.DefaultMaxSessionsPerOwner;
+
+    private static int? IntFromEnvironment(string name) =>
+        int.TryParse(System.Environment.GetEnvironmentVariable(name)?.Trim(), out var n) && n > 0 ? n : null;
 }
 
 /// <summary>The default claims → <see cref="Identity"/> mapping. Claim names vary by issuer, so

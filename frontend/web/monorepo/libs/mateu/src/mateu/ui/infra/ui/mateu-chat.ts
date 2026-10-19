@@ -16,8 +16,9 @@ import {CHAT_MIC_ARIA_KEYSHORTCUTS, chatMicTitle, isChatMicShortcut} from "./cha
 import {CHAT_WIDE_VW, CHAT_WIDTH, CHAT_WIDTH_STEP, clampChatWidth, dragChatWidth, loadChatWidth, saveChatWidth} from "./chatPanel";
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
-import { CLOSE_REQUESTED, isEventClaimed, NAVIGATION_REQUESTED, RENDER_SCREEN, renderScreenRequestOf } from './chatEvents'
-import { renderScreenInShell } from './builtInRenderTarget'
+import { CLOSE_REQUESTED } from './chatEvents'
+import { applyAgentEvent } from './agentEvents'
+import { sessionId } from '@infra/http/authToken.ts'
 
 /**
  * An icon-only button of the panel's header: the active renderer's own (the Vaadin adapter: a
@@ -100,7 +101,11 @@ export class MateuChat extends LitElement {
     @property({ attribute: false })
     menu: MenuOption[] = [];
 
-    readonly chatSessionId: string = nanoid();
+    /** The UI session id (the per-tab X-Session-Id): the conversation and the live UI push channel
+     *  (agentChannel.ts) name the same session. Unguessable (nanoid); a fresh one if storage fails. */
+    get chatSessionId(): string { return sessionId() ?? this.fallbackSessionId }
+    /** Read when the message is sent, not at construction: a duplicated tab rotates its id at boot. */
+    private readonly fallbackSessionId = nanoid();
     private menuContextSent = false;
 
     /** Files uploaded for the NEXT message: shown as chips, sent as `attachments`, cleared on send. */
@@ -605,21 +610,9 @@ export class MateuChat extends LitElement {
      */
     private onAgentEvent(name: string, detail: unknown) {
         if (name === CLOSE_REQUESTED && !this.closable) return;
-        const event = new CustomEvent(name, { detail, bubbles: true, composed: true, cancelable: true });
-        this.dispatchEvent(event);
-        if (name === NAVIGATION_REQUESTED && !event.defaultPrevented) {
-            const route = (detail as { route?: unknown } | null)?.route;
-            if (typeof route === 'string') navigateToRoute(this, route);
-            return;
-        }
-        if (name === RENDER_SCREEN && !isEventClaimed(event)) {
-            const request = renderScreenRequestOf(detail);
-            if (!request) return;
-            renderScreenInShell(this, request).catch((e: unknown) => {
-                console.warn('[mateu-chat] render-screen', e);
-                this.addMessage(chromeTextf('chatGeneratedScreenFailed', { error: e instanceof Error ? e.message : String(e) }), 'agent');
-            });
-        }
+        applyAgentEvent(this, name, detail, {
+            onRenderFailed: (e: unknown) => this.addMessage(chromeTextf('chatGeneratedScreenFailed', { error: e instanceof Error ? e.message : String(e) }), 'agent'),
+        });
     }
 
     /** The app shell around the panel (crossing shadow roots), as its menu and MCP endpoint. */

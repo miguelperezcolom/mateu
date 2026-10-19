@@ -119,6 +119,21 @@
           <oj-bind-text value="[[ $application.translations.appBundle.chatOpen ]]"></oj-bind-text>
         </oj-button>
       </oj-bind-if>
+      <!-- LIVE UI PUSH (AppDto.agentPush, poc/agentPush.mjs): "Connect AI" opens the pairing dialog
+           (a one-time code the user gives their MCP agent). The bridge handles its ojAction by
+           delegation; the dot after it (outside the bind-if, hidden by the bridge) says an agent is
+           paired — its aria-label names the agents. display=icons: the label is the button's
+           accessible name and tooltip. -->
+      <span class="mateu-agent-connect oj-sm-margin-1x-start">
+        <oj-bind-if test="[[ $application.variables.mateuAgentPush ]]">
+          <oj-button id="mateuAgentConnect" chroming="borderless" display="icons" class="oj-color-invert"
+            aria-haspopup="dialog" aria-controls="mateuAgentDialog">
+            <span slot="startIcon" class="oj-ux-ico-link"></span>
+            <oj-bind-text value="[[ $application.translations.appBundle.agentConnect ]]"></oj-bind-text>
+          </oj-button>
+        </oj-bind-if>
+        <span id="mateuAgentIndicator" class="mateu-agent-dot" role="img" hidden></span>
+      </span>
       <!-- OPEN ON MOBILE (@App(mobileQr)): opens the dialog with the QR of the mateu.io/add link
            (poc/qr.mjs) — the Mateu mobile app adds this UI by scanning it. display=icons: the label
            is the button's accessible name and tooltip. -->
@@ -433,6 +448,20 @@
           </div>
         </div>
 
+      </div>
+    </oj-dialog>
+
+    <!-- LIVE UI PUSH: the pairing dialog. The bridge (poc/agentPush.mjs) paints #mateuAgentBody —
+         the instruction, the code (spelled out for screen readers) and its countdown, or the paired
+         agents — and shows/hides the two buttons; oj-dialog moves focus in, keeps it, gives it back
+         and closes on Esc. -->
+    <oj-dialog id="mateuAgentDialog" cancel-behavior="icon" drag-affordance="none" style="width: 26rem; max-width: 92vw;"
+      aria-describedby="mateuAgentBody"
+      dialog-title="[[ $application.translations.appBundle.agentDialogTitle ]]">
+      <div slot="body" style="width: 100%;"><div id="mateuAgentBody" class="mateu-agent-body"></div></div>
+      <div slot="footer">
+        <oj-button id="mateuAgentDisconnect" chroming="outlined" hidden><oj-bind-text value="[[ $application.translations.appBundle.agentDisconnect ]]"></oj-bind-text></oj-button>
+        <oj-button id="mateuAgentNewCode" chroming="callToAction" hidden><oj-bind-text value="[[ $application.translations.appBundle.agentNewCode ]]"></oj-bind-text></oj-button>
       </div>
     </oj-dialog>
 
@@ -779,12 +808,15 @@
          content so that its in-flow box reserves those 64px when scrolling to the bottom).
          It shows on ALL pages, the home included: the app's navigation does not disappear
          depending on where you are. On the home no tab is selected (its route is not
-         a menu option) and you get back to it via the global-header's home icon. -->
+         a menu option) and you get back to it via the global-header's home icon.
+         `|| null`: "nothing selected" ('' — e.g. while a screen an agent generated is on show) must
+         reach the component as null: on '' it throws inside JET ("reading 'key'"), and the
+         variable is a string, so null cannot be stored in it (it would become "null"). -->
 
     <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
       <oj-sp-in-app-navigation id="mateuNav"
         navigation-items="[[ $application.variables.mateuNavItems ]]"
-        selection="[[ $application.variables.mateuSelectedNavId ]]"
+        selection="[[ $application.variables.mateuSelectedNavId || null ]]"
         on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
     </oj-bind-if>
   </div>

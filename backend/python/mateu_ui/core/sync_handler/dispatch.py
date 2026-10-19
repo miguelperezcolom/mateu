@@ -22,6 +22,7 @@ from mateu_ui.uidl import (
 )
 
 from .. import capabilities
+from ..agent_push import ACTIONS as AGENT_PUSH_ACTIONS
 from ..mapper import set_current_audience
 from ..registry import normalize, type_name
 from .. import layout_delta
@@ -154,6 +155,11 @@ class DispatchMixin(MixinBase):
         # appData._validation — the MCP authoring tools' validator (mirrors Java's __validate__).
         if rq.action_id == "__validate__":
             return self._validate_response(rq.parameters.get("_yaml"))
+
+        # 0c''. Live UI push: the UI side of the agent channel — app-level, answered whatever the
+        # type and route (mirrors Java's agentpush runners; the stream is the adapter's SSE).
+        if rq.action_id in AGENT_PUSH_ACTIONS:
+            return self.agent_push_action(rq)
 
         # 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
         # _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),
