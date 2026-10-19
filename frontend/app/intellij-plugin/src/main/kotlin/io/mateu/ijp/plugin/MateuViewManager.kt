@@ -74,7 +74,33 @@ class MateuViewManager(private val project: Project, private val session: AppSes
     fun openDetail(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) =
         open(label, route, consumedRoute, serverSideType, actionId, preferEditor = true)
 
+    /** The transient preview tab an assistant-rendered screen lives in (one at a time). */
+    private var previewFile: MateuVirtualFile? = null
+
+    /**
+     * An assistant-rendered screen (render-screen, target content): shown in ONE preview editor tab,
+     * replacing the previous preview — transient: the next navigation closes it, so the real screen
+     * is what shows again.
+     */
+    fun showPreview(title: String, panel: JComponent, ctx: AppContext) {
+        closePreview()
+        val scroll = com.intellij.ui.components.JBScrollPane(FillOrScrollPanel(panel))
+        scroll.border = null
+        val file = MateuVirtualFile(title, scroll, ctx)
+        previewFile = file
+        FileEditorManager.getInstance(project).openFile(file, true)
+    }
+
+    private fun closePreview() {
+        val file = previewFile ?: return
+        previewFile = null
+        file.ctx?.dispose()
+        FileEditorManager.getInstance(project).closeFile(file)
+    }
+
     private fun open(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?, preferEditor: Boolean) {
+        // navigating anywhere (even back to the same entry) shows the real screen again
+        closePreview()
         // "New" views are never cached/re-focused: every New opens a FRESH editor tab, so several
         // drafts can be edited side by side (each with its own context and state).
         val cacheable = !route.orEmpty().trimEnd('/').endsWith("/new")

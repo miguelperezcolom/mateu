@@ -307,10 +307,17 @@ export function reduceContexts(reg, increment, opts = {}) {
     const id = resolveTarget(contexts, fr.targetComponentId)
     const prev = contexts[id] || { id, kind: id === HOST_ID ? 'host' : 'island', state: {}, data: {} }
     const ss = fr.component?.type === 'ServerSide' ? fr.component : null
+    // An ACTION answering a bare component (a fluent Form/Page, a Text — what the web paints INSIDE
+    // the component that asked) re-renders that surface's content: it keeps its ServerSide envelope
+    // (class, actions, triggers — later actions still reach it) with the new tree as its child.
+    // Without this the surface's root became a ClientSide node and nothing was projected.
+    const intoEnvelope = fr.component && fr.component.type === 'ClientSide' && fr.action !== 'Add'
+      && prev.tree && prev.tree.type === 'ServerSide'
+    const nextTree = intoEnvelope ? { ...prev.tree, children: [fr.component] } : (fr.component || prev.tree)
     contexts[id] = {
       ...prev,
       kind: prev.kind,
-      tree: fr.component || prev.tree, // no component => State-only: keeps the tree
+      tree: nextTree, // no component => State-only: keeps the tree
       pageType: ss?.pageType ?? (fr.component ? undefined : prev.pageType),
       pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),
       state: !fr.component

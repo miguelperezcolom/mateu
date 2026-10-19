@@ -468,7 +468,9 @@ export class MateuViewController {
     for (const sub of plan.subscriptions) {
       this.session.subscribe(this, sub.eventName, (payload) => {
         const params = subscriptionParameters(sub, payload);
-        if (params) void this.runAction(sub.actionId, params, true);
+        if (!params) return false; // a COMPONENT-scoped subscription that listens to another emitter
+        void this.runAction(sub.actionId, params, true);
+        return true;
       });
     }
   }

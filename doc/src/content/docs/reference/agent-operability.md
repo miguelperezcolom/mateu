@@ -78,7 +78,9 @@ The built-in AI chat (`@AI(sse=…)`) is the *other* face of the same idea. With
 sends a **self-describing projection of the screen the user is looking at** — the same shape the MCP
 produces: the current fields (id, label, dataType, value) and the actions available. So the assistant
 fills forms and runs actions precisely instead of guessing from raw state, and it drives the UI by
-returning the wire events the frontend already applies (`navigation-requested`, dispatched events…).
+returning the wire events every renderer applies (`navigation-requested`, `render-screen` — a screen it
+authored, rendered by the page that subscribes to it or else by the shell —, dispatched events…; see
+the [event catalogue](/ai/#the-event-catalogue)).
 One projection, two consumers: external agents (MCP) and the in-app assistant.
 
 ## Verify

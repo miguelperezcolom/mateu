@@ -1,14 +1,16 @@
-// poc/chat.mjs — transport core of the AI CHAT, renderer-neutral (Redwood/VB parity).
+// poc/chat.mjs — the AI CHAT core, renderer-neutral (Redwood/VB parity with the web chat).
 //
-// The shared chat (libs/mateu/.../mateu-chat.ts, ~939 lines) mixes transport and Lit UI. To
-// bring it to VB "leaning on VB as much as possible" (the UI is provided by a JET conversation component, not
-// drawn by hand), what is shared is ONLY the transport logic: building the body, choosing the
-// URL (local agent vs sseUrl), flattening the menu as context, telling apart each `data:` payload and
-// accumulating the assistant's text. That core lives here — tested in Node (poc/test.mjs) — and the
-// streaming loop accepts an injectable `fetchImpl` so as not to touch globals. It is the "logic" layer of the
-// roadmap; the VB panel (visual gate) consumes it. It is concatenated into the AMD bundle (make-amd strips the import).
+// The web chat (libs/mateu/.../mateu-chat.ts + chatStream.ts + chatEvents.ts) keeps its transport
+// and its event decisions in pure modules next to the Lit panel. This is their port for VB, where the
+// panel is the shell's (shell-page.html + the chatSend chain) and the inline Chat component is
+// displayDom's: building the turn's body, flattening the menu as context, reading the SSE stream by
+// event and classifying each `data:` payload, accumulating the answer, the progress and token
+// lines, and what to do with the UI events the agent sends (navigation-requested, close-requested,
+// render-screen and any other). Tested in Node (poc/test.mjs); the streaming loop takes an injectable
+// `fetchImpl`. It is concatenated into the AMD bundle (make-amd strips the imports).
 
 import { chromeText } from './i18n.mjs'
+import { busSubscribersOf, callMateu } from './transport.mjs'
 
 /** Recognises a `data:` payload that is a token-usage object ({inputTokens|outputTokens|totalTokens}). */
 export function tryParseTokenUsage(payload) {
@@ -603,7 +605,7 @@ export function stickChatToBottom(el, { slack = 48, isUserMessage = (node) => !!
 /** The panel configuration from the shell (the bootstrap App) and the backend base. */
 export function chatConfigOf(shell, base = '') {
   const s = shell || {}
-  const abs = (u) => (u ? (/^[a-z][a-z0-9+.-]*:/i.test(u) ? u : base + u) : '')
+  const abs = (u) => resolveChatUrl(u, base)
   return {
     sseUrl: abs(s.sseUrl),
     uploadUrl: abs(s.uploadUrl),
@@ -756,4 +758,235 @@ export function withAttachments(current, added) {
   const out = (current || []).slice()
   for (const a of added || []) if (a && a.path && !out.some((b) => b.path === a.path)) out.push({ name: a.name || a.path, path: a.path, removeLabel: chromeText('chatRemoveAttachment', { name: a.name || a.path }) })
   return out
+}
+
+/**
+ * A chat URL the app declares (@AI sse/upload/mcp, a Chat component's), resolved against the
+ * backend base with URL semantics: an absolute URL stays; "/x" is the backend ORIGIN + /x; "x" is
+ * under the base. A base that is not absolute ('' = this origin's root in path mode, or a mount
+ * path) keeps "/x" as is and puts "x" under it.
+ */
+export function resolveChatUrl(url, base = '') {
+  const u = String(url || '').trim()
+  if (!u) return ''
+  if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return u
+  const b = String(base || '')
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(b)) {
+    try { return new URL(u, b.endsWith('/') ? b : b + '/').href } catch { return b + u }
+  }
+  if (u.startsWith('/')) return u
+  return b.replace(/\/+$/, '') + '/' + u
+}
+
+// ── The UI events of the stream (port of libs/mateu chatEvents.ts) ────────────────────────────
+//
+// What the shell does with an `{"event": …, "detail": …}` the agent sends, decided here and run by
+// whoever hosts the chat (the shell's chatSend chain, the inline Chat component) through the SAME
+// dispatcher (dispatchChatEvent), so both behave alike:
+//   - navigation-requested {route, consumedRoute, actionId, baseUrl, serverSideType, uriPrefix} →
+//     navigate in the app like a menu click carrying those fields;
+//   - close-requested → close the chat panel;
+//   - render-screen {yaml? | uidl?, target?, title?} → the surfaces on screen subscribed to it
+//     (an OnCustomEvent trigger, @SubscribeTo) run their action with the detail as parameters; when
+//     none is, the shell renders it itself (the BUILT-IN render target): the reserved `__preview__`
+//     sync action turns the definition into an ordinary increment, painted in the content (default,
+//     transient), a drawer or a dialog;
+//   - anything else → a document CustomEvent and the registry's bus (its OnCustomEvent subscribers).
+// Each event is handled AS SOON AS it arrives, while the answer keeps streaming.
+
+export const CHAT_NAVIGATION_REQUESTED = 'navigation-requested'
+export const CHAT_CLOSE_REQUESTED = 'close-requested'
+export const CHAT_RENDER_SCREEN = 'render-screen'
+/** The reserved sync action that turns a definition into a normal UI increment. */
+export const CHAT_PREVIEW_ACTION = '__preview__'
+export const CHAT_PREVIEW_YAML_KEY = '_yaml'
+/** The pseudo action id the content page runs a ready-made preview increment under. */
+export const CHAT_PREVIEW_PAINT_ACTION = '__chatPreview__'
+const CHAT_RENDER_TARGETS = ['content', 'drawer', 'dialog']
+
+/**
+ * What a render-screen detail asks for, or null when it carries no definition: `yaml` (text) wins
+ * over `uidl` (a component tree as an object, or as JSON text); an unknown target is the content.
+ */
+export function renderScreenRequestOf(detail) {
+  if (!detail || typeof detail !== 'object') return null
+  let yaml
+  if (typeof detail.yaml === 'string' && detail.yaml.trim()) yaml = detail.yaml
+  else if (typeof detail.uidl === 'string' && detail.uidl.trim()) yaml = detail.uidl
+  else if (detail.uidl && typeof detail.uidl === 'object') {
+    try { yaml = JSON.stringify(detail.uidl) } catch { yaml = undefined } // a cyclic object is no definition
+  }
+  if (!yaml) return null
+  const target = CHAT_RENDER_TARGETS.includes(detail.target) ? detail.target : 'content'
+  const title = typeof detail.title === 'string' && detail.title.trim() ? detail.title : undefined
+  return { yaml, target, ...(title ? { title } : {}) }
+}
+
+/** The navigation a navigation-requested detail asks for — the menu-click fields it carries — or
+ *  null without a route. Only the fields that are set travel. */
+export function chatNavigationOf(detail) {
+  if (!detail || typeof detail !== 'object' || typeof detail.route !== 'string') return null
+  const out = { route: detail.route }
+  for (const k of ['consumedRoute', 'actionId', 'baseUrl', 'serverSideType', 'uriPrefix']) {
+    if (typeof detail[k] === 'string' && detail[k] !== '') out[k] = detail[k]
+  }
+  return out
+}
+
+/** What a requested navigation adds to the route's load — the fields a menu click sends with it
+ *  (consumedRoute, serverSideType, actionId); {} for a bare route. baseUrl/uriPrefix are where it
+ *  goes, recorded as a remote route by whoever asks for the navigation. */
+export function navigationLoadExtraOf(navigation) {
+  const out = {}
+  if (!navigation || typeof navigation !== 'object') return out
+  for (const k of ['consumedRoute', 'serverSideType', 'actionId']) {
+    if (typeof navigation[k] === 'string' && navigation[k] !== '') out[k] = navigation[k]
+  }
+  return out
+}
+
+/**
+ * What an agent event means on this screen (`reg` = the registry, for its subscribers):
+ *   {kind:'navigate', navigation} | {kind:'close'} | {kind:'ignore'}
+ *   {kind:'subscribers', name, detail, subscribers:[{ctxId, actionId, parameters}], dispatch}
+ *   {kind:'preview', request, dispatch}  (render-screen nobody on screen takes)
+ *   {kind:'custom', name, detail, subscribers, dispatch}
+ * `dispatch`: it also goes out as a document CustomEvent (a page's web component may listen).
+ */
+export function chatEventPlanOf(ev, reg) {
+  const name = ev && typeof ev.event === 'string' ? ev.event : ''
+  if (!name) return { kind: 'ignore' }
+  const detail = ev.detail && typeof ev.detail === 'object' ? ev.detail : {}
+  if (name === CHAT_NAVIGATION_REQUESTED) {
+    const navigation = chatNavigationOf(detail)
+    return navigation ? { kind: 'navigate', navigation } : { kind: 'ignore' }
+  }
+  if (name === CHAT_CLOSE_REQUESTED) return { kind: 'close' }
+  const subscribers = (reg ? busSubscribersOf(reg, { name, detail, source: null }) : [])
+    .map((s) => ({ ...s, parameters: { ...detail } }))
+  if (name === CHAT_RENDER_SCREEN) {
+    if (subscribers.length) return { kind: 'subscribers', name, detail, subscribers, dispatch: true }
+    const request = renderScreenRequestOf(detail)
+    return request ? { kind: 'preview', request, dispatch: true } : { kind: 'ignore' }
+  }
+  return { kind: 'custom', name, detail, subscribers, dispatch: true }
+}
+
+/** The body of the `__preview__` call: the current route, consumed as is, NO serverSideType, an
+ *  empty state and the definition as `_yaml` — the same envelope as any action. */
+export function chatPreviewBodyOf(route, request) {
+  const r = route || ''
+  return {
+    route: r,
+    consumedRoute: r,
+    actionId: CHAT_PREVIEW_ACTION,
+    componentState: {},
+    parameters: { [CHAT_PREVIEW_YAML_KEY]: request.yaml },
+    serverSideType: undefined,
+    initiatorComponentId: '',
+  }
+}
+
+/**
+ * The increment that paints a `__preview__` answer, or null when it brings no component. Its first
+ * fragment's component goes, as it is (an invalid definition comes back as the backend's red Text):
+ *   content → REPLACES the host (an ordinary page re-render; transient: the next navigation loads
+ *             the real screen again);
+ *   drawer / dialog → an Add of a Drawer / Dialog overlay whose content it is, `title` in its header
+ *             — exactly what a server answering a Drawer/Dialog sends, so the usual overlay paints it.
+ * The answer's commands and messages travel with it.
+ */
+export function chatPreviewIncrementOf(increment, request, route = '') {
+  const fragment = ((increment && increment.fragments) || []).find((f) => f && f.component)
+  if (!fragment) return null
+  const target = (request && request.target) || 'content'
+  const base = { commands: (increment && increment.commands) || [], messages: (increment && increment.messages) || [] }
+  if (target === 'content') {
+    // a definition comes back as a ClientSide tree (a Form, a Text): the content projection reads a
+    // PAGE — a ServerSide boundary with its own state —, so it is wrapped the way a route's content
+    // arrives (as the visual editor's preview does). No serverSideType: it is no class of the app.
+    const own = fragment.component
+    const state = fragment.state || {}
+    const page = own.type === 'ServerSide' ? own : {
+      type: 'ServerSide', id: 'mateu-chat-preview', serverSideType: undefined, route: route || '',
+      actions: [], triggers: [], rules: [], children: [own], initialData: state,
+    }
+    return { ...base, fragments: [{ ...fragment, targetComponentId: '', action: 'Replace', state, component: page }] }
+  }
+  const type = target === 'dialog' ? 'Dialog' : 'Drawer'
+  return {
+    ...base,
+    fragments: [{
+      targetComponentId: null,
+      action: 'Add',
+      state: fragment.state || {},
+      data: fragment.data || {},
+      component: {
+        type: 'ClientSide',
+        id: 'mateu-chat-preview-' + type.toLowerCase(),
+        children: [],
+        metadata: {
+          type,
+          headerTitle: (request && request.title) || null,
+          content: fragment.component,
+          initialData: fragment.state || {},
+        },
+      },
+    }],
+  }
+}
+
+/** The token line of a usage ({inputTokens, outputTokens, totalTokens}): "in 12 · out 34 · total 46". */
+export function chatUsageTextOf(usage) {
+  if (!usage) return ''
+  const parts = []
+  if (typeof usage.inputTokens === 'number') parts.push(chromeText('chatTokensIn') + ' ' + usage.inputTokens)
+  if (typeof usage.outputTokens === 'number') parts.push(chromeText('chatTokensOut') + ' ' + usage.outputTokens)
+  if (typeof usage.totalTokens === 'number') parts.push(chromeText('chatTokensTotal') + ' ' + usage.totalTokens)
+  return parts.length ? chromeText('chatTokens') + ': ' + parts.join(' · ') : ''
+}
+
+// The host of the chat's UI events: what the SHELL can do (set once by loadMateuShell). Everything
+// this needs from VB is a callback, so the dispatcher runs — and is tested — without VB.
+//   registry()            the registry on screen (its subscribers)
+//   currentRoute()        the route on screen
+//   base()                the backend base of the screen
+//   navigate(navigation)  a menu-click-like navigation
+//   closeChat()           close the chat panel
+//   runAction(actionId, parameters, ctxId)   a subscriber's action, on the surface that declares it
+//   paintPreview(increment, request)         paint a ready-made preview increment
+//   call(base, body)      the sync POST (default: transport's callMateu)
+let chatEventHost = null
+export function setChatEventHost(host) { chatEventHost = host || null }
+
+/**
+ * Runs an agent event (chatEventPlanOf) against the chat host. Returns the plan. Failures are
+ * reported through `host.onError` (the panel shows them) and never break the stream.
+ */
+export async function dispatchChatEvent(ev, host = chatEventHost, doc = typeof document !== 'undefined' ? document : null) {
+  const registry = host && host.registry ? host.registry() : null
+  const plan = chatEventPlanOf(ev, registry)
+  try {
+    if (plan.dispatch && doc && typeof CustomEvent === 'function') {
+      doc.dispatchEvent(new CustomEvent(ev.event, { detail: (ev && ev.detail) || {}, bubbles: true, composed: true }))
+    }
+    if (!host) return plan
+    if (plan.kind === 'navigate') {
+      if (host.navigate) await host.navigate(plan.navigation)
+    } else if (plan.kind === 'close') {
+      if (host.closeChat) await host.closeChat()
+    } else if (plan.kind === 'subscribers' || plan.kind === 'custom') {
+      for (const s of plan.subscribers) if (host.runAction) await host.runAction(s.actionId, s.parameters, s.ctxId)
+    } else if (plan.kind === 'preview') {
+      const route = host.currentRoute ? host.currentRoute() : ''
+      const base = host.base ? host.base() : ''
+      const call = host.call || ((b, body) => callMateu(b, body, { quiet: true }))
+      const answer = await call(base, chatPreviewBodyOf(route, plan.request))
+      const increment = chatPreviewIncrementOf(answer, plan.request, route)
+      if (increment && host.paintPreview) await host.paintPreview(increment, plan.request)
+    }
+  } catch (e) {
+    if (host && host.onError) host.onError(e, plan)
+  }
+  return plan
 }

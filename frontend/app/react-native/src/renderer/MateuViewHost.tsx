@@ -5,6 +5,7 @@ import { loadFailureMessage } from '../core/uxRules';
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
 import { ComponentRenderer } from './ComponentRenderer';
+import { firstComponentFragment } from '../core/chatStream';
 import { theme } from '../theme';
 
 /** The controller of the view a component belongs to — field editors write state through it,
@@ -30,6 +31,9 @@ interface Props {
   onOpenDetail?: (target: NavTarget) => void;
   /** Stack-aware navigation: back to a screen already on the stack, else push (or replace the top). */
   onStackNavigate?: (target: NavTarget, replaceTop: boolean) => void;
+  /** An increment the shell already holds (the assistant's render-screen `__preview__` answer):
+   *  its first component fragment is rendered here, against `route`. */
+  preview?: { increment: unknown; route: string; consumedRoute: string };
   /** Errors shown as inline text instead of toasts (embedded islands). */
   silent?: boolean;
   /** Hands the live controller to the host (dirty checks on back navigation). */
@@ -41,7 +45,7 @@ interface Props {
  * increment application. The controller is exposed through [useViewController] so every renderer
  * in the subtree shares the same live component state and action pipeline.
  */
-export function MateuViewHost({ session, target, serverSideNode, overlayOpener, onOpenDetail, onStackNavigate, silent, onController }: Props) {
+export function MateuViewHost({ session, target, serverSideNode, overlayOpener, preview, onOpenDetail, onStackNavigate, silent, onController }: Props) {
   const controller = useMemo(() => new MateuViewController(session), [session]);
   const [view, setView] = useState<RenderedView>(controller.rendered);
 
@@ -61,6 +65,12 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
         controller.currentServerSideType = overlayOpener.serverSideType;
       }
       controller.mountServerSide(serverSideNode);
+    } else if (preview) {
+      controller.currentRoute = preview.route;
+      controller.currentConsumedRoute = preview.consumedRoute;
+      const fragment = firstComponentFragment(preview.increment);
+      const increment = (preview.increment as Record<string, unknown> | null) ?? {};
+      controller.applyIncrement({ ...increment, fragments: fragment ? [fragment] : [] });
     } else if (target) {
       void controller.navigate(target.route, target.consumedRoute, target.serverSideType);
     }

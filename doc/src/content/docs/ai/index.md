@@ -108,16 +108,24 @@ public class MyApp { ... }
 }
 ```
 
-Every message also carries a `context` field — a snapshot of what the user is LOOKING AT,
-supplied by the shell (`mateu-chat`'s `contextProvider` property): current url and screen
-title, `appState`, `appData`, and the active component's state and data. The agent grounds
-its answers and actions on it — if the user is already on the relevant screen, it acts
-there instead of navigating away.
+Every message also carries what the user is LOOKING AT, so the agent grounds its answers and
+actions on it — if the user is already on the relevant screen, it acts there instead of
+navigating away.
 
+| Field | When | What |
+|---|---|---|
+| `message` | always | The user's text input. |
+| `sessionId` | always | A stable, unguessable per-panel id, useful for conversational memory, uploads or logging. |
+| `currentRoute` | always | The route of the screen the question is asked from (an agent gateway can route by it). |
+| `context` | always | A snapshot supplied by the shell: current url and screen title, `appState`, `appData`, and the active component's state and data. |
+| `screen` | when there is one | A self-describing projection of the current screen — `title`, `fields` (`id`, `label`, `dataType`, `value`) and `actions` (`id`, `label`) — the same shape an [MCP agent](/reference/agent-operability/) gets, so the assistant fills and runs precisely instead of guessing from raw state. |
+| `mcpUrl` | when `@AI(mcp=…)` is set | The app's MCP endpoint, as an absolute url, so the agent can operate THIS app. |
+| `attachments` | when files were attached | `[{"name", "path"}]` as returned by the `@AI(upload=…)` endpoint. |
+| `menuContext` | first message only | The application menu flattened into navigable screens: breadcrumb `path` (e.g. `["Bookings", "List"]`), optional `description`, and the exact `navigation` payload that opens it. Cache it against `sessionId` if you need it later in the conversation. |
 
-- `message` — the user's text input.
-- `sessionId` — a stable per-chat-panel ID (generated with nanoid), useful for conversational memory or logging on the backend.
-- `menuContext` — the full application menu flattened into a list of navigable screens. Each entry includes the breadcrumb `path` (e.g. `["Bookings", "List"]`), an optional `description`, and the exact `navigation` payload the LLM should emit to open that screen. It is sent **only with the first message** of a chat session — cache it against `sessionId` if you need it later in the conversation.
+A relative `sse`, `mcp` or `upload` url is resolved against the app's own backend by every
+renderer (the browser against the page's origin; the native renderers against the backend they
+are connected to).
 
 ### Response
 
@@ -198,8 +206,15 @@ The AI chat panel is available in all application shell variants:
 record ChatRequest(
     String message,
     String sessionId,
-    List<MenuContextEntry> menuContext
+    String currentRoute,
+    Map<String, Object> context,
+    Map<String, Object> screen,        // may be null
+    String mcpUrl,                     // may be null
+    List<Attachment> attachments,      // may be null
+    List<MenuContextEntry> menuContext // first message only
 ) {}
+
+record Attachment(String name, String path) {}
 
 record MenuContextEntry(List<String> path, Map<String, Object> navigation) {}
 
@@ -216,7 +231,8 @@ public class AiChatController {
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> chat(@RequestBody ChatRequest req) {
         // Build a system prompt that describes the available screens
-        String menuDescription = req.menuContext().stream()
+        // menuContext only travels with the first message of a session
+        String menuDescription = Optional.ofNullable(req.menuContext()).orElse(List.of()).stream()
             .map(e -> "- " + String.join(" > ", e.path())
                     + " → " + e.navigation())
             .collect(Collectors.joining("\n"));
@@ -287,6 +303,66 @@ Example — navigate to a specific order:
 ```
 data: {"event": "navigation-requested", "detail": {"route": "/orders/ORD-42", "consumedRoute": "", "actionId": "view", "baseUrl": "/_orders", "serverSideType": "com.example.OrderHome", "uriPrefix": ""}}
 ```
+
+### Built-in event: `close-requested`
+
+Closes the chat panel (no `detail`). A `Chat` component placed on a page has nothing to close into,
+so it shows no close button and ignores the event.
+
+### Built-in event: `render-screen`
+
+The agent can author a screen and have it shown. `detail`:
+
+| Field | Type | Description |
+|---|---|---|
+| `yaml` | string | The screen, as a YAML definition (the same component catalogue as `specs/ui/**`; `uidl-schema.json` describes it). |
+| `uidl` | object or string | The same, as a JSON component tree — an alternative to `yaml` (`yaml` wins when both are sent). |
+| `target` | string | `content` (default), `drawer` or `dialog`. |
+| `title` | string | The drawer's or dialog's header. |
+
+```
+data: {"event": "render-screen", "detail": {"yaml": "type: VerticalLayout\ncontent:\n  - type: Text\n    text: Check-in for Nora Duarte\n", "target": "drawer", "title": "Check-in"}}
+```
+
+It is handled the moment it arrives — the reply can go on streaming under it — in one of two ways:
+
+1. **A page subscribes to it.** A view on screen annotated `@SubscribeTo(event = "render-screen", action = "…")`
+   takes it: its action runs with the `detail` as parameters (read `yaml` from
+   `httpRequest.runActionRq().parameters()`), and it renders the screen however it likes — inside
+   its own layout, next to other content.
+2. **Nobody subscribes: the shell renders it.** The built-in render target posts the definition to
+   the backend's reserved `__preview__` action (the one the visual editor uses), which turns it into
+   a normal UI increment through the real mapper, and shows it in the content area, or in a drawer
+   or a dialog over the current page. In the content area it is transient: any navigation — the same
+   menu entry included — brings the route's own screen back. An invalid definition shows the
+   preview's own "Invalid or empty YAML" notice. A static bundle has no backend: there, a `uidl`
+   (JSON) screen is expanded in the browser and a YAML one shows why it cannot be.
+
+`__preview__` renders only what it is given: no view model is created or bound, so it shows the user
+nothing of the application they could not already see. It still goes through the route guard (a
+route whose `access:` refuses the caller answers 403) and the wire-type policy, and the wire-only
+component types (a `ServerSideComponent` naming a class) are not authorable, so a definition cannot
+smuggle in an island bound to a view model. Whatever the rendered screen does afterwards — its
+buttons, its REST sources — goes through the same checks as any other request.
+
+### The event catalogue
+
+Every renderer reads the stream the same way and handles the same events:
+
+| Event | Vaadin (web) | Redwood (VB) | React Native | IntelliJ |
+|---|---|---|---|---|
+| text / `agent-delta` | Markdown answer, streamed | Markdown answer, streamed | Markdown answer, streamed | Markdown answer, streamed |
+| `agent-status` / `agent-tool` | Progress line + the turn's tool steps | Progress line + tool steps | Progress line | Progress line |
+| usage | Token bar (last usage) | Token bar | Token line | Token line |
+| `agent-error` | Warning in the reply | Warning in the reply | Warning in the reply | Warning in the reply |
+| `navigation-requested` | Like a menu click with all the fields; outside an app shell, route resolution | Like a menu click with all the fields (`baseUrl`/`uriPrefix` register a remote) | Like a menu click (route, consumedRoute, serverSideType, baseUrl — another backend gets its own session; an `actionId` with no route runs as an app action) | Like a menu click (one backend per session, so `baseUrl`/`uriPrefix` are not used) |
+| `close-requested` | Closes the panel (ignored by a `Chat` on a page) | Closes the panel | Closes the panel | Closes the dialog / hides the inline panel |
+| `render-screen` | Subscriber first, else content / drawer / dialog | Subscriber first, else content / drawer / dialog | Subscriber first, else content / sheet | Subscriber first, else a transient Preview tab / side window / dialog |
+| anything else | A DOM `CustomEvent` (bubbling, composed) for `@SubscribeTo` views and page scripts | A DOM `CustomEvent` + the `@SubscribeTo` views on screen | The session event bus (`@SubscribeTo` views) | The session event bus (`@SubscribeTo` views) |
+
+Links in an answer to a screen of the app (`[Nora Duarte](/booking/bookings/4MBZS7)`) open it in the
+app through the menu entry that serves it, on every renderer. Attachments are offered wherever an
+upload endpoint is declared (React Native: images, through the photo picker).
 
 ### Custom events
 

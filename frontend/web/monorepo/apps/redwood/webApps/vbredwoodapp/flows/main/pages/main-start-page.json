@@ -920,6 +920,17 @@
         }
       ]
     },
+    "application:mateuChatPreview": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "__chatPreview__",
+            "increment": "{{ $event.increment }}"
+          },
+          "chain": "runMateuAction"
+        }
+      ]
+    },
     "application:mateuElementEvent": {
       "chains": [
         {

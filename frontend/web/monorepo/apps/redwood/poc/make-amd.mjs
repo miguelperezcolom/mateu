@@ -494,6 +494,19 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     speechRecognitionCtor,
     chatMarkdownToHtml,
     chatRouteOfLink,
+    // the agent's UI events (navigation-requested, close-requested, render-screen, any other):
+    // one dispatcher for the shell panel and the inline Chat component, mid-stream
+    resolveChatUrl,
+    renderScreenRequestOf,
+    chatNavigationOf,
+    navigationLoadExtraOf,
+    chatEventPlanOf,
+    chatPreviewBodyOf,
+    chatPreviewIncrementOf,
+    chatUsageTextOf,
+    setChatEventHost,
+    dispatchChatEvent,
+    CHAT_PREVIEW_PAINT_ACTION,
     // un <a href="/ruta"> del contenido navega dentro de la shell (links.mjs)
     inAppRouteOfLink,
     transcriptOf,

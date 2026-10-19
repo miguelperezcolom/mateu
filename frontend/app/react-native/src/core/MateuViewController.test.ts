@@ -272,10 +272,12 @@ test('@SubscribeTo COMPONENT scope only reacts to events from the named emitter'
     triggers: [{ type: 'OnCustomEvent', eventName: 'pax-selected', actionId: 'reloadPax', source: 'COMPONENT', from: 'guests' }],
   })), {}, {}]);
   await c.initialLoad('/orders');
-  session.dispatchEvent('pax-selected', { __source: 'other', i: 1 });
+  // the bus says whether anyone took the event (the chat's render-screen falls back to the shell)
+  assert.equal(session.dispatchEvent('pax-selected', { __source: 'other', i: 1 }), false);
+  assert.equal(session.dispatchEvent('nobody-listens', {}), false);
   await tick();
   assert.equal(calls.filter((x) => x.actionId === 'reloadPax').length, 0);
-  session.dispatchEvent('pax-selected', { __source: 'guests', i: 2 });
+  assert.equal(session.dispatchEvent('pax-selected', { __source: 'guests', i: 2 }), true);
   await tick();
   const sent = calls.find((x) => x.actionId === 'reloadPax')!;
   assert.deepEqual(sent.parameters, { __source: 'guests', i: 2 });

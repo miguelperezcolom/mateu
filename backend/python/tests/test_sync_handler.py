@@ -977,6 +977,14 @@ def test_preview_action_on_invalid_yaml_renders_a_notice_instead_of_failing():
         )
     )
     assert inc.fragments[0].component is not None
+    assert "Invalid or empty YAML" in render(inc)
+
+
+def test_preview_action_with_no_yaml_says_so_like_java():
+    # the AI chat's built-in render target posts __preview__ from any page: no YAML is a notice,
+    # never an attempt to run "__preview__" as an action of the page
+    inc = handler().handle(RunActionRq(route="", consumed_route="_empty", action_id="__preview__"))
+    assert "Invalid or empty YAML" in render(inc)
 
 
 def test_yaml_page_binds_its_layout_to_the_declared_modelView():
