@@ -265,6 +265,39 @@ test('NM10: the chat sends the token only to an origin trusted with it — its s
   }
 })
 
+test('R4: a backslash or a tab does not make another origin "relative" — the token stays home', () => {
+  resetCredentialOrigins()
+  try {
+    trustShellBase('https://app.example/')
+    for (const foreign of ['\\\\attacker.example/chat', '/\\attacker.example/chat', '\\/attacker.example/chat',
+      '/\t/attacker.example/chat', ' //attacker.example/chat', '\\\\attacker.example']) {
+      assert.equal(storedTokenMayGoTo(foreign), false, JSON.stringify(foreign))
+    }
+    assert.equal(storedTokenMayGoTo('/chat'), true)
+    assert.equal(storedTokenMayGoTo('chat/upload'), true)
+    assert.equal(storedTokenMayGoTo('https://app.example/chat'), true)
+  } finally {
+    resetCredentialOrigins()
+  }
+})
+
+test('R4: a chat stream at \\\\attacker.example gets no Authorization', async () => {
+  resetCredentialOrigins()
+  trustShellBase('https://app.example/')
+  try {
+    const sent = []
+    const fetchImpl = async (url, init) => {
+      sent.push((init.headers || {}).Authorization)
+      return { ok: true, status: 200, json: async () => ({}), body: null, text: async () => '' }
+    }
+    const headers = () => ({ Authorization: 'Bearer tok' })
+    await streamChat({ url: '\\\\attacker.example/sse', body: {}, headers, fetchImpl }).catch(() => {})
+    assert.deepEqual(sent, [undefined])
+  } finally {
+    resetCredentialOrigins()
+  }
+})
+
 for (const { name, fn } of queue) {
   try {
     await fn()

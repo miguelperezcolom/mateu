@@ -10610,14 +10610,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  // what a url without a page resolves against (node, a worker): its origin means "relative"
+  const CREDENTIAL_PLACEHOLDER_BASE = 'http://relative.mateu.invalid/'
+
+  /**
+   * True when `url` is on an origin the shell trusts — its own backend, a remote ITS app names. The
+   * one rule for the stored token AND for what may render with the author's trust (callMateu, an
+   * agent navigation's base url). The url is RESOLVED the way the browser resolves it before it is
+   * judged: `\\host`, `/\host`, `\/host` and a tab inside `//` all name another origin, which a
+   * "no scheme, not //" shortcut took for relative (R4).
+   */
+  function isTrustedOrigin(url) {
+    const text = String(url ?? '')
+    const page = typeof location !== 'undefined' && location.href ? location.href : undefined
+    let parsed
+    try {
+      parsed = new URL(text, page || CREDENTIAL_PLACEHOLDER_BASE)
+    } catch (e) {
+      return false
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false
+    // no page to resolve against: a url that stayed on the placeholder was relative — the page's own
+    if (!page && parsed.origin === new URL(CREDENTIAL_PLACEHOLDER_BASE).origin) return true
+    return isRootCredentialOrigin(parsed.origin) || declaredCredentialOrigins.has(parsed.origin)
+  }
+
   /** True when a request to `url` may carry the stored token. */
   function storedTokenMayGoTo(url) {
-    const text = String(url ?? '').trim()
-    // a relative url (no scheme, not protocol-relative) is the page's own origin
-    if (!/^[a-z][a-z0-9+.-]*:/i.test(text) && !text.startsWith('//')) return true
-    const origin = credentialOriginOf(text)
-    if (!origin) return false
-    return isRootCredentialOrigin(origin) || declaredCredentialOrigins.has(origin)
+    return isTrustedOrigin(url)
   }
 
   /** Tests only. */

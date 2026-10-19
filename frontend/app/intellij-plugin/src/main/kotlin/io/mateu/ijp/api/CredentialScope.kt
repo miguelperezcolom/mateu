@@ -52,13 +52,21 @@ class CredentialScope(rootBaseUrl: String) {
 
         private fun isRelative(url: String) = !SCHEME.containsMatchIn(url) && !url.startsWith("//")
 
+        /** A url as a browser reads it: tabs/newlines removed anywhere, surrounding spaces dropped. */
+        private fun cleaned(url: String) = url.replace(Regex("[\t\n\r]"), "").trim()
+
         /** The origin [url] goes to (`scheme://host[:port]`), or null when it is not http(s). A relative
-         *  url resolves against [base]. */
+         *  url resolves against [base]. A url holding a backslash names NO origin we trust: a browser
+         *  reads `\\host`, `/\host` and `\/host` as `//host` (another server), so it is never taken
+         *  for relative — the twin of the web, Redwood and React Native rule (R4/R5). */
         fun originOf(url: String?, base: String? = null): String? {
-            val u = url?.trim() ?: return null
+            val u = url?.let(::cleaned) ?: return null
+            if ('\\' in u) return null
             if (isRelative(u)) {
-                if (base == null || isRelative(base.trim())) return SAME_ORIGIN
-                return originOf(base)
+                val b = base?.let(::cleaned)
+                if (b != null && '\\' in b) return null
+                if (b == null || isRelative(b)) return SAME_ORIGIN
+                return originOf(b)
             }
             return runCatching {
                 val uri = URI(if (u.startsWith("//")) "https:$u" else u)
