@@ -9,6 +9,7 @@ import { SavedViewsStore, sharedSavedViews } from '../renderer/savedViews.ts';
 import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
 import { CredentialScope, appStateFor } from './credentialScope.ts';
 import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
+import { AgentPushState } from './agentPush.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -65,6 +66,9 @@ export class MateuSession {
   readonly savedViews: SavedViewsStore;
   /** The drop zones mounted on this app's screens. */
   readonly dropZones: DropZoneRegistry;
+  /** The UI session (id + channel secret) the assistant chat and the live-push channel share, and
+   *  the paired state the channel reports (core/agentPush.ts). One per running app. */
+  readonly agent: AgentPushState;
 
   /** Host hook: show a non-blocking message (toast/snackbar). */
   notify: (title: string | null, text: string, variant: MessageVariant, options?: NotifyOptions) => void = () => {};
@@ -112,6 +116,10 @@ export class MateuSession {
   /** Host hook: what the user is looking at (route, title, state, the rendered tree). */
   currentScreen: () => ChatScreenSnapshot | null = () => null;
 
+  /** Host hook: hide the assistant (it stays mounted) — what a pushed navigation / screen does,
+   *  exactly like the same event from the chat. */
+  closeAssistant: () => void = () => {};
+
   /** The app shell's chat settings: its menu (menuContext), the MCP and upload endpoints. */
   chatApp: { menu?: unknown; mcpUrl?: string | null; uploadUrl?: string | null } = {};
 
@@ -137,6 +145,8 @@ export class MateuSession {
     this.columnPrefs = storesFrom?.columnPrefs ?? (own ? new ColumnPrefsStore() : sharedColumnPrefs);
     this.savedViews = storesFrom?.savedViews ?? (own ? new SavedViewsStore() : sharedSavedViews);
     this.dropZones = storesFrom?.dropZones ?? (own ? new DropZoneRegistry() : sharedDropZones);
+    // per app instance, never process-wide: two hub UIs are two UI sessions
+    this.agent = storesFrom?.agent ?? new AgentPushState();
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.
     this.api.onWireMismatch = (message) => this.notify(null, message, 'error', { duration: 30000 });

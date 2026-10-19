@@ -20,6 +20,7 @@ import { fetchExternalJson } from '../core/restFetch';
 import { interpolate } from '../core/expressions';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
+import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
 import { openExternal } from './openExternal';
 
 const Stack = createStackNavigator();
@@ -52,7 +53,7 @@ interface AppContextSelector {
   options?: { value: unknown; label?: string }[];
 }
 
-interface AppMeta extends ShellExtrasMeta {
+interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   title?: string;
   sseUrl?: string | null;
   /** The app's MCP endpoint (@AI(mcp=…)): forwarded, absolute, with every chat message. */
@@ -666,6 +667,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       <QuickLaunch meta={appMeta} onLaunch={onLaunch} />
       {appMeta.globalSearchEnabled === true && <GlobalSearchBox appMeta={appMeta} onNavigate={onNavigate} />}
       {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
+      <ConnectAiEntry meta={appMeta} />
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
       {canOut && (
@@ -702,13 +704,19 @@ function useRunAppAction(appMeta: AppMeta) {
   };
 }
 
-function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
+/** `connectAiFab`: a shell with no drawer offers "Connect AI" (live UI push) as a floating button. */
+function AppOverlays({ appMeta, connectAiFab = false }: { appMeta: AppMeta; connectAiFab?: boolean }) {
   const { session } = useAppContext();
   const [chatOpen, setChatOpen] = useState(false);
   const fabs = appMeta.fabs ?? [];
   const runAppAction = useRunAppAction(appMeta);
+  // a pushed navigation / screen hides the assistant, exactly like the same event from the chat
+  React.useEffect(() => {
+    session.closeAssistant = () => setChatOpen(false);
+  }, [session]);
+  const connectAi = connectAiFab && appMeta.agentPush === true;
 
-  if (fabs.length === 0 && !appMeta.sseUrl) return null;
+  if (fabs.length === 0 && !appMeta.sseUrl && !connectAi) return null;
   return (
     <>
       <View style={styles.appFabStack} pointerEvents="box-none">
@@ -717,6 +725,7 @@ function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
             <Text style={styles.appFabText}>{fab.label || '+'}</Text>
           </TouchableOpacity>
         ))}
+        {connectAi && <ConnectAiEntry meta={appMeta} asFab />}
         {!!appMeta.sseUrl && (
           <TouchableOpacity {...buttonA11y({ label: 'Open assistant' })} style={[styles.appFab, styles.chatFab]} onPress={() => setChatOpen(true)}>
             <Text style={styles.appFabText}>💬</Text>
@@ -796,6 +805,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // live header values: seeded from the shell, changed by UpdateHeaderValue / the event stream
   React.useEffect(() => session.headerValues.seed(appMeta.headerValues), [session, appMeta.headerValues]);
   useLiveUpdates(appMeta);
+  // live UI push (AppDto.agentPush): the channel an MCP agent's screens / navigations arrive on
+  useAgentChannel(appMeta);
 
   // QUICK LAUNCH: a shortcut's route goes there (mount-absolute, like a menu route); an actionId
   // runs app-level, like a header action
@@ -879,11 +890,13 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // The app FABs live INSIDE the screen (so the drawer and the tab bar cover them, instead of a FAB
   // floating over an open drawer), and the screen keeps a band free at its bottom for them so they
   // never cover the content's last controls (RN-13).
-  const bottomInset = fabInset((appMeta.fabs?.length ?? 0) + (appMeta.sseUrl ? 1 : 0));
+  const drawerShell = variant !== 'TABS' && menuItems.length > 0;
+  const connectAiFab = !drawerShell && appMeta.agentPush === true;
+  const bottomInset = fabInset((appMeta.fabs?.length ?? 0) + (appMeta.sseUrl ? 1 : 0) + (connectAiFab ? 1 : 0));
   const withOverlays = (screen: React.ReactNode) => (
     <View style={styles.stackHost}>
       {preview ? <PreviewScreen preview={preview} onDismiss={() => setPreview(null)} bottomInset={bottomInset} /> : screen}
-      <AppOverlays appMeta={appMeta} />
+      <AppOverlays appMeta={appMeta} connectAiFab={connectAiFab} />
     </View>
   );
 

@@ -101,3 +101,29 @@ test('a stream 401 nobody can renew fails at once', async () => {
   }
   assert.equal(seen.length, 2);
 });
+
+// The live-push channel is open-ended: it must be closable (the app goes to the background), so the
+// abort signal reaches the fetch and ends the read.
+test('a stream can be aborted: the signal reaches the fetch', async () => {
+  let seenSignal: AbortSignal | undefined;
+  setStreamingFetch((async (_url: string, init: { signal?: AbortSignal }) => {
+    seenSignal = init.signal;
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        init.signal?.addEventListener('abort', () => controller.error(new Error('aborted')));
+      },
+    });
+    return new Response(body, { status: 200 });
+  }) as unknown as typeof fetch);
+  try {
+    const api = new MateuApiClient('http://x', 's');
+    const controller = new AbortController();
+    const done = api.runActionStream({ ...sseParams, actionId: '_agent-channel' }, () => {}, controller.signal);
+    await new Promise((r) => setImmediate(r));
+    controller.abort();
+    await assert.rejects(done, /aborted/);
+    assert.equal(seenSignal, controller.signal);
+  } finally {
+    setStreamingFetch(null);
+  }
+});
