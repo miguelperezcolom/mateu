@@ -637,6 +637,11 @@ test('wiring: the bridge carries agentPush.mjs; the shell declares the control; 
   assert.ok(load.indexOf('bridge.syncAgentPush(') > load.indexOf('bridge.setChatEventHost('), 'after the chat event host exists')
   assert.match(load, /bridge\.installAgentPush\(\)/)
   assert.match(webApp('pages/shell-page-chains/chatSend.js'), /bridge\.uiSessionId\(\)/)
+  // a screen pushed into the content clears the menu selection (''): the TABS menu must get it as
+  // null (on '' JET throws inside oj-sp-in-app-navigation), and its "null" echo is no navigation
+  // (found by the live probe e2e/vb-agent-push-probe.mjs: the pushed screen was replaced by /null)
+  assert.match(html, /<oj-sp-in-app-navigation id="mateuNav"[\s\S]*?selection="\[\[ \$application\.variables\.mateuSelectedNavId \|\| null \]\]"/)
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /detail\.currentId === 'null' && route === 'null'/)
   assert.match(webApp('pages/shell-page-chains/chatAttach.js'), /bridge\.uiSessionId\(\)/)
   for (const lang of ['en', 'es']) for (const k of ['agentConnect', 'agentPairInstruction', 'agentDisconnect', 'agentNewCode']) assert.ok(CHROME_TEXTS[lang][k], lang + ' ' + k)
   assert.match(CHROME_TEXTS.en.agentPairInstruction, /mateu_pair_session/)

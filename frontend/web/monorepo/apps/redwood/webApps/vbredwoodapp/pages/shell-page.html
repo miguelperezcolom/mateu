@@ -808,12 +808,15 @@
          content so that its in-flow box reserves those 64px when scrolling to the bottom).
          It shows on ALL pages, the home included: the app's navigation does not disappear
          depending on where you are. On the home no tab is selected (its route is not
-         a menu option) and you get back to it via the global-header's home icon. -->
+         a menu option) and you get back to it via the global-header's home icon.
+         `|| null`: "nothing selected" ('' — e.g. while a screen an agent generated is on show) must
+         reach the component as null: on '' it throws inside JET ("reading 'key'"), and the
+         variable is a string, so null cannot be stored in it (it would become "null"). -->
 
     <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
       <oj-sp-in-app-navigation id="mateuNav"
         navigation-items="[[ $application.variables.mateuNavItems ]]"
-        selection="[[ $application.variables.mateuSelectedNavId ]]"
+        selection="[[ $application.variables.mateuSelectedNavId || null ]]"
         on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
     </oj-bind-if>
   </div>
