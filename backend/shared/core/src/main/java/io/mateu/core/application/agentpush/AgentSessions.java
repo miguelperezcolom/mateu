@@ -415,7 +415,10 @@ public final class AgentSessions {
   }
 
   private static void owned(Session session, String secret, String principal) {
-    if (!session.secretHash.equals(AgentCaller.sha256(secret))
+    // constant-time, like the .NET and Python registries: the time a mismatch takes says nothing
+    if (!java.security.MessageDigest.isEqual(
+            session.secretHash.getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+            AgentCaller.sha256(secret).getBytes(java.nio.charset.StandardCharsets.US_ASCII))
         || !java.util.Objects.equals(session.principal, principal)) {
       throw new UserFacingException(AgentPush.CHANNEL_REFUSED);
     }
