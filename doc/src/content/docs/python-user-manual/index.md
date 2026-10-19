@@ -70,7 +70,7 @@ at the `io.mateu:mateu-vaadin` (or `mateu-redwood`) jar of the version you targe
 extracted `static/` folder. The jar is on Maven Central; `mateu-ui` does not package it:
 
 ```bash
-V=3.0-beta.3
+V=MATEU_VERSION
 curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
 MATEU_UI=mateu-vaadin-$V.jar uvicorn samples.demo.main:app --port 8594   # http://localhost:8594
 ```

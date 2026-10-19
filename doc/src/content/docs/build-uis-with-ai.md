@@ -26,7 +26,7 @@ The Mateu repository is a Claude Code **plugin marketplace**. Install the plugin
 ```
 
 (From a terminal: `claude plugin marketplace add miguelperezcolom/mateu` and
-`claude plugin install mateu@mateu`. Pin a release with `miguelperezcolom/mateu#v3.0-beta.3`.)
+`claude plugin install mateu@mateu`. Pin a release with `miguelperezcolom/mateu#vMATEU_VERSION`.)
 
 The plugin carries **skills** — focused guides Claude loads only when the task needs them, so they
 cost almost nothing until then. Ask for the work in your own words (*"add a CRUD for suppliers"*,
