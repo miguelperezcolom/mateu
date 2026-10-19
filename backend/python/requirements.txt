@@ -2,7 +2,7 @@ fastapi>=0.110
 uvicorn>=0.27
 pydantic>=2.6
 pyyaml>=6
-PyJWT>=2.8
+PyJWT>=2.15.1
 # dev
 pytest>=8
 httpx>=0.27
