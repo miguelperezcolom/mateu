@@ -103,7 +103,9 @@ export class MateuChat extends LitElement {
 
     /** The UI session id (the per-tab X-Session-Id): the conversation and the live UI push channel
      *  (agentChannel.ts) name the same session. Unguessable (nanoid); a fresh one if storage fails. */
-    readonly chatSessionId: string = sessionId() ?? nanoid();
+    get chatSessionId(): string { return sessionId() ?? this.fallbackSessionId }
+    /** Read when the message is sent, not at construction: a duplicated tab rotates its id at boot. */
+    private readonly fallbackSessionId = nanoid();
     private menuContextSent = false;
 
     /** Files uploaded for the NEXT message: shown as chips, sent as `attachments`, cleared on send. */

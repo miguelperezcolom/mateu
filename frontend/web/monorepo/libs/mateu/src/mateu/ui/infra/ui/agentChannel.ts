@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid'
 import type App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import { safeSessionStorage } from '@infra/safeStorage.ts'
 import { sessionId } from '@infra/http/authToken.ts'
+import { AGENT_SECRET_KEY, tabSessionReady } from '@infra/http/tabSession.ts'
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { SseParser } from './chatStream'
@@ -27,7 +28,7 @@ import { applyAgentEvent } from './agentEvents'
  * the chat's events do.
  */
 
-export const AGENT_SECRET_KEY = 'mateu-agent-channel-secret'
+export { AGENT_SECRET_KEY }
 export const AGENT_PUSH_COMMAND = 'AgentPush'
 export const AGENT_STATUS_EVENT = 'mateu-agent-status'
 /** A stream that ended cleanly after living at least this long is a normal end: reconnect at once. */
@@ -181,20 +182,24 @@ const connect = () => {
     const { baseUrl, route, serverSideType } = target
     const path = (route || '_no_route').replace(/^\/+/, '')
     const url = baseUrl + '/mateu/v3/sse/' + path
-    const headers: Record<string, string> = { 'Accept': 'text/event-stream', 'Content-Type': 'application/json' }
-    Object.assign(headers, credentialHeadersFor(url))
     const started = Date.now()
     let clean = false
-    fetch(url, {
-        method: 'POST',
-        headers,
-        signal: own.signal,
-        body: JSON.stringify({
-            serverSideType, appState: {}, componentState: {},
-            parameters: { sessionId: sessionId(), secret: channelSecret(), route: currentRoute(), renderer: 'vaadin' },
-            initiatorComponentId: 'mateu-agent-channel', consumedRoute: '', route: '/' + path,
-            actionId: '_agent-channel',
-        }),
+    // the session id is read only once this tab knows it is not a duplicate (tabSession.ts)
+    ;(tabSessionReady() ?? Promise.resolve()).then(() => {
+        if (own.signal.aborted) throw new Error('agent channel: stopped')
+        const headers: Record<string, string> = { 'Accept': 'text/event-stream', 'Content-Type': 'application/json' }
+        Object.assign(headers, credentialHeadersFor(url))
+        return fetch(url, {
+            method: 'POST',
+            headers,
+            signal: own.signal,
+            body: JSON.stringify({
+                serverSideType, appState: {}, componentState: {},
+                parameters: { sessionId: sessionId(), secret: channelSecret(), route: currentRoute(), renderer: 'vaadin' },
+                initiatorComponentId: 'mateu-agent-channel', consumedRoute: '', route: '/' + path,
+                actionId: '_agent-channel',
+            }),
+        })
     }).then(async (response) => {
         if (!response.ok || !response.body) throw new Error('agent channel: ' + response.status)
         setStatus({ ...status, connected: true })
@@ -263,9 +268,11 @@ export const syncAgentChannel = (app: App | undefined, baseUrl: string, origin: 
 
 // ── pairing ────────────────────────────────────────────────────────────────────────────────
 
-const runAgentAction = (app: App, baseUrl: string, actionId: string, from: HTMLElement) =>
-    mateuApiClient.runAction(baseUrl, app.rootRoute ?? '', '', actionId, 'mateu-agent-connect',
+const runAgentAction = async (app: App, baseUrl: string, actionId: string, from: HTMLElement) => {
+    await tabSessionReady()
+    return mateuApiClient.runAction(baseUrl, app.rootRoute ?? '', '', actionId, 'mateu-agent-connect',
         undefined, app.serverSideType, {}, { sessionId: sessionId(), secret: channelSecret() }, from, true)
+}
 
 /** Asks for a new one-time pairing code (`_agent-pair`). Rejects when the server gives none. */
 export const pairAgent = async (app: App, baseUrl: string, from: HTMLElement): Promise<AgentPairing> => {

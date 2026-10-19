@@ -13,6 +13,7 @@ import {connectivity} from "@infra/http/connectivity.ts";
 import {reportClientError} from "@infra/http/clientErrorReporter.ts";
 import {StaleResponse} from "@infra/ui/staleViewGuard.ts";
 import { getAuthToken, sessionId } from '@infra/http/authToken.ts'
+import { tabSessionReady } from '@infra/http/tabSession.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
 import { mayCarryCredentials } from '@infra/http/credentialScope.ts'
@@ -32,11 +33,19 @@ export class AxiosMateuApiClient implements MateuApiClient {
     constructor() {
         this.axiosInstance.interceptors.request.use(config => {
             // the user's credentials only go to the origins trusted with them (credentialScope.ts)
-            if (mayCarryCredentials(this.axiosInstance.getUri(config))) {
-                this.addAuthToken(config)
+            if (!mayCarryCredentials(this.axiosInstance.getUri(config))) return config
+            this.addAuthToken(config)
+            // a duplicated tab must not send its original's session id: wait (once, briefly, at
+            // boot) until this tab knows its id is its own (tabSession.ts)
+            const ready = tabSessionReady()
+            if (!ready) {
                 this.addSessionId(config)
+                return config
             }
-            return config;
+            return ready.then(() => {
+                this.addSessionId(config)
+                return config
+            })
         })
         // Session expiry without losing work: a 401 hands control to the app's re-auth flow
         // (sessionGuard) and RETRIES the same request once after it — the original promise chain
