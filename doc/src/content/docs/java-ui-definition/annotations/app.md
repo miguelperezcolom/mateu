@@ -271,7 +271,7 @@ public @interface KeycloakSecured {
 | `url` | `String` | — | Keycloak server base URL |
 | `realm` | `String` | — | Keycloak realm name |
 | `clientId` | `String` | — | Keycloak client ID |
-| `jsUrl` | `String` | `""` | Optional override for the Keycloak JS adapter URL |
+| `jsUrl` | `String` | `""` | Optional override for the Keycloak JS adapter URL (an ES module; blank → `https://esm.sh/keycloak-js@26.2.2`). See [Security](/java-user-manual/advanced/security/#legacy-keycloaksecured-deprecated) for CSP and self-hosting |
 
 ```java
 @UI("/_workflow")
