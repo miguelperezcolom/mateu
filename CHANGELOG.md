@@ -12,6 +12,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 ## [Unreleased]
 
 ### Security
+- **Inline row editing (`update-row`) is guarded like the editor's save.** A `@ReadOnly` field keeps
+  the stored value, the row is laid over the stored record (its other fields survive), an id with no
+  stored record is refused instead of inserted, and only a crud with `@InlineEditing` (and
+  `canEdit()`) offers the action — every crud used to advertise and accept it. (Java, .NET, Python)
 - **Mateu's action endpoints accept only JSON bodies, on every adapter.** A `POST` to
   `<baseUrl>/mateu/v3/**` (sync, SSE, YAML mounts) or `/mateu/mcp` whose `Content-Type` is not
   `application/json` / `application/*+json` — `text/plain`, a form encoding, or none — answers 415.

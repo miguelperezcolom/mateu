@@ -356,15 +356,39 @@ internal sealed partial class SyncHandler
             || raw is not JsonElement { ValueKind: JsonValueKind.Object } rowEl)
             return Error("update-row requires an _editedRow parameter");
 
+        // The write behind inline editing exists only where the crud edits inline and lets the user
+        // edit (NM11): anywhere else a crafted update-row is refused like an action naming nothing.
+        if (crudType.Find<InlineEditingAttribute>() is null
+            || crudType.GetProperty("CanEdit")?.GetValue(crud) as bool? == false)
+            throw new MateuForbiddenException($"Forbidden: update-row: {crudType.FullName} does not edit rows inline");
+
         var row = rowEl.EnumerateObject()
             .ToDictionary(prop => prop.Name, prop => (object?)prop.Value);
-        var entity = New(element);
-        BindState(entity, row);
+        // The same protection as the editor's save: the row names a STORED record (an unknown id is
+        // refused, never inserted), it is laid over that record (the fields it does not carry are
+        // kept) and only the fields the user may write are bound (read-only / locked ones keep the
+        // stored values). Versioned entities bind onto a detached copy, as the editor's save does.
+        var id = StateString(GetState(row, EntityIds.FieldName(element)));
+        var stored = string.IsNullOrEmpty(id) ? null : crudType.GetMethod("Get")!.Invoke(crud, [id]);
+        if (stored is null)
+            return Error("This row no longer exists. Reload the list to see the current rows.");
+        var entity = CopyOf(stored, element);
+        // a [ReadOnly] column is display-only in the grid: its posted value never reaches the entity
+        var readOnly = element.Find<ReadOnlyAttribute>() is not null;
+        bool Writable(string key)
+        {
+            if (readOnly) return false;
+            var property = element.GetProperties().FirstOrDefault(p => Naming.CamelCase(p.Name) == key);
+            return property is null || property.Find<ReadOnlyAttribute>() is null;
+        }
+        BindState(entity, row.Where(e => Writable(e.Key)).ToDictionary(e => e.Key, e => e.Value));
+        EntityIds.SetId(entity, id!);
+        var missing = RequiredMissing(entity, element);
+        if (missing.Count > 0)
+            return Error("Please fill: " + string.Join(", ", missing));
 
         // Optimistic locking ([Version] property): Overwrite re-sends the SAME edited row (the
         // button's parameters merge into the action request), Reload re-runs the search.
-        var id = EntityIds.Of(entity);
-        var stored = string.IsNullOrEmpty(id) ? null : crudType.GetMethod("Get")!.Invoke(crud, [id]);
         if (IsStale(entity, StoredVersionOf(stored), rq))
             return ConflictDialog(
                 "This row changed while you were editing it. Reload to see the changes or"

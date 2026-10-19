@@ -42,7 +42,7 @@ public class StockCrud extends AutoCrud<StockItem> {
 
 The editor per column is derived from the field's real Java type — the same mapping as [editable tables](/ux-patterns/editable-table): text, integer/number, checkbox, enum combo, date/time pickers.
 
-Under the hood each commit dispatches the crud's `update-row` action with the edited row; `AutoCrud` rebuilds the entity from it and calls `store().save(entity)`. Override `updateRow(Map, HttpRequest)` to customise persistence (partial updates, optimistic locking, auditing).
+Under the hood each commit dispatches the crud's `update-row` action with the edited row; `AutoCrud` loads the stored record the row names, lays the row over it and calls `store().save(entity)`. It is guarded like the editor's save: a `@ReadOnly` (or otherwise not writable) field keeps the stored value whatever the request carries, the record's other fields survive (a row carries only its columns), an id with no stored record is refused — never inserted —, and the action exists only on a crud annotated `@InlineEditing` whose `canEdit()` is true (any other crud answers a crafted `update-row` with 403). Override `updateRow(Map, HttpRequest)` to customise persistence (auditing, a database-side partial update) — and keep those guarantees. The .NET (`[InlineEditing]`) and Python (`@inline_editing`) ports behave the same.
 
 ## When to use it
 
