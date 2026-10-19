@@ -274,6 +274,17 @@ public final class AgentSessions {
     return out.stream().map(AgentSessions::entry).toList();
   }
 
+  /**
+   * How the log names a session: {@code s-} and the first 12 hex digits of the handle's SHA-256.
+   * The handle itself is a bearer capability — for an anonymously paired session, whoever holds it
+   * can push UI into that tab — so it never goes to a log; the fingerprint lets an operator tell
+   * sessions apart and correlate lines, and is the same in .NET and Python.
+   */
+  public static String fingerprint(String handle) {
+    if (handle == null) return "s-none";
+    return "s-" + AgentCaller.sha256(handle).substring(0, 12);
+  }
+
   /** Pairs the session whose code this is to the caller (the code dies), and tells the UI. */
   public synchronized Entry pair(AgentCaller caller, String rawCode) {
     var now = clock.instant();
@@ -302,7 +313,7 @@ public final class AgentSessions {
     log.info(
         "Mateu agent push: caller={} paired session={} (user={})",
         caller.logLabel(),
-        session.handle,
+        fingerprint(session.handle),
         session.principal);
     return entry(session);
   }
@@ -337,7 +348,7 @@ public final class AgentSessions {
     log.info(
         "Mateu agent push: caller={} session={} kind={} {} bytes={}",
         caller.logLabel(),
-        handle,
+        fingerprint(handle),
         message.kind(),
         what,
         bytes);
@@ -406,7 +417,8 @@ public final class AgentSessions {
     try {
       sink.accept(message);
     } catch (RuntimeException e) {
-      log.debug("agent push: the stream of session {} refused a message", session.handle, e);
+      log.debug(
+          "agent push: the stream of session {} refused a message", fingerprint(session.handle), e);
     }
   }
 

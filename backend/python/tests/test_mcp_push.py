@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from mateu_ui.core import MateuRegistry, MateuRequest, RunActionRq, SyncHandler, agent_push, mcp
-from mateu_ui.core.agent_push import AgentChannel, AgentSessions, Caller, PushContext
+from mateu_ui.core.agent_push import AgentChannel, AgentSessions, Caller, PushContext, fingerprint
 from mateu_ui.core.identity import framework_identity_provider
 from mateu_ui.core.request_context import bound_request
 from mateu_ui.uidl import Identity, UserFacingException, title, ui
@@ -436,7 +436,9 @@ def test_dispatch_event_checks_and_logs_every_delivery(caplog):
         {"kind": "navigate", "event": "navigation-requested",
          "detail": {"route": "/x", "consumedRoute": "", "serverSideType": "T", "uriPrefix": ""}},
     ]
-    assert f"Mateu agent push: caller=alice session={handle} kind=event event=ping bytes=" in caplog.text
+    # the handle is a capability: the log names the session by its fingerprint only (NM4)
+    assert handle not in caplog.text
+    assert f"Mateu agent push: caller=alice session={fingerprint(handle)} kind=event event=ping bytes=" in caplog.text
     assert "kind=navigate route=/x" in caplog.text
 
 
@@ -767,3 +769,15 @@ def test_the_per_owner_cap_comes_from_the_environment(monkeypatch):
     monkeypatch.setenv("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", "nope")
     _, handler = _api(monkeypatch, mcp=True, mcp_push=True)
     assert handler.agent_push.max_sessions_per_owner == 20
+
+
+def test_the_log_never_carries_a_session_handle_only_its_fingerprint(caplog):
+    clock = Clock()
+    sessions = _sessions(clock)
+    _open(sessions, "ui-1", principal=None)
+    code, _ = sessions.new_code("ui-1", "s3cret", None)
+    with caplog.at_level(logging.INFO, logger="mateu.agentpush"):
+        handle = sessions.pair(Caller(), code)["session"]  # anonymous: the handle IS the capability
+    assert handle not in caplog.text
+    assert f"session={fingerprint(handle)}" in caplog.text
+    assert fingerprint("abc") == "s-ba7816bf8f01"  # the same digest as Java and .NET

@@ -136,6 +136,13 @@ def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def fingerprint(handle: str | None) -> str:
+    """How the log names a session: ``s-`` + the first 12 hex digits of the handle's SHA-256. The
+    handle is a bearer capability (whoever holds it reaches an anonymously paired session), so it
+    never goes to a log; the fingerprint tells sessions apart and is the same in Java and .NET."""
+    return "s-none" if handle is None else "s-" + _sha256(handle)[:12]
+
+
 def message(kind: str, event: str, detail: Any) -> dict[str, Any]:
     """One channel message: the ``data`` of an ``AgentPush`` command."""
     return {"kind": kind, "event": event, "detail": detail}
@@ -399,7 +406,7 @@ class AgentSessions:
             self._tell(session, self._status(session))
             log.info(
                 "Mateu agent push: caller=%s paired session=%s (user=%s)",
-                caller.log_label, session.handle, session.principal,
+                caller.log_label, fingerprint(session.handle), session.principal,
             )
             return self._entry(session)
 
@@ -425,7 +432,7 @@ class AgentSessions:
         size = len(json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
         log.info(
             "Mateu agent push: caller=%s session=%s kind=%s %s bytes=%d",
-            caller.log_label, handle, data.get("kind"), log_detail, size,
+            caller.log_label, fingerprint(handle), data.get("kind"), log_detail, size,
         )
 
     # ── internals (under the lock) ──

@@ -308,7 +308,7 @@ internal sealed class AgentSessions
             Deliver(session, StatusIncrement(session));
             MateuLogging.For("Mateu.Mcp").LogInformation(
                 "Mateu agent push: caller={Caller} paired session={Session} (user={User})",
-                caller.LogLabel, session.Handle, session.Principal);
+                caller.LogLabel, Fingerprint(session.Handle), session.Principal);
             return Entry(session);
         }
     }
@@ -455,6 +455,12 @@ internal sealed class AgentSessions
         for (var i = 0; i < chars.Length; i++) chars[i] = CodeAlphabet[RandomNumberGenerator.GetInt32(CodeAlphabet.Length)];
         return new string(chars);
     }
+
+    /// <summary>How the log names a session: <c>s-</c> + the first 12 hex digits of the handle's
+    /// SHA-256. The handle is a bearer capability (whoever holds it reaches an anonymously paired
+    /// session), so it never goes to a log; the fingerprint tells sessions apart and is the same in
+    /// Java and Python.</summary>
+    internal static string Fingerprint(string? handle) => handle is null ? "s-none" : "s-" + Sha256(handle)[..12];
 
     internal static string Sha256(string text) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();

@@ -220,8 +220,10 @@ as any other request.
   failed pairings per caller per minute, 1000 sessions and 20 per owner (a user, or an anonymous
   UI's client address — so one caller cannot fill the registry); a disconnected session is forgotten two
   minutes after its stream ended.
-- **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<handle>
-  kind=<render|navigate|event> … bytes=<n>` — and every pairing too.
+- **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<fingerprint>
+  kind=<render|navigate|event> … bytes=<n>` — and every pairing too. The session is named by its
+  fingerprint (`s-` + the first 12 hex digits of the handle's SHA-256, the same in Java, .NET and
+  Python), never by its handle: the handle is what reaches the session, so it must not sit in a log.
 - In-process: in a cluster, the stream and the MCP call must reach the same node (sticky sessions).
 
 ### Example with Claude Code

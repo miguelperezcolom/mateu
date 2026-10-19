@@ -280,4 +280,33 @@ class AgentSessionsTest {
     assertThat(AgentSessions.ownerOf(null, "10.0.0.1")).isEqualTo("address:10.0.0.1");
     assertThat(AgentSessions.ownerOf(null, null)).isEqualTo("address:unknown");
   }
+
+  @Test
+  void theLogNeverCarriesASessionHandleOnlyAFingerprint() {
+    var logger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(AgentSessions.class);
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    logger.addAppender(logs);
+    try {
+      open("ui-1", null);
+      var code = (String) sessions.pairingCode("ui-1", "secret-ui-1", null).get("code");
+      var handle =
+          sessions.pair(anon, code).session(); // an anonymous pairing: the handle IS the capability
+      sessions.deliver(anon, handle, message(), "event=x", 1);
+      var lines =
+          logs.list.stream()
+              .map(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+              .toList();
+      assertThat(lines).isNotEmpty();
+      assertThat(lines).noneMatch(l -> l.contains(handle));
+      assertThat(lines).allMatch(l -> l.contains(AgentSessions.fingerprint(handle)));
+      assertThat(AgentSessions.fingerprint(handle)).startsWith("s-").hasSize(14);
+      assertThat(AgentSessions.fingerprint("abc"))
+          .isEqualTo("s-ba7816bf8f01"); // as in .NET, Python
+    } finally {
+      logger.detachAppender(logs);
+    }
+  }
 }
