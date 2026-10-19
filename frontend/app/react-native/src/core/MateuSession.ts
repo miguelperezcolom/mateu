@@ -181,6 +181,39 @@ export function islandSession(host: MateuSession, baseUrl: string): MateuSession
   if (!baseUrl || baseUrl === host.api.baseUrl) return host;
   // the island's base url came in an ANSWER: trusted only when the app's own backend named it
   host.credentials.declare(host.api.baseUrl, [baseUrl]);
+  return sessionOver(host, baseUrl);
+}
+
+/**
+ * The session a NAVIGATION to another backend runs in (a menu entry of a federated app, the
+ * assistant's `navigation-requested`). Unlike an island, the base url does not come from a screen
+ * the backend answered: a navigation names it, and an agent's navigation is whatever the agent
+ * wrote. So it DECLARES nothing — it carries the user's credentials only when the origin is
+ * already trusted (the app's own backend, or a remote its menu names: {@link declareMenuRemotes}),
+ * and is anonymous otherwise.
+ */
+export function navigationSession(host: MateuSession, baseUrl: string): MateuSession {
+  if (!baseUrl || baseUrl === host.api.baseUrl) return host;
+  return sessionOver(host, baseUrl);
+}
+
+/** The remotes an app's menu names (its federated entries), declared from the session's backend. */
+export function declareMenuRemotes(session: MateuSession, menu: unknown): void {
+  const remotes: string[] = [];
+  const walk = (items: unknown) => {
+    if (!Array.isArray(items)) return;
+    for (const item of items) {
+      if (!item || typeof item !== 'object') continue;
+      const entry = item as { baseUrl?: unknown; submenus?: unknown };
+      if (typeof entry.baseUrl === 'string' && entry.baseUrl) remotes.push(entry.baseUrl);
+      walk(entry.submenus);
+    }
+  };
+  walk(menu);
+  if (remotes.length) session.credentials.declare(session.api.baseUrl, remotes);
+}
+
+function sessionOver(host: MateuSession, baseUrl: string): MateuSession {
   const trusted = host.credentials.mayCarryCredentials(baseUrl);
   return new MateuSession(baseUrl, host.api.sessionId, appStateFor(host.appState, host.appContextKeys, trusted), undefined, host);
 }

@@ -6,7 +6,7 @@ import React, { useCallback, useState } from 'react';
 import { BackHandler, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
-import { NavTarget, islandSession } from '../core/MateuSession';
+import { NavTarget, declareMenuRemotes, navigationSession } from '../core/MateuSession';
 import { firstComponentFragment, previewOverlayOf, type ChatScreenSnapshot } from '../core/chatStream';
 import type { MateuViewController } from '../core/MateuViewController';
 import { ChatPanel } from './ChatPanel';
@@ -110,8 +110,9 @@ const screenOf = (c: MateuViewController): ChatScreenSnapshot => ({
 function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl, bottomInset = 0, onPopToRoot }: { route: string; consumedRoute: string; serverSideType: string; baseUrl?: string; bottomInset?: number; onPopToRoot?: (popToRoot: () => void) => void }) {
   const { session: appSession } = useAppContext();
   // a navigation naming another backend (a federated entry, the assistant's navigation-requested)
-  // runs against it — with the user's credentials only when the app's own backend named it
-  const session = React.useMemo(() => (baseUrl ? islandSession(appSession, baseUrl) : appSession), [appSession, baseUrl]);
+  // runs against it — with the user's credentials only when the app's own backend named it (its
+  // menu: declareMenuRemotes); a navigation itself never makes an origin trusted
+  const session = React.useMemo(() => (baseUrl ? navigationSession(appSession, baseUrl) : appSession), [appSession, baseUrl]);
   const [stack, setStack] = useState<NavTarget[]>([]);
   // live controller of the TOP view, for the dirty check on back navigation
   const topController = React.useRef<import('../core/MateuViewController').MateuViewController | null>(null);
@@ -755,6 +756,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   const navTheme = dark ? DarkTheme : DefaultTheme;
 
   const { session } = useAppContext();
+  // the remotes the app's menu names are the ones its backend chose: they may carry credentials
+  declareMenuRemotes(session, appMeta.menu);
   const runAppAction = useRunAppAction(appMeta);
   // the assistant's render-screen shown in the content area: transient — any navigation (even back
   // to the same menu entry) shows the real screen again

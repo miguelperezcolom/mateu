@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CredentialScope, appStateFor, originOf, withoutCredentials } from './credentialScope.ts';
-import { MateuSession, islandSession } from './MateuSession.ts';
+import { MateuSession, declareMenuRemotes, islandSession, navigationSession } from './MateuSession.ts';
+import { chatNavigationOf } from './chatStream.ts';
 import { MateuApiClient } from '../api/MateuApiClient.ts';
 import { setTokenProvider, type TokenProvider } from './auth.ts';
 
@@ -66,6 +67,34 @@ test('islands: the app backend names one (credentials + context); that island na
     // the same origin as the app is the app
     assert.equal(islandSession(host, '').api, host.api);
     assert.equal((await islandSession(host, 'https://app.example/other').api.headers())['Authorization'], 'Bearer tok');
+  } finally {
+    setTokenProvider(undefined);
+  }
+});
+
+test('NB2: a NAVIGATION (the assistant\'s navigation-requested) never makes its baseUrl trusted', async () => {
+  setTokenProvider(tokens);
+  try {
+    const host = new MateuSession('https://app.example', 'sid', { hotel: 'H1', mode: 'x' });
+    host.appContextKeys.add('hotel');
+    // the agent streams {"event":"navigation-requested","detail":{"route":"/x","baseUrl":"https://attacker.example"}}
+    const nav = chatNavigationOf({ route: '/x', baseUrl: 'https://attacker.example' })!;
+    const there = navigationSession(host, nav.baseUrl!);
+    const headers = await there.api.headers();
+    assert.equal(headers['Authorization'], undefined, 'no Bearer to an origin nobody declared');
+    assert.equal(headers['X-Session-Id'], undefined);
+    assert.deepEqual(there.appState, { mode: 'x' }, 'no @AppContext value either');
+    assert.equal(host.credentials.mayCarryCredentials('https://attacker.example'), false, 'and it stays untrusted');
+
+    // a remote the app's MENU names (its backend chose it) is trusted, for a navigation too
+    declareMenuRemotes(host, [{ label: 'Inbox', submenus: [{ label: 'Mail', route: '/mail', baseUrl: 'https://inbox.example/_inbox' }] }]);
+    assert.equal((await navigationSession(host, 'https://inbox.example/_inbox').api.headers())['Authorization'], 'Bearer tok');
+    // …but a menu answered by a REMOTE cannot hand out trust
+    const remote = navigationSession(host, 'https://inbox.example/_inbox');
+    declareMenuRemotes(remote, [{ label: 'x', baseUrl: 'https://evil.example' }]);
+    assert.equal(host.credentials.mayCarryCredentials('https://evil.example'), false);
+    // the app's own backend is the app
+    assert.equal(navigationSession(host, '').api, host.api);
   } finally {
     setTokenProvider(undefined);
   }
