@@ -63,16 +63,17 @@
          real suite sets it just under its measured value. -->
     <jacoco.min.bundle.branch.coverage>0%</jacoco.min.bundle.branch.coverage>
     <!-- Public-API compatibility check (japicmp) of uidl and core's archetypes (dtos: report only,
-         the wire DTOs are outside the Java binary promise) against the
-         last RELEASED version. Report-only while the version is an alpha: set
-         mateu.api.enforce=true (done from the beta tag on) and an incompatible change fails
-         `mvn verify` unless the type/member is @Experimental or listed in
-         api-compat/japicmp-exclusions.properties. See reference/stability-and-versioning.md. -->
-    <mateu.japicmp.baseline>3.0-alpha.425</mateu.japicmp.baseline>
-    <!-- THE beta switch: `-Dmateu.api.enforce=true` (or flipping this default at the beta tag)
-         makes an incompatible change to the non-@Experimental surface fail the build.
-         mateu.japicmp.enforce is the knob the plugin reads; it follows this one. -->
-    <mateu.api.enforce>false</mateu.api.enforce>
+         the wire DTOs are outside the Java binary promise) against the last RELEASED version.
+         ENFORCING since 3.0-beta.1 — the 3.x API is frozen: an incompatible change to the
+         non-@Experimental, non-@Internal surface fails `mvn verify` (and so `install` and CI's
+         backend-tests) with the add + deprecate recipe (api-compat/api-guard-enforce-true.groovy),
+         unless it is listed in api-compat/japicmp-exclusions.properties.
+         See reference/stability-and-versioning.md. -->
+    <mateu.japicmp.baseline>3.0-beta.1</mateu.japicmp.baseline>
+    <!-- THE switch, on by default: `-Dmateu.api.enforce=false` makes the check report-only (to read
+         the full report of a break locally; never for a pull request). mateu.japicmp.enforce is the
+         knob the plugin reads; it follows this one (mateu-dtos pins it to false). -->
+    <mateu.api.enforce>true</mateu.api.enforce>
     <mateu.japicmp.enforce>${mateu.api.enforce}</mateu.japicmp.enforce>
     <mateu.japicmp.skip>false</mateu.japicmp.skip>
   </properties>
@@ -217,6 +218,15 @@
                       <groupId>com.github.siom79.japicmp</groupId>
                       <artifactId>japicmp-maven-plugin</artifactId>
                       <version>0.26.3</version>
+                      <dependencies>
+                          <!-- the JSR-223 engine japicmp runs the postAnalysisScript with -->
+                          <dependency>
+                              <groupId>org.apache.groovy</groupId>
+                              <artifactId>groovy-jsr223</artifactId>
+                              <!-- 5.x: the 4.x line cannot read the class files of the newest JDKs -->
+                              <version>5.0.6</version>
+                          </dependency>
+                      </dependencies>
                       <executions>
                           <execution>
                               <id>api-compatibility</id>
@@ -237,6 +247,9 @@
                               <ignoreMissingClasses>true</ignoreMissingClasses>
                               <breakBuildOnBinaryIncompatibleModifications>${mateu.japicmp.enforce}</breakBuildOnBinaryIncompatibleModifications>
                               <breakBuildOnSourceIncompatibleModifications>${mateu.japicmp.enforce}</breakBuildOnSourceIncompatibleModifications>
+                              <!-- enforcing: fails first, listing the breaks with the add + deprecate
+                                   recipe; report-only: a no-op. Picked by the flag's value. -->
+                              <postAnalysisScript>${project.basedir}/../../api-compat/api-guard-enforce-${mateu.japicmp.enforce}.groovy</postAnalysisScript>
                               <excludes>
                                   <exclude>@io.mateu.uidl.annotations.Experimental</exclude>
                                   <exclude>@io.mateu.uidl.annotations.Internal</exclude>

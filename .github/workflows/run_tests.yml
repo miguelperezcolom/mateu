@@ -596,10 +596,12 @@ jobs:
       # the test suite + JaCoCo coverage check.
       #
       # The build also runs the public-API compatibility check (japicmp) of uidl, dtos and core's
-      # archetypes against the last release (backend/pom.xml <mateu.japicmp.baseline>). It is
-      # REPORT-ONLY while the version is an alpha (<mateu.japicmp.enforce>false</...>); from the
-      # beta tag on it fails the build on an incompatible change that is neither @Experimental nor in
-      # backend/api-compat/japicmp-exclusions.properties.
+      # archetypes against the last release (backend/pom.xml <mateu.japicmp.baseline>). The 3.x API
+      # is FROZEN since 3.0-beta.1: the check is ENFORCING by default (<mateu.api.enforce>true) and
+      # fails this step — with the list of breaks and the add + deprecate recipe — on an
+      # incompatible change to uidl or the archetypes that is neither @Experimental/@Internal nor in
+      # backend/api-compat/japicmp-exclusions.properties. dtos stays report-only (the wire DTOs are
+      # outside the Java binary promise). No extra job: it rides this build's verify phase.
       - name: Java module tests + coverage gate + API compatibility
         run: >-
           mvn -B install -Dgpg.skip=true -Dmaven.javadoc.skip=true -Darchetype.test.skip=true

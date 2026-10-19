@@ -1,0 +1,8188 @@
+{
+ "mateu_ui.uidl": {
+  "Access": {
+   "class": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "restricts": []
+   }
+  },
+  "ActionCatalogSupplier": {
+   "class": [],
+   "members": {
+    "action_catalog": []
+   }
+  },
+  "ActionRequest": {
+   "class": [
+    [
+     "args",
+     "VAR_POSITIONAL",
+     false
+    ],
+    [
+     "kwargs",
+     "VAR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "AdaptedView": {
+   "class": [
+    [
+     "components",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "state",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "data",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Aggregate": {
+   "class": [
+    [
+     "function",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "AggregateFunction": {
+   "enum": [
+    "avg",
+    "count",
+    "max",
+    "min",
+    "sum"
+   ]
+  },
+  "Announce": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "assertive",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "to_command": []
+   }
+  },
+  "AppActionsSupplier": {
+   "class": [],
+   "members": {
+    "app_actions": []
+   }
+  },
+  "AppHeaderAction": {
+   "class": [
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "children",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "menu": [
+     [
+      "label",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "icon",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "children",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "AppNotification": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "unread",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "when",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "AppShell": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "menu",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "variant",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "home_route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "shortcuts",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header_values",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "live_updates",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "idle_timeout_minutes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "idle_warning_seconds",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "idle_sign_out_url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "AppShortcutEntry": {
+   "class": [
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "code",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "AppSupplier": {
+   "class": [],
+   "members": {
+    "get_app": []
+   }
+  },
+  "AppVariant": {
+   "enum": [
+    "AUTO",
+    "HAMBURGER_MENU",
+    "HAMBURGER_SECTIONS",
+    "MENU_ON_LEFT",
+    "MENU_ON_TOP",
+    "RAIL",
+    "TABS",
+    "TILES"
+   ]
+  },
+  "Aside": {
+   "class": [
+    [
+     "position",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sticky",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Audience": {
+   "class": [
+    [
+     "audiences",
+     "VAR_POSITIONAL",
+     false
+    ]
+   ]
+  },
+  "BadgeInHeader": {
+   "class": [
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "BannerTheme": {
+   "enum": [
+    "DANGER",
+    "INFO",
+    "SUCCESS",
+    "WARNING"
+   ]
+  },
+  "BulletedList": {
+   "class": []
+  },
+  "CalendarPage": {
+   "class": [],
+   "members": {
+    "action_on": [
+     [
+      "event",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "action_on_day": [
+     [
+      "day",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "component": [],
+    "create_action": [
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "create_calendar_event": [],
+    "current_month": [],
+    "current_view": [],
+    "days": [
+     [
+      "date_from",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "date_to",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "days_clickable": [],
+    "events": [
+     [
+      "month",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "go_calendar_today": [],
+    "initial_month": [],
+    "next_calendar_month": [],
+    "open_calendar_day": [
+     [
+      "raw_date",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "open_calendar_event": [
+     [
+      "event_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "previous_calendar_month": [],
+    "show_create": [],
+    "style": [],
+    "switch_calendar_view": [
+     [
+      "requested",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "views": []
+   }
+  },
+  "CatalogAction": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "steps",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "rest_action",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "client_runnable": []
+   }
+  },
+  "CatalogRestAction": {
+   "class": [
+    [
+     "source",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "success_message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "result_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "CloseOverlay": {
+   "class": [
+    [
+     "event",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "to_command": []
+   }
+  },
+  "CollectionDetail": {
+   "class": [],
+   "members": {
+    "badges_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "caption_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "component": [],
+    "detail": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "empty_detail": [],
+    "id_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "list_label": [
+     [
+      "count",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "list_width": [],
+    "rows": [
+     [
+      "search",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "style": [],
+    "title_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "Colspan": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "ComponentAdapter": {
+   "class": [],
+   "members": {
+    "adapt": [
+     [
+      "model",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "deserialize": [
+     [
+      "state",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "type": []
+   }
+  },
+  "ComponentCatalogSupplier": {
+   "class": [],
+   "members": {
+    "business_components": []
+   }
+  },
+  "ComponentEntry": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "component",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "ComponentTreeSupplier": {
+   "class": [],
+   "members": {
+    "component": [],
+    "style": []
+   }
+  },
+  "Creatable": {
+   "class": [],
+   "members": {
+    "create": [
+     [
+      "form",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ],
+    "creation_form": [
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
+  "Crud": {
+   "class": [],
+   "members": {
+    "csv_exportable": [],
+    "delete": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "display": [],
+    "excel_exportable": [],
+    "fetch": [
+     [
+      "search",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "find": [
+     [
+      "search_text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "filters",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "pageable",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "get": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "id_of": [
+     [
+      "entity",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "next_id_after": [
+     [
+      "current_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "pdf_exportable": [],
+    "save": [
+     [
+      "entity",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "save_and_next_label": []
+   }
+  },
+  "CrudDisplay": {
+   "class": [
+    [
+     "create",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "delete",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "save_and_next",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "error_banner",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "defaults": []
+   }
+  },
+  "Dashboard": {
+   "class": [],
+   "members": {
+    "columns": [],
+    "component": [],
+    "reorderable": [],
+    "style": []
+   }
+  },
+  "DataManagement": {
+   "class": [],
+   "members": {
+    "bottom_panel": [],
+    "component": [],
+    "end_panel": [],
+    "gantt_label": [],
+    "gantt_view": [],
+    "grid_label": [],
+    "grid_view": [],
+    "heading": [],
+    "style": [],
+    "toggle_bottom_panel": [],
+    "toggle_end_panel": []
+   }
+  },
+  "DateRange": {
+   "class": [
+    [
+     "from_",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "to",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "contains": [
+     [
+      "value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "is_empty": "property"
+   }
+  },
+  "DeclaredRestSource": {
+   "class": [
+    [
+     "kind",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "source",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Deletable": {
+   "class": [],
+   "members": {
+    "delete_all_by_id": [
+     [
+      "selected_ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
+  "DetailForm": {
+   "class": [
+    [
+     "position",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "theme",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "min_height_when_detail_visible",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Disabled": {
+   "class": []
+  },
+  "DisabledUnless": {
+   "class": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "DockedPanel": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "open",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Document": {
+   "class": [
+    [
+     "filename",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "media_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "lazy_content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disposition",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "print",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "attachment": [
+     [
+      "filename",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "media_type",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "content",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "bytes": [],
+    "downloaded": [],
+    "inline": [
+     [
+      "filename",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "media_type",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "content",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "lazy": [
+     [
+      "filename",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "media_type",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "content",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "pdf": [
+     [
+      "filename",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "content",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "printed": [],
+    "produced_on_demand": "property",
+    "shown_inline": []
+   }
+  },
+  "DocumentDisposition": {
+   "enum": [
+    "attachment",
+    "inline"
+   ]
+  },
+  "Draftable": {
+   "class": [],
+   "members": {
+    "close_draft": [],
+    "resume_step": [],
+    "save_draft": []
+   }
+  },
+  "Editable": {
+   "class": [],
+   "members": {
+    "edit": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ],
+    "save": [
+     [
+      "editor",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
+  "Emit": {
+   "class": [
+    [
+     "event",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "payload",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "to_command": []
+   }
+  },
+  "Environment": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "sources",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ExportColumn": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "text_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "value_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "ExportFormat": {
+   "enum": [
+    "CSV",
+    "EXCEL",
+    "PDF"
+   ]
+  },
+  "ExportedFile": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "media_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "filename",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "EyesOnly": {
+   "class": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FieldType": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "FieldTypeCatalogSupplier": {
+   "class": [],
+   "members": {
+    "field_types": []
+   }
+  },
+  "FieldTypeEntry": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "data_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "stereotype",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "placeholder",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "required",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "read_only",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "options",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "options_source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "min",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "step",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "colspan",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "align",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "auto_width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tones",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "attributes": [],
+    "of_node": [
+     [
+      "node",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "FileUpload": {
+   "class": [
+    [
+     "accept",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Filterable": {
+   "class": [],
+   "members": {
+    "filters": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "FlowStep": {
+   "class": [],
+   "members": {
+    "to_command": []
+   }
+  },
+  "Foldout": {
+   "class": [],
+   "members": {
+    "component": [],
+    "header_badges": [],
+    "header_title": [],
+    "navigation_header": [],
+    "orientation": [],
+    "overview_edit_action_id": [],
+    "panel_summary": [
+     [
+      "panel_field_name",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "style": []
+   }
+  },
+  "GanttPage": {
+   "class": [],
+   "members": {
+    "bottom_panel": [
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "bottom_panel_title": [],
+    "component": [],
+    "detail": [
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "heading": [],
+    "select_gantt_task": [
+     [
+      "task_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "style": [],
+    "task_detail": [
+     [
+      "task",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "task_drawer": [
+     [
+      "task",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "tasks": [
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "GeneralOverview": {
+   "class": [],
+   "members": {
+    "component": [],
+    "display": [],
+    "empty_overview": [],
+    "info": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "info_width": [],
+    "load": [
+     [
+      "record_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "overview": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "style": [],
+    "switcher_options": []
+   }
+  },
+  "GeneralOverviewDisplay": {
+   "class": [
+    [
+     "info",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "promote_info_slot",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "defaults": []
+   }
+  },
+  "GlobalSearchResult": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "category",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "GlobalSearchSupplier": {
+   "class": [],
+   "members": {
+    "global_search": [
+     [
+      "search_text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "GroupActionVisibility": {
+   "class": [],
+   "members": {
+    "group_action_visible": [
+     [
+      "method_name",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "group_value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "GroupBy": {
+   "class": []
+  },
+  "GroupSummary": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "count",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "aggregates",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "hidden_actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "HeaderBadge": {
+   "class": [
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "HeaderValue": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "HeaderValuesSupplier": {
+   "class": [],
+   "members": {
+    "header_values": []
+   }
+  },
+  "Help": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "HeroSearch": {
+   "class": [],
+   "members": {
+    "csv_exportable": [],
+    "delete": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "display": [],
+    "excel_exportable": [],
+    "fetch": [
+     [
+      "search",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "find": [
+     [
+      "search_text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "filters",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "pageable",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "get": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "hero_image": [],
+    "hero_subtitle": [],
+    "hero_title": [],
+    "id_of": [
+     [
+      "entity",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "next_id_after": [
+     [
+      "current_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "pdf_exportable": [],
+    "save": [
+     [
+      "entity",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "save_and_next_label": []
+   }
+  },
+  "HeroTone": {
+   "enum": [
+    "auto",
+    "lilac",
+    "ocean",
+    "pebble",
+    "pine",
+    "plum",
+    "rose",
+    "sienna",
+    "slate",
+    "teal"
+   ]
+  },
+  "Hidden": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "HomeRouteSupplier": {
+   "class": [],
+   "members": {
+    "home_route": []
+   }
+  },
+  "Identity": {
+   "class": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Inline": {
+   "class": []
+  },
+  "InlineEditing": {
+   "class": []
+  },
+  "ItemOverview": {
+   "class": [],
+   "members": {
+    "component": [],
+    "panel_width": [],
+    "style": []
+   }
+  },
+  "KeepAliveHandler": {
+   "class": [],
+   "members": {
+    "keep_alive": []
+   }
+  },
+  "Label": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "LabelsAsideMode": {
+   "enum": [
+    "ASIDE",
+    "AUTO",
+    "TOP"
+   ]
+  },
+  "Length": {
+   "class": [
+    [
+     "min",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "LinkSupplier": {
+   "class": [],
+   "members": {
+    "link": [
+     [
+      "member_name",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "LinkTo": {
+   "class": [
+    [
+     "href",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "target",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Listing": {
+   "class": [],
+   "members": {
+    "grid_layout": [],
+    "search": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
+  "ListingData": {
+   "class": [
+    [
+     "rows",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "total_elements",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "of": [
+     [
+      "rows",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "ListingExport": {
+   "class": [
+    [
+     "format",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "rows",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "search_text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ListingExporter": {
+   "class": [],
+   "members": {
+    "export": [
+     [
+      "export",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "LiveHeaderValues": {
+   "class": [],
+   "members": {
+    "current": [],
+    "publish": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "reset": [],
+    "subscribe": [
+     [
+      "listener",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "Lookup": {
+   "class": []
+  },
+  "LookupLabelSupplier": {
+   "class": [],
+   "members": {
+    "label": [
+     [
+      "field_name",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "MarkClean": {
+   "class": [],
+   "members": {
+    "to_command": []
+   }
+  },
+  "MarkDirty": {
+   "class": [],
+   "members": {
+    "to_command": []
+   }
+  },
+  "Max": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MenuDisplay": {
+   "class": []
+  },
+  "MenuLook": {
+   "class": [
+    [
+     "display",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "image",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MenuSupplier": {
+   "class": [],
+   "members": {
+    "menu": []
+   }
+  },
+  "Message": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "variant",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "duration",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "undo_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "undo_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "undo_parameters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "undoable": [
+     [
+      "text",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "undo_action_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "undo_parameters",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
+  "MessageVariant": {
+   "enum": [
+    "CONTRAST",
+    "ERROR",
+    "INFO",
+    "SUCCESS",
+    "WARNING"
+   ]
+  },
+  "Min": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Money": {
+   "class": []
+  },
+  "Multiline": {
+   "class": []
+  },
+  "NavLink": {
+   "class": [
+    [
+     "href",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "target",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Navigable": {
+   "class": [],
+   "members": {
+    "view": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
+  "Navigate": {
+   "class": [
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "to_command": []
+   }
+  },
+  "NotificationsSupplier": {
+   "class": [],
+   "members": {
+    "mark_notifications_read": [
+     [
+      "ids",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "notifications": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "NumberRange": {
+   "class": [
+    [
+     "from_",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "to",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "contains": [
+     [
+      "value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "is_empty": "property"
+   }
+  },
+  "OnRowSelected": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "shortcut",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PageBanner": {
+   "class": [
+    [
+     "theme",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "closeable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timeout_seconds",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PageBanners": {
+   "class": [
+    [
+     "banners",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "appending",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "append": [
+     [
+      "banners",
+      "VAR_POSITIONAL",
+      false
+     ]
+    ],
+    "replace": [
+     [
+      "banners",
+      "VAR_POSITIONAL",
+      false
+     ]
+    ]
+   }
+  },
+  "PageResult": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "total_elements",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "PageType": {
+   "enum": [
+    "COLLECTION",
+    "DASHBOARD",
+    "DETAIL",
+    "FORM",
+    "LANDING",
+    "PROCESS"
+   ]
+  },
+  "PageWidth": {
+   "enum": [
+    "EDGE_TO_EDGE",
+    "FIXED",
+    "FULL_WIDTH"
+   ]
+  },
+  "PageWidthStyle": {
+   "enum": [
+    "EDGE_TO_EDGE",
+    "FIXED",
+    "FULL_WIDTH"
+   ]
+  },
+  "Pageable": {
+   "class": [
+    [
+     "page",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sort",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Panel": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "col_span",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "row_span",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "open",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Password": {
+   "class": []
+  },
+  "Pattern": {
+   "class": [
+    [
+     "regexp",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PeerNav": {
+   "class": [
+    [
+     "prev_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "prev_route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "next_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "next_route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PeerNavigationSupplier": {
+   "class": [],
+   "members": {
+    "peers": []
+   }
+  },
+  "PhotoCapture": {
+   "class": []
+  },
+  "PlainText": {
+   "class": []
+  },
+  "PrimaryColumn": {
+   "class": [
+    [
+     "caption",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "leading",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "RangeFilter": {
+   "class": []
+  },
+  "ReadOnly": {
+   "class": []
+  },
+  "ReadOnlyUnless": {
+   "class": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "RecordSwitcher": {
+   "class": [
+    [
+     "options",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "searchable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "options_source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "RecordSwitcherSupplier": {
+   "class": [],
+   "members": {
+    "switch_to": [
+     [
+      "value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "switcher": []
+   }
+  },
+  "Required": {
+   "class": []
+  },
+  "RestDataSource": {
+   "class": [
+    [
+     "ref",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "method",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "body",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "items_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "proxy",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sample",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "has_ref": []
+   }
+  },
+  "RestOptions": {
+   "class": [
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "method",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "body",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "items_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "proxy",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "RestSourceCatalogSupplier": {
+   "class": [],
+   "members": {
+    "rest_sources": []
+   }
+  },
+  "RestSourceEntry": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "source",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "provenance",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "fields",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "total_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sample",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sample_file",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "effective_provenance": [],
+    "effective_sample": [],
+    "path_of": [
+     [
+      "field_name",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "RestSourceKind": {
+   "enum": [
+    "ACTION",
+    "DATA",
+    "OPTIONS",
+    "ROWS"
+   ]
+  },
+  "RestSourceProvenance": {
+   "enum": [
+    "auto",
+    "existing",
+    "generate"
+   ]
+  },
+  "RestSourceSupplier": {
+   "class": [],
+   "members": {
+    "declared_rest_sources": []
+   }
+  },
+  "RowStatus": {
+   "class": []
+  },
+  "Rule": {
+   "class": [
+    [
+     "filter",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "action",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "field_name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "field_attribute",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "expression",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "result",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "disable": [
+     [
+      "field_name",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "expression",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ],
+    "hide": [
+     [
+      "field_name",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "expression",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "RuleSupplier": {
+   "class": [],
+   "members": {
+    "rules": []
+   }
+  },
+  "RunAction": {
+   "class": [
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "to_command": []
+   }
+  },
+  "SearchRequest": {
+   "class": [
+    [
+     "search_text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "filters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "criteria",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "pageable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Searchable": {
+   "class": [
+    [
+     "selector",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Section": {
+   "class": [
+    [
+     "caption",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "zone",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "property_list",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "frameless",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "edit_action",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "add_action",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "view_more_action",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "SelectedItem": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "Selector": {
+   "class": [],
+   "members": {
+    "selected": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "SeparatorBefore": {
+   "class": []
+  },
+  "Signature": {
+   "class": []
+  },
+  "Size": {
+   "class": [
+    [
+     "min",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "SizeMode": {
+   "enum": [
+    "FILL",
+    "FIXED",
+    "HUG"
+   ]
+  },
+  "SliderMax": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "SliderMin": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "SmartSearchPage": {
+   "class": [
+    [
+     "selector",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "filters": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "grid_layout": [],
+    "page_subtitle": [],
+    "pre_search_content": [],
+    "search": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http",
+      "POSITIONAL_OR_KEYWORD",
+      true
+     ]
+    ]
+   }
+  },
+  "SortSpec": {
+   "class": [
+    [
+     "field",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "descending",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "SourceOverride": {
+   "class": [
+    [
+     "base_url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "proxy",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Step": {
+   "class": [
+    [
+     "step",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "Stereotype": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "SubscriptionSource": {
+   "enum": [
+    "COMPONENT",
+    "DOCUMENT",
+    "SELF"
+   ]
+  },
+  "SwitcherType": {
+   "enum": [
+    "context",
+    "object"
+   ]
+  },
+  "Tab": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "open",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Text": {
+   "class": [
+    [
+     "container",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_margins",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Timestamp": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TodoList": {
+   "class": [],
+   "members": {
+    "action_on": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "badges_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "caption_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "component": [],
+    "empty_state": [],
+    "group_label": [
+     [
+      "group",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "count",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "group_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "group_order": [],
+    "id_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "open_todo_item": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "rows": [
+     [
+      "http_request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "style": [],
+    "title_of": [
+     [
+      "row",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "Toggle": {
+   "enum": [
+    "disabled",
+    "off",
+    "on"
+   ]
+  },
+  "Tooltip": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "Translations": {
+   "class": [
+    [
+     "locale",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "messages",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TranslationsSupplier": {
+   "class": [],
+   "members": {
+    "translations": []
+   }
+  },
+  "Translator": {
+   "class": [],
+   "members": {
+    "locale": [],
+    "translate": [
+     [
+      "key",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "TreeSelect": {
+   "class": [
+    [
+     "leaves_only",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TriggerSpec": {
+   "class": [
+    [
+     "type",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "action",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "called_action",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "property_name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "event_name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "condition",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timeout_millis",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "times",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "background",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TriggerType": {
+   "enum": [
+    "on_custom_event",
+    "on_error",
+    "on_load",
+    "on_success",
+    "on_value_change"
+   ]
+  },
+  "UseRadioButtons": {
+   "class": []
+  },
+  "UserFacingError": {
+   "class": [
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "UserFacingException": {
+   "class": [
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Validation": {
+   "class": [
+    [
+     "condition",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "field_id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "ValidationSupplier": {
+   "class": [],
+   "members": {
+    "validations": []
+   }
+  },
+  "Version": {
+   "class": []
+  },
+  "Welcome": {
+   "class": [],
+   "members": {
+    "component": [],
+    "hero_image": [],
+    "hero_subtitle": [],
+    "hero_title": [],
+    "hero_tone": [],
+    "style": []
+   }
+  },
+  "Wizard": {
+   "class": [],
+   "members": {
+    "before_step_navigate": [
+     [
+      "from_step",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "to_step",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "complete": [],
+    "display": [],
+    "on_next": [
+     [
+      "from_step",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "to_step",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "step_skippable": [
+     [
+      "step",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "step_title": [
+     [
+      "step",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "WizardDisplay": {
+   "class": [
+    [
+     "save_draft",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "save_and_close",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "skip",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "defaults": []
+   }
+  },
+  "action": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "action_options": {
+   "function": [
+    [
+     "timeout_millis",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "idempotent",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ai": {
+   "function": [
+    [
+     "sse",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "app": {
+   "function": [
+    [
+     "title_",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "variant",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "command_center",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "chromeless",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "access_keys",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "requires",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "theme_toggle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "live_updates",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "idle_timeout_minutes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "idle_warning_seconds",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "idle_sign_out_url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "mobile_qr",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "app_context": {
+   "function": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "app_shortcut": {
+   "function": [
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "code",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "audience": {
+   "function": [
+    [
+     "audiences",
+     "VAR_POSITIONAL",
+     false
+    ]
+   ]
+  },
+  "auto_layout": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "auto_page": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "banner": {
+   "function": [
+    [
+     "theme",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title_",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "business_component": {
+   "function": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "button": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "compact": {
+   "function": []
+  },
+  "confirm_on_navigation_if_dirty": {
+   "function": []
+  },
+  "disabled_unless": {
+   "function": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "drag_rows": {
+   "function": [
+    [
+     "drag_type",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "edit_in_drawer": {
+   "function": []
+  },
+  "emits": {
+   "function": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "eyes_only": {
+   "function": [
+    [
+     "roles",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "permissions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "fab": {
+   "function": [
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "order",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "folded_layout": {
+   "function": []
+  },
+  "form_layout": {
+   "function": [
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "labels_aside",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "group_action": {
+   "function": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "inline_editing": {
+   "function": []
+  },
+  "kpi": {
+   "class": [
+    [
+     "title_",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "list_toolbar_button": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "confirmation_required",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "rows_selected_required",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "menu_group": {
+   "function": [
+    [
+     "group",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "display",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "image",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "menu_item": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "image",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "mobile_app": {
+   "function": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "short_name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "theme_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "min_app_version",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "oidc_issuer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "oidc_client_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "overline": {
+   "function": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "page_template": {
+   "function": [
+    [
+     "page_type",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "page_width": {
+   "function": [
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "plain_text": {
+   "function": []
+  },
+  "read_only": {
+   "function": []
+  },
+  "remote_menu": {
+   "function": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "base_url",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "explode",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "rest_action": {
+   "function": [
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "method",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "body",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "success_message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "result_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "proxy",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "rest_data": {
+   "function": [
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "method",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "body",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "result_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "proxy",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "rest_listing": {
+   "function": [
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "method",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "body",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "items_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "proxy",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "rest_source": {
+   "function": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "method",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "body",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "items_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "fields",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "total_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "provenance",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "proxy",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sample",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "secured": {
+   "function": [
+    [
+     "permission",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "shortcut": {
+   "function": [
+    [
+     "keys",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "size": {
+   "function": [
+    [
+     "mode",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "length",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "static_view": {
+   "function": []
+  },
+  "subscribe_to": {
+   "function": [
+    [
+     "event",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "action",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "source",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "from_",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "condition",
+     "KEYWORD_ONLY",
+     true
+    ]
+   ]
+  },
+  "subtitle": {
+   "function": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "title": {
+   "function": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "title_placeholder": {
+   "function": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "toc": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "toolbar": {
+   "function": [
+    [
+     "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "button_style",
+     "KEYWORD_ONLY",
+     true
+    ]
+   ]
+  },
+  "trigger": {
+   "function": [
+    [
+     "when",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "action",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "called_action",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "property_name",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "event_name",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "condition",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "timeout_millis",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "times",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "background",
+     "KEYWORD_ONLY",
+     true
+    ]
+   ]
+  },
+  "ui": {
+   "function": [
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "validation": {
+   "function": [
+    [
+     "condition",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "field_id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "message",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "welcome_banner": {
+   "function": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "image",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tone",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "wizard_completion_action": {
+   "function": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "available_from_step",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "wizard_progress": {
+   "function": [
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "zones": {
+   "function": [
+    [
+     "zone_list",
+     "VAR_POSITIONAL",
+     false
+    ]
+   ]
+  }
+ },
+ "mateu_ui.uidl.components": {
+  "ActionPanel": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "shortcut",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "categories",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max_per_category",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "hide_unpopulated_toggle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ActionPanelCategory": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ActionPanelItem": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "parameters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "count",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "populated",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "AddOn": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "price",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "unit",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "included_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "added",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "AddOnPicker": {
+   "class": [
+    [
+     "total_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "currency",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Breadcrumb": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "link",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Breadcrumbs": {
+   "class": [
+    [
+     "current_item_text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "breadcrumbs",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Button": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "button_style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "parameters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Calendar": {
+   "class": [
+    [
+     "month",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "events",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "view",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "views",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "days",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "day_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "CalendarDay": {
+   "class": [
+    [
+     "date",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tone",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "CalendarEvent": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "date",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "end_date",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "start_time",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "end_time",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "CalendarView": {
+   "enum": [
+    "day",
+    "list",
+    "month",
+    "week"
+   ]
+  },
+  "CalloutCard": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "cta_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "theme",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Checklist": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ChecklistItem": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "done",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ChipItem": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Comment": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "author",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "avatar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timestamp",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "replies",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "CommentThread": {
+   "class": [
+    [
+     "comments",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ComparisonCard": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "left_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "left_value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "right_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "right_value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "delta",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "trend",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Component": {
+   "class": []
+  },
+  "ComponentRef": {
+   "class": [
+    [
+     "ref",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ConfirmDialog": {
+   "class": [
+    [
+     "header",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "can_cancel",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "can_reject",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "reject_text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "confirm_text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "opened_condition",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "confirm_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "reject_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "cancel_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ContentLayout": {
+   "class": [
+    [
+     "main",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "aside",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "aside_position",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "aside_width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "aside_sticky",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "DashboardLayout": {
+   "class": [
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "DashboardPanel": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "col_span",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "row_span",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Details": {
+   "class": [
+    [
+     "summary",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "opened",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Dialog": {
+   "class": [
+    [
+     "header_title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "height",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_padding",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "modeless",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "close_button_on_header",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Drawer": {
+   "class": [
+    [
+     "header_title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "position",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "maximizable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "collapsible",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "layout",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "peer_nav",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_padding",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "modeless",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "DrawerPosition": {
+   "enum": [
+    "bottom",
+    "end",
+    "start"
+   ]
+  },
+  "DropZone": {
+   "class": [
+    [
+     "accept",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "parameters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Element": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "attributes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "on",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "html",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "EmbeddedView": {
+   "class": [
+    [
+     "view",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "EmptyState": {
+   "class": [
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "EntityHeader": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "badges",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "facts",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "metric_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "metric_value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "metric_caption",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Fact": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "parameters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Faq": {
+   "class": [
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FaqItem": {
+   "class": [
+    [
+     "question",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "answer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "open",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Feature": {
+   "class": [
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FeatureGrid": {
+   "class": [
+    [
+     "features",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FileItem": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FileList": {
+   "class": [
+    [
+     "files",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FoldoutLayout": {
+   "class": [
+    [
+     "overview",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "panels",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header_title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "badges",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "orientation",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "navigation",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "overview_edit_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FoldoutNavigation": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "parent_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "parent_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "previous_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "next_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FoldoutPanel": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "open",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "summary",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Form": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_header",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "toolbar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "buttons",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "overline",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title_placeholder",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timestamp",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "badges",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "kpis",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "peer_nav",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "record_switcher",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "banners",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "fabs",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Funnel": {
+   "class": [
+    [
+     "stages",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FunnelStage": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Gantt": {
+   "class": [
+    [
+     "tasks",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "on_task_selection_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "GanttTask": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "start",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "end",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "progress",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "HeatCell": {
+   "class": [
+    [
+     "date",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Heatmap": {
+   "class": [
+    [
+     "cells",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "HeroSection": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "image",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "height",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "centered",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tone",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Icon": {
+   "class": [
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Kanban": {
+   "class": [
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "KanbanCard": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "badge",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "KanbanColumn": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "cards",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Ledger": {
+   "class": [
+    [
+     "currency",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "total_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "lines",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "total",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "LedgerLine": {
+   "class": [
+    [
+     "concept",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "amount",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "included",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "included_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Map": {
+   "class": [
+    [
+     "position",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "zoom",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "markers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "marker_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tile_url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "attribution",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MapMarker": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "latitude",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "longitude",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MatrixCell": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tone",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "link",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "of": [
+     [
+      "value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "MatrixColumn": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tone",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MatrixGrid": {
+   "class": [
+    [
+     "row_header_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sections",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "cell_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "edit_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MatrixRow": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "cells",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "editable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "emphasis",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MatrixSection": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "collapsed",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "rows",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MergeField": {
+   "class": [
+    [
+     "field_id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "values",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "chosen",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "editable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "of": [
+     [
+      "field_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "label",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "values",
+      "VAR_POSITIONAL",
+      false
+     ]
+    ]
+   }
+  },
+  "MergeRecord": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "caption",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Meter": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "unit",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "caption",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "warn_at",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "danger_at",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MetricCard": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "unit",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "trend",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "trend_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timeframe",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MetricTrend": {
+   "enum": [
+    "down",
+    "neutral",
+    "up"
+   ]
+  },
+  "MicroFrontend": {
+   "class": [
+    [
+     "base_url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "app_state",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Notification": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "OfferCard": {
+   "class": [
+    [
+     "tag",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "image",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "features",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "price_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "current",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "current_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "added",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "added_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "OrgChart": {
+   "class": [
+    [
+     "root",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "OrgNode": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "avatar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "children",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Orientation": {
+   "enum": [
+    "horizontal",
+    "vertical"
+   ]
+  },
+  "PageFab": {
+   "class": [
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "order",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "button_style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PaymentMethod": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PaymentPicker": {
+   "class": [
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "method_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "methods",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "selected",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "context_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "context_value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "confirm_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PlanningBlock": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "resource_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "start",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "end",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "summary",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PlanningBoard": {
+   "class": [
+    [
+     "resources",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "blocks",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "from_",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "to",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "move_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "select_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "attribute_columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "resize_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "open_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "range_select_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PlanningResource": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "attributes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PricingPlan": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "price",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "period",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "featured",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "features",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "cta_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PricingTable": {
+   "class": [
+    [
+     "plans",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ProcessItem": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "systems",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "ok",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "warnings",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "errors",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ProcessMonitor": {
+   "class": [
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ProgressStep": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ProgressSteps": {
+   "class": [
+    [
+     "steps",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "vertical",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "QueueGroup": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "QueueItem": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "caption",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "badges",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "selected",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "RecordMerge": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "records",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "fields",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "merge_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "merge_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "parameters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "differences_only",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ResourceGrid": {
+   "class": [
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "recommended_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ResourceItem": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "note",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "note_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "disabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "recommended",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "selected",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Scoreboard": {
+   "class": [
+    [
+     "metrics",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Skeleton": {
+   "class": [
+    [
+     "variant",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "count",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "SkeletonVariant": {
+   "enum": [
+    "card",
+    "form",
+    "grid",
+    "text"
+   ]
+  },
+  "SplitLayout": {
+   "class": [
+    [
+     "master",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "detail",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "orientation",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "variant",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "full_width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "SplitLayoutVariant": {
+   "enum": [
+    "minimal",
+    "small"
+   ]
+  },
+  "Stat": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "unit",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "delta",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "trend",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "spark",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "StatusItem": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "avatar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "StatusList": {
+   "class": [
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "compact",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "frameless",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "row_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Step": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TaskProgress": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "total",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "done",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TaskQueue": {
+   "class": [
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "groups",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Testimonial": {
+   "class": [
+    [
+     "quote",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "author",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "role",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "avatar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "rating",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Testimonials": {
+   "class": [
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Text": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_margins",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Timeline": {
+   "class": [
+    [
+     "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TimelineItem": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timestamp",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Tooltip": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "wrapped",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TrendChart": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "values",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "labels",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "area",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  }
+ }
+}

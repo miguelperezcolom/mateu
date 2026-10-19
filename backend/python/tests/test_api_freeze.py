@@ -132,22 +132,34 @@ def test_secured_warns_naming_eyes_only():
 
 
 def test_no_published_export_is_removed():
-    """``tests/api/public-exports.json`` is the published surface: every name in it must still be
-    exported (removing one is a breaking change — deprecate it instead). A NEW export is added to
-    the file in the same change, so the review sees it."""
+    """``tests/api/public-exports.json`` is the published surface (frozen for 3.x from 3.0-beta.1):
+    every name in it must still be exported — removing or renaming one is a breaking change, so
+    deprecate it instead (keep the old name working with a ``DeprecationWarning`` naming the new
+    one). A NEW export fails too until it is added to the file (rerun with ``MATEU_API_WRITE=true``
+    and commit it), so the review sees it. Signatures: ``test_public_surface.py``."""
     import importlib
     import json
+    import os
 
-    published = json.loads((Path(__file__).parent / "api" / "public-exports.json").read_text())
-    removed = {
-        module: sorted(set(names) - set(importlib.import_module(module).__all__))
-        for module, names in published.items()
-    }
+    path = Path(__file__).parent / "api" / "public-exports.json"
+    published = json.loads(path.read_text())
+    actual = {module: sorted(importlib.import_module(module).__all__) for module in published}
+    if os.environ.get("MATEU_API_WRITE", "").lower() == "true":
+        path.write_text(json.dumps(actual, indent=1) + "\n")
+        published = actual
+    removed = {m: sorted(set(names) - set(actual[m])) for m, names in published.items()}
     removed = {m: n for m, n in removed.items() if n}
-    assert removed == {}, f"exports removed (deprecate them instead): {removed}"
+    assert removed == {}, (
+        f"exports removed from the frozen 3.x API: {removed} — keep them, deprecated "
+        "(a DeprecationWarning naming the replacement), see reference/stability-and-versioning.md")
     for module, names in published.items():
         mod = importlib.import_module(module)
         assert all(hasattr(mod, n) for n in names), module
+    added = {m: sorted(set(actual[m]) - set(names)) for m, names in published.items()}
+    added = {m: n for m, n in added.items() if n}
+    assert added == {}, (
+        f"new exports not pinned yet: {added} — rerun with MATEU_API_WRITE=true and commit "
+        "tests/api/public-exports.json")
 
 
 def test_private_helpers_do_not_leak_into_the_namespace():

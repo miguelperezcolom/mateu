@@ -48,6 +48,7 @@
                          for Java. The report is still written (target/japicmp/) and published by CI.
                          See reference/stability-and-versioning.md ("What is public API"). -->
                     <parameter>
+                        <postAnalysisScript>${project.basedir}/../../api-compat/api-guard-enforce-false.groovy</postAnalysisScript>
                         <breakBuildOnBinaryIncompatibleModifications>false</breakBuildOnBinaryIncompatibleModifications>
                         <breakBuildOnSourceIncompatibleModifications>false</breakBuildOnSourceIncompatibleModifications>
                     </parameter>
