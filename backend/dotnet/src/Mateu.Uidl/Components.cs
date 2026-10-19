@@ -1136,6 +1136,10 @@ public sealed record Markdown : ComponentBase
 public sealed record Image : ComponentBase
 {
     public string Src { get; init; } = "";
+
+    /// <summary>The text alternative a screen reader reads; <c>""</c> declares the image
+    /// decorative. Null = none declared.</summary>
+    public string? Alt { get; init; }
 }
 
 /// <summary>A small status chip (Color: normal | success | error | warning | contrast).</summary>

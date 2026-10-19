@@ -194,6 +194,11 @@ class Reservations(Crud[Reservation]):
     def delete(self, id): store_by_id.pop(id, None)
 ```
 
+`fetch` is the only method you must write, but a crud that writes must also override `save` and
+`delete`: their defaults refuse with a "Not implemented" error naming the override, so a crud that
+forgot them can never answer "Saved" and drop the change. A crud that should not create or delete
+turns those buttons off in `display()` (`CrudDisplay`) instead.
+
 The listing renders a **smart search bar** whose filters come straight from the entity: enums
 become multi-selects (IN over the picked values), `date`/`datetime` fields become from–to date
 ranges, numerics annotated `RangeFilter()` become min–max ranges, and strings/bools/plain numbers

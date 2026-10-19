@@ -40,6 +40,8 @@ class ImageMetadata(Wire):
 
     type: Literal["Image"] = "Image"
     src: str | None = None
+    #: the text alternative assistive technology reads; None = none declared
+    alt: str | None = None
 
 
 class BadgeMetadata(Wire):

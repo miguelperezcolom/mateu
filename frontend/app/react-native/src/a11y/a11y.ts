@@ -142,3 +142,13 @@ export const headingA11y = (level?: number) => ({
     accessibilityRole: 'header' as A11yRole,
     ...(level ? { 'aria-level': level } : {}),
 })
+
+/**
+ * Props for an image: its declared text alternative (`Image.alt`) is what VoiceOver/TalkBack read.
+ * With none declared — or an empty one, the declaration that it is decorative — the image stays out
+ * of the accessibility tree instead of being announced as an unnamed "image".
+ */
+export const imageA11y = (alt?: string | null) =>
+    alt && alt.trim()
+        ? { accessible: true, accessibilityRole: 'image' as A11yRole, accessibilityLabel: alt.trim() }
+        : { accessible: false, importantForAccessibility: 'no' as const }

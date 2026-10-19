@@ -9,7 +9,7 @@ public class ImageMapper {
 
   public static ClientSideComponentDto mapImageToDto(Image image) {
     return new ClientSideComponentDto(
-        new ImageDto(image.src()),
+        new ImageDto(image.src(), image.alt()),
         WireIds.idOf(image, null),
         List.of(),
         image.style(),

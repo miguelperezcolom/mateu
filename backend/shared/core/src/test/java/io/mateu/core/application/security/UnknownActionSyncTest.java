@@ -60,11 +60,21 @@ class UnknownActionSyncTest {
     public void ok() {}
   }
 
+  @UI("/unknown-refreshing")
+  public static class Refreshing implements io.mateu.uidl.fluent.ActionSupplier {
+    public String name;
+
+    @Override
+    public List<io.mateu.uidl.fluent.Action> actions(io.mateu.uidl.interfaces.HttpRequest rq) {
+      return List.of(io.mateu.uidl.fluent.Action.builder().id("refresh").build());
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Items.class, Form.class);
+    mateu = TestMateu.withUis(Items.class, Form.class, Refreshing.class);
   }
 
   @AfterAll
@@ -93,11 +103,35 @@ class UnknownActionSyncTest {
                     .isNotNull());
   }
 
-  /** A plain view still re-renders itself for an id it has nothing for (unchanged). */
+  /**
+   * A plain view refuses an id that names nothing, exactly like a CRUD: it used to re-render itself
+   * with HTTP 200 — an unknown id was indistinguishable from a working one.
+   */
   @Test
-  void anUnknownActionOnAPlainViewReRendersIt() {
+  void anUnknownActionOnAPlainViewIsRefused() {
+    assertThatThrownBy(() -> mateu.run(rq("/unknown-form", Form.class, "noSuchThing")))
+        .satisfies(
+            e ->
+                org.assertj.core.api.Assertions.assertThat(MateuForbiddenException.find(e))
+                    .isNotNull());
+  }
+
+  /** An id the view advertises (its action list names a refresh) still re-renders it. */
+  @Test
+  void anAdvertisedIdWithoutAMethodReRendersTheView() {
     org.assertj.core.api.Assertions.assertThat(
-            mateu.run(rq("/unknown-form", Form.class, "noSuchThing")).fragments())
+            mateu.run(rq("/unknown-refreshing", Refreshing.class, "refresh")).fragments())
+        .isNotEmpty();
+  }
+
+  /** The route load and a marked action keep working. */
+  @Test
+  void theLoadAndADeclaredActionStillRun() {
+    org.assertj.core.api.Assertions.assertThat(
+            mateu.run(rq("/unknown-form", Form.class, "")).fragments())
+        .isNotEmpty();
+    org.assertj.core.api.Assertions.assertThat(
+            mateu.run(rq("/unknown-form", Form.class, "ok")).fragments())
         .isNotEmpty();
   }
 }

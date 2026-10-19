@@ -11,6 +11,36 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+- **`Image.alt`** — the text alternative a screen reader reads (`""` marks the image decorative):
+  `Image.builder().alt(…)` / `new Image(src, alt)` in Java (the existing constructors stay),
+  `Image { Alt = … }` in .NET, `fluent.Image(alt=…)` in Python and `alt:` in YAML. Rendered as the
+  `<img>` alt on Vaadin and Redwood, the accessibility label on React Native and the accessible
+  name in the IntelliJ plugin. Wire: `ImageDto.alt` (additive).
+
+### Behaviour changes
+- Python: `Crud.save` and `Crud.delete` **refuse by default** with a user-facing "Not implemented"
+  error naming the method to override (`FetchOnlyNotes cannot store changes yet: override
+  save(Note) in FetchOnlyNotes.`), as `Crud<T>.Save`/`Delete` do in .NET (Java's `AutoCrud.store()`
+  is abstract). They used to do nothing, so a crud that only implemented `fetch` answered "Saved" /
+  "Deleted" and discarded every write. A crud that writes overrides both.
+
+### Security
+- Java: an `actionId` that names nothing on a plain view — no method, no field, no runner, and not
+  advertised by the view — answers 403 with one WARN line, as on a CRUD and in the .NET and Python
+  backends. It used to re-render the page with HTTP 200, so an unknown id looked like one that ran.
+  The route load, the framework's reserved and app-level ids and every id the view advertises are
+  unaffected.
+
+### Fixed
+- Java: a view whose fields are all `@ReadOnly` renders as a read-only form — its fields keep their
+  labels and a `@ReadOnly` list of rows is a grid. It used to be taken for a page of components
+  (a class counted as a form only with an editable field), so the labels vanished and the grid
+  became its rows' text. (.NET and Python already rendered it; now pinned there too.)
+- Python: an action returning a collection that holds the view (`[self, Message("Saved")]`)
+  re-renders the view with its new state as well as showing the rest, as in Java and .NET. Before,
+  the toast showed and the screen kept its old values.
+
 ### Documentation
 - **The code samples of the docs are checked against the API.** Every Java, C#, Python and YAML block
   under `doc/` is compiled (against mateu-uidl + mateu-core / `backend/dotnet/src`), type-checked

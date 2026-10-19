@@ -339,6 +339,15 @@ test('Tooltip: on the wrapped button, on an inline text, or an info marker after
   assert.ok(atoms[0].isImage && atoms[1].isTooltip && atoms[1].infoOnly)
 })
 
+test('Image: the declared alt text reaches the <img> (and a gallery slide)', () => {
+  const [img] = atomsOf(node({ type: 'Image', src: '/logo.png', alt: 'Company logo' }))
+  assert.deepEqual([img.isImage, img.alt], [true, 'Company logo'])
+  const [bare] = atomsOf(node({ type: 'Image', src: '/logo.png' }))
+  assert.equal(bare.alt, '')
+  const [gallery] = atomsOf(node({ type: 'CarouselLayout' }, [node({ type: 'Image', src: '/a.png', alt: 'Pool' })]))
+  assert.deepEqual(gallery.images.map((i) => i.alt), ['Pool'])
+})
+
 test('Faq: a collapsible per question, the answer when open (client state)', () => {
   const faq = node({ type: 'Faq', items: [{ question: 'Q1', answer: '**A1**', open: true }, { question: 'Q2', answer: 'A2' }] }, [], 'faq1')
   let atoms = atomsOf(faq)

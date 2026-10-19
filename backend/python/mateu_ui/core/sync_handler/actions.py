@@ -57,6 +57,14 @@ class ActionHandlerMixin(MixinBase):
             # returning the view itself re-renders it in place with its new state (Java's
             # `return this`)
             return self.render(type_, instance, rq, layout_override)
+        if isinstance(result, (list, tuple)) and any(item is instance for item in result):
+            # the new state AND something else in one answer — `[self, Message("Saved")]`: the
+            # view re-renders and the rest maps as usual, merged in order (Java's
+            # FragmentListMapper over a returned Collection, .NET's RunAction). Mapped element by
+            # element, the view itself maps to nothing: the toast showed, the screen did not change.
+            rest = [item for item in result if item is not instance]
+            rendered = self.render(type_, instance, rq, layout_override)
+            return _merge(rendered, self.map_result(rest, rq)) if rest else rendered
         return self.map_result(result, rq)
 
     def _build_arguments(self, method, rq: RunActionRq) -> list:
@@ -190,13 +198,22 @@ class ActionHandlerMixin(MixinBase):
             # over an action returning a Collection).
             merged = UIIncrement.of()
             for item in result:
-                part = self.map_result(item, rq)
-                merged = merged.model_copy(update={
-                    "commands": list(merged.commands) + list(part.commands),
-                    "messages": list(merged.messages) + list(part.messages),
-                    "fragments": list(merged.fragments) + list(part.fragments),
-                    "banners": list(merged.banners) + list(part.banners),
-                    "append_banners": merged.append_banners or part.append_banners,
-                })
+                merged = _merge(merged, self.map_result(item, rq))
             return merged
         return UIIncrement.of()
+
+
+def _merge(first: UIIncrement, second: UIIncrement) -> UIIncrement:
+    """``first`` followed by ``second``: commands, messages, fragments and banners in order."""
+    update: dict[str, Any] = {
+        "commands": list(first.commands) + list(second.commands),
+        "messages": list(first.messages) + list(second.messages),
+        "fragments": list(first.fragments) + list(second.fragments),
+        "banners": list(first.banners) + list(second.banners),
+        "append_banners": first.append_banners or second.append_banners,
+    }
+    if first.app_state is None and second.app_state is not None:
+        update["app_state"] = second.app_state
+    if first.app_data is None and second.app_data is not None:
+        update["app_data"] = second.app_data
+    return first.model_copy(update=update)

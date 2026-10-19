@@ -61,12 +61,16 @@ Custom elements must implement their own ARIA roles and keyboard behaviour. The 
 
 ### Image alt text
 
-Images need meaningful alt text. The `Image` component carries only a `src` (it has no alt text
-yet), so an image that conveys information is better written as an `img` element with its `alt`:
+Images need meaningful alt text — set it on the `Image` component:
 
 ```java
-new Element("img", Map.of("src", "/logo.png", "alt", "Acme Corp logo"), "")
+Image.builder().src("/logo.png").alt("Acme Corp logo").build()
+// or: new Image("/logo.png", "Acme Corp logo")
 ```
+
+An empty `alt` (`""`) declares the image decorative, so screen readers skip it. The alt text
+reaches every renderer: the `<img>` alt on the web and in Redwood, the accessibility label on
+React Native, the accessible name in the IntelliJ plugin.
 
 ---
 

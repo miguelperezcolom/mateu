@@ -6,7 +6,7 @@ export const renderImage = (component: ClientSideComponent) => {
     const metadata = component.metadata as Image
 
     return html`
-        <img src="${metadata.src}" style="${component.style}" class="${component.cssClasses}"
+        <img src="${metadata.src}" alt="${metadata.alt ?? nothing}" style="${component.style}" class="${component.cssClasses}"
              slot="${component.slot??nothing}">
             `
 }

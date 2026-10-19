@@ -67,11 +67,36 @@ class Crud(Generic[T]):
                 return e
         return None
 
-    def save(self, entity: T) -> None:  # noqa: D401 - override to store
-        ...
+    def save(self, entity: T) -> None:
+        """Persists a created/edited entity. Override to store it: the default REFUSES with a
+        user-facing "Not implemented" error naming this override (it used to do nothing, so a crud
+        that only implemented :meth:`fetch` answered "Saved" and discarded every write — .NET's
+        ``Crud<T>.Save`` refuses the same way, Java's ``AutoCrud.store()`` is abstract)."""
+        raise self._not_implemented(f"save({self._element_name()})")
 
-    def delete(self, id: str) -> None:  # override to store
-        ...
+    def delete(self, id: str) -> None:
+        """Removes an entity by id. Override to delete it from your store: the default REFUSES
+        with a user-facing "Not implemented" error naming this override."""
+        raise self._not_implemented("delete(id)")
+
+    def _not_implemented(self, member: str) -> Exception:
+        from .messages import UserFacingException
+
+        name = type(self).__name__
+        return UserFacingException(
+            f"{name} cannot store changes yet: override {member} in {name}.",
+            title="Not implemented",
+        )
+
+    def _element_name(self) -> str:
+        element = self.element_type
+        if element is None:
+            for base in getattr(type(self), "__orig_bases__", ()):
+                args = getattr(base, "__args__", ())
+                if args and isinstance(args[0], type):
+                    element = args[0]
+                    break
+        return element.__name__ if isinstance(element, type) else "entity"
 
     def csv_exportable(self) -> bool:
         """Override to return True and the listing toolbar offers "Export CSV" (action
