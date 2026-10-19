@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from mateu_ui.core import MateuRegistry, MateuRequest, RunActionRq, SyncHandler, agent_push, mcp
-from mateu_ui.core.agent_push import AgentChannel, AgentSessions, Caller, PushContext
+from mateu_ui.core.agent_push import AgentChannel, AgentSessions, Caller, PushContext, fingerprint
 from mateu_ui.core.identity import framework_identity_provider
 from mateu_ui.core.request_context import bound_request
 from mateu_ui.uidl import Identity, UserFacingException, title, ui
@@ -436,7 +436,9 @@ def test_dispatch_event_checks_and_logs_every_delivery(caplog):
         {"kind": "navigate", "event": "navigation-requested",
          "detail": {"route": "/x", "consumedRoute": "", "serverSideType": "T", "uriPrefix": ""}},
     ]
-    assert f"Mateu agent push: caller=alice session={handle} kind=event event=ping bytes=" in caplog.text
+    # the handle is a capability: the log names the session by its fingerprint only (NM4)
+    assert handle not in caplog.text
+    assert f"Mateu agent push: caller=alice session={fingerprint(handle)} kind=event event=ping bytes=" in caplog.text
     assert "kind=navigate route=/x" in caplog.text
 
 
@@ -646,13 +648,15 @@ def _open_from(sessions, sid, principal=None, address=None):
     return channel
 
 
-def test_the_owner_is_the_principal_else_the_client_address_else_unknown():
-    assert agent_push.owner_of("alice", "10.0.0.1") == "alice"
-    assert agent_push.owner_of(None, " 10.0.0.1 ") == "10.0.0.1"
-    assert agent_push.owner_of(None, "  ") == agent_push.UNKNOWN_OWNER == "unknown"
-    assert agent_push.owner_of("", None) == "unknown"
+def test_the_owner_is_the_principal_else_the_session_itself():
+    assert agent_push.owner_of("alice", "s-1") == "alice"
+    assert agent_push.owner_of(None, "s-1") == "session:s-1"
+    assert agent_push.owner_of("", "s-1") == "session:s-1"
+    assert agent_push.address_of(" 10.0.0.1 ") == "10.0.0.1"
+    assert agent_push.address_of("  ") is None
     assert agent_push.DEFAULT_MAX_SESSIONS_PER_OWNER == 20
     assert AgentSessions().max_sessions_per_owner == 20
+    assert AgentSessions().max_anonymous_sessions_per_address == 200
 
 
 def test_a_new_session_over_its_owners_cap_is_refused_when_all_of_them_are_connected():
@@ -691,19 +695,30 @@ def test_another_owner_is_unaffected_by_a_full_owner():
     assert {s.owner for s in sessions._sessions.values()} == {"alice", "bob"}
 
 
-def test_anonymous_uis_are_counted_by_client_address():
+def test_anonymous_uis_behind_one_address_do_not_lock_each_other_out():
+    # NM5: the per-owner cap is a SIGNED-IN user's; strangers behind one reverse proxy each count
+    # on their own
     sessions = _sessions(Clock(), max_sessions_per_owner=1)
+    for i in range(30):
+        _open_from(sessions, f"proxy-{i}", None, "192.0.2.1")
+    assert len(sessions._sessions) == 30
+
+
+def test_anonymous_uis_are_capped_per_client_address_by_their_own_higher_limit():
+    sessions = AgentSessions(clock=Clock(), max_sessions_per_owner=1, max_anonymous_sessions_per_address=2)
     _open_from(sessions, "a-1", None, "10.0.0.1")
-    _open_from(sessions, "b-1", None, "10.0.0.2")
+    old = _open_from(sessions, "a-2", None, "10.0.0.1")
     with pytest.raises(UserFacingException, match="Too many live UI sessions"):
-        _open_from(sessions, "a-2", None, "10.0.0.1")
-    _open_from(sessions, "u-1", None, None)  # no address: the owner "unknown"
-    with pytest.raises(UserFacingException, match="Too many live UI sessions"):
-        _open_from(sessions, "u-2", None, None)
-    # a signed-in UI from the same address is its principal's, not the address's
-    _open_from(sessions, "c-1", "carol", "10.0.0.1")
-    assert sessions._sessions["a-1"].owner == "10.0.0.1"
-    assert sessions._sessions["u-1"].owner == "unknown"
+        _open_from(sessions, "a-3", None, "10.0.0.1")
+    _open_from(sessions, "b-1", None, "10.0.0.2")  # another address counts on its own
+    _open_from(sessions, "c-1", "carol", "10.0.0.1")  # a signed-in UI: their own cap
+    sessions.channel_closed(old)
+    _open_from(sessions, "a-3", None, "10.0.0.1")  # evicts the disconnected one
+    for i in range(10):  # an address the server cannot tell is not limited
+        _open_from(sessions, f"u-{i}", None, None)
+    assert sessions._sessions["a-1"].address == "10.0.0.1"
+    assert sessions._sessions["a-1"].owner == "session:a-1"
+    assert sessions._sessions["u-1"].address is None
 
 
 def test_a_reconnect_is_never_refused_by_either_cap():
@@ -747,12 +762,13 @@ def test_over_fastapi_an_anonymous_ui_is_owned_by_its_client_address(monkeypatch
     rs = TestClient(_from_client(api, ("10.0.0.7", 51000))).post("/mateu/v3/sse/_empty", json={
         "actionId": "_agent-channel", "parameters": {"sessionId": "t", "secret": "s"}})
     assert rs.status_code == 200
-    assert handler.agent_push._sessions["t"].owner == "10.0.0.7"
-    # no client address reported by the server: the owner is "unknown"
+    assert handler.agent_push._sessions["t"].address == "10.0.0.7"
+    assert handler.agent_push._sessions["t"].owner == "session:t"
+    # no client address reported by the server: not limited per address
     rs = TestClient(_from_client(api, None)).post("/mateu/v3/sse/_empty", json={
         "actionId": "_agent-channel", "parameters": {"sessionId": "t3", "secret": "s"}})
     assert rs.status_code == 200
-    assert handler.agent_push._sessions["t3"].owner == agent_push.UNKNOWN_OWNER
+    assert handler.agent_push._sessions["t3"].address is None
     signed = TestClient(api).post("/mateu/v3/sse/_empty", json={
         "actionId": "_agent-channel", "parameters": {"sessionId": "t2", "secret": "s"}},
         headers={"x-test-user": "alice"})
@@ -767,3 +783,71 @@ def test_the_per_owner_cap_comes_from_the_environment(monkeypatch):
     monkeypatch.setenv("MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", "nope")
     _, handler = _api(monkeypatch, mcp=True, mcp_push=True)
     assert handler.agent_push.max_sessions_per_owner == 20
+
+
+def test_a_logged_value_can_neither_forge_lines_nor_flood_the_log():
+    assert agent_push.log_safe("/orders\r\nINFO forged") == "/orders??INFO forged"
+    assert len(agent_push.log_safe("x" * 10_000)) == 257
+    assert agent_push.log_safe(None) == "None"
+
+
+def test_a_ui_route_is_clipped_to_512():
+    sessions = _sessions(Clock())
+    channel = AgentChannel(lambda d: None)
+    sessions.open_channel("long", "s3cret", None, "/" + "r" * 2000, "vaadin", channel, None)
+    assert len(sessions._sessions["long"].route) == 512
+
+
+def test_the_log_never_carries_a_session_handle_only_its_fingerprint(caplog):
+    clock = Clock()
+    sessions = _sessions(clock)
+    _open(sessions, "ui-1", principal=None)
+    code, _ = sessions.new_code("ui-1", "s3cret", None)
+    with caplog.at_level(logging.INFO, logger="mateu.agentpush"):
+        handle = sessions.pair(Caller(), code)["session"]  # anonymous: the handle IS the capability
+    assert handle not in caplog.text
+    assert f"session={fingerprint(handle)}" in caplog.text
+    assert fingerprint("abc") == "s-ba7816bf8f01"  # the same digest as Java and .NET
+
+
+def test_rotating_the_agent_key_buys_no_more_pairing_attempts_from_the_same_address():
+    clock = Clock()
+    sessions = _sessions(clock)
+    _open(sessions, "ui-1", principal=None)
+    code, _ = sessions.new_code("ui-1", "s3cret", None)
+    for i in range(10):
+        with pytest.raises(UserFacingException, match="Invalid or expired"):
+            sessions.pair(Caller.of(None, f"rotating-agent-key-{i:04d}"), "ZZZZ-ZZZZ", "10.0.0.66")
+    with pytest.raises(UserFacingException, match="Too many pairing attempts"):
+        sessions.pair(Caller.of(None, "yet-another-agent-key"), code, "10.0.0.66")
+    with pytest.raises(UserFacingException, match="Too many pairing attempts"):
+        sessions.pair(Caller(), code, "10.0.0.66")
+    # an anonymous caller elsewhere is not locked out (no shared "anonymous" bucket)
+    assert sessions.pair(Caller(), code, "10.0.0.7")["paired"]
+
+
+def test_the_failure_buckets_are_bounded(monkeypatch):
+    import mateu_ui.core.agent_push as agent_push
+
+    assert agent_push.MAX_FAILURE_BUCKETS == 10_000  # the same bound as Java and .NET
+    monkeypatch.setattr(agent_push, "MAX_FAILURE_BUCKETS", 100)  # a smaller one, for speed
+    sessions = _sessions(Clock())
+    for i in range(150):
+        with pytest.raises(UserFacingException):
+            sessions.pair(Caller.of(None, f"agent-key-number-{i:06d}"), "ZZZZ-ZZZZ")
+    assert len(sessions._failures) <= 100
+
+
+def test_what_an_agent_sends_cannot_forge_log_lines_and_a_route_is_bounded(caplog):
+    sessions = _sessions(Clock())
+    channel = AgentChannel(lambda d: None)
+    sessions.open_channel("ui-1", "s3cret", "alice", "/" + "r" * 2000, "v" * 100, channel)
+    entry = sessions.list(ALICE)[0]
+    assert len(entry["route"]) <= 512
+    assert len(entry["renderer"]) <= 32
+    forged = "route=/x\r\nINFO Mateu agent push: caller=admin" + "y" * 500
+    with caplog.at_level(logging.INFO, logger="mateu.agentpush"):
+        sessions.send(ALICE, entry["session"], {"kind": "navigate"}, forged)
+    line = [r.getMessage() for r in caplog.records if "agent push" in r.getMessage()][-1]
+    assert "\n" not in line and "\r" not in line
+    assert len(line) < 400

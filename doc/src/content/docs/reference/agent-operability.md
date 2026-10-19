@@ -79,7 +79,9 @@ so an agent gets the contract of the version it talks to, without network access
   Spring MVC, Spring WebFlux, Micronaut, Quarkus, Helidon MP), **Python** (FastAPI) and **.NET** (ASP.NET
   Core) — all at `POST /mateu/mcp`, all sharing one projection. It is **off by default** everywhere:
   enable it with `mateu.mcp.enabled=true` (Java), `MateuOptions.Mcp = true` (.NET),
-  `add_mateu(..., mcp=True)` (Python) or `MATEU_MCP_ENABLED=true` (.NET and Python). It gives any
+  `add_mateu(..., mcp=True)` (Python), or the `MATEU_MCP_ENABLED=true` environment variable on any
+  backend (on Java the framework's own configuration maps it to `mateu.mcp.enabled`, as Spring,
+  Micronaut and MicroProfile Config do for any environment variable). It gives any
   caller holding a valid token a programmatic way to drive every screen, which the application has
   to decide to expose.
 
@@ -96,7 +98,14 @@ and a preview renders only the text it is given — no view model, no data. A re
 tool error `Error: Forbidden`; an unexpected failure is `Error: An unexpected error occurred.
 Reference: <id>` (logged under that id; the raw message only with `MATEU_ERRORS_DETAILED=true`).
 Definitions are capped at 256 KiB. `mateu_save_spec` refuses any path that is not a relative
-`.yaml`/`.yml` inside the specs directory (no `..`, no absolute path, no symbolic link out).
+`.yaml`/`.yml` inside the specs directory (no `..`, no absolute path, no symbolic link out), and it
+saves only what a screen is made of — a page, a layout envelope, a partial or a business-component
+catalogue. Sources, environments, routes, actions, types, translations, mounts and project settings
+(and their conventional file names) are written by hand, and so is any page that references a
+`${secret.…}`, marks a request `proxy: true` or overrides the request of a source it names by `ref`:
+otherwise an agent in dev mode could re-point a proxied source at its own server and have Mateu send
+it the secret. `__validate__`, which these tools are built on, is served only to MCP tool calls, or by
+an app with `mateu.mcp.enabled=true` or in dev mode.
 
 ## Use it from an agent
 
@@ -161,14 +170,26 @@ Off by default, and it needs the MCP endpoint on too:
 
 | Host | Switch |
 |---|---|
-| Java (every adapter) | `mateu.mcp.enabled=true` + `mateu.mcp.push.enabled=true` (or `MATEU_MCP_PUSH_ENABLED=true`) |
+| Java (every adapter) | `mateu.mcp.enabled=true` + `mateu.mcp.push.enabled=true` (or `MATEU_MCP_ENABLED` / `MATEU_MCP_PUSH_ENABLED`) |
 | .NET | `MateuOptions.Mcp = true` + `MateuOptions.McpPush = true` (or `MATEU_MCP_ENABLED` / `MATEU_MCP_PUSH_ENABLED`) |
 | Python | `add_mateu(..., mcp=True, mcp_push=True)` (or the same environment variables) |
 
 Limits: `mateu.mcp.push.rate-per-minute` (30 messages per session per minute),
-`mateu.mcp.push.max-sessions` (1000 registered sessions) and `mateu.mcp.push.max-sessions-per-owner`
-(20 per signed-in user, or per client address for anonymous UIs); same names as `MATEU_MCP_PUSH_*`
-environment variables and as .NET/Python options.
+`mateu.mcp.push.max-sessions` (1000 registered sessions), `mateu.mcp.push.max-sessions-per-owner`
+(20 per signed-in user) and `mateu.mcp.push.max-anonymous-sessions-per-address` (200 anonymous UIs per
+client address; an address the server cannot tell is not limited); same names as `MATEU_MCP_PUSH_*`
+environment variables and as .NET (`MateuOptions.McpPush…`) / Python (`add_mateu(mcp_push_…)`) options.
+An anonymous UI counts on its own against the per-owner cap, so strangers sharing an address cannot
+lock each other out.
+
+**Behind a reverse proxy.** The client address is the one your framework resolves: the socket peer,
+unless you configured its forwarded-header handling with the proxies you trust — Spring
+`server.forward-headers-strategy=framework` (or `native`), Quarkus `quarkus.http.proxy.proxy-address-forwarding=true`
+with `quarkus.http.proxy.trusted-proxies`, Micronaut `micronaut.server.client-address-header`, ASP.NET Core `UseForwardedHeaders` with `KnownProxies`,
+uvicorn `--proxy-headers --forwarded-allow-ips=<proxy>`. Mateu never reads `X-Forwarded-For` itself
+(a header any client can set), and on Helidon MP it is always the socket peer. Without that configuration every anonymous UI shares the proxy's
+address, and the per-address limit applies to all of them together: configure the framework, or
+raise the limit.
 
 With it on, every app shell gets a **Connect AI** control in its header (a drawer row on React
 Native, a toolbar action in IntelliJ), and each UI keeps one small event stream open — its *agent
@@ -198,7 +219,7 @@ Listed only when push is on, after the operating and authoring tools:
 | `mateu_pair_session` | Pair a session with the code its user sees. |
 | `mateu_push_ui` | Validate a YAML page (nothing is sent when it has errors), then show it in that tab: `target` = `content` (default), `drawer` or `dialog`, optional `title`. |
 | `mateu_navigate` | Navigate that tab to a route, like a menu click (`route`, plus the optional `consumedRoute`, `actionId`, `baseUrl`, `serverSideType`, `uriPrefix`). |
-| `mateu_dispatch_event` | Dispatch a named event (`@SubscribeTo` views take it). The built-in events are reserved for the two tools above. |
+| `mateu_dispatch_event` | Dispatch a named event (`@SubscribeTo` views take it). The built-in events are reserved for the two tools above. The tab delivers it only while a view on screen subscribes to it, and never a framework event name (see [the event catalogue](/ai/#the-event-catalogue)). |
 
 The pushed screen is rendered by the UI through the same reserved `__preview__` action as the chat's
 `render-screen`: layout only, no view model is created or bound, and it is requested **with the
@@ -217,11 +238,14 @@ as any other request.
 - **The UI side is pinned**: a session belongs to the secret its tab generated and to the principal
   it registered with; another tab, user or guess cannot take over its stream or ask for its codes.
 - **Limits**: 30 messages per session per minute, 256 KiB per screen, 64 KiB per event detail, 10
-  failed pairings per caller per minute, 1000 sessions and 20 per owner (a user, or an anonymous
+  failed pairings per minute per caller and per client address (rotating the agent key does not buy
+  more guesses, and anonymous callers elsewhere are not locked out), 1000 sessions and 20 per owner (a user, or an anonymous
   UI's client address — so one caller cannot fill the registry); a disconnected session is forgotten two
   minutes after its stream ended.
-- **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<handle>
-  kind=<render|navigate|event> … bytes=<n>` — and every pairing too.
+- **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<fingerprint>
+  kind=<render|navigate|event> … bytes=<n>` — and every pairing too. The session is named by its
+  fingerprint (`s-` + the first 12 hex digits of the handle's SHA-256, the same in Java, .NET and
+  Python), never by its handle: the handle is what reaches the session, so it must not sit in a log.
 - In-process: in a cluster, the stream and the MCP call must reach the same node (sticky sessions).
 
 ### Example with Claude Code

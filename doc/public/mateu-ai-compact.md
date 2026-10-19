@@ -401,7 +401,7 @@ public class WelcomeDemo extends Welcome {
 
 ```java
 @UI("/app")
-@App(AppVariant.HAMBURGUER_MENU)
+@App(AppVariant.HAMBURGER_MENU)
 public class MyApp {
     @Menu Customers customers;
     @Menu Orders orders;

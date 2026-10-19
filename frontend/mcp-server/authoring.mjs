@@ -318,10 +318,69 @@ export function specsDir(env = process.env, cwd = process.cwd()) {
   return existsSync(dir) ? dir : null;
 }
 
+// ── what an agent may save (NM3) ──────────────────────────────────────────────────────────────
+// An agent saves what a screen is made of — a page, a layout envelope, a partial, a business-component
+// catalogue — and nothing that decides where a request goes or what it carries, or in dev mode it
+// could re-point a proxied source at its own server and have the backend send it the source's
+// secret. The messages are normative (Java/.NET/Python SpecWriter). The sidecar has no YAML parser,
+// so its request rule reads the TEXT, conservatively: it refuses whatever the backends refuse (and,
+// rarely, a page they would accept — e.g. one naming a source by `ref` beside an unrelated inline url).
+
+const SAVABLE_KINDS = new Set(["component", "envelope", "partial", "components"]);
+const CATALOGUE_NAMES = new Set(["sources", "routes", "actions", "types", "project"]);
+const CATALOGUE_FOLDERS = new Set(["environments", "translations"]);
+
+export const REQUEST_REFUSAL =
+  "A definition saved by an agent may not reference a secret, proxy a request through the server or " +
+  "override the request of a catalogue source; declare those in sources.yaml by hand.";
+
+/** Whether `path` names a catalogue file (sources.yaml, environments/…): an agent never writes those. */
+export function isCatalogueFile(path) {
+  if (typeof path !== "string") return false;
+  const segments = path.split("/");
+  if (segments.length > 1 && CATALOGUE_FOLDERS.has(segments[0])) return true;
+  const name = segments[segments.length - 1];
+  const dot = name.lastIndexOf(".");
+  return CATALOGUE_NAMES.has(dot >= 0 ? name.slice(0, dot) : name);
+}
+
+/** The message of a refused catalogue file (shown as written). */
+export function catalogueRefusal(path) {
+  return (
+    "Refused path " +
+    quote(path ?? "") +
+    ": catalogue files (sources, routes, actions, types, project, environments, translations) are written by hand."
+  );
+}
+
+const key = (name) => new RegExp(`(^|[\\s{,\\-])["']?${name}["']?\\s*:`, "m");
+const REQUEST_KEYS = ["url", "baseUrl", "method", "headers", "body", "proxy"].map(key);
+
+/** Why an agent may not save this definition, or null when it may. */
+export function agentRefusal(kind, yaml) {
+  if (typeof kind === "string" && !SAVABLE_KINDS.has(kind)) {
+    return `Only a page, a partial or a business-component catalogue can be saved by an agent; a ${quote(kind)} definition is written by hand.`;
+  }
+  const text = typeof yaml === "string" ? yaml : "";
+  // a secret, also spelled through a YAML escape of "$" (\u0024, \U00000024, \x24)
+  if (/\$\{\s*secret\./.test(text) || /\\(u0024|U00000024|x24)/.test(text)) return REQUEST_REFUSAL;
+  // any `proxy:` key (a value of false proxies nothing, but reading values needs a parser)
+  if (key("proxy").test(text)) return REQUEST_REFUSAL;
+  // a `ref:` beside any request key, anywhere in the text
+  if (key("ref").test(text) && REQUEST_KEYS.some((k) => k.test(text))) return REQUEST_REFUSAL;
+  return null;
+}
+
 /** mateu_save_spec: {saved:false, reason, validation} | {saved:true, path, bytes, validation}. */
 export async function saveSpec(wire, path, yaml, dir) {
   if (!isAcceptablePath(path)) throw new UserFacingError(refusal(path));
+  if (isCatalogueFile(path)) throw new UserFacingError(catalogueRefusal(path));
   const report = await validation(wire, "", yaml);
+  const refused = agentRefusal(report.kind, yaml);
+  if (refused !== null) {
+    console.error(`mateu_save_spec refused ${JSON.stringify(String(path).slice(0, 256))}: ${refused}`);
+    return { saved: false, reason: refused, validation: report };
+  }
   if (report.valid !== true) {
     return { saved: false, reason: "The definition has errors; nothing was written.", validation: report };
   }

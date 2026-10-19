@@ -156,6 +156,22 @@ public class RecordTitleTests
         Assert.Null(page); // the crud's title rides on the listing, not on a page
     }
 
+    // NM12: a title that is DATA travels marked TitleIsText, so the web header renders it as text —
+    // whoever names a record cannot plant markup (a beacon image, a phishing link) in it.
+    [Fact]
+    public void A_record_title_is_marked_text_and_a_declared_one_is_not()
+    {
+        static PageMetadataDto? PageOf(Type ui, string route)
+        {
+            var inc = Load(ui, route);
+            return inc.Fragments.Select(f => FindPage(f.Component)).FirstOrDefault(p => p is not null);
+        }
+        Assert.True(PageOf(typeof(Fasteners), "fasteners/b1/edit")!.TitleIsText);
+        Assert.True(PageOf(typeof(Fasteners), "fasteners/b1")!.TitleIsText);
+        Assert.Null(PageOf(typeof(AnonymousRecords), "anonymous-records/a1/edit")!.TitleIsText);
+        Assert.Null(PageOf(typeof(Notes), "notes-records/n1/edit")!.TitleIsText);
+    }
+
     [Fact]
     public void A_records_text_is_data_not_a_template()
     {

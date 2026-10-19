@@ -44,7 +44,8 @@ public final class AgentSessions {
           new SecureRandom(),
           AgentPush::ratePerMinute,
           AgentPush::maxSessions,
-          AgentPush::maxSessionsPerOwner);
+          AgentPush::maxSessionsPerOwner,
+          AgentPush::maxAnonymousSessionsPerAddress);
 
   /** The process-wide registry (the SSE stream and the MCP endpoint meet here). */
   public static AgentSessions shared() {
@@ -76,6 +77,10 @@ public final class AgentSessions {
     final String secretHash;
     final String principal;
     final String owner;
+
+    /** The client address an anonymous session was opened from (null: signed in, or unknown). */
+    String address;
+
     final long registeredSeq;
     String route;
     String renderer;
@@ -115,10 +120,24 @@ public final class AgentSessions {
   private final IntSupplier ratePerMinute;
   private final IntSupplier maxSessions;
   private final IntSupplier maxSessionsPerOwner;
+  private final IntSupplier maxAnonymousSessionsPerAddress;
   private final Map<String, Session> bySessionId = new HashMap<>();
   private final Map<String, Session> byHandle = new HashMap<>();
   private final Map<String, Session> byCode = new HashMap<>();
-  private final Map<String, Deque<Instant>> pairingFailures = new HashMap<>();
+
+  /**
+   * The most failure buckets kept: past it the least recently used one goes, so a caller rotating
+   * identities cannot grow the map without bound (its address bucket still counts every guess).
+   */
+  public static final int MAX_FAILURE_BUCKETS = 10_000;
+
+  private final Map<String, Deque<Instant>> pairingFailures =
+      new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Deque<Instant>> eldest) {
+          return size() > MAX_FAILURE_BUCKETS;
+        }
+      };
   private long seq;
 
   /** A registry with its own clock, randomness and limits (tests); apps use {@link #shared()}. */
@@ -134,7 +153,25 @@ public final class AgentSessions {
       IntSupplier ratePerMinute,
       IntSupplier maxSessions,
       IntSupplier maxSessionsPerOwner) {
+    this(
+        clock,
+        random,
+        ratePerMinute,
+        maxSessions,
+        maxSessionsPerOwner,
+        () -> AgentPush.DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS);
+  }
+
+  /** The same, with its own cap of anonymous sessions per client address. */
+  public AgentSessions(
+      Clock clock,
+      Random random,
+      IntSupplier ratePerMinute,
+      IntSupplier maxSessions,
+      IntSupplier maxSessionsPerOwner,
+      IntSupplier maxAnonymousSessionsPerAddress) {
     this.maxSessionsPerOwner = maxSessionsPerOwner;
+    this.maxAnonymousSessionsPerAddress = maxAnonymousSessionsPerAddress;
     this.clock = clock;
     this.random = random;
     this.ratePerMinute = ratePerMinute;
@@ -164,8 +201,12 @@ public final class AgentSessions {
   }
 
   /**
-   * The same, knowing the UI's client address: an anonymous UI's sessions are capped per address
-   * ({@value AgentPush#MAX_SESSIONS_PER_OWNER_PROPERTY}), a signed-in one's per principal.
+   * The same, knowing the UI's client address: a signed-in UI's sessions are capped per principal
+   * ({@value AgentPush#MAX_SESSIONS_PER_OWNER_PROPERTY}); an anonymous one counts on its own — no
+   * stranger sharing its address (a reverse proxy, a NAT) can lock it out — and anonymous sessions
+   * are capped per client address only by the much higher {@value
+   * AgentPush#MAX_ANONYMOUS_SESSIONS_PER_ADDRESS_PROPERTY}, against one client flooding the
+   * registry. Both are inside the global {@value AgentPush#MAX_SESSIONS_PROPERTY}.
    */
   public synchronized Channel open(
       String sessionId,
@@ -181,15 +222,24 @@ public final class AgentSessions {
     requireIds(sessionId, secret);
     var session = bySessionId.get(sessionId);
     if (session == null) {
-      var owner = ownerOf(principal, clientAddress);
-      if (countOf(owner) >= maxSessionsPerOwner.getAsInt() && !evictOldestDisconnected(owner)) {
+      var owner = ownerOf(principal, sessionId);
+      var address = principal == null ? addressOf(clientAddress) : null;
+      if (principal != null
+          && countOf(s -> owner.equals(s.owner)) >= maxSessionsPerOwner.getAsInt()
+          && !evictOldestDisconnected(s -> owner.equals(s.owner))) {
         throw new UserFacingException(AgentPush.TOO_MANY_SESSIONS);
       }
-      if (bySessionId.size() >= maxSessions.getAsInt() && !evictOldestDisconnected(null)) {
+      if (address != null
+          && countOf(s -> address.equals(s.address)) >= maxAnonymousSessionsPerAddress.getAsInt()
+          && !evictOldestDisconnected(s -> address.equals(s.address))) {
+        throw new UserFacingException(AgentPush.TOO_MANY_SESSIONS);
+      }
+      if (bySessionId.size() >= maxSessions.getAsInt() && !evictOldestDisconnected(s -> true)) {
         throw new UserFacingException(AgentPush.TOO_MANY_SESSIONS);
       }
       session =
           new Session(sessionId, newHandle(), AgentCaller.sha256(secret), principal, owner, ++seq);
+      session.address = address;
       bySessionId.put(sessionId, session);
       byHandle.put(session.handle, session);
     } else {
@@ -274,20 +324,49 @@ public final class AgentSessions {
     return out.stream().map(AgentSessions::entry).toList();
   }
 
+  /**
+   * How the log names a session: {@code s-} and the first 12 hex digits of the handle's SHA-256.
+   * The handle itself is a bearer capability — for an anonymously paired session, whoever holds it
+   * can push UI into that tab — so it never goes to a log; the fingerprint lets an operator tell
+   * sessions apart and correlate lines, and is the same in .NET and Python.
+   */
+  public static String fingerprint(String handle) {
+    if (handle == null) return "s-none";
+    return "s-" + AgentCaller.sha256(handle).substring(0, 12);
+  }
+
   /** Pairs the session whose code this is to the caller (the code dies), and tells the UI. */
   public synchronized Entry pair(AgentCaller caller, String rawCode) {
+    return pair(caller, rawCode, null);
+  }
+
+  /**
+   * Pairs the session whose code this is to the caller (the code dies), and tells the UI. Failed
+   * attempts are counted per caller AND per client {@code address} (when known): a caller rotating
+   * its agent key is still one address, and anonymous callers at different addresses do not share
+   * one bucket (which let one of them lock every other out).
+   */
+  public synchronized Entry pair(AgentCaller caller, String rawCode, String address) {
     var now = clock.instant();
     sweep(now);
-    var bucket = caller.isAnonymous() ? "anonymous" : caller.key();
-    var failures = pairingFailures.computeIfAbsent(bucket, k -> new ArrayDeque<>());
-    prune(failures, now);
-    if (failures.size() >= AgentPush.MAX_PAIRING_FAILURES) {
-      throw new UserFacingException(AgentPush.TOO_MANY_ATTEMPTS);
+    var where = address == null || address.isBlank() ? null : address.trim();
+    var callerBucket =
+        caller.isAnonymous() ? (where == null ? "anonymous" : "anonymous@" + where) : caller.key();
+    var buckets = new ArrayList<Deque<Instant>>();
+    buckets.add(pairingFailures.computeIfAbsent(callerBucket, k -> new ArrayDeque<>()));
+    if (where != null) {
+      buckets.add(pairingFailures.computeIfAbsent("address:" + where, k -> new ArrayDeque<>()));
+    }
+    for (var failures : buckets) {
+      prune(failures, now);
+      if (failures.size() >= AgentPush.MAX_PAIRING_FAILURES) {
+        throw new UserFacingException(AgentPush.TOO_MANY_ATTEMPTS);
+      }
     }
     var code = normalizeCode(rawCode);
     var session = code == null ? null : byCode.get(code);
     if (session == null) {
-      failures.addLast(now);
+      for (var failures : buckets) failures.addLast(now);
       throw new UserFacingException(AgentPush.INVALID_CODE);
     }
     byCode.remove(code);
@@ -302,7 +381,7 @@ public final class AgentSessions {
     log.info(
         "Mateu agent push: caller={} paired session={} (user={})",
         caller.logLabel(),
-        session.handle,
+        fingerprint(session.handle),
         session.principal);
     return entry(session);
   }
@@ -337,9 +416,9 @@ public final class AgentSessions {
     log.info(
         "Mateu agent push: caller={} session={} kind={} {} bytes={}",
         caller.logLabel(),
-        handle,
+        fingerprint(handle),
         message.kind(),
-        what,
+        io.mateu.core.application.logging.LogSafe.of(what),
         bytes);
   }
 
@@ -373,7 +452,10 @@ public final class AgentSessions {
   }
 
   private static void owned(Session session, String secret, String principal) {
-    if (!session.secretHash.equals(AgentCaller.sha256(secret))
+    // constant-time, like the .NET and Python registries: the time a mismatch takes says nothing
+    if (!java.security.MessageDigest.isEqual(
+            session.secretHash.getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+            AgentCaller.sha256(secret).getBytes(java.nio.charset.StandardCharsets.US_ASCII))
         || !java.util.Objects.equals(session.principal, principal)) {
       throw new UserFacingException(AgentPush.CHANNEL_REFUSED);
     }
@@ -406,7 +488,8 @@ public final class AgentSessions {
     try {
       sink.accept(message);
     } catch (RuntimeException e) {
-      log.debug("agent push: the stream of session {} refused a message", session.handle, e);
+      log.debug(
+          "agent push: the stream of session {} refused a message", fingerprint(session.handle), e);
     }
   }
 
@@ -430,6 +513,11 @@ public final class AgentSessions {
         !session.pairings.isEmpty());
   }
 
+  /** How many failure buckets are held (tests). */
+  synchronized int failureBuckets() {
+    return pairingFailures.size();
+  }
+
   private void sweep(Instant now) {
     var expiredBefore = now.minusSeconds(AgentPush.GRACE_SECONDS);
     var gone = new ArrayList<Session>();
@@ -448,26 +536,34 @@ public final class AgentSessions {
     pairingFailures.values().removeIf(d -> prune(d, now).isEmpty());
   }
 
-  /** Who a session counts against: its principal, else its client address. */
-  static String ownerOf(String principal, String clientAddress) {
+  /**
+   * Who a session counts against: its principal, else ITSELF — an anonymous session is nobody
+   * else's (keyed on the address, every anonymous UI behind one reverse proxy shared a bucket of
+   * 20, and 20 open tabs locked everyone else out).
+   */
+  static String ownerOf(String principal, String sessionId) {
     if (principal != null) return "user:" + principal;
-    return "address:"
-        + (clientAddress == null || clientAddress.isBlank() ? "unknown" : clientAddress.trim());
+    return "session:" + sessionId;
   }
 
-  private int countOf(String owner) {
+  /** The client address an anonymous session is capped by, or null when the adapter cannot tell. */
+  static String addressOf(String clientAddress) {
+    return clientAddress == null || clientAddress.isBlank() ? null : clientAddress.trim();
+  }
+
+  private int countOf(java.util.function.Predicate<Session> which) {
     int n = 0;
     for (var session : bySessionId.values()) {
-      if (owner.equals(session.owner)) n++;
+      if (which.test(session)) n++;
     }
     return n;
   }
 
-  /** Evicts the longest-disconnected session (of {@code owner}, or of anyone when null). */
-  private boolean evictOldestDisconnected(String owner) {
+  /** Evicts the longest-disconnected session among {@code which}. */
+  private boolean evictOldestDisconnected(java.util.function.Predicate<Session> which) {
     Session oldest = null;
     for (var session : bySessionId.values()) {
-      if ((owner == null || owner.equals(session.owner))
+      if (which.test(session)
           && !session.connected()
           && (oldest == null || session.disconnectedAt.isBefore(oldest.disconnectedAt))) {
         oldest = session;
@@ -511,6 +607,26 @@ public final class AgentSessions {
     if (raw == null) return null;
     var code = raw.replace("-", "").replace(" ", "").toUpperCase(java.util.Locale.ROOT);
     return code.length() == CODE_LENGTH ? code : null;
+  }
+
+  /**
+   * The most characters of an agent-supplied detail (a route, an event name) a log line carries.
+   */
+  static final int MAX_LOGGED_DETAIL = 200;
+
+  /**
+   * An agent-supplied text as a log line may carry it: control characters (CR/LF above all, which
+   * would forge log lines) become {@code ?} and it is clipped — the same in .NET and Python.
+   */
+  static String logSafe(String text) {
+    if (text == null) return "";
+    var clipped = clip(text, MAX_LOGGED_DETAIL);
+    var out = new StringBuilder(clipped.length());
+    for (int i = 0; i < clipped.length(); i++) {
+      char c = clipped.charAt(i);
+      out.append(c < 0x20 || c == 0x7f ? '?' : c);
+    }
+    return out.toString();
   }
 
   private static String clip(String text, int max) {

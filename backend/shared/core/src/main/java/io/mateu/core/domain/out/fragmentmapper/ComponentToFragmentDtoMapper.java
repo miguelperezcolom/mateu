@@ -86,7 +86,7 @@ public final class ComponentToFragmentDtoMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     var chain = RESOLVING.get();
-    var name = ref.ref();
+    var name = ref.ref() == null ? "" : ref.ref();
     if (chain.contains(name) || chain.size() >= MAX_COMPONENT_REF_DEPTH) {
       var path = new java.util.ArrayList<>(chain);
       java.util.Collections.reverse(path);
@@ -198,6 +198,18 @@ public final class ComponentToFragmentDtoMapper {
         return mapPageToDto(
             pageView, null, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
       }
+    }
+    if ((component instanceof EmbeddedView embedded && embedded.view() == null)
+        || (component instanceof FutureComponent future && future.instance() == null)) {
+      // nothing to embed (a definition naming no view): an empty slot, not an exception
+      return mapComponentToDto(
+          null,
+          new io.mateu.uidl.data.Div(List.of()),
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
     }
     if (component instanceof EmbeddedView embeddedView) {
       var view = embeddedView.view();

@@ -4411,6 +4411,9 @@
         "title" : {
           "type" : "string"
         },
+        "titleIsText" : {
+          "type" : "boolean"
+        },
         "titlePlaceholder" : {
           "type" : "string"
         },

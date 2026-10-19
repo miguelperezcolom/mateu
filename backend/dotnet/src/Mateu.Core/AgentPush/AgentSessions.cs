@@ -80,8 +80,12 @@ internal sealed class AgentSession
     public string? Principal { get; }
 
     /// <summary>Who the session counts against for <c>max-sessions-per-owner</c>: the principal name,
-    /// or — for an anonymous UI — its client address (<c>unknown</c> when it cannot tell).</summary>
+    /// or — for an anonymous UI — the session itself (no stranger sharing its address can lock it out).</summary>
     public string Owner { get; }
+
+    /// <summary>The client address an ANONYMOUS session was opened from (null: signed in, or the
+    /// adapter cannot tell) — what <c>max-anonymous-sessions-per-address</c> counts.</summary>
+    public string? Address { get; internal set; }
     public long RegisteredOrder { get; }
     public string Route { get; internal set; } = "";
     public string Renderer { get; internal set; } = "";
@@ -133,6 +137,7 @@ internal sealed class AgentSessions
     public const int DefaultRatePerMinute = 30;
     public const int DefaultMaxSessions = 1000;
     public const int DefaultMaxSessionsPerOwner = 20;
+    public const int DefaultMaxAnonymousSessionsPerAddress = 200;
     static readonly TimeSpan Minute = TimeSpan.FromMinutes(1);
 
     /// <summary>The pairing code alphabet: no 0/O, 1/I — read off a screen and typed by a person.</summary>
@@ -169,10 +174,19 @@ internal sealed class AgentSessions
     public int MaxSessions { get; }
     public int MaxSessionsPerOwner { get; }
 
+    /// <summary>The most ANONYMOUS sessions one client address holds (much higher than the per-user
+    /// cap: behind a reverse proxy without forwarded-header handling every anonymous UI shares the
+    /// proxy's address). An address the host cannot tell is not limited — only the global cap.</summary>
+    public int MaxAnonymousSessionsPerAddress { get; init; } = DefaultMaxAnonymousSessionsPerAddress;
+
     /// <summary>The owner a NEW session counts against: <c>user:&lt;principal&gt;</c>, else
-    /// <c>address:&lt;client address&gt;</c> (<c>unknown</c> when null/blank).</summary>
-    internal static string OwnerOf(string? principal, string? clientAddress) =>
-        Blank(principal) is { } p ? "user:" + p : "address:" + (Blank(clientAddress)?.Trim() ?? "unknown");
+    /// <c>session:&lt;sessionId&gt;</c> — an anonymous session is nobody else's (keyed on the address,
+    /// every anonymous UI behind one reverse proxy shared a bucket of 20).</summary>
+    internal static string OwnerOf(string? principal, string sessionId) =>
+        Blank(principal) is { } p ? "user:" + p : "session:" + sessionId;
+
+    /// <summary>The address an anonymous session is capped by, or null when unknown.</summary>
+    internal static string? AddressOf(string? clientAddress) => Blank(clientAddress)?.Trim();
 
     /// <summary>How many sessions are registered (connected or within their disconnected grace).</summary>
     public int Count
@@ -200,17 +214,27 @@ internal sealed class AgentSessions
                 Check(session, secret, principal);
             else
             {
-                var owner = OwnerOf(principal, clientAddress);
-                if (_byId.Values.Count(s => s.Owner == owner) >= MaxSessionsPerOwner
+                var owner = OwnerOf(principal, sessionId);
+                var address = Blank(principal) is null ? AddressOf(clientAddress) : null;
+                if (Blank(principal) is not null
+                    && _byId.Values.Count(s => s.Owner == owner) >= MaxSessionsPerOwner
                     && !EvictOneDisconnected(s => s.Owner == owner))
+                    throw new UserFacingException(TooManySessions);
+                if (address is not null
+                    && _byId.Values.Count(s => s.Address == address) >= MaxAnonymousSessionsPerAddress
+                    && !EvictOneDisconnected(s => s.Address == address))
                     throw new UserFacingException(TooManySessions);
                 if (_byId.Count >= MaxSessions && !EvictOneDisconnected(_ => true))
                     throw new UserFacingException(TooManySessions);
-                session = new AgentSession(sessionId, NewHandle(), Sha256(secret), Blank(principal), owner, ++_order);
+                session = new AgentSession(sessionId, NewHandle(), Sha256(secret), Blank(principal), owner, ++_order)
+                {
+                    Address = address,
+                };
                 _byId[sessionId] = session;
                 _byHandle[session.Handle] = session;
             }
-            session.Route = route ?? "";
+            var path = route ?? "";
+            session.Route = path.Length > MaxRouteLength ? path[..MaxRouteLength] : path;
             var r = string.IsNullOrWhiteSpace(renderer) ? "" : renderer.Trim();
             session.Renderer = r.Length > MaxRendererLength ? r[..MaxRendererLength] : r;
             session.ConnectedAt = now;
@@ -283,23 +307,32 @@ internal sealed class AgentSessions
     }
 
     /// <summary><c>mateu_pair_session</c>: redeem a code (case-insensitive, the dash optional).</summary>
-    public JsonObject Pair(AgentCaller caller, string code)
+    /// <remarks>Failed attempts count per caller AND per client <paramref name="address"/> (when
+    /// known): a caller rotating its agent key is still one address, and anonymous callers at
+    /// different addresses do not share one bucket (which let one of them lock every other out).</remarks>
+    public JsonObject Pair(AgentCaller caller, string code, string? address = null)
     {
         lock (_lock)
         {
             var now = _clock();
             Purge(now);
-            var bucket = caller.Id ?? "anonymous";
-            if (!_failures.TryGetValue(bucket, out var failures)) _failures[bucket] = failures = new();
-            while (failures.Count > 0 && now - failures.Peek() >= Minute) failures.Dequeue();
-            if (failures.Count >= MaxFailedPairings) throw new UserFacingException(TooManyAttempts);
+            var where = string.IsNullOrWhiteSpace(address) ? null : address.Trim();
+            var keys = new List<string> { caller.Id ?? (where is null ? "anonymous" : "anonymous@" + where) };
+            if (where is not null) keys.Add("address:" + where);
+            var buckets = keys.Select(Bucket).ToList();
+            foreach (var failures in buckets)
+            {
+                while (failures.Count > 0 && now - failures.Peek() >= Minute) failures.Dequeue();
+                if (failures.Count >= MaxFailedPairings) throw new UserFacingException(TooManyAttempts);
+            }
             var normalized = code.Replace("-", "").Trim().ToUpperInvariant();
             if (!_byCode.TryGetValue(normalized, out var session) || session.PendingCodeExpiresAt <= now)
             {
-                failures.Enqueue(now);
+                foreach (var failures in buckets) failures.Enqueue(now);
                 throw new UserFacingException(InvalidCode);
             }
-            if (failures.Count == 0) _failures.Remove(bucket);
+            foreach (var key in keys)
+                if (_failures.TryGetValue(key, out var left) && left.Count == 0) _failures.Remove(key);
             _byCode.Remove(normalized);
             session.PendingCode = null;
             // every anonymous pairing is its own (the handle is the capability); a caller pairs once
@@ -308,9 +341,23 @@ internal sealed class AgentSessions
             Deliver(session, StatusIncrement(session));
             MateuLogging.For("Mateu.Mcp").LogInformation(
                 "Mateu agent push: caller={Caller} paired session={Session} (user={User})",
-                caller.LogLabel, session.Handle, session.Principal);
+                caller.LogLabel, Fingerprint(session.Handle), session.Principal);
             return Entry(session);
         }
+    }
+
+    /// <summary>The most failure buckets kept: past it the oldest goes, so a caller rotating identities
+    /// cannot grow the map without bound (its address bucket still counts every guess).</summary>
+    public const int MaxFailureBuckets = 10_000;
+
+    /// <summary>How many failure buckets are held (tests).</summary>
+    internal int FailureBuckets { get { lock (_lock) return _failures.Count; } }
+
+    Queue<DateTimeOffset> Bucket(string key)
+    {
+        if (_failures.TryGetValue(key, out var failures)) return failures;
+        if (_failures.Count >= MaxFailureBuckets) _failures.Remove(_failures.Keys.First());
+        return _failures[key] = new Queue<DateTimeOffset>();
     }
 
     /// <summary>The checks every sender makes after its arguments: visibility, then connection.</summary>
@@ -455,6 +502,30 @@ internal sealed class AgentSessions
         for (var i = 0; i < chars.Length; i++) chars[i] = CodeAlphabet[RandomNumberGenerator.GetInt32(CodeAlphabet.Length)];
         return new string(chars);
     }
+
+    /// <summary>How the log names a session: <c>s-</c> + the first 12 hex digits of the handle's
+    /// SHA-256. The handle is a bearer capability (whoever holds it reaches an anonymously paired
+    /// session), so it never goes to a log; the fingerprint tells sessions apart and is the same in
+    /// Java and Python.</summary>
+    /// <summary>The most characters of a session's route kept (as Java).</summary>
+    internal const int MaxRouteLength = 512;
+
+    /// <summary>The most characters of an agent-supplied detail (a route, an event name) a log line carries.</summary>
+    internal const int MaxLoggedDetail = 200;
+
+    /// <summary>An agent-supplied text as a log line may carry it: control characters (CR/LF above
+    /// all, which would forge log lines) become <c>?</c> and it is clipped — the same in Java and Python.</summary>
+    internal static string LogSafe(string? text)
+    {
+        if (text is null) return "";
+        var clipped = text.Length > MaxLoggedDetail ? text[..MaxLoggedDetail] : text;
+        return string.Create(clipped.Length, clipped, (span, src) =>
+        {
+            for (var i = 0; i < src.Length; i++) span[i] = src[i] < 0x20 || src[i] == 0x7f ? '?' : src[i];
+        });
+    }
+
+    internal static string Fingerprint(string? handle) => handle is null ? "s-none" : "s-" + Sha256(handle)[..12];
 
     internal static string Sha256(string text) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();

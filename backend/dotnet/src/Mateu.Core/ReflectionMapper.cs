@@ -276,6 +276,7 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             Timestamp = TimestampOf(type, instance),
             Overline = OptT(type.Find<OverlineAttribute>()?.Value),
             TitlePlaceholder = OptT(type.Find<TitlePlaceholderAttribute>()?.Value),
+            TitleIsText = TitledByData(type, instance) ? true : null,
         };
         // The tree-supplier's children ARE the supplied tree (Page-less); a reflected form wraps its
         // content in a Page. The container style comes from the supplier for a tree view (Java's
@@ -403,6 +404,20 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         if (string.IsNullOrEmpty(text) || IsGeneratedRecordToString(actual, text))
             return T(Naming.Humanize(actual.Name));
         return TemplateLiteral(T(text));
+    }
+
+    /// <summary>Whether <see cref="TitleOf"/> names <paramref name="instance"/> with DATA — its own
+    /// ToString() — rather than a declared [Title] or the class name (Java's
+    /// <c>PageMetadataExtractor.titledByData</c>): such a title travels marked TitleIsText.</summary>
+    internal static bool TitledByData(Type type, object? instance)
+    {
+        var actual = instance?.GetType() ?? type;
+        if (actual.Find<TitleAttribute>() is not null || instance is null || instance is IComponent) return false;
+        var toString = actual.GetMethod("ToString", Type.EmptyTypes);
+        if (toString is null || toString.DeclaringType == typeof(object) || toString.DeclaringType == typeof(ValueType))
+            return false;
+        var text = instance.ToString();
+        return !string.IsNullOrEmpty(text) && !IsGeneratedRecordToString(actual, text);
     }
 
     /// <summary>Whether <paramref name="text"/> is the ToString the compiler synthesizes for a C#

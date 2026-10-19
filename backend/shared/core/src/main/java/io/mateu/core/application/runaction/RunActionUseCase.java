@@ -103,20 +103,32 @@ public class RunActionUseCase {
     } catch (io.mateu.core.application.security.MateuForbiddenException e) {
       return Flux.error(e);
     }
+    // The reserved actions answer through the same error boundary as every other action: an
+    // exception in one of them is the generic message + reference, never a raw 500 (NM2).
     if (CONTRACT_ACTION.equals(command.actionId())) {
-      return handleContract(command);
+      return guarded(command, () -> handleContract(command));
     }
     if (PREVIEW_ACTION.equals(command.actionId())) {
-      return handlePreview(command);
+      return guarded(command, () -> handlePreview(command));
     }
     if (VALIDATE_ACTION.equals(command.actionId())) {
-      return handleValidate(command);
+      if (!validationServed(command.httpRequest())) {
+        return Flux.error(
+            new io.mateu.core.application.security.MateuForbiddenException(
+                VALIDATE_ACTION
+                    + " is served only to MCP callers, or with "
+                    + io.mateu.core.application.mcp.McpEndpoint.ENABLED_PROPERTY
+                    + "=true or "
+                    + io.mateu.core.infra.dev.DevMode.PROPERTY
+                    + "=true"));
+      }
+      return guarded(command, () -> handleValidate(command));
     }
     if (RESTFETCH_ACTION.equals(command.actionId())) {
-      return handleRestFetch(command);
+      return guarded(command, () -> handleRestFetch(command));
     }
     if (APP_SOURCE_ACTION.equals(command.actionId())) {
-      return handleAppSource(command);
+      return guarded(command, () -> handleAppSource(command));
     }
     return (resolveInstance(command)
             .flatMapMany(
@@ -172,6 +184,46 @@ public class RunActionUseCase {
                         : mapToUiIncrement(
                             Text.builder().text("Not found.").style("color: red;").build(),
                             command)));
+  }
+
+  /**
+   * A reserved action's answer, run through the error boundary: a refusal stays a 403, anything
+   * else that fails — even synchronously, while building the answer — is the generic message with a
+   * reference id (logged once, at ERROR, under it).
+   */
+  private Flux<UIIncrementDto> guarded(
+      RunActionCommand command, java.util.function.Supplier<Flux<UIIncrementDto>> branch) {
+    return Flux.defer(branch)
+        .onErrorResume(
+            error -> {
+              var forbidden =
+                  io.mateu.core.application.security.MateuForbiddenException.find(error);
+              if (forbidden != null) {
+                return Flux.error(forbidden);
+              }
+              return mapToUiIncrement(
+                      ErrorBoundary.toMessage(error, command.actionId(), command.httpRequest()),
+                      command)
+                  .flux();
+            });
+  }
+
+  /**
+   * Whether {@value #VALIDATE_ACTION} is served for this request: to an MCP tool call (the native
+   * endpoint marks its requests), or when the app chose to expose its authoring plane — {@code
+   * mateu.mcp.enabled=true} (the sidecar's authoring tools call it over the sync endpoint) or dev
+   * mode. Otherwise it would hand any anonymous caller of a production app a validator over the
+   * app's own catalogues (sources, partials, actions, routes).
+   */
+  static boolean validationServed(HttpRequest httpRequest) {
+    if (httpRequest != null
+        && Boolean.TRUE.equals(
+            httpRequest.getAttribute(io.mateu.core.application.mcp.McpService.MCP_REQUEST))) {
+      return true;
+    }
+    return io.mateu.core.infra.MateuSettings.isTrue(
+            io.mateu.core.application.mcp.McpEndpoint.ENABLED_PROPERTY)
+        || io.mateu.core.infra.dev.DevMode.enabled();
   }
 
   /**
@@ -270,7 +322,13 @@ public class RunActionUseCase {
       return mapToUiIncrement(Text.builder().text(text).style("color: red;").build(), command)
           .flux();
     }
-    return mapToUiIncrement(component, command).flux();
+    var increment = mapToUiIncrement(component, command);
+    // an agent's definition (render-screen, a live push): nothing in it may run script in the tab
+    return (UntrustedDefinition.requested(parameters)
+            ? increment.map(
+                dto -> UntrustedDefinition.neutralize(dto, io.mateu.core.infra.WireMapper.shared()))
+            : increment)
+        .flux();
   }
 
   // Validates arbitrary YAML definition TEXT (parameters._yaml) against the generated schema and

@@ -37,7 +37,10 @@ internal sealed partial class ReflectionMapper
                 Disabled = !affordances.Display.SaveAndNext.Enabled(),
             });
         // Java's form Page carries the title only (no pageTitle) and the record-form style.
-        var page = Client(new PageMetadataDto(title, null, null, toolbar, []), null,
+        var page = Client(new PageMetadataDto(title, null, null, toolbar, [])
+            {
+                TitleIsText = TitledByData(element, entity) ? true : null,
+            }, null,
             FormCards(element, entity, readOnly: mode == "view")) with { Style = "max-width:900px;margin: auto;" };
         // The entity's field values ARE the form state: seed them into initialData (and, via
         // FragmentResponse, the fragment state) so a view/edit form arrives prefilled — the values

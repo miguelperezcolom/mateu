@@ -18,6 +18,13 @@ public class UpdateRowActionHandler implements CrudOrchestratorActionHandler {
   @Override
   @SuppressWarnings("unchecked")
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
+    if (!io.mateu.core.infra.declarative.orchestrators.crud.InlineEditingGate.offered(
+        orchestrator)) {
+      // the write behind inline editing exists only where the crud edits inline and lets the user
+      // edit: anywhere else a crafted update-row is refused like an action that names nothing
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "update-row: " + orchestrator.getClass().getName() + " does not edit rows inline");
+    }
     var parameters = httpRequest.runActionRq().parameters();
     var row = parameters != null ? parameters.get("_editedRow") : null;
     if (!(row instanceof Map<?, ?> rowMap)) {

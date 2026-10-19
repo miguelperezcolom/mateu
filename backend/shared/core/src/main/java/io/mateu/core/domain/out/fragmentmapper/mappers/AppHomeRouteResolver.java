@@ -28,7 +28,8 @@ final class AppHomeRouteResolver {
     // not leak in and the embedded <mateu-ux> loads the orchestrator's own route.
     if (app.homeServerSideType() != null && app.homeRoute() != null) {
       var embeddedRoute = app.homeRoute();
-      if (httpRequest.runActionRq().route().contains("?")) {
+      var requested = httpRequest.runActionRq().route();
+      if (requested != null && requested.contains("?")) {
         embeddedRoute = addQueryParams(embeddedRoute, httpRequest);
       }
       return embeddedRoute;
@@ -76,7 +77,8 @@ final class AppHomeRouteResolver {
     if (effectiveRoute.endsWith("_no_home_route")) {
       effectiveRoute = "_page";
     }
-    if (httpRequest.runActionRq().route().contains("?")) {
+    var requested = httpRequest.runActionRq().route();
+    if (requested != null && requested.contains("?")) {
       effectiveRoute = addQueryParams(effectiveRoute, httpRequest);
     }
     return effectiveRoute;

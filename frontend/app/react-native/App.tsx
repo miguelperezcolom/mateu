@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import * as ExpoCrypto from 'expo-crypto';
 import * as Updates from 'expo-updates';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -16,9 +17,13 @@ import { OidcTokenProvider } from './src/core/oidc';
 import { oidcConfigFrom, oidcConfigFromEnv, type OidcConfig } from './src/core/oidcConfig';
 import { platformStore } from './src/core/secureStore';
 import { installSessionId } from './src/core/sessionId';
+import { installSecureRandom } from './src/core/secureRandom';
 import { theme } from './src/theme';
 import { SessionContent } from './src/shell/SessionContent';
 import { HubApp } from './src/hub/HubApp';
+
+// Hermes has no crypto.getRandomValues: expo-crypto's is the secure source (core/secureRandom.ts)
+installSecureRandom(ExpoCrypto.getRandomValues);
 
 // ─── Boot modes ──────────────────────────────────────────────────────────────
 // HUB (default): the generic "Mateu" app — the user's own list of UIs, added by QR / address / deep

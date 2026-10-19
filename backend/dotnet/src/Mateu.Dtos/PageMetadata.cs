@@ -57,6 +57,11 @@ public record PageMetadataDto(
     /// pageTitlePlaceholder header element); a placeholder, NOT a default — renderers must ignore
     /// it once a title exists. (Mirrors io.mateu.dtos.PageDto.titlePlaceholder.)</summary>
     public string? TitlePlaceholder { get; init; }
+    /// <summary>True when <see cref="Title"/> is DATA — a record's own ToString() — rather than a
+    /// string the developer declared: a renderer that renders declared titles as HTML renders this one
+    /// as text (no markup planted by whoever names a record). Null = a declared title. (Mirrors
+    /// io.mateu.dtos.PageDto.titleIsText.)</summary>
+    public bool? TitleIsText { get; init; }
     public IReadOnlyList<BadgeDto> Badges { get; init; } = [];
     public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];

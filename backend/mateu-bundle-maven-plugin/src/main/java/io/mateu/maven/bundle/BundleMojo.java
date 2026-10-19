@@ -25,9 +25,10 @@ import org.apache.maven.project.MavenProject;
  * {@code @UI}/{@code @Route} route it renders the initial load (the same JSON the server returns
  * for {@code actionId=""}) into {@code manifest.json}, copies the PROJECT's renderer static app
  * ({@code specs/ui/project.yaml}: vaadin's assets or redwood's Visual Builder app) and stamps a
- * static {@code index.html} that boots {@code <mateu-ui bundleUrl="./manifest.json">}. Route loads
- * are then answered from the bundle client-side; live data still comes from external endpoints, and
- * ACTIONS still need a backend.
+ * static {@code index.html} that boots {@code <mateu-ui bundleUrl="<baseUrl>/manifest.json">} (an
+ * absolute path, so a deep link served by the SPA fallback still finds it). Route loads are then
+ * answered from the bundle client-side; live data still comes from external endpoints, and ACTIONS
+ * still need a backend.
  *
  * <p>Static routes only (param routes are skipped); a route whose load needs runtime-only resources
  * (live DB, unscannable bean) is logged + skipped, never failing the build.

@@ -60,7 +60,7 @@ class ChatEventsTest : TestCase() {
         assertEquals("dialog", obj.target)
         assertEquals("content", (ChatEvents.renderScreen(json("""{"yaml":"a","target":"elsewhere"}""")) as ChatEvents.Effect.RenderScreen).target)
         assertEquals(ChatEvents.Effect.Ignore, ChatEvents.decide("render-screen", json("""{"title":"x"}"""), nobody))
-        assertEquals(mapOf("_yaml" to "a"), ChatEvents.previewParameters("a"))
+        assertEquals(mapOf("_yaml" to "a", "_untrusted" to true), ChatEvents.previewParameters("a"))
     }
 
     fun testAnyOtherEventGoesToTheBus() {

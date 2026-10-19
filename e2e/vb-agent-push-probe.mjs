@@ -124,11 +124,18 @@ try {
   if (NAVIGATED_TEXT) check('…and shows its screen', await shows(tab, NAVIGATED_TEXT))
   check('the other tab did not move', other.url() === urlOther, other.url())
 
-  // 6. a custom event reaches the document
-  await tab.evaluate(() => { window.__agentEvents = []; document.addEventListener('highlight-row', (e) => window.__agentEvents.push(e.detail)) })
+  // 6. a custom event reaches the document only when a surface on screen declares it (NM9): the
+  // probed screen subscribes to nothing, so neither an undeclared event nor a framework one arrives
+  await tab.evaluate(() => {
+    window.__agentEvents = []
+    for (const n of ['highlight-row', 'mateu-session-expired']) document.addEventListener(n, () => window.__agentEvents.push(n), true)
+  })
   const ev = await mcp('mateu_dispatch_event', { session, event: 'highlight-row', detail: { id: 7 } })
   check('dispatch_event delivered', ev.delivered === true)
-  check('the event reached the document', await until(async () => (await tab.evaluate(() => window.__agentEvents)).some((d) => d && d.id === 7)))
+  await mcp('mateu_dispatch_event', { session, event: 'mateu-session-expired', detail: {} })
+  await tab.waitForTimeout(1000)
+  check('an event no surface declares, or a framework one, does not reach the document',
+    (await tab.evaluate(() => window.__agentEvents)).length === 0, JSON.stringify(await tab.evaluate(() => window.__agentEvents)))
 
   // 7. Disconnect
   await connect.click()

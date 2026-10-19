@@ -143,8 +143,19 @@ your JAX-RS `Application` and `mp.jwt.verify.publickey.location` /
 mounts run on Helidon's own routing, which does not carry the JAX-RS principal: register a
 `PrincipalResolver` if those need roles.)
 
+**JSON bodies only — on every adapter.** Mateu's action endpoints (`<baseUrl>/mateu/v3/**` —
+sync, SSE, a YAML mount's API — and `/mateu/mcp`) answer **415** to a `POST` whose body is not
+declared JSON (`application/json` or `application/*+json`): `text/plain`, the two form encodings and
+a request with no `Content-Type` are refused before they reach an action. Those are exactly the
+requests a cross-site page can make the browser send without a CORS preflight, with the user's
+cookies, so this is what keeps a cookie- or session-authenticated app safe from cross-site request
+forgery even where no CSRF filter runs (Quarkus, Micronaut, Helidon MP, ASP.NET Core, FastAPI). The
+renderers, the native apps and the MCP sidecar always send JSON; a script of yours calling the
+endpoints must too. (`/mateu/v3/client-log` and `/mateu/dev/**` are not covered: the first only
+writes a rate-limited log line, the second exists only with `mateu.dev=true`.)
+
 **CSRF on Quarkus, Micronaut and Helidon MP.** None of them adds CSRF protection to JSON requests
-by default, so Mateu needs nothing there. If you add a CSRF filter that checks every `POST`, exempt
+by default, and the JSON-only rule above covers the forged ones, so Mateu needs nothing there. If you add a CSRF filter that checks every `POST`, exempt
 `application/json` requests to `<baseUrl>/mateu/v3/**` and `/mateu/mcp` the same way
 (`io.mateu.core.infra.security.CsrfExemption.isMateuJsonCall(path, contentType)` is the rule).
 
@@ -461,7 +472,9 @@ Content-Security-Policy:
 - The Vaadin renderer's page has **no inline script**: its theme script is a file
   (`/assets/mateu-theme.js`) and the module bundle is external, so `script-src 'self'` is enough.
 - Two pages do carry inline scripts, and then `script-src` must allow them by hash (or by nonce):
-  a `@KeycloakSecured` UI (the token bootstrap, which embeds the Keycloak url/realm/client) and a
+  a `@KeycloakSecured` UI (the token bootstrap, which embeds the Keycloak url/realm/client — and
+  which, by default, imports the Keycloak adapter from `https://esm.sh`: allow that origin or
+  self-host the adapter, see [`@KeycloakSecured`](#legacy-keycloaksecured-deprecated)) and a
   page served by the Redwood renderer (Oracle Visual Builder's boot, plus Mateu's replayer of it).
   Their hashes are stable for a given configuration; compute them from the page Mateu serves with
   `IndexPage.inlineScriptHashes(html)` (core, `io.mateu.core.infra`) and put them in your header:
@@ -527,9 +540,20 @@ public class App {
 | `url` | Base URL of your Keycloak server |
 | `realm` | Keycloak realm name |
 | `clientId` | OAuth2 client ID registered in Keycloak |
-| `jsUrl` | Optional: custom URL for the Keycloak JS adapter (defaults to `{url}/js/keycloak.js`) |
+| `jsUrl` | Optional: URL of the Keycloak JS adapter, imported as an **ES module**. Defaults to `https://esm.sh/keycloak-js@26.2.2` (a public CDN, not your Keycloak server) |
 
 When the application loads, unauthenticated users are redirected to the Keycloak login page. After login, the browser receives a JWT Bearer token that is sent with every subsequent request.
+
+**Under a Content Security Policy** the default `jsUrl` is a third-party script, so the
+`script-src 'self'` recipe [above](#content-security-policy) is not enough on its own: either add
+`https://esm.sh` to `script-src` (a module there imports further modules from the same origin), or —
+better for a hardened deployment — **self-host** the adapter: copy the ES-module build of
+`keycloak-js` (`node_modules/keycloak-js/lib/keycloak.js`, at the version your Keycloak server
+supports) under your app's static resources and point `jsUrl` at it, e.g.
+`jsUrl = "/js/keycloak.js"`. (The `static/js/keycloak.min.js` some Mateu jars carry is the legacy
+UMD build: it cannot be `import`ed, so it is not a valid `jsUrl`.) In both cases add the Keycloak
+`url` to `connect-src` and `frame-src` — keycloak-js calls its token endpoint and uses an iframe for
+the silent session check — and allow the inline bootstrap by hash as shown above.
 
 ---
 

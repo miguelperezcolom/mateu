@@ -245,9 +245,34 @@ def test_mcp_is_served_when_enabled_by_argument_or_environment(monkeypatch):
 
 
 def test_a_malformed_mcp_message_is_a_json_rpc_parse_error_not_a_500():
-    r = mcp_client(mcp=True).post("/mateu/mcp", content=b"{not json")
+    r = mcp_client(mcp=True).post("/mateu/mcp", content=b"{not json", headers={"content-type": "application/json"})
     assert r.status_code == 200
     assert r.json()["error"]["code"] == -32700
+
+
+# The bodies a cross-site page can make the browser send WITHOUT a CORS preflight: refused with 415
+# on sync, SSE and MCP, so a forged request carrying the user's cookies never reaches an action.
+# Mirrors Java's AdapterParityITFoundation.refusesANonJsonBody… and the .NET twin.
+@pytest.mark.parametrize(
+    "content_type",
+    ["text/plain", "application/x-www-form-urlencoded", "multipart/form-data; boundary=x", None],
+)
+def test_a_body_that_is_not_declared_json_is_refused_with_415(content_type):
+    c = mcp_client(mcp=True)
+    rq = json.dumps({"route": "mcp-probe", "actionId": "", "componentState": {}}).encode()
+    mcp = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize"}).encode()
+    for path, body in [
+        ("/mateu/v3/sync/mcp-probe", rq),
+        ("/mateu/v3/sync", rq),
+        ("/mateu/v3/sse/mcp-probe", rq),
+        ("/mateu/v3/components/_/action", rq),
+        ("/mateu/mcp", mcp),
+    ]:
+        headers = {} if content_type is None else {"content-type": content_type}
+        r = c.post(path, content=body, headers=headers)
+        assert r.status_code == 415, (path, content_type, r.status_code)
+    ok = c.post("/mateu/mcp", content=mcp, headers={"content-type": "application/json; charset=utf-8"})
+    assert ok.status_code == 200
 
 
 def test_an_mcp_tool_call_that_fails_goes_through_the_error_boundary():

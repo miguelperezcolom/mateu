@@ -88,9 +88,11 @@ jobs:
   vscode:
     if: startsWith(github.event.release.tag_name, 'plugins-v')
     runs-on: ubuntu-latest
+    # No marketplace token at job level: `npm ci`, the tests and `vsce package` run third-party code,
+    # so each token is in the env of its publish step only. Whether Open VSX is configured travels as
+    # a boolean (secrets cannot be read in a step `if:`).
     env:
-      # Job-level so the Open VSX step can be skipped (via its `if:`) when the token isn't configured.
-      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      HAS_OVSX_PAT: ${{ secrets.OVSX_PAT != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -127,9 +129,11 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
       # Optional: skipped when OVSX_PAT is not set, so IntelliJ + VS Code Marketplace alone are enough.
       - name: Publish to Open VSX
-        if: ${{ env.OVSX_PAT != '' }}
+        if: env.HAS_OVSX_PAT == 'true'
         # ovsx is not a dependency of the extension: installed at an exact version, without install
         # hooks, outside the project (not `npx --yes`, which would fetch and run it on demand).
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: |
           npm install --prefix "$RUNNER_TEMP/ovsx" --no-save --ignore-scripts ovsx@1.2.0
           cd frontend/app/vscode-extension

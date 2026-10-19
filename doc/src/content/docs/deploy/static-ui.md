@@ -105,9 +105,11 @@ know:
 
 **From the visual editor**, **Export** writes a `manifest.json` for the project's renderer. For a
 Redwood project it adds the pre-rendered entries the Redwood renderer reads. They are expanded in the
-browser with the same runtime as Play. Put the manifest next to the Redwood static app, whose
-`index.html` names it with `<mateu-ui bundleUrl="./manifest.json">`. Letting `mateu-bundle:bundle`
-write the whole site does that for you.
+browser with the same runtime as Play. Put the manifest next to the Redwood static app, and name it from its `index.html` with an
+**absolute** path — `<mateu-ui bundleUrl="/manifest.json">` (or `<base path>/manifest.json`): a deep
+link reached through the SPA fallback keeps the document base at that deep path, so a relative
+`./manifest.json` would 404 there. Letting `mateu-bundle:bundle` write the whole site does that for
+you.
 
 ## The static-safety report
 

@@ -53,20 +53,26 @@ class MateuCsrfIT {
 
     @Test
     void aCrossSiteFormShapedPostStillNeedsTheToken() {
+      // refused either way: the JSON-only guard (415, JsonBodyGuard) runs ahead of Spring
+      // Security's CSRF check (403); neither lets the forged request reach an action
       given()
           .contentType("text/plain")
           .body(RQ)
           .when()
           .post("/hello/mateu/v3/sync/_no_route")
           .then()
-          .statusCode(403);
+          .statusCode(
+              org.hamcrest.Matchers.anyOf(
+                  org.hamcrest.Matchers.is(403), org.hamcrest.Matchers.is(415)));
       given()
           .contentType(ContentType.URLENC)
           .formParam("x", "1")
           .when()
           .post("/hello/mateu/v3/sync/_no_route")
           .then()
-          .statusCode(403);
+          .statusCode(
+              org.hamcrest.Matchers.anyOf(
+                  org.hamcrest.Matchers.is(403), org.hamcrest.Matchers.is(415)));
     }
   }
 

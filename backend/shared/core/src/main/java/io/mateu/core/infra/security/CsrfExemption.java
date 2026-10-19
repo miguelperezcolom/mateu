@@ -12,7 +12,9 @@ import java.util.Locale;
  * declaring {@code Content-Type: application/json} is not CORS-simple: the browser asks first, and
  * Mateu's CORS is off unless the application lists the origins ({@code mateu.cors.allowed-origins})
  * — so the forged request is never sent. A form-encoded or text/plain request to the same path is
- * NOT exempt: the framework's CSRF check still applies to it.
+ * NOT exempt: the framework's CSRF check still applies to it, and every adapter refuses it anyway
+ * with 415 ({@link JsonBodyGuard}) — which is what makes the argument hold where no CSRF check runs
+ * at all (Quarkus, Micronaut, Helidon MP).
  *
  * <p>Without this the documented setup ("add your framework's security module") answered every
  * Mateu POST with 403 under Spring Security's default CSRF protection.

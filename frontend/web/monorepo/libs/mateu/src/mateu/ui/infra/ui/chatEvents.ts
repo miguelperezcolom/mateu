@@ -31,6 +31,12 @@ export interface RenderScreenRequest {
 /** The reserved sync action that turns a definition into a normal UI increment. */
 export const PREVIEW_ACTION = '__preview__'
 export const PREVIEW_YAML_KEY = '_yaml'
+/**
+ * Marks a `__preview__` as rendering an UNTRUSTED definition (an agent's): the backend strips
+ * everything script-capable from it (conformance/untrusted). The visual editor's own preview, the
+ * author's, does not send it.
+ */
+export const PREVIEW_UNTRUSTED_KEY = '_untrusted'
 
 const TARGETS: RenderTarget[] = ['content', 'drawer', 'dialog']
 
@@ -61,7 +67,7 @@ export function renderScreenRequestOf(detail: unknown): RenderScreenRequest | nu
 
 /** The parameters of the `__preview__` call that renders the request. */
 export const previewParametersOf = (request: RenderScreenRequest): Record<string, unknown> =>
-    ({ [PREVIEW_YAML_KEY]: request.yaml })
+    ({ [PREVIEW_YAML_KEY]: request.yaml, [PREVIEW_UNTRUSTED_KEY]: true })
 
 /**
  * A definition the browser can expand by itself when there is no backend to preview it (a static

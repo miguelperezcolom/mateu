@@ -50,7 +50,7 @@ public class ReflectionPageMapper {
                     instance.getClass(), io.mateu.uidl.annotations.NoBreadcrumbs.class)
                 ? Boolean.TRUE
                 : null)
-        .title(getTitle(instance))
+        .title(getTitle(instance, httpRequest))
         .favicon(getFavicon(instance))
         .subtitle(getSubtitle(instance))
         .overline(getOverline(instance))
@@ -88,6 +88,17 @@ public class ReflectionPageMapper {
 
   public static String getTitle(Object instance) {
     return PageMetadataExtractor.getTitle(instance);
+  }
+
+  /**
+   * The page title of {@code instance}, remembered for this request as a DATA title (rendered as
+   * text — {@code PageDto.titleIsText}) when it is the record's own {@code toString()}.
+   */
+  public static String getTitle(Object instance, HttpRequest httpRequest) {
+    var title = PageMetadataExtractor.getTitle(instance);
+    return PageMetadataExtractor.titledByData(instance)
+        ? DataTitles.mark(httpRequest, title)
+        : title;
   }
 
   /** The page subtitle of a view model ({@code SubtitleSupplier} or {@code @Subtitle}), or null. */

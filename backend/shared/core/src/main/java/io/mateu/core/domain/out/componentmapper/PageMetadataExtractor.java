@@ -61,10 +61,34 @@ final class PageMetadataExtractor {
       if (instance.getClass().isRecord() && isGeneratedRecordToString(instance)) {
         return getPageTitle(instance);
       }
-      // toString() is DATA (a record's values), not a template: it must not be evaluated
+      // toString() is DATA (a record's values), not a template: it must not be evaluated — and
+      // not markup either: the page header renders it as text (titledByData, DataTitles)
       return io.mateu.uidl.Templates.literal(TranslatorContext.translate(instance.toString()));
     }
     return null;
+  }
+
+  /**
+   * Whether {@link #getTitle} titles {@code instance} with DATA — its own {@code toString()} —
+   * rather than a string the developer declared ({@code TitleSupplier}, {@code @Title}, {@code
+   * Named}) or the class name.
+   */
+  static boolean titledByData(Object instance) {
+    if (instance == null
+        || instance instanceof TitleSupplier
+        || MetaAnnotations.isPresent(instance.getClass(), Title.class)
+        || instance instanceof Named
+        || instance instanceof Component) {
+      return false;
+    }
+    try {
+      if (instance.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
+        return false;
+      }
+    } catch (NoSuchMethodException ignored) {
+      return false;
+    }
+    return !(instance.getClass().isRecord() && isGeneratedRecordToString(instance));
   }
 
   /** Whether a record's toString is the one the compiler generates: {@code Name[a=1, b=2]}. */

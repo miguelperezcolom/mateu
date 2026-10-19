@@ -258,7 +258,7 @@ test('render-screen: yaml wins, then a uidl string, then a uidl object; target a
   assert.equal(renderScreenRequestOf(null), null);
 });
 
-test('the preview action: current route, consumed = current, no serverSideType, _yaml', () => {
+test('the preview action: current route, consumed = current, no serverSideType, _yaml, untrusted', () => {
   assert.deepEqual(previewActionOf({ yaml: 'y', target: 'content' }, '/orders'), {
     route: '/orders',
     consumedRoute: '/orders',
@@ -266,7 +266,7 @@ test('the preview action: current route, consumed = current, no serverSideType, 
     serverSideType: null,
     initiatorComponentId: 'chat-render-screen',
     componentState: {},
-    parameters: { _yaml: 'y' },
+    parameters: { _yaml: 'y', _untrusted: true },
   });
 });
 

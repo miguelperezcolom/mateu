@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
 from mateu_ui.core.sync_handler import version_field  # noqa: E402
-from mateu_ui.uidl import Crud, Version, title, ui  # noqa: E402
+from mateu_ui.uidl import Crud, Version, inline_editing, title, ui  # noqa: E402
 
 
 class Article:
@@ -34,6 +34,7 @@ def _article(id_, name, version):
 
 @ui("locked-articles")
 @title("Articles")
+@inline_editing  # update-row, the inline-editing write, is offered only by a crud that edits inline
 class ArticlesCrud(Crud[Article]):
     def fetch(self, search):
         return _ARTICLES.values()

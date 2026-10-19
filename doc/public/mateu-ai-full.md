@@ -77,7 +77,7 @@ Marks a class as the application shell.
 ```java
 @App(value = AppVariant.AUTO, themeToggle = true)
 ```
-`AppVariant` values: `AUTO` (auto-select), `HAMBURGUER_MENU`, `MENU_ON_LEFT`, `MENU_ON_TOP`, `TABS`, `MEDIATOR`.
+`AppVariant` values: `AUTO` (auto-select), `HAMBURGER_MENU`, `HAMBURGER_SECTIONS`, `MENU_ON_LEFT`, `MENU_ON_TOP`, `TABS`, `TILES`, `RAIL`, `MEDIATOR` (`HAMBURGUER_MENU` is the deprecated misspelling of `HAMBURGER_MENU`).
 `themeToggle = true` adds a moon/sun button to the header for dark/light mode switching. The user's choice persists in `localStorage`; the OS `prefers-color-scheme` is the default when no choice is stored.
 
 ### `@Title` / `@Subtitle` / `@PageTitle`
@@ -892,7 +892,7 @@ Use for occasional/first-time users at a flow's entry route; power users are bet
 
 ```java
 @UI("/app")
-@App(AppVariant.HAMBURGUER_MENU)
+@App(AppVariant.HAMBURGER_MENU)
 @Logo("/logo.svg")
 @FavIcon("/favicon.svg")
 public class MyApp {

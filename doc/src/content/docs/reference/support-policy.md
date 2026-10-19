@@ -41,7 +41,7 @@ that only reproduces there is not treated as a bug.
 |---|---|---|
 | **Java** | 21 or later (the artifacts are compiled for Java 21) | 21 |
 | Spring Boot (MVC and WebFlux) | 4.x — **Spring Boot 3 is not supported** | 4.1 |
-| Quarkus | 3.x | 3.38 |
+| Quarkus | 3.x | 3.40 |
 | Micronaut | 4.x | 4.10 |
 | Helidon MP | 4.x | 4.5 |
 | Build tool | Maven 3.9+ or Gradle 8+ | Maven 3.9 |

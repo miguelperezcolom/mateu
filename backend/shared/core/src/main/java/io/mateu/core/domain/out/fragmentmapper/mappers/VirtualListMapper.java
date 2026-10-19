@@ -21,19 +21,22 @@ public class VirtualListMapper {
     return new ClientSideComponentDto(
         new VirtualListDto(
             new DataPageDto(
-                virtualList.page().content().stream()
-                    .map(
-                        item ->
-                            mapComponentToDto(
-                                null,
-                                item,
-                                baseUrl,
-                                route,
-                                consumedRoute,
-                                initiatorComponentId,
-                                httpRequest))
-                    .toList(),
-                virtualList.page().totalElements())),
+                (virtualList.page() == null
+                        ? List.<io.mateu.uidl.fluent.Component>of()
+                        : Children.orEmpty(virtualList.page().content()))
+                    .stream()
+                        .map(
+                            item ->
+                                mapComponentToDto(
+                                    null,
+                                    item,
+                                    baseUrl,
+                                    route,
+                                    consumedRoute,
+                                    initiatorComponentId,
+                                    httpRequest))
+                        .toList(),
+                virtualList.page() == null ? 0 : virtualList.page().totalElements())),
         "fieldId",
         List.of(),
         virtualList.style(),

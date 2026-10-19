@@ -1,5 +1,7 @@
 package io.mateu.uidl.annotations;
 
+import java.lang.annotation.Documented;
+
 /**
  * Never implemented: nothing reads it, and it has no runtime retention, so a field carrying it
  * renders exactly as without it.
@@ -10,6 +12,7 @@ package io.mateu.uidl.annotations;
  *     needed for the collection class.
  */
 @Deprecated(since = "3.0-alpha.426", forRemoval = true)
+@Documented
 public @interface List {
 
   String style() default "";

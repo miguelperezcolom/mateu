@@ -13,7 +13,7 @@ import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetad
 import type Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 
-import { interpolate, possiblyHtml } from './interpolation'
+import { interpolate, literalText, possiblyHtml } from './interpolation'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { navigateToRoute } from './rowRoute'
 import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } from './breadcrumbTrail'
@@ -395,6 +395,16 @@ export class MateuContentHeader extends LitElement {
         navigateToRoute(this, route)
     }
 
+    /**
+     * The page title. A DATA title (a record's own toString — `titleIsText` on the wire) is text:
+     * whoever names a record must not plant markup (a tracking image, a phishing link) in the header
+     * of everyone who opens it. A declared title (`@Title`, a TitleSupplier) may carry markup.
+     */
+    renderTitle(metadata: Form | undefined) {
+        if (metadata?.titleIsText) return literalText(metadata.title) ?? ''
+        return safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))
+    }
+
     render(): TemplateResult {
         const metadata = this.metadata as Form | undefined
         if (!metadata) return html``
@@ -465,7 +475,7 @@ export class MateuContentHeader extends LitElement {
                         ${(metadata?.title || titlePlaceholder) && level == 0?html`
                             <div style="display: flex; align-items: center; gap: var(--lumo-space-s, .5rem); min-width: 0;">
                                 <h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${metadata?.title
-                                    ? safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))
+                                    ? this.renderTitle(metadata)
                                     : html`<span class="page-title-placeholder">${safeHtml(possiblyHtml(titlePlaceholder!, this.state ?? {}, this.data ?? {}))}</span>`}</h2>
                                 ${(metadata as any).kpisBelow && metadata.badges?.length
                                     ? metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}, { pill: true }))
@@ -474,10 +484,10 @@ export class MateuContentHeader extends LitElement {
                             </div>`:nothing}
                         ${metadata.switcher && !((metadata?.title || titlePlaceholder) && level == 0)
                             ? this.renderSwitcher(metadata.switcher) : nothing}
-                        ${metadata?.title && level == 1?html`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
-                        ${metadata?.title && level == 2?html`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h4>`:nothing}
-                        ${metadata?.title && level == 3?html`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h5>`:nothing}
-                        ${metadata?.title && level > 3?html`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h6>`:nothing}
+                        ${metadata?.title && level == 1?html`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${this.renderTitle(metadata)}</h3>`:nothing}
+                        ${metadata?.title && level == 2?html`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${this.renderTitle(metadata)}</h4>`:nothing}
+                        ${metadata?.title && level == 3?html`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${this.renderTitle(metadata)}</h5>`:nothing}
+                        ${metadata?.title && level > 3?html`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${this.renderTitle(metadata)}</h6>`:nothing}
 
                         ${metadata?.subtitle ? html`<span style="display: inline-block; margin-block-end: 0.83em;">${safeHtml(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
                         ${metadata?.timestamp ? html`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${safeHtml(possiblyHtml(metadata.timestamp, this.state ?? {}, this.data ?? {}))}</span>` : nothing}

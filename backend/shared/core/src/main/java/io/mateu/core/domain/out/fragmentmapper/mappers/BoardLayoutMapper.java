@@ -20,7 +20,7 @@ public class BoardLayoutMapper {
     return new ClientSideComponentDto(
         metadataDto,
         boardLayout.id(),
-        boardLayout.rows().stream()
+        Children.orEmpty(boardLayout.rows()).stream()
             .map(
                 tab ->
                     mapComponentToDto(

@@ -47,6 +47,9 @@ internal sealed class McpService
     /// <summary>Who is calling, for the push tools.</summary>
     public AgentPush.AgentCaller Caller { get; init; } = AgentPush.AgentCaller.Anonymous;
 
+    /// <summary>The caller's client address (the handler's), for the pairing-failure buckets.</summary>
+    internal string? ClientAddress => _handler.ClientAddress?.Invoke();
+
     /// <summary>Load a screen (route) → flat projection. The load is dispatched as actionId "".</summary>
     public JsonObject DescribeScreen(string route) =>
         McpProjection.Project(Sync(Rq(route, "", null, null)));
@@ -153,7 +156,17 @@ internal sealed class McpService
         UIIncrementDto increment;
         try
         {
-            increment = _run is not null ? _run(rq) : _handler.Handle(rq, _requestBaseUrl);
+            // an MCP tool call: the reserved __validate__ is served to these (SyncHandler.ValidationServed)
+            var outer = SyncHandler.InMcpCall.Value;
+            SyncHandler.InMcpCall.Value = true;
+            try
+            {
+                increment = _run is not null ? _run(rq) : _handler.Handle(rq, _requestBaseUrl);
+            }
+            finally
+            {
+                SyncHandler.InMcpCall.Value = outer;
+            }
         }
         catch (Exception e) when (IsForbidden(e))
         {
@@ -225,9 +238,20 @@ internal sealed class McpService
     public JsonObject SaveSpec(string path, string yaml, string specsDir)
     {
         if (!SpecWriter.IsAcceptable(path)) throw new UserFacingException(SpecWriter.Refusal(path));
+        if (SpecWriter.IsCatalogueFile(path)) throw new UserFacingException(SpecWriter.CatalogueRefusal(path));
         var validation = Validation("", yaml);
         var out_ = new JsonObject();
-        if (validation["valid"]?.GetValue<bool>() != true)
+        var refusal = SpecWriter.AgentRefusal(
+            validation["kind"] is JsonValue k && k.TryGetValue<string>(out var kind) ? kind : null, yaml);
+        if (refusal is not null)
+        {
+            // never written, and said loudly: an agent tried to author what decides a request
+            MateuLogging.For("Mateu.Mcp").LogWarning("mateu_save_spec refused {Path}: {Reason}",
+                MateuLogging.Safe(path), refusal);
+            out_["saved"] = false;
+            out_["reason"] = refusal;
+        }
+        else if (validation["valid"]?.GetValue<bool>() != true)
         {
             out_["saved"] = false;
             out_["reason"] = "The definition has errors; nothing was written.";

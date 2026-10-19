@@ -1,0 +1,49 @@
+{
+  "cases": [
+    {
+      "name": "a literal event handler, srcdoc and import never pass; safe attributes do",
+      "input": {"type": "Element", "name": "img", "attributes": {"src": "x.png", "alt": "A", "onerror": "fetch('https://evil/')", "ONLOAD": "x()", "srcdoc": "<script>1</script>", "import": "https://attacker.example/x.js", "class": "pic"}, "on": {"click": "save"}, "content": null, "html": false},
+      "expected": {"type": "Element", "name": "img", "attributes": {"src": "x.png", "alt": "A", "class": "pic"}, "on": {"click": "save"}, "content": null, "html": false}
+    },
+    {
+      "name": "a url attribute passes only as a safe link",
+      "input": {"type": "Element", "name": "a", "attributes": {"href": " javascript:alert(1)", "ping": "https://ok.example/p", "formaction": "data:text/html,x", "title": "t"}, "on": {}, "content": "Open", "html": false},
+      "expected": {"type": "Element", "name": "a", "attributes": {"ping": "https://ok.example/p", "title": "t"}, "on": {}, "content": "Open", "html": false}
+    },
+    {
+      "name": "markup content is shown as text",
+      "input": {"type": "Element", "name": "div", "attributes": {}, "on": {}, "content": "<img src=x onerror=alert(1)>", "html": true},
+      "expected": {"type": "Element", "name": "div", "attributes": {}, "on": {}, "content": "<img src=x onerror=alert(1)>", "html": false}
+    },
+    {
+      "name": "an element that loads or runs code becomes an empty div",
+      "input": {"type": "Element", "name": " SCRIPT", "attributes": {"src": "https://attacker.example/x.js"}, "on": {"load": "x"}, "content": "alert(1)", "html": false},
+      "expected": {"type": "Element", "name": "div", "attributes": {}, "on": {}, "content": null, "html": false}
+    },
+    {
+      "name": "a framework element (mateu-*) is never mounted by an untrusted definition",
+      "input": {"type": "Element", "name": "mateu-ux", "attributes": {"baseUrl": "https://attacker.example"}, "on": {}, "content": null, "html": false},
+      "expected": {"type": "Element", "name": "div", "attributes": {}, "on": {}, "content": null, "html": false}
+    },
+    {
+      "name": "client-side code goes: RunJS rules, action js, head/body injection commands",
+      "input": {"component": {"type": "ClientSide", "metadata": {"type": "Button", "label": "Go", "actionId": "go"}, "rules": [{"filter": "true", "action": "RunJS", "value": "alert(1)"}, {"filter": "true", "action": "SetStyle", "value": "color: red"}], "actions": [{"id": "go", "js": "alert(1)", "commands": [{"type": "AddContentToHead", "data": "<script>1</script>"}, {"type": "AddContentToBody", "data": "<script>1</script>"}, {"type": "NavigateTo", "data": "/orders"}]}]}},
+      "expected": {"component": {"type": "ClientSide", "metadata": {"type": "Button", "label": "Go", "actionId": "go"}, "rules": [{"filter": "true", "action": "SetStyle", "value": "color: red"}], "actions": [{"id": "go", "commands": [{"type": "NavigateTo", "data": "/orders"}]}]}}
+    },
+    {
+      "name": "a script url anywhere is blanked; other text is untouched",
+      "input": {"type": "Anchor", "label": "javascript is fun", "url": "\tJaVaScRiPt:alert(1)", "other": "vbscript:x", "fine": "https://mateu.io"},
+      "expected": {"type": "Anchor", "label": "javascript is fun", "url": "", "other": "", "fine": "https://mateu.io"}
+    },
+    {
+      "name": "a micro frontend never loads from another server",
+      "input": {"type": "MicroFrontend", "baseUrl": "https://attacker.example", "route": "/x"},
+      "expected": {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}
+    },
+    {
+      "name": "a micro frontend of this backend stays",
+      "input": {"type": "MicroFrontend", "baseUrl": "/remote", "route": "/x"},
+      "expected": {"type": "MicroFrontend", "baseUrl": "/remote", "route": "/x"}
+    }
+  ]
+}

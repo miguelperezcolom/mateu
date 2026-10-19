@@ -38,6 +38,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+from mateu_ui.core.request_context import current_request
 from mateu_ui.uidl import UserFacingException
 
 log = logging.getLogger("mateu.agentpush")
@@ -56,11 +57,17 @@ COMMAND_TYPE = "AgentPush"
 DEFAULT_RATE_PER_MINUTE = 30
 DEFAULT_MAX_SESSIONS = 1000
 DEFAULT_MAX_SESSIONS_PER_OWNER = 20
+#: Anonymous UI sessions per client address — much higher than the per-user cap: the address is the
+#: one the server reports (the socket peer, unless uvicorn runs with ``--proxy-headers`` and its
+#: ``--forwarded-allow-ips``), so behind a reverse proxy every anonymous UI shares the proxy's.
+DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS = 200
 #: The owner of an anonymous UI whose client address the adapter cannot tell.
 UNKNOWN_OWNER = "unknown"
 CODE_TTL_SECONDS = 300
 DISCONNECTED_TTL_SECONDS = 120
 MAX_FAILED_PAIRINGS = 10
+#: The most pairing-failure buckets kept (the oldest goes past it).
+MAX_FAILURE_BUCKETS = 10_000
 WINDOW_SECONDS = 60
 CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 CODE_LENGTH = 8
@@ -122,18 +129,46 @@ def reserved_event(event: str) -> str:
     return f'Event "{event}" is reserved: use mateu_push_ui or mateu_navigate.'
 
 
-def owner_of(principal: str | None, client_address: str | None) -> str:
-    """Who a UI session counts against for ``max-sessions-per-owner``: its principal name, else
-    (an anonymous UI) its client address, else ``unknown``."""
+def log_safe(value: str | None) -> str:
+    """A caller-sent string as a log argument: clipped to 256 characters, every control character
+    (CR, LF, tabs) replaced by ``?`` — it can neither forge log lines nor flood the log (Java's
+    ``LogSafe``, .NET's ``MateuLogging.Safe``)."""
+    if value is None:
+        return "None"
+    clipped = value if len(value) <= 256 else value[:256] + "…"
+    return "".join("?" if (ord(c) < 32 or 127 <= ord(c) < 160) else c for c in clipped)
+
+
+def owner_of(principal: str | None, session_id: str) -> str:
+    """Who a UI session counts against for ``max-sessions-per-owner``: its principal name, else (an
+    anonymous UI) the session itself — nobody else's: keyed on the client address, every anonymous
+    UI behind one reverse proxy shared a bucket of 20 (Java's ``AgentSessions.ownerOf``)."""
     if principal:
         return principal
+    return "session:" + session_id
+
+
+def address_of(client_address: str | None) -> str | None:
+    """The client address an anonymous session is capped by, or None when unknown."""
     if client_address and client_address.strip():
         return client_address.strip()
-    return UNKNOWN_OWNER
+    return None
 
 
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+#: The most characters of a session's route kept (as Java and .NET).
+MAX_ROUTE_LENGTH = 512
+#: The most characters of an agent-supplied detail (a route, an event name) a log line carries.
+
+
+def fingerprint(handle: str | None) -> str:
+    """How the log names a session: ``s-`` + the first 12 hex digits of the handle's SHA-256. The
+    handle is a bearer capability (whoever holds it reaches an anonymously paired session), so it
+    never goes to a log; the fingerprint tells sessions apart and is the same in Java and .NET."""
+    return "s-none" if handle is None else "s-" + _sha256(handle)[:12]
 
 
 def message(kind: str, event: str, detail: Any) -> dict[str, Any]:
@@ -231,8 +266,10 @@ class _Session:
     route: str
     renderer: str
     connected_at: datetime
-    #: who the per-owner cap counts it against: the principal name, else the client address
+    #: who the per-owner cap counts it against: the principal name, else the session itself
     owner: str = UNKNOWN_OWNER
+    #: the client address an ANONYMOUS session was opened from (None: signed in, or unknown)
+    address: str | None = None
     channel: AgentChannel | None = None
     disconnected_at: float | None = None
     #: pairing key → label, in pairing order (each anonymous pairing gets a key of its own)
@@ -258,10 +295,12 @@ class AgentSessions:
         clock: Callable[[], float] = time.monotonic,
         now: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
         max_sessions_per_owner: int = DEFAULT_MAX_SESSIONS_PER_OWNER,
+        max_anonymous_sessions_per_address: int = DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS,
     ):
         self.rate_per_minute = max(1, int(rate_per_minute))
         self.max_sessions = max(1, int(max_sessions))
         self.max_sessions_per_owner = max(1, int(max_sessions_per_owner))
+        self.max_anonymous_sessions_per_address = max(1, int(max_anonymous_sessions_per_address))
         self._clock = clock
         self._now = now
         self._lock = threading.RLock()
@@ -287,18 +326,27 @@ class AgentSessions:
         """Register (first time) or reconnect the session with ``channel``; answers the status
         message the stream starts with. A previous stream of the session ends.
 
-        A NEW session counts against its OWNER (``principal``, else ``client_address``, else
-        ``unknown``) — at ``max_sessions_per_owner`` that owner's longest-disconnected session is
-        evicted, else it is refused — and then against ``max_sessions`` over every owner. A
-        reconnect is never refused by either cap."""
+        A NEW session of a signed-in UI counts against its principal (``max_sessions_per_owner``);
+        an anonymous one counts on its own, and against ``max_anonymous_sessions_per_address`` for
+        its ``client_address`` (none when unknown); at a cap the longest-disconnected session among
+        those is evicted, else it is refused — then ``max_sessions`` over everyone. A reconnect is
+        never refused by any cap."""
+        route = (route or "")[:MAX_ROUTE_LENGTH]
+        renderer = (renderer or "").strip()[:MAX_RENDERER_LENGTH]
         with self._lock:
             self._purge()
             session = self._sessions.get(session_id)
             if session is None:
-                owner = owner_of(principal, client_address)
-                owned = [s for s in self._sessions.values() if s.owner == owner]
-                if len(owned) >= self.max_sessions_per_owner and not self._evict_one(owned):
-                    raise UserFacingException(TOO_MANY_SESSIONS)
+                owner = owner_of(principal, session_id)
+                address = None if principal else address_of(client_address)
+                if principal:
+                    owned = [s for s in self._sessions.values() if s.owner == owner]
+                    if len(owned) >= self.max_sessions_per_owner and not self._evict_one(owned):
+                        raise UserFacingException(TOO_MANY_SESSIONS)
+                if address is not None:
+                    there = [s for s in self._sessions.values() if s.address == address]
+                    if len(there) >= self.max_anonymous_sessions_per_address and not self._evict_one(there):
+                        raise UserFacingException(TOO_MANY_SESSIONS)
                 if len(self._sessions) >= self.max_sessions and not self._evict_one():
                     raise UserFacingException(TOO_MANY_SESSIONS)
                 session = _Session(
@@ -306,16 +354,17 @@ class AgentSessions:
                     handle=self._new_handle(),
                     secret_hash=_sha256(secret),
                     principal=principal,
-                    route=route,
+                    route=(route or "")[:512],
                     renderer=renderer,
                     connected_at=self._now(),
                     owner=owner,
+                    address=address,
                 )
                 self._sessions[session_id] = session
                 self._by_handle[session.handle] = session_id
             else:
                 self._check_owner(session, secret, principal)
-                session.route = route
+                session.route = (route or "")[:512]
                 session.renderer = renderer
                 session.connected_at = self._now()
             previous = session.channel
@@ -372,23 +421,30 @@ class AgentSessions:
                 if self._visible(caller, s, listing=True)
             ]
 
-    def pair(self, caller: Caller, code: str) -> dict[str, Any]:
-        bucket = caller.key or _ANONYMOUS_PAIRING
+    def pair(self, caller: Caller, code: str, address: str | None = None) -> dict[str, Any]:
+        """Failed attempts count per caller AND per client ``address`` (when known): a caller
+        rotating its agent key is still one address, and anonymous callers at different
+        addresses do not share one bucket (which let one of them lock every other out)."""
+        where = address.strip() if address and address.strip() else None
+        bucket = caller.key or (_ANONYMOUS_PAIRING if where is None else f"{_ANONYMOUS_PAIRING}@{where}")
+        keys = [bucket] + ([f"address:{where}"] if where is not None else [])
         with self._lock:
             self._purge()
             now = self._clock()
-            failures = self._failures.setdefault(bucket, deque())
-            while failures and failures[0] <= now - WINDOW_SECONDS:
-                failures.popleft()
-            if len(failures) >= MAX_FAILED_PAIRINGS:
-                raise UserFacingException(TOO_MANY_ATTEMPTS)
+            buckets = [self._bucket(k) for k in keys]
+            for failures in buckets:
+                while failures and failures[0] <= now - WINDOW_SECONDS:
+                    failures.popleft()
+                if len(failures) >= MAX_FAILED_PAIRINGS:
+                    raise UserFacingException(TOO_MANY_ATTEMPTS)
             normalised = re.sub(r"[\s-]", "", code or "").upper()
             found = self._codes.get(normalised)
             session = self._sessions.get(found[0]) if found is not None else None
             if found is None or found[1] <= now or session is None:
                 if found is not None:
                     self._codes.pop(normalised, None)
-                failures.append(now)
+                for failures in buckets:
+                    failures.append(now)
                 raise UserFacingException(INVALID_CODE)
             self._drop_code(session)
             if caller.anonymous:
@@ -399,9 +455,19 @@ class AgentSessions:
             self._tell(session, self._status(session))
             log.info(
                 "Mateu agent push: caller=%s paired session=%s (user=%s)",
-                caller.log_label, session.handle, session.principal,
+                caller.log_label, fingerprint(session.handle), session.principal,
             )
             return self._entry(session)
+
+    def _bucket(self, key: str) -> deque:
+        """The failure bucket of ``key`` (under the lock). Past MAX_FAILURE_BUCKETS the oldest goes,
+        so a caller rotating identities cannot grow the map without bound."""
+        failures = self._failures.get(key)
+        if failures is None:
+            if len(self._failures) >= MAX_FAILURE_BUCKETS:
+                self._failures.pop(next(iter(self._failures)))
+            failures = self._failures[key] = deque()
+        return failures
 
     def addressable(self, caller: Caller, handle: str) -> None:
         """Visibility, then connection — or the refusal."""
@@ -425,7 +491,7 @@ class AgentSessions:
         size = len(json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
         log.info(
             "Mateu agent push: caller=%s session=%s kind=%s %s bytes=%d",
-            caller.log_label, handle, data.get("kind"), log_detail, size,
+            caller.log_label, fingerprint(handle), data.get("kind"), log_safe(log_detail), size,
         )
 
     # ── internals (under the lock) ──
@@ -605,7 +671,8 @@ def call_tool(
     if name == "mateu_list_sessions":
         return {"sessions": sessions.list(caller)}
     if name == "mateu_pair_session":
-        return sessions.pair(caller, _required(args, "code"))
+        in_flight = current_request()
+        return sessions.pair(caller, _required(args, "code"), in_flight.client_address if in_flight else None)
     if name == "mateu_push_ui":
         handle = _required(args, "session")
         yaml_text = _required(args, "yaml")

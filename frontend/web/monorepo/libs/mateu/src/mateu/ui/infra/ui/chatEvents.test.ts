@@ -35,8 +35,8 @@ describe('renderScreenRequestOf', () => {
 })
 
 describe('the preview call', () => {
-    it('sends the definition as the reserved _yaml parameter', () => {
-        expect(previewParametersOf({ yaml: 'type: Text', target: 'content' })).toEqual({ _yaml: 'type: Text' })
+    it('sends the definition as the reserved _yaml parameter, marked untrusted', () => {
+        expect(previewParametersOf({ yaml: 'type: Text', target: 'content' })).toEqual({ _yaml: 'type: Text', _untrusted: true })
     })
 
     it('without a backend only a JSON definition can be expanded in the browser', () => {

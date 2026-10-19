@@ -11,6 +11,8 @@
 
 import { chromeText } from './i18n.mjs'
 import { busSubscribersOf, callMateu } from './transport.mjs'
+import { neutralizeUntrusted } from './untrusted.mjs'
+import { storedTokenMayGoTo } from './hostHeaders.mjs'
 
 /** Recognises a `data:` payload that is a token-usage object ({inputTokens|outputTokens|totalTokens}). */
 export function tryParseTokenUsage(payload) {
@@ -87,11 +89,22 @@ export function buildChatBody({ message, sessionId, attachments, context, mcpUrl
 }
 
 /** Uploads files to the `@AI(upload=…)` endpoint as multipart; returns the saved `{name, path}`. */
+/**
+ * The credential headers a chat request to `url` may carry: all of them to an origin trusted with
+ * the user's token (the page's, the shell's backend, the remotes its app names —
+ * hostHeaders.storedTokenMayGoTo), NONE to any other. A `Chat` names its `sseUrl`/`uploadUrl` in a
+ * screen, and a screen may come from a remote or an agent: the token must not follow it there (the
+ * web client's credentialHeadersFor does the same).
+ */
+export function chatHeadersFor(url, headers) {
+  return storedTokenMayGoTo(url) ? (headers || {}) : {}
+}
+
 export async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {}, fetchImpl = globalThis.fetch, FormDataImpl = globalThis.FormData }) {
   const form = new FormDataImpl()
   for (const f of files || []) form.append('files', f)
   if (sessionId) form.append('sessionId', sessionId)
-  const response = await fetchImpl(uploadUrl, { method: 'POST', headers, body: form })
+  const response = await fetchImpl(uploadUrl, { method: 'POST', headers: chatHeadersFor(uploadUrl, headers), body: form })
   if (!response.ok) throw new Error(chromeText('chatUploadFailed', { status: response.status }))
   const result = await response.json()
   return ((result && result.files) || []).filter((f) => f && f.path)
@@ -262,7 +275,7 @@ export async function streamChat({ url, body, headers = {}, reauthenticate, fetc
     method: 'POST',
     headers: {
       Accept: 'text/event-stream', 'Content-Type': 'application/json',
-      ...((typeof headers === 'function' ? headers() : headers) || {}),
+      ...chatHeadersFor(url, typeof headers === 'function' ? headers() : headers),
     },
     body: payload,
   })
@@ -791,7 +804,8 @@ export function resolveChatUrl(url, base = '') {
 //     none is, the shell renders it itself (the BUILT-IN render target): the reserved `__preview__`
 //     sync action turns the definition into an ordinary increment, painted in the content (default,
 //     transient), a drawer or a dialog;
-//   - anything else → a document CustomEvent and the registry's bus (its OnCustomEvent subscribers).
+//   - anything else a surface on screen subscribes to → a document CustomEvent and the registry's
+//     bus (its OnCustomEvent subscribers); an undeclared or framework event name goes nowhere.
 // Each event is handled AS SOON AS it arrives, while the answer keeps streaming.
 
 export const CHAT_NAVIGATION_REQUESTED = 'navigation-requested'
@@ -800,6 +814,9 @@ export const CHAT_RENDER_SCREEN = 'render-screen'
 /** The reserved sync action that turns a definition into a normal UI increment. */
 export const CHAT_PREVIEW_ACTION = '__preview__'
 export const CHAT_PREVIEW_YAML_KEY = '_yaml'
+/** Marks the preview as rendering an UNTRUSTED (agent-authored) definition: the backend strips what
+ *  could run script (conformance/untrusted). The visual editor's preview does not send it. */
+export const CHAT_PREVIEW_UNTRUSTED_KEY = '_untrusted'
 /** The pseudo action id the content page runs a ready-made preview increment under. */
 export const CHAT_PREVIEW_PAINT_ACTION = '__chatPreview__'
 const CHAT_RENDER_TARGETS = ['content', 'drawer', 'dialog']
@@ -845,12 +862,42 @@ export function navigationLoadExtraOf(navigation) {
   return out
 }
 
+// ── which events an agent may dispatch (NM9) ─────────────────────────────────────────────────
+// The built-in ones always; any other only when a surface on screen subscribes to it (its
+// OnCustomEvent trigger: @SubscribeTo) and it is not one of the framework's own event names — an
+// agent must not fire the renderer's or the DOM's own events at the app. Same lists as libs/mateu
+// agentEventPolicy.ts, pinned by conformance/client/agent-events.json.
+export const CHAT_AGENT_BUILT_IN_EVENTS = new Set([
+  'navigation-requested', 'close-requested', 'render-screen',
+])
+export const CHAT_RESERVED_EVENT_NAMES = new Set([
+  'action-requested', 'server-side-action-requested', 'url-update-requested', 'route-changed',
+  'navigate-to-requested', 'page-banners-received', 'dirty', 'clean', 'value-changed', 'data-changed',
+  'app-data-updated', 'close-modal-requested', 'column-prefs-changed', 'compact-changed', 'history-pushed',
+  'selected-changed', 'search-requested', 'filter-reset-requested', 'picked', 'pinged', 'click',
+  'dblclick', 'input', 'change', 'submit', 'keydown', 'keyup', 'keypress', 'focus', 'blur', 'focusin',
+  'focusout', 'load', 'error', 'abort', 'message', 'storage', 'popstate', 'hashchange', 'beforeunload',
+  'pagehide', 'online', 'offline', 'resize', 'scroll', 'wheel', 'contextmenu', 'pointerdown', 'pointerup',
+  'mousedown', 'mouseup', 'touchstart', 'drop', 'dragstart', 'dragend', 'unhandledrejection',
+  'DOMContentLoaded',
+])
+export const CHAT_RESERVED_EVENT_PREFIXES = ['mateu-', 'backend-', 'vaadin-']
+
+/** Whether an agent may dispatch `name`, given whether a surface on screen subscribes to it. */
+export function agentMayDispatchEvent(name, subscribed) {
+  if (typeof name !== 'string' || !name) return false
+  if (CHAT_AGENT_BUILT_IN_EVENTS.has(name)) return true
+  if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))) return false
+  return !!subscribed
+}
+
 /**
  * What an agent event means on this screen (`reg` = the registry, for its subscribers):
  *   {kind:'navigate', navigation} | {kind:'close'} | {kind:'ignore'}
  *   {kind:'subscribers', name, detail, subscribers:[{ctxId, actionId, parameters}], dispatch}
  *   {kind:'preview', request, dispatch}  (render-screen nobody on screen takes)
- *   {kind:'custom', name, detail, subscribers, dispatch}
+ *   {kind:'custom', name, detail, subscribers, dispatch}  (only one a surface subscribes to and
+ *     not a framework event name: anything else is {kind:'ignore'})
  * `dispatch`: it also goes out as a document CustomEvent (a page's web component may listen).
  */
 export function chatEventPlanOf(ev, reg) {
@@ -869,6 +916,8 @@ export function chatEventPlanOf(ev, reg) {
     const request = renderScreenRequestOf(detail)
     return request ? { kind: 'preview', request, dispatch: true } : { kind: 'ignore' }
   }
+  // nobody on screen declares it (or it is one of the framework's own): it goes nowhere
+  if (!agentMayDispatchEvent(name, subscribers.length > 0)) return { kind: 'ignore' }
   return { kind: 'custom', name, detail, subscribers, dispatch: true }
 }
 
@@ -881,7 +930,7 @@ export function chatPreviewBodyOf(route, request) {
     consumedRoute: r,
     actionId: CHAT_PREVIEW_ACTION,
     componentState: {},
-    parameters: { [CHAT_PREVIEW_YAML_KEY]: request.yaml },
+    parameters: { [CHAT_PREVIEW_YAML_KEY]: request.yaml, [CHAT_PREVIEW_UNTRUSTED_KEY]: true },
     serverSideType: undefined,
     initiatorComponentId: '',
   }
@@ -894,9 +943,11 @@ export function chatPreviewBodyOf(route, request) {
  *             the real screen again);
  *   drawer / dialog → an Add of a Drawer / Dialog overlay whose content it is, `title` in its header
  *             — exactly what a server answering a Drawer/Dialog sends, so the usual overlay paints it.
- * The answer's commands and messages travel with it.
+ * The answer's commands and messages travel with it — all of it UNTRUSTED (neutralizeUntrusted).
  */
-export function chatPreviewIncrementOf(increment, request, route = '') {
+export function chatPreviewIncrementOf(answer, request, route = '') {
+  // an agent wrote it: nothing in it may run script in this tab, whatever the backend sent (untrusted.mjs)
+  const increment = answer ? neutralizeUntrusted(answer) : answer
   const fragment = ((increment && increment.fragments) || []).find((f) => f && f.component)
   if (!fragment) return null
   const target = (request && request.target) || 'content'

@@ -46,6 +46,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void refusesANonJsonBodyOnTheSyncAndSseEndpoints() throws Exception {
+      contract.refusesANonJsonBodyOnTheSyncAndSseEndpoints();
+    }
+
+    @Test
     void refusesARestrictedActionToAnAnonymousCaller() {
       contract.refusesARestrictedActionToAnAnonymousCaller();
     }
@@ -202,6 +207,11 @@ class AdapterParityIT {
     @Test
     void servesMcpWhenEnabled() {
       contract.servesMcpWhenEnabled();
+    }
+
+    @Test
+    void refusesANonJsonBodyOnTheMcpEndpoint() throws Exception {
+      contract.refusesANonJsonBodyOnTheMcpEndpoint();
     }
 
     @Test

@@ -254,8 +254,25 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @Override
   @SuppressWarnings("unchecked")
   public Object updateRow(Map<String, Object> row, HttpRequest httpRequest) {
-    var entity = (T) MateuInstanceFactory.newInstance(entityClass(), row, httpRequest);
-    OptimisticLock.check(entity, store().findById(entity.id()), httpRequest);
+    // the same protection as save (NM11): the row names a STORED record — an unknown id is refused,
+    // never inserted —, the fields the user may not write keep the stored values, and the row (its
+    // columns only) is laid over the stored record, so the fields it does not carry are kept
+    var id = row == null ? null : row.get(getIdFieldForRow());
+    var loaded = id == null ? null : store().findById(String.valueOf(id)).orElse(null);
+    if (loaded == null) {
+      throw new io.mateu.uidl.UserFacingException(
+          "This row no longer exists. Reload the list to see the current rows.");
+    }
+    var stored = io.mateu.core.infra.declarative.FormViewModel.toMap(loaded);
+    var restricted =
+        ClientWritableFields.restrict(
+            entityClass(), row, loaded, stored, getIdFieldForRow(), false, httpRequest);
+    var merged = new java.util.LinkedHashMap<String, Object>(stored);
+    merged.putAll(restricted);
+    var entity = (T) MateuInstanceFactory.newInstance(entityClass(), merged, httpRequest);
+    io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
+        entity, httpRequest, false);
+    OptimisticLock.check(entity, java.util.Optional.of(loaded), httpRequest);
     OptimisticLock.bump(entity);
     store().save(entity);
     return io.mateu.uidl.data.Message.success("Saved");

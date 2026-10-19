@@ -75,7 +75,7 @@ jobs:
     if: >-
       needs.changes.outputs.relevant == 'true' &&
       (github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v'))
-    timeout-minutes: 30
+    timeout-minutes: 50
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -93,9 +93,21 @@ jobs:
       - name: Install
         run: npm ci --ignore-scripts
         working-directory: doc
+      # Only once Maven Central SERVES it: a release is published minutes to hours before its
+      # artifacts reach Central, and a snippet naming a version Central does not have fails for
+      # everyone who copies it. Not served after the wait → no pin: the version plugin then shows
+      # Central's latest, and the "Point the examples at …" PR (a push to master touching doc/)
+      # redeploys the site once the release is there.
       - name: Pin the version shown in the snippets to the release being published
         if: github.event_name == 'release'
-        run: echo "MATEU_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          url="https://repo1.maven.org/maven2/io/mateu/mateu-bom/$V/mateu-bom-$V.pom"
+          for _ in $(seq 1 20); do   # up to ~20 minutes
+            if curl -fsSIL "$url" > /dev/null; then echo "MATEU_VERSION=$V" >> "$GITHUB_ENV"; exit 0; fi
+            sleep 60
+          done
+          echo "::warning::$V is not on Maven Central yet; the snippets show Central's latest release until the next deploy."
       - name: Build
         run: npm run build
         working-directory: doc

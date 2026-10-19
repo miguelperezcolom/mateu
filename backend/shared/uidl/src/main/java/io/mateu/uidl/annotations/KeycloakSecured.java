@@ -1,5 +1,6 @@
 package io.mateu.uidl.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -20,6 +21,7 @@ import java.lang.annotation.Target;
  *     io.mateu.uidl.security.PrincipalResolver} bean instead.
  */
 @Deprecated(since = "3.0-alpha.412", forRemoval = true)
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE}) // can use in method only.
 public @interface KeycloakSecured {

@@ -73,5 +73,13 @@ public record PageDto(
      * {@code "dashboard"} — inferred from the ModelView's shape unless declared with
      * {@code @PageTemplate}.
      */
-    String pageType)
+    String pageType,
+    /**
+     * {@code true} when {@link #title()} is DATA — a record's own {@code toString()} — rather than
+     * a string the developer declared ({@code @Title}, a {@code TitleSupplier}…): a renderer that
+     * renders declared titles as HTML must render this one as plain text, or anyone who can name a
+     * record plants markup (a tracking image, a phishing link) in the header of everyone who opens
+     * it. {@code null}/{@code false} = a declared title.
+     */
+    Boolean titleIsText)
     implements ComponentMetadataDto {}

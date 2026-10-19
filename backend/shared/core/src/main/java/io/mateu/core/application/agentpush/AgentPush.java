@@ -22,11 +22,22 @@ public final class AgentPush {
   /** Registered UI sessions, at most. */
   public static final String MAX_SESSIONS_PROPERTY = "mateu.mcp.push.max-sessions";
 
-  /** Registered UI sessions per owner (a principal, or an anonymous UI's client address). */
+  /** Registered UI sessions per signed-in user (the principal). */
   public static final String MAX_SESSIONS_PER_OWNER_PROPERTY =
       "mateu.mcp.push.max-sessions-per-owner";
 
+  /**
+   * Registered ANONYMOUS UI sessions per client address. The address is the one the host framework
+   * resolves — the socket peer, unless the app configured the framework's forwarded-header handling
+   * with its trusted proxies — so behind a reverse proxy without that, every anonymous UI shares
+   * the proxy's address: this limit is deliberately much higher than the per-user one, and an
+   * address the adapter cannot tell is not limited (only the global cap applies).
+   */
+  public static final String MAX_ANONYMOUS_SESSIONS_PER_ADDRESS_PROPERTY =
+      "mateu.mcp.push.max-anonymous-sessions-per-address";
+
   public static final int DEFAULT_MAX_SESSIONS_PER_OWNER = 20;
+  public static final int DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS = 200;
   public static final int DEFAULT_RATE_PER_MINUTE = 30;
   public static final int DEFAULT_MAX_SESSIONS = 1000;
 
@@ -103,6 +114,15 @@ public final class AgentPush {
    */
   public static int maxSessionsPerOwner() {
     return positive(MAX_SESSIONS_PER_OWNER_PROPERTY, DEFAULT_MAX_SESSIONS_PER_OWNER);
+  }
+
+  /**
+   * {@value #MAX_ANONYMOUS_SESSIONS_PER_ADDRESS_PROPERTY}, default {@value
+   * #DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS}.
+   */
+  public static int maxAnonymousSessionsPerAddress() {
+    return positive(
+        MAX_ANONYMOUS_SESSIONS_PER_ADDRESS_PROPERTY, DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS);
   }
 
   private static int positive(String key, int fallback) {

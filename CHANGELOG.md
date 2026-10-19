@@ -11,6 +11,53 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.6] — 2026-10-19
+
+Fixes from the second independent pre-GA review: agent-authored screens are untrusted everywhere, JSON-only request bodies, safer authoring actions, `update-row` and data titles hardened, release secrets scoped. Upgrade recommended.
+
+### Security
+- **A page title that is data renders as text.** A CRUD detail page (and any routed object) is
+  titled by the record's own `toString()`; the web header rendered it as HTML, so whoever could name
+  a record planted a tracking image or a phishing link in the header of everyone who opened it. Such
+  titles now travel marked `PageDto.titleIsText` (additive wire field; .NET `TitleIsText`, Python
+  `title_is_text`) and the web header renders them as text; declared titles (`@Title`, a
+  `TitleSupplier`) keep their markup. Redwood, React Native and IntelliJ already rendered titles as
+  text. (Java, .NET, Python, web renderer)
+- **Inline row editing (`update-row`) is guarded like the editor's save.** A `@ReadOnly` field keeps
+  the stored value, the row is laid over the stored record (its other fields survive), an id with no
+  stored record is refused instead of inserted, and only a crud with `@InlineEditing` (and
+  `canEdit()`) offers the action — every crud used to advertise and accept it. (Java, .NET, Python)
+- **Mateu's action endpoints accept only JSON bodies, on every adapter.** A `POST` to
+  `<baseUrl>/mateu/v3/**` (sync, SSE, YAML mounts) or `/mateu/mcp` whose `Content-Type` is not
+  `application/json` / `application/*+json` — `text/plain`, a form encoding, or none — answers 415.
+  Those are the requests a cross-site page can forge without a CORS preflight; before, Micronaut,
+  Quarkus and Helidon MP (and the MCP endpoint everywhere, and .NET/Python) ran them, so a
+  cookie-authenticated app was open to cross-site request forgery. (Java 5 adapters, .NET, Python)
+- **The reserved authoring actions are safe on the plain sync endpoint.** `__validate__` answers
+  only an MCP tool call, or an app running with `mateu.mcp.enabled=true` or in dev mode (403
+  otherwise; the sidecar's authoring tools need one of those). `__preview__` stays open — it is the
+  render target of the chat, live push and the visual editor — but every reserved action now answers
+  through the error boundary (a message + reference, never a raw 500), and every catalogue component
+  previews with nothing set: an absent child list or child is an empty one (`type: VerticalLayout`
+  alone used to be an anonymous, log-flooding 500). (Java, .NET, Python)
+- **`mateu_save_spec` (dev mode) saves only what a screen is made of.** A page, a layout envelope, a
+  partial or a business-component catalogue — never a sources / environment / routes / actions /
+  types / translations / mount / project definition, never a catalogue file name, and never a page
+  that references a `${secret.…}`, marks a request `proxy: true` or overrides the url / headers /
+  method / body of a source it names by `ref`. Before, an MCP caller in dev mode could re-point a
+  proxied source at its own server and have Mateu send it the secret. Refusals are logged at WARN.
+  (Java, .NET, Python, sidecar)
+- **Live UI push: anonymous UIs behind one address no longer lock each other out.** The per-owner
+  cap (`max-sessions-per-owner`, 20) is now a signed-in user's only; an anonymous UI counts on its
+  own, and anonymous sessions are capped per client address by the new, much higher
+  `mateu.mcp.push.max-anonymous-sessions-per-address` (200; .NET
+  `MateuOptions.McpPushMaxAnonymousSessionsPerAddress`, Python
+  `add_mateu(mcp_push_max_anonymous_sessions_per_address=…)`). Before, 20 open tabs behind a reverse
+  proxy without forwarded-header handling locked every other anonymous user out. The address is the
+  framework-resolved one (never a forwarded header Mateu reads itself — pinned on every adapter);
+  Helidon MP's JAX-RS leg now reports it too (it was null). Behind a proxy, configure the framework's
+  forwarded-header handling (documented per framework). (Java 5 adapters, .NET, Python)
+
 ## [3.0-beta.5] — 2026-10-19
 
 Live UI push: an MCP agent can show a screen, navigate or dispatch an event in an open tab or app, paired by a one-time code.

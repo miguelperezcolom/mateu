@@ -87,7 +87,7 @@ jobs:
       # projects. The starters themselves are checked above; this packages what only the generator
       # produces — the code + YAML flavour, the Empty sample, page templates, renamed packages — so a
       # starter change that breaks a generated project fails here, not in a user's IDE.
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - name: Generate projects with the New Project generator and package them
@@ -96,21 +96,21 @@ jobs:
           cd frontend/app/vscode-extension
           npm ci --ignore-scripts
           npm run compile
-          out=$RUNNER_TEMP/generated
+          out="$RUNNER_TEMP/generated"
           gen() { node scripts/new-project.mjs --version 0.0.1-MATEU --group com.acme "$@"; }
-          gen --authoring both --runtime spring-mvc --pages form,dashboard --artifact both-mvc --out $out/both-mvc
-          gen --authoring both --runtime quarkus --artifact both-quarkus --out $out/both-quarkus
-          gen --authoring code --runtime micronaut --sample empty --artifact empty-micronaut --out $out/empty-micronaut
-          gen --authoring code --runtime helidon-mp --sample empty --artifact empty-helidon --out $out/empty-helidon
-          gen --authoring code --runtime spring-webflux --sample empty --renderer redwood --artifact redwood-webflux --out $out/redwood-webflux
-          gen --authoring yaml --runtime spring-mvc --pages welcome,calendar --artifact yaml-pages --out $out/yaml-pages
-          gen --authoring static --artifact static-site --out $out/static-site
-          for d in $out/*; do
-            echo "::group::$(basename $d)"
-            (cd $d && mvn -B -q package -DskipTests)
+          gen --authoring both --runtime spring-mvc --pages form,dashboard --artifact both-mvc --out "$out/both-mvc"
+          gen --authoring both --runtime quarkus --artifact both-quarkus --out "$out/both-quarkus"
+          gen --authoring code --runtime micronaut --sample empty --artifact empty-micronaut --out "$out/empty-micronaut"
+          gen --authoring code --runtime helidon-mp --sample empty --artifact empty-helidon --out "$out/empty-helidon"
+          gen --authoring code --runtime spring-webflux --sample empty --renderer redwood --artifact redwood-webflux --out "$out/redwood-webflux"
+          gen --authoring yaml --runtime spring-mvc --pages welcome,calendar --artifact yaml-pages --out "$out/yaml-pages"
+          gen --authoring static --artifact static-site --out "$out/static-site"
+          for d in "$out"/*; do
+            echo "::group::$(basename "$d")"
+            (cd "$d" && mvn -B -q package -DskipTests)
             echo "::endgroup::"
           done
-          test -f $out/static-site/target/mateu-bundle/manifest.json
+          test -f "$out"/static-site/target/mateu-bundle/manifest.json
 
       # Demos: compile only (several talk to external services or need a frontend build to RUN).
       # -Dmateu.version overrides the release pinned by the "start here" demos, so they too are
