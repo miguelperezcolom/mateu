@@ -11,6 +11,41 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Security
+- **The JSON-body guard decides on the canonical path.** MVC, WebFlux and Quarkus hand the filter
+  the raw request URI while they route on the decoded one, so `POST /%6Dateu/mcp` or
+  `/mateu/mcp;x=1` with `text/plain` still ran JSON-RPC, and on Quarkus a YAML mount's sync/SSE
+  endpoints took a forged form post. The guard now matches the percent-decoded path without
+  `;parameters`, empty or dot segments, in any case; Spring's CSRF exemption is granted only when
+  the raw and the canonical path agree. (Java 5 adapters; .NET and Python check the matched
+  endpoint and were not affected — the same spellings are now pinned there.)
+- **A `Named` entity's `name()` is a data title.** It titled the page without `Templates.literal`
+  and without `titleIsText`, so a record name planted markup in the header and a `${…}` in it was
+  evaluated. It now renders as text, like a record's `toString()`. (Java)
+- **`mateu_save_spec` (dev mode) refuses a page that would run code in the browser** — what the
+  untrusted strip takes out of a pushed screen (`Element` `on…`/`import`/`srcdoc`/unsafe url
+  attributes, `html: true`, script-capable or `mateu-*` elements, `javascript:` urls, `RunJS`, an
+  action's `js`, a foreign `MicroFrontend`): a saved spec is served through the trusted render path.
+  YAML aliases are expanded before the check. Shared cases `conformance/mcp/save-spec-script.json`.
+  (Java, .NET, Python, sidecar)
+- `mateu_save_spec` reads `${ secret.KEY }` (spaces) as a secret reference, as the interpolator
+  does. (Java, .NET, Python)
+- `mateu_dispatch_event` refuses the framework's own event names (the list every renderer drops,
+  `conformance/client/agent-events.json`), so one renderer's filter defect is no bypass. (Java,
+  .NET, Python)
+
+### Fixed
+- A crafted `__preview__` — a `Partial` with no `ref`, list items written as `null` — or a non-map
+  `_editedRow` no longer logs an ERROR with a stack per request: null list items are dropped by the
+  YAML loader, a ref-less partial renders nothing (WARN), the `update-row` refusal is shown as
+  written. (Java, Python)
+
+### Documentation
+- `configuration.md`: `mateu.mcp.push.max-anonymous-sessions-per-address` and
+  `mateu.micronaut.replace-json-mapper`. Known issues: Micronaut and Quarkus REST are stricter than
+  the JSON-body rule. `SECURITY-DEPENDENCIES.md` re-checked over a full install (dead overrides
+  removed); Dependabot also tracks `/demo` and `/e2e/sut`.
+
 ## [3.0-beta.6] — 2026-10-19
 
 Fixes from the second independent pre-GA review: agent-authored screens are untrusted everywhere,
