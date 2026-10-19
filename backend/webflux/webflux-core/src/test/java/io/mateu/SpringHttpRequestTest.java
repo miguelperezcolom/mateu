@@ -83,6 +83,24 @@ class SpringHttpRequestTest {
   }
 
   @Test
+  void theRemoteAddressIsThePeersIpOrNothingWhenItIsUnknown() {
+    var known =
+        MockServerHttpRequest.get("/app")
+            .remoteAddress(new InetSocketAddress("192.168.1.7", 54321))
+            .build();
+    assertThat(new SpringHttpRequest(known).getRemoteAddress()).isEqualTo("192.168.1.7");
+
+    var noSocket = MockServerHttpRequest.get("/app").build();
+    assertThat(new SpringHttpRequest(noSocket).getRemoteAddress()).isNull();
+
+    var unresolved =
+        MockServerHttpRequest.get("/app")
+            .remoteAddress(InetSocketAddress.createUnresolved("peer.invalid", 54321))
+            .build();
+    assertThat(new SpringHttpRequest(unresolved).getRemoteAddress()).isNull();
+  }
+
+  @Test
   void anAbsentQueryParameterOrHeaderReadsAsNothing() {
     var request = new SpringHttpRequest(MockServerHttpRequest.get("/app?q=1").build());
     assertThat(request.getParameterValue("q")).isEqualTo("1");
