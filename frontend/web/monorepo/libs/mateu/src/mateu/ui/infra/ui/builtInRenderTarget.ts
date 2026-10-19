@@ -29,6 +29,7 @@ import {
 
 interface ContentView extends HTMLElement {
     id: string
+    fragment?: UIFragment
     baseUrl?: string
     route?: string
     consumedRoute?: string
@@ -117,6 +118,33 @@ export function overlayOf(request: RenderScreenRequest, content: Component, stat
     } as unknown as Component
 }
 
+/** The id of the wrapper that holds a transient screen and an overlay opened over it. */
+export const GENERATED_HOST_ID = 'mateu-generated-host'
+
+/**
+ * The content area's fragment with an overlay over its screen: a plain Div holding the screen on
+ * show (unwrapped first, when it is already such a host) and the overlay — a newer overlay replaces
+ * the previous one, as on a page.
+ */
+export function withOverlay(current: UIFragment, overlay: Component): UIFragment {
+    const shown = current.component!
+    const screen = shown.id === GENERATED_HOST_ID ? (shown.children ?? [])[0] : shown
+    return {
+        ...current,
+        component: {
+            type: ComponentType.ClientSide,
+            id: GENERATED_HOST_ID,
+            metadata: { type: ComponentMetadataType.Div },
+            children: screen ? [screen, overlay] : [overlay],
+            style: '',
+            cssClasses: '',
+            slot: '',
+            initialData: undefined,
+            confirmOnNavigationIfDirty: false,
+        } as unknown as Component,
+    }
+}
+
 async function previewFragment(view: ContentView, request: RenderScreenRequest): Promise<UIFragment> {
     const baseUrl = view.baseUrl ?? ''
     const expandLocally = (): UIFragment | undefined => {
@@ -153,15 +181,20 @@ export async function renderScreenInShell(origin: Element, request: RenderScreen
     const page = request.target === 'content'
         ? null
         : (view.shadowRoot ?? view).querySelector('mateu-component') as OverlayHost | null
+    const overlay = () => overlayOf(request, fragment.component!, fragment.state as Record<string, unknown> | undefined)
     if (page && typeof page.applyFragment === 'function') {
         page.applyFragment({
             targetComponentId: page.id,
-            component: overlayOf(request, fragment.component!, fragment.state as Record<string, unknown> | undefined),
+            component: overlay(),
             state: undefined,
             data: undefined,
             action: UIFragmentAction.Add,
             containerId: undefined,
         })
+    } else if (request.target !== 'content' && view.fragment?.component) {
+        // no page to open it over, but the content area shows something (a generated screen shown
+        // there before has no mateu-component of its own): open the overlay over THAT, not instead
+        view.showTransient(withOverlay(view.fragment, overlay()))
     } else {
         view.showTransient(fragment)
     }
