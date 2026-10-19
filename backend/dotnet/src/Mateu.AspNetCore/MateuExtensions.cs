@@ -76,6 +76,9 @@ public static class MateuExtensions
                     : null)
             {
                 MockSources = options.MockSources,
+                // the sidecar's authoring tools call __validate__ over the sync endpoint of an
+                // MCP-enabled app; otherwise it answers only MCP tool calls and dev mode
+                AuthoringOpen = options.Mcp ?? MateuOptions.McpEnabledByEnvironment(),
                 AgentPush = agentSessions,
                 Principal = () => accessor.HttpContext is { } ctx ? PrincipalName(ctx) : null,
                 ClientAddress = () => accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),

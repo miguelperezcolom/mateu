@@ -27,7 +27,7 @@ public class AccordionLayoutMapper {
     return new ClientSideComponentDto(
         metadataDto,
         accordionLayout.id(),
-        accordionLayout.panels().stream()
+        Children.orEmpty(accordionLayout.panels()).stream()
             .map(
                 tab ->
                     mapComponentToDto(

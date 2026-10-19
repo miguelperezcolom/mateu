@@ -24,7 +24,7 @@ public class FullWidthMapper {
         List.of(
             mapComponentToDto(
                 null,
-                fullWidth.content(),
+                Children.orEmptySlot(fullWidth.content()),
                 baseUrl,
                 route,
                 consumedRoute,

@@ -223,11 +223,30 @@ def test_validate_and_preview_over_http(client):
 # ── __validate__ ────────────────────────────────────────────────────────────────────────────
 
 
-def test_the_validate_action_answers_the_report_on_app_data():
+def test_the_validate_action_answers_the_report_on_app_data(monkeypatch):
+    # outside an MCP tool call it answers only an app with MCP enabled or in dev mode (NM2)
+    monkeypatch.setenv("MATEU_MCP_ENABLED", "true")
     wire = sync_fn("", "__validate__", None, {"_yaml": "foo: bar\n"})
     assert wire["appData"]["_validation"]["errors"][0]["code"] == "unknown_kind"
     empty = sync_fn("", "__validate__", None, None)
     assert empty["appData"]["_validation"]["errors"][0]["code"] == "empty"
+
+
+def test_the_validate_action_is_refused_on_the_plain_sync_endpoint_when_mcp_and_dev_are_off(monkeypatch):
+    monkeypatch.delenv("MATEU_MCP_ENABLED", raising=False)
+    monkeypatch.delenv("MATEU_DEV", raising=False)
+    from mateu_ui.core.action_guard import MateuForbiddenException
+
+    with pytest.raises(MateuForbiddenException):
+        sync_fn("", "__validate__", None, {"_yaml": "foo: bar\n"})
+    # ...an MCP tool call is served (the endpoint marks its runs)
+    result = call("mateu_validate_uidl", {"yaml": "foo: bar\n"})
+    assert "unknown_kind" in text_of(result)
+    # ...and so is an app that exposes its authoring plane
+    h = handler()
+    h.authoring_open = True
+    rq = RunActionRq(action_id="__validate__", parameters={"_yaml": "foo: bar\n"})
+    assert h.handle(rq).app_data["_validation"]["errors"][0]["code"] == "unknown_kind"
 
 
 GANTT_WITH_A_BAD_DATE = (

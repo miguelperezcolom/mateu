@@ -223,6 +223,8 @@ def add_mateu(
     )
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
+    # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app
+    handler.authoring_open = bool(mcp_on)
     push_on = mcp_push_enabled_from_env() if mcp_push is None else mcp_push
     if push_on and not mcp_on:
         log.warning("Mateu: live UI push needs the MCP endpoint (mcp=True / MATEU_MCP_ENABLED); it stays off")

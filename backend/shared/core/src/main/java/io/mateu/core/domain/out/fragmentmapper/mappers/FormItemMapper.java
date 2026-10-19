@@ -20,7 +20,7 @@ public class FormItemMapper {
     return new ClientSideComponentDto(
         metadataDto,
         formItem.id(),
-        formItem.content().stream()
+        Children.orEmpty(formItem.content()).stream()
             .map(
                 content ->
                     mapComponentToDto(

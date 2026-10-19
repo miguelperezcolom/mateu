@@ -37,6 +37,7 @@ public class McpAuthoringTests
     }
 
     static readonly SyncHandler Handler = new(new MateuRegistry(typeof(AuthoringHome).Assembly));
+    static readonly SyncHandler AuthoringHandler = new(new MateuRegistry(typeof(AuthoringHome).Assembly)) { AuthoringOpen = true };
 
     static McpService Service() => new(Handler, Json);
 
@@ -227,10 +228,30 @@ public class McpAuthoringTests
 
     // ── validate / preview over the app ──────────────────────────────────────────────────────
 
+    // NM2: on the plain sync endpoint __validate__ answers only an app that exposes its authoring
+    // plane (the MCP endpoint on) or runs in dev mode; an MCP tool call is always served.
+    [Fact]
+    public void Validate_is_refused_on_the_plain_sync_endpoint_unless_the_authoring_plane_is_open()
+    {
+        var rq = new Mateu.Dtos.RunActionRqDto
+        {
+            Route = "", ActionId = "__validate__",
+            Parameters = new Dictionary<string, object?> { ["_yaml"] = JsonSerializer.SerializeToElement("foo: bar\n") },
+        };
+        var closed = new SyncHandler(new MateuRegistry(typeof(AuthoringHome).Assembly));
+        Assert.Throws<MateuForbiddenException>(() => closed.Handle(rq));
+        // an MCP tool call is served
+        var (isError, _) = Tool(new McpService(closed, Json), "mateu_validate_uidl", new JsonObject { ["yaml"] = "type: Routes\n" });
+        Assert.False(isError);
+        // ...and so is an app with its authoring plane open
+        var open = new SyncHandler(new MateuRegistry(typeof(AuthoringHome).Assembly)) { AuthoringOpen = true };
+        Assert.NotNull(open.Handle(rq).AppData);
+    }
+
     [Fact]
     public void Validate_goes_through_the_reserved_action_and_answers_the_report()
     {
-        var increment = Handler.Handle(new Mateu.Dtos.RunActionRqDto
+        var increment = AuthoringHandler.Handle(new Mateu.Dtos.RunActionRqDto
         {
             Route = "", ActionId = "__validate__",
             Parameters = new Dictionary<string, object?> { ["_yaml"] = JsonSerializer.SerializeToElement("foo: bar\n") },

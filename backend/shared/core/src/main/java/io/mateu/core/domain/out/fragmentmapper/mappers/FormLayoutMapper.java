@@ -34,7 +34,7 @@ public class FormLayoutMapper {
     return new ClientSideComponentDto(
         metadataDto,
         formLayout.id(),
-        formLayout.content().stream()
+        Children.orEmpty(formLayout.content()).stream()
             .map(
                 content ->
                     mapComponentToDto(

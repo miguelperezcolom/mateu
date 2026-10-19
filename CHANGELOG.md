@@ -18,6 +18,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Those are the requests a cross-site page can forge without a CORS preflight; before, Micronaut,
   Quarkus and Helidon MP (and the MCP endpoint everywhere, and .NET/Python) ran them, so a
   cookie-authenticated app was open to cross-site request forgery. (Java 5 adapters, .NET, Python)
+- **The reserved authoring actions are safe on the plain sync endpoint.** `__validate__` answers
+  only an MCP tool call, or an app running with `mateu.mcp.enabled=true` or in dev mode (403
+  otherwise; the sidecar's authoring tools need one of those). `__preview__` stays open — it is the
+  render target of the chat, live push and the visual editor — but every reserved action now answers
+  through the error boundary (a message + reference, never a raw 500), and every catalogue component
+  previews with nothing set: an absent child list or child is an empty one (`type: VerticalLayout`
+  alone used to be an anonymous, log-flooding 500). (Java, .NET, Python)
 
 ## [3.0-beta.5] — 2026-10-19
 

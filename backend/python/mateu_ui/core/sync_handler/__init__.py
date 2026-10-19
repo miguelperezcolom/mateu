@@ -190,6 +190,10 @@ class SyncHandler(
         field_types: FieldTypeRegistry | None = None,
     ):
         self.registry = registry
+        #: Whether the app exposes its authoring plane (the MCP endpoint is on): the reserved
+        #: __validate__ action is then served on the plain sync endpoint too (the sidecar calls it
+        #: there); otherwise only to an MCP tool call or in dev mode (mateu_ui.core.authoring_gate).
+        self.authoring_open = False
         #: Upper bound for a proxied (__restfetch__) upstream call.
         self.proxy_timeout_seconds = proxy_timeout_seconds
         #: The REST source catalogue: @rest_source on the registered classes + the

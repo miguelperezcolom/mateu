@@ -19,7 +19,7 @@ public class FormSectionMapper {
     return new ClientSideComponentDto(
         new FormSectionDto(formSection.title()),
         "fieldId",
-        formSection.content().stream()
+        Children.orEmpty(formSection.content()).stream()
             .map(
                 content ->
                     mapComponentToDto(

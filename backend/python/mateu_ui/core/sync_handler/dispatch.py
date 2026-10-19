@@ -154,6 +154,14 @@ class DispatchMixin(MixinBase):
         # 0c'. Authoring validation: the report of arbitrary YAML text (parameters._yaml) on
         # appData._validation — the MCP authoring tools' validator (mirrors Java's __validate__).
         if rq.action_id == "__validate__":
+            from ..action_guard import MateuForbiddenException
+            from ..authoring_gate import validation_served
+
+            if not validation_served(getattr(self, "authoring_open", False)):
+                raise MateuForbiddenException(
+                    "__validate__ is served only to MCP callers, or with the MCP endpoint enabled "
+                    "or in dev mode"
+                )
             return self._validate_response(rq.parameters.get("_yaml"))
 
         # 0c''. Live UI push: the UI side of the agent channel — app-level, answered whatever the

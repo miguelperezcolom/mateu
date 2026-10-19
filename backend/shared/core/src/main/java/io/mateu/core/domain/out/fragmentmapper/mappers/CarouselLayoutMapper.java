@@ -40,7 +40,7 @@ public class CarouselLayoutMapper {
     return new ClientSideComponentDto(
         metadataDto,
         carouselLayout.id(),
-        carouselLayout.content().stream()
+        Children.orEmpty(carouselLayout.content()).stream()
             .map(
                 content ->
                     mapComponentToDto(

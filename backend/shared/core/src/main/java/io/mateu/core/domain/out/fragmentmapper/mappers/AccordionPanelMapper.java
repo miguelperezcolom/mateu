@@ -29,7 +29,7 @@ public class AccordionPanelMapper {
         List.of(
             mapComponentToDto(
                 null,
-                panel.content(),
+                Children.orEmptySlot(panel.content()),
                 baseUrl,
                 route,
                 consumedRoute,

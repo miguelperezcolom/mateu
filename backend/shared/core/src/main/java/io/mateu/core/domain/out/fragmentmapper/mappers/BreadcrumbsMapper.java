@@ -12,7 +12,7 @@ public class BreadcrumbsMapper {
     return new ClientSideComponentDto(
         new BreadcrumbsDto(
             breadcrumbs.currentItemText(),
-            breadcrumbs.breadcrumbs().stream()
+            Children.orEmpty(breadcrumbs.breadcrumbs()).stream()
                 .map(breadcrumb -> new BreadcrumbDto(breadcrumb.text(), breadcrumb.link()))
                 .toList()),
         "fieldId",

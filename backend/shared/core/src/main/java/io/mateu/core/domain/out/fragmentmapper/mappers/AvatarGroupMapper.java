@@ -11,7 +11,7 @@ public class AvatarGroupMapper {
   public static ClientSideComponentDto mapAvatarGroupToDto(AvatarGroup avatarGroup) {
     return new ClientSideComponentDto(
         new AvatarGroupDto(
-            avatarGroup.avatars().stream()
+            Children.orEmpty(avatarGroup.avatars()).stream()
                 .map(avatar -> new AvatarDto(avatar.name(), avatar.abbreviation(), avatar.image()))
                 .toList(),
             avatarGroup.maxItemsVisible()),

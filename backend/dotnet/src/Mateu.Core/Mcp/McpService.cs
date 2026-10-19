@@ -153,7 +153,17 @@ internal sealed class McpService
         UIIncrementDto increment;
         try
         {
-            increment = _run is not null ? _run(rq) : _handler.Handle(rq, _requestBaseUrl);
+            // an MCP tool call: the reserved __validate__ is served to these (SyncHandler.ValidationServed)
+            var outer = SyncHandler.InMcpCall.Value;
+            SyncHandler.InMcpCall.Value = true;
+            try
+            {
+                increment = _run is not null ? _run(rq) : _handler.Handle(rq, _requestBaseUrl);
+            }
+            finally
+            {
+                SyncHandler.InMcpCall.Value = outer;
+            }
         }
         catch (Exception e) when (IsForbidden(e))
         {

@@ -47,7 +47,7 @@ public class HorizontalLayoutMapper {
         metadataDto,
         horizontalLayout.id(),
         applyFlowGrows(
-            horizontalLayout.content().stream()
+            Children.orEmpty(horizontalLayout.content()).stream()
                 .map(
                     content ->
                         mapComponentToDto(

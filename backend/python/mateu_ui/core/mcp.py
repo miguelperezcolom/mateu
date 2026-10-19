@@ -554,7 +554,16 @@ def _save_spec(args, sync_fn):
 
 def dispatch_tool(name, args, sync_fn, push=None):
     """Run a tool. ``sync_fn(route, action_id, component_state, parameters) -> increment dict``;
-    ``push`` (an ``agent_push.PushContext``, None = push off) serves the live UI push tools."""
+    ``push`` (an ``agent_push.PushContext``, None = push off) serves the live UI push tools. The
+    runs inside are marked as an MCP tool call (``__validate__`` answers only those, or an app with
+    its authoring plane open — :mod:`mateu_ui.core.authoring_gate`)."""
+    from mateu_ui.core.authoring_gate import mcp_call
+
+    with mcp_call():
+        return _dispatch_tool(name, args, sync_fn, push)
+
+
+def _dispatch_tool(name, args, sync_fn, push=None):
     args = args if isinstance(args, dict) else {}
     if name in _PUSH_TOOL_NAMES and push is not None:
         from mateu_ui.core import agent_push

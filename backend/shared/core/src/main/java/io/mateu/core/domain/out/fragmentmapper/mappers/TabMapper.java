@@ -31,7 +31,7 @@ public class TabMapper {
         List.of(
             mapComponentToDto(
                 null,
-                tab.content(),
+                Children.orEmptySlot(tab.content()),
                 baseUrl,
                 route,
                 consumedRoute,
