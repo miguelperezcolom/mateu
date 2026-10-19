@@ -11,6 +11,7 @@
 
 import { chromeText } from './i18n.mjs'
 import { busSubscribersOf, callMateu } from './transport.mjs'
+import { neutralizeUntrusted } from './untrusted.mjs'
 
 /** Recognises a `data:` payload that is a token-usage object ({inputTokens|outputTokens|totalTokens}). */
 export function tryParseTokenUsage(payload) {
@@ -800,6 +801,9 @@ export const CHAT_RENDER_SCREEN = 'render-screen'
 /** The reserved sync action that turns a definition into a normal UI increment. */
 export const CHAT_PREVIEW_ACTION = '__preview__'
 export const CHAT_PREVIEW_YAML_KEY = '_yaml'
+/** Marks the preview as rendering an UNTRUSTED (agent-authored) definition: the backend strips what
+ *  could run script (conformance/untrusted). The visual editor's preview does not send it. */
+export const CHAT_PREVIEW_UNTRUSTED_KEY = '_untrusted'
 /** The pseudo action id the content page runs a ready-made preview increment under. */
 export const CHAT_PREVIEW_PAINT_ACTION = '__chatPreview__'
 const CHAT_RENDER_TARGETS = ['content', 'drawer', 'dialog']
@@ -881,7 +885,7 @@ export function chatPreviewBodyOf(route, request) {
     consumedRoute: r,
     actionId: CHAT_PREVIEW_ACTION,
     componentState: {},
-    parameters: { [CHAT_PREVIEW_YAML_KEY]: request.yaml },
+    parameters: { [CHAT_PREVIEW_YAML_KEY]: request.yaml, [CHAT_PREVIEW_UNTRUSTED_KEY]: true },
     serverSideType: undefined,
     initiatorComponentId: '',
   }
@@ -894,9 +898,11 @@ export function chatPreviewBodyOf(route, request) {
  *             the real screen again);
  *   drawer / dialog → an Add of a Drawer / Dialog overlay whose content it is, `title` in its header
  *             — exactly what a server answering a Drawer/Dialog sends, so the usual overlay paints it.
- * The answer's commands and messages travel with it.
+ * The answer's commands and messages travel with it — all of it UNTRUSTED (neutralizeUntrusted).
  */
-export function chatPreviewIncrementOf(increment, request, route = '') {
+export function chatPreviewIncrementOf(answer, request, route = '') {
+  // an agent wrote it: nothing in it may run script in this tab, whatever the backend sent (untrusted.mjs)
+  const increment = answer ? neutralizeUntrusted(answer) : answer
   const fragment = ((increment && increment.fragments) || []).find((f) => f && f.component)
   if (!fragment) return null
   const target = (request && request.target) || 'content'

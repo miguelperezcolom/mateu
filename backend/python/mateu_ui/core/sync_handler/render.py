@@ -47,7 +47,11 @@ class RenderHandlerMixin(MixinBase):
             tree = built or fluent.Text(
                 text=f"Invalid YAML — {problem}" if problem else "Invalid or empty YAML", style="color: red;"
             )
-        return self.fragment_response("Preview", self.mapper.map_component(tree), rq)
+        increment = self.fragment_response("Preview", self.mapper.map_component(tree), rq)
+        # an agent's definition (render-screen, a live push): nothing in it may run script in the tab
+        from mateu_ui.core import untrusted
+
+        return untrusted.neutralize_increment(increment) if untrusted.requested(rq.parameters) else increment
 
     # ── Authoring validation (Java's __validate__) ─────────────────────────────
     def _validate_response(self, yaml_text) -> UIIncrement:

@@ -334,7 +334,19 @@ internal static class YamlComponentBuilder
         if (raw is IDictionary<object, object> dict)
         {
             if (t.IsGenericType && t.GetGenericArguments().Length == 2)
-                return dict.Where(x => x.Key is string).ToDictionary(x => (string)x.Key, x => (object?)x.Value);
+            {
+                // a map of the declared VALUE type: an Element's attributes/on are string → string,
+                // and a Dictionary<string, object?> handed to them made the whole record unbindable
+                // ("Unsupported component: Element")
+                var valueType = t.GetGenericArguments()[1];
+                if (valueType == typeof(object))
+                    return dict.Where(x => x.Key is string).ToDictionary(x => (string)x.Key, x => (object?)x.Value);
+                var typed = (System.Collections.IDictionary)Activator.CreateInstance(
+                    typeof(Dictionary<,>).MakeGenericType(typeof(string), valueType))!;
+                foreach (var x in dict.Where(x => x.Key is string))
+                    if (Convert(valueType, x.Value, partials, chain) is { } v) typed[(string)x.Key] = v;
+                return typed;
+            }
             return t.IsClass ? ObjectOf(t, dict, partials, chain) : null;
         }
         var elem = t.IsArray ? t.GetElementType()

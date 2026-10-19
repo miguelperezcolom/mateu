@@ -585,7 +585,8 @@ export function previewActionOf(req: RenderScreenRequest, currentRoute: string) 
     serverSideType: null,
     initiatorComponentId: 'chat-render-screen',
     componentState: {},
-    parameters: { _yaml: req.yaml },
+    // an agent wrote it: the backend strips everything script-capable (conformance/untrusted)
+    parameters: { _yaml: req.yaml, _untrusted: true },
   };
 }
 

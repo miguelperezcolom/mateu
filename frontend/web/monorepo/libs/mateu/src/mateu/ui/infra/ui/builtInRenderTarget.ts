@@ -8,6 +8,7 @@ import { isStaticBundleUrl } from '@infra/http/bundleStore'
 import { expandDefinition } from '@infra/expander/expandDefinition'
 import { chromeText } from '@infra/ui/chromeTexts'
 import { announce } from '@infra/a11y/announcer'
+import { neutralizeUntrusted } from '@infra/ui/untrustedDefinition'
 import {
     jsonDefinitionOf,
     PREVIEW_ACTION,
@@ -145,7 +146,16 @@ export function withOverlay(current: UIFragment, overlay: Component): UIFragment
     }
 }
 
+/**
+ * The screen to show, UNTRUSTED: an agent wrote it, so nothing in it may run script in this tab
+ * (see untrustedDefinition.ts). The backend already strips it (`_untrusted` on `__preview__`); the
+ * browser applies the same rules again, for the JSON it expands itself and for an older backend.
+ */
 async function previewFragment(view: ContentView, request: RenderScreenRequest): Promise<UIFragment> {
+    return neutralizeUntrusted(await untrustedFragment(view, request))
+}
+
+async function untrustedFragment(view: ContentView, request: RenderScreenRequest): Promise<UIFragment> {
     const baseUrl = view.baseUrl ?? ''
     const expandLocally = (): UIFragment | undefined => {
         const json = jsonDefinitionOf(request)

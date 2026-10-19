@@ -270,7 +270,13 @@ public class RunActionUseCase {
       return mapToUiIncrement(Text.builder().text(text).style("color: red;").build(), command)
           .flux();
     }
-    return mapToUiIncrement(component, command).flux();
+    var increment = mapToUiIncrement(component, command);
+    // an agent's definition (render-screen, a live push): nothing in it may run script in the tab
+    return (UntrustedDefinition.requested(parameters)
+            ? increment.map(
+                dto -> UntrustedDefinition.neutralize(dto, io.mateu.core.infra.WireMapper.shared()))
+            : increment)
+        .flux();
   }
 
   // Validates arbitrary YAML definition TEXT (parameters._yaml) against the generated schema and

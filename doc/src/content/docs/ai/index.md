@@ -345,6 +345,27 @@ component types (a `ServerSideComponent` naming a class) are not authorable, so 
 smuggle in an island bound to a view model. Whatever the rendered screen does afterwards — its
 buttons, its REST sources — goes through the same checks as any other request.
 
+**An agent's screen is untrusted, and runs no code.** An LLM can be steered by the data it reads
+(prompt injection), so pairing an agent grants "drive my UI" — navigate, fill, click, which the user
+could do anyway — never "run code in my signed-in tab". Every shell renders an agent's screen
+(`render-screen` from the chat or from a live push) through `__preview__` with `_untrusted: true`,
+and the backend — Java, .NET and Python alike — takes out of it everything that could run script:
+
+- an `Element` keeps no event-handler attribute (`on…`), no `srcdoc`, no `import` module and no
+  unsafe URL attribute (only relative, `http(s):`, `mailto:` and `tel:` links); its content is shown
+  as text (`html: false`); an element that loads or runs code (`script`, `iframe`, `object`, `embed`,
+  `style`, `base`, `link`, `meta`, `template`, …) or a framework element (`mateu-*`) becomes an empty
+  `div`. Its `on:` events still run the screen's own actions, like a button;
+- `RunJS` rules, an action's `js` and `AddContentToHead` / `AddContentToBody` commands are dropped;
+- a `javascript:` / `vbscript:` URL anywhere is blanked;
+- a `MicroFrontend` does not load from another server (an absolute `baseUrl` is dropped).
+
+Everything else renders as authored. The web renderers (Vaadin and Redwood) apply the same rules
+again in the browser — a static bundle expands a JSON screen locally, and an older backend ignores
+the flag. The rules are pinned by one set of cases, `conformance/untrusted/cases.json`, run by every
+implementation. The visual editor's preview — your own YAML — does not send the flag and renders as
+written.
+
 ### The event catalogue
 
 Every renderer reads the stream the same way and handles the same events:

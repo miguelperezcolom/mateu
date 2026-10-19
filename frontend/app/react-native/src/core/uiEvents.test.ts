@@ -37,7 +37,7 @@ test('render-screen: a subscriber first, else __preview__ on the current route, 
       serverSideType: null,
       initiatorComponentId: 'chat-render-screen',
       componentState: {},
-      parameters: { _yaml: 'type: Text\n' },
+      parameters: { _yaml: 'type: Text\n', _untrusted: true },
       appState: {},
     },
   ]);

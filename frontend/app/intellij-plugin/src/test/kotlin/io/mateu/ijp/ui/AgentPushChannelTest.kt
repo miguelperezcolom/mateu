@@ -118,6 +118,7 @@ class AgentPushChannelTest : TestCase() {
         val preview = syncBodies.single()
         assertEquals("__preview__", preview.path("actionId").asText())
         assertEquals("type: Page", preview.path("parameters").path("_yaml").asText())
+        assertEquals("an agent's screen is untrusted", true, preview.path("parameters").path("_untrusted").asBoolean())
         assertEquals("/app/home", preview.path("route").asText())
         assertEquals("Draft", previews.single().first)
         assertEquals(listOf(listOf("Orders", "/orders/42", "", "", "")), opened)

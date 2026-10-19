@@ -92,6 +92,7 @@ class ChatPanelTest : TestCase() {
         val preview = syncBodies.single()
         assertEquals("__preview__", preview.path("actionId").asText())
         assertEquals("type: Page", preview.path("parameters").path("_yaml").asText())
+        assertEquals("an agent's screen is untrusted", true, preview.path("parameters").path("_untrusted").asBoolean())
         assertFalse(preview.has("serverSideType"))
         assertEquals("Draft", previews.single().first)
         assertEquals(7, bus.single()!!.path("id").asInt())
