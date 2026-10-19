@@ -218,7 +218,8 @@ export class EditorCanvas extends LitElement {
     private settleHighlight() {
         this.settleTimers.forEach((t) => window.clearTimeout(t))
         requestAnimationFrame(() => { this.applyHighlight(); this.reveal() })
-        this.settleTimers = [80, 250, 600, 1200].map((ms) => window.setTimeout(() => { this.applyHighlight(); this.reveal() }, ms))
+        // a pass that fires after the canvas left the page (or its document was torn down) has nothing to outline
+        this.settleTimers = [80, 250, 600, 1200].map((ms) => window.setTimeout(() => { if (!this.isConnected) return; this.applyHighlight(); this.reveal() }, ms))
     }
 
     /**
@@ -734,7 +735,8 @@ function samePath(a: NodePath, b: NodePath): boolean {
  * `data-node-id` (every painted component), else the one whose DOM id it is.
  */
 function deepQueryById(root: Element | undefined, id: string): HTMLElement | null {
-    return deepQuery(root, `[data-node-id="${CSS.escape(id)}"]`) ?? deepQuery(root, `#${CSS.escape(id)}`)
+    const escape = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape : (v: string) => v.replace(/[^a-zA-Z0-9_-]/g, (c) => '\\' + c)
+    return deepQuery(root, `[data-node-id="${escape(id)}"]`) ?? deepQuery(root, `#${escape(id)}`)
 }
 
 function deepQuery(root: Element | undefined, selector: string): HTMLElement | null {
