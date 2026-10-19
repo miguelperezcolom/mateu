@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
 import { BackHandler, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -765,6 +765,17 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   };
   // each tab's "back to my own screen", called when the ACTIVE tab is pressed again
   const tabRoots = React.useRef<Record<number, () => void>>({});
+  // TABS: the navigator (a navigation to a tab's own route selects that tab, like tapping it) and a
+  // destination waiting for the live tab's screen to be back (a preview replaced it: its opener is
+  // the unmounted screen's until the real one mounts again)
+  const tabsNav = React.useRef(createNavigationContainerRef<Record<string, undefined>>()).current;
+  const pendingTabView = React.useRef<NavTarget | null>(null);
+  React.useEffect(() => {
+    if (preview || !pendingTabView.current) return;
+    const target = pendingTabView.current;
+    pendingTabView.current = null;
+    session.openView(target);
+  }, [preview, session]);
 
   // A menu leaf with rules RUNS them: a RunAction naming a flow the shell declares applies its
   // lowered commands here (no server round-trip); any other id is an app-level server action.
@@ -781,9 +792,22 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     }
     const target = { route: nav.route, consumedRoute: nav.consumedRoute, serverSideType: nav.serverSideType ?? '', baseUrl: nav.baseUrl && nav.baseUrl !== session.api.baseUrl ? nav.baseUrl : undefined };
     if (variant === 'TABS' && menuItems.length > 0) {
-      // tabs keep their own screens: the destination opens on the live tab's stack
-      setPreview(null);
-      session.openView({ label: '', ...target });
+      const tab = menuItems.findIndex((item) => isCurrentDestination(item, target.route));
+      if (tab >= 0 && tabsNav.isReady()) {
+        // a tab's own route: select it (and show its own screen), exactly what tapping it does
+        setPreview(null);
+        tabRoots.current[tab]?.();
+        tabsNav.navigate(menuItems[tab].label ?? `Tab${tab}`);
+        return;
+      }
+      // tabs keep their own screens: the destination opens on the live tab's stack — once that
+      // screen is back, when a preview was covering it
+      if (preview) {
+        pendingTabView.current = { label: '', ...target };
+        setPreview(null);
+      } else {
+        session.openView({ label: '', ...target });
+      }
     } else {
       setCurrentNav(target);
     }
@@ -913,7 +937,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   if (variant === 'TABS' && menuItems.length > 0) {
     return guard(
-      <NavigationContainer theme={navTheme}>
+      <NavigationContainer theme={navTheme} ref={tabsNav}>
         <Tab.Navigator screenOptions={{ headerShown: false }}>
           {menuItems.map((item, i) => (
             <Tab.Screen

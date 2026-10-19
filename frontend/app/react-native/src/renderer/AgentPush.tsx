@@ -11,6 +11,8 @@ import { isDev } from '../api/MateuApiClient';
 /** What live UI push reads off the app metadata (`AppDto.agentPush`). */
 export interface AgentPushMeta extends AgentAppMeta {
   agentPush?: boolean;
+  /** Where the app opens: the route the session registers with before a screen is on show. */
+  homeRoute?: string;
 }
 
 /**
@@ -30,12 +32,14 @@ export function useAgentChannel(meta: AgentPushMeta) {
       state: session.agent,
       request: () =>
         agentActionRequest(meta, AGENT_CHANNEL_ACTION, session.agent.session, session.appState, {
-          route: session.currentScreen()?.route ?? '',
+          route: session.currentScreen()?.route ?? meta.homeRoute ?? meta.rootRoute ?? '',
           renderer: AGENT_RENDERER,
         }),
       open: (request, onIncrement, signal) => session.api.runActionStream(request, onIncrement, signal),
       onEvent: (event) => {
-        applyUiEvent(session, event);
+        const outcome = applyUiEvent(session, event);
+        // development builds say what each pushed message did (what rn-agent-push-probe.mjs reads)
+        if (isDev()) console.log(`[Mateu] agent push: ${event.event} → ${outcome}`);
         if (event.event === 'render-screen') announceLive('Your AI agent sent a screen', false);
       },
       onAnnounce: (text) => announceLive(text, false),
