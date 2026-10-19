@@ -11,6 +11,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+- **SBOMs on every release.** The release workflow attaches CycloneDX (JSON) SBOMs to the GitHub
+  release: the Maven artifacts, the web renderer's production npm dependencies, the Python wheel and
+  the .NET packages (`scripts/release-sboms.sh`; nothing is added to a normal build).
+- Docs: [Support policy](https://mateu.io/reference/support-policy/) (which versions get fixes, the
+  supported Java / .NET / Python / framework / IDE versions) and
+  [Known issues](https://mateu.io/reference/known-issues/) (current limitations with workarounds).
+
 ### Changed
 - **The 3.x public API is frozen, and the build enforces it.** The Java compatibility check (japicmp,
   baseline `3.0-beta.1`) is now blocking by default for `mateu-uidl` and the archetypes of

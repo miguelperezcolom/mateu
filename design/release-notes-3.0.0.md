@@ -40,6 +40,9 @@ extension, the visual editor.
 
 ## Known edges (honest)
 
+The maintained list, each item with its workaround, is
+[Known issues](https://mateu.io/reference/known-issues/); copy the items still open at GA here.
+
 - **Multi-value `optionsSource`** resolves on single-select fields; the one-to-many case
   (`multiSelect`/`listBox`/`combobox`) is deferred (see the parity matrix, "Fetch-plan edges").
 - **VB/Redwood** resolves REST sources ref-native, not via the shared catalogue (by design).
