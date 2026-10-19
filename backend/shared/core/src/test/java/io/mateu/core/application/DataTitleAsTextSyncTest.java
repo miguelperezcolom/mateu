@@ -90,6 +90,22 @@ class DataTitleAsTextSyncTest {
     }
   }
 
+  /** A record titled through {@code Named} — the documented way to name one — is data too. */
+  @UI("/data-title-named")
+  public static class NamedEntity implements io.mateu.uidl.interfaces.Named {
+    public String code = "P-005";
+
+    @Override
+    public String id() {
+      return code;
+    }
+
+    @Override
+    public String name() {
+      return "<b>Bold</b><img src=\"//attacker.example/beacon\">${appState.hotel}";
+    }
+  }
+
   @UI("/declared-title")
   @Title("<b>Declared</b>")
   public static class DeclaredTitle {
@@ -101,7 +117,9 @@ class DataTitleAsTextSyncTest {
   @BeforeAll
   static void boot() {
     CUSTOMERS.add(new Customer("c1", "<img src=\"//attacker.example/beacon\">Mallory"));
-    mateu = TestMateu.withUis(Customers.class, NamedRecord.class, DeclaredTitle.class);
+    mateu =
+        TestMateu.withUis(
+            Customers.class, NamedRecord.class, NamedEntity.class, DeclaredTitle.class);
   }
 
   @AfterAll
@@ -156,5 +174,12 @@ class DataTitleAsTextSyncTest {
     var page = pagesOf(mateu.sync("/declared-title")).get(0);
     assertThat(page.title()).isEqualTo("<b>Declared</b>");
     assertThat(page.titleIsText()).isNull();
+  }
+
+  @Test
+  void aRecordNamedThroughNamedIsMarkedTextAndNotEvaluated() {
+    var page = pagesOf(mateu.sync("/data-title-named")).get(0);
+    assertThat(page.title()).contains("<img").contains("\\${appState.hotel}");
+    assertThat(page.titleIsText()).isTrue();
   }
 }

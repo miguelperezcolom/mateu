@@ -37,7 +37,9 @@ final class PageMetadataExtractor {
           MetaAnnotations.find(instance.getClass(), Title.class).value());
     }
     if (instance instanceof Named named) {
-      return TranslatorContext.translate(named.name());
+      // a Named entity's name() is a record FIELD: data, so neither a template nor markup — it
+      // travels marked titleIsText (titledByData) and escaped like any other data title
+      return io.mateu.uidl.Templates.literal(TranslatorContext.translate(named.name()));
     }
     if (instance != null) {
       // A UI component's toString is never a page title. The rule below reads an overridden
@@ -69,17 +71,19 @@ final class PageMetadataExtractor {
   }
 
   /**
-   * Whether {@link #getTitle} titles {@code instance} with DATA — its own {@code toString()} —
-   * rather than a string the developer declared ({@code TitleSupplier}, {@code @Title}, {@code
-   * Named}) or the class name.
+   * Whether {@link #getTitle} titles {@code instance} with DATA — a {@code Named} entity's {@code
+   * name()} or its own {@code toString()} — rather than a string the developer declared ({@code
+   * TitleSupplier}, {@code @Title}) or the class name.
    */
   static boolean titledByData(Object instance) {
     if (instance == null
         || instance instanceof TitleSupplier
         || MetaAnnotations.isPresent(instance.getClass(), Title.class)
-        || instance instanceof Named
         || instance instanceof Component) {
       return false;
+    }
+    if (instance instanceof Named named) {
+      return named.name() != null && !named.name().isBlank();
     }
     try {
       if (instance.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
