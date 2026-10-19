@@ -92,6 +92,9 @@ public final class AgentPush {
    * refusing them here too means one renderer's filter defect is not a bypass. The same list as
    * {@code conformance/client/agent-events.json} ({@code reserved} + {@code reservedPrefixes}).
    */
+  /** The corpus' reservedPatterns: a JET widget's own events ({@code ojValueChanged}, {@code oj-…}). */
+  private static final java.util.regex.Pattern JET_EVENT = java.util.regex.Pattern.compile("^oj[A-Z-]");
+
   public static final java.util.Set<String> FRAMEWORK_EVENTS =
       java.util.Set.of(
           "action-requested",
@@ -150,7 +153,34 @@ public final class AgentPush {
           "dragstart",
           "dragend",
           "unhandledrejection",
-          "DOMContentLoaded");
+          "DOMContentLoaded",
+          "active-item-changed",
+          "cancel",
+          "cell-activate",
+          "checked-changed",
+          "close",
+          "closed",
+          "confirm",
+          "detail-opened-items-changed",
+          "expanded-items-changed",
+          "filter-changed",
+          "grid-dragend",
+          "grid-dragstart",
+          "grid-drop",
+          "has-value-changed",
+          "invalid-changed",
+          "item-click",
+          "items-changed",
+          "loading-changed",
+          "opened",
+          "opened-changed",
+          "reject",
+          "select",
+          "selected-items-changed",
+          "size-changed",
+          "toggle",
+          "unparsable-change",
+          "validated");
 
   /** Prefixes of the framework's own event names. */
   public static final java.util.List<String> FRAMEWORK_EVENT_PREFIXES =
@@ -160,7 +190,8 @@ public final class AgentPush {
   public static boolean isFrameworkEvent(String event) {
     return event != null
         && (FRAMEWORK_EVENTS.contains(event)
-            || FRAMEWORK_EVENT_PREFIXES.stream().anyMatch(event::startsWith));
+            || FRAMEWORK_EVENT_PREFIXES.stream().anyMatch(event::startsWith)
+            || JET_EVENT.matcher(event).find());
   }
 
   public static final String DETAIL_TOO_LARGE = "The detail is larger than the 65536-byte limit.";

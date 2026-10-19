@@ -135,6 +135,9 @@ def framework_event(event: str) -> str:
 # The event names the renderers listen to themselves (and DOM ones): never an agent's to dispatch
 # (N16) — every renderer drops them already; refusing them here too means one renderer's filter
 # defect is not a bypass. The same list as conformance/client/agent-events.json.
+# reservedPatterns of the client corpus: a JET widget's own events (ojValueChanged, oj-…)
+FRAMEWORK_EVENT_PATTERNS = (re.compile(r"^oj[A-Z-]"),)
+
 FRAMEWORK_EVENTS = frozenset({
     "action-requested", "server-side-action-requested", "url-update-requested", "route-changed",
     "navigate-to-requested", "page-banners-received", "dirty", "clean", "value-changed",
@@ -146,13 +149,44 @@ FRAMEWORK_EVENTS = frozenset({
     "online", "offline", "resize", "scroll", "wheel", "contextmenu", "pointerdown", "pointerup",
     "mousedown", "mouseup", "touchstart", "drop", "dragstart", "dragend", "unhandledrejection",
     "DOMContentLoaded",
+    "active-item-changed",
+    "cancel",
+    "cell-activate",
+    "checked-changed",
+    "close",
+    "closed",
+    "confirm",
+    "detail-opened-items-changed",
+    "expanded-items-changed",
+    "filter-changed",
+    "grid-dragend",
+    "grid-dragstart",
+    "grid-drop",
+    "has-value-changed",
+    "invalid-changed",
+    "item-click",
+    "items-changed",
+    "loading-changed",
+    "opened",
+    "opened-changed",
+    "reject",
+    "select",
+    "selected-items-changed",
+    "size-changed",
+    "toggle",
+    "unparsable-change",
+    "validated",
 })
 FRAMEWORK_EVENT_PREFIXES = ("mateu-", "backend-", "vaadin-")
 
 
 def is_framework_event(event: str) -> bool:
     """Whether ``event`` is one of the framework's own event names."""
-    return event in FRAMEWORK_EVENTS or event.startswith(FRAMEWORK_EVENT_PREFIXES)
+    return (
+        event in FRAMEWORK_EVENTS
+        or event.startswith(FRAMEWORK_EVENT_PREFIXES)
+        or any(p.search(event) for p in FRAMEWORK_EVENT_PATTERNS)
+    )
 
 
 def reserved_event(event: str) -> str:
