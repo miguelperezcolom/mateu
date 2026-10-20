@@ -750,7 +750,9 @@ internal sealed partial class ReflectionMapper
     {
         var actions = new List<ActionDto>();
         var props = properties.ToList();
-        foreach (var p in props.Where(p => ListElementType(p.PropertyType) is not null))
+        // a list of components (List<Badge>…) is display, never rows to edit (Java: isComponentList)
+        foreach (var p in props.Where(p => ListElementType(p.PropertyType) is { } element
+                                           && !typeof(IComponent).IsAssignableFrom(element)))
         {
             var fieldId = Naming.CamelCase(p.Name);
             var constrained = ConstrainedFieldNames(ListElementType(p.PropertyType)!);

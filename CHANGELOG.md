@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **No more `"nombre": "xxxx"` in every row of every list.** A leftover debug line in the wizard
+  state serializer (used for every form's state) planted it next to `_rowNumber`. (Java)
+- **A list of components is not an editable grid field.** A `List<Badge>` (a `Foldout`'s header
+  badges) or `List<Component>` field registered the twelve row-editing actions (`estado_add`,
+  `estado_create`, …) of a list of records. (Java, .NET, Python)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.

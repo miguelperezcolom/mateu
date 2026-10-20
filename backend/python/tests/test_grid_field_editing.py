@@ -12,6 +12,7 @@ from typing import Annotated
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl.components import Badge  # noqa: E402
 from mateu_ui.uidl import (  # noqa: E402
     Colspan,
     DetailForm,
@@ -63,6 +64,12 @@ class ReadOnlyGuests:
 @ui("ge-inline")
 class InlineGuests:
     guests: Annotated[list[GuestRow], InlineEditing()] = []
+
+
+@ui("ge-badges")
+class WithBadges:
+    reference: str = "R-1"
+    badges: list[Badge] = []
 
 
 def handler() -> SyncHandler:
@@ -155,6 +162,11 @@ def test_the_row_actions_are_advertised():
         "_save", "_remove", "_move-up", "_move-down", "_cancel")]
     create = comp["actions"][0]
     assert create["validationRequired"] is True and create["fieldsToValidate"] == "name"
+
+
+def test_a_list_of_components_advertises_no_row_actions():
+    comp = dump(handler().handle(RunActionRq(server_side_type=type_name(WithBadges))))["fragments"][0]["component"]
+    assert not [a["id"] for a in comp["actions"] if a["id"].startswith("badges_")]
 
 
 # ── the actions ──────────────────────────────────────────────────────────────

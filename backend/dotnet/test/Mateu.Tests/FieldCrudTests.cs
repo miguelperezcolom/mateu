@@ -24,6 +24,13 @@ public class RoomsForm
     [Multiline] public string? Notes { get; set; }
 }
 
+[UI("badge-list"), Title("Badges")]
+public class BadgeListForm
+{
+    public string? Reference { get; set; } = "R-1";
+    public List<Badge> Estado { get; set; } = [];
+}
+
 [UI("one-column"), Title("One column"), FormLayout(Columns = 1)]
 public class OneColumnForm
 {
@@ -65,6 +72,13 @@ public class FieldCrudTests
 
     private static JsonNode StateOf(UIIncrementDto inc, int fragment = 0) =>
         JsonSerializer.SerializeToNode(inc.Fragments[fragment].State, Json)!;
+
+    [Fact]
+    public void A_list_of_components_advertises_no_row_editing_actions()
+    {
+        var json = JsonSerializer.Serialize(Handler().Handle(new RunActionRqDto { Route = "badge-list" }), Json);
+        Assert.DoesNotContain("\"id\":\"estado_", json);
+    }
 
     [Fact]
     public void List_properties_advertise_their_row_editing_actions()
