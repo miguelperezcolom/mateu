@@ -32,7 +32,8 @@ import java.util.concurrent.Callable;
  * <p>The detail pane can be any component — from a simple property card to an embedded routed
  * island (the {@code DetailIsland} pattern) when the detail must run its own actions.
  */
-public abstract class CollectionDetail<Row> implements TriggersSupplier {
+public abstract class CollectionDetail<Row>
+    implements io.mateu.core.domain.RequestBound, TriggersSupplier {
 
   @Hidden public String _selectedId;
 
@@ -97,6 +98,12 @@ public abstract class CollectionDetail<Row> implements TriggersSupplier {
 
   // the request of the call being served: wiring, not state — transient keeps it off the wire
   private transient HttpRequest currentRequest;
+
+  /** The request being served, handed over before the tree is built (see {@code RequestBound}). */
+  @Override
+  public void bindRequest(HttpRequest httpRequest) {
+    currentRequest = httpRequest;
+  }
 
   private Component build() {
     var rows = rows(search, currentRequest);

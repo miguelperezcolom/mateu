@@ -30,7 +30,7 @@ import java.util.concurrent.Callable;
  * default; picking another re-renders the overview in place.
  */
 public abstract class GeneralOverview<Row>
-    implements TriggersSupplier, OptionsSupplier, LabelSupplier {
+    implements io.mateu.core.domain.RequestBound, TriggersSupplier, OptionsSupplier, LabelSupplier {
 
   @Label("")
   public String record;
@@ -110,6 +110,12 @@ public abstract class GeneralOverview<Row>
 
   // the request of the call being served: wiring, not state — transient keeps it off the wire
   private transient HttpRequest currentRequest;
+
+  /** The request being served, handed over before the tree is built (see {@code RequestBound}). */
+  @Override
+  public void bindRequest(HttpRequest httpRequest) {
+    currentRequest = httpRequest;
+  }
 
   @Override
   public boolean supports(Class<?> fieldType, String fieldName, Class<?> formType) {

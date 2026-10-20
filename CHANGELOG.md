@@ -138,6 +138,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   it), now leave it out like Java and count only the real steps in the rail. (Java, .NET, Python,
   Redwood)
 
+- **The archetypes have the request before they build their tree.** `CalendarPage`, `TodoList`,
+  `CollectionDetail` and `GeneralOverview` build it in a `Callable<Component>` field, which Mateu
+  invokes while mapping the page (and while checking an action is on it), but they learnt the
+  request only afterwards, from `triggers(...)`: on a first render `events(...)`, `rows(...)`,
+  `switcherOptions(...)` got `null`, and their built-in texts ("Today", "All caught up!"…) were
+  translated with no request, ignoring the browser's language (`messages_es.properties`). Mateu now
+  hands the request over as soon as it has the instance (created and hydrated, about to be mapped,
+  about to be checked). (Java)
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches

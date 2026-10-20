@@ -55,6 +55,11 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return Mono.just(loadClass(className))
         .map(uiClass -> newInstance(uiClass, unflattenedData, httpRequest))
         .map(uiInstance -> hydrateIfNeeded(uiInstance, httpRequest))
+        .map(
+            uiInstance -> {
+              io.mateu.core.domain.RequestBound.bind(uiInstance, httpRequest);
+              return uiInstance;
+            })
         .map(uiInstance -> postHydrateIfNeeded(uiInstance, httpRequest));
   }
 

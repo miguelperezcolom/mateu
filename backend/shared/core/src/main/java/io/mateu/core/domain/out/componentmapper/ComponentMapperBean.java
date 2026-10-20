@@ -49,6 +49,7 @@ public class ComponentMapperBean implements ComponentMapper {
       HttpRequest httpRequest) {
     TranslatorContext.set(translator, httpRequest);
     ExporterContext.set(exportFormats());
+    io.mateu.core.domain.RequestBound.bind(object, httpRequest);
     try {
       return getContent(object, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     } finally {
