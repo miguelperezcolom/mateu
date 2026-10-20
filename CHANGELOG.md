@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: only the EntityHeader that heads the page goes up to the screen header.** The first
+  `EntityHeader` found anywhere in the tree was lifted, so a collection's detail (next to its list),
+  a task card under a planning chart or one inside a drawer emptied its panel and retitled the page
+  with the selected item. Now only one that is the page's first content is lifted (a Java
+  `EntityHeader` field leading the form, a foldout's summary); drawers and dialogs are not searched.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.

@@ -20,7 +20,7 @@ import {
   pageSwitcherOf, switcherPickOf, actionsOf, islandContentOf, kidsInAreaOrder, setPanelExpanded,
   pageKpisOf, pageSubtitleOf, bannersOf, pageHeaderNodeOf, shellNavOf, headerActionRouteOf,
   pageHeaderExtrasOf, badgeStatusOf, headerTimestampOf,
-  entityHeaderOf, mergeNestedContent, factProjectionOf, factActionsJsonOf,
+  entityHeaderOf, mergeNestedContent, factProjectionOf, factActionsJsonOf, hostContentOf,
 } from './reduceContexts.mjs'
 import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf, fabsOf } from './pageProjection.mjs'
 import { applyDomEffects } from './files.mjs'
@@ -630,6 +630,28 @@ const stayPage = () => page({ title: 'Stay' }, [node({
       actionLabel: 'Cambiar empresa', parameters: { stayId: 'S-1' } },
   ],
 }, [], 'stay')])
+
+test('only the EntityHeader that HEADS the page goes up to the screen header', () => {
+  const eh = (title) => node({ type: 'EntityHeader', title, facts: [] })
+  const card = (...kids) => node({ type: 'Card', content: node({ type: 'Div' }, kids) })
+  const grid = (...kids) => node({ type: 'ResponsiveGrid', gridTemplateAreas: '"list detail"' }, kids)
+  const field = (id) => node({ type: 'FormField', fieldId: id, dataType: 'string' })
+  const lifted = (children) => { const e = entityHeaderOf(host(page({}, children))); return e && e.title }
+  // the page's first content, even deep in a form's section cards (a Java EntityHeader field)
+  assert.equal(lifted([card(node({ type: 'FormLayout' }, [node({ type: 'FormRow' }, [eh('Ada')]), field('x')]))]), 'Ada')
+  assert.equal(lifted([node({ type: 'FoldoutLayout' }, [eh('Ada'), card(field('x'))])]), 'Ada')
+  // a collection's detail next to its list (CollectionDetail): the selected item's, not the page's
+  assert.equal(lifted([card(field('search'), grid(node({ type: 'VerticalLayout' }, [field('list')]), node({ type: 'VerticalLayout' }, [eh('Bruno')])))]), null)
+  // a task card under a planning chart (GanttPage's detail card) / its docked drawer / a dialog
+  assert.equal(lifted([node({ type: 'Gantt', tasks: [] }), node({ type: 'Card', id: 'gantt-detail', content: eh('Task') })]), null)
+  assert.equal(lifted([node({ type: 'Drawer', content: eh('Task') }), field('x')]), null)
+  assert.equal(lifted([node({ type: 'Dialog', content: eh('Task') })]), null)
+  // a console's panel (MasterDetailLayout / SplitLayout), as before
+  assert.equal(lifted([node({ type: 'MasterDetailLayout' }, [eh('Guest')])]), null)
+  // and the content keeps the one it does not lift
+  const blocks = hostContentOf(host(page({}, [field('search'), eh('Bruno')])), null, { dropEntityHeader: false })
+  assert.ok(blocks.some((b) => b.items.some((a) => a.isEntityHeader && a.title === 'Bruno')))
+})
 
 test('fact action: the projection carries the icon button; a display-only fact stays {label, value}', () => {
   const [plain, company] = entityHeaderOf(host(stayPage())).facts
