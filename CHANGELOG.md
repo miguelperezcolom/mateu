@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: `MetricCard.icon`, `Meter` thresholds and unit, `info` status tone.** A metric's icon was
+  not drawn (an icon name is Redwood's icon, an emoji is drawn as itself). A `Meter` showed
+  `value / max` and ignored `unit`, `warnAt` and `dangerAt`: it now reads like the web renderer's —
+  the value with its unit, the caption or else the fill percent, and the fill turning warning/error
+  past the thresholds. A `StatusItem` coloured `info` had no colour.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.

@@ -1038,7 +1038,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -1684,7 +1685,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -2759,7 +2768,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -3405,7 +3415,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -4508,7 +4526,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -5154,7 +5173,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -6229,7 +6256,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -6875,7 +6903,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -8048,7 +8084,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -8694,7 +8731,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -9777,7 +9822,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -10423,7 +10469,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -11508,7 +11562,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -12154,7 +12209,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -13257,7 +13320,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -13903,7 +13967,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -15206,7 +15278,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -15852,7 +15925,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -17213,7 +17294,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -17859,7 +17941,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -18932,7 +19022,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -19578,7 +19669,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -21306,7 +21405,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -21952,7 +22052,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -23025,7 +23133,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -23671,7 +23780,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -24818,7 +24935,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -25464,7 +25582,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -26539,7 +26665,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -27185,7 +27312,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -28274,7 +28409,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -28920,7 +29056,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -29995,7 +30139,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -30641,7 +30786,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -31764,7 +31917,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -32410,7 +32564,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
@@ -33485,7 +33647,8 @@
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
-                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-sm oj-text-color-secondary">
+                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -34131,7 +34294,15 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      <oj-bind-if test="[[ !$current.data.hasThresholds ]]">
+                        <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
+                      </oj-bind-if>
+                      <!-- warnAt / dangerAt: the fill takes the tone (success, warning, error) -->
+                      <oj-bind-if test="[[ !!$current.data.hasThresholds ]]">
+                        <div class="mateu-meter-track oj-sm-margin-1x-vertical" role="meter" :aria-valuenow="[[ $current.data.value ]]" aria-valuemin="0" :aria-valuemax="[[ $current.data.max ]]" :aria-label="[[ $current.data.label ]]">
+                          <div :class="[[ $current.data.fillClass ]]" :style.width="[[ $current.data.fillWidth ]]"></div>
+                        </div>
+                      </oj-bind-if>
                       <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
                     </oj-bind-if>
