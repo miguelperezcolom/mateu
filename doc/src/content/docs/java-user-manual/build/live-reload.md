@@ -111,7 +111,7 @@ on display re-renders with it too. Without the plugin, run *Reload Mateu Screen*
 | Adapter | How | What the browser does |
 |---|---|---|
 | **Spring MVC / WebFlux** | add `spring-boot-devtools` (`<scope>runtime</scope>`, `<optional>true</optional>`): it restarts the app context when the classpath changes | the event stream drops, reconnects to the restarted app, sees a new boot id and re-renders |
-| **Quarkus** | `mvn quarkus:dev -Dmateu.dev=true` — Quarkus recompiles and restarts on the next request; it also opens a debugger port (5005) | same |
+| **Quarkus** | `mvn quarkus:dev -Dmateu.dev=true` (or `%dev.mateu.dev=true` in `application.properties`) — Quarkus recompiles and restarts when a request arrives; while a browser has the event stream open, Mateu asks it to look for changed code every second, so an edit restarts the app without one. It also opens a debugger port (5005) | same |
 | **Micronaut** | `mvn mn:run -Dmn.watch=true` (or `./gradlew run --continuous`) with `MATEU_DEV=true` | same |
 | **Helidon MP** | no built-in restart: run it from the IDE in debug (HotSwap) and restart the run configuration for structural changes; with `mateu.dev=true` in `microprofile-config.properties` or `MATEU_DEV=true` | same |
 
