@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.dashboard;
 
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.core.domain.out.componentmapper.ArchetypeAdvisor;
 import io.mateu.core.infra.reflection.MetaAnnotations;
@@ -34,7 +35,7 @@ public final class DashboardComposer {
   public static Component compose(Object host, String id, int columns, boolean reorderable) {
     List<Component> items = new ArrayList<>();
     List<MetricCard> pendingMetrics = new ArrayList<>();
-    for (Field field : host.getClass().getDeclaredFields()) {
+    for (Field field : getAllFields(host.getClass())) {
       if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }

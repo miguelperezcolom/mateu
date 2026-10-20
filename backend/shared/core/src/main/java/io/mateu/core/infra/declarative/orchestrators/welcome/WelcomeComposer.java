@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.welcome;
 
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Panel;
@@ -39,7 +40,7 @@ public final class WelcomeComposer {
       io.mateu.uidl.data.HeroTone heroTone) {
     List<Component> ctas = new ArrayList<>();
     List<Component> tiles = new ArrayList<>();
-    for (Field field : host.getClass().getDeclaredFields()) {
+    for (Field field : getAllFields(host.getClass())) {
       if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }
