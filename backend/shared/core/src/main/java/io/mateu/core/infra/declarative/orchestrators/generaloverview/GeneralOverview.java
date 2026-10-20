@@ -85,7 +85,8 @@ public abstract class GeneralOverview<Row> implements TriggersSupplier, OptionsS
 
   // ── Wiring ────────────────────────────────────────────────────────────────
 
-  private HttpRequest currentRequest;
+  // the request of the call being served: wiring, not state — transient keeps it off the wire
+  private transient HttpRequest currentRequest;
 
   @Override
   public boolean supports(Class<?> fieldType, String fieldName, Class<?> formType) {

@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **`TodoList`, `CalendarPage`, `CollectionDetail` and `GeneralOverview` no longer send the request
+  to the client.** Their private `currentRequest` field travelled in the component state (base url,
+  caller's remote address) and failed to come back (`WARN Hydrater: Could not hydrate field
+  'currentRequest'`). It is `transient` now, and the state serializers skip transient fields in
+  their nested-object pass too (Jackson already did). (Java)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.

@@ -106,7 +106,8 @@ public abstract class CalendarPage implements TriggersSupplier {
 
   // ── Wiring ────────────────────────────────────────────────────────────────
 
-  private HttpRequest currentRequest;
+  // the request of the call being served: wiring, not state — transient keeps it off the wire
+  private transient HttpRequest currentRequest;
 
   private LocalDate currentMonth() {
     return _month != null ? _month : initialMonth();

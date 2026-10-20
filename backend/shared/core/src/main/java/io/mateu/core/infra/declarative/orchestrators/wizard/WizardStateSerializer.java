@@ -45,6 +45,9 @@ final class WizardStateSerializer {
                     && !Collection.class.isAssignableFrom(field.getType())
                     && !Map.class.isAssignableFrom(field.getType())
                     && !isNonDataHolder(field)
+                    // transient = framework wiring (e.g. the current request), never state: Jackson
+                    // already skips it, and so must this nested-object pass
+                    && !Modifier.isTransient(field.getModifiers())
                     && !Modifier.isFinal(field.getModifiers()))
         .forEach(
             field -> {
