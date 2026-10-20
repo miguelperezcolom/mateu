@@ -187,6 +187,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   card) was lost; every piece of the main slot is now a card, in order. Main and info are drawn as
   two columns at the widths of the overview's grid (`infoWidth()`, first when promoted) instead of
   a grid of cards where the info card fell wherever there was room.
+### Fixed
+- **Redwood: Welcome tiles show what their panels hold.** Each `DashboardPanel` kept only its text,
+  its first metric or its first chart, so a `FeatureGrid` or a `Checklist` came out as an empty card;
+  the chart was always moved to the end, drawn as bars with a fixed «Occupancy %» legend, and
+  `colSpan`/`subtitle` were ignored. Every panel is now a tile in its declared order and width, with
+  its subtitle and its content drawn like any page content (a `TrendChart` as its line/area chart).
 
 ## [3.0-beta.7] — 2026-10-19
 
