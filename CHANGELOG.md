@@ -117,6 +117,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   The `record` field lives in the base class, so a subclass had no way to label it. Blank by
   default (unlabelled, as before). `GeneralOverview` now implements `LabelSupplier` for it; a
   subclass that supplies labels of its own overrides `label(...)`. (Java)
+### Fixed
+- **Redwood: the message band's close button closes the notice.** The band's keys came from a
+  counter typed as a string with no default, so the first notice had no id and every later one was
+  `"NaN"`: closing removed nothing and an error stayed on screen for good. The counter is now a
+  number and each notice gets its own text key, the one `spClose` hands back.
 
 ## [3.0-beta.7] — 2026-10-19
 

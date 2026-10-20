@@ -847,6 +847,32 @@ test('runMateuIslandAction: without an island (or an action) it does nothing', a
   assert.equal(sent.length, 0)
 })
 
+// ═══ the shell's message band ════════════════════════════════════════════════════════════════
+
+test('the message band: every notice gets its own text key, and closing one removes that key', async () => {
+  const show = chain('pages/shell-page-chains/showNotificationMessage.js')
+  const close = chain('pages/shell-page-chains/closeMessageBanner.js')
+  const pageJson = JSON.parse(readFileSync(join(webApp, 'pages', 'shell-page.json'), 'utf8'))
+  // the counter starts at a NUMBER (typed "string" with no default, the first notice had no id and
+  // the rest were all "NaN": the band's close removed nothing)
+  assert.deepEqual(pageJson.variables.messageId, { type: 'number', defaultValue: 0 })
+  assert.equal(pageJson.types.MessagesBannerType.id, 'string')
+  const ctx = newContext()
+  ctx.$page.variables.messageId = pageJson.variables.messageId.defaultValue
+  await new show().run(ctx, { event: { summary: 'An unexpected error occurred', type: 'error', displayMode: 'persist' } })
+  await new show().run(ctx, { event: { summary: 'Again', type: 'error', displayMode: 'persist' } })
+  const added = calls.filter((c) => c[0] === 'dataProvider' && c[1].add).map((c) => c[1].add.data.id)
+  assert.deepEqual(added, ['0', '1'])
+  // oj-sp-messages-banner's spClose: { messageId } — the key its inner oj-message-banner closed
+  calls.length = 0
+  await new close().run(ctx, { event: { detail: { messageId: '1' } } })
+  // (the inner ojClose shape, { key }, closes too; a number key is matched as the text it is)
+  await new close().run(ctx, { event: { detail: { key: 0 } } })
+  await new close().run(ctx, { event: { detail: {} } })
+  assert.deepEqual(calls.map((c) => c[1].remove.keys), [['1'], ['0']])
+  assert.ok(calls.every((c) => c[1].target === ctx.$page.variables.messagesBannerADP))
+})
+
 // ═══ the <mateu-ui> component: the same chains under the embedded VB runtime ═══════════════
 // (test-embedded.mjs pins the boot against the generated component bundle; here the chains run
 // over the poc/ bridge, through the runtime's own Actions, and what is pinned is the contract with
