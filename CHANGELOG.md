@@ -120,6 +120,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   one-time warning; container interceptors do not apply to it. The docs no longer say a CRUD with
   only `final` services may be a singleton. (Java)
 
+- **`HttpRequest.getClickedRow(Class)` also reads a row opened from a listing.** The renderers send
+  an opened row (a row click, `view`) as the action's own parameters, one per column, not under
+  `_clickedRow`; `getClickedRow` answered `null` and the handler hit a NullPointerException
+  (workaround was `getParameters(Row.class)`). Without `_clickedRow` it now builds the row from the
+  parameters named like the row's fields (internal `_…` ones left out), and still answers `null`
+  when there are none. The same fallback fills an action method's row parameter in the Python and
+  .NET ports. (Java, .NET, Python)
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches
