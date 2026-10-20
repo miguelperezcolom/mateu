@@ -71,7 +71,9 @@ public class DrawerMapper {
             .modeless(drawer.modeless())
             .layout(drawer.layout())
             .build(),
-        "fieldId",
+        // the declared id is the overlay's identity on the client: a renderer re-sent an open
+        // overlay with the same id refreshes it in place instead of stacking a second one
+        drawer.id() != null && !drawer.id().isBlank() ? drawer.id() : "fieldId",
         List.of(),
         drawer.style(),
         drawer.cssClasses(),

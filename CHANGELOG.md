@@ -11,6 +11,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **A `Drawer` or `Dialog` keeps its declared id on the wire.** `Drawer.builder().id("x")` went out
+  with the component id `"fieldId"` (only the metadata carried `x`), so Redwood could not tell that
+  an overlay re-sent while open was the same one and stacked a second drawer instead of refreshing
+  it. Without an id the filler `"fieldId"` stays. (Java; .NET and Python already sent the id)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.

@@ -143,6 +143,8 @@ class DrawerSyncTest {
     assertThat(fragment.action()).isEqualTo(UIFragmentActionDto.Add);
     var drawer = (DrawerDto) ((ClientSideComponentDto) fragment.component()).metadata();
     assertThat(drawer.id()).isEqualTo("guest-drawer");
+    // the component carries the declared id too: it is what a renderer matches an open overlay by
+    assertThat(fragment.component().id()).isEqualTo("guest-drawer");
     assertThat(drawer.headerTitle()).isEqualTo("Editar huésped");
     assertThat(drawer.position()).isEqualTo(DrawerPositionDto.start);
     assertThat(drawer.width()).isEqualTo("480px");
@@ -156,6 +158,8 @@ class DrawerSyncTest {
     var drawer =
         (DrawerDto) ((ClientSideComponentDto) increment.fragments().get(0).component()).metadata();
     assertThat(drawer.position()).isEqualTo(DrawerPositionDto.end);
+    // no declared id: the filler, which renderers read as "no identity"
+    assertThat(increment.fragments().get(0).component().id()).isEqualTo("fieldId");
   }
 
   @Test

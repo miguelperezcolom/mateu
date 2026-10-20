@@ -19,6 +19,7 @@ import io.mateu.uidl.data.EmbeddedView;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.ModelViewComponent;
 import io.mateu.uidl.data.SearchRequest;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Listing;
@@ -102,6 +103,11 @@ class OverlayFormSyncTest {
     }
 
     @Action
+    Dialog dialogWithId() {
+      return Dialog.builder().id("cancel-dialog").content(new Text("sure?")).build();
+    }
+
+    @Action
     Dialog dialogWithEmbeddedView() {
       return Dialog.builder().content(new EmbeddedView(new CancellationForm("79RE8S"))).build();
     }
@@ -135,6 +141,20 @@ class OverlayFormSyncTest {
       case DrawerDto drawer -> drawer.content();
       default -> throw new AssertionError("not an overlay: " + overlay.metadata());
     };
+  }
+
+  @Test
+  void aDialogsDeclaredIdIsItsComponentId() {
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/overlay-forms")
+                .actionId("dialogWithId")
+                .serverSideType(Host.class.getName())
+                .initiatorComponentId("cmp-1")
+                .componentState(Map.of("name", "n"))
+                .build());
+    assertThat(increment.fragments().get(0).component().id()).isEqualTo("cancel-dialog");
   }
 
   @SuppressWarnings("unchecked")
