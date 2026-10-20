@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: General Overview content and `infoWidth()`.** Only the titled `Card`s of the page were
+  drawn in the main area, so anything else `overview()` returned (a chart, a Markdown, an untitled
+  card) was lost; every piece of the main slot is now a card, in order. Main and info are drawn as
+  two columns at the widths of the overview's grid (`infoWidth()`, first when promoted) instead of
+  a grid of cards where the info card fell wherever there was room.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
