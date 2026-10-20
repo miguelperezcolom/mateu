@@ -8,6 +8,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
+import { drawerOverlayOf } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
@@ -5900,4 +5901,22 @@ test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, 
     { type: 'ClientSide', cssClasses: 'mateu-section', metadata: { type: 'Card' }, children: [{ type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Inner' } }] },
   ] })
   assert.ok(!tocProjectionOf(withIsland).entries.some((e) => e.title === 'Inner'))
+})
+
+test('a Drawer placed in the page (GanttPage bottom panel) is a collapsible panel with its title; the overlay root is not', () => {
+  const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
+  const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-gantt-page')).contexts[HOST_ID], null, {})
+  const atoms = blocks.flatMap((b) => b.items)
+  const at = atoms.findIndex((a) => a.isCollapsible)
+  assert.ok(at >= 0, 'the drawer has a header')
+  assert.equal(atoms[at].title, 'Leyenda y próximos hitos')
+  assert.equal(atoms[at].expanded, true)
+  assert.ok(atoms[at + 1] && atoms[at + 1].isRichText, 'its content follows the header')
+  // not collapsible: its title as a heading, then its content
+  const inline = hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [
+    node({ type: 'Drawer', headerTitle: 'Side', content: [node({ type: 'Text', text: 'inside' })] })])] } }, null, {})
+  assert.deepEqual(inline.flatMap((b) => b.items).map((a) => [!!a.isHeading, a.text]), [[true, 'Side'], [false, 'inside']])
+  // a Drawer that IS the overlay (the root of its context) is painted by the drawer panel, as before
+  const reg = reduceContexts(empty(), { fragments: [{ action: 'Add', targetComponentId: '', component: node({ type: 'Drawer', headerTitle: 'Panel', content: [node({ type: 'Text', text: 'body' })] }) }] })
+  assert.ok(!drawerOverlayOf(reg).content.flatMap((b) => b.items).some((a) => a.isCollapsible))
 })

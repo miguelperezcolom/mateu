@@ -510,3 +510,24 @@ test('overlays: dismissing the drawer by id leaves a dialog on top untouched; a 
 })
 
 console.log(`\n${passed} chain-logic tests OK`)
+
+test('a Dialog that shows more than lines is painted from its content (EntityHeader, Badge, Meter…), not just its texts', () => {
+  const open = (content) => reduceContexts(emptyReg(), { fragments: [{ action: 'Add', targetComponentId: '', component: {
+    type: 'ClientSide', id: 'dlg', metadata: { type: 'Dialog', title: 'Record' }, children: [node({ type: 'VerticalLayout' }, content)] } }] })
+  const rich = dialogOverlayOf(open([
+    node({ type: 'EntityHeader', title: 'Ana', subtitle: '1º', badges: [{ label: 'Active', color: 'success' }], facts: [{ label: 'Grade', value: '8.7' }] }),
+    node({ type: 'Meter', label: 'Attendance', value: 98, max: 100 }),
+  ]))
+  assert.equal(rich.hasRichContent, true)
+  const atoms = rich.content.flatMap((b) => b.items)
+  assert.ok(atoms.some((a) => a.isEntityHeader) && atoms.some((a) => a.isMeter))
+  assert.deepEqual(rich.texts, [], 'the lines are in the content: not painted twice')
+  // a plain message dialog is still its lines
+  const plain = dialogOverlayOf(open([node({ type: 'Text', text: 'Delete it?' })]))
+  assert.equal(plain.hasRichContent, false)
+  assert.deepEqual(plain.texts, ['Delete it?'])
+  // the modal paints the content with the shared atoms template
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const modal = html.slice(html.indexOf('<oj-dialog id="mateuModal"'), html.indexOf('</oj-dialog>', html.indexOf('<oj-dialog id="mateuModal"')))
+  assert.match(modal, /mateuDialog\.hasRichContent[\s\S]*mateuDialog\.content[\s\S]*<!-- @atoms host/)
+})

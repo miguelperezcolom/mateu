@@ -912,6 +912,24 @@ export function islandContentOf(ctx, opts = {}) {
       })
       return
     }
+    // a DRAWER placed IN the page (not returned by an action: a GanttPage's bottom panel, a docked
+    // side panel) had no view — its content came out loose, without its title and not collapsible.
+    // Inline it is a panel: its title as the header, its content after it; a collapsible one folds
+    // like a Details (open unless it says otherwise). The root Drawer is an overlay: not here.
+    if (t === 'Drawer' && !isRoot) {
+      const title = interp(m.headerTitle || m.title || '')
+      const pieces = kidsOf(node)
+      if (m.collapsible) {
+        const key = 'drw:' + (m.id || (node.id && node.id !== 'fieldId' ? node.id : title || 'drawer'))
+        const expanded = panelExpanded(key, m.opened !== false)
+        atom({ isCollapsible: true, collapsibleKey: key, title, expanded, disabled: false }, container)
+        if (expanded) for (const child of pieces) visit(child, container)
+        return
+      }
+      if (title) atom({ isText: true, isHeading: true, text: title, cls: 'oj-typography-subheading-xs' }, container)
+      for (const child of pieces) visit(child, container)
+      return
+    }
     if (t === 'Details') {
       const summaryTexts = m.summary ? collectTexts(m.summary) : []
       const key = 'det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details'))
