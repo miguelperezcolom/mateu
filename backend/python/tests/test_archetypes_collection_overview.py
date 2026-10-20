@@ -126,7 +126,7 @@ def test_typing_in_the_search_box_filters_the_list():
     j = render(inc).replace(" ", "")
     assert "RiuPlaya" in j
     assert "RiuPalace" not in j
-    assert "1items" in j
+    assert "\"label\":\"1item\"" in j
 
 
 def test_general_overview_selects_the_first_record_and_renders_the_switcher():

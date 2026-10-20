@@ -147,6 +147,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   hands the request over as soon as it has the instance (created and hydrated, about to be mapped,
   about to be checked). (Java)
 
+- **Collection Detail counts "1 item", not "1 items".** The default `listLabel(count)` uses the
+  built-in text `item` for one result and `items` otherwise (both through the app's `Translator`).
+  (Java, .NET, Python)
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches

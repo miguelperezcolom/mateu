@@ -68,11 +68,15 @@ public abstract class CollectionDetail<Row>
     return List.of();
   }
 
-  /** Label over the list. Default: a results counter. */
+  /**
+   * Label over the list. Default: a results counter — "1 item", "3 items" (the built-in texts
+   * {@code item} / {@code items}, through the app's translator).
+   */
   protected String listLabel(int count) {
     return count
         + " "
-        + io.mateu.core.infra.declarative.BuiltInTexts.translate("items", currentRequest);
+        + io.mateu.core.infra.declarative.BuiltInTexts.translate(
+            count == 1 ? "item" : "items", currentRequest);
   }
 
   /** What the right pane shows before any selection. */

@@ -195,5 +195,7 @@ class CollectionDetailSyncTest {
     assertThat(queues.get(0).groups().get(0).items())
         .extracting(item -> item.title())
         .containsExactly("Riu Playa");
+    // one result is "1 item", not "1 items"
+    assertThat(queues.get(0).groups().get(0).label()).isEqualTo("1 item");
   }
 }
