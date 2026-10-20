@@ -438,9 +438,9 @@ define([
       // the Page's toolbar actions (computed here because the entity-page templates
       // relocate them: iop → goToParent/secondaryActions of the panel)
       const hostToolbar = bridge.pageToolbarOf(host);
-      // native ITEM OVERVIEW: entity page with the NARROW zone first (key-data
-      // panel + wide main) → oj-sp-item-overview-page + oj-sp-item-overview
-      const iop = bridge.itemOverviewPageOf(hostEntity, hostBlocks, hostToolbar);
+      // native ITEM OVERVIEW: its template was REVERTED (DESIGN-NOTES 2026-07-27), nothing paints
+      // mateuIop — claiming the page left it BLANK; the host content paints it in its columns
+      const iop = null;
       const iopOn = !!iop;
       $application.variables.mateuIop = iop || {
         on: false,

@@ -152,6 +152,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   its iframe swallowed the moves and the release: the YAML changed only on the next click, nothing
   was selected and Undo stayed off. The drag is now part of the canvas state. (A drop on the Redwood
   canvas still lands at the end of the page: the frame's nodes cannot be hit-tested from the editor.)
+### Fixed
+- **Redwood: `@Zones` columns in a form.** A crud's detail or editor with `@Zones` +
+  `@Section(zone=…)` arrives as a `ResponsiveGrid` of columns, but the one-column generic form won
+  (the page has fields) and every section was painted stacked in one card. A grid of explicit tracks
+  is now the page's body, like a slot template, with its fields editable in place. An entity page
+  whose NARROW zone comes first is painted in its columns (the reverted item-overview template still
+  claimed it and the page came out blank; the general overview template took it after an action).
+- **Redwood: grid tracks of fixed length.** `gridTemplateColumns` with a `rem`/`px` track
+  (`22rem 1fr`, `1fr 22rem`) split 50/50: the fixed track weighed like a `1fr`. Tracks are now
+  measured against a desktop content width, and a row's twelfths always add up to 12. A column grid
+  nested in a card (a CollectionDetail's list/detail inside its form card) is lifted out of it instead
+  of stacking.
 
 ## [3.0-beta.7] — 2026-10-19
 

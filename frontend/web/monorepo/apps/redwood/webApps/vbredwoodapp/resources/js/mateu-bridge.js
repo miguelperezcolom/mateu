@@ -2524,12 +2524,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** The tracks of a grid-template-columns as WEIGHTS: repeat(N, x) is expanded, «Nfr», «N%» and
-   *  minmax(…, Nfr) weigh N, the rest (px, rem, auto, min-content…) weighs 1 — an approximation:
-   *  JET's flex distributes in twelfths, not in tracks. */
+  /** The width the fixed tracks of a grid are measured against (px): a page's content box at a
+   *  desktop width. Only the PROPORTION matters — JET's flex shares out twelfths, not pixels. */
+  const GRID_REFERENCE_WIDTH = 1200
+
+  /** The tracks of a grid-template-columns as WEIGHTS: repeat(N, x) is expanded. Only flexible
+   *  tracks («Nfr», minmax(…, Nfr), auto) weigh their fr, only percentages their %; when a FIXED
+   *  length (px, rem, em, ch) is in the mix — the 22rem list beside a 1fr detail — every track is
+   *  measured against GRID_REFERENCE_WIDTH and the fr tracks share what the others leave (it used
+   *  to weigh 1 like a 1fr: «22rem 1fr» split 50/50). An approximation: JET's flex distributes in
+   *  twelfths, not in tracks. */
   function gridTrackWeights(template) {
+    const tracks = gridTracksOf(template)
+    if (!tracks) return []
+    if (!tracks.some((t) => t.px != null || t.pct != null)) return tracks.map((t) => t.fr)
+    if (tracks.every((t) => t.pct != null)) return tracks.map((t) => t.pct)
+    const W = GRID_REFERENCE_WIDTH
+    const fixed = tracks.reduce((sum, t) => sum + (t.px != null ? t.px : t.pct != null ? t.pct * W / 100 : 0), 0)
+    const frs = tracks.reduce((sum, t) => sum + (t.fr || 0), 0)
+    // the fr tracks never vanish: a grid whose fixed tracks fill the reference still shows them
+    const free = Math.max(W / 4, W - fixed)
+    return tracks.map((t) => Math.round(t.px != null ? t.px : t.pct != null ? t.pct * W / 100 : (t.fr / frs) * free))
+  }
+
+  /** Each track of a grid-template-columns: {fr} | {pct} | {px}; null when the count depends on the
+   *  width (auto-fill / auto-fit) and [] when there is no template. */
+  function gridTracksOf(template) {
     const src = String(template || '').trim()
-    if (!src) return []
+    if (!src) return null
     // split on top-level spaces (not inside parentheses)
     const tokens = []
     let depth = 0, cur = ''
@@ -2539,18 +2561,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (/\s/.test(ch) && depth === 0) { if (cur) tokens.push(cur); cur = '' } else cur += ch
     }
     if (cur) tokens.push(cur)
-    const weightOf = (tok) => {
-      const fr = /(\d*\.?\d+)(fr|%)\)?$/.exec(tok)
-      return fr ? Number(fr[1]) : 1
+    const lengthPx = (tok) => {
+      const m = /^(\d*\.?\d+)(px|rem|em|ch)$/.exec(tok)
+      if (!m) return null
+      const n = Number(m[1])
+      return m[2] === 'px' ? n : m[2] === 'ch' ? n * 8 : n * 16
+    }
+    const trackOf = (raw) => {
+      const tok = raw.trim()
+      // minmax(min, max) / fit-content(x): the track grows to its MAX
+      const mm = /^minmax\(\s*[^,]+,\s*(.+)\)$/.exec(tok)
+      if (mm) return trackOf(mm[1])
+      const fit = /^fit-content\(\s*(.+)\)$/.exec(tok)
+      if (fit) return trackOf(fit[1])
+      const fr = /^(\d*\.?\d+)fr$/.exec(tok)
+      if (fr) return { fr: Number(fr[1]) }
+      const pct = /^(\d*\.?\d+)%$/.exec(tok)
+      if (pct) return { pct: Number(pct[1]) }
+      const px = lengthPx(tok)
+      if (px != null) return { px }
+      // auto, min-content, max-content, an unknown unit: a flexible track
+      return { fr: 1 }
     }
     const out = []
     for (const tok of tokens) {
       const rep = /^repeat\(\s*(\d+)\s*,\s*(.+)\)$/.exec(tok)
       if (rep) {
-        const inner = gridTrackWeights(rep[2])
+        const inner = gridTracksOf(rep[2])
+        if (!inner) return null
         for (let i = 0; i < Number(rep[1]); i++) out.push(...inner)
-      } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: decided by the width, unknown here
-      else out.push(weightOf(tok))
+      } else if (/^repeat\(/.test(tok)) return null // auto-fill/auto-fit: decided by the width, unknown here
+      else out.push(trackOf(tok))
     }
     return out
   }
@@ -2561,13 +2602,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const weights = gridTrackWeights(template)
     if (weights.length < 2) return null
     const total = weights.reduce((a, b) => a + b, 0)
+    // a track's edges rounded to twelfths (not each share on its own): a full row always adds up to
+    // 12 — «300px 1fr 1fr» rounded share by share was 3 + 5 + 5 and the last one wrapped
+    const edge = (track) => Math.round(12 * weights.slice(0, track).reduce((a, b) => a + b, 0) / total)
     const classes = []
     let cursor = 0
     for (let i = 0; i < count; i++) {
       const span = Math.max(1, Math.min(weights.length, (colSpans && colSpans[i]) || 1))
       if (cursor + span > weights.length) cursor = 0
-      const share = weights.slice(cursor, cursor + span).reduce((a, b) => a + b, 0) / total
-      const twelfths = Math.max(1, Math.min(12, Math.round(12 * share)))
+      const twelfths = Math.max(1, Math.min(12, edge(cursor + span) - edge(cursor)))
       classes.push('oj-flex-item oj-sm-12 oj-md-' + twelfths + (twelfths < 12 ? ' oj-sm-padding-2x-end' : ''))
       cursor = (cursor + span) % weights.length
     }
@@ -3745,10 +3788,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // inside a component-holder field (a CustomField whose content is a component, not fields): its
     // atoms are marked, the generic form cannot draw them (hostContentShown)
     let inHolder = 0
+    // a block CUT by a hoisted grid (a column grid nested in a card: see the ResponsiveGrid branch)
+    // → the block that carries on after it; what the card still had to say goes there, in order
+    const continued = new Map()
+    const continuations = new Set()
+    const live = (block) => {
+      let b = block
+      while (b && continued.has(b)) b = continued.get(b)
+      return b
+    }
     const atom = (a, container) => {
       stampNode(a)
       if (inHolder && a && typeof a === 'object') a.fromHolder = true
-      if (container) { container.items.push(a); return }
+      if (container) { live(container).items.push(a); return }
       if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
       plain.items.push(a)
     }
@@ -3880,7 +3932,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const zoneMatches = (node.children || []).map(
           (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
         if (zoneMatches.length >= 2 && zoneMatches.every(Boolean)) {
+          const before = blocks.length
           projectColumns(node.children, node.children.map((_, i) => parseFloat(zoneMatches[i][1])))
+          for (const block of blocks.slice(before)) block.fromColumns = true
           return
         }
       }
@@ -4138,6 +4192,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // width in columns), KPI band (Scoreboard/MetricCard) and charts (oj-chart) ──
       // ResponsiveGrid (the general grid): its tracks (grid-template-columns) and each child's
       // colSpans → oj-flex column-blocks of their width. Inside a card, stacked.
+      // a COLUMN grid nested in a block (a CollectionDetail's list/detail inside its form's card, a
+      // grid in a field): a block cannot hold columns, so the grid is HOISTED — the block is cut, the
+      // grid's columns follow it at the page's level and a continuation block takes the rest. Only a
+      // full-width block is cut (one that is already a column keeps its grid stacked inside).
+      if (t === 'ResponsiveGrid' && container && !live(container).colClass && blocks.includes(live(container))
+          && (gridTrackWeights(m.gridTemplateColumns).length >= 2
+            || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() && !m.gridTemplateColumns))) {
+        const cut = live(container)
+        plain = null
+        const before = blocks.length
+        visitNode(node, null)
+        plain = null
+        if (blocks.length > before) {
+          const rest = { ...(cut.isCard ? { isCard: true } : { isPlain: true }), items: [] }
+          continued.set(cut, rest)
+          continuations.add(rest)
+          blocks.push(rest)
+        }
+        return
+      }
       if (t === 'ResponsiveGrid' && !container) {
         // each child's span: the wire's (colSpans) or the one the child carries itself — a
         // DashboardPanel its colSpan, the KPI band (Scoreboard) the whole row
@@ -4165,12 +4239,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
         const autoFit = autoFitColClass(m.gridTemplateColumns
           || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
-        const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-          || (autoFit ? kids.map(() => autoFit) : null)
+        const tracked = gridColClasses(m.gridTemplateColumns, spans, kids.length)
+        const classes = tracked || (autoFit ? kids.map(() => autoFit) : null)
         // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
-        // blocks carry the mark, and the content wins over the generic form (hostContentShown)
+        // blocks carry the mark, and the content wins over the generic form (hostContentShown).
+        // So do the COLUMNS of explicit tracks (the @Zones of a crud's detail: «35% 65%»): the
+        // generic form has one column, it painted every section stacked in a single card
         const templated = !!(m.gridTemplateAreas && String(m.gridTemplateAreas).trim())
-        const allTags = templated ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), fromTemplate: true })) : tags
+        const mark = templated ? { fromTemplate: true } : tracked ? { fromColumns: true } : null
+        const allTags = mark ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), ...mark })) : tags
         if (classes && projectSized(kids, classes, allTags)) return
       }
       if (t === 'DashboardLayout') {
@@ -4191,7 +4268,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (t === 'MetricCard') {
         // consecutive ones join in the same band (like the buttons)
-        const target = container || plain
+        const target = live(container) || plain
         const last = target && target.items.length ? target.items[target.items.length - 1] : null
         if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
         else atom({ isScoreboard: true, metrics: [withNodeId(metricOf(m, interp), node)] }, container)
@@ -4255,7 +4332,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // h2), with group rhythm (margin-top) when it does not open the block
           const heading = /^h[1-6]$/.test(m.container || '')
           if (heading) {
-            const target = container || plain
+            const target = live(container) || plain
             const notFirst = !!(target && target.items.length)
             atom({
               isText: true,
@@ -4903,6 +4980,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       for (const child of kidsOf(node)) visit(child, container)
     }
     visit(ctx.tree, null)
+    // a continuation nobody wrote into (the grid was the cut block's last child) is no block
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      if (continuations.has(blocks[i]) && !blocks[i].items.length) blocks.splice(i, 1)
+    }
     // HOISTING of the nested island: a block whose content is the island (card "Documento")
     // becomes an isNestedBlock block — the markup paints it at BLOCK level because
     // at greater depth VB's CSP evaluator stops resolving the template's bindings
@@ -5005,8 +5086,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // (fromSurface: what a filled @Subresource / inline-island hole brought — withSubresources)
     const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource || a.fromHolder || a.fromSurface))
     if (blocks.some((block) => (block.items || []).some(rich))) return true
-    // the page is laid out by a slot template (a form with its @Aside…): its fields are painted in it
-    if (blocks.some((block) => block.fromTemplate)) return true
+    // the page is laid out by a slot template (a form with its @Aside…) or in columns (@Zones): its
+    // fields are painted in it
+    if (blocks.some((block) => block.fromTemplate || block.fromColumns)) return true
     const s = summary || {}
     return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
   }
@@ -19641,7 +19723,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  → oj-sp-general-overview-page (main/info slots, integrated header). */
   function generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn = false } = {}) {
     const zoned = (hostBlocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''))
-    const on = !itemOverviewOn && !!(hostEntity && (hostBlocks || []).length === 2 && zoned.length === 2)
+    // the NARROW zone first is the item overview's anatomy, not this one: its main slot would take
+    // the narrow key-data column (the host content paints it in its own columns instead)
+    const col = (b) => parseInt(((b.blockClass || '').match(/oj-md-(\d+)/) || [])[1] || '0', 10)
+    const narrowFirst = zoned.length === 2 && col(zoned[0]) < col(zoned[1])
+    const on = !itemOverviewOn && !narrowFirst && !!(hostEntity && (hostBlocks || []).length === 2 && zoned.length === 2)
     const fold = (block) => {
       const items = block.items || []
       const titled = items.length && items[0].isHeading && items[0].isH2

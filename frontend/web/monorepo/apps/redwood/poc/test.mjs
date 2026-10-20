@@ -5901,3 +5901,68 @@ test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, 
   ] })
   assert.ok(!tocProjectionOf(withIsland).entries.some((e) => e.title === 'Inner'))
 })
+
+// @Zones of a crud's detail (BUGS workshop #8): the server sends Page > ResponsiveGrid «35% 65%» >
+// [column of section cards, column of section cards]. The generic form has one column and used to win
+// (the form has fields), painting every section stacked in a single card. Real captures: the edit view
+// as it came, the read-only view derived from it (its fields readOnly, the id card hidden).
+test('@Zones in a crud detail: the columns are the body (4/12 + 8/12), the generic form steps aside', () => {
+  for (const name of ['crud-view-zones', 'crud-edit-zones']) {
+    const reg = reduceContexts(empty(), fx(name))
+    const host = reg.contexts[HOST_ID]
+    const blocks = hostContentOf(host, null, { title: summarizeHost(reg).title })
+    const zoned = blocks.filter((b) => /oj-md-/.test(b.blockClass))
+    assert.equal(zoned.length, 2, name)
+    assert.match(zoned[0].blockClass, /oj-md-4/, name)
+    assert.match(zoned[1].blockClass, /oj-md-8/, name)
+    assert.ok(zoned.every((b) => b.fromColumns), name)
+    // each column keeps its sections' headings and their fields (Contacto + Matrícula | Datos personales + Observaciones)
+    assert.deepEqual(zoned[0].items.filter((a) => a.isHeading).map((a) => a.text), ['Contacto', 'Matrícula'], name)
+    assert.deepEqual(zoned[1].items.filter((a) => a.isHeading).map((a) => a.text), ['Datos personales', 'Observaciones'], name)
+    assert.ok(zoned[1].items.some((a) => a.isFormLayout && a.fields.some((f) => f.fieldId === 'nombre')), name)
+    assert.equal(p1HostContentShown(blocks, summarizeHost(reg)), true, name + ': the content wins over the generic form')
+  }
+  // read-only in the view, editable in the editor
+  const layouts = (name) => hostContentOf(reduceContexts(empty(), fx(name)).contexts[HOST_ID], null, {})
+    .flatMap((b) => b.items).filter((a) => a.isFormLayout)
+  assert.ok(layouts('crud-view-zones').every((l) => l.readonly))
+  assert.ok(layouts('crud-edit-zones').some((l) => !l.readonly))
+})
+
+// A column grid NESTED in a block (CollectionDetail: its list/detail grid sits in a CustomField of the
+// form's card) was stacked — a block cannot hold columns. It is hoisted: the card is cut, the grid's
+// columns follow it at the page's level, and what the card still had goes to a continuation block.
+test('a column grid nested in a card is hoisted to the page level, in order', () => {
+  const cdReg = reduceContexts(empty(), fx('tpl-collection-detail'))
+  const blocks = hostContentOf(cdReg.contexts[HOST_ID], null, { title: summarizeHost(cdReg).title })
+  assert.equal(blocks.length, 3)
+  assert.ok(blocks[0].items.some((a) => a.isFormLayout), 'the card keeps the search field')
+  assert.match(blocks[1].blockClass, /oj-md-4/) // 22rem of a 1200px page → a third
+  assert.ok(blocks[1].items.some((a) => a.isQueue))
+  assert.match(blocks[2].blockClass, /oj-md-8/)
+  assert.ok(blocks[2].items.some((a) => a.isEmptyStateAtom))
+  // synthetic: what follows the grid inside the card is not lost nor moved before it
+  const card = { type: 'ClientSide', metadata: { type: 'Card', title: 'Card' }, children: [
+    { type: 'ClientSide', metadata: { type: 'Text', text: 'before' } },
+    { type: 'ClientSide', metadata: { type: 'ResponsiveGrid', gridTemplateColumns: '1fr 1fr' }, children: [
+      { type: 'ClientSide', metadata: { type: 'Text', text: 'left' } },
+      { type: 'ClientSide', metadata: { type: 'Text', text: 'right' } },
+    ] },
+    { type: 'ClientSide', metadata: { type: 'Text', text: 'after' } },
+  ] }
+  const out = hostContentOf({ tree: { type: 'ServerSide', id: 's', children: [card] }, state: {} }, null, {})
+  assert.deepEqual(out.map((b) => b.items.map((a) => a.text).join(',')), ['Card,before', 'left', 'right', 'after'])
+  assert.deepEqual(out.map((b) => (b.blockClass.match(/oj-md-(\d+)/) || [])[1] || '12'), ['12', '6', '6', '12'])
+  assert.ok(out[3].isCard, 'the continuation is still the card')
+  // a grid with ONE track stays where it was
+  card.children[1].metadata.gridTemplateColumns = '1fr'
+  const single = hostContentOf({ tree: { type: 'ServerSide', id: 's', children: [card] }, state: {} }, null, {})
+  assert.equal(single.length, 1)
+})
+
+test('DataManagement: «1fr 22rem» gives the table 8/12 and the docked panel 4/12 (not 50/50)', () => {
+  const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-data-management')).contexts[HOST_ID], null, {})
+  const cols = blocks.filter((b) => /oj-md-/.test(b.blockClass))
+  assert.deepEqual(cols.map((b) => b.blockClass.match(/oj-md-(\d+)/)[1]), ['8', '4'])
+  assert.ok(cols[0].items.some((a) => a.isGrid))
+})

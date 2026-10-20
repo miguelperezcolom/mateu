@@ -172,12 +172,34 @@ export function actionPanelAtomOf(m, id, interp = (x) => x) {
   }
 }
 
-/** The tracks of a grid-template-columns as WEIGHTS: repeat(N, x) is expanded, «Nfr», «N%» and
- *  minmax(…, Nfr) weigh N, the rest (px, rem, auto, min-content…) weighs 1 — an approximation:
- *  JET's flex distributes in twelfths, not in tracks. */
+/** The width the fixed tracks of a grid are measured against (px): a page's content box at a
+ *  desktop width. Only the PROPORTION matters — JET's flex shares out twelfths, not pixels. */
+export const GRID_REFERENCE_WIDTH = 1200
+
+/** The tracks of a grid-template-columns as WEIGHTS: repeat(N, x) is expanded. Only flexible
+ *  tracks («Nfr», minmax(…, Nfr), auto) weigh their fr, only percentages their %; when a FIXED
+ *  length (px, rem, em, ch) is in the mix — the 22rem list beside a 1fr detail — every track is
+ *  measured against GRID_REFERENCE_WIDTH and the fr tracks share what the others leave (it used
+ *  to weigh 1 like a 1fr: «22rem 1fr» split 50/50). An approximation: JET's flex distributes in
+ *  twelfths, not in tracks. */
 export function gridTrackWeights(template) {
+  const tracks = gridTracksOf(template)
+  if (!tracks) return []
+  if (!tracks.some((t) => t.px != null || t.pct != null)) return tracks.map((t) => t.fr)
+  if (tracks.every((t) => t.pct != null)) return tracks.map((t) => t.pct)
+  const W = GRID_REFERENCE_WIDTH
+  const fixed = tracks.reduce((sum, t) => sum + (t.px != null ? t.px : t.pct != null ? t.pct * W / 100 : 0), 0)
+  const frs = tracks.reduce((sum, t) => sum + (t.fr || 0), 0)
+  // the fr tracks never vanish: a grid whose fixed tracks fill the reference still shows them
+  const free = Math.max(W / 4, W - fixed)
+  return tracks.map((t) => Math.round(t.px != null ? t.px : t.pct != null ? t.pct * W / 100 : (t.fr / frs) * free))
+}
+
+/** Each track of a grid-template-columns: {fr} | {pct} | {px}; null when the count depends on the
+ *  width (auto-fill / auto-fit) and [] when there is no template. */
+function gridTracksOf(template) {
   const src = String(template || '').trim()
-  if (!src) return []
+  if (!src) return null
   // split on top-level spaces (not inside parentheses)
   const tokens = []
   let depth = 0, cur = ''
@@ -187,18 +209,37 @@ export function gridTrackWeights(template) {
     if (/\s/.test(ch) && depth === 0) { if (cur) tokens.push(cur); cur = '' } else cur += ch
   }
   if (cur) tokens.push(cur)
-  const weightOf = (tok) => {
-    const fr = /(\d*\.?\d+)(fr|%)\)?$/.exec(tok)
-    return fr ? Number(fr[1]) : 1
+  const lengthPx = (tok) => {
+    const m = /^(\d*\.?\d+)(px|rem|em|ch)$/.exec(tok)
+    if (!m) return null
+    const n = Number(m[1])
+    return m[2] === 'px' ? n : m[2] === 'ch' ? n * 8 : n * 16
+  }
+  const trackOf = (raw) => {
+    const tok = raw.trim()
+    // minmax(min, max) / fit-content(x): the track grows to its MAX
+    const mm = /^minmax\(\s*[^,]+,\s*(.+)\)$/.exec(tok)
+    if (mm) return trackOf(mm[1])
+    const fit = /^fit-content\(\s*(.+)\)$/.exec(tok)
+    if (fit) return trackOf(fit[1])
+    const fr = /^(\d*\.?\d+)fr$/.exec(tok)
+    if (fr) return { fr: Number(fr[1]) }
+    const pct = /^(\d*\.?\d+)%$/.exec(tok)
+    if (pct) return { pct: Number(pct[1]) }
+    const px = lengthPx(tok)
+    if (px != null) return { px }
+    // auto, min-content, max-content, an unknown unit: a flexible track
+    return { fr: 1 }
   }
   const out = []
   for (const tok of tokens) {
     const rep = /^repeat\(\s*(\d+)\s*,\s*(.+)\)$/.exec(tok)
     if (rep) {
-      const inner = gridTrackWeights(rep[2])
+      const inner = gridTracksOf(rep[2])
+      if (!inner) return null
       for (let i = 0; i < Number(rep[1]); i++) out.push(...inner)
-    } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: decided by the width, unknown here
-    else out.push(weightOf(tok))
+    } else if (/^repeat\(/.test(tok)) return null // auto-fill/auto-fit: decided by the width, unknown here
+    else out.push(trackOf(tok))
   }
   return out
 }
@@ -209,13 +250,15 @@ export function gridColClasses(template, colSpans, count) {
   const weights = gridTrackWeights(template)
   if (weights.length < 2) return null
   const total = weights.reduce((a, b) => a + b, 0)
+  // a track's edges rounded to twelfths (not each share on its own): a full row always adds up to
+  // 12 — «300px 1fr 1fr» rounded share by share was 3 + 5 + 5 and the last one wrapped
+  const edge = (track) => Math.round(12 * weights.slice(0, track).reduce((a, b) => a + b, 0) / total)
   const classes = []
   let cursor = 0
   for (let i = 0; i < count; i++) {
     const span = Math.max(1, Math.min(weights.length, (colSpans && colSpans[i]) || 1))
     if (cursor + span > weights.length) cursor = 0
-    const share = weights.slice(cursor, cursor + span).reduce((a, b) => a + b, 0) / total
-    const twelfths = Math.max(1, Math.min(12, Math.round(12 * share)))
+    const twelfths = Math.max(1, Math.min(12, edge(cursor + span) - edge(cursor)))
     classes.push('oj-flex-item oj-sm-12 oj-md-' + twelfths + (twelfths < 12 ? ' oj-sm-padding-2x-end' : ''))
     cursor = (cursor + span) % weights.length
   }
