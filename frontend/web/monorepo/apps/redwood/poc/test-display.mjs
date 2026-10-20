@@ -570,6 +570,13 @@ test('MicroFrontend: a surface of its own, from its baseUrl; its actions tagged 
 test('HeroSection, EmptyState, ProgressBar and custom components in the content', () => {
   assert.match(heroAtomOf({ image: '/img/a.png', centered: true }).heroClass, /mateu-hero-centered/)
   assert.ok(emptyStateAtomOf({ actionId: 'go', actionLabel: 'Go' }).hasAction)
+  // an icon NAME is not printed in the title (oj-sp-empty-state has its own illustration); an emoji is
+  assert.equal(emptyStateAtomOf({ icon: 'vaadin:list-select', title: 'Select an item' }).title, 'Select an item')
+  assert.equal(emptyStateAtomOf({ icon: '📭', title: 'Nothing' }).title, '📭 Nothing')
+  assert.equal(emptyStateOf(node({ type: 'VerticalLayout' }, [node({ type: 'EmptyState', icon: 'vaadin:list-select', title: 'Select an item' })])).title, 'Select an item')
+  // a StatusList row draws its avatar only when it has one (it was an empty square)
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.equal((page.match(/initials="\[\[ \$current\.data\.avatar \]\]"/g) || []).length, (page.match(/<oj-bind-if test="\[\[ !!\$current\.data\.avatar \]\]">/g) || []).length)
   assert.equal(progressBarAtomOf({ max: 10, valueKey: 'done' }, { done: 4 }).value, 40)
   assert.equal(progressBarAtomOf({ indeterminate: true }, {}).value, -1)
   // the host's first EmptyState is the page-level band, not repeated in the content
