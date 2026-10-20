@@ -325,7 +325,9 @@ public class FieldMetadataExtractor {
         Icon icon = MetaAnnotations.find(enumField, Icon.class);
         options.add(
             Option.builder()
-                .value(enumConstant.toString())
+                // the constant NAME: what the state holds and the server parses back — a toString()
+                // override is display text, and only the label
+                .value(((Enum<?>) enumConstant).name())
                 .label(labelValue)
                 .icon(icon != null ? icon.value().iconName : null)
                 .build());

@@ -11,6 +11,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **An enum that overrides `toString()` works in selects and filters.** Its options carried the
+  `toString()` as the value, while the state and the server use the constant name: a filter on it
+  was silently ignored and a form select showed nothing selected. The value is the constant name;
+  the `toString()` stays the label (after `@Label`). (Java)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
