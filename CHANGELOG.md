@@ -44,6 +44,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   "Cannot instantiate …". Mateu loaded the classes it reaches by name with its own classloader, which
   under devtools loads a second copy of the app's classes next to the RestartClassLoader's — no bean
   is an instance of those. Classes are now loaded from the thread context classloader first. (Java)
+### Fixed
+- **A view reached through a `@Menu` field gets its injected services.** The menu path created the
+  target with its bare constructor, so a view that builds its content right away (a `Dashboard`, any
+  `ComponentTreeSupplier`) found its `@Autowired`/`@Inject` fields `null`. It is now created through
+  the instance factory, like every other view (bean if there is one, else a new instance with its
+  injection points filled). (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 
