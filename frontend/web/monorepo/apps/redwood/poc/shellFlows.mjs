@@ -104,3 +104,30 @@ export function menuRulePlanOf(reg, rules) {
   }
   return plan
 }
+
+/**
+ * Unsaved changes when the WINDOW goes away (reload, close, typing another address): the browser's
+ * own "Leave site?" prompt while `isDirty()` says the screen has unsaved edits — what the Vaadin
+ * renderer's dirtyGuard does (`beforeunload` → preventDefault + returnValue). A navigation INSIDE
+ * the app is asked about by onMateuNavigate; this covers the exits the app never sees. Installed
+ * once per window; returns the uninstaller.
+ */
+export function installUnsavedChangesGuard(win, isDirty) {
+  if (!win || typeof win.addEventListener !== 'function' || typeof isDirty !== 'function') return () => {}
+  if (win.__mateuUnsavedGuard) return win.__mateuUnsavedGuard
+  const onBeforeUnload = (e) => {
+    let dirty = false
+    try { dirty = !!isDirty() } catch (_) { dirty = false }
+    if (!dirty) return undefined
+    e.preventDefault()
+    e.returnValue = '' // what older browsers need to show the prompt
+    return ''
+  }
+  win.addEventListener('beforeunload', onBeforeUnload)
+  const uninstall = () => {
+    win.removeEventListener('beforeunload', onBeforeUnload)
+    if (win.__mateuUnsavedGuard === uninstall) delete win.__mateuUnsavedGuard
+  }
+  win.__mateuUnsavedGuard = uninstall
+  return uninstall
+}

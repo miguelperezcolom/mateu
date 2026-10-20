@@ -322,6 +322,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     isMenuRuleId,
     menuRulesOf,
     menuRulePlanOf,
+    // unsaved changes when the window goes away (reload / close): the browser's own prompt
+    installUnsavedChangesGuard,
     // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
     pageFlowOf,
     catalogueActionOf,

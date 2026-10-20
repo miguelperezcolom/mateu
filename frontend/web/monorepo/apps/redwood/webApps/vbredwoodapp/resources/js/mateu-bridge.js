@@ -13318,6 +13318,33 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return plan
   }
 
+  /**
+   * Unsaved changes when the WINDOW goes away (reload, close, typing another address): the browser's
+   * own "Leave site?" prompt while `isDirty()` says the screen has unsaved edits — what the Vaadin
+   * renderer's dirtyGuard does (`beforeunload` → preventDefault + returnValue). A navigation INSIDE
+   * the app is asked about by onMateuNavigate; this covers the exits the app never sees. Installed
+   * once per window; returns the uninstaller.
+   */
+  function installUnsavedChangesGuard(win, isDirty) {
+    if (!win || typeof win.addEventListener !== 'function' || typeof isDirty !== 'function') return () => {}
+    if (win.__mateuUnsavedGuard) return win.__mateuUnsavedGuard
+    const onBeforeUnload = (e) => {
+      let dirty = false
+      try { dirty = !!isDirty() } catch (_) { dirty = false }
+      if (!dirty) return undefined
+      e.preventDefault()
+      e.returnValue = '' // what older browsers need to show the prompt
+      return ''
+    }
+    win.addEventListener('beforeunload', onBeforeUnload)
+    const uninstall = () => {
+      win.removeEventListener('beforeunload', onBeforeUnload)
+      if (win.__mateuUnsavedGuard === uninstall) delete win.__mateuUnsavedGuard
+    }
+    win.__mateuUnsavedGuard = uninstall
+    return uninstall
+  }
+
 
   // RANGE selection on the tape chart (PlanningBoard → oj-gantt): dragging over EMPTY cells of
   // a row launches rangeSelectActionId with { _resourceId, _start, _end } (the «click on the start
@@ -22022,6 +22049,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // live reload (dev mode) answers an app-level change by reloading the WINDOW: in a host page that
     // is the host's app, not ours — the embedded component is not live-reloaded (yet)
     installDevLiveReload: 'an app-level reload would reload the host page',
+    // the window's beforeunload prompt is the HOST page's to decide (its own unsaved state, its
+    // own exits): a component in it does not hold the whole page hostage
+    installUnsavedChangesGuard: 'the host page owns its window unload prompt',
     // Ctrl+P prints the HOST page: its print stylesheet is the host's to decide (UICommand.print
     // still works inside the component — applyDomEffects prepares the sheet when it runs)
     installPrintSupport: 'the host page owns what its own Ctrl+P prints',
@@ -22518,6 +22548,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     isMenuRuleId,
     menuRulesOf,
     menuRulePlanOf,
+    // unsaved changes when the window goes away (reload / close): the browser's own prompt
+    installUnsavedChangesGuard,
     // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
     pageFlowOf,
     catalogueActionOf,

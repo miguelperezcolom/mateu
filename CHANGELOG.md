@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: reloading or closing the tab with unsaved changes asks first.** Menu navigation and
+  the browser's back already asked; the window's own exits did not, so an edit was lost without a
+  word. The shell now raises the browser's "Leave site?" prompt (`beforeunload`) while the screen
+  is dirty, like the Vaadin renderer. (Not in the embedded `<mateu-ui>`: the host page owns its
+  window's unload.)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
