@@ -135,6 +135,7 @@ chains.loadMateuShell = chain('pages/shell-page-chains/loadMateuShell.js')
 chains.onMateuNavigate = chain('pages/shell-page-chains/onMateuNavigate.js')
 chains.runMateuAction = chain('flows/main/pages/main-start-page-chains/runMateuAction.js')
 chains.runMateuIslandAction = chain('flows/main/pages/main-start-page-chains/runMateuIslandAction.js')
+const planningGanttEvent = chain('flows/main/pages/main-start-page-chains/planningGanttEvent.js')
 
 // ── the backend: a scripted fetch ──────────────────────────────────────────────────────────────
 let routes = []
@@ -504,6 +505,36 @@ test('onMateuNavigate: from one foldout to another, the foldout subtree is re-cr
   await navigate(ctx, '/f2')
   assert.notEqual(ctx.$application.variables.mateuFoldout, first)
   assert.ok(ctx.$application.variables.mateuFoldout)
+})
+
+// ═══ planningGanttEvent ═════════════════════════════════════════════════════════════════════════
+
+test('gantt: a click on a bar selects its task (onTaskSelectionActionId), once, and the user\'s selection is not dropped', async () => {
+  // what ganttAtomOf makes of a Gantt: one row per task, the selection action with its parameter
+  const atom = { isPlanning: true, isGantt: true, selectActionId: 'selectGanttTask', selectParam: '_clickedTaskId',
+    rows: [{ id: 'u1', tasks: [{ id: 'u1' }] }, { id: 'u2', tasks: [{ id: 'u2' }] }] }
+  const dispatched = () => calls.filter((c) => c[0] === 'callChain' && c[1] === 'dispatchHostBlockAction').map((c) => c[2])
+  const ctx = newContext()
+  // a click: oj-gantt's getContextByNode says which bar (row 1, its task 0)
+  const gantt = { getContextByNode: () => ({ subId: 'oj-gantt-taskbar', rowIndex: 1, index: 0 }) }
+  calls.length = 0
+  await new planningGanttEvent().run(ctx, { kind: 'click', event: { currentTarget: gantt, target: {} }, atom })
+  assert.deepEqual(dispatched(), [{ actionId: 'selectGanttTask', parameters: { _clickedTaskId: 'u2' }, fromNested: false }])
+  // the selectionChanged of the SAME click (JET reports the user's change as 'internal') is not a second action
+  await new planningGanttEvent().run(ctx, { kind: 'select', event: { detail: { updatedFrom: 'internal', value: ['u2'] } }, atom })
+  assert.equal(dispatched().length, 1)
+  // a user selection with a key (keyboard) selects; one with a null key (tasks inline in rows) waits for the click
+  calls.length = 0
+  await new planningGanttEvent().run(ctx, { kind: 'select', event: { detail: { updatedFrom: 'internal', value: ['u1'] } }, atom })
+  await new planningGanttEvent().run(ctx, { kind: 'select', event: { detail: { updatedFrom: 'internal', value: [null] } }, atom })
+  // the app setting it is not the user's pick
+  await new planningGanttEvent().run(ctx, { kind: 'select', event: { detail: { updatedFrom: 'external', value: ['u2'] } }, atom })
+  assert.deepEqual(dispatched().map((c) => c.parameters), [{ _clickedTaskId: 'u1' }])
+  // a click on the background or the row axis is no task
+  calls.length = 0
+  await new planningGanttEvent().run(ctx, { kind: 'click', event: { currentTarget: { getContextByNode: () => null }, target: {} }, atom })
+  await new planningGanttEvent().run(ctx, { kind: 'click', event: { currentTarget: { getContextByNode: () => ({ subId: 'oj-gantt-row-label', rowIndex: 0, index: 0 }) }, target: {} }, atom })
+  assert.deepEqual(dispatched(), [])
 })
 
 // ═══ runMateuAction ═══════════════════════════════════════════════════════════════════════════

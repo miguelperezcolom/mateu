@@ -1423,6 +1423,12 @@ test('Gantt: una fila por tarea sobre oj-gantt, avance 0..1, selección → _cli
   assert.equal(g.rows.length, 2, 'las tareas sin fechas no se pintan')
   const prog = Object.fromEntries(g.rows.flatMap((r) => r.tasks).map((t) => [t.id, t.progress.value]))
   assert.deepEqual(prog, { t1: 0.5, t2: 1 })
+  // the done part takes a darker shade of the task's colour (not JET's one grey for every bar)
+  const coloured = ganttAtomOf({ tasks: [{ id: 'p', start: '2026-01-05', end: '2026-01-20', progress: 15, color: '#508223' },
+    { id: 'q', start: '2026-01-05', end: '2026-01-20', progress: 15 }] })
+  const [p, q] = coloured.rows.map((r) => r.tasks[0])
+  assert.deepEqual(p.progress, { value: 0.15, svgStyle: { fill: '#304e15' } })
+  assert.deepEqual(q.progress, { value: 0.15 })
   assert.equal(g.majorScale, 'months', 'un plan de meses se lee por meses')
   assert.deepEqual(planningActionOf(g, 'select', { value: ['t1'] }) || planningActionOf(g, 'select', { taskId: 't1' }),
     { actionId: 'selectGanttTask', parameters: { _clickedTaskId: 't1' } })

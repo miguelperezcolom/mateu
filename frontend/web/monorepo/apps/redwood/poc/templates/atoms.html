@@ -44,7 +44,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPlanning ]]">
-                      <!-- tape chart (Room Diary): JET's oj-gantt; move/resize/double click → planningGanttEvent -->
+                      <!-- tape chart (Room Diary): JET's oj-gantt; move/resize/click/double click → planningGanttEvent -->
                       <oj-gantt class="mateu-planning oj-sm-margin-2x-bottom"
                         :data-planning-id="[[ $current.data.planningId ]]"
                         :data-range-action="[[ $current.data.rangeAction ]]"
@@ -61,6 +61,7 @@
                         on-oj-move="[[ $listeners.planningMoved ]]"
                         on-oj-resize="[[ $listeners.planningResized ]]"
                         on-dblclick="[[ $listeners.planningDblClick ]]"
+                        on-click="[[ $listeners.planningClick ]]"
                         on-selection-changed="[[ $listeners.planningSelected ]]">
                         <template slot="rowTemplate" data-oj-as="row">
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>

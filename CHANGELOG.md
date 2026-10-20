@@ -11,6 +11,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: clicking a Gantt bar selects its task.** `Gantt.onTaskSelectionActionId` (GanttPage's
+  `selectGanttTask`, DataManagement) and a PlanningBoard's `selectActionId` never fired: the chain
+  dropped the selection changes JET reports as `internal` — which are the user's — and with the tasks
+  inline in each row the selected key comes back null anyway. A click resolves the bar under the
+  pointer (as the double click already did), once per pick. The done part of a coloured task is
+  drawn in a darker shade of its colour instead of JET's one grey.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
