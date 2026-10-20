@@ -381,6 +381,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pageSubtitleOf,
     collectTexts,
     foldoutOf,
+    foldoutContentOf,
+    sameFoldoutStructure,
     wizardOf,
     callMateu,
     // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path

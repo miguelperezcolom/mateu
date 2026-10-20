@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
   summarizeHost, generalOverviewOf, emptyStateOf, sectionButtonsOf, withoutSectionButtons,
-  reduceContexts, HOST_ID, overlayOf, foldoutOf, welcomeOf, welcomeLookOf, welcomeToneLookOf, listingOf,
+  reduceContexts, HOST_ID, overlayOf, foldoutOf, foldoutContentOf, sameFoldoutStructure, welcomeOf, welcomeLookOf, welcomeToneLookOf, listingOf,
   pageSwitcherOf, switcherPickOf, actionsOf, islandContentOf, kidsInAreaOrder, setPanelExpanded,
   pageKpisOf, pageSubtitleOf, bannersOf, pageHeaderNodeOf, shellNavOf, headerActionRouteOf,
   pageHeaderExtrasOf, badgeStatusOf, headerTimestampOf,
@@ -775,4 +775,14 @@ test('an EntityHeader fact with an action is header chrome, not a page button (n
     ],
   }
   assert.deepEqual(actionsOf(tree).map((a) => a.actionId), ['checkout'])
+})
+
+test('foldout: content in place for the same structure; panel count or orientation changes remount', () => {
+  const one = { panels: [{}], orientation: 'vertical', overview: { blocks: [1] }, header: { back: true } }
+  assert.equal(sameFoldoutStructure(one, { ...one, overview: { blocks: [2] } }), true)
+  assert.equal(sameFoldoutStructure(one, { ...one, panels: [{}, {}] }), false)
+  assert.equal(sameFoldoutStructure(one, { ...one, orientation: 'horizontal' }), false)
+  assert.equal(sameFoldoutStructure(null, one), false)
+  assert.deepEqual(foldoutContentOf(one), { overview: { blocks: [1] }, panels: [{}], header: { back: true } })
+  assert.deepEqual(foldoutContentOf(null), { overview: { blocks: [] }, panels: [], header: {} })
 })

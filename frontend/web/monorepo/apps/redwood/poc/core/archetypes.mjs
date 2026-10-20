@@ -6,6 +6,21 @@ import { iconClassOf } from './display.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
+/** What the foldout's panels read (mateuFoldoutContent): its overview, panels and header. */
+export function foldoutContentOf(proj) {
+  return proj
+    ? { overview: proj.overview, panels: proj.panels, header: proj.header }
+    : { overview: { blocks: [] }, panels: [], header: {} }
+}
+
+/** Same structure → the chain updates the content in place; otherwise it remounts the foldout.
+ *  The number of panels and the orientation (the overview a column / the top band) are structure. */
+export function sameFoldoutStructure(before, now) {
+  return !!(before && now
+    && (before.panels || []).length === (now.panels || []).length
+    && before.orientation === now.orientation)
+}
+
 /** FOLDOUT projection (Phase 7): overview + panels with their headers (metadata.panels)
  *  and their slotted content (overview / panel-N). null if the context is not a foldout.
  *  Each slot also projects its RICH blocks (same pipeline as the host: StatusList

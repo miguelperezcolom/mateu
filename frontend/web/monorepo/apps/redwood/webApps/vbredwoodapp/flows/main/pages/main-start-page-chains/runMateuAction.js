@@ -415,18 +415,11 @@ define([
         const foldoutProjection = bridge.foldoutOf(hostAfter);
         foldoutNow = foldoutProjection;
         const foldoutBefore = $application.variables.mateuFoldout;
-        const contentOf = (proj) => proj
-          ? { overview: proj.overview, panels: proj.panels, header: proj.header }
-          : { overview: { blocks: [] }, panels: [], header: {} };
-        // the orientation is structure too: the overview changes place (a column / the top band)
-        const mismaEstructura = foldoutBefore && foldoutProjection
-          && (foldoutBefore.panels || []).length === (foldoutProjection.panels || []).length
-          && foldoutBefore.orientation === foldoutProjection.orientation;
-        if (mismaEstructura) {
+        if (bridge.sameFoldoutStructure(foldoutBefore, foldoutProjection)) {
           // IN-PLACE update: the panels are stamped ONCE (their for-each loses its
           // anchors if re-stamped — the foldout's DOM surgery); the content lives in
           // mateuFoldoutContent, whose bindings DO re-evaluate inside the panel
-          $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
+          $application.variables.mateuFoldoutContent = bridge.foldoutContentOf(foldoutProjection);
         } else {
           // different structure (number of panels) or entering/leaving foldout mode:
           // full null→tick remount
@@ -435,7 +428,7 @@ define([
             await new Promise((resolve) => setTimeout(resolve, 0));
           }
           // content BEFORE structure (the panels read it when stamped)
-          $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
+          $application.variables.mateuFoldoutContent = bridge.foldoutContentOf(foldoutProjection);
           $application.variables.mateuFoldout = foldoutProjection;
         }
         bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);
