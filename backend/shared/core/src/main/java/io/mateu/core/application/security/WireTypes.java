@@ -147,6 +147,7 @@ public final class WireTypes {
           "ToolbarSupplier",
           "TitleSupplier",
           "SubtitleSupplier",
+          "DetailContentSupplier",
           "PageTitleSupplier",
           "TitlePlaceholderSupplier",
           "OverlineSupplier",

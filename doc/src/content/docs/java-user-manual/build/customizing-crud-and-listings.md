@@ -281,6 +281,55 @@ public class Products {}
 
 ---
 
+## The record page
+
+A record's page (`/{id}`) is the read-only form of the view class — for an `AutoCrud<T>`, `T`.
+`@FoldoutDetail` turns it into an overview plus folding panels. For any other content, the view class
+implements `DetailContentSupplier` and returns the component to show instead — for instance an
+[item overview](/ux-patterns/item-overview/), with the key information pinned beside tabs:
+
+```java
+public class Student implements Identifiable, DetailContentSupplier {
+    String id;
+    String name;
+    String email;
+
+    @Override
+    public String id() {
+        return id;
+    }
+
+    @Override
+    public Component detailContent(HttpRequest httpRequest) {
+        return new StudentOverview(this);
+    }
+}
+
+class StudentOverview extends ItemOverview {
+
+    Component keyInfo;
+
+    @Panel(title = "Personal data")
+    Component personal;
+
+    StudentOverview(Student student) {
+        keyInfo = new Text("Email: " + student.email);
+        personal = new Text("Name: " + student.name);
+    }
+}
+```
+
+Only the content changes. The header (title, subtitle, `Status` badges, KPIs) and the toolbar (Back to
+list, Edit, `@Toolbar` and `@ViewToolbarButton` buttons) are still the CRUD's, and the editor and the
+creation form keep their regular forms although they are the same class. A button inside the content
+reaches the CRUD like the toolbar's do: `"edit"`, `"cancel-view"`, or `"action-on-view-<method>"` for
+a `@ViewToolbarButton` method. Return `null` to keep the default form for a given record. The record
+is what `store().findById` (or an overridden `view(id, httpRequest)`) returns, so load there whatever
+else the content needs. The same hook applies to an [editable view](/java-user-manual/build/editable-view/)
+in view mode.
+
+---
+
 # 7. Add actions
 
 ## Page-level action

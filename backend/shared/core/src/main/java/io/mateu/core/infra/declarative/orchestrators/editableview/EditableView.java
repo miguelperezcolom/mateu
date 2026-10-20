@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getT
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 
+import io.mateu.core.infra.declarative.orchestrators.DetailContent;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.reflection.MetaAnnotations;
@@ -140,18 +141,24 @@ public abstract class EditableView<V, E> extends MultiView {
         .level(inline ? 1 : 0)
         .badges(inline ? List.of() : createBadges(view))
         .kpis(inline ? List.of() : createKpis(view))
+        // the view's own content (DetailContentSupplier), else its read-only form
         .content(
-            getView(
-                    view,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest,
-                    true,
-                    false)
-                .stream()
-                .toList())
+            DetailContent.of(
+                view,
+                httpRequest,
+                () ->
+                    getView(
+                            view,
+                            "base_url",
+                            httpRequest.runActionRq().route(),
+                            httpRequest.runActionRq().consumedRoute(),
+                            httpRequest.runActionRq().initiatorComponentId(),
+                            httpRequest,
+                            true,
+                            false)
+                        .stream()
+                        .map(Component.class::cast)
+                        .toList()))
         .toolbar(toolbar)
         .build();
   }

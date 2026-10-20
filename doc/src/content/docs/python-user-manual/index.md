@@ -218,6 +218,30 @@ Decorate the crud class with `@edit_in_drawer` and New/row clicks open the creat
 **drawer sliding over the listing** (the listing never unmounts; saving persists, closes the
 drawer and refreshes the rows in place).
 
+A record's page (`/x/{id}`) is its read-only form. For other content, the entity subclasses
+`DetailContentSupplier` and returns the component to show from `detail_content()` — for instance an
+`ItemOverview` built from the record. The page title and toolbar (Back to list, Edit) stay the
+crud's, the edit and create forms keep their forms, and returning `None` keeps the default form for
+that record:
+
+```python
+class StudentOverview(ItemOverview):
+    key_info: Text
+    history: Annotated[Text, Panel("History")]
+
+    def __init__(self, student: "Student") -> None:
+        self.key_info = Text(text=f"Email: {student.email}")
+        self.history = Text(text="Enrolled since 2024")
+
+
+class Student(DetailContentSupplier):
+    id: str = ""
+    email: str = ""
+
+    def detail_content(self):
+        return StudentOverview(self)
+```
+
 Two more archetypes mirror the Java orchestrators: subclass `CollectionDetail` (searchable card
 list on the left, the selected item's detail re-rendered in place on the right) or
 `GeneralOverview` (a record context switcher over the selected record's overview). Both are built

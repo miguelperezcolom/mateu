@@ -25,6 +25,18 @@ public interface IComponentTreeSupplier
     string? Style => "max-width:900px;margin: auto;";
 }
 
+/// <summary>Implemented by a CRUD's record class to supply the CONTENT of its read-only detail page
+/// (<c>/{id}</c>) instead of the read-only form drawn from its properties — for instance an
+/// <see cref="ItemOverview"/> built from the record (<c>new StudentOverview(this).Component()</c>).
+/// Only the content changes: the page title and toolbar (Back to list, Edit) stay the CRUD's, and the
+/// edit and create forms of the same class keep their forms. <c>null</c> keeps the default form.
+/// (The C# analogue of io.mateu.uidl.interfaces.DetailContentSupplier — parameterless, the port
+/// idiom, like <see cref="IComponentTreeSupplier.Component"/>.)</summary>
+public interface IDetailContentSupplier
+{
+    IComponent? DetailContent();
+}
+
 /// <summary>Base for fluent components: id + style + css classes.</summary>
 public abstract record ComponentBase : IComponent
 {

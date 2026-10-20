@@ -137,7 +137,8 @@ For most use cases `store()` is the only method you need to implement. To push s
 `AutoCrud<T>` uses `T` for every screen, which means:
 
 - The filter bar shows the same fields as the grid rows.
-- The edit form shows the same fields as the detail view.
+- The edit form shows the same fields as the detail view (the detail's content can still differ — see
+  [The record page](/java-user-manual/build/customizing-crud-and-listings/#the-record-page)).
 - The create form is identical to the edit form.
 
 When this is too restrictive, move to:
