@@ -108,6 +108,19 @@ public class HelloWorld {
 When you run your Quarkus application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
 
 
+### Views as CDI beans
+
+A view (a `@UI` class, a menu target, an `AutoCrud`, a lookup supplier…) does not need to be a bean:
+Mateu creates it on every request and still fills its `@Inject` fields. If you make it one — e.g. for
+constructor injection — use `@Dependent`: a view holds per-request state, and an `@ApplicationScoped`
+one is shared by every request and user.
+
+Mateu reaches those classes only by reflection, so ArC sees nothing that injects them. By default it
+would remove them as unused beans at build time — and, with them, the services only they inject,
+leaving those `@Inject` fields `null`. `mateu-quarkus` therefore sets
+`quarkus.arc.remove-unused-beans=fwk` (keep every bean declared in your application, still remove
+unused framework beans); no `@Unremovable` is needed. Your `application.properties` can override it.
+
 An empty class renders an empty page. For a complete project on this runtime — a model, a store and
 a full CRUD, with this exact build setup — copy the [`starters/quarkus`](https://github.com/miguelperezcolom/mateu/tree/master/starters/quarkus) project; CI
 compiles and boots it on every change.
