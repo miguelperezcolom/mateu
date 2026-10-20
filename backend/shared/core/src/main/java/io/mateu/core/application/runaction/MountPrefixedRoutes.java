@@ -29,7 +29,8 @@ import io.mateu.uidl.annotations.Menu;
  *       /remote}) already speaks one consistent frame and is left alone;
  *   <li>the request names no type, or names the app itself (a page's own actions are untouched);
  *   <li>no {@code @Menu} field of the app is called like the mount's segment, the one case in which
- *       {@code /e2-demo/...} could also be a route of its own inside the app.
+ *       {@code /e2-demo/...} could also be a route of its own inside the app — unless the route
+ *       repeats the segment ({@code /e2-demo/e2-demo/...}: the mount, then that entry).
  * </ul>
  */
 final class MountPrefixedRoutes {
@@ -70,9 +71,11 @@ final class MountPrefixedRoutes {
       return null;
     }
     var segment = baseUrl.substring(baseUrl.lastIndexOf('/') + 1);
-    if (hasMenuFieldNamed(app, segment)) {
+    if (hasMenuFieldNamed(app, segment) && !repeatsSegment(relative, segment)) {
+      // /library/catalog to the /library app with a @Menu library: the menu entry's own route
       return null;
     }
+    // …while /library/library/catalog is that same route with the mount in front
     return relative;
   }
 
@@ -83,6 +86,31 @@ final class MountPrefixedRoutes {
     }
     var path = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     return path.startsWith("/") && path.length() > 1 ? path : null;
+  }
+
+  /** Whether the mount-relative {@code relative} starts with the mount's segment once more. */
+  private static boolean repeatsSegment(String relative, String segment) {
+    return relative.equals("/" + segment) || relative.startsWith("/" + segment + "/");
+  }
+
+  /**
+   * Whether {@code route}, sent to the mount {@code baseUrl}, is a route OF the app inside it that
+   * merely starts with the mount's segment: the app has a {@code @Menu} field called like the
+   * segment, so {@code /library/...} to the {@code /library} app is that entry — never the app
+   * itself.
+   */
+  static boolean isMenuRouteNamedLikeTheMount(String route, String baseUrl, Class<?> app) {
+    var mount = mountPath(baseUrl);
+    if (mount == null || route == null || app == null) {
+      return false;
+    }
+    if (!(route.equals(mount) || route.startsWith(mount + "/"))) {
+      return false;
+    }
+    if (!mount.equals(RouteAnnotations.routeOf(app))) {
+      return false;
+    }
+    return hasMenuFieldNamed(app, mount.substring(mount.lastIndexOf('/') + 1));
   }
 
   private static boolean hasMenuFieldNamed(Class<?> app, String segment) {
