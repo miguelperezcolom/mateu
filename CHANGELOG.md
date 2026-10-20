@@ -11,6 +11,326 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.8] — 2026-10-20
+
+Fixes and small features found while building a multi-service workshop (Quarkus, Spring Boot 4, Micronaut and a static YAML shell, Redwood renderer): a CRUD record page can show its own content (`DetailContentSupplier`), authored routes under a CRUD get its navigation automatically, shared CRUD instances no longer leak routing state between requests, Quarkus needs no `@Unremovable` and reloads the browser in dev, and a long list of Redwood rendering fixes. Upgrade recommended.
+
+### Added
+
+- **A CRUD's record page can show its own content** (`DetailContentSupplier`). The view class (for an
+  `AutoCrud<T>`, `T`) implements `Component detailContent(HttpRequest)` and its `/{id}` page shows
+  that component — e.g. an `ItemOverview` with the key information beside tabs — instead of the
+  read-only form. The header (title, subtitle, `Status` badges, KPIs) and the toolbar stay the
+  CRUD's, the editor and the creation form keep their forms although they are the same class, an
+  `ItemOverview` (any `ComponentTreeSupplier`) is expanded in place so its buttons reach the CRUD
+  (`edit`, `cancel-view`, `action-on-view-<method>`), and `null` keeps the form. An editable view's
+  view mode honours it too. It replaces overriding `resolveInternalRoute` and copying the
+  `PageView`. Python `DetailContentSupplier.detail_content()`, .NET `IDetailContentSupplier.DetailContent()`
+  on the crud record page (title + Back to list/Edit kept). (Java, .NET, Python)
+- **`PageView.toBuilder()`**: copy a page with one thing changed instead of calling its 29-argument
+  constructor. (Java)
+
+- **Quarkus: live reload works under `quarkus:dev` out of the box.** `mateu-quarkus` now ships
+  `%dev.mateu.dev=true` among its configuration defaults, so Mateu's development mode (specs read
+  from the source tree and watched, the open tab re-rendered after a recompile) is on in Quarkus's
+  dev profile only — never in the packaged application or the tests. Override it with
+  `%dev.mateu.dev=false`. (Java)
+
+- **A page that overrides a CRUD's sub-screen gets the CRUD's navigation.** When an authored route
+  (`routes.yaml`, a `RouteEntrySupplier`) binds `<crud>/:id`, `<crud>/:id/edit` or `<crud>/new` to
+  your own view model, Mateu adds what the built-in screen has: **Back to list** and **Edit** on the
+  record page (Edit only when the CRUD can edit), **Cancel** on the editor and the creation page —
+  labelled by the CRUD's hooks (`backToListLabel()`, `editLabel()`, `cancelLabel()`), with its
+  action ids (`cancel-view`, `edit`, `cancel-edit`, `cancel-new`) and navigating where the built-in
+  ones would. A button or method of the page with that id wins; `@NoCrudNavigation` on the view
+  model opts out. The CRUD is found from the route (a class it resolves to, or the `@Menu` field the
+  path reaches from an app). (Java)
+- **A page that builds its own tree shows its toolbar.** A routed `ItemOverview` (any
+  `ComponentTreeSupplier`) ignored its `@Toolbar` / `@Button` methods: nothing was rendered. Its
+  tree now goes inside a page carrying them (a tree that is already a page gets them added), and they
+  run on the view like a normal page's; a view with none renders exactly as before. (Java)
+
+### Changed
+
+- **A `RemoteMenu` with a label groups its entries in every menu variant.** When the remote answers
+  with several top-level entries and the shell declared the section's label, they now go into a
+  submenu named (and iconed, and placed by its path) as the shell named it — `HAMBURGER_SECTIONS`
+  already made it a section; `MENU_ON_TOP` and the others spliced the entries flat next to the
+  shell's own, with their raw routes, and dropped the label. Without a declared label nothing
+  changes. Routes, deep links and reloads still reach the remote by route. And when the shell and a
+  remote, or two remotes, claim the same route, the browser console now warns once naming the route
+  and both sources, instead of one silently shadowing the other. (Vaadin, Redwood)
+
+### Fixed
+
+- **Cancel (and the other leave actions) ask before dropping unsaved changes.** A dirty editor
+  already asked when the user left it through the menu, the browser's back button or a reload, but
+  its own **Cancel** ran straight away and the edits were lost. Now the actions the server treats as
+  leaving the screen — `cancel`, `cancel-…` (the CRUD's `cancel-edit`/`cancel-new`/`cancel-create`/
+  `cancel-view`), `back` and `backToList` — ask the same "unsaved changes" question first; "stay"
+  sends nothing. A business action that merely starts with `cancel` (`cancelBooking`) is not one,
+  and neither is a wizard's Back (or any wizard step action): it moves between steps of the same
+  screen and keeps what was typed, so it never asks; the wizard's Cancel does. Nor does the
+  optimistic-lock conflict dialog's **Reload** (it runs `cancel-edit`): the user already chose
+  there to drop their changes.
+  Redwood now follows Vaadin's single rule for unsaved changes: an edit marks the screen dirty only
+  when the form that owns the field asks before it is left (`@ConfirmOnNavigationIfDirty`, CRUD
+  create/edit views), in every edit path (page forms, forms painted as page content, drawers and
+  dialogs by their own form, islands). Before, any edit on any Redwood form counted — a filter or
+  search box too — while a CRUD form painted as page content never did, so its menu, back and
+  reload did not ask. (Vaadin, Redwood)
+
+- **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of
+  Micronaut's (`MateuMicronautJsonMapper`, `MateuMicronautJacksonDatabindMapper`) left Jackson's
+  `WRITE_DATES_AS_TIMESTAMPS` on, so a `LocalDate` in component data (grid rows…) was written as
+  `[2025,12,19]` and shown as "2025,12,19". They now write `"2025-12-19"`, like the other adapters.
+  (Java)
+- **Quarkus: views reached only by Mateu keep their injected services.** ArC removed, as unused beans,
+  the view classes Mateu reaches by reflection (an `AutoCrud` annotated `@Dependent`…) and the
+  services only they inject; Mateu then created the view with `new` and its `@Inject` fields stayed
+  `null` ("An unexpected error occurred" on the first action that used one). `mateu-quarkus` now
+  defaults `quarkus.arc.remove-unused-beans=fwk` (its `META-INF/microprofile-config.properties`; the
+  application's own setting wins): application beans are kept, unused framework beans are still
+  removed. `@Unremovable` is no longer needed. (Java)
+- **Spring Boot devtools: views get their beans.** With `spring-boot-devtools` on the classpath a
+  view's `@Autowired` fields stayed `null` and `@Lookup` suppliers that are `@Component`s failed with
+  "Cannot instantiate …". Mateu loaded the classes it reaches by name with its own classloader, which
+  under devtools loads a second copy of the app's classes next to the RestartClassLoader's — no bean
+  is an instance of those. Classes are now loaded from the thread context classloader first. (Java)
+- **A view reached through a `@Menu` field gets its injected services.** The menu path created the
+  target with its bare constructor, so a view that builds its content right away (a `Dashboard`, any
+  `ComponentTreeSupplier`) found its `@Autowired`/`@Inject` fields `null`. It is now created through
+  the instance factory, like every other view (bean if there is one, else a new instance with its
+  injection points filled). (Java)
+- **Live reload after a restart inside the JVM.** The dev event stream's boot id was a constant of
+  Mateu's jar, which Quarkus dev mode and Spring Boot devtools do not reload: after their restart
+  the browser reconnected, saw the same boot id and did not re-render. Each application start now
+  gets a new one (`DevEndpoint.bootId()`). (Java)
+- **Quarkus dev mode: editing Java re-renders the open browser.** Quarkus only looks for changed
+  code when a request arrives, and the open live-reload stream is not one. With `mateu.dev=true`,
+  `mateu-quarkus` now asks it to scan for changes once a second while a browser is watching
+  (a `HotReplacementSetup`; dev mode only). (Java)
+- **`TodoList`, `CalendarPage`, `CollectionDetail` and `GeneralOverview` no longer send the request
+  to the client.** Their private `currentRequest` field travelled in the component state (base url,
+  caller's remote address) and failed to come back (`WARN Hydrater: Could not hydrate field
+  'currentRequest'`). It is `transient` now, and the state serializers skip transient fields in
+  their nested-object pass too (Jackson already did). (Java)
+- **No more `"nombre": "xxxx"` in every row of every list.** A leftover debug line in the wizard
+  state serializer (used for every form's state) planted it next to `_rowNumber`. (Java)
+- **A list of components is not an editable grid field.** A `List<Badge>` (a `Foldout`'s header
+  badges) or `List<Component>` field registered the twelve row-editing actions (`estado_add`,
+  `estado_create`, …) of a list of records. (Java, .NET, Python)
+- **A `Drawer` or `Dialog` keeps its declared id on the wire.** `Drawer.builder().id("x")` went out
+  with the component id `"fieldId"` (only the metadata carried `x`), so Redwood could not tell that
+  an overlay re-sent while open was the same one and stacked a second drawer instead of refreshing
+  it. Without an id the filler `"fieldId"` stays. (Java; .NET and Python already sent the id)
+- **A CRUD view's `@ViewToolbarButton` that answers with a message refreshes the record.** A button
+  that changed the record in the store and returned `Message.success(...)` left the view on the old
+  values (workaround was `UICommand.navigateTo("/<crud>/<id>")`). A message-only answer now also
+  sends the record reloaded from the store; any other answer is used as it is. (Java; the .NET and
+  Python ports do not dispatch view-toolbar methods)
+- **A subclass of a `Foldout`, `ItemOverview`, `Dashboard` or `Welcome` keeps what its parent
+  declares.** They read only the concrete class's own fields (and the Foldout only its own
+  `@Title`), so subclassing a page to mount it elsewhere or to add a panel gave an empty page. They
+  now walk the class hierarchy, parent fields first. (Java; .NET and Python already did)
+- **`@Email`, `@Positive`, `@PositiveOrZero`, `@Negative`, `@NegativeOrZero`, `@DecimalMin` and
+  `@DecimalMax` are checked like `@Pattern` and `@Min`/`@Max`:** they travel to the client as
+  validations and the server re-checks them before a validated action. They were ignored on both
+  sides (`pepe` went through an `@Email` field). Messages are the validator's own, in the request's
+  language. `@Past`/`@Future` are still not mapped. (Java; the .NET and Python ports have their own
+  constraint markers and do not have these yet)
+- **An enum that overrides `toString()` works in selects and filters.** Its options carried the
+  `toString()` as the value, while the state and the server use the constant name: a filter on it
+  was silently ignored and a form select showed nothing selected. The value is the constant name;
+  the `toString()` stays the label (after `@Label`). (Java)
+- **A `@Menu` submenu called like the app's mount opens its pages.** With `@UI("/biblioteca")` and
+  `@Menu MenuBiblioteca biblioteca`, a menu click, a deep link or a reload of
+  `/biblioteca/biblioteca/catalogo` answered the app again: the content load (route
+  `/biblioteca/catalogo`, typed with the app) took the `/biblioteca` prefix for the app's own mount.
+  Inside its mount the app is at `""`, so that prefix is the menu entry; and a route that repeats
+  the segment (`/biblioteca/biblioteca/...`) is now read relative to the mount. (Java; the .NET and
+  Python ports use absolute routes and never had the second spelling)
+- **A wizard step's `@Toolbar` buttons run.** They were drawn under the step's form, but the
+  wizard's dispatcher never called them. They now run on the step as typed (not validated), and the
+  wizard shows the same step again with what they changed; a returned `Message` shows over it.
+  (Java)
+
+- **The archetypes' own texts go through the app's `Translator`.** `CalendarPage` (Today,
+  + Create, Month/Week/Day/List), `TodoList` and `CollectionDetail`/`GeneralOverview` (empty
+  states, the "N items" counter) wrote fixed English. They are built-in texts now (`BuiltInTexts`),
+  like the wizard's and the CRUD's; `BuiltInTexts` also translates a text built lazily, with no
+  request at hand (a `Callable<Component>` field), through the app's translator. (Java)
+
+- **A CRUD registered as a shared bean no longer leaks one request's routing into the next.** An
+  `AutoCrud` that the container shares (a Spring singleton, a Quarkus `@ApplicationScoped` bean
+  behind its client proxy) kept the route of an earlier request in the instance, so "New" pushed
+  `/app/students/students/new` and saving landed on a url that did not reload; concurrent users
+  raced on the same fields, and behind a proxy the request's state was written into the proxy's
+  fields while the methods ran on the real instance. Mateu now detects a shared view-model bean (two
+  lookups return the same object; decided once per class) and builds a fresh instance per request
+  — constructor and `@Inject`/`@Autowired` fields from the container, `@PostConstruct` run — with a
+  one-time warning; container interceptors do not apply to it. The docs no longer say a CRUD with
+  only `final` services may be a singleton. (Java)
+
+- **`HttpRequest.getClickedRow(Class)` also reads a row opened from a listing.** The renderers send
+  an opened row (a row click, `view`) as the action's own parameters, one per column, not under
+  `_clickedRow`; `getClickedRow` answered `null` and the handler hit a NullPointerException
+  (workaround was `getParameters(Row.class)`). Without `_clickedRow` it now builds the row from the
+  parameters named like the row's fields (internal `_…` ones left out), and still answers `null`
+  when there are none. The same fallback fills an action method's row parameter in the Python and
+  .NET ports. (Java, .NET, Python)
+
+- **Guided process: the finished screen is titled like the wizard's result step.** The step
+  indicators leave the result step out (it is no step of the process), so Redwood's guided process
+  invented an English "Completed" step for it and counted it ("4 | 4" for three steps). The wire's
+  `ProgressSteps` now carries `resultTitle` — the result step's `@Label` (Python/.NET: its step
+  title) — Redwood uses it (a translated "Completed" when an older server sends none) and hides the
+  template's counter on that screen. The Python and .NET wizards, which listed a completion
+  wizard's result step as one more bullet (.NET marked it done, so Redwood added "Completed" after
+  it), now leave it out like Java and count only the real steps in the rail. (Java, .NET, Python,
+  Redwood)
+
+- **The archetypes have the request before they build their tree.** `CalendarPage`, `TodoList`,
+  `CollectionDetail` and `GeneralOverview` build it in a `Callable<Component>` field, which Mateu
+  invokes while mapping the page (and while checking an action is on it), but they learnt the
+  request only afterwards, from `triggers(...)`: on a first render `events(...)`, `rows(...)`,
+  `switcherOptions(...)` got `null`, and their built-in texts ("Today", "All caught up!"…) were
+  translated with no request, ignoring the browser's language (`messages_es.properties`). Mateu now
+  hands the request over as soon as it has the instance (created and hydrated, about to be mapped,
+  about to be checked). (Java)
+
+- **Collection Detail counts "1 item", not "1 items".** The default `listLabel(count)` uses the
+  built-in text `item` for one result and `items` otherwise (both through the app's `Translator`).
+  (Java, .NET, Python)
+
+- **A CRUD whose record page an authored route overrides opens its rows again.** With
+  `<crud>/:id` (or `:id/edit`, `new`) bound to your own view model in `routes.yaml` or a
+  `RouteEntrySupplier`, clicking a row of the CRUD's list answered 403 ("you are not allowed to do
+  this"): Mateu moved the crud's `view` action to the record's route and ran it on YOUR view model,
+  which knows no such action. The crud's `view`, `edit` and `new` now navigate there: your view
+  model is loaded at the sub-route and the url is pushed, as for the built-in screens. (Java)
+- **Redwood: `gridLayout = cards` listings are a grid of cards.** The Redwood renderer always drew
+  a table (which also clipped columns on a phone); a listing that declares cards — or
+  `listingType(card)` — now gets a responsive grid of `oj-action-card`s (one column on a phone),
+  like the web renderer's: the image column, the title (identifier column, else the first), status
+  badges beside it, the `@Line(2+)` columns under it, the other columns as label/value pairs and
+  the row actions as buttons. A card's click opens the row like a table row (`view`,
+  `@RowRoute`, `@Details`), with a checkbox per card when row selection is enabled.
+
+- **Redwood: the Foldout honours its navigation, orientation, Edit, badges and panel icons.** The
+  server sent them and Redwood drew none. `navigationHeader()` now fills oj-sp-foldout-layout's own
+  header (the go-to-parent link labelled `parentLabel`, the previous/next arrows), each control
+  running its action id; `overviewEditActionId()` is the overview panel's pencil; the foldout's
+  `List<Badge>` badges head the overview; `@Panel(icon)` shows in the panel's corner; and
+  `orientation(horizontal)` puts the overview across the top with the panels below it (vertical,
+  the default, keeps it as the first column). `FoldoutNavigation.title` is still not drawn: the
+  layout's header has no place for it.
+
+- **Redwood: `Text.style` shows, and a `HorizontalLayout` in the content is a row.** The Text
+  atom only used its size class, and a HorizontalLayout's children were stacked like a vertical
+  one (a panel's title and its close button, one under the other). A Text now carries its `style`,
+  filtered like an Element's HTML style (presentation properties only, no `url()`/`expression()`;
+  the filter now also keeps `flex`/`align-*`/`justify-*`), with a declared weight or size winning
+  over Redwood's `!important` typography classes; a HorizontalLayout of texts, buttons, badges,
+  links and icons is drawn as one row that wraps on a phone, with its own style. A layout of
+  buttons only keeps the button bar, and one holding anything else (a grid, a form…) is still
+  stacked.
+
+- **Redwood: the message band's close button closes the notice.** The band's keys came from a
+  counter typed as a string with no default, so the first notice had no id and every later one was
+  `"NaN"`: closing removed nothing and an error stayed on screen for good. The counter is now a
+  number and each notice gets its own text key, the one `spClose` hands back.
+- **Redwood: a header badge takes its colour from the state.** A `Status` field's badge travels as
+  `text: ${state.x.message}`, `color: ${state.x.type}`; the label was resolved but the colour was
+  read as the literal template, so the chip was always grey. The colour is now resolved like the text.
+- **Redwood: only the EntityHeader that heads the page goes up to the screen header.** The first
+  `EntityHeader` found anywhere in the tree was lifted, so a collection's detail (next to its list),
+  a task card under a planning chart or one inside a drawer emptied its panel and retitled the page
+  with the selected item. Now only one that is the page's first content is lifted (a Java
+  `EntityHeader` field leading the form, a foldout's summary); drawers and dialogs are not searched.
+- **Redwood: reloading or closing the tab with unsaved changes asks first.** Menu navigation and
+  the browser's back already asked; the window's own exits did not, so an edit was lost without a
+  word. The shell now raises the browser's "Leave site?" prompt (`beforeunload`) while the screen
+  is dirty, like the Vaadin renderer. (Not in the embedded `<mateu-ui>`: the host page owns its
+  window's unload.)
+- **Redwood: a composed page is headed by its own title.** A Dashboard, SmartSearchPage,
+  HeroSearchPage, GanttPage or DataManagement page has no `Page` node: its `@Title` only travelled
+  as the window title, and the header showed the menu label instead (and the Gantt/Data Management
+  heading text a second time). The screen now keeps its window title and the header prefers it to
+  the menu label, so the page's own heading text is not repeated. The listing header
+  (`oj-sp-smart-filter-search`) also shows the page subtitle, so a SmartSearchPage's
+  `pageSubtitle()` is visible.
+- **Visual editor: a component dropped on the Redwood canvas lands.** The canvas did not re-render
+  when a palette drag started, so the Redwood frame was never told to let the pointer through and
+  its iframe swallowed the moves and the release: the YAML changed only on the next click, nothing
+  was selected and Undo stayed off. The drag is now part of the canvas state. (A drop on the Redwood
+  canvas still lands at the end of the page: the frame's nodes cannot be hit-tested from the editor.)
+- **Redwood: `@Zones` columns in a form.** A crud's detail or editor with `@Zones` +
+  `@Section(zone=…)` arrives as a `ResponsiveGrid` of columns, but the one-column generic form won
+  (the page has fields) and every section was painted stacked in one card. A grid of explicit tracks
+  is now the page's body, like a slot template, with its fields editable in place. An entity page
+  whose NARROW zone comes first is painted in its columns (the reverted item-overview template still
+  claimed it and the page came out blank; the general overview template took it after an action).
+- **Redwood: grid tracks of fixed length.** `gridTemplateColumns` with a `rem`/`px` track
+  (`22rem 1fr`, `1fr 22rem`) split 50/50: the fixed track weighed like a `1fr`. Tracks are now
+  measured against a desktop content width, and a row's twelfths always add up to 12. A column grid
+  nested in a card (a CollectionDetail's list/detail inside its form card) is lifted out of it instead
+  of stacking.
+- **Redwood: Item Overview tabs.** On entry the first tab's content was shown but no tab was
+  selected in the bar; it now selects the tab it shows (the one marked open, else the first). On a
+  phone the tabs that do not fit went off the card with no way to reach them: the item overview's
+  bar and the content tab strips now put them in an overflow menu.
+- **Redwood: a wizard in a drawer advances.** A Drawer whose content is an `EmbeddedView` (the
+  Guided Process Drawer) is painted from its embedded surface; the answer to Next re-rendered the
+  overlay's frame instead and the drawer stayed on step 1. The re-render now goes to the surface and
+  the drawer keeps its header — apps no longer need to return a new Drawer on every step.
+- **Redwood: clicking a Gantt bar selects its task.** `Gantt.onTaskSelectionActionId` (GanttPage's
+  `selectGanttTask`, DataManagement) and a PlanningBoard's `selectActionId` never fired: the chain
+  dropped the selection changes JET reports as `internal` — which are the user's — and with the tasks
+  inline in each row the selected key comes back null anyway. A click resolves the bar under the
+  pointer (as the double click already did), once per pick. The done part of a coloured task is
+  drawn in a darker shade of its colour instead of JET's one grey.
+- **Redwood: General Overview content and `infoWidth()`.** Only the titled `Card`s of the page were
+  drawn in the main area, so anything else `overview()` returned (a chart, a Markdown, an untitled
+  card) was lost; every piece of the main slot is now a card, in order. Main and info are drawn as
+  two columns at the widths of the overview's grid (`infoWidth()`, first when promoted) instead of
+  a grid of cards where the info card fell wherever there was room.
+- **Redwood: Welcome tiles show what their panels hold.** Each `DashboardPanel` kept only its text,
+  its first metric or its first chart, so a `FeatureGrid` or a `Checklist` came out as an empty card;
+  the chart was always moved to the end, drawn as bars with a fixed «Occupancy %» legend, and
+  `colSpan`/`subtitle` were ignored. Every panel is now a tile in its declared order and width, with
+  its subtitle and its content drawn like any page content (a `TrendChart` as its line/area chart).
+- **Redwood: a Dialog shows its whole content.** A `Dialog` drew only the lines of text it held:
+  an `EntityHeader`, a `Badge`, a `Meter`, a `StatusList`… inside it were lost (a `Drawer` drew
+  them). A dialog with more than text is now drawn from its content, in order.
+- **Redwood: a `Drawer` placed in the page** (a GanttPage's bottom panel, a docked side panel) had no
+  view: its content came out loose, without its title. It is now a panel with its title as the
+  header, collapsible when it says so.
+- **Redwood: `MetricCard.icon`, `Meter` thresholds and unit, `info` status tone.** A metric's icon was
+  not drawn (an icon name is Redwood's icon, an emoji is drawn as itself). A `Meter` showed
+  `value / max` and ignored `unit`, `warnAt` and `dangerAt`: it now reads like the web renderer's —
+  the value with its unit, the caption or else the fill percent, and the fill turning warning/error
+  past the thresholds. A `StatusItem` coloured `info` had no colour.
+- **Redwood: `EmptyState` icon and `StatusList` rows without avatar.** An empty state printed its icon
+  name as text («vaadin:list-select Select an item»); an icon name is no longer part of the title (an
+  emoji still is). A status list row without an avatar left an empty square before its title.
+- **Redwood: HeroSection `centered` and `image`.** The flags reached the page as classes with no style:
+  the texts were not centred and stayed dark over the darkened image (unreadable on a dark picture).
+
+### Documentation
+
+- The wizard page says outright that the last step field is the result screen (Next never reaches
+  it, only the completion action does) and documents step toolbar buttons.
+- **`GeneralOverview.recordLabel()`** labels the context switcher ("Requisition", "Customer"…).
+  The `record` field lives in the base class, so a subclass had no way to label it. Blank by
+  default (unlabelled, as before). `GeneralOverview` now implements `LabelSupplier` for it; a
+  subclass that supplies labels of its own overrides `label(...)`. (Java)
+
+- **A wizard in a drawer is described as what it is.** The drawer page, the page-template guide and
+  core's long-drawer-wizard warning no longer imply Redwood renders its guided-process template in
+  a drawer: the renderers draw the drawer's wizard as a generic wizard (Redwood: the step train),
+  and the full-page Guided Process is a routed `Wizard` with `@WizardProgress(RAIL)`.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.

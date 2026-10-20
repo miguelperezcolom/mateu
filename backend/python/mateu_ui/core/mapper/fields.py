@@ -105,6 +105,15 @@ def is_list_field(f) -> bool:
     return f.type is list or get_origin(f.type) is list
 
 
+def is_component_list(f) -> bool:
+    """A list of UI components (``list[Badge]``, ``list[Component]``): display, never rows to
+    edit — it answers no row-editing actions (Java's FieldActionCollector.isComponentList)."""
+    if get_origin(f.type) is not list:
+        return False
+    args = get_args(f.type)
+    return bool(args) and isinstance(args[0], type) and issubclass(args[0], fluent.Component)
+
+
 class FieldMapperMixin(MixinBase):
     def field_actions(self, cls, only=None) -> list[Action]:
         """The actions a view's FIELDS declare, in Java's ``FieldActionCollector`` order: the
@@ -119,7 +128,7 @@ class FieldMapperMixin(MixinBase):
                 out.append(action)
 
         for f in fields:
-            if is_list_field(f):
+            if is_list_field(f) and not is_component_list(f):
                 fid = camel_case(f.name)
                 row_type = self.grid_row_type(f)
                 constrained = (

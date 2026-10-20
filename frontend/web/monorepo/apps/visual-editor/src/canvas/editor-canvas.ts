@@ -153,7 +153,9 @@ export class EditorCanvas extends LitElement {
     private lastShape?: string
     private repositionRaf = 0
     private lastYaml?: string
-    private drag: DragSession | null = null
+    // reactive: the Redwood frame is told (`dragging`) to let the pointer through while a drag is on,
+    // or its iframe swallows the mousemove/mouseup and the drop never lands (nor the selection, nor undo)
+    @state() private drag: DragSession | null = null
     private pendingDrop: { parentPath: NodePath; index: number } | null = null
     private suppressClick = false
 

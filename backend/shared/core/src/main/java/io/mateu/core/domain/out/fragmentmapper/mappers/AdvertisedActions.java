@@ -63,6 +63,8 @@ public final class AdvertisedActions {
     if (view == null || id == null || id.isBlank()) {
       return false;
     }
+    // the check builds the view's lazy tree: the request has to be there first
+    io.mateu.core.domain.RequestBound.bind(view, httpRequest);
     return ClassLiterals.of(view.getClass()).contains(id) || of(view, httpRequest).contains(id);
   }
 

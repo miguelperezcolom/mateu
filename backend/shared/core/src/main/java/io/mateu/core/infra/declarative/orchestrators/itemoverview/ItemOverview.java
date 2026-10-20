@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.itemoverview;
 
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Panel;
@@ -48,7 +49,7 @@ public abstract class ItemOverview implements ComponentTreeSupplier {
   public Component component(HttpRequest httpRequest) {
     Component keyInfo = null;
     List<Tab> tabs = new ArrayList<>();
-    for (Field field : getClass().getDeclaredFields()) {
+    for (Field field : getAllFields(getClass())) {
       if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }

@@ -23,6 +23,13 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
   private final BeanProvider beanProvider;
   private final InstanceFactoryProvider instanceFactoryProvider;
 
+  /**
+   * Request attribute set when a crud's navigation action ({@code view}, {@code edit}, {@code new})
+   * moved to a sub-route an AUTHORED route overrides: the author's view model is loaded there
+   * instead of being asked to run the crud's action (which it does not know, so it was refused).
+   */
+  public static final String AUTHORED_SUBROUTE_LOAD = "_mateuAuthoredCrudSubRoute";
+
   @Override
   public ActionRunner get(
       Object instance,
@@ -62,8 +69,12 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
         };
       }
     }
-    // the route LOAD: "" from the web client, "__load__" from a shell's bootstrap — same thing
-    if ("".equals(actionId) || "__load__".equals(actionId)) {
+    // the route LOAD: "" from the web client, "__load__" from a shell's bootstrap — same thing;
+    // and a crud's navigation to a sub-route an authored route overrides (the author's view is
+    // LOADED there: see AUTHORED_SUBROUTE_LOAD)
+    if ("".equals(actionId)
+        || "__load__".equals(actionId)
+        || Boolean.TRUE.equals(httpRequest.getAttribute(AUTHORED_SUBROUTE_LOAD))) {
       return new ActionRunner() {
         @Override
         public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {

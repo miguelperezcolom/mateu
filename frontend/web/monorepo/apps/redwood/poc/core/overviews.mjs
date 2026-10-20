@@ -1,8 +1,8 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
 import { interpolate, islandContentOf, editorNodeIds } from './content.mjs'
-import { findByType } from './listing.mjs'
+import { findByType, findFirst } from './listing.mjs'
 import { pageHeaderNodeOf, factProjectionOf, contextualInfoOf, factActionsJsonOf } from './pageHeader.mjs'
-import { metricAriaLabel } from './atoms.mjs'
+import { gridColClasses, metricAriaLabel, panelColClass } from './atoms.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
@@ -122,40 +122,29 @@ export function welcomeOf(ctx) {
   const md = hero.metadata
   const ctas = actionsOf(hero)
   const panels = findAllByType(ctx.tree, 'DashboardPanel')
-  // a TrendChart in a tile → full-width CHART under the KPIs (oj-chart in VB);
-  // PRECOMPUTED items (id/value/group/series) — VB's CSP does not build arrays
-  const trendPanel = panels.find(
-    (panel) => findByType(panel, 'TrendChart') || findByType(panel, 'Chart'))
-  const chartNode = trendPanel
-    ? findByType(trendPanel, 'TrendChart') || findByType(trendPanel, 'Chart') : null
-  const tm = chartNode ? chartNode.metadata : null
-  // values/labels from the two wire shapes: TrendChart (flat values/labels) or
-  // Chart (chartData.labels + datasets[0].data — the first series is taken)
-  const dataset = tm && tm.chartData && tm.chartData.datasets && tm.chartData.datasets.length
-    ? tm.chartData.datasets[0] : null
-  const values = tm ? (tm.values || (dataset ? dataset.data : []) || []) : []
-  const labels = tm ? (tm.labels || (tm.chartData ? tm.chartData.labels : []) || []) : []
-  const series = (dataset && dataset.label) || chromeText('occupancy')
-  const trend = tm
-    ? {
-        title: trendPanel.metadata.title || tm.title || '',
-        items: (values || []).map((value, i) => ({
-          id: i,
-          value,
-          group: [labels[i] != null ? labels[i] : String(i + 1)],
-          series,
-        })),
-      }
-    : null
-  const tiles = panels.filter((panel) => panel !== trendPanel).map((panel) => {
-    // a MetricCard inside the tile → KPI (big value + label + caption)
-    const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
+  // the tiles' grid: a DashboardLayout's columns (3 by default) — each panel takes its colSpan of them
+  const layout = findByType(ctx.tree, 'DashboardLayout')
+  const columns = layout && layout.metadata && layout.metadata.columns > 0 ? layout.metadata.columns : 3
+  const atomsOfPanel = (panel) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_welcomeTile',
+    metadata: { type: 'VerticalLayout' }, children: overviewPiecesOf(panel) } }) || []).flatMap((b) => b.items || [])
+  // EVERY panel is a tile, in order, with what it holds as atoms (a FeatureGrid, a Checklist, a chart
+  // — a TrendChart as the area/line chart it is —, texts…): only the text, the first metric or the first
+  // chart of each was taken, the chart moved to the end, and the rest came out as an empty card
+  const tiles = panels.map((panel) => {
+    const pm = panel.metadata || {}
+    // a panel that is ONE metric → the KPI tile (big value + label + caption, clickable)
+    const pieces = overviewPiecesOf(panel)
+    const only = pieces.length === 1 ? pieces[0] : null
+    const metric = only && only.metadata && (only.metadata.type === 'MetricCard' || only.metadata.type === 'Stat') ? only : null
     const mm = metric ? metric.metadata : null
     return {
       ...(editorNodeIds && panel.id ? { nodeId: String(panel.id) } : {}),
-      title: panel.metadata.title || '',
+      title: pm.title || '',
+      subtitle: pm.subtitle || '',
+      colClass: panelColClass(pm.colSpan, columns),
       texts: collectTexts(panel),
       textNodes: textNodesOf(panel),
+      items: mm ? [] : atomsOfPanel(panel),
       isKpi: !!mm,
       kpiTitle: mm ? (mm.title || mm.label || '') : '',
       kpiValue: mm ? String(mm.value == null ? '' : mm.value) : '',
@@ -165,6 +154,8 @@ export function welcomeOf(ctx) {
       kpiActionId: mm ? (mm.actionId || '') : '',
     }
   })
+  // the charts are drawn in their tiles now (the full-width chart under the tiles is gone)
+  const trend = null
   return {
     // editor mode: the banner is the hero's node, its CTAs (painted inside the banner, in order)
     // their Buttons' — the page binds both onto the banner (data-node-id / data-node-buttons)
@@ -224,6 +215,17 @@ export function overviewInfoCardOf(ctx, node) {
   }
 }
 
+/** The layouts the overview's main slot wraps its pieces in (not pieces themselves). */
+const OVERVIEW_WRAPPERS = { VerticalLayout: true, Div: true, Container: true, FullWidth: true, Scroller: true }
+/** A node's children: in children and/or metadata.content. */
+function overviewPiecesOf(node) {
+  const out = [...(node.children || [])]
+  const inner = node.metadata && node.metadata.content
+  if (Array.isArray(inner)) out.push(...inner)
+  else if (inner && typeof inner === 'object') out.push(inner)
+  return out
+}
+
 /** GENERAL OVERVIEW archetype: record switcher + EntityHeader + cards. */
 export function generalOverviewOf(ctx) {
   const header = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
@@ -242,23 +244,51 @@ export function generalOverviewOf(ctx) {
   // a structural wrapper and dropped. First when it travels first (promoteInfoSlot).
   const infoNode = findFirstSlotted(ctx.tree, 'info')
   const infoCard = infoNode ? overviewInfoCardOf(ctx, infoNode.node) : null
-  const cards = findAllByType(ctx.tree, 'Card')
-    .filter((node) => !infoNode || node !== infoNode.node)
-    .map((node) => {
-      const card = cardOf(node)
-      // the card content as ATOMS (not just its texts): a StatusList, a table…
-      // were painted empty because only the text was collected
-      const content = (node.metadata && node.metadata.content) || []
-      const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
-        children: Array.isArray(content) ? content : [content] } }) || []
-      return { ...card, items: blocks.flatMap((b) => b.items || []) }
-    })
-    .filter((card) => card.title) // Cards without a title are section/structure wrappers
-  if (infoCard) {
+  const atomsOf = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
+    children: nodes } }) || []).flatMap((b) => b.items || [])
+  // the card content as ATOMS (not just its texts): a StatusList, a table… were painted empty
+  // because only the text was collected
+  const cardFrom = (node) => {
+    const content = (node.metadata && node.metadata.content) || []
+    return { ...cardOf(node), items: atomsOf(Array.isArray(content) ? content : [content]) }
+  }
+  // the MAIN slot (GeneralOverview.overview()): each of its pieces is a card — a Card with its title,
+  // anything else (a chart, a Markdown, an untitled Card…) untitled, in order. Only titled Cards
+  // were taken, so whatever else the overview drew was lost. The header EntityHeader is the header.
+  const mainNode = findFirstSlotted(ctx.tree, 'main')
+  let cards
+  if (mainNode) {
+    const m0 = mainNode.node.metadata || {}
+    const pieces = OVERVIEW_WRAPPERS[m0.type] ? overviewPiecesOf(mainNode.node) : [mainNode.node]
+    cards = pieces.filter((n) => n && n !== header)
+      .map((n) => (n.metadata && n.metadata.type === 'Card' ? cardFrom(n) : { title: '', texts: [], items: atomsOf([n]) }))
+      .filter((card) => card.title || card.items.length)
+  } else {
+    cards = findAllByType(ctx.tree, 'Card')
+      .filter((node) => !infoNode || node !== infoNode.node)
+      .map(cardFrom)
+      .filter((card) => card.title) // Cards without a title are section/structure wrappers
+  }
+  // the overview's COLUMNS: main and info side by side at the widths of its grid (infoWidth: the
+  // `gridTemplateColumns` «1fr 18rem»), each stacking its cards; without an info slot, one column
+  // whose cards go two by two
+  let columns
+  if (infoNode && infoCard) {
+    const grid = findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'ResponsiveGrid'
+      && (n.children || []).some((k) => k && k.slot === 'info'))
+    const widths = gridColClasses(grid && grid.metadata.gridTemplateColumns, [], 2)
+    const span = (cls) => Number(((cls || '').match(/oj-md-(\d+)/) || [])[1]) || 0
+    // the template names the tracks in the order the slots TRAVEL (info first when promoted)
+    const infoCols = widths ? span(widths[infoNode.first ? 0 : 1]) : 4
+    const infoCol = { colClass: 'oj-flex-item oj-sm-12 oj-md-' + (cards.length ? infoCols : 6), cards: [{ ...infoCard, colClass: 'oj-flex-item oj-sm-12' }] }
+    const mainCol = { colClass: 'oj-flex-item oj-sm-12 oj-md-' + (12 - infoCols), cards: cards.map((c) => ({ ...c, colClass: 'oj-flex-item oj-sm-12' })) }
+    columns = !cards.length ? [infoCol] : infoNode.first ? [infoCol, mainCol] : [mainCol, infoCol]
     // a side column next to other cards; alone, as wide as a card
     if (!cards.length) infoCard.colClass = 'oj-flex-item oj-sm-12 oj-md-6'
     if (infoNode.first) cards.unshift(infoCard)
     else cards.push(infoCard)
+  } else {
+    columns = [{ colClass: 'oj-flex-item oj-sm-12', cards }]
   }
   return {
     title: md.title || '',
@@ -271,6 +301,7 @@ export function generalOverviewOf(ctx) {
       : [],
     switcherValue: switcher ? state[switcher.fieldId] : null,
     cards,
+    columns,
   }
 }
 
@@ -349,9 +380,15 @@ export function itemOverviewOf(ctx) {
     items: atomsOfNodes(tab.children || []),
   }))
   const keyContent = keyCard ? ((keyCard.metadata && keyCard.metadata.content) || []) : []
+  // the tab shown on entry — the one the wire marks active (@Tab(open)), else the first — and the
+  // SAME one selected in the bar: the content showed the first tab while the bar had none selected
+  const active = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
+    .findIndex((tab) => tab.metadata.active)
+  const selected = tabs.length ? Math.max(0, active) : -1
   return {
     key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
     tabs,
+    selectedTab: selected >= 0 ? tabs[selected].id : '',
     // editor mode: the key panel is its Card's node, the tab bar its TabLayout's (bound by the page)
     keyNodeId: editorNodeIds && keyCard && keyCard.id ? String(keyCard.id) : '',
     tabsNodeId: editorNodeIds && tabLayout.id ? String(tabLayout.id) : '',

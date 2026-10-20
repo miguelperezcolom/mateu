@@ -198,7 +198,12 @@ test.describe('@ConfirmOnNavigationIfDirty — embedded EditableView resets guar
     await fieldInput(page, 'firstName').blur();
     await expect.poll(() => page.evaluate(() => (window as any).__dirty)).toBe(true);
 
+    // Cancel is a leave action: with unsaved edits it asks first (the unsaved-changes question,
+    // as a menu click does). Leaving runs it, and the edit → view transition fires "clean".
+    let asked = '';
+    page.once('dialog', async (d) => { asked = d.message(); await d.accept(); });
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect.poll(() => asked).toContain('unsaved changes');
     await expect.poll(() => page.evaluate(() => (window as any).__dirty)).toBe(false);
   });
 

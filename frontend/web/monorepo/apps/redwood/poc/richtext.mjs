@@ -21,7 +21,7 @@ const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;
 // `class`, `title`, `aria-hidden` and a FILTERED `style` on the allowed tags, and an <img> whose
 // src is http(s), relative or a raster data: image. Still nothing that runs: no handler, no
 // script, no url() in a style, no form.
-const STYLE_PROPS = /^(color|background-color|font-(size|weight|style|family)|text-(align|decoration|transform)|vertical-align|(margin|padding)(-(top|right|bottom|left|inline|block)(-(start|end))?)?|(min-|max-)?(width|height)|line-height|display|white-space|opacity|gap|border(-(top|right|bottom|left))?(-(width|style|color|radius))?|border-collapse)$/i
+const STYLE_PROPS = /^(color|background-color|font-(size|weight|style|family)|text-(align|decoration|transform)|vertical-align|(margin|padding)(-(top|right|bottom|left|inline|block)(-(start|end))?)?|(min-|max-)?(width|height)|line-height|display|white-space|opacity|gap|border(-(top|right|bottom|left))?(-(width|style|color|radius))?|border-collapse|flex(-(grow|shrink|basis|wrap|direction))?|align-(items|self|content)|justify-(content|self)|order)$/i
 const STYLE_VALUE = /^[#\w\s.,%()+-]*$/
 const SAFE_IMG_SRC = /^(https?:|\/|\.{0,2}\/|data:image\/(png|jpe?g|gif|webp|bmp|avif);)|^[^:]*$/i
 
@@ -30,7 +30,10 @@ const attrOfToken = (attrs, name) => {
   return m ? (m[1] ?? m[2] ?? m[3] ?? '') : null
 }
 
-function safeStyle(style) {
+/** A wire style (`"font-weight: 600; flex: 1"`) kept to the declarations that can only PRESENT —
+ *  the same filter an Element's HTML goes through: known properties, plain values, no url() /
+ *  expression(). What is left, as a CSS text. */
+export function safeStyle(style) {
   const kept = []
   for (const decl of String(style).split(';')) {
     const i = decl.indexOf(':')
@@ -40,6 +43,20 @@ function safeStyle(style) {
     if (STYLE_PROPS.test(prop) && STYLE_VALUE.test(value) && !/url|expression|image-set/i.test(value)) kept.push(prop + ': ' + value)
   }
   return kept.join('; ')
+}
+
+/** The same filtered style as an object for a JET `:style` binding (camelCase keys: VB templates
+ *  bind objects, not CSS text); {} when nothing survives. Custom properties are not kept. */
+export function styleObjectOf(style) {
+  const out = {}
+  if (!style) return out
+  for (const decl of safeStyle(style).split('; ')) {
+    const i = decl.indexOf(':')
+    if (i < 0) continue
+    const prop = decl.slice(0, i).trim().toLowerCase()
+    out[prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = decl.slice(i + 1).trim()
+  }
+  return out
 }
 
 function presentationAttrs(tag, attrs) {

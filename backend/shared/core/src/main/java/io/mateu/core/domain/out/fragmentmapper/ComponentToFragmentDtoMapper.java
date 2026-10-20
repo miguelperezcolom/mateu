@@ -39,9 +39,12 @@ import lombok.extern.slf4j.Slf4j;
 public final class ComponentToFragmentDtoMapper {
 
   /**
-   * The Redwood Guided Process Drawer is meant for SHORT subflows — up to 5 steps. A longer wizard
-   * embedded in a drawer should be a full-page Guided Process instead. We warn once per wizard
-   * class rather than failing (the drawer still works, it just isn't the recommended surface).
+   * A wizard in a drawer (the "Guided Process Drawer" UX pattern) suits SHORT subflows — up to 5
+   * steps. A longer one should be a routed page: the full-page Guided Process is a routed {@code
+   * Wizard} with {@code @WizardProgress(RAIL)}. (Renderers draw the drawer's wizard as a generic
+   * wizard — Redwood with its step train — not as Redwood's guided-process template.) We warn once
+   * per wizard class rather than failing: the drawer still works, it just isn't the recommended
+   * surface.
    */
   private static final int MAX_GUIDED_PROCESS_DRAWER_STEPS = 5;
 
@@ -59,8 +62,9 @@ public final class ComponentToFragmentDtoMapper {
     if (realSteps > MAX_GUIDED_PROCESS_DRAWER_STEPS
         && warnedLongEmbeddedWizards.add(wizard.getClass().getName())) {
       log.warn(
-          "Guided Process Drawer {} embeds a {}-step wizard; the Redwood pattern is for <= {} steps."
-              + " Consider a full-page Guided Process (a routed Wizard) for longer flows.",
+          "Wizard {} is shown in a drawer with {} steps; a wizard in a drawer suits short"
+              + " sub-flows (<= {} steps). Consider a full-page Guided Process for longer flows: a"
+              + " routed Wizard with @WizardProgress(RAIL).",
           wizard.getClass().getName(),
           realSteps,
           MAX_GUIDED_PROCESS_DRAWER_STEPS);

@@ -73,8 +73,28 @@ class DevModeTest {
   @Test
   void theEventStreamOpensWithAHelloCarryingTheBootId() {
     var first = DevEndpoint.events().blockFirst();
-    assertThat(first).contains("\"type\":\"hello\"").contains(DevEndpoint.BOOT_ID);
+    assertThat(first).contains("\"type\":\"hello\"").contains(DevEndpoint.bootId());
     assertThat(DevEndpoint.sse(first)).startsWith("data: ").endsWith("\n\n");
+  }
+
+  @Test
+  void aRestartInsideTheSameJvmGetsANewBootId() {
+    // Quarkus dev mode and Spring Boot devtools restart the application, not Mateu's jars: the
+    // adapter enabling dev mode again is the restart, and the browsers must see a new boot id
+    DevEndpoint.enable(null);
+    var before = DevEndpoint.bootId();
+    DevEndpoint.enable(null);
+    assertThat(DevEndpoint.bootId()).isNotEqualTo(before);
+    assertThat(DevEndpoint.events().blockFirst()).contains(DevEndpoint.bootId());
+  }
+
+  @Test
+  void countsTheOpenEventStreams() {
+    var before = DevEndpoint.connections();
+    var subscription = DevEndpoint.events(java.time.Duration.ofHours(1)).subscribe();
+    assertThat(DevEndpoint.connections()).isEqualTo(before + 1);
+    subscription.dispose();
+    assertThat(DevEndpoint.connections()).isEqualTo(before);
   }
 
   @Test

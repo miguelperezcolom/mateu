@@ -812,6 +812,8 @@ class ProgressSteps(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: the title of the screen after the last step (a wizard's result step), which is no step
+    result_title: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "steps", tuple(self.steps))

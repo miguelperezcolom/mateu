@@ -88,8 +88,8 @@ export function archetypeVarsOf(host, previousLook) {
     mateuOverview: overview,
     mateuOverviewOptions: overview ? overview.switcherOptions : [],
     mateuItemOv: item,
-    // the ATOMS of the first tab (not only its texts)
-    mateuItemTabTexts: item && item.tabs.length ? item.tabs[0].items : [],
+    // the ATOMS of the selected tab (not only its texts): the first, or the one marked open
+    mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : [],
   }
   if (welcome) {
     const look = welcomeLookOf(welcomeKeyOf(host), previousLook, Math.random, welcome.tone)
@@ -137,7 +137,11 @@ export function hostContentPlanOf(host, { islandRawBlocks, title, activeTabs, wi
  *  → oj-sp-general-overview-page (main/info slots, integrated header). */
 export function generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn = false } = {}) {
   const zoned = (hostBlocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''))
-  const on = !itemOverviewOn && !!(hostEntity && (hostBlocks || []).length === 2 && zoned.length === 2)
+  // the NARROW zone first is the item overview's anatomy, not this one: its main slot would take
+  // the narrow key-data column (the host content paints it in its own columns instead)
+  const col = (b) => parseInt(((b.blockClass || '').match(/oj-md-(\d+)/) || [])[1] || '0', 10)
+  const narrowFirst = zoned.length === 2 && col(zoned[0]) < col(zoned[1])
+  const on = !itemOverviewOn && !narrowFirst && !!(hostEntity && (hostBlocks || []).length === 2 && zoned.length === 2)
   const fold = (block) => {
     const items = block.items || []
     const titled = items.length && items[0].isHeading && items[0].isH2

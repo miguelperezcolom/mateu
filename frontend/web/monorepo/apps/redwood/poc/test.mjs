@@ -8,8 +8,12 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
+import { foldoutHeaderOf, foldoutIconClassOf } from './core/archetypes.mjs'
+import { styledTextOf } from './core/content.mjs'
+import { styleObjectOf } from './richtext.mjs'
+import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
-import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
+import { activeSectionOf, sectionHomeOf, sectionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWireVersionCheck, wireMismatchMessage } from './wireVersion.mjs'
 import { readFileSync } from 'node:fs'
@@ -1607,9 +1611,83 @@ atest('expandRemoteMenus con HAMBURGER_SECTIONS: un pod montado arriba es UNA se
     const sections = await expandRemoteMenus(mount(), { sections: true })
     assert.deepEqual(sections.map((o) => o.label), ['Remote'])
     assert.deepEqual(sections[0].submenus.map((o) => o.label), ['Page', 'Things'])
-    const flat = await expandRemoteMenus(mount())
+    // the other variants: the label the shell declared groups them too (labelledByShell)
+    const grouped = await expandRemoteMenus(mount())
+    assert.deepEqual(grouped.map((o) => o.label), ['Remote'])
+    assert.deepEqual(grouped[0].submenus.map((o) => o.label), ['Page', 'Things'])
+    // without a declared label, spliced as they come
+    const flat = await expandRemoteMenus([{ ...mount()[0], shellLabel: false }])
     assert.deepEqual(flat.map((o) => o.label), ['Page', 'Things'])
   } finally { globalThis.fetch = original }
+})
+
+atest('expandRemoteMenus (MENU_ON_TOP…): a declared label groups the pod\'s entries; routes still go to the pod', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, json: async () => remoteApp([
+    { label: 'Inicio', route: '/inicio' }, { label: 'Libros', route: '/libros' },
+  ], '', 'BibliotecaHome') })
+  try {
+    const menu = await expandRemoteMenus([
+      { label: 'Inicio', route: '/inicio-shell', submenus: [] },
+      { remote: true, baseUrl: 'https://b/app', route: '', path: '/biblioteca', label: 'Biblioteca', icon: 'vaadin:book', shellLabel: true },
+    ])
+    assert.deepEqual(menu.map((o) => o.label), ['Inicio', 'Biblioteca'])
+    assert.equal(menu[1].path, '/biblioteca')
+    assert.equal(menu[1].icon, 'vaadin:book')
+    assert.deepEqual(menu[1].submenus.map((o) => o.route), ['/inicio', '/libros'])
+    // the deep link is claimed by route, as before: the group changes the menu's shape only
+    assert.equal(remoteRouteOf('/libros').baseUrl, 'https://b/app')
+    assert.equal(remoteRouteOf('/libros').serverSideType, 'BibliotecaHome')
+    // the projected nav: a group with the pod's two screens
+    const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } })
+    assert.equal(nav.mode, 'subheader')
+    assert.deepEqual(nav.menuTree[1].children.map((c) => c.id), ['/inicio', '/libros'])
+    // a HIDDEN labelled pod: grouped the same way, hidden
+    const hidden = await expandRemoteMenus([{ remote: true, baseUrl: 'https://b/app', route: '', label: 'Biblioteca', shellLabel: true, visible: false }])
+    assert.equal(hidden.length, 1)
+    assert.equal(hidden[0].visible, false)
+    assert.ok(hidden[0].submenus.every((o) => o.visible === false))
+  } finally { globalThis.fetch = original }
+})
+
+atest('expandRemoteMenus warns, naming both sources, when the shell and a pod (or two pods) claim a route', async () => {
+  const original = globalThis.fetch
+  const originalWarn = console.warn
+  const said = []
+  console.warn = (m) => said.push(String(m))
+  globalThis.fetch = async (url) => {
+    if (String(url).indexOf('https://down') === 0) throw new TypeError('Failed to fetch')
+    return { ok: true, json: async () => remoteApp([{ label: 'Inicio', route: '/inicio' }, { label: 'Home', route: '/' }, { label: 'Estudiantes', route: '/estudiantes' }], '') }
+  }
+  try {
+    await expandRemoteMenus([
+      { label: 'Inicio', route: '/inicio', submenus: [] },
+      { remote: true, baseUrl: 'https://a/app', route: '', label: 'Alumnado', shellLabel: true },
+      { label: 'Más', submenus: [{ remote: true, baseUrl: 'https://b/app', route: '', label: 'Biblioteca', shellLabel: true }] },
+      { remote: true, baseUrl: 'https://down/app', route: '', label: 'Caída' },
+    ])
+    assert.deepEqual(said.filter((m) => m.indexOf('route collision') >= 0), [
+      routeCollisionMessage({ route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (https://a/app)' }),
+      routeCollisionMessage({ route: '/inicio', first: 'the shell', second: 'RemoteMenu "Biblioteca" (https://b/app)' }),
+      routeCollisionMessage({ route: '/estudiantes', first: 'RemoteMenu "Alumnado" (https://a/app)', second: 'RemoteMenu "Biblioteca" (https://b/app)' }),
+    ])
+    assert.match(said[0], /"\/inicio" is claimed by the shell and by RemoteMenu "Alumnado" \(https:\/\/a\/app\)/)
+  } finally { globalThis.fetch = original; console.warn = originalWarn }
+})
+
+test('routeCollisionsOf (port of navTree.ts routeCollisions): homes, groups and pods that did not answer claim nothing', () => {
+  const a = { remote: true, baseUrl: 'https://a/app', label: 'Alumnado', shellLabel: true }
+  const b = { remote: true, baseUrl: 'https://b/app', label: 'Biblioteca', shellLabel: true }
+  const down = { remote: true, baseUrl: 'https://c/app', label: 'Plantillas' }
+  const menu = [{ label: 'Inicio', route: '/inicio' }, { label: 'Home', route: '' }, a, { label: 'Más', route: '', submenus: [b, down] }]
+  const answers = new Map([
+    [a, { menu: [{ label: 'Inicio', route: '/inicio/' }, { label: 'Estudiantes', route: '/estudiantes' }, { label: 'Home', route: '/' }] }],
+    [b, { menu: [{ label: 'Libros', route: '/libros', submenus: [{ label: 'Estudiantes', route: '/estudiantes?x=1' }] }, { label: 'Otra', route: '/otra' }] }],
+  ])
+  assert.deepEqual(routeCollisionsOf(menu, answers, [a, b, down]), [
+    { route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (https://a/app)' },
+    { route: '/estudiantes', first: 'RemoteMenu "Alumnado" (https://a/app)', second: 'RemoteMenu "Biblioteca" (https://b/app)' },
+  ])
 })
 
 atest('expandRemoteMenus registra a qué pod va cada entrada adoptada', async () => {
@@ -4989,6 +5067,80 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
   })
 }
 
+// ── leave actions with unsaved changes (BUGS-MATEU #7) ────────────────────────────────────────
+import { isLeaveAction, isConflictDialogAnswer, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction, fieldEditLeavesUnsavedChanges } from './shellFlows.mjs'
+{
+  test('isLeaveAction: the ids the server styles as leave actions (FormMapper) and the crud\'s, no business «cancelX»', () => {
+    for (const id of ['cancel', 'cancel-new', 'cancel-create', 'cancel-edit', 'cancel-view', 'back', 'backToList']) assert.equal(isLeaveAction(id), true, id)
+    for (const id of ['cancelBooking', 'save', 'backup', 'back-office', '', undefined, null]) assert.equal(isLeaveAction(id), false, String(id))
+  })
+
+  test('confirmLeaveAction: asks the navigation question (unsavedLeave) only for a leave action on a dirty screen', () => {
+    const asked = []
+    const win = (answer) => ({ confirm: (m) => { asked.push(m); return answer } })
+    assert.equal(confirmLeaveAction('cancel-edit', { mateuDirty: false }, win(false)), true)
+    assert.equal(confirmLeaveAction('save', { mateuDirty: true }, win(false)), true)
+    assert.equal(asked.length, 0, 'nothing to lose, or not leaving: no question')
+    const vars = { mateuDirty: true }
+    assert.equal(confirmLeaveAction('cancel-edit', vars, win(false)), false, 'stay')
+    assert.equal(vars.mateuDirty, true)
+    assert.equal(confirmLeaveAction('backToList', vars, win(true)), true, 'leave')
+    assert.equal(vars.mateuDirty, false, 'cleared: the navigation it answers with does not ask again')
+    assert.deepEqual(asked, [chromeText('unsavedLeave'), chromeText('unsavedLeave')])
+  })
+
+  test('confirmLeaveAction: the conflict dialog\'s Reload (cancel-edit marked _conflictDialog) does not ask again', () => {
+    const asked = []
+    const win = { confirm: (m) => { asked.push(m); return false } }
+    const vars = { mateuDirty: true }
+    assert.equal(confirmLeaveAction('cancel-edit', vars, win, { _conflictDialog: true, initiatorState: {} }), true)
+    assert.equal(asked.length, 0)
+    assert.equal(confirmLeaveAction('cancel-edit', vars, win, { _conflictDialog: 'yes' }), false, 'only the server\'s marker')
+    assert.equal(isConflictDialogAnswer(undefined), false)
+  })
+
+  test('a wizard\'s Back is step navigation, not leaving: no question; its Cancel and a CRUD editor\'s Cancel still ask', () => {
+    const asked = []
+    const win = { confirm: (m) => { asked.push(m); return false } }
+    // the wizard (advertises next/skip, claims the rest with *), here inside the host's tree
+    const wizardReg = { stack: [], contexts: { [HOST_ID]: { tree: { type: 'ServerSide', actions: [], children: [
+      { type: 'ServerSide', confirmOnNavigationIfDirty: true, actions: [{ id: 'next' }, { id: 'skip' }, { id: '*' }], children: [] }] } } } }
+    assert.deepEqual(screenActionIdsOf(wizardReg), ['next', 'skip', '*'])
+    assert.equal(isWizardStepAction('back', screenActionIdsOf(wizardReg)), true)
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: wizardReg }, win), true)
+    assert.equal(confirmLeaveAction('goToStep', { mateuDirty: true, mateuRegistry: wizardReg }, win), true)
+    assert.equal(asked.length, 0)
+    assert.equal(confirmLeaveAction('cancel', { mateuDirty: true, mateuRegistry: wizardReg }, win), false)
+    // a wizard opened in a DRAWER over a page: found on the stack
+    const drawerReg = { stack: ['d1'], contexts: { [HOST_ID]: { tree: { actions: [{ id: 'back' }] } }, d1: { tree: { actions: [{ id: 'next' }] } } } }
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: drawerReg }, win), true)
+    const editorReg = { stack: [], contexts: { [HOST_ID]: { tree: { confirmOnNavigationIfDirty: true, actions: [{ id: 'cancel-edit' }, { id: 'save' }, { id: 'back' }] } } } }
+    assert.equal(confirmLeaveAction('cancel-edit', { mateuDirty: true, mateuRegistry: editorReg }, win), false)
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: editorReg }, win), false, 'a page\'s own Back still leaves')
+    assert.equal(asked.length, 3)
+  })
+
+  test('tracksUnsavedChanges: only a host whose ServerSide asks before it is left (@ConfirmOnNavigationIfDirty)', () => {
+    assert.equal(tracksUnsavedChanges({ tree: { confirmOnNavigationIfDirty: true } }), true)
+    assert.equal(tracksUnsavedChanges({ tree: { confirmOnNavigationIfDirty: false } }), false)
+    assert.equal(tracksUnsavedChanges({ tree: {} }), false)
+    assert.equal(tracksUnsavedChanges(undefined), false)
+    // the owner may sit below the context's root (a crud mediator wrapping its form)
+    assert.equal(tracksUnsavedChanges({ tree: { children: [{ children: [{ confirmOnNavigationIfDirty: true }] }] } }), true)
+  })
+
+  test('fieldEditLeavesUnsavedChanges: the context that owns the edit decides — host, top overlay or island', () => {
+    const tracked = { tree: { confirmOnNavigationIfDirty: true } }
+    const plain = { tree: {} }
+    const reg = { stack: ['d1', 'd2'], contexts: { [HOST_ID]: tracked, d1: tracked, d2: plain, isl: tracked } }
+    assert.equal(fieldEditLeavesUnsavedChanges(reg), true)
+    assert.equal(fieldEditLeavesUnsavedChanges(reg, { overlay: true }), false, 'the TOP overlay owns it')
+    assert.equal(fieldEditLeavesUnsavedChanges(reg, { islandId: 'isl' }), true)
+    assert.equal(fieldEditLeavesUnsavedChanges({ stack: [], contexts: { [HOST_ID]: plain } }), false)
+    assert.equal(fieldEditLeavesUnsavedChanges({ stack: [], contexts: {} }, { overlay: true }), false)
+  })
+}
+
 // ── the ACTION catalogue: owner first, then App.actionCatalogue ──────────────────────────────────
 import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
 {
@@ -5900,4 +6052,288 @@ test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, 
     { type: 'ClientSide', cssClasses: 'mateu-section', metadata: { type: 'Card' }, children: [{ type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Inner' } }] },
   ] })
   assert.ok(!tocProjectionOf(withIsland).entries.some((e) => e.title === 'Inner'))
+})
+
+// @Zones of a crud's detail (BUGS workshop #8): the server sends Page > ResponsiveGrid «35% 65%» >
+// [column of section cards, column of section cards]. The generic form has one column and used to win
+// (the form has fields), painting every section stacked in a single card. Real captures: the edit view
+// as it came, the read-only view derived from it (its fields readOnly, the id card hidden).
+test('@Zones in a crud detail: the columns are the body (4/12 + 8/12), the generic form steps aside', () => {
+  for (const name of ['crud-view-zones', 'crud-edit-zones']) {
+    const reg = reduceContexts(empty(), fx(name))
+    const host = reg.contexts[HOST_ID]
+    const blocks = hostContentOf(host, null, { title: summarizeHost(reg).title })
+    const zoned = blocks.filter((b) => /oj-md-/.test(b.blockClass))
+    assert.equal(zoned.length, 2, name)
+    assert.match(zoned[0].blockClass, /oj-md-4/, name)
+    assert.match(zoned[1].blockClass, /oj-md-8/, name)
+    assert.ok(zoned.every((b) => b.fromColumns), name)
+    // each column keeps its sections' headings and their fields (Contacto + Matrícula | Datos personales + Observaciones)
+    assert.deepEqual(zoned[0].items.filter((a) => a.isHeading).map((a) => a.text), ['Contacto', 'Matrícula'], name)
+    assert.deepEqual(zoned[1].items.filter((a) => a.isHeading).map((a) => a.text), ['Datos personales', 'Observaciones'], name)
+    assert.ok(zoned[1].items.some((a) => a.isFormLayout && a.fields.some((f) => f.fieldId === 'nombre')), name)
+    assert.equal(p1HostContentShown(blocks, summarizeHost(reg)), true, name + ': the content wins over the generic form')
+  }
+  // read-only in the view, editable in the editor
+  const layouts = (name) => hostContentOf(reduceContexts(empty(), fx(name)).contexts[HOST_ID], null, {})
+    .flatMap((b) => b.items).filter((a) => a.isFormLayout)
+  assert.ok(layouts('crud-view-zones').every((l) => l.readonly))
+  assert.ok(layouts('crud-edit-zones').some((l) => !l.readonly))
+})
+
+// A column grid NESTED in a block (CollectionDetail: its list/detail grid sits in a CustomField of the
+// form's card) was stacked — a block cannot hold columns. It is hoisted: the card is cut, the grid's
+// columns follow it at the page's level, and what the card still had goes to a continuation block.
+test('a column grid nested in a card is hoisted to the page level, in order', () => {
+  const cdReg = reduceContexts(empty(), fx('tpl-collection-detail'))
+  const blocks = hostContentOf(cdReg.contexts[HOST_ID], null, { title: summarizeHost(cdReg).title })
+  assert.equal(blocks.length, 3)
+  assert.ok(blocks[0].items.some((a) => a.isFormLayout), 'the card keeps the search field')
+  assert.match(blocks[1].blockClass, /oj-md-4/) // 22rem of a 1200px page → a third
+  assert.ok(blocks[1].items.some((a) => a.isQueue))
+  assert.match(blocks[2].blockClass, /oj-md-8/)
+  assert.ok(blocks[2].items.some((a) => a.isEmptyStateAtom))
+  // synthetic: what follows the grid inside the card is not lost nor moved before it
+  const card = { type: 'ClientSide', metadata: { type: 'Card', title: 'Card' }, children: [
+    { type: 'ClientSide', metadata: { type: 'Text', text: 'before' } },
+    { type: 'ClientSide', metadata: { type: 'ResponsiveGrid', gridTemplateColumns: '1fr 1fr' }, children: [
+      { type: 'ClientSide', metadata: { type: 'Text', text: 'left' } },
+      { type: 'ClientSide', metadata: { type: 'Text', text: 'right' } },
+    ] },
+    { type: 'ClientSide', metadata: { type: 'Text', text: 'after' } },
+  ] }
+  const out = hostContentOf({ tree: { type: 'ServerSide', id: 's', children: [card] }, state: {} }, null, {})
+  assert.deepEqual(out.map((b) => b.items.map((a) => a.text).join(',')), ['Card,before', 'left', 'right', 'after'])
+  assert.deepEqual(out.map((b) => (b.blockClass.match(/oj-md-(\d+)/) || [])[1] || '12'), ['12', '6', '6', '12'])
+  assert.ok(out[3].isCard, 'the continuation is still the card')
+  // a grid with ONE track stays where it was
+  card.children[1].metadata.gridTemplateColumns = '1fr'
+  const single = hostContentOf({ tree: { type: 'ServerSide', id: 's', children: [card] }, state: {} }, null, {})
+  assert.equal(single.length, 1)
+})
+
+test('DataManagement: «1fr 22rem» gives the table 8/12 and the docked panel 4/12 (not 50/50)', () => {
+  const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-data-management')).contexts[HOST_ID], null, {})
+  const cols = blocks.filter((b) => /oj-md-/.test(b.blockClass))
+  assert.deepEqual(cols.map((b) => b.blockClass.match(/oj-md-(\d+)/)[1]), ['8', '4'])
+  assert.ok(cols[0].items.some((a) => a.isGrid))
+})
+// A Wizard in a Drawer (GuidedProcessDrawer: Drawer.content = EmbeddedView(wizard)). The overlay is
+// painted from its embedded SURFACE; «Next» is answered with a Replace of that surface (the server
+// targets the initiator, the wizard's ServerSide). The reducer put it in the overlay's `tree` and left
+// `surface` alone: the drawer stayed on step 1. Real open; the next step is the same server's answer
+// with the demo's workaround (a new Drawer per step) undone into the Replace Mateu sends without it.
+test('a wizard in a drawer advances: the answer re-renders the embedded surface, the drawer keeps its frame', () => {
+  let reg = reduceContexts(empty(), fx('open-drawer-wizard'))
+  const opened = drawerOverlayOf(reg)
+  assert.deepEqual(opened.fields.map((f) => f.fieldId), ['nombre', 'apellidos', 'fechaNacimiento', 'email'])
+  const overlayId = reg.stack[reg.stack.length - 1]
+  const next = fx('drawer-wizard-next')
+  reg = reduceContexts(reg, next, { initiator: overlayId })
+  assert.deepEqual(reg.stack, [overlayId], 'the same drawer, not a second one')
+  const step2 = drawerOverlayOf(reg)
+  assert.deepEqual(step2.fields.map((f) => f.fieldId), ['curso', 'turno', 'optativa', 'comedor'])
+  assert.equal(step2.title, 'Matricular a un estudiante', 'the Drawer frame (its header title) is kept')
+  assert.equal(reg.contexts[overlayId].tree.metadata.type, 'Drawer')
+  // the next answer targets the NEW surface's id: it still lands in the drawer
+  const back = JSON.parse(JSON.stringify(fx('open-drawer-wizard').fragments[0].component.metadata.content))
+  reg = reduceContexts(reg, { fragments: [{ targetComponentId: next.fragments[0].component.id, component: back, state: back.initialData, action: 'Replace' }] })
+  assert.deepEqual(drawerOverlayOf(reg).fields.map((f) => f.fieldId), ['nombre', 'apellidos', 'fechaNacimiento', 'email'])
+  assert.deepEqual(reg.stack, [overlayId])
+  // a host or an island has no surface: nothing new appears on them
+  assert.ok(!('surface' in (reg.contexts[HOST_ID] || {})))
+})
+test('the real Welcome (con-micronaut demo): its five panels in order, the attendance TrendChart an area chart in its tile', () => {
+  const w = welcomeOf(reduceContexts(empty(), fx('tpl-welcome')).contexts[HOST_ID])
+  assert.deepEqual(w.tiles.map((t) => [t.title, t.isKpi]), [['Asistencia del curso', false], ['Alumnado', true], ['Evaluación', true], ['Primeros pasos', false], ['Avisos', false]])
+  assert.equal(w.tiles[0].subtitle, '% de alumnos presentes por mes')
+  assert.equal(w.tiles[0].items.find((a) => a.isChart).chartType, 'area')
+  assert.equal(w.tiles[3].items.length, 3)
+})
+test('a Drawer placed in the page (GanttPage bottom panel) is a collapsible panel with its title; the overlay root is not', () => {
+  const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
+  const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-gantt-page')).contexts[HOST_ID], null, {})
+  const atoms = blocks.flatMap((b) => b.items)
+  const at = atoms.findIndex((a) => a.isCollapsible)
+  assert.ok(at >= 0, 'the drawer has a header')
+  assert.equal(atoms[at].title, 'Leyenda y próximos hitos')
+  assert.equal(atoms[at].expanded, true)
+  assert.ok(atoms[at + 1] && atoms[at + 1].isRichText, 'its content follows the header')
+  // not collapsible: its title as a heading, then its content
+  const inline = hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [
+    node({ type: 'Drawer', headerTitle: 'Side', content: [node({ type: 'Text', text: 'inside' })] })])] } }, null, {})
+  assert.deepEqual(inline.flatMap((b) => b.items).map((a) => [!!a.isHeading, a.text]), [[true, 'Side'], [false, 'inside']])
+  // a Drawer that IS the overlay (the root of its context) is painted by the drawer panel, as before
+  const reg = reduceContexts(empty(), { fragments: [{ action: 'Add', targetComponentId: '', component: node({ type: 'Drawer', headerTitle: 'Panel', content: [node({ type: 'Text', text: 'body' })] }) }] })
+  assert.ok(!drawerOverlayOf(reg).content.flatMap((b) => b.items).some((a) => a.isCollapsible))
+})
+test('Hero Search (con-micronaut demo, gridLayout = cards): the listing is a grid of cards — title, badge, @Line, pairs', () => {
+  let reg = reduceContexts(empty(), fx('tpl-hero-search'))
+  const before = listingOf(reg.contexts[HOST_ID])
+  assert.equal(before.cardLayout, true)
+  assert.equal(before.showCards, true)
+  assert.deepEqual(before.cards, [], 'no search yet: no cards (the empty state)')
+  reg = reduceContexts(reg, fx('tpl-hero-search-results'))
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.equal(listing.cards.length, 8)
+  const [robotica, , teatro] = listing.cards
+  assert.equal(robotica.title, 'Robótica')
+  assert.deepEqual(robotica.badges, [{ key: 'disponibilidad', text: 'Últimas plazas', cls: 'oj-badge oj-badge-warning oj-badge-subtle' }])
+  // @Line(2): under the title, labelled
+  assert.deepEqual(robotica.lines.map((l) => l.pairs.map((p) => p.label + ': ' + p.text)), [['Profesor/a: Marta Ríos', 'Horario: Lunes y Miércoles 16:30-18:00']])
+  // the other line-1 columns as pairs — an enum by its label, not the constant
+  assert.deepEqual(robotica.pairs.map((p) => [p.label, p.text]), [['Etapa', 'ESO'], ['Plazas libres', '1'], ['Precio/mes', '35 €']])
+  assert.equal(teatro.badges[0].cls, 'oj-badge oj-badge-danger oj-badge-subtle')
+  // the card names its row by key: the click resolves the row as the table does
+  assert.equal(listing.rows.find((r) => String(r._rowNumber) === String(teatro.key)).nombre, 'Teatro en inglés')
+  assert.equal(robotica.hasImage, false)
+  assert.equal(robotica.hasActions, false)
+})
+test('listing cards: which layout, the image, row actions, selection keys and the card\'s own click', () => {
+  assert.equal(isCardLayout({ gridLayout: 'cards' }), true)
+  assert.equal(isCardLayout({ gridLayout: 'auto', crudlType: 'card' }), true)
+  assert.equal(isCardLayout({ gridLayout: 'auto', crudlType: 'table' }), false)
+  assert.equal(isCardLayout({ gridLayout: 'table', crudlType: 'card' }), false)
+  assert.equal(isCardLayout({}), false)
+  const cols = [
+    { id: 'photo', label: 'Photo', stereotype: 'image' },
+    { id: 'code', label: 'Code' },
+    { id: 'name', label: 'Name', identifier: true },
+    { id: 'state', label: 'State', dataType: 'status' },
+    { id: 'ops', label: '', dataType: 'actionGroup' },
+  ]
+  const [card] = listingCardsOf([{ _rowNumber: 0, id: 'p1', photo: '/p.png', code: 'A1', name: 'Ada', state: { type: 'SUCCESS', message: 'Ok', badgeClass: 'b' },
+    ops: { actions: [{ methodNameInCrud: 'archive', label: 'Archive' }] } }], cols)
+  assert.equal(card.title, 'Ada', 'the identifier column is the title')
+  assert.equal(card.image, '/p.png')
+  assert.deepEqual(card.pairs.map((p) => p.key), ['code'])
+  assert.deepEqual(card.actions, [{ key: 'ops:archive', methodNameInCrud: 'archive', label: 'Archive' }])
+  assert.equal(card.rowId, 'p1')
+  // a group row (@GroupBy) is not a card
+  assert.equal(listingCardsOf([{ _group: true }], cols).length, 0)
+  // selection: the same keys the table stores
+  let sel = toggleSelectionKey({ all: false, keys: [], except: [] }, 2, true)
+  sel = toggleSelectionKey(sel, 5, true)
+  assert.deepEqual(sel.keys, [2, 5])
+  assert.deepEqual(toggleSelectionKey(sel, '2', false).keys, [5])
+  // the card IS an oj-action-card (role=button): a click on its text is the row's; a button inside is not
+  const el = (matches, parent) => ({ parent, closest(sel) { let n = this; while (n) { if (n.matches) return n; n = n.parent } return null }, contains(o) { while (o) { if (o === this) return true; o = o.parent } return false }, matches })
+  const cardEl = el(true, el(false))
+  const text = el(false, cardEl)
+  const button = el(true, cardEl)
+  assert.equal(rowActionIsRows(text), false, 'without the card, the card itself reads as a control')
+  assert.equal(rowActionIsRows(text, cardEl), true)
+  assert.equal(rowActionIsRows(el(false, button), cardEl), false)
+})
+test('listing cards: the page paints them in place of the table, and the card click / checkbox reach their chains', () => {
+  const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  assert.match(html, /<oj-bind-if test="\[\[ \$application\.variables\.mateuListing\.showCards \]\]">[\s\S]*?<oj-action-card class="mateu-listing-card" :data-row-key="\[\[ card\.data\.key \]\]"\s+on-oj-action="\[\[ \$listeners\.mateuCardAction \]\]">/)
+  assert.match(html, /<oj-bind-if test="\[\[ !\$application\.variables\.mateuListing\.cardLayout \]\]">\s*<oj-table id="mateuTable"/)
+  const page = JSON.parse(readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.json'), 'utf8'))
+  assert.equal(page.eventListeners.mateuCardAction.chains[0].chain, 'mateuRowClicked')
+  assert.equal(page.eventListeners.mateuCardAction.chains[0].parameters.rowKey, '{{ $event.target.dataset.rowKey }}')
+  assert.equal(page.eventListeners.mateuCardSelected.chains[0].chain, 'mateuCardSelected')
+  const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'mateuCardSelected.js'), 'utf8')
+  assert.match(chain, /bridge\.toggleSelectionKey\(/)
+})
+test('Foldout (con-micronaut demo): navigation, overview edit, badges, panel icons and orientation reach the projection', () => {
+  const f = foldoutOf(reduceContexts(empty(), fx('tpl-foldout')).contexts[HOST_ID])
+  assert.equal(f.orientation, 'vertical')
+  assert.equal(f.overviewOnTop, false)
+  const h = f.header
+  assert.equal(h.hasNavigation, true)
+  assert.deepEqual([h.goToParent, h.parentLabel, h.parentActionId], [true, 'Estudiantes', 'volver'])
+  assert.equal(h.bidirectional, true)
+  assert.deepEqual(h.previousStep, { id: 'anterior', label: chromeText('previousItem') })
+  assert.deepEqual(h.nextStep, { id: 'siguiente', label: chromeText('nextItem') })
+  assert.deepEqual(h.overviewActions, [{ id: 'editar', label: chromeText('edit'), icon: 'oj-ux-ico-edit', display: 'on' }])
+  // the foldout's own badges head the overview, next to the page's
+  const badgeLabels = f.overview.blocks[0].items.filter((a) => a.isBadge).map((a) => a.label)
+  assert.deepEqual(badgeLabels, ['Matrícula activa', 'Beca MEC'])
+  // panel icons: bare Vaadin names → Redwood classes; none → ''
+  assert.deepEqual(f.panels.map((p) => p.iconClass), ['oj-ux-ico-contact', 'oj-ux-ico-list', 'oj-ux-ico-clock', ''])
+  // orientation horizontal: the overview on top
+  const wire = fx('tpl-foldout')
+  const json = JSON.stringify(wire).replace('"orientation":"vertical"', '"orientation":"horizontal"')
+  const top = foldoutOf(reduceContexts(empty(), JSON.parse(json)).contexts[HOST_ID])
+  assert.deepEqual([top.orientation, top.overviewOnTop], ['horizontal', true])
+})
+test('Foldout header: no navigation → no controls; only a next id → no bidirectional arrows', () => {
+  const none = foldoutHeaderOf({})
+  assert.deepEqual([none.hasNavigation, none.goToParent, none.bidirectional, none.previousStep, none.nextStep], [false, false, false, null, null])
+  assert.deepEqual(none.overviewActions, [])
+  const next = foldoutHeaderOf({ navigation: { nextActionId: 'n' } })
+  assert.deepEqual([next.hasNavigation, next.bidirectional, next.nextStep.id], [true, false, 'n'])
+  assert.equal(foldoutHeaderOf({ navigation: { parentActionId: 'up' } }).parentLabel, chromeText('goBack'))
+  assert.equal(foldoutIconClassOf('vaadin:user'), 'oj-ux-ico-contact')
+  assert.equal(foldoutIconClassOf('oj-ux-ico-edit'), 'oj-ux-ico-edit')
+  assert.equal(foldoutIconClassOf(null), '')
+})
+test('Foldout page: the layout binds the header, the overview can take the overview slot, the actions reach the host', () => {
+  const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  const H = '$application.variables.mateuFoldoutContent.header'
+  const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const layout = html.slice(html.indexOf('<oj-sp-foldout-layout id="mateuFoldoutEl"'), html.indexOf('</oj-sp-foldout-layout>'))
+  for (const attr of ['display-options.go-to-parent="[[ !!' + H + '.goToParent ]]"', 'previous-step="[[ ' + H + '.previousStep ]]"',
+    'next-step="[[ ' + H + '.nextStep ]]"', 'translations.go-to-parent="[[ ' + H + '.parentLabel ]]"',
+    'on-sp-next="[[ $listeners.foldoutNext ]]"', 'secondary-actions="[[ ' + H + '.overviewActions || [] ]]"',
+    ':slot="[[ $application.variables.mateuFoldout.overviewOnTop ? \'overview\' : null ]]"']) {
+    assert.match(layout, new RegExp(esc(attr)), attr)
+  }
+  assert.match(layout, /class="mateu-foldout-panel-icon"/)
+  const page = JSON.parse(readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.json'), 'utf8'))
+  for (const [listener, id] of [['foldoutGoToParent', 'parentActionId'], ['foldoutPrevious', 'previousActionId'], ['foldoutNext', 'nextActionId']]) {
+    assert.equal(page.eventListeners[listener].chains[0].chain, 'dispatchHostBlockAction')
+    assert.equal(page.eventListeners[listener].chains[0].parameters.actionId, '{{ ' + H + '.' + id + ' }}')
+  }
+  assert.equal(page.eventListeners.foldoutPanelAction.chains[0].parameters.actionId, '{{ $event.detail.actionId }}')
+})
+test('Data Management (con-micronaut demo): the docked panel\'s «Resumen ✕» HorizontalLayout is ONE row; its Text keeps its style', () => {
+  const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-data-management')).contexts[HOST_ID], null, {})
+  const atoms = blocks.flatMap((b) => b.items || [])
+  const row = atoms.find((a) => a.isRow)
+  assert.ok(row, 'the HorizontalLayout is a row')
+  assert.deepEqual(row.style, { alignItems: 'center', width: '100%' })
+  assert.deepEqual(row.items.map((i) => [i.rowText, i.rowButton, i.text || i.label]), [[true, false, 'Resumen'], [false, true, '✕']])
+  assert.deepEqual(row.items[0].style, { fontWeight: '600', flex: '1' })
+  assert.match(row.items[0].cls, /oj-typography-semi-bold/)
+  assert.equal(row.items[1].actionId, 'toggleEndPanel', 'the button keeps its action')
+  // the toolbar (buttons only) stays a button bar
+  assert.ok(atoms.some((a) => a.isButtons && a.buttons.map((b) => b.label).join() === 'Tabla,Calendario,Resumen,Incidencias'))
+})
+test('Text.style: filtered like an Element\'s HTML style; a weight / size beats Redwood\'s !important typography', () => {
+  assert.deepEqual(styleObjectOf('color: red; background-image: url(x.png); width: expression(alert(1)); font-size: 1.5rem; --x: 1'),
+    { color: 'red', fontSize: '1.5rem' })
+  assert.deepEqual(styleObjectOf(''), {})
+  assert.deepEqual(styledTextOf('oj-typography-body-md', 'font-weight: bold'), { cls: 'oj-typography-body-md oj-typography-bold', style: { fontWeight: 'bold' } })
+  assert.equal(styledTextOf('oj-typography-body-xs oj-text-color-secondary', 'font-size: 2rem').cls, 'oj-text-color-secondary')
+  assert.equal(styledTextOf('oj-typography-body-md', 'font-weight: 400').cls, 'oj-typography-body-md')
+  const node = (metadata, children = [], style) => ({ type: 'ClientSide', metadata, children, ...(style ? { style } : {}) })
+  const items = hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [
+    node({ type: 'Text', text: 'Big', size: 'xl' }, [], 'color: #c00; font-weight: 700'),
+  ])] } }, null, {}).flatMap((b) => b.items)
+  const t = items.find((a) => a.text === 'Big')
+  assert.deepEqual(t.style, { color: '#c00', fontWeight: '700' })
+  assert.equal(t.cls, 'oj-typography-heading-md oj-typography-bold')
+})
+test('HorizontalLayout: inline pieces make a row; any other child keeps the stacked projection', () => {
+  const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
+  const project = (hl) => hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [hl])] } }, null, {}).flatMap((b) => b.items)
+  const row = project(node({ type: 'HorizontalLayout' }, [node({ type: 'Text', text: 'Total' }), node({ type: 'Badge', text: 'Paid', color: 'success' }),
+    node({ type: 'Anchor', text: 'Invoice', url: '/invoices/1' }), node({ type: 'Icon', icon: 'vaadin:check' })]))
+  assert.equal(row.length, 1)
+  assert.deepEqual(row[0].items.map((i) => [i.rowText, i.rowBadge, i.rowAnchor, i.rowIcon]),
+    [[true, false, false, false], [false, true, false, false], [false, false, true, false], [false, false, false, true]])
+  // buttons only: still the button bar
+  const bar = project(node({ type: 'HorizontalLayout' }, [node({ type: 'Button', label: 'A', actionId: 'a' }), node({ type: 'Button', label: 'B', actionId: 'b' })]))
+  assert.deepEqual(bar.map((a) => !!a.isButtons), [true])
+  // a non-inline child: no row, the pieces as before
+  const mixed = project(node({ type: 'HorizontalLayout' }, [node({ type: 'Text', text: 'x' }), node({ type: 'Separator' })]))
+  assert.ok(!mixed.some((a) => a.isRow))
+  assert.ok(mixed.some((a) => a.isText && a.text === 'x'))
+  // the template paints the row (single atoms template, expanded into every surface by the bridge)
+  const atomsHtml = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
+  assert.match(atomsHtml, /<oj-bind-if test="\[\[ \$current\.data\.isRow \]\]">\s*(<!--[\s\S]*?-->\s*)?<div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="\[\[ \$current\.data\.style \|\| \{\} \]\]">/)
+  assert.match(atomsHtml, /rowButton \]\]">\s*<oj-button[\s\S]*?on-oj-action="\[\[ \$listeners\.\{\{blockAction\}\} \]\]"/)
+  assert.match(atomsHtml, /\$current\.data\.isText && !\$current\.data\.isHeading \]\]">\s*<div class="oj-sm-margin-1x-bottom" :class="\[\[ \$current\.data\.cls \]\]" :style="\[\[ \$current\.data\.style \|\| \{\} \]\]">/)
 })

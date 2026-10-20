@@ -56,6 +56,27 @@ test('archetypes: nothing on a plain page; the generic form steps aside with noG
   assert.notEqual(noGenericFormVars().mateuFormActions, noGenericFormVars().mateuFormActions, 'fresh arrays each time')
 })
 
+test('item overview: the tab shown on entry is the one SELECTED in the bar (the first, or the one marked open)', () => {
+  const page = (active) => ({ state: {}, data: {}, tree: node({ type: 'HorizontalLayout' }, [
+    node({ type: 'Card', title: 'Key' }, [node({ type: 'Text', text: 'k' })]),
+    node({ type: 'TabLayout' }, ['A', 'B', 'C'].map((label, i) => node({ type: 'Tab', label, active: i === active }, [node({ type: 'Text', text: 'in ' + label })]))),
+  ]) })
+  const first = archetypeVarsOf(page(-1), null)
+  assert.equal(first.item.selectedTab, 'itab-0', 'none marked: the first, and the bar says so')
+  assert.equal(first.vars.mateuItemTabTexts[0].text, 'in A')
+  const open = archetypeVarsOf(page(2), null)
+  assert.equal(open.item.selectedTab, 'itab-2', '@Tab(open): that one, shown and selected')
+  assert.equal(open.vars.mateuItemTabTexts[0].text, 'in C')
+  // the bar binds that selection, and on a phone its tabs that do not fit go to an overflow menu
+  // (they were clipped out of reach); so do the tab strips of the content
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const bar = html.slice(html.indexOf('<oj-tab-bar id="mateuItemTabs"'), html.indexOf('<ul>', html.indexOf('<oj-tab-bar id="mateuItemTabs"')))
+  assert.match(bar, /selection="\[\[ \$application\.variables\.mateuItemOv\.selectedTab \]\]"/)
+  assert.match(bar, /overflow="popup"/)
+  const strips = html.match(/<oj-tab-bar :id="\[\[ \$current\.data\.barId \]\]"[^>]*>/g) || []
+  assert.ok(strips.length > 0 && strips.every((t) => /overflow="popup"/.test(t)))
+})
+
 test('island projection, with the nested island merged into its content', () => {
   assert.equal(islandVarsOf(null, null), null)
   // the island holds a nested one (an App marker): its atoms land in that slot
@@ -85,6 +106,9 @@ test('general overview page: two zoned column blocks with an EntityHeader', () =
   assert.equal(gop.main.blocks[0].blockClass, 'oj-flex-item oj-sm-12')
   assert.ok(!generalOverviewPageOf({ title: 'E' }, blocks, { itemOverviewOn: true }).on)
   assert.ok(!generalOverviewPageOf(null, blocks).on)
+  // the NARROW zone first is not this anatomy (its main slot would take the key-data column): the
+  // host content paints it in its columns
+  assert.ok(!generalOverviewPageOf({ title: 'E' }, [blocks[1], blocks[0]]).on)
 })
 
 test('page header: primary, back affordance, secondary; band only away from edge to edge', () => {
@@ -510,3 +534,24 @@ test('overlays: dismissing the drawer by id leaves a dialog on top untouched; a 
 })
 
 console.log(`\n${passed} chain-logic tests OK`)
+
+test('a Dialog that shows more than lines is painted from its content (EntityHeader, Badge, Meter…), not just its texts', () => {
+  const open = (content) => reduceContexts(emptyReg(), { fragments: [{ action: 'Add', targetComponentId: '', component: {
+    type: 'ClientSide', id: 'dlg', metadata: { type: 'Dialog', title: 'Record' }, children: [node({ type: 'VerticalLayout' }, content)] } }] })
+  const rich = dialogOverlayOf(open([
+    node({ type: 'EntityHeader', title: 'Ana', subtitle: '1º', badges: [{ label: 'Active', color: 'success' }], facts: [{ label: 'Grade', value: '8.7' }] }),
+    node({ type: 'Meter', label: 'Attendance', value: 98, max: 100 }),
+  ]))
+  assert.equal(rich.hasRichContent, true)
+  const atoms = rich.content.flatMap((b) => b.items)
+  assert.ok(atoms.some((a) => a.isEntityHeader) && atoms.some((a) => a.isMeter))
+  assert.deepEqual(rich.texts, [], 'the lines are in the content: not painted twice')
+  // a plain message dialog is still its lines
+  const plain = dialogOverlayOf(open([node({ type: 'Text', text: 'Delete it?' })]))
+  assert.equal(plain.hasRichContent, false)
+  assert.deepEqual(plain.texts, ['Delete it?'])
+  // the modal paints the content with the shared atoms template
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const modal = html.slice(html.indexOf('<oj-dialog id="mateuModal"'), html.indexOf('</oj-dialog>', html.indexOf('<oj-dialog id="mateuModal"')))
+  assert.match(modal, /mateuDialog\.hasRichContent[\s\S]*mateuDialog\.content[\s\S]*<!-- @atoms host/)
+})

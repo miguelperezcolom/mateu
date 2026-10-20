@@ -1710,6 +1710,22 @@ def test_row_click_injects_the_clicked_row_into_the_method():
     assert _LAST_SELECTED == ["Bob/29"]
 
 
+def test_a_row_sent_as_loose_parameters_is_the_clicked_row_too():
+    # What the renderers send when a row is OPENED: the row's values as the action's own
+    # parameters, not under _clickedRow (mirrors Java's HttpRequest.getClickedRow).
+    _LAST_SELECTED.clear()
+    inc = handler().handle(
+        RunActionRq(
+            action_id="onGuestSelected",
+            route="checkin",
+            server_side_type=_name(CheckInForm),
+            parameters={"name": "Ann", "age": 41, "_internal": "x"},
+        )
+    )
+    assert inc.messages[0].text == "Selected Ann"
+    assert _LAST_SELECTED == ["Ann/41"]
+
+
 def test_hidden_disabled_and_supplier_rules_ride_on_the_server_side_component():
     inc = handler().handle(RunActionRq(route="ruled", consumed_route="ruled"))
     j = render(inc)

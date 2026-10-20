@@ -230,7 +230,11 @@ public abstract class Wizard
                         "font-size: 2rem; font-weight: 300; margin: 0 0 1rem;"
                             + " letter-spacing: .1em;")
                     .build(),
-                ProgressSteps.builder().steps(stepItems()).vertical(true).build()))
+                ProgressSteps.builder()
+                    .steps(stepItems())
+                    .vertical(true)
+                    .resultTitle(resultTitle())
+                    .build()))
         .style(
             "flex: 0 0 15rem; align-self: flex-start; position: sticky; top: 1rem;"
                 + " border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));"
@@ -288,9 +292,23 @@ public abstract class Wizard
     return items;
   }
 
+  /**
+   * The result step's title (its {@code @Label}, translated like the steps'): the screen after the
+   * last step is not in {@link #stepItems()}, and a renderer that shows it as the process's last
+   * screen needs its name rather than inventing one.
+   */
+  private String resultTitle() {
+    var stepFields = WizardStepInspector.getStepFields(this);
+    return stepFields.size() > 1 ? getLabel(stepFields.get(stepFields.size() - 1)) : null;
+  }
+
   private Component progressIndicator() {
     if (progressStyle() == io.mateu.uidl.annotations.WizardProgressStyle.STEPS) {
-      return ProgressSteps.builder().steps(stepItems()).style("width: 100%;").build();
+      return ProgressSteps.builder()
+          .steps(stepItems())
+          .resultTitle(resultTitle())
+          .style("width: 100%;")
+          .build();
     }
     return ProgressBar.builder()
         .value(position == numberOfSteps() - 1 ? applicableSteps() : applicablePosition())
@@ -575,6 +593,14 @@ public abstract class Wizard
             method ->
                 Action.builder().id(method.getName()).validationRequired(true).sse(true).build())
         .forEach(actions::add);
+    // the buttons of the step on screen (@Toolbar methods): they run on a half-filled step
+    if (position >= 0 && position < numberOfSteps()) {
+      getAllMethods(currentStepField().getType()).stream()
+          .filter(
+              method -> MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Toolbar.class))
+          .map(method -> Action.builder().id(method.getName()).validationRequired(false).build())
+          .forEach(actions::add);
+    }
     return actions;
   }
 }

@@ -13,8 +13,32 @@ import { ojIconOrGenericOf } from './shellNav.mjs'
 // EntityHeader in there is the chosen one's record, not the PAGE entity — lifting it to the
 // header emptied the detail panel and put the guest's name as the screen title.
 export const PANE_TYPES = { MasterDetailLayout: true, SplitLayout: true }
+// …nor what a page shows OVER itself (a docked or side drawer, a dialog): its own surface.
+const OVERLAY_TYPES = { Drawer: true, Dialog: true }
+/** The PAGE's EntityHeader: the one that HEADS the page — the first piece of content in it (outside
+ *  a console's panels and its overlays). One that comes after other content (a collection's detail
+ *  next to its list, a planning's task card under the chart) belongs to that part of the page and
+ *  stays there: lifting the first EntityHeader found anywhere emptied that part and retitled the
+ *  page with the selected item's name. */
 export function pageEntityHeaderNode(tree) {
-  return findOutsidePanes(tree, 'EntityHeader')
+  const first = firstContentOutside(tree, { ...PANE_TYPES, ...OVERLAY_TYPES })
+  return first && first.metadata.type === 'EntityHeader' ? first : null
+}
+/** The first node, in document order, that holds no other node (a field, a text, a chart, an
+ *  EntityHeader…), without descending into the `stops` types. */
+function firstContentOutside(tree, stops) {
+  let found = null
+  const walk = (n) => {
+    if (found || !n || typeof n !== 'object') return
+    const t = n.metadata && n.metadata.type
+    if (t && stops[t]) return
+    const inner = n.metadata && n.metadata.content
+    const kids = (n.children || []).concat(Array.isArray(inner) ? inner : inner && typeof inner === 'object' ? [inner] : [])
+    if (t && !kids.length) { found = n; return }
+    kids.forEach(walk)
+  }
+  walk(tree)
+  return found
 }
 /** findByType, but without entering a console's panels (MasterDetailLayout/SplitLayout): what
  *  is inside is a panel's content, not a piece of the PAGE (its header, its tail). */
@@ -191,7 +215,7 @@ export function pageHeaderExtrasOf(ctx) {
     return s.includes('${') ? '' : s.trim()
   }
   const badges = (md.badges || [])
-    .map((b) => ({ label: text(b && (b.text != null ? b.text : b.label)), status: badgeStatusOf(b && b.color) }))
+    .map((b) => ({ label: text(b && (b.text != null ? b.text : b.label)), status: badgeStatusOf(text(b && b.color)) }))
     .filter((b) => b.label)
   const pn = md.peerNav || null
   const prevRoute = pn ? text(pn.prevRoute) : ''
@@ -503,7 +527,10 @@ export function summarizeHost(reg, route) {
     // there either, in the menu label
     // …and a COMPOSED page (a Dashboard, a SmartSearchPage…: no Page, no Crud title) names itself
     // only through its window title: without it the header read «…»
-    title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label))
+    // …and a COMPOSED page names itself only through its window title (@Title): that one is the
+    // page's own, so it goes BEFORE the menu's label (the menu says where it is, not what it is)
+    title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || host.windowTitle
+      || (option && (option.caption || option.label))
       || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
     // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
     // @NoBreadcrumbs on the page or on the shell

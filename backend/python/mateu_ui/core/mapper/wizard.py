@@ -125,6 +125,19 @@ class WizardMapperMixin(MixinBase):
 
         def step_title(i: int) -> str | None:
             return instance.step_title(i) if hasattr(instance, "step_title") else None
+
+        # The progress shows the steps of the process; the result screen is none of them (Java's
+        # Wizard.stepItems): with a completion, the last step is left out, every bullet is done
+        # on it, and its title travels as result_title — a renderer that shows the finished
+        # process as one more screen names it instead of inventing one.
+        has_result = completion is not None and total > 1
+        plain_total = total - 1 if has_result else total
+        result_title = (step_title(total) or f"Step {total}") if has_result else None
+
+        def bullet_status(i: int) -> str:
+            if result_step or i < current:
+                return "done"
+            return "current" if i == current else "upcoming"
         # wizard_progress("steps"): connected step bullets instead of the progress bar
         # (mirrors Java's @WizardProgress(WizardProgressStyle.STEPS)).
         if getattr(cls, "__mateu_wizard_progress__", "bar") == "steps":
@@ -134,10 +147,11 @@ class WizardMapperMixin(MixinBase):
                         StepRecord(
                             id=f"step-{i}",
                             title=step_title(i) or f"Step {i}",
-                            status="done" if i < current else "current" if i == current else "upcoming",
+                            status=bullet_status(i),
                         )
-                        for i in range(1, total + 1)
-                    ]
+                        for i in range(1, plain_total + 1)
+                    ],
+                    result_title=result_title,
                 ),
                 "fieldId",
                 [],
@@ -203,7 +217,9 @@ class WizardMapperMixin(MixinBase):
             # left, a sticky right band with a big current|total counter over the vertical step
             # list (mirrors Java's WizardProgressStyle.RAIL).
             counter = ClientSideComponent(
-                metadata=TextMetadata(text=f"{current} | {total}"),
+                metadata=TextMetadata(
+                    text=f"{plain_total if result_step else current} | {plain_total}"
+                ),
                 style="font-size: 2rem; font-weight: 300; margin: 0 0 1rem; letter-spacing: .1em;",
             )
             rail_steps = ClientSideComponent(
@@ -212,11 +228,12 @@ class WizardMapperMixin(MixinBase):
                         StepRecord(
                             id=f"step-{i}",
                             title=f"Step {i}",
-                            status="done" if i < current else "current" if i == current else "upcoming",
+                            status=bullet_status(i),
                         )
-                        for i in range(1, total + 1)
+                        for i in range(1, plain_total + 1)
                     ],
                     vertical=True,
+                    result_title=result_title,
                 ),
                 id="fieldId",
             )

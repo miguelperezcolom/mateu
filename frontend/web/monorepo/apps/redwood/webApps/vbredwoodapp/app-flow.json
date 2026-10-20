@@ -431,7 +431,8 @@
         "overview": {
           "blocks": []
         },
-        "panels": []
+        "panels": [],
+        "header": {}
       },
       "description": "CONTENIDO vivo del foldout (bloques por panel + subt\u00edtulos): se reasigna en cada repaint del host; la ESTRUCTURA (mateuFoldout) se estampa una sola vez \u2014 el motor del foldout come los anclajes del for-each de paneles al re-stampar"
     },

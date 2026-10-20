@@ -53,6 +53,8 @@ define([
       if (!id) {
         return;
       }
+      // a LEAVE action (Cancel…) with unsaved changes asks as the menu does; «stay» sends nothing
+      if (!bridge.confirmLeaveAction(id, $application.variables, undefined, parameters)) return;
       // «go to parent» without a back button: the automatic trail put it there, and it is a
       // navigation — the same as the menu's (navigation-requested, which the shell listens to)
       // the way back from the NOT FOUND page (navigationAction of the oj-sp-empty-state): navigate
@@ -413,16 +415,11 @@ define([
         const foldoutProjection = bridge.foldoutOf(hostAfter);
         foldoutNow = foldoutProjection;
         const foldoutBefore = $application.variables.mateuFoldout;
-        const contentOf = (proj) => proj
-          ? { overview: proj.overview, panels: proj.panels }
-          : { overview: { blocks: [] }, panels: [] };
-        const mismaEstructura = foldoutBefore && foldoutProjection
-          && (foldoutBefore.panels || []).length === (foldoutProjection.panels || []).length;
-        if (mismaEstructura) {
+        if (bridge.sameFoldoutStructure(foldoutBefore, foldoutProjection)) {
           // IN-PLACE update: the panels are stamped ONCE (their for-each loses its
           // anchors if re-stamped — the foldout's DOM surgery); the content lives in
           // mateuFoldoutContent, whose bindings DO re-evaluate inside the panel
-          $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
+          $application.variables.mateuFoldoutContent = bridge.foldoutContentOf(foldoutProjection);
         } else {
           // different structure (number of panels) or entering/leaving foldout mode:
           // full null→tick remount
@@ -431,7 +428,7 @@ define([
             await new Promise((resolve) => setTimeout(resolve, 0));
           }
           // content BEFORE structure (the panels read it when stamped)
-          $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
+          $application.variables.mateuFoldoutContent = bridge.foldoutContentOf(foldoutProjection);
           $application.variables.mateuFoldout = foldoutProjection;
         }
         bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);

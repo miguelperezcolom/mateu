@@ -4755,6 +4755,9 @@
         "type" : {
           "const" : "ProgressSteps"
         },
+        "resultTitle" : {
+          "type" : "string"
+        },
         "steps" : {
           "type" : "array",
           "items" : {

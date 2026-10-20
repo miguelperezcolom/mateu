@@ -33,7 +33,7 @@ public class HotelDirectory extends CollectionDetail<Hotel> {
 }
 ```
 
-Optional hooks: `captionOf`/`badgesOf` enrich the list cards, `listLabel(count)` labels the list (default `"N items"`), `emptyDetail()` customizes the right pane before any selection, `listWidth()` sizes the list column (default `24rem`).
+Optional hooks: `captionOf`/`badgesOf` enrich the list cards, `listLabel(count)` labels the list (default `"1 item"` / `"N items"`, the built-in texts `item` and `items` through your `Translator`), `emptyDetail()` customizes the right pane before any selection, `listWidth()` sizes the list column (default `24rem`).
 
 The search box filters as the user types (debounced 400 ms — the archetype declares the auto-save trigger itself, no annotation needed). The detail pane can be any component tree; when the detail needs its own actions or lifecycle, return an embedded routed island (the `DetailIsland` pattern) instead of a plain card.
 

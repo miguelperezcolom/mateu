@@ -9,6 +9,7 @@ import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { TriggerType } from '@mateu/shared/apiClients/dtos/componentmetadata/TriggerType'
 import { isEventClaimed } from './chatEvents'
+import { dirtyGuard } from './dirtyGuard'
 
 /**
  * How mateu-component turns an `action-requested` into what the user relies on: a request to the
@@ -185,6 +186,89 @@ describe('a claimed action', () => {
         el.remove()
         expect(document.querySelector('[role="alertdialog"]')).toBeNull()
         expect(sent).toHaveLength(0)
+    })
+})
+
+describe('a leave action on a screen with unsaved changes (dirtyGuard)', () => {
+    afterEach(() => dirtyGuard.markClean())
+
+    it('Cancel asks the navigation question first: "stay" sends nothing, "leave" sends it and clears the flag', async () => {
+        const el = await mount(serverSide({ actions: [{ id: 'cancel-edit' }] }))
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        request(el, 'cancel-edit')
+        expect(confirm).toHaveBeenCalledWith(dirtyGuard.message)
+        expect(sent).toHaveLength(0)
+        expect(dirtyGuard.dirty).toBe(true)
+
+        confirm.mockReturnValue(true)
+        request(el, 'cancel-edit')
+        expect(sent).toHaveLength(1)
+        expect(dirtyGuard.dirty).toBe(false)
+    })
+
+    it('covers the ids the server treats as leave actions, and no others', async () => {
+        const ids = ['cancel', 'cancel-new', 'cancel-create', 'cancel-view', 'back', 'backToList']
+        const el = await mount(serverSide({ actions: [...ids, 'save', 'cancelBooking', 'backup'].map(id => ({ id })) }))
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        for (const id of ids) {
+            dirtyGuard.markDirty()
+            request(el, id)
+        }
+        expect(confirm).toHaveBeenCalledTimes(ids.length)
+        expect(sent).toHaveLength(0)
+        for (const id of ['save', 'cancelBooking', 'backup']) request(el, id)
+        expect(confirm).toHaveBeenCalledTimes(ids.length)
+        expect(sent.map(e => e.detail.actionId)).toEqual(['save', 'cancelBooking', 'backup'])
+    })
+
+    it('a wizard\'s Back steps inside the screen: it does not ask, even on a tracked wizard; its Cancel and a CRUD editor\'s Cancel still do', async () => {
+        // a Wizard advertises next/skip and claims the rest (back, goToStep…) with its wildcard
+        const wizard = await mount(serverSide({ confirmOnNavigationIfDirty: true,
+            actions: [{ id: 'next' }, { id: 'skip' }, { id: '*' }] }))
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        request(wizard, 'back')
+        request(wizard, 'goToStep')
+        expect(confirm).not.toHaveBeenCalled()
+        expect(sent.map(e => e.detail.actionId)).toEqual(['back', 'goToStep'])
+        expect(dirtyGuard.dirty).toBe(true)
+        request(wizard, 'cancel')
+        expect(confirm).toHaveBeenCalledTimes(1)
+        const editor = await mount(serverSide({ id: 'editor', confirmOnNavigationIfDirty: true, actions: [{ id: 'cancel-edit' }, { id: 'save' }] }))
+        request(editor, 'cancel-edit')
+        expect(confirm).toHaveBeenCalledTimes(2)
+        expect(sent).toHaveLength(2)
+    })
+
+    it('the conflict dialog\'s Reload (cancel-edit marked _conflictDialog) does not ask again: the user chose to drop the edits there', async () => {
+        const el = await mount(serverSide({ actions: [{ id: 'cancel-edit' }] }))
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        request(el, 'cancel-edit', { parameters: { _conflictDialog: true } })
+        expect(confirm).not.toHaveBeenCalled()
+        expect(sent).toHaveLength(1)
+    })
+
+    it('does not ask when nothing was edited', async () => {
+        const el = await mount(serverSide({ actions: [{ id: 'cancel-edit' }] }))
+        const confirm = vi.spyOn(window, 'confirm')
+        request(el, 'cancel-edit')
+        expect(confirm).not.toHaveBeenCalled()
+        expect(sent).toHaveLength(1)
+    })
+
+    it('a Cancel that bubbles to the component that owns it asks once, there', async () => {
+        const outer = await mount(serverSide({ id: 'outer', actions: [{ id: 'cancel-edit' }] }))
+        const holder = document.createElement('div')
+        document.body.appendChild(holder)
+        const inner = await mount(serverSide({ id: 'inner', serverSideType: 'x.Inner' }), {}, holder)
+        holder.addEventListener('action-requested', (e) => outer.manageActionRequestedEvent(e as CustomEvent))
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+        request(inner, 'cancel-edit')
+        expect(confirm).toHaveBeenCalledTimes(1)
+        expect(sent).toHaveLength(1)
     })
 })
 

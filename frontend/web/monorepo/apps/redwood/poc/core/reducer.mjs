@@ -315,10 +315,26 @@ export function reduceContexts(reg, increment, opts = {}) {
     // Without this the surface's root became a ClientSide node and nothing was projected.
     const intoEnvelope = fr.component && fr.component.type === 'ClientSide' && fr.action !== 'Add'
       && prev.tree && prev.tree.type === 'ServerSide'
-    const nextTree = intoEnvelope ? { ...prev.tree, children: [fr.component] } : (fr.component || prev.tree)
+    let nextTree = intoEnvelope ? { ...prev.tree, children: [fr.component] } : (fr.component || prev.tree)
+    // an overlay that EMBEDS a surface (a Drawer/Dialog whose content is an EmbeddedView: a wizard
+    // in a drawer) is painted from `surface`. An answer re-rendering that surface (its next step)
+    // replaced the overlay's tree — the Drawer — and left `surface` as it was: the drawer stayed on
+    // the step it opened with. The new render goes to the surface and the overlay keeps its frame;
+    // a whole new Drawer/Dialog for the same overlay replaces both.
+    let nextSurface = prev.surface
+    if (fr.component && prev.surface) {
+      const type = md && md.type
+      if (fr.component.type === 'ClientSide' && (type === 'Drawer' || type === 'Dialog')) {
+        nextSurface = md.content && md.content.type === 'ServerSide' ? md.content : null
+      } else {
+        nextSurface = fr.component.type === 'ServerSide' ? fr.component : { ...prev.surface, children: [fr.component] }
+        nextTree = prev.tree
+      }
+    }
     contexts[id] = {
       ...prev,
       kind: prev.kind,
+      ...('surface' in prev ? { surface: nextSurface } : {}),
       tree: nextTree, // no component => State-only: keeps the tree
       pageType: ss?.pageType ?? (fr.component ? undefined : prev.pageType),
       pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),
@@ -333,6 +349,15 @@ export function reduceContexts(reg, increment, opts = {}) {
         ? { ...prev.data, ...(fr.data || {}) }
         : (fr.data ?? {}),
       dirty: false,
+    }
+    // the screen's window title (@Title, a TitleSupplier) travels as a SetWindowTitle beside the
+    // component that loads the screen: the host keeps it, so a COMPOSED page (a Dashboard, a
+    // SmartSearchPage…: no Page node to carry a title) is named by it on every repaint, not only
+    // on the increment that brought it
+    if (id === HOST_ID) {
+      const own = ss ? hostWindowTitleOf(increment) : null
+      if (own != null) contexts[id].windowTitle = own
+      else if (ss) delete contexts[id].windowTitle
     }
   }
 
@@ -418,4 +443,16 @@ export function reduceContexts(reg, increment, opts = {}) {
   if (reg.appLevels) kept.appLevels = reg.appLevels
   if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
   return { ...kept, contexts, stack, shell, effects }
+}
+
+/** The SetWindowTitle an increment addresses to the screen (not the shell's: the App's own title
+ *  travels with target `shell`), as text; null when there is none. */
+function hostWindowTitleOf(increment) {
+  for (const c of (increment && increment.commands) || []) {
+    if (c && c.type === 'SetWindowTitle' && typeof c.data === 'string' && c.targetComponentId !== 'shell') {
+      const t = literalText(c.data).trim()
+      if (t) return t
+    }
+  }
+  return null
 }

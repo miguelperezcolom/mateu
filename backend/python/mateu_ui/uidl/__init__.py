@@ -209,6 +209,7 @@ from .listing import (  # noqa: F401
 )
 from .views import (  # noqa: F401
     ComponentTreeSupplier,
+    DetailContentSupplier,
     HeroSearch,
     LinkSupplier,
     SmartSearchPage,
@@ -373,6 +374,8 @@ __all__ = [
     "app_context", "edit_in_drawer", "overline", "title_placeholder", "auto_page", "action_options",
     "PrimaryColumn", "Aside", "LinkTo", "NavLink", "CollectionDetail", "GeneralOverview",
     "GlobalSearchResult", "GlobalSearchSupplier", "LinkSupplier",
+    # a crud record's own detail-page content (Java's DetailContentSupplier)
+    "DetailContentSupplier",
     # parity with the Java / .NET names
     "AppVariant", "BadgeInHeader", "PageWidthStyle",
     # E2 patterns (EXPERIMENTAL): app shortcuts, live header values, idle-session warning

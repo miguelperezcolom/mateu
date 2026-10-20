@@ -63,11 +63,35 @@ class GeneralOverviewSyncTest {
     }
   }
 
+  @UI("/labelled-requisition-overview")
+  @Title("Requisitions")
+  public static class LabelledRequisitionOverview extends RequisitionOverview {
+    @Override
+    protected String recordLabel() {
+      return "Requisition";
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(RequisitionOverview.class);
+    mateu = TestMateu.withUis(RequisitionOverview.class, LabelledRequisitionOverview.class);
+  }
+
+  private static io.mateu.dtos.FormFieldDto switcherOf(String route) {
+    return FieldKindsSyncTest.collect(
+            mateu.sync(route).fragments().get(0).component(), io.mateu.dtos.FormFieldDto.class)
+        .stream()
+        .filter(field -> "record".equals(field.fieldId()))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  @Test
+  void theSwitcherIsUnlabelledUnlessTheSubclassNamesIt() {
+    assertThat(switcherOf("/requisition-overview").label()).isEmpty();
+    assertThat(switcherOf("/labelled-requisition-overview").label()).isEqualTo("Requisition");
   }
 
   @AfterAll

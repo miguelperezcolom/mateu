@@ -355,6 +355,10 @@ test("foldout: the layout's selectedPanel counts the overview as panel 0", () =>
   assert.equal(wirePanelIndexOf('2'), 1)
   assert.equal(wirePanelIndexOf(undefined), -1)
   assert.equal(wirePanelIndexOf(1.5), -1)
+  // orientation horizontal: the overview is the top band, not a panel — panel 0 is the first wire panel
+  assert.equal(wirePanelIndexOf(0, { overviewOnTop: true }), 0)
+  assert.equal(wirePanelIndexOf(2, { overviewOnTop: true }), 2)
+  assert.equal(wirePanelIndexOf(1, { overviewOnTop: false }), 0)
   // a panel's identity on the same page: its position and title
   assert.equal(foldoutPanelKey({ title: 'Notes' }, 2), '2:Notes')
   assert.notEqual(foldoutPanelKey({ title: 'Notes' }, 2), foldoutPanelKey({ title: 'Notes' }, 1))
@@ -1072,6 +1076,20 @@ test('MetricCard: tendencia con flecha y color; ResponsiveGrid: pesos de pista y
   assert.match(panelColClass(2, 3), /oj-md-8/)
 })
 
+test('grid tracks: a FIXED track weighs its length, not 1 like a 1fr (22rem 1fr split 50/50)', () => {
+  const md = (t, n) => gridColClasses(t, [], n).map((c) => c.match(/oj-md-(\d+)/)[1])
+  assert.deepEqual(md('22rem 1fr', 2), ['4', '8'], 'CollectionDetail: the list a third, the detail the rest')
+  assert.deepEqual(md('1fr 22rem', 2), ['8', '4'], 'DataManagement: the table wide, the docked panel narrow')
+  assert.deepEqual(md('35% 65%', 2), ['4', '8'], '@Zones of a crud detail')
+  assert.deepEqual(md('minmax(0, 2fr) 320px', 2), ['9', '3'])
+  // the edges are rounded, not each share: a full row adds up to 12 (3 + 5 + 5 wrapped the last)
+  assert.deepEqual(md('300px 1fr 1fr', 3), ['3', '5', '4'])
+  assert.deepEqual(md('1fr 1fr 1fr 1fr 1fr', 5).reduce((a, b) => a + Number(b), 0), 12)
+  // only flexible or only percentages: their own numbers, as before
+  assert.deepEqual(gridTrackWeights('auto 1fr'), [1, 1])
+  assert.deepEqual(gridTrackWeights('repeat(2, 10rem) 1fr'), [160, 160, 880])
+})
+
 // ── P1 #12 calendar: month, week, day, list; cells per date; dates that act ──────────────────
 const calWire = {
   type: 'Calendar', month: '2026-10-28', view: 'month', views: ['month', 'week', 'day', 'list'], dayActionId: 'openCalendarDay',
@@ -1340,7 +1358,7 @@ test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas c
   assert.equal(rowActionIsRows(null), true, 'sin origen (Enter en la fila): es de la fila')
   // a WORK table (inline editing) no longer cuts the whole row click: only its editors
   const chain = webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js')
-  assert.match(chain, /bridge\.rowActionIsRows\(origin\)/)
+  assert.match(chain, /bridge\.rowActionIsRows\(origin, card\)/)
   assert.doesNotMatch(chain, /listing\.editable\)/)
 })
 
@@ -1423,6 +1441,12 @@ test('Gantt: una fila por tarea sobre oj-gantt, avance 0..1, selección → _cli
   assert.equal(g.rows.length, 2, 'las tareas sin fechas no se pintan')
   const prog = Object.fromEntries(g.rows.flatMap((r) => r.tasks).map((t) => [t.id, t.progress.value]))
   assert.deepEqual(prog, { t1: 0.5, t2: 1 })
+  // the done part takes a darker shade of the task's colour (not JET's one grey for every bar)
+  const coloured = ganttAtomOf({ tasks: [{ id: 'p', start: '2026-01-05', end: '2026-01-20', progress: 15, color: '#508223' },
+    { id: 'q', start: '2026-01-05', end: '2026-01-20', progress: 15 }] })
+  const [p, q] = coloured.rows.map((r) => r.tasks[0])
+  assert.deepEqual(p.progress, { value: 0.15, svgStyle: { fill: '#304e15' } })
+  assert.deepEqual(q.progress, { value: 0.15 })
   assert.equal(g.majorScale, 'months', 'un plan de meses se lee por meses')
   assert.deepEqual(planningActionOf(g, 'select', { value: ['t1'] }) || planningActionOf(g, 'select', { taskId: 't1' }),
     { actionId: 'selectGanttTask', parameters: { _clickedTaskId: 't1' } })
@@ -1476,6 +1500,40 @@ test('Item Overview y General Overview: el contenido de tarjetas y pestañas via
   ]) })
   const card = go.cards.find((c) => c.title === 'Notes')
   assert.equal(card.items[0].html, '<p>hello</p>')
+})
+
+test('General Overview: everything the main slot draws is a card, in order; main and info are columns at the grid widths', () => {
+  const slotted = (slot, n) => ({ ...n, slot })
+  const tree = node({ type: 'VerticalLayout' }, [
+    node({ type: 'FormField', fieldId: 'record', dataType: 'string', options: [{ value: '1', label: 'One' }] }),
+    node({ type: 'ResponsiveGrid', gridTemplateColumns: '3fr 1fr', gridTemplateAreas: '"main info"' }, [
+      slotted('main', node({ type: 'VerticalLayout' }, [
+        node({ type: 'EntityHeader', title: 'One' }),
+        node({ type: 'Card', title: node({ type: 'Text', text: 'Grades' }), content: [node({ type: 'Markdown', markdown: 'A' })] }),
+        node({ type: 'Markdown', markdown: 'loose' }),
+        node({ type: 'Card', content: [node({ type: 'Markdown', markdown: 'untitled' })] }),
+      ])),
+      slotted('info', node({ type: 'VerticalLayout' }, [node({ type: 'Markdown', markdown: 'side' })])),
+    ]),
+  ])
+  const go = generalOverviewOf({ state: {}, data: {}, tree })
+  const main = go.columns[0].cards
+  // the untitled pieces are no longer dropped (only titled Cards were taken)
+  assert.deepEqual(main.map((c) => [c.title, c.items[0].html]), [['Grades', '<p>A</p>'], ['', '<p>loose</p>'], ['', '<p>untitled</p>']])
+  // infoWidth: the info column takes its track (3fr 1fr → 9 + 3), each column stacks its cards
+  assert.deepEqual(go.columns.map((c) => c.colClass.match(/oj-md-(\d+)/)[1]), ['9', '3'])
+  assert.ok(go.columns.flatMap((c) => c.cards).every((c) => c.colClass === 'oj-flex-item oj-sm-12'))
+  assert.equal(go.columns[1].cards[0].items[0].html, '<p>side</p>')
+  // promoted info slot (travels first): its column goes first and takes the FIRST track
+  tree.children[1].children.reverse()
+  tree.children[1].metadata.gridTemplateColumns = '1fr 3fr'
+  const promoted = generalOverviewOf({ state: {}, data: {}, tree })
+  assert.deepEqual(promoted.columns.map((c) => [c.colClass.match(/oj-md-(\d+)/)[1], c.cards.length]), [['3', 1], ['9', 3]])
+  // the real GeneralOverview (con-micronaut demo): its three main cards in one column, the info slot in the other
+  const real = generalOverviewOf(reduceContexts(empty(), JSON.parse(readFileSync(join(here, 'fixtures', 'real', 'tpl-general-overview.json'), 'utf8'))).contexts[HOST_ID])
+  assert.deepEqual(real.columns.map((c) => c.cards.map((k) => k.title)), [['Resultados', 'Notas por materia', 'Asistencia mensual'], ['']])
+  // the page loops the columns, then each column's cards
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /data="\[\[ \$application\.variables\.mateuOverview\.columns \]\]"[\s\S]{0,400}data="\[\[ \$current\.data\.cards \]\]"/)
 })
 
 import { withInitialValues } from './reduceContexts.mjs'
@@ -1628,11 +1686,32 @@ test('proceso guiado terminado: un paso final «Completed» actual (título corr
   const done = wizardOf({ tree: tree(['done', 'done', 'done']) })
   assert.equal(done.completed, true)
   assert.equal(done.currentStep, WIZARD_DONE_STEP)
+  // no resultTitle on the wire (an older server): a translated fallback
   assert.equal(done.currentLabel, 'Completed')
   assert.equal(done.steps.length, 4)
+  // the counter counts the process's steps, not the result screen
+  assert.equal(done.total, 3)
+  assert.equal(done.currentIndex, 2)
   assert.ok(done.steps.every((st) => st.status === 'success'))
   assert.equal(done.resumeStepId, '')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuWizard\.completed \? 'mateu-wizard-completed'/)
+  assert.match(webApp('resources/css/app.css'), /mateu-wizard-completed \.oj-sp-guided-process-step-count/)
+})
+
+test('proceso guiado terminado: el paso de resultado lleva el título que manda el servidor (resultTitle, su @Label)', () => {
+  const tree = { type: 'ClientSide', id: 'w', actions: [{ id: 'next' }], metadata: { type: 'VerticalLayout' }, children: [
+    { type: 'ClientSide', id: 'p', metadata: { type: 'ProgressSteps', vertical: true, resultTitle: 'Matrícula hecha',
+      steps: [{ id: 'a', title: 'Datos', status: 'done' }, { id: 'b', title: 'Pago', status: 'done' }] }, children: [] }] }
+  const done = wizardOf({ tree })
+  assert.equal(done.currentStep, WIZARD_DONE_STEP)
+  assert.equal(done.currentLabel, 'Matrícula hecha')
+  assert.deepEqual(done.steps.map((s) => s.title), ['Datos', 'Pago', 'Matrícula hecha'])
+  assert.equal(done.total, 2)
+  // while running, the result title is not a step
+  tree.children[0].metadata.steps = [{ id: 'a', title: 'Datos', status: 'current' }, { id: 'b', title: 'Pago', status: 'upcoming' }]
+  const running = wizardOf({ tree })
+  assert.deepEqual(running.steps.map((s) => s.title), ['Datos', 'Pago'])
+  assert.equal(running.total, 2)
 })
 
 test('mount: the packaged app serves an @UI at any path — API base and routes come from <mateu-ui baseUrl>', () => {
@@ -1836,3 +1915,31 @@ atest('navigating to another screen starts it at its top — not on back/forward
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
 console.log(`\n${pass} tests PMS OK`)
 void HOST_ID
+
+import { meterAtomOf } from './reduceContexts.mjs'
+
+test('Meter: its unit, its thresholds and its fill percent (mateu-meter); a MetricCard icon; the info status tone', () => {
+  // the unit after the value (it was «98 / 100»), the fill percent as the caption when none is given
+  const m = meterAtomOf({ label: 'Attendance', value: 98, max: 100, unit: '%' })
+  assert.equal(m.valueText, '98 %')
+  assert.equal(m.caption, '98 %')
+  assert.equal(m.hasThresholds, false, 'no thresholds: JET\'s progress bar, as before')
+  assert.equal(meterAtomOf({ value: 3, max: 10, caption: 'used' }).valueText, '3 / 10')
+  assert.equal(meterAtomOf({ value: 3, max: 10, caption: 'used' }).caption, 'used')
+  // warnAt / dangerAt: the fill's tone (success below, warning from warnAt, error from dangerAt)
+  const tone = (value) => meterAtomOf({ value, max: 100, warnAt: 70, dangerAt: 90 }).fillClass
+  assert.deepEqual([tone(50), tone(70), tone(95)], ['mateu-meter-fill mateu-meter-success', 'mateu-meter-fill mateu-meter-warning', 'mateu-meter-fill mateu-meter-error'])
+  assert.equal(meterAtomOf({ value: 150, max: 100, warnAt: 70 }).fillWidth, '100%')
+  // money keeps its value against its limit
+  assert.match(meterAtomOf({ value: 1710.5, max: 2000, unit: '€' }, (x) => x, (v) => '€ ' + v).valueText, /€ 1710.5 \/ € 2000/)
+  // MetricCard.icon → Redwood's icon class beside the title
+  assert.ok(metricOf({ title: 'Students', value: 412, icon: 'vaadin:users' }).iconClass)
+  assert.equal(metricOf({ title: 'Students', value: 412, icon: 'vaadin:users' }).iconText, '')
+  assert.deepEqual([metricOf({ title: 'Grades', value: 7, icon: '📝' }).iconClass, metricOf({ title: 'Grades', value: 7, icon: '📝' }).iconText], ['', '📝'], 'an emoji is drawn as itself, not as the generic icon')
+  assert.deepEqual([metricOf({ title: 'Students', value: 412 }).iconClass, metricOf({ title: 'Students', value: 412 }).iconText], ['', ''])
+  // a StatusItem in the info tone has a colour (it was the secondary grey)
+  const list = islandContentOf({ state: {}, data: {}, tree: node({ type: 'StatusList', items: [{ id: 'a', title: 'A', status: 'Info', statusColor: 'info' }] }) })
+  assert.equal(list[0].items[0].items[0].statusClass, 'mateu-text-info')
+  const css = webApp('resources/css/app.css')
+  for (const cls of ['mateu-text-info', 'mateu-meter-success', 'mateu-meter-warning', 'mateu-meter-error']) assert.match(css, new RegExp('\\.' + cls + ' \\{'))
+})

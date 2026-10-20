@@ -3,7 +3,7 @@ import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
 import { collectTexts, isSectionNode, sectionHeadOf } from './tree.mjs'
-import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
+import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
@@ -11,8 +11,9 @@ import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, lea
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
-import { VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
+import { iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 import { chromeText, moneyNumberText } from '../i18n.mjs'
+import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
 /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
@@ -116,7 +117,8 @@ export function emptyStateOf(tree) {
   if (!node) return null
   const md = node.metadata
   return {
-    title: (md.icon ? md.icon + ' ' : '') + (md.title || ''),
+    // an icon NAME is no text (it read «vaadin:list-select Select an item»); an emoji leads the title
+    title: (md.icon && !iconNameLike(md.icon) ? md.icon + ' ' : '') + (md.title || ''),
     description: md.description || '',
   }
 }
@@ -207,6 +209,26 @@ export function buttonRouteOf(template, state) {
   const route = interpolate(text, state)
   return route && !route.includes('${') ? route : null
 }
+
+/**
+ * A Text's classes and inline style from its wire `style` (filtered by styleObjectOf). Redwood's
+ * oj-typography-* classes set size and weight with !important, so an inline font-weight or
+ * font-size alone would never show: a weight becomes JET's weight class, and a declared size
+ * drops the typography class (the inline size then applies).
+ */
+export function styledTextOf(cls, wireStyle) {
+  const style = styleObjectOf(wireStyle)
+  let out = cls
+  if (style.fontSize) out = out.split(' ').filter((c) => !/^oj-typography-(heading|subheading|body)-/.test(c)).join(' ')
+  const weight = String(style.fontWeight || '').trim().toLowerCase()
+  const n = weight === 'bold' || weight === 'bolder' ? 700 : weight === 'normal' || weight === 'lighter' ? 400 : Number(weight)
+  if (n >= 700) out += ' oj-typography-bold'
+  else if (n >= 500) out += ' oj-typography-semi-bold'
+  return { cls: out.trim(), style }
+}
+
+/** What a HorizontalLayout may hold to be painted as ONE inline row (isRow). */
+export const INLINE_ROW_TYPES = new Set(['Text', 'Button', 'Badge', 'Anchor', 'Icon'])
 
 export const TEXT_CLASSES = {
   xl: 'oj-typography-heading-md',
@@ -309,6 +331,9 @@ export function islandContentOf(ctx, opts = {}) {
     warning: 'oj-text-color-warning',
     danger: 'oj-text-color-danger',
     error: 'oj-text-color-danger',
+    // JET has no info text colour class: Redwood's info tone (app.css). An `info` status was grey
+    info: 'mateu-text-info',
+    normal: 'mateu-text-info',
   }
   const blocks = []
   let plain = null
@@ -330,10 +355,19 @@ export function islandContentOf(ctx, opts = {}) {
   // inside a component-holder field (a CustomField whose content is a component, not fields): its
   // atoms are marked, the generic form cannot draw them (hostContentShown)
   let inHolder = 0
+  // a block CUT by a hoisted grid (a column grid nested in a card: see the ResponsiveGrid branch)
+  // → the block that carries on after it; what the card still had to say goes there, in order
+  const continued = new Map()
+  const continuations = new Set()
+  const live = (block) => {
+    let b = block
+    while (b && continued.has(b)) b = continued.get(b)
+    return b
+  }
   const atom = (a, container) => {
     stampNode(a)
     if (inHolder && a && typeof a === 'object') a.fromHolder = true
-    if (container) { container.items.push(a); return }
+    if (container) { live(container).items.push(a); return }
     if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
     plain.items.push(a)
   }
@@ -355,6 +389,39 @@ export function islandContentOf(ctx, opts = {}) {
     }
     for (const child of kidsOf(node)) collectButtons(child, out)
     return out
+  }
+  // the inline row of a HorizontalLayout (see the visitor): null when it is not one
+  const inlineRowOf = (node) => {
+    const kids = kidsOf(node).filter(Boolean)
+    const typeOf = (k) => k && k.metadata && k.metadata.type
+    if (!kids.length || !kids.every((k) => INLINE_ROW_TYPES.has(typeOf(k)))) return null
+    if (kids.every((k) => typeOf(k) === 'Button')) return null
+    const scratch = { items: [] }
+    const before = blocks.length
+    for (const kid of kids) visit(kid, scratch)
+    if (blocks.length !== before) { blocks.splice(before); return null }
+    const items = []
+    for (const a of scratch.items) {
+      if (a.isButtons) a.buttons.forEach((b) => items.push({ ...b, isButton: true }))
+      else items.push(a)
+    }
+    if (!items.length) return null
+    return {
+      isRow: true,
+      style: styleObjectOf(node.style || (node.metadata && node.metadata.style)),
+      // the row's own flags (rowText…): the template's inner pieces are not the block atoms
+      items: items.map((a, i) => ({
+        ...a,
+        key: String(i),
+        style: a.style || {},
+        rowText: !!a.isText && !a.isHeading,
+        rowHeading: !!a.isHeading,
+        rowButton: !!a.isButton,
+        rowBadge: !!a.isBadge,
+        rowAnchor: !!a.isAnchor,
+        rowIcon: !!a.isIcon,
+      })),
+    }
   }
   // Projects children as COLUMN-BLOCKS of the oj-flex grid (colClass oj-md-(NN→twelfths)): the
   // zones of @Zones and the two panels of a master-detail. If a column generates several blocks
@@ -465,9 +532,21 @@ export function islandContentOf(ctx, opts = {}) {
       const zoneMatches = (node.children || []).map(
         (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
       if (zoneMatches.length >= 2 && zoneMatches.every(Boolean)) {
+        const before = blocks.length
         projectColumns(node.children, node.children.map((_, i) => parseFloat(zoneMatches[i][1])))
+        for (const block of blocks.slice(before)) block.fromColumns = true
         return
       }
+    }
+    // A ROW of inline pieces (HorizontalLayout of texts, buttons, badges, links, icons: a panel's
+    // title and its close button, a label and its badge, a toolbar that mixes them) → ONE isRow
+    // atom the template paints as a wrapping flex row, each piece with its own (filtered) style.
+    // The atoms of a block stack, so the row used to come out as a column. A row of buttons only
+    // keeps the button bar (isButtons); any other child (a grid, a form, a card…) keeps the
+    // stacked projection — the templates cannot nest a whole block inside an atom.
+    if (t === 'HorizontalLayout') {
+      const row = inlineRowOf(node)
+      if (row) { atom(row, container); return }
     }
     // CONSOLE / MASTER-DETAIL (MasterDetailLayout, SplitLayout): children = [master, detail].
     // Same projection as the zones: two column-blocks of the oj-flex grid (list on the
@@ -723,6 +802,26 @@ export function islandContentOf(ctx, opts = {}) {
     // width in columns), KPI band (Scoreboard/MetricCard) and charts (oj-chart) ──
     // ResponsiveGrid (the general grid): its tracks (grid-template-columns) and each child's
     // colSpans → oj-flex column-blocks of their width. Inside a card, stacked.
+    // a COLUMN grid nested in a block (a CollectionDetail's list/detail inside its form's card, a
+    // grid in a field): a block cannot hold columns, so the grid is HOISTED — the block is cut, the
+    // grid's columns follow it at the page's level and a continuation block takes the rest. Only a
+    // full-width block is cut (one that is already a column keeps its grid stacked inside).
+    if (t === 'ResponsiveGrid' && container && !live(container).colClass && blocks.includes(live(container))
+        && (gridTrackWeights(m.gridTemplateColumns).length >= 2
+          || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() && !m.gridTemplateColumns))) {
+      const cut = live(container)
+      plain = null
+      const before = blocks.length
+      visitNode(node, null)
+      plain = null
+      if (blocks.length > before) {
+        const rest = { ...(cut.isCard ? { isCard: true } : { isPlain: true }), items: [] }
+        continued.set(cut, rest)
+        continuations.add(rest)
+        blocks.push(rest)
+      }
+      return
+    }
     if (t === 'ResponsiveGrid' && !container) {
       // each child's span: the wire's (colSpans) or the one the child carries itself — a
       // DashboardPanel its colSpan, the KPI band (Scoreboard) the whole row
@@ -750,12 +849,15 @@ export function islandContentOf(ctx, opts = {}) {
       // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
       const autoFit = autoFitColClass(m.gridTemplateColumns
         || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
-      const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-        || (autoFit ? kids.map(() => autoFit) : null)
+      const tracked = gridColClasses(m.gridTemplateColumns, spans, kids.length)
+      const classes = tracked || (autoFit ? kids.map(() => autoFit) : null)
       // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
-      // blocks carry the mark, and the content wins over the generic form (hostContentShown)
+      // blocks carry the mark, and the content wins over the generic form (hostContentShown).
+      // So do the COLUMNS of explicit tracks (the @Zones of a crud's detail: «35% 65%»): the
+      // generic form has one column, it painted every section stacked in a single card
       const templated = !!(m.gridTemplateAreas && String(m.gridTemplateAreas).trim())
-      const allTags = templated ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), fromTemplate: true })) : tags
+      const mark = templated ? { fromTemplate: true } : tracked ? { fromColumns: true } : null
+      const allTags = mark ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), ...mark })) : tags
       if (classes && projectSized(kids, classes, allTags)) return
     }
     if (t === 'DashboardLayout') {
@@ -776,7 +878,7 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'MetricCard') {
       // consecutive ones join in the same band (like the buttons)
-      const target = container || plain
+      const target = live(container) || plain
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
       if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
       else atom({ isScoreboard: true, metrics: [withNodeId(metricOf(m, interp), node)] }, container)
@@ -840,7 +942,7 @@ export function islandContentOf(ctx, opts = {}) {
         // h2), with group rhythm (margin-top) when it does not open the block
         const heading = /^h[1-6]$/.test(m.container || '')
         if (heading) {
-          const target = container || plain
+          const target = live(container) || plain
           const notFirst = !!(target && target.items.length)
           atom({
             isText: true,
@@ -849,10 +951,11 @@ export function islandContentOf(ctx, opts = {}) {
             // a slot header with the foldout's underline)
             isH2: m.container === 'h2',
             text,
-            cls: 'oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''),
+            // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
+            ...styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style),
           }, container)
         } else {
-          atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+          atom({ isText: true, text, ...styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style) }, container)
         }
       }
       return
@@ -910,6 +1013,24 @@ export function islandContentOf(ctx, opts = {}) {
         atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled }, container)
         if (expanded) for (const child of kidsOf(panel)) visit(child, container)
       })
+      return
+    }
+    // a DRAWER placed IN the page (not returned by an action: a GanttPage's bottom panel, a docked
+    // side panel) had no view — its content came out loose, without its title and not collapsible.
+    // Inline it is a panel: its title as the header, its content after it; a collapsible one folds
+    // like a Details (open unless it says otherwise). The root Drawer is an overlay: not here.
+    if (t === 'Drawer' && !isRoot) {
+      const title = interp(m.headerTitle || m.title || '')
+      const pieces = kidsOf(node)
+      if (m.collapsible) {
+        const key = 'drw:' + (m.id || (node.id && node.id !== 'fieldId' ? node.id : title || 'drawer'))
+        const expanded = panelExpanded(key, m.opened !== false)
+        atom({ isCollapsible: true, collapsibleKey: key, title, expanded, disabled: false }, container)
+        if (expanded) for (const child of pieces) visit(child, container)
+        return
+      }
+      if (title) atom({ isText: true, isHeading: true, text: title, cls: 'oj-typography-subheading-xs' }, container)
+      for (const child of pieces) visit(child, container)
       return
     }
     if (t === 'Details') {
@@ -1298,14 +1419,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Meter') {
-      atom({
-        isMeter: true,
-        label: m.label || '',
-        value: m.value || 0,
-        max: m.max || 100,
-        valueText: (m.unit === '€' ? money(m.value, '€') : String(m.value)) + ' / ' + (m.unit === '€' ? money(m.max, '€') : String(m.max)),
-        caption: interp(m.caption || ''),
-      }, container)
+      atom(meterAtomOf(m, interp, money), container)
       return
     }
     if (t === 'TaskProgress') {
@@ -1488,6 +1602,10 @@ export function islandContentOf(ctx, opts = {}) {
     for (const child of kidsOf(node)) visit(child, container)
   }
   visit(ctx.tree, null)
+  // a continuation nobody wrote into (the grid was the cut block's last child) is no block
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    if (continuations.has(blocks[i]) && !blocks[i].items.length) blocks.splice(i, 1)
+  }
   // HOISTING of the nested island: a block whose content is the island (card "Documento")
   // becomes an isNestedBlock block — the markup paints it at BLOCK level because
   // at greater depth VB's CSP evaluator stops resolving the template's bindings
@@ -1583,6 +1701,37 @@ export function withFormActionsRowOf(blocks, previous) {
   return [...(blocks || []), JSON.parse(JSON.stringify(row))]
 }
 
+/**
+ * A Meter (consumption vs a limit) → its atom, with the web renderer's contract (mateu-meter): the
+ * value with its unit after a space (`98 %`; money as money against its limit; no unit, `value / max`),
+ * the caption or else the fill percent, and the fill's tone past the optional thresholds — warning at
+ * `warnAt`, error at `dangerAt`, success below them (both were ignored, and so was the unit).
+ */
+export function meterAtomOf(m, interp = (x) => x, money = (v) => String(v)) {
+  const value = Number(m.value) || 0
+  const max = Number(m.max) || 100
+  const percent = Math.round(Math.min(Math.max(max > 0 ? value / max : 0, 0), 1) * 100)
+  const num = (v) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(Number(v) || 0)
+  const unit = m.unit || ''
+  const valueText = unit === '€' ? money(m.value, '€') + ' / ' + money(m.max, '€')
+    : unit ? num(value) + ' ' + unit : String(m.value == null ? '' : m.value) + ' / ' + String(max)
+  const thresholds = m.warnAt != null || m.dangerAt != null
+  const tone = m.dangerAt != null && value >= m.dangerAt ? 'error'
+    : m.warnAt != null && value >= m.warnAt ? 'warning' : 'success'
+  return {
+    isMeter: true,
+    label: m.label || '',
+    value,
+    max,
+    valueText,
+    caption: m.caption ? interp(m.caption) : percent + ' %',
+    // with thresholds the bar is drawn by hand (its fill takes the tone); without, JET's progress bar
+    hasThresholds: thresholds,
+    fillClass: 'mateu-meter-fill mateu-meter-' + tone,
+    fillWidth: percent + '%',
+  }
+}
+
 export function hostContentShown(blocks, summary) {
   if (!blocks || !blocks.length) return false
   // (fromHolder: what a component-holder field — a `Callable<Component>` — brought: the generic form
@@ -1590,8 +1739,9 @@ export function hostContentShown(blocks, summary) {
   // (fromSurface: what a filled @Subresource / inline-island hole brought — withSubresources)
   const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource || a.fromHolder || a.fromSurface))
   if (blocks.some((block) => (block.items || []).some(rich))) return true
-  // the page is laid out by a slot template (a form with its @Aside…): its fields are painted in it
-  if (blocks.some((block) => block.fromTemplate)) return true
+  // the page is laid out by a slot template (a form with its @Aside…) or in columns (@Zones): its
+  // fields are painted in it
+  if (blocks.some((block) => block.fromTemplate || block.fromColumns)) return true
   const s = summary || {}
   return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
 }

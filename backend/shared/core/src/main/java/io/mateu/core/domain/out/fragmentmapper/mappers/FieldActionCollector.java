@@ -63,6 +63,8 @@ final class FieldActionCollector {
         .filter(field -> List.class.isAssignableFrom(field.getType()))
         // a transient list is not page data, so not an editable grid field
         .filter(field -> !java.lang.reflect.Modifier.isTransient(field.getModifiers()))
+        // a list of components (a Foldout's List<Badge>, a List<Component>) is display, not rows
+        .filter(field -> !isComponentList(field))
         .flatMap(
             field -> {
               String fieldName = field.getName();
@@ -236,7 +238,14 @@ final class FieldActionCollector {
         || MetaAnnotations.isPresent(field, Min.class)
         || MetaAnnotations.isPresent(field, Max.class)
         || MetaAnnotations.isPresent(field, Size.class)
-        || MetaAnnotations.isPresent(field, Pattern.class);
+        || MetaAnnotations.isPresent(field, Pattern.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.Email.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.Positive.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.PositiveOrZero.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.Negative.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.NegativeOrZero.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.DecimalMin.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.DecimalMax.class);
   }
 
   private static boolean isFluxReturning(Method method) {
@@ -244,4 +253,19 @@ final class FieldActionCollector {
   }
 
   private FieldActionCollector() {}
+
+  /** A {@code List<X>} whose element type is a UI component — rendered, never edited as rows. */
+  private static boolean isComponentList(java.lang.reflect.Field field) {
+    if (!(field.getGenericType() instanceof java.lang.reflect.ParameterizedType parameterized)
+        || parameterized.getActualTypeArguments().length != 1) {
+      return false;
+    }
+    var element = parameterized.getActualTypeArguments()[0];
+    if (element instanceof java.lang.reflect.WildcardType wildcard
+        && wildcard.getUpperBounds().length == 1) {
+      element = wildcard.getUpperBounds()[0];
+    }
+    return element instanceof Class<?> type
+        && io.mateu.uidl.fluent.Component.class.isAssignableFrom(type);
+  }
 }

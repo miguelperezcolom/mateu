@@ -13,7 +13,8 @@
       }
     },
     "messageId": {
-      "type": "string"
+      "type": "number",
+      "defaultValue": 0
     },
     "mateuContextDrawerOpen": {
       "type": "boolean",

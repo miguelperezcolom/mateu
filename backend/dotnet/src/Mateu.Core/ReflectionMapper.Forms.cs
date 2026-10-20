@@ -41,7 +41,8 @@ internal sealed partial class ReflectionMapper
             {
                 TitleIsText = TitledByData(element, entity) ? true : null,
             }, null,
-            FormCards(element, entity, readOnly: mode == "view")) with { Style = "max-width:900px;margin: auto;" };
+            DetailContent(entity, mode) ?? FormCards(element, entity, readOnly: mode == "view"))
+            with { Style = "max-width:900px;margin: auto;" };
         // The entity's field values ARE the form state: seed them into initialData (and, via
         // FragmentResponse, the fragment state) so a view/edit form arrives prefilled — the values
         // no longer ride as per-field initialValue (Java parity).
@@ -69,6 +70,14 @@ internal sealed partial class ReflectionMapper
             ConfirmOnNavigationIfDirty = mode != "view",
         };
     }
+
+    /// <summary>The record page's own content (Java's ViewRouteResolver + DetailContent): what an
+    /// <see cref="IDetailContentSupplier"/> record returns, on the VIEW page only — the edit and
+    /// create forms of the same class keep their forms. <c>null</c> = the read-only form.</summary>
+    private static List<ComponentDto>? DetailContent(object entity, string mode) =>
+        mode == "view" && entity is IDetailContentSupplier supplier && supplier.DetailContent() is { } content
+            ? new List<ComponentDto> { ComponentMapper.Map(content) }
+            : null;
 
     /// <summary>The detail form of a grid row: a ServerSide component of the row type whose page
     /// carries the row's fields, the editor buttons at its foot and (when editing) the Prev/Next

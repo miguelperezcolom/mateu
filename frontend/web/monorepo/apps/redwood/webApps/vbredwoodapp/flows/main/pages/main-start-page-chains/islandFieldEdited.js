@@ -4,9 +4,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -19,7 +21,7 @@ define([
      * @param {Object} params.event
      */
     async run(context, { fieldId, event }) {
-      const { $page } = context;
+      const { $application, $page } = context;
 
       const detail = (event && (event.detail || event)) || {};
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
@@ -28,7 +30,11 @@ define([
       if (!fieldId) {
         return;
       }
-      context.$application.variables.mateuDirty = true;
+      // unsaved changes only where the island asks before it is left (Vaadin's rule, shellFlows.mjs)
+      if (bridge.fieldEditLeavesUnsavedChanges($application.variables.mateuRegistry,
+        { islandId: $application.variables.mateuIslandId })) {
+        $application.variables.mateuDirty = true;
+      }
       const draft = Object.assign({}, $page.variables.mateuIslandDraft);
       draft[fieldId] = detail.value;
       $page.variables.mateuIslandDraft = draft;

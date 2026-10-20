@@ -1,0 +1,477 @@
+{
+ "commands": [
+  {
+   "targetComponentId": "",
+   "type": "SetWindowTitle",
+   "data": "Expedientes"
+  }
+ ],
+ "messages": [],
+ "fragments": [
+  {
+   "targetComponentId": "",
+   "component": {
+    "type": "ServerSide",
+    "id": "aa11e5e5-5195-459b-9288-3aba658fce11",
+    "serverSideType": "io.mateu.plantillas.collectiondetail.CollectionDetailDemo",
+    "route": "",
+    "children": [
+     {
+      "type": "ClientSide",
+      "metadata": {
+       "type": "Page",
+       "id": null,
+       "favicon": null,
+       "pageTitle": "Collection detail demo",
+       "icon": null,
+       "title": "Expedientes",
+       "level": 0,
+       "readOnly": false,
+       "subtitle": null,
+       "overline": null,
+       "titlePlaceholder": null,
+       "status": null,
+       "breadcrumbs": null,
+       "noBreadcrumbs": null,
+       "badges": [],
+       "kpis": [],
+       "banners": [],
+       "actions": null,
+       "toolbar": [],
+       "buttons": [],
+       "avatar": null,
+       "header": [],
+       "footer": [],
+       "fabs": [],
+       "toc": null,
+       "peerNav": null,
+       "switcher": null,
+       "timestamp": null,
+       "pageWidth": null,
+       "pageType": "collection",
+       "titleIsText": null
+      },
+      "id": null,
+      "children": [
+       {
+        "type": "ClientSide",
+        "metadata": {
+         "type": "Card",
+         "media": null,
+         "headerPrefix": null,
+         "header": null,
+         "title": null,
+         "subtitle": null,
+         "headerSuffix": null,
+         "content": {
+          "type": "ClientSide",
+          "metadata": {
+           "type": "Div",
+           "content": null
+          },
+          "id": "fieldId",
+          "children": [
+           {
+            "type": "ClientSide",
+            "metadata": {
+             "type": "VerticalLayout",
+             "spacing": false,
+             "padding": false,
+             "margin": false,
+             "spacingVariant": null,
+             "horizontalAlignment": null,
+             "justification": null,
+             "wrap": false,
+             "flexGrows": null,
+             "fullWidth": false,
+             "style": null
+            },
+            "id": null,
+            "children": [
+             {
+              "type": "ClientSide",
+              "metadata": {
+               "type": "FormLayout",
+               "autoResponsive": true,
+               "labelsAside": false,
+               "maxColumns": 2,
+               "columnWidth": null,
+               "expandColumns": true,
+               "expandFields": false,
+               "responsiveSteps": null,
+               "itemLabelWidth": null,
+               "columnSpacing": null,
+               "itemRowSpacing": null,
+               "itemLabelSpacing": null
+              },
+              "id": null,
+              "children": [
+               {
+                "type": "ClientSide",
+                "metadata": {
+                 "type": "FormRow"
+                },
+                "id": null,
+                "children": [
+                 {
+                  "type": "ClientSide",
+                  "metadata": {
+                   "type": "FormField",
+                   "fieldId": "search",
+                   "dataType": "string",
+                   "stereotype": "regular",
+                   "observed": false,
+                   "autofocus": false,
+                   "label": "Search",
+                   "placeholder": null,
+                   "cssClasses": null,
+                   "description": "",
+                   "badges": [],
+                   "attributes": [],
+                   "colspan": 1,
+                   "rightAligned": false,
+                   "bold": false,
+                   "options": [],
+                   "remoteCoordinates": null,
+                   "optionsSource": null,
+                   "initialValue": null,
+                   "readOnly": false,
+                   "required": false,
+                   "style": "",
+                   "columns": [],
+                   "inlineEditing": false,
+                   "onItemSelectionActionId": null,
+                   "rowSelectionShortcut": null,
+                   "formPosition": null,
+                   "formStyle": null,
+                   "formTheme": null,
+                   "formColumns": 0,
+                   "sliderMin": 0,
+                   "sliderMax": 100,
+                   "stepButtonsVisible": false,
+                   "step": 0,
+                   "itemIdPath": null,
+                   "detailPath": null,
+                   "useButtonForDetail": false,
+                   "minHeightWhenDetailVisible": null,
+                   "optionsColumns": 1,
+                   "mainFilter": false,
+                   "treeLeavesOnly": false,
+                   "multiline": false,
+                   "propertyRow": false,
+                   "link": null
+                  },
+                  "id": "search",
+                  "children": [],
+                  "style": "",
+                  "cssClasses": null,
+                  "slot": null,
+                  "sizing": null
+                 },
+                 {
+                  "type": "ClientSide",
+                  "metadata": {
+                   "type": "CustomField",
+                   "label": "",
+                   "content": {
+                    "type": "ClientSide",
+                    "metadata": {
+                     "type": "ResponsiveGrid",
+                     "gridTemplateColumns": "22rem 1fr",
+                     "gap": null,
+                     "colSpans": null,
+                     "stackBelow": "48rem",
+                     "gridTemplateAreas": "\"list detail\"",
+                     "stickyAreas": null,
+                     "reorderable": false
+                    },
+                    "id": "collection-detail",
+                    "children": [
+                     {
+                      "type": "ClientSide",
+                      "metadata": {
+                       "type": "TaskQueue",
+                       "actionId": "selectCollectionItem",
+                       "groups": [
+                        {
+                         "label": "7 alumnos",
+                         "items": [
+                          {
+                           "id": "1",
+                           "title": "Ana García López",
+                           "caption": "1º Bachillerato A · media 8,7",
+                           "badges": [
+                            {
+                             "label": "Beca",
+                             "color": "success"
+                            }
+                           ],
+                           "selected": false,
+                           "actionLabel": null,
+                           "actionId": null
+                          },
+                          {
+                           "id": "2",
+                           "title": "Bruno Martín Sanz",
+                           "caption": "1º Bachillerato A · media 5,8",
+                           "badges": [
+                            {
+                             "label": "1 suspenso",
+                             "color": "danger"
+                            }
+                           ],
+                           "selected": false,
+                           "actionLabel": null,
+                           "actionId": null
+                          },
+                          {
+                           "id": "3",
+                           "title": "Carla Romero Gil",
+                           "caption": "4º ESO B · media 9,4",
+                           "badges": [
+                            {
+                             "label": "Beca",
+                             "color": "success"
+                            }
+                           ],
+                           "selected": false,
+                           "actionLabel": null,
+                           "actionId": null
+                          },
+                          {
+                           "id": "4",
+                           "title": "David Navarro Ruiz",
+                           "caption": "4º ESO B · media 4,6",
+                           "badges": [
+                            {
+                             "label": "3 suspensos",
+                             "color": "danger"
+                            },
+                            {
+                             "label": "Absentismo",
+                             "color": "warning"
+                            }
+                           ],
+                           "selected": false,
+                           "actionLabel": null,
+                           "actionId": null
+                          },
+                          {
+                           "id": "5",
+                           "title": "Elena Torres Vidal",
+                           "caption": "3º ESO A · media 7,1",
+                           "badges": [],
+                           "selected": false,
+                           "actionLabel": null,
+                           "actionId": null
+                          },
+                          {
+                           "id": "6",
+                           "title": "Hugo Serrano Blanco",
+                           "caption": "2º ESO C · media 3,9",
+                           "badges": [
+                            {
+                             "label": "5 suspensos",
+                             "color": "danger"
+                            },
+                            {
+                             "label": "Absentismo",
+                             "color": "warning"
+                            }
+                           ],
+                           "selected": false,
+                           "actionLabel": null,
+                           "actionId": null
+                          },
+                          {
+                           "id": "7",
+                           "title": "Lucía Herrera Ramos",
+                           "caption": "2º Bachillerato A · media 9,1",
+                           "badges": [
+                            {
+                             "label": "Beca",
+                             "color": "success"
+                            }
+                           ],
+                           "selected": false,
+                           "actionLabel": null,
+                           "actionId": null
+                          }
+                         ]
+                        }
+                       ]
+                      },
+                      "id": null,
+                      "children": [],
+                      "style": null,
+                      "cssClasses": null,
+                      "slot": "list",
+                      "sizing": null
+                     },
+                     {
+                      "type": "ClientSide",
+                      "metadata": {
+                       "type": "EmptyState",
+                       "icon": null,
+                       "title": "Selecciona un alumno",
+                       "description": "Elige un alumno de la lista para ver sus notas, asistencia e incidencias.",
+                       "actionId": null,
+                       "actionLabel": null
+                      },
+                      "id": null,
+                      "children": [],
+                      "style": "flex: 1; margin-top: 3rem;",
+                      "cssClasses": null,
+                      "slot": "detail",
+                      "sizing": null
+                     }
+                    ],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null,
+                    "sizing": null
+                   },
+                   "colspan": 2
+                  },
+                  "id": "fieldId",
+                  "children": [],
+                  "style": null,
+                  "cssClasses": null,
+                  "slot": null,
+                  "sizing": null
+                 }
+                ],
+                "style": null,
+                "cssClasses": null,
+                "slot": null,
+                "sizing": null
+               }
+              ],
+              "style": "",
+              "cssClasses": null,
+              "slot": null,
+              "sizing": null
+             }
+            ],
+            "style": "width: 100%;",
+            "cssClasses": null,
+            "slot": null,
+            "sizing": null
+           }
+          ],
+          "style": "flex: 1; min-width: 0; width:100%;",
+          "cssClasses": null,
+          "slot": null,
+          "sizing": null
+         },
+         "footer": null,
+         "variants": [
+          "outlined"
+         ]
+        },
+        "id": "card-2ef77bda",
+        "children": [],
+        "style": "",
+        "cssClasses": "mateu-section",
+        "slot": null,
+        "sizing": null
+       }
+      ],
+      "style": null,
+      "cssClasses": null,
+      "slot": null,
+      "sizing": null
+     }
+    ],
+    "initialData": {
+     "_selectedId": null,
+     "search": null,
+     "_collectionDetail": {}
+    },
+    "style": "",
+    "cssClasses": "",
+    "actions": [
+     {
+      "id": "selectCollectionItem",
+      "validationRequired": false,
+      "confirmationRequired": false,
+      "rowsSelectedRequired": false,
+      "confirmationTexts": null,
+      "modalStyle": null,
+      "modalTitle": null,
+      "customEvent": null,
+      "href": "",
+      "js": "",
+      "background": false,
+      "sse": false,
+      "fieldsToValidate": "",
+      "bubble": false,
+      "shortcut": null,
+      "timeoutMillis": 0,
+      "idempotent": false,
+      "restAction": null,
+      "commands": null
+     },
+     {
+      "id": "filterCollection",
+      "validationRequired": false,
+      "confirmationRequired": false,
+      "rowsSelectedRequired": false,
+      "confirmationTexts": null,
+      "modalStyle": null,
+      "modalTitle": null,
+      "customEvent": null,
+      "href": "",
+      "js": "",
+      "background": false,
+      "sse": false,
+      "fieldsToValidate": "",
+      "bubble": false,
+      "shortcut": null,
+      "timeoutMillis": 0,
+      "idempotent": false,
+      "restAction": null,
+      "commands": null
+     }
+    ],
+    "triggers": [
+     {
+      "type": "AutoSave",
+      "actionId": "filterCollection",
+      "debounceMillis": 400
+     }
+    ],
+    "rules": [],
+    "validations": [],
+    "slot": null,
+    "containerId": null,
+    "confirmOnNavigationIfDirty": false,
+    "emitsName": null,
+    "pageWidth": null,
+    "pageType": "collection",
+    "staticView": false,
+    "structureHash": "89db83ebe45f382ebaf0dd03b99301cb5361a0163c780506159eec256ebe3945"
+   },
+   "state": {
+    "_selectedId": null,
+    "search": null,
+    "currentRequest": {
+     "baseUrl": "/app",
+     "parameterNames": [],
+     "remoteAddress": "0:0:0:0:0:0:0:1"
+    },
+    "currentRequest-baseUrl": "/app",
+    "currentRequest-remoteAddress": "0:0:0:0:0:0:0:1",
+    "currentRequest-parameterNames": []
+   },
+   "data": {},
+   "action": "Replace",
+   "containerId": null
+  }
+ ],
+ "banners": [],
+ "appendBanners": false,
+ "appData": null,
+ "appState": null,
+ "wireVersion": "3.0"
+}

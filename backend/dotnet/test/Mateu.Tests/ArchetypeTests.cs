@@ -272,7 +272,7 @@ public class ArchetypeTests
             state: new Dictionary<string, object?> { ["search"] = Val("\"cancún\"") }));
         Assert.Contains("Riu Playa", json);
         Assert.DoesNotContain("Riu Palace", json);
-        Assert.Contains("1 items", json);
+        Assert.Contains("1 item\"", json);
     }
 
     [Fact]

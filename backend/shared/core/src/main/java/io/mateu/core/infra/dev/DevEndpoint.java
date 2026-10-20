@@ -17,8 +17,9 @@ import reactor.core.publisher.Sinks;
  *       is one JSON object:
  *       <ul>
  *         <li>{@code {"type":"hello","bootId":"…"}} first, on every (re)connection. The boot id
- *             changes when the server restarts, which is how a client tells "the backend restarted,
- *             re-render" (its {@code server-restarted} case) from a dropped connection;
+ *             changes when the server restarts (also a restart inside the JVM, {@link #enable}),
+ *             which is how a client tells "the backend restarted, re-render" (its {@code
+ *             server-restarted} case) from a dropped connection;
  *         <li>{@code {"type":"specs-changed","files":[…],"scope":"page"|"app"}} when spec files
  *             changed;
  *         <li>{@code {"type":"reload","scope":"page"|"app"}} when someone asked for a re-render
@@ -49,8 +50,25 @@ public final class DevEndpoint {
 
   static final int PING_SECONDS = 15;
 
-  /** Identifies this JVM's run: a client seeing it change knows the server restarted. */
+  /**
+   * The boot id of this JVM's FIRST application start. A restart inside the same JVM (Quarkus dev
+   * mode, Spring Boot devtools) gets a new one: read the current one with {@link #bootId()}.
+   */
   public static final String BOOT_ID = UUID.randomUUID().toString();
+
+  /**
+   * Identifies the current application start: a client seeing it change knows the server restarted.
+   * Mateu's jars are not reloaded by Quarkus dev mode or Spring Boot devtools — only the
+   * application's classes are — so a constant was the same before and after their restarts, and the
+   * browser never noticed one.
+   */
+  private static volatile String bootId = BOOT_ID;
+
+  private static final java.util.concurrent.atomic.AtomicInteger STARTS =
+      new java.util.concurrent.atomic.AtomicInteger();
+
+  private static final java.util.concurrent.atomic.AtomicInteger CONNECTIONS =
+      new java.util.concurrent.atomic.AtomicInteger();
 
   private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -94,7 +112,24 @@ public final class DevEndpoint {
   static Flux<String> events(Duration pingEvery, org.reactivestreams.Publisher<?> until) {
     var changes = DevSpecs.events().map(DevEndpoint::json);
     var pings = Flux.interval(pingEvery).map(i -> "{\"type\":\"ping\"}");
-    return Flux.concat(Flux.just(hello()), Flux.merge(changes, pings)).takeUntilOther(until);
+    return Flux.concat(Flux.defer(() -> Flux.just(hello())), Flux.merge(changes, pings))
+        .takeUntilOther(until)
+        .doOnSubscribe(subscription -> CONNECTIONS.incrementAndGet())
+        .doFinally(signal -> CONNECTIONS.decrementAndGet());
+  }
+
+  /**
+   * How many event streams are open right now — a browser with live reload on is waiting. An
+   * adapter whose framework only looks for code changes when a request arrives (Quarkus dev mode)
+   * uses it to look for them on its own while somebody is watching.
+   */
+  public static int connections() {
+    return CONNECTIONS.get();
+  }
+
+  /** The current application start's boot id (see {@link #BOOT_ID}). */
+  public static String bootId() {
+    return bootId;
   }
 
   /** The SSE frame for one payload. */
@@ -113,11 +148,16 @@ public final class DevEndpoint {
    * (before serving the endpoints).
    */
   public static void enable(String specsDirs) {
+    // the adapters call this once per application start: a second call in the same JVM is a
+    // restart (Quarkus dev mode, Spring Boot devtools), and the browsers must see a new boot id
+    if (STARTS.getAndIncrement() > 0) {
+      bootId = UUID.randomUUID().toString();
+    }
     DevMode.enable(specsDirs);
   }
 
   static String hello() {
-    return "{\"type\":\"hello\",\"bootId\":\"" + BOOT_ID + "\"}";
+    return "{\"type\":\"hello\",\"bootId\":\"" + bootId + "\"}";
   }
 
   static String json(DevSpecs.DevEvent event) {

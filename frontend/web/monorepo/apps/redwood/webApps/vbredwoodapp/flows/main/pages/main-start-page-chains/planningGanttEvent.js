@@ -14,32 +14,43 @@ define([
 ) => {
   'use strict';
 
+  // the task last dispatched as selected: a click and the gantt's own selectionChanged can both
+  // report the same pick — it goes to the server once
+  let lastSelect = { taskId: null, at: 0 };
+
   class planningGanttEvent extends ActionChain {
 
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.kind  move | resize | open
+     * @param {string} params.kind  move | resize | open | select | click
      * @param {Object} params.event
      * @param {Object} params.atom  the isPlanning atom
      */
     async run(context, { kind, event, atom }) {
       let detail = (event && event.detail) || {};
-      if (kind === 'open') {
-        // double click: the task under the pointer (getContextByNode → row and task index)
+      if (kind === 'open' || kind === 'click') {
+        // (double) click: the task under the pointer (getContextByNode → row and task index)
         const gantt = event && event.currentTarget;
         const ctx = gantt && gantt.getContextByNode ? gantt.getContextByNode(event.target) : null;
-        const row = ctx && atom.rows ? atom.rows[ctx.rowIndex] : null;
-        const task = row && row.tasks ? row.tasks[ctx.index] : null;
-        if (!task) return;
-        detail = { taskId: task.id };
-      }
-      if (kind === 'select') {
-        // the oj-gantt's selection (a click on a bar): only the user's, and the chosen task
-        if (detail.updatedFrom === 'internal') return;
-        const selected = Array.isArray(detail.value) ? detail.value : [];
+        const taskId = bridge.ganttTaskIdAt(atom, ctx);
+        if (!taskId) return;
+        detail = { taskId };
+        // a single click on a bar SELECTS it (Gantt.onTaskSelectionActionId, the board's selectActionId)
+        if (kind === 'click') kind = 'select';
+      } else if (kind === 'select') {
+        // the oj-gantt's selection: the USER's changes are the ones JET reports as 'internal' (an
+        // 'external' one is the app setting it) — they were the ones dropped. With the tasks inline
+        // in each row the key comes back null: then the click above has already resolved the task
+        if (detail.updatedFrom && detail.updatedFrom !== 'internal') return;
+        const selected = (Array.isArray(detail.value) ? detail.value : []).filter((k) => k != null);
         if (!selected.length) return;
         detail = { taskId: selected[0] };
+      }
+      if (kind === 'select') {
+        const now = Date.now();
+        if (lastSelect.taskId === detail.taskId && now - lastSelect.at < 1000) return;
+        lastSelect = { taskId: detail.taskId, at: now };
       }
       const call = bridge.planningActionOf(atom, kind, detail);
       if (!call) return;

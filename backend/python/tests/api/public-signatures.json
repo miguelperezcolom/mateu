@@ -823,6 +823,12 @@
     ]
    }
   },
+  "DetailContentSupplier": {
+   "class": [],
+   "members": {
+    "detail_content": []
+   }
+  },
   "DetailForm": {
    "class": [
     [
@@ -8265,6 +8271,11 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "result_title",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

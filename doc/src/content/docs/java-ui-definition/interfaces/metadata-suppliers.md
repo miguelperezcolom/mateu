@@ -177,6 +177,24 @@ routes:
 
 ---
 
+# DetailContentSupplier
+
+Replaces the content of a record's read-only detail page — a CRUD's `/{id}` page, an editable view in
+view mode — with the component it returns. Implemented by the view class (for an `AutoCrud<T>`, `T`).
+
+```java
+public interface DetailContentSupplier {
+    Component detailContent(HttpRequest httpRequest);
+}
+```
+
+The page header and toolbar are kept, and the editor and creation form are not affected. A
+`ComponentTreeSupplier` (such as an `ItemOverview`) is expanded in place, so its buttons reach the
+page's handlers. `null` keeps the default read-only form. See
+[The record page](/java-user-manual/build/customizing-crud-and-listings/#the-record-page) for an example.
+
+---
+
 # ValidationSupplier
 
 Provides cross-field validations programmatically — an alternative to the `@Validation` annotation for dynamic validation logic.

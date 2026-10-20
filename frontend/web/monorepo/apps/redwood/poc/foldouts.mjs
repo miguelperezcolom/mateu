@@ -39,10 +39,18 @@ export function foldedPanelIndexes(foldout) {
   return ((foldout && foldout.panels) || []).map((_, i) => i).filter((i) => isPanelFolded(foldout, i))
 }
 
-/** The wire panel index a `selectedPanel` value names: the layout counts the overview as panel 0. */
-export function wirePanelIndexOf(selectedPanel) {
+/** How many layout panels precede the wire panels: the overview column (1), none when the
+ *  overview runs across the top (orientation horizontal: it is the layout's `overview` slot). */
+export function overviewPanelsOf(foldout) {
+  return foldout && foldout.overviewOnTop ? 0 : 1
+}
+
+/** The wire panel index a `selectedPanel` value names: the layout counts the overview column as
+ *  panel 0 (unless the overview is on top — see overviewPanelsOf). */
+export function wirePanelIndexOf(selectedPanel, foldout) {
   const n = Number(selectedPanel)
-  return Number.isInteger(n) && n >= 1 ? n - 1 : -1
+  const first = overviewPanelsOf(foldout)
+  return Number.isInteger(n) && n >= first ? n - first : -1
 }
 
 /** Marks a panel as unfolded. Returns whether it was folded. */
@@ -71,11 +79,12 @@ export function applyFoldoutFolds(layout, foldout) {
   if (!layout || !foldout) return false
   const panels = foldout.panels || []
   const containers = containersOf(layout)
-  if (containers.length < panels.length + 1) return false
+  const offset = overviewPanelsOf(foldout)
+  if (containers.length < panels.length + offset) return false
   layout.__mateuFoldout = foldout
   wireSelection(layout)
   panels.forEach((panel, i) => {
-    const container = containers[i + 1]
+    const container = containers[i + offset]
     const element = container && panelOf(container)
     if (!element) return
     const folded = isPanelFolded(foldout, i)
@@ -93,13 +102,13 @@ function wireSelection(layout) {
   layout.__mateuFoldWired = true
   layout.addEventListener('selectedPanelChanged', (e) => {
     const foldout = layout.__mateuFoldout
-    const index = wirePanelIndexOf(e && e.detail ? e.detail.value : layout.selectedPanel)
+    const index = wirePanelIndexOf(e && e.detail ? e.detail.value : layout.selectedPanel, foldout)
     if (!foldout || index < 0 || !unfoldPanel(foldout, index)) return
     applyFoldoutFolds(layout, foldout)
     // the strip grew to the panel's width: bring it into view. NOT layout.refresh(): the carousel
     // measures its panels live (dots and scroll keep working), and a refresh re-applies its own
     // scroll position a second later, sliding the panel the user just opened back out of view
-    const container = containersOf(layout)[index + 1]
+    const container = containersOf(layout)[index + overviewPanelsOf(foldout)]
     const reveal = () => container && container.scrollIntoView && container.scrollIntoView({ block: 'nearest', inline: 'nearest' })
     if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => requestAnimationFrame(reveal))
     else reveal()

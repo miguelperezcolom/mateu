@@ -16,11 +16,11 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
   summarizeHost, generalOverviewOf, emptyStateOf, sectionButtonsOf, withoutSectionButtons,
-  reduceContexts, HOST_ID, overlayOf, foldoutOf, welcomeOf, welcomeLookOf, welcomeToneLookOf, listingOf,
+  reduceContexts, HOST_ID, overlayOf, foldoutOf, foldoutContentOf, sameFoldoutStructure, welcomeOf, welcomeLookOf, welcomeToneLookOf, listingOf,
   pageSwitcherOf, switcherPickOf, actionsOf, islandContentOf, kidsInAreaOrder, setPanelExpanded,
   pageKpisOf, pageSubtitleOf, bannersOf, pageHeaderNodeOf, shellNavOf, headerActionRouteOf,
   pageHeaderExtrasOf, badgeStatusOf, headerTimestampOf,
-  entityHeaderOf, mergeNestedContent, factProjectionOf, factActionsJsonOf,
+  entityHeaderOf, mergeNestedContent, factProjectionOf, factActionsJsonOf, hostContentOf,
 } from './reduceContexts.mjs'
 import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf, fabsOf } from './pageProjection.mjs'
 import { applyDomEffects } from './files.mjs'
@@ -199,8 +199,9 @@ test('A4: a foldout inside a tab shows a FOLDED panel\'s summary in place of its
   assert.ok(!texts.includes('€ 120 due'))
   // fold the first panel: its summary stands in
   setPanelExpanded('fold:fold:0', false)
+  // (the summary is a HorizontalLayout of a text and a badge: ONE inline row atom, its pieces inside)
   const folded = (islandContentOf({ tree: node({ type: 'VerticalLayout' }, [tabs]), state: {}, data: {} }) || [])
-    .flatMap((b) => b.items || []).filter((a) => a.isText).map((a) => a.text)
+    .flatMap((b) => b.items || []).flatMap((a) => (a.isRow ? a.items : [a])).filter((a) => a.isText).map((a) => a.text)
   setPanelExpanded('fold:fold:0', true)
   assert.ok(!folded.includes('Charges'))
   assert.ok(folded.includes('€ 120 due'))
@@ -539,6 +540,16 @@ test('header extras (Java page): @BadgeInHeader travels as templates — ${state
   assert.deepEqual(pageHeaderExtrasOf(host(tree, { vip: false })).badges, [])
 })
 
+test('header extras (Java page): a Status field\'s badge takes its COLOUR from the state too', () => {
+  // FormViewBadgesBuilder: text ${state.x.message}, color ${state.x.type} (a StatusType constant)
+  const tree = page({ badges: [{ type: 'Badge', text: '${state.situacion.message}', color: '${state.situacion.type}' }] })
+  const of = (type) => pageHeaderExtrasOf(host(tree, { situacion: { type, message: 'Activo' } })).badges
+  assert.deepEqual(of('SUCCESS'), [{ label: 'Activo', status: 'success' }])
+  assert.deepEqual(['DANGER', 'WARNING', 'INFO', 'NONE'].map((t) => of(t)[0].status), ['danger', 'warning', 'info', 'neutral'])
+  // an unresolved colour is neutral, never the literal template
+  assert.deepEqual(pageHeaderExtrasOf(host(tree, { situacion: { message: 'Activo' } })).badges, [{ label: 'Activo', status: 'neutral' }])
+})
+
 test('header extras: oj-sp\'s timestamp only ever gets a DATE (a non-date breaks its binding)', () => {
   assert.deepEqual(headerTimestampOf('2026-10-12T09:00:00Z'), { iso: '2026-10-12T09:00:00Z', text: '' })
   assert.deepEqual(headerTimestampOf('Last updated 2026-10-12T09:00'), { iso: '2026-10-12T09:00', text: '' })
@@ -630,6 +641,28 @@ const stayPage = () => page({ title: 'Stay' }, [node({
       actionLabel: 'Cambiar empresa', parameters: { stayId: 'S-1' } },
   ],
 }, [], 'stay')])
+
+test('only the EntityHeader that HEADS the page goes up to the screen header', () => {
+  const eh = (title) => node({ type: 'EntityHeader', title, facts: [] })
+  const card = (...kids) => node({ type: 'Card', content: node({ type: 'Div' }, kids) })
+  const grid = (...kids) => node({ type: 'ResponsiveGrid', gridTemplateAreas: '"list detail"' }, kids)
+  const field = (id) => node({ type: 'FormField', fieldId: id, dataType: 'string' })
+  const lifted = (children) => { const e = entityHeaderOf(host(page({}, children))); return e && e.title }
+  // the page's first content, even deep in a form's section cards (a Java EntityHeader field)
+  assert.equal(lifted([card(node({ type: 'FormLayout' }, [node({ type: 'FormRow' }, [eh('Ada')]), field('x')]))]), 'Ada')
+  assert.equal(lifted([node({ type: 'FoldoutLayout' }, [eh('Ada'), card(field('x'))])]), 'Ada')
+  // a collection's detail next to its list (CollectionDetail): the selected item's, not the page's
+  assert.equal(lifted([card(field('search'), grid(node({ type: 'VerticalLayout' }, [field('list')]), node({ type: 'VerticalLayout' }, [eh('Bruno')])))]), null)
+  // a task card under a planning chart (GanttPage's detail card) / its docked drawer / a dialog
+  assert.equal(lifted([node({ type: 'Gantt', tasks: [] }), node({ type: 'Card', id: 'gantt-detail', content: eh('Task') })]), null)
+  assert.equal(lifted([node({ type: 'Drawer', content: eh('Task') }), field('x')]), null)
+  assert.equal(lifted([node({ type: 'Dialog', content: eh('Task') })]), null)
+  // a console's panel (MasterDetailLayout / SplitLayout), as before
+  assert.equal(lifted([node({ type: 'MasterDetailLayout' }, [eh('Guest')])]), null)
+  // and the content keeps the one it does not lift
+  const blocks = hostContentOf(host(page({}, [field('search'), eh('Bruno')])), null, { dropEntityHeader: false })
+  assert.ok(blocks.some((b) => b.items.some((a) => a.isEntityHeader && a.title === 'Bruno')))
+})
 
 test('fact action: the projection carries the icon button; a display-only fact stays {label, value}', () => {
   const [plain, company] = entityHeaderOf(host(stayPage())).facts
@@ -742,4 +775,14 @@ test('an EntityHeader fact with an action is header chrome, not a page button (n
     ],
   }
   assert.deepEqual(actionsOf(tree).map((a) => a.actionId), ['checkout'])
+})
+
+test('foldout: content in place for the same structure; panel count or orientation changes remount', () => {
+  const one = { panels: [{}], orientation: 'vertical', overview: { blocks: [1] }, header: { back: true } }
+  assert.equal(sameFoldoutStructure(one, { ...one, overview: { blocks: [2] } }), true)
+  assert.equal(sameFoldoutStructure(one, { ...one, panels: [{}, {}] }), false)
+  assert.equal(sameFoldoutStructure(one, { ...one, orientation: 'horizontal' }), false)
+  assert.equal(sameFoldoutStructure(null, one), false)
+  assert.deepEqual(foldoutContentOf(one), { overview: { blocks: [1] }, panels: [{}], header: { back: true } })
+  assert.deepEqual(foldoutContentOf(null), { overview: { blocks: [] }, panels: [], header: {} })
 })

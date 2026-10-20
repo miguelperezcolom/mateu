@@ -150,6 +150,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     foldedPanelIndexes,
     reduceContexts,
     planningActionOf,
+    ganttTaskIdAt,
     applyDomEffects,
     installRules,
     setPanelExpanded,
@@ -268,6 +269,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
     withListingSelection,
@@ -322,6 +324,13 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     isMenuRuleId,
     menuRulesOf,
     menuRulePlanOf,
+    // unsaved changes when the window goes away (reload / close): the browser's own prompt
+    installUnsavedChangesGuard,
+    // unsaved changes before a LEAVE action (Cancel, back to the list…): the navigation question
+    isLeaveAction,
+    confirmLeaveAction,
+    tracksUnsavedChanges,
+    fieldEditLeavesUnsavedChanges,
     // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
     pageFlowOf,
     catalogueActionOf,
@@ -372,6 +381,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pageSubtitleOf,
     collectTexts,
     foldoutOf,
+    foldoutContentOf,
+    sameFoldoutStructure,
     wizardOf,
     callMateu,
     // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path

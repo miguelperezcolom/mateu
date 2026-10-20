@@ -1048,6 +1048,21 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
     assert.equal(revealed, 1)
     resetFoldoutFolds()
   }))
+  test('foldout with the overview on top (orientation horizontal): the panel containers are the wire panels', withDocument(doc, () => {
+    resetFoldoutFolds()
+    const container = (title) => el('div', { class: 'oj-sp-foldout-layout-panel-container' }, el('oj-sp-foldout-panel', { 'panel-title': title }))
+    const layout = el('oj-sp-foldout-layout', { id: 'mateuFoldoutTop' }, container('Payments'), container('Notes'))
+    doc.body.appendChild(layout)
+    const foldout = { overviewOnTop: true, panels: [{ title: 'Payments', open: true }, { title: 'Notes', open: false }] }
+    assert.equal(applyFoldoutFolds(layout, foldout), true)
+    const [payments, notes] = layout.querySelectorAll('.oj-sp-foldout-layout-panel-container')
+    assert.ok(notes.querySelector('oj-sp-foldout-panel').classList.contains(FOLDED_CLASS), 'Notes (container 1) is the folded one')
+    assert.ok(!payments.querySelector('oj-sp-foldout-panel').classList.contains(FOLDED_CLASS))
+    notes.scrollIntoView = () => {}
+    layout.dispatchEvent(new CustomEvent('selectedPanelChanged', { detail: { value: 1 } }))
+    assert.ok(!notes.querySelector('oj-sp-foldout-panel').classList.contains(FOLDED_CLASS), 'selecting it unfolds it')
+    resetFoldoutFolds()
+  }))
 }
 
 // ── display: cookies, context menu, registered components, BPMN, chat ───────────────────────

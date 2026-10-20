@@ -28,9 +28,11 @@ from mateu_ui.dtos import (
 )
 from mateu_ui.uidl import (
     Aggregate,
+    ComponentTreeSupplier,
     Creatable,
     DateRange,
     Deletable,
+    DetailContentSupplier,
     Disabled,
     DisabledUnless,
     Editable,
@@ -664,7 +666,8 @@ class CrudMapperMixin(MixinBase):
                 title_is_text=True if titled_by_data(element, entity) else None,
             ),
             None,
-            self.form_cards(element, entity, read_only=mode == "view"),
+            self.detail_content(entity, mode)
+            or self.form_cards(element, entity, read_only=mode == "view"),
         ).model_copy(update={"style": "max-width:900px;margin: auto;"})
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(crud_type), route=route, children=[page],
@@ -692,6 +695,20 @@ class CrudMapperMixin(MixinBase):
             confirm_on_navigation_if_dirty=mode != "view",
             validations=client_validations(self, element, entity, read_only=mode == "view"),
         )
+
+    def detail_content(self, entity, mode: str) -> list | None:
+        """The record page's own content (Java's ViewRouteResolver + DetailContent): what a
+        :class:`DetailContentSupplier` record returns, on the VIEW page only — the edit and create
+        forms of the same class keep their forms. An archetype / ComponentTreeSupplier is composed
+        in place (no island of its own), so its buttons reach the crud; ``None`` = the form."""
+        if mode != "view" or not isinstance(entity, DetailContentSupplier):
+            return None
+        content = entity.detail_content()
+        if isinstance(content, ComponentTreeSupplier):
+            content = self.component_tree(content)
+        if content is None:
+            return None
+        return [self.map_component(content)]
 
     def map_rules(self, cls, instance) -> list[RuleRecord]:
         """Client-side rules of a view (mirrors Java's RuleMapper.createRules): ``Disabled()``

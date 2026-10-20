@@ -135,6 +135,10 @@ chains.loadMateuShell = chain('pages/shell-page-chains/loadMateuShell.js')
 chains.onMateuNavigate = chain('pages/shell-page-chains/onMateuNavigate.js')
 chains.runMateuAction = chain('flows/main/pages/main-start-page-chains/runMateuAction.js')
 chains.runMateuIslandAction = chain('flows/main/pages/main-start-page-chains/runMateuIslandAction.js')
+chains.hostInputChanged = chain('flows/main/pages/main-start-page-chains/hostInputChanged.js')
+chains.mateuFieldEdited = chain('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
+chains.islandFieldEdited = chain('flows/main/pages/main-start-page-chains/islandFieldEdited.js')
+const planningGanttEvent = chain('flows/main/pages/main-start-page-chains/planningGanttEvent.js')
 
 // ── the backend: a scripted fetch ──────────────────────────────────────────────────────────────
 let routes = []
@@ -243,6 +247,27 @@ test('the agent\'s render-screen into the CONTENT asks before discarding unsaved
   assert.equal(ctx.$application.variables.mateuDirty, false)
 })
 
+
+test('loadMateuShell: reloading or closing the tab with unsaved changes asks (beforeunload), as Vaadin does', async () => {
+  const ctx = await bootShell()
+  const unload = () => { const e = new FakeEvent('beforeunload', { cancelable: true }); win.dispatchEvent(e); return e }
+  try {
+    assert.equal(unload().defaultPrevented, false, 'nothing edited: the tab goes')
+    ctx.$application.variables.mateuDirty = true
+    const e = unload()
+    assert.equal(e.defaultPrevented, true, 'edited: the browser asks')
+    assert.equal(e.returnValue, '')
+    // installed once per window, however many times the shell boots
+    assert.equal(bridge.installUnsavedChangesGuard(win, () => true), win.__mateuUnsavedGuard)
+    assert.equal(unload().defaultPrevented, true)
+    ctx.$application.variables.mateuDirty = false
+    win.__mateuShellContext = ctx
+    assert.equal(unload().defaultPrevented, false, 'saved (clean again): the tab goes')
+  } finally {
+    delete win.__mateuShellContext
+    if (win.__mateuUnsavedGuard) win.__mateuUnsavedGuard()
+  }
+})
 
 test('loadMateuShell: the App configures the nav and the first leaf opens, its URL pushed', async () => {
   answer((b, url) => url.endsWith('/components/_/action'), fx('app'))
@@ -479,6 +504,11 @@ const LANDINGS = [
   ['p1-history', (v) => v.mateuHostTitle === 'History'],
   ['wf-process', (v) => v.mateuHostContent.length === 1],
   ['load-not-found', (v) => v.mateuNotFound && v.mateuHostContent.length === 0],
+  // @Zones of a crud's detail («35% 65%»): the columns are the body, not the one-column generic form
+  ['crud-view-zones', (v) => v.mateuHostContent.length === 2 && v.mateuFormSections.length === 0
+    && /oj-md-4/.test(v.mateuHostContent[0].blockClass) && /oj-md-8/.test(v.mateuHostContent[1].blockClass)],
+  ['crud-edit-zones', (v) => v.mateuHostContent.some((b) => /oj-md-4/.test(b.blockClass)) && v.mateuFormSections.length === 0],
+  ['tpl-collection-detail', (v) => v.mateuHostContent.some((b) => /oj-md-4/.test(b.blockClass) && b.items.some((a) => a.isQueue))],
 ]
 test('onMateuNavigate: every page family lands in its own template', async () => {
   for (const [name, check] of LANDINGS) {
@@ -493,6 +523,27 @@ test('onMateuNavigate: every page family lands in its own template', async () =>
   }
 })
 
+test('onMateuNavigate: an entity page with its narrow zone first is painted (the reverted item overview left it blank)', async () => {
+  const inc = fx('crud-view-zones')
+  const page = inc.fragments[0].component.children[0]
+  page.children.unshift({ type: 'ClientSide', metadata: { type: 'EntityHeader', title: 'Ana', subtitle: '', badges: [], facts: [] }, children: [] })
+  // no select with options: with one, an EntityHeader page is the GeneralOverview archetype (its switcher)
+  const noOptions = (n) => {
+    if (Array.isArray(n)) n.forEach(noOptions)
+    else if (n && typeof n === 'object') { delete n.options; Object.values(n).forEach(noOptions) }
+  }
+  noOptions(page)
+  routes = []
+  answer(byRoute('/zoned-entity'), inc)
+  answer(() => true, { fragments: [] })
+  const ctx = newContext()
+  await navigate(ctx, '/zoned-entity')
+  const v = ctx.$application.variables
+  assert.equal(v.mateuIop.on, false)
+  assert.equal(v.mateuHostContent.length, 2, 'both zones are painted')
+  assert.ok(v.mateuPageHeader.showBand, 'and the header band with the entity')
+})
+
 test('onMateuNavigate: from one foldout to another, the foldout subtree is re-created', async () => {
   answer(byRoute('/f1'), fx('load-foldout'))
   answer(byRoute('/f2'), fx('crud-view-foldout-booking'))
@@ -504,6 +555,36 @@ test('onMateuNavigate: from one foldout to another, the foldout subtree is re-cr
   await navigate(ctx, '/f2')
   assert.notEqual(ctx.$application.variables.mateuFoldout, first)
   assert.ok(ctx.$application.variables.mateuFoldout)
+})
+
+// ═══ planningGanttEvent ═════════════════════════════════════════════════════════════════════════
+
+test('gantt: a click on a bar selects its task (onTaskSelectionActionId), once, and the user\'s selection is not dropped', async () => {
+  // what ganttAtomOf makes of a Gantt: one row per task, the selection action with its parameter
+  const atom = { isPlanning: true, isGantt: true, selectActionId: 'selectGanttTask', selectParam: '_clickedTaskId',
+    rows: [{ id: 'u1', tasks: [{ id: 'u1' }] }, { id: 'u2', tasks: [{ id: 'u2' }] }] }
+  const dispatched = () => calls.filter((c) => c[0] === 'callChain' && c[1] === 'dispatchHostBlockAction').map((c) => c[2])
+  const ctx = newContext()
+  // a click: oj-gantt's getContextByNode says which bar (row 1, its task 0)
+  const gantt = { getContextByNode: () => ({ subId: 'oj-gantt-taskbar', rowIndex: 1, index: 0 }) }
+  calls.length = 0
+  await new planningGanttEvent().run(ctx, { kind: 'click', event: { currentTarget: gantt, target: {} }, atom })
+  assert.deepEqual(dispatched(), [{ actionId: 'selectGanttTask', parameters: { _clickedTaskId: 'u2' }, fromNested: false }])
+  // the selectionChanged of the SAME click (JET reports the user's change as 'internal') is not a second action
+  await new planningGanttEvent().run(ctx, { kind: 'select', event: { detail: { updatedFrom: 'internal', value: ['u2'] } }, atom })
+  assert.equal(dispatched().length, 1)
+  // a user selection with a key (keyboard) selects; one with a null key (tasks inline in rows) waits for the click
+  calls.length = 0
+  await new planningGanttEvent().run(ctx, { kind: 'select', event: { detail: { updatedFrom: 'internal', value: ['u1'] } }, atom })
+  await new planningGanttEvent().run(ctx, { kind: 'select', event: { detail: { updatedFrom: 'internal', value: [null] } }, atom })
+  // the app setting it is not the user's pick
+  await new planningGanttEvent().run(ctx, { kind: 'select', event: { detail: { updatedFrom: 'external', value: ['u2'] } }, atom })
+  assert.deepEqual(dispatched().map((c) => c.parameters), [{ _clickedTaskId: 'u1' }])
+  // a click on the background or the row axis is no task
+  calls.length = 0
+  await new planningGanttEvent().run(ctx, { kind: 'click', event: { currentTarget: { getContextByNode: () => null }, target: {} }, atom })
+  await new planningGanttEvent().run(ctx, { kind: 'click', event: { currentTarget: { getContextByNode: () => ({ subId: 'oj-gantt-row-label', rowIndex: 0, index: 0 }) }, target: {} }, atom })
+  assert.deepEqual(dispatched(), [])
 })
 
 // ═══ runMateuAction ═══════════════════════════════════════════════════════════════════════════
@@ -526,6 +607,107 @@ test('runMateuAction: save sends the host state + the form draft, the answer upd
   assert.equal(after.state.name, 'Grace')
   assert.equal(ctx.$page.variables.mateuToastText, 'Saved Grace')
   assert.ok(calls.some((c) => c[0] === 'method' && c[1] === '#mateuToast' && c[2] === 'open'))
+})
+
+test('runMateuAction: a LEAVE action (Cancel…) with unsaved changes asks first; «stay» sends nothing', async () => {
+  answer(byRoute('/person'), fx('load-form'))
+  const cancelled = []
+  answer((b) => b.actionId === 'cancel-edit' || b.actionId === 'save', (b) => { cancelled.push(b.actionId); return { fragments: [] } })
+  const ctx = newContext()
+  await navigate(ctx, '/person')
+  ctx.$application.variables.mateuDirty = true
+  confirmAnswer = false
+  await act(ctx, 'cancel-edit')
+  assert.deepEqual(cancelled, [], 'stayed: the Cancel did not go out')
+  assert.equal(ctx.$application.variables.mateuDirty, true, 'the edits are still there')
+  // a non-leave action is not asked about
+  await act(ctx, 'save')
+  assert.deepEqual(cancelled, ['save'])
+  confirmAnswer = true
+  ctx.$application.variables.mateuDirty = true
+  await act(ctx, 'cancel-edit')
+  assert.deepEqual(cancelled, ['save', 'cancel-edit'], 'left on purpose: the Cancel ran')
+  assert.equal(ctx.$application.variables.mateuDirty, false)
+  // clean: no question at all
+  confirmAnswer = false
+  await act(ctx, 'cancel-edit')
+  assert.deepEqual(cancelled, ['save', 'cancel-edit', 'cancel-edit'])
+})
+
+test('mateuFieldEdited: ONE dirty rule with Vaadin — only a form that asks before it is left; a drawer form by its own flag', async () => {
+  answer(byRoute('/tracked'), replace(page('pt', 'x.Edit', 'Edit')))
+  answer(byRoute('/plain'), replace(page('pp', 'x.Filters', 'Filters')))
+  const typed = { detail: { value: 'Ana X', updatedFrom: 'internal' } }
+  const ctx = newContext()
+  await navigate(ctx, '/plain')
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'q', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, false, 'a form that does not ask: no unsaved changes')
+  assert.equal(ctx.$page.variables.mateuDraft.q, 'Ana X', 'the draft is written all the same')
+  await navigate(ctx, '/tracked')
+  const reg = ctx.$application.variables.mateuRegistry
+  reg.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  // a drawer open over it: its OWN flag decides (the crud drawer's form does not carry one)
+  ctx.$application.variables.mateuDirty = false
+  ctx.$application.variables.mateuRegistry = { ...reg, stack: ['dr'], contexts: { ...reg.contexts, dr: { tree: { type: 'ServerSide', actions: [], children: [] } } } }
+  ctx.$application.variables.mateuDrawerOpen = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, false)
+  ctx.$application.variables.mateuRegistry.contexts.dr.tree.confirmOnNavigationIfDirty = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  ctx.$application.variables.mateuDrawerOpen = false
+})
+
+test('islandFieldEdited and an island input through hostInputChanged: dirty only when the island asks before it is left', async () => {
+  const ctx = newContext()
+  const typed = { detail: { value: 'x', updatedFrom: 'internal' } }
+  ctx.$application.variables.mateuIslandId = 'isl'
+  ctx.$application.variables.mateuRegistry = { stack: [], contexts: { isl: { tree: { type: 'ServerSide', actions: [], children: [] } } } }
+  await new chains.islandFieldEdited().run(ctx, { fieldId: 'a', event: typed })
+  await new chains.hostInputChanged().run(ctx, { fieldId: 'a', event: typed, fromNested: true })
+  assert.equal(ctx.$application.variables.mateuDirty, false)
+  assert.equal(ctx.$page.variables.mateuIslandDraft.a, 'x')
+  ctx.$application.variables.mateuRegistry.contexts.isl.tree.children = [{ type: 'ServerSide', confirmOnNavigationIfDirty: true, children: [] }]
+  await new chains.islandFieldEdited().run(ctx, { fieldId: 'a', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  ctx.$application.variables.mateuDirty = false
+  await new chains.hostInputChanged().run(ctx, { fieldId: 'a', event: typed, fromNested: true })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+})
+
+test('runMateuAction: a wizard\'s Back (step navigation) does not ask about unsaved changes; its Cancel does', async () => {
+  answer(byRoute('/wizard'), replace(page('pw', 'x.Wizard', 'Wizard', [], { actions: [{ id: 'next' }, { id: 'skip' }, { id: '*' }] })))
+  const went = []
+  answer((b) => b.actionId === 'back' || b.actionId === 'cancel', (b) => { went.push(b.actionId); return { fragments: [] } })
+  const ctx = newContext()
+  await navigate(ctx, '/wizard')
+  ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  ctx.$application.variables.mateuDirty = true
+  confirmAnswer = false
+  await act(ctx, 'back')
+  assert.deepEqual(went, ['back'], 'stepped back without a question')
+  ctx.$application.variables.mateuDirty = true
+  await act(ctx, 'cancel')
+  assert.deepEqual(went, ['back'], 'the wizard\'s Cancel leaves: asked, and the user stayed')
+})
+
+test('hostInputChanged: editing a host form that asks before it is left (@ConfirmOnNavigationIfDirty) leaves unsaved changes; a search box elsewhere does not', async () => {
+  answer(byRoute('/tracked'), replace(page('pt', 'x.Edit', 'Edit', [], {}), {}))
+  answer(byRoute('/plain'), replace(page('pp', 'x.Search', 'Search', [], {}), {}))
+  const ctx = newContext()
+  await navigate(ctx, '/tracked')
+  // the wire flag on the host's ServerSide (crud edit views carry it)
+  ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  const typed = { detail: { value: 'Ana X', updatedFrom: 'internal' } }
+  await new chains.hostInputChanged().run(ctx, { event: typed, fieldId: 'nombre' })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  assert.equal(ctx.$page.variables.mateuDraft.nombre, 'Ana X')
+  ctx.$application.variables.mateuDirty = false
+  await navigate(ctx, '/plain')
+  await new chains.hostInputChanged().run(ctx, { event: typed, fieldId: 'q' })
+  assert.equal(ctx.$application.variables.mateuDirty, false)
 })
 
 test('runMateuAction: a failed action records a retry of the ACTION and rethrows', async () => {
@@ -845,6 +1027,32 @@ test('runMateuIslandAction: without an island (or an action) it does nothing', a
   await new chains.runMateuIslandAction().run(ctx, { actionId: 'save' })
   await new chains.runMateuIslandAction().run(ctx, {})
   assert.equal(sent.length, 0)
+})
+
+// ═══ the shell's message band ════════════════════════════════════════════════════════════════
+
+test('the message band: every notice gets its own text key, and closing one removes that key', async () => {
+  const show = chain('pages/shell-page-chains/showNotificationMessage.js')
+  const close = chain('pages/shell-page-chains/closeMessageBanner.js')
+  const pageJson = JSON.parse(readFileSync(join(webApp, 'pages', 'shell-page.json'), 'utf8'))
+  // the counter starts at a NUMBER (typed "string" with no default, the first notice had no id and
+  // the rest were all "NaN": the band's close removed nothing)
+  assert.deepEqual(pageJson.variables.messageId, { type: 'number', defaultValue: 0 })
+  assert.equal(pageJson.types.MessagesBannerType.id, 'string')
+  const ctx = newContext()
+  ctx.$page.variables.messageId = pageJson.variables.messageId.defaultValue
+  await new show().run(ctx, { event: { summary: 'An unexpected error occurred', type: 'error', displayMode: 'persist' } })
+  await new show().run(ctx, { event: { summary: 'Again', type: 'error', displayMode: 'persist' } })
+  const added = calls.filter((c) => c[0] === 'dataProvider' && c[1].add).map((c) => c[1].add.data.id)
+  assert.deepEqual(added, ['0', '1'])
+  // oj-sp-messages-banner's spClose: { messageId } — the key its inner oj-message-banner closed
+  calls.length = 0
+  await new close().run(ctx, { event: { detail: { messageId: '1' } } })
+  // (the inner ojClose shape, { key }, closes too; a number key is matched as the text it is)
+  await new close().run(ctx, { event: { detail: { key: 0 } } })
+  await new close().run(ctx, { event: { detail: {} } })
+  assert.deepEqual(calls.map((c) => c[1].remove.keys), [['1'], ['0']])
+  assert.ok(calls.every((c) => c[1].target === ctx.$page.variables.messagesBannerADP))
 })
 
 // ═══ the <mateu-ui> component: the same chains under the embedded VB runtime ═══════════════

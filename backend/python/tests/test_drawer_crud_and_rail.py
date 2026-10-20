@@ -148,7 +148,38 @@ def test_rail_wizard_emits_the_vertical_step_list_and_the_counter():
     assert '"type":"ProgressBar"' not in j
 
 
-from mateu_ui.uidl import Required  # noqa: E402
+from mateu_ui.uidl import Required, wizard_completion_action  # noqa: E402
+
+
+@ui("rail-enrol")
+@title("Enrol")
+@wizard_progress("rail")
+class RailEnrol(Wizard):
+    email: Annotated[str | None, Step(1)] = None
+    plan: Annotated[str | None, Step(2)] = None
+    outcome: Annotated[str | None, Step(3)] = None
+
+    def step_title(self, step: int) -> str | None:
+        return {1: "Email", 2: "Plan", 3: "Enrolled"}.get(step)
+
+    @wizard_completion_action("Enrol")
+    def enrol(self):
+        return None
+
+
+def test_the_result_step_is_no_bullet_but_its_title_travels():
+    # mirrors Java's Wizard.stepItems / resultTitle: the result screen is not a step of the
+    # process — on it every bullet is done, the counter counts the real steps, and its title
+    # travels for the renderer that shows it as the process's last screen
+    inc = handler().handle(
+        RunActionRq(route="/rail-enrol", serverSideType=f"{__name__}.RailEnrol",
+                    initiatorComponentId="ux_main", componentState={"__step": 3})
+    )
+    j = render(inc).replace(" ", "")
+    assert '"resultTitle":"Enrolled"' in j
+    assert '"title":"Step3"' not in j
+    assert '"status":"current"' not in j
+    assert "2|2" in j
 
 
 class Note:

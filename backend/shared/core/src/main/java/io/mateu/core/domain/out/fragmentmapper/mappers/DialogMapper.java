@@ -60,7 +60,9 @@ public class DialogMapper {
             .width(dialog.width())
             .closeButtonOnHeader(dialog.closeButtonOnHeader())
             .build(),
-        "fieldId",
+        // the declared id is the overlay's identity on the client: a renderer re-sent an open
+        // overlay with the same id refreshes it in place instead of stacking a second one
+        dialog.id() != null && !dialog.id().isBlank() ? dialog.id() : "fieldId",
         List.of(),
         dialog.style(),
         dialog.cssClasses(),

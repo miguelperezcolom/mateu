@@ -305,8 +305,8 @@ define([
       // the CONTENT is seeded BEFORE stamping the structure: the panels read
       // mateuFoldoutContent.panels[i] when they mount
       $application.variables.mateuFoldoutContent = foldoutProjection
-        ? { overview: foldoutProjection.overview, panels: foldoutProjection.panels }
-        : { overview: { blocks: [] }, panels: [] };
+        ? { overview: foldoutProjection.overview, panels: foldoutProjection.panels, header: foldoutProjection.header }
+        : { overview: { blocks: [] }, panels: [], header: {} };
       $application.variables.mateuFoldout = foldoutProjection;
       // What THIS chain has just assigned is read from the constants, not back from the variable:
       // a VB `any` variable that held an object and is set to null (or any falsy) reads
@@ -438,9 +438,9 @@ define([
       // the Page's toolbar actions (computed here because the entity-page templates
       // relocate them: iop → goToParent/secondaryActions of the panel)
       const hostToolbar = bridge.pageToolbarOf(host);
-      // native ITEM OVERVIEW: entity page with the NARROW zone first (key-data
-      // panel + wide main) → oj-sp-item-overview-page + oj-sp-item-overview
-      const iop = bridge.itemOverviewPageOf(hostEntity, hostBlocks, hostToolbar);
+      // native ITEM OVERVIEW: its template was REVERTED (DESIGN-NOTES 2026-07-27), nothing paints
+      // mateuIop — claiming the page left it BLANK; the host content paints it in its columns
+      const iop = null;
       const iopOn = !!iop;
       $application.variables.mateuIop = iop || {
         on: false,

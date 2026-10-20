@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getT
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 
+import io.mateu.core.infra.declarative.orchestrators.DetailContent;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
@@ -58,18 +59,25 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
             .style(orchestrator.getStyleForView())
             .badges(createBadges(viewModel))
             .kpis(createKpis(viewModel))
+            // the record's own content (DetailContentSupplier), else its read-only form; the
+            // header and the toolbar above stay the crud's either way
             .content(
-                getView(
-                        viewModel,
-                        "base_url",
-                        httpRequest.runActionRq().route(),
-                        httpRequest.runActionRq().consumedRoute(),
-                        httpRequest.runActionRq().initiatorComponentId(),
-                        httpRequest,
-                        true,
-                        false)
-                    .stream()
-                    .toList())
+                DetailContent.of(
+                    viewModel,
+                    httpRequest,
+                    () ->
+                        getView(
+                                viewModel,
+                                "base_url",
+                                httpRequest.runActionRq().route(),
+                                httpRequest.runActionRq().consumedRoute(),
+                                httpRequest.runActionRq().initiatorComponentId(),
+                                httpRequest,
+                                true,
+                                false)
+                            .stream()
+                            .map(Component.class::cast)
+                            .toList()))
             .toolbar(toolbar)
             .build();
     return page;

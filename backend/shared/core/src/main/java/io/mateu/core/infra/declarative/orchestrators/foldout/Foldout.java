@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.foldout;
 
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Experimental;
@@ -99,8 +100,16 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
    * the class {@code @Title}; override to compute it. Return {@code null}/blank to hide the header.
    */
   public String headerTitle() {
-    Title title = MetaAnnotations.find(getClass(), Title.class);
-    return title != null && !title.value().isBlank() ? title.value() : null;
+    // the nearest @Title up the hierarchy: a subclass of a foldout keeps its parent's title
+    for (Class<?> type = getClass();
+        type != null && type != Foldout.class;
+        type = type.getSuperclass()) {
+      Title title = MetaAnnotations.find(type, Title.class);
+      if (title != null) {
+        return !title.value().isBlank() ? title.value() : null;
+      }
+    }
+    return null;
   }
 
   /**
@@ -108,7 +117,7 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
    * List<Badge>} field found; override to compute them.
    */
   public List<Badge> headerBadges() {
-    for (Field field : getClass().getDeclaredFields()) {
+    for (Field field : getAllFields(getClass())) {
       if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }
@@ -161,7 +170,7 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
   public Component component(HttpRequest httpRequest) {
     Component overview = null;
     List<FoldoutPanel> panels = new ArrayList<>();
-    for (Field field : getClass().getDeclaredFields()) {
+    for (Field field : getAllFields(getClass())) {
       if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }

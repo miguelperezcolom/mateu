@@ -855,6 +855,7 @@ Mateu.Uidl.ICrudExports property System.Boolean ExcelExportable { get; }
 Mateu.Uidl.ICrudExports property System.Boolean PdfExportable { get; }
 Mateu.Uidl.IDataManagement property System.String View { get;set; }
 Mateu.Uidl.IDeletable<TId> abstract method System.Void DeleteAllById(System.Collections.Generic.IReadOnlyList<TId>)
+Mateu.Uidl.IDetailContentSupplier abstract method Mateu.Uidl.IComponent DetailContent()
 Mateu.Uidl.IDraftable abstract method System.Object SaveDraft()
 Mateu.Uidl.IDraftable virtual method System.Int32? ResumeStep()
 Mateu.Uidl.IDraftable virtual method System.Object CloseDraft()
@@ -1355,6 +1356,7 @@ Mateu.Uidl.ProgressBar property System.String ValueKey { get;init; }
 Mateu.Uidl.ProgressSteps ctor()
 Mateu.Uidl.ProgressSteps property System.Boolean Vertical { get;init; }
 Mateu.Uidl.ProgressSteps property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Step> Steps { get;init; }
+Mateu.Uidl.ProgressSteps property System.String ResultTitle { get;init; }
 Mateu.Uidl.QueueGroup ctor()
 Mateu.Uidl.QueueGroup property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueItem> Items { get;init; }
 Mateu.Uidl.QueueGroup property System.String Label { get;init; }

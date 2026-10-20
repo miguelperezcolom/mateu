@@ -569,7 +569,18 @@ test('MicroFrontend: a surface of its own, from its baseUrl; its actions tagged 
 
 test('HeroSection, EmptyState, ProgressBar and custom components in the content', () => {
   assert.match(heroAtomOf({ image: '/img/a.png', centered: true }).heroClass, /mateu-hero-centered/)
+  // …and the page styles them: centred texts, light texts over the darkened image
+  const css = webApp('resources/css/app.css')
+  assert.match(css, /\.mateu-hero-centered \{ text-align: center; \}/)
+  assert.match(css, /\.mateu-hero-image h2, \.mateu-hero-image p \{ color: #fff; \}/)
   assert.ok(emptyStateAtomOf({ actionId: 'go', actionLabel: 'Go' }).hasAction)
+  // an icon NAME is not printed in the title (oj-sp-empty-state has its own illustration); an emoji is
+  assert.equal(emptyStateAtomOf({ icon: 'vaadin:list-select', title: 'Select an item' }).title, 'Select an item')
+  assert.equal(emptyStateAtomOf({ icon: '📭', title: 'Nothing' }).title, '📭 Nothing')
+  assert.equal(emptyStateOf(node({ type: 'VerticalLayout' }, [node({ type: 'EmptyState', icon: 'vaadin:list-select', title: 'Select an item' })])).title, 'Select an item')
+  // a StatusList row draws its avatar only when it has one (it was an empty square)
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.equal((page.match(/initials="\[\[ \$current\.data\.avatar \]\]"/g) || []).length, (page.match(/<oj-bind-if test="\[\[ !!\$current\.data\.avatar \]\]">/g) || []).length)
   assert.equal(progressBarAtomOf({ max: 10, valueKey: 'done' }, { done: 4 }).value, 40)
   assert.equal(progressBarAtomOf({ indeterminate: true }, {}).value, -1)
   // the host's first EmptyState is the page-level band, not repeated in the content
@@ -618,6 +629,40 @@ test('a composed page (no Page, no Crud title) takes its header title from its w
   const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: 'x' })])] }
   const reg = { contexts: { [HOST_ID]: { tree, state: {} } }, shell: { menu: [] }, effects: { docTitle: 'Sales dashboard' } }
   assert.equal(summarizeHost(reg, '/dash').title, 'Sales dashboard')
+})
+
+test('a composed page is headed by its OWN title (@Title, the window title), not the menu label, on every repaint', () => {
+  const composed = (title) => ({ commands: title ? [{ targetComponentId: '', type: 'SetWindowTitle', data: title }] : [], messages: [],
+    fragments: [{ targetComponentId: '', action: 'Replace', state: {}, data: {},
+      component: { type: 'ServerSide', id: 'g', serverSideType: 'x.Gantt', route: '/gantt', actions: [], children: [
+        node({ type: 'VerticalLayout' }, [{ type: 'ClientSide', id: 'gantt-page-title', metadata: { type: 'Text', text: 'Course plan' }, children: [] },
+          node({ type: 'Text', text: 'Body' })])] } }] })
+  const shell = { menu: [{ route: '/gantt', label: 'Gantt page' }] }
+  let reg = { ...reduceContexts({ contexts: {}, stack: [], shell: null }, composed('Course plan')), shell }
+  assert.equal(summarizeHost(reg, '/gantt').title, 'Course plan')
+  // the page's own heading Text says the same: the content drops it (no title twice)
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: summarizeHost(reg, '/gantt').title })
+  const texts = blocks.flatMap((b) => b.items).filter((a) => a.isText).map((a) => a.text)
+  assert.deepEqual(texts, ['Body'])
+  // an action answer carries no SetWindowTitle: the title stays
+  reg = { ...reduceContexts(reg, { commands: [], messages: [], fragments: [{ targetComponentId: '', action: 'Replace', component: null, state: { x: 1 } }] }), shell }
+  assert.equal(summarizeHost(reg, '/gantt').title, 'Course plan')
+  // the App's own title (SetWindowTitle to the shell) is not the screen's
+  reg = { ...reduceContexts(reg, { commands: [{ targetComponentId: 'shell', type: 'SetWindowTitle', data: 'My app' }], messages: [], fragments: [] }), shell }
+  assert.equal(summarizeHost(reg, '/gantt').title, 'Course plan')
+  // a new screen without a title of its own: the menu label again
+  reg = { ...reduceContexts(reg, composed(null)), shell }
+  assert.equal(summarizeHost(reg, '/gantt').title, 'Gantt page')
+  // a declared Page title still wins over the window title
+  assert.equal(summarizeHost({ contexts: { [HOST_ID]: { tree: { type: 'ServerSide', children: [node({ type: 'Page', title: 'Declared' })] }, state: {}, windowTitle: 'Window' } }, shell }, '/gantt').title, 'Declared')
+})
+
+test('the listing header (oj-sp-smart-filter-search) shows the page subtitle too', () => {
+  const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  for (const id of ['mateuListHeader', 'mateuListHeaderInline']) {
+    const tag = html.slice(html.indexOf('<oj-sp-smart-filter-search id="' + id + '"'), html.indexOf('>', html.indexOf('<oj-sp-smart-filter-search id="' + id + '"')))
+    assert.match(tag, /page-subtitle="\[\[ \$application\.variables\.mateuPageHeader\.subtitle \]\]"/, id)
+  }
 })
 
 test('a Welcome tile holding Markdown shows its text, markup dropped', () => {

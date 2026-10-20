@@ -83,6 +83,7 @@ export const REDWOOD_ICON_TRANSLATIONS: Record<string, string> = {
     'vaadin:exchange': 'oj-ux-ico-exchange-h',
     'vaadin:wifi': 'oj-ux-ico-connection',
     'vaadin:key': 'oj-ux-ico-key',
+    'vaadin:list': 'oj-ux-ico-list',
     'vaadin:pen': 'oj-ux-ico-signature',
     'vaadin:credit-card': 'oj-ux-ico-bank-card',
     'vaadin:gift': 'oj-ux-ico-gift',

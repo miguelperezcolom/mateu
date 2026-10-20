@@ -25,6 +25,18 @@ public interface IComponentTreeSupplier
     string? Style => "max-width:900px;margin: auto;";
 }
 
+/// <summary>Implemented by a CRUD's record class to supply the CONTENT of its read-only detail page
+/// (<c>/{id}</c>) instead of the read-only form drawn from its properties — for instance an
+/// <see cref="ItemOverview"/> built from the record (<c>new StudentOverview(this).Component()</c>).
+/// Only the content changes: the page title and toolbar (Back to list, Edit) stay the CRUD's, and the
+/// edit and create forms of the same class keep their forms. <c>null</c> keeps the default form.
+/// (The C# analogue of io.mateu.uidl.interfaces.DetailContentSupplier — parameterless, the port
+/// idiom, like <see cref="IComponentTreeSupplier.Component"/>.)</summary>
+public interface IDetailContentSupplier
+{
+    IComponent? DetailContent();
+}
+
 /// <summary>Base for fluent components: id + style + css classes.</summary>
 public abstract record ComponentBase : IComponent
 {
@@ -423,6 +435,10 @@ public sealed record ProgressSteps : ComponentBase
 {
     public IReadOnlyList<Step> Steps { get; init; } = [];
     public bool Vertical { get; init; }
+    /// <summary>The title of the screen after the last step (a wizard's result step), which is
+    /// no step: a renderer that shows the finished process as one more screen names it with this
+    /// instead of inventing one. Null when there is no such screen.</summary>
+    public string? ResultTitle { get; init; }
 }
 
 /// <summary>A compact KPI stat: value + unit, a delta with a trend (up|down|flat) and an inline

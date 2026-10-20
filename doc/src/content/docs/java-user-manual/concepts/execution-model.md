@@ -113,8 +113,14 @@ every user and request, so one user's half-typed form leaks into another user's 
 Either leave the class unannotated (Mateu instantiates it per request and still injects
 `@Autowired` fields), or make the bean `@Scope("prototype")`.
 
-Stateless classes are fine as singletons — e.g. a CRUD orchestrator (`AutoCrud` subclass)
-whose only fields are `final` injected services.
+A CRUD orchestrator (`AutoCrud`/`Crud` subclass) is **not** stateless, even when its only
+fields of your own are `final` injected services: it keeps the request's routing (where it is
+mounted, which of its views is showing) in the instance. When the container hands Mateu a shared
+instance (a singleton, `@ApplicationScoped`, or a client proxy), Mateu does not use it: it builds a
+fresh instance for the request — constructor and `@Inject`/`@Autowired` fields filled from the
+container, `@PostConstruct` run — and logs a one-time warning naming the class. Container
+interceptors (`@Transactional`…) do not apply to that instance, so put them on your services, and
+prefer a plain class or a prototype/`@Dependent` bean to silence the warning.
 :::
 
 ## Mental model

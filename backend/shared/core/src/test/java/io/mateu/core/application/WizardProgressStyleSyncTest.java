@@ -86,6 +86,7 @@ class WizardProgressStyleSyncTest {
     @Label("Paso dos")
     Dos dos = new Dos();
 
+    @Label("Matrícula hecha")
     Resultado resultado;
 
     @WizardCompletionAction
@@ -129,6 +130,9 @@ class WizardProgressStyleSyncTest {
             org.assertj.core.groups.Tuple.tuple("Paso uno", "current"),
             org.assertj.core.groups.Tuple.tuple("Paso dos", "upcoming"));
     assertThat(steppers.get(0).vertical()).isFalse();
+    // the result step is no bullet, but its title travels: a renderer that shows the finished
+    // process as one more screen names it instead of inventing an English "Completed"
+    assertThat(steppers.get(0).resultTitle()).isEqualTo("Resultado");
   }
 
   @Test
@@ -147,5 +151,6 @@ class WizardProgressStyleSyncTest {
     // the rail leads with the big "current | total" counter
     var texts = FieldKindsSyncTest.collect(root, io.mateu.dtos.TextDto.class);
     assertThat(texts).anySatisfy(text -> assertThat(text.text()).isEqualTo("1 | 2"));
+    assertThat(steppers.get(0).resultTitle()).isEqualTo("Matrícula hecha");
   }
 }

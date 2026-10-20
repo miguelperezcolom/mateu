@@ -35,7 +35,11 @@ define([
       if (event && event.target) {
         bridge.clearFieldError(event.target);
       }
-      context.$application.variables.mateuDirty = true;
+      // unsaved changes only where the field's owner asks before it is left (Vaadin's rule, shellFlows.mjs)
+      if (bridge.fieldEditLeavesUnsavedChanges($application.variables.mateuRegistry,
+        { overlay: !!($application.variables.mateuDrawerOpen || $page.variables.mateuModalOpen) })) {
+        context.$application.variables.mateuDirty = true;
+      }
       // a dialog's form (the modal of a Dialog overlay) writes to the overlay's draft,
       // like the drawer's: it is the state that travels with its actions
       if ($application.variables.mateuDrawerOpen || $page.variables.mateuModalOpen) {

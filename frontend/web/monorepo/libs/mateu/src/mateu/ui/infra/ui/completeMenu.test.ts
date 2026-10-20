@@ -4,7 +4,7 @@ import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { AppVariant } from '@mateu/shared/apiClients/dtos/componentmetadata/AppVariant'
 import { autoTrail } from './breadcrumbTrail'
-import { activeTopIndex } from './navTree'
+import { activeTopIndex, resetReportedCollisions } from './navTree'
 import { retryUnavailableMenus } from './remoteMenuRetry'
 
 const published: unknown[] = []
@@ -326,7 +326,7 @@ describe('completeMenu', () => {
         expect(labels((clientSideComponent.metadata as any).menu)).toEqual(['Reservas'])
     })
 
-    it('pastes several top-level entries as they come: there is no single one to name', async () => {
+    it('groups several top-level entries under the label the shell declared (any variant)', async () => {
         const { element, clientSideComponent } = elementWith([remote('/_booking', 'Call center', { shellLabel: true })])
         runAction.mockImplementation((baseUrl: string) =>
             Promise.resolve(remoteAnswer(baseUrl, '', [
@@ -336,7 +336,49 @@ describe('completeMenu', () => {
         element.completeMenu(appFragment(clientSideComponent))
         await settle()
 
+        const menu = (clientSideComponent.metadata as any).menu
+        expect(labels(menu)).toEqual(['Call center'])
+        expect(labels(menu[0].submenus)).toEqual(['Bookings', 'Quotes'])
+        // still the remote's, by route: the group changes the menu's shape, not where they go
+        expect(menu[0].submenus[1]).toMatchObject({ route: '/quotes', baseUrl: '/_booking' })
+    })
+
+    it('pastes several top-level entries as they come when the shell named no label', async () => {
+        const { element, clientSideComponent } = elementWith([remote('/_booking', 'Booking', { shellLabel: false })])
+        runAction.mockImplementation((baseUrl: string) =>
+            Promise.resolve(remoteAnswer(baseUrl, '', [
+                { label: 'Bookings', route: '/bookings' }, { label: 'Quotes', route: '/quotes' },
+            ])))
+
+        element.completeMenu(appFragment(clientSideComponent))
+        await settle()
+
         expect(labels((clientSideComponent.metadata as any).menu)).toEqual(['Bookings', 'Quotes'])
+    })
+
+    it('warns once, naming both sources, when two remotes (or a remote and the shell) claim a route', async () => {
+        resetReportedCollisions()
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const { element, clientSideComponent } = elementWith([
+            { label: 'Inicio', route: '/inicio' },
+            remote('/_a', 'Alumnado', { shellLabel: true }),
+            remote('/_b', 'Biblioteca', { shellLabel: true }),
+        ])
+        runAction.mockImplementation((baseUrl: string) =>
+            Promise.resolve(remoteAnswer(baseUrl, '', baseUrl === '/_a'
+                ? [{ label: 'Inicio', route: '/inicio' }, { label: 'Estudiantes', route: '/estudiantes' }]
+                : [{ label: 'Inicio', route: '/inicio' }, { label: 'Estudiantes', route: '/estudiantes' }])))
+
+        element.completeMenu(appFragment(clientSideComponent))
+        await settle()
+
+        const messages = warn.mock.calls.map(c => String(c[0]))
+        expect(messages.filter(m => m.includes('"/inicio"'))).toHaveLength(2)
+        expect(messages.some(m => m.includes('"/inicio"') && m.includes('the shell') && m.includes('RemoteMenu "Alumnado" (/_a)'))).toBe(true)
+        expect(messages.some(m => m.includes('"/estudiantes"') && m.includes('RemoteMenu "Alumnado" (/_a)') && m.includes('RemoteMenu "Biblioteca" (/_b)'))).toBe(true)
+        // the merge runs again with each answer: still one warning per collision
+        expect(messages.filter(m => m.includes('"/estudiantes"'))).toHaveLength(1)
+        warn.mockRestore()
     })
 
     // ── the user's place, before anyone answers ─────────────────────────────────────────────

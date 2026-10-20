@@ -12,6 +12,7 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 | [`ComponentAdapter`](component-adapter/) | Render an arbitrary non-Mateu domain object and round-trip it back from state |
 | [`TitleSupplier`](metadata-suppliers/) | Provides the page title dynamically |
 | [`SubtitleSupplier`](metadata-suppliers/) | Provides the page subtitle dynamically |
+| [`DetailContentSupplier`](metadata-suppliers/#detailcontentsupplier) | Replaces the content of a record's detail page (CRUD `/{id}`, editable view in view mode) |
 | [`PageTitleSupplier`](metadata-suppliers/) | Provides the browser tab title dynamically |
 
 ## Application structure
