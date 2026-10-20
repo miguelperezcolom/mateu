@@ -138,6 +138,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   word. The shell now raises the browser's "Leave site?" prompt (`beforeunload`) while the screen
   is dirty, like the Vaadin renderer. (Not in the embedded `<mateu-ui>`: the host page owns its
   window's unload.)
+### Fixed
+- **Redwood: a composed page is headed by its own title.** A Dashboard, SmartSearchPage,
+  HeroSearchPage, GanttPage or DataManagement page has no `Page` node: its `@Title` only travelled
+  as the window title, and the header showed the menu label instead (and the Gantt/Data Management
+  heading text a second time). The screen now keeps its window title and the header prefers it to
+  the menu label, so the page's own heading text is not repeated. The listing header
+  (`oj-sp-smart-filter-search`) also shows the page subtitle, so a SmartSearchPage's
+  `pageSubtitle()` is visible.
 
 ## [3.0-beta.7] — 2026-10-19
 

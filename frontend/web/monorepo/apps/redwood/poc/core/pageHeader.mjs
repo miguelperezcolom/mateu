@@ -527,7 +527,10 @@ export function summarizeHost(reg, route) {
     // there either, in the menu label
     // …and a COMPOSED page (a Dashboard, a SmartSearchPage…: no Page, no Crud title) names itself
     // only through its window title: without it the header read «…»
-    title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label))
+    // …and a COMPOSED page names itself only through its window title (@Title): that one is the
+    // page's own, so it goes BEFORE the menu's label (the menu says where it is, not what it is)
+    title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || host.windowTitle
+      || (option && (option.caption || option.label))
       || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
     // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
     // @NoBreadcrumbs on the page or on the shell
