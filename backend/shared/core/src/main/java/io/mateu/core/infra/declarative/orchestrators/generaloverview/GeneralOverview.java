@@ -14,6 +14,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -28,7 +29,8 @@ import java.util.concurrent.Callable;
  * #overview}, and route the class with {@code @UI}/{@code @Route}. The first option is selected by
  * default; picking another re-renders the overview in place.
  */
-public abstract class GeneralOverview<Row> implements TriggersSupplier, OptionsSupplier {
+public abstract class GeneralOverview<Row>
+    implements TriggersSupplier, OptionsSupplier, LabelSupplier {
 
   @Label("")
   public String record;
@@ -72,6 +74,23 @@ public abstract class GeneralOverview<Row> implements TriggersSupplier, OptionsS
   @Experimental("archetype display options (3.0-alpha.409)")
   protected GeneralOverviewDisplay display() {
     return GeneralOverviewDisplay.defaults();
+  }
+
+  /**
+   * The context switcher's label ("Requisition", "Customer"…). Blank (the default) = no label: the
+   * switcher's options say what they are.
+   */
+  protected String recordLabel() {
+    return "";
+  }
+
+  /**
+   * Labels the switcher with {@link #recordLabel()}: the {@code record} field lives here, where a
+   * subclass cannot annotate it. A subclass that supplies labels of its own overrides this.
+   */
+  @Override
+  public String label(String memberName, HttpRequest httpRequest) {
+    return "record".equals(memberName) ? recordLabel() : null;
   }
 
   /** What to show when no record is selected/found. */

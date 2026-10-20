@@ -115,6 +115,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 ### Documentation
 - The wizard page says outright that the last step field is the result screen (Next never reaches
   it, only the completion action does) and documents step toolbar buttons.
+- **`GeneralOverview.recordLabel()`** labels the context switcher ("Requisition", "Customer"…).
+  The `record` field lives in the base class, so a subclass had no way to label it. Blank by
+  default (unlabelled, as before). `GeneralOverview` now implements `LabelSupplier` for it; a
+  subclass that supplies labels of its own overrides `label(...)`. (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 

@@ -41,7 +41,7 @@ public class RequisitionOverview extends GeneralOverview<Requisition> {
 }
 ```
 
-The first record is selected by default. `emptyOverview()` customizes what shows when nothing is selected. Pair the header with `Card`s, `StatusList`s or property rows for the record body — or an embedded routed island when the detail needs its own actions.
+The first record is selected by default. `emptyOverview()` customizes what shows when nothing is selected, and `recordLabel()` labels the switcher (unlabelled by default). Pair the header with `Card`s, `StatusList`s or property rows for the record body — or an embedded routed island when the detail needs its own actions.
 
 ## The `info` slot
 
