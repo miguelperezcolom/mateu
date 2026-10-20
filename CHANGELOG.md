@@ -146,6 +146,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the menu label, so the page's own heading text is not repeated. The listing header
   (`oj-sp-smart-filter-search`) also shows the page subtitle, so a SmartSearchPage's
   `pageSubtitle()` is visible.
+### Fixed
+- **Visual editor: a component dropped on the Redwood canvas lands.** The canvas did not re-render
+  when a palette drag started, so the Redwood frame was never told to let the pointer through and
+  its iframe swallowed the moves and the release: the YAML changed only on the next click, nothing
+  was selected and Undo stayed off. The drag is now part of the canvas state. (A drop on the Redwood
+  canvas still lands at the end of the page: the frame's nodes cannot be hit-tested from the editor.)
 
 ## [3.0-beta.7] — 2026-10-19
 
