@@ -7486,10 +7486,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // Without this the surface's root became a ClientSide node and nothing was projected.
       const intoEnvelope = fr.component && fr.component.type === 'ClientSide' && fr.action !== 'Add'
         && prev.tree && prev.tree.type === 'ServerSide'
-      const nextTree = intoEnvelope ? { ...prev.tree, children: [fr.component] } : (fr.component || prev.tree)
+      let nextTree = intoEnvelope ? { ...prev.tree, children: [fr.component] } : (fr.component || prev.tree)
+      // an overlay that EMBEDS a surface (a Drawer/Dialog whose content is an EmbeddedView: a wizard
+      // in a drawer) is painted from `surface`. An answer re-rendering that surface (its next step)
+      // replaced the overlay's tree — the Drawer — and left `surface` as it was: the drawer stayed on
+      // the step it opened with. The new render goes to the surface and the overlay keeps its frame;
+      // a whole new Drawer/Dialog for the same overlay replaces both.
+      let nextSurface = prev.surface
+      if (fr.component && prev.surface) {
+        const type = md && md.type
+        if (fr.component.type === 'ClientSide' && (type === 'Drawer' || type === 'Dialog')) {
+          nextSurface = md.content && md.content.type === 'ServerSide' ? md.content : null
+        } else {
+          nextSurface = fr.component.type === 'ServerSide' ? fr.component : { ...prev.surface, children: [fr.component] }
+          nextTree = prev.tree
+        }
+      }
       contexts[id] = {
         ...prev,
         kind: prev.kind,
+        ...('surface' in prev ? { surface: nextSurface } : {}),
         tree: nextTree, // no component => State-only: keeps the tree
         pageType: ss?.pageType ?? (fr.component ? undefined : prev.pageType),
         pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),

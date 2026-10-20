@@ -8,6 +8,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
+import { drawerOverlayOf } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
@@ -5900,4 +5901,30 @@ test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, 
     { type: 'ClientSide', cssClasses: 'mateu-section', metadata: { type: 'Card' }, children: [{ type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Inner' } }] },
   ] })
   assert.ok(!tocProjectionOf(withIsland).entries.some((e) => e.title === 'Inner'))
+})
+
+// A Wizard in a Drawer (GuidedProcessDrawer: Drawer.content = EmbeddedView(wizard)). The overlay is
+// painted from its embedded SURFACE; «Next» is answered with a Replace of that surface (the server
+// targets the initiator, the wizard's ServerSide). The reducer put it in the overlay's `tree` and left
+// `surface` alone: the drawer stayed on step 1. Real open; the next step is the same server's answer
+// with the demo's workaround (a new Drawer per step) undone into the Replace Mateu sends without it.
+test('a wizard in a drawer advances: the answer re-renders the embedded surface, the drawer keeps its frame', () => {
+  let reg = reduceContexts(empty(), fx('open-drawer-wizard'))
+  const opened = drawerOverlayOf(reg)
+  assert.deepEqual(opened.fields.map((f) => f.fieldId), ['nombre', 'apellidos', 'fechaNacimiento', 'email'])
+  const overlayId = reg.stack[reg.stack.length - 1]
+  const next = fx('drawer-wizard-next')
+  reg = reduceContexts(reg, next, { initiator: overlayId })
+  assert.deepEqual(reg.stack, [overlayId], 'the same drawer, not a second one')
+  const step2 = drawerOverlayOf(reg)
+  assert.deepEqual(step2.fields.map((f) => f.fieldId), ['curso', 'turno', 'optativa', 'comedor'])
+  assert.equal(step2.title, 'Matricular a un estudiante', 'the Drawer frame (its header title) is kept')
+  assert.equal(reg.contexts[overlayId].tree.metadata.type, 'Drawer')
+  // the next answer targets the NEW surface's id: it still lands in the drawer
+  const back = JSON.parse(JSON.stringify(fx('open-drawer-wizard').fragments[0].component.metadata.content))
+  reg = reduceContexts(reg, { fragments: [{ targetComponentId: next.fragments[0].component.id, component: back, state: back.initialData, action: 'Replace' }] })
+  assert.deepEqual(drawerOverlayOf(reg).fields.map((f) => f.fieldId), ['nombre', 'apellidos', 'fechaNacimiento', 'email'])
+  assert.deepEqual(reg.stack, [overlayId])
+  // a host or an island has no surface: nothing new appears on them
+  assert.ok(!('surface' in (reg.contexts[HOST_ID] || {})))
 })

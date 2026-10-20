@@ -11,6 +11,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: a wizard in a drawer advances.** A Drawer whose content is an `EmbeddedView` (the
+  Guided Process Drawer) is painted from its embedded surface; the answer to Next re-rendered the
+  overlay's frame instead and the drawer stayed on step 1. The re-render now goes to the surface and
+  the drawer keeps its header — apps no longer need to return a new Drawer on every step.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
