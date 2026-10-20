@@ -1,10 +1,13 @@
 package io.mateu.core.infra.reflection;
 
 /**
- * Loads classes by name, falling back to the thread context classloader. Plain {@code
- * Class.forName} uses the caller's defining classloader, which cannot see application classes in
- * Quarkus test/dev mode (app classes live in a child QuarkusClassLoader while dependencies, like
- * this jar, sit in the parent loader).
+ * Loads application classes by name: from the thread context classloader first, then from this
+ * jar's own. Plain {@code Class.forName} uses the caller's defining classloader, which in a
+ * restartable setup is the WRONG one: Quarkus dev/test mode keeps the app's classes in a child
+ * QuarkusClassLoader (the parent cannot see them at all), and Spring Boot devtools keeps them in a
+ * child RestartClassLoader while the parent, which also has {@code target/classes} on its path, can
+ * load a SECOND copy of each — a class no bean is an instance of, whose {@code @Autowired} fields
+ * then found no bean and whose {@code @Lookup} suppliers could not be obtained from the context.
  */
 public class ClassLoaders {
 
@@ -16,14 +19,18 @@ public class ClassLoaders {
    * missing-class name actually surfaces.
    */
   public static Class<?> forName(String className) {
+    var context = Thread.currentThread().getContextClassLoader();
+    if (context != null) {
+      try {
+        return Class.forName(className, true, context);
+      } catch (ClassNotFoundException ignored) {
+        // not visible there: fall back to the framework's own loader
+      }
+    }
     try {
       return Class.forName(className);
     } catch (ClassNotFoundException e) {
-      try {
-        return Thread.currentThread().getContextClassLoader().loadClass(className);
-      } catch (ClassNotFoundException e2) {
-        throw new IllegalStateException("Class not found: " + className, e2);
-      }
+      throw new IllegalStateException("Class not found: " + className, e);
     }
   }
 }

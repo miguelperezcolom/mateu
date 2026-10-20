@@ -38,6 +38,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   defaults `quarkus.arc.remove-unused-beans=fwk` (its `META-INF/microprofile-config.properties`; the
   application's own setting wins): application beans are kept, unused framework beans are still
   removed. `@Unremovable` is no longer needed. (Java)
+### Fixed
+- **Spring Boot devtools: views get their beans.** With `spring-boot-devtools` on the classpath a
+  view's `@Autowired` fields stayed `null` and `@Lookup` suppliers that are `@Component`s failed with
+  "Cannot instantiate …". Mateu loaded the classes it reaches by name with its own classloader, which
+  under devtools loads a second copy of the app's classes next to the RestartClassLoader's — no bean
+  is an instance of those. Classes are now loaded from the thread context classloader first. (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 
