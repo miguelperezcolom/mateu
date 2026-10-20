@@ -244,6 +244,27 @@ test('the agent\'s render-screen into the CONTENT asks before discarding unsaved
 })
 
 
+test('loadMateuShell: reloading or closing the tab with unsaved changes asks (beforeunload), as Vaadin does', async () => {
+  const ctx = await bootShell()
+  const unload = () => { const e = new FakeEvent('beforeunload', { cancelable: true }); win.dispatchEvent(e); return e }
+  try {
+    assert.equal(unload().defaultPrevented, false, 'nothing edited: the tab goes')
+    ctx.$application.variables.mateuDirty = true
+    const e = unload()
+    assert.equal(e.defaultPrevented, true, 'edited: the browser asks')
+    assert.equal(e.returnValue, '')
+    // installed once per window, however many times the shell boots
+    assert.equal(bridge.installUnsavedChangesGuard(win, () => true), win.__mateuUnsavedGuard)
+    assert.equal(unload().defaultPrevented, true)
+    ctx.$application.variables.mateuDirty = false
+    win.__mateuShellContext = ctx
+    assert.equal(unload().defaultPrevented, false, 'saved (clean again): the tab goes')
+  } finally {
+    delete win.__mateuShellContext
+    if (win.__mateuUnsavedGuard) win.__mateuUnsavedGuard()
+  }
+})
+
 test('loadMateuShell: the App configures the nav and the first leaf opens, its URL pushed', async () => {
   answer((b, url) => url.endsWith('/components/_/action'), fx('app'))
   answer(byRoute('/hello'), fx('load-form'))

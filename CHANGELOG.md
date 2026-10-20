@@ -132,6 +132,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   a task card under a planning chart or one inside a drawer emptied its panel and retitled the page
   with the selected item. Now only one that is the page's first content is lifted (a Java
   `EntityHeader` field leading the form, a foldout's summary); drawers and dialogs are not searched.
+### Fixed
+- **Redwood: reloading or closing the tab with unsaved changes asks first.** Menu navigation and
+  the browser's back already asked; the window's own exits did not, so an edit was lost without a
+  word. The shell now raises the browser's "Leave site?" prompt (`beforeunload`) while the screen
+  is dirty, like the Vaadin renderer. (Not in the embedded `<mateu-ui>`: the host page owns its
+  window's unload.)
 
 ## [3.0-beta.7] — 2026-10-19
 

@@ -169,6 +169,10 @@ define([
       bridge.mountSkipLink();
       // Ctrl+P leaves the chrome out, like UICommand.print
       bridge.installPrintSupport();
+      // Reloading or closing the tab with unsaved changes: the browser's own prompt (a navigation
+      // inside the app asks in onMateuNavigate). Reads the LIVE context, as the popstate listener.
+      bridge.installUnsavedChangesGuard(window,
+        () => !!(window.__mateuShellContext || context).$application.variables.mateuDirty);
       // The pressed control is tracked at document level: the app's buttons go through
       // different chains and threading the event through all of them would be forgotten in the next one.
       bridge.trackPressedControls();
