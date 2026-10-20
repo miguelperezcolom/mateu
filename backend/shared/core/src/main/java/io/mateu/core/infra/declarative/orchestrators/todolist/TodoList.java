@@ -89,8 +89,12 @@ public abstract class TodoList<Row> implements TriggersSupplier {
   protected Component emptyState() {
     return EmptyState.builder()
         .icon("🎉")
-        .title("All caught up!")
-        .description("There is nothing pending on your plate.")
+        .title(
+            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                "All caught up!", currentRequest))
+        .description(
+            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                "There is nothing pending on your plate.", currentRequest))
         .build();
   }
 
