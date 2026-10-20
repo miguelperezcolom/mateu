@@ -273,7 +273,7 @@ export function generalOverviewOf(ctx) {
   // `gridTemplateColumns` «1fr 18rem»), each stacking its cards; without an info slot, one column
   // whose cards go two by two
   let columns
-  if (infoCard) {
+  if (infoNode && infoCard) {
     const grid = findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'ResponsiveGrid'
       && (n.children || []).some((k) => k && k.slot === 'info'))
     const widths = gridColClasses(grid && grid.metadata.gridTemplateColumns, [], 2)

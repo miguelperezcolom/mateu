@@ -1629,21 +1629,21 @@ atest('expandRemoteMenus (MENU_ON_TOP…): a declared label groups the pod\'s en
   try {
     const menu = await expandRemoteMenus([
       { label: 'Inicio', route: '/inicio-shell', submenus: [] },
-      { remote: true, baseUrl: 'http://b/app', route: '', path: '/biblioteca', label: 'Biblioteca', icon: 'vaadin:book', shellLabel: true },
+      { remote: true, baseUrl: 'https://b/app', route: '', path: '/biblioteca', label: 'Biblioteca', icon: 'vaadin:book', shellLabel: true },
     ])
     assert.deepEqual(menu.map((o) => o.label), ['Inicio', 'Biblioteca'])
     assert.equal(menu[1].path, '/biblioteca')
     assert.equal(menu[1].icon, 'vaadin:book')
     assert.deepEqual(menu[1].submenus.map((o) => o.route), ['/inicio', '/libros'])
     // the deep link is claimed by route, as before: the group changes the menu's shape only
-    assert.equal(remoteRouteOf('/libros').baseUrl, 'http://b/app')
+    assert.equal(remoteRouteOf('/libros').baseUrl, 'https://b/app')
     assert.equal(remoteRouteOf('/libros').serverSideType, 'BibliotecaHome')
     // the projected nav: a group with the pod's two screens
     const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } })
     assert.equal(nav.mode, 'subheader')
     assert.deepEqual(nav.menuTree[1].children.map((c) => c.id), ['/inicio', '/libros'])
     // a HIDDEN labelled pod: grouped the same way, hidden
-    const hidden = await expandRemoteMenus([{ remote: true, baseUrl: 'http://b/app', route: '', label: 'Biblioteca', shellLabel: true, visible: false }])
+    const hidden = await expandRemoteMenus([{ remote: true, baseUrl: 'https://b/app', route: '', label: 'Biblioteca', shellLabel: true, visible: false }])
     assert.equal(hidden.length, 1)
     assert.equal(hidden[0].visible, false)
     assert.ok(hidden[0].submenus.every((o) => o.visible === false))
@@ -1656,37 +1656,37 @@ atest('expandRemoteMenus warns, naming both sources, when the shell and a pod (o
   const said = []
   console.warn = (m) => said.push(String(m))
   globalThis.fetch = async (url) => {
-    if (String(url).indexOf('http://down') === 0) throw new TypeError('Failed to fetch')
+    if (String(url).indexOf('https://down') === 0) throw new TypeError('Failed to fetch')
     return { ok: true, json: async () => remoteApp([{ label: 'Inicio', route: '/inicio' }, { label: 'Home', route: '/' }, { label: 'Estudiantes', route: '/estudiantes' }], '') }
   }
   try {
     await expandRemoteMenus([
       { label: 'Inicio', route: '/inicio', submenus: [] },
-      { remote: true, baseUrl: 'http://a/app', route: '', label: 'Alumnado', shellLabel: true },
-      { label: 'Más', submenus: [{ remote: true, baseUrl: 'http://b/app', route: '', label: 'Biblioteca', shellLabel: true }] },
-      { remote: true, baseUrl: 'http://down/app', route: '', label: 'Caída' },
+      { remote: true, baseUrl: 'https://a/app', route: '', label: 'Alumnado', shellLabel: true },
+      { label: 'Más', submenus: [{ remote: true, baseUrl: 'https://b/app', route: '', label: 'Biblioteca', shellLabel: true }] },
+      { remote: true, baseUrl: 'https://down/app', route: '', label: 'Caída' },
     ])
     assert.deepEqual(said.filter((m) => m.indexOf('route collision') >= 0), [
-      routeCollisionMessage({ route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (http://a/app)' }),
-      routeCollisionMessage({ route: '/inicio', first: 'the shell', second: 'RemoteMenu "Biblioteca" (http://b/app)' }),
-      routeCollisionMessage({ route: '/estudiantes', first: 'RemoteMenu "Alumnado" (http://a/app)', second: 'RemoteMenu "Biblioteca" (http://b/app)' }),
+      routeCollisionMessage({ route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (https://a/app)' }),
+      routeCollisionMessage({ route: '/inicio', first: 'the shell', second: 'RemoteMenu "Biblioteca" (https://b/app)' }),
+      routeCollisionMessage({ route: '/estudiantes', first: 'RemoteMenu "Alumnado" (https://a/app)', second: 'RemoteMenu "Biblioteca" (https://b/app)' }),
     ])
-    assert.match(said[0], /"\/inicio" is claimed by the shell and by RemoteMenu "Alumnado" \(http:\/\/a\/app\)/)
+    assert.match(said[0], /"\/inicio" is claimed by the shell and by RemoteMenu "Alumnado" \(https:\/\/a\/app\)/)
   } finally { globalThis.fetch = original; console.warn = originalWarn }
 })
 
 test('routeCollisionsOf (port of navTree.ts routeCollisions): homes, groups and pods that did not answer claim nothing', () => {
-  const a = { remote: true, baseUrl: 'http://a/app', label: 'Alumnado', shellLabel: true }
-  const b = { remote: true, baseUrl: 'http://b/app', label: 'Biblioteca', shellLabel: true }
-  const down = { remote: true, baseUrl: 'http://c/app', label: 'Plantillas' }
+  const a = { remote: true, baseUrl: 'https://a/app', label: 'Alumnado', shellLabel: true }
+  const b = { remote: true, baseUrl: 'https://b/app', label: 'Biblioteca', shellLabel: true }
+  const down = { remote: true, baseUrl: 'https://c/app', label: 'Plantillas' }
   const menu = [{ label: 'Inicio', route: '/inicio' }, { label: 'Home', route: '' }, a, { label: 'Más', route: '', submenus: [b, down] }]
   const answers = new Map([
     [a, { menu: [{ label: 'Inicio', route: '/inicio/' }, { label: 'Estudiantes', route: '/estudiantes' }, { label: 'Home', route: '/' }] }],
     [b, { menu: [{ label: 'Libros', route: '/libros', submenus: [{ label: 'Estudiantes', route: '/estudiantes?x=1' }] }, { label: 'Otra', route: '/otra' }] }],
   ])
   assert.deepEqual(routeCollisionsOf(menu, answers, [a, b, down]), [
-    { route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (http://a/app)' },
-    { route: '/estudiantes', first: 'RemoteMenu "Alumnado" (http://a/app)', second: 'RemoteMenu "Biblioteca" (http://b/app)' },
+    { route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (https://a/app)' },
+    { route: '/estudiantes', first: 'RemoteMenu "Alumnado" (https://a/app)', second: 'RemoteMenu "Biblioteca" (https://b/app)' },
   ])
 })
 
