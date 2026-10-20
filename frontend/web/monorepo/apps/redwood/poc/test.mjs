@@ -5966,6 +5966,7 @@ test('DataManagement: «1fr 22rem» gives the table 8/12 and the docked panel 4/
   const cols = blocks.filter((b) => /oj-md-/.test(b.blockClass))
   assert.deepEqual(cols.map((b) => b.blockClass.match(/oj-md-(\d+)/)[1]), ['8', '4'])
   assert.ok(cols[0].items.some((a) => a.isGrid))
+})
 // A Wizard in a Drawer (GuidedProcessDrawer: Drawer.content = EmbeddedView(wizard)). The overlay is
 // painted from its embedded SURFACE; «Next» is answered with a Replace of that surface (the server
 // targets the initiator, the wizard's ServerSide). The reducer put it in the overlay's `tree` and left
@@ -5990,12 +5991,14 @@ test('a wizard in a drawer advances: the answer re-renders the embedded surface,
   assert.deepEqual(reg.stack, [overlayId])
   // a host or an island has no surface: nothing new appears on them
   assert.ok(!('surface' in (reg.contexts[HOST_ID] || {})))
+})
 test('the real Welcome (con-micronaut demo): its five panels in order, the attendance TrendChart an area chart in its tile', () => {
   const w = welcomeOf(reduceContexts(empty(), fx('tpl-welcome')).contexts[HOST_ID])
   assert.deepEqual(w.tiles.map((t) => [t.title, t.isKpi]), [['Asistencia del curso', false], ['Alumnado', true], ['Evaluación', true], ['Primeros pasos', false], ['Avisos', false]])
   assert.equal(w.tiles[0].subtitle, '% de alumnos presentes por mes')
   assert.equal(w.tiles[0].items.find((a) => a.isChart).chartType, 'area')
   assert.equal(w.tiles[3].items.length, 3)
+})
 test('a Drawer placed in the page (GanttPage bottom panel) is a collapsible panel with its title; the overlay root is not', () => {
   const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
   const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-gantt-page')).contexts[HOST_ID], null, {})
