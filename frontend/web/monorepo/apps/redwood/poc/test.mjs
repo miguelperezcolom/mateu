@@ -4990,6 +4990,36 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
   })
 }
 
+// ── leave actions with unsaved changes (BUGS-MATEU #7) ────────────────────────────────────────
+import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges } from './shellFlows.mjs'
+{
+  test('isLeaveAction: the ids the server styles as leave actions (FormMapper) and the crud\'s, no business «cancelX»', () => {
+    for (const id of ['cancel', 'cancel-new', 'cancel-create', 'cancel-edit', 'cancel-view', 'back', 'backToList']) assert.equal(isLeaveAction(id), true, id)
+    for (const id of ['cancelBooking', 'save', 'backup', 'back-office', '', undefined, null]) assert.equal(isLeaveAction(id), false, String(id))
+  })
+
+  test('confirmLeaveAction: asks the navigation question (unsavedLeave) only for a leave action on a dirty screen', () => {
+    const asked = []
+    const win = (answer) => ({ confirm: (m) => { asked.push(m); return answer } })
+    assert.equal(confirmLeaveAction('cancel-edit', { mateuDirty: false }, win(false)), true)
+    assert.equal(confirmLeaveAction('save', { mateuDirty: true }, win(false)), true)
+    assert.equal(asked.length, 0, 'nothing to lose, or not leaving: no question')
+    const vars = { mateuDirty: true }
+    assert.equal(confirmLeaveAction('cancel-edit', vars, win(false)), false, 'stay')
+    assert.equal(vars.mateuDirty, true)
+    assert.equal(confirmLeaveAction('backToList', vars, win(true)), true, 'leave')
+    assert.equal(vars.mateuDirty, false, 'cleared: the navigation it answers with does not ask again')
+    assert.deepEqual(asked, [chromeText('unsavedLeave'), chromeText('unsavedLeave')])
+  })
+
+  test('tracksUnsavedChanges: only a host whose ServerSide asks before it is left (@ConfirmOnNavigationIfDirty)', () => {
+    assert.equal(tracksUnsavedChanges({ tree: { confirmOnNavigationIfDirty: true } }), true)
+    assert.equal(tracksUnsavedChanges({ tree: { confirmOnNavigationIfDirty: false } }), false)
+    assert.equal(tracksUnsavedChanges({ tree: {} }), false)
+    assert.equal(tracksUnsavedChanges(undefined), false)
+  })
+}
+
 // ── the ACTION catalogue: owner first, then App.actionCatalogue ──────────────────────────────────
 import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
 {

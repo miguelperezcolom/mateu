@@ -325,6 +325,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     menuRulePlanOf,
     // unsaved changes when the window goes away (reload / close): the browser's own prompt
     installUnsavedChangesGuard,
+    // unsaved changes before a LEAVE action (Cancel, back to the list…): the navigation question
+    isLeaveAction,
+    confirmLeaveAction,
+    tracksUnsavedChanges,
     // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
     pageFlowOf,
     catalogueActionOf,

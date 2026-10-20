@@ -46,6 +46,11 @@ define([
       const draft = Object.assign({}, $page.variables.mateuDraft);
       draft[fieldId] = detail.value;
       $page.variables.mateuDraft = draft;
+      // a form that asks before it is left (@ConfirmOnNavigationIfDirty, a crud's edit view) now
+      // has unsaved changes: the menu, back, reload and its Cancel ask (mateuFieldEdited's rule)
+      if (bridge.tracksUnsavedChanges(($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID])) {
+        $application.variables.mateuDirty = true;
+      }
       // @Trigger(OnValueChange): the changed field fires its action (the draft already carries the new
       // value, so the server recalculates with it —arrival + nights → departure— without saving)
       const vcHost = ($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID];

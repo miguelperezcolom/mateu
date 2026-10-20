@@ -135,6 +135,7 @@ chains.loadMateuShell = chain('pages/shell-page-chains/loadMateuShell.js')
 chains.onMateuNavigate = chain('pages/shell-page-chains/onMateuNavigate.js')
 chains.runMateuAction = chain('flows/main/pages/main-start-page-chains/runMateuAction.js')
 chains.runMateuIslandAction = chain('flows/main/pages/main-start-page-chains/runMateuIslandAction.js')
+chains.hostInputChanged = chain('flows/main/pages/main-start-page-chains/hostInputChanged.js')
 const planningGanttEvent = chain('flows/main/pages/main-start-page-chains/planningGanttEvent.js')
 
 // ── the backend: a scripted fetch ──────────────────────────────────────────────────────────────
@@ -604,6 +605,48 @@ test('runMateuAction: save sends the host state + the form draft, the answer upd
   assert.equal(after.state.name, 'Grace')
   assert.equal(ctx.$page.variables.mateuToastText, 'Saved Grace')
   assert.ok(calls.some((c) => c[0] === 'method' && c[1] === '#mateuToast' && c[2] === 'open'))
+})
+
+test('runMateuAction: a LEAVE action (Cancel…) with unsaved changes asks first; «stay» sends nothing', async () => {
+  answer(byRoute('/person'), fx('load-form'))
+  const cancelled = []
+  answer((b) => b.actionId === 'cancel-edit' || b.actionId === 'save', (b) => { cancelled.push(b.actionId); return { fragments: [] } })
+  const ctx = newContext()
+  await navigate(ctx, '/person')
+  ctx.$application.variables.mateuDirty = true
+  confirmAnswer = false
+  await act(ctx, 'cancel-edit')
+  assert.deepEqual(cancelled, [], 'stayed: the Cancel did not go out')
+  assert.equal(ctx.$application.variables.mateuDirty, true, 'the edits are still there')
+  // a non-leave action is not asked about
+  await act(ctx, 'save')
+  assert.deepEqual(cancelled, ['save'])
+  confirmAnswer = true
+  ctx.$application.variables.mateuDirty = true
+  await act(ctx, 'cancel-edit')
+  assert.deepEqual(cancelled, ['save', 'cancel-edit'], 'left on purpose: the Cancel ran')
+  assert.equal(ctx.$application.variables.mateuDirty, false)
+  // clean: no question at all
+  confirmAnswer = false
+  await act(ctx, 'cancel-edit')
+  assert.deepEqual(cancelled, ['save', 'cancel-edit', 'cancel-edit'])
+})
+
+test('hostInputChanged: editing a host form that asks before it is left (@ConfirmOnNavigationIfDirty) leaves unsaved changes; a search box elsewhere does not', async () => {
+  answer(byRoute('/tracked'), replace(page('pt', 'x.Edit', 'Edit', [], {}), {}))
+  answer(byRoute('/plain'), replace(page('pp', 'x.Search', 'Search', [], {}), {}))
+  const ctx = newContext()
+  await navigate(ctx, '/tracked')
+  // the wire flag on the host's ServerSide (crud edit views carry it)
+  ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  const typed = { detail: { value: 'Ana X', updatedFrom: 'internal' } }
+  await new chains.hostInputChanged().run(ctx, { event: typed, fieldId: 'nombre' })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  assert.equal(ctx.$page.variables.mateuDraft.nombre, 'Ana X')
+  ctx.$application.variables.mateuDirty = false
+  await navigate(ctx, '/plain')
+  await new chains.hostInputChanged().run(ctx, { event: typed, fieldId: 'q' })
+  assert.equal(ctx.$application.variables.mateuDirty, false)
 })
 
 test('runMateuAction: a failed action records a retry of the ACTION and rethrows', async () => {

@@ -28,6 +28,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Cancel (and the other leave actions) ask before dropping unsaved changes.** A dirty editor
+  already asked when the user left it through the menu, the browser's back button or a reload, but
+  its own **Cancel** ran straight away and the edits were lost. Now the actions the server treats as
+  leaving the screen — `cancel`, `cancel-…` (the CRUD's `cancel-edit`/`cancel-new`/`cancel-create`/
+  `cancel-view`), `back` and `backToList` — ask the same "unsaved changes" question first; "stay"
+  sends nothing. A business action that merely starts with `cancel` (`cancelBooking`) is not one.
+  Also on Redwood, typing in a CRUD form painted as page content (`hostInputChanged`) marks the
+  screen dirty again when it asks before being left (`@ConfirmOnNavigationIfDirty`, CRUD edit views),
+  so menu, back and reload ask there too. (Vaadin, Redwood)
+
 - **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of
   Micronaut's (`MateuMicronautJsonMapper`, `MateuMicronautJacksonDatabindMapper`) left Jackson's
   `WRITE_DATES_AS_TIMESTAMPS` on, so a `LocalDate` in component data (grid rows…) was written as
