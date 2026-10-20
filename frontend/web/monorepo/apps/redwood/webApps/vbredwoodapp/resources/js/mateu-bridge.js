@@ -2358,6 +2358,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
 
   // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
@@ -2655,6 +2656,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   /** A MetricCard (KPI) ready for the template: big value, colored trend, and if it carries
    *  an actionId, a button that launches the action (e.g. the filtered search that explains it). */
+  /** An icon NAME (`vaadin:users`, `lumo:edit`, an `oj-ux-` class) — not an emoji or a glyph. */
+  const isIconName = (icon) => !!icon && (/^[a-z][\w-]*:[\w-]+$/i.test(String(icon)) || String(icon).indexOf('oj-ux-') === 0)
+
   function metricOf(m, interp = (x) => x) {
     const trend = m.trend || ''
     const title = interp(m.title || '')
@@ -2666,6 +2670,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const description = interp(m.description || '')
     return {
       title,
+      // MetricCard.icon beside the title — it was not drawn: a NAME (vaadin:/lumo:…, an oj-ux- class)
+      // is Redwood's icon; anything else (an emoji, a glyph) is drawn as the text it is. '' without one
+      iconClass: isIconName(m.icon) ? ojIconOrGenericOf(m.icon) : '',
+      iconText: m.icon && !isIconName(m.icon) ? String(m.icon) : '',
       value,
       unit,
       timeframe,
@@ -3816,6 +3824,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       warning: 'oj-text-color-warning',
       danger: 'oj-text-color-danger',
       error: 'oj-text-color-danger',
+      // JET has no info text colour class: Redwood's info tone (app.css). An `info` status was grey
+      info: 'mateu-text-info',
+      normal: 'mateu-text-info',
     }
     const blocks = []
     let plain = null
@@ -4857,14 +4868,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Meter') {
-        atom({
-          isMeter: true,
-          label: m.label || '',
-          value: m.value || 0,
-          max: m.max || 100,
-          valueText: (m.unit === '€' ? money(m.value, '€') : String(m.value)) + ' / ' + (m.unit === '€' ? money(m.max, '€') : String(m.max)),
-          caption: interp(m.caption || ''),
-        }, container)
+        atom(meterAtomOf(m, interp, money), container)
         return
       }
       if (t === 'TaskProgress') {
@@ -5144,6 +5148,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!row || (blocks || []).some((block) => block && block.fromFormActions)) return blocks
     // a plain copy: `previous` is the VB variable (proxies)
     return [...(blocks || []), JSON.parse(JSON.stringify(row))]
+  }
+
+  /**
+   * A Meter (consumption vs a limit) → its atom, with the web renderer's contract (mateu-meter): the
+   * value with its unit after a space (`98 %`; money as money against its limit; no unit, `value / max`),
+   * the caption or else the fill percent, and the fill's tone past the optional thresholds — warning at
+   * `warnAt`, error at `dangerAt`, success below them (both were ignored, and so was the unit).
+   */
+  function meterAtomOf(m, interp = (x) => x, money = (v) => String(v)) {
+    const value = Number(m.value) || 0
+    const max = Number(m.max) || 100
+    const percent = Math.round(Math.min(Math.max(max > 0 ? value / max : 0, 0), 1) * 100)
+    const num = (v) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(Number(v) || 0)
+    const unit = m.unit || ''
+    const valueText = unit === '€' ? money(m.value, '€') + ' / ' + money(m.max, '€')
+      : unit ? num(value) + ' ' + unit : String(m.value == null ? '' : m.value) + ' / ' + String(max)
+    const thresholds = m.warnAt != null || m.dangerAt != null
+    const tone = m.dangerAt != null && value >= m.dangerAt ? 'error'
+      : m.warnAt != null && value >= m.warnAt ? 'warning' : 'success'
+    return {
+      isMeter: true,
+      label: m.label || '',
+      value,
+      max,
+      valueText,
+      caption: m.caption ? interp(m.caption) : percent + ' %',
+      // with thresholds the bar is drawn by hand (its fill takes the tone); without, JET's progress bar
+      hasThresholds: thresholds,
+      fillClass: 'mateu-meter-fill mateu-meter-' + tone,
+      fillWidth: percent + '%',
+    }
   }
 
   function hostContentShown(blocks, summary) {

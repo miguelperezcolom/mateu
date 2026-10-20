@@ -1890,3 +1890,31 @@ atest('navigating to another screen starts it at its top — not on back/forward
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
 console.log(`\n${pass} tests PMS OK`)
 void HOST_ID
+
+import { meterAtomOf } from './reduceContexts.mjs'
+
+test('Meter: its unit, its thresholds and its fill percent (mateu-meter); a MetricCard icon; the info status tone', () => {
+  // the unit after the value (it was «98 / 100»), the fill percent as the caption when none is given
+  const m = meterAtomOf({ label: 'Attendance', value: 98, max: 100, unit: '%' })
+  assert.equal(m.valueText, '98 %')
+  assert.equal(m.caption, '98 %')
+  assert.equal(m.hasThresholds, false, 'no thresholds: JET\'s progress bar, as before')
+  assert.equal(meterAtomOf({ value: 3, max: 10, caption: 'used' }).valueText, '3 / 10')
+  assert.equal(meterAtomOf({ value: 3, max: 10, caption: 'used' }).caption, 'used')
+  // warnAt / dangerAt: the fill's tone (success below, warning from warnAt, error from dangerAt)
+  const tone = (value) => meterAtomOf({ value, max: 100, warnAt: 70, dangerAt: 90 }).fillClass
+  assert.deepEqual([tone(50), tone(70), tone(95)], ['mateu-meter-fill mateu-meter-success', 'mateu-meter-fill mateu-meter-warning', 'mateu-meter-fill mateu-meter-error'])
+  assert.equal(meterAtomOf({ value: 150, max: 100, warnAt: 70 }).fillWidth, '100%')
+  // money keeps its value against its limit
+  assert.match(meterAtomOf({ value: 1710.5, max: 2000, unit: '€' }, (x) => x, (v) => '€ ' + v).valueText, /€ 1710.5 \/ € 2000/)
+  // MetricCard.icon → Redwood's icon class beside the title
+  assert.ok(metricOf({ title: 'Students', value: 412, icon: 'vaadin:users' }).iconClass)
+  assert.equal(metricOf({ title: 'Students', value: 412, icon: 'vaadin:users' }).iconText, '')
+  assert.deepEqual([metricOf({ title: 'Grades', value: 7, icon: '📝' }).iconClass, metricOf({ title: 'Grades', value: 7, icon: '📝' }).iconText], ['', '📝'], 'an emoji is drawn as itself, not as the generic icon')
+  assert.deepEqual([metricOf({ title: 'Students', value: 412 }).iconClass, metricOf({ title: 'Students', value: 412 }).iconText], ['', ''])
+  // a StatusItem in the info tone has a colour (it was the secondary grey)
+  const list = islandContentOf({ state: {}, data: {}, tree: node({ type: 'StatusList', items: [{ id: 'a', title: 'A', status: 'Info', statusColor: 'info' }] }) })
+  assert.equal(list[0].items[0].items[0].statusClass, 'mateu-text-info')
+  const css = webApp('resources/css/app.css')
+  for (const cls of ['mateu-text-info', 'mateu-meter-success', 'mateu-meter-warning', 'mateu-meter-error']) assert.match(css, new RegExp('\\.' + cls + ' \\{'))
+})

@@ -1806,3 +1806,13 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Meter with thresholds (warnAt / dangerAt): a track whose fill takes the tone, like the web's
+   mateu-meter. Without thresholds the Meter keeps JET's oj-c-progress-bar. */
+.mateu-meter-track { height: .45rem; border-radius: 999px; overflow: hidden; background: rgba(22, 21, 19, .16); }
+.mateu-meter-fill { height: 100%; border-radius: 999px; }
+.mateu-meter-success { background: var(--oj-core-success-3, rgb(80, 130, 35)); }
+.mateu-meter-warning { background: var(--oj-core-warning-3, rgb(172, 99, 12)); }
+.mateu-meter-error { background: var(--oj-core-danger-3, rgb(199, 70, 52)); }
+/* a StatusItem / status text in the info tone: JET has no oj-text-color-info */
+.mateu-text-info { color: var(--oj-core-info-3, rgb(0, 104, 140)); }

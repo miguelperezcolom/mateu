@@ -3,6 +3,7 @@ import { sanitizeHtml, markdownToHtml } from '../richtext.mjs'
 import { formSectionsOf } from './tree.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { dataProviderFactory, hostContentOf, panelExpanded } from './content.mjs'
+import { ojIconOrGenericOf } from './shellNav.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
 
 // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
@@ -300,6 +301,9 @@ export function metricAriaLabel({ title, value, unit, timeframe, trendLabel, des
 }
 /** A MetricCard (KPI) ready for the template: big value, colored trend, and if it carries
  *  an actionId, a button that launches the action (e.g. the filtered search that explains it). */
+/** An icon NAME (`vaadin:users`, `lumo:edit`, an `oj-ux-` class) — not an emoji or a glyph. */
+export const isIconName = (icon) => !!icon && (/^[a-z][\w-]*:[\w-]+$/i.test(String(icon)) || String(icon).indexOf('oj-ux-') === 0)
+
 export function metricOf(m, interp = (x) => x) {
   const trend = m.trend || ''
   const title = interp(m.title || '')
@@ -311,6 +315,10 @@ export function metricOf(m, interp = (x) => x) {
   const description = interp(m.description || '')
   return {
     title,
+    // MetricCard.icon beside the title — it was not drawn: a NAME (vaadin:/lumo:…, an oj-ux- class)
+    // is Redwood's icon; anything else (an emoji, a glyph) is drawn as the text it is. '' without one
+    iconClass: isIconName(m.icon) ? ojIconOrGenericOf(m.icon) : '',
+    iconText: m.icon && !isIconName(m.icon) ? String(m.icon) : '',
     value,
     unit,
     timeframe,
