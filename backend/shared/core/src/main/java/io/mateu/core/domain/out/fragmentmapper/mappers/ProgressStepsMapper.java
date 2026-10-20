@@ -25,6 +25,7 @@ public class ProgressStepsMapper {
                         .toList()
                     : List.of())
             .vertical(steps.vertical())
+            .resultTitle(steps.resultTitle())
             .build(),
         steps.id(),
         List.of(),

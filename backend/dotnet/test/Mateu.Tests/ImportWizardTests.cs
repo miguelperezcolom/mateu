@@ -136,8 +136,10 @@ public class ImportWizardTests
         Assert.Contains("\"text\":\"Import ImportedProduct\"", json);
         var steps = JsonSerializer.Serialize(
             Handler().Handle(new RunActionRqDto { ServerSideType = typeof(StepsProductImport).FullName }), Json);
-        foreach (var title in new[] { "Upload", "Mapping", "Validation", "Result" })
+        foreach (var title in new[] { "Upload", "Mapping", "Validation" })
             Assert.Contains($"\"title\":\"{title}\"", steps);
+        // the result screen is no step of the process: its title travels apart (Java's resultTitle)
+        Assert.Contains("\"resultTitle\":\"Result\"", steps);
     }
 
     [Fact]

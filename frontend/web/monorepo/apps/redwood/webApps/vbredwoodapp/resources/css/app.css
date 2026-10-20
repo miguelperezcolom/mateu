@@ -1469,6 +1469,13 @@ button.mateu-pop-trigger { background: none; border-top: 0; border-left: 0; bord
 oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button) {
   display: none;
 }
+/* …and its «n | total» step counter: the result screen is no step of the process, so the
+   template's count (which includes the result entry Mateu adds) would read «4 | 4» for 3 steps. */
+oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-number,
+oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-number-separator,
+oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
+  display: none;
+}
 
 /* ── Display components of poc/core/display.mjs ─────────────────────────────────────────────
    Only where Oracle has no component (board, timeline, heatmap, org outline, workflow, BPMN…):

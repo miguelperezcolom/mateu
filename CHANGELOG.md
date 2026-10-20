@@ -128,6 +128,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   when there are none. The same fallback fills an action method's row parameter in the Python and
   .NET ports. (Java, .NET, Python)
 
+- **Guided process: the finished screen is titled like the wizard's result step.** The step
+  indicators leave the result step out (it is no step of the process), so Redwood's guided process
+  invented an English "Completed" step for it and counted it ("4 | 4" for three steps). The wire's
+  `ProgressSteps` now carries `resultTitle` — the result step's `@Label` (Python/.NET: its step
+  title) — Redwood uses it (a translated "Completed" when an older server sends none) and hides the
+  template's counter on that screen. The Python and .NET wizards, which listed a completion
+  wizard's result step as one more bullet (.NET marked it done, so Redwood added "Completed" after
+  it), now leave it out like Java and count only the real steps in the rail. (Java, .NET, Python,
+  Redwood)
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches

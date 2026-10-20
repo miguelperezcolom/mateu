@@ -30,10 +30,17 @@ internal sealed partial class ReflectionMapper
         var progressStyle = type.Find<WizardProgressAttribute>()?.Style;
         StepDto Bullet(int i) => new($"step-{i}", wizard?.StepTitle(i) ?? $"Step {i}", null,
             i < current || onResult ? "done" : i == current ? "current" : "upcoming");
+        // The progress shows the steps of the process; the result screen is none of them (Java's
+        // Wizard.stepItems): with a completion the last step is left out, and its title travels
+        // as ResultTitle for the renderer that shows the finished process as one more screen.
+        var hasResult = completion is not null && total > 1;
+        var plainTotal = hasResult ? total - 1 : total;
+        var resultTitle = hasResult ? wizard?.StepTitle(total) ?? $"Step {total}" : null;
         // [WizardProgress("steps")]: connected step bullets instead of the progress bar
         // (mirrors Java's @WizardProgress(WizardProgressStyle.STEPS)).
         var progress = progressStyle == "steps"
-            ? Client(new ProgressStepsMetadataDto(Enumerable.Range(1, total).Select(Bullet).ToList()), "fieldId", [])
+            ? Client(new ProgressStepsMetadataDto(Enumerable.Range(1, plainTotal).Select(Bullet).ToList())
+                { ResultTitle = resultTitle }, "fieldId", [])
                 with { Style = "width: 100%;" }
             // Java's ProgressBar: value = the steps already done (0 on the first one), max = every
             // step, full on the result step; the current step's title as its text.
@@ -103,10 +110,11 @@ internal sealed partial class ReflectionMapper
             // [WizardProgress("rail")]: the Redwood Guided Process rail — the step form on the
             // left, a sticky right band with a big current|total counter over the vertical step
             // list (mirrors Java's WizardProgressStyle.RAIL).
-            var counter = Client(new TextMetadataDto($"{current} | {total}"), null, []) with
+            var counter = Client(new TextMetadataDto($"{(onResult ? plainTotal : current)} | {plainTotal}"), null, []) with
                 { Style = "font-size: 2rem; font-weight: 300; margin: 0 0 1rem; letter-spacing: .1em;" };
             var steps = Client(new ProgressStepsMetadataDto(
-                Enumerable.Range(1, total).Select(Bullet).ToList(), Vertical: true), "fieldId", []);
+                Enumerable.Range(1, plainTotal).Select(Bullet).ToList(), Vertical: true)
+                { ResultTitle = resultTitle }, "fieldId", []);
             var rail = Client(new VerticalLayoutMetadataDto(), null, [counter, steps]) with
             {
                 Style = "flex: 0 0 15rem; align-self: flex-start; position: sticky; top: 1rem;"

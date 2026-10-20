@@ -19,6 +19,7 @@
   "selectValue": "Select a value",
   "progressOf": "{done} of {total}",
   "occupancy": "Occupancy %",
+  "wizardCompleted": "Completed",
   "dropHere": "Drop here",
   "noEvents": "No events",
   "hideUnpopulated": "Hide unpopulated",

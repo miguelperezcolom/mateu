@@ -1356,6 +1356,7 @@ Mateu.Uidl.ProgressBar property System.String ValueKey { get;init; }
 Mateu.Uidl.ProgressSteps ctor()
 Mateu.Uidl.ProgressSteps property System.Boolean Vertical { get;init; }
 Mateu.Uidl.ProgressSteps property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Step> Steps { get;init; }
+Mateu.Uidl.ProgressSteps property System.String ResultTitle { get;init; }
 Mateu.Uidl.QueueGroup ctor()
 Mateu.Uidl.QueueGroup property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueItem> Items { get;init; }
 Mateu.Uidl.QueueGroup property System.String Label { get;init; }

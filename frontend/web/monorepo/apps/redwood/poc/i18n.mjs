@@ -36,6 +36,8 @@ export const CHROME_TEXTS = {
     selectValue: 'Select a value',
     progressOf: '{done} of {total}',
     occupancy: 'Occupancy %',
+    // the finished guided process's last screen, when the wire brings no result title
+    wizardCompleted: 'Completed',
     dropHere: 'Drop here',
     noEvents: 'No events',
     hideUnpopulated: 'Hide unpopulated',
@@ -265,6 +267,7 @@ export const CHROME_TEXTS = {
     selectValue: 'Seleccione un valor',
     progressOf: '{done} de {total}',
     occupancy: 'Ocupación %',
+    wizardCompleted: 'Completado',
     dropHere: 'Suelta aquí',
     noEvents: 'Sin eventos',
     hideUnpopulated: 'Ocultar vacías',

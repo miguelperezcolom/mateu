@@ -458,7 +458,12 @@ class ComponentMapperMixin(MixinBase):
                 StepRecord(id=s.id, title=s.title, description=s.description, status=s.status)
                 for s in c.steps
             ]
-            return self._fluent_client(ProgressStepsMetadata(steps=steps, vertical=c.vertical), c)
+            return self._fluent_client(
+                ProgressStepsMetadata(
+                    steps=steps, vertical=c.vertical, result_title=c.result_title
+                ),
+                c,
+            )
         if isinstance(c, fluent.Stat):
             return self._fluent_client(
                 StatMetadata(
