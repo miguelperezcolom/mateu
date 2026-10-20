@@ -479,6 +479,11 @@ const LANDINGS = [
   ['p1-history', (v) => v.mateuHostTitle === 'History'],
   ['wf-process', (v) => v.mateuHostContent.length === 1],
   ['load-not-found', (v) => v.mateuNotFound && v.mateuHostContent.length === 0],
+  // @Zones of a crud's detail («35% 65%»): the columns are the body, not the one-column generic form
+  ['crud-view-zones', (v) => v.mateuHostContent.length === 2 && v.mateuFormSections.length === 0
+    && /oj-md-4/.test(v.mateuHostContent[0].blockClass) && /oj-md-8/.test(v.mateuHostContent[1].blockClass)],
+  ['crud-edit-zones', (v) => v.mateuHostContent.some((b) => /oj-md-4/.test(b.blockClass)) && v.mateuFormSections.length === 0],
+  ['tpl-collection-detail', (v) => v.mateuHostContent.some((b) => /oj-md-4/.test(b.blockClass) && b.items.some((a) => a.isQueue))],
 ]
 test('onMateuNavigate: every page family lands in its own template', async () => {
   for (const [name, check] of LANDINGS) {
@@ -491,6 +496,27 @@ test('onMateuNavigate: every page family lands in its own template', async () =>
     assert.ok(check(v), name + ' did not land where it belongs')
     assert.equal(v.mateuNavigating, false, name)
   }
+})
+
+test('onMateuNavigate: an entity page with its narrow zone first is painted (the reverted item overview left it blank)', async () => {
+  const inc = fx('crud-view-zones')
+  const page = inc.fragments[0].component.children[0]
+  page.children.unshift({ type: 'ClientSide', metadata: { type: 'EntityHeader', title: 'Ana', subtitle: '', badges: [], facts: [] }, children: [] })
+  // no select with options: with one, an EntityHeader page is the GeneralOverview archetype (its switcher)
+  const noOptions = (n) => {
+    if (Array.isArray(n)) n.forEach(noOptions)
+    else if (n && typeof n === 'object') { delete n.options; Object.values(n).forEach(noOptions) }
+  }
+  noOptions(page)
+  routes = []
+  answer(byRoute('/zoned-entity'), inc)
+  answer(() => true, { fragments: [] })
+  const ctx = newContext()
+  await navigate(ctx, '/zoned-entity')
+  const v = ctx.$application.variables
+  assert.equal(v.mateuIop.on, false)
+  assert.equal(v.mateuHostContent.length, 2, 'both zones are painted')
+  assert.ok(v.mateuPageHeader.showBand, 'and the header band with the entity')
 })
 
 test('onMateuNavigate: from one foldout to another, the foldout subtree is re-created', async () => {

@@ -1072,6 +1072,20 @@ test('MetricCard: tendencia con flecha y color; ResponsiveGrid: pesos de pista y
   assert.match(panelColClass(2, 3), /oj-md-8/)
 })
 
+test('grid tracks: a FIXED track weighs its length, not 1 like a 1fr (22rem 1fr split 50/50)', () => {
+  const md = (t, n) => gridColClasses(t, [], n).map((c) => c.match(/oj-md-(\d+)/)[1])
+  assert.deepEqual(md('22rem 1fr', 2), ['4', '8'], 'CollectionDetail: the list a third, the detail the rest')
+  assert.deepEqual(md('1fr 22rem', 2), ['8', '4'], 'DataManagement: the table wide, the docked panel narrow')
+  assert.deepEqual(md('35% 65%', 2), ['4', '8'], '@Zones of a crud detail')
+  assert.deepEqual(md('minmax(0, 2fr) 320px', 2), ['9', '3'])
+  // the edges are rounded, not each share: a full row adds up to 12 (3 + 5 + 5 wrapped the last)
+  assert.deepEqual(md('300px 1fr 1fr', 3), ['3', '5', '4'])
+  assert.deepEqual(md('1fr 1fr 1fr 1fr 1fr', 5).reduce((a, b) => a + Number(b), 0), 12)
+  // only flexible or only percentages: their own numbers, as before
+  assert.deepEqual(gridTrackWeights('auto 1fr'), [1, 1])
+  assert.deepEqual(gridTrackWeights('repeat(2, 10rem) 1fr'), [160, 160, 880])
+})
+
 // ── P1 #12 calendar: month, week, day, list; cells per date; dates that act ──────────────────
 const calWire = {
   type: 'Calendar', month: '2026-10-28', view: 'month', views: ['month', 'week', 'day', 'list'], dayActionId: 'openCalendarDay',

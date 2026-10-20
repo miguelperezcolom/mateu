@@ -3,7 +3,7 @@ import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
 import { collectTexts, isSectionNode, sectionHeadOf } from './tree.mjs'
-import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
+import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
@@ -330,10 +330,19 @@ export function islandContentOf(ctx, opts = {}) {
   // inside a component-holder field (a CustomField whose content is a component, not fields): its
   // atoms are marked, the generic form cannot draw them (hostContentShown)
   let inHolder = 0
+  // a block CUT by a hoisted grid (a column grid nested in a card: see the ResponsiveGrid branch)
+  // → the block that carries on after it; what the card still had to say goes there, in order
+  const continued = new Map()
+  const continuations = new Set()
+  const live = (block) => {
+    let b = block
+    while (b && continued.has(b)) b = continued.get(b)
+    return b
+  }
   const atom = (a, container) => {
     stampNode(a)
     if (inHolder && a && typeof a === 'object') a.fromHolder = true
-    if (container) { container.items.push(a); return }
+    if (container) { live(container).items.push(a); return }
     if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
     plain.items.push(a)
   }
@@ -465,7 +474,9 @@ export function islandContentOf(ctx, opts = {}) {
       const zoneMatches = (node.children || []).map(
         (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
       if (zoneMatches.length >= 2 && zoneMatches.every(Boolean)) {
+        const before = blocks.length
         projectColumns(node.children, node.children.map((_, i) => parseFloat(zoneMatches[i][1])))
+        for (const block of blocks.slice(before)) block.fromColumns = true
         return
       }
     }
@@ -723,6 +734,26 @@ export function islandContentOf(ctx, opts = {}) {
     // width in columns), KPI band (Scoreboard/MetricCard) and charts (oj-chart) ──
     // ResponsiveGrid (the general grid): its tracks (grid-template-columns) and each child's
     // colSpans → oj-flex column-blocks of their width. Inside a card, stacked.
+    // a COLUMN grid nested in a block (a CollectionDetail's list/detail inside its form's card, a
+    // grid in a field): a block cannot hold columns, so the grid is HOISTED — the block is cut, the
+    // grid's columns follow it at the page's level and a continuation block takes the rest. Only a
+    // full-width block is cut (one that is already a column keeps its grid stacked inside).
+    if (t === 'ResponsiveGrid' && container && !live(container).colClass && blocks.includes(live(container))
+        && (gridTrackWeights(m.gridTemplateColumns).length >= 2
+          || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() && !m.gridTemplateColumns))) {
+      const cut = live(container)
+      plain = null
+      const before = blocks.length
+      visitNode(node, null)
+      plain = null
+      if (blocks.length > before) {
+        const rest = { ...(cut.isCard ? { isCard: true } : { isPlain: true }), items: [] }
+        continued.set(cut, rest)
+        continuations.add(rest)
+        blocks.push(rest)
+      }
+      return
+    }
     if (t === 'ResponsiveGrid' && !container) {
       // each child's span: the wire's (colSpans) or the one the child carries itself — a
       // DashboardPanel its colSpan, the KPI band (Scoreboard) the whole row
@@ -750,12 +781,15 @@ export function islandContentOf(ctx, opts = {}) {
       // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
       const autoFit = autoFitColClass(m.gridTemplateColumns
         || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
-      const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-        || (autoFit ? kids.map(() => autoFit) : null)
+      const tracked = gridColClasses(m.gridTemplateColumns, spans, kids.length)
+      const classes = tracked || (autoFit ? kids.map(() => autoFit) : null)
       // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
-      // blocks carry the mark, and the content wins over the generic form (hostContentShown)
+      // blocks carry the mark, and the content wins over the generic form (hostContentShown).
+      // So do the COLUMNS of explicit tracks (the @Zones of a crud's detail: «35% 65%»): the
+      // generic form has one column, it painted every section stacked in a single card
       const templated = !!(m.gridTemplateAreas && String(m.gridTemplateAreas).trim())
-      const allTags = templated ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), fromTemplate: true })) : tags
+      const mark = templated ? { fromTemplate: true } : tracked ? { fromColumns: true } : null
+      const allTags = mark ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), ...mark })) : tags
       if (classes && projectSized(kids, classes, allTags)) return
     }
     if (t === 'DashboardLayout') {
@@ -776,7 +810,7 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'MetricCard') {
       // consecutive ones join in the same band (like the buttons)
-      const target = container || plain
+      const target = live(container) || plain
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
       if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
       else atom({ isScoreboard: true, metrics: [withNodeId(metricOf(m, interp), node)] }, container)
@@ -840,7 +874,7 @@ export function islandContentOf(ctx, opts = {}) {
         // h2), with group rhythm (margin-top) when it does not open the block
         const heading = /^h[1-6]$/.test(m.container || '')
         if (heading) {
-          const target = container || plain
+          const target = live(container) || plain
           const notFirst = !!(target && target.items.length)
           atom({
             isText: true,
@@ -1488,6 +1522,10 @@ export function islandContentOf(ctx, opts = {}) {
     for (const child of kidsOf(node)) visit(child, container)
   }
   visit(ctx.tree, null)
+  // a continuation nobody wrote into (the grid was the cut block's last child) is no block
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    if (continuations.has(blocks[i]) && !blocks[i].items.length) blocks.splice(i, 1)
+  }
   // HOISTING of the nested island: a block whose content is the island (card "Documento")
   // becomes an isNestedBlock block — the markup paints it at BLOCK level because
   // at greater depth VB's CSP evaluator stops resolving the template's bindings
@@ -1590,8 +1628,9 @@ export function hostContentShown(blocks, summary) {
   // (fromSurface: what a filled @Subresource / inline-island hole brought — withSubresources)
   const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource || a.fromHolder || a.fromSurface))
   if (blocks.some((block) => (block.items || []).some(rich))) return true
-  // the page is laid out by a slot template (a form with its @Aside…): its fields are painted in it
-  if (blocks.some((block) => block.fromTemplate)) return true
+  // the page is laid out by a slot template (a form with its @Aside…) or in columns (@Zones): its
+  // fields are painted in it
+  if (blocks.some((block) => block.fromTemplate || block.fromColumns)) return true
   const s = summary || {}
   return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
 }

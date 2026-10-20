@@ -85,6 +85,9 @@ test('general overview page: two zoned column blocks with an EntityHeader', () =
   assert.equal(gop.main.blocks[0].blockClass, 'oj-flex-item oj-sm-12')
   assert.ok(!generalOverviewPageOf({ title: 'E' }, blocks, { itemOverviewOn: true }).on)
   assert.ok(!generalOverviewPageOf(null, blocks).on)
+  // the NARROW zone first is not this anatomy (its main slot would take the key-data column): the
+  // host content paints it in its columns
+  assert.ok(!generalOverviewPageOf({ title: 'E' }, [blocks[1], blocks[0]]).on)
 })
 
 test('page header: primary, back affordance, secondary; band only away from edge to edge', () => {
