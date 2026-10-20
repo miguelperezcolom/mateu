@@ -169,6 +169,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   selected in the bar; it now selects the tab it shows (the one marked open, else the first). On a
   phone the tabs that do not fit went off the card with no way to reach them: the item overview's
   bar and the content tab strips now put them in an overflow menu.
+### Fixed
+- **Redwood: a wizard in a drawer advances.** A Drawer whose content is an `EmbeddedView` (the
+  Guided Process Drawer) is painted from its embedded surface; the answer to Next re-rendered the
+  overlay's frame instead and the drawer stayed on step 1. The re-render now goes to the surface and
+  the drawer keeps its header — apps no longer need to return a new Drawer on every step.
 
 ## [3.0-beta.7] — 2026-10-19
 
