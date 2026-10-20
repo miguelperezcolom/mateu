@@ -1,4 +1,4 @@
-import { test, expect, Route } from '@playwright/test';
+import { test, expect, Page, Route } from '@playwright/test';
 
 /**
  * A federated shell's menu when its remotes do not all behave (P9, delivery 1).
@@ -14,8 +14,18 @@ import { test, expect, Route } from '@playwright/test';
  *   cold load instead of appearing once the slowest remote has answered.
  * - The shell declares no variant: AUTO picks MENU_ON_TOP for a shell with remotes, which the
  *   browser used to force. The menu is the same band it always was.
+ * - The shell labels its mount ("Remote"), so the remote's entries are grouped under that section
+ *   in every variant (#47) — they used to be spliced flat into the band, ignoring the label. Its
+ *   screens (Page, Things) are in the section's submenu.
  */
 test.describe('federated menu robustness', () => {
+
+  /** Opens the healthy remote's section, once its menu has arrived (it then has a submenu). */
+  async function openRemoteSection(page: Page) {
+    const section = page.getByRole('menuitem', { name: 'Remote', exact: true });
+    await expect(section).toHaveAttribute('aria-haspopup', 'true');
+    await section.click();
+  }
 
   test('a remote that is down leaves its section unavailable, and the others merged', async ({ page }) => {
     const errors: string[] = [];
@@ -23,7 +33,8 @@ test.describe('federated menu robustness', () => {
 
     await page.goto('/remote/page');
 
-    // the healthy remote's entries replaced its section
+    // the healthy remote's entries were merged, grouped under its section
+    await openRemoteSection(page);
     await expect(page.getByRole('menuitem', { name: 'Things' })).toBeVisible();
     await expect(page.getByRole('menuitem', { name: 'Page' })).toBeVisible();
     // the dead one is still there, dimmed and not to be opened…
@@ -31,6 +42,7 @@ test.describe('federated menu robustness', () => {
     await expect(offline).toBeVisible();
     await expect(offline).toHaveClass(/mateu-nav-unavailable/);
     // …and it says why
+    await page.keyboard.press('Escape');
     await offline.hover();
     await expect(page.getByText(/Offline (is not available|no está disponible)/)).toBeVisible();
     // the page itself, served by the healthy remote, is unaffected
@@ -71,10 +83,13 @@ test.describe('federated menu robustness', () => {
     const trail = page.getByRole('navigation', { name: 'Breadcrumb' });
     await expect(trail).toContainText('Remote');
     await expect(page.getByRole('menuitem', { name: 'Things' })).toHaveCount(0);
+    // …and the section has nothing under it yet
+    await expect(page.getByRole('menuitem', { name: 'Remote', exact: true })).not.toHaveAttribute('aria-haspopup', 'true');
 
     release();
 
-    // the menu arrives; the page is not reloaded for it
+    // the menu arrives (in the section's submenu); the page is not reloaded for it
+    await openRemoteSection(page);
     await expect(page.getByRole('menuitem', { name: 'Things' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Remote Page' })).toBeVisible();
   });
@@ -82,6 +97,7 @@ test.describe('federated menu robustness', () => {
   test('a shell that declares no variant is still drawn with the menu on top', async ({ page }) => {
     await page.goto('/remote/page');
     await expect(page.locator('mateu-app .mateu-app-band2')).toBeVisible();
+    await openRemoteSection(page);
     await expect(page.getByRole('menuitem', { name: 'Things' })).toBeVisible();
   });
 
