@@ -30,6 +30,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `WRITE_DATES_AS_TIMESTAMPS` on, so a `LocalDate` in component data (grid rows…) was written as
   `[2025,12,19]` and shown as "2025,12,19". They now write `"2025-12-19"`, like the other adapters.
   (Java)
+### Fixed
+- **Quarkus: views reached only by Mateu keep their injected services.** ArC removed, as unused beans,
+  the view classes Mateu reaches by reflection (an `AutoCrud` annotated `@Dependent`…) and the
+  services only they inject; Mateu then created the view with `new` and its `@Inject` fields stayed
+  `null` ("An unexpected error occurred" on the first action that used one). `mateu-quarkus` now
+  defaults `quarkus.arc.remove-unused-beans=fwk` (its `META-INF/microprofile-config.properties`; the
+  application's own setting wins): application beans are kept, unused framework beans are still
+  removed. `@Unremovable` is no longer needed. (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 
