@@ -394,10 +394,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -2603,10 +2635,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -4338,10 +4402,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -6106,10 +6202,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -7841,10 +7969,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -9628,10 +9788,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -11412,10 +11604,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -13159,10 +13383,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -14907,10 +15163,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -16671,10 +16959,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -18719,10 +19039,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -20740,10 +21092,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -22473,10 +22857,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -24861,10 +25277,42 @@
                   <!-- @atoms island — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -26594,10 +27042,42 @@
                   <!-- @atoms island — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -28401,10 +28881,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -30136,10 +30648,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -31885,10 +32429,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -33620,10 +34196,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -35403,10 +36011,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
@@ -37138,10 +37778,42 @@
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
                     <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
-                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeading ]]">
-                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style || {} ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRow ]]">
+                      <!-- HorizontalLayout of inline pieces: one wrapping flex row (app.css .mateu-atom-row);
+                           each piece and the row carry their wire style, filtered (styleObjectOf) -->
+                      <div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="[[ $current.data.style || {} ]]">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.rowText ]]">
+                              <span :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowHeading ]]">
+                              <h3 class="mateu-atom-heading oj-sm-margin-0" :class="[[ $current.data.cls ]]" :style="[[ $current.data.style ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowButton ]]">
+                              <oj-button chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-mateu-hover="[[ $current.data.tooltip ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowBadge ]]">
+                              <span :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowAnchor ]]">
+                              <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.rowIcon ]]">
+                              <span class="mateu-icon" :class="[[ $current.data.iconClass ]]" role="img" :aria-label="[[ $current.data.label ]]"><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>

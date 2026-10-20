@@ -41,6 +41,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       selectValue: 'Select a value',
       progressOf: '{done} of {total}',
       occupancy: 'Occupancy %',
+      // the finished guided process's last screen, when the wire brings no result title
+      wizardCompleted: 'Completed',
       dropHere: 'Drop here',
       noEvents: 'No events',
       hideUnpopulated: 'Hide unpopulated',
@@ -270,6 +272,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       selectValue: 'Seleccione un valor',
       progressOf: '{done} de {total}',
       occupancy: 'Ocupación %',
+      wizardCompleted: 'Completado',
       dropHere: 'Suelta aquí',
       noEvents: 'Sin eventos',
       hideUnpopulated: 'Ocultar vacías',
@@ -789,15 +792,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * What the pod answered, with the shell's label if it DECLARED one (`shellLabel`) and the pod answers
-   * with ONE entry —the usual: a group named after the service—: the shell's word wins, and
-   * the bar does not change under the reader. Several entries are spliced in as they are: there is no node to name.
+   * What the pod answered, with the shell's label if it DECLARED one (`shellLabel`): with ONE entry
+   * —the usual: a group named after the service— that entry takes the shell's word (and icon), and
+   * the bar does not change under the reader; with SEVERAL, they go into a group named (and placed,
+   * by its path) as the shell named the mount, in every variant — spliced flat, each of the pod's
+   * screens (its own «Home» too) sat next to the shell's and the label was lost. Without a declared
+   * label they are spliced in as they are: there is no name to give. The entries keep their routes
+   * and their pod (adoptRemote registers them by route), so navigation and deep links are claimed
+   * exactly as before. Port of mergeRemoteMenus from navTree.ts.
    */
   function labelledByShell(entries, option) {
-    if (option.shellLabel && option.label && entries.length === 1) {
+    const declared = !!(option.shellLabel && option.label)
+    if (declared && entries.length === 1) {
       return [Object.assign({}, entries[0], { label: option.label, icon: option.icon || entries[0].icon })]
     }
+    if (declared && entries.length > 1) return [groupOfMount(entries, option)]
     return entries
+  }
+
+  /** A pod's entries as ONE group, named (and placed, by its path) as the shell named the mount. */
+  function groupOfMount(entries, option) {
+    return { label: option.label, icon: option.icon, path: option.path, route: '', visible: option.visible, submenus: entries }
   }
 
   /**
@@ -810,7 +825,57 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const list = entries || []
     const oneGroup = list.length === 1 && ((list[0].submenus || list[0].submenu || []).length > 0)
     if (oneGroup || !list.length) return list
-    return [{ label: option.label, icon: option.icon, path: option.path, route: '', visible: option.visible, submenus: list }]
+    return [groupOfMount(list, option)]
+  }
+
+  /** The routes the LEAVES of a menu open (not its groups, the home or a pod's own remote sections). */
+  function leafRoutesOf(menu, out = new Set()) {
+    for (const option of menu || []) {
+      if (!option || option.separator || isMount(option)) continue
+      const children = option.submenus || option.submenu || []
+      if (children.length) { leafRoutesOf(children, out); continue }
+      const route = navRoute(option.route)
+      if (route && route !== '/') out.add(route)
+    }
+    return out
+  }
+
+  /** How a pod is named in a warning: its label and where it lives. */
+  function remoteSourceName(option) {
+    const label = String(option.label == null ? '' : option.label).replace(/<[^<>]*>/g, '').replace(/[<>]/g, '').trim()
+    return 'RemoteMenu "' + (label || '?') + '" (' + (option.baseUrl || '') + (option.route ? ' ' + option.route : '') + ')'
+  }
+
+  /**
+   * The routes two sources of a federated menu both claim: the shell's own entries and each pod that
+   * answered (`answers`: Map mount → its app `{ menu }`, as expandRemoteMenus collects them). A pod's
+   * routes are mount-relative and registered as they are, so the shell's `/inicio` and a pod's
+   * `/inicio` are the SAME address — the later registration silently wins. Reported, never resolved.
+   * Port of routeCollisions from navTree.ts — same cases in test.mjs.
+   */
+  function routeCollisionsOf(menu, answers, mounts) {
+    const owner = new Map()
+    const found = []
+    const claim = (routes, source) => {
+      for (const route of routes) {
+        const first = owner.get(route)
+        if (first === undefined) owner.set(route, source)
+        else if (first !== source) found.push({ route, first, second: source })
+      }
+    }
+    claim(leafRoutesOf(menu), 'the shell')
+    for (const mount of mounts || []) {
+      const app = answers.get(mount)
+      if (app) claim(leafRoutesOf(app.menu), remoteSourceName(mount))
+    }
+    return found
+  }
+
+  /** The console line for a collision (the same words as the Vaadin renderer's). */
+  function routeCollisionMessage(c) {
+    return 'mateu: route collision — "' + c.route + '" is claimed by ' + c.first + ' and by ' + c.second + '. '
+      + 'Only one of them is reached by that address (clicks, deep links, reloads); '
+      + 'give one of them a different route.'
   }
 
   /** The entries of a hidden section: they are not painted at any depth, but stay in the tree. */
@@ -1117,7 +1182,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // `class`, `title`, `aria-hidden` and a FILTERED `style` on the allowed tags, and an <img> whose
   // src is http(s), relative or a raster data: image. Still nothing that runs: no handler, no
   // script, no url() in a style, no form.
-  const STYLE_PROPS = /^(color|background-color|font-(size|weight|style|family)|text-(align|decoration|transform)|vertical-align|(margin|padding)(-(top|right|bottom|left|inline|block)(-(start|end))?)?|(min-|max-)?(width|height)|line-height|display|white-space|opacity|gap|border(-(top|right|bottom|left))?(-(width|style|color|radius))?|border-collapse)$/i
+  const STYLE_PROPS = /^(color|background-color|font-(size|weight|style|family)|text-(align|decoration|transform)|vertical-align|(margin|padding)(-(top|right|bottom|left|inline|block)(-(start|end))?)?|(min-|max-)?(width|height)|line-height|display|white-space|opacity|gap|border(-(top|right|bottom|left))?(-(width|style|color|radius))?|border-collapse|flex(-(grow|shrink|basis|wrap|direction))?|align-(items|self|content)|justify-(content|self)|order)$/i
   const STYLE_VALUE = /^[#\w\s.,%()+-]*$/
   const SAFE_IMG_SRC = /^(https?:|\/|\.{0,2}\/|data:image\/(png|jpe?g|gif|webp|bmp|avif);)|^[^:]*$/i
 
@@ -1126,6 +1191,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return m ? (m[1] ?? m[2] ?? m[3] ?? '') : null
   }
 
+  /** A wire style (`"font-weight: 600; flex: 1"`) kept to the declarations that can only PRESENT —
+   *  the same filter an Element's HTML goes through: known properties, plain values, no url() /
+   *  expression(). What is left, as a CSS text. */
   function safeStyle(style) {
     const kept = []
     for (const decl of String(style).split(';')) {
@@ -1136,6 +1204,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (STYLE_PROPS.test(prop) && STYLE_VALUE.test(value) && !/url|expression|image-set/i.test(value)) kept.push(prop + ': ' + value)
     }
     return kept.join('; ')
+  }
+
+  /** The same filtered style as an object for a JET `:style` binding (camelCase keys: VB templates
+   *  bind objects, not CSS text); {} when nothing survives. Custom properties are not kept. */
+  function styleObjectOf(style) {
+    const out = {}
+    if (!style) return out
+    for (const decl of safeStyle(style).split('; ')) {
+      const i = decl.indexOf(':')
+      if (i < 0) continue
+      const prop = decl.slice(0, i).trim().toLowerCase()
+      out[prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = decl.slice(i + 1).trim()
+    }
+    return out
   }
 
   function presentationAttrs(tag, attrs) {
@@ -2166,7 +2248,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
+
+  /** What the foldout's panels read (mateuFoldoutContent): its overview, panels and header. */
+  function foldoutContentOf(proj) {
+    return proj
+      ? { overview: proj.overview, panels: proj.panels, header: proj.header }
+      : { overview: { blocks: [] }, panels: [], header: {} }
+  }
+
+  /** Same structure → the chain updates the content in place; otherwise it remounts the foldout.
+   *  The number of panels and the orientation (the overview a column / the top band) are structure. */
+  function sameFoldoutStructure(before, now) {
+    return !!(before && now
+      && (before.panels || []).length === (now.panels || []).length
+      && before.orientation === now.orientation)
+  }
 
   /** FOLDOUT projection (Phase 7): overview + panels with their headers (metadata.panels)
    *  and their slotted content (overview / panel-N). null if the context is not a foldout.
@@ -2210,8 +2309,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       })
       .filter((b) => b.label && b.label.trim() && !b.label.includes('${'))
+      // …and the foldout's own badges (FoldoutLayout.badges: a List<Badge> field of the Foldout,
+      // sent as their texts) — neutral, the wire carries no colour for them
+      .concat((md.badges || []).map((b) => (b && typeof b === 'object' ? b.text || b.label : b))
+        .filter((t) => t != null && String(t).trim())
+        .map((t) => ({ isBadge: true, label: String(t), badgeClass: STATUS_BADGE.NONE, blockClass: 'oj-flex-item oj-sm-12' })))
     return {
       headerTitle: md.headerTitle || '',
+      // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
+      // the panels; 'horizontal' = the overview runs across the top, the panels below it
+      orientation: md.orientation === 'horizontal' ? 'horizontal' : 'vertical',
+      overviewOnTop: md.orientation === 'horizontal',
+      // the navigation header, the overview's Edit and the badges: what may change between two
+      // records of the same foldout (re-bound in place, like the panels' content)
+      header: foldoutHeaderOf(md),
       badges: pageBadges,
       overview: {
         texts: collectTexts(bySlot['overview']),
@@ -2232,12 +2343,50 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // size — without it, the foldout's responsive engine distributes as it likes and the
         // cockpit cards overlap
         width: panel.width || '',
+        // FoldoutPanel.icon ("user", "vaadin:user", an oj-ux class) as a Redwood icon class
+        iconClass: foldoutIconClassOf(panel.icon),
         texts: collectTexts(bySlot['panel-' + i]),
         blocks: blocksOf(bySlot['panel-' + i]),
         // FoldoutPanel.summary (child slotted summary-N): oj-sp-foldout-panel's own `summary` slot,
         // the compact line under the panel title
         ...foldoutSummaryOf(bySlot['summary-' + i]),
       })),
+    }
+  }
+
+  /** A foldout panel's icon → a Redwood icon class: a bare name is a Vaadin one ("user" →
+   *  vaadin:user), as the web renderer reads it; '' without one. */
+  function foldoutIconClassOf(icon) {
+    const name = icon == null ? '' : String(icon).trim()
+    if (!name) return ''
+    return iconClassOf(name.indexOf(':') >= 0 || name.indexOf('oj-ux-') === 0 ? name : 'vaadin:' + name)
+  }
+
+  /**
+   * The foldout's HEADER, in oj-sp-foldout-layout's own terms (its oj-sp-header-navigation):
+   * FoldoutLayout.navigation → the go-to-parent link (labelled with parentLabel) and the
+   * previous / next buttons, each carrying the action id it runs; overviewEditActionId → the overview
+   * panel's header action (the pencil, oj-sp-foldout-panel secondaryActions). Ids absent → no control.
+   */
+  function foldoutHeaderOf(md) {
+    const nav = (md && md.navigation) || {}
+    const parentActionId = nav.parentActionId || ''
+    const previousActionId = nav.previousActionId || ''
+    const nextActionId = nav.nextActionId || ''
+    const editActionId = (md && md.overviewEditActionId) || ''
+    return {
+      hasNavigation: !!(parentActionId || previousActionId || nextActionId),
+      title: nav.title || '',
+      goToParent: !!parentActionId,
+      parentLabel: nav.parentLabel || chromeText('goBack'),
+      parentActionId,
+      // bidirectional: the layout draws both arrows (one disabled when its step is null)
+      bidirectional: !!previousActionId,
+      previousStep: previousActionId ? { id: previousActionId, label: chromeText('previousItem') } : null,
+      nextStep: nextActionId ? { id: nextActionId, label: chromeText('nextItem') } : null,
+      previousActionId,
+      nextActionId,
+      overviewActions: editActionId ? [{ id: editActionId, label: chromeText('edit'), icon: 'oj-ux-ico-edit', display: 'on' }] : [],
     }
   }
 
@@ -2303,11 +2452,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
     // RESULT: with every step done (the wire does not bring the result step, which is not a
     // step of the process) the guided process stayed on the last step — its title and its
-    // Cancel/Done footer. A final «Completed» step is added, done and current: the title says it
-    // finished and the footer is hidden (completed → class mateu-wizard-completed on the page)
+    // Cancel/Done footer. A final step is added, done and current, titled like the wizard's result
+    // step (the wire's resultTitle, its @Label; a translated «Completed» when an older server sends
+    // none): the title names the outcome and the footer is hidden (completed → class
+    // mateu-wizard-completed on the page, which also hides the template's «n | total» counter,
+    // since that screen is no step of the process)
     const completed = wire.length > 0 && wire.every((s, i) => statusOf(s, i) === 'done')
+    const resultTitle = md.resultTitle ? String(md.resultTitle) : chromeText('wizardCompleted')
     if (completed) {
-      steps.push({ id: WIZARD_DONE_STEP, label: 'Completed', title: 'Completed', display: 'on', status: 'success' })
+      steps.push({ id: WIZARD_DONE_STEP, label: resultTitle, title: resultTitle, display: 'on', status: 'success' })
     }
     const currentStep = completed ? WIZARD_DONE_STEP : currentId
     // the process title (the wizard's h2) and its subtitle (@Subtitle): the guided process
@@ -2325,9 +2478,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       currentStep,
       completed,
       horizontal: !md.vertical,
-      currentIndex: completed ? steps.length - 1 : currentIndex,
-      currentLabel: steps.length ? steps[completed ? steps.length - 1 : currentIndex].label : '',
-      total: steps.length,
+      // the counter counts the steps of the PROCESS: the result screen is none of them
+      currentIndex: completed ? wire.length - 1 : currentIndex,
+      currentLabel: completed ? resultTitle : (steps.length ? steps[currentIndex].label : ''),
+      total: wire.length,
       // the train (oj-train): done steps can be VISITED (go back), the remaining ones cannot —
       // you advance with the step's button, which validates
       trainSteps: wire.map((s, i) => {
@@ -3301,6 +3455,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'vaadin:cart': 'oj-ux-ico-cart',
     'vaadin:check': 'oj-ux-ico-check',
     'vaadin:clock': 'oj-ux-ico-clock',
+    'vaadin:list': 'oj-ux-ico-list',
     // the tray badge's bell (header widget)
     'vaadin:bell': 'oj-ux-ico-notification',
     'vaadin:bell-o': 'oj-ux-ico-notification',
@@ -3519,6 +3674,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
   /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
@@ -3715,6 +3871,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return route && !route.includes('${') ? route : null
   }
 
+  /**
+   * A Text's classes and inline style from its wire `style` (filtered by styleObjectOf). Redwood's
+   * oj-typography-* classes set size and weight with !important, so an inline font-weight or
+   * font-size alone would never show: a weight becomes JET's weight class, and a declared size
+   * drops the typography class (the inline size then applies).
+   */
+  function styledTextOf(cls, wireStyle) {
+    const style = styleObjectOf(wireStyle)
+    let out = cls
+    if (style.fontSize) out = out.split(' ').filter((c) => !/^oj-typography-(heading|subheading|body)-/.test(c)).join(' ')
+    const weight = String(style.fontWeight || '').trim().toLowerCase()
+    const n = weight === 'bold' || weight === 'bolder' ? 700 : weight === 'normal' || weight === 'lighter' ? 400 : Number(weight)
+    if (n >= 700) out += ' oj-typography-bold'
+    else if (n >= 500) out += ' oj-typography-semi-bold'
+    return { cls: out.trim(), style }
+  }
+
+  /** What a HorizontalLayout may hold to be painted as ONE inline row (isRow). */
+  const INLINE_ROW_TYPES = new Set(['Text', 'Button', 'Badge', 'Anchor', 'Icon'])
+
   const TEXT_CLASSES = {
     xl: 'oj-typography-heading-md',
     l: 'oj-typography-subheading-md',
@@ -3875,6 +4051,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       for (const child of kidsOf(node)) collectButtons(child, out)
       return out
     }
+    // the inline row of a HorizontalLayout (see the visitor): null when it is not one
+    const inlineRowOf = (node) => {
+      const kids = kidsOf(node).filter(Boolean)
+      const typeOf = (k) => k && k.metadata && k.metadata.type
+      if (!kids.length || !kids.every((k) => INLINE_ROW_TYPES.has(typeOf(k)))) return null
+      if (kids.every((k) => typeOf(k) === 'Button')) return null
+      const scratch = { items: [] }
+      const before = blocks.length
+      for (const kid of kids) visit(kid, scratch)
+      if (blocks.length !== before) { blocks.splice(before); return null }
+      const items = []
+      for (const a of scratch.items) {
+        if (a.isButtons) a.buttons.forEach((b) => items.push({ ...b, isButton: true }))
+        else items.push(a)
+      }
+      if (!items.length) return null
+      return {
+        isRow: true,
+        style: styleObjectOf(node.style || (node.metadata && node.metadata.style)),
+        // the row's own flags (rowText…): the template's inner pieces are not the block atoms
+        items: items.map((a, i) => ({
+          ...a,
+          key: String(i),
+          style: a.style || {},
+          rowText: !!a.isText && !a.isHeading,
+          rowHeading: !!a.isHeading,
+          rowButton: !!a.isButton,
+          rowBadge: !!a.isBadge,
+          rowAnchor: !!a.isAnchor,
+          rowIcon: !!a.isIcon,
+        })),
+      }
+    }
     // Projects children as COLUMN-BLOCKS of the oj-flex grid (colClass oj-md-(NN→twelfths)): the
     // zones of @Zones and the two panels of a master-detail. If a column generates several blocks
     // they are MERGED into one (a flex cannot stack two items in the same row cell).
@@ -3989,6 +4198,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           for (const block of blocks.slice(before)) block.fromColumns = true
           return
         }
+      }
+      // A ROW of inline pieces (HorizontalLayout of texts, buttons, badges, links, icons: a panel's
+      // title and its close button, a label and its badge, a toolbar that mixes them) → ONE isRow
+      // atom the template paints as a wrapping flex row, each piece with its own (filtered) style.
+      // The atoms of a block stack, so the row used to come out as a column. A row of buttons only
+      // keeps the button bar (isButtons); any other child (a grid, a form, a card…) keeps the
+      // stacked projection — the templates cannot nest a whole block inside an atom.
+      if (t === 'HorizontalLayout') {
+        const row = inlineRowOf(node)
+        if (row) { atom(row, container); return }
       }
       // CONSOLE / MASTER-DETAIL (MasterDetailLayout, SplitLayout): children = [master, detail].
       // Same projection as the zones: two column-blocks of the oj-flex grid (list on the
@@ -4393,10 +4612,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               // a slot header with the foldout's underline)
               isH2: m.container === 'h2',
               text,
-              cls: 'oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''),
+              // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
+              ...styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style),
             }, container)
           } else {
-            atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+            atom({ isText: true, text, ...styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style) }, container)
           }
         }
         return
@@ -6045,6 +6265,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs),
       headerBlocks: preSearch ? header.concat(preSearch) : header,
       showPreSearch: !!preSearch,
+      // the card grid shows unless the pre-search blocks stand in for the results (like the table)
+      showCards: listing.cardLayout && !preSearch,
       ...(preSearch ? {
         tableClass: listing.tableClass + ' oj-helper-hidden',
         paging: { ...listing.paging, visible: false },
@@ -6085,14 +6307,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** What a click inside the table must never turn into a row open: a control (button, link,
    *  input, the selection checkbox, an editor) or a cell of a display column. */
   const ROW_CLICK_EXCLUDED = '.' + NO_OPEN_CELL_CLASS + ', [data-method], oj-button, oj-c-button, button, a, input, select, textarea, label, '
-    + 'oj-selector, oj-c-selector, [role="checkbox"], [role="button"], [role="link"], [role="menuitem"], '
+    + 'oj-selector, oj-c-selector, oj-checkboxset, [role="checkbox"], [role="button"], [role="link"], [role="menuitem"], '
     + 'oj-input-text, oj-input-number, oj-switch, oj-select-single, oj-c-select-single, oj-menu-button, oj-c-menu-button'
 
   /** Whether a row action that started on `origin` (the original event target) is the ROW's — a
-   *  click on a plain cell — rather than a control's or a display column's. */
-  function rowActionIsRows(origin) {
+   *  click on a plain cell — rather than a control's or a display column's. `row` is the element
+   *  that IS the row when it is itself a control (a listing card is an oj-action-card, role=button):
+   *  only a control INSIDE it keeps the click for itself, not the card or what wraps it. */
+  function rowActionIsRows(origin, row) {
     if (!origin || typeof origin.closest !== 'function') return true
-    return !origin.closest(ROW_CLICK_EXCLUDED)
+    const control = origin.closest(ROW_CLICK_EXCLUDED)
+    if (!control) return true
+    return !!row && (control === row || (typeof control.contains === 'function' && control.contains(row)))
   }
 
   /** Whether the listing has had a search answered: the server's page arrives in ctx.data.crud. */
@@ -6233,6 +6459,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
         return def
       }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
+      // gridLayout = cards: a responsive grid of CARDS instead of the table (the web renderer's
+      // card grid) — the cards are precomputed per row (VB CSP); see listingCardsOf
+      cardLayout: isCardLayout(md),
+      cards: isCardLayout(md) ? listingCardsOf(statusBadgeRows(page.content || [], md.columns || []), md.columns || []) : [],
       // number of extra lines (0 = normal listing) and the table class that makes room for them
       // (PRECOMPUTED: VB CSP)
       extraLines: lines.extra.length,
@@ -6588,6 +6818,83 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         })),
       },
     }))
+  }
+
+  /**
+   * Whether the listing is laid out as a grid of CARDS (`gridLayout = cards`, or the older
+   * `listingType` card declaration with gridLayout auto) — the same rule as the web renderer's
+   * effectiveGridLayout. Anything else (table, auto, list, masterDetail, tree) keeps the table.
+   */
+  function isCardLayout(md) {
+    if (!md) return false
+    const raw = md.gridLayout || 'auto'
+    if (raw === 'auto') return md.crudlType === 'card'
+    return raw === 'cards'
+  }
+
+  /** How many plain data rows a card shows (the web renderer's cut); status badges and row actions
+   *  are never cut — they carry the row's state and its operations. */
+  const CARD_DATA_COLUMNS = 6
+
+  /**
+   * The CARDS of a `gridLayout = cards` listing, one per row, precomputed (VB CSP: the template cannot
+   * pick the title column or format a value). Mirrors the web renderer's card: the image (first
+   * `image` column), the title (the identifier column, else the first one), the status columns as
+   * badges beside the title, the secondary lines (@Line 2+) under it as «Label: value», the other
+   * line-1 columns as label/value pairs, and the row actions as buttons. `key` is the row's
+   * _rowNumber — what the row click and the selection resolve the row by. `rows` are the
+   * statusBadgeRows ones (each status already carries its badge class).
+   */
+  function listingCardsOf(rows, columns) {
+    const cols = (columns || []).map((col) => col.metadata || col)
+    const { first, extra } = rowLinesSplit(cols)
+    const isAction = (c) => c.dataType === 'actionGroup' || c.dataType === 'action' || c.dataType === 'menu'
+    const firstCols = first.map((col) => col.metadata || col)
+    const visible = firstCols.slice(0, CARD_DATA_COLUMNS)
+      .concat(firstCols.slice(CARD_DATA_COLUMNS).filter((c) => isAction(c) || c.dataType === 'status'))
+    const image = visible.find((c) => c.stereotype === 'image')
+    const textual = visible.filter((c) => c !== image && !isAction(c))
+    const title = textual.find((c) => c.identifier && c.dataType !== 'status') || textual.find((c) => c.dataType !== 'status')
+    const badges = textual.filter((c) => c.dataType === 'status')
+    const pairs = textual.filter((c) => c !== title && c.dataType !== 'status')
+    const actionCols = visible.filter((c) => c.dataType === 'actionGroup')
+    const textOf = (c, v) => {
+      const shown = valueLabelOf(c, v)
+      return lineValueText(shown)
+    }
+    return (rows || []).filter((row) => row && !row._group).map((row) => {
+      const card = {
+        key: row._rowNumber,
+        rowId: row.id == null ? '' : String(row.id),
+        title: title ? textOf(title, row[title.id]) : '',
+        image: image && row[image.id] ? String(row[image.id]) : '',
+        badges: badges.map((c) => {
+          // the rows come through statusBadgeRows: a status (object or plain word) carries its badge
+          const status = row[c.id]
+          return status && typeof status === 'object' ? { key: c.id, text: lineValueText(status), cls: status.badgeClass || STATUS_BADGE.NONE } : null
+        }).filter((b) => b && b.text),
+        lines: extra.map((line, i) => ({
+          key: 'l' + (i + 2),
+          pairs: line.map((col) => col.metadata || col).map((c) => ({ key: c.id, label: c.label || c.id, text: textOf(c, row[c.id]) }))
+            .filter((p) => p.text !== ''),
+        })).filter((l) => l.pairs.length),
+        pairs: pairs.map((c) => ({ key: c.id, label: c.label || c.id, text: textOf(c, row[c.id]) })),
+        actions: actionCols.flatMap((c) => ((row[c.id] && row[c.id].actions) || [])
+          .map((a) => ({ key: c.id + ':' + a.methodNameInCrud, methodNameInCrud: a.methodNameInCrud, label: a.label || a.methodNameInCrud }))),
+      }
+      card.hasImage = !!card.image
+      card.hasBadges = card.badges.length > 0
+      card.hasActions = card.actions.length > 0
+      return card
+    })
+  }
+
+  /** The listing selection after a card's checkbox changed: the key added or removed (a «select
+   *  all» from the table does not exist in cards, so the selection is always a plain key list). */
+  function toggleSelectionKey(selection, key, checked) {
+    const keys = (selection && !selection.all && Array.isArray(selection.keys) ? selection.keys : [])
+      .filter((k) => String(k) !== String(key))
+    return { all: false, keys: checked ? keys.concat([key]) : keys, except: [] }
   }
 
   const CLIP_CELL_SUFFIX = '__clipCell'
@@ -12277,10 +12584,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ((foldout && foldout.panels) || []).map((_, i) => i).filter((i) => isPanelFolded(foldout, i))
   }
 
-  /** The wire panel index a `selectedPanel` value names: the layout counts the overview as panel 0. */
-  function wirePanelIndexOf(selectedPanel) {
+  /** How many layout panels precede the wire panels: the overview column (1), none when the
+   *  overview runs across the top (orientation horizontal: it is the layout's `overview` slot). */
+  function overviewPanelsOf(foldout) {
+    return foldout && foldout.overviewOnTop ? 0 : 1
+  }
+
+  /** The wire panel index a `selectedPanel` value names: the layout counts the overview column as
+   *  panel 0 (unless the overview is on top — see overviewPanelsOf). */
+  function wirePanelIndexOf(selectedPanel, foldout) {
     const n = Number(selectedPanel)
-    return Number.isInteger(n) && n >= 1 ? n - 1 : -1
+    const first = overviewPanelsOf(foldout)
+    return Number.isInteger(n) && n >= first ? n - first : -1
   }
 
   /** Marks a panel as unfolded. Returns whether it was folded. */
@@ -12309,11 +12624,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!layout || !foldout) return false
     const panels = foldout.panels || []
     const containers = containersOf(layout)
-    if (containers.length < panels.length + 1) return false
+    const offset = overviewPanelsOf(foldout)
+    if (containers.length < panels.length + offset) return false
     layout.__mateuFoldout = foldout
     wireSelection(layout)
     panels.forEach((panel, i) => {
-      const container = containers[i + 1]
+      const container = containers[i + offset]
       const element = container && panelOf(container)
       if (!element) return
       const folded = isPanelFolded(foldout, i)
@@ -12331,13 +12647,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     layout.__mateuFoldWired = true
     layout.addEventListener('selectedPanelChanged', (e) => {
       const foldout = layout.__mateuFoldout
-      const index = wirePanelIndexOf(e && e.detail ? e.detail.value : layout.selectedPanel)
+      const index = wirePanelIndexOf(e && e.detail ? e.detail.value : layout.selectedPanel, foldout)
       if (!foldout || index < 0 || !unfoldPanel(foldout, index)) return
       applyFoldoutFolds(layout, foldout)
       // the strip grew to the panel's width: bring it into view. NOT layout.refresh(): the carousel
       // measures its panels live (dots and scroll keep working), and a refresh re-applies its own
       // scroll position a second later, sliding the panel the user just opened back out of view
-      const container = containersOf(layout)[index + 1]
+      const container = containersOf(layout)[index + overviewPanelsOf(foldout)]
       const reveal = () => container && container.scrollIntoView && container.scrollIntoView({ block: 'nearest', inline: 'nearest' })
       if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => requestAnimationFrame(reveal))
       else reveal()
@@ -13489,6 +13805,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
   // code) travel on the wire App as `actions`, each with its steps LOWERED to `commands`. A menu leaf
   // (RuleLink) whose RunAction rule names one runs those commands in the browser — no server
@@ -13619,6 +13936,94 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     win.__mateuUnsavedGuard = uninstall
     return uninstall
+  }
+
+  /**
+   * The actions that LEAVE the screen without saving: the editor's Cancel, a crud's back to the
+   * listing, a page's Back. The ids the server treats as such: `FormMapper.resolveStyle` gives them
+   * the tertiary look (`cancel*`, `back`, `backToList`) and the crud/editable view name theirs
+   * `cancel-create` / `cancel-new` / `cancel-edit` / `cancel-view`. Of the `cancel` family only
+   * `cancel` itself and `cancel-…` count: a business `cancelBooking` does not leave the screen.
+   * Port of libs/mateu leaveActions.ts — keep both in step.
+   */
+  function isLeaveAction(actionId, ownerActionIds = []) {
+    if (typeof actionId !== 'string' || !actionId) return false
+    if (isWizardStepAction(actionId, ownerActionIds)) return false
+    return actionId === 'cancel' || actionId.indexOf('cancel-') === 0 || actionId === 'back' || actionId === 'backToList'
+  }
+
+  /** The ids a wizard steps with (WizardActionDispatcher): they move inside the screen, never out of it. */
+  const WIZARD_STEP_ACTIONS = ['next', 'back', 'skip', 'goToStep']
+
+  /**
+   * Is `actionId` a step of a wizard? It is when the screen running it is a wizard, which always
+   * advertises `next` (archetypes.mjs wizardOf's test). A wizard's Back keeps what was typed: asking
+   * «leave this screen?» there would be wrong. Port of leaveActions.ts isWizardStepAction.
+   */
+  function isWizardStepAction(actionId, ownerActionIds) {
+    return WIZARD_STEP_ACTIONS.indexOf(actionId) >= 0 && (ownerActionIds || []).indexOf('next') >= 0
+  }
+
+  /**
+   * The action ids the screen on display advertises: the host's and those of the overlays open over
+   * it (a wizard can open in a drawer), at any depth of their trees — where a step action's owner is.
+   */
+  function screenActionIdsOf(reg) {
+    const ids = []
+    const walk = (node) => {
+      if (!node || typeof node !== 'object') return
+      for (const a of node.actions || []) if (a && a.id) ids.push(a.id)
+      for (const child of node.children || []) walk(child)
+    }
+    const contexts = (reg && reg.contexts) || {}
+    for (const id of [HOST_ID].concat((reg && reg.stack) || [])) {
+      const ctx = contexts[id]
+      if (ctx) walk(ctx.tree)
+    }
+    return ids
+  }
+
+  /**
+   * Before running a LEAVE action (isLeaveAction) on a screen with unsaved changes (`mateuDirty` in
+   * VB's application variables `vars`): the same question a menu click or the browser's back button
+   * asks (onMateuNavigate's dirtyGuard, `unsavedLeave`). False = the user stays: send nothing. True =
+   * go on; when it asked, the flag is cleared so the navigation the action answers with does not ask
+   * again. What the Vaadin renderer does in mateu-component (dirtyGuard.confirmLeave).
+   */
+  function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined)) {
+    if (!vars || !vars.mateuDirty) return true
+    if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
+    if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
+    vars.mateuDirty = false
+    return true
+  }
+
+  /**
+   * Does a context ask before it is left (@ConfirmOnNavigationIfDirty — crud create/edit views opt in)?
+   * Any ServerSide in its tree may carry it: the edited field's owner can sit below the context's root
+   * (a crud mediator wrapping its form).
+   */
+  function tracksUnsavedChanges(ctx) {
+    const walk = (node) => !!node && typeof node === 'object'
+      && (node.confirmOnNavigationIfDirty === true || (node.children || []).some(walk))
+    return !!(ctx && walk(ctx.tree))
+  }
+
+  /**
+   * THE rule for «an edit leaves unsaved changes» (mateuDirty), the same as Vaadin's: mateu-component
+   * dispatches `dirty` only when the component owning the field asks before it is left
+   * (`confirmOnNavigationIfDirty`). A search box, a filter or a plain form never makes the menu, back,
+   * reload or a Cancel ask. Which context owns the edited field: the open island (`islandId`), the
+   * top overlay (`overlay`: a drawer/dialog form), else the host. Used by every field-edit chain
+   * (mateuFieldEdited, hostInputChanged, islandFieldEdited).
+   */
+  function fieldEditLeavesUnsavedChanges(reg, { overlay = false, islandId = '' } = {}) {
+    const contexts = (reg && reg.contexts) || {}
+    const stack = (reg && reg.stack) || []
+    const ctx = islandId ? contexts[islandId]
+      : overlay ? (stack.length ? contexts[stack[stack.length - 1]] : undefined)
+        : contexts[HOST_ID]
+    return tracksUnsavedChanges(ctx)
   }
 
 
@@ -17565,7 +17970,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (option.visible === false) {
           if (app) {
             adoptRemote(app.menu, option, app)
-            out.push(...markHidden(app.menu))
+            // grouped as a visible one would be (navTree.ts does the same), then hidden
+            const shaped = sections && depth === 0 ? asSection(app.menu, option) : app.menu
+            out.push(...markHidden(labelledByShell(shaped, option)))
           } else {
             out.push(option)
           }
@@ -17574,8 +17981,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (app) {
           adoptRemote(app.menu, option, app)
           // HAMBURGER_SECTIONS: a pod mounted at the first level is ONE section whatever it
-          // answers (asSection, navTree.mjs); otherwise, the label the shell declared wins over
-          // the pod's
+          // answers (asSection, navTree.mjs); otherwise, the label the shell declared names the
+          // pod's entry, or groups its entries (labelledByShell)
           const entries = sections && depth === 0 ? asSection(app.menu, option) : app.menu
           out.push(...labelledByShell(entries, option))
         } else {
@@ -17621,6 +18028,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // Silent on purpose (quiet/isolated): the section stays unavailable (spliceRemote).
       }
     }))
+    // two sources claiming the same route: the later registration wins without a word — say so
+    for (const collision of routeCollisionsOf(menu, answers, remotes)) {
+      console.warn(routeCollisionMessage(collision))
+    }
     return spliceRemote(menu, answers, sections)
   }
 
@@ -22775,6 +23186,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
     withListingSelection,
@@ -22831,6 +23243,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     menuRulePlanOf,
     // unsaved changes when the window goes away (reload / close): the browser's own prompt
     installUnsavedChangesGuard,
+    // unsaved changes before a LEAVE action (Cancel, back to the list…): the navigation question
+    isLeaveAction,
+    confirmLeaveAction,
+    tracksUnsavedChanges,
+    fieldEditLeavesUnsavedChanges,
     // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
     pageFlowOf,
     catalogueActionOf,
@@ -22881,6 +23298,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pageSubtitleOf,
     collectTexts,
     foldoutOf,
+    foldoutContentOf,
+    sameFoldoutStructure,
     wizardOf,
     callMateu,
     // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path
