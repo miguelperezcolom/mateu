@@ -5065,7 +5065,7 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
 }
 
 // ── leave actions with unsaved changes (BUGS-MATEU #7) ────────────────────────────────────────
-import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction } from './shellFlows.mjs'
+import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction, fieldEditLeavesUnsavedChanges } from './shellFlows.mjs'
 {
   test('isLeaveAction: the ids the server styles as leave actions (FormMapper) and the crud\'s, no business «cancelX»', () => {
     for (const id of ['cancel', 'cancel-new', 'cancel-create', 'cancel-edit', 'cancel-view', 'back', 'backToList']) assert.equal(isLeaveAction(id), true, id)
@@ -5112,6 +5112,19 @@ import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges, screenActionId
     assert.equal(tracksUnsavedChanges({ tree: { confirmOnNavigationIfDirty: false } }), false)
     assert.equal(tracksUnsavedChanges({ tree: {} }), false)
     assert.equal(tracksUnsavedChanges(undefined), false)
+    // the owner may sit below the context's root (a crud mediator wrapping its form)
+    assert.equal(tracksUnsavedChanges({ tree: { children: [{ children: [{ confirmOnNavigationIfDirty: true }] }] } }), true)
+  })
+
+  test('fieldEditLeavesUnsavedChanges: the context that owns the edit decides — host, top overlay or island', () => {
+    const tracked = { tree: { confirmOnNavigationIfDirty: true } }
+    const plain = { tree: {} }
+    const reg = { stack: ['d1', 'd2'], contexts: { [HOST_ID]: tracked, d1: tracked, d2: plain, isl: tracked } }
+    assert.equal(fieldEditLeavesUnsavedChanges(reg), true)
+    assert.equal(fieldEditLeavesUnsavedChanges(reg, { overlay: true }), false, 'the TOP overlay owns it')
+    assert.equal(fieldEditLeavesUnsavedChanges(reg, { islandId: 'isl' }), true)
+    assert.equal(fieldEditLeavesUnsavedChanges({ stack: [], contexts: { [HOST_ID]: plain } }), false)
+    assert.equal(fieldEditLeavesUnsavedChanges({ stack: [], contexts: {} }, { overlay: true }), false)
   })
 }
 

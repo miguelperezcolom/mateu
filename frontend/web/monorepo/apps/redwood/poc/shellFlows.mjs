@@ -194,11 +194,29 @@ export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'und
 }
 
 /**
- * Does editing a field of the HOST's display blocks (hostInputChanged: a crud's form rendered as
- * host content, a fluent FormField) leave unsaved changes? When the host is a form that asks before
- * it is left (@ConfirmOnNavigationIfDirty — crud create/edit views opt in): what Vaadin's
- * mateu-component tracks. A search box on a page that does not opt in is not «unsaved changes».
+ * Does a context ask before it is left (@ConfirmOnNavigationIfDirty — crud create/edit views opt in)?
+ * Any ServerSide in its tree may carry it: the edited field's owner can sit below the context's root
+ * (a crud mediator wrapping its form).
  */
 export function tracksUnsavedChanges(ctx) {
-  return !!(ctx && ctx.tree && ctx.tree.confirmOnNavigationIfDirty)
+  const walk = (node) => !!node && typeof node === 'object'
+    && (node.confirmOnNavigationIfDirty === true || (node.children || []).some(walk))
+  return !!(ctx && walk(ctx.tree))
+}
+
+/**
+ * THE rule for «an edit leaves unsaved changes» (mateuDirty), the same as Vaadin's: mateu-component
+ * dispatches `dirty` only when the component owning the field asks before it is left
+ * (`confirmOnNavigationIfDirty`). A search box, a filter or a plain form never makes the menu, back,
+ * reload or a Cancel ask. Which context owns the edited field: the open island (`islandId`), the
+ * top overlay (`overlay`: a drawer/dialog form), else the host. Used by every field-edit chain
+ * (mateuFieldEdited, hostInputChanged, islandFieldEdited).
+ */
+export function fieldEditLeavesUnsavedChanges(reg, { overlay = false, islandId = '' } = {}) {
+  const contexts = (reg && reg.contexts) || {}
+  const stack = (reg && reg.stack) || []
+  const ctx = islandId ? contexts[islandId]
+    : overlay ? (stack.length ? contexts[stack[stack.length - 1]] : undefined)
+      : contexts[HOST_ID]
+  return tracksUnsavedChanges(ctx)
 }

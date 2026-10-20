@@ -136,6 +136,8 @@ chains.onMateuNavigate = chain('pages/shell-page-chains/onMateuNavigate.js')
 chains.runMateuAction = chain('flows/main/pages/main-start-page-chains/runMateuAction.js')
 chains.runMateuIslandAction = chain('flows/main/pages/main-start-page-chains/runMateuIslandAction.js')
 chains.hostInputChanged = chain('flows/main/pages/main-start-page-chains/hostInputChanged.js')
+chains.mateuFieldEdited = chain('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
+chains.islandFieldEdited = chain('flows/main/pages/main-start-page-chains/islandFieldEdited.js')
 const planningGanttEvent = chain('flows/main/pages/main-start-page-chains/planningGanttEvent.js')
 
 // ── the backend: a scripted fetch ──────────────────────────────────────────────────────────────
@@ -630,6 +632,49 @@ test('runMateuAction: a LEAVE action (Cancel…) with unsaved changes asks first
   confirmAnswer = false
   await act(ctx, 'cancel-edit')
   assert.deepEqual(cancelled, ['save', 'cancel-edit', 'cancel-edit'])
+})
+
+test('mateuFieldEdited: ONE dirty rule with Vaadin — only a form that asks before it is left; a drawer form by its own flag', async () => {
+  answer(byRoute('/tracked'), replace(page('pt', 'x.Edit', 'Edit')))
+  answer(byRoute('/plain'), replace(page('pp', 'x.Filters', 'Filters')))
+  const typed = { detail: { value: 'Ana X', updatedFrom: 'internal' } }
+  const ctx = newContext()
+  await navigate(ctx, '/plain')
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'q', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, false, 'a form that does not ask: no unsaved changes')
+  assert.equal(ctx.$page.variables.mateuDraft.q, 'Ana X', 'the draft is written all the same')
+  await navigate(ctx, '/tracked')
+  const reg = ctx.$application.variables.mateuRegistry
+  reg.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  // a drawer open over it: its OWN flag decides (the crud drawer's form does not carry one)
+  ctx.$application.variables.mateuDirty = false
+  ctx.$application.variables.mateuRegistry = { ...reg, stack: ['dr'], contexts: { ...reg.contexts, dr: { tree: { type: 'ServerSide', actions: [], children: [] } } } }
+  ctx.$application.variables.mateuDrawerOpen = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, false)
+  ctx.$application.variables.mateuRegistry.contexts.dr.tree.confirmOnNavigationIfDirty = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  ctx.$application.variables.mateuDrawerOpen = false
+})
+
+test('islandFieldEdited and an island input through hostInputChanged: dirty only when the island asks before it is left', async () => {
+  const ctx = newContext()
+  const typed = { detail: { value: 'x', updatedFrom: 'internal' } }
+  ctx.$application.variables.mateuIslandId = 'isl'
+  ctx.$application.variables.mateuRegistry = { stack: [], contexts: { isl: { tree: { type: 'ServerSide', actions: [], children: [] } } } }
+  await new chains.islandFieldEdited().run(ctx, { fieldId: 'a', event: typed })
+  await new chains.hostInputChanged().run(ctx, { fieldId: 'a', event: typed, fromNested: true })
+  assert.equal(ctx.$application.variables.mateuDirty, false)
+  assert.equal(ctx.$page.variables.mateuIslandDraft.a, 'x')
+  ctx.$application.variables.mateuRegistry.contexts.isl.tree.children = [{ type: 'ServerSide', confirmOnNavigationIfDirty: true, children: [] }]
+  await new chains.islandFieldEdited().run(ctx, { fieldId: 'a', event: typed })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  ctx.$application.variables.mateuDirty = false
+  await new chains.hostInputChanged().run(ctx, { fieldId: 'a', event: typed, fromNested: true })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
 })
 
 test('runMateuAction: a wizard\'s Back (step navigation) does not ask about unsaved changes; its Cancel does', async () => {

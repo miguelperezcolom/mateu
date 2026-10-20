@@ -47,9 +47,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   sends nothing. A business action that merely starts with `cancel` (`cancelBooking`) is not one,
   and neither is a wizard's Back (or any wizard step action): it moves between steps of the same
   screen and keeps what was typed, so it never asks; the wizard's Cancel does.
-  Also on Redwood, typing in a CRUD form painted as page content (`hostInputChanged`) marks the
-  screen dirty again when it asks before being left (`@ConfirmOnNavigationIfDirty`, CRUD edit views),
-  so menu, back and reload ask there too. (Vaadin, Redwood)
+  Redwood now follows Vaadin's single rule for unsaved changes: an edit marks the screen dirty only
+  when the form that owns the field asks before it is left (`@ConfirmOnNavigationIfDirty`, CRUD
+  create/edit views), in every edit path (page forms, forms painted as page content, drawers and
+  dialogs by their own form, islands). Before, any edit on any Redwood form counted — a filter or
+  search box too — while a CRUD form painted as page content never did, so its menu, back and
+  reload did not ask. (Vaadin, Redwood)
 
 - **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of
   Micronaut's (`MateuMicronautJsonMapper`, `MateuMicronautJacksonDatabindMapper`) left Jackson's

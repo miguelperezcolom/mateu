@@ -38,6 +38,11 @@ define([
       // goes to the island's draft (runMateuIslandAction merges it into its componentState) and
       // does NOT relaunch the host's auto-save
       if (fromNested) {
+        // unsaved changes only where the island asks before it is left (Vaadin's rule, shellFlows.mjs)
+        if (bridge.fieldEditLeavesUnsavedChanges($application.variables.mateuRegistry,
+          { islandId: $application.variables.mateuIslandId })) {
+          $application.variables.mateuDirty = true;
+        }
         const islandDraft = Object.assign({}, $page.variables.mateuIslandDraft);
         islandDraft[fieldId] = detail.value;
         $page.variables.mateuIslandDraft = islandDraft;
@@ -47,8 +52,8 @@ define([
       draft[fieldId] = detail.value;
       $page.variables.mateuDraft = draft;
       // a form that asks before it is left (@ConfirmOnNavigationIfDirty, a crud's edit view) now
-      // has unsaved changes: the menu, back, reload and its Cancel ask (mateuFieldEdited's rule)
-      if (bridge.tracksUnsavedChanges(($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID])) {
+      // has unsaved changes: the menu, back, reload and its Cancel ask (Vaadin's rule, shellFlows.mjs)
+      if (bridge.fieldEditLeavesUnsavedChanges($application.variables.mateuRegistry)) {
         $application.variables.mateuDirty = true;
       }
       // @Trigger(OnValueChange): the changed field fires its action (the draft already carries the new

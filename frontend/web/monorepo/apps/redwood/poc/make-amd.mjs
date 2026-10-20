@@ -329,6 +329,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     isLeaveAction,
     confirmLeaveAction,
     tracksUnsavedChanges,
+    fieldEditLeavesUnsavedChanges,
     // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
     pageFlowOf,
     catalogueActionOf,
