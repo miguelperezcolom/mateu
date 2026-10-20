@@ -11,6 +11,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: the message band's close button closes the notice.** The band's keys came from a
+  counter typed as a string with no default, so the first notice had no id and every later one was
+  `"NaN"`: closing removed nothing and an error stayed on screen for good. The counter is now a
+  number and each notice gets its own text key, the one `spClose` hands back.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.

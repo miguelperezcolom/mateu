@@ -11,8 +11,12 @@ define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) =>
     /** @param {{event: {summary: string, message: string, displayMode: string, type: string}}} params */
     async run(context, { event }) {
       const { $page } = context;
-      const id = $page.variables.messageId;
-      $page.variables.messageId = id + 1;
+      // the band's keys: a number sequence, as TEXT (MessagesBannerType.id is a string, and VB
+      // coerces it). With the counter typed as a string with no default the first notice had no id
+      // and the next ones were all "NaN", so closing one removed nothing.
+      const n = Number($page.variables.messageId) || 0;
+      $page.variables.messageId = n + 1;
+      const id = String(n);
       const banner = $page.variables.messagesBannerADP;
       await Actions.fireDataProviderEvent(context, {
         target: banner,
