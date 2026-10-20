@@ -76,6 +76,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   with the component id `"fieldId"` (only the metadata carried `x`), so Redwood could not tell that
   an overlay re-sent while open was the same one and stacked a second drawer instead of refreshing
   it. Without an id the filler `"fieldId"` stays. (Java; .NET and Python already sent the id)
+### Fixed
+- **A CRUD view's `@ViewToolbarButton` that answers with a message refreshes the record.** A button
+  that changed the record in the store and returned `Message.success(...)` left the view on the old
+  values (workaround was `UICommand.navigateTo("/<crud>/<id>")`). A message-only answer now also
+  sends the record reloaded from the store; any other answer is used as it is. (Java; the .NET and
+  Python ports do not dispatch view-toolbar methods)
 
 ## [3.0-beta.7] — 2026-10-19
 
