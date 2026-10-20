@@ -326,7 +326,7 @@ public abstract class CollectionDetail<TRow> : IComponentTreeSupplier, IRefreshO
     protected virtual IReadOnlyList<Chip> BadgesOf(TRow row) => [];
 
     /// <summary>Label over the list. Default: a results counter.</summary>
-    protected virtual string ListLabel(int count) => $"{count} items";
+    protected virtual string ListLabel(int count) => count == 1 ? "1 item" : $"{count} items";
 
     /// <summary>CSS flex-basis of the list column.</summary>
     protected virtual string ListWidth => "24rem";

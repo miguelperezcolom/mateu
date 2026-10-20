@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * cell (the availability of a hotel's Property Calendar) and {@link #daysClickable} + {@link
  * #actionOnDay} make the cells themselves act.
  */
-public abstract class CalendarPage implements TriggersSupplier {
+public abstract class CalendarPage implements io.mateu.core.domain.RequestBound, TriggersSupplier {
 
   @Hidden public LocalDate _month;
 
@@ -108,6 +108,12 @@ public abstract class CalendarPage implements TriggersSupplier {
 
   // the request of the call being served: wiring, not state — transient keeps it off the wire
   private transient HttpRequest currentRequest;
+
+  /** The request being served, handed over before the tree is built (see {@code RequestBound}). */
+  @Override
+  public void bindRequest(HttpRequest httpRequest) {
+    currentRequest = httpRequest;
+  }
 
   private LocalDate currentMonth() {
     return _month != null ? _month : initialMonth();

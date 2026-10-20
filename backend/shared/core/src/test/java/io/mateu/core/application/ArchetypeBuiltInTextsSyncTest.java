@@ -31,7 +31,8 @@ class ArchetypeBuiltInTextsSyncTest {
           "Week", "Semana",
           "All caught up!", "¡Todo al día!",
           "Select an item", "Selecciona un elemento",
-          "items", "elementos");
+          "items", "elementos",
+          "item", "elemento");
 
   static class SpanishTranslator implements Translator {
     @Override

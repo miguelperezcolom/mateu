@@ -687,7 +687,10 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
 
     /// <summary>Fills a method's parameters from the action request: a row-click's _clickedRow
     /// parameter is rebuilt into the parameter's type ([OnRowSelected] methods take the clicked
-    /// row); anything unfillable is null (mirrors Java's RunMethodActionRunner.createParameters).</summary>
+    /// row); anything unfillable is null (mirrors Java's RunMethodActionRunner.createParameters).
+    /// Without _clickedRow, the row is read from the action's loose parameters — what the
+    /// renderers send when a row is OPENED — taking only those named like a property of the
+    /// parameter's type (mirrors Java's HttpRequest.getClickedRow).</summary>
     private static object?[] BuildArguments(MethodInfo method, RunActionRqDto rq)
     {
         var parameters = method.GetParameters();
@@ -708,8 +711,28 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                 BindState(entity, row.EnumerateObject().ToDictionary(x => x.Name, x => (object?)x.Value));
                 return (object?)entity;
             }
+            if (clickedRow is null && !rq.Parameters.ContainsKey("_clickedRow")
+                && p.ParameterType is { IsClass: true } looseType && looseType != typeof(string)
+                && LooseRow(rq.Parameters, looseType) is { Count: > 0 } loose)
+            {
+                var entity = Activator.CreateInstance(looseType)!;
+                BindState(entity, loose);
+                return (object?)entity;
+            }
             return null;
         }).ToArray();
+    }
+
+    /// <summary>The action's parameters that are columns of <paramref name="rowType"/> (never the
+    /// internal ones: a leading underscore, initiatorState).</summary>
+    private static Dictionary<string, object?> LooseRow(Dictionary<string, object?> parameters, Type rowType)
+    {
+        var columns = ReflectionMapper.EditableProperties(rowType)
+            .Select(p => Naming.CamelCase(p.Name))
+            .ToHashSet();
+        return parameters
+            .Where(kv => !kv.Key.StartsWith('_') && kv.Key != "initiatorState" && columns.Contains(kv.Key))
+            .ToDictionary(kv => kv.Key, kv => kv.Value);
     }
 
     /// <summary>The base URL the current request came in through (scheme://host/prefix), or null.</summary>

@@ -31,7 +31,7 @@ import java.util.concurrent.Callable;
  * (default: first appearance), {@link #emptyState} customizes the all-caught-up pane shown when
  * there is nothing pending.
  */
-public abstract class TodoList<Row> implements TriggersSupplier {
+public abstract class TodoList<Row> implements io.mateu.core.domain.RequestBound, TriggersSupplier {
 
   @Hidden public String _itemId;
 
@@ -102,6 +102,12 @@ public abstract class TodoList<Row> implements TriggersSupplier {
 
   // the request of the call being served: wiring, not state — transient keeps it off the wire
   private transient HttpRequest currentRequest;
+
+  /** The request being served, handed over before the tree is built (see {@code RequestBound}). */
+  @Override
+  public void bindRequest(HttpRequest httpRequest) {
+    currentRequest = httpRequest;
+  }
 
   private Component build() {
     var rows = rows(currentRequest);

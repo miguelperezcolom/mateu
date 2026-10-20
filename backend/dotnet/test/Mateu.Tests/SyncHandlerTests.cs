@@ -1968,6 +1968,30 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void Row_click_sent_as_loose_parameters_is_the_clicked_row_too()
+    {
+        // What the renderers send when a row is OPENED: the row's values as the action's own
+        // parameters, not under _clickedRow (mirrors Java's HttpRequest.getClickedRow).
+        var rq = new RunActionRqDto
+        {
+            ActionId = "onGuestSelected",
+            Route = "checkin",
+            ServerSideType = typeof(CheckInForm).FullName,
+            Parameters = new()
+            {
+                ["name"] = JsonSerializer.SerializeToElement("Ann"),
+                ["age"] = JsonSerializer.SerializeToElement(41),
+                ["_internal"] = JsonSerializer.SerializeToElement("x"),
+            },
+        };
+
+        var inc = Handler().Handle(rq);
+
+        Assert.Equal("Selected Ann", Assert.Single(inc.Messages).Text);
+        Assert.Equal("Ann/41", CheckInForm.LastSelected);
+    }
+
+    [Fact]
     public void Hidden_disabled_and_supplier_rules_ride_on_the_server_side_component()
     {
         var json = Render(Handler().Handle(new RunActionRqDto { Route = "ruled", ConsumedRoute = "ruled" }));

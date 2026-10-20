@@ -87,7 +87,7 @@ wrong for your case.
 | Create/edit in a panel that slides over the listing (which never unmounts) | **Create & Edit Drawer** | [`editInDrawer()`](/ux-patterns/drawer/#crud-editing-in-a-drawer-editindrawer) |
 | A list with an in-place detail pane and actions on the selected item | **Collection Detail** | [`CollectionDetail<Row>`](/ux-patterns/collection-detail/) |
 | A multi-step process, 2–25 steps, with a lateral progress rail | **Guided Process** | [`Wizard`](/ux-patterns/wizard/) + `@WizardProgress(RAIL)` |
-| A short sub-flow or batch action inside a drawer (≤5 steps) | **Guided Process Drawer** | [`Drawer`](/ux-patterns/drawer/) + `EmbeddedView(wizard)` |
+| A short sub-flow or batch action inside a drawer (≤5 steps) | **Guided Process Drawer** | [`Drawer`](/ux-patterns/drawer/) + `EmbeddedView(wizard)` (drawn as a generic wizard in the drawer) |
 | A dense datagrid you edit in place, optionally switching to a Gantt | **Data Management** | [`DataManagement`](/ux-patterns/data-management/) (grid ⇄ Gantt switch) |
 | A scheduling canvas: Gantt + docked detail panel | **Gantt page** | [`GanttPage`](/ux-patterns/gantt/#gantt-page-template-ganttpage-archetype) |
 

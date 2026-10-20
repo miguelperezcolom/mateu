@@ -2,6 +2,7 @@ import { collectTexts } from './tree.mjs'
 import { BADGE_CLASSES, interpolate, islandContentOf } from './content.mjs'
 import { PANE_TYPES, findOutside, pageHeaderNodeOf } from './pageHeader.mjs'
 import { STATUS_BADGE, findByType, findFirst } from './listing.mjs'
+import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
 /** FOLDOUT projection (Phase 7): overview + panels with their headers (metadata.panels)
@@ -139,11 +140,15 @@ export function wizardOf(ctx) {
   }))
   // RESULT: with every step done (the wire does not bring the result step, which is not a
   // step of the process) the guided process stayed on the last step — its title and its
-  // Cancel/Done footer. A final «Completed» step is added, done and current: the title says it
-  // finished and the footer is hidden (completed → class mateu-wizard-completed on the page)
+  // Cancel/Done footer. A final step is added, done and current, titled like the wizard's result
+  // step (the wire's resultTitle, its @Label; a translated «Completed» when an older server sends
+  // none): the title names the outcome and the footer is hidden (completed → class
+  // mateu-wizard-completed on the page, which also hides the template's «n | total» counter,
+  // since that screen is no step of the process)
   const completed = wire.length > 0 && wire.every((s, i) => statusOf(s, i) === 'done')
+  const resultTitle = md.resultTitle ? String(md.resultTitle) : chromeText('wizardCompleted')
   if (completed) {
-    steps.push({ id: WIZARD_DONE_STEP, label: 'Completed', title: 'Completed', display: 'on', status: 'success' })
+    steps.push({ id: WIZARD_DONE_STEP, label: resultTitle, title: resultTitle, display: 'on', status: 'success' })
   }
   const currentStep = completed ? WIZARD_DONE_STEP : currentId
   // the process title (the wizard's h2) and its subtitle (@Subtitle): the guided process
@@ -161,9 +166,10 @@ export function wizardOf(ctx) {
     currentStep,
     completed,
     horizontal: !md.vertical,
-    currentIndex: completed ? steps.length - 1 : currentIndex,
-    currentLabel: steps.length ? steps[completed ? steps.length - 1 : currentIndex].label : '',
-    total: steps.length,
+    // the counter counts the steps of the PROCESS: the result screen is none of them
+    currentIndex: completed ? wire.length - 1 : currentIndex,
+    currentLabel: completed ? resultTitle : (steps.length ? steps[currentIndex].label : ''),
+    total: wire.length,
     // the train (oj-train): done steps can be VISITED (go back), the remaining ones cannot —
     // you advance with the step's button, which validates
     trainSteps: wire.map((s, i) => {

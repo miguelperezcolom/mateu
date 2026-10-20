@@ -113,13 +113,24 @@ When you run your Quarkus application, you will find your ui at [http://localhos
 A view (a `@UI` class, a menu target, an `AutoCrud`, a lookup supplier…) does not need to be a bean:
 Mateu creates it on every request and still fills its `@Inject` fields. If you make it one — e.g. for
 constructor injection — use `@Dependent`: a view holds per-request state, and an `@ApplicationScoped`
-one is shared by every request and user.
+one would be shared by every request and user. Mateu does not use a shared instance: it builds a fresh
+one per request (constructor and `@Inject` fields from the container, `@PostConstruct` run) and logs a
+one-time warning — ArC interceptors (`@Transactional`…) do not apply to that instance.
 
 Mateu reaches those classes only by reflection, so ArC sees nothing that injects them. By default it
 would remove them as unused beans at build time — and, with them, the services only they inject,
 leaving those `@Inject` fields `null`. `mateu-quarkus` therefore sets
 `quarkus.arc.remove-unused-beans=fwk` (keep every bean declared in your application, still remove
 unused framework beans); no `@Unremovable` is needed. Your `application.properties` can override it.
+
+### Live reload in `quarkus:dev`
+
+`mateu-quarkus` turns Mateu's [development mode](/java-create-your-project/configuration/#development-mode-live-reload)
+on in Quarkus's **dev profile** (`%dev.mateu.dev=true`, a default your `application.properties`
+overrides): under `mvn quarkus:dev` the specs are read from `src/main/resources/specs/ui` and
+watched, and when you edit a Java class the open browser tab is re-rendered once Quarkus has
+recompiled it — no manual reload. The packaged application (prod profile) and the tests never get
+it. To opt out, set `%dev.mateu.dev=false`.
 
 An empty class renders an empty page. For a complete project on this runtime — a model, a store and
 a full CRUD, with this exact build setup — copy the [`starters/quarkus`](https://github.com/miguelperezcolom/mateu/tree/master/starters/quarkus) project; CI

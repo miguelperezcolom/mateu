@@ -234,6 +234,9 @@ Key points:
 - The `:id` segment is populated automatically by Mateu
 - `save()` returns both a `Message` (toast notification) and a `State(this)` (refresh the form state)
 - The page is a `@Service` bean, so `UserStore` is injected via constructor
+- The CRUD's **Cancel** (back to the record) is added to the page for you, labelled by the CRUD's
+  `cancelLabel()`; put `@NoCrudNavigation` on the class for a fully custom page (see
+  [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/#the-cruds-navigation-on-your-page))
 
 ---
 
@@ -258,7 +261,7 @@ UserEditorPage (routes.yaml: /users → :id/edit)
 - Use `@Service` whenever a class needs dependency injection
 - `@Lookup` = where to find options + how to display them
 - `@Stereotype` = how to render the field (checkbox, select, etc.)
-- Custom editor pages bind to a CRUD via a `routes.yaml` entry under the CRUD's route (`basePath: /users`, `route: :id/edit`)
+- Custom editor pages bind to a CRUD via a `routes.yaml` entry under the CRUD's route (`basePath: /users`, `route: :id/edit`), and get the CRUD's navigation (Cancel) injected
 - `save()` returns `List.of(new Message(...), new State(this))` to give feedback and refresh
 
 ---

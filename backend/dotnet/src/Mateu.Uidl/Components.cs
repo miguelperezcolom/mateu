@@ -435,6 +435,10 @@ public sealed record ProgressSteps : ComponentBase
 {
     public IReadOnlyList<Step> Steps { get; init; } = [];
     public bool Vertical { get; init; }
+    /// <summary>The title of the screen after the last step (a wizard's result step), which is
+    /// no step: a renderer that shows the finished process as one more screen names it with this
+    /// instead of inventing one. Null when there is no such screen.</summary>
+    public string? ResultTitle { get; init; }
 }
 
 /// <summary>A compact KPI stat: value + unit, a delta with a trend (up|down|flat) and an inline

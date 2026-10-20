@@ -1682,11 +1682,32 @@ test('proceso guiado terminado: un paso final «Completed» actual (título corr
   const done = wizardOf({ tree: tree(['done', 'done', 'done']) })
   assert.equal(done.completed, true)
   assert.equal(done.currentStep, WIZARD_DONE_STEP)
+  // no resultTitle on the wire (an older server): a translated fallback
   assert.equal(done.currentLabel, 'Completed')
   assert.equal(done.steps.length, 4)
+  // the counter counts the process's steps, not the result screen
+  assert.equal(done.total, 3)
+  assert.equal(done.currentIndex, 2)
   assert.ok(done.steps.every((st) => st.status === 'success'))
   assert.equal(done.resumeStepId, '')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuWizard\.completed \? 'mateu-wizard-completed'/)
+  assert.match(webApp('resources/css/app.css'), /mateu-wizard-completed \.oj-sp-guided-process-step-count/)
+})
+
+test('proceso guiado terminado: el paso de resultado lleva el título que manda el servidor (resultTitle, su @Label)', () => {
+  const tree = { type: 'ClientSide', id: 'w', actions: [{ id: 'next' }], metadata: { type: 'VerticalLayout' }, children: [
+    { type: 'ClientSide', id: 'p', metadata: { type: 'ProgressSteps', vertical: true, resultTitle: 'Matrícula hecha',
+      steps: [{ id: 'a', title: 'Datos', status: 'done' }, { id: 'b', title: 'Pago', status: 'done' }] }, children: [] }] }
+  const done = wizardOf({ tree })
+  assert.equal(done.currentStep, WIZARD_DONE_STEP)
+  assert.equal(done.currentLabel, 'Matrícula hecha')
+  assert.deepEqual(done.steps.map((s) => s.title), ['Datos', 'Pago', 'Matrícula hecha'])
+  assert.equal(done.total, 2)
+  // while running, the result title is not a step
+  tree.children[0].metadata.steps = [{ id: 'a', title: 'Datos', status: 'current' }, { id: 'b', title: 'Pago', status: 'upcoming' }]
+  const running = wizardOf({ tree })
+  assert.deepEqual(running.steps.map((s) => s.title), ['Datos', 'Pago'])
+  assert.equal(running.total, 2)
 })
 
 test('mount: the packaged app serves an @UI at any path — API base and routes come from <mateu-ui baseUrl>', () => {

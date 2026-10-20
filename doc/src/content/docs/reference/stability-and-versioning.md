@@ -199,7 +199,7 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-dtos` | `io.mateu.dtos` | 277 | 247 | 0 | 30 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 7 | 5 | 1 | 0 | 1 |
-| `mateu-uidl` | `io.mateu.uidl.annotations` | 173 | 162 | 7 | 4 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.annotations` | 174 | 163 | 7 | 4 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.data` | 315 | 263 | 46 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
@@ -207,7 +207,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **990** | **828** | **62** | **45** | **55** |
+| **Total** | | **991** | **829** | **62** | **45** | **55** |
 
 **Experimental types** (the whole type and its members):
 

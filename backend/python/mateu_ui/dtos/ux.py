@@ -71,6 +71,8 @@ class ProgressStepsMetadata(Wire):
     type: Literal["ProgressSteps"] = "ProgressSteps"
     steps: list[StepRecord] = Field(default_factory=list)
     vertical: bool = False
+    #: the title of the screen after the last step (a wizard's result step), which is no step
+    result_title: str | None = None
 
 
 class StatMetadata(Wire):

@@ -43,6 +43,7 @@ public class ActionInstanceCreator {
         RunActionCommand finalCommand = command;
         return routeInstanceCreator
             .findRouteResolver(command)
+            .map(instance -> markAuthoredSubRoute(instance, finalCommand))
             .switchIfEmpty(
                 (Mono)
                     Mono.defer(
@@ -120,6 +121,30 @@ public class ActionInstanceCreator {
         .findRouteResolver(command)
         .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
         .switchIfEmpty((Mono) Mono.defer(() -> rootAppMenuContent(finalCommand)));
+  }
+
+  /**
+   * The CRUD navigation action ({@code view}, {@code edit}, {@code new}) of this request moved to a
+   * sub-route an AUTHORED route claims ({@code <crud>/:id} in routes.yaml or a {@code
+   * RouteEntrySupplier}) — the documented way to give a record its own screen. The view model there
+   * is the author's, not the crud, and knows nothing of the crud's action: the request is a
+   * NAVIGATION to it, answered as a load of that view (the url is pushed as for the built-in
+   * screen). Running the crud's action on the author's view refused it (403).
+   */
+  private static Object markAuthoredSubRoute(Object instance, RunActionCommand command) {
+    var crudType = forName(command.serverSideType());
+    if (instance != null && !crudType.isInstance(instance)) {
+      // the browser goes where the built-in screen would have taken it (view/edit already set it)
+      if (command.httpRequest().getAttribute("updateUrl") == null) {
+        command.httpRequest().setAttribute("updateUrl", command.route());
+      }
+      command
+          .httpRequest()
+          .setAttribute(
+              io.mateu.core.domain.act.DefaultActionRunnerProvider.AUTHORED_SUBROUTE_LOAD,
+              Boolean.TRUE);
+    }
+    return instance;
   }
 
   /**

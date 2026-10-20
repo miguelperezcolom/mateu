@@ -99,7 +99,7 @@ The component state is the current in-memory form state serialised as a `Map`. T
 |---|---|
 | `getSelectedRows(Class<T>)` | All rows checked in the default grid (`crud_selected_items`) |
 | `getSelectedRows(fieldName, Class<T>)` | Rows checked in a named grid field (`{fieldName}_selected_items`) |
-| `getClickedRow(Class<T>)` | The single row the user clicked for a row-level action |
+| `getClickedRow(Class<T>)` | The single row the user clicked: from the `_clickedRow` parameter (row actions, `@OnRowSelected`, a selection pick) or, when it is absent, from the action's own parameters named like the row's fields (what the renderers send when a row is opened). `null` when there is no row |
 
 ### Low-level attribute store
 

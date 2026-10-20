@@ -95,7 +95,11 @@ Keep it that way:
   **prototype**-scoped. A singleton view model shares one user's half-typed form with everybody.
 - Keep data in your stores and services, not in static fields of a view model (the in-memory stores
   of the starters and demos are for demos).
-- `AutoCrud` subclasses that only hold `final` injected services are stateless and can be singletons.
+- That includes `AutoCrud`/`Crud` subclasses, even when they only hold `final` injected services:
+  the orchestrator keeps the request's routing in the instance. Given a shared bean (singleton,
+  `@ApplicationScoped`), Mateu builds a fresh instance per request instead and logs a one-time
+  warning — container interceptors do not apply to it — so make them plain classes or
+  prototype/`@Dependent` beans.
 
 ## 4. Authentication and authorization
 

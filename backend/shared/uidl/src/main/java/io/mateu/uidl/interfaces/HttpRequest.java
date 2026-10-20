@@ -153,15 +153,81 @@ public interface HttpRequest {
         .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data, this)).toList();
   }
 
+  /**
+   * The row the user clicked, as an instance of {@code rowType}. The row reaches the server in one
+   * of two shapes, and both are read:
+   *
+   * <ul>
+   *   <li>under the {@code _clickedRow} parameter — a row action ({@code action-on-row-*}), a
+   *       {@code @OnRowSelected} click, a selection field's pick;
+   *   <li>as the action's own parameters, one per column — what the renderers send when a row is
+   *       OPENED (a listing's row click, {@code view}). Without this second shape the method got
+   *       {@code null} for a click it was written to handle.
+   * </ul>
+   *
+   * <p>In the second shape only the parameters named like a property of {@code rowType} are taken
+   * (never the internal ones: those starting with {@code _}, {@code initiatorState}). Returns
+   * {@code null} when the request carries no row, and for a simple type ({@code String}, a
+   * number…), which no row converts to.
+   */
   default <T> T getClickedRow(Class<T> rowType) {
-    if (runActionRq().parameters() == null) {
+    var parameters = runActionRq().parameters();
+    if (parameters == null) {
       return null;
     }
-    var data = runActionRq().parameters().get("_clickedRow");
-    if (data != null) {
-      return MateuInstanceFactory.newInstance(rowType, (Map<String, Object>) data, this);
+    var data = parameters.get("_clickedRow");
+    if (data instanceof Map<?, ?> row) {
+      return MateuInstanceFactory.newInstance(rowType, (Map<String, Object>) row, this);
     }
-    return null;
+    if (data != null || rowType == null || isSimpleType(rowType)) {
+      return null;
+    }
+    var looseRow = new java.util.LinkedHashMap<String, Object>();
+    parameters.forEach(
+        (key, value) -> {
+          if (key != null && !key.startsWith("_") && !"initiatorState".equals(key)) {
+            looseRow.put(key, value);
+          }
+        });
+    if (Map.class.equals(rowType)) {
+      return looseRow.isEmpty() ? null : (T) looseRow;
+    }
+    // only the parameters that ARE columns of the row: an action's other parameters (a selection,
+    // a button's own values) are no row, and must not turn into an empty one
+    looseRow.keySet().retainAll(propertyNamesOf(rowType));
+    if (looseRow.isEmpty()) {
+      return null;
+    }
+    return MateuInstanceFactory.newInstance(rowType, looseRow, this);
+  }
+
+  private static java.util.Set<String> propertyNamesOf(Class<?> type) {
+    var names = new java.util.HashSet<String>();
+    if (type.isRecord()) {
+      for (var component : type.getRecordComponents()) {
+        names.add(component.getName());
+      }
+    }
+    for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+      for (var field : c.getDeclaredFields()) {
+        if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+          names.add(field.getName());
+        }
+      }
+    }
+    return names;
+  }
+
+  private static boolean isSimpleType(Class<?> type) {
+    return type.isPrimitive()
+        || type.isEnum()
+        || CharSequence.class.isAssignableFrom(type)
+        || Number.class.isAssignableFrom(type)
+        || Boolean.class.equals(type)
+        || Character.class.equals(type)
+        || java.time.temporal.Temporal.class.isAssignableFrom(type)
+        || java.util.Date.class.isAssignableFrom(type)
+        || Object.class.equals(type);
   }
 
   default <T> T getParameters(Class<T> rowType) {

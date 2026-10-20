@@ -136,7 +136,7 @@ class CollectionDetail(ComponentTreeSupplier):
         return ()
 
     def list_label(self, count: int) -> str:
-        return f"{count} items"
+        return f"{count} item" if count == 1 else f"{count} items"
 
     def list_width(self) -> str:
         return "24rem"

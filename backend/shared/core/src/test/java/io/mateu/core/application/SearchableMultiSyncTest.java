@@ -310,6 +310,37 @@ class SearchableMultiSyncTest {
     assertThat(event(commands, "close-modal-requested")).isNotNull();
   }
 
+  /**
+   * The other shape a clicked row arrives in: what the renderers send when a row is OPENED is the
+   * row's values as the action's own parameters, not under {@code _clickedRow}. getClickedRow read
+   * only the latter, answered null and the handler written for the click hit a
+   * NullPointerException.
+   */
+  @Test
+  void aRowSentAsLooseParametersIsTheClickedRowToo() {
+    var state = new HashMap<String, Object>(Map.of("fieldId", "hotel"));
+    var commands =
+        commands(
+            run(
+                HotelSelector.class,
+                "action-on-row-select",
+                state,
+                Map.of("id", "h2", "name", "Hotel Two", "_internal", "x")));
+    var value = event(commands, "value-changed");
+    assertThat(value.path("value").asText()).isEqualTo("h2");
+    assertThat(dataChange(commands, "hotel-label").asText()).isEqualTo("Hotel Two");
+  }
+
+  /** Parameters that are no column of the row are not a row: no empty instance comes out. */
+  @Test
+  void parametersThatAreNoColumnOfTheRowAreNoClickedRow() {
+    var state = new HashMap<String, Object>(Map.of("fieldId", "hotel"));
+    var commands =
+        commands(
+            run(HotelSelector.class, "action-on-row-select", state, Map.of("somethingElse", "x")));
+    assertThat(event(commands, "value-changed")).isNull();
+  }
+
   @Test
   void aSelectorThatDoesNotKeepItsFieldIdUsesTheOneTheModalCarries() {
     var state = multiState("hotels", List.of(), Map.of());

@@ -142,7 +142,7 @@ Ported to .NET (`DrawerPosition.Bottom`, `Drawer { Collapsible }`) and Python
 
 ## Guided Process Drawer (a wizard in a drawer, `EmbeddedView`)
 
-The Redwood **Guided Process Drawer** runs a short multi-step process inside a drawer — a subflow
+The **Guided Process Drawer** pattern runs a short multi-step process inside a drawer — a subflow
 or a batch action (≤5 steps; a longer process uses the full-page [wizard](/ux-patterns/wizard/)). Return a
 `Drawer` whose content is a wizard wrapped in **`EmbeddedView`**:
 
@@ -173,6 +173,13 @@ no extra wiring, it appears whenever the embedded wizard uses `@WizardProgress(S
 a subflow surface the Guided Process Drawer is meant for **short** processes (≤ 5 steps); embedding a
 longer wizard still works but logs a warning suggesting a full-page [wizard](/ux-patterns/wizard/)
 instead.
+
+:::note[How it is drawn]
+The renderers draw the drawer's wizard as a **generic wizard** — in Redwood, the step train
+(`oj-train`) with the step's form and its Back / Next buttons inside the drawer — not as Redwood's
+`oj-sp-guided-process` template. The full-page **Guided Process** (the overview, the lateral step
+list) is a routed `Wizard` with `@WizardProgress(RAIL)`.
+:::
 
 ### Batch action (one step per item)
 
@@ -334,7 +341,7 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 
 | Redwood prop / slot | Mateu | |
 |---|---|---|
-| A wizard inside a drawer | `EmbeddedView` + `Wizard` — see [Guided Process Drawer](#guided-process-drawer-a-wizard-in-a-drawer-embeddedview) | ✅ |
+| A wizard inside a drawer | `EmbeddedView` + `Wizard` — see [Guided Process Drawer](#guided-process-drawer-a-wizard-in-a-drawer-embeddedview); Redwood draws it as a generic wizard (step train), not with this template | 🟡 |
 | `processTitle`, `steps[]`, `currentStep`, `drawerSize` | from the embedded `Wizard` and the host `Drawer` | ✅ |
 | `introductionPanel {secondaryText, indexDisplay}` | — | — |
 | `spSkip`, `spBeforeStepNavigate` | from the embedded `Wizard`: `stepSkippable(step)` and `beforeStepNavigate(from, to, rq)` — see [Wizard](/ux-patterns/wizard/#redwood-parameter-and-slot-reference) | ✅ |

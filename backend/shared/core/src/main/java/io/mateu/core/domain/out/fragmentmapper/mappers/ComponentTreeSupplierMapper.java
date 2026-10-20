@@ -26,7 +26,9 @@ public class ComponentTreeSupplierMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    var tree = componentTreeSupplier.component(httpRequest);
+    var tree =
+        withPageBars(
+            componentTreeSupplier, componentTreeSupplier.component(httpRequest), httpRequest);
     var leaf =
         mapComponentToDto(
             componentTreeSupplier,
@@ -68,5 +70,54 @@ public class ComponentTreeSupplierMapper {
         PageTypeResolver.wirePageType(componentTreeSupplier),
         StaticViewResolver.isStatic(componentTreeSupplier),
         null);
+  }
+
+  /**
+   * The routed page of a view that builds its own tree (an {@code ItemOverview}, any {@code
+   * ComponentTreeSupplier}) gets the same bars a normal page has: its {@code @Toolbar} and
+   * {@code @Button} methods and fields — dispatched to it like a normal page's — and the CRUD
+   * navigation of a page overriding a CRUD's sub-screen. They were ignored: the tree was all there
+   * was. The tree goes inside a page that carries them (a tree that IS a page gets them added); a
+   * view with none of them renders exactly as before.
+   */
+  static io.mateu.uidl.fluent.Component withPageBars(
+      ComponentTreeSupplier view, io.mateu.uidl.fluent.Component tree, HttpRequest httpRequest) {
+    if (tree == null || !io.mateu.core.domain.RoutedView.is(view, httpRequest)) {
+      return tree;
+    }
+    var toolbar =
+        io.mateu.core.domain.CrudNavigation.withToolbar(
+            view,
+            httpRequest,
+            io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.toolbarOf(
+                view, httpRequest));
+    var buttons =
+        io.mateu.core.domain.CrudNavigation.withButtons(
+            view,
+            httpRequest,
+            io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.buttonsOf(
+                view, httpRequest));
+    if (toolbar.isEmpty() && buttons.isEmpty()) {
+      return tree;
+    }
+    if (tree instanceof io.mateu.uidl.fluent.PageView page) {
+      var mergedToolbar = new java.util.ArrayList<io.mateu.uidl.fluent.UserTrigger>();
+      if (page.toolbar() != null) mergedToolbar.addAll(page.toolbar());
+      mergedToolbar.addAll(toolbar);
+      var mergedButtons = new java.util.ArrayList<io.mateu.uidl.fluent.UserTrigger>();
+      if (page.buttons() != null) mergedButtons.addAll(page.buttons());
+      mergedButtons.addAll(buttons);
+      return page.toBuilder()
+          .clearToolbar()
+          .toolbar(mergedToolbar)
+          .clearButtons()
+          .buttons(mergedButtons)
+          .build();
+    }
+    return io.mateu.uidl.fluent.PageView.builder()
+        .toolbar(toolbar)
+        .buttons(buttons)
+        .content(java.util.List.of(tree))
+        .build();
   }
 }

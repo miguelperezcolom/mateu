@@ -35,6 +35,21 @@ public class RailSignup : Wizard
     public override Message Complete() => new("done");
 }
 
+[UI("rail-enrol"), Title("Enrol")]
+[WizardProgress("rail")]
+public class RailEnrol : Wizard
+{
+    [Step(1)] public string? Email { get; set; }
+    [Step(2)] public string? Plan { get; set; }
+    [Step(3)] public string? Outcome { get; set; }
+
+    public override string? CompletionActionLabel => "Enrol";
+
+    public override string? StepTitle(int step) => step switch { 1 => "Email", 2 => "Plan", 3 => "Enrolled", _ => null };
+
+    public override Message Complete() => new("done");
+}
+
 /// <summary>EditInDrawer (the Redwood "Create and Edit - Drawer" template) and the wizard RAIL
 /// progress style, mirroring Java's EditInDrawerSyncTest / WizardProgressStyleSyncTest.</summary>
 public class DrawerCrudAndRailTests
@@ -153,5 +168,22 @@ public class DrawerCrudAndRailTests
         Assert.Contains("\"vertical\":true", json);
         Assert.Contains("1 | 2", json);
         Assert.DoesNotContain("\"type\":\"ProgressBar\"", json);
+    }
+
+    [Fact]
+    public void The_result_step_is_no_bullet_but_its_title_travels()
+    {
+        // mirrors Java's Wizard.stepItems / resultTitle: on the result screen every bullet is
+        // done, the counter counts the real steps and the result's title travels apart
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            Route = "/rail-enrol", ServerSideType = typeof(RailEnrol).FullName,
+            InitiatorComponentId = "ux_main",
+            ComponentState = new() { ["__step"] = JsonSerializer.SerializeToElement(3) },
+        });
+        var json = Render(inc);
+        Assert.Contains("\"resultTitle\":\"Enrolled\"", json);
+        Assert.DoesNotContain("\"status\":\"current\"", json);
+        Assert.Contains("2 | 2", json);
     }
 }

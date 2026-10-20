@@ -237,7 +237,12 @@ public record TimelineItemDto(string? Id, string? Title, string? Description, st
 /// <summary>Progress-indicator metadata: numbered steps — a horizontal row by default, a stacked
 /// column when Vertical (the wizard RAIL mode).</summary>
 public record ProgressStepsMetadataDto(IReadOnlyList<StepDto> Steps, bool Vertical = false)
-    : ComponentMetadataDto;
+    : ComponentMetadataDto
+{
+    /// <summary>The title of the screen after the last step (a wizard's result step), which is
+    /// no step (mirrors io.mateu.dtos.ProgressStepsDto.resultTitle).</summary>
+    public string? ResultTitle { get; init; }
+}
 
 /// <summary>One progress step; Status is done|current|upcoming.</summary>
 public record StepDto(string? Id, string? Title, string? Description, string? Status);

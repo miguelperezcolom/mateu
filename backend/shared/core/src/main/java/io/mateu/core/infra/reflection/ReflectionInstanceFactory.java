@@ -55,6 +55,11 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return Mono.just(loadClass(className))
         .map(uiClass -> newInstance(uiClass, unflattenedData, httpRequest))
         .map(uiInstance -> hydrateIfNeeded(uiInstance, httpRequest))
+        .map(
+            uiInstance -> {
+              io.mateu.core.domain.RequestBound.bind(uiInstance, httpRequest);
+              return uiInstance;
+            })
         .map(uiInstance -> postHydrateIfNeeded(uiInstance, httpRequest));
   }
 
@@ -109,6 +114,13 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   private <T> T newInstanceInner(Class<T> c, Map<String, Object> data, HttpRequest httpRequest)
       throws Exception {
     var o = beanProvider.getBean(c);
+    if (o != null && isShared(c, o)) {
+      var fresh = freshInstanceOfSharedBean(c);
+      if (fresh != null) {
+        hydrate(fresh, data, this, httpRequest);
+        return (T) fresh;
+      }
+    }
     if (o == null) { // not from spring
       if (c.getDeclaringClass() != null && !java.lang.reflect.Modifier.isStatic(c.getModifiers())) {
         // Non-static inner class: needs outer instance as first constructor arg
@@ -142,6 +154,128 @@ public class ReflectionInstanceFactory implements InstanceFactory {
       hydrate(o, data, this, httpRequest);
     }
     return (T) o;
+  }
+
+  /**
+   * Per class: whether the container hands out ONE instance for every lookup (a singleton, an
+   * {@code @ApplicationScoped} bean, or a client proxy in front of a request/session-scoped one).
+   * Decided once per class, on its first lookup, by asking the container a second time and
+   * comparing identities. Per factory, not static: the answer is the container's.
+   */
+  private final java.util.Map<Class<?>, Boolean> sharedBeans =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  private final java.util.Set<Class<?>> sharedBeanWarned =
+      java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+  private boolean isShared(Class<?> c, Object first) {
+    var known = sharedBeans.get(c);
+    if (known != null) {
+      return known;
+    }
+    var shared = beanProvider.getBean(c) == first;
+    sharedBeans.put(c, shared);
+    return shared;
+  }
+
+  /**
+   * A view model the container shares between requests cannot hold a request's state: Mateu writes
+   * the request's state into it (hydration) and orchestrators keep their routing in it, so with a
+   * singleton one user's request leaked into the next one's (a CRUD under a menu pushed {@code
+   * /app/students/students/new}) and two concurrent requests raced on the same fields. Behind a CDI
+   * client proxy it was worse: the state was written into the PROXY's fields while the methods ran
+   * on the real instance. So Mateu builds a fresh instance for the request instead, the way it
+   * builds a view model that is not a bean at all: the {@code @Inject}/{@code @Autowired}
+   * constructor (or the only one) gets the container's beans, injection fields are filled and
+   * {@code @PostConstruct} methods run. Container interceptors (transactions, security…) do not
+   * apply to that instance — hence the one-time warning naming the class.
+   *
+   * @return the fresh instance, or {@code null} when it cannot be built (a constructor parameter
+   *     the container has no bean for): then the shared instance is used, as before
+   */
+  private Object freshInstanceOfSharedBean(Class<?> c) {
+    try {
+      var constructor = injectionConstructor(c);
+      if (constructor == null) {
+        warnShared(c, false);
+        return null;
+      }
+      var params = new Object[constructor.getParameterCount()];
+      for (int i = 0; i < params.length; i++) {
+        params[i] = beanProvider.getBean(constructor.getParameterTypes()[i]);
+        if (params[i] == null) {
+          warnShared(c, false);
+          return null;
+        }
+      }
+      constructor.setAccessible(true);
+      var o = constructor.newInstance(params);
+      injectDependencies(o);
+      runPostConstruct(o);
+      warnShared(c, true);
+      return o;
+    } catch (ReflectiveOperationException | RuntimeException e) {
+      log.debug("Could not build a fresh instance of shared bean {}", c.getName(), e);
+      warnShared(c, false);
+      return null;
+    }
+  }
+
+  private void warnShared(Class<?> c, boolean replaced) {
+    if (!sharedBeanWarned.add(c)) {
+      return;
+    }
+    if (replaced) {
+      log.warn(
+          "{} is a shared bean (singleton / application scoped): Mateu keeps view state in the"
+              + " view model, so it creates a fresh instance of it for every request instead (its"
+              + " injected fields and constructor are filled from the container; container"
+              + " interceptors do not apply). Make it prototype/@Dependent scoped, or do not"
+              + " register it as a bean, to silence this warning.",
+          c.getName());
+    } else {
+      log.warn(
+          "{} is a shared bean (singleton / application scoped) and Mateu could not build a fresh"
+              + " instance of it per request: its view state is shared between requests and"
+              + " users. Make it prototype/@Dependent scoped, or do not register it as a bean.",
+          c.getName());
+    }
+  }
+
+  /** The constructor a container would use: the annotated one, a no-arg one, or the only one. */
+  private static java.lang.reflect.Constructor<?> injectionConstructor(Class<?> c) {
+    var constructors = c.getDeclaredConstructors();
+    for (var constructor : constructors) {
+      for (var annotation : constructor.getAnnotations()) {
+        if (FIELD_INJECTION.contains(annotation.annotationType().getSimpleName())) {
+          return constructor;
+        }
+      }
+    }
+    for (var constructor : constructors) {
+      if (constructor.getParameterCount() == 0 && !constructor.isSynthetic()) {
+        return constructor;
+      }
+    }
+    return constructors.length == 1 ? constructors[0] : null;
+  }
+
+  private static void runPostConstruct(Object o) throws ReflectiveOperationException {
+    var chain = new ArrayList<Class<?>>();
+    for (Class<?> k = o.getClass(); k != null && k != Object.class; k = k.getSuperclass()) {
+      chain.add(0, k);
+    }
+    for (var k : chain) {
+      for (var method : k.getDeclaredMethods()) {
+        if (method.getParameterCount() == 0
+            && !java.lang.reflect.Modifier.isStatic(method.getModifiers())
+            && java.util.Arrays.stream(method.getAnnotations())
+                .anyMatch(a -> "PostConstruct".equals(a.annotationType().getSimpleName()))) {
+          method.setAccessible(true);
+          method.invoke(o);
+        }
+      }
+    }
   }
 
   private static final java.util.concurrent.atomic.LongAdder FIELD_SCANS =

@@ -26,6 +26,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **`PageView.toBuilder()`**: copy a page with one thing changed instead of calling its 29-argument
   constructor. (Java)
 
+- **Quarkus: live reload works under `quarkus:dev` out of the box.** `mateu-quarkus` now ships
+  `%dev.mateu.dev=true` among its configuration defaults, so Mateu's development mode (specs read
+  from the source tree and watched, the open tab re-rendered after a recompile) is on in Quarkus's
+  dev profile only — never in the packaged application or the tests. Override it with
+  `%dev.mateu.dev=false`. (Java)
+
+- **A page that overrides a CRUD's sub-screen gets the CRUD's navigation.** When an authored route
+  (`routes.yaml`, a `RouteEntrySupplier`) binds `<crud>/:id`, `<crud>/:id/edit` or `<crud>/new` to
+  your own view model, Mateu adds what the built-in screen has: **Back to list** and **Edit** on the
+  record page (Edit only when the CRUD can edit), **Cancel** on the editor and the creation page —
+  labelled by the CRUD's hooks (`backToListLabel()`, `editLabel()`, `cancelLabel()`), with its
+  action ids (`cancel-view`, `edit`, `cancel-edit`, `cancel-new`) and navigating where the built-in
+  ones would. A button or method of the page with that id wins; `@NoCrudNavigation` on the view
+  model opts out. The CRUD is found from the route (a class it resolves to, or the `@Menu` field the
+  path reaches from an app). (Java)
+- **A page that builds its own tree shows its toolbar.** A routed `ItemOverview` (any
+  `ComponentTreeSupplier`) ignored its `@Toolbar` / `@Button` methods: nothing was rendered. Its
+  tree now goes inside a page carrying them (a tree that is already a page gets them added), and they
+  run on the view like a normal page's; a view with none renders exactly as before. (Java)
+
 ### Fixed
 
 - **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of
@@ -109,6 +129,55 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   like the wizard's and the CRUD's; `BuiltInTexts` also translates a text built lazily, with no
   request at hand (a `Callable<Component>` field), through the app's translator. (Java)
 
+- **A CRUD registered as a shared bean no longer leaks one request's routing into the next.** An
+  `AutoCrud` that the container shares (a Spring singleton, a Quarkus `@ApplicationScoped` bean
+  behind its client proxy) kept the route of an earlier request in the instance, so "New" pushed
+  `/app/students/students/new` and saving landed on a url that did not reload; concurrent users
+  raced on the same fields, and behind a proxy the request's state was written into the proxy's
+  fields while the methods ran on the real instance. Mateu now detects a shared view-model bean (two
+  lookups return the same object; decided once per class) and builds a fresh instance per request
+  — constructor and `@Inject`/`@Autowired` fields from the container, `@PostConstruct` run — with a
+  one-time warning; container interceptors do not apply to it. The docs no longer say a CRUD with
+  only `final` services may be a singleton. (Java)
+
+- **`HttpRequest.getClickedRow(Class)` also reads a row opened from a listing.** The renderers send
+  an opened row (a row click, `view`) as the action's own parameters, one per column, not under
+  `_clickedRow`; `getClickedRow` answered `null` and the handler hit a NullPointerException
+  (workaround was `getParameters(Row.class)`). Without `_clickedRow` it now builds the row from the
+  parameters named like the row's fields (internal `_…` ones left out), and still answers `null`
+  when there are none. The same fallback fills an action method's row parameter in the Python and
+  .NET ports. (Java, .NET, Python)
+
+- **Guided process: the finished screen is titled like the wizard's result step.** The step
+  indicators leave the result step out (it is no step of the process), so Redwood's guided process
+  invented an English "Completed" step for it and counted it ("4 | 4" for three steps). The wire's
+  `ProgressSteps` now carries `resultTitle` — the result step's `@Label` (Python/.NET: its step
+  title) — Redwood uses it (a translated "Completed" when an older server sends none) and hides the
+  template's counter on that screen. The Python and .NET wizards, which listed a completion
+  wizard's result step as one more bullet (.NET marked it done, so Redwood added "Completed" after
+  it), now leave it out like Java and count only the real steps in the rail. (Java, .NET, Python,
+  Redwood)
+
+- **The archetypes have the request before they build their tree.** `CalendarPage`, `TodoList`,
+  `CollectionDetail` and `GeneralOverview` build it in a `Callable<Component>` field, which Mateu
+  invokes while mapping the page (and while checking an action is on it), but they learnt the
+  request only afterwards, from `triggers(...)`: on a first render `events(...)`, `rows(...)`,
+  `switcherOptions(...)` got `null`, and their built-in texts ("Today", "All caught up!"…) were
+  translated with no request, ignoring the browser's language (`messages_es.properties`). Mateu now
+  hands the request over as soon as it has the instance (created and hydrated, about to be mapped,
+  about to be checked). (Java)
+
+- **Collection Detail counts "1 item", not "1 items".** The default `listLabel(count)` uses the
+  built-in text `item` for one result and `items` otherwise (both through the app's `Translator`).
+  (Java, .NET, Python)
+
+- **A CRUD whose record page an authored route overrides opens its rows again.** With
+  `<crud>/:id` (or `:id/edit`, `new`) bound to your own view model in `routes.yaml` or a
+  `RouteEntrySupplier`, clicking a row of the CRUD's list answered 403 ("you are not allowed to do
+  this"): Mateu moved the crud's `view` action to the record's route and ran it on YOUR view model,
+  which knows no such action. The crud's `view`, `edit` and `new` now navigate there: your view
+  model is loaded at the sub-route and the url is pushed, as for the built-in screens. (Java)
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches
@@ -117,6 +186,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   The `record` field lives in the base class, so a subclass had no way to label it. Blank by
   default (unlabelled, as before). `GeneralOverview` now implements `LabelSupplier` for it; a
   subclass that supplies labels of its own overrides `label(...)`. (Java)
+
+- **A wizard in a drawer is described as what it is.** The drawer page, the page-template guide and
+  core's long-drawer-wizard warning no longer imply Redwood renders its guided-process template in
+  a drawer: the renderers draw the drawer's wizard as a generic wizard (Redwood: the step train),
+  and the full-page Guided Process is a routed `Wizard` with `@WizardProgress(RAIL)`.
 ### Fixed
 - **Redwood: the message band's close button closes the notice.** The band's keys came from a
   counter typed as a string with no default, so the first notice had no id and every later one was

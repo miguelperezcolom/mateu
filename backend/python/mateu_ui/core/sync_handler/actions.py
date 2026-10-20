@@ -26,6 +26,8 @@ from mateu_ui.uidl import (
 )
 
 from .. import action_guard, documents
+from ..naming import camel_case
+from ..reflection import view_fields
 from ..request_context import current_request
 from ._base import MixinBase
 from ._common import RunActionRq
@@ -71,7 +73,10 @@ class ActionHandlerMixin(MixinBase):
         """Fills a method's parameters from the action request: a row-click's _clickedRow
         parameter is rebuilt into the parameter's annotated class (OnRowSelected() methods take
         the clicked row); anything unfillable is None (mirrors Java's
-        RunMethodActionRunner.createParameters)."""
+        RunMethodActionRunner.createParameters). Without _clickedRow, the row is read from the
+        action's loose parameters — what the renderers send when a row is OPENED — taking only
+        those named like a field of the parameter's class (mirrors Java's
+        HttpRequest.getClickedRow)."""
         params = [
             p for p in inspect.signature(method).parameters.values()
             if p.kind in (p.POSITIONAL_OR_KEYWORD, p.POSITIONAL_ONLY)
@@ -100,6 +105,15 @@ class ActionHandlerMixin(MixinBase):
             elif isinstance(clicked, dict) and isinstance(ann, type) and ann is not str:
                 row = ann()
                 self.bind_state(row, clicked)
+                args.append(row)
+            elif (
+                clicked is None
+                and isinstance(ann, type)
+                and ann not in (str, int, float, bool)
+                and (loose := _loose_row(rq.parameters or {}, ann))
+            ):
+                row = ann()
+                self.bind_state(row, loose)
                 args.append(row)
             else:
                 args.append(None)
@@ -217,3 +231,14 @@ def _merge(first: UIIncrement, second: UIIncrement) -> UIIncrement:
     if first.app_data is None and second.app_data is not None:
         update["app_data"] = second.app_data
     return first.model_copy(update=update)
+
+
+def _loose_row(parameters: dict, row_type: type) -> dict:
+    """The action's parameters that are columns of ``row_type`` (never the internal ones: a
+    leading underscore, initiatorState)."""
+    columns = {camel_case(f.name) for f in view_fields(row_type)}
+    return {
+        k: v
+        for k, v in parameters.items()
+        if not k.startswith("_") and k != "initiatorState" and k in columns
+    }
