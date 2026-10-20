@@ -5901,3 +5901,11 @@ test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, 
   ] })
   assert.ok(!tocProjectionOf(withIsland).entries.some((e) => e.title === 'Inner'))
 })
+
+test('the real Welcome (con-micronaut demo): its five panels in order, the attendance TrendChart an area chart in its tile', () => {
+  const w = welcomeOf(reduceContexts(empty(), fx('tpl-welcome')).contexts[HOST_ID])
+  assert.deepEqual(w.tiles.map((t) => [t.title, t.isKpi]), [['Asistencia del curso', false], ['Alumnado', true], ['Evaluación', true], ['Primeros pasos', false], ['Avisos', false]])
+  assert.equal(w.tiles[0].subtitle, '% de alumnos presentes por mes')
+  assert.equal(w.tiles[0].items.find((a) => a.isChart).chartType, 'area')
+  assert.equal(w.tiles[3].items.length, 3)
+})

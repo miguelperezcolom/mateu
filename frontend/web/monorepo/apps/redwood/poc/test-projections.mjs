@@ -23,6 +23,8 @@ import {
 } from './reduceContexts.mjs'
 import { chromeText, setChromeLanguage, moneyText } from './i18n.mjs'
 import * as prefs from './prefs.mjs'
+import { readFileSync as readPageFile } from 'node:fs'
+const webApp = (rel) => readPageFile(new URL('../webApps/vbredwoodapp/' + rel, import.meta.url), 'utf8')
 import { createChatProgress, classifyChatPayload, projectChatScreen, chatTurnOf, chatTurnTextOf, chatToolStepsOf, formatToolDuration, withAttachments, createSseParser } from './chat.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 
@@ -731,22 +733,38 @@ test('page KPIs: on a Form both title and text interpolate the state; empty ones
   assert.deepEqual(pageKpisOf({ tree: null }), [])
 })
 
-test('welcome: the trend tile becomes a full-width chart from either chart shape; a metric tile is a KPI', () => {
-  const welcome = (chart) => welcomeOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 'w', children: [
-    { type: 'ClientSide', metadata: { type: 'HeroSection', title: 'Hi' }, children: [] },
-    { type: 'ClientSide', metadata: { type: 'DashboardLayout' }, children: [
-      { type: 'ClientSide', metadata: { type: 'DashboardPanel', title: 'Occupancy' }, children: [chart] },
-      { type: 'ClientSide', metadata: { type: 'DashboardPanel', title: '' }, children: [{ type: 'ClientSide', metadata: { type: 'Stat', label: 'Arrivals', value: null, caption: 'today' }, children: [] }] },
+test('welcome: every panel is a tile in order, with its content as atoms; a lone metric is a KPI', () => {
+  const panel = (md, kids) => ({ type: 'ClientSide', metadata: { type: 'DashboardPanel', ...md }, children: kids })
+  const leaf = (md) => ({ type: 'ClientSide', metadata: md, children: [] })
+  const w = welcomeOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 'w', children: [
+    leaf({ type: 'HeroSection', title: 'Hi' }),
+    { type: 'ClientSide', metadata: { type: 'DashboardLayout', columns: 3 }, children: [
+      panel({ title: 'Occupancy', subtitle: 'per day', colSpan: 2 }, [leaf({ type: 'TrendChart', title: 'Rooms', values: [1, 2], labels: ['Mon', 'Tue'], area: true })]),
+      panel({ title: '' }, [leaf({ type: 'Stat', label: 'Arrivals', value: null, caption: 'today' })]),
+      panel({ title: 'Features' }, [leaf({ type: 'FeatureGrid', features: [{ title: 'Fast', description: 'd' }] })]),
+      panel({ title: 'Setup' }, [leaf({ type: 'Checklist', items: [{ id: 'a', label: 'One', done: true }] })]),
     ] },
   ] } })
-  const fromChart = welcome({ type: 'ClientSide', metadata: { type: 'Chart', chartData: { labels: ['Mon'], datasets: [{ label: 'Rooms', data: [40, 50] }] } }, children: [] })
-  assert.deepEqual(fromChart.trend, { title: 'Occupancy', items: [{ id: 0, value: 40, group: ['Mon'], series: 'Rooms' }, { id: 1, value: 50, group: ['2'], series: 'Rooms' }] })
-  const kpi = fromChart.tiles[0]
-  assert.deepEqual([kpi.isKpi, kpi.kpiTitle, kpi.kpiValue, kpi.kpiCaption], [true, 'Arrivals', '', 'today'])
-  const fromTrend = welcome({ type: 'ClientSide', metadata: { type: 'TrendChart', title: 'T', values: [1], labels: [] }, children: [] })
-  assert.equal(fromTrend.trend.items[0].series, chromeText('occupancy'), 'a TrendChart has no series name: the default')
-  const empty = welcome({ type: 'ClientSide', metadata: { type: 'Chart' }, children: [] })
-  assert.deepEqual(empty.trend.items, [])
+  // the chart stays where it was declared (it used to be moved under every tile), as the AREA chart it
+  // is with its own series name (it was bars titled «Occupancy %»), at its colSpan, with its subtitle
+  assert.deepEqual(w.tiles.map((t) => t.title), ['Occupancy', '', 'Features', 'Setup'])
+  assert.equal(w.trend, null)
+  const chart = w.tiles[0].items.find((a) => a.isChart)
+  assert.equal(chart.chartType, 'area')
+  assert.equal(chart.items[0].series, 'Rooms')
+  assert.equal(w.tiles[0].subtitle, 'per day')
+  assert.match(w.tiles[0].colClass, /oj-md-8/)
+  assert.match(w.tiles[2].colClass, /oj-md-4/)
+  const kpi = w.tiles[1]
+  assert.deepEqual([kpi.isKpi, kpi.kpiTitle, kpi.kpiValue, kpi.kpiCaption, kpi.items], [true, 'Arrivals', '', 'today', []])
+  // what only the text was taken of — a FeatureGrid, a Checklist — is drawn (they were empty cards)
+  assert.ok(w.tiles[2].items.some((a) => a.isFeatureGrid))
+  assert.ok(w.tiles[3].items.some((a) => a.isChecklist))
+  // the page draws each tile's atoms with the shared template, at its colClass
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const tiles = html.slice(html.indexOf('data="[[ $application.variables.mateuWelcome.tiles ]]"'), html.indexOf('<!-- GENERAL OVERVIEW archetype'))
+  assert.match(tiles, /:class="\[\[ \$current\.data\.colClass/)
+  assert.match(tiles, /data="\[\[ \$current\.data\.items \]\]"[\s\S]*<!-- @atoms host/)
 })
 
 // ── the AI chat panel: what the agent is doing, what it sees of the screen, what it answers ─────

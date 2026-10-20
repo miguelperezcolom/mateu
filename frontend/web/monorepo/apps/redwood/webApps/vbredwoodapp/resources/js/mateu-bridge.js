@@ -2772,7 +2772,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
   /** RENDER helper: every node of a type (without crossing island boundaries). */
@@ -2891,40 +2890,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const md = hero.metadata
     const ctas = actionsOf(hero)
     const panels = findAllByType(ctx.tree, 'DashboardPanel')
-    // a TrendChart in a tile → full-width CHART under the KPIs (oj-chart in VB);
-    // PRECOMPUTED items (id/value/group/series) — VB's CSP does not build arrays
-    const trendPanel = panels.find(
-      (panel) => findByType(panel, 'TrendChart') || findByType(panel, 'Chart'))
-    const chartNode = trendPanel
-      ? findByType(trendPanel, 'TrendChart') || findByType(trendPanel, 'Chart') : null
-    const tm = chartNode ? chartNode.metadata : null
-    // values/labels from the two wire shapes: TrendChart (flat values/labels) or
-    // Chart (chartData.labels + datasets[0].data — the first series is taken)
-    const dataset = tm && tm.chartData && tm.chartData.datasets && tm.chartData.datasets.length
-      ? tm.chartData.datasets[0] : null
-    const values = tm ? (tm.values || (dataset ? dataset.data : []) || []) : []
-    const labels = tm ? (tm.labels || (tm.chartData ? tm.chartData.labels : []) || []) : []
-    const series = (dataset && dataset.label) || chromeText('occupancy')
-    const trend = tm
-      ? {
-          title: trendPanel.metadata.title || tm.title || '',
-          items: (values || []).map((value, i) => ({
-            id: i,
-            value,
-            group: [labels[i] != null ? labels[i] : String(i + 1)],
-            series,
-          })),
-        }
-      : null
-    const tiles = panels.filter((panel) => panel !== trendPanel).map((panel) => {
-      // a MetricCard inside the tile → KPI (big value + label + caption)
-      const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
+    // the tiles' grid: a DashboardLayout's columns (3 by default) — each panel takes its colSpan of them
+    const layout = findByType(ctx.tree, 'DashboardLayout')
+    const columns = layout && layout.metadata && layout.metadata.columns > 0 ? layout.metadata.columns : 3
+    const atomsOfPanel = (panel) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_welcomeTile',
+      metadata: { type: 'VerticalLayout' }, children: overviewPiecesOf(panel) } }) || []).flatMap((b) => b.items || [])
+    // EVERY panel is a tile, in order, with what it holds as atoms (a FeatureGrid, a Checklist, a chart
+    // — a TrendChart as the area/line chart it is —, texts…): only the text, the first metric or the first
+    // chart of each was taken, the chart moved to the end, and the rest came out as an empty card
+    const tiles = panels.map((panel) => {
+      const pm = panel.metadata || {}
+      // a panel that is ONE metric → the KPI tile (big value + label + caption, clickable)
+      const pieces = overviewPiecesOf(panel)
+      const only = pieces.length === 1 ? pieces[0] : null
+      const metric = only && only.metadata && (only.metadata.type === 'MetricCard' || only.metadata.type === 'Stat') ? only : null
       const mm = metric ? metric.metadata : null
       return {
         ...(editorNodeIds && panel.id ? { nodeId: String(panel.id) } : {}),
-        title: panel.metadata.title || '',
+        title: pm.title || '',
+        subtitle: pm.subtitle || '',
+        colClass: panelColClass(pm.colSpan, columns),
         texts: collectTexts(panel),
         textNodes: textNodesOf(panel),
+        items: mm ? [] : atomsOfPanel(panel),
         isKpi: !!mm,
         kpiTitle: mm ? (mm.title || mm.label || '') : '',
         kpiValue: mm ? String(mm.value == null ? '' : mm.value) : '',
@@ -2934,6 +2922,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         kpiActionId: mm ? (mm.actionId || '') : '',
       }
     })
+    // the charts are drawn in their tiles now (the full-width chart under the tiles is gone)
+    const trend = null
     return {
       // editor mode: the banner is the hero's node, its CTAs (painted inside the banner, in order)
       // their Buttons' — the page binds both onto the banner (data-node-id / data-node-buttons)
@@ -2991,6 +2981,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isInfo: true,
       colClass: 'oj-flex-item oj-sm-12 oj-md-4',
     }
+  }
+
+  /** A node's children: in children and/or metadata.content. */
+  function overviewPiecesOf(node) {
+    const out = [...(node.children || [])]
+    const inner = node.metadata && node.metadata.content
+    if (Array.isArray(inner)) out.push(...inner)
+    else if (inner && typeof inner === 'object') out.push(inner)
+    return out
   }
 
   /** GENERAL OVERVIEW archetype: record switcher + EntityHeader + cards. */
