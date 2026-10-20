@@ -823,6 +823,12 @@
     ]
    }
   },
+  "DetailContentSupplier": {
+   "class": [],
+   "members": {
+    "detail_content": []
+   }
+  },
   "DetailForm": {
    "class": [
     [

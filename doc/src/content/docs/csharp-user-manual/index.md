@@ -179,6 +179,29 @@ Override `EditInDrawer => true` and New/row clicks open the create/edit form in 
 sliding over the listing** (the listing never unmounts; saving persists, closes the drawer and
 refreshes the rows in place). `EditDrawerWidth` adjusts the panel width.
 
+A record's page (`/x/{id}`) is its read-only form. For other content, the entity implements
+`IDetailContentSupplier` and returns the component to show instead — for instance an `ItemOverview`
+built from the record. The page title and toolbar (Back to list, Edit) stay the crud's, the edit and
+create forms keep their forms, and returning `null` keeps the default form for that record:
+
+```csharp
+public class Student : IDetailContentSupplier
+{
+    public string Id { get; set; } = "";
+    public string Email { get; set; } = "";
+
+    public IComponent? DetailContent() => new StudentOverview(this).Component();
+}
+
+public class StudentOverview(Student student) : ItemOverview
+{
+    public Text KeyInfo { get; } = new("Email: " + student.Email);
+
+    [Panel(Title = "History")]
+    public Text History { get; } = new("Enrolled since 2024");
+}
+```
+
 Two more archetypes mirror the Java orchestrators: `CollectionDetail<TRow>` (searchable card
 list on the left, the selected item's detail re-rendered in place on the right) and
 `GeneralOverview<TRow>` (a record context switcher over the selected record's overview). Both are

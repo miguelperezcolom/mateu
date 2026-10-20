@@ -49,6 +49,10 @@ public class ProductOverview extends ItemOverview {
 
 Override `panelWidth()` (default `22rem`) to size the key-info panel.
 
+An item overview can also be the content of a CRUD's record page, under the CRUD's own header and
+toolbar: the record class implements `DetailContentSupplier` and returns it — see
+[The record page](/java-user-manual/build/customizing-crud-and-listings/#the-record-page).
+
 ## Redwood parameter and slot reference
 
 What the Redwood `item-overview-page` template and its `item-overview` key-info pattern expose, and

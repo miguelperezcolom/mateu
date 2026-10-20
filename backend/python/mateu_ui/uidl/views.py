@@ -1,4 +1,5 @@
-"""View base classes: HeroSearch, SmartSearchPage, Wizard, Translator, ComponentTreeSupplier, LinkSupplier."""
+"""View base classes: HeroSearch, SmartSearchPage, Wizard, Translator, ComponentTreeSupplier,
+DetailContentSupplier, LinkSupplier."""
 
 from __future__ import annotations
 
@@ -124,6 +125,19 @@ class ComponentTreeSupplier:
         """The container style of the tree envelope. Java's ``ComponentTreeSupplier`` defaults
         to ``"max-width:900px;margin: auto;"``; a view returns ``None`` for no envelope styling."""
         return "max-width:900px;margin: auto;"
+
+
+class DetailContentSupplier:
+    """Implemented by a crud's record class to supply the CONTENT of its read-only detail page
+    (``/{id}``) instead of the read-only form drawn from its fields — for instance an
+    :class:`ItemOverview` built from the record. Only the content changes: the page title and
+    toolbar (Back to list, Edit) stay the crud's, and the edit and create forms keep their regular
+    forms. A :class:`ComponentTreeSupplier` (an archetype) is composed in place; ``None`` keeps the
+    default form. The Python analogue of Java's ``DetailContentSupplier`` (parameterless, the port
+    idiom, like :meth:`ComponentTreeSupplier.component`)."""
+
+    def detail_content(self):
+        raise NotImplementedError
 
 
 class LinkSupplier:

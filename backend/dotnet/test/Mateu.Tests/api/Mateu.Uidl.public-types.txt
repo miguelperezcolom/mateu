@@ -168,6 +168,7 @@ Mateu.Uidl.ICrudAffordances
 Mateu.Uidl.ICrudExports
 Mateu.Uidl.IDataManagement
 Mateu.Uidl.IDeletable`1
+Mateu.Uidl.IDetailContentSupplier
 Mateu.Uidl.IDraftable
 Mateu.Uidl.IEditable`2
 Mateu.Uidl.IFieldTypeCatalogSupplier

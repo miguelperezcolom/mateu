@@ -37,6 +37,7 @@
   "DateRange",
   "DeclaredRestSource",
   "Deletable",
+  "DetailContentSupplier",
   "DetailForm",
   "Disabled",
   "DisabledUnless",

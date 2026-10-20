@@ -11,6 +11,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+- **A CRUD's record page can show its own content** (`DetailContentSupplier`). The view class (for an
+  `AutoCrud<T>`, `T`) implements `Component detailContent(HttpRequest)` and its `/{id}` page shows
+  that component — e.g. an `ItemOverview` with the key information beside tabs — instead of the
+  read-only form. The header (title, subtitle, `Status` badges, KPIs) and the toolbar stay the
+  CRUD's, the editor and the creation form keep their forms although they are the same class, an
+  `ItemOverview` (any `ComponentTreeSupplier`) is expanded in place so its buttons reach the CRUD
+  (`edit`, `cancel-view`, `action-on-view-<method>`), and `null` keeps the form. An editable view's
+  view mode honours it too. It replaces overriding `resolveInternalRoute` and copying the
+  `PageView`. Python `DetailContentSupplier.detail_content()`, .NET `IDetailContentSupplier.DetailContent()`
+  on the crud record page (title + Back to list/Edit kept). (Java, .NET, Python)
+- **`PageView.toBuilder()`**: copy a page with one thing changed instead of calling its 29-argument
+  constructor. (Java)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
