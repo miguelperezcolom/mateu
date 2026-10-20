@@ -3531,7 +3531,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!node) return null
     const md = node.metadata
     return {
-      title: (md.icon ? md.icon + ' ' : '') + (md.title || ''),
+      // an icon NAME is no text (it read «vaadin:list-select Select an item»); an emoji leads the title
+      title: (md.icon && !iconNameLike(md.icon) ? md.icon + ' ' : '') + (md.title || ''),
       description: md.description || '',
     }
   }
@@ -9819,10 +9820,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
   /** EmptyState → oj-sp-empty-state (its call to action as an oj-button below it). */
+  /** An icon NAME (`vaadin:list-select`, `lumo:edit`, an `oj-ux-` class), not an emoji or a glyph. */
+  const iconNameLike = (icon) => /^[a-z][\w-]*:[\w-]+$/i.test(String(icon || '')) || String(icon || '').indexOf('oj-ux-') === 0
+
   function emptyStateAtomOf(m, interp = (x) => x) {
     return {
       isEmptyStateAtom: true,
-      title: [m.icon, interp(str(m.title))].filter(Boolean).join(' '),
+      // an icon NAME is no text: oj-sp-empty-state draws its own illustration (it read «vaadin:list-select
+      // Select an item»); an emoji still leads the title
+      title: [iconNameLike(m.icon) ? '' : m.icon, interp(str(m.title))].filter(Boolean).join(' '),
       description: interp(str(m.description)),
       hasAction: !!(m.actionId && m.actionLabel),
       actionLabel: interp(str(m.actionLabel)),

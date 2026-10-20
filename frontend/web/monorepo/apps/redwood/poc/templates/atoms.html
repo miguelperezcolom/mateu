@@ -700,7 +700,10 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
-                              <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                              <!-- only with an avatar: without one it was an empty grey square before the title -->
+                              <oj-bind-if test="[[ !!$current.data.avatar ]]">
+                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                              </oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>

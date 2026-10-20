@@ -11,6 +11,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: `EmptyState` icon and `StatusList` rows without avatar.** An empty state printed its icon
+  name as text («vaadin:list-select Select an item»); an icon name is no longer part of the title (an
+  emoji still is). A status list row without an avatar left an empty square before its title.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
