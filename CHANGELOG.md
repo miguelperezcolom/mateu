@@ -59,6 +59,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   code when a request arrives, and the open live-reload stream is not one. With `mateu.dev=true`,
   `mateu-quarkus` now asks it to scan for changes once a second while a browser is watching
   (a `HotReplacementSetup`; dev mode only). (Java)
+### Fixed
+- **`TodoList`, `CalendarPage`, `CollectionDetail` and `GeneralOverview` no longer send the request
+  to the client.** Their private `currentRequest` field travelled in the component state (base url,
+  caller's remote address) and failed to come back (`WARN Hydrater: Could not hydrate field
+  'currentRequest'`). It is `transient` now, and the state serializers skip transient fields in
+  their nested-object pass too (Jackson already did). (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 

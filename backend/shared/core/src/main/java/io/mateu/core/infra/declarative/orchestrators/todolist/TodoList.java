@@ -96,7 +96,8 @@ public abstract class TodoList<Row> implements TriggersSupplier {
 
   // ── Wiring ────────────────────────────────────────────────────────────────
 
-  private HttpRequest currentRequest;
+  // the request of the call being served: wiring, not state — transient keeps it off the wire
+  private transient HttpRequest currentRequest;
 
   private Component build() {
     var rows = rows(currentRequest);
