@@ -65,6 +65,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   caller's remote address) and failed to come back (`WARN Hydrater: Could not hydrate field
   'currentRequest'`). It is `transient` now, and the state serializers skip transient fields in
   their nested-object pass too (Jackson already did). (Java)
+### Fixed
+- **No more `"nombre": "xxxx"` in every row of every list.** A leftover debug line in the wizard
+  state serializer (used for every form's state) planted it next to `_rowNumber`. (Java)
+- **A list of components is not an editable grid field.** A `List<Badge>` (a `Foldout`'s header
+  badges) or `List<Component>` field registered the twelve row-editing actions (`estado_add`,
+  `estado_create`, …) of a list of records. (Java, .NET, Python)
 
 ## [3.0-beta.7] — 2026-10-19
 
