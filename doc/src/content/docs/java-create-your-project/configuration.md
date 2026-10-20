@@ -88,7 +88,8 @@ Permissions are still enforced per request over the caller's token, exactly as o
 `mateu.dev=true` (or the environment variable `MATEU_DEV=true`) reads `specs/ui/**` from the source
 directory (`mateu.dev.specs-dir`, default `src/main/resources/specs/ui`), watches it, and serves
 `GET /mateu/dev/events` and `POST /mateu/dev/reload`, so the browsers re-render the open screen when a
-spec — or, after a HotSwap, the code — changes. **Off by default; never in production.** Every
+spec — or, after a HotSwap, the code — changes. **Off by default (on Quarkus, on in the dev
+profile: `%dev.mateu.dev=true`); never in production.** Every
 adapter reads it from its own configuration (Spring, MicroProfile Config on Quarkus/Helidon,
 Micronaut). See [Live reload](/java-user-manual/build/live-reload/).
 

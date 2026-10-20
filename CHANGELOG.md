@@ -26,6 +26,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **`PageView.toBuilder()`**: copy a page with one thing changed instead of calling its 29-argument
   constructor. (Java)
 
+- **Quarkus: live reload works under `quarkus:dev` out of the box.** `mateu-quarkus` now ships
+  `%dev.mateu.dev=true` among its configuration defaults, so Mateu's development mode (specs read
+  from the source tree and watched, the open tab re-rendered after a recompile) is on in Quarkus's
+  dev profile only — never in the packaged application or the tests. Override it with
+  `%dev.mateu.dev=false`. (Java)
+
 ### Fixed
 
 - **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of

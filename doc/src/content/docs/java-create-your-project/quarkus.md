@@ -123,6 +123,15 @@ leaving those `@Inject` fields `null`. `mateu-quarkus` therefore sets
 `quarkus.arc.remove-unused-beans=fwk` (keep every bean declared in your application, still remove
 unused framework beans); no `@Unremovable` is needed. Your `application.properties` can override it.
 
+### Live reload in `quarkus:dev`
+
+`mateu-quarkus` turns Mateu's [development mode](/java-create-your-project/configuration/#development-mode-live-reload)
+on in Quarkus's **dev profile** (`%dev.mateu.dev=true`, a default your `application.properties`
+overrides): under `mvn quarkus:dev` the specs are read from `src/main/resources/specs/ui` and
+watched, and when you edit a Java class the open browser tab is re-rendered once Quarkus has
+recompiled it — no manual reload. The packaged application (prod profile) and the tests never get
+it. To opt out, set `%dev.mateu.dev=false`.
+
 An empty class renders an empty page. For a complete project on this runtime — a model, a store and
 a full CRUD, with this exact build setup — copy the [`starters/quarkus`](https://github.com/miguelperezcolom/mateu/tree/master/starters/quarkus) project; CI
 compiles and boots it on every change.
