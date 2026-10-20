@@ -989,6 +989,19 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   margin-inline-end: 1.5rem;
 }
 
+/* A HorizontalLayout of inline pieces (isRow): a row that wraps on a narrow screen. The wire
+   style of the row (align-items, width…) and of each piece (flex: 1 pushes the rest to the end)
+   overrides these defaults. */
+.mateu-atom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.mateu-atom-row > * {
+  min-width: 0;
+}
+
 /* Listing as CARDS (gridLayout = cards): a responsive grid — as many 16rem columns as fit, one
    column on a phone (min() keeps a 390px screen from overflowing). Each card fills its cell,
    the same height as its row; the title wraps instead of clipping, and the badges sit beside it. */

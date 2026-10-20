@@ -126,6 +126,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the default, keeps it as the first column). `FoldoutNavigation.title` is still not drawn: the
   layout's header has no place for it.
 
+- **Redwood: `Text.style` shows, and a `HorizontalLayout` in the content is a row.** The Text
+  atom only used its size class, and a HorizontalLayout's children were stacked like a vertical
+  one (a panel's title and its close button, one under the other). A Text now carries its `style`,
+  filtered like an Element's HTML style (presentation properties only, no `url()`/`expression()`;
+  the filter now also keeps `flex`/`align-*`/`justify-*`), with a declared weight or size winning
+  over Redwood's `!important` typography classes; a HorizontalLayout of texts, buttons, badges,
+  links and icons is drawn as one row that wraps on a phone, with its own style. A layout of
+  buttons only keeps the button bar, and one holding anything else (a grid, a form…) is still
+  stacked.
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches

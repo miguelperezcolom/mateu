@@ -9,6 +9,8 @@ import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
 import { foldoutHeaderOf, foldoutIconClassOf } from './core/archetypes.mjs'
+import { styledTextOf } from './core/content.mjs'
+import { styleObjectOf } from './richtext.mjs'
 import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
@@ -6137,4 +6139,53 @@ test('Foldout page: the layout binds the header, the overview can take the overv
     assert.equal(page.eventListeners[listener].chains[0].parameters.actionId, '{{ ' + H + '.' + id + ' }}')
   }
   assert.equal(page.eventListeners.foldoutPanelAction.chains[0].parameters.actionId, '{{ $event.detail.actionId }}')
+})
+test('Data Management (con-micronaut demo): the docked panel\'s «Resumen ✕» HorizontalLayout is ONE row; its Text keeps its style', () => {
+  const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-data-management')).contexts[HOST_ID], null, {})
+  const atoms = blocks.flatMap((b) => b.items || [])
+  const row = atoms.find((a) => a.isRow)
+  assert.ok(row, 'the HorizontalLayout is a row')
+  assert.deepEqual(row.style, { alignItems: 'center', width: '100%' })
+  assert.deepEqual(row.items.map((i) => [i.rowText, i.rowButton, i.text || i.label]), [[true, false, 'Resumen'], [false, true, '✕']])
+  assert.deepEqual(row.items[0].style, { fontWeight: '600', flex: '1' })
+  assert.match(row.items[0].cls, /oj-typography-semi-bold/)
+  assert.equal(row.items[1].actionId, 'toggleEndPanel', 'the button keeps its action')
+  // the toolbar (buttons only) stays a button bar
+  assert.ok(atoms.some((a) => a.isButtons && a.buttons.map((b) => b.label).join() === 'Tabla,Calendario,Resumen,Incidencias'))
+})
+test('Text.style: filtered like an Element\'s HTML style; a weight / size beats Redwood\'s !important typography', () => {
+  assert.deepEqual(styleObjectOf('color: red; background-image: url(x.png); width: expression(alert(1)); font-size: 1.5rem; --x: 1'),
+    { color: 'red', fontSize: '1.5rem' })
+  assert.deepEqual(styleObjectOf(''), {})
+  assert.deepEqual(styledTextOf('oj-typography-body-md', 'font-weight: bold'), { cls: 'oj-typography-body-md oj-typography-bold', style: { fontWeight: 'bold' } })
+  assert.equal(styledTextOf('oj-typography-body-xs oj-text-color-secondary', 'font-size: 2rem').cls, 'oj-text-color-secondary')
+  assert.equal(styledTextOf('oj-typography-body-md', 'font-weight: 400').cls, 'oj-typography-body-md')
+  const node = (metadata, children = [], style) => ({ type: 'ClientSide', metadata, children, ...(style ? { style } : {}) })
+  const items = hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [
+    node({ type: 'Text', text: 'Big', size: 'xl' }, [], 'color: #c00; font-weight: 700'),
+  ])] } }, null, {}).flatMap((b) => b.items)
+  const t = items.find((a) => a.text === 'Big')
+  assert.deepEqual(t.style, { color: '#c00', fontWeight: '700' })
+  assert.equal(t.cls, 'oj-typography-heading-md oj-typography-bold')
+})
+test('HorizontalLayout: inline pieces make a row; any other child keeps the stacked projection', () => {
+  const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
+  const project = (hl) => hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [hl])] } }, null, {}).flatMap((b) => b.items)
+  const row = project(node({ type: 'HorizontalLayout' }, [node({ type: 'Text', text: 'Total' }), node({ type: 'Badge', text: 'Paid', color: 'success' }),
+    node({ type: 'Anchor', text: 'Invoice', url: '/invoices/1' }), node({ type: 'Icon', icon: 'vaadin:check' })]))
+  assert.equal(row.length, 1)
+  assert.deepEqual(row[0].items.map((i) => [i.rowText, i.rowBadge, i.rowAnchor, i.rowIcon]),
+    [[true, false, false, false], [false, true, false, false], [false, false, true, false], [false, false, false, true]])
+  // buttons only: still the button bar
+  const bar = project(node({ type: 'HorizontalLayout' }, [node({ type: 'Button', label: 'A', actionId: 'a' }), node({ type: 'Button', label: 'B', actionId: 'b' })]))
+  assert.deepEqual(bar.map((a) => !!a.isButtons), [true])
+  // a non-inline child: no row, the pieces as before
+  const mixed = project(node({ type: 'HorizontalLayout' }, [node({ type: 'Text', text: 'x' }), node({ type: 'Separator' })]))
+  assert.ok(!mixed.some((a) => a.isRow))
+  assert.ok(mixed.some((a) => a.isText && a.text === 'x'))
+  // the template paints the row (single atoms template, expanded into every surface by the bridge)
+  const atomsHtml = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
+  assert.match(atomsHtml, /<oj-bind-if test="\[\[ \$current\.data\.isRow \]\]">\s*(<!--[\s\S]*?-->\s*)?<div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="\[\[ \$current\.data\.style \|\| \{\} \]\]">/)
+  assert.match(atomsHtml, /rowButton \]\]">\s*<oj-button[\s\S]*?on-oj-action="\[\[ \$listeners\.\{\{blockAction\}\} \]\]"/)
+  assert.match(atomsHtml, /\$current\.data\.isText && !\$current\.data\.isHeading \]\]">\s*<div class="oj-sm-margin-1x-bottom" :class="\[\[ \$current\.data\.cls \]\]" :style="\[\[ \$current\.data\.style \|\| \{\} \]\]">/)
 })
