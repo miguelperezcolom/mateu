@@ -45,6 +45,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `ComponentTreeSupplier`) ignored its `@Toolbar` / `@Button` methods: nothing was rendered. Its
   tree now goes inside a page carrying them (a tree that is already a page gets them added), and they
   run on the view like a normal page's; a view with none renders exactly as before. (Java)
+
 ### Changed
 
 - **A `RemoteMenu` with a label groups its entries in every menu variant.** When the remote answers
@@ -229,6 +230,87 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   buttons only keeps the button bar, and one holding anything else (a grid, a form…) is still
   stacked.
 
+- **Redwood: the message band's close button closes the notice.** The band's keys came from a
+  counter typed as a string with no default, so the first notice had no id and every later one was
+  `"NaN"`: closing removed nothing and an error stayed on screen for good. The counter is now a
+  number and each notice gets its own text key, the one `spClose` hands back.
+- **Redwood: a header badge takes its colour from the state.** A `Status` field's badge travels as
+  `text: ${state.x.message}`, `color: ${state.x.type}`; the label was resolved but the colour was
+  read as the literal template, so the chip was always grey. The colour is now resolved like the text.
+- **Redwood: only the EntityHeader that heads the page goes up to the screen header.** The first
+  `EntityHeader` found anywhere in the tree was lifted, so a collection's detail (next to its list),
+  a task card under a planning chart or one inside a drawer emptied its panel and retitled the page
+  with the selected item. Now only one that is the page's first content is lifted (a Java
+  `EntityHeader` field leading the form, a foldout's summary); drawers and dialogs are not searched.
+- **Redwood: reloading or closing the tab with unsaved changes asks first.** Menu navigation and
+  the browser's back already asked; the window's own exits did not, so an edit was lost without a
+  word. The shell now raises the browser's "Leave site?" prompt (`beforeunload`) while the screen
+  is dirty, like the Vaadin renderer. (Not in the embedded `<mateu-ui>`: the host page owns its
+  window's unload.)
+- **Redwood: a composed page is headed by its own title.** A Dashboard, SmartSearchPage,
+  HeroSearchPage, GanttPage or DataManagement page has no `Page` node: its `@Title` only travelled
+  as the window title, and the header showed the menu label instead (and the Gantt/Data Management
+  heading text a second time). The screen now keeps its window title and the header prefers it to
+  the menu label, so the page's own heading text is not repeated. The listing header
+  (`oj-sp-smart-filter-search`) also shows the page subtitle, so a SmartSearchPage's
+  `pageSubtitle()` is visible.
+- **Visual editor: a component dropped on the Redwood canvas lands.** The canvas did not re-render
+  when a palette drag started, so the Redwood frame was never told to let the pointer through and
+  its iframe swallowed the moves and the release: the YAML changed only on the next click, nothing
+  was selected and Undo stayed off. The drag is now part of the canvas state. (A drop on the Redwood
+  canvas still lands at the end of the page: the frame's nodes cannot be hit-tested from the editor.)
+- **Redwood: `@Zones` columns in a form.** A crud's detail or editor with `@Zones` +
+  `@Section(zone=…)` arrives as a `ResponsiveGrid` of columns, but the one-column generic form won
+  (the page has fields) and every section was painted stacked in one card. A grid of explicit tracks
+  is now the page's body, like a slot template, with its fields editable in place. An entity page
+  whose NARROW zone comes first is painted in its columns (the reverted item-overview template still
+  claimed it and the page came out blank; the general overview template took it after an action).
+- **Redwood: grid tracks of fixed length.** `gridTemplateColumns` with a `rem`/`px` track
+  (`22rem 1fr`, `1fr 22rem`) split 50/50: the fixed track weighed like a `1fr`. Tracks are now
+  measured against a desktop content width, and a row's twelfths always add up to 12. A column grid
+  nested in a card (a CollectionDetail's list/detail inside its form card) is lifted out of it instead
+  of stacking.
+- **Redwood: Item Overview tabs.** On entry the first tab's content was shown but no tab was
+  selected in the bar; it now selects the tab it shows (the one marked open, else the first). On a
+  phone the tabs that do not fit went off the card with no way to reach them: the item overview's
+  bar and the content tab strips now put them in an overflow menu.
+- **Redwood: a wizard in a drawer advances.** A Drawer whose content is an `EmbeddedView` (the
+  Guided Process Drawer) is painted from its embedded surface; the answer to Next re-rendered the
+  overlay's frame instead and the drawer stayed on step 1. The re-render now goes to the surface and
+  the drawer keeps its header — apps no longer need to return a new Drawer on every step.
+- **Redwood: clicking a Gantt bar selects its task.** `Gantt.onTaskSelectionActionId` (GanttPage's
+  `selectGanttTask`, DataManagement) and a PlanningBoard's `selectActionId` never fired: the chain
+  dropped the selection changes JET reports as `internal` — which are the user's — and with the tasks
+  inline in each row the selected key comes back null anyway. A click resolves the bar under the
+  pointer (as the double click already did), once per pick. The done part of a coloured task is
+  drawn in a darker shade of its colour instead of JET's one grey.
+- **Redwood: General Overview content and `infoWidth()`.** Only the titled `Card`s of the page were
+  drawn in the main area, so anything else `overview()` returned (a chart, a Markdown, an untitled
+  card) was lost; every piece of the main slot is now a card, in order. Main and info are drawn as
+  two columns at the widths of the overview's grid (`infoWidth()`, first when promoted) instead of
+  a grid of cards where the info card fell wherever there was room.
+- **Redwood: Welcome tiles show what their panels hold.** Each `DashboardPanel` kept only its text,
+  its first metric or its first chart, so a `FeatureGrid` or a `Checklist` came out as an empty card;
+  the chart was always moved to the end, drawn as bars with a fixed «Occupancy %» legend, and
+  `colSpan`/`subtitle` were ignored. Every panel is now a tile in its declared order and width, with
+  its subtitle and its content drawn like any page content (a `TrendChart` as its line/area chart).
+- **Redwood: a Dialog shows its whole content.** A `Dialog` drew only the lines of text it held:
+  an `EntityHeader`, a `Badge`, a `Meter`, a `StatusList`… inside it were lost (a `Drawer` drew
+  them). A dialog with more than text is now drawn from its content, in order.
+- **Redwood: a `Drawer` placed in the page** (a GanttPage's bottom panel, a docked side panel) had no
+  view: its content came out loose, without its title. It is now a panel with its title as the
+  header, collapsible when it says so.
+- **Redwood: `MetricCard.icon`, `Meter` thresholds and unit, `info` status tone.** A metric's icon was
+  not drawn (an icon name is Redwood's icon, an emoji is drawn as itself). A `Meter` showed
+  `value / max` and ignored `unit`, `warnAt` and `dangerAt`: it now reads like the web renderer's —
+  the value with its unit, the caption or else the fill percent, and the fill turning warning/error
+  past the thresholds. A `StatusItem` coloured `info` had no colour.
+- **Redwood: `EmptyState` icon and `StatusList` rows without avatar.** An empty state printed its icon
+  name as text («vaadin:list-select Select an item»); an icon name is no longer part of the title (an
+  emoji still is). A status list row without an avatar left an empty square before its title.
+- **Redwood: HeroSection `centered` and `image`.** The flags reached the page as classes with no style:
+  the texts were not centred and stayed dark over the darkened image (unreadable on a dark picture).
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches
@@ -242,102 +324,6 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   core's long-drawer-wizard warning no longer imply Redwood renders its guided-process template in
   a drawer: the renderers draw the drawer's wizard as a generic wizard (Redwood: the step train),
   and the full-page Guided Process is a routed `Wizard` with `@WizardProgress(RAIL)`.
-### Fixed
-- **Redwood: the message band's close button closes the notice.** The band's keys came from a
-  counter typed as a string with no default, so the first notice had no id and every later one was
-  `"NaN"`: closing removed nothing and an error stayed on screen for good. The counter is now a
-  number and each notice gets its own text key, the one `spClose` hands back.
-### Fixed
-- **Redwood: a header badge takes its colour from the state.** A `Status` field's badge travels as
-  `text: ${state.x.message}`, `color: ${state.x.type}`; the label was resolved but the colour was
-  read as the literal template, so the chip was always grey. The colour is now resolved like the text.
-### Fixed
-- **Redwood: only the EntityHeader that heads the page goes up to the screen header.** The first
-  `EntityHeader` found anywhere in the tree was lifted, so a collection's detail (next to its list),
-  a task card under a planning chart or one inside a drawer emptied its panel and retitled the page
-  with the selected item. Now only one that is the page's first content is lifted (a Java
-  `EntityHeader` field leading the form, a foldout's summary); drawers and dialogs are not searched.
-### Fixed
-- **Redwood: reloading or closing the tab with unsaved changes asks first.** Menu navigation and
-  the browser's back already asked; the window's own exits did not, so an edit was lost without a
-  word. The shell now raises the browser's "Leave site?" prompt (`beforeunload`) while the screen
-  is dirty, like the Vaadin renderer. (Not in the embedded `<mateu-ui>`: the host page owns its
-  window's unload.)
-### Fixed
-- **Redwood: a composed page is headed by its own title.** A Dashboard, SmartSearchPage,
-  HeroSearchPage, GanttPage or DataManagement page has no `Page` node: its `@Title` only travelled
-  as the window title, and the header showed the menu label instead (and the Gantt/Data Management
-  heading text a second time). The screen now keeps its window title and the header prefers it to
-  the menu label, so the page's own heading text is not repeated. The listing header
-  (`oj-sp-smart-filter-search`) also shows the page subtitle, so a SmartSearchPage's
-  `pageSubtitle()` is visible.
-### Fixed
-- **Visual editor: a component dropped on the Redwood canvas lands.** The canvas did not re-render
-  when a palette drag started, so the Redwood frame was never told to let the pointer through and
-  its iframe swallowed the moves and the release: the YAML changed only on the next click, nothing
-  was selected and Undo stayed off. The drag is now part of the canvas state. (A drop on the Redwood
-  canvas still lands at the end of the page: the frame's nodes cannot be hit-tested from the editor.)
-### Fixed
-- **Redwood: `@Zones` columns in a form.** A crud's detail or editor with `@Zones` +
-  `@Section(zone=…)` arrives as a `ResponsiveGrid` of columns, but the one-column generic form won
-  (the page has fields) and every section was painted stacked in one card. A grid of explicit tracks
-  is now the page's body, like a slot template, with its fields editable in place. An entity page
-  whose NARROW zone comes first is painted in its columns (the reverted item-overview template still
-  claimed it and the page came out blank; the general overview template took it after an action).
-- **Redwood: grid tracks of fixed length.** `gridTemplateColumns` with a `rem`/`px` track
-  (`22rem 1fr`, `1fr 22rem`) split 50/50: the fixed track weighed like a `1fr`. Tracks are now
-  measured against a desktop content width, and a row's twelfths always add up to 12. A column grid
-  nested in a card (a CollectionDetail's list/detail inside its form card) is lifted out of it instead
-  of stacking.
-### Fixed
-- **Redwood: Item Overview tabs.** On entry the first tab's content was shown but no tab was
-  selected in the bar; it now selects the tab it shows (the one marked open, else the first). On a
-  phone the tabs that do not fit went off the card with no way to reach them: the item overview's
-  bar and the content tab strips now put them in an overflow menu.
-### Fixed
-- **Redwood: a wizard in a drawer advances.** A Drawer whose content is an `EmbeddedView` (the
-  Guided Process Drawer) is painted from its embedded surface; the answer to Next re-rendered the
-  overlay's frame instead and the drawer stayed on step 1. The re-render now goes to the surface and
-  the drawer keeps its header — apps no longer need to return a new Drawer on every step.
-### Fixed
-- **Redwood: clicking a Gantt bar selects its task.** `Gantt.onTaskSelectionActionId` (GanttPage's
-  `selectGanttTask`, DataManagement) and a PlanningBoard's `selectActionId` never fired: the chain
-  dropped the selection changes JET reports as `internal` — which are the user's — and with the tasks
-  inline in each row the selected key comes back null anyway. A click resolves the bar under the
-  pointer (as the double click already did), once per pick. The done part of a coloured task is
-  drawn in a darker shade of its colour instead of JET's one grey.
-### Fixed
-- **Redwood: General Overview content and `infoWidth()`.** Only the titled `Card`s of the page were
-  drawn in the main area, so anything else `overview()` returned (a chart, a Markdown, an untitled
-  card) was lost; every piece of the main slot is now a card, in order. Main and info are drawn as
-  two columns at the widths of the overview's grid (`infoWidth()`, first when promoted) instead of
-  a grid of cards where the info card fell wherever there was room.
-### Fixed
-- **Redwood: Welcome tiles show what their panels hold.** Each `DashboardPanel` kept only its text,
-  its first metric or its first chart, so a `FeatureGrid` or a `Checklist` came out as an empty card;
-  the chart was always moved to the end, drawn as bars with a fixed «Occupancy %» legend, and
-  `colSpan`/`subtitle` were ignored. Every panel is now a tile in its declared order and width, with
-  its subtitle and its content drawn like any page content (a `TrendChart` as its line/area chart).
-### Fixed
-- **Redwood: a Dialog shows its whole content.** A `Dialog` drew only the lines of text it held:
-  an `EntityHeader`, a `Badge`, a `Meter`, a `StatusList`… inside it were lost (a `Drawer` drew
-  them). A dialog with more than text is now drawn from its content, in order.
-- **Redwood: a `Drawer` placed in the page** (a GanttPage's bottom panel, a docked side panel) had no
-  view: its content came out loose, without its title. It is now a panel with its title as the
-  header, collapsible when it says so.
-### Fixed
-- **Redwood: `MetricCard.icon`, `Meter` thresholds and unit, `info` status tone.** A metric's icon was
-  not drawn (an icon name is Redwood's icon, an emoji is drawn as itself). A `Meter` showed
-  `value / max` and ignored `unit`, `warnAt` and `dangerAt`: it now reads like the web renderer's —
-  the value with its unit, the caption or else the fill percent, and the fill turning warning/error
-  past the thresholds. A `StatusItem` coloured `info` had no colour.
-### Fixed
-- **Redwood: `EmptyState` icon and `StatusList` rows without avatar.** An empty state printed its icon
-  name as text («vaadin:list-select Select an item»); an icon name is no longer part of the title (an
-  emoji still is). A status list row without an avatar left an empty square before its title.
-### Fixed
-- **Redwood: HeroSection `centered` and `image`.** The flags reached the page as classes with no style:
-  the texts were not centred and stayed dark over the darkened image (unreadable on a dark picture).
 
 ## [3.0-beta.7] — 2026-10-19
 
