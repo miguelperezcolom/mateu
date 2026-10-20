@@ -8,6 +8,9 @@ import {
     menuTrail,
     mergeRemoteMenus,
     mountPrefix,
+    resetReportedCollisions,
+    routeCollisions,
+    warnRouteCollisions,
     mountRootPath,
     remoteMounts,
     sectionHome,
@@ -200,13 +203,77 @@ describe('the navigation tree', () => {
             expect(sectionHome(merged[0])?.route).toBe('/remote/page')
         })
 
-        it('one group stays the section; deeper mounts and the other variants paste as before', () => {
+        it('one group stays the section; a deeper mount without a declared label pastes as before', () => {
             const oneGroup = { app: { menu: [group('Svc', [leaf('A', '/svc/a')])] } }
             expect(mergeRemoteMenus(menu, new Map([[remote, oneGroup]]), 'en', { sections: true })[0].label).toBe('Remote')
             expect(mergeRemoteMenus(menu, new Map([[remote, oneGroup]]), 'en', { sections: true })[0].submenus[0].label).toBe('A')
             const inside = mergeRemoteMenus(menu, new Map([[nested, pages]]), 'en', { sections: true })
             expect(inside[1].submenus.map((o: any) => o.label)).toEqual(['Page', 'Things'])
-            expect(mergeRemoteMenus(menu, new Map([[remote, pages]]), 'en').map(o => o.label)).toEqual(['Page', 'Things', 'Admin'])
+            // the other variants: the declared label groups them as well (see below)
+            expect(mergeRemoteMenus(menu, new Map([[remote, pages]]), 'en').map(o => o.label)).toEqual(['Remote', 'Admin'])
+        })
+    })
+
+    describe('other variants: the label the shell declared groups a remote\'s entries', () => {
+        const pages = { app: { menu: [leaf('Inicio', '/inicio'), leaf('Libros', '/libros')], route: '' } }
+
+        it('several entries go into a group named, iconed and placed as the shell named the mount', () => {
+            const labelled = mount('Biblioteca', 'http://b', { path: '/biblioteca', icon: 'vaadin:book', shellLabel: true })
+            const merged = mergeRemoteMenus([leaf('Inicio', '/inicio'), labelled], new Map([[labelled, pages]]), 'en')
+            expect(merged.map(o => o.label)).toEqual(['Inicio', 'Biblioteca'])
+            expect(merged[1]).toMatchObject({ icon: 'vaadin:book', path: '/biblioteca', route: '' })
+            expect(merged[1].submenus.map((o: any) => o.label)).toEqual(['Inicio', 'Libros'])
+            // the entries keep their routes and their remote: navigation is claimed by route as before
+            expect(merged[1].submenus[1]).toMatchObject({ route: '/libros', baseUrl: 'http://b' })
+            expect(activeSection(merged, '/libros')?.label).toBe('Biblioteca')
+        })
+
+        it('inside a group too; a hidden mount brings its group hidden', () => {
+            const labelled = mount('Biblioteca', 'http://b', { shellLabel: true })
+            const merged = mergeRemoteMenus([group('Apps', [labelled])], new Map([[labelled, pages]]), 'en')
+            expect(merged[0].submenus[0].label).toBe('Biblioteca')
+            expect(merged[0].submenus[0].submenus).toHaveLength(2)
+            const hidden = mount('Biblioteca', 'http://b', { shellLabel: true, visible: false })
+            const h = mergeRemoteMenus([hidden], new Map([[hidden, pages]]), 'en')
+            expect(h[0].visible).toBe(false)
+            expect(h[0].submenus.every((o: any) => o.visible === false)).toBe(true)
+        })
+
+        it('without a declared label the entries are pasted as they come; one entry takes the label', () => {
+            const unlabelled = mount('Biblioteca', 'http://b', { shellLabel: false })
+            expect(mergeRemoteMenus([unlabelled], new Map([[unlabelled, pages]]), 'en').map(o => o.label)).toEqual(['Inicio', 'Libros'])
+            const labelled = mount('Biblioteca', 'http://b', { shellLabel: true })
+            const one = { app: { menu: [leaf('Libros', '/libros')] } }
+            expect(mergeRemoteMenus([labelled], new Map([[labelled, one]]), 'en').map(o => o.label)).toEqual(['Biblioteca'])
+        })
+    })
+
+    describe('route collisions between the shell and its remotes', () => {
+        const a = mount('Alumnado', 'http://a/app', { shellLabel: true })
+        const b = mount('Biblioteca', 'http://b/app', { shellLabel: true })
+        const down = mount('Plantillas', 'http://c/app')
+        const menu = [leaf('Inicio', '/inicio'), leaf('Home', ''), a, group('Más', [b, down])]
+        const answers = new Map<any, any>([
+            [a, { app: { menu: [leaf('Inicio', '/inicio/'), leaf('Estudiantes', '/estudiantes'), leaf('Home', '/')] } }],
+            [b, { app: { menu: [group('Libros', [leaf('Estudiantes', '/estudiantes?x=1')]), leaf('Otra', '/otra')] } }],
+            [down, { failed: true }],
+        ])
+
+        it('names the route and both sources: the shell and a remote, two remotes; homes and failed remotes claim nothing', () => {
+            expect(routeCollisions(menu, answers)).toEqual([
+                { route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (http://a/app)' },
+                { route: '/estudiantes', first: 'RemoteMenu "Alumnado" (http://a/app)', second: 'RemoteMenu "Biblioteca" (http://b/app)' },
+            ])
+        })
+
+        it('no collision, no warning; each collision is warned once however often the merge runs', () => {
+            resetReportedCollisions()
+            const said: string[] = []
+            expect(warnRouteCollisions([leaf('X', '/x'), a], new Map([[a, answers.get(a)]]), m => said.push(m))).toEqual([])
+            warnRouteCollisions(menu, answers, m => said.push(m))
+            warnRouteCollisions(menu, answers, m => said.push(m))
+            expect(said).toHaveLength(2)
+            expect(said[0]).toContain('"/inicio" is claimed by the shell and by RemoteMenu "Alumnado" (http://a/app)')
         })
     })
 })

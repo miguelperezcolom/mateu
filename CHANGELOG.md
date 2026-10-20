@@ -26,6 +26,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **`PageView.toBuilder()`**: copy a page with one thing changed instead of calling its 29-argument
   constructor. (Java)
 
+### Changed
+
+- **A `RemoteMenu` with a label groups its entries in every menu variant.** When the remote answers
+  with several top-level entries and the shell declared the section's label, they now go into a
+  submenu named (and iconed, and placed by its path) as the shell named it — `HAMBURGER_SECTIONS`
+  already made it a section; `MENU_ON_TOP` and the others spliced the entries flat next to the
+  shell's own, with their raw routes, and dropped the label. Without a declared label nothing
+  changes. Routes, deep links and reloads still reach the remote by route. And when the shell and a
+  remote, or two remotes, claim the same route, the browser console now warns once naming the route
+  and both sources, instead of one silently shadowing the other. (Vaadin, Redwood)
+
 ### Fixed
 
 - **Cancel (and the other leave actions) ask before dropping unsaved changes.** A dirty editor

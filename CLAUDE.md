@@ -143,6 +143,13 @@ the one-to-one case.
   not request-scoped. Tests: `RouteEntrySupplierSyncTest`/`AppSupplierSyncTest` (Java, 7),
   `CodeAuthoringTests` (.NET, 7), `test_code_authoring.py` (Python, 7). Docs:
   `concepts/routes-and-mounts.md#authoring-routes-in-code`, `navigation-and-menus.md#app-shells-and-menus-in-code`.
+- **Remote menu merge (2026-10-20)**: `navTree.mergeRemoteMenus` (Redwood port `navTree.mjs` `labelledByShell`, used by
+  `transport.mjs` `spliceRemote`) puts a remote's SEVERAL top-level entries into a group named/iconed/placed (path)
+  like the mount when the shell DECLARED its label (`shellLabel`), in every variant (HAMBURGER_SECTIONS already did
+  at depth 0); one entry is relabelled; no declared label → pasted flat. Leaves keep route/baseUrl/uriPrefix, so
+  `remoteRoutes`/deep links are unchanged. `routeCollisions`/`warnRouteCollisions` (Redwood `routeCollisionsOf`, warned
+  in `expandRemoteMenus`) console.warn ONCE per collision of leaf routes between the shell and remotes or two
+  remotes — routes are mount-relative and spliced as they are, so the later registration silently wins.
 - **Routes are RELATIVE to the mount**, so two federated domains can each have an `orders` screen.
   A route that REPEATS the mount it is sent to (`/e2-demo/page` to the `/e2-demo` controller) is
   the same place: `MountPrefixedRoutes.relativize` (start of `RunActionUseCase.handle`) strips it

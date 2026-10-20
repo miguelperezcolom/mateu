@@ -17,6 +17,7 @@ import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {
     isActiveFor,
     mergeRemoteMenus,
+    warnRouteCollisions,
     plainText,
     RemoteAnswer,
     RemoteApp,
@@ -148,6 +149,8 @@ export default abstract class ConnectedElement extends LitElement {
             // HAMBURGER_SECTIONS: each remote mounted at the top is one section (navTree.mergeRemoteMenus)
             const sections = (clientSideComponent.metadata as App).variant === AppVariant.HAMBURGER_SECTIONS
             const navMenu = mergeRemoteMenus(source, answers, undefined, { sections })
+            // two sources claiming the same route clash silently otherwise: say so, once
+            warnRouteCollisions(source, answers)
             // A NEW metadata object, and nothing else touched.
             //
             // This used to publish the app component back upstream as a Replace targeting this

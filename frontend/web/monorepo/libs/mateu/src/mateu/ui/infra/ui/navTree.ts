@@ -274,11 +274,16 @@ const adopted = (menu: MenuOption[], mount: MenuOption, app: RemoteApp): MenuOpt
  * The shell's menu with each remote section replaced by what its remote answered.
  *
  * <ul>
- *     <li>An answer replaces the section with the remote's top-level entries, as it always did. When
- *     the shell declared the section's label (`shellLabel`) and the remote answers with ONE entry —
- *     the usual «a group named after the service» — that entry takes the shell's label (and its
- *     icon, if it has one): the shell's word wins, so the bar does not change under the reader.
- *     Several top-level entries are pasted as they come: there is no single node to name.</li>
+ *     <li>An answer replaces the section with the remote's top-level entries. When the shell
+ *     declared the section's label (`shellLabel`) and the remote answers with ONE entry — the usual
+ *     «a group named after the service» — that entry takes the shell's label (and its icon, if it
+ *     has one): the shell's word wins, so the bar does not change under the reader. With SEVERAL
+ *     entries they go into a group named (and placed, by its path) as the shell named the mount,
+ *     in every variant — HAMBURGER_SECTIONS already made it a section. Pasting them flat put each
+ *     of the remote's pages (its own «Home» too) next to the shell's, and the label was lost.
+ *     Without a declared label they are pasted as they come: there is no name to give the group.
+ *     The entries keep their routes and their remote (baseUrl/uriPrefix), so navigation and deep
+ *     links are claimed by route exactly as before; only the menu's shape changes.</li>
  *     <li>A hidden section's entries come in hidden (visible: false): not drawn, still part of the
  *     tree for breadcrumbs and the active section.</li>
  *     <li>A remote that did not answer leaves its section in place, unavailable: disabled, with a
@@ -313,9 +318,13 @@ export function mergeRemoteMenus(menu: MenuOption[], answers: Map<MenuOption, Re
             } else {
                 let entries = adopted(answer.app.menu ?? [], option, answer.app)
                 const oneGroup = entries.length === 1 && (entries[0].submenus?.length ?? 0) > 0
+                const declared = !!(option.shellLabel && option.label)
                 if (options.sections && depth === 0 && !oneGroup && entries.length > 0) {
                     entries = [asSection(option, entries)]
-                } else if (option.shellLabel && option.label && entries.length === 1) {
+                } else if (declared && entries.length > 1) {
+                    // the shell named this remote: its entries go under that name
+                    entries = [asSection(option, entries)]
+                } else if (declared && entries.length === 1) {
                     entries = [{ ...entries[0], label: option.label, icon: option.icon || entries[0].icon }]
                 }
                 merged.push(...(option.visible === false ? markHidden(entries) : entries))
@@ -328,6 +337,72 @@ export function mergeRemoteMenus(menu: MenuOption[], answers: Map<MenuOption, Re
     }
     return merged
 }
+
+/** A route claimed by two sources of the merged menu: the shell itself and/or its remotes. */
+export interface RouteCollision {
+    route: string
+    /** Who had it first (menu order): `the shell`, or the remote, by its label and base url. */
+    first: string
+    /** Who claims it as well. */
+    second: string
+}
+
+/** How a remote is named in a warning: its label and where it lives. */
+export const remoteSourceName = (mount: MenuOption): string =>
+    `RemoteMenu "${plainText(mount.label) || '?'}" (${mount.baseUrl ?? ''}${mount.route ? ' ' + mount.route : ''})`
+
+/**
+ * The routes two sources of a federated menu both claim: the shell's own entries and each remote
+ * that answered. A remote's routes are mount-relative and spliced in as they are, so the shell's
+ * `/inicio` and a remote's `/inicio` are the SAME address — which one a click, a deep link or a
+ * reload reaches depends on who registered it last. Reported, never resolved: renaming is the
+ * author's call. A remote that did not answer claims nothing yet.
+ */
+export function routeCollisions(menu: MenuOption[], answers: Map<MenuOption, RemoteAnswer>): RouteCollision[] {
+    const owner = new Map<string, string>()
+    const found: RouteCollision[] = []
+    // a remote's own remote sections are left out (leafRoutes): theirs are not known yet
+    const claim = (routes: Set<string>, source: string) => {
+        for (const route of routes) {
+            const first = owner.get(route)
+            if (first === undefined) owner.set(route, source)
+            else if (first !== source) found.push({ route, first, second: source })
+        }
+    }
+    claim(leafRoutes(menu), 'the shell')
+    for (const mount of remoteMounts(menu)) {
+        const answer = answers.get(mount)
+        if (!answer || 'failed' in answer) continue
+        claim(leafRoutes(answer.app.menu), remoteSourceName(mount))
+    }
+    return found
+}
+
+const reportedCollisions = new Set<string>()
+
+/**
+ * Logs each route collision of the merged menu ONCE per page (the merge runs again as each remote
+ * answers and on every retry): a console warning naming the route and both sources, so the author
+ * renames one. Returns the ones it logged now.
+ */
+export function warnRouteCollisions(menu: MenuOption[], answers: Map<MenuOption, RemoteAnswer>,
+                                    warn: (message: string) => void = (m) => console.warn(m)): RouteCollision[] {
+    const fresh = routeCollisions(menu, answers).filter(c => {
+        const key = c.route + '\u0000' + c.first + '\u0000' + c.second
+        if (reportedCollisions.has(key)) return false
+        reportedCollisions.add(key)
+        return true
+    })
+    for (const c of fresh) {
+        warn(`mateu: route collision — "${c.route}" is claimed by ${c.first} and by ${c.second}. `
+            + 'Only one of them is reached by that address (clicks, deep links, reloads); '
+            + 'give one of them a different route.')
+    }
+    return fresh
+}
+
+/** Forgets what was reported (tests). */
+export const resetReportedCollisions = (): void => reportedCollisions.clear()
 
 /** A remote's entries as ONE section, named (and placed, by its path) as the shell named the mount. */
 const asSection = (mount: MenuOption, entries: MenuOption[]): MenuOption => ({
