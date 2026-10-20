@@ -56,6 +56,27 @@ test('archetypes: nothing on a plain page; the generic form steps aside with noG
   assert.notEqual(noGenericFormVars().mateuFormActions, noGenericFormVars().mateuFormActions, 'fresh arrays each time')
 })
 
+test('item overview: the tab shown on entry is the one SELECTED in the bar (the first, or the one marked open)', () => {
+  const page = (active) => ({ state: {}, data: {}, tree: node({ type: 'HorizontalLayout' }, [
+    node({ type: 'Card', title: 'Key' }, [node({ type: 'Text', text: 'k' })]),
+    node({ type: 'TabLayout' }, ['A', 'B', 'C'].map((label, i) => node({ type: 'Tab', label, active: i === active }, [node({ type: 'Text', text: 'in ' + label })]))),
+  ]) })
+  const first = archetypeVarsOf(page(-1), null)
+  assert.equal(first.item.selectedTab, 'itab-0', 'none marked: the first, and the bar says so')
+  assert.equal(first.vars.mateuItemTabTexts[0].text, 'in A')
+  const open = archetypeVarsOf(page(2), null)
+  assert.equal(open.item.selectedTab, 'itab-2', '@Tab(open): that one, shown and selected')
+  assert.equal(open.vars.mateuItemTabTexts[0].text, 'in C')
+  // the bar binds that selection, and on a phone its tabs that do not fit go to an overflow menu
+  // (they were clipped out of reach); so do the tab strips of the content
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const bar = html.slice(html.indexOf('<oj-tab-bar id="mateuItemTabs"'), html.indexOf('<ul>', html.indexOf('<oj-tab-bar id="mateuItemTabs"')))
+  assert.match(bar, /selection="\[\[ \$application\.variables\.mateuItemOv\.selectedTab \]\]"/)
+  assert.match(bar, /overflow="popup"/)
+  const strips = html.match(/<oj-tab-bar :id="\[\[ \$current\.data\.barId \]\]"[^>]*>/g) || []
+  assert.ok(strips.length > 0 && strips.every((t) => /overflow="popup"/.test(t)))
+})
+
 test('island projection, with the nested island merged into its content', () => {
   assert.equal(islandVarsOf(null, null), null)
   // the island holds a nested one (an App marker): its atoms land in that slot

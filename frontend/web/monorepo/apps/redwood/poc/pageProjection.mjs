@@ -88,8 +88,8 @@ export function archetypeVarsOf(host, previousLook) {
     mateuOverview: overview,
     mateuOverviewOptions: overview ? overview.switcherOptions : [],
     mateuItemOv: item,
-    // the ATOMS of the first tab (not only its texts)
-    mateuItemTabTexts: item && item.tabs.length ? item.tabs[0].items : [],
+    // the ATOMS of the selected tab (not only its texts): the first, or the one marked open
+    mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : [],
   }
   if (welcome) {
     const look = welcomeLookOf(welcomeKeyOf(host), previousLook, Math.random, welcome.tone)

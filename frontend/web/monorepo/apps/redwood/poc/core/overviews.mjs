@@ -349,9 +349,15 @@ export function itemOverviewOf(ctx) {
     items: atomsOfNodes(tab.children || []),
   }))
   const keyContent = keyCard ? ((keyCard.metadata && keyCard.metadata.content) || []) : []
+  // the tab shown on entry — the one the wire marks active (@Tab(open)), else the first — and the
+  // SAME one selected in the bar: the content showed the first tab while the bar had none selected
+  const active = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
+    .findIndex((tab) => tab.metadata.active)
+  const selected = tabs.length ? Math.max(0, active) : -1
   return {
     key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
     tabs,
+    selectedTab: selected >= 0 ? tabs[selected].id : '',
     // editor mode: the key panel is its Card's node, the tab bar its TabLayout's (bound by the page)
     keyNodeId: editorNodeIds && keyCard && keyCard.id ? String(keyCard.id) : '',
     tabsNodeId: editorNodeIds && tabLayout.id ? String(tabLayout.id) : '',

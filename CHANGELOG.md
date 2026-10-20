@@ -164,6 +164,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   measured against a desktop content width, and a row's twelfths always add up to 12. A column grid
   nested in a card (a CollectionDetail's list/detail inside its form card) is lifted out of it instead
   of stacking.
+### Fixed
+- **Redwood: Item Overview tabs.** On entry the first tab's content was shown but no tab was
+  selected in the bar; it now selects the tab it shows (the one marked open, else the first). On a
+  phone the tabs that do not fit went off the card with no way to reach them: the item overview's
+  bar and the content tab strips now put them in an overflow menu.
 
 ## [3.0-beta.7] — 2026-10-19
 
