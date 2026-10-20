@@ -87,6 +87,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   declares.** They read only the concrete class's own fields (and the Foldout only its own
   `@Title`), so subclassing a page to mount it elsewhere or to add a panel gave an empty page. They
   now walk the class hierarchy, parent fields first. (Java; .NET and Python already did)
+- **`@Email`, `@Positive`, `@PositiveOrZero`, `@Negative`, `@NegativeOrZero`, `@DecimalMin` and
+  `@DecimalMax` are checked like `@Pattern` and `@Min`/`@Max`:** they travel to the client as
+  validations and the server re-checks them before a validated action. They were ignored on both
+  sides (`pepe` went through an `@Email` field). Messages are the validator's own, in the request's
+  language. `@Past`/`@Future` are still not mapped. (Java; the .NET and Python ports have their own
+  constraint markers and do not have these yet)
 
 ## [3.0-beta.7] — 2026-10-19
 

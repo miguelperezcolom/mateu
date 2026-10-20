@@ -238,7 +238,14 @@ final class FieldActionCollector {
         || MetaAnnotations.isPresent(field, Min.class)
         || MetaAnnotations.isPresent(field, Max.class)
         || MetaAnnotations.isPresent(field, Size.class)
-        || MetaAnnotations.isPresent(field, Pattern.class);
+        || MetaAnnotations.isPresent(field, Pattern.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.Email.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.Positive.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.PositiveOrZero.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.Negative.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.NegativeOrZero.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.DecimalMin.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.DecimalMax.class);
   }
 
   private static boolean isFluxReturning(Method method) {

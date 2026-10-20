@@ -3,11 +3,18 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import io.mateu.core.domain.out.componentmapper.TranslatorContext;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.data.Validation;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Negative;
+import jakarta.validation.constraints.NegativeOrZero;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -78,6 +85,48 @@ final class ConstraintValidationMapper {
               .message(patternMessage(MetaAnnotations.find(field, Pattern.class)))
               .build());
     }
+    var key = prefix + field.getName();
+    var email = MetaAnnotations.find(field, Email.class);
+    if (email != null) {
+      validations.add(
+          Validation.builder()
+              .fieldId(key)
+              .condition(matchesOrAbsent(key, emailRegexps(email)))
+              .message(emailMessage(email))
+              .build());
+    }
+    var positive = MetaAnnotations.find(field, Positive.class);
+    if (positive != null) {
+      validations.add(bound(key, "> 0", positiveMessage(positive)));
+    }
+    var positiveOrZero = MetaAnnotations.find(field, PositiveOrZero.class);
+    if (positiveOrZero != null) {
+      validations.add(bound(key, ">= 0", positiveOrZeroMessage(positiveOrZero)));
+    }
+    var negative = MetaAnnotations.find(field, Negative.class);
+    if (negative != null) {
+      validations.add(bound(key, "< 0", negativeMessage(negative)));
+    }
+    var negativeOrZero = MetaAnnotations.find(field, NegativeOrZero.class);
+    if (negativeOrZero != null) {
+      validations.add(bound(key, "<= 0", negativeOrZeroMessage(negativeOrZero)));
+    }
+    var decimalMin = MetaAnnotations.find(field, DecimalMin.class);
+    if (decimalMin != null) {
+      validations.add(
+          bound(
+              key,
+              (decimalMin.inclusive() ? ">= " : "> ") + jsNumber(decimalMin.value()),
+              decimalMinMessage(decimalMin)));
+    }
+    var decimalMax = MetaAnnotations.find(field, DecimalMax.class);
+    if (decimalMax != null) {
+      validations.add(
+          bound(
+              key,
+              (decimalMax.inclusive() ? "<= " : "< ") + jsNumber(decimalMax.value()),
+              decimalMaxMessage(decimalMax)));
+    }
     if (MetaAnnotations.isPresent(field, NotEmpty.class)) {
       validations.add(
           Validation.builder()
@@ -95,6 +144,55 @@ final class ConstraintValidationMapper {
               .build());
     }
     return validations;
+  }
+
+  /**
+   * What {@code @Email} accepts on both sides: one {@code @} with something that is neither blank
+   * nor another {@code @} on each side. Deliberately as lenient as the Bean Validation reference
+   * implementation (which takes {@code a@b}): the client must never refuse an address the server's
+   * own validator would let through. An {@code @Email(regexp = …)} must ALSO match.
+   */
+  static final String EMAIL_REGEXP = "^[^@\\s]+@[^@\\s]+$";
+
+  static List<String> emailRegexps(Email email) {
+    var regexps = new ArrayList<String>();
+    regexps.add(EMAIL_REGEXP);
+    if (email.regexp() != null && !".*".equals(email.regexp())) {
+      regexps.add(email.regexp());
+    }
+    return regexps;
+  }
+
+  /** Holds when the value is absent or matches every one of {@code regexps} (JS RegExp.test). */
+  static String matchesOrAbsent(String key, List<String> regexps) {
+    var ref = "state['" + key + "']";
+    var condition = new StringBuilder(ref + " == null || " + ref + " === ''");
+    condition.append(" || (");
+    for (int i = 0; i < regexps.size(); i++) {
+      if (i > 0) {
+        condition.append(" && ");
+      }
+      condition
+          .append("/")
+          .append(regexps.get(i).replace("/", "\\/"))
+          .append("/.test(")
+          .append(ref)
+          .append(")");
+    }
+    return condition.append(")").toString();
+  }
+
+  private static Validation bound(String key, String comparison, String message) {
+    return Validation.builder()
+        .fieldId(key)
+        .condition(absentOr(key, comparison))
+        .message(message)
+        .build();
+  }
+
+  /** A {@code @DecimalMin}/{@code @DecimalMax} bound as a JS number literal. */
+  static String jsNumber(String value) {
+    return new java.math.BigDecimal(value.trim()).toPlainString();
   }
 
   /**
@@ -181,6 +279,69 @@ final class ConstraintValidationMapper {
         annotation
             .message()
             .replace("{jakarta.validation.constraints.Pattern.message}", "Invalid format"));
+  }
+
+  // The constraints below speak the validator's own words — "must be a well-formed email address",
+  // in the request's language — the same text the bean validator gives where the server runs it
+  // (the CRUD's edit drawer, DrawerFormValidator). Only @DecimalMin/@DecimalMax, whose built-in
+  // message needs EL (excluded from core), are worded here, in the validator's English.
+
+  static String emailMessage(Email annotation) {
+    return defaulted(
+        annotation, annotation.message(), "Email", "must be a well-formed email address");
+  }
+
+  static String positiveMessage(Positive annotation) {
+    return defaulted(annotation, annotation.message(), "Positive", "must be greater than 0");
+  }
+
+  static String positiveOrZeroMessage(PositiveOrZero annotation) {
+    return defaulted(
+        annotation, annotation.message(), "PositiveOrZero", "must be greater than or equal to 0");
+  }
+
+  static String negativeMessage(Negative annotation) {
+    return defaulted(annotation, annotation.message(), "Negative", "must be less than 0");
+  }
+
+  static String negativeOrZeroMessage(NegativeOrZero annotation) {
+    return defaulted(
+        annotation, annotation.message(), "NegativeOrZero", "must be less than or equal to 0");
+  }
+
+  static String decimalMinMessage(DecimalMin annotation) {
+    return defaulted(
+        annotation,
+        annotation.message(),
+        "DecimalMin",
+        "must be greater than "
+            + (annotation.inclusive() ? "or equal to " : "")
+            + annotation.value());
+  }
+
+  static String decimalMaxMessage(DecimalMax annotation) {
+    return defaulted(
+        annotation,
+        annotation.message(),
+        "DecimalMax",
+        "must be less than " + (annotation.inclusive() ? "or equal to " : "") + annotation.value());
+  }
+
+  /**
+   * The message with the constraint's default template resolved: the app's {@code
+   * ValidationMessages}, else the validator's built-in text, in the request's language — else
+   * {@code english}.
+   */
+  private static String defaulted(
+      java.lang.annotation.Annotation annotation, String text, String constraint, String english) {
+    var key = "jakarta.validation.constraints." + constraint + ".message";
+    if (text.contains("{" + key + "}")) {
+      var builtIn =
+          io.mateu.core.infra.ValidationLocale.defaultMessage(
+              key, io.mateu.core.infra.ValidationLocale.of(TranslatorContext.request()));
+      text = text.replace("{" + key + "}", builtIn != null ? builtIn : english);
+    }
+    return message(annotation, text);
   }
 
   static String notEmptyMessage(NotEmpty annotation) {

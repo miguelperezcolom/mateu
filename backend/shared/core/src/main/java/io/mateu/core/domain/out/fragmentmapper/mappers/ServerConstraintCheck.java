@@ -9,11 +9,18 @@ import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ValidationSupplier;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Negative;
+import jakarta.validation.constraints.NegativeOrZero;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -26,10 +33,12 @@ import java.util.Map;
 
 /**
  * The server's own check of the constraints a form sends to the client as validations ({@code
- * NotNull}, {@code NotEmpty}, {@code Size}, {@code Min}, {@code Max}, {@code Pattern}), run before
- * an action the client is told to validate ({@code validationRequired}). The browser is untrusted
- * and not the only client: a tampered request, or any client that does not evaluate the rules, used
- * to reach the action method with whatever it sent.
+ * NotNull}, {@code NotEmpty}, {@code Size}, {@code Min}, {@code Max}, {@code Pattern}, {@code
+ * Email}, {@code Positive}, {@code PositiveOrZero}, {@code Negative}, {@code NegativeOrZero},
+ * {@code DecimalMin}, {@code DecimalMax}), run before an action the client is told to validate
+ * ({@code validationRequired}). The browser is untrusted and not the only client: a tampered
+ * request, or any client that does not evaluate the rules, used to reach the action method with
+ * whatever it sent.
  *
  * <p>It checks exactly what the client checks and nothing more — the fields {@link
  * ValidationMapper} sends validations for, with the same messages — so a request a well-behaved
@@ -117,6 +126,27 @@ public final class ServerConstraintCheck {
     if (constraint instanceof Pattern pattern) {
       return ConstraintValidationMapper.patternMessage(pattern);
     }
+    if (constraint instanceof Email email) {
+      return ConstraintValidationMapper.emailMessage(email);
+    }
+    if (constraint instanceof Positive positive) {
+      return ConstraintValidationMapper.positiveMessage(positive);
+    }
+    if (constraint instanceof PositiveOrZero positiveOrZero) {
+      return ConstraintValidationMapper.positiveOrZeroMessage(positiveOrZero);
+    }
+    if (constraint instanceof Negative negative) {
+      return ConstraintValidationMapper.negativeMessage(negative);
+    }
+    if (constraint instanceof NegativeOrZero negativeOrZero) {
+      return ConstraintValidationMapper.negativeOrZeroMessage(negativeOrZero);
+    }
+    if (constraint instanceof DecimalMin decimalMin) {
+      return ConstraintValidationMapper.decimalMinMessage(decimalMin);
+    }
+    if (constraint instanceof DecimalMax decimalMax) {
+      return ConstraintValidationMapper.decimalMaxMessage(decimalMax);
+    }
     return null;
   }
 
@@ -154,6 +184,46 @@ public final class ServerConstraintCheck {
           && !java.util.regex.Pattern.compile(pattern.regexp()).matcher(text).find()) {
         // find(), not matches(): the client tests the same regexp with JS RegExp.test
         messages.add(ConstraintValidationMapper.patternMessage(pattern));
+      }
+      var email = MetaAnnotations.find(field, Email.class);
+      if (email != null
+          && value instanceof CharSequence text
+          && !ConstraintValidationMapper.emailRegexps(email).stream()
+              .allMatch(regexp -> java.util.regex.Pattern.compile(regexp).matcher(text).find())) {
+        messages.add(ConstraintValidationMapper.emailMessage(email));
+      }
+      if (number != null) {
+        var sign = number.signum();
+        var positive = MetaAnnotations.find(field, Positive.class);
+        if (positive != null && sign <= 0) {
+          messages.add(ConstraintValidationMapper.positiveMessage(positive));
+        }
+        var positiveOrZero = MetaAnnotations.find(field, PositiveOrZero.class);
+        if (positiveOrZero != null && sign < 0) {
+          messages.add(ConstraintValidationMapper.positiveOrZeroMessage(positiveOrZero));
+        }
+        var negative = MetaAnnotations.find(field, Negative.class);
+        if (negative != null && sign >= 0) {
+          messages.add(ConstraintValidationMapper.negativeMessage(negative));
+        }
+        var negativeOrZero = MetaAnnotations.find(field, NegativeOrZero.class);
+        if (negativeOrZero != null && sign > 0) {
+          messages.add(ConstraintValidationMapper.negativeOrZeroMessage(negativeOrZero));
+        }
+        var decimalMin = MetaAnnotations.find(field, DecimalMin.class);
+        if (decimalMin != null) {
+          var cmp = number.compareTo(new BigDecimal(decimalMin.value().trim()));
+          if (cmp < 0 || (cmp == 0 && !decimalMin.inclusive())) {
+            messages.add(ConstraintValidationMapper.decimalMinMessage(decimalMin));
+          }
+        }
+        var decimalMax = MetaAnnotations.find(field, DecimalMax.class);
+        if (decimalMax != null) {
+          var cmp = number.compareTo(new BigDecimal(decimalMax.value().trim()));
+          if (cmp > 0 || (cmp == 0 && !decimalMax.inclusive())) {
+            messages.add(ConstraintValidationMapper.decimalMaxMessage(decimalMax));
+          }
+        }
       }
     }
     return messages;
