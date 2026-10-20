@@ -113,7 +113,9 @@ When you run your Quarkus application, you will find your ui at [http://localhos
 A view (a `@UI` class, a menu target, an `AutoCrud`, a lookup supplier…) does not need to be a bean:
 Mateu creates it on every request and still fills its `@Inject` fields. If you make it one — e.g. for
 constructor injection — use `@Dependent`: a view holds per-request state, and an `@ApplicationScoped`
-one is shared by every request and user.
+one would be shared by every request and user. Mateu does not use a shared instance: it builds a fresh
+one per request (constructor and `@Inject` fields from the container, `@PostConstruct` run) and logs a
+one-time warning — ArC interceptors (`@Transactional`…) do not apply to that instance.
 
 Mateu reaches those classes only by reflection, so ArC sees nothing that injects them. By default it
 would remove them as unused beans at build time — and, with them, the services only they inject,

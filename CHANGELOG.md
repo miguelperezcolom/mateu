@@ -109,6 +109,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   like the wizard's and the CRUD's; `BuiltInTexts` also translates a text built lazily, with no
   request at hand (a `Callable<Component>` field), through the app's translator. (Java)
 
+- **A CRUD registered as a shared bean no longer leaks one request's routing into the next.** An
+  `AutoCrud` that the container shares (a Spring singleton, a Quarkus `@ApplicationScoped` bean
+  behind its client proxy) kept the route of an earlier request in the instance, so "New" pushed
+  `/app/students/students/new` and saving landed on a url that did not reload; concurrent users
+  raced on the same fields, and behind a proxy the request's state was written into the proxy's
+  fields while the methods ran on the real instance. Mateu now detects a shared view-model bean (two
+  lookups return the same object; decided once per class) and builds a fresh instance per request
+  — constructor and `@Inject`/`@Autowired` fields from the container, `@PostConstruct` run — with a
+  one-time warning; container interceptors do not apply to it. The docs no longer say a CRUD with
+  only `final` services may be a singleton. (Java)
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches
