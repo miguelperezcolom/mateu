@@ -69,15 +69,21 @@ public abstract class CollectionDetail<Row> implements TriggersSupplier {
 
   /** Label over the list. Default: a results counter. */
   protected String listLabel(int count) {
-    return count + " items";
+    return count
+        + " "
+        + io.mateu.core.infra.declarative.BuiltInTexts.translate("items", currentRequest);
   }
 
   /** What the right pane shows before any selection. */
   protected Component emptyDetail() {
     return EmptyState.builder()
         .icon("vaadin:list-select")
-        .title("Select an item")
-        .description("Pick an item from the list to see its detail.")
+        .title(
+            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                "Select an item", currentRequest))
+        .description(
+            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                "Pick an item from the list to see its detail.", currentRequest))
         .style("flex: 1; margin-top: 3rem;")
         .build();
   }

@@ -173,13 +173,15 @@ public abstract class CalendarPage implements TriggersSupplier {
         new ArrayList<>(
             List.of(
                 new Button("‹", "previousCalendarMonth"),
-                new Button("Today", "goCalendarToday"),
+                new Button(
+                    io.mateu.core.infra.declarative.BuiltInTexts.translate("Today", currentRequest),
+                    "goCalendarToday"),
                 new Button("›", "nextCalendarMonth")));
     if (views().size() > 1) {
       for (var option : views()) {
         toolbarButtons.add(
             Button.builder()
-                .label(viewLabel(option))
+                .label(viewLabel(option, currentRequest))
                 .actionId("switchCalendarView")
                 .parameters(Map.of("_view", option.name()))
                 .buttonStyle(option == view ? ButtonStyle.primary : null)
@@ -189,7 +191,9 @@ public abstract class CalendarPage implements TriggersSupplier {
     if (showCreate()) {
       toolbarButtons.add(
           Button.builder()
-              .label("+ Create")
+              .label(
+                  io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                      "+ Create", currentRequest))
               .actionId("createCalendarEvent")
               .buttonStyle(ButtonStyle.primary)
               .build());
@@ -216,13 +220,16 @@ public abstract class CalendarPage implements TriggersSupplier {
         .build();
   }
 
-  private static String viewLabel(CalendarView view) {
-    return switch (view) {
-      case month -> "Month";
-      case week -> "Week";
-      case day -> "Day";
-      case list -> "List";
-    };
+  /** The view switcher's labels: built-in English texts, through the app's translator. */
+  private static String viewLabel(CalendarView view, HttpRequest httpRequest) {
+    var english =
+        switch (view) {
+          case month -> "Month";
+          case week -> "Week";
+          case day -> "Day";
+          case list -> "List";
+        };
+    return io.mateu.core.infra.declarative.BuiltInTexts.translate(english, httpRequest);
   }
 
   /** One step of the current view: a month, a week or a day (the list view steps by month). */

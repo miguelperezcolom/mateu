@@ -119,6 +119,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   The `record` field lives in the base class, so a subclass had no way to label it. Blank by
   default (unlabelled, as before). `GeneralOverview` now implements `LabelSupplier` for it; a
   subclass that supplies labels of its own overrides `label(...)`. (Java)
+### Fixed
+- **The archetypes' own texts go through the app's `Translator`.** `CalendarPage` (Today,
+  + Create, Month/Week/Day/List), `TodoList` and `CollectionDetail`/`GeneralOverview` (empty
+  states, the "N items" counter) wrote fixed English. They are built-in texts now (`BuiltInTexts`),
+  like the wizard's and the CRUD's; `BuiltInTexts` also translates a text built lazily, with no
+  request at hand (a `Callable<Component>` field), through the app's translator. (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 

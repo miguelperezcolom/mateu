@@ -97,8 +97,12 @@ public abstract class GeneralOverview<Row>
   protected Component emptyOverview() {
     return EmptyState.builder()
         .icon("🗂")
-        .title("Select a record")
-        .description("Pick a record in the switcher above.")
+        .title(
+            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                "Select a record", currentRequest))
+        .description(
+            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                "Pick a record in the switcher above.", currentRequest))
         .build();
   }
 
