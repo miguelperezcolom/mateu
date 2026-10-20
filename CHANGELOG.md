@@ -50,6 +50,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `ComponentTreeSupplier`) found its `@Autowired`/`@Inject` fields `null`. It is now created through
   the instance factory, like every other view (bean if there is one, else a new instance with its
   injection points filled). (Java)
+### Fixed
+- **Live reload after a restart inside the JVM.** The dev event stream's boot id was a constant of
+  Mateu's jar, which Quarkus dev mode and Spring Boot devtools do not reload: after their restart
+  the browser reconnected, saw the same boot id and did not re-render. Each application start now
+  gets a new one (`DevEndpoint.bootId()`). (Java)
+- **Quarkus dev mode: editing Java re-renders the open browser.** Quarkus only looks for changed
+  code when a request arrives, and the open live-reload stream is not one. With `mateu.dev=true`,
+  `mateu-quarkus` now asks it to scan for changes once a second while a browser is watching
+  (a `HotReplacementSetup`; dev mode only). (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 
