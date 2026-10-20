@@ -36,6 +36,22 @@ public class RunActionUseCase {
   private final io.mateu.core.application.security.WireTypePolicy wireTypePolicy;
   private final io.mateu.core.application.authoring.UidlValidationService uidlValidationService;
 
+  /** Looked up once, not injected: the constructor is the adapters' and the tests' contract. */
+  private volatile CrudSubRouteNavigation crudSubRouteNavigation;
+
+  private CrudSubRouteNavigation crudSubRouteNavigation() {
+    var known = crudSubRouteNavigation;
+    if (known == null) {
+      try {
+        known = io.mateu.uidl.di.MateuBeanProvider.getBean(CrudSubRouteNavigation.class);
+      } catch (RuntimeException noProvider) {
+        known = null;
+      }
+      crudSubRouteNavigation = known;
+    }
+    return known;
+  }
+
   // ── Public static helpers: delegates, the implementation is domain-side ──────────────────
   // io.mateu.core.domain.ComponentState holds them; wrap / getState are deprecated in its favour.
 
@@ -242,7 +258,17 @@ public class RunActionUseCase {
                 io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
                     instance, command.componentState()))
         .flatMap(instance -> routeIfNeeded(command, instance))
-        .map(instance -> enforceClassLevelAccess(instance, command));
+        .map(instance -> enforceClassLevelAccess(instance, command))
+        .map(
+            instance -> {
+              io.mateu.core.domain.RoutedView.set(instance, command.httpRequest());
+              // a page overriding a crud's sub-screen gets the crud's navigation
+              var navigation = crudSubRouteNavigation();
+              if (navigation != null) {
+                navigation.mark(instance, command);
+              }
+              return instance;
+            });
   }
 
   /**

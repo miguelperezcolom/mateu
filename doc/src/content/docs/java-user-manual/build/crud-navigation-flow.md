@@ -120,6 +120,27 @@ Key points:
 - `route: users/:id/edit` is the edit sub-route of the `/users` CRUD, so this page becomes its edit form (routes are relative to the mount, no leading slash)
 - The `:id` parameter is populated automatically from the URL
 - The page replaces the auto-generated edit form; everything else in the CRUD flow stays the same
+- The CRUD's own buttons reach it: a row click opens an authored `:id` page, **Edit** an authored
+  `:id/edit` page and **New** an authored `new` page (the url is pushed as for the built-in screens)
+
+### The CRUD's navigation on your page
+
+You do not write the CRUD's navigation on an authored sub-screen: Mateu adds it. The record page
+(`<crud>/:id`) gets **Back to list** and **Edit** in its toolbar (Edit only when the CRUD can edit:
+`canEdit()`, not `readOnly()`, not `@NotEditable`); the editor (`<crud>/:id/edit`) and the creation
+page (`<crud>/new`) get **Cancel** — back to the record, or to the list. They are the CRUD's
+buttons: labelled by its hooks (`backToListLabel()`, `editLabel()`, `cancelLabel()`, so they
+translate and customise the same way), with its action ids (`cancel-view`, `edit`, `cancel-edit`,
+`cancel-new`, which renderers treat as leaving the page), and they go where the built-in screens'
+would. Saving stays your page's own logic.
+
+- A button or method of your page with one of those ids wins: yours is shown and runs.
+- A tree page (an `ItemOverview`, any `ComponentTreeSupplier`) gets them too, in the page's
+  toolbar — together with its own `@Toolbar` methods, which such a page now shows as well.
+- A fully custom page opts out with `@NoCrudNavigation` on its view-model class.
+
+The CRUD is found from the route: the authored entry has one of those shapes, and the path before
+it is a CRUD — a class the route resolves to, or the `@Menu` field the path reaches from an app.
 
 ---
 
@@ -216,7 +237,7 @@ Add `@NotNavigable` to remove the View button too, for a plain flat list with no
 - `AutoCrud` generates the full flow: list, view, edit, create
 - `AutoCrud + @ReadOnly` generates a read-only subset: list + view only
 - Default navigation goes: list → readonly detail → edit (not directly to edit)
-- Custom pages bind into the flow with a `routes.yaml` entry at the CRUD's sub-route (`users/:id/edit`)
+- Custom pages bind into the flow with a `routes.yaml` entry at the CRUD's sub-route (`users/:id/edit`), and get the CRUD's Back to list / Edit / Cancel without writing them (`@NoCrudNavigation` opts out)
 - URL parameters are mapped to same-named fields automatically
 - You can replace any part of the flow while keeping the rest auto-generated
 

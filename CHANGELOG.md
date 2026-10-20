@@ -32,6 +32,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   dev profile only — never in the packaged application or the tests. Override it with
   `%dev.mateu.dev=false`. (Java)
 
+- **A page that overrides a CRUD's sub-screen gets the CRUD's navigation.** When an authored route
+  (`routes.yaml`, a `RouteEntrySupplier`) binds `<crud>/:id`, `<crud>/:id/edit` or `<crud>/new` to
+  your own view model, Mateu adds what the built-in screen has: **Back to list** and **Edit** on the
+  record page (Edit only when the CRUD can edit), **Cancel** on the editor and the creation page —
+  labelled by the CRUD's hooks (`backToListLabel()`, `editLabel()`, `cancelLabel()`), with its
+  action ids (`cancel-view`, `edit`, `cancel-edit`, `cancel-new`) and navigating where the built-in
+  ones would. A button or method of the page with that id wins; `@NoCrudNavigation` on the view
+  model opts out. The CRUD is found from the route (a class it resolves to, or the `@Menu` field the
+  path reaches from an app). (Java)
+- **A page that builds its own tree shows its toolbar.** A routed `ItemOverview` (any
+  `ComponentTreeSupplier`) ignored its `@Toolbar` / `@Button` methods: nothing was rendered. Its
+  tree now goes inside a page carrying them (a tree that is already a page gets them added), and they
+  run on the view like a normal page's; a view with none renders exactly as before. (Java)
+
 ### Fixed
 
 - **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of

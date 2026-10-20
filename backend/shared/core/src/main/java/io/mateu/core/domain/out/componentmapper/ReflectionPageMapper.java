@@ -74,8 +74,11 @@ public class ReflectionPageMapper {
                         PageListingBuilder.getToolbarButtons(instance, httpRequest).stream())
                     .map(trigger -> (io.mateu.uidl.fluent.UserTrigger) trigger)
                     .toList()
-                : getToolbar(instance, httpRequest))
-        .buttons(getButtons(instance, httpRequest))
+                : io.mateu.core.domain.CrudNavigation.withToolbar(
+                    instance, httpRequest, getToolbar(instance, httpRequest)))
+        .buttons(
+            io.mateu.core.domain.CrudNavigation.withButtons(
+                instance, httpRequest, getButtons(instance, httpRequest)))
         .fabs(getFabs(instance, httpRequest))
         .kpis(getKpis(instance))
         .badges(getBadges(instance, httpRequest))
@@ -84,6 +87,18 @@ public class ReflectionPageMapper {
         .content(content)
         .footer(getFooter(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .build();
+  }
+
+  /** The {@code @Toolbar} buttons a view model declares (its fields and methods). */
+  public static java.util.List<io.mateu.uidl.fluent.UserTrigger> toolbarOf(
+      Object instance, HttpRequest httpRequest) {
+    return new java.util.ArrayList<>(getToolbar(instance, httpRequest));
+  }
+
+  /** The {@code @Button} buttons a view model declares (its fields and methods). */
+  public static java.util.List<io.mateu.uidl.fluent.UserTrigger> buttonsOf(
+      Object instance, HttpRequest httpRequest) {
+    return new java.util.ArrayList<>(getButtons(instance, httpRequest));
   }
 
   public static String getTitle(Object instance) {

@@ -49,6 +49,11 @@ public class ProductOverview extends ItemOverview {
 
 Override `panelWidth()` (default `22rem`) to size the key-info panel.
 
+As a routed page, an item overview has a page toolbar like any other page: its `@Toolbar` (and
+`@Button`) methods and fields show there and run on it. Routed at a CRUD's `:id` (an authored
+route), it also gets that CRUD's **Back to list** and **Edit** — see
+[CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/#the-cruds-navigation-on-your-page).
+
 An item overview can also be the content of a CRUD's record page, under the CRUD's own header and
 toolbar: the record class implements `DetailContentSupplier` and returns it — see
 [The record page](/java-user-manual/build/customizing-crud-and-listings/#the-record-page).
