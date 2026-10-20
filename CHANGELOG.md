@@ -45,8 +45,33 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `ComponentTreeSupplier`) ignored its `@Toolbar` / `@Button` methods: nothing was rendered. Its
   tree now goes inside a page carrying them (a tree that is already a page gets them added), and they
   run on the view like a normal page's; a view with none renders exactly as before. (Java)
+### Changed
+
+- **A `RemoteMenu` with a label groups its entries in every menu variant.** When the remote answers
+  with several top-level entries and the shell declared the section's label, they now go into a
+  submenu named (and iconed, and placed by its path) as the shell named it — `HAMBURGER_SECTIONS`
+  already made it a section; `MENU_ON_TOP` and the others spliced the entries flat next to the
+  shell's own, with their raw routes, and dropped the label. Without a declared label nothing
+  changes. Routes, deep links and reloads still reach the remote by route. And when the shell and a
+  remote, or two remotes, claim the same route, the browser console now warns once naming the route
+  and both sources, instead of one silently shadowing the other. (Vaadin, Redwood)
 
 ### Fixed
+
+- **Cancel (and the other leave actions) ask before dropping unsaved changes.** A dirty editor
+  already asked when the user left it through the menu, the browser's back button or a reload, but
+  its own **Cancel** ran straight away and the edits were lost. Now the actions the server treats as
+  leaving the screen — `cancel`, `cancel-…` (the CRUD's `cancel-edit`/`cancel-new`/`cancel-create`/
+  `cancel-view`), `back` and `backToList` — ask the same "unsaved changes" question first; "stay"
+  sends nothing. A business action that merely starts with `cancel` (`cancelBooking`) is not one,
+  and neither is a wizard's Back (or any wizard step action): it moves between steps of the same
+  screen and keeps what was typed, so it never asks; the wizard's Cancel does.
+  Redwood now follows Vaadin's single rule for unsaved changes: an edit marks the screen dirty only
+  when the form that owns the field asks before it is left (`@ConfirmOnNavigationIfDirty`, CRUD
+  create/edit views), in every edit path (page forms, forms painted as page content, drawers and
+  dialogs by their own form, islands). Before, any edit on any Redwood form counted — a filter or
+  search box too — while a CRUD form painted as page content never did, so its menu, back and
+  reload did not ask. (Vaadin, Redwood)
 
 - **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of
   Micronaut's (`MateuMicronautJsonMapper`, `MateuMicronautJacksonDatabindMapper`) left Jackson's

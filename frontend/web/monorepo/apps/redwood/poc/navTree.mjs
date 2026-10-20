@@ -47,15 +47,27 @@ export function unavailableHint(label, lang) {
 }
 
 /**
- * What the pod answered, with the shell's label if it DECLARED one (`shellLabel`) and the pod answers
- * with ONE entry —the usual: a group named after the service—: the shell's word wins, and
- * the bar does not change under the reader. Several entries are spliced in as they are: there is no node to name.
+ * What the pod answered, with the shell's label if it DECLARED one (`shellLabel`): with ONE entry
+ * —the usual: a group named after the service— that entry takes the shell's word (and icon), and
+ * the bar does not change under the reader; with SEVERAL, they go into a group named (and placed,
+ * by its path) as the shell named the mount, in every variant — spliced flat, each of the pod's
+ * screens (its own «Home» too) sat next to the shell's and the label was lost. Without a declared
+ * label they are spliced in as they are: there is no name to give. The entries keep their routes
+ * and their pod (adoptRemote registers them by route), so navigation and deep links are claimed
+ * exactly as before. Port of mergeRemoteMenus from navTree.ts.
  */
 export function labelledByShell(entries, option) {
-  if (option.shellLabel && option.label && entries.length === 1) {
+  const declared = !!(option.shellLabel && option.label)
+  if (declared && entries.length === 1) {
     return [Object.assign({}, entries[0], { label: option.label, icon: option.icon || entries[0].icon })]
   }
+  if (declared && entries.length > 1) return [groupOfMount(entries, option)]
   return entries
+}
+
+/** A pod's entries as ONE group, named (and placed, by its path) as the shell named the mount. */
+function groupOfMount(entries, option) {
+  return { label: option.label, icon: option.icon, path: option.path, route: '', visible: option.visible, submenus: entries }
 }
 
 /**
@@ -68,7 +80,57 @@ export function asSection(entries, option) {
   const list = entries || []
   const oneGroup = list.length === 1 && ((list[0].submenus || list[0].submenu || []).length > 0)
   if (oneGroup || !list.length) return list
-  return [{ label: option.label, icon: option.icon, path: option.path, route: '', visible: option.visible, submenus: list }]
+  return [groupOfMount(list, option)]
+}
+
+/** The routes the LEAVES of a menu open (not its groups, the home or a pod's own remote sections). */
+function leafRoutesOf(menu, out = new Set()) {
+  for (const option of menu || []) {
+    if (!option || option.separator || isMount(option)) continue
+    const children = option.submenus || option.submenu || []
+    if (children.length) { leafRoutesOf(children, out); continue }
+    const route = navRoute(option.route)
+    if (route && route !== '/') out.add(route)
+  }
+  return out
+}
+
+/** How a pod is named in a warning: its label and where it lives. */
+export function remoteSourceName(option) {
+  const label = String(option.label == null ? '' : option.label).replace(/<[^<>]*>/g, '').replace(/[<>]/g, '').trim()
+  return 'RemoteMenu "' + (label || '?') + '" (' + (option.baseUrl || '') + (option.route ? ' ' + option.route : '') + ')'
+}
+
+/**
+ * The routes two sources of a federated menu both claim: the shell's own entries and each pod that
+ * answered (`answers`: Map mount → its app `{ menu }`, as expandRemoteMenus collects them). A pod's
+ * routes are mount-relative and registered as they are, so the shell's `/inicio` and a pod's
+ * `/inicio` are the SAME address — the later registration silently wins. Reported, never resolved.
+ * Port of routeCollisions from navTree.ts — same cases in test.mjs.
+ */
+export function routeCollisionsOf(menu, answers, mounts) {
+  const owner = new Map()
+  const found = []
+  const claim = (routes, source) => {
+    for (const route of routes) {
+      const first = owner.get(route)
+      if (first === undefined) owner.set(route, source)
+      else if (first !== source) found.push({ route, first, second: source })
+    }
+  }
+  claim(leafRoutesOf(menu), 'the shell')
+  for (const mount of mounts || []) {
+    const app = answers.get(mount)
+    if (app) claim(leafRoutesOf(app.menu), remoteSourceName(mount))
+  }
+  return found
+}
+
+/** The console line for a collision (the same words as the Vaadin renderer's). */
+export function routeCollisionMessage(c) {
+  return 'mateu: route collision — "' + c.route + '" is claimed by ' + c.first + ' and by ' + c.second + '. '
+    + 'Only one of them is reached by that address (clicks, deep links, reloads); '
+    + 'give one of them a different route.'
 }
 
 /** The entries of a hidden section: they are not painted at any depth, but stay in the tree. */

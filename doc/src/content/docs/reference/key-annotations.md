@@ -680,7 +680,7 @@ public class MyForm {
 
 Tracking is **opt-in**: a plain page without this annotation never prompts on exit, even if it has editable fields and a `save()` action. CRUD create and edit views are the only exception — they activate the behaviour automatically, so the annotation is only needed on standalone forms.
 
-The confirmation covers every way of leaving the form: in-app menu navigation, the browser back/forward buttons, and reloading or closing the tab. Use `UICommand.markAsClean()` in save actions and `UICommand.markAsDirty()` to set the flag programmatically.
+The confirmation covers every way of leaving the form: in-app menu navigation, the browser back/forward buttons, reloading or closing the tab, and the form's own leave actions — `cancel`, `cancel-…` (the CRUD's Cancel and Back to list), `back` and `backToList` — which ask before they run and send nothing if the user stays. A wizard's Back moves between steps of the same screen, so it never asks. Use `UICommand.markAsClean()` in save actions and `UICommand.markAsDirty()` to set the flag programmatically.
 
 ---
 

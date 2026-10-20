@@ -99,8 +99,20 @@ keep the shell steady while that happens:
   `withLabel(...)` — that label stays, even after the remote answers with its own (when the remote
   answers with a single top-level entry, the usual "a group named after the service"). Without a
   declared label, the field name is shown until the remote answers, and then the remote's label
-  replaces it, so a remote can still translate its own name. A remote that answers with several
-  top-level entries has them pasted in place, as before: there is no single entry to name.
+  replaces it, so a remote can still translate its own name.
+- **A declared label groups the remote's entries.** When the remote answers with several top-level
+  entries and the shell declared the section's label, they go into a group (submenu) with that
+  label, its icon and its path, in every variant — `HAMBURGER_SECTIONS` already made it a section.
+  Pasted flat, each of the remote's pages (its own "Home" too) sat next to the shell's and the label
+  was lost. Without a declared label they are still pasted in place: there is no name to give the
+  group. Only the menu's shape changes: each entry keeps its route and its remote, so clicks, deep
+  links and reloads reach the same screens as before.
+- **Route collisions are reported.** A remote's routes are relative to its own mount and are used
+  as they are, so the shell's `/inicio` and a remote's `/inicio` are the same address and only one
+  of them can be reached by it. When the shell and a remote, or two remotes, claim the same route,
+  the browser console says so once, naming the route and both sources
+  (`mateu: route collision — "/inicio" is claimed by the shell and by RemoteMenu "Library" (…)`).
+  Nothing is overridden on purpose: give one of them a different route.
 - **The section is known before the remote answers.** Each remote section travels with the route
   prefix its screens live under: the remote's own path — its field name, `/forms` for
   `RemoteMenu forms`, wherever the shell groups it. So on a cold load the active section and the

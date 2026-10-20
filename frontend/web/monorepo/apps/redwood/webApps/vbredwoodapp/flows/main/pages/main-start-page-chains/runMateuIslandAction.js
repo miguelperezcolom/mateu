@@ -36,6 +36,10 @@ define([
       if (!islandContext) {
         return;
       }
+      // the island's Cancel with unsaved edits asks first, as runMateuAction's (confirmLeaveAction)
+      if (!bridge.confirmLeaveAction(actionId, $application.variables)) {
+        return;
+      }
       // same as in runMateuAction: the island lives in its host's backend
       const base = bridge.baseOf($application.variables.mateuRegistry)
         || bridge.mateuBase($application.constants.mateuBaseUrl);

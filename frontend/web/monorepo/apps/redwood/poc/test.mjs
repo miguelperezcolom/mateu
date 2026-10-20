@@ -10,7 +10,7 @@ import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLo
 import { foldoutElementAtomsOf } from './elements.mjs'
 import { drawerOverlayOf } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
-import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
+import { activeSectionOf, sectionHomeOf, sectionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWireVersionCheck, wireMismatchMessage } from './wireVersion.mjs'
 import { readFileSync } from 'node:fs'
@@ -1608,9 +1608,83 @@ atest('expandRemoteMenus con HAMBURGER_SECTIONS: un pod montado arriba es UNA se
     const sections = await expandRemoteMenus(mount(), { sections: true })
     assert.deepEqual(sections.map((o) => o.label), ['Remote'])
     assert.deepEqual(sections[0].submenus.map((o) => o.label), ['Page', 'Things'])
-    const flat = await expandRemoteMenus(mount())
+    // the other variants: the label the shell declared groups them too (labelledByShell)
+    const grouped = await expandRemoteMenus(mount())
+    assert.deepEqual(grouped.map((o) => o.label), ['Remote'])
+    assert.deepEqual(grouped[0].submenus.map((o) => o.label), ['Page', 'Things'])
+    // without a declared label, spliced as they come
+    const flat = await expandRemoteMenus([{ ...mount()[0], shellLabel: false }])
     assert.deepEqual(flat.map((o) => o.label), ['Page', 'Things'])
   } finally { globalThis.fetch = original }
+})
+
+atest('expandRemoteMenus (MENU_ON_TOP…): a declared label groups the pod\'s entries; routes still go to the pod', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, json: async () => remoteApp([
+    { label: 'Inicio', route: '/inicio' }, { label: 'Libros', route: '/libros' },
+  ], '', 'BibliotecaHome') })
+  try {
+    const menu = await expandRemoteMenus([
+      { label: 'Inicio', route: '/inicio-shell', submenus: [] },
+      { remote: true, baseUrl: 'http://b/app', route: '', path: '/biblioteca', label: 'Biblioteca', icon: 'vaadin:book', shellLabel: true },
+    ])
+    assert.deepEqual(menu.map((o) => o.label), ['Inicio', 'Biblioteca'])
+    assert.equal(menu[1].path, '/biblioteca')
+    assert.equal(menu[1].icon, 'vaadin:book')
+    assert.deepEqual(menu[1].submenus.map((o) => o.route), ['/inicio', '/libros'])
+    // the deep link is claimed by route, as before: the group changes the menu's shape only
+    assert.equal(remoteRouteOf('/libros').baseUrl, 'http://b/app')
+    assert.equal(remoteRouteOf('/libros').serverSideType, 'BibliotecaHome')
+    // the projected nav: a group with the pod's two screens
+    const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } })
+    assert.equal(nav.mode, 'subheader')
+    assert.deepEqual(nav.menuTree[1].children.map((c) => c.id), ['/inicio', '/libros'])
+    // a HIDDEN labelled pod: grouped the same way, hidden
+    const hidden = await expandRemoteMenus([{ remote: true, baseUrl: 'http://b/app', route: '', label: 'Biblioteca', shellLabel: true, visible: false }])
+    assert.equal(hidden.length, 1)
+    assert.equal(hidden[0].visible, false)
+    assert.ok(hidden[0].submenus.every((o) => o.visible === false))
+  } finally { globalThis.fetch = original }
+})
+
+atest('expandRemoteMenus warns, naming both sources, when the shell and a pod (or two pods) claim a route', async () => {
+  const original = globalThis.fetch
+  const originalWarn = console.warn
+  const said = []
+  console.warn = (m) => said.push(String(m))
+  globalThis.fetch = async (url) => {
+    if (String(url).indexOf('http://down') === 0) throw new TypeError('Failed to fetch')
+    return { ok: true, json: async () => remoteApp([{ label: 'Inicio', route: '/inicio' }, { label: 'Home', route: '/' }, { label: 'Estudiantes', route: '/estudiantes' }], '') }
+  }
+  try {
+    await expandRemoteMenus([
+      { label: 'Inicio', route: '/inicio', submenus: [] },
+      { remote: true, baseUrl: 'http://a/app', route: '', label: 'Alumnado', shellLabel: true },
+      { label: 'Más', submenus: [{ remote: true, baseUrl: 'http://b/app', route: '', label: 'Biblioteca', shellLabel: true }] },
+      { remote: true, baseUrl: 'http://down/app', route: '', label: 'Caída' },
+    ])
+    assert.deepEqual(said.filter((m) => m.indexOf('route collision') >= 0), [
+      routeCollisionMessage({ route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (http://a/app)' }),
+      routeCollisionMessage({ route: '/inicio', first: 'the shell', second: 'RemoteMenu "Biblioteca" (http://b/app)' }),
+      routeCollisionMessage({ route: '/estudiantes', first: 'RemoteMenu "Alumnado" (http://a/app)', second: 'RemoteMenu "Biblioteca" (http://b/app)' }),
+    ])
+    assert.match(said[0], /"\/inicio" is claimed by the shell and by RemoteMenu "Alumnado" \(http:\/\/a\/app\)/)
+  } finally { globalThis.fetch = original; console.warn = originalWarn }
+})
+
+test('routeCollisionsOf (port of navTree.ts routeCollisions): homes, groups and pods that did not answer claim nothing', () => {
+  const a = { remote: true, baseUrl: 'http://a/app', label: 'Alumnado', shellLabel: true }
+  const b = { remote: true, baseUrl: 'http://b/app', label: 'Biblioteca', shellLabel: true }
+  const down = { remote: true, baseUrl: 'http://c/app', label: 'Plantillas' }
+  const menu = [{ label: 'Inicio', route: '/inicio' }, { label: 'Home', route: '' }, a, { label: 'Más', route: '', submenus: [b, down] }]
+  const answers = new Map([
+    [a, { menu: [{ label: 'Inicio', route: '/inicio/' }, { label: 'Estudiantes', route: '/estudiantes' }, { label: 'Home', route: '/' }] }],
+    [b, { menu: [{ label: 'Libros', route: '/libros', submenus: [{ label: 'Estudiantes', route: '/estudiantes?x=1' }] }, { label: 'Otra', route: '/otra' }] }],
+  ])
+  assert.deepEqual(routeCollisionsOf(menu, answers, [a, b, down]), [
+    { route: '/inicio', first: 'the shell', second: 'RemoteMenu "Alumnado" (http://a/app)' },
+    { route: '/estudiantes', first: 'RemoteMenu "Alumnado" (http://a/app)', second: 'RemoteMenu "Biblioteca" (http://b/app)' },
+  ])
 })
 
 atest('expandRemoteMenus registra a qué pod va cada entrada adoptada', async () => {
@@ -4987,6 +5061,70 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
     const amd = readFileSync(join(here, 'make-amd.mjs'), 'utf8')
     assert.match(amd, /'shellFlows\.mjs'/)
     assert.match(amd, /menuRulePlanOf,/)
+  })
+}
+
+// ── leave actions with unsaved changes (BUGS-MATEU #7) ────────────────────────────────────────
+import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction, fieldEditLeavesUnsavedChanges } from './shellFlows.mjs'
+{
+  test('isLeaveAction: the ids the server styles as leave actions (FormMapper) and the crud\'s, no business «cancelX»', () => {
+    for (const id of ['cancel', 'cancel-new', 'cancel-create', 'cancel-edit', 'cancel-view', 'back', 'backToList']) assert.equal(isLeaveAction(id), true, id)
+    for (const id of ['cancelBooking', 'save', 'backup', 'back-office', '', undefined, null]) assert.equal(isLeaveAction(id), false, String(id))
+  })
+
+  test('confirmLeaveAction: asks the navigation question (unsavedLeave) only for a leave action on a dirty screen', () => {
+    const asked = []
+    const win = (answer) => ({ confirm: (m) => { asked.push(m); return answer } })
+    assert.equal(confirmLeaveAction('cancel-edit', { mateuDirty: false }, win(false)), true)
+    assert.equal(confirmLeaveAction('save', { mateuDirty: true }, win(false)), true)
+    assert.equal(asked.length, 0, 'nothing to lose, or not leaving: no question')
+    const vars = { mateuDirty: true }
+    assert.equal(confirmLeaveAction('cancel-edit', vars, win(false)), false, 'stay')
+    assert.equal(vars.mateuDirty, true)
+    assert.equal(confirmLeaveAction('backToList', vars, win(true)), true, 'leave')
+    assert.equal(vars.mateuDirty, false, 'cleared: the navigation it answers with does not ask again')
+    assert.deepEqual(asked, [chromeText('unsavedLeave'), chromeText('unsavedLeave')])
+  })
+
+  test('a wizard\'s Back is step navigation, not leaving: no question; its Cancel and a CRUD editor\'s Cancel still ask', () => {
+    const asked = []
+    const win = { confirm: (m) => { asked.push(m); return false } }
+    // the wizard (advertises next/skip, claims the rest with *), here inside the host's tree
+    const wizardReg = { stack: [], contexts: { [HOST_ID]: { tree: { type: 'ServerSide', actions: [], children: [
+      { type: 'ServerSide', confirmOnNavigationIfDirty: true, actions: [{ id: 'next' }, { id: 'skip' }, { id: '*' }], children: [] }] } } } }
+    assert.deepEqual(screenActionIdsOf(wizardReg), ['next', 'skip', '*'])
+    assert.equal(isWizardStepAction('back', screenActionIdsOf(wizardReg)), true)
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: wizardReg }, win), true)
+    assert.equal(confirmLeaveAction('goToStep', { mateuDirty: true, mateuRegistry: wizardReg }, win), true)
+    assert.equal(asked.length, 0)
+    assert.equal(confirmLeaveAction('cancel', { mateuDirty: true, mateuRegistry: wizardReg }, win), false)
+    // a wizard opened in a DRAWER over a page: found on the stack
+    const drawerReg = { stack: ['d1'], contexts: { [HOST_ID]: { tree: { actions: [{ id: 'back' }] } }, d1: { tree: { actions: [{ id: 'next' }] } } } }
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: drawerReg }, win), true)
+    const editorReg = { stack: [], contexts: { [HOST_ID]: { tree: { confirmOnNavigationIfDirty: true, actions: [{ id: 'cancel-edit' }, { id: 'save' }, { id: 'back' }] } } } }
+    assert.equal(confirmLeaveAction('cancel-edit', { mateuDirty: true, mateuRegistry: editorReg }, win), false)
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: editorReg }, win), false, 'a page\'s own Back still leaves')
+    assert.equal(asked.length, 3)
+  })
+
+  test('tracksUnsavedChanges: only a host whose ServerSide asks before it is left (@ConfirmOnNavigationIfDirty)', () => {
+    assert.equal(tracksUnsavedChanges({ tree: { confirmOnNavigationIfDirty: true } }), true)
+    assert.equal(tracksUnsavedChanges({ tree: { confirmOnNavigationIfDirty: false } }), false)
+    assert.equal(tracksUnsavedChanges({ tree: {} }), false)
+    assert.equal(tracksUnsavedChanges(undefined), false)
+    // the owner may sit below the context's root (a crud mediator wrapping its form)
+    assert.equal(tracksUnsavedChanges({ tree: { children: [{ children: [{ confirmOnNavigationIfDirty: true }] }] } }), true)
+  })
+
+  test('fieldEditLeavesUnsavedChanges: the context that owns the edit decides — host, top overlay or island', () => {
+    const tracked = { tree: { confirmOnNavigationIfDirty: true } }
+    const plain = { tree: {} }
+    const reg = { stack: ['d1', 'd2'], contexts: { [HOST_ID]: tracked, d1: tracked, d2: plain, isl: tracked } }
+    assert.equal(fieldEditLeavesUnsavedChanges(reg), true)
+    assert.equal(fieldEditLeavesUnsavedChanges(reg, { overlay: true }), false, 'the TOP overlay owns it')
+    assert.equal(fieldEditLeavesUnsavedChanges(reg, { islandId: 'isl' }), true)
+    assert.equal(fieldEditLeavesUnsavedChanges({ stack: [], contexts: { [HOST_ID]: plain } }), false)
+    assert.equal(fieldEditLeavesUnsavedChanges({ stack: [], contexts: {} }, { overlay: true }), false)
   })
 }
 

@@ -7,7 +7,7 @@ import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
-import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
+import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
 import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
@@ -913,7 +913,9 @@ function spliceRemote(menu, answers, sections = false, depth = 0) {
       if (option.visible === false) {
         if (app) {
           adoptRemote(app.menu, option, app)
-          out.push(...markHidden(app.menu))
+          // grouped as a visible one would be (navTree.ts does the same), then hidden
+          const shaped = sections && depth === 0 ? asSection(app.menu, option) : app.menu
+          out.push(...markHidden(labelledByShell(shaped, option)))
         } else {
           out.push(option)
         }
@@ -922,8 +924,8 @@ function spliceRemote(menu, answers, sections = false, depth = 0) {
       if (app) {
         adoptRemote(app.menu, option, app)
         // HAMBURGER_SECTIONS: a pod mounted at the first level is ONE section whatever it
-        // answers (asSection, navTree.mjs); otherwise, the label the shell declared wins over
-        // the pod's
+        // answers (asSection, navTree.mjs); otherwise, the label the shell declared names the
+        // pod's entry, or groups its entries (labelledByShell)
         const entries = sections && depth === 0 ? asSection(app.menu, option) : app.menu
         out.push(...labelledByShell(entries, option))
       } else {
@@ -969,5 +971,9 @@ export async function expandRemoteMenus(menu, { sections = false } = {}) {
       // Silent on purpose (quiet/isolated): the section stays unavailable (spliceRemote).
     }
   }))
+  // two sources claiming the same route: the later registration wins without a word — say so
+  for (const collision of routeCollisionsOf(menu, answers, remotes)) {
+    console.warn(routeCollisionMessage(collision))
+  }
   return spliceRemote(menu, answers, sections)
 }

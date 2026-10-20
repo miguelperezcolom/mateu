@@ -1,8 +1,14 @@
-import { describe, it, expect, vi } from 'vitest'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 import { classifyRequestFailure, describeRequestFailure, offersManualRetry } from './requestPolicy'
 
 /** Shapes the way axios reports each condition. */
 const axiosError = (over: Record<string, unknown>) => ({ message: '', ...over })
+
+// The messages are in the page's language (chromeTexts: <html lang>, else navigator.language —
+// which Node takes from the machine's locale). Pin English so the expectations hold on any machine;
+// the tests about another language stub it themselves.
+beforeEach(() => vi.stubGlobal('document', { documentElement: { lang: 'en' } }))
+afterEach(() => vi.unstubAllGlobals())
 
 describe('classifyRequestFailure', () => {
 

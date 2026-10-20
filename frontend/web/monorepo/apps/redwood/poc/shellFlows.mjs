@@ -1,4 +1,5 @@
 import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf } from './reduceContexts.mjs'
+import { chromeText } from './i18n.mjs'
 
 // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
 // code) travel on the wire App as `actions`, each with its steps LOWERED to `commands`. A menu leaf
@@ -130,4 +131,92 @@ export function installUnsavedChangesGuard(win, isDirty) {
   }
   win.__mateuUnsavedGuard = uninstall
   return uninstall
+}
+
+/**
+ * The actions that LEAVE the screen without saving: the editor's Cancel, a crud's back to the
+ * listing, a page's Back. The ids the server treats as such: `FormMapper.resolveStyle` gives them
+ * the tertiary look (`cancel*`, `back`, `backToList`) and the crud/editable view name theirs
+ * `cancel-create` / `cancel-new` / `cancel-edit` / `cancel-view`. Of the `cancel` family only
+ * `cancel` itself and `cancel-…` count: a business `cancelBooking` does not leave the screen.
+ * Port of libs/mateu leaveActions.ts — keep both in step.
+ */
+export function isLeaveAction(actionId, ownerActionIds = []) {
+  if (typeof actionId !== 'string' || !actionId) return false
+  if (isWizardStepAction(actionId, ownerActionIds)) return false
+  return actionId === 'cancel' || actionId.indexOf('cancel-') === 0 || actionId === 'back' || actionId === 'backToList'
+}
+
+/** The ids a wizard steps with (WizardActionDispatcher): they move inside the screen, never out of it. */
+export const WIZARD_STEP_ACTIONS = ['next', 'back', 'skip', 'goToStep']
+
+/**
+ * Is `actionId` a step of a wizard? It is when the screen running it is a wizard, which always
+ * advertises `next` (archetypes.mjs wizardOf's test). A wizard's Back keeps what was typed: asking
+ * «leave this screen?» there would be wrong. Port of leaveActions.ts isWizardStepAction.
+ */
+export function isWizardStepAction(actionId, ownerActionIds) {
+  return WIZARD_STEP_ACTIONS.indexOf(actionId) >= 0 && (ownerActionIds || []).indexOf('next') >= 0
+}
+
+/**
+ * The action ids the screen on display advertises: the host's and those of the overlays open over
+ * it (a wizard can open in a drawer), at any depth of their trees — where a step action's owner is.
+ */
+export function screenActionIdsOf(reg) {
+  const ids = []
+  const walk = (node) => {
+    if (!node || typeof node !== 'object') return
+    for (const a of node.actions || []) if (a && a.id) ids.push(a.id)
+    for (const child of node.children || []) walk(child)
+  }
+  const contexts = (reg && reg.contexts) || {}
+  for (const id of [HOST_ID].concat((reg && reg.stack) || [])) {
+    const ctx = contexts[id]
+    if (ctx) walk(ctx.tree)
+  }
+  return ids
+}
+
+/**
+ * Before running a LEAVE action (isLeaveAction) on a screen with unsaved changes (`mateuDirty` in
+ * VB's application variables `vars`): the same question a menu click or the browser's back button
+ * asks (onMateuNavigate's dirtyGuard, `unsavedLeave`). False = the user stays: send nothing. True =
+ * go on; when it asked, the flag is cleared so the navigation the action answers with does not ask
+ * again. What the Vaadin renderer does in mateu-component (dirtyGuard.confirmLeave).
+ */
+export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined)) {
+  if (!vars || !vars.mateuDirty) return true
+  if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
+  if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
+  vars.mateuDirty = false
+  return true
+}
+
+/**
+ * Does a context ask before it is left (@ConfirmOnNavigationIfDirty — crud create/edit views opt in)?
+ * Any ServerSide in its tree may carry it: the edited field's owner can sit below the context's root
+ * (a crud mediator wrapping its form).
+ */
+export function tracksUnsavedChanges(ctx) {
+  const walk = (node) => !!node && typeof node === 'object'
+    && (node.confirmOnNavigationIfDirty === true || (node.children || []).some(walk))
+  return !!(ctx && walk(ctx.tree))
+}
+
+/**
+ * THE rule for «an edit leaves unsaved changes» (mateuDirty), the same as Vaadin's: mateu-component
+ * dispatches `dirty` only when the component owning the field asks before it is left
+ * (`confirmOnNavigationIfDirty`). A search box, a filter or a plain form never makes the menu, back,
+ * reload or a Cancel ask. Which context owns the edited field: the open island (`islandId`), the
+ * top overlay (`overlay`: a drawer/dialog form), else the host. Used by every field-edit chain
+ * (mateuFieldEdited, hostInputChanged, islandFieldEdited).
+ */
+export function fieldEditLeavesUnsavedChanges(reg, { overlay = false, islandId = '' } = {}) {
+  const contexts = (reg && reg.contexts) || {}
+  const stack = (reg && reg.stack) || []
+  const ctx = islandId ? contexts[islandId]
+    : overlay ? (stack.length ? contexts[stack[stack.length - 1]] : undefined)
+      : contexts[HOST_ID]
+  return tracksUnsavedChanges(ctx)
 }
