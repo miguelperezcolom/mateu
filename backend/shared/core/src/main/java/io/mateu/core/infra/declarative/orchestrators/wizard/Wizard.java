@@ -575,6 +575,14 @@ public abstract class Wizard
             method ->
                 Action.builder().id(method.getName()).validationRequired(true).sse(true).build())
         .forEach(actions::add);
+    // the buttons of the step on screen (@Toolbar methods): they run on a half-filled step
+    if (position >= 0 && position < numberOfSteps()) {
+      getAllMethods(currentStepField().getType()).stream()
+          .filter(
+              method -> MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Toolbar.class))
+          .map(method -> Action.builder().id(method.getName()).validationRequired(false).build())
+          .forEach(actions::add);
+    }
     return actions;
   }
 }

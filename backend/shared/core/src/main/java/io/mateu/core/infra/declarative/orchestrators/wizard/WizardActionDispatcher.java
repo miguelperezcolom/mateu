@@ -231,9 +231,76 @@ final class WizardActionDispatcher {
           return result;
         }
         wizard.position = wizard.numberOfSteps() - 1;
+      } else {
+        var toolbarMethod = stepToolbarMethod(wizard, actionId);
+        if (toolbarMethod != null) {
+          return runStepToolbar(toolbarMethod, wizard, httpRequest);
+        }
       }
     }
     return wizard;
+  }
+
+  /** The ids the dispatcher answers itself: never taken for a step's toolbar method. */
+  private static final java.util.Set<String> OWN_ACTIONS =
+      java.util.Set.of("next", "back", "skip", "goToStep", "saveDraft", "saveAndClose");
+
+  /**
+   * The {@code @Toolbar} method called {@code actionId} of the step on screen — the button {@link
+   * WizardButtonBuilder} draws for it — or null.
+   */
+  static java.lang.reflect.Method stepToolbarMethod(Wizard wizard, String actionId) {
+    if (actionId == null || OWN_ACTIONS.contains(actionId) || wizard.position < 0) {
+      return null;
+    }
+    return getAllMethods(wizard.currentStepField().getType()).stream()
+        .filter(
+            method -> MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Toolbar.class))
+        .filter(method -> actionId.equals(method.getName()))
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
+   * Runs a step's toolbar method on the step as the user left it (hydrated, not validated: a helper
+   * button such as "Suggest" or "Check" works on a half-filled step) and shows the wizard again on
+   * the same step, with whatever the method changed. A message it answers shows over it; any other
+   * answer (a navigation, an overlay…) is the answer.
+   */
+  private static Object runStepToolbar(
+      java.lang.reflect.Method method, Wizard wizard, HttpRequest httpRequest) throws Exception {
+    hydrateCurrentStep(wizard, httpRequest);
+    var step = wizard.getStep();
+    io.mateu.core.application.security.ActionMethods.checkAccess(
+        method, step.getClass(), httpRequest);
+    if (!io.mateu.core.application.security.ActionMethods.isInvocable(method, step, httpRequest)) {
+      throw io.mateu.core.application.security.ActionMethods.notAnAction(
+          step.getClass(), method.getName());
+    }
+    method.setAccessible(true);
+    var rq = httpRequest.runActionRq();
+    var command =
+        new io.mateu.core.application.runaction.RunActionCommand(
+            "base_url",
+            "uiId",
+            rq.route(),
+            rq.consumedRoute(),
+            rq.actionId(),
+            rq.componentState(),
+            rq.appState(),
+            rq.initiatorComponentId(),
+            httpRequest,
+            rq.serverSideType(),
+            rq.serverSideComponentRoute());
+    var result =
+        io.mateu.core.infra.reflection.write.RunMethodActionRunner.invoke(method, step, command);
+    if (result == null) {
+      return wizard;
+    }
+    if (result instanceof Message message) {
+      return java.util.List.of(message, wizard);
+    }
+    return result;
   }
 
   /** Rebuilds the current step from the request's state (no validation). */

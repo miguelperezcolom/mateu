@@ -11,6 +11,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **A wizard step's `@Toolbar` buttons run.** They were drawn under the step's form, but the
+  wizard's dispatcher never called them. They now run on the step as typed (not validated), and the
+  wizard shows the same step again with what they changed; a returned `Message` shows over it.
+  (Java)
+
+### Documentation
+- The wizard page says outright that the last step field is the result screen (Next never reaches
+  it, only the completion action does) and documents step toolbar buttons.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
