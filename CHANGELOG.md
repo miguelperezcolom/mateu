@@ -159,6 +159,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   The `record` field lives in the base class, so a subclass had no way to label it. Blank by
   default (unlabelled, as before). `GeneralOverview` now implements `LabelSupplier` for it; a
   subclass that supplies labels of its own overrides `label(...)`. (Java)
+
+- **A wizard in a drawer is described as what it is.** The drawer page, the page-template guide and
+  core's long-drawer-wizard warning no longer imply Redwood renders its guided-process template in
+  a drawer: the renderers draw the drawer's wizard as a generic wizard (Redwood: the step train),
+  and the full-page Guided Process is a routed `Wizard` with `@WizardProgress(RAIL)`.
 ### Fixed
 - **Redwood: the message band's close button closes the notice.** The band's keys came from a
   counter typed as a string with no default, so the first notice had no id and every later one was
