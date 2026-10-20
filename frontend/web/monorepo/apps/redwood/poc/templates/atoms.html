@@ -771,8 +771,9 @@
                          the existing vocabulary without nesting the template inside itself. -->
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
-                           vertically (like the navigator), which is not what is wanted here -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top"
+                           vertically (like the navigator), which is not what is wanted here;
+                           overflow popup: on a phone the tabs that do not fit go to a menu -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
