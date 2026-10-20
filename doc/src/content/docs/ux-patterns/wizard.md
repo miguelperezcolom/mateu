@@ -70,7 +70,21 @@ public class OnboardingWizard extends Wizard {
 | Penultimate step | Shows the `@WizardCompletionAction` button instead of **Next →**. |
 | Last step | **Read-only result screen.** No navigation buttons. Progress bar shows 100 %. |
 
-The last step is instantiated automatically with its default field values if it is `null` when `@WizardCompletionAction` returns — or the wizard can set it explicitly inside the completion method.
+**The last step field is always the result screen**, whatever its type: **Next →** never reaches it, only the completion action does. A wizard with three input steps therefore declares four step fields — the fourth being what the user sees once it is done. The last step is instantiated automatically with its default field values if it is `null` when `@WizardCompletionAction` returns — or the wizard can set it explicitly inside the completion method.
+
+A step can carry buttons of its own: its `@Toolbar` methods are drawn under the step's form, and clicking one runs it on the step as the user left it (hydrated with what was typed, not validated — a "Suggest" or "Check" helper works on a half-filled step). The wizard then shows the same step again with whatever the method changed; a `Message` it returns shows over it, and any other answer (a navigation, an overlay) is the response.
+
+```java
+public class ContactStep implements WizardStep {
+    public String email;
+
+    @Toolbar
+    @Label("Use my work email")
+    public void useWorkEmail() {
+        email = "me@example.com";
+    }
+}
+```
 
 The completion method's return value decides where the wizard goes:
 

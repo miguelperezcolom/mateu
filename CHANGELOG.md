@@ -106,6 +106,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Inside its mount the app is at `""`, so that prefix is the menu entry; and a route that repeats
   the segment (`/biblioteca/biblioteca/...`) is now read relative to the mount. (Java; the .NET and
   Python ports use absolute routes and never had the second spelling)
+### Fixed
+- **A wizard step's `@Toolbar` buttons run.** They were drawn under the step's form, but the
+  wizard's dispatcher never called them. They now run on the step as typed (not validated), and the
+  wizard shows the same step again with what they changed; a returned `Message` shows over it.
+  (Java)
+
+### Documentation
+- The wizard page says outright that the last step field is the result screen (Next never reaches
+  it, only the completion action does) and documents step toolbar buttons.
 
 ## [3.0-beta.7] — 2026-10-19
 
