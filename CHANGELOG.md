@@ -126,6 +126,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Redwood: a header badge takes its colour from the state.** A `Status` field's badge travels as
   `text: ${state.x.message}`, `color: ${state.x.type}`; the label was resolved but the colour was
   read as the literal template, so the chip was always grey. The colour is now resolved like the text.
+### Fixed
+- **Redwood: only the EntityHeader that heads the page goes up to the screen header.** The first
+  `EntityHeader` found anywhere in the tree was lifted, so a collection's detail (next to its list),
+  a task card under a planning chart or one inside a drawer emptied its panel and retitled the page
+  with the selected item. Now only one that is the page's first content is lifted (a Java
+  `EntityHeader` field leading the form, a foldout's summary); drawers and dialogs are not searched.
 
 ## [3.0-beta.7] — 2026-10-19
 
