@@ -7846,9 +7846,15 @@
     translations="[[ $application.variables.mateuOverviewTranslations ]]"
     on-select-object-value-changed="[[ $listeners.overviewSwitched ]]"></oj-sp-header-general-overview>
   <div class="oj-flex oj-sm-margin-6x-top oj-sm-padding-12x-horizontal">
-    <oj-bind-for-each data="[[ $application.variables.mateuOverview.cards ]]">
+    <!-- COLUMNS: the main slot and the `info` slot side by side at the widths of the overview's grid
+         (infoWidth); each column stacks its cards (without an info slot: one column, cards md-6) -->
+    <oj-bind-for-each data="[[ $application.variables.mateuOverview.columns ]]">
       <template>
-        <!-- colClass: md-6 per card; the GeneralOverview `info` slot (a narrower column) md-4 -->
+      <div :class="[[ $current.data.colClass ]]">
+      <div class="oj-flex">
+    <oj-bind-for-each data="[[ $current.data.cards ]]">
+      <template>
+        <!-- colClass: md-6 per card in a lone column; a card of a main/info column takes its width -->
         <div :class="[[ $current.data.colClass || 'oj-flex-item oj-sm-12 oj-md-6' ]]">
           <div class="oj-panel oj-sm-margin-2x">
             <oj-bind-if test="[[ !!$current.data.title ]]">
@@ -9574,6 +9580,10 @@
             </oj-bind-for-each>
           </div>
         </div>
+      </template>
+    </oj-bind-for-each>
+      </div>
+      </div>
       </template>
     </oj-bind-for-each>
   </div>

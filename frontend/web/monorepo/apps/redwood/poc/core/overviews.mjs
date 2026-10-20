@@ -1,8 +1,8 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
 import { interpolate, islandContentOf, editorNodeIds } from './content.mjs'
-import { findByType } from './listing.mjs'
+import { findByType, findFirst } from './listing.mjs'
 import { pageHeaderNodeOf, factProjectionOf, contextualInfoOf, factActionsJsonOf } from './pageHeader.mjs'
-import { metricAriaLabel } from './atoms.mjs'
+import { gridColClasses, metricAriaLabel } from './atoms.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
@@ -224,6 +224,17 @@ export function overviewInfoCardOf(ctx, node) {
   }
 }
 
+/** The layouts the overview's main slot wraps its pieces in (not pieces themselves). */
+const OVERVIEW_WRAPPERS = { VerticalLayout: true, Div: true, Container: true, FullWidth: true, Scroller: true }
+/** A node's children: in children and/or metadata.content. */
+function overviewPiecesOf(node) {
+  const out = [...(node.children || [])]
+  const inner = node.metadata && node.metadata.content
+  if (Array.isArray(inner)) out.push(...inner)
+  else if (inner && typeof inner === 'object') out.push(inner)
+  return out
+}
+
 /** GENERAL OVERVIEW archetype: record switcher + EntityHeader + cards. */
 export function generalOverviewOf(ctx) {
   const header = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
@@ -242,23 +253,51 @@ export function generalOverviewOf(ctx) {
   // a structural wrapper and dropped. First when it travels first (promoteInfoSlot).
   const infoNode = findFirstSlotted(ctx.tree, 'info')
   const infoCard = infoNode ? overviewInfoCardOf(ctx, infoNode.node) : null
-  const cards = findAllByType(ctx.tree, 'Card')
-    .filter((node) => !infoNode || node !== infoNode.node)
-    .map((node) => {
-      const card = cardOf(node)
-      // the card content as ATOMS (not just its texts): a StatusList, a table…
-      // were painted empty because only the text was collected
-      const content = (node.metadata && node.metadata.content) || []
-      const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
-        children: Array.isArray(content) ? content : [content] } }) || []
-      return { ...card, items: blocks.flatMap((b) => b.items || []) }
-    })
-    .filter((card) => card.title) // Cards without a title are section/structure wrappers
+  const atomsOf = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
+    children: nodes } }) || []).flatMap((b) => b.items || [])
+  // the card content as ATOMS (not just its texts): a StatusList, a table… were painted empty
+  // because only the text was collected
+  const cardFrom = (node) => {
+    const content = (node.metadata && node.metadata.content) || []
+    return { ...cardOf(node), items: atomsOf(Array.isArray(content) ? content : [content]) }
+  }
+  // the MAIN slot (GeneralOverview.overview()): each of its pieces is a card — a Card with its title,
+  // anything else (a chart, a Markdown, an untitled Card…) untitled, in order. Only titled Cards
+  // were taken, so whatever else the overview drew was lost. The header EntityHeader is the header.
+  const mainNode = findFirstSlotted(ctx.tree, 'main')
+  let cards
+  if (mainNode) {
+    const m0 = mainNode.node.metadata || {}
+    const pieces = OVERVIEW_WRAPPERS[m0.type] ? overviewPiecesOf(mainNode.node) : [mainNode.node]
+    cards = pieces.filter((n) => n && n !== header)
+      .map((n) => (n.metadata && n.metadata.type === 'Card' ? cardFrom(n) : { title: '', texts: [], items: atomsOf([n]) }))
+      .filter((card) => card.title || card.items.length)
+  } else {
+    cards = findAllByType(ctx.tree, 'Card')
+      .filter((node) => !infoNode || node !== infoNode.node)
+      .map(cardFrom)
+      .filter((card) => card.title) // Cards without a title are section/structure wrappers
+  }
+  // the overview's COLUMNS: main and info side by side at the widths of its grid (infoWidth: the
+  // `gridTemplateColumns` «1fr 18rem»), each stacking its cards; without an info slot, one column
+  // whose cards go two by two
+  let columns
   if (infoCard) {
+    const grid = findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'ResponsiveGrid'
+      && (n.children || []).some((k) => k && k.slot === 'info'))
+    const widths = gridColClasses(grid && grid.metadata.gridTemplateColumns, [], 2)
+    const span = (cls) => Number(((cls || '').match(/oj-md-(\d+)/) || [])[1]) || 0
+    // the template names the tracks in the order the slots TRAVEL (info first when promoted)
+    const infoCols = widths ? span(widths[infoNode.first ? 0 : 1]) : 4
+    const infoCol = { colClass: 'oj-flex-item oj-sm-12 oj-md-' + (cards.length ? infoCols : 6), cards: [{ ...infoCard, colClass: 'oj-flex-item oj-sm-12' }] }
+    const mainCol = { colClass: 'oj-flex-item oj-sm-12 oj-md-' + (12 - infoCols), cards: cards.map((c) => ({ ...c, colClass: 'oj-flex-item oj-sm-12' })) }
+    columns = !cards.length ? [infoCol] : infoNode.first ? [infoCol, mainCol] : [mainCol, infoCol]
     // a side column next to other cards; alone, as wide as a card
     if (!cards.length) infoCard.colClass = 'oj-flex-item oj-sm-12 oj-md-6'
     if (infoNode.first) cards.unshift(infoCard)
     else cards.push(infoCard)
+  } else {
+    columns = [{ colClass: 'oj-flex-item oj-sm-12', cards }]
   }
   return {
     title: md.title || '',
@@ -271,6 +310,7 @@ export function generalOverviewOf(ctx) {
       : [],
     switcherValue: switcher ? state[switcher.fieldId] : null,
     cards,
+    columns,
   }
 }
 

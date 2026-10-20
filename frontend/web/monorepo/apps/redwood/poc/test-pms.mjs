@@ -1498,6 +1498,40 @@ test('Item Overview y General Overview: el contenido de tarjetas y pestañas via
   assert.equal(card.items[0].html, '<p>hello</p>')
 })
 
+test('General Overview: everything the main slot draws is a card, in order; main and info are columns at the grid widths', () => {
+  const slotted = (slot, n) => ({ ...n, slot })
+  const tree = node({ type: 'VerticalLayout' }, [
+    node({ type: 'FormField', fieldId: 'record', dataType: 'string', options: [{ value: '1', label: 'One' }] }),
+    node({ type: 'ResponsiveGrid', gridTemplateColumns: '3fr 1fr', gridTemplateAreas: '"main info"' }, [
+      slotted('main', node({ type: 'VerticalLayout' }, [
+        node({ type: 'EntityHeader', title: 'One' }),
+        node({ type: 'Card', title: node({ type: 'Text', text: 'Grades' }), content: [node({ type: 'Markdown', markdown: 'A' })] }),
+        node({ type: 'Markdown', markdown: 'loose' }),
+        node({ type: 'Card', content: [node({ type: 'Markdown', markdown: 'untitled' })] }),
+      ])),
+      slotted('info', node({ type: 'VerticalLayout' }, [node({ type: 'Markdown', markdown: 'side' })])),
+    ]),
+  ])
+  const go = generalOverviewOf({ state: {}, data: {}, tree })
+  const main = go.columns[0].cards
+  // the untitled pieces are no longer dropped (only titled Cards were taken)
+  assert.deepEqual(main.map((c) => [c.title, c.items[0].html]), [['Grades', '<p>A</p>'], ['', '<p>loose</p>'], ['', '<p>untitled</p>']])
+  // infoWidth: the info column takes its track (3fr 1fr → 9 + 3), each column stacks its cards
+  assert.deepEqual(go.columns.map((c) => c.colClass.match(/oj-md-(\d+)/)[1]), ['9', '3'])
+  assert.ok(go.columns.flatMap((c) => c.cards).every((c) => c.colClass === 'oj-flex-item oj-sm-12'))
+  assert.equal(go.columns[1].cards[0].items[0].html, '<p>side</p>')
+  // promoted info slot (travels first): its column goes first and takes the FIRST track
+  tree.children[1].children.reverse()
+  tree.children[1].metadata.gridTemplateColumns = '1fr 3fr'
+  const promoted = generalOverviewOf({ state: {}, data: {}, tree })
+  assert.deepEqual(promoted.columns.map((c) => [c.colClass.match(/oj-md-(\d+)/)[1], c.cards.length]), [['3', 1], ['9', 3]])
+  // the real GeneralOverview (con-micronaut demo): its three main cards in one column, the info slot in the other
+  const real = generalOverviewOf(reduceContexts(empty(), JSON.parse(readFileSync(join(here, 'fixtures', 'real', 'tpl-general-overview.json'), 'utf8'))).contexts[HOST_ID])
+  assert.deepEqual(real.columns.map((c) => c.cards.map((k) => k.title)), [['Resultados', 'Notas por materia', 'Asistencia mensual'], ['']])
+  // the page loops the columns, then each column's cards
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /data="\[\[ \$application\.variables\.mateuOverview\.columns \]\]"[\s\S]{0,400}data="\[\[ \$current\.data\.cards \]\]"/)
+})
+
 import { withInitialValues } from './reduceContexts.mjs'
 
 test('FormField.initialValue siembra el estado cuando la clave falta (como el renderer web), sin pisar lo que llega', () => {

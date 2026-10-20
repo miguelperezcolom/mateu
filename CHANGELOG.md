@@ -181,6 +181,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   inline in each row the selected key comes back null anyway. A click resolves the bar under the
   pointer (as the double click already did), once per pick. The done part of a coloured task is
   drawn in a darker shade of its colour instead of JET's one grey.
+### Fixed
+- **Redwood: General Overview content and `infoWidth()`.** Only the titled `Card`s of the page were
+  drawn in the main area, so anything else `overview()` returned (a chart, a Markdown, an untitled
+  card) was lost; every piece of the main slot is now a card, in order. Main and info are drawn as
+  two columns at the widths of the overview's grid (`infoWidth()`, first when promoted) instead of
+  a grid of cards where the info card fell wherever there was room.
 
 ## [3.0-beta.7] — 2026-10-19
 
