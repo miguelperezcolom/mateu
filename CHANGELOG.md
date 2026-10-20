@@ -12,6 +12,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 ## [Unreleased]
 
 ### Added
+
 - **A CRUD's record page can show its own content** (`DetailContentSupplier`). The view class (for an
   `AutoCrud<T>`, `T`) implements `Component detailContent(HttpRequest)` and its `/{id}` page shows
   that component — e.g. an `ItemOverview` with the key information beside tabs — instead of the
@@ -24,13 +25,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   on the crud record page (title + Back to list/Edit kept). (Java, .NET, Python)
 - **`PageView.toBuilder()`**: copy a page with one thing changed instead of calling its 29-argument
   constructor. (Java)
+
 ### Fixed
+
 - **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of
   Micronaut's (`MateuMicronautJsonMapper`, `MateuMicronautJacksonDatabindMapper`) left Jackson's
   `WRITE_DATES_AS_TIMESTAMPS` on, so a `LocalDate` in component data (grid rows…) was written as
   `[2025,12,19]` and shown as "2025,12,19". They now write `"2025-12-19"`, like the other adapters.
   (Java)
-### Fixed
 - **Quarkus: views reached only by Mateu keep their injected services.** ArC removed, as unused beans,
   the view classes Mateu reaches by reflection (an `AutoCrud` annotated `@Dependent`…) and the
   services only they inject; Mateu then created the view with `new` and its `@Inject` fields stayed
@@ -38,19 +40,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   defaults `quarkus.arc.remove-unused-beans=fwk` (its `META-INF/microprofile-config.properties`; the
   application's own setting wins): application beans are kept, unused framework beans are still
   removed. `@Unremovable` is no longer needed. (Java)
-### Fixed
 - **Spring Boot devtools: views get their beans.** With `spring-boot-devtools` on the classpath a
   view's `@Autowired` fields stayed `null` and `@Lookup` suppliers that are `@Component`s failed with
   "Cannot instantiate …". Mateu loaded the classes it reaches by name with its own classloader, which
   under devtools loads a second copy of the app's classes next to the RestartClassLoader's — no bean
   is an instance of those. Classes are now loaded from the thread context classloader first. (Java)
-### Fixed
 - **A view reached through a `@Menu` field gets its injected services.** The menu path created the
   target with its bare constructor, so a view that builds its content right away (a `Dashboard`, any
   `ComponentTreeSupplier`) found its `@Autowired`/`@Inject` fields `null`. It is now created through
   the instance factory, like every other view (bean if there is one, else a new instance with its
   injection points filled). (Java)
-### Fixed
 - **Live reload after a restart inside the JVM.** The dev event stream's boot id was a constant of
   Mateu's jar, which Quarkus dev mode and Spring Boot devtools do not reload: after their restart
   the browser reconnected, saw the same boot id and did not re-render. Each application start now
@@ -59,30 +58,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   code when a request arrives, and the open live-reload stream is not one. With `mateu.dev=true`,
   `mateu-quarkus` now asks it to scan for changes once a second while a browser is watching
   (a `HotReplacementSetup`; dev mode only). (Java)
-### Fixed
 - **`TodoList`, `CalendarPage`, `CollectionDetail` and `GeneralOverview` no longer send the request
   to the client.** Their private `currentRequest` field travelled in the component state (base url,
   caller's remote address) and failed to come back (`WARN Hydrater: Could not hydrate field
   'currentRequest'`). It is `transient` now, and the state serializers skip transient fields in
   their nested-object pass too (Jackson already did). (Java)
-### Fixed
 - **No more `"nombre": "xxxx"` in every row of every list.** A leftover debug line in the wizard
   state serializer (used for every form's state) planted it next to `_rowNumber`. (Java)
 - **A list of components is not an editable grid field.** A `List<Badge>` (a `Foldout`'s header
   badges) or `List<Component>` field registered the twelve row-editing actions (`estado_add`,
   `estado_create`, …) of a list of records. (Java, .NET, Python)
-### Fixed
 - **A `Drawer` or `Dialog` keeps its declared id on the wire.** `Drawer.builder().id("x")` went out
   with the component id `"fieldId"` (only the metadata carried `x`), so Redwood could not tell that
   an overlay re-sent while open was the same one and stacked a second drawer instead of refreshing
   it. Without an id the filler `"fieldId"` stays. (Java; .NET and Python already sent the id)
-### Fixed
 - **A CRUD view's `@ViewToolbarButton` that answers with a message refreshes the record.** A button
   that changed the record in the store and returned `Message.success(...)` left the view on the old
   values (workaround was `UICommand.navigateTo("/<crud>/<id>")`). A message-only answer now also
   sends the record reloaded from the store; any other answer is used as it is. (Java; the .NET and
   Python ports do not dispatch view-toolbar methods)
-### Fixed
 - **A subclass of a `Foldout`, `ItemOverview`, `Dashboard` or `Welcome` keeps what its parent
   declares.** They read only the concrete class's own fields (and the Foldout only its own
   `@Title`), so subclassing a page to mount it elsewhere or to add a panel gave an empty page. They
@@ -93,12 +87,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   sides (`pepe` went through an `@Email` field). Messages are the validator's own, in the request's
   language. `@Past`/`@Future` are still not mapped. (Java; the .NET and Python ports have their own
   constraint markers and do not have these yet)
-### Fixed
 - **An enum that overrides `toString()` works in selects and filters.** Its options carried the
   `toString()` as the value, while the state and the server use the constant name: a filter on it
   was silently ignored and a form select showed nothing selected. The value is the constant name;
   the `toString()` stays the label (after `@Label`). (Java)
-### Fixed
 - **A `@Menu` submenu called like the app's mount opens its pages.** With `@UI("/biblioteca")` and
   `@Menu MenuBiblioteca biblioteca`, a menu click, a deep link or a reload of
   `/biblioteca/biblioteca/catalogo` answered the app again: the content load (route
@@ -106,25 +98,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Inside its mount the app is at `""`, so that prefix is the menu entry; and a route that repeats
   the segment (`/biblioteca/biblioteca/...`) is now read relative to the mount. (Java; the .NET and
   Python ports use absolute routes and never had the second spelling)
-### Fixed
 - **A wizard step's `@Toolbar` buttons run.** They were drawn under the step's form, but the
   wizard's dispatcher never called them. They now run on the step as typed (not validated), and the
   wizard shows the same step again with what they changed; a returned `Message` shows over it.
   (Java)
 
+- **The archetypes' own texts go through the app's `Translator`.** `CalendarPage` (Today,
+  + Create, Month/Week/Day/List), `TodoList` and `CollectionDetail`/`GeneralOverview` (empty
+  states, the "N items" counter) wrote fixed English. They are built-in texts now (`BuiltInTexts`),
+  like the wizard's and the CRUD's; `BuiltInTexts` also translates a text built lazily, with no
+  request at hand (a `Callable<Component>` field), through the app's translator. (Java)
+
 ### Documentation
+
 - The wizard page says outright that the last step field is the result screen (Next never reaches
   it, only the completion action does) and documents step toolbar buttons.
 - **`GeneralOverview.recordLabel()`** labels the context switcher ("Requisition", "Customer"…).
   The `record` field lives in the base class, so a subclass had no way to label it. Blank by
   default (unlabelled, as before). `GeneralOverview` now implements `LabelSupplier` for it; a
   subclass that supplies labels of its own overrides `label(...)`. (Java)
-### Fixed
-- **The archetypes' own texts go through the app's `Translator`.** `CalendarPage` (Today,
-  + Create, Month/Week/Day/List), `TodoList` and `CollectionDetail`/`GeneralOverview` (empty
-  states, the "N items" counter) wrote fixed English. They are built-in texts now (`BuiltInTexts`),
-  like the wizard's and the CRUD's; `BuiltInTexts` also translates a text built lazily, with no
-  request at hand (a `Callable<Component>` field), through the app's translator. (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 
