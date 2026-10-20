@@ -256,6 +256,46 @@
         }
       ]
     },
+    "foldoutGoToParent": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuFoldoutContent.header.parentActionId }}"
+          },
+          "chain": "dispatchHostBlockAction"
+        }
+      ]
+    },
+    "foldoutPrevious": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuFoldoutContent.header.previousActionId }}"
+          },
+          "chain": "dispatchHostBlockAction"
+        }
+      ]
+    },
+    "foldoutNext": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuFoldoutContent.header.nextActionId }}"
+          },
+          "chain": "dispatchHostBlockAction"
+        }
+      ]
+    },
+    "foldoutPanelAction": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $event.detail.actionId }}"
+          },
+          "chain": "dispatchHostBlockAction"
+        }
+      ]
+    },
     "mateuCardAction": {
       "chains": [
         {

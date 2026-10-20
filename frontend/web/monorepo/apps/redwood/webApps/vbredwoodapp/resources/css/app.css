@@ -267,9 +267,39 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
 
 /* The foldout-layout mounts its OWN navigation header (an empty oj-sp-header-navigation,
    16px with a white background) that left a band between the page header's accent and the
-   folds — it is not used (the 360 carries its own header), so it goes. */
-.oj-sp-foldout-layout-header-horizontal {
+   folds — it is not used (the 360 carries its own header), so it goes. Unless the foldout
+   declares a navigation (FoldoutLayout.navigation: back to parent, previous / next): then that
+   header is where Redwood puts those controls. */
+oj-sp-foldout-layout:not(.mateu-foldout-has-nav) .oj-sp-foldout-layout-header-horizontal {
   display: none;
+}
+
+/* FoldoutLayout.orientation horizontal: the overview is the band across the top, full width. */
+#mateuFoldoutEl.mateu-foldout-overview-top oj-sp-foldout-panel.mateu-foldout-overview {
+  display: block;
+  width: 100%;
+}
+
+/* FoldoutPanel.icon: oj-sp-foldout-panel has no icon slot — a decorative icon in the panel's
+   top-end corner, on the title's row. The panel's content box is its positioned ancestor by
+   default, so the panel itself takes that role (its content box goes static) and the title keeps
+   room for the icon at its end. */
+#mateuFoldoutEl oj-sp-foldout-panel.mateu-foldout-panel-has-icon {
+  position: relative;
+}
+#mateuFoldoutEl oj-sp-foldout-panel.mateu-foldout-panel-has-icon .oj-sp-foldout-panel-content {
+  position: static;
+}
+#mateuFoldoutEl oj-sp-foldout-panel.mateu-foldout-panel-has-icon .oj-sp-foldout-panel-title-container {
+  padding-inline-end: 2.25rem;
+}
+.mateu-foldout-panel-icon {
+  position: absolute;
+  top: 1.75rem;
+  inset-inline-end: 1.5rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--oj-core-text-color-secondary);
 }
 
 /* Clickable row cards (rowActionId without a button — e.g. the charge catalogue of the

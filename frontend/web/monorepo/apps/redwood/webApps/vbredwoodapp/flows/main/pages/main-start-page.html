@@ -2561,13 +2561,37 @@
 <oj-bind-if test="[[ !!$application.variables.mateuFoldout ]]">
       <!-- the foldout's inner header cannot be collapsed (always 16px): with
            background=transparent it stops being a white band and stays as breathing room -->
+      <!-- FoldoutLayout.navigation → the layout's OWN header (oj-sp-header-navigation): the
+           go-to-parent link labelled parentLabel and the previous / next arrows, each running the
+           action id the header projection carries (foldoutHeaderOf); without navigation the
+           header stays hidden (app.css). Bound to the live CONTENT's header (mateuFoldoutContent,
+           seeded before the structure): it may change between two records of the same foldout
+           without re-stamping the layout. -->
       <oj-sp-foldout-layout id="mateuFoldoutEl"
-        display-options.go-to-parent="false"
-        display-options.background="transparent">
-        <!-- 25rem = 22rem of usable content (the width of an operations card,
-             .mateu-grid-cell) + 3rem of the panel's horizontal padding -->
+        :class="[[ { 'mateu-foldout-has-nav': !!$application.variables.mateuFoldoutContent.header.hasNavigation, 'mateu-foldout-overview-top': !!$application.variables.mateuFoldout.overviewOnTop } ]]"
+        display-options.go-to-parent="[[ !!$application.variables.mateuFoldoutContent.header.goToParent ]]"
+        display-options.bidirectional-navigation="[[ !!$application.variables.mateuFoldoutContent.header.bidirectional ]]"
+        display-options.background="transparent"
+        translations.go-to-parent="[[ $application.variables.mateuFoldoutContent.header.parentLabel ]]"
+        previous-step="[[ $application.variables.mateuFoldoutContent.header.previousStep ]]"
+        next-step="[[ $application.variables.mateuFoldoutContent.header.nextStep ]]"
+        on-sp-go-to-parent="[[ $listeners.foldoutGoToParent ]]"
+        on-sp-previous="[[ $listeners.foldoutPrevious ]]"
+        on-sp-next="[[ $listeners.foldoutNext ]]">
+        <!-- the OVERVIEW: with orientation vertical (the default) the first column, fixed at
+             25rem = 22rem of usable content (the width of an operations card, .mateu-grid-cell)
+             + 3rem of the panel's horizontal padding; with orientation horizontal it goes to the
+             layout's `overview` slot — the band across the top, the panels below.
+             overviewEditActionId → its header action (the pencil, secondaryActions → spAction). -->
         <oj-sp-foldout-panel panel-title="[[ $application.variables.mateuFoldout.headerTitle || $application.variables.mateuHostTitle ]]"
-          class="mateu-fixed-panel" style="flex: 0 0 25rem; width: 25rem; min-width: 25rem; max-width: 25rem;">
+          :slot="[[ $application.variables.mateuFoldout.overviewOnTop ? 'overview' : null ]]"
+          :class="[[ { 'mateu-fixed-panel': !$application.variables.mateuFoldout.overviewOnTop, 'mateu-foldout-overview': true } ]]"
+          :style.flex="[[ $application.variables.mateuFoldout.overviewOnTop ? null : '0 0 25rem' ]]"
+          :style.width="[[ $application.variables.mateuFoldout.overviewOnTop ? null : '25rem' ]]"
+          :style.min-width="[[ $application.variables.mateuFoldout.overviewOnTop ? null : '25rem' ]]"
+          :style.max-width="[[ $application.variables.mateuFoldout.overviewOnTop ? null : '25rem' ]]"
+          secondary-actions="[[ $application.variables.mateuFoldoutContent.header.overviewActions || [] ]]"
+          on-sp-action="[[ $listeners.foldoutPanelAction ]]">
           <!-- RICH blocks of the overview: same atoms template as the host -->
           <div class="oj-flex">
           <oj-bind-for-each data="[[ $application.variables.mateuFoldoutContent.overview.blocks ]]">
@@ -6052,11 +6076,16 @@
                  (flex + min/max) — growing here confuses the foldout's responsive engine
                  (it paginates); the row's leftover is shared out by the CSS space-between -->
             <oj-sp-foldout-panel panel-title="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).headerLabel || $current.data.title ]]"
-              :class="[[ {'mateu-fixed-panel': !!$current.data.width} ]]"
+              :class="[[ {'mateu-fixed-panel': !!$current.data.width, 'mateu-foldout-panel-has-icon': !!$current.data.iconClass} ]]"
               :style.flex="[[ $current.data.width ? '0 0 ' + $current.data.width : null ]]"
               :style.width="[[ $current.data.width || null ]]"
               :style.min-width="[[ $current.data.width || null ]]"
               :style.max-width="[[ $current.data.width || null ]]">
+              <!-- FoldoutPanel.icon: oj-sp-foldout-panel has no icon of its own — a decorative
+                   Redwood icon in the panel's top-end corner, beside its title (app.css) -->
+              <oj-bind-if test="[[ !!($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).iconClass ]]">
+                <span class="mateu-foldout-panel-icon" :class="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).iconClass ]]" aria-hidden="true"></span>
+              </oj-bind-if>
               <!-- FoldoutPanel.summary (child summary-N): a one-line digest under the panel title (a
                    carousel of open panels); on a FOLDED strip (open=false, poc/foldouts.mjs) it is
                    the line kept beside the vertical title. Not the panel's `summary` slot: oj-sp-foldout-panel

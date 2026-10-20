@@ -355,6 +355,10 @@ test("foldout: the layout's selectedPanel counts the overview as panel 0", () =>
   assert.equal(wirePanelIndexOf('2'), 1)
   assert.equal(wirePanelIndexOf(undefined), -1)
   assert.equal(wirePanelIndexOf(1.5), -1)
+  // orientation horizontal: the overview is the top band, not a panel — panel 0 is the first wire panel
+  assert.equal(wirePanelIndexOf(0, { overviewOnTop: true }), 0)
+  assert.equal(wirePanelIndexOf(2, { overviewOnTop: true }), 2)
+  assert.equal(wirePanelIndexOf(1, { overviewOnTop: false }), 0)
   // a panel's identity on the same page: its position and title
   assert.equal(foldoutPanelKey({ title: 'Notes' }, 2), '2:Notes')
   assert.notEqual(foldoutPanelKey({ title: 'Notes' }, 2), foldoutPanelKey({ title: 'Notes' }, 1))

@@ -117,6 +117,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the row actions as buttons. A card's click opens the row like a table row (`view`,
   `@RowRoute`, `@Details`), with a checkbox per card when row selection is enabled.
 
+- **Redwood: the Foldout honours its navigation, orientation, Edit, badges and panel icons.** The
+  server sent them and Redwood drew none. `navigationHeader()` now fills oj-sp-foldout-layout's own
+  header (the go-to-parent link labelled `parentLabel`, the previous/next arrows), each control
+  running its action id; `overviewEditActionId()` is the overview panel's pencil; the foldout's
+  `List<Badge>` badges head the overview; `@Panel(icon)` shows in the panel's corner; and
+  `orientation(horizontal)` puts the overview across the top with the panels below it (vertical,
+  the default, keeps it as the first column). `FoldoutNavigation.title` is still not drawn: the
+  layout's header has no place for it.
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches

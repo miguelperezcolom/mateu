@@ -37,6 +37,7 @@ export const OJ_ICONS = {
   'vaadin:cart': 'oj-ux-ico-cart',
   'vaadin:check': 'oj-ux-ico-check',
   'vaadin:clock': 'oj-ux-ico-clock',
+  'vaadin:list': 'oj-ux-ico-list',
   // the tray badge's bell (header widget)
   'vaadin:bell': 'oj-ux-ico-notification',
   'vaadin:bell-o': 'oj-ux-ico-notification',

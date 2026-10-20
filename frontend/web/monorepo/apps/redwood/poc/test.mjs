@@ -8,6 +8,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
+import { foldoutHeaderOf, foldoutIconClassOf } from './core/archetypes.mjs'
 import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
@@ -6084,4 +6085,56 @@ test('listing cards: the page paints them in place of the table, and the card cl
   assert.equal(page.eventListeners.mateuCardSelected.chains[0].chain, 'mateuCardSelected')
   const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'mateuCardSelected.js'), 'utf8')
   assert.match(chain, /bridge\.toggleSelectionKey\(/)
+})
+test('Foldout (con-micronaut demo): navigation, overview edit, badges, panel icons and orientation reach the projection', () => {
+  const f = foldoutOf(reduceContexts(empty(), fx('tpl-foldout')).contexts[HOST_ID])
+  assert.equal(f.orientation, 'vertical')
+  assert.equal(f.overviewOnTop, false)
+  const h = f.header
+  assert.equal(h.hasNavigation, true)
+  assert.deepEqual([h.goToParent, h.parentLabel, h.parentActionId], [true, 'Estudiantes', 'volver'])
+  assert.equal(h.bidirectional, true)
+  assert.deepEqual(h.previousStep, { id: 'anterior', label: chromeText('previousItem') })
+  assert.deepEqual(h.nextStep, { id: 'siguiente', label: chromeText('nextItem') })
+  assert.deepEqual(h.overviewActions, [{ id: 'editar', label: chromeText('edit'), icon: 'oj-ux-ico-edit', display: 'on' }])
+  // the foldout's own badges head the overview, next to the page's
+  const badgeLabels = f.overview.blocks[0].items.filter((a) => a.isBadge).map((a) => a.label)
+  assert.deepEqual(badgeLabels, ['Matrícula activa', 'Beca MEC'])
+  // panel icons: bare Vaadin names → Redwood classes; none → ''
+  assert.deepEqual(f.panels.map((p) => p.iconClass), ['oj-ux-ico-contact', 'oj-ux-ico-list', 'oj-ux-ico-clock', ''])
+  // orientation horizontal: the overview on top
+  const wire = fx('tpl-foldout')
+  const json = JSON.stringify(wire).replace('"orientation":"vertical"', '"orientation":"horizontal"')
+  const top = foldoutOf(reduceContexts(empty(), JSON.parse(json)).contexts[HOST_ID])
+  assert.deepEqual([top.orientation, top.overviewOnTop], ['horizontal', true])
+})
+test('Foldout header: no navigation → no controls; only a next id → no bidirectional arrows', () => {
+  const none = foldoutHeaderOf({})
+  assert.deepEqual([none.hasNavigation, none.goToParent, none.bidirectional, none.previousStep, none.nextStep], [false, false, false, null, null])
+  assert.deepEqual(none.overviewActions, [])
+  const next = foldoutHeaderOf({ navigation: { nextActionId: 'n' } })
+  assert.deepEqual([next.hasNavigation, next.bidirectional, next.nextStep.id], [true, false, 'n'])
+  assert.equal(foldoutHeaderOf({ navigation: { parentActionId: 'up' } }).parentLabel, chromeText('goBack'))
+  assert.equal(foldoutIconClassOf('vaadin:user'), 'oj-ux-ico-contact')
+  assert.equal(foldoutIconClassOf('oj-ux-ico-edit'), 'oj-ux-ico-edit')
+  assert.equal(foldoutIconClassOf(null), '')
+})
+test('Foldout page: the layout binds the header, the overview can take the overview slot, the actions reach the host', () => {
+  const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  const H = '$application.variables.mateuFoldoutContent.header'
+  const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const layout = html.slice(html.indexOf('<oj-sp-foldout-layout id="mateuFoldoutEl"'), html.indexOf('</oj-sp-foldout-layout>'))
+  for (const attr of ['display-options.go-to-parent="[[ !!' + H + '.goToParent ]]"', 'previous-step="[[ ' + H + '.previousStep ]]"',
+    'next-step="[[ ' + H + '.nextStep ]]"', 'translations.go-to-parent="[[ ' + H + '.parentLabel ]]"',
+    'on-sp-next="[[ $listeners.foldoutNext ]]"', 'secondary-actions="[[ ' + H + '.overviewActions || [] ]]"',
+    ':slot="[[ $application.variables.mateuFoldout.overviewOnTop ? \'overview\' : null ]]"']) {
+    assert.match(layout, new RegExp(esc(attr)), attr)
+  }
+  assert.match(layout, /class="mateu-foldout-panel-icon"/)
+  const page = JSON.parse(readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.json'), 'utf8'))
+  for (const [listener, id] of [['foldoutGoToParent', 'parentActionId'], ['foldoutPrevious', 'previousActionId'], ['foldoutNext', 'nextActionId']]) {
+    assert.equal(page.eventListeners[listener].chains[0].chain, 'dispatchHostBlockAction')
+    assert.equal(page.eventListeners[listener].chains[0].parameters.actionId, '{{ ' + H + '.' + id + ' }}')
+  }
+  assert.equal(page.eventListeners.foldoutPanelAction.chains[0].parameters.actionId, '{{ $event.detail.actionId }}')
 })
