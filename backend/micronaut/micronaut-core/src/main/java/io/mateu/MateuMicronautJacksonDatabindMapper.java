@@ -32,8 +32,13 @@ import java.io.OutputStream;
 @Requires(property = "mateu.micronaut.replace-json-mapper", value = "true", defaultValue = "true")
 public class MateuMicronautJacksonDatabindMapper implements JsonMapper {
 
+  // Dates as ISO-8601 strings ("2025-12-19"), not arrays/timestamps: the wire configuration of
+  // every other adapter (core WireMapper, Spring Boot and Quarkus defaults).
   final ObjectMapper objectMapper =
-      new ObjectMapper().findAndRegisterModules().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+      new ObjectMapper()
+          .findAndRegisterModules()
+          .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+          .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
   @Override
   public <T> T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type)

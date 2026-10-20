@@ -24,6 +24,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   on the crud record page (title + Back to list/Edit kept). (Java, .NET, Python)
 - **`PageView.toBuilder()`**: copy a page with one thing changed instead of calling its 29-argument
   constructor. (Java)
+### Fixed
+- **Micronaut: dates go out as ISO-8601 strings.** The JSON mappers the adapter installs in place of
+  Micronaut's (`MateuMicronautJsonMapper`, `MateuMicronautJacksonDatabindMapper`) left Jackson's
+  `WRITE_DATES_AS_TIMESTAMPS` on, so a `LocalDate` in component data (grid rows…) was written as
+  `[2025,12,19]` and shown as "2025,12,19". They now write `"2025-12-19"`, like the other adapters.
+  (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 
