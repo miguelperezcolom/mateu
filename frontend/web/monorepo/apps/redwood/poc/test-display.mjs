@@ -569,6 +569,10 @@ test('MicroFrontend: a surface of its own, from its baseUrl; its actions tagged 
 
 test('HeroSection, EmptyState, ProgressBar and custom components in the content', () => {
   assert.match(heroAtomOf({ image: '/img/a.png', centered: true }).heroClass, /mateu-hero-centered/)
+  // …and the page styles them: centred texts, light texts over the darkened image
+  const css = webApp('resources/css/app.css')
+  assert.match(css, /\.mateu-hero-centered \{ text-align: center; \}/)
+  assert.match(css, /\.mateu-hero-image h2, \.mateu-hero-image p \{ color: #fff; \}/)
   assert.ok(emptyStateAtomOf({ actionId: 'go', actionLabel: 'Go' }).hasAction)
   // an icon NAME is not printed in the title (oj-sp-empty-state has its own illustration); an emoji is
   assert.equal(emptyStateAtomOf({ icon: 'vaadin:list-select', title: 'Select an item' }).title, 'Select an item')
