@@ -11,6 +11,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Redwood: a header badge takes its colour from the state.** A `Status` field's badge travels as
+  `text: ${state.x.message}`, `color: ${state.x.type}`; the label was resolved but the colour was
+  read as the literal template, so the chip was always grey. The colour is now resolved like the text.
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.

@@ -191,7 +191,7 @@ export function pageHeaderExtrasOf(ctx) {
     return s.includes('${') ? '' : s.trim()
   }
   const badges = (md.badges || [])
-    .map((b) => ({ label: text(b && (b.text != null ? b.text : b.label)), status: badgeStatusOf(b && b.color) }))
+    .map((b) => ({ label: text(b && (b.text != null ? b.text : b.label)), status: badgeStatusOf(text(b && b.color)) }))
     .filter((b) => b.label)
   const pn = md.peerNav || null
   const prevRoute = pn ? text(pn.prevRoute) : ''
