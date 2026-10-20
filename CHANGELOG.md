@@ -93,6 +93,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   sides (`pepe` went through an `@Email` field). Messages are the validator's own, in the request's
   language. `@Past`/`@Future` are still not mapped. (Java; the .NET and Python ports have their own
   constraint markers and do not have these yet)
+### Fixed
+- **An enum that overrides `toString()` works in selects and filters.** Its options carried the
+  `toString()` as the value, while the state and the server use the constant name: a filter on it
+  was silently ignored and a form select showed nothing selected. The value is the constant name;
+  the `toString()` stays the label (after `@Label`). (Java)
 
 ## [3.0-beta.7] — 2026-10-19
 
