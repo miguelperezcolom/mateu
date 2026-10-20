@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **Visual editor: a component dropped on the Redwood canvas lands.** The canvas did not re-render
+  when a palette drag started, so the Redwood frame was never told to let the pointer through and
+  its iframe swallowed the moves and the release: the YAML changed only on the next click, nothing
+  was selected and Undo stayed off. The drag is now part of the canvas state. (A drop on the Redwood
+  canvas still lands at the end of the page: the frame's nodes cannot be hit-tested from the editor.)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
