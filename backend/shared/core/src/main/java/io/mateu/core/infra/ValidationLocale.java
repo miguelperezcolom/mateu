@@ -84,6 +84,20 @@ public final class ValidationLocale {
     return substitute(resolved, key -> attribute(annotation, key));
   }
 
+  /**
+   * The text of a constraint's default message {@code key} in {@code locale}: the app's {@code
+   * ValidationMessages} first, then the validator's built-in bundle — null when neither has it, or
+   * when the built-in text needs EL ({@code ${…}}), which core does not ship.
+   */
+  public static String defaultMessage(String key, Locale locale) {
+    var user = lookup(bundle(USER_BUNDLE, locale), key);
+    if (user != null) {
+      return user;
+    }
+    var builtIn = lookup(bundle(VALIDATOR_BUNDLE, locale), key);
+    return builtIn != null && !builtIn.contains("${") ? builtIn : null;
+  }
+
   private static String lookup(ResourceBundle bundle, String key) {
     if (bundle == null) {
       return null;

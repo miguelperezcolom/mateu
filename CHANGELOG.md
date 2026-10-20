@@ -11,6 +11,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+- **`@Email`, `@Positive`, `@PositiveOrZero`, `@Negative`, `@NegativeOrZero`, `@DecimalMin` and
+  `@DecimalMax` are checked like `@Pattern` and `@Min`/`@Max`:** they travel to the client as
+  validations and the server re-checks them before a validated action. They were ignored on both
+  sides (`pepe` went through an `@Email` field). Messages are the validator's own, in the request's
+  language. `@Past`/`@Future` are still not mapped. (Java; the .NET and Python ports have their own
+  constraint markers and do not have these yet)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
