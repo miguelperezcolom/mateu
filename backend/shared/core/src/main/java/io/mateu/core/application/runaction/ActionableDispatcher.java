@@ -50,7 +50,10 @@ final class ActionableDispatcher {
           .flatMap(
               object -> {
                 var field = getFieldByName(object.getClass(), fieldLink.fieldName());
-                return Mono.just(getValueOrNewInstance(beanProvider, field, object));
+                // through the instance factory, like any view Mateu creates: a bean if there is
+                // one, else a new instance WITH its @Autowired/@Inject fields filled — the bare
+                // constructor left a Dashboard's services null while it built its content
+                return Mono.just(getValueOrNewInstance(field, object, httpRequest));
               })
           .map(object -> invokeIfCallable(object, httpRequest))
           .map(object -> postHydrateIfNeeded(object, httpRequest));
