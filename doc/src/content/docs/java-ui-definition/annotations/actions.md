@@ -283,6 +283,8 @@ public @interface ViewToolbarButton {
 
 Like `@ListToolbarButton`, it takes its look from an `@Toolbar` and its behaviour (confirmation texts included) from an `@Action` on the same method.
 
+On a CRUD record's view, the method may take the record shown (and the CRUD, and the `HttpRequest`). When it answers only with a `Message` (or a list of them), the view shows the record again, reloaded from the store, so a button that changes the record ("Return loan") needs no `UICommand.navigateTo(...)` to refresh it. Any other answer (a navigation, an overlay…) is used as it is.
+
 ### Attributes
 
 | Attribute | Type | Default | Description |
