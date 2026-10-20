@@ -141,9 +141,41 @@ export function installUnsavedChangesGuard(win, isDirty) {
  * `cancel` itself and `cancel-…` count: a business `cancelBooking` does not leave the screen.
  * Port of libs/mateu leaveActions.ts — keep both in step.
  */
-export function isLeaveAction(actionId) {
+export function isLeaveAction(actionId, ownerActionIds = []) {
   if (typeof actionId !== 'string' || !actionId) return false
+  if (isWizardStepAction(actionId, ownerActionIds)) return false
   return actionId === 'cancel' || actionId.indexOf('cancel-') === 0 || actionId === 'back' || actionId === 'backToList'
+}
+
+/** The ids a wizard steps with (WizardActionDispatcher): they move inside the screen, never out of it. */
+export const WIZARD_STEP_ACTIONS = ['next', 'back', 'skip', 'goToStep']
+
+/**
+ * Is `actionId` a step of a wizard? It is when the screen running it is a wizard, which always
+ * advertises `next` (archetypes.mjs wizardOf's test). A wizard's Back keeps what was typed: asking
+ * «leave this screen?» there would be wrong. Port of leaveActions.ts isWizardStepAction.
+ */
+export function isWizardStepAction(actionId, ownerActionIds) {
+  return WIZARD_STEP_ACTIONS.indexOf(actionId) >= 0 && (ownerActionIds || []).indexOf('next') >= 0
+}
+
+/**
+ * The action ids the screen on display advertises: the host's and those of the overlays open over
+ * it (a wizard can open in a drawer), at any depth of their trees — where a step action's owner is.
+ */
+export function screenActionIdsOf(reg) {
+  const ids = []
+  const walk = (node) => {
+    if (!node || typeof node !== 'object') return
+    for (const a of node.actions || []) if (a && a.id) ids.push(a.id)
+    for (const child of node.children || []) walk(child)
+  }
+  const contexts = (reg && reg.contexts) || {}
+  for (const id of [HOST_ID].concat((reg && reg.stack) || [])) {
+    const ctx = contexts[id]
+    if (ctx) walk(ctx.tree)
+  }
+  return ids
 }
 
 /**
@@ -154,7 +186,8 @@ export function isLeaveAction(actionId) {
  * again. What the Vaadin renderer does in mateu-component (dirtyGuard.confirmLeave).
  */
 export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined)) {
-  if (!isLeaveAction(actionId) || !vars || !vars.mateuDirty) return true
+  if (!vars || !vars.mateuDirty) return true
+  if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
   if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
   vars.mateuDirty = false
   return true

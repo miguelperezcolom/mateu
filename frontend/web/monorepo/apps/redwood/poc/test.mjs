@@ -5065,7 +5065,7 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
 }
 
 // ── leave actions with unsaved changes (BUGS-MATEU #7) ────────────────────────────────────────
-import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges } from './shellFlows.mjs'
+import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction } from './shellFlows.mjs'
 {
   test('isLeaveAction: the ids the server styles as leave actions (FormMapper) and the crud\'s, no business «cancelX»', () => {
     for (const id of ['cancel', 'cancel-new', 'cancel-create', 'cancel-edit', 'cancel-view', 'back', 'backToList']) assert.equal(isLeaveAction(id), true, id)
@@ -5084,6 +5084,27 @@ import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges } from './shell
     assert.equal(confirmLeaveAction('backToList', vars, win(true)), true, 'leave')
     assert.equal(vars.mateuDirty, false, 'cleared: the navigation it answers with does not ask again')
     assert.deepEqual(asked, [chromeText('unsavedLeave'), chromeText('unsavedLeave')])
+  })
+
+  test('a wizard\'s Back is step navigation, not leaving: no question; its Cancel and a CRUD editor\'s Cancel still ask', () => {
+    const asked = []
+    const win = { confirm: (m) => { asked.push(m); return false } }
+    // the wizard (advertises next/skip, claims the rest with *), here inside the host's tree
+    const wizardReg = { stack: [], contexts: { [HOST_ID]: { tree: { type: 'ServerSide', actions: [], children: [
+      { type: 'ServerSide', confirmOnNavigationIfDirty: true, actions: [{ id: 'next' }, { id: 'skip' }, { id: '*' }], children: [] }] } } } }
+    assert.deepEqual(screenActionIdsOf(wizardReg), ['next', 'skip', '*'])
+    assert.equal(isWizardStepAction('back', screenActionIdsOf(wizardReg)), true)
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: wizardReg }, win), true)
+    assert.equal(confirmLeaveAction('goToStep', { mateuDirty: true, mateuRegistry: wizardReg }, win), true)
+    assert.equal(asked.length, 0)
+    assert.equal(confirmLeaveAction('cancel', { mateuDirty: true, mateuRegistry: wizardReg }, win), false)
+    // a wizard opened in a DRAWER over a page: found on the stack
+    const drawerReg = { stack: ['d1'], contexts: { [HOST_ID]: { tree: { actions: [{ id: 'back' }] } }, d1: { tree: { actions: [{ id: 'next' }] } } } }
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: drawerReg }, win), true)
+    const editorReg = { stack: [], contexts: { [HOST_ID]: { tree: { confirmOnNavigationIfDirty: true, actions: [{ id: 'cancel-edit' }, { id: 'save' }, { id: 'back' }] } } } }
+    assert.equal(confirmLeaveAction('cancel-edit', { mateuDirty: true, mateuRegistry: editorReg }, win), false)
+    assert.equal(confirmLeaveAction('back', { mateuDirty: true, mateuRegistry: editorReg }, win), false, 'a page\'s own Back still leaves')
+    assert.equal(asked.length, 3)
   })
 
   test('tracksUnsavedChanges: only a host whose ServerSide asks before it is left (@ConfirmOnNavigationIfDirty)', () => {

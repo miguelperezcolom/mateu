@@ -222,6 +222,25 @@ describe('a leave action on a screen with unsaved changes (dirtyGuard)', () => {
         expect(sent.map(e => e.detail.actionId)).toEqual(['save', 'cancelBooking', 'backup'])
     })
 
+    it('a wizard\'s Back steps inside the screen: it does not ask, even on a tracked wizard; its Cancel and a CRUD editor\'s Cancel still do', async () => {
+        // a Wizard advertises next/skip and claims the rest (back, goToStep…) with its wildcard
+        const wizard = await mount(serverSide({ confirmOnNavigationIfDirty: true,
+            actions: [{ id: 'next' }, { id: 'skip' }, { id: '*' }] }))
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        request(wizard, 'back')
+        request(wizard, 'goToStep')
+        expect(confirm).not.toHaveBeenCalled()
+        expect(sent.map(e => e.detail.actionId)).toEqual(['back', 'goToStep'])
+        expect(dirtyGuard.dirty).toBe(true)
+        request(wizard, 'cancel')
+        expect(confirm).toHaveBeenCalledTimes(1)
+        const editor = await mount(serverSide({ id: 'editor', confirmOnNavigationIfDirty: true, actions: [{ id: 'cancel-edit' }, { id: 'save' }] }))
+        request(editor, 'cancel-edit')
+        expect(confirm).toHaveBeenCalledTimes(2)
+        expect(sent).toHaveLength(2)
+    })
+
     it('does not ask when nothing was edited', async () => {
         const el = await mount(serverSide({ actions: [{ id: 'cancel-edit' }] }))
         const confirm = vi.spyOn(window, 'confirm')

@@ -563,7 +563,9 @@ export class MateuComponent extends ComponentElement {
                 // A leave action (Cancel, back to the list…) on a screen with unsaved changes asks
                 // first, like a menu click or the browser's back button; "stay" sends nothing.
                 // Asked once, by the component that runs it: confirming clears the flag.
-                if (isLeaveAction(detail.actionId) && !dirtyGuard.confirmLeave()) {
+                // A wizard's Back steps inside the screen: its owner advertises `next`.
+                if (isLeaveAction(detail.actionId, serverSideComponent.actions?.map(a => a.id) ?? [])
+                    && !dirtyGuard.confirmLeave()) {
                     return
                 }
 

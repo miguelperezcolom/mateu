@@ -632,6 +632,22 @@ test('runMateuAction: a LEAVE action (Cancel…) with unsaved changes asks first
   assert.deepEqual(cancelled, ['save', 'cancel-edit', 'cancel-edit'])
 })
 
+test('runMateuAction: a wizard\'s Back (step navigation) does not ask about unsaved changes; its Cancel does', async () => {
+  answer(byRoute('/wizard'), replace(page('pw', 'x.Wizard', 'Wizard', [], { actions: [{ id: 'next' }, { id: 'skip' }, { id: '*' }] })))
+  const went = []
+  answer((b) => b.actionId === 'back' || b.actionId === 'cancel', (b) => { went.push(b.actionId); return { fragments: [] } })
+  const ctx = newContext()
+  await navigate(ctx, '/wizard')
+  ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  ctx.$application.variables.mateuDirty = true
+  confirmAnswer = false
+  await act(ctx, 'back')
+  assert.deepEqual(went, ['back'], 'stepped back without a question')
+  ctx.$application.variables.mateuDirty = true
+  await act(ctx, 'cancel')
+  assert.deepEqual(went, ['back'], 'the wizard\'s Cancel leaves: asked, and the user stayed')
+})
+
 test('hostInputChanged: editing a host form that asks before it is left (@ConfirmOnNavigationIfDirty) leaves unsaved changes; a search box elsewhere does not', async () => {
   answer(byRoute('/tracked'), replace(page('pt', 'x.Edit', 'Edit', [], {}), {}))
   answer(byRoute('/plain'), replace(page('pp', 'x.Search', 'Search', [], {}), {}))

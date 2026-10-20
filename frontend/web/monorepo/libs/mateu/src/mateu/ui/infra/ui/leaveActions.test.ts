@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isLeaveAction } from './leaveActions'
+import { isLeaveAction, isWizardStepAction } from './leaveActions'
 
 describe('isLeaveAction', () => {
     it('is the set the server styles as leave actions (FormMapper) and the crud/editable view ids', () => {
@@ -12,5 +12,14 @@ describe('isLeaveAction', () => {
         for (const id of ['cancelBooking', 'save', 'backup', 'back-office', '', undefined, null]) {
             expect(isLeaveAction(id as string), String(id)).toBe(false)
         }
+    })
+
+    it('a wizard\'s step actions are not leave actions: the owner advertises next', () => {
+        const wizard = ['next', 'skip', '*']
+        expect(isLeaveAction('back', wizard)).toBe(false)
+        expect(isWizardStepAction('goToStep', wizard)).toBe(true)
+        expect(isLeaveAction('cancel', wizard)).toBe(true)
+        expect(isLeaveAction('back', ['save', 'back'])).toBe(true)
+        expect(isWizardStepAction('back', ['save'])).toBe(false)
     })
 })

@@ -44,7 +44,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   its own **Cancel** ran straight away and the edits were lost. Now the actions the server treats as
   leaving the screen — `cancel`, `cancel-…` (the CRUD's `cancel-edit`/`cancel-new`/`cancel-create`/
   `cancel-view`), `back` and `backToList` — ask the same "unsaved changes" question first; "stay"
-  sends nothing. A business action that merely starts with `cancel` (`cancelBooking`) is not one.
+  sends nothing. A business action that merely starts with `cancel` (`cancelBooking`) is not one,
+  and neither is a wizard's Back (or any wizard step action): it moves between steps of the same
+  screen and keeps what was typed, so it never asks; the wizard's Cancel does.
   Also on Redwood, typing in a CRUD form painted as page content (`hostInputChanged`) marks the
   screen dirty again when it asks before being left (`@ConfirmOnNavigationIfDirty`, CRUD edit views),
   so menu, back and reload ask there too. (Vaadin, Redwood)
