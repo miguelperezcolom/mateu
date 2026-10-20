@@ -193,6 +193,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the chart was always moved to the end, drawn as bars with a fixed «Occupancy %» legend, and
   `colSpan`/`subtitle` were ignored. Every panel is now a tile in its declared order and width, with
   its subtitle and its content drawn like any page content (a `TrendChart` as its line/area chart).
+### Fixed
+- **Redwood: a Dialog shows its whole content.** A `Dialog` drew only the lines of text it held:
+  an `EntityHeader`, a `Badge`, a `Meter`, a `StatusList`… inside it were lost (a `Drawer` drew
+  them). A dialog with more than text is now drawn from its content, in order.
+- **Redwood: a `Drawer` placed in the page** (a GanttPage's bottom panel, a docked side panel) had no
+  view: its content came out loose, without its title. It is now a panel with its title as the
+  header, collapsible when it says so.
 
 ## [3.0-beta.7] — 2026-10-19
 

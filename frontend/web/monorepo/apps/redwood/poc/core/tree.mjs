@@ -456,9 +456,12 @@ function overlayProjectionOf(reg, id) {
     content: content,
     hasContent: !!content.length,
     // a Dialog overlay is painted as a MODAL (oj-dialog: one-off decision), not as a
-    // drawer (task with a form); texts = its message lines
+    // drawer (task with a form); texts = its message lines. A dialog showing more than lines (an
+    // EntityHeader, a Badge, a Meter, a StatusList…) is painted from its content, in order — the modal
+    // drew only the texts and the rest was lost (a drawer already drew them)
     isDialog,
-    texts: withoutFirst(collectTexts(surface), overlayTitle),
+    hasRichContent: isDialog && content.some((block) => block.items.some((a) => !a.isText)),
+    texts: isDialog && content.some((block) => block.items.some((a) => !a.isText)) ? [] : withoutFirst(collectTexts(surface), overlayTitle),
   }
 }
 

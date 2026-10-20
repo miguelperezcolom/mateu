@@ -5996,4 +5996,20 @@ test('the real Welcome (con-micronaut demo): its five panels in order, the atten
   assert.equal(w.tiles[0].subtitle, '% de alumnos presentes por mes')
   assert.equal(w.tiles[0].items.find((a) => a.isChart).chartType, 'area')
   assert.equal(w.tiles[3].items.length, 3)
+test('a Drawer placed in the page (GanttPage bottom panel) is a collapsible panel with its title; the overlay root is not', () => {
+  const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
+  const blocks = hostContentOf(reduceContexts(empty(), fx('tpl-gantt-page')).contexts[HOST_ID], null, {})
+  const atoms = blocks.flatMap((b) => b.items)
+  const at = atoms.findIndex((a) => a.isCollapsible)
+  assert.ok(at >= 0, 'the drawer has a header')
+  assert.equal(atoms[at].title, 'Leyenda y próximos hitos')
+  assert.equal(atoms[at].expanded, true)
+  assert.ok(atoms[at + 1] && atoms[at + 1].isRichText, 'its content follows the header')
+  // not collapsible: its title as a heading, then its content
+  const inline = hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [
+    node({ type: 'Drawer', headerTitle: 'Side', content: [node({ type: 'Text', text: 'inside' })] })])] } }, null, {})
+  assert.deepEqual(inline.flatMap((b) => b.items).map((a) => [!!a.isHeading, a.text]), [[true, 'Side'], [false, 'inside']])
+  // a Drawer that IS the overlay (the root of its context) is painted by the drawer panel, as before
+  const reg = reduceContexts(empty(), { fragments: [{ action: 'Add', targetComponentId: '', component: node({ type: 'Drawer', headerTitle: 'Panel', content: [node({ type: 'Text', text: 'body' })] }) }] })
+  assert.ok(!drawerOverlayOf(reg).content.flatMap((b) => b.items).some((a) => a.isCollapsible))
 })
