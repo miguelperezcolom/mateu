@@ -16,6 +16,9 @@ import io.micronaut.json.JsonMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -63,6 +66,25 @@ class MicronautJsonMappersTest {
       byte[] json = mapper.writeValueAsBytes(TEXT);
       assertThat(mapper.readValue(json, METADATA), is(TEXT));
       assertThat(mapper.readValue(new ByteArrayInputStream(json), METADATA), is(TEXT));
+    }
+  }
+
+  @Test
+  void writesJavaTimeValuesAsIsoStringsNotArrays() throws Exception {
+    var data =
+        Map.of(
+            "date", LocalDate.of(2025, 12, 19),
+            "dateTime", LocalDateTime.of(2025, 12, 19, 10, 30),
+            "time", LocalTime.of(10, 30));
+    for (JsonMapper mapper : MAPPERS) {
+      var json = new String(mapper.writeValueAsBytes(data), StandardCharsets.UTF_8);
+      assertThat(json, containsString("\"date\":\"2025-12-19\""));
+      assertThat(json, containsString("\"dateTime\":\"2025-12-19T10:30:00\""));
+      assertThat(json, containsString("\"time\":\"10:30:00\""));
+      assertThat(
+          mapper.readValue(
+              "\"2025-12-19\"".getBytes(StandardCharsets.UTF_8), Argument.of(LocalDate.class)),
+          is(LocalDate.of(2025, 12, 19)));
     }
   }
 
