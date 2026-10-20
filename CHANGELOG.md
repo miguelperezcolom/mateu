@@ -82,6 +82,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   values (workaround was `UICommand.navigateTo("/<crud>/<id>")`). A message-only answer now also
   sends the record reloaded from the store; any other answer is used as it is. (Java; the .NET and
   Python ports do not dispatch view-toolbar methods)
+### Fixed
+- **A subclass of a `Foldout`, `ItemOverview`, `Dashboard` or `Welcome` keeps what its parent
+  declares.** They read only the concrete class's own fields (and the Foldout only its own
+  `@Title`), so subclassing a page to mount it elsewhere or to add a panel gave an empty page. They
+  now walk the class hierarchy, parent fields first. (Java; .NET and Python already did)
 
 ## [3.0-beta.7] — 2026-10-19
 
