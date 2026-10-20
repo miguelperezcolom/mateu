@@ -11,6 +11,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+- **`GeneralOverview.recordLabel()`** labels the context switcher ("Requisition", "Customer"…).
+  The `record` field lives in the base class, so a subclass had no way to label it. Blank by
+  default (unlabelled, as before). `GeneralOverview` now implements `LabelSupplier` for it; a
+  subclass that supplies labels of its own overrides `label(...)`. (Java)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
