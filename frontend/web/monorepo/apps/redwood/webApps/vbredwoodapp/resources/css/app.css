@@ -267,9 +267,39 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
 
 /* The foldout-layout mounts its OWN navigation header (an empty oj-sp-header-navigation,
    16px with a white background) that left a band between the page header's accent and the
-   folds — it is not used (the 360 carries its own header), so it goes. */
-.oj-sp-foldout-layout-header-horizontal {
+   folds — it is not used (the 360 carries its own header), so it goes. Unless the foldout
+   declares a navigation (FoldoutLayout.navigation: back to parent, previous / next): then that
+   header is where Redwood puts those controls. */
+oj-sp-foldout-layout:not(.mateu-foldout-has-nav) .oj-sp-foldout-layout-header-horizontal {
   display: none;
+}
+
+/* FoldoutLayout.orientation horizontal: the overview is the band across the top, full width. */
+#mateuFoldoutEl.mateu-foldout-overview-top oj-sp-foldout-panel.mateu-foldout-overview {
+  display: block;
+  width: 100%;
+}
+
+/* FoldoutPanel.icon: oj-sp-foldout-panel has no icon slot — a decorative icon in the panel's
+   top-end corner, on the title's row. The panel's content box is its positioned ancestor by
+   default, so the panel itself takes that role (its content box goes static) and the title keeps
+   room for the icon at its end. */
+#mateuFoldoutEl oj-sp-foldout-panel.mateu-foldout-panel-has-icon {
+  position: relative;
+}
+#mateuFoldoutEl oj-sp-foldout-panel.mateu-foldout-panel-has-icon .oj-sp-foldout-panel-content {
+  position: static;
+}
+#mateuFoldoutEl oj-sp-foldout-panel.mateu-foldout-panel-has-icon .oj-sp-foldout-panel-title-container {
+  padding-inline-end: 2.25rem;
+}
+.mateu-foldout-panel-icon {
+  position: absolute;
+  top: 1.75rem;
+  inset-inline-end: 1.5rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--oj-core-text-color-secondary);
 }
 
 /* Clickable row cards (rowActionId without a button — e.g. the charge catalogue of the
@@ -957,6 +987,92 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
 }
 .mateu-row-line-pair {
   margin-inline-end: 1.5rem;
+}
+
+/* A HorizontalLayout of inline pieces (isRow): a row that wraps on a narrow screen. The wire
+   style of the row (align-items, width…) and of each piece (flex: 1 pushes the rest to the end)
+   overrides these defaults. */
+.mateu-atom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.mateu-atom-row > * {
+  min-width: 0;
+}
+
+/* Listing as CARDS (gridLayout = cards): a responsive grid — as many 16rem columns as fit, one
+   column on a phone (min() keeps a 390px screen from overflowing). Each card fills its cell,
+   the same height as its row; the title wraps instead of clipping, and the badges sit beside it. */
+.mateu-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  gap: 1rem;
+  padding: 0.25rem 0 0.5rem;
+}
+.mateu-card-grid-item {
+  display: flex;
+  min-width: 0;
+}
+oj-action-card.mateu-listing-card {
+  display: block;
+  width: 100%;
+}
+.mateu-listing-card-image {
+  display: block;
+  width: 100%;
+  max-height: 10rem;
+  object-fit: cover;
+}
+.mateu-listing-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: start;
+}
+.mateu-listing-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mateu-listing-card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.mateu-listing-card-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.mateu-listing-card-line-pair {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.mateu-listing-card-pairs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+}
+.mateu-listing-card-pair {
+  display: contents;
+}
+.mateu-listing-card-pair dt,
+.mateu-listing-card-pair dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.mateu-listing-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
 }
 
 /* Listing main column (@PrimaryColumn): round image in front (the guest's flag)

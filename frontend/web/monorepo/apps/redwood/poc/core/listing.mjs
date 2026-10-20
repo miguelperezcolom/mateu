@@ -51,6 +51,8 @@ export function listingOf(ctx, opts = {}) {
   return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs),
     headerBlocks: preSearch ? header.concat(preSearch) : header,
     showPreSearch: !!preSearch,
+    // the card grid shows unless the pre-search blocks stand in for the results (like the table)
+    showCards: listing.cardLayout && !preSearch,
     ...(preSearch ? {
       tableClass: listing.tableClass + ' oj-helper-hidden',
       paging: { ...listing.paging, visible: false },
@@ -91,14 +93,18 @@ export function isDisplayColumn(c) {
 /** What a click inside the table must never turn into a row open: a control (button, link,
  *  input, the selection checkbox, an editor) or a cell of a display column. */
 export const ROW_CLICK_EXCLUDED = '.' + NO_OPEN_CELL_CLASS + ', [data-method], oj-button, oj-c-button, button, a, input, select, textarea, label, '
-  + 'oj-selector, oj-c-selector, [role="checkbox"], [role="button"], [role="link"], [role="menuitem"], '
+  + 'oj-selector, oj-c-selector, oj-checkboxset, [role="checkbox"], [role="button"], [role="link"], [role="menuitem"], '
   + 'oj-input-text, oj-input-number, oj-switch, oj-select-single, oj-c-select-single, oj-menu-button, oj-c-menu-button'
 
 /** Whether a row action that started on `origin` (the original event target) is the ROW's — a
- *  click on a plain cell — rather than a control's or a display column's. */
-export function rowActionIsRows(origin) {
+ *  click on a plain cell — rather than a control's or a display column's. `row` is the element
+ *  that IS the row when it is itself a control (a listing card is an oj-action-card, role=button):
+ *  only a control INSIDE it keeps the click for itself, not the card or what wraps it. */
+export function rowActionIsRows(origin, row) {
   if (!origin || typeof origin.closest !== 'function') return true
-  return !origin.closest(ROW_CLICK_EXCLUDED)
+  const control = origin.closest(ROW_CLICK_EXCLUDED)
+  if (!control) return true
+  return !!row && (control === row || (typeof control.contains === 'function' && control.contains(row)))
 }
 
 /** Whether the listing has had a search answered: the server's page arrives in ctx.data.crud. */
@@ -239,6 +245,10 @@ export function listingBaseOf(ctx, opts = {}) {
       if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
       return def
     }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
+    // gridLayout = cards: a responsive grid of CARDS instead of the table (the web renderer's
+    // card grid) — the cards are precomputed per row (VB CSP); see listingCardsOf
+    cardLayout: isCardLayout(md),
+    cards: isCardLayout(md) ? listingCardsOf(statusBadgeRows(page.content || [], md.columns || []), md.columns || []) : [],
     // number of extra lines (0 = normal listing) and the table class that makes room for them
     // (PRECOMPUTED: VB CSP)
     extraLines: lines.extra.length,
@@ -594,6 +604,83 @@ export function rowLinesRows(rows, extra) {
       })),
     },
   }))
+}
+
+/**
+ * Whether the listing is laid out as a grid of CARDS (`gridLayout = cards`, or the older
+ * `listingType` card declaration with gridLayout auto) — the same rule as the web renderer's
+ * effectiveGridLayout. Anything else (table, auto, list, masterDetail, tree) keeps the table.
+ */
+export function isCardLayout(md) {
+  if (!md) return false
+  const raw = md.gridLayout || 'auto'
+  if (raw === 'auto') return md.crudlType === 'card'
+  return raw === 'cards'
+}
+
+/** How many plain data rows a card shows (the web renderer's cut); status badges and row actions
+ *  are never cut — they carry the row's state and its operations. */
+export const CARD_DATA_COLUMNS = 6
+
+/**
+ * The CARDS of a `gridLayout = cards` listing, one per row, precomputed (VB CSP: the template cannot
+ * pick the title column or format a value). Mirrors the web renderer's card: the image (first
+ * `image` column), the title (the identifier column, else the first one), the status columns as
+ * badges beside the title, the secondary lines (@Line 2+) under it as «Label: value», the other
+ * line-1 columns as label/value pairs, and the row actions as buttons. `key` is the row's
+ * _rowNumber — what the row click and the selection resolve the row by. `rows` are the
+ * statusBadgeRows ones (each status already carries its badge class).
+ */
+export function listingCardsOf(rows, columns) {
+  const cols = (columns || []).map((col) => col.metadata || col)
+  const { first, extra } = rowLinesSplit(cols)
+  const isAction = (c) => c.dataType === 'actionGroup' || c.dataType === 'action' || c.dataType === 'menu'
+  const firstCols = first.map((col) => col.metadata || col)
+  const visible = firstCols.slice(0, CARD_DATA_COLUMNS)
+    .concat(firstCols.slice(CARD_DATA_COLUMNS).filter((c) => isAction(c) || c.dataType === 'status'))
+  const image = visible.find((c) => c.stereotype === 'image')
+  const textual = visible.filter((c) => c !== image && !isAction(c))
+  const title = textual.find((c) => c.identifier && c.dataType !== 'status') || textual.find((c) => c.dataType !== 'status')
+  const badges = textual.filter((c) => c.dataType === 'status')
+  const pairs = textual.filter((c) => c !== title && c.dataType !== 'status')
+  const actionCols = visible.filter((c) => c.dataType === 'actionGroup')
+  const textOf = (c, v) => {
+    const shown = valueLabelOf(c, v)
+    return lineValueText(shown)
+  }
+  return (rows || []).filter((row) => row && !row._group).map((row) => {
+    const card = {
+      key: row._rowNumber,
+      rowId: row.id == null ? '' : String(row.id),
+      title: title ? textOf(title, row[title.id]) : '',
+      image: image && row[image.id] ? String(row[image.id]) : '',
+      badges: badges.map((c) => {
+        // the rows come through statusBadgeRows: a status (object or plain word) carries its badge
+        const status = row[c.id]
+        return status && typeof status === 'object' ? { key: c.id, text: lineValueText(status), cls: status.badgeClass || STATUS_BADGE.NONE } : null
+      }).filter((b) => b && b.text),
+      lines: extra.map((line, i) => ({
+        key: 'l' + (i + 2),
+        pairs: line.map((col) => col.metadata || col).map((c) => ({ key: c.id, label: c.label || c.id, text: textOf(c, row[c.id]) }))
+          .filter((p) => p.text !== ''),
+      })).filter((l) => l.pairs.length),
+      pairs: pairs.map((c) => ({ key: c.id, label: c.label || c.id, text: textOf(c, row[c.id]) })),
+      actions: actionCols.flatMap((c) => ((row[c.id] && row[c.id].actions) || [])
+        .map((a) => ({ key: c.id + ':' + a.methodNameInCrud, methodNameInCrud: a.methodNameInCrud, label: a.label || a.methodNameInCrud }))),
+    }
+    card.hasImage = !!card.image
+    card.hasBadges = card.badges.length > 0
+    card.hasActions = card.actions.length > 0
+    return card
+  })
+}
+
+/** The listing selection after a card's checkbox changed: the key added or removed (a «select
+ *  all» from the table does not exist in cards, so the selection is always a plain key list). */
+export function toggleSelectionKey(selection, key, checked) {
+  const keys = (selection && !selection.all && Array.isArray(selection.keys) ? selection.keys : [])
+    .filter((k) => String(k) !== String(key))
+  return { all: false, keys: checked ? keys.concat([key]) : keys, except: [] }
 }
 
 export const CLIP_CELL_SUFFIX = '__clipCell'

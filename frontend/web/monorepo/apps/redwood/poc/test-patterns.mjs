@@ -199,8 +199,9 @@ test('A4: a foldout inside a tab shows a FOLDED panel\'s summary in place of its
   assert.ok(!texts.includes('€ 120 due'))
   // fold the first panel: its summary stands in
   setPanelExpanded('fold:fold:0', false)
+  // (the summary is a HorizontalLayout of a text and a badge: ONE inline row atom, its pieces inside)
   const folded = (islandContentOf({ tree: node({ type: 'VerticalLayout' }, [tabs]), state: {}, data: {} }) || [])
-    .flatMap((b) => b.items || []).filter((a) => a.isText).map((a) => a.text)
+    .flatMap((b) => b.items || []).flatMap((a) => (a.isRow ? a.items : [a])).filter((a) => a.isText).map((a) => a.text)
   setPanelExpanded('fold:fold:0', true)
   assert.ok(!folded.includes('Charges'))
   assert.ok(folded.includes('€ 120 due'))

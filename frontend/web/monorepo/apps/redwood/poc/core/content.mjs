@@ -13,6 +13,7 @@ import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 import { chromeText, moneyNumberText } from '../i18n.mjs'
+import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
 /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
@@ -209,6 +210,26 @@ export function buttonRouteOf(template, state) {
   return route && !route.includes('${') ? route : null
 }
 
+/**
+ * A Text's classes and inline style from its wire `style` (filtered by styleObjectOf). Redwood's
+ * oj-typography-* classes set size and weight with !important, so an inline font-weight or
+ * font-size alone would never show: a weight becomes JET's weight class, and a declared size
+ * drops the typography class (the inline size then applies).
+ */
+export function styledTextOf(cls, wireStyle) {
+  const style = styleObjectOf(wireStyle)
+  let out = cls
+  if (style.fontSize) out = out.split(' ').filter((c) => !/^oj-typography-(heading|subheading|body)-/.test(c)).join(' ')
+  const weight = String(style.fontWeight || '').trim().toLowerCase()
+  const n = weight === 'bold' || weight === 'bolder' ? 700 : weight === 'normal' || weight === 'lighter' ? 400 : Number(weight)
+  if (n >= 700) out += ' oj-typography-bold'
+  else if (n >= 500) out += ' oj-typography-semi-bold'
+  return { cls: out.trim(), style }
+}
+
+/** What a HorizontalLayout may hold to be painted as ONE inline row (isRow). */
+export const INLINE_ROW_TYPES = new Set(['Text', 'Button', 'Badge', 'Anchor', 'Icon'])
+
 export const TEXT_CLASSES = {
   xl: 'oj-typography-heading-md',
   l: 'oj-typography-subheading-md',
@@ -369,6 +390,39 @@ export function islandContentOf(ctx, opts = {}) {
     for (const child of kidsOf(node)) collectButtons(child, out)
     return out
   }
+  // the inline row of a HorizontalLayout (see the visitor): null when it is not one
+  const inlineRowOf = (node) => {
+    const kids = kidsOf(node).filter(Boolean)
+    const typeOf = (k) => k && k.metadata && k.metadata.type
+    if (!kids.length || !kids.every((k) => INLINE_ROW_TYPES.has(typeOf(k)))) return null
+    if (kids.every((k) => typeOf(k) === 'Button')) return null
+    const scratch = { items: [] }
+    const before = blocks.length
+    for (const kid of kids) visit(kid, scratch)
+    if (blocks.length !== before) { blocks.splice(before); return null }
+    const items = []
+    for (const a of scratch.items) {
+      if (a.isButtons) a.buttons.forEach((b) => items.push({ ...b, isButton: true }))
+      else items.push(a)
+    }
+    if (!items.length) return null
+    return {
+      isRow: true,
+      style: styleObjectOf(node.style || (node.metadata && node.metadata.style)),
+      // the row's own flags (rowText…): the template's inner pieces are not the block atoms
+      items: items.map((a, i) => ({
+        ...a,
+        key: String(i),
+        style: a.style || {},
+        rowText: !!a.isText && !a.isHeading,
+        rowHeading: !!a.isHeading,
+        rowButton: !!a.isButton,
+        rowBadge: !!a.isBadge,
+        rowAnchor: !!a.isAnchor,
+        rowIcon: !!a.isIcon,
+      })),
+    }
+  }
   // Projects children as COLUMN-BLOCKS of the oj-flex grid (colClass oj-md-(NN→twelfths)): the
   // zones of @Zones and the two panels of a master-detail. If a column generates several blocks
   // they are MERGED into one (a flex cannot stack two items in the same row cell).
@@ -483,6 +537,16 @@ export function islandContentOf(ctx, opts = {}) {
         for (const block of blocks.slice(before)) block.fromColumns = true
         return
       }
+    }
+    // A ROW of inline pieces (HorizontalLayout of texts, buttons, badges, links, icons: a panel's
+    // title and its close button, a label and its badge, a toolbar that mixes them) → ONE isRow
+    // atom the template paints as a wrapping flex row, each piece with its own (filtered) style.
+    // The atoms of a block stack, so the row used to come out as a column. A row of buttons only
+    // keeps the button bar (isButtons); any other child (a grid, a form, a card…) keeps the
+    // stacked projection — the templates cannot nest a whole block inside an atom.
+    if (t === 'HorizontalLayout') {
+      const row = inlineRowOf(node)
+      if (row) { atom(row, container); return }
     }
     // CONSOLE / MASTER-DETAIL (MasterDetailLayout, SplitLayout): children = [master, detail].
     // Same projection as the zones: two column-blocks of the oj-flex grid (list on the
@@ -887,10 +951,11 @@ export function islandContentOf(ctx, opts = {}) {
             // a slot header with the foldout's underline)
             isH2: m.container === 'h2',
             text,
-            cls: 'oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''),
+            // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
+            ...styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style),
           }, container)
         } else {
-          atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+          atom({ isText: true, text, ...styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style) }, container)
         }
       }
       return

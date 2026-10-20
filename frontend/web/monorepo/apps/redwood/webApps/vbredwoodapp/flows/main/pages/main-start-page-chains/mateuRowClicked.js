@@ -23,9 +23,11 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event  ojRowAction ({detail: {context: {key, item…}}})
+     * @param {Object} params.event  ojRowAction ({detail: {context: {key, item…}}}), or the
+     *   ojAction of a listing CARD (gridLayout = cards), which brings its row as `rowKey`
+     * @param {string} [params.rowKey]  the card's row key (_rowNumber, from data-row-key)
      */
-    async run(context, { event }) {
+    async run(context, { event, rowKey }) {
       const { $application } = context;
 
       const listing = $application.variables.mateuListing;
@@ -35,7 +37,9 @@ define([
       // an inline EDITOR (in a work table only those cells are edited; the rest opens) or a
       // display column (class mateu-cell-noopen, precomputed in listingOf). See rowActionIsRows.
       const origin = detail.originalEvent && detail.originalEvent.target;
-      if (!bridge.rowActionIsRows(origin)) {
+      // a CARD is itself a control (oj-action-card): only a control inside it is not the row's
+      const card = rowKey != null && rowKey !== '' ? event && event.target : null;
+      if (!bridge.rowActionIsRows(origin, card)) {
         return;
       }
       const stamp = (detail.originalEvent && detail.originalEvent.timeStamp) || event.timeStamp || 0;
@@ -44,11 +48,12 @@ define([
       }
       lastHandledStamp = stamp;
 
-      const rowContext = detail.context || {};
+      // a CARD names its row by key; a table row brings its context
+      const rowContext = detail.context || (rowKey != null && rowKey !== '' ? { key: rowKey } : {});
       let row = rowContext.item && rowContext.item.data;
       if (!row && rowContext.key != null) {
         const rows = $application.variables.mateuListingRows || [];
-        row = rows.find((r) => r._rowNumber === rowContext.key);
+        row = rows.find((r) => String(r._rowNumber) === String(rowContext.key));
       }
       if (!row || row._group) {
         return; // a GROUP row (@GroupBy) is presentation only: it neither opens nor navigates

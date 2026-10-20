@@ -256,6 +256,69 @@
         }
       ]
     },
+    "foldoutGoToParent": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuFoldoutContent.header.parentActionId }}"
+          },
+          "chain": "dispatchHostBlockAction"
+        }
+      ]
+    },
+    "foldoutPrevious": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuFoldoutContent.header.previousActionId }}"
+          },
+          "chain": "dispatchHostBlockAction"
+        }
+      ]
+    },
+    "foldoutNext": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuFoldoutContent.header.nextActionId }}"
+          },
+          "chain": "dispatchHostBlockAction"
+        }
+      ]
+    },
+    "foldoutPanelAction": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $event.detail.actionId }}"
+          },
+          "chain": "dispatchHostBlockAction"
+        }
+      ]
+    },
+    "mateuCardAction": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}",
+            "rowKey": "{{ $event.target.dataset.rowKey }}"
+          },
+          "chain": "mateuRowClicked"
+        }
+      ]
+    },
+    "mateuCardSelected": {
+      "chains": [
+        {
+          "parameters": {
+            "rowKey": "{{ $event.target.dataset.rowKey }}",
+            "value": "{{ $event.detail.value }}",
+            "updatedFrom": "{{ $event.detail.updatedFrom }}"
+          },
+          "chain": "mateuCardSelected"
+        }
+      ]
+    },
     "mateuDrawerClosed": {
       "chains": [
         {

@@ -202,6 +202,32 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   this"): Mateu moved the crud's `view` action to the record's route and ran it on YOUR view model,
   which knows no such action. The crud's `view`, `edit` and `new` now navigate there: your view
   model is loaded at the sub-route and the url is pushed, as for the built-in screens. (Java)
+- **Redwood: `gridLayout = cards` listings are a grid of cards.** The Redwood renderer always drew
+  a table (which also clipped columns on a phone); a listing that declares cards — or
+  `listingType(card)` — now gets a responsive grid of `oj-action-card`s (one column on a phone),
+  like the web renderer's: the image column, the title (identifier column, else the first), status
+  badges beside it, the `@Line(2+)` columns under it, the other columns as label/value pairs and
+  the row actions as buttons. A card's click opens the row like a table row (`view`,
+  `@RowRoute`, `@Details`), with a checkbox per card when row selection is enabled.
+
+- **Redwood: the Foldout honours its navigation, orientation, Edit, badges and panel icons.** The
+  server sent them and Redwood drew none. `navigationHeader()` now fills oj-sp-foldout-layout's own
+  header (the go-to-parent link labelled `parentLabel`, the previous/next arrows), each control
+  running its action id; `overviewEditActionId()` is the overview panel's pencil; the foldout's
+  `List<Badge>` badges head the overview; `@Panel(icon)` shows in the panel's corner; and
+  `orientation(horizontal)` puts the overview across the top with the panels below it (vertical,
+  the default, keeps it as the first column). `FoldoutNavigation.title` is still not drawn: the
+  layout's header has no place for it.
+
+- **Redwood: `Text.style` shows, and a `HorizontalLayout` in the content is a row.** The Text
+  atom only used its size class, and a HorizontalLayout's children were stacked like a vertical
+  one (a panel's title and its close button, one under the other). A Text now carries its `style`,
+  filtered like an Element's HTML style (presentation properties only, no `url()`/`expression()`;
+  the filter now also keeps `flex`/`align-*`/`justify-*`), with a declared weight or size winning
+  over Redwood's `!important` typography classes; a HorizontalLayout of texts, buttons, badges,
+  links and icons is drawn as one row that wraps on a phone, with its own style. A layout of
+  buttons only keeps the button bar, and one holding anything else (a grid, a form…) is still
+  stacked.
 
 ### Documentation
 

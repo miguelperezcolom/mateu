@@ -416,10 +416,12 @@ define([
         foldoutNow = foldoutProjection;
         const foldoutBefore = $application.variables.mateuFoldout;
         const contentOf = (proj) => proj
-          ? { overview: proj.overview, panels: proj.panels }
-          : { overview: { blocks: [] }, panels: [] };
+          ? { overview: proj.overview, panels: proj.panels, header: proj.header }
+          : { overview: { blocks: [] }, panels: [], header: {} };
+        // the orientation is structure too: the overview changes place (a column / the top band)
         const mismaEstructura = foldoutBefore && foldoutProjection
-          && (foldoutBefore.panels || []).length === (foldoutProjection.panels || []).length;
+          && (foldoutBefore.panels || []).length === (foldoutProjection.panels || []).length
+          && foldoutBefore.orientation === foldoutProjection.orientation;
         if (mismaEstructura) {
           // IN-PLACE update: the panels are stamped ONCE (their for-each loses its
           // anchors if re-stamped — the foldout's DOM surgery); the content lives in

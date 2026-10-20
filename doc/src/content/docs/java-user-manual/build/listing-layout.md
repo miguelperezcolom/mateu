@@ -30,6 +30,12 @@ a table until it says otherwise; if you want cards, say `cards`.
 A **narrow window keeps the table** and scrolls it sideways inside the listing box (the page itself
 never scrolls sideways). On a phone, prefer `list` or `cards` explicitly.
 
+**What a card shows** (web and Redwood renderers alike): the first `image` column as its picture,
+the identifier column (or the first one) as its title, `Status` columns as badges, the `@Line(2)`
+and later columns as secondary lines, the remaining columns (up to six) as label/value pairs, and
+the row actions as buttons. Clicking a card does what clicking a table row does. In the Redwood
+renderer `list`, `masterDetail` and `tree` still render as a table; `cards` renders as cards.
+
 ---
 
 ## Column weights

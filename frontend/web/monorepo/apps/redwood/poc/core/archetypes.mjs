@@ -2,6 +2,7 @@ import { collectTexts } from './tree.mjs'
 import { BADGE_CLASSES, interpolate, islandContentOf } from './content.mjs'
 import { PANE_TYPES, findOutside, pageHeaderNodeOf } from './pageHeader.mjs'
 import { STATUS_BADGE, findByType, findFirst } from './listing.mjs'
+import { iconClassOf } from './display.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
@@ -47,8 +48,20 @@ export function foldoutOf(ctx) {
       }
     })
     .filter((b) => b.label && b.label.trim() && !b.label.includes('${'))
+    // …and the foldout's own badges (FoldoutLayout.badges: a List<Badge> field of the Foldout,
+    // sent as their texts) — neutral, the wire carries no colour for them
+    .concat((md.badges || []).map((b) => (b && typeof b === 'object' ? b.text || b.label : b))
+      .filter((t) => t != null && String(t).trim())
+      .map((t) => ({ isBadge: true, label: String(t), badgeClass: STATUS_BADGE.NONE, blockClass: 'oj-flex-item oj-sm-12' })))
   return {
     headerTitle: md.headerTitle || '',
+    // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
+    // the panels; 'horizontal' = the overview runs across the top, the panels below it
+    orientation: md.orientation === 'horizontal' ? 'horizontal' : 'vertical',
+    overviewOnTop: md.orientation === 'horizontal',
+    // the navigation header, the overview's Edit and the badges: what may change between two
+    // records of the same foldout (re-bound in place, like the panels' content)
+    header: foldoutHeaderOf(md),
     badges: pageBadges,
     overview: {
       texts: collectTexts(bySlot['overview']),
@@ -69,12 +82,50 @@ export function foldoutOf(ctx) {
       // size — without it, the foldout's responsive engine distributes as it likes and the
       // cockpit cards overlap
       width: panel.width || '',
+      // FoldoutPanel.icon ("user", "vaadin:user", an oj-ux class) as a Redwood icon class
+      iconClass: foldoutIconClassOf(panel.icon),
       texts: collectTexts(bySlot['panel-' + i]),
       blocks: blocksOf(bySlot['panel-' + i]),
       // FoldoutPanel.summary (child slotted summary-N): oj-sp-foldout-panel's own `summary` slot,
       // the compact line under the panel title
       ...foldoutSummaryOf(bySlot['summary-' + i]),
     })),
+  }
+}
+
+/** A foldout panel's icon → a Redwood icon class: a bare name is a Vaadin one ("user" →
+ *  vaadin:user), as the web renderer reads it; '' without one. */
+export function foldoutIconClassOf(icon) {
+  const name = icon == null ? '' : String(icon).trim()
+  if (!name) return ''
+  return iconClassOf(name.indexOf(':') >= 0 || name.indexOf('oj-ux-') === 0 ? name : 'vaadin:' + name)
+}
+
+/**
+ * The foldout's HEADER, in oj-sp-foldout-layout's own terms (its oj-sp-header-navigation):
+ * FoldoutLayout.navigation → the go-to-parent link (labelled with parentLabel) and the
+ * previous / next buttons, each carrying the action id it runs; overviewEditActionId → the overview
+ * panel's header action (the pencil, oj-sp-foldout-panel secondaryActions). Ids absent → no control.
+ */
+export function foldoutHeaderOf(md) {
+  const nav = (md && md.navigation) || {}
+  const parentActionId = nav.parentActionId || ''
+  const previousActionId = nav.previousActionId || ''
+  const nextActionId = nav.nextActionId || ''
+  const editActionId = (md && md.overviewEditActionId) || ''
+  return {
+    hasNavigation: !!(parentActionId || previousActionId || nextActionId),
+    title: nav.title || '',
+    goToParent: !!parentActionId,
+    parentLabel: nav.parentLabel || chromeText('goBack'),
+    parentActionId,
+    // bidirectional: the layout draws both arrows (one disabled when its step is null)
+    bidirectional: !!previousActionId,
+    previousStep: previousActionId ? { id: previousActionId, label: chromeText('previousItem') } : null,
+    nextStep: nextActionId ? { id: nextActionId, label: chromeText('nextItem') } : null,
+    previousActionId,
+    nextActionId,
+    overviewActions: editActionId ? [{ id: editActionId, label: chromeText('edit'), icon: 'oj-ux-ico-edit', display: 'on' }] : [],
   }
 }
 

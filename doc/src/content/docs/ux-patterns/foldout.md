@@ -120,7 +120,7 @@ for them. The canonical page-header elements shared by every template are docume
 
 | Redwood prop / slot | Mateu | |
 |---|---|---|
-| `orientation: horizontal \| vertical` | `orientation()` → `FoldoutOrientation.horizontal \| vertical` | ✅ |
+| `orientation: horizontal \| vertical` | `orientation()` → `FoldoutOrientation.vertical` (default: the overview is the first column, left of the panels) \| `horizontal` (the overview is the band across the top — Redwood's `overview` slot — and the panels run below it) | ✅ |
 | `nextStep` / `previousStep` + `spPrevious` / `spNext` | `navigationHeader()` → `FoldoutNavigation.previousActionId` / `nextActionId` | ✅ |
 | `displayOptions.goToParent` + `spGoToParent` | `FoldoutNavigation.parentLabel` / `parentActionId` | ✅ |
 | **Slot** `overview` | the first component field (always visible) | ✅ |
@@ -129,7 +129,7 @@ for them. The canonical page-header elements shared by every template are docume
 | **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
 | `selectedPanel` (controlled selection) | `@Panel(open = …)` / `FoldoutPanel.open` set the initial state — the component has no folded state, so an `open = false` panel starts as a strip (title + summary) and selecting it (click, keyboard focus, its page dot) unfolds it; the selection is not a controlled prop afterwards | 🟡 |
 | `animate` | the renderer animates folding; not configurable | 🟡 |
-| `displayOptions.bidirectionalNavigation` | — | — |
+| `displayOptions.bidirectionalNavigation` | on when `FoldoutNavigation.previousActionId` is set (both arrows drawn) | ✅ |
 | `displayOptions.background: default \| transparent` | — (`style`/`cssClasses` escape hatch) | — |
 | `displayOptions.inFlowBack` + `spInFlowBack` | — | — |
 
@@ -138,12 +138,12 @@ for them. The canonical page-header elements shared by every template are docume
 | Redwood prop / slot | Mateu | |
 |---|---|---|
 | `panelTitle` | `@Panel(title)` / `FoldoutPanel.title` (defaults to the field label) | ✅ |
-| — | `subtitle`, `icon`, `width` are Mateu additions with no Redwood equivalent | ✅ |
+| — | `subtitle`, `icon`, `width` are Mateu additions with no Redwood equivalent (the Redwood renderer draws `icon` in the panel's top-end corner, beside its title) | ✅ |
 | **Slot** default | `@Panel` field value / `FoldoutPanel.content` | ✅ |
 | **Slot** `summary` (what shows on the **collapsed strip**) | `panelSummary(panelFieldName)` / `FoldoutPanel.summary` | ✅ |
 | **Slot** `recommendation` | — | — |
 | **Slot** `noData` | — compose an `EmptyState` as the panel content | 🟡 |
-| `secondaryActions` + `spAction {actionId}` | — panel-level actions must live inside the panel content | — |
+| `secondaryActions` + `spAction {actionId}` | the overview panel's Edit pencil: `overviewEditActionId()`; other panel-level actions live inside the panel content | 🟡 |
 
 ## When to use it
 
