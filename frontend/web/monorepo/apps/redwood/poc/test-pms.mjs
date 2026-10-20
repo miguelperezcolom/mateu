@@ -1354,7 +1354,7 @@ test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas c
   assert.equal(rowActionIsRows(null), true, 'sin origen (Enter en la fila): es de la fila')
   // a WORK table (inline editing) no longer cuts the whole row click: only its editors
   const chain = webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js')
-  assert.match(chain, /bridge\.rowActionIsRows\(origin\)/)
+  assert.match(chain, /bridge\.rowActionIsRows\(origin, card\)/)
   assert.doesNotMatch(chain, /listing\.editable\)/)
 })
 

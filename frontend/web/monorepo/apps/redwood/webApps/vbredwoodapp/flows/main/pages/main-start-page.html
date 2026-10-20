@@ -18392,6 +18392,90 @@
           <oj-bind-text value="[[ $application.translations.appBundle.columns ]]"></oj-bind-text>
         </oj-button>
       </div>
+      <!-- CARDS (gridLayout = cards): a responsive grid of oj-action-cards in place of the table —
+           the web renderer's card grid (image, title, status badges, @Line secondary lines,
+           label/value pairs, row actions), each card precomputed in listingOf (listingCardsOf).
+           The card's click is the row's (mateuRowClicked by data-row-key: view / @RowRoute /
+           @Details, like a table row); a row action button or the selection checkbox keeps its own
+           click (rowActionIsRows). The table is not even stamped in this layout. -->
+      <oj-bind-if test="[[ $application.variables.mateuListing.showCards ]]">
+        <oj-bind-if test="[[ !$application.variables.mateuListing.cards.length ]]">
+          <oj-sp-empty-state
+            primary-text="[[ $application.variables.mateuListing.emptyStateMessage ]]"
+            secondary-text=""></oj-sp-empty-state>
+        </oj-bind-if>
+        <div id="mateuCardGrid" class="mateu-card-grid" role="list">
+          <oj-bind-for-each data="[[ $application.variables.mateuListing.cards ]]">
+            <template data-oj-as="card">
+              <div class="mateu-card-grid-item" role="listitem">
+                <oj-action-card class="mateu-listing-card" :data-row-key="[[ card.data.key ]]"
+                  on-oj-action="[[ $listeners.mateuCardAction ]]">
+                  <oj-bind-if test="[[ card.data.hasImage ]]">
+                    <img class="mateu-listing-card-image" :src="[[ card.data.image ]]" alt="" loading="lazy">
+                  </oj-bind-if>
+                  <div class="mateu-listing-card-body">
+                    <div class="mateu-listing-card-head">
+                      <oj-bind-if test="[[ $application.variables.mateuListing.rowsSelectionEnabled ]]">
+                        <oj-checkboxset class="mateu-listing-card-select" label-edge="none"
+                          label-hint="[[ card.data.title ]]" value="[[ [] ]]"
+                          :data-row-key="[[ card.data.key ]]"
+                          on-value-changed="[[ $listeners.mateuCardSelected ]]">
+                          <oj-option value="selected"></oj-option>
+                        </oj-checkboxset>
+                      </oj-bind-if>
+                      <h3 class="oj-typography-subheading-xs mateu-listing-card-title"><oj-bind-text value="[[ card.data.title ]]"></oj-bind-text></h3>
+                      <oj-bind-if test="[[ card.data.hasBadges ]]">
+                        <span class="mateu-listing-card-badges">
+                          <oj-bind-for-each data="[[ card.data.badges ]]">
+                            <template>
+                              <span :class="[[ $current.data.cls ]]" :data-column="[[ $current.data.key ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                            </template>
+                          </oj-bind-for-each>
+                        </span>
+                      </oj-bind-if>
+                    </div>
+                    <oj-bind-for-each data="[[ card.data.lines ]]">
+                      <template data-oj-as="line">
+                        <div class="mateu-listing-card-line oj-typography-body-sm oj-text-color-secondary">
+                          <oj-bind-for-each data="[[ line.data.pairs ]]">
+                            <template data-oj-as="pair">
+                              <span class="mateu-listing-card-line-pair" :data-column="[[ pair.data.key ]]"><oj-bind-text value="[[ pair.data.label ]]"></oj-bind-text>: <oj-bind-text value="[[ pair.data.text ]]"></oj-bind-text></span>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                      </template>
+                    </oj-bind-for-each>
+                    <dl class="mateu-listing-card-pairs oj-typography-body-sm">
+                      <oj-bind-for-each data="[[ card.data.pairs ]]">
+                        <template data-oj-as="pair">
+                          <div class="mateu-listing-card-pair" :data-column="[[ pair.data.key ]]">
+                            <dt class="oj-text-color-secondary"><oj-bind-text value="[[ pair.data.label ]]"></oj-bind-text></dt>
+                            <dd><oj-bind-text value="[[ pair.data.text ]]"></oj-bind-text></dd>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                    </dl>
+                    <oj-bind-if test="[[ card.data.hasActions ]]">
+                      <div class="mateu-listing-card-actions">
+                        <oj-bind-for-each data="[[ card.data.actions ]]">
+                          <template>
+                            <oj-button chroming="outlined" class="oj-button-sm"
+                              :data-method="[[ $current.data.methodNameInCrud ]]"
+                              :data-row-id="[[ card.data.rowId ]]"
+                              :data-row-key="[[ card.data.key ]]"
+                              on-oj-action="[[ $listeners.rowActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                  </div>
+                </oj-action-card>
+              </div>
+            </template>
+          </oj-bind-for-each>
+        </div>
+      </oj-bind-if>
+      <oj-bind-if test="[[ !$application.variables.mateuListing.cardLayout ]]">
       <oj-table id="mateuTable" :class="[[ $application.variables.mateuListing.tableClass || 'oj-sm-12' ]]"
         display="[[ $application.variables.mateuListing.display ]]"
         data="[[ $functions.serverSorted($variables.listingADP) ]]"
@@ -18494,6 +18578,7 @@
           </oj-bind-for-each>
         </template>
       </oj-table>
+      </oj-bind-if>
       <!-- PAGINATION (the server's Page: pageNumber/pageSize/totalElements, projected in
            listingOf().paging): table footer with the range and first/previous/next/last.
            Only if there is more than one page. Paging keeps text, filters and order. -->

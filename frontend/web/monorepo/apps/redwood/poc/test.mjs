@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { drawerOverlayOf } from './reduceContexts.mjs'
+import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
@@ -6015,4 +6015,73 @@ test('a Drawer placed in the page (GanttPage bottom panel) is a collapsible pane
   // a Drawer that IS the overlay (the root of its context) is painted by the drawer panel, as before
   const reg = reduceContexts(empty(), { fragments: [{ action: 'Add', targetComponentId: '', component: node({ type: 'Drawer', headerTitle: 'Panel', content: [node({ type: 'Text', text: 'body' })] }) }] })
   assert.ok(!drawerOverlayOf(reg).content.flatMap((b) => b.items).some((a) => a.isCollapsible))
+})
+test('Hero Search (con-micronaut demo, gridLayout = cards): the listing is a grid of cards — title, badge, @Line, pairs', () => {
+  let reg = reduceContexts(empty(), fx('tpl-hero-search'))
+  const before = listingOf(reg.contexts[HOST_ID])
+  assert.equal(before.cardLayout, true)
+  assert.equal(before.showCards, true)
+  assert.deepEqual(before.cards, [], 'no search yet: no cards (the empty state)')
+  reg = reduceContexts(reg, fx('tpl-hero-search-results'))
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.equal(listing.cards.length, 8)
+  const [robotica, , teatro] = listing.cards
+  assert.equal(robotica.title, 'Robótica')
+  assert.deepEqual(robotica.badges, [{ key: 'disponibilidad', text: 'Últimas plazas', cls: 'oj-badge oj-badge-warning oj-badge-subtle' }])
+  // @Line(2): under the title, labelled
+  assert.deepEqual(robotica.lines.map((l) => l.pairs.map((p) => p.label + ': ' + p.text)), [['Profesor/a: Marta Ríos', 'Horario: Lunes y Miércoles 16:30-18:00']])
+  // the other line-1 columns as pairs — an enum by its label, not the constant
+  assert.deepEqual(robotica.pairs.map((p) => [p.label, p.text]), [['Etapa', 'ESO'], ['Plazas libres', '1'], ['Precio/mes', '35 €']])
+  assert.equal(teatro.badges[0].cls, 'oj-badge oj-badge-danger oj-badge-subtle')
+  // the card names its row by key: the click resolves the row as the table does
+  assert.equal(listing.rows.find((r) => String(r._rowNumber) === String(teatro.key)).nombre, 'Teatro en inglés')
+  assert.equal(robotica.hasImage, false)
+  assert.equal(robotica.hasActions, false)
+})
+test('listing cards: which layout, the image, row actions, selection keys and the card\'s own click', () => {
+  assert.equal(isCardLayout({ gridLayout: 'cards' }), true)
+  assert.equal(isCardLayout({ gridLayout: 'auto', crudlType: 'card' }), true)
+  assert.equal(isCardLayout({ gridLayout: 'auto', crudlType: 'table' }), false)
+  assert.equal(isCardLayout({ gridLayout: 'table', crudlType: 'card' }), false)
+  assert.equal(isCardLayout({}), false)
+  const cols = [
+    { id: 'photo', label: 'Photo', stereotype: 'image' },
+    { id: 'code', label: 'Code' },
+    { id: 'name', label: 'Name', identifier: true },
+    { id: 'state', label: 'State', dataType: 'status' },
+    { id: 'ops', label: '', dataType: 'actionGroup' },
+  ]
+  const [card] = listingCardsOf([{ _rowNumber: 0, id: 'p1', photo: '/p.png', code: 'A1', name: 'Ada', state: { type: 'SUCCESS', message: 'Ok', badgeClass: 'b' },
+    ops: { actions: [{ methodNameInCrud: 'archive', label: 'Archive' }] } }], cols)
+  assert.equal(card.title, 'Ada', 'the identifier column is the title')
+  assert.equal(card.image, '/p.png')
+  assert.deepEqual(card.pairs.map((p) => p.key), ['code'])
+  assert.deepEqual(card.actions, [{ key: 'ops:archive', methodNameInCrud: 'archive', label: 'Archive' }])
+  assert.equal(card.rowId, 'p1')
+  // a group row (@GroupBy) is not a card
+  assert.equal(listingCardsOf([{ _group: true }], cols).length, 0)
+  // selection: the same keys the table stores
+  let sel = toggleSelectionKey({ all: false, keys: [], except: [] }, 2, true)
+  sel = toggleSelectionKey(sel, 5, true)
+  assert.deepEqual(sel.keys, [2, 5])
+  assert.deepEqual(toggleSelectionKey(sel, '2', false).keys, [5])
+  // the card IS an oj-action-card (role=button): a click on its text is the row's; a button inside is not
+  const el = (matches, parent) => ({ parent, closest(sel) { let n = this; while (n) { if (n.matches) return n; n = n.parent } return null }, contains(o) { while (o) { if (o === this) return true; o = o.parent } return false }, matches })
+  const cardEl = el(true, el(false))
+  const text = el(false, cardEl)
+  const button = el(true, cardEl)
+  assert.equal(rowActionIsRows(text), false, 'without the card, the card itself reads as a control')
+  assert.equal(rowActionIsRows(text, cardEl), true)
+  assert.equal(rowActionIsRows(el(false, button), cardEl), false)
+})
+test('listing cards: the page paints them in place of the table, and the card click / checkbox reach their chains', () => {
+  const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  assert.match(html, /<oj-bind-if test="\[\[ \$application\.variables\.mateuListing\.showCards \]\]">[\s\S]*?<oj-action-card class="mateu-listing-card" :data-row-key="\[\[ card\.data\.key \]\]"\s+on-oj-action="\[\[ \$listeners\.mateuCardAction \]\]">/)
+  assert.match(html, /<oj-bind-if test="\[\[ !\$application\.variables\.mateuListing\.cardLayout \]\]">\s*<oj-table id="mateuTable"/)
+  const page = JSON.parse(readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.json'), 'utf8'))
+  assert.equal(page.eventListeners.mateuCardAction.chains[0].chain, 'mateuRowClicked')
+  assert.equal(page.eventListeners.mateuCardAction.chains[0].parameters.rowKey, '{{ $event.target.dataset.rowKey }}')
+  assert.equal(page.eventListeners.mateuCardSelected.chains[0].chain, 'mateuCardSelected')
+  const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'mateuCardSelected.js'), 'utf8')
+  assert.match(chain, /bridge\.toggleSelectionKey\(/)
 })

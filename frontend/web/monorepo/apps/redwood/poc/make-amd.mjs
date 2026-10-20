@@ -269,6 +269,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
     withListingSelection,

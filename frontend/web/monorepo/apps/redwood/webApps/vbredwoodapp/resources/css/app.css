@@ -959,6 +959,79 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   margin-inline-end: 1.5rem;
 }
 
+/* Listing as CARDS (gridLayout = cards): a responsive grid — as many 16rem columns as fit, one
+   column on a phone (min() keeps a 390px screen from overflowing). Each card fills its cell,
+   the same height as its row; the title wraps instead of clipping, and the badges sit beside it. */
+.mateu-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  gap: 1rem;
+  padding: 0.25rem 0 0.5rem;
+}
+.mateu-card-grid-item {
+  display: flex;
+  min-width: 0;
+}
+oj-action-card.mateu-listing-card {
+  display: block;
+  width: 100%;
+}
+.mateu-listing-card-image {
+  display: block;
+  width: 100%;
+  max-height: 10rem;
+  object-fit: cover;
+}
+.mateu-listing-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: start;
+}
+.mateu-listing-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mateu-listing-card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.mateu-listing-card-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.mateu-listing-card-line-pair {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.mateu-listing-card-pairs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+}
+.mateu-listing-card-pair {
+  display: contents;
+}
+.mateu-listing-card-pair dt,
+.mateu-listing-card-pair dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.mateu-listing-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+}
+
 /* Listing main column (@PrimaryColumn): round image in front (the guest's flag)
    + title and caption stacked. */
 .mateu-primary-cell {

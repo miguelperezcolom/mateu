@@ -109,6 +109,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   like the wizard's and the CRUD's; `BuiltInTexts` also translates a text built lazily, with no
   request at hand (a `Callable<Component>` field), through the app's translator. (Java)
 
+- **Redwood: `gridLayout = cards` listings are a grid of cards.** The Redwood renderer always drew
+  a table (which also clipped columns on a phone); a listing that declares cards — or
+  `listingType(card)` — now gets a responsive grid of `oj-action-card`s (one column on a phone),
+  like the web renderer's: the image column, the title (identifier column, else the first), status
+  badges beside it, the `@Line(2+)` columns under it, the other columns as label/value pairs and
+  the row actions as buttons. A card's click opens the row like a table row (`view`,
+  `@RowRoute`, `@Details`), with a checkbox per card when row selection is enabled.
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches
