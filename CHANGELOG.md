@@ -122,6 +122,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   counter typed as a string with no default, so the first notice had no id and every later one was
   `"NaN"`: closing removed nothing and an error stayed on screen for good. The counter is now a
   number and each notice gets its own text key, the one `spClose` hands back.
+### Fixed
+- **Redwood: a header badge takes its colour from the state.** A `Status` field's badge travels as
+  `text: ${state.x.message}`, `color: ${state.x.type}`; the label was resolved but the colour was
+  read as the literal template, so the chip was always grey. The colour is now resolved like the text.
 
 ## [3.0-beta.7] — 2026-10-19
 

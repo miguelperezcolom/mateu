@@ -539,6 +539,16 @@ test('header extras (Java page): @BadgeInHeader travels as templates — ${state
   assert.deepEqual(pageHeaderExtrasOf(host(tree, { vip: false })).badges, [])
 })
 
+test('header extras (Java page): a Status field\'s badge takes its COLOUR from the state too', () => {
+  // FormViewBadgesBuilder: text ${state.x.message}, color ${state.x.type} (a StatusType constant)
+  const tree = page({ badges: [{ type: 'Badge', text: '${state.situacion.message}', color: '${state.situacion.type}' }] })
+  const of = (type) => pageHeaderExtrasOf(host(tree, { situacion: { type, message: 'Activo' } })).badges
+  assert.deepEqual(of('SUCCESS'), [{ label: 'Activo', status: 'success' }])
+  assert.deepEqual(['DANGER', 'WARNING', 'INFO', 'NONE'].map((t) => of(t)[0].status), ['danger', 'warning', 'info', 'neutral'])
+  // an unresolved colour is neutral, never the literal template
+  assert.deepEqual(pageHeaderExtrasOf(host(tree, { situacion: { message: 'Activo' } })).badges, [{ label: 'Activo', status: 'neutral' }])
+})
+
 test('header extras: oj-sp\'s timestamp only ever gets a DATE (a non-date breaks its binding)', () => {
   assert.deepEqual(headerTimestampOf('2026-10-12T09:00:00Z'), { iso: '2026-10-12T09:00:00Z', text: '' })
   assert.deepEqual(headerTimestampOf('Last updated 2026-10-12T09:00'), { iso: '2026-10-12T09:00', text: '' })
