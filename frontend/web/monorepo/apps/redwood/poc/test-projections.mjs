@@ -19,7 +19,7 @@ import {
   smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters, suggestionFiltersProviderOf,
   smartFilterDropdownRowsOf, suggestionsProviderOf, smartFiltersOf, setMetadataProviderFactory, IDS_PARAM,
   pageSwitcherOf, switcherPickOf, pageKpisOf, welcomeOf,
-  planningActionOf, formatAggregate, aggregateFootersOf, groupedRows, rowToneOf, labelCellRows, LABEL_CELL_SUFFIX,
+  planningActionOf, ganttTaskIdAt, formatAggregate, aggregateFootersOf, groupedRows, rowToneOf, labelCellRows, LABEL_CELL_SUFFIX,
 } from './reduceContexts.mjs'
 import { chromeText, setChromeLanguage, moneyText } from './i18n.mjs'
 import * as prefs from './prefs.mjs'
@@ -856,6 +856,13 @@ test('tape chart: a drop is the new nights (end exclusive → last night), the r
   const instant = planningActionOf(atom, 'move', { taskId: 'B1', start: '2026-10-05T23:59:00', end: '2026-10-08T00:00:00' })
   assert.match(instant.parameters._start, /^2026-10-0[56]$/)
   assert.equal(planningActionOf(atom, 'open', { taskId: 'B1' }), null, 'no open action declared: nothing')
+  // the bar under the pointer (oj-gantt getContextByNode): row and task index → the task's id
+  const board = { rows: [{ tasks: [{ id: 'A' }, { id: 'B' }] }, { tasks: [{ id: 'C' }] }] }
+  assert.equal(ganttTaskIdAt(board, { subId: 'oj-gantt-taskbar', rowIndex: 0, index: 1 }), 'B')
+  assert.equal(ganttTaskIdAt(board, { subId: 'oj-gantt-taskbar', rowIndex: 1, index: 0 }), 'C')
+  assert.equal(ganttTaskIdAt(board, { subId: 'oj-gantt-row-label', rowIndex: 1, index: 0 }), null)
+  assert.equal(ganttTaskIdAt(board, null), null)
+  assert.equal(ganttTaskIdAt(board, { subId: 'oj-gantt-taskbar', rowIndex: 5, index: 0 }), null)
   assert.equal(planningActionOf(null, 'move', {}), null)
 })
 

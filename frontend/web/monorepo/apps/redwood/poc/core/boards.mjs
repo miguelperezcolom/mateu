@@ -114,8 +114,19 @@ export function ganttAtomOf(m, id) {
     selectActionId: m.onTaskSelectionActionId || '',
   }, id || 'gantt')
   const progress = {}
-  for (const t of tasks) progress[t.id] = Math.max(0, Math.min(100, Number(t.progress) || 0)) / 100
-  for (const row of atom.rows) for (const task of row.tasks) task.progress = { value: progress[task.id] || 0 }
+  const colors = {}
+  for (const t of tasks) {
+    progress[t.id] = Math.max(0, Math.min(100, Number(t.progress) || 0)) / 100
+    colors[t.id] = t.color
+  }
+  // the done part in a DARKER shade of the task's own colour: JET's default fill is one dark grey for
+  // every bar, so a green project and a red exam showed the same progress
+  for (const row of atom.rows) {
+    for (const task of row.tasks) {
+      const done = shadeOf(colors[task.id], 0.6)
+      task.progress = { value: progress[task.id] || 0, ...(done ? { svgStyle: { fill: done } } : {}) }
+    }
+  }
   const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
   return {
     ...atom,
@@ -125,6 +136,26 @@ export function ganttAtomOf(m, id) {
     majorScale: days > 60 ? 'months' : 'weeks',
     minorScale: days > 60 ? 'weeks' : 'days',
   }
+}
+
+/** The id of the task under the pointer: oj-gantt's getContextByNode gives a task bar's row and
+ *  index in it ({subId: 'oj-gantt-taskbar', rowIndex, index}); anything else (the row axis, the
+ *  background) is no task. */
+export function ganttTaskIdAt(atom, ctx) {
+  if (!atom || !ctx || ctx.rowIndex == null || ctx.index == null) return null
+  if (ctx.subId && !/^oj-gantt-task/.test(ctx.subId)) return null
+  const row = (atom.rows || [])[ctx.rowIndex]
+  const task = row && row.tasks ? row.tasks[ctx.index] : null
+  return task && task.id != null ? task.id : null
+}
+
+/** A #rgb / #rrggbb colour with each channel scaled by `factor` (< 1 darker), or null if it is not one. */
+export function shadeOf(color, factor) {
+  const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(color || '').trim())
+  if (!m) return null
+  const hex = m[1].length === 3 ? m[1].split('').map((c) => c + c).join('') : m[1]
+  const channel = (i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * factor).toString(16).padStart(2, '0')
+  return '#' + channel(0) + channel(2) + channel(4)
 }
 
 /**

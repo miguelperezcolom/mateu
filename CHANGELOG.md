@@ -174,6 +174,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Guided Process Drawer) is painted from its embedded surface; the answer to Next re-rendered the
   overlay's frame instead and the drawer stayed on step 1. The re-render now goes to the surface and
   the drawer keeps its header — apps no longer need to return a new Drawer on every step.
+### Fixed
+- **Redwood: clicking a Gantt bar selects its task.** `Gantt.onTaskSelectionActionId` (GanttPage's
+  `selectGanttTask`, DataManagement) and a PlanningBoard's `selectActionId` never fired: the chain
+  dropped the selection changes JET reports as `internal` — which are the user's — and with the tasks
+  inline in each row the selected key comes back null anyway. A click resolves the bar under the
+  pointer (as the double click already did), once per pick. The done part of a coloured task is
+  drawn in a darker shade of its colour instead of JET's one grey.
 
 ## [3.0-beta.7] — 2026-10-19
 

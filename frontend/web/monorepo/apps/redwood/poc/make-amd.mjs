@@ -150,6 +150,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     foldedPanelIndexes,
     reduceContexts,
     planningActionOf,
+    ganttTaskIdAt,
     applyDomEffects,
     installRules,
     setPanelExpanded,

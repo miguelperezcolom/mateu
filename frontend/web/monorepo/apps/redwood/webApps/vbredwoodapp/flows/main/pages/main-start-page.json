@@ -778,6 +778,18 @@
         }
       ]
     },
+    "planningClick": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "click",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
     "planningDblClick": {
       "chains": [
         {
