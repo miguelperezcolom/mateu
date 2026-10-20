@@ -12,7 +12,7 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Singular;
 
-@Builder
+@Builder(toBuilder = true)
 public record PageView(
     String id,
     String pageTitle,
