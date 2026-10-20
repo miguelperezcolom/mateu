@@ -225,6 +225,9 @@ crud's, the edit and create forms keep their forms, and returning `None` keeps t
 that record:
 
 ```python
+from mateu_ui.uidl.components import Text
+
+
 class StudentOverview(ItemOverview):
     key_info: Text
     history: Annotated[Text, Panel("History")]
