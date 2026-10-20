@@ -534,7 +534,11 @@ public class ActionInstanceCreator {
         var resolved = routedClassResolver.resolve(prefix, command).orElse(null);
         if (resolved != null
             && resolved.resolvedClass() != null
-            && resolved.resolvedClass().getName().equals(command.serverSideType())) {
+            && resolved.resolvedClass().getName().equals(command.serverSideType())
+            // inside its own mount the app is at "" — a /library prefix of the /library app is
+            // its @Menu library entry, not the app once more (it rendered itself, never the page)
+            && !MountPrefixedRoutes.isMenuRouteNamedLikeTheMount(
+                prefix, command.baseUrl(), resolved.resolvedClass())) {
           var own = n < segments.length ? ownAuthoredRoute(path, resolved, command) : null;
           if (own != null) {
             return own;

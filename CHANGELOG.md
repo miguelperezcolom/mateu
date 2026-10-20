@@ -11,6 +11,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- **A `@Menu` submenu called like the app's mount opens its pages.** With `@UI("/biblioteca")` and
+  `@Menu MenuBiblioteca biblioteca`, a menu click, a deep link or a reload of
+  `/biblioteca/biblioteca/catalogo` answered the app again: the content load (route
+  `/biblioteca/catalogo`, typed with the app) took the `/biblioteca` prefix for the app's own mount.
+  Inside its mount the app is at `""`, so that prefix is the menu entry; and a route that repeats
+  the segment (`/biblioteca/biblioteca/...`) is now read relative to the mount. (Java; the .NET and
+  Python ports use absolute routes and never had the second spelling)
+
 ## [3.0-beta.7] — 2026-10-19
 
 The residuals of the verification review: agent navigations honour only declared remotes (and answers from any other origin are rendered untrusted), path variants can no longer skip the JSON-body guard, data titles render as text everywhere, dev `save_spec` refuses script. Upgrade recommended.
