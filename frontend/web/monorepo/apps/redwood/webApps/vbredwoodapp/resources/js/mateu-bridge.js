@@ -5771,7 +5771,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // there either, in the menu label
       // …and a COMPOSED page (a Dashboard, a SmartSearchPage…: no Page, no Crud title) names itself
       // only through its window title: without it the header read «…»
-      title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label))
+      // …and a COMPOSED page names itself only through its window title (@Title): that one is the
+      // page's own, so it goes BEFORE the menu's label (the menu says where it is, not what it is)
+      title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || host.windowTitle
+        || (option && (option.caption || option.label))
         || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
       // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
       // @NoBreadcrumbs on the page or on the shell
@@ -7505,6 +7508,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           : (fr.data ?? {}),
         dirty: false,
       }
+      // the screen's window title (@Title, a TitleSupplier) travels as a SetWindowTitle beside the
+      // component that loads the screen: the host keeps it, so a COMPOSED page (a Dashboard, a
+      // SmartSearchPage…: no Page node to carry a title) is named by it on every repaint, not only
+      // on the increment that brought it
+      if (id === HOST_ID) {
+        const own = ss ? hostWindowTitleOf(increment) : null
+        if (own != null) contexts[id].windowTitle = own
+        else if (ss) delete contexts[id].windowTitle
+      }
     }
 
     // ── commands → effects (some mutate the registry) ─────────────────────────
@@ -7589,6 +7601,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (reg.appLevels) kept.appLevels = reg.appLevels
     if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
     return { ...kept, contexts, stack, shell, effects }
+  }
+
+  /** The SetWindowTitle an increment addresses to the screen (not the shell's: the App's own title
+   *  travels with target `shell`), as text; null when there is none. */
+  function hostWindowTitleOf(increment) {
+    for (const c of (increment && increment.commands) || []) {
+      if (c && c.type === 'SetWindowTitle' && typeof c.data === 'string' && c.targetComponentId !== 'shell') {
+        const t = literalText(c.data).trim()
+        if (t) return t
+      }
+    }
+    return null
   }
 
 

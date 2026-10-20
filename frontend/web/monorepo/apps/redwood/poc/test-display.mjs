@@ -620,6 +620,40 @@ test('a composed page (no Page, no Crud title) takes its header title from its w
   assert.equal(summarizeHost(reg, '/dash').title, 'Sales dashboard')
 })
 
+test('a composed page is headed by its OWN title (@Title, the window title), not the menu label, on every repaint', () => {
+  const composed = (title) => ({ commands: title ? [{ targetComponentId: '', type: 'SetWindowTitle', data: title }] : [], messages: [],
+    fragments: [{ targetComponentId: '', action: 'Replace', state: {}, data: {},
+      component: { type: 'ServerSide', id: 'g', serverSideType: 'x.Gantt', route: '/gantt', actions: [], children: [
+        node({ type: 'VerticalLayout' }, [{ type: 'ClientSide', id: 'gantt-page-title', metadata: { type: 'Text', text: 'Course plan' }, children: [] },
+          node({ type: 'Text', text: 'Body' })])] } }] })
+  const shell = { menu: [{ route: '/gantt', label: 'Gantt page' }] }
+  let reg = { ...reduceContexts({ contexts: {}, stack: [], shell: null }, composed('Course plan')), shell }
+  assert.equal(summarizeHost(reg, '/gantt').title, 'Course plan')
+  // the page's own heading Text says the same: the content drops it (no title twice)
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: summarizeHost(reg, '/gantt').title })
+  const texts = blocks.flatMap((b) => b.items).filter((a) => a.isText).map((a) => a.text)
+  assert.deepEqual(texts, ['Body'])
+  // an action answer carries no SetWindowTitle: the title stays
+  reg = { ...reduceContexts(reg, { commands: [], messages: [], fragments: [{ targetComponentId: '', action: 'Replace', component: null, state: { x: 1 } }] }), shell }
+  assert.equal(summarizeHost(reg, '/gantt').title, 'Course plan')
+  // the App's own title (SetWindowTitle to the shell) is not the screen's
+  reg = { ...reduceContexts(reg, { commands: [{ targetComponentId: 'shell', type: 'SetWindowTitle', data: 'My app' }], messages: [], fragments: [] }), shell }
+  assert.equal(summarizeHost(reg, '/gantt').title, 'Course plan')
+  // a new screen without a title of its own: the menu label again
+  reg = { ...reduceContexts(reg, composed(null)), shell }
+  assert.equal(summarizeHost(reg, '/gantt').title, 'Gantt page')
+  // a declared Page title still wins over the window title
+  assert.equal(summarizeHost({ contexts: { [HOST_ID]: { tree: { type: 'ServerSide', children: [node({ type: 'Page', title: 'Declared' })] }, state: {}, windowTitle: 'Window' } }, shell }, '/gantt').title, 'Declared')
+})
+
+test('the listing header (oj-sp-smart-filter-search) shows the page subtitle too', () => {
+  const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  for (const id of ['mateuListHeader', 'mateuListHeaderInline']) {
+    const tag = html.slice(html.indexOf('<oj-sp-smart-filter-search id="' + id + '"'), html.indexOf('>', html.indexOf('<oj-sp-smart-filter-search id="' + id + '"')))
+    assert.match(tag, /page-subtitle="\[\[ \$application\.variables\.mateuPageHeader\.subtitle \]\]"/, id)
+  }
+})
+
 test('a Welcome tile holding Markdown shows its text, markup dropped', () => {
   const hero = node({ type: 'HeroSection', title: 'Welcome' })
   const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Markdown', markdown: 'Find the **booking**' })])])
