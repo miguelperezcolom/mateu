@@ -151,6 +151,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   built-in text `item` for one result and `items` otherwise (both through the app's `Translator`).
   (Java, .NET, Python)
 
+- **A CRUD whose record page an authored route overrides opens its rows again.** With
+  `<crud>/:id` (or `:id/edit`, `new`) bound to your own view model in `routes.yaml` or a
+  `RouteEntrySupplier`, clicking a row of the CRUD's list answered 403 ("you are not allowed to do
+  this"): Mateu moved the crud's `view` action to the record's route and ran it on YOUR view model,
+  which knows no such action. The crud's `view`, `edit` and `new` now navigate there: your view
+  model is loaded at the sub-route and the url is pushed, as for the built-in screens. (Java)
+
 ### Documentation
 
 - The wizard page says outright that the last step field is the result screen (Next never reaches
