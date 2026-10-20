@@ -1806,3 +1806,10 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* HeroSection in the content (heroAtomOf): `centered` centres its texts, and over an `image` (darkened
+   by the atom's gradient) the texts are light — they kept the dark heading colour and were unreadable */
+.mateu-hero { border-radius: var(--oj-core-border-radius-lg, 6px); margin-bottom: 1rem; }
+.mateu-hero-centered { text-align: center; }
+.mateu-hero-image { background-size: cover; background-position: center; background-repeat: no-repeat; color: #fff; }
+.mateu-hero-image h2, .mateu-hero-image p { color: #fff; }
