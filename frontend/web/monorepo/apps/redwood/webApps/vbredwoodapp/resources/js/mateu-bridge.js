@@ -3250,7 +3250,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // `gridTemplateColumns` «1fr 18rem»), each stacking its cards; without an info slot, one column
     // whose cards go two by two
     let columns
-    if (infoCard) {
+    if (infoNode && infoCard) {
       const grid = findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'ResponsiveGrid'
         && (n.children || []).some((k) => k && k.slot === 'info'))
       const widths = gridColClasses(grid && grid.metadata.gridTemplateColumns, [], 2)
@@ -13952,6 +13952,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return actionId === 'cancel' || actionId.indexOf('cancel-') === 0 || actionId === 'back' || actionId === 'backToList'
   }
 
+  /**
+   * Was the action answered from the optimistic-lock CONFLICT dialog («Modified by another user»)? Its
+   * Reload runs `cancel-edit`, a leave action, but the user already chose to drop the edits there
+   * («Reload to see the changes (losing yours)»). The server marks the dialog's buttons with
+   * `_conflictDialog` (OptimisticLock.FROM_CONFLICT_DIALOG). Port of leaveActions.ts isConflictDialogAnswer.
+   */
+  function isConflictDialogAnswer(parameters) {
+    return !!parameters && typeof parameters === 'object' && parameters._conflictDialog === true
+  }
+
   /** The ids a wizard steps with (WizardActionDispatcher): they move inside the screen, never out of it. */
   const WIZARD_STEP_ACTIONS = ['next', 'back', 'skip', 'goToStep']
 
@@ -13990,9 +14000,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * go on; when it asked, the flag is cleared so the navigation the action answers with does not ask
    * again. What the Vaadin renderer does in mateu-component (dirtyGuard.confirmLeave).
    */
-  function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined)) {
+  function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined), parameters = undefined) {
     if (!vars || !vars.mateuDirty) return true
     if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
+    // the conflict dialog's Reload already said it drops the edits: no second question
+    if (isConflictDialogAnswer(parameters)) return true
     if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
     vars.mateuDirty = false
     return true

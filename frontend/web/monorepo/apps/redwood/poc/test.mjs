@@ -5068,7 +5068,7 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
 }
 
 // ── leave actions with unsaved changes (BUGS-MATEU #7) ────────────────────────────────────────
-import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction, fieldEditLeavesUnsavedChanges } from './shellFlows.mjs'
+import { isLeaveAction, isConflictDialogAnswer, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction, fieldEditLeavesUnsavedChanges } from './shellFlows.mjs'
 {
   test('isLeaveAction: the ids the server styles as leave actions (FormMapper) and the crud\'s, no business «cancelX»', () => {
     for (const id of ['cancel', 'cancel-new', 'cancel-create', 'cancel-edit', 'cancel-view', 'back', 'backToList']) assert.equal(isLeaveAction(id), true, id)
@@ -5087,6 +5087,16 @@ import { isLeaveAction, confirmLeaveAction, tracksUnsavedChanges, screenActionId
     assert.equal(confirmLeaveAction('backToList', vars, win(true)), true, 'leave')
     assert.equal(vars.mateuDirty, false, 'cleared: the navigation it answers with does not ask again')
     assert.deepEqual(asked, [chromeText('unsavedLeave'), chromeText('unsavedLeave')])
+  })
+
+  test('confirmLeaveAction: the conflict dialog\'s Reload (cancel-edit marked _conflictDialog) does not ask again', () => {
+    const asked = []
+    const win = { confirm: (m) => { asked.push(m); return false } }
+    const vars = { mateuDirty: true }
+    assert.equal(confirmLeaveAction('cancel-edit', vars, win, { _conflictDialog: true, initiatorState: {} }), true)
+    assert.equal(asked.length, 0)
+    assert.equal(confirmLeaveAction('cancel-edit', vars, win, { _conflictDialog: 'yes' }), false, 'only the server\'s marker')
+    assert.equal(isConflictDialogAnswer(undefined), false)
   })
 
   test('a wizard\'s Back is step navigation, not leaving: no question; its Cancel and a CRUD editor\'s Cancel still ask', () => {

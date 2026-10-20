@@ -66,7 +66,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `cancel-view`), `back` and `backToList` — ask the same "unsaved changes" question first; "stay"
   sends nothing. A business action that merely starts with `cancel` (`cancelBooking`) is not one,
   and neither is a wizard's Back (or any wizard step action): it moves between steps of the same
-  screen and keeps what was typed, so it never asks; the wizard's Cancel does.
+  screen and keeps what was typed, so it never asks; the wizard's Cancel does. Nor does the
+  optimistic-lock conflict dialog's **Reload** (it runs `cancel-edit`): the user already chose
+  there to drop their changes.
   Redwood now follows Vaadin's single rule for unsaved changes: an edit marks the screen dirty only
   when the form that owns the field asks before it is left (`@ConfirmOnNavigationIfDirty`, CRUD
   create/edit views), in every edit path (page forms, forms painted as page content, drawers and

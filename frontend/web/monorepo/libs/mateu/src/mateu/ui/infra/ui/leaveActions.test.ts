@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isLeaveAction, isWizardStepAction } from './leaveActions'
+import { isConflictDialogAnswer, isLeaveAction, isWizardStepAction } from './leaveActions'
 
 describe('isLeaveAction', () => {
     it('is the set the server styles as leave actions (FormMapper) and the crud/editable view ids', () => {
@@ -21,5 +21,15 @@ describe('isLeaveAction', () => {
         expect(isLeaveAction('cancel', wizard)).toBe(true)
         expect(isLeaveAction('back', ['save', 'back'])).toBe(true)
         expect(isWizardStepAction('back', ['save'])).toBe(false)
+    })
+})
+
+describe('isConflictDialogAnswer', () => {
+    it('is true only for the buttons of the optimistic-lock conflict dialog (_conflictDialog)', () => {
+        expect(isConflictDialogAnswer({ _conflictDialog: true, initiatorState: {} })).toBe(true)
+        expect(isConflictDialogAnswer({ _conflictDialog: 'true' })).toBe(false)
+        expect(isConflictDialogAnswer({})).toBe(false)
+        expect(isConflictDialogAnswer(undefined)).toBe(false)
+        expect(isConflictDialogAnswer(null)).toBe(false)
     })
 })

@@ -241,6 +241,15 @@ describe('a leave action on a screen with unsaved changes (dirtyGuard)', () => {
         expect(sent).toHaveLength(2)
     })
 
+    it('the conflict dialog\'s Reload (cancel-edit marked _conflictDialog) does not ask again: the user chose to drop the edits there', async () => {
+        const el = await mount(serverSide({ actions: [{ id: 'cancel-edit' }] }))
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        request(el, 'cancel-edit', { parameters: { _conflictDialog: true } })
+        expect(confirm).not.toHaveBeenCalled()
+        expect(sent).toHaveLength(1)
+    })
+
     it('does not ask when nothing was edited', async () => {
         const el = await mount(serverSide({ actions: [{ id: 'cancel-edit' }] }))
         const confirm = vi.spyOn(window, 'confirm')

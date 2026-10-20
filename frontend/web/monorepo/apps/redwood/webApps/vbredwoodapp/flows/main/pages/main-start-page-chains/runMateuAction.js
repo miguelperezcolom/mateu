@@ -54,7 +54,7 @@ define([
         return;
       }
       // a LEAVE action (Cancel…) with unsaved changes asks as the menu does; «stay» sends nothing
-      if (!bridge.confirmLeaveAction(id, $application.variables)) return;
+      if (!bridge.confirmLeaveAction(id, $application.variables, undefined, parameters)) return;
       // «go to parent» without a back button: the automatic trail put it there, and it is a
       // navigation — the same as the menu's (navigation-requested, which the shell listens to)
       // the way back from the NOT FOUND page (navigationAction of the oj-sp-empty-state): navigate

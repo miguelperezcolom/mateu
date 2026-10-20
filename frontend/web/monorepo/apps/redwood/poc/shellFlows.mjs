@@ -147,6 +147,16 @@ export function isLeaveAction(actionId, ownerActionIds = []) {
   return actionId === 'cancel' || actionId.indexOf('cancel-') === 0 || actionId === 'back' || actionId === 'backToList'
 }
 
+/**
+ * Was the action answered from the optimistic-lock CONFLICT dialog («Modified by another user»)? Its
+ * Reload runs `cancel-edit`, a leave action, but the user already chose to drop the edits there
+ * («Reload to see the changes (losing yours)»). The server marks the dialog's buttons with
+ * `_conflictDialog` (OptimisticLock.FROM_CONFLICT_DIALOG). Port of leaveActions.ts isConflictDialogAnswer.
+ */
+export function isConflictDialogAnswer(parameters) {
+  return !!parameters && typeof parameters === 'object' && parameters._conflictDialog === true
+}
+
 /** The ids a wizard steps with (WizardActionDispatcher): they move inside the screen, never out of it. */
 export const WIZARD_STEP_ACTIONS = ['next', 'back', 'skip', 'goToStep']
 
@@ -185,9 +195,11 @@ export function screenActionIdsOf(reg) {
  * go on; when it asked, the flag is cleared so the navigation the action answers with does not ask
  * again. What the Vaadin renderer does in mateu-component (dirtyGuard.confirmLeave).
  */
-export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined)) {
+export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined), parameters = undefined) {
   if (!vars || !vars.mateuDirty) return true
   if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
+  // the conflict dialog's Reload already said it drops the edits: no second question
+  if (isConflictDialogAnswer(parameters)) return true
   if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
   vars.mateuDirty = false
   return true

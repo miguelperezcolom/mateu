@@ -37,7 +37,7 @@ define([
         return;
       }
       // the island's Cancel with unsaved edits asks first, as runMateuAction's (confirmLeaveAction)
-      if (!bridge.confirmLeaveAction(actionId, $application.variables)) {
+      if (!bridge.confirmLeaveAction(actionId, $application.variables, undefined, parameters)) {
         return;
       }
       // same as in runMateuAction: the island lives in its host's backend

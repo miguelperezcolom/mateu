@@ -25,6 +25,18 @@ export function isLeaveAction(actionId: string | undefined | null,
         || actionId === 'backToList'
 }
 
+/**
+ * Was the action answered from the optimistic-lock CONFLICT dialog ("Modified by another user")?
+ * Its Reload runs `cancel-edit`, a leave action, but the user already chose to drop their changes
+ * there ("Reload to see the changes (losing yours)"): asking "leave with unsaved changes?" again
+ * would be a second question, and a "stay" left the dialog open with nothing sent. The server
+ * marks both of the dialog's buttons with `_conflictDialog` (OptimisticLock.FROM_CONFLICT_DIALOG).
+ */
+export function isConflictDialogAnswer(parameters: unknown): boolean {
+    return !!parameters && typeof parameters === 'object'
+        && (parameters as Record<string, unknown>)['_conflictDialog'] === true
+}
+
 /** The ids a wizard steps with (WizardActionDispatcher): they move inside the screen, never out of it. */
 export const WIZARD_STEP_ACTIONS: ReadonlySet<string> = new Set(['next', 'back', 'skip', 'goToStep'])
 

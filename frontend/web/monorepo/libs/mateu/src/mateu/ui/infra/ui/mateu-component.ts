@@ -72,7 +72,7 @@ import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { runJs } from '@infra/ui/runJs.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
-import { isLeaveAction } from '@infra/ui/leaveActions.ts'
+import { isConflictDialogAnswer, isLeaveAction } from '@infra/ui/leaveActions.ts'
 import { humanizeFieldId } from '@infra/ui/humanize.ts'
 import { trapFocus, type FocusTrap } from '@infra/a11y/focusTrap.ts'
 
@@ -564,7 +564,9 @@ export class MateuComponent extends ComponentElement {
                 // first, like a menu click or the browser's back button; "stay" sends nothing.
                 // Asked once, by the component that runs it: confirming clears the flag.
                 // A wizard's Back steps inside the screen: its owner advertises `next`.
+                // The conflict dialog's Reload already said it drops the edits: no second question.
                 if (isLeaveAction(detail.actionId, serverSideComponent.actions?.map(a => a.id) ?? [])
+                    && !isConflictDialogAnswer(detail.parameters)
                     && !dirtyGuard.confirmLeave()) {
                     return
                 }
