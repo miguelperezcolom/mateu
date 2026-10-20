@@ -192,7 +192,7 @@
                   <plugin>
                       <groupId>com.github.siom79.japicmp</groupId>
                       <artifactId>japicmp-maven-plugin</artifactId>
-                      <version>0.26.3</version>
+                      <version>0.26.5</version>
                       <dependencies>
                           <!-- the JSR-223 engine japicmp runs the postAnalysisScript with -->
                           <dependency>
