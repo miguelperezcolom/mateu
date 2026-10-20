@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 
 /**
  * The create/edit DRAWER validates like the routed form. Fixture: mvc-app1 `DrawerValidationCrud`
- * (/drawer-validation) — `@NotEmpty name`, `@Email email`.
+ * (/drawer-validation) — `@NotEmpty name`, `@Email email` (both validated in the browser).
  *
  * Before the fix the drawer's form was plain content of the crud component, whose create/save are
  * not validated in the browser: an empty required field was sent, the server refused it, and the
@@ -38,17 +38,24 @@ test('a required field left empty is blocked in the browser and marked', async (
   await expect(drawer(page)).toHaveCount(0);
 });
 
-test('a constraint only the server checks marks its field when the save is refused', async ({ page }) => {
+// @Email used to be checked by the server only (the save was sent, refused, and the refusal marked
+// the field). Since @Email maps to a client validation (ConstraintValidationMapper), the drawer
+// blocks it in the browser like the required field, with the validator's own message.
+test('an @Email the browser rejects is marked in the drawer and not sent', async ({ page }) => {
   await page.goto('/drawer-validation');
   await page.getByRole('button', { name: 'New', exact: true }).click();
   await input(page, 'name').fill(`Linus ${Date.now()}`);
   await input(page, 'email').fill('not-an-email');
   await input(page, 'email').blur();
+
+  const sent: string[] = [];
+  page.on('request', r => { if (r.method() === 'POST' && (r.postData() ?? '').includes('"actionId":"create"')) sent.push(r.url()) });
   await drawer(page).getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect(drawer(page)).toBeVisible();
-  await expect(drawer(page)).toContainText('Email:');
   await expect(invalid(page, 'email')).toBeVisible();
+  await expect(drawer(page)).toContainText('must be a well-formed email address');
   // what was typed is still there
   await expect(input(page, 'email')).toHaveValue('not-an-email');
+  expect(sent, 'the browser does not send an invalid form').toHaveLength(0);
 });

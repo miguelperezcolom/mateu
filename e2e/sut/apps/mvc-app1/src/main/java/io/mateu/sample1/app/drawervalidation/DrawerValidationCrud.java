@@ -13,8 +13,7 @@ import java.util.Optional;
 
 /**
  * The create/edit drawer validates like the routed form: a required field left empty is blocked
- * in the browser and marked; a constraint only the server checks (@Email) marks its field when the
- * save is refused.
+ * in the browser and marked, and so is an @Email that is not well formed.
  */
 @UI("/drawer-validation")
 @Title("Drawer validation")
