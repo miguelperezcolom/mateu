@@ -22049,6 +22049,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const elementOfNodeId = (doc, id) =>
     (id && doc ? doc.querySelector('[data-node-id="' + String(id).replace(/["\\]/g, '\\$&') + '"]') : null)
 
+  /**
+   * The box of every painted node (an element carrying its data-node-id), in the page's viewport —
+   * what the editor positions a drop against: its pointer cannot reach this DOM while a drag is on.
+   * Same rule as the editor's own reader (visual-editor src/canvas/redwoodProtocol.ts nodeBoxesOf).
+   */
+  function nodeBoxesOf(doc) {
+    const out = []
+    for (const el of Array.from(doc.querySelectorAll('[data-node-id]'))) {
+      const id = el.getAttribute('data-node-id')
+      const r = el.getBoundingClientRect()
+      if (id && (r.width || r.height)) out.push({ id, left: r.left, top: r.top, width: r.width, height: r.height })
+    }
+    return out
+  }
+
   // The canvas does not run the app: these never reach it (capture phase, stopped before JET).
   const INERT_EVENTS = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'dblclick', 'contextmenu',
     'touchstart', 'touchend', 'submit', 'dragstart', 'auxclick']
@@ -22193,6 +22208,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         waiters = []
         pending.forEach((resolve) => resolve(fragment))
         rerender()
+      } else if (kind === 'measure') {
+        post({ kind: 'layout', nodes: nodeBoxesOf(doc) })
       } else if (kind === 'select') {
         selected = { id: msg.id || null, label: msg.label || '' }
         reposition()

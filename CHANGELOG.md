@@ -11,6 +11,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+
+- **Visual editor: dragging from the palette onto the Redwood canvas shows where the component lands.**
+  The canvas could not see inside the Redwood iframe, so a drop had no insertion line and always
+  landed at the end of the page. It now reads the painted nodes' boxes from the frame (directly
+  when same-origin, as in IntelliJ; through a new `measure`/`layout` message otherwise, as in
+  VS Code — that leg needs the Redwood jar rebuilt), deriving a box for containers Redwood does
+  not stamp. On every canvas a ghost follows the pointer and the target container is highlighted
+  next to the insertion line.
+
 ## [3.0-beta.8] — 2026-10-20
 
 Fixes and small features found while building a multi-service workshop (Quarkus, Spring Boot 4, Micronaut and a static YAML shell, Redwood renderer): a CRUD record page can show its own content (`DetailContentSupplier`), authored routes under a CRUD get its navigation automatically, shared CRUD instances no longer leak routing state between requests, Quarkus needs no `@Unremovable` and reloads the browser in dev, and a long list of Redwood rendering fixes. Upgrade recommended.

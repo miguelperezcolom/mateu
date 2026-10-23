@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path'
 import { islandContentOf, setEditorNodeIds, fieldListOf, actionsOf, formSectionsOf, welcomeOf, itemOverviewOf } from './reduceContexts.mjs'
 import {
   PREVIEW_ROUTE, isEditorPreview, previewAppIncrement, previewLoadIncrement, previewAnswerOf, previewFetch,
-  stampNodeIds, nodeIdOfPath, elementOfNodeId,
+  stampNodeIds, nodeIdOfPath, elementOfNodeId, nodeBoxesOf,
 } from './editorPreview.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -267,6 +267,15 @@ test('stamping: an id the page binds itself is kept, its children inherit it, an
   assert.equal(b2.getAttribute('data-node-id'), 've-0-1')
   assert.equal(inside.getAttribute('data-node-id'), null)
   assert.ok(count >= 1)
+})
+
+test('a drag measures the page: every painted node\'s box, nothing unpainted', () => {
+  const box = (id, r) => ({ getAttribute: (n) => (n === 'data-node-id' ? id : null), getBoundingClientRect: () => r })
+  const doc = { querySelectorAll: (sel) => (sel === '[data-node-id]' ? [
+    box('ve-0', { left: 10, top: 20, width: 300, height: 40 }),
+    box('ve-1', { left: 0, top: 0, width: 0, height: 0 }), // hidden: a tab not showing
+  ] : []) }
+  assert.deepEqual(nodeBoxesOf(doc), [{ id: 've-0', left: 10, top: 20, width: 300, height: 40 }])
 })
 
 await Promise.all(pending)

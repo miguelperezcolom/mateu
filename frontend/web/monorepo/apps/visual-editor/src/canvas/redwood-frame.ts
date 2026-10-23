@@ -1,8 +1,8 @@
 import { LitElement, css, html } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import {
-    BOOT_TIMEOUT_MS, PreviewFragment, frameMessageOf, redwoodPreviewUrl, renderMessage, selectMessage,
-    type FrameToEditor,
+    BOOT_TIMEOUT_MS, PreviewFragment, frameMessageOf, measureMessage, nodeBoxesOf, redwoodPreviewUrl, renderMessage,
+    selectMessage, type FrameToEditor, type NodeBox,
 } from './redwoodProtocol'
 import { restSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
 import { fieldTypeCatalogue } from '@infra/expander/fieldTypes.ts'
@@ -46,6 +46,8 @@ export class RedwoodFrame extends LitElement {
 
     private fragment?: PreviewFragment
     private hello = false
+    /** The node boxes the frame last reported (`layout`), for a cross-origin frame. */
+    private reported: NodeBox[] = []
     private bootTimer?: number
 
     render() {
@@ -91,6 +93,35 @@ export class RedwoodFrame extends LitElement {
     show(fragment: PreviewFragment) {
         this.fragment = fragment
         if (this.hello) this.post(this.renderOf(fragment))
+    }
+
+    /**
+     * Every painted node's box, in THIS window's viewport, clipped to the frame — what a drag over the
+     * canvas positions against (the editor cannot hit-test inside the frame: the iframe takes no
+     * pointer while a drag is on). Read from the frame's DOM when it is same-origin, else the last
+     * `layout` the frame reported (ask for a fresh one with `measure()`).
+     */
+    nodeBoxes(): NodeBox[] {
+        const frame = this.frame
+        if (!frame) return []
+        let boxes = this.reported
+        try {
+            const doc = frame.contentDocument
+            if (doc) boxes = nodeBoxesOf(doc)
+        } catch { /* cross-origin: the reported layout */ }
+        const f = frame.getBoundingClientRect()
+        const out: NodeBox[] = []
+        for (const b of boxes) {
+            const left = Math.max(f.left, b.left + f.left), top = Math.max(f.top, b.top + f.top)
+            const right = Math.min(f.right, b.left + f.left + b.width), bottom = Math.min(f.bottom, b.top + f.top + b.height)
+            if (right > left && bottom > top) out.push({ id: b.id, left, top, width: right - left, height: bottom - top })
+        }
+        return out
+    }
+
+    /** Asks the frame where its nodes are (a cross-origin frame answers with `layout`). */
+    measure() {
+        if (this.hello) this.post(measureMessage())
     }
 
     /** The render message: the fragment plus the project's catalogues (sources with their sample
@@ -166,6 +197,9 @@ export class RedwoodFrame extends LitElement {
                     key: msg.key, code: msg.code, metaKey: !!msg.metaKey, ctrlKey: !!msg.ctrlKey,
                     shiftKey: !!msg.shiftKey, altKey: !!msg.altKey, bubbles: true, cancelable: true,
                 }))
+                return
+            case 'layout':
+                this.reported = Array.isArray(msg.nodes) ? msg.nodes : []
                 return
             case 'boot-failed':
                 this.fail('offline', `This script could not be loaded: ${msg.url}.`)
