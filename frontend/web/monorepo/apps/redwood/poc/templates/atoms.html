@@ -802,6 +802,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.{{sectionPrimary}} ]]"
+                          on-sp-view-more-action="[[ $listeners.{{sectionViewMore}} ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by

@@ -27,7 +27,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   is `oj-sp-section`'s own primary action (edit, else add) and its «View more» link — in the rich
   content and in a plain form alike (the generic form's sections are `oj-sp-section` too now). A
   section declaring both edit and add keeps the add as one of its own buttons. Demo: `demo-vb`
-  › Section actions.
+  › Section actions. Sections laid out in columns (an `@Aside` form, a crud's `@Zones`) keep
+  their Spectra header too.
 - **Redwood: content tabs look like Redwood's.** A form's tab strip shows the tabs at their own
   width from the start, over a full-width divider line (JET `oj-tab-bar` `layout="condense"` +
   `oj-divider-bottom`); they used to spread over the whole width with no line.

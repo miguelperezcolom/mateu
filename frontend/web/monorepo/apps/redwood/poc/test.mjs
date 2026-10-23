@@ -6075,6 +6075,19 @@ test("a @Section's affordances are oj-sp-section's own: ONE primary action (edit
   if (untitled) assert.equal(untitled.sectionActions.any, false)
 })
 
+test("an @Aside form (its sections merged into the main column) keeps each section's Spectra header", () => {
+  // captured from demo-redwood-showcase /advanced-create-edit-aside-demo (Advanced create and edit, variant B)
+  const host = reduceContexts(empty(), fx('aside-form')).contexts[HOST_ID]
+  const atoms = iiHostContentOf(host, null, { title: 'Edit order' }).flatMap((b) => b.items || [])
+  const headers = atoms.filter((a) => a.isSpSectionHeader)
+  assert.deepEqual(headers.map((h) => h.sectionTitle), ['Order', 'Shipping'])
+  assert.equal(headers[0].sectionActions.primary.display, 'off')
+  // the section's own heading is not repeated under its header
+  assert.ok(!atoms.some((a) => a.isHeading && ['Order', 'Shipping'].includes(a.text)))
+  // and the merged column still carries the fields
+  assert.ok(JSON.stringify(atoms).includes('"fieldId":"reference"') || JSON.stringify(atoms).includes('SO-1024'))
+})
+
 test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, not a @Zones form), a short form has none', () => {
   const host = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
   const withToc = (value) => {
@@ -6132,9 +6145,11 @@ test('@Zones in a crud detail: the columns are the body (4/12 + 8/12), the gener
     assert.match(zoned[0].blockClass, /oj-md-4/, name)
     assert.match(zoned[1].blockClass, /oj-md-8/, name)
     assert.ok(zoned.every((b) => b.fromColumns), name)
-    // each column keeps its sections' headings and their fields (Contacto + Matrícula | Datos personales + Observaciones)
-    assert.deepEqual(zoned[0].items.filter((a) => a.isHeading).map((a) => a.text), ['Contacto', 'Matrícula'], name)
-    assert.deepEqual(zoned[1].items.filter((a) => a.isHeading).map((a) => a.text), ['Datos personales', 'Observaciones'], name)
+    // each column keeps its sections — Spectra's section header each (oj-sp-section) — and their fields
+    // (Contacto + Matrícula | Datos personales + Observaciones)
+    const titles = (col) => col.items.filter((a) => a.isSpSectionHeader).map((a) => a.sectionTitle)
+    assert.deepEqual(titles(zoned[0]), ['Contacto', 'Matrícula'], name)
+    assert.deepEqual(titles(zoned[1]), ['Datos personales', 'Observaciones'], name)
     assert.ok(zoned[1].items.some((a) => a.isFormLayout && a.fields.some((f) => f.fieldId === 'nombre')), name)
     assert.equal(p1HostContentShown(blocks, summarizeHost(reg)), true, name + ': the content wins over the generic form')
   }

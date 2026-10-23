@@ -469,7 +469,13 @@ export function islandContentOf(ctx, opts = {}) {
           blocks.splice(start)
           return false
         }
-        out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items), ...tag })
+        // the blocks are merged into one (a column cell cannot stack blocks): a Spectra section keeps
+        // its header — oj-sp-section with no body: its title, accent marker and affordances — and its
+        // body follows (an @Aside form's sections: its main column holds them all)
+        out.push({ isPlain: true, colClass: colClasses[i], ...tag,
+          items: created.flatMap((b) => (b.spSection
+            ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+            : b.items)) })
       }
     }
     blocks.push(...out)

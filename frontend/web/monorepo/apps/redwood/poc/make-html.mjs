@@ -26,9 +26,11 @@ const fieldsPartial = readFileSync(join(here, 'templates', 'fields-extra.html'),
 
 const VARIANTS = {
   host: { blockAction: 'hostBlockAction', addonToggled: 'hostAddonToggled', menuAction: 'hostMenuAction',
-    checkAction: 'hostChecklistToggled', messageAction: 'hostMessageSend', messageKey: 'hostMessageKey' },
+    checkAction: 'hostChecklistToggled', messageAction: 'hostMessageSend', messageKey: 'hostMessageKey',
+    sectionPrimary: 'sectionPrimaryAction', sectionViewMore: 'sectionViewMoreAction' },
   island: { blockAction: 'islandBlockAction', addonToggled: 'addonToggled', menuAction: 'islandMenuAction',
-    checkAction: 'islandChecklistToggled', messageAction: 'islandMessageSend', messageKey: 'islandMessageKey' },
+    checkAction: 'islandChecklistToggled', messageAction: 'islandMessageSend', messageKey: 'islandMessageKey',
+    sectionPrimary: 'islandSectionPrimaryAction', sectionViewMore: 'islandSectionViewMoreAction' },
 }
 
 const reindent = (text, indent) => text.split('\n').map((l) => (l ? indent + l : l))
