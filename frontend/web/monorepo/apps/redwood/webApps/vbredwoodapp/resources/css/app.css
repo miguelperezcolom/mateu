@@ -1854,6 +1854,8 @@ oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-
 .mateu-has-toc { position: relative; --mateu-anchor-nav-width: clamp(12rem, 25%, 20rem); --mateu-anchor-nav-gap: var(--oj-core-spacing-6x, 1.5rem); }
 .mateu-has-toc > :not(.mateu-anchor-nav):not([id^="mateuPageHeader"]):not(.mateu-header-overline) {
   margin-inline-end: calc(var(--mateu-anchor-nav-width) + var(--mateu-anchor-nav-gap)); }
+/* a group of the generic form with no @Section of its own: oj-sp-section without its header */
+.mateu-sp-section-untitled .oj-sp-section-header { display: none; }
 /* the page toast is display:inline: in block flow it would leave an empty 21px line above the header */
 .mateu-has-toc > oj-sp-messages-toast { display: block; }
 .mateu-anchor-nav { position: absolute; top: var(--mateu-anchor-nav-start, 0px); bottom: 0; inset-inline-end: var(--mateu-anchor-nav-gap); width: var(--mateu-anchor-nav-width); }

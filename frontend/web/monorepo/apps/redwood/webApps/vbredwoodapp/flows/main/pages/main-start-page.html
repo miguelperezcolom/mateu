@@ -25030,10 +25030,18 @@
       <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
         <template>
           <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
-            <!-- the section title row: its heading + its own buttons (@Section editAction/addAction) -->
-            <oj-bind-if test="[[ $current.data.hasTitle || $current.data.hasTitleButtons ]]">
+            <!-- Spectra's section (oj-sp-section): its title with the accent marker and its affordances —
+                 one primary action (@Section editAction, else addAction) and viewMoreAction. A group with no
+                 title (fields outside any @Section) hides the section header (mateu-sp-section-untitled) -->
+            <oj-sp-section section-title="[[ $current.data.title ]]" level="section"
+              :class="[[ $current.data.hasTitle ? '' : 'mateu-sp-section-untitled' ]]"
+              primary-action="[[ $current.data.sectionActions.primary ]]"
+              display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+              on-sp-primary-action="[[ $listeners.formSectionPrimaryAction ]]"
+              on-sp-view-more-action="[[ $listeners.formSectionViewMoreAction ]]">
+            <!-- the section's OTHER title buttons (an @Inline type's @Toolbar), beside the title's place -->
+            <oj-bind-if test="[[ $current.data.hasTitleButtons ]]">
               <div class="oj-flex oj-sm-align-items-center oj-sm-margin-4x-bottom mateu-section-title-row">
-                <h3 style="margin: 0;" class="oj-typography-heading-xs oj-sm-margin-0"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                 <oj-bind-for-each data="[[ $current.data.titleButtons ]]">
                   <template>
                     <oj-button class="oj-button-sm oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -25307,6 +25315,7 @@
                 </oj-bind-for-each>
               </div>
             </oj-bind-if>
+            </oj-sp-section>
           </div>
         </template>
       </oj-bind-for-each>
@@ -36112,7 +36121,13 @@
              the card's atoms without the heading the section draws (sectionBodyOf) -->
         <oj-bind-if test="[[ $current.data.isCard && $current.data.spSection ]]">
           <div :class="[[ $current.data.blockClass + ' mateu-sp-section' ]]" :data-mateu-section="[[ $current.data.sectionTitle ]]">
-            <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section">
+            <!-- its affordances (@Section(editAction | addAction, viewMoreAction)) are the component's own:
+                 ONE primary action (edit, else add) and «View more» — each runs the section's action -->
+            <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+              primary-action="[[ $current.data.sectionActions.primary ]]"
+              display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+              on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+              on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]">
               <oj-bind-for-each data="[[ $current.data.sectionItems ]]">
                 <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                 <template>

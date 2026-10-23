@@ -2,7 +2,7 @@ import { calendarAtomOf } from '../calendar.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
-import { collectTexts, isSectionNode, sectionHeadOf } from './tree.mjs'
+import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
@@ -909,7 +909,10 @@ export function islandContentOf(ctx, opts = {}) {
       // (with its accent marker) itself, so its body is the card's atoms without that heading
       if (card.sectionTitle) {
         card.spSection = true
-        card.sectionItems = sectionBodyOf(card.items)
+        // its affordances (@Section(addAction, editAction, viewMoreAction)) are the section's own
+        // buttons — add as its primary action, edit, view more — and leave the body
+        card.sectionActions = sectionAffordancesOf(node)
+        card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items), card.sectionActions)
       }
       plain = null
       return

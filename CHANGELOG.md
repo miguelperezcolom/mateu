@@ -23,6 +23,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   - the sections index (`@Toc`) is drawn as Spectra's vertical anchor navigator (its markup,
     styles and keyboard; a "Sections" button with a popup on medium and small screens). It starts
     under the page header and sticks under it; it used to sit beside the header.
+- **Redwood: a section's actions are Spectra's.** `@Section(editAction | addAction, viewMoreAction)`
+  is `oj-sp-section`'s own primary action (edit, else add) and its «View more» link — in the rich
+  content and in a plain form alike (the generic form's sections are `oj-sp-section` too now). A
+  section declaring both edit and add keeps the add as one of its own buttons. Demo: `demo-vb`
+  › Section actions.
 - **Redwood: Redwood's loader while the app loads.** The page shows Redwood's large progress circle
   while Oracle's CDN downloads (it was blank) and while a new screen loads (it was a skeleton).
 

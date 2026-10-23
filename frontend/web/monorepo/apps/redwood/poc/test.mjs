@@ -6037,6 +6037,44 @@ test("a titled @Section is Spectra's oj-sp-section: the card is flagged and its 
   assert.deepEqual(sectionBodyOf([{ isText: true, text: 'x' }]), [{ isText: true, text: 'x' }])
 })
 
+test("a @Section's affordances are oj-sp-section's own: ONE primary action (edit, else add) and «View more»", async () => {
+  const { withoutSectionAffordances, formSectionsOf } = await import('./core/tree.mjs')
+  const host = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
+  const sections = iiHostContentOf(host, null, { title: 'Layout walk' }).filter((b) => b.sectionTitle)
+  // Address declares all three: @Section(addAction = "addAddress", editAction = "editAddress", viewMoreAction = "moreAddress")
+  const address = sections.find((b) => b.sectionTitle === 'Address')
+  const actions = address.sectionActions
+  assert.deepEqual(actions.primary, { type: 'edit', display: 'on' }, 'oj-sp-section has one primary action: edit wins')
+  assert.equal(actions.primaryAction.actionId, 'editAddress')
+  assert.equal(actions.viewMore, 'on')
+  assert.equal(actions.viewMoreAction.actionId, 'moreAddress')
+  assert.deepEqual(actions.drawn, ['editAddress', 'moreAddress'])
+  // what the section draws leaves its body; the add (no room for a second primary) stays a button of its own
+  const body = JSON.stringify(address.sectionItems)
+  for (const id of ['editAddress', 'moreAddress']) assert.ok(!body.includes('"actionId":"' + id + '"'), id)
+  assert.ok(body.includes('"actionId":"addAddress"'), 'add stays in the section, as its own button')
+  assert.ok(JSON.stringify(address.items).includes('"actionId":"editAddress"'), 'the card itself keeps them (the other surfaces)')
+  // a section without affordances: nothing on
+  const plain = sections.find((b) => !b.sectionActions.any)
+  assert.deepEqual([plain.sectionActions.primary.display, plain.sectionActions.viewMore], ['off', 'off'])
+  // the filter: a title row keeps its other buttons; an emptied row or button bar goes
+  const aff = { any: true, drawn: ['addGuest', 'more'] }
+  assert.deepEqual(withoutSectionAffordances([
+    { isRow: true, items: [{ rowButton: true, actionId: 'addGuest' }, { rowButton: true, actionId: 'print' }] },
+    { isText: true, text: 'x' },
+    { isButtons: true, buttons: [{ actionId: 'more' }] },
+  ], aff), [{ isRow: true, items: [{ rowButton: true, actionId: 'print' }] }, { isText: true, text: 'x' }])
+  assert.deepEqual(withoutSectionAffordances([{ isRow: true, items: [{ rowButton: true, actionId: 'addGuest' }] }], aff), [])
+  // the generic form (a plain form: fields only) gets the same
+  const generic = formSectionsOf(host.tree, host.state, host.data).find((s) => s.title === 'Address')
+  assert.deepEqual(generic.sectionActions.primary, { type: 'edit', display: 'on' })
+  assert.equal(generic.sectionActions.viewMore, 'on')
+  assert.deepEqual(generic.titleButtons.map((b) => b.actionId), ['addAddress'], 'add stays a title button')
+  assert.deepEqual(generic.footerButtons, [])
+  const untitled = formSectionsOf(host.tree, host.state, host.data).find((s) => !s.title)
+  if (untitled) assert.equal(untitled.sectionActions.any, false)
+})
+
 test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, not a @Zones form), a short form has none', () => {
   const host = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
   const withToc = (value) => {

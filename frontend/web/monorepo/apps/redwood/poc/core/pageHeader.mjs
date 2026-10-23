@@ -486,7 +486,11 @@ export function crudTitleOf(host) {
 /** The form's action row minus the buttons its sections already draw (sectionButtonsOf). */
 export function withoutSectionButtons(actions, sections) {
   const drawn = {}
-  for (const sec of sections || []) for (const b of (sec.titleButtons || []).concat(sec.footerButtons || [])) drawn[b.actionId] = true
+  for (const sec of sections || []) {
+    for (const b of (sec.titleButtons || []).concat(sec.footerButtons || [])) drawn[b.actionId] = true
+    // the @Section affordances the oj-sp-section draws itself (add / edit / view more)
+    for (const id of (sec.sectionActions && sec.sectionActions.drawn) || []) drawn[id] = true
+  }
   return (actions || []).filter((a) => !drawn[a.actionId])
 }
 

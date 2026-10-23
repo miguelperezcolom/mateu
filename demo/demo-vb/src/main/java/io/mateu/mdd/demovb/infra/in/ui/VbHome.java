@@ -56,6 +56,9 @@ public class VbHome implements AppActionsSupplier, GlobalSearchSupplier {
   // a record whose edit page holds an editable table (its lines)
   @Menu PurchaseOrdersCrud purchaseOrders;
 
+  // a section's own actions (@Section(addAction, editAction, viewMoreAction))
+  @Menu SectionActionsPage sectionActions;
+
   // the same orders at the standard density and at @Compact (Redwood: grid tables, small controls)
   @Menu io.mateu.mdd.demovb.infra.in.ui.density.AiryOrdersCrud ordersAiry;
 
