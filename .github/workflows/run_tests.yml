@@ -176,6 +176,9 @@ jobs:
       - name: parity.md tells the truth about Redwood (coverage vs wire catalogue vs renderer code)
         run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
 
+      - name: The IDE plugins' versions follow the framework's release tag
+        run: node --test scripts/plugin-versions.test.mjs
+
       - name: MCP server tests
         run: cd frontend/mcp-server && node --test
 

@@ -48,7 +48,9 @@ const DRAG_THRESHOLD = 4 // px before a mousedown becomes a drag (vs a click-to-
 
 type Orient = 'row' | 'column'
 type IndicatorBox = { left: number; top: number; width: number; height: number }
-type DropTarget = { parentPath: NodePath; index: number; indicator: IndicatorBox }
+type DropTarget = { parentPath: NodePath; index: number; indicator: IndicatorBox; zone: IndicatorBox | null }
+/** A painted node's box, in the editor window's viewport. */
+export type NodeBox = { id: string; left: number; top: number; width: number; height: number }
 type DragSession = {
     kind: 'add' | 'move'
     node?: PageNode      // kind 'add': the new node to insert
@@ -85,6 +87,13 @@ export class EditorCanvas extends LitElement {
         .host.redwood { padding: 0; height: 100%; overflow: hidden; }
         :host([framed]) .host.redwood { height: calc(100% - 2rem); }
         .host.redwood redwood-frame { height: 100%; border-radius: inherit; overflow: hidden; }
+        /* The container a drop lands in, and what is being dragged (it follows the pointer). */
+        .drop-zone { position: absolute; pointer-events: none; z-index: 29; box-sizing: border-box; border-radius: 4px;
+                     border: 2px dashed var(--ve-primary, #4f8cff); background: var(--ve-primary-10, rgba(79,140,255,.08)); }
+        .drag-ghost { position: fixed; pointer-events: none; z-index: 1000; padding: 0.25rem 0.6rem; border-radius: 6px;
+                      font: 600 12px var(--ve-font, system-ui); color: var(--ve-on-primary, #fff); background: var(--ve-primary, #4f8cff);
+                      box-shadow: var(--ve-shadow-popup, 0 4px 14px rgba(0,0,0,.25)); white-space: nowrap; opacity: .92; }
+        .drag-ghost.nowhere { background: var(--ve-tertiary, #9aa2ad); }
         .drop-line { position: absolute; background: var(--ve-primary, #4f8cff); border-radius: 2px; pointer-events: none; z-index: 30; box-shadow: 0 0 0 1px rgba(79,140,255,.4); }
         /* Selection & hover overlays — an editor-owned layer drawn OVER the live render (Webflow/Figma
            style), positioned relative to the scrolling .host so it stays glued without per-scroll work. */
@@ -130,6 +139,9 @@ export class EditorCanvas extends LitElement {
     /** A non-error note above the canvas (e.g. "backend unreachable — showing the offline render"). */
     @state() private info?: string
     @state() private dropIndicator: IndicatorBox | null = null
+    @state() private dropZone: IndicatorBox | null = null
+    /** Where the pointer is while a drag is on (the ghost follows it). */
+    @state() private ghostAt: { x: number; y: number } | null = null
     @state() private selBox: IndicatorBox | null = null
     @state() private selTag = ''
     /** The selected component's design note, shown as a sticky on its box (it is never rendered). */
@@ -183,8 +195,25 @@ export class EditorCanvas extends LitElement {
                         left: this.dropIndicator.left + 'px', top: this.dropIndicator.top + 'px',
                         width: this.dropIndicator.width + 'px', height: this.dropIndicator.height + 'px' })}></div>`
                     : ''}
+                ${this.dropZone
+                    ? html`<div class="drop-zone" style=${styleMap({
+                        left: this.dropZone.left + 'px', top: this.dropZone.top + 'px',
+                        width: this.dropZone.width + 'px', height: this.dropZone.height + 'px' })}></div>`
+                    : ''}
             </div>
+            ${this.drag?.active && this.ghostAt
+                ? html`<div class="drag-ghost ${this.dropIndicator ? '' : 'nowhere'}"
+                            style=${styleMap({ left: this.ghostAt.x + 14 + 'px', top: this.ghostAt.y + 14 + 'px' })}>${this.ghostLabel()}</div>`
+                : ''}
         `
+    }
+
+    /** What the ghost says: the component being added, or the one being moved. */
+    private ghostLabel(): string {
+        const drag = this.drag
+        if (drag?.kind === 'add') return '+ ' + (drag.node?.type ?? 'component')
+        const moved = drag?.from && this.doc ? nodeAt(this.doc, drag.from) : null
+        return moved?.type ?? 'component'
     }
 
     connectedCallback() {
@@ -555,10 +584,14 @@ export class EditorCanvas extends LitElement {
     private onPaletteDragStart = (e: CustomEvent) => {
         const { node, clientX, clientY } = e.detail as { node: PageNode; clientX: number; clientY: number }
         this.startDrag({ kind: 'add', node, startX: clientX, startY: clientY, active: true })
+        this.ghostAt = { x: clientX, y: clientY }
+        this.grab()
     }
 
     private startDrag(session: DragSession) {
         this.drag = session
+        // a cross-origin Redwood frame reports where its nodes are by message: ask now, it lands before the first move
+        this.redwood?.measure()
         window.addEventListener('mousemove', this.onDocMouseMove, true)
         window.addEventListener('mouseup', this.onDocMouseUp, true)
     }
@@ -569,12 +602,18 @@ export class EditorCanvas extends LitElement {
         if (!drag.active) {
             if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < DRAG_THRESHOLD) return
             drag.active = true
-            document.body.style.userSelect = 'none'
-            document.body.style.cursor = 'grabbing'
+            this.grab()
         }
+        this.ghostAt = { x: e.clientX, y: e.clientY }
         const target = this.computeDrop(e.clientX, e.clientY)
         this.pendingDrop = target ? { parentPath: target.parentPath, index: target.index } : null
         this.dropIndicator = target ? target.indicator : null
+        this.dropZone = target ? target.zone : null
+    }
+
+    private grab() {
+        document.body.style.userSelect = 'none'
+        document.body.style.cursor = 'grabbing'
     }
 
     private onDocMouseUp = () => {
@@ -601,6 +640,8 @@ export class EditorCanvas extends LitElement {
         this.drag = null
         this.pendingDrop = null
         this.dropIndicator = null
+        this.dropZone = null
+        this.ghostAt = null
         document.body.style.removeProperty('user-select')
         document.body.style.removeProperty('cursor')
     }
@@ -615,7 +656,7 @@ export class EditorCanvas extends LitElement {
             const inside = x >= r.left && x <= r.right && y >= r.top && y <= r.bottom
             return inside ? this.dropIntoContainer([], 'column', x, y) : null // empty canvas → end of root
         }
-        const path = idToPath(nodeIdOf(el))
+        const path = idToPath(el.id)
         if (!path) return null
         // Don't drop a node into itself or its own subtree.
         if (this.drag?.kind === 'move' && this.drag.from && isPrefixPath(this.drag.from, path)) return null
@@ -629,10 +670,9 @@ export class EditorCanvas extends LitElement {
         if (typeof last !== 'number') return null
         const parent = parentPath.length ? nodeAt(this.doc, parentPath) : this.doc.layout
         const orient: Orient = parent?.type === 'HorizontalLayout' ? 'row' : 'column'
-        const r = el.getBoundingClientRect()
-        const after = orient === 'row' ? x > r.left + r.width / 2 : y > r.top + r.height / 2
+        const after = orient === 'row' ? x > el.left + el.width / 2 : y > el.top + el.height / 2
         const index = last + (after ? 1 : 0)
-        return { parentPath, index, indicator: this.lineFor(parentPath, orient, index) }
+        return { parentPath, index, indicator: this.lineFor(parentPath, orient, index), zone: this.zoneOf(parentPath) }
     }
 
     private dropIntoContainer(parentPath: NodePath, orient: Orient, x: number, y: number): DropTarget {
@@ -646,7 +686,36 @@ export class EditorCanvas extends LitElement {
             const p = orient === 'row' ? x : y
             if (p < mid) { index = i; break }
         }
-        return { parentPath, index, indicator: this.lineFor(parentPath, orient, index) }
+        return { parentPath, index, indicator: this.lineFor(parentPath, orient, index), zone: this.zoneOf(parentPath) }
+    }
+
+    /** The box of the container a drop lands in (relative to .host), when it is painted (the root's is the page). */
+    private zoneOf(parentPath: NodePath): IndicatorBox | null {
+        if (!parentPath.length) return null
+        const r = this.rectOfId(pathToId(parentPath))
+        if (!r) return null
+        const hostRect = (this.renderRoot.querySelector('.host') as HTMLElement).getBoundingClientRect()
+        return { left: r.left - hostRect.left, top: r.top - hostRect.top, width: r.width, height: r.height }
+    }
+
+    /**
+     * Every painted node's box. The Vaadin canvas walks its own render; the Redwood one asks the
+     * frame (whose DOM the pointer cannot reach while a drag is on — the iframe lets it through).
+     */
+    private nodeBoxes(): NodeBox[] {
+        if (this.renderer === 'redwood') return withContainerBoxes(this.redwood?.nodeBoxes() ?? [])
+        return deepCollectTagged(this.ux).map((el) => {
+            const r = el.getBoundingClientRect()
+            return { id: nodeIdOf(el)!, left: r.left, top: r.top, width: r.width, height: r.height }
+        })
+    }
+
+    private rectOfId(id: string): NodeBox | null {
+        if (this.renderer === 'redwood') return this.nodeBoxes().find((b) => b.id === id) ?? null
+        const el = deepQueryById(this.ux, id)
+        if (!el) return null
+        const r = el.getBoundingClientRect()
+        return { id, left: r.left, top: r.top, width: r.width, height: r.height }
     }
 
     /**
@@ -654,14 +723,14 @@ export class EditorCanvas extends LitElement {
      * elements, because `document.elementsFromPoint` retargets to the shadow host and never reaches
      * the nodes inside `mateu-ux`'s shadow tree — so drag positioning must not rely on it.
      */
-    private taggedAtPoint(x: number, y: number): HTMLElement | null {
-        let best: HTMLElement | null = null
+    private taggedAtPoint(x: number, y: number): NodeBox | null {
+        let best: NodeBox | null = null
         let bestDepth = -1
         let bestArea = Infinity
-        for (const el of deepCollectTagged(this.ux)) {
-            const r = el.getBoundingClientRect()
-            if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue
-            const depth = (idToPath(nodeIdOf(el))?.length ?? 0)
+        for (const el of this.nodeBoxes()) {
+            const r = el
+            if (x < r.left || x > r.left + r.width || y < r.top || y > r.top + r.height) continue
+            const depth = (idToPath(el.id)?.length ?? 0)
             const area = r.width * r.height
             if (depth > bestDepth || (depth === bestDepth && area < bestArea)) {
                 best = el; bestDepth = depth; bestArea = area
@@ -670,25 +739,23 @@ export class EditorCanvas extends LitElement {
         return best
     }
 
-    private childRect(parentPath: NodePath, i: number): DOMRect | null {
-        const el = deepQueryById(this.ux, pathToId([...parentPath, i]))
-        return el ? el.getBoundingClientRect() : null
+    private childRect(parentPath: NodePath, i: number): NodeBox | null {
+        return this.rectOfId(pathToId([...parentPath, i]))
     }
 
     /** Geometry of the insertion line (relative to the scrolling .host content box). */
     private lineFor(parentPath: NodePath, orient: Orient, index: number): IndicatorBox {
         const host = this.renderRoot.querySelector('.host') as HTMLElement
         const hostRect = host.getBoundingClientRect()
-        const parentEl = deepQueryById(this.ux, pathToId(parentPath))
-        const pRect = parentEl?.getBoundingClientRect() ?? hostRect
+        const pRect: IndicatorBox = this.rectOfId(pathToId(parentPath)) ?? hostRect
         const count = (parentPath.length ? nodeAt(this.doc!, parentPath) : this.doc!.layout)?.content?.length ?? 0
         if (orient === 'column') {
             const r = index < count ? this.childRect(parentPath, index) : this.childRect(parentPath, count - 1)
-            const yy = r ? (index < count ? r.top : r.bottom) : pRect.top
+            const yy = r ? (index < count ? r.top : r.top + r.height) : pRect.top
             return { left: pRect.left - hostRect.left, top: yy - hostRect.top - 1, width: pRect.width, height: 2 }
         }
         const r = index < count ? this.childRect(parentPath, index) : this.childRect(parentPath, count - 1)
-        const xx = r ? (index < count ? r.left : r.right) : pRect.left
+        const xx = r ? (index < count ? r.left : r.left + r.width) : pRect.left
         return { left: xx - hostRect.left - 1, top: pRect.top - hostRect.top, width: 2, height: pRect.height }
     }
 }
@@ -720,6 +787,29 @@ function deepCollectTagged(root: Element | undefined): HTMLElement[] {
     }
     if (root) visit(root)
     return out
+}
+
+/**
+ * The boxes plus one per container that has none of its own — the union of its painted descendants'.
+ * Redwood stamps the atoms it paints, not every layout around them (a FormLayout, a row of buttons),
+ * and a drop between two fields must still land in their container.
+ */
+export function withContainerBoxes(boxes: NodeBox[]): NodeBox[] {
+    const own = new Set(boxes.map((b) => b.id))
+    const unions = new Map<string, { left: number; top: number; right: number; bottom: number }>()
+    for (const b of boxes) {
+        const path = idToPath(b.id)
+        if (!path) continue
+        for (let i = path.length - 1; i >= 1; i--) {
+            const id = pathToId(path.slice(0, i))
+            if (own.has(id)) continue
+            const u = unions.get(id)
+            unions.set(id, u
+                ? { left: Math.min(u.left, b.left), top: Math.min(u.top, b.top), right: Math.max(u.right, b.left + b.width), bottom: Math.max(u.bottom, b.top + b.height) }
+                : { left: b.left, top: b.top, right: b.left + b.width, bottom: b.top + b.height })
+        }
+    }
+    return [...boxes, ...[...unions].map(([id, u]) => ({ id, left: u.left, top: u.top, width: u.right - u.left, height: u.bottom - u.top }))]
 }
 
 /** True when `prefix` is `path` or an ancestor of it. */

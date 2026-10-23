@@ -20,6 +20,8 @@ export type EditorToFrame =
     | { mateuPreview: 'answer'; id: number; status: number; json: unknown }
     /** PLAY mode: go to this route (Play's address bar, back/forward). */
     | { mateuPreview: 'navigate'; route: string }
+    /** Where every painted node is (a drag is starting): the frame answers with `layout`. */
+    | { mateuPreview: 'measure' }
 
 export type FrameToEditor =
     /** The bridge is installed (the app is booting): it wants the current fragment. */
@@ -38,8 +40,13 @@ export type FrameToEditor =
     | { mateuPreview: 'call'; id: number; url: string; body: Record<string, unknown> }
     /** PLAY mode: the app's route changed (a menu entry, a row, a link) — Play's address bar follows. */
     | { mateuPreview: 'route'; route: string }
+    /** The answer to `measure`: the box of every painted node, in the frame's viewport. */
+    | { mateuPreview: 'layout'; nodes: NodeBox[] }
 
-const KINDS = new Set(['hello', 'rendered', 'click', 'key', 'boot-failed', 'unavailable', 'call', 'route'])
+/** A painted node's box (an element carrying its `data-node-id`), in its document's viewport. */
+export type NodeBox = { id: string; left: number; top: number; width: number; height: number }
+
+const KINDS = new Set(['hello', 'rendered', 'click', 'key', 'boot-failed', 'unavailable', 'call', 'route', 'layout'])
 
 /** The message, when it is one of the frame's; null for anything else posted to the window. */
 export function frameMessageOf(data: unknown): FrameToEditor | null {
@@ -76,6 +83,24 @@ export function redwoodPlayUrl(route: string, win: { __mateuRedwoodPreview?: str
     u.searchParams.set('play', '1')
     u.hash = '/' + (route ?? '').replace(/^\/+/, '')
     return u.toString()
+}
+
+export const measureMessage = (): EditorToFrame => ({ [PREVIEW_KEY]: 'measure' } as EditorToFrame)
+
+/**
+ * The box of every painted node of a document (the elements the frame stamped with `data-node-id`),
+ * skipping what is not painted. The bridge has the same rule (apps/redwood/poc/editorPreview.mjs
+ * nodeBoxesOf): the canvas reads the frame's DOM itself when it is same-origin (IntelliJ, the dev
+ * server) and asks for it with `measure` when it is not (VS Code).
+ */
+export function nodeBoxesOf(doc: Document): NodeBox[] {
+    const out: NodeBox[] = []
+    for (const el of Array.from(doc.querySelectorAll('[data-node-id]'))) {
+        const id = el.getAttribute('data-node-id')
+        const r = el.getBoundingClientRect()
+        if (id && (r.width || r.height)) out.push({ id, left: r.left, top: r.top, width: r.width, height: r.height })
+    }
+    return out
 }
 
 export const answerMessage = (id: number, status: number, json: unknown): EditorToFrame =>
