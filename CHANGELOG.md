@@ -11,6 +11,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.11] — 2026-10-23
+
+Redwood, the Redwood way: a record's create/edit page is Spectra's transactional page (its header,
+its sections, its anchor navigator), section actions and tabs follow Spectra, Redwood's loader while
+the app loads — and every Redwood page template is documented in Mateu terms, with screenshots.
+
 ### Documentation
 
 - **Redwood page templates, the Mateu way.** Every Redwood template guide (Advanced create and edit,
