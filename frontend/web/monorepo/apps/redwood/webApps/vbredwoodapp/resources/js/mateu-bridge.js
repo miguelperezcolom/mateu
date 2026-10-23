@@ -15798,7 +15798,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Is this a content page with a detail slot (@Aside → ContentLayout: a grid with an `aside` area)? */
   function hasAside(n) {
-    const areas = n && n.metadata && n.metadata.type === 'ResponsiveGrid' ? String(n.metadata.gridTemplateAreas || '') : ''
+    const areas = n?.metadata?.type === 'ResponsiveGrid' ? String(n.metadata.gridTemplateAreas || '') : ''
     return /(^|[\s"'])aside([\s"']|$)/.test(areas)
   }
 
@@ -15841,7 +15841,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const page = findByType(tree, 'Page')
     const declared = page && page.metadata ? page.metadata.toc : null
     const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
-    const on = !aside && (declared === true ? true : declared === false ? false : auto) && entries.length > 0
+    // tri-state: declared true forces it, declared false suppresses it, absent = auto
+    const wanted = typeof declared === 'boolean' ? declared : auto
+    const on = !aside && wanted && entries.length > 0
     return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
   }
 

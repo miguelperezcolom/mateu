@@ -6085,8 +6085,8 @@ test("an @Aside form (its sections merged into the main column) keeps each secti
   // the section's own heading is not repeated under its header
   assert.ok(!atoms.some((a) => a.isHeading && ['Order', 'Shipping'].includes(a.text)))
   // the detail slot excludes the sections index (Redwood's rule), even when @Toc is declared
-  const withToc = JSON.parse(JSON.stringify(host))
-  const pageNode = (function find(n) { if (!n || typeof n !== 'object') return null; if (n.metadata && n.metadata.type === 'Page') return n; for (const v of Object.values(n)) { const r = find(v); if (r) return r } return null })(withToc.tree)
+  const withToc = structuredClone(host)
+  const pageNode = findByType(withToc.tree, 'Page')
   assert.ok(pageNode, 'the capture has its Page node')
   pageNode.metadata.toc = true
   assert.equal(tocProjectionOf(withToc).on, false)
