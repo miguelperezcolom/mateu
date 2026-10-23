@@ -11,6 +11,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.10] — 2026-10-23
+
+Redwood: the tables on a record's edit page (a form's `List<Row>` fields) are editable.
+
 ### Fixed
 
 - **Redwood: a table on a record's edit page is editable.** A `List<Row>` field of a form edits its
