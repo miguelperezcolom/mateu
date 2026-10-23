@@ -34,10 +34,15 @@ export const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: t
 /** Verbs that validate the row before leaving (the empty required fields). */
 export const ROW_VALIDATING_VERBS = { create: true, 'create-and-stay': true, save: true }
 
-/** Is the FormField a list whose row editor opens in a dialog? */
+/**
+ * Is the FormField an editable list, whose row editor opens in a dialog? Every editable list of a
+ * form is: Redwood edits a row in a dialog whatever `formPosition` says. The wire's default is
+ * `right` (Vaadin's side panel), and only `modal*` used to count, so a plain `List<Row>` field of
+ * a record's edit page came out as a read-only table (no "+", no Edit/Remove). The server answers
+ * the list actions the same way for every position — the position is the client's choice.
+ */
 export function isModalRowEditor(field) {
-  return !!(field && !field.readOnly && !field.inlineEditing
-    && (field.columns || []).length && /^modal/.test(field.formPosition || ''))
+  return !!(field && !field.readOnly && !field.inlineEditing && (field.columns || []).length)
 }
 
 /** The lists of a tree with a modal editor (without crossing islands): fieldId → FormField. */

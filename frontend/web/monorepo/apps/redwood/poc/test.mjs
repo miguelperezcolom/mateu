@@ -3454,8 +3454,12 @@ test('rowedit: la lista modal es EDITABLE — "+" debajo, Editar/Quitar por fila
   assert.equal(withNew.state.rooms[0].line, null)
 })
 
-test('rowedit: una lista NO modal (o de solo lectura) sigue siendo una tabla sin acciones', () => {
-  assert.equal(isModalRowEditor({ columns: [{}], formPosition: 'bottom' }), false)
+test('rowedit: every editable list edits its rows in the dialog, whatever its formPosition; read-only and inline ones do not', () => {
+  // `right` is the wire's default (a plain List<Row> field of a record's edit page)
+  for (const formPosition of ['right', 'left', 'top', 'bottom', undefined, 'modal']) {
+    assert.equal(isModalRowEditor({ columns: [{}], formPosition }), true, String(formPosition))
+  }
+  assert.equal(isModalRowEditor({ columns: [], formPosition: 'right' }), false)
   assert.equal(isModalRowEditor({ columns: [{}], formPosition: 'modal', readOnly: true }), false)
   assert.equal(isModalRowEditor({ columns: [{}], formPosition: 'modal', inlineEditing: true }), false)
   assert.equal(isModalRowEditor({ columns: [{}], formPosition: 'modalRight' }), true)

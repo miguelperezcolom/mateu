@@ -1481,7 +1481,8 @@ test('Column groups: oj-table has no grouped headers, so the group label prefixe
   ] }]).map((c) => c.label), ['A · B · X', 'A · Y'])
   // a grid FIELD of a form
   const [f] = atomsOf(node({ type: 'FormField', fieldId: 'rooms', columns: [col('room', 'Room'), group] }))
-  assert.deepEqual(f.columns.map((c) => c.field), ['room', 'adults', 'children'])
+  // (an editable field: its rows' Edit/Remove column closes the table)
+  assert.deepEqual(f.columns.map((c) => c.field), ['room', 'adults', 'children', '__rowActions'])
   assert.equal(f.columns[1].headerText, 'Occupancy · Adults')
 })
 
