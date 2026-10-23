@@ -580,7 +580,8 @@ export function sectionAffordancesOf(card) {
   }
   walk(card, true)
   const primaryAction = found.edit || found.add
-  const drawn = [primaryAction, found.viewMore].filter(Boolean).map((a) => a.actionId)
+  const drawn = []
+  for (const action of [primaryAction, found.viewMore]) if (action) drawn.push(action.actionId)
   return {
     primary: { type: found.edit ? 'edit' : 'add', display: primaryAction ? 'on' : 'off' },
     primaryAction,
