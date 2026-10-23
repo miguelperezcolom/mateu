@@ -524,6 +524,13 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   only sticks in its cell, which kept the oj-sp header from sticking and left Spectra's section headers floating over
   the content; toc.mjs measures `--mateu-anchor-nav-start`/`-top`. Loader = Redwood's `oj-progress-circle` (lg):
   pre-boot static markup in `_index.html` (index-page.mjs, hidden by `oj-vb-content:not(:empty)`) and on navigation.
+- **Redwood template docs + reviews (2026-10-23).** Each Redwood page-template guide (redwood.oracle.com, index
+  `pageId=GUIDEG10`) has its Mateu counterpart on its `doc/.../ux-patterns/*.md` page, in Redwood's structure (when to
+  use, anatomy region → Mateu piece, responsive, configurable element → Mateu piece → Redwood ✅/🟡/❌, example,
+  known gaps) — texts REFORMULATED, never Oracle's text or images (public Apache-2.0 repo). Screenshots are Mateu on
+  the Redwood renderer, `doc/public/images/docs/redwood-templates/`, captured from `demo-redwood-showcase` (:8597) /
+  `demo-vb` (:9005). The element-by-element reviews (file:line, the gap backlog) are `design/redwood-templates/*.md`;
+  `ux-patterns/redwood-page-templates.md` groups the templates as Redwood does (overview/detail/transactional).
 - **Redwood (VB).** Every wire type renders (`poc/coverage.mjs`; only Workflow/FormEditor are read-only);
   an unknown type shows an "Unsupported component" placeholder. Core split into `poc/core/*.mjs` (page
   logic in `pageProjection.mjs`/`actionPlan.mjs`); chrome text in `poc/i18n.mjs` bound via the VB
