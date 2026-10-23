@@ -666,9 +666,9 @@ Releases follow the pattern `Mateu v3.0-beta.N` (formerly `v3.0-alpha.N`). To cu
 GitHub Actions handle the rest (build, publish to Maven Central, etc.) automatically once the tag is pushed.
 The same release also publishes the IDE plugins (`publish-plugins.yml`) at the framework's version:
 IntelliJ `3.0-beta.N`, VS Code `2.99.N` (the VS Code Marketplace takes only numeric, ever-growing
-versions, so betas stay below `3.0.0`; from the GA `v3.0.0` on, every version is identical — mapping
+versions, so betas stay below `3.0.0` and an rc `v3.0-rc.N` goes out as `2.999.N`; from the GA `v3.0.0` on, every version is identical — mapping
 in `scripts/plugin-versions.sh`, published as an ordinary version, not pre-release). No separate
-`plugins-v*` release is needed any more (2026-10-23); an unmapped tag (alpha, rc) fails the plugin
+`plugins-v*` release is needed any more (2026-10-23); an unmapped tag (an alpha, a beta/rc of a minor) fails the plugin
 publish rather than guessing.
 
 ---

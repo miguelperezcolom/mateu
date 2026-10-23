@@ -3,17 +3,19 @@
 # $GITHUB_ENV). The plugins follow the framework: the framework's release tag publishes them too.
 #
 #   v3.0-beta.9     → INTELLIJ_VERSION=3.0-beta.9  VSCODE_VERSION=2.99.9
+#   v3.0-rc.1       → INTELLIJ_VERSION=3.0-rc.1    VSCODE_VERSION=2.999.1
 #   v3.0.0 / v3.0   → INTELLIJ_VERSION=3.0.0/3.0   VSCODE_VERSION=3.0.0
 #   v3.0.1          → INTELLIJ_VERSION=3.0.1       VSCODE_VERSION=3.0.1
 #   plugins-v0.2.17 → both 0.2.17                  (the old dedicated plugin releases)
 #
 # JetBrains Marketplace takes the framework's version as it is. The VS Code Marketplace and Open VSX
 # take only major.minor.patch numbers, and only ever a HIGHER one than the last published. So a beta
-# of X.0 is published BELOW X.0.0 — (X-1).99.N — and from the GA on every version is the framework's
+# of X.0 is published BELOW X.0.0 — (X-1).99.N, and a release candidate (X-1).999.N, above every
+beta whatever its number — and from the GA on every version is the framework's
 # own, unchanged. (Mapping beta.N to X.0.N would have made X.0.1 lower than the last beta: rejected.)
 # Published as an ordinary version, NOT --pre-release: a pre-release only reaches users who opted
 # into that channel, and the extension's existing users would stop getting updates. A tag this
-# script does not map (an alpha, an rc, a beta of a minor) fails the publish instead of guessing.
+# script does not map (an alpha, a beta or rc of a minor) fails the publish instead of guessing.
 set -euo pipefail
 
 tag="${1:?usage: plugin-versions.sh <release tag>}"
@@ -28,6 +30,9 @@ case "$tag" in
     if [[ "$v" =~ ^([1-9][0-9]*)\.0-beta\.([0-9]+)$ ]]; then
       echo "INTELLIJ_VERSION=$v"
       echo "VSCODE_VERSION=$(( BASH_REMATCH[1] - 1 )).99.${BASH_REMATCH[2]}"
+    elif [[ "$v" =~ ^([1-9][0-9]*)\.0-rc\.([0-9]+)$ ]]; then
+      echo "INTELLIJ_VERSION=$v"
+      echo "VSCODE_VERSION=$(( BASH_REMATCH[1] - 1 )).999.${BASH_REMATCH[2]}"
     elif [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
       echo "INTELLIJ_VERSION=$v"
       echo "VSCODE_VERSION=$v"
