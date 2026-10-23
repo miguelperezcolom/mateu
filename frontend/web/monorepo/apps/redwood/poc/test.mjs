@@ -6008,11 +6008,33 @@ test('@Toc: a long sectioned page (walk-layout, toc=true) projects one entry per
   assert.equal(toc.entries[0].hint, 'Guests (Ctrl+Alt+1)')
   assert.equal(toc.entries[0].sticky, true, 'the pinned section (@Section(sticky = true)) is flagged')
   assert.equal(toc.entries[1].sticky, false)
+  // roving tabindex, as Spectra's navigator: one tab stop, the arrows move inside the list
+  assert.deepEqual(toc.entries.map((e) => e.tabIndex), [0, -1, -1, -1, -1, -1, -1])
   // the two untitled frameless bands at the top are not entries (nothing to name them by)
   assert.ok(!toc.entries.some((e) => !e.title))
   // the painted section cards carry the marker the DOM wiring finds them by, in the same order
   const blocks = iiHostContentOf(host, null, { title: 'Layout walk' })
   assert.deepEqual(blocks.filter((b) => b.sectionTitle).map((b) => b.sectionTitle), toc.entries.map((e) => e.title))
+})
+
+test("a titled @Section is Spectra's oj-sp-section: the card is flagged and its body drops the heading the section draws", async () => {
+  const { sectionBodyOf } = await import('./core/content.mjs')
+  const host = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
+  const sections = iiHostContentOf(host, null, { title: 'Layout walk' }).filter((b) => b.sectionTitle)
+  assert.ok(sections.length >= 5)
+  for (const block of sections) {
+    assert.equal(block.spSection, true, block.sectionTitle)
+    // the section's title is not repeated inside it
+    assert.ok(!block.sectionItems.some((a) => a.isHeading && a.text === block.sectionTitle), block.sectionTitle)
+  }
+  // the card's own items are untouched (other surfaces paint them as they were)
+  assert.ok(sections.some((b) => b.items[0] && (b.items[0].isHeading || b.items[0].isRow)))
+  // a heading sharing the title row with the section's buttons: the row stays, without the heading
+  const row = { isRow: true, items: [{ rowHeading: true, text: 'Guests' }, { rowButton: true, actionId: 'add' }] }
+  assert.deepEqual(sectionBodyOf([row, { isText: true, text: 'x' }]), [{ isRow: true, items: [{ rowButton: true, actionId: 'add' }] }, { isText: true, text: 'x' }])
+  assert.deepEqual(sectionBodyOf([{ isRow: true, items: [{ rowHeading: true, text: 'G' }] }, { isText: true, text: 'x' }]), [{ isText: true, text: 'x' }])
+  assert.deepEqual(sectionBodyOf([{ isHeading: true, text: 'G' }, { isText: true, text: 'x' }]), [{ isText: true, text: 'x' }])
+  assert.deepEqual(sectionBodyOf([{ isText: true, text: 'x' }]), [{ isText: true, text: 'x' }])
 })
 
 test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, not a @Zones form), a short form has none', () => {

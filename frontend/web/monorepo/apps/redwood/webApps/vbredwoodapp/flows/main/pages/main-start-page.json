@@ -1296,6 +1296,9 @@
       "oj-button": {
         "path": "ojs/ojbutton"
       },
+      "oj-popup": {
+        "path": "ojs/ojpopup"
+      },
       "oj-sp-messages-toast": {
         "path": "oj-sp/messages-toast/loader"
       },
@@ -1325,6 +1328,12 @@
       },
       "oj-sp-header-general-overview": {
         "path": "oj-sp/header-general-overview/loader"
+      },
+      "oj-sp-header-create-edit": {
+        "path": "oj-sp/header-create-edit/loader"
+      },
+      "oj-sp-section": {
+        "path": "oj-sp/section/loader"
       },
       "oj-tab-bar": {
         "path": "ojs/ojtabbar"

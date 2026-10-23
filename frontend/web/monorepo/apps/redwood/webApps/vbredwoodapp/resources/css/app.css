@@ -487,7 +487,9 @@ oj-sp-global-header [slot="start"] oj-menu-button.oj-button.oj-selected.oj-hover
   pointer-events: none;
   animation: mateu-busy-appear .2s linear .5s forwards;
 }
-.mateu-skeleton { padding: 1.25rem; max-width: 40rem; }
+/* Redwood's page loader: the large progress circle, centred in the view */
+.mateu-page-loader { display: flex; justify-content: center; align-items: center; min-height: 60vh; }
+/* the bones of the wire's Skeleton component (display.mjs skeletonAtomOf) */
 .mateu-skeleton-bone {
   background: linear-gradient(90deg,
     rgba(0,0,0,.08) 25%, rgba(0,0,0,.04) 37%, rgba(0,0,0,.08) 63%);
@@ -499,11 +501,6 @@ oj-sp-global-header [slot="start"] oj-menu-button.oj-button.oj-selected.oj-hover
   0% { background-position: 100% 50%; }
   100% { background-position: 0 50%; }
 }
-.mateu-skeleton-title { height: 1.6rem; width: 14rem; margin-block-end: 1.5rem; }
-.mateu-skeleton-pair { display: flex; flex-direction: column; gap: .4rem; margin-block: .9rem; }
-.mateu-skeleton-label { height: .8rem; width: 30%; }
-.mateu-skeleton-field { height: 2.25rem; width: 100%; }
-
 @media (prefers-reduced-motion: reduce) {
   [data-mateu-pending] { animation: none; opacity: .55; }
   .mateu-skeleton-bone { animation: none; }
@@ -1843,30 +1840,59 @@ oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-
 /* TITLE PLACEHOLDER: shown only while the title is empty — dimmed so it never reads as a real title */
 .mateu-title-placeholder .oj-sp-header-general-overview-page-title { color: var(--oj-core-text-color-secondary); font-style: italic; }
 
-/* STICKY SECTIONS INDEX (@Toc → mateuToc, poc/toc.mjs): the content container becomes a two-column
-   grid — everything it holds in the first column, the index alone in a 13rem second one, pinned under
-   whatever is stuck at the top. One entry per titled @Section, the one in view highlighted. */
-.mateu-has-toc { display: grid; grid-template-columns: minmax(0, 1fr) 13rem; column-gap: 1.5rem; align-items: start; }
-.mateu-has-toc > :not(.mateu-toc) { grid-column: 1; min-width: 0; }
-.mateu-toc { grid-column: 2; grid-row: 1 / span 400; position: sticky; top: 1rem; align-self: start; padding: 0.5rem 0 0.5rem 0.75rem; border-left: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, .16)); }
-.mateu-toc-nav { display: flex; flex-direction: column; gap: 0.125rem; }
-.mateu-toc-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.5rem; border-radius: 4px; border-left: 2px solid transparent; margin-left: -0.75rem; padding-left: calc(0.75rem - 2px + 0.5rem);
-  color: var(--oj-core-text-color-secondary, #4f4a44); font: inherit; font-size: 0.875rem; line-height: 1.25rem; text-decoration: none; cursor: pointer; }
-.mateu-toc-item:hover { color: var(--oj-core-text-color-primary, #161513); background: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .04)); }
-.mateu-toc-item:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, #3b5bdb); outline-offset: 1px; }
-.mateu-toc-item.is-active { color: var(--oj-core-text-color-primary, #161513); font-weight: 600; border-left-color: var(--oj-core-brand-color-1, #3b5bdb); }
-.mateu-toc-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mateu-toc-key { flex: 0 0 auto; font-size: 0.6875rem; line-height: 1rem; min-width: 1rem; text-align: center; border-radius: 3px; padding: 0 0.25rem; color: var(--oj-core-text-color-secondary, #4f4a44); background: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .06)); }
-.mateu-toc-item.is-active .mateu-toc-key { color: var(--oj-core-text-color-primary, #161513); }
+/* SECTIONS INDEX (@Toc → mateuToc, poc/toc.mjs) — Spectra's VERTICAL ANCHOR NAVIGATOR. The markup is the
+   component's (main-start-page.html says why it is not the component itself); these rules MIRROR its
+   own stylesheet (oj-sp/vertical-anchor-navigator 2604.1.0: Navigator.css), scoped to .mateu-anchor-nav
+   instead of the oj-sp-vertical-anchor-navigator element. Anatomy, as the component lays it out: the
+   page header spans the page; under it, the content and the navigator side by side (oj-md-9 / oj-sm-3
+   from lg up); from md down the list folds into a "Sections" button that opens it in a popup. */
+/* Not a grid: a sticky element only sticks inside its containing block, which for a grid item is
+   its own cell — the oj-sp page header (sticky on scroll) never stuck, and Spectra's section headers,
+   positioned under the header Spectra believed stuck, covered the sections' content. So the content
+   flows as usual leaving the navigator's room on the right, and the navigator is a column of its own
+   from under the page header (--mateu-anchor-nav-start, measured by toc.mjs) to the end. */
+.mateu-has-toc { position: relative; --mateu-anchor-nav-width: clamp(12rem, 25%, 20rem); --mateu-anchor-nav-gap: var(--oj-core-spacing-6x, 1.5rem); }
+.mateu-has-toc > :not(.mateu-anchor-nav):not([id^="mateuPageHeader"]):not(.mateu-header-overline) {
+  margin-inline-end: calc(var(--mateu-anchor-nav-width) + var(--mateu-anchor-nav-gap)); }
+/* the page toast is display:inline: in block flow it would leave an empty 21px line above the header */
+.mateu-has-toc > oj-sp-messages-toast { display: block; }
+.mateu-anchor-nav { position: absolute; top: var(--mateu-anchor-nav-start, 0px); bottom: 0; inset-inline-end: var(--mateu-anchor-nav-gap); width: var(--mateu-anchor-nav-width); }
+.mateu-anchor-nav-list { position: sticky; top: var(--mateu-anchor-nav-top, 0px); padding-top: 1rem; }
+.mateu-anchor-nav-bar { display: none; }
+.mateu-anchor-nav ul, .oj-sp-vertical-anchor-navigator-popup ul { margin: 0; padding: 0; list-style: none; }
+.mateu-anchor-nav .oj-sp-navigator-list-item,
+.oj-sp-vertical-anchor-navigator-popup .oj-sp-navigator-list-item {
+  padding: 0.9rem 0.5rem 1rem 0; line-height: 1.3rem; cursor: pointer;
+  border: 1px solid transparent; border-left: 1px solid rgba(var(--oj-palette-neutral-rgb-190), 0.3); }
+.oj-sp-vertical-anchor-navigator-popup .oj-sp-navigator-list-item { padding: 0.5rem 0; }
+.mateu-anchor-nav .oj-sp-navigator-list-item:hover,
+.oj-sp-vertical-anchor-navigator-popup .oj-sp-navigator-list-item:hover { background-color: var(--oj-core-bg-color-hover); }
+.mateu-anchor-nav .oj-sp-navigator-list-item:focus-visible,
+.oj-sp-vertical-anchor-navigator-popup .oj-sp-navigator-list-item:focus-visible { outline: 0; border: 1px dotted var(--oj-heading-text-color); }
+.mateu-anchor-nav .oj-sp-navigator-list-item span,
+.oj-sp-vertical-anchor-navigator-popup .oj-sp-navigator-list-item span { color: var(--oj-core-text-color-secondary); }
+.mateu-anchor-nav .selected-anchor-item-icon,
+.oj-sp-vertical-anchor-navigator-popup .selected-anchor-item-icon { opacity: 0; }
+.mateu-anchor-nav .oj-sp-navigator-list-item.anchor-item-selected,
+.oj-sp-vertical-anchor-navigator-popup .oj-sp-navigator-list-item.anchor-item-selected { border-left: 1px solid var(--oj-heading-text-color); }
+.mateu-anchor-nav .anchor-item-selected span,
+.oj-sp-vertical-anchor-navigator-popup .anchor-item-selected span { opacity: 1; color: var(--oj-heading-text-color); font-weight: var(--oj-label-font-weight); }
+@keyframes mateuAnchorIconIn { from { opacity: 0; } to { opacity: 1; } }
+.mateu-anchor-nav .anchor-item-selected .selected-anchor-item-icon { animation: mateuAnchorIconIn 0s 0.3s forwards; }
+.oj-sp-vertical-anchor-navigator-popup .anchor-item-selected .selected-anchor-item-icon { opacity: 1; }
+.oj-sp-vertical-anchor-navigator-popup { width: 19.5rem; max-height: 70vh; overflow-x: hidden; overflow-y: auto; }
+/* md down (the component's own breakpoint, oj-md = 768px+ … below lg 1024px): the list folds into the
+   "Sections" button, pinned at the top of a narrow column, which opens it in a popup */
+@media (max-width: 63.99rem) {
+  .mateu-has-toc { --mateu-anchor-nav-width: 2.5rem; }
+  .mateu-anchor-nav-list { display: none; }
+  .mateu-anchor-nav-bar { display: block; position: sticky; top: var(--mateu-anchor-nav-top, 0px); padding-top: 0.625rem; }
+}
 /* oj-drawer-layout wraps the content in overflow:auto boxes that never scroll themselves (the window
    does): a sticky inside them never sticks. Same remedy as the record page's pinned header: clip
    (no scroll container) while a page carries the index. */
 .oj-drawer-layout-main-content:has(.mateu-has-toc),
 .oj-drawer-layout-middle-section:has(.mateu-has-toc) { overflow: clip; }
-@media (max-width: 64rem) {
-  .mateu-has-toc { display: block; }
-  .mateu-toc { display: none; }
-}
 
 /* FOLDED foldout panel (FoldoutPanel.open = false, poc/foldouts.mjs): the component's own panel
    reduced to a strip that shows its title vertically. Its container keeps the layout's click /

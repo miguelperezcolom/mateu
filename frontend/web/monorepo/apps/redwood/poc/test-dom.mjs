@@ -647,14 +647,14 @@ test('calendar: cambiar de vista es del DOM; un evento clicable o un día (clic 
 })
 
 // ── @Toc: the sticky sections index ──────────────────────────────────────────────────────────
-test('toc: a click on an entry scrolls to its section (no anchor navigation) and keeps it highlighted; Ctrl+Alt+N jumps; the spy follows the reading line', () => {
+test('toc: a click on an entry scrolls to its section (no anchor navigation) and keeps it highlighted; Ctrl+Alt+N jumps; the spy follows the reading line', async () => {
   const { doc, win, el, fire } = makeDom()
   const scrolls = []
   win.scrollBy = (o) => scrolls.push(o.top)
   const titles = ['Guests', 'Document', 'Contact', 'Notes']
   const sections = titles.map((t, i) => el('div', { 'data-mateu-section': t, box: { top: 100 + i * 500, height: 400 } }))
-  const items = titles.map((t, i) => el('a', { href: '#', class: 'mateu-toc-item', 'data-toc-index': String(i), text: t }))
-  const toc = el('aside', { class: 'mateu-toc' }, el('nav', {}, ...items))
+  const items = titles.map((t, i) => el('li', { role: 'tab', class: 'oj-sp-navigator-list-item mateu-toc-item', 'data-toc-index': String(i), text: t }))
+  const toc = el('aside', { class: 'mateu-toc mateu-anchor-nav' }, el('ul', { role: 'tablist' }, ...items))
   doc.body.appendChild(el('div', { class: 'mateu-has-toc' }, toc, ...sections))
   // an untitled marker (a frameless band) is not a section of the index
   doc.body.appendChild(el('div', { 'data-mateu-section': '' }))
@@ -663,25 +663,25 @@ test('toc: a click on an entry scrolls to its section (no anchor navigation) and
   assert.deepEqual(tocSectionsOf(doc).map((s) => s.getAttribute('data-mateu-section')), titles)
   // click «Contact» (section 3, top 1100): scroll by its distance to the reading line (16px of air)
   const click = fire(items[2].querySelector ? items[2] : items[2], 'click')
-  assert.ok(click.defaultPrevented, 'the anchor does not navigate (VB would reboot on /#)')
+  assert.ok(click.defaultPrevented, 'the entry does not navigate (VB would reboot on /#)')
   assert.deepEqual(scrolls, [1100 - 16])
-  assert.ok(items[2].classList.contains('is-active'))
-  assert.equal(items[2].getAttribute('aria-current'), 'true')
-  assert.ok(!items[0].classList.contains('is-active'))
+  assert.ok(items[2].classList.contains('anchor-item-selected'))
+  assert.equal(items[2].getAttribute('aria-selected'), 'true')
+  assert.ok(!items[0].classList.contains('anchor-item-selected'))
   // locked on the click: a scroll event that lands elsewhere does not move the highlight…
   sections.forEach((s, i) => s.box({ top: -3000 + i * 500, height: 400 }))
   fire(win, 'scroll', { bubbles: false })
-  assert.ok(items[2].classList.contains('is-active'), 'still the clicked one')
+  assert.ok(items[2].classList.contains('anchor-item-selected'), 'still the clicked one')
   // …until the user scrolls by hand (wheel): then the spy picks the section at the reading line
   fire(win, 'wheel', { bubbles: false })
   fire(win, 'scroll', { bubbles: false })
-  assert.ok(items[3].classList.contains('is-active'), 'the last section whose top is above the line')
-  assert.equal(items[3].getAttribute('aria-current'), 'true')
-  assert.equal(items[2].getAttribute('aria-current'), null)
+  assert.ok(items[3].classList.contains('anchor-item-selected'), 'the last section whose top is above the line')
+  assert.equal(items[3].getAttribute('aria-selected'), 'true')
+  assert.equal(items[2].getAttribute('aria-selected'), 'false')
   // Ctrl+Alt+2 (physical key, layout-independent): «Document»
   const key = fire(doc.body, 'keydown', { key: '@', code: 'Digit2', ctrlKey: true, altKey: true })
   assert.ok(key.defaultPrevented)
-  assert.ok(items[1].classList.contains('is-active'))
+  assert.ok(items[1].classList.contains('anchor-item-selected'))
   assert.equal(scrolls.length, 2)
   // a digit without the modifiers, or one past the entries: nothing
   fire(doc.body, 'keydown', { key: '3', code: 'Digit3' })
@@ -692,9 +692,60 @@ test('toc: a click on an entry scrolls to its section (no anchor navigation) and
   sections.forEach((s, i) => s.box({ top: 70 + i * 500, height: 400 }))
   fire(win, 'wheel', { bubbles: false })
   fire(win, 'scroll', { bubbles: false })
-  assert.ok(items[0].classList.contains('is-active'), 'Guests (70) is just under the 64px header + air: in view')
+  assert.ok(items[0].classList.contains('anchor-item-selected'), 'Guests (70) is just under the 64px header + air: in view')
+  // the navigator sticks right under the pinned header (what Spectra's PositionUtility does for its own)
+  assert.equal(doc.documentElement.style.getPropertyValue('--mateu-anchor-nav-top'), '64px')
+  // the navigator's column starts under the page header the container holds (measured in place)
+  const { tocNavStart } = await import('./toc.mjs')
+  const header = el('oj-sp-header-create-edit', { id: 'mateuPageHeaderInlineCE', box: { top: 94, height: 108 } })
+  const body = el('div', { box: { top: 202, height: 900 } })
+  const box = el('div', { class: 'mateu-has-toc', box: { top: 94, height: 1008 } }, header, body)
+  assert.equal(tocNavStart(box), 108)
+  // once the header is stuck at the top (scrolled), its box says nothing: keep the last value
+  box.box({ top: -800, height: 1008 })
+  header.box({ top: 0, height: 108 })
+  assert.equal(tocNavStart(box), null)
+  assert.equal(tocNavStart(el('div', { class: 'mateu-has-toc', box: { top: 94, height: 900 } }, el('div', { box: { top: 94, height: 900 } }))), 0, 'no header: from the top')
   assert.equal(tocActiveIndex([0, 500, 1000], 520), 1)
   assert.equal(tocActiveIndex([300, 800], 16), 0, 'nothing above the line: the first')
+  // the component's keyboard: ↓/↑ move the focus between entries, Enter goes to the focused one
+  let focused = null
+  items.forEach((it) => { it.focus = () => { focused = it } })
+  const down = fire(items[0], 'keydown', { key: 'ArrowDown' })
+  assert.ok(down.defaultPrevented)
+  assert.equal(focused, items[1])
+  fire(items[1], 'keydown', { key: 'ArrowUp' })
+  assert.equal(focused, items[0])
+  const before = scrolls.length
+  const enter = fire(items[3], 'keydown', { key: 'Enter' })
+  assert.ok(enter.defaultPrevented)
+  assert.equal(scrolls.length, before + 1, 'Enter scrolls to its section')
+  assert.ok(items[3].classList.contains('anchor-item-selected'))
+})
+
+test('toc: on md-down the "Sections" button opens the list in its popup, and choosing an entry closes it', () => {
+  const { doc, win, el, fire } = makeDom()
+  win.scrollBy = () => {}
+  const sections = ['A', 'B'].map((t, i) => el('div', { 'data-mateu-section': t, box: { top: 100 + i * 500, height: 400 } }))
+  const entry = el('li', { role: 'tab', class: 'oj-sp-navigator-list-item mateu-toc-item', 'data-toc-index': '1', text: 'B' })
+  const button = el('oj-button', { id: 'mateuAnchorNavJump', class: 'mateu-anchor-nav-jump' })
+  const popup = el('oj-popup', { id: 'mateuAnchorNavPopup' }, el('ul', {}, entry))
+  let open = false
+  let launcher = null
+  popup.open = (l) => { open = true; launcher = l }
+  popup.close = () => { open = false }
+  popup.isOpen = () => open
+  doc.body.appendChild(el('div', { class: 'mateu-has-toc' }, el('aside', { class: 'mateu-anchor-nav' }, button, popup), ...sections))
+  installToc(doc, win)
+  fire(button, 'click')
+  assert.equal(open, true)
+  assert.equal(launcher, button, 'opened next to the button')
+  fire(entry, 'click')
+  assert.equal(open, false, 'choosing a section closes the popup')
+  assert.ok(entry.classList.contains('anchor-item-selected'))
+  fire(button, 'click')
+  fire(button, 'click')
+  assert.equal(open, false, 'the button toggles it')
 })
 
 // ── capture fields ──────────────────────────────────────────────────────────────────────────

@@ -514,6 +514,16 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   `chromeTexts.lint.test.ts` fails on new hard-coded UI strings). `MateuRendererApp` is gone. CI runs
   ESLint, `test:coverage` with ratcheted thresholds in libs/mateu and apps/vaadin, and the eager-bundle
   budget (`apps/vaadin/scripts/check-bundle-budget.mjs` vs `bundle-budget.json`).
+- **Redwood create/edit pages = Spectra's (2026-10-23).** Rule: in Redwood, Spectra (oj-sp) and VB rule — use their
+  component/template and contract before drawing our own. A page whose toolbar CANCELS (`cancel`/`cancel-edit`/
+  `cancel-new`/`cancel-create`, not `cancel-view`) beside a primary action gets `oj-sp-header-create-edit`
+  (`pageHeaderOf` → `header.createEdit`); a titled `@Section` card is `oj-sp-section` (`spSection` + `sectionItems`
+  = atoms without the heading, `sectionBodyOf`); the `@Toc` index MIRRORS `oj-sp-vertical-anchor-navigator` (markup,
+  CSS in app.css, keyboard, md-down popup) because the component renders the sections itself from Preact nodes a VB
+  dynamic-form layout hands it and cannot host VB-painted content. `.mateu-has-toc` is NOT a grid: a sticky grid item
+  only sticks in its cell, which kept the oj-sp header from sticking and left Spectra's section headers floating over
+  the content; toc.mjs measures `--mateu-anchor-nav-start`/`-top`. Loader = Redwood's `oj-progress-circle` (lg):
+  pre-boot static markup in `_index.html` (index-page.mjs, hidden by `oj-vb-content:not(:empty)`) and on navigation.
 - **Redwood (VB).** Every wire type renders (`poc/coverage.mjs`; only Workflow/FormEditor are read-only);
   an unknown type shows an "Unsupported component" placeholder. Core split into `poc/core/*.mjs` (page
   logic in `pageProjection.mjs`/`actionPlan.mjs`); chrome text in `poc/i18n.mjs` bound via the VB

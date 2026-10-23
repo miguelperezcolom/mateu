@@ -178,7 +178,7 @@ export class FakeElement extends Target {
     this._text = ''
     this.ownerDocument = null
     this._rect = null
-    this.style = { cssText: '' }
+    this.style = { cssText: '', setProperty(k, v) { this[k] = String(v) }, getPropertyValue(k) { return this[k] || '' } }
     const el = this
     this.classList = {
       _set: () => new Set((el.getAttribute('class') || '').split(/\s+/).filter(Boolean)),
@@ -195,6 +195,8 @@ export class FakeElement extends Target {
     })
   }
   get children() { return this.childNodes.filter((n) => n.nodeType === 1) }
+  get nextElementSibling() { const k = this.parentNode ? this.parentNode.children : []; return k[k.indexOf(this) + 1] || null }
+  get previousElementSibling() { const k = this.parentNode ? this.parentNode.children : []; return k[k.indexOf(this) - 1] || null }
   get id() { return this.getAttribute('id') || '' }
   set id(v) { this.setAttribute('id', v) }
   get className() { return this.getAttribute('class') || '' }

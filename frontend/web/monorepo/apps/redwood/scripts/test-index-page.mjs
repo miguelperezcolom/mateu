@@ -58,6 +58,14 @@ test('anchors the runtime and the app at the app folder, with the cache-busting 
   assert.doesNotMatch(page, /version_1/)
 })
 
+test("Redwood's loader spins until Visual Builder mounts the app, with no script of its own", () => {
+  // the markup JET renders for <oj-progress-circle size="lg" value="-1">, right after the VB mount point
+  assert.match(page, /<oj-vb-content config="\[\[vbApplication\]\]"><\/oj-vb-content>\s*<div class="mateu-boot-loader" role="progressbar"[^>]*>\s*<div class="oj-progress-circle oj-progress-circle-lg"><div class="oj-progress-circle-indeterminate"><div class="oj-progress-circle-indeterminate-inner"><\/div><\/div><\/div>/)
+  // hidden by CSS alone once VB fills its mount point, and never shown without JavaScript
+  assert.match(page, /oj-vb-content:not\(:empty\) \+ \.mateu-boot-loader \{ display: none; \}/)
+  assert.match(page, /<noscript>\s*<style>\.mateu-boot-loader \{ display: none; \}<\/style>/)
+})
+
 test('a fact cannot close the inline script', () => {
   const evil = indexPage({ ...facts, settings: { JET_URL: "x</script><b>'" } }, { appDir: '_redwood', hash: 'h' })
   assert.doesNotMatch(evil, /x<\/script>/)

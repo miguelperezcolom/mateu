@@ -905,6 +905,12 @@ export function islandContentOf(ctx, opts = {}) {
       const cardInner = m.content
       if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))
       else if (cardInner && typeof cardInner === 'object' && cardInner.metadata) visit(cardInner, card)
+      // a titled @Section is painted by Spectra's own section, oj-sp-section: it draws the title
+      // (with its accent marker) itself, so its body is the card's atoms without that heading
+      if (card.sectionTitle) {
+        card.spSection = true
+        card.sectionItems = sectionBodyOf(card.items)
+      }
       plain = null
       return
     }
@@ -1998,4 +2004,20 @@ export function wizardForwardOf(ctx) {
     }
   }
   return forward
+}
+
+/**
+ * A section card's body for oj-sp-section, which draws the section's title itself: its atoms
+ * without the leading heading — or, when the heading shares a title row with the section's buttons
+ * (@Section(editAction…), an @Inline type's @Toolbar), that row without its heading.
+ */
+export function sectionBodyOf(items) {
+  const list = items || []
+  const first = list[0]
+  if (first && first.isHeading) return list.slice(1)
+  if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading)) {
+    const rest = first.items.filter((i) => !(i && i.rowHeading))
+    return rest.length ? [{ ...first, items: rest }].concat(list.slice(1)) : list.slice(1)
+  }
+  return list
 }
