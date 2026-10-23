@@ -3,17 +3,98 @@ title: Dashboard
 description: Give users a prioritized, at-a-glance overview of their essential business status.
 ---
 
-**Status:** ✅ Implemented
+**Status:** ✅ Implemented · Redwood template: **Dashboard landing page** (`oj-sp-dashboard-landing-page`, overview category)
 
-## Intent
+A dashboard landing page is the screen a user opens to find out how the business is doing before
+deciding what to work on. It condenses figures that usually live in many places into two layers: a
+strip of key numbers that answers "where do we stand?", and a grid of panels — charts, short lists,
+notes — that explain why the numbers are what they are and lead to the detail behind them. A
+featured heading can introduce the grid when one metric deserves the spotlight.
 
-Give users a landing page that summarises the status of their business at a glance: a band of KPIs on top and a grid of titled panels (charts, lists, notes) below, each one an entry point to more detail.
+In Mateu this is the `Dashboard` archetype: you declare fields holding components, and Mateu turns
+the `MetricCard` fields into the KPI strip (the *scoreboard*) and the `@Panel` fields into the tiles
+of a responsive grid.
 
-## Problem
+## When to use it
 
-Operational users open the app dozens of times a day just to answer "is everything OK?". Forcing them through listings and detail screens to reconstruct that answer wastes time; hand-building a dashboard with raw layouts means re-inventing metric tiles, grid placement and responsive behaviour on every project.
+- As the **home route** of an operational back office: the scoreboard answers "is everything OK?"
+  and every panel is one click away from whatever is not.
+- When the figures come from **several sources** and the user needs them side by side to compare
+  trends, rather than one listing at a time.
+- With **one dominant visualization** (put it first and let it span the whole row — Redwood calls
+  this the *hero* arrangement) or with **two to five panels that must be visible together** (the
+  *above-the-fold* arrangement).
 
-## Solution
+Don't use it when the overview is about a single collection — a listing with `@KPI` header facts
+does that better — or to complete a task: a dashboard reads, it does not edit.
+
+## Anatomy
+
+![The dashboard landing page painted by the Redwood renderer: header, KPI strip and panel grid](/images/docs/redwood-templates/dashboard-landing-1.png)
+
+| # | Region | What it holds | Mateu piece |
+|---|---|---|---|
+| 1 | Page header | Page title, optional subtitle, primary action, optional timestamp, optional context/object switcher | `@Title`; `@Toolbar` methods (the first primary-styled one is the primary action) |
+| 2 | Scoreboard | A strip of KPI tiles: label, value, trend, short caption; a tile may lead to the detail | consecutive `MetricCard` fields (fluent: `Scoreboard`) |
+| 3 | Performance title | An optional heading that introduces the grid and names the metric being featured | — no dedicated piece (see [Known gaps](#known-gaps)) |
+| 4 | Dashboard grid | The arrangement of the panels: one dominant panel, or several in a row | the archetype's `ResponsiveGrid`; `columns()`, `@Panel(colSpan, rowSpan)` |
+| 5 | Dashboard panel | One business story: a title, a subtitle and its content (a chart, a list, a map…) | a component field with `@Panel(title, subtitle)` (fluent: `DashboardPanel`) |
+
+Any component field without `@Panel` lands on the grid as a bare tile, and a field of any other type
+is ignored, so ordinary state fields can live on the class.
+
+## Responsive behaviour
+
+Redwood keeps the scoreboard as one horizontal strip (scrolling sideways when the tiles do not fit)
+and reflows the grid panels from a row into a single column as the window narrows.
+
+In Mateu the grid is one `ResponsiveGrid`:
+
+- **No `columns()`** (the default, `0`): the tiles auto-fit — as many 16rem tiles per row as the
+  width allows, down to one per row on a phone.
+- **`columns()` = N**: N equal tracks on wide screens; each `@Panel(colSpan)` takes that many of
+  them, the KPI strip takes the whole row, and everything stacks on small screens.
+
+The KPI tiles wrap onto a second line rather than scrolling sideways.
+
+## What you can configure
+
+**Legend:** ✅ supported · 🟡 partial · ❌ not supported · ➖ not applicable
+
+| Element | Mateu piece | Redwood | Notes |
+|---|---|---|---|
+| Page title (required) | `@Title` | ✅ | painted by the shared Spectra page header |
+| Subtitle | — | ❌ | a dashboard composes its own tree, so `@Subtitle` is not read |
+| Primary action | `@Toolbar(buttonStyle = ButtonStyle.primary)` method | ✅ | further `@Toolbar` methods become secondary actions |
+| Timestamp ("last updated") | — | ❌ | `@Timestamp` is a form-page feature |
+| Context / object switcher | — | ❌ | `RecordSwitcherSupplier` needs a reflected page header |
+| KPI tiles | `MetricCard` fields → scoreboard | 🟡 | painted as a row of JET panels, not Spectra's `oj-sp-scoreboard` |
+| KPI drill-in | `MetricCard.actionId` | 🟡 | Redwood adds a "View" button under the value instead of making the tile clickable |
+| KPI timeframe | `MetricCard.timeframe` | ✅ | shown under the value and read in the tile's accessible name |
+| Sticky scoreboard | — | ❌ | the strip scrolls with the page |
+| Maximum visible KPIs | — | ❌ | every declared metric renders |
+| Performance title | — | ❌ | |
+| Grid arrangement (hero / above the fold) | `columns()` + `@Panel(colSpan)` | 🟡 | `colSpan` honoured with or without `columns()`; `rowSpan` is ignored on Redwood |
+| Panel title and subtitle | `@Panel(title, subtitle)` | 🟡 | a JET `oj-panel` card, not `oj-sp-dashboard-panel` |
+| Panel content: chart | `Chart`, `TrendChart` | ✅ | JET `oj-chart` |
+| Panel content: list | `Grid`, `StatusList`, `Markdown`… | ✅ | |
+| Panel content: map | `Map` | ✅ | Leaflet over OpenStreetMap (JET has no street map) |
+| Panel content: treemap, sunburst | — | ❌ | no Mateu component (`Heatmap` is the nearest) |
+| Empty panel | `EmptyState` as the panel content | ✅ | Spectra's `oj-sp-empty-state` |
+| General / create-edit drawer | an action returning a `Drawer` | ✅ | |
+| Page width | `@PageWidth` on the class | ✅ | fixed by default; full width and edge to edge also allowed by Redwood |
+| Density | override `style()` to return `StyleConstants.COMPACT` | ✅ | `@Compact` is not read on composed archetypes |
+| Viewer-arranged tiles | `reorderable()` | 🟡 | each viewer's own order, kept in the browser; no shared layouts |
+| PWA back arrow | — | ➖ | |
+
+## Building it with Mateu
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 Extend `Dashboard` and declare fields holding components. Mateu lays them out as a dashboard grid:
 
@@ -51,12 +132,25 @@ public class SalesDashboard extends Dashboard {
 
     @Panel(title = "Notes")
     Markdown notes = new Markdown("- Summer campaign starts **July 15th**", null, null);
+
+    @Override
+    protected int columns() {
+        return 3;            // "Monthly sales" takes two of the three columns
+    }
+
+    @Toolbar(buttonStyle = ButtonStyle.primary)
+    Object newCampaign() {   // the header's primary action
+        return URI.create("/campaigns/new");
+    }
 }
 ```
 
 ![Sales dashboard](/images/docs/dashboard/sales-dashboard.png)
 
 Populate the fields in the constructor or field initializers — query your use cases or repositories there, exactly like any other Mateu view-model. Override `columns()` to fix the number of grid columns; the default (`0`) lets the renderer pick a responsive auto-fit count.
+
+For the hero arrangement, give the dominant panel `colSpan` equal to `columns()` and declare it
+first; for the above-the-fold arrangement, keep two to five panels whose spans fill one or two rows.
 
 ### Drill-in
 
@@ -73,6 +167,8 @@ Object openPending() {
     return URI.create("/approvals");
 }
 ```
+
+![A KPI tile leading to its listing on Redwood](/images/docs/redwood-templates/dashboard-landing-2.png)
 
 ### Tiles the viewer can rearrange
 
@@ -142,8 +238,8 @@ every template are documented once in [Page templates](/ux-patterns/page-templat
 | `dashboard-panel {panelTitle, panelSubtitle}` | `@Panel(title, subtitle)` / `DashboardPanel` | ✅ |
 | `dashboard-grid` placement | `@Panel(colSpan, rowSpan)`; `columns()` fixes the column count (`0` = responsive auto-fit) | ✅ |
 | `displayOptions.scoreboardSticky` | — the band scrolls with the page | — |
-| `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
-| `selectContext` / `selectObject` + `displayOptions.switcherSearch` | `RecordSwitcherSupplier` on a page with a header (the reflected form variant). The `Dashboard` archetype composes its own heading and has no page header, so it cannot carry one | 🟡 |
+| `displayOptions.density: standard \| compact` | override `style()` to return `StyleConstants.COMPACT` (`@Compact` is read only on reflected pages) | 🟡 |
+| `selectContext` / `selectObject` + `displayOptions.switcherSearch` | `RecordSwitcherSupplier`, but only on a reflected page with a header — the `Dashboard` archetype (and an `@AutoPage`-inferred dashboard) composes its own tree and cannot carry one | 🟡 |
 | `editLayoutMode` (drag tiles) | `reorderable()`: each viewer drags the tiles into their own order, kept in their browser | 🟡 |
 | `contentLibraryData`, `editLayoutOptions {share, properties, contentLibraryFilters}` | ⚪ adding tiles from a content library and sharing layouts are a Fusion Apps concern, out of scope by decision | ⚪ |
 | `spRestoreDefaults`, `spShare` | ⚪ part of the same edit-layout feature | ⚪ |
@@ -152,16 +248,25 @@ every template are documented once in [Page templates](/ux-patterns/page-templat
 
 | | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
 |---|---|---|---|---|---|---|---|
-| `Dashboard` archetype (scoreboard band + panels) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `Dashboard` archetype (scoreboard band + panels) | ✅ | ✅ | ✅ | ✅ | ✅ ¹ | ✅ | ✅ |
 | `MetricCard.actionId` drill-in | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `MetricCard.timeframe` (under the value + in the accessible name) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `@AutoPage` inference (MetricCard fields → dashboard) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Reorderable tiles | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
 
+¹ With `columns()` set; see the caution under [Responsive behaviour](#responsive-behaviour).
+
 The renderer columns of the first three rows need no dashboard code: the archetype is pure
 composition on the one responsive grid. Tile reordering is client-side (the viewer's own order),
 built on the web renderers (Vaadin, Redwood) only.
 
-## When to use it
+## Known gaps
 
-Use a dashboard as the **home route** of operational backoffices: the scoreboard answers "is everything OK?" and the panels give one-click access to whatever is not. Prefer `AutoCrud` listings with `@KPI` headers when the overview is about a single collection rather than the whole business.
+The full element-by-element review, with code references, is in
+[dashboard-landing review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/dashboard-landing.md). In short:
+
+- On Redwood a KPI drill-in is a «View» button rather than a clickable tile, and `rowSpan` is ignored.
+- The page is composed from Redwood pieces, not Spectra's `oj-sp-dashboard-landing-page`,
+  `oj-sp-scoreboard` or `oj-sp-dashboard-panel`.
+- No subtitle, timestamp, record switcher, performance title or sticky scoreboard on the archetype.
+- `@Compact` is not read on a dashboard; use `style()`.

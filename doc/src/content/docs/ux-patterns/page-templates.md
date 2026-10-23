@@ -9,7 +9,8 @@ detail pane, the guided process, the create-and-edit drawer. Mateu covers these 
 UI model: you extend an archetype or set a flag, and the page comes out with the template's anatomy
 on every renderer that paints its components (see the Redwood column).
 
-This page is the map. Each row names the template (RDS naming), the Mateu piece that builds it,
+This page is the map. For the same templates grouped the way Redwood groups them — overview,
+detail and transactional pages — see [Redwood page templates](/ux-patterns/redwood-page-templates/). Each row names the template (RDS naming), the Mateu piece that builds it,
 and where to see it running. **The normal way to build a UI starts here**: list the screens your
 app needs, decide the [page type](/ux/page-types/) and the template for each one, then declare the data — choosing the template is
 your call per screen (Mateu only composes it for you in two fully-derivable cases; see
@@ -21,7 +22,7 @@ your call per screen (Mateu only composes it for you in two fully-derivable case
 | **Smart Search page** | `SmartSearchPage<Filters, Row>` archetype — a standalone, search-first page: intro line + smart search bar with typed facets + results; starts empty | `/smart-search-demo` | [Smart search](/ux-patterns/smart-search/) | ✅ |
 | **To-do list** | `TodoList<Row>` archetype — pending work as counted buckets of actionable cards; clicking a task acts on it | `/todo-list-demo` | [To-do list](/ux-patterns/to-do-list/) | ✅ |
 | **Create and Edit — Simple** | `AutoCrud<T>` — routed `/new` and `/{id}/edit` forms with validation, optimistic locking and dirty guard | `/products` | [Create and edit](/ux-patterns/create-and-edit/) | ✅ |
-| **Create and Edit — Advanced** | a sectioned transactional form with a canonical header (save/cancel, `@Timestamp`, `@KPI` facts, peer-nav) and either `@Toc` (section index) or `@Aside` (detail slot) | — | [Advanced create & edit](/ux-patterns/advanced-create-and-edit/) | 🟡 no `@Toc` index |
+| **Create and Edit — Advanced** | a sectioned transactional form with a canonical header (save/cancel, `@Timestamp`, `@KPI` facts, peer-nav) and either `@Toc` (section index) or `@Aside` (detail slot) | `/advanced-create-edit-demo` (`demo-redwood-showcase`) | [Advanced create & edit](/ux-patterns/advanced-create-and-edit/) | ✅ `oj-sp-header-create-edit`, `oj-sp-section`, the section index as Spectra's anchor navigator |
 | **Create and Edit — Drawer** | `editInDrawer()` on the crud — the form slides over the listing, which never unmounts | `/drawer-crud-demo` | [Drawer](/ux-patterns/drawer/#crud-editing-in-a-drawer-editindrawer) | ✅ |
 | **Waterfall detail** | Composition — a `VerticalLayout` of `EntityHeader` + full-width `Card`/property-list panels telling the record top-to-bottom | — | [Waterfall detail](/ux-patterns/waterfall-detail/) | ✅ |
 | **Step-by-step** | `Wizard` + `@WizardProgress(STEPS)` — the classic numbered-step stepper with done/current/upcoming states | `/branching-wizard` | [Wizard](/ux-patterns/wizard/) | ✅ `oj-train` |

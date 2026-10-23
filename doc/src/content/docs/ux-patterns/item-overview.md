@@ -3,17 +3,75 @@ title: Item overview
 description: Keep an item's key information pinned while exploring the rest in tabs.
 ---
 
-**Status:** ✅ Implemented
+**Status:** ✅ Implemented · Redwood template: **Item overview page** (`oj-sp-item-overview-page` + `oj-sp-item-overview`; Redwood files it under *Details*)
 
-## Intent
+An item overview page pairs a compact summary of one item — its name, picture, status and a handful
+of key values — with a main area where the rest of the item's information is explored. The summary
+stays put while the user works through the main area, so the identity of the item is never out of
+sight. It suits people who manage many items of the same kind and move between them: a recruiter
+going through candidates, a buyer going through products.
 
-Keep the key information about the item the user is working on — name, status, stock, price — always visible in a left-hand panel, while the rest of the page (charts, specifications, history) is organised in tabs.
+In Mateu this is the `ItemOverview` archetype: the first component field is the key-info panel, and
+every `@Panel` field becomes a tab of the main area.
 
-## Problem
+## When to use it
 
-On tabbed detail pages the identifying information lives in the first tab, so as soon as the user switches to "Reviews" they lose sight of what item they are looking at. Repeating the header in every tab wastes space and drifts out of sync.
+- **Read-mostly detail pages** of items managed in numbers (candidates, products, assets), where
+  identity context matters across categories of information.
+- When the main area is mostly **collections** — orders, attachments, history — shown one category
+  at a time.
 
-## Solution
+If the user must *edit* the item, prefer `AutoEditableView`; if the categories must be visible
+simultaneously rather than tabbed, use the [Foldout](/ux-patterns/foldout) pattern; for a long
+single-flow page with an index, use `@Toc` + sticky sections.
+
+## Anatomy
+
+![The item overview painted by the Redwood renderer: page header, key-info panel on the left, tabs on the right](/images/docs/redwood-templates/item-overview-1.png)
+
+| # | Region | What it holds | Mateu piece |
+|---|---|---|---|
+| 1 | Navigation actions | Back to the parent page, optional search, previous / next sibling item | the page header: `@Title`, a `@Toolbar` method named `back` (or `cancel`, `close`) or the automatic parent breadcrumb |
+| 2 | Item overview (the key-info panel) | Item title and subtitle, badge, avatar or photo, item actions, a body of key values, footer links | the first component field without `@Panel` (any component tree — typically an `EntityHeader`, an `Avatar`/`Image` and property rows); `panelWidth()` |
+| 3 | Main slot | Detailed information about the item, typically tables and lists | component fields with `@Panel(title)`, one tab each |
+
+## Responsive behaviour
+
+On large screens the key-info panel is fully open beside the main area. On small screens Redwood
+collapses it into a strip above the main area, and the user taps it to see everything.
+
+In Mateu the two regions sit on one responsive grid: on Vaadin the key-info column is fixed-width
+(`panelWidth()`, 22rem by default) and **sticky**, and the page stacks the panel above the tabs below
+48rem. The Redwood renderer uses a one-third / two-thirds split that stacks below its `md`
+breakpoint; the panel is neither sticky nor collapsible there yet.
+
+![The item overview on a phone-width window](/images/docs/redwood-templates/item-overview-2.png)
+
+## What you can configure
+
+**Legend:** ✅ supported · 🟡 partial · ❌ not supported · ➖ not applicable
+
+| Element | Mateu piece | Redwood | Notes |
+|---|---|---|---|
+| Page layout (fixed / full width) | `@PageWidth` | ✅ | edge to edge is not offered by Redwood for this template |
+| Display mode (header colour) | — | ❌ | |
+| Parent navigation | a `@Toolbar` method named `back` (or `cancel`, `close`), or the automatic parent breadcrumb | ✅ | Redwood's "go to parent" link in the page header |
+| Search in the navigation | — | ❌ | |
+| Previous / next item | — | ❌ | `PeerNavigationSupplier` is not read on composed archetypes; host the overview in a CRUD record page that provides it |
+| Item title / subtitle | an `EntityHeader` (or `Text`s) in the key-info panel; `@Title` for the page header | 🟡 | composed inside the panel, not the component's own title |
+| Badge | `EntityHeader.badges` in the panel | 🟡 | |
+| Avatar / photo | an `Avatar` or `Image` in the panel | 🟡 | no 1:1 / 4:3 aspect setting |
+| Edit / share / favourite | — | ❌ | declare your own `@Toolbar` actions instead |
+| Secondary item actions (up to 3) | `@Toolbar` methods | 🟡 | they go to the page header, not to the panel |
+| Body (key values) | the panel's component tree (property rows, `Markdown`, a read-only form) | ✅ | |
+| Footer links | links or buttons at the end of the panel's tree | 🟡 | no dedicated footer area |
+| Panel width | `panelWidth()` | 🟡 | ignored by Redwood (one third of the row) |
+| Sticky key-info panel | built in | 🟡 | sticky on Vaadin, not on Redwood |
+| Collapsed panel on small screens | — | ❌ | the panel stacks fully expanded |
+| Main slot: table, list | `Grid`, `StatusList`, any component in a `@Panel` tab | ✅ | Redwood draws tables with `oj-table` |
+| Main slot tabs | one `@Panel` field per tab | ✅ | `oj-tab-bar`; overflowing tabs go to a menu on phones |
+
+## Building it with Mateu
 
 :::note[Imports]
 The samples leave out their `import` lines and compile with single-type imports. Some names exist
@@ -29,10 +87,15 @@ Extend `ItemOverview`. The first component field is the **key-info panel** (left
 @Title("Ergonomic chair EC-200")
 public class ProductOverview extends ItemOverview {
 
-    Markdown keyInfo = new Markdown("""
-        ### Ergonomic chair EC-200
-        **SKU:** EC-200-BLK · **Stock:** 143 · **Price:** 349 €
-        """, null, null);
+    EntityHeader keyInfo = EntityHeader.builder()
+        .title("Ergonomic chair EC-200")
+        .subtitle("Office seating")
+        .badges(List.of(new Chip("In stock", "success")))
+        .facts(List.of(
+            new Fact("SKU", "EC-200-BLK"),
+            new Fact("Stock", "143"),
+            new Fact("Price", "349 €")))
+        .build();
 
     @Panel(title = "Sales")
     Chart sales = Chart.builder().chartType(ChartType.bar) /* … */ .build();
@@ -42,6 +105,12 @@ public class ProductOverview extends ItemOverview {
 
     @Panel(title = "Reviews")
     Markdown reviews = new Markdown("⭐⭐⭐⭐⭐ …", null, null);
+
+    @Toolbar
+    Object back() { return URI.create("/products"); }   // named `back`: the header's parent link
+
+    @Toolbar(buttonStyle = ButtonStyle.primary)
+    Object reorder() { return URI.create("/product/EC-200/reorder"); }
 }
 ```
 
@@ -73,13 +142,13 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 | **Slot** `overview` (key info) | the first component field, sticky; width via `panelWidth()` (default `22rem`) | ✅ |
 | **Slot** `main` | component fields annotated `@Panel`, rendered as tabs | ✅ |
 | `overviewExpanded` + `spOverviewCollapse` | — the key-info panel is always expanded | — |
-| `nextItem` / `previousItem` + `getPreviousNextItems` | `PeerNavigationSupplier` → `PeerNav` | ✅ |
+| `nextItem` / `previousItem` + `getPreviousNextItems` | `PeerNavigationSupplier` → `PeerNav` on a page that is not a composed archetype (e.g. a CRUD record page hosting the overview); the `ItemOverview` archetype itself cannot carry it | 🟡 |
 
 ### Key-info pattern (`item-overview`)
 
 | Redwood prop / slot | Mateu | |
 |---|---|---|
-| `itemTitle` / `itemSubtitle` | compose them in the key-info panel — typically an `EntityHeader`, which the renderer hoists into the page header | ✅ |
+| `itemTitle` / `itemSubtitle` | compose them in the key-info panel — typically an `EntityHeader`; Redwood paints it inside the panel | 🟡 |
 | `photo {src}` | `EntityHeader` image / any component in the panel | ✅ |
 | `badge {text, style: strong \| subtle, position: leading \| trailing}` | `@BadgeInHeader` / `EntityHeader` badges; no `position` control | 🟡 |
 | `isFavorite` + `spExpand` | — | — |
@@ -87,6 +156,13 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 | **Slots** `body` / `footer` | the panel is a single component tree; compose a `VerticalLayout` | 🟡 |
 | `spEdit` / `spShare` | your own `@Action` methods behind declared buttons | 🟡 |
 
-## When to use it
+## Known gaps
 
-Use item overview for **read-mostly detail pages** where identity context matters across categories. If the user must *edit* the item, prefer `AutoEditableView`; if the categories must be visible simultaneously rather than tabbed, use the [Foldout](/ux-patterns/foldout) pattern; for a long single-flow page with an index, use `@Toc` + sticky sections.
+The element-by-element review, with code references, is in
+[item-overview review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/item-overview.md). In short:
+
+- Redwood paints the page with JET pieces (a panel and an `oj-tab-bar`), not Spectra's
+  `oj-sp-item-overview-page`; an attempt was made and reverted.
+- On Redwood the key-info panel is not sticky, ignores `panelWidth()` and does not collapse on
+  small screens.
+- No previous/next, search, edit/share/favourite or footer area on the archetype.

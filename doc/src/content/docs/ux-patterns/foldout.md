@@ -3,17 +3,78 @@ title: Foldout
 description: Show a record overview beside fold-out panels with categories of associated information.
 ---
 
-**Status:** ✅ Implemented
+**Status:** ✅ Implemented · Redwood template: **Foldout layout** (`oj-sp-foldout-layout` + `oj-sp-foldout-panel`; Redwood files it under *Details*)
 
-## Intent
+A foldout page shows one business object — or one running process — as a row of panels. The first
+panel is the overview: who or what this is, and its key facts. Each further panel holds one category
+of information that belongs to it (payments, history, contacts, notes…). The user reads across the
+row, folds panels away to make room for others, and keeps the overview in sight the whole time.
 
-Show everything about one business object on a single screen: a fixed overview panel with the record's key information, plus two or more lateral panels — payments, history, notes… — that the user folds in and out as needed.
+In Mateu this is the `Foldout` archetype: the first component field is the overview, every `@Panel`
+field is a fold-out panel.
 
-## Problem
+## When to use it
 
-Object pages with many categories of associated information usually hide them behind tabs, so the user can only see one category at a time and loses the record context while switching. Long vertical pages bury the categories below the fold instead.
+- **Record workspaces** where the user works one object at a time and hops between two or more
+  categories of associated information — reservations, contracts, patient records, an employee.
+- When seeing **several categories side by side** matters more than seeing one in depth.
 
-## Solution
+Prefer `@Tab` when categories are mutually exclusive and context loss is acceptable, the
+[Item overview](/ux-patterns/item-overview/) when one tabbed area is enough, or `MasterDetailView`
+when the "categories" are really alternative detail parts of a master form.
+
+## Anatomy
+
+![The foldout layout painted by the Redwood renderer: navigation header, overview panel and three fold-out panels](/images/docs/redwood-templates/foldout-layout-1.png)
+
+| # | Region | What it holds | Mateu piece |
+|---|---|---|---|
+| 1 | Navigation header | Go back to the parent, move to the previous / next object of the same kind, optional search | `navigationHeader()` → `FoldoutNavigation` |
+| 2 | Overview panel | The object's identity and key information (avatar, name, contact details…), with an optional Edit action | the first component field without `@Panel`; `headerTitle()` (defaults to `@Title`); a `List<Badge>` field; `overviewEditActionId()` |
+| 3 | Fold-out panels | One category of associated information each; a folded panel shows only its title (and a short summary) | component fields with `@Panel(title, subtitle, icon, open)`; `panelSummary(field)` |
+| 4 | Drill-down | A deeper level opened from a panel, inside the same layout | — not supported |
+
+**Orientation.** By default (vertical) the overview is the first column at the left of the panels.
+With `orientation()` = `FoldoutOrientation.horizontal` the overview becomes a band across the top
+and the panels run below it.
+
+## Responsive behaviour
+
+The layout is a horizontal carousel: open panels sit side by side, the row scrolls sideways when
+they do not fit, and page dots show where the user is. On narrow screens one panel fills the width
+at a time. On Redwood all of this is Spectra's own `oj-sp-foldout-layout`; the Vaadin shell draws
+the same carousel (`mateu-vaadin-foldout`), and the native renderers show the panels as an accordion.
+
+A panel declared `open = false` starts folded as a narrow strip with its title; selecting it (click,
+keyboard focus or its page dot) unfolds it.
+
+## What you can configure
+
+**Legend:** ✅ supported · 🟡 partial · ❌ not supported · ➖ not applicable
+
+| Element | Mateu piece | Redwood | Notes |
+|---|---|---|---|
+| Page width | edge to edge by default (`Foldout.pageWidth()`); `@PageWidth` overrides | ✅ | |
+| Orientation (vertical / horizontal) | `orientation()` | ✅ | horizontal uses the layout's `overview` slot |
+| Go to parent | `FoldoutNavigation.parentLabel` + `parentActionId` | ✅ | |
+| Previous / next object | `FoldoutNavigation.previousActionId` / `nextActionId` | ✅ | both arrows show once `previousActionId` is set |
+| Search in the header | — | ❌ | |
+| Overview title | `headerTitle()` / `@Title` | ✅ | the overview panel's title |
+| Overview badges | a `List<Badge>` field (`headerBadges()`) | 🟡 | painted as JET badges at the top of the overview, all neutral (the badge colour is not used) |
+| Overview Edit action | `overviewEditActionId()` | ✅ | the panel's own pencil action |
+| Panel title | `@Panel(title)` | ✅ | defaults to the field label |
+| Panel subtitle | `@Panel(subtitle)` | 🟡 | joined to the title ("Payments · Charges and refunds") |
+| Panel icon | `@Panel(icon)` | 🟡 | Spectra's panel has no icon; Mateu draws a decorative one beside the title |
+| Panel width | `FoldoutPanel.width` (fluent) | ✅ | |
+| Starts folded | `@Panel(open = false)` | ✅ | |
+| Summary on the folded strip | `panelSummary(field)` / `FoldoutPanel.summary` | 🟡 | a line Mateu draws under the title, not the panel's `summary` slot |
+| Panel actions | — (only the overview has Edit) | ❌ | put buttons inside the panel content |
+| Recommendation area | — | ❌ | |
+| "No data" state | `EmptyState` as the panel content | 🟡 | |
+| Drill-down | — | ❌ | |
+| Page header with actions | `@Toolbar` methods | ✅ | a foldout with toolbar actions keeps the regular page header above the layout |
+
+## Building it with Mateu
 
 :::note[Imports]
 The samples leave out their `import` lines and compile with single-type imports. Some names exist
@@ -43,6 +104,24 @@ public class BookingFoldout extends Foldout {
 
     @Panel(title = "Notes", open = false)   // starts folded
     Markdown notes = new Markdown("...", null, null);
+
+    @Override
+    public FoldoutNavigation navigationHeader() {
+        return FoldoutNavigation.builder()
+                .parentLabel("Bookings").parentActionId("backToBookings")
+                .previousActionId("previousBooking").nextActionId("nextBooking")
+                .build();
+    }
+
+    @Override
+    public String overviewEditActionId() {
+        return "editBooking";
+    }
+
+    @Action Object backToBookings() { return URI.create("/bookings"); }
+    @Action Object previousBooking() { return URI.create("/booking/2026-08116"); }
+    @Action Object nextBooking() { return URI.create("/booking/2026-08118"); }
+    @Action Object editBooking() { return URI.create("/booking/2026-08117/edit"); }
 }
 ```
 
@@ -97,7 +176,7 @@ protected Component panelSummary(String panelFieldName) {
 Fluent: `FoldoutPanel.builder()....summary(component)`. It travels as the child slotted
 `summary-N` and is drawn in the strip under the title; renderers whose panels never fold (the
 React Native accordion keeps it under a closed panel's title, IntelliJ under the panel heading)
-show it as a one-line digest.
+show it as a one-line digest. Redwood draws the summary's texts as one line under the panel title.
 
 ![Folded panels showing their summary](/images/docs/foldout/summary.png)
 
@@ -130,7 +209,7 @@ for them. The canonical page-header elements shared by every template are docume
 | `selectedPanel` (controlled selection) | `@Panel(open = …)` / `FoldoutPanel.open` set the initial state — the component has no folded state, so an `open = false` panel starts as a strip (title + summary) and selecting it (click, keyboard focus, its page dot) unfolds it; the selection is not a controlled prop afterwards | 🟡 |
 | `animate` | the renderer animates folding; not configurable | 🟡 |
 | `displayOptions.bidirectionalNavigation` | on when `FoldoutNavigation.previousActionId` is set (both arrows drawn) | ✅ |
-| `displayOptions.background: default \| transparent` | — (`style`/`cssClasses` escape hatch) | — |
+| `displayOptions.background: default \| transparent` | — the Redwood renderer always uses `transparent` (`style`/`cssClasses` escape hatch) | — |
 | `displayOptions.inFlowBack` + `spInFlowBack` | — | — |
 
 ### Panel (`foldout-panel`)
@@ -138,13 +217,18 @@ for them. The canonical page-header elements shared by every template are docume
 | Redwood prop / slot | Mateu | |
 |---|---|---|
 | `panelTitle` | `@Panel(title)` / `FoldoutPanel.title` (defaults to the field label) | ✅ |
-| — | `subtitle`, `icon`, `width` are Mateu additions with no Redwood equivalent (the Redwood renderer draws `icon` in the panel's top-end corner, beside its title) | ✅ |
+| — | `subtitle`, `icon`, `width` are Mateu additions with no Redwood equivalent (the Redwood renderer joins `subtitle` to the title and draws `icon` in the panel's top-end corner, beside its title) | ✅ |
 | **Slot** default | `@Panel` field value / `FoldoutPanel.content` | ✅ |
-| **Slot** `summary` (what shows on the **collapsed strip**) | `panelSummary(panelFieldName)` / `FoldoutPanel.summary` | ✅ |
+| **Slot** `summary` (what shows on the **collapsed strip**) | `panelSummary(panelFieldName)` / `FoldoutPanel.summary` — Redwood draws it as a line in the default slot, because the component reads its `summary` slot only once, before the page binds it | 🟡 |
 | **Slot** `recommendation` | — | — |
 | **Slot** `noData` | — compose an `EmptyState` as the panel content | 🟡 |
 | `secondaryActions` + `spAction {actionId}` | the overview panel's Edit pencil: `overviewEditActionId()`; other panel-level actions live inside the panel content | 🟡 |
 
-## When to use it
+## Known gaps
 
-Use a foldout for **record workspaces** where the user works one object at a time and hops between its associated categories — reservations, contracts, patient records. Prefer `@Tab` when categories are mutually exclusive and context loss is acceptable, or `MasterDetailView` when the "categories" are really alternative detail parts of a master form.
+The element-by-element review, with code references, is in
+[foldout-layout review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/foldout-layout.md). In short:
+
+- No drill-down level, no search in the navigation header, no recommendation area.
+- Panels other than the overview cannot declare their own header actions.
+- On Redwood the folded-strip summary and the panel icon are drawn by Mateu, not by Spectra's slots.

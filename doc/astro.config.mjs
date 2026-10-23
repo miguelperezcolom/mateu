@@ -210,6 +210,7 @@ export default defineConfig({
 									items: [
 										{ slug: 'ux-patterns/page-templates', label: 'Page Templates' },
 										{ slug: 'ux-patterns/choosing-a-page-template', label: 'Choosing a Page Template' },
+										{ slug: 'ux-patterns/redwood-page-templates', label: 'Redwood Page Templates' },
 										{ slug: 'ux-patterns/create-and-edit' },
 										{ slug: 'ux-patterns/advanced-create-and-edit', label: 'Advanced Create & Edit' },
 										{ slug: 'ux-patterns/smart-search' },

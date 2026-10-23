@@ -9,6 +9,10 @@ description: Guide sequential flows with inter-step dependencies.
 
 Guide sequential flows where each step depends on what was chosen in earlier steps.
 
+A wizard is also how you build the Oracle Redwood **Guided Process** page template: a long task broken
+into named steps with a table of contents beside them, that the user can leave and resume — see
+[The Redwood guided process](#the-redwood-guided-process) below.
+
 ## Problem
 
 An onboarding flow where step 3 depends on what was selected in step 1 cannot be safely collapsed into one large form — the user could advance without completing required choices, or see irrelevant fields. Jumping between pages with no intermediate validation breaks the flow.
@@ -265,6 +269,142 @@ Account setup
                                          ← no navigation buttons
 ```
 
+## The Redwood guided process
+
+The Redwood **Guided Process** template turns a complex job into a short list of named steps, so the
+user always sees how far along they are, what is left, and can come back to it later. In Mateu it is a
+`Wizard` annotated `@WizardProgress(WizardProgressStyle.RAIL)`; the Redwood renderer paints it with
+Redwood's own guided-process component (`oj-sp-guided-process`), the other renderers with the step
+form beside a sticky rail.
+
+![A guided process on Redwood: the step form on the left, the steps and the n | total counter on the right, Cancel and Continue in the footer](/images/docs/redwood-templates/guided-process-1.png)
+
+### When to use it
+
+- A **complex, infrequent** task — a set-up, an onboarding, a transfer — of **2 to 25 steps**, done
+  in order or not, by one person or handed between several, possibly over several sessions.
+- Steps that **depend on earlier answers** (some appear or disappear) — `stepApplies`.
+- Long processes the user should be able to **save and resume** — `Draftable`.
+
+Pick something else when the process is two or three short steps (a
+[guided process drawer](/ux-patterns/drawer/#guided-process-drawer-a-wizard-in-a-drawer-embeddedview)),
+when it is really one form (the [advanced create & edit](/ux-patterns/advanced-create-and-edit/) page or
+a [create-and-edit drawer](/ux-patterns/drawer/#crud-editing-in-a-drawer-editindrawer)), or when the
+user faces a list of independent tasks submitted one by one (a [to-do list](/ux-patterns/to-do-list/)).
+
+When designing the steps: one decision or action per step, related steps grouped in order, data
+dependencies respected, and fields that condition each other kept in the same step. Past ten steps,
+consider fewer, bigger steps.
+
+### Anatomy
+
+A guided process has up to three kinds of page:
+
+| Page / region | What it holds | Mateu piece |
+|---|---|---|
+| **Overview** (Redwood only) | the process title and subtitle over the steps laid out side by side; *Start*, or *Resume* when the process is under way | `@Title` / `TitleSupplier`, `@Subtitle` / `SubtitleSupplier`, the step fields |
+| **Step page — title** | the process title and the current step's title | `@Title`; the step field's `@Label` (else its humanised name) |
+| **Step page — body** | the forms, tables and other content needed for the step | the step class: its fields, `@Section`s, grids, its own `@Toolbar` buttons |
+| **Step page — table of contents** | the steps, the current one marked, the `n \| total` counter | built from the applicable steps (`stepApplies`) |
+| **Step page — footer** | *Cancel*, *Continue*, the completion action on the last step; optionally *Skip*, *Save*, *Save and close* | `next`, `@WizardCompletionAction` (+ its `@Label`), `stepSkippable`, `Draftable` |
+| **Completion panel** | what the user sees once the process is done | the last step field — the result screen |
+
+![The overview: process title and subtitle over the steps, with Start](/images/docs/redwood-templates/guided-process-2.png)
+
+### Responsive behaviour
+
+On Redwood the component does it: on wide screens the overview lays the steps out side by side and
+the step page shows the table of contents expanded on the right; on narrow screens the overview
+stacks the steps and the table of contents folds behind the `n | total` page number, opening over
+the content. Mateu's extra footer buttons (*Skip*, *Save*, *Save and close*) are a row in the step
+body that wraps. On the other renderers the rail is a sticky right-hand column beside the step form.
+
+![The step page at phone width: the table of contents behind the page number](/images/docs/redwood-templates/guided-process-3.png)
+
+### What you can configure
+
+**Legend:** ✅ the Redwood renderer paints it · 🟡 partly / differently · ❌ not available on Redwood.
+
+| Element | Mateu piece | Redwood | Note |
+|---|---|---|---|
+| Process title / subtitle | `@Title` / `@Subtitle` (or their suppliers) | ✅ | |
+| Step titles | step field `@Label` | ✅ | |
+| Step subtitle (description) | — | ❌ | |
+| Step status | done / current / upcoming | 🟡 | done steps are marked completed; no *error* or *warning* status |
+| Overview (interactive, non-interactive, off) | — | 🟡 | always the component's default overview |
+| Branching steps | `stepApplies(step)` | ✅ | the table of contents follows |
+| Jump to a step from the table of contents | done steps only | 🟡 | going back works; forward you advance with *Continue* |
+| Continue / Cancel | built in | ✅ | *Cancel* returns to the app's home page |
+| Completion action and its label | `@WizardCompletionAction` + `@Label` | ✅ | |
+| Completion offered before the last step | `@WizardCompletionAction(availableFromStep = "…")` | ❌ | not wired to the component yet |
+| Skip optional steps | `stepSkippable(step)` | 🟡 | a Mateu button in the step body |
+| Save draft / Save and close / resume | `Draftable` | 🟡 | the buttons are Mateu's, in the step body; resuming opens on the right step ✅ |
+| Switch an affordance off or make it inert | `display()` → `WizardDisplay` (`Toggle`) | ✅ | |
+| Validate before moving / veto a move | required-field checks, `beforeStepNavigate(from, to, rq)` | ✅ | |
+| Timestamp, avatar, checklist | — | ❌ | |
+| Completion panel | the result step | 🟡 | shown as the process's last screen; no *start again* / *back* actions |
+| Page width (edge to edge) | `@PageWidth(PageWidthStyle.EDGE_TO_EDGE)` | 🟡 | not the default — declare it |
+
+### Building it with Mateu
+
+```java
+public class SupplierStep implements WizardStep {
+  @NotEmpty String businessName;
+  String taxId;
+}
+
+public class ContactsStep implements WizardStep {
+  @Email String email;
+  String phone;
+}
+
+public class BankStep implements WizardStep {
+  String iban;
+}
+
+public class SupplierCreated implements WizardStep {
+  @PlainText String summary = "The supplier has been registered.";
+}
+
+@UI("/suppliers/new")
+@Title("New supplier")
+@Subtitle("Register a supplier in three steps")
+@WizardProgress(WizardProgressStyle.RAIL)
+@PageWidth(PageWidthStyle.EDGE_TO_EDGE)
+public class NewSupplier extends Wizard implements Draftable {
+
+  @Label("General information") SupplierStep general = new SupplierStep();
+  @Label("Contacts")            ContactsStep contacts = new ContactsStep();
+  @Label("Bank details")        BankStep bank = new BankStep();
+  @Label("Supplier registered") SupplierCreated done;     // the completion panel
+
+  @Override protected boolean stepSkippable(String step) { return "contacts".equals(step); }
+
+  @Override public Object saveDraft(HttpRequest rq) { return null; }      // "Draft saved"
+  @Override public String resumeStep(HttpRequest rq) { return null; }     // start from the first step
+
+  @WizardCompletionAction
+  @Label("Create")
+  Object create() { return null; }                                        // null → the result step
+}
+```
+
+### Known gaps
+
+On the Redwood renderer (details and code references in [guided-process review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/guided-process.md)
+in the repository):
+
+- *Skip*, *Save* and *Save and close* are Mateu buttons in the step body, not the component's own
+  footer actions;
+- `@WizardCompletionAction(availableFromStep)` is not passed to the component, and the early
+  completion button may be lost or Next shown twice;
+- the page is fixed-width unless you declare edge to edge, which is the only width Redwood allows;
+- *Cancel* goes to the home page with no server hook;
+- no step subtitle, no error/warning step status, no checklist, timestamp or avatar; the overview
+  mode is not configurable; the browser's back button does not step back;
+- the demos (`/booking` in the Redwood showcase, `/end-of-day` in the PMS demo) do not exercise drafts,
+  skipping or early completion.
+
 ## Redwood parameter and slot reference
 
 What the Redwood `guided-process` template exposes, and what Mateu gives you for it. The gaps here
@@ -276,17 +416,17 @@ are documented once in [Page templates](/ux-patterns/page-templates/).
 
 | Redwood prop / slot | Mateu | |
 |---|---|---|
-| `processTitle` / `processSubtitle` | `getTitle()` / `@Title` | ✅ |
+| `processTitle` / `processSubtitle` | `getTitle()` / `@Title`, `@Subtitle` / `SubtitleSupplier` | ✅ |
 | `steps[]` / `currentStep` | step fields; `numberOfSteps()`, `currentStepNumber()`, `getStep()` | ✅ |
 | `displayOptions.checklistDisplay: current \| all` | `@WizardProgress(BAR \| STEPS \| RAIL)` picks the progress presentation | ✅ |
 | Conditional steps | `stepApplies(stepFieldName)` — branching | ✅ |
 | Completion step | **Slot** `completionStep` ↔ `@WizardCompletionAction` + the done state | ✅ |
 | Validation before advancing | `validations()` runs before the step advances | ✅ |
 | `avatar` + `displayOptions.avatar` | `PageDto.avatar/icon` on the canonical header | 🟡 |
-| `primaryAction.availableFromStep` (enable the finish action from step N on) | `@WizardCompletionAction(availableFromStep = "…")` | ✅ |
+| `primaryAction.availableFromStep` (enable the finish action from step N on) | `@WizardCompletionAction(availableFromStep = "…")` — not yet passed to the Redwood component | 🟡 |
 | `resumeStepId` (resume where the user left off) | `Draftable.resumeStep(rq)` | ✅ |
-| `displayOptions {save, saveAndClose}` + `spSave` / `spSaveAndClose` (drafts) | `Draftable.saveDraft` / `closeDraft` + `WizardDisplay.saveDraft` / `saveAndClose` | ✅ |
-| `spSkip {skippedStepId}` (user-initiated skip) | `stepSkippable(step)` + `WizardDisplay.skip` | ✅ |
+| `displayOptions {save, saveAndClose}` + `spSave` / `spSaveAndClose` (drafts) | `Draftable.saveDraft` / `closeDraft` + `WizardDisplay.saveDraft` / `saveAndClose` — on Redwood they are Mateu buttons in the step body, not the component's footer actions | ✅ |
+| `spSkip {skippedStepId}` (user-initiated skip) | `stepSkippable(step)` + `WizardDisplay.skip` — a Mateu button on Redwood | ✅ |
 | `spBeforeNext` / `spBeforeStepNavigate` (cancelable hooks) | `beforeStepNavigate(from, to, rq)` | ✅ |
 | `completionStatus` / `continueWorkingStatus` | the done state is terminal | 🟡 |
 | `displayOptions.overviewAnimation` | — | — |

@@ -16,6 +16,12 @@ import io.mateu.mdd.redwoodshowcase.ui.itemoverview.ProductOverview;
 import io.mateu.mdd.redwoodshowcase.ui.smartsearch.AssetSearch;
 import io.mateu.mdd.redwoodshowcase.ui.todolist.FrontDeskTasks;
 import io.mateu.mdd.redwoodshowcase.ui.welcome.WelcomeDemo;
+import io.mateu.mdd.redwoodshowcase.ui.createedit.EmployeeEdit;
+import io.mateu.mdd.redwoodshowcase.ui.createedit.OrderEdit;
+import io.mateu.mdd.redwoodshowcase.ui.drawer.BottomDrawerDemo;
+import io.mateu.mdd.redwoodshowcase.ui.drawer.GeneralDrawerDemo;
+import io.mateu.mdd.redwoodshowcase.ui.datamanagement.DataManagementDemo;
+import io.mateu.mdd.redwoodshowcase.ui.ganttpage.GanttPageDemo;
 import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Title;
@@ -58,6 +64,20 @@ public class ShowcaseApp {
   @Menu Catalog listCrud;
 
   @Menu ContactsDrawerCrud drawerCrud;
+
+  // the Redwood drawer templates (general = side, bottom = docked) and the two data-heavy pages
+  @Menu GeneralDrawerDemo generalDrawer;
+
+  @Menu BottomDrawerDemo bottomDrawer;
+
+  @Menu DataManagementDemo dataManagement;
+
+  // Advanced create and edit: with the section index (@Toc) and with a detail slot (@Aside)
+  @Menu EmployeeEdit advancedCreateEdit;
+
+  @Menu OrderEdit advancedCreateEditAside;
+
+  @Menu GanttPageDemo ganttPage;
 
   @Menu BookingWizard guidedProcess;
 

@@ -3,15 +3,74 @@ title: Data management
 description: A dense, full-width page that shows the same data as a grid and as a Gantt, with a toolbar switcher between them — the Redwood Data management template.
 ---
 
-**Status:** ✅ Implemented (Java; .NET/Python ports planned)
+**Status:** ✅ Implemented (Java, .NET, Python)
 
 ## Intent
 
-Present a data set two ways — a **data grid** and a **Gantt timeline** — on one dense, full-width
-page, with a toolbar switcher so the user can review it as a table or as a schedule. The Oracle
-Redwood **Data management** template.
+Present a large data set two ways — a **data grid** and a **Gantt timeline** — on one dense,
+full-width page, with a toolbar switcher so the user can review it as a table or as a schedule, and
+panels docked beside or under it for details and messages. The Oracle Redwood **Data management**
+template.
 
-## How
+In Redwood the template is a *transactional* workspace for complex data: the user sorts, filters and
+edits the grid in place, follows the same records as tasks on a timeline, and keeps supporting
+information in panels around them. Mateu's `DataManagement` archetype gives the page, the switcher
+and the docked panels; the grid and the Gantt are whatever components you hand it.
+
+## When to use it
+
+- A big, homogeneous set of records the user **reviews and plans** — production operations, a bill of
+  materials, a project's tasks — where both a tabular and a time-based view make sense.
+- The user needs density: many columns, many rows, little chrome, the full width of the window.
+- Not for a plain list with a detail page (use a [CRUD](/ux-patterns/inline-crud-editing/) or a
+  [collection detail](/ux-patterns/collection-detail/)), and not for a schedule alone (use the
+  [Gantt page](/ux-patterns/gantt/#gantt-page-template-ganttpage-archetype)).
+
+## Anatomy
+
+| Region | What it holds | Mateu piece |
+|---|---|---|
+| Page header | title (Redwood: also subtitle, avatar, Save/Cancel, undo/redo, history, timestamp) | `heading()` — the class `@Title` by default; no header actions (see *Known gaps*) |
+| Toolbar | the view switcher and the panel toggles (Redwood: also edit icons, sort, export, column settings) | built by the archetype: `gridLabel()` / `ganttLabel()` buttons + one toggle per docked panel |
+| Data grid | the records as a dense table | `gridView(rq)` — any component: a fluent `Grid`, an embedded crud/listing, `@InlineEditing` + `@Compact` for in-place editing |
+| Gantt | the same records on a time axis | `ganttView(rq)` — typically a `Gantt` |
+| End panel (`innerEnd`) | a details or properties pane beside the content | `endPanel(rq)` → `DockedPanel` |
+| Bottom panel (`innerBottom`) | a messages, log or totals strip under the content | `bottomPanel(rq)` → `DockedPanel` |
+| Overlay panels (`outerEnd` / `outerBottom`) | panels that float over the page | a `Drawer` returned from an action |
+
+![The data management page showing the grid view](/images/docs/redwood-templates/data-management-1.png)
+
+![The same page switched to the Gantt view](/images/docs/redwood-templates/data-management-2.png)
+
+## Responsive behaviour
+
+- The page is **full width** at every size (`PageWidthStyle.FULL_WIDTH`).
+- An open end panel is a fixed track beside the content (default `22rem`); below **48rem** of
+  available width it stacks **under** the content instead.
+- The bottom panel caps its height at its `size` (default `16rem`) and scrolls.
+
+## What you can configure
+
+**Legend:** ✅ supported · 🟡 partial · ❌ not supported
+
+| Element | Mateu piece | Redwood | Note |
+|---|---|---|---|
+| Full-width canvas | `pageWidth()` → `PageWidthStyle.FULL_WIDTH` | ✅ | |
+| Grid ⇄ Gantt switch | `gridView(rq)` / `ganttView(rq)`; labels `gridLabel()` / `ganttLabel()`; the active view is page state (`_view`) | ✅ | the grid is an `oj-table`, the Gantt an `oj-gantt` |
+| Page heading | `heading()` (from `@Title`; return blank to omit) | ✅ | a heading text, not Redwood's transactional header |
+| Docked end / bottom panels (reflow) | `endPanel(rq)` / `bottomPanel(rq)` → `DockedPanel(id, title, content, size, open)` | ✅ | a toolbar toggle and a ✕ per panel; open state is page state |
+| Overlay panels | return a `Drawer` (`modeless`, any `DrawerPosition`) from an action | 🟡 | Redwood opens every drawer modal at the end edge — see [Drawer](/ux-patterns/drawer/) |
+| Bottom drawer states (closed / minimized / maximized) | `DrawerPosition.bottom` + `collapsible` + `maximizable` | ❌ | not drawn by Redwood |
+| Density | `@Compact`, `Grid.compact(true)` | ✅ | |
+| In-place editing in the grid | an embedded `AutoCrud` with `@InlineEditing` as `gridView` | 🟡 | a fluent `Grid` is read-only; not a spreadsheet-style data grid (no cell selection) |
+| Transactional header (Save, Cancel, undo/redo, history, timestamp) | — | ❌ | the archetype is a viewer; transact in an `AutoCrud` or a form |
+| Tab bar under the header | — | ❌ | |
+| Messages | toasts and alerts ride on the wire's `messages`, not as a page slot | 🟡 | |
+| Search | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 | |
+| Screen-reader announcements | `UICommand.announce(text)` from any action | ✅ | |
+| Feedback survey | ⚪ out of scope | — | |
+
+## Building it with Mateu
 
 :::note[Imports]
 The samples leave out their `import` lines and compile with single-type imports. Some names exist
@@ -27,8 +86,41 @@ Extend `DataManagement` and supply the two views:
 @Title("Project plan")
 public class ProjectPlanBoard extends DataManagement {
 
-    @Override protected Component gridView(HttpRequest rq)  { ... }   // the dense table
-    @Override protected Component ganttView(HttpRequest rq) { ... }   // the Gantt canvas
+  record Task(String id, String name, LocalDate start, LocalDate end, int progress) {}
+
+  record TaskRow(String id, String name, String start, String end, String progress) {}
+
+  static final List<Task> TASKS = List.of(
+      new Task("t1", "Analysis", LocalDate.of(2026, 1, 5), LocalDate.of(2026, 1, 16), 100),
+      new Task("t2", "Design", LocalDate.of(2026, 1, 12), LocalDate.of(2026, 1, 30), 80),
+      new Task("t3", "Build", LocalDate.of(2026, 1, 26), LocalDate.of(2026, 3, 6), 45));
+
+  @Override
+  protected Component gridView(HttpRequest rq) {   // the dense table
+    List<Object> rows = new ArrayList<>();
+    for (Task t : TASKS) {
+      rows.add(new TaskRow(t.id(), t.name(), t.start().toString(), t.end().toString(),
+          t.progress() + "%"));
+    }
+    return Grid.builder()
+        .compact(true)
+        .content(List.of(
+            GridColumn.builder().id("name").label("Task").build(),
+            GridColumn.builder().id("start").label("Start").build(),
+            GridColumn.builder().id("end").label("End").build(),
+            GridColumn.builder().id("progress").label("%").build()))
+        .page(new Page<Object>("", 20, 1, rows.size(), rows))
+        .build();
+  }
+
+  @Override
+  protected Component ganttView(HttpRequest rq) {  // the Gantt canvas
+    List<GanttTask> bars = new ArrayList<>();
+    for (Task t : TASKS) {
+      bars.add(new GanttTask(t.id(), t.name(), t.start(), t.end(), t.progress(), null));
+    }
+    return Gantt.builder().tasks(bars).build();
+  }
 }
 ```
 
@@ -41,10 +133,9 @@ public class ProjectPlanBoard extends DataManagement {
 `gridView` is any component — typically a dense table (an embedded crud/listing, a fluent `Grid`,
 or `@InlineEditing` + `@Compact` for in-place editing); `ganttView` is typically a `Gantt` (the same
 canvas the `GanttPage` archetype uses). Pure composition of existing components, so it renders on
-Vaadin and the native renderers without renderer work — **not yet on Redwood**, which renders
-neither a fluent `Grid` nor a `Gantt` (only the view switcher shows).
+Vaadin, Redwood (`oj-table` + `oj-gantt`) and the native renderers without renderer work.
 
-## Docked panels
+### Docked panels
 
 The Redwood data-management page docks panels beside and under the content — a details pane next
 to the grid, a messages or log strip under it. Override `endPanel(rq)` and/or `bottomPanel(rq)`:
@@ -53,12 +144,12 @@ to the grid, a messages or log strip under it. Override `endPanel(rq)` and/or `b
 @Override
 protected DockedPanel endPanel(HttpRequest rq) {
   return DockedPanel.builder().id("details").title("Details")
-      .content(detailsOf(selected)).size("24rem").open(true).build();
+      .content(new Text("Select a row to see its details.")).size("24rem").open(true).build();
 }
 
 @Override
 protected DockedPanel bottomPanel(HttpRequest rq) {
-  return DockedPanel.builder().id("log").title("Log").content(logOf(rq)).build();
+  return DockedPanel.builder().id("log").title("Log").content(new Text("No messages.")).build();
 }
 ```
 
@@ -74,40 +165,26 @@ modeless variant of the Redwood slots. For an *overlay* panel, return a `Drawer`
 
 | | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
 |---|---|---|---|---|---|---|---|
-| View switcher (grid ⇄ Gantt) | ✅ | ✅ | ✅ | ✅ | 🟡 ¹ | ✅ | ✅ |
+| View switcher (grid ⇄ Gantt) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Docked end / bottom panels | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-¹ See above: Redwood does not draw the fluent grid/Gantt views yet.
+## Known gaps
 
-## Redwood parameter and slot reference
+- No transactional page header (Save/Cancel, undo/redo, history, timestamp) and no tab bar: the
+  archetype composes a heading and a toolbar only.
+- The grid is a table: no spreadsheet-like cell selection; editing needs an embedded crud with
+  `@InlineEditing`.
+- Overlay panels inherit the Redwood drawer gaps (always modal, end edge).
+- Redwood draws the page by composition, not with Spectra's `oj-sp-data-management-page`.
 
-The real `data-management-page` API is **considerably richer than "grid ⇄ Gantt"**: it is a
-transactional page with four dockable panels. Mateu covers the view switcher, the full-width
-canvas and the two reflowing (inner) panels. The canonical page-header elements shared by every template
-are documented once in [Page templates](/ux-patterns/page-templates/).
-
-**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
-
-| Redwood prop / slot | Mateu | |
-|---|---|---|
-| Full-width canvas | `pageWidth()` → `PageWidthStyle.FULL_WIDTH` | ✅ |
-| View switcher | `gridView`/`ganttView` + `gridLabel()`/`ganttLabel()`; the active view is page state and re-renders in place | ✅ |
-| Page heading | `heading()` (from `@Title`; return blank to omit) | ✅ |
-| **Slots** `innerEnd` / `innerBottom` | `endPanel(rq)` / `bottomPanel(rq)` → `DockedPanel` (reflow) | ✅ |
-| **Slots** `outerEnd` / `outerBottom` | — the overlay variants: return a `Drawer` (`modeless`, any `DrawerPosition`) from an action | 🟡 |
-| `endOpened` / `bottomOpened: inner \| outer \| none` | `DockedPanel.open` (initial) + the toolbar toggles; open state is page state | ✅ |
-| `endDisplay` / `bottomDisplay: reflowModeless \| overlayModal` | `Drawer.layout` (reflow) vs `Drawer.modeless` (overlay) express both modes at component level | 🟡 |
-| `bottomDrawerState: auto \| closed \| maximized \| minimized` + `displayOptions.bottomDrawerMode/Height` | `DrawerPosition.bottom` + `collapsible` + `maximizable` + `DrawerSize` | 🟡 |
-| Transactional header (`save`/`cancel`) | — this archetype is a viewer; use `AutoCrud` or an advanced create-edit form for the transaction | — |
-| **Slot** `messages` | toasts/alerts ride on the wire's `messages`, not as a page slot | 🟡 |
-| **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
-| **Slot** `announcement` (aria-live) | `UICommand.announce(text)` from any action | ✅ |
-| `feedback` + `openFeedback` | ⚪ the embedded survey is a Fusion Apps concern, out of scope by decision | ⚪ |
+Details: [data-management review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/data-management.md).
 
 ## Demo
 
-`demo-admin-panel/.../datamanagement/DataManagementDemo.java` (`/data-management-demo`): a project
-plan shown as a table and as a Gantt, switchable from the toolbar.
+`demo-admin-panel/.../datamanagement/DataManagementDemo.java` and `demo-redwood-showcase`
+(`/data-management-demo`): a project plan shown as a table and as a Gantt, switchable from the
+toolbar; in the showcase a click on a task name opens its detail in a drawer. Docked panels:
+`e2e/sut` `/patterns/data`.
 
 ## See also
 
