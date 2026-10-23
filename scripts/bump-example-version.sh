@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Points the starters, the "start here" demos, the AI reference files (doc/public/mateu-ai-*.md)
-# and the Claude Code plugin's version at a released Mateu version.
+# and the AI plugins' versions at a released Mateu version.
 #
 #   scripts/bump-example-version.sh 3.0-alpha.407
 #   scripts/bump-example-version.sh 3.0.0          # a GA / patch release
@@ -31,12 +31,14 @@ for f in backend/dotnet/README.md backend/python/README.md; do
   rm -f "$f.bak"
   echo "$f → $new"
 done
-# The Claude Code plugin (ai/claude-plugin/mateu) carries the release as a semver version
+# The Claude Code and Codex manifests carry the release as a semver version
 # (3.0-beta.4 → 3.0.0-beta.4; a GA 3.0.0 stays 3.0.0): installed plugins only update when it changes.
 semver=$(echo "$new" | sed -E 's#^([0-9]+)\.([0-9]+)-#\1.\2.0-#')
-sed -E -i.bak "s#\"version\": \"[^\"]+\"#\"version\": \"$semver\"#" ai/claude-plugin/mateu/.claude-plugin/plugin.json
-rm -f ai/claude-plugin/mateu/.claude-plugin/plugin.json.bak
-echo "ai/claude-plugin/mateu/.claude-plugin/plugin.json → $semver"
+for manifest in ai/claude-plugin/mateu/{.claude-plugin,.codex-plugin}/plugin.json; do
+  sed -E -i.bak "s#\"version\": \"[^\"]+\"#\"version\": \"$semver\"#" "$manifest"
+  rm -f "$manifest.bak"
+  echo "$manifest → $semver"
+done
 # The public-API compatibility check compares against the last release too (backend/pom.xml).
 # Moving it means the reviewed exclusions in backend/api-compat/japicmp-exclusions.properties
 # described the diff against the OLD baseline — review and reset them in the same commit.

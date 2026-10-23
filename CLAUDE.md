@@ -86,6 +86,10 @@ ai/claude-plugin/ ← The Claude Code plugin `mateu` (marketplace: .claude-plugi
                     .claude/skills/<name> are symlinks into it (never copies) and generated projects
                     enable the plugin via starters/generator/overlays/common/claude/settings.json.
                     Guarded by scripts/check-ai-plugin.mjs (CI). Docs: doc/.../build-uis-with-ai.md.
+                    Codex uses the same directory via .agents/plugins/marketplace.json and its
+                    .codex-plugin/plugin.json overlay. scripts/package-antigravity-plugin.mjs
+                    builds the ignored ai/antigravity-plugin/mateu bundle from the same skills.
+                    Never hand-edit generated copies; rerun the builder after a skill/version change.
 ```
 
 ## Key Architecture Concepts

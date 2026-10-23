@@ -19,3 +19,6 @@ mvnw.*
 
 # Personal Claude Code settings (permission modes etc.) stay out of the repo
 .claude/settings.local.json
+
+# Generated installable Antigravity bundle; edit ai/claude-plugin/mateu/skills instead.
+/ai/antigravity-plugin/

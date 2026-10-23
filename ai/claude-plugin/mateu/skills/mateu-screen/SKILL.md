@@ -16,7 +16,7 @@ questions, never the framework ones — the user should not need to know the cat
 ## Step 1 — Ask the three questions (only the unanswered ones)
 
 Read the user's request first: any question it already answers is not asked again. For the
-rest, use AskUserQuestion, in this order:
+rest, ask using the host's question tool when available, or ask in chat, in this order:
 
 1. **¿Muestra muchos registros o uno?** — many → *Collection* · one → *Detail*
 2. **¿El usuario cambia algo?** — in one shot → *Form* · across steps → *Process*

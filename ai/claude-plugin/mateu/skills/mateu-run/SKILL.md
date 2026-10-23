@@ -92,7 +92,8 @@ node screenshot.mjs --url http://localhost:8080/<route> --output /tmp/<name>.png
 Then look at the PNG (read the image) and check the screen shows what you declared.
 
 Inside the Mateu repo the same script is `e2e/screenshot.mjs`; doc images go to
-`doc/public/images/docs/<topic>/<name>.png` (see the repo's `CLAUDE.md`).
+`doc/public/images/docs/<topic>/<name>.png`. Follow the repository's screenshot conventions
+when working inside that repository; other projects can choose their own output directory.
 
 ## Related
 

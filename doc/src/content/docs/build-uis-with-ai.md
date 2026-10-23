@@ -1,6 +1,6 @@
 ---
 title: Build UIs with AI
-description: Generate Mateu UIs with an AI assistant — the Claude Code plugin, AGENTS.md in every project, llms.txt / llms-full.txt, the JSON Schemas that validate generated YAML, and the MCP endpoint.
+description: Generate Mateu UIs with Claude Code, Codex or Antigravity CLI — shared skills, AGENTS.md in every project, plain-text references, JSON Schemas and the MCP endpoint.
 ---
 
 A Mateu UI is a **model**, not front-end code: a class with annotations, or a few YAML files. That
@@ -11,6 +11,8 @@ is right the first time.
 | You use | Give it | It knows |
 |---|---|---|
 | Claude Code | the **`mateu` plugin** | the whole API through skills that load on demand |
+| Codex | the **`mateu` plugin** from the repository marketplace | the same eight skills, references and scripts |
+| Antigravity CLI | the generated **`mateu` plugin** | the same eight skills, packaged for Antigravity |
 | any assistant, in a Mateu project | the project's **`AGENTS.md`** (already there) | this project's layout, how to run it, the rules |
 | any assistant / chat | **`llms.txt`**, **`llms-full.txt`**, the AI references | the docs, as plain text |
 | an assistant writing YAML | the **JSON Schemas** | every key of every file kind, mechanically checked |
@@ -28,8 +30,8 @@ The Mateu repository is a Claude Code **plugin marketplace**. Install the plugin
 (From a terminal: `claude plugin marketplace add miguelperezcolom/mateu` and
 `claude plugin install mateu@mateu`. Pin a release with `miguelperezcolom/mateu#vMATEU_VERSION`.)
 
-The plugin carries **skills** — focused guides Claude loads only when the task needs them, so they
-cost almost nothing until then. Ask for the work in your own words (*"add a CRUD for suppliers"*,
+The plugin carries **skills** — focused guides the assistant loads when the task needs them.
+Ask for the work in your own words (*"add a CRUD for suppliers"*,
 *"a listing of orders from our REST API, with sample data until it exists"*, *"start a Mateu app on
 Quarkus"*) and the right one activates; you can also call one by name, e.g. `/mateu:mateu-yaml`.
 
@@ -46,7 +48,98 @@ Quarkus"*) and the right one activates; you can also call one by name, e.g. `/ma
 
 The skills are plain Markdown in
 [`ai/claude-plugin/mateu/skills`](https://github.com/miguelperezcolom/mateu/tree/master/ai/claude-plugin/mateu/skills)
-— read them, or copy one into another tool's rules.
+— the canonical source used by all three packages. Keep each skill's references, examples and
+scripts together with its `SKILL.md`.
+
+## Codex
+
+Use a Codex CLI version that exposes `codex plugin` (check `codex plugin --help`). Add the
+repository marketplace, then install the plugin:
+
+```bash
+codex plugin marketplace add miguelperezcolom/mateu --ref master \
+    --sparse .agents/plugins --sparse ai/claude-plugin/mateu
+codex plugin add mateu@mateu
+codex plugin list --marketplace mateu --json
+```
+
+The sparse paths keep the download focused on the catalog and the complete plugin. For a
+reproducible install, replace `master` with a release tag or commit **that contains the Codex
+catalog and manifest**. Earlier tags do not acquire these files retroactively.
+
+For a local checkout instead:
+
+```bash
+codex plugin marketplace add /absolute/path/to/mateu
+codex plugin add mateu@mateu
+```
+
+In supported desktop clients, select the Mateu source in the Plugins Directory and install
+the plugin there. Adding a marketplace makes it discoverable; it is separate from installation.
+Start a new session after installation. Ask for a task normally or use the skill selector
+(`/skills` or `$` in Codex CLI/IDE), for example `$mateu:mateu-yaml` for the plugin's YAML skill.
+
+To refresh the repository catalog, run `codex plugin marketplace upgrade mateu`, then use
+`codex plugin add mateu@mateu` to install the selected version and verify it with `plugin list`.
+The Codex manifest loads the existing `skills/` directory; there is no second authored skill set.
+See [OpenAI's packaging documentation](https://developers.openai.com/plugins/build/plugins).
+
+## Antigravity CLI
+
+From a checkout of the Mateu version you want, use Node 22+ to generate an installable bundle:
+
+```bash
+node scripts/package-antigravity-plugin.mjs
+node scripts/check-ai-plugin.mjs --antigravity ai/antigravity-plugin/mateu
+agy plugin install ./ai/antigravity-plugin/mateu
+agy plugin list --json
+```
+
+The builder needs no npm packages or network access. It writes an ignored, generated directory
+with `plugin.json`, all eight skill folders, their supporting files, `LICENSE.txt`, and
+`package-info.json` recording the source version and SHA-256 hashes. Antigravity's manifest
+uses its documented `name` and `description` fields; the source version is recorded separately.
+The bundle can be moved outside the checkout before installation.
+
+The output defaults to `ai/antigravity-plugin/mateu`; use `--output /path/to/mateu-plugin` to
+choose another location. Rebuilding replaces an earlier generated bundle and removes stale
+files. The builder refuses to replace an unrelated directory or overlap its source.
+
+Start a new Antigravity session and use `/skills` to inspect the loaded skills. Ask for work
+normally or invoke `/mateu-yaml`, `/mateu-screen`, or another skill by name. To update, check out
+the desired Mateu revision, rebuild, verify, and reinstall the generated bundle. Follow the CLI's
+prompt if an installed plugin must be uninstalled before reinstalling.
+
+This installation uses a **local plugin directory**. Do not pass the monorepo root or assume a
+GitHub `tree/…` URL selects a plugin subdirectory. See
+[Antigravity's plugin documentation](https://antigravity.google/docs/plugins).
+
+## Installation checks and official directories
+
+After installing, confirm that the plugin lists all eight skills. Try authoring a small Java or
+YAML screen, then ask the assistant to run it and capture it using `mateu-run`. The language skill
+must find its reference files, and the run skill must find its bundled screenshot script.
+Running builds or screenshots also needs the relevant runtime, Node/Playwright and browser
+dependencies, plus permission to start local processes and download any missing dependencies.
+Installing the skill package alone does not provide those tools or prove that an app renders.
+
+For maintainers, validate the source and generated package without calling a model:
+
+```bash
+node scripts/package-antigravity-plugin.mjs
+node scripts/check-ai-plugin.mjs --antigravity ai/antigravity-plugin/mateu
+node --test scripts/ai-plugin-package.test.mjs
+```
+
+Edit skills only in `ai/claude-plugin/mateu/skills`. CI checks the two marketplace paths,
+Claude/Codex metadata and version agreement, package contents, and release version updates.
+Run the builder again after changing a skill or bumping the source version.
+
+Repository distribution is separate from a listing in an official directory. OpenAI offers a
+[skills-only submission path for Claude plugins](https://developers.openai.com/plugins/guides/submit-claude-plugin);
+Antigravity links its marketplace interest form from the
+[Marketplace guide](https://antigravity.google/docs/marketplace). Those submissions require their
+own review; the repository catalogs do not submit or approve a listing.
 
 ## Projects come AI-ready
 
@@ -64,6 +157,9 @@ carries:
 - **`.claude/settings.json`** (projects made by the generators) — it registers this marketplace and
   enables the `mateu` plugin. When you open the project in Claude Code and trust the folder, the
   marketplace is added for you; install the plugin once with `/plugin install mateu@mateu`.
+
+`AGENTS.md` provides project context; it does not install skills. The Claude settings apply only
+to Claude Code. In Codex and Antigravity CLI, install the plugin explicitly as described above.
 
 ## Docs as plain text: llms.txt and friends
 
