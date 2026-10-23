@@ -15796,17 +15796,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return kids.length >= 2 && kids.every((k) => /flex:\s*1 1 calc\(/.test(String((k && k.style) || '')))
   }
 
+  /** Is this a content page with a detail slot (@Aside → ContentLayout: a grid with an `aside` area)? */
+  function hasAside(n) {
+    const areas = n?.metadata?.type === 'ResponsiveGrid' ? String(n.metadata.gridTemplateAreas || '') : ''
+    return /(^|[\s"'])aside([\s"']|$)/.test(areas)
+  }
+
   /** The projection of the index for a host context: { on, entries: [{ index, title, key, hint, sticky, tabIndex }], cls }. */
   function tocOf(host) {
     const tree = host && host.tree
     if (!tree) return TOC_EMPTY
     const entries = []
     let zoned = false
+    // Redwood's Advanced create and edit: the anchor navigator and the detail slot exclude each other —
+    // a page with an @Aside detail slot never shows the index, declared or not
+    let aside = false
     const walk = (n, isRoot) => {
       if (!n || typeof n !== 'object') return
       if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
       if (!isRoot && n.type === 'ServerSide') return // another surface's sections are its own
       if (isZonedRow(n)) zoned = true
+      if (hasAside(n)) aside = true
       if (isSectionNode(n)) {
         const title = String(sectionHeadOf(n).title || '').trim()
         if (title) {
@@ -15831,7 +15841,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const page = findByType(tree, 'Page')
     const declared = page && page.metadata ? page.metadata.toc : null
     const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
-    const on = (declared === true ? true : declared === false ? false : auto) && entries.length > 0
+    // tri-state: declared true forces it, declared false suppresses it, absent = auto
+    const wanted = typeof declared === 'boolean' ? declared : auto
+    const on = !aside && wanted && entries.length > 0
     return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
   }
 

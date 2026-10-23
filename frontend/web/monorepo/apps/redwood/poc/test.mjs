@@ -6084,6 +6084,12 @@ test("an @Aside form (its sections merged into the main column) keeps each secti
   assert.equal(headers[0].sectionActions.primary.display, 'off')
   // the section's own heading is not repeated under its header
   assert.ok(!atoms.some((a) => a.isHeading && ['Order', 'Shipping'].includes(a.text)))
+  // the detail slot excludes the sections index (Redwood's rule), even when @Toc is declared
+  const withToc = structuredClone(host)
+  const pageNode = findByType(withToc.tree, 'Page')
+  assert.ok(pageNode, 'the capture has its Page node')
+  pageNode.metadata.toc = true
+  assert.equal(tocProjectionOf(withToc).on, false)
   // and the merged column still carries the fields
   assert.ok(JSON.stringify(atoms).includes('"fieldId":"reference"') || JSON.stringify(atoms).includes('SO-1024'))
 })

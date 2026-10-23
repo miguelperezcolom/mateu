@@ -9,6 +9,11 @@ description: Open a secondary form in a side panel that slides over the current 
 
 Let an action open another form — an editor, a picker, a detail — in a panel that slides in from the side, without leaving the page underneath. On close, notify the host page so it can refresh itself or receive the result.
 
+Oracle Redwood ships **five** drawer templates — general, bottom, create-and-edit, guided-process and
+configuration. Mateu covers all of them with **one** component, `Drawer`, plus `editInDrawer()` on a
+crud for the create-and-edit case. The sections below describe each template in Mateu terms: when to
+use it, its regions, how it behaves, what you can configure and what the Redwood renderer paints.
+
 ## Problem
 
 Centered modal dialogs hide the page context and feel heavyweight for quick side tasks. Navigating away to a second page loses the user's place entirely. Dense operational screens (check-in desks, back offices) need "edit this bit" interactions that keep the main record visible.
@@ -37,7 +42,7 @@ Drawer editContact() {
 }
 ```
 
-The drawer slides in over a backdrop and closes on the header ✕, on Esc, on a backdrop click, or when an action run from inside it returns a close command. `modeless(true)` drops the backdrop so the page stays interactive.
+The drawer slides in over a backdrop and closes on the header ✕, on Esc, on a backdrop click, or when an action run from inside it returns a close command. `modeless(true)` drops the backdrop so the page stays interactive; `layout(true)` docks the drawer and **pushes** the page aside instead of covering it.
 
 ### Closing with a result
 
@@ -84,30 +89,102 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 
 The same `closeModal(eventName, payload)` contract works for `Dialog` too — it closes whichever overlay is topmost. Overlays stack: a drawer can open another drawer (or a dialog), and each close unwinds only the topmost one.
 
-## Demo
+### Demo
 
 `demo-admin-panel/.../drawer/DrawerDemo.java` (`/drawer-demo`): a contact card whose toolbar action opens the editor in a right-hand drawer; saving closes it, toasts, and refreshes the card in place.
 
-## Notes
+### Notes
 
 - Closing via ✕, Esc or the backdrop emits **no** event — that's the "dismissed without saving" path, and the host is intentionally not disturbed.
 - Position `start`/`end` maps to the left/right edge. Width accepts any CSS length; the panel caps at 92vw.
 - Styling is design-system neutral (Lumo CSS variables with fallbacks), so it renders on every web renderer.
 
+:::caution[How Redwood draws a drawer today]
+The Redwood renderer paints every `Drawer` in one JET `oj-drawer-popup`, **modal, at the end
+edge**, with its own header (title and subtitle) and an action bar anchored at the bottom. It does
+not use Spectra's drawer templates yet (`oj-sp-general-drawer-template`,
+`oj-sp-bottom-drawer-template`, `oj-sp-create-edit-drawer-template`), and of the `Drawer` record it
+reads only the title, subtitle, width, content and actions: `size`, `maximizable`, `peerNav`,
+`position`, `modeless`, `layout`, `collapsible` and the `header` component are ignored, and the panel
+has no ✕ (Esc or a click outside closes it). The tables below mark each element accordingly.
+:::
+
 ## General Drawer — read-only detail (subtitle, sizes, maximize, peer navigation)
 
-The same `Drawer` doubles as the Redwood **General Drawer**: extra read-only info about an object
-without leaving the page. Four header extras enrich it:
+The Redwood **General drawer** is a side panel for *reading*: it tells the user more about one or
+several objects of the page — the work order behind a slot of a production schedule, the details,
+similar products and order history of an order line — while the page stays where it was. It is not
+a place to change data; for that use the [create-and-edit drawer](#crud-editing-in-a-drawer-editindrawer).
+
+In Mateu it is the same `Drawer`, returned from an action, with read-only content and four header
+extras.
+
+### When to use it
+
+- The user needs context about an object **without losing the page** — a quick look, then back.
+- One object (a task's details) or several (a comparison, the items behind a selection).
+- The content is read-only: property lists, tables, cards, charts, a hierarchy.
+- Not for transactions (use `editInDrawer()` or a form in a drawer), and not for content that
+  deserves its own address — a detail page ([General overview](/ux-patterns/general-overview/),
+  [Item overview](/ux-patterns/item-overview/)) is shareable, a drawer is not.
+
+### Anatomy
+
+| Region | What it holds | Mateu piece |
+|---|---|---|
+| Header — information and actions | title, subtitle, previous/next object arrows, maximize, close, an optional tab bar or avatar | `headerTitle`, `subtitle`, `peerNav`, `maximizable`, the built-in ✕; `header` for a custom header component (e.g. a `TabLayout`) |
+| Default slot | the read-only content: property lists, tables, lists, cards, charts, a hierarchy | `content` — any component |
+| *(Mateu addition)* footer | object-level actions | `footer`, or buttons in `content` (Redwood moves parameterless buttons to its bottom bar) |
+
+![A general drawer showing a person's details over the directory page](/images/docs/redwood-templates/general-drawer-1.png)
+
+### Responsive behaviour
+
+- **Wide screens** — the drawer opens over the page at its size (`size` or `width`).
+- **Narrow screens** — Redwood's guide makes the drawer take the whole window. Mateu does not do that
+  yet: the panel keeps its width, capped at 92% (Vaadin) / 90% (Redwood) of the viewport.
+- Redwood's guide also moves maximize and close into an overflow menu when a small drawer has more than
+  three header actions, and clamps a long title or subtitle to two lines with a tooltip; Mateu's
+  header simply wraps.
+
+### What you can configure
+
+**Legend:** ✅ supported · 🟡 partial · ❌ not supported
+
+| Element | Mateu piece | Redwood | Note |
+|---|---|---|---|
+| Size S / M / L / XL (464px / 648px / 968px / 90%) | `size(DrawerSize.s \| m \| l \| xl)`; an explicit `width` overrides it | ❌ | Redwood uses `width`, or 26rem; `size` is ignored |
+| Maximize (one size up, not from XL) | `maximizable(true)` | ❌ | Vaadin steps the drawer up `s→m→l→xl` client-side |
+| Title | `headerTitle` | ✅ | |
+| Subtitle | `subtitle` | ✅ | |
+| Close | built in (✕, Esc, backdrop) | 🟡 | no ✕ on Redwood: Esc or a click outside |
+| Previous / next object | `peerNav(new PeerNav(prevLabel, prevRoute, nextLabel, nextRoute))`; a `null` route disables that side | ❌ | |
+| Header slot (tabs) | `header` component | ❌ | on Redwood, put the tabs in `content` |
+| Avatar | — | ❌ | not modelled on `Drawer` |
+| Start or end edge | `position(DrawerPosition.start \| end)` | ❌ | Redwood always opens at the end |
+| Popup (modal or not) vs layout (push) | `modeless(true)` / `layout(true)` | ❌ | Redwood is always a modal popup |
+| Object-level actions | buttons in `content` / `footer` | ✅ | Redwood anchors them in a bottom bar |
+
+### Building it with Mateu
 
 ```java
-return Drawer.builder()
-    .headerTitle("Ada Lovelace")
-    .subtitle("Employee #100")
-    .size(DrawerSize.l)          // s=464 · m=648 · l=968 · xl=90vw (width overrides)
-    .maximizable(true)           // a ⤢ button bumps the drawer one size up (client-side)
-    .peerNav(new PeerNav("Prev", "/staff/1", "Next", "/staff/3"))  // ‹ › arrows in the header
-    .content(readOnlyDetails)
-    .build();
+@UI("/staff")
+@Title("Directory")
+public class StaffDirectory {
+
+  @Toolbar
+  @Label("View profile")
+  Drawer viewProfile() {
+    return Drawer.builder()
+        .headerTitle("Ada Lovelace")
+        .subtitle("Employee #100 · Engineering")
+        .size(DrawerSize.l)          // s=464 · m=648 · l=968 · xl=90vw (width overrides)
+        .maximizable(true)           // a ⤢ button bumps the drawer one size up (client-side)
+        .peerNav(new PeerNav("Charles Babbage", "/staff/99", "Alan Turing", "/staff/101"))
+        .content(new Text("Joined 2021 · London office · mentors three juniors."))
+        .build();
+  }
+}
 ```
 
 - **`size`** picks a standard width; an explicit `width` still overrides it.
@@ -118,27 +195,214 @@ return Drawer.builder()
 - **`subtitle`** renders under the title.
 
 Ported to .NET (`DrawerSize`, `Drawer { Subtitle, Size, Maximizable, PeerNav }`) and Python
-(`DrawerSize`, `Drawer(subtitle=…, size=…, maximizable=…, peer_nav=…)`).
+(`DrawerSize`, `Drawer(subtitle=…, size=…, maximizable=…, peer_nav=…)`). Demo:
+`/general-drawer-demo` (`demo-redwood-showcase`, `demo-admin-panel`).
+
+### Known gaps
+
+- Redwood: size, maximize, previous/next arrows, header slot, start edge, modeless/layout and the ✕
+  are not drawn; Spectra's `oj-sp-general-drawer-template` is not used.
+- No drawer goes full window on small screens.
+- No avatar in the drawer header.
+
+Details: [general-drawer review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/general-drawer.md).
 
 ## Bottom Drawer (`DrawerPosition.bottom` + `collapsible`)
 
-Set `position(DrawerPosition.bottom)` to dock the drawer at the bottom edge, full width — the
-Redwood **Bottom Drawer**. It slides up instead of in, and its height defaults to half the
-viewport (`--mateu-drawer-height`, capped at 90vh). Add `collapsible(true)` for the
-expand/collapse behavior: a ▾/▴ handle in the header shrinks the drawer to just its header strip
-and expands it back — entirely client-side, no round-trip.
+The Redwood **Bottom drawer** is the general drawer laid along the **bottom** edge, full width: the
+page above keeps its place while supporting information — order lines, a log, a table of related
+records — sits below it. It comes in two flavours: **closable** (opened on demand, closed with ✕)
+and **fixed** (always present, folded to its header strip or unfolded with a handle).
+
+### When to use it
+
+- The supporting information is wide (tables, lists of rows) and reads better full width than in a
+  narrow side panel.
+- The user works *above* it — a schedule, a map, a canvas — and glances down for detail.
+- Use the fixed/collapsible flavour for something that should stay at hand for the whole task; the
+  closable one for a one-off look.
+
+### Anatomy
+
+| Region | What it holds | Mateu piece |
+|---|---|---|
+| Header | title (or tabs), subtitle, close or the expand/collapse handle, maximize | `headerTitle`, `subtitle`, the ✕, `collapsible(true)` (▾/▴), `maximizable` |
+| Main slot | form fields, collections and their toolbar, lists, tables | `content` |
+
+*No Redwood screenshot yet: the Redwood renderer still opens a bottom drawer on the side (see Known
+gaps below).*
+
+### Responsive behaviour
+
+Full width at every size. The height defaults to half the viewport (`--mateu-drawer-height`, capped at
+90vh); collapsing shrinks it to the header strip. Redwood's guide gives the template two heights,
+default and maximized.
+
+### What you can configure
+
+| Element | Mateu piece | Redwood | Note |
+|---|---|---|---|
+| Docked at the bottom, full width | `position(DrawerPosition.bottom)` | ❌ | Redwood opens it at the end edge, like a side drawer |
+| Expand / collapse handle (fixed mode) | `collapsible(true)` | ❌ | client-side ▾/▴ on Vaadin |
+| Close (closable mode) | built in | 🟡 | Esc / click outside, no ✕ |
+| Fixed mode (cannot be dismissed) | — | ❌ | a returned `Drawer` can always be closed; only a drawer an archetype composes into the page (e.g. `GanttPage.bottomPanel`) stays |
+| Default / maximized height | — | ❌ | `maximizable` steps the *width*, which a bottom drawer ignores |
+| Title / subtitle | `headerTitle` / `subtitle` | ✅ | |
+| Tabs in the header | `header` | ❌ | |
+| Previous / next object | `peerNav` | ❌ | |
+| Push the page up instead of covering it | `layout(true)` | ❌ | |
+| "Peek" tab so users discover it; cancelable state change | — | ❌ | |
+
+### Building it with Mateu
 
 ```java
-return Drawer.builder()
-    .headerTitle("Detalles del pedido")
-    .position(DrawerPosition.bottom)
-    .collapsible(true)
-    .content(orderLines)
-    .build();
+@UI("/orders-overview")
+@Title("Orders")
+public class OrdersOverview {
+
+  @Toolbar
+  @Label("Show lines")
+  Drawer showLines() {
+    return Drawer.builder()
+        .headerTitle("Order #4471 — lines")
+        .subtitle("3 lines · 240.00 €")
+        .position(DrawerPosition.bottom)
+        .collapsible(true)
+        .content(new Text("Desk lamp × 2 · Office chair × 1"))
+        .build();
+  }
+}
 ```
 
 Ported to .NET (`DrawerPosition.Bottom`, `Drawer { Collapsible }`) and Python
-(`DrawerPosition.bottom`, `Drawer(collapsible=…)`).
+(`DrawerPosition.bottom`, `Drawer(collapsible=…)`). Demo: `/bottom-drawer-demo`.
+
+### Known gaps
+
+- Redwood does not dock it at the bottom (it opens at the end edge) and has no collapse handle.
+- No fixed (non-dismissable) mode for a returned drawer; maximize does not change the height.
+
+Details: [bottom-drawer review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/bottom-drawer.md).
+
+## CRUD editing in a drawer (`editInDrawer()`)
+
+The Redwood **Create and edit drawer** is the transactional drawer: the user creates or edits an
+object of a collection without leaving it — the form slides over the listing, and the listing is
+still there, filtered and scrolled as it was, when the drawer closes.
+
+You don't build this drawer yourself: override `editInDrawer()` on any `AutoCrud` (or `Crud`) and the
+crud's **New** button and row clicks open the create/edit form in a drawer instead of navigating to
+the `/new` — `/{id}/edit` routes.
+
+### When to use it
+
+- Short records edited one at a time from a list (contacts, rates, rooms) — the user stays in the
+  collection.
+- Editing a **series** row after row: add *Save and next*.
+- Not for long, sectioned records (use the routed editor —
+  [Advanced create and edit](/ux-patterns/advanced-create-and-edit/)) or for read-only detail (the
+  [general drawer](#general-drawer--read-only-detail-subtitle-sizes-maximize-peer-navigation)).
+
+### Anatomy
+
+| Region | What it holds | Mateu piece |
+|---|---|---|
+| Header | the record's title, close | set by the crud (create / edit title); ✕ built in |
+| Error banner | the message of a failed save, above the form | `CrudDisplay.errorBanner` (default on) |
+| Default slot — the form | the same fields, sections and validations as the routed editor | the crud's editor / creation form |
+| Footer actions | Create or Save, *Save and next*, Cancel | the form's actions; labels via `saveLabel()`, `saveAndNextLabel()`, `cancelLabel()` |
+
+![A row click opens the edit form in a drawer over the listing](/images/docs/drawer/edit-in-drawer.png)
+
+### Responsive behaviour
+
+The drawer has the width of `editDrawerWidth()` (default `36rem`), capped at 92% (Vaadin) / 90%
+(Redwood) of the viewport; it does not switch to full window on small screens.
+
+### What you can configure
+
+| Element | Mateu piece | Redwood | Note |
+|---|---|---|---|
+| Form in a drawer over the listing | `editInDrawer()` → `true` | ✅ | the listing never unmounts |
+| Drawer width | `editDrawerWidth()` (a CSS length) | ✅ | |
+| Create vs Save primary action | derived from whether the row exists | ✅ | |
+| Save and close | built in: persists, closes, the listing re-searches | ✅ | |
+| Save and next | `display()` → `CrudDisplay.saveAndNext(Toggle.on)` + `nextIdAfter(id, rq)` + `saveAndNextLabel()` | ✅ | |
+| Error banner on a failed save | `CrudDisplay.errorBanner` (default `on`) | ✅ | |
+| New / Delete buttons on · off · disabled | `CrudDisplay.create` / `delete` | ✅ | on top of `canCreate`, `@NotCreatable`… |
+| Unsaved-changes confirmation on close | — | ❌ | ✕, Esc and Cancel close a dirty drawer without asking, on every web renderer |
+| Close | built in | 🟡 | no ✕ on Redwood |
+| Title placeholder in create mode | — | ❌ | |
+| Previous / next record arrows | — | ❌ | *Save and next* is the only way forward |
+
+### Building it with Mateu
+
+```java
+@UI("/contacts")
+public class ContactsCrud extends AutoCrud<Contact> {
+  @Override
+  public CrudStore<Contact> store() {
+    return new ContactStore(); // your CrudStore<Contact>
+  }
+
+  @Override
+  public boolean editInDrawer() {
+    return true;
+  }
+  // optional: @Override public String editDrawerWidth() { return "42rem"; }
+}
+```
+
+The listing never unmounts (scroll, filters and page survive); **Save** persists, closes the drawer and re-runs the listing's search in place (the closing drawer emits a saved event the listing subscribes to); **Cancel**/✕/Esc just close it. In this mode there is no separate read-only view page — a row click goes straight to the edit drawer (on read-only cruds row clicks keep navigating to the view).
+
+![The New button opens an empty create form in the drawer](/images/docs/redwood-templates/create-edit-drawer-1.png)
+
+Demo: `demo-admin-panel/.../drawercrud/ContactsDrawerCrud.java` and `demo-redwood-showcase`
+(`/drawer-crud-demo`). Tests: `EditInDrawerSyncTest`.
+
+### Save and next, and the error banner
+
+Two more pieces of the Redwood create-edit drawer, switched through the crud's `display()`
+(`CrudDisplay`, the tri-state `Toggle` grammar — `on` · `off` · `disabled`):
+
+```java
+@Override
+public CrudDisplay display() {
+  return CrudDisplay.defaults().toBuilder()
+      .saveAndNext(Toggle.on)               // default off
+      .create(canCreate ? Toggle.on : Toggle.disabled)
+      .delete(Toggle.off)
+      .build();
+}
+```
+
+- **Save and next** — editing a series row by row: the drawer gets a *Save and next* button; it
+  saves, and the SAME drawer moves on to the next row of the listing (the server re-sends it with
+  the same id, which refreshes the open drawer in place) while the listing refreshes behind it. On
+  the last row it closes like a plain save. The next row comes from `nextIdAfter(currentId, rq)` —
+  by default the row after it in an unfiltered search; override it to follow the user's filters.
+  Label: `saveAndNextLabel()`.
+- **Error banner** (`errorBanner`, default `on`) — when the save throws, the drawer stays open with
+  the exception's message as a danger banner above the form and the values the user typed, and the
+  message is announced to screen readers. `off` brings back the plain error toast.
+- `create` / `delete` — the New and Delete buttons; `disabled` shows them inert (and the server
+  refuses them), on top of the capability gates (`canCreate`, `@NotCreatable`…), which still decide
+  whether the affordance exists at all.
+
+![Save and next: the drawer moved on to the next row](/images/docs/drawer/save-and-next.png)
+
+![A failed save keeps the drawer open with an error banner](/images/docs/drawer/error-banner.png)
+
+Tests: `CrudDisplaySyncTest`.
+
+### Known gaps
+
+- A dirty drawer closes without the unsaved-changes confirmation the routed editor asks for.
+- Redwood draws its own header and footer around `oj-drawer-popup` instead of Spectra's
+  `oj-sp-create-edit-drawer-template`, and shows no ✕.
+- No title placeholder in create mode, no previous/next record arrows.
+
+Details: [create-edit-drawer review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/create-edit-drawer.md).
 
 ## Guided Process Drawer (a wizard in a drawer, `EmbeddedView`)
 
@@ -217,125 +481,30 @@ The header pager tracks the batch (`1 | 3` → `3 | 3`). Because a Mateu wizard 
 the limit of this pattern — use a full-page Guided Process for a longer or dynamic flow. Demo:
 `/batch-approval-demo`.
 
-## CRUD editing in a drawer (`editInDrawer()`)
-
-For the "Create and Edit - Drawer" pattern (Oracle Redwood's RDS template), you don't need to build the drawer yourself: override `editInDrawer()` on any `AutoCrud` subclass and the crud's **New** button and row clicks open the create/edit form in a drawer sliding over the listing instead of navigating to the `/new` — `/{id}/edit` routes:
-
-```java
-@UI("/contacts")
-public class ContactsCrud extends AutoCrud<Contact> {
-  @Override
-  public CrudStore<Contact> store() {
-    return new ContactStore(); // your CrudStore<Contact>
-  }
-
-  @Override
-  public boolean editInDrawer() {
-    return true;
-  }
-  // optional: @Override public String editDrawerWidth() { return "42rem"; }
-}
-```
-
-The listing never unmounts (scroll, filters and page survive); **Save** persists, closes the drawer and re-runs the listing's search in place (the closing drawer emits a saved event the listing subscribes to); **Cancel**/✕/Esc just close it. In this mode there is no separate read-only view page — a row click goes straight to the edit drawer (on read-only cruds row clicks keep navigating to the view).
-
-![A row click opens the edit form in a drawer over the listing](/images/docs/drawer/edit-in-drawer.png)
-
-Demo: `demo-admin-panel/.../drawercrud/ContactsDrawerCrud.java` (`/drawer-crud-demo`). Tests: `EditInDrawerSyncTest`.
-
-### Save and next, and the error banner
-
-Two more pieces of the Redwood create-edit drawer, switched through the crud's `display()`
-(`CrudDisplay`, the tri-state `Toggle` grammar — `on` · `off` · `disabled`):
-
-```java
-@Override
-public CrudDisplay display() {
-  return CrudDisplay.defaults().toBuilder()
-      .saveAndNext(Toggle.on)               // default off
-      .create(canCreate ? Toggle.on : Toggle.disabled)
-      .delete(Toggle.off)
-      .build();
-}
-```
-
-- **Save and next** — editing a series row by row: the drawer gets a *Save and next* button; it
-  saves, and the SAME drawer moves on to the next row of the listing (the server re-sends it with
-  the same id, which refreshes the open drawer in place) while the listing refreshes behind it. On
-  the last row it closes like a plain save. The next row comes from `nextIdAfter(currentId, rq)` —
-  by default the row after it in an unfiltered search; override it to follow the user's filters.
-  Label: `saveAndNextLabel()`.
-- **Error banner** (`errorBanner`, default `on`) — when the save throws, the drawer stays open with
-  the exception's message as a danger banner above the form and the values the user typed, and the
-  message is announced to screen readers. `off` brings back the plain error toast.
-- `create` / `delete` — the New and Delete buttons; `disabled` shows them inert (and the server
-  refuses them), on top of the capability gates (`canCreate`, `@NotCreatable`…), which still decide
-  whether the affordance exists at all.
-
-![Save and next: the drawer moved on to the next row](/images/docs/drawer/save-and-next.png)
-
-![A failed save keeps the drawer open with an error banner](/images/docs/drawer/error-banner.png)
-
-Tests: `CrudDisplaySyncTest`.
-
 ## Coverage
 
 | | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
 |---|---|---|---|---|---|---|---|
-| Drawer (sizes, maximize, peer nav, bottom, collapsible) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Drawer: title, subtitle, width, content, actions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Drawer: sizes, maximize, peer nav | ✅ | ✅ | ✅ | ✅ | ❌ ¹ | ✅ | ✅ |
+| Drawer: start / bottom position, collapsible, modeless, layout | ✅ | ✅ | ✅ | ✅ | ❌ ¹ | ✅ | ✅ |
 | `editInDrawer()` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Save and next | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Error banner on a failed save | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `CrudDisplay` create / delete toggles | ✅ | ✅ ¹ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `CrudDisplay` create / delete toggles | ✅ | ✅ ² | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 What makes save-and-next and the error banner work on a renderer is one rule: a `Drawer` re-sent
 with the id of an OPEN drawer refreshes it in place (its `initialData` becomes the form's values)
-instead of stacking a second one. ¹ In .NET the toggles apply to `Crud<T>`; capability listings
-(`IListing`) do not have them yet.
+instead of stacking a second one. ¹ Redwood paints every drawer as a modal end-edge
+`oj-drawer-popup` (see the caution above). ² In .NET the toggles apply to `Crud<T>`; capability
+listings (`IListing`) do not have them yet.
 
-## Redwood parameter and slot reference
+## Redwood parameter and slot reference (guided-process and configuration drawers)
 
-Redwood ships **five** drawer templates; one `Drawer` component covers them all in Mateu, so this
-table is grouped by template. The canonical page-header elements shared by every page template are
-documented once in [Page templates](/ux-patterns/page-templates/).
+The general, bottom and create-and-edit drawers are covered element by element in their sections
+above. The two remaining drawer templates:
 
 **Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
-
-### `general-drawer-template`
-
-| Redwood prop / slot | Mateu | |
-|---|---|---|
-| `drawerTitle` / `drawerSubtitle` | `headerTitle` / `subtitle` | ✅ |
-| `drawerSize: sm \| md \| lg \| xl` | `DrawerSize.s \| m \| l \| xl` (464 / 648 / 968 / 90vw); an explicit `width` overrides | ✅ |
-| `drawerState: auto \| closed \| maximized` | `maximizable` steps the drawer up the size ladder client-side | 🟡 |
-| `displayOptions.maximize` | `maximizable` | ✅ |
-| `nextItem` / `previousItem` + `spPrevious` / `spNext` | `peerNav` → `PeerNav` in the drawer header | ✅ |
-| **Slots** `header` + default | `header` / `content` (plus `footer`, a Mateu addition) | ✅ |
-| `closeAction` + `spClose` | ✕, Esc and the backdrop close it and emit **no** event by design (the "dismissed without saving" path) | 🟡 |
-| `displayOptions.header: auto \| tabsOnly` | — | — |
-| `displayOptions.goToParent` + `spGoToParent` | — | — |
-| — | `layout` (dock and **push** the content instead of overlaying) and `modeless` are Mateu additions | ✅ |
-
-### `create-edit-drawer-template`
-
-| Redwood prop / slot | Mateu | |
-|---|---|---|
-| Create/edit form in the drawer | `editInDrawer()` on any `AutoCrud`; the listing never unmounts | ✅ |
-| `primaryActionType: auto \| create` | derived from whether the row exists | ✅ |
-| `unsavedChanges` + `spUnsavedChangesDiscard` / `Cancel` | the framework's dirty guard covers it | ✅ |
-| `spPrimaryActionAndClose` | **Save** persists, closes the drawer and re-runs the listing's search | ✅ |
-| `spPrimaryActionAndNext` ("save and next" when editing a series over a listing) | `CrudDisplay.saveAndNext` + `nextIdAfter(id, rq)` | ✅ |
-| `displayErrorMessageBanner` + `errorMessage` (inline error banner on a failed save) | `CrudDisplay.errorBanner` (default on): the drawer is re-sent with a danger banner and the typed values | ✅ |
-
-### `bottom-drawer-template`
-
-| Redwood prop / slot | Mateu | |
-|---|---|---|
-| Bottom docking | `DrawerPosition.bottom` | ✅ |
-| `drawerState: … \| minimized` + `displayOptions.drawerMode: fixed \| closable` | `collapsible` | 🟡 |
-| `displayOptions {title, maximize}` | `headerTitle`, `maximizable` | ✅ |
-| `discoverability: on \| off` (peeks a tab so users find it) | — | — |
-| `spBeforeBottomDrawerStateChange` (cancelable) | — | — |
 
 ### `guided-process-drawer-template`
 

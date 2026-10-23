@@ -11,6 +11,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.11] — 2026-10-23
+
+Redwood, the Redwood way: a record's create/edit page is Spectra's transactional page (its header,
+its sections, its anchor navigator), section actions and tabs follow Spectra, Redwood's loader while
+the app loads — and every Redwood page template is documented in Mateu terms, with screenshots.
+
+### Documentation
+
+- **Redwood page templates, the Mateu way.** Every Redwood template guide (Advanced create and edit,
+  Collection detail, Guided process, Dashboard landing, Welcome, Foldout, General and Item overview,
+  General / Bottom / Create-and-edit drawers, Data management, Gantt page) now has its Mateu
+  counterpart: when to use it, anatomy, responsive behaviour, what you can configure — each element
+  with the Mateu piece that gives it and whether Redwood paints it — a working example, screenshots
+  of Mateu on the Redwood renderer, and its known gaps. New page *Redwood page templates* groups them
+  as Redwood does (overview, detail, transactional). The element-by-element reviews live in
+  `design/redwood-templates/`. `demo-redwood-showcase` gained the Advanced create and edit (both
+  variants), General / Bottom drawer, Data management and Gantt page demos.
+
 ### Changed
 
 - **Redwood: a record's create/edit page is Spectra's transactional page.** Following Redwood's
@@ -34,6 +52,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `oj-divider-bottom`); they used to spread over the whole width with no line.
 - **Redwood: a Dashboard with the default `columns()` keeps each tile's width.** The KPI band takes
   the whole row and a panel its `colSpan`; they were all squeezed into one narrow cell.
+- **Redwood: the sections index steps aside for a detail slot.** A page with an `@Aside` panel
+  never shows the `@Toc` index on Redwood — the template's rule: the anchor navigator and the detail
+  slot exclude each other.
 - **Redwood: Redwood's loader while the app loads.** The page shows Redwood's large progress circle
   while Oracle's CDN downloads (it was blank) and while a new screen loads (it was a skeleton).
 

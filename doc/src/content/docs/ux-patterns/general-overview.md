@@ -3,6 +3,76 @@ title: General overview
 description: A record context switcher over the selected record's overview — the Redwood "General Overview" template as a Mateu archetype.
 ---
 
+**Status:** ✅ Implemented · Redwood template: **General overview page** (`oj-sp-general-overview-page`; Redwood files it under *Details*)
+
+The general overview is the plainest detail page there is: everything worth knowing about one
+simple business object, read-only, on one screen. A header names the record and carries a strip of
+key facts; below it, the record's attributes are grouped into titled sections of label/value pairs,
+and an optional side column holds secondary context such as related contacts or recent activity.
+A switcher in the header jumps to another record without leaving the page.
+
+In Mateu this is the `GeneralOverview<Row>` archetype: you list the records, load one, and return
+its overview; Mateu adds the switcher and re-renders in place when the user picks another record.
+
+## When to use it
+
+- To **view** a simple business object — a requisition, a supplier, an asset — whose information
+  fits in a few sections and needs no tabs.
+- When users **move between sibling records** often and should not go back to a list to do so.
+
+When the object has many categories of related information, use the [Foldout](/ux-patterns/foldout/)
+or the [Item overview](/ux-patterns/item-overview/); when the user must edit, use an editable view or
+a CRUD.
+
+## Anatomy
+
+![The general overview painted by the Redwood renderer: header with record switcher and facts, sections, info column](/images/docs/redwood-templates/general-overview-1.png)
+
+| # | Region | What it holds | Mateu piece |
+|---|---|---|---|
+| 1 | Header | Record title (doubling as the record switcher), subtitle, status badge, a strip of contextual facts | `switcherOptions()` + `load()`; an `EntityHeader` (title, subtitle, badges, facts, metric) returned by `overview()` |
+| 2 | Main slot | The record's attributes in titled sections of label/value pairs | the rest of `overview()`: `Card`s, property rows, `StatusList`s… |
+| 3 | Info slot | Secondary, read-only context beside the main content | `info(row, rq)` + `infoWidth()` |
+
+:::caution[Redwood: include an `EntityHeader`]
+The Redwood renderer recognises the page as a general overview by the `EntityHeader` in the overview
+**and** the record switcher. Without an `EntityHeader` (or while `emptyOverview()` is showing), the
+page is painted as an ordinary form: the switcher as a select field and the overview below it.
+:::
+
+## Responsive behaviour
+
+On wide screens the main content and the info column sit side by side; on narrow ones they stack
+(below 48rem on Vaadin, below the `md` breakpoint on Redwood) and the main content comes first.
+`promoteInfoSlot` puts the info column on top when stacked. The header and its facts strip stay at
+the top in every width.
+
+## What you can configure
+
+**Legend:** ✅ supported · 🟡 partial · ❌ not supported · ➖ not applicable
+
+| Element | Mateu piece | Redwood | Notes |
+|---|---|---|---|
+| Page width | `@PageWidth` | ✅ | |
+| Record title | `EntityHeader.title` | ✅ | Spectra's general-overview header |
+| Record switcher | `switcherOptions()`, `load()`; first record selected by default | ✅ | it **is** the title (Spectra's data switcher) |
+| Switcher label | `recordLabel()` | 🟡 | Redwood always labels it "Record" |
+| Switcher type-ahead search | — | ❌ | available for header switchers on other pages (`RecordSwitcherSupplier`) |
+| Subtitle | `EntityHeader.subtitle` | ✅ | |
+| Status badge | `EntityHeader.badges` | 🟡 | Redwood appends the badges to the subtitle instead of using the header's badge |
+| Contextual facts | `EntityHeader.facts`, `metricLabel`/`metricValue` | ✅ | the metric becomes one more fact |
+| Primary / secondary actions | `@Toolbar` methods | ❌ | the overview header carries no actions on Redwood |
+| Previous / next record | `PeerNavigationSupplier` | ❌ | travels on the wire, but the overview header does not draw the arrows |
+| Main slot sections | `Card`s (titled) and any other component | ✅ | each piece is one card; a lone column puts two cards per row |
+| Info slot | `info(row, rq)`, `infoWidth()` | 🟡 | a side column of cards, not the template's own `info` slot |
+| `promoteInfoSlot` | `display()` → `GeneralOverviewDisplay.promoteInfoSlot` | 🟡 | Redwood also moves the info column to the **left** on wide screens |
+| Hide the info panel | `display()` → `GeneralOverviewDisplay.info(Toggle.off)` | ✅ | |
+| Nothing selected | `emptyOverview()` | 🟡 | shown, but Redwood paints the page as a plain form meanwhile |
+| Density | `@Compact` | ✅ | a general overview is a reflected page, so `@Compact` is read |
+| Display mode (header colour) | — | ❌ | |
+
+## Building it with Mateu
+
 :::note[Imports]
 The samples leave out their `import` lines and compile with single-type imports. Some names exist
 in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
@@ -32,16 +102,27 @@ public class RequisitionOverview extends GeneralOverview<Requisition> {
     return VerticalLayout.builder().content(List.of(
         EntityHeader.builder()          // the metadata strip: title + badges + facts + metric
             .title(r.title())
-            .facts(List.of(Fact.builder().label("Business Unit").value(r.unit()).build()))
+            .badges(List.of(new Chip(r.status(), "success")))
+            .facts(List.of(new Fact("Business Unit", r.unit())))
             .metricLabel("Amount").metricValue(r.amount())
             .build(),
         Card.builder().title(new Text("Details")).build()   // … the property cards
     )).build();
   }
+
+  @Override
+  protected Component info(Requisition r, HttpRequest rq) {
+    return Card.builder().title(new Text("Recent activity")).content(activityOf(r)).build();
+  }
+
+  @Override
+  protected String recordLabel() { return "Requisition"; }
 }
 ```
 
 The first record is selected by default. `emptyOverview()` customizes what shows when nothing is selected, and `recordLabel()` labels the switcher (unlabelled by default). Pair the header with `Card`s, `StatusList`s or property rows for the record body — or an embedded routed island when the detail needs its own actions.
+
+![Switching record from the header on Redwood](/images/docs/redwood-templates/general-overview-2.png)
 
 ## The `info` slot
 
@@ -79,11 +160,13 @@ This archetype's switcher is a field in the page body. For a record or context s
 
 | | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
 |---|---|---|---|---|---|---|---|
-| Switcher + overview | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Switcher + overview | ✅ | ✅ | ✅ | ✅ | ✅ ¹ | ✅ | ✅ |
 | `info` slot | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `promoteInfoSlot` | ✅ | ✅ | ✅ | ✅ | 🟡 ¹ | ✅ | ✅ |
+| `promoteInfoSlot` | ✅ | ✅ | ✅ | ✅ | 🟡 ² | ✅ | ✅ |
 
-¹ Redwood places the info panel in its column; when the layout stacks it keeps the main-first order.
+¹ When the overview contains an `EntityHeader`.
+² Redwood puts the promoted info column first in every width, so it also sits on the left on wide
+screens.
 
 ## Redwood parameter and slot reference
 
@@ -98,12 +181,12 @@ facts, `@Timestamp`, peer navigation — are documented once in
 |---|---|---|
 | `selectContext` / `selectObject` `{data, itemText, secondaryText, avatar, icon}` | `switcherOptions(HttpRequest)` returning `Option`s | ✅ |
 | `selectContextValue` / `selectContextItem` (controlled selection) | the public `record` field, set by the switcher | ✅ |
-| `dataSwitcherType: context \| object` | the header switcher (`RecordSwitcherSupplier`, `RecordSwitcher.type`); this archetype's body switcher has no type | 🟡 |
-| `displayOptions.switcherSearch` (type-ahead inside the switcher) | the header switcher's `RecordSwitcher.searchable` | 🟡 |
+| `dataSwitcherType: context \| object` | the header switcher (`RecordSwitcherSupplier`, `RecordSwitcher.type`); this archetype's body switcher has no type (Redwood paints it as an `object` switcher) | 🟡 |
+| `displayOptions.switcherSearch` (type-ahead inside the switcher) | the header switcher's `RecordSwitcher.searchable`; not on this archetype | 🟡 |
 | `displayOptions.promoteInfoSlot` | `GeneralOverviewDisplay.promoteInfoSlot` | ✅ |
 | `displayOptions.contextualInfoLabel` / `contextualInfoSticky` | `@KPI` facts render, but neither toggle exists | 🟡 |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
-| `previousItem` / `nextItem` + `spPreviousItem` / `spNextItem` | `PeerNavigationSupplier` → `PeerNav` | ✅ |
+| `previousItem` / `nextItem` + `spPreviousItem` / `spNextItem` | `PeerNavigationSupplier` → `PeerNav`; the Redwood overview header does not draw them | 🟡 |
 | **Slot** `main` | `overview(Row, HttpRequest)` | ✅ |
 | **Slot** `info` (contextual side panel) | `info(Row, HttpRequest)` + `infoWidth()` | ✅ |
 | **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
@@ -114,6 +197,17 @@ Mateu adds two things the Redwood template has no equivalent for: `emptyOverview
 before anything is selected) and `load(String id, HttpRequest)` as an explicit data port, so the
 switcher never carries the record payload.
 
+## Known gaps
+
+The element-by-element review, with code references, is in
+[general-overview review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/general-overview.md). In short:
+
+- Redwood needs an `EntityHeader` in the overview to paint the template at all.
+- The overview header on Redwood carries no actions and no previous/next arrows.
+- The info panel is a column of cards, not the template's `info` slot, and `promoteInfoSlot` also
+  moves it to the left on wide screens.
+- Badges join the subtitle; the switcher label is fixed.
+
 ## Demo
 
-`demo-admin-panel/.../generaloverview/RequisitionOverview.java` (`/general-overview-demo`). Tests: `GeneralOverviewSyncTest`.
+`demo-admin-panel/.../generaloverview/RequisitionOverview.java` (`/general-overview-demo`, Vaadin); the same class in `demo-redwood-showcase` (Redwood, same route) and `demo-vb` `RequisitionsOverview` (`/requisitions`). Tests: `GeneralOverviewSyncTest`.
