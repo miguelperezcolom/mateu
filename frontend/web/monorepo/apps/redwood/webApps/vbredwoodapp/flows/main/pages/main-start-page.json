@@ -234,6 +234,28 @@
         }
       ]
     },
+    "formSectionPrimaryAction": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $current.data.sectionActions.primaryAction.actionId }}",
+            "parameters": "{{ $current.data.sectionActions.primaryAction.parameters }}"
+          }
+        }
+      ]
+    },
+    "formSectionViewMoreAction": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $current.data.sectionActions.viewMoreAction.actionId }}",
+            "parameters": "{{ $current.data.sectionActions.viewMoreAction.parameters }}"
+          }
+        }
+      ]
+    },
     "mateuActionClicked": {
       "chains": [
         {
@@ -561,6 +583,28 @@
         }
       ]
     },
+    "islandSectionPrimaryAction": {
+      "chains": [
+        {
+          "chain": "dispatchIslandAction",
+          "parameters": {
+            "actionId": "{{ $current.data.sectionActions.primaryAction.actionId }}",
+            "parameters": "{{ $current.data.sectionActions.primaryAction.parameters }}"
+          }
+        }
+      ]
+    },
+    "islandSectionViewMoreAction": {
+      "chains": [
+        {
+          "chain": "dispatchIslandAction",
+          "parameters": {
+            "actionId": "{{ $current.data.sectionActions.viewMoreAction.actionId }}",
+            "parameters": "{{ $current.data.sectionActions.viewMoreAction.parameters }}"
+          }
+        }
+      ]
+    },
     "islandBlockAction": {
       "chains": [
         {
@@ -625,6 +669,28 @@
           "parameters": {
             "actionId": "{{ $current.data.actionId }}",
             "appLevel": "{{ $current.data.appLevel }}"
+          }
+        }
+      ]
+    },
+    "sectionPrimaryAction": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $current.data.sectionActions.primaryAction.actionId }}",
+            "parameters": "{{ $current.data.sectionActions.primaryAction.parameters }}"
+          }
+        }
+      ]
+    },
+    "sectionViewMoreAction": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $current.data.sectionActions.viewMoreAction.actionId }}",
+            "parameters": "{{ $current.data.sectionActions.viewMoreAction.parameters }}"
           }
         }
       ]

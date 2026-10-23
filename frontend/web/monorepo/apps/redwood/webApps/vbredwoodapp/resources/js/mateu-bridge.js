@@ -1998,7 +1998,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!isRoot && n.type === 'ServerSide') return // island boundary: its fields are not ours
       let here = section
       if (isSectionNode(n)) {
-        here = { key: 's' + sections.length, ...sectionHeadOf(n), ...sectionButtonsOf(n), fields: [] }
+        // its @Section affordances are oj-sp-section's own (add / edit / view more): out of its buttons
+        const affordances = sectionAffordancesOf(n)
+        const buttons = sectionButtonsOf(n)
+        const ids = new Set(affordances.drawn)
+        here = { key: 's' + sections.length, ...sectionHeadOf(n),
+          titleButtons: buttons.titleButtons.filter((x) => !ids.has(x.actionId)),
+          footerButtons: buttons.footerButtons.filter((x) => !ids.has(x.actionId)),
+          sectionActions: affordances, fields: [] }
         sections.push(here)
       }
       const lay = !here && isLayout(n) ? n : layout
@@ -2038,6 +2045,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // (a field's @Colspan is not applied: of the classic oj-form-layout's children only
         // oj-label-value has colspan, and wrapping the control in one misaligns the grid)
         return { ...head, hasTitle: !!sec.title, wideColumns: wideColumnsOf(head),
+          sectionActions: sec.sectionActions || NO_SECTION_AFFORDANCES,
           hasTitleButtons: !!(sec.titleButtons && sec.titleButtons.length),
           hasFooterButtons: !!(sec.footerButtons && sec.footerButtons.length) }
       })
@@ -2239,6 +2247,70 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const v of Object.values(node)) {
       if (Array.isArray(v)) v.forEach((x) => collectTexts(x, out))
       else if (v && typeof v === 'object') collectTexts(v, out)
+    }
+    return out
+  }
+
+  /** A group with no @Section of its own: no affordances. */
+  const NO_SECTION_AFFORDANCES = { primary: { type: 'edit', display: 'off' }, primaryAction: null,
+    viewMore: 'off', viewMoreAction: null, drawn: [], any: false }
+
+  /** The id prefix the server gives each @Section affordance button (SectionAffordances.java). */
+  const SECTION_AFFORDANCES = { 'section-add-': 'add', 'section-edit-': 'edit', 'section-view-more-': 'viewMore' }
+
+  /**
+   * A section card's affordances, as oj-sp-section takes them. The component has ONE primary action,
+   * of type `edit` or `add` (both fire spPrimaryAction), and its own «View more» (spViewMoreAction):
+   * @Section(editAction) is the primary when declared, else @Section(addAction); when a section
+   * declares both, its add stays one of its own title buttons (it is not in `drawn`). Returns
+   * `primary` ({ type, display }), `primaryAction` / `viewMoreAction` ({ actionId, parameters } or
+   * null), `viewMore` ('on' | 'off') and `drawn` — the action ids the section draws itself. Not
+   * crossing a nested section or an island.
+   */
+  function sectionAffordancesOf(card) {
+    const found = { add: null, edit: null, viewMore: null }
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && (n.type === 'ServerSide' || isSectionNode(n))) return
+      const md = n.metadata
+      if (md && md.type === 'Button' && md.actionId) {
+        const id = String(n.id || md.id || '')
+        for (const [prefix, kind] of Object.entries(SECTION_AFFORDANCES)) {
+          if (id.startsWith(prefix) && !found[kind]) found[kind] = { actionId: md.actionId, parameters: md.parameters || {} }
+        }
+        return
+      }
+      for (const [k, v] of Object.entries(n)) if (k !== 'metadata' || (v && typeof v === 'object')) walk(v, false)
+    }
+    walk(card, true)
+    const primaryAction = found.edit || found.add
+    const drawn = []
+    for (const action of [primaryAction, found.viewMore]) if (action) drawn.push(action.actionId)
+    return {
+      primary: { type: found.edit ? 'edit' : 'add', display: primaryAction ? 'on' : 'off' },
+      primaryAction,
+      viewMore: found.viewMore ? 'on' : 'off',
+      viewMoreAction: found.viewMore,
+      drawn,
+      any: drawn.length > 0,
+    }
+  }
+
+  /** The section's body without the affordance buttons the oj-sp-section draws itself; a button row
+   *  or a title row left with nothing in it goes. */
+  function withoutSectionAffordances(items, affordances) {
+    if (!affordances || !affordances.any) return items
+    const ids = new Set(affordances.drawn)
+    const out = []
+    for (const atom of items || []) {
+      if (atom && atom.isRow) {
+        const rest = (atom.items || []).filter((i) => !(i && i.rowButton && ids.has(i.actionId)))
+        if (rest.length) out.push(rest.length === atom.items.length ? atom : { ...atom, items: rest })
+      } else if (atom && atom.isButtons) {
+        const rest = (atom.buttons || []).filter((b) => !(b && ids.has(b.actionId)))
+        if (rest.length) out.push(rest.length === atom.buttons.length ? atom : { ...atom, buttons: rest })
+      } else out.push(atom)
     }
     return out
   }
@@ -4130,7 +4202,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             blocks.splice(start)
             return false
           }
-          out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items), ...tag })
+          // the blocks are merged into one (a column cell cannot stack blocks): a Spectra section keeps
+          // its header — oj-sp-section with no body: its title, accent marker and affordances — and its
+          // body follows (an @Aside form's sections: its main column holds them all)
+          out.push({ isPlain: true, colClass: colClasses[i], ...tag,
+            items: created.flatMap((b) => (b.spSection
+              ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+              : b.items)) })
         }
       }
       blocks.push(...out)
@@ -4508,10 +4586,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // auto-fill / auto-fit tracks (repeat(auto-fit, minmax(16rem, 1fr))): as many tiles per row
         // as fit at each breakpoint — responsive oj-flex classes instead of stacking them
         // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
-        const autoFit = autoFitColClass(m.gridTemplateColumns
-          || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
+        const autoTemplate = m.gridTemplateColumns
+          || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT)
+        const autoFit = autoFitColClass(autoTemplate)
         const tracked = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-        const classes = tracked || (autoFit ? kids.map(() => autoFit) : null)
+        // auto-fit tiles keep each child's own width: a panel's colSpan, the KPI band the whole row (a
+        // Dashboard with columns() = 0 squeezed its KPI band and every panel into one narrow cell)
+        const classes = tracked || (autoFit ? kids.map((_, i) => (spans[i] > 1 ? autoFitColClass(autoTemplate, spans[i]) : autoFit)) : null)
         // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
         // blocks carry the mark, and the content wins over the generic form (hostContentShown).
         // So do the COLUMNS of explicit tracks (the @Zones of a crud's detail: «35% 65%»): the
@@ -4570,7 +4651,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // (with its accent marker) itself, so its body is the card's atoms without that heading
         if (card.sectionTitle) {
           card.spSection = true
-          card.sectionItems = sectionBodyOf(card.items)
+          // its affordances (@Section(addAction, editAction, viewMoreAction)) are the section's own
+          // buttons — add as its primary action, edit, view more — and leave the body
+          card.sectionActions = sectionAffordancesOf(node)
+          card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items), card.sectionActions)
         }
         plain = null
         return
@@ -6172,7 +6256,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The form's action row minus the buttons its sections already draw (sectionButtonsOf). */
   function withoutSectionButtons(actions, sections) {
     const drawn = {}
-    for (const sec of sections || []) for (const b of (sec.titleButtons || []).concat(sec.footerButtons || [])) drawn[b.actionId] = true
+    for (const sec of sections || []) {
+      for (const b of (sec.titleButtons || []).concat(sec.footerButtons || [])) drawn[b.actionId] = true
+      // the @Section affordances the oj-sp-section draws itself (add / edit / view more)
+      for (const id of (sec.sectionActions && sec.sectionActions.drawn) || []) drawn[id] = true
+    }
     return (actions || []).filter((a) => !drawn[a.actionId])
   }
 
@@ -10398,7 +10486,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const AUTO_FIT_DEFAULT = 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))'
   /** `repeat(auto-fit, minmax(16rem, 1fr))` → classes that put as many tiles per row as fit at each
    *  breakpoint (sm 0, md 768px, lg 1024px, xl 1280px). null when the template is not that shape. */
-  function autoFitColClass(template) {
+  function autoFitColClass(template, cells = 1) {
     const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*(?:min\(\s*100%\s*,\s*)?([\d.]+)(px|rem|em)/i.exec(str(template))
     if (!m) return null
     const px = parseFloat(m[1]) * (m[2] === 'px' ? 1 : 16)
@@ -10406,8 +10494,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const per = (width) => Math.max(1, Math.min(12, Math.floor(width / px)))
     const span = (width) => {
       const n = per(width)
-      // oj-flex columns are twelfths: the largest span that fits n per row
-      return Math.max(1, Math.floor(12 / n))
+      // oj-flex columns are twelfths: the largest span that fits n per row — times the cells the child
+      // takes (a DashboardPanel's colSpan; the KPI band, the whole row), never past the row
+      const want = Math.max(1, cells || 1)
+      return want >= n ? 12 : Math.max(1, Math.floor(12 / n) * want)
     }
     return 'oj-flex-item oj-sm-' + span(480) + ' oj-md-' + span(768) + ' oj-lg-' + span(1024) + ' oj-xl-' + span(1280) + ' oj-sm-padding-2x-end oj-sm-padding-2x-bottom'
   }

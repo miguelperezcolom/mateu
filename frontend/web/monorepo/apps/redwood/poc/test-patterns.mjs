@@ -338,14 +338,17 @@ test('SUT switcher: the switcher is header chrome — no stray «Customer» butt
   assert.equal(pageSwitcherOf(reg.contexts[HOST_ID]).value, 'c1')
 })
 
-test('SUT switcher: @Section affordances stay with their section (title row / under the content)', () => {
+test('SUT switcher: @Section affordances are their oj-sp-section\'s own, never the form\'s action row', () => {
   const summary = summarizeHost(wire('switcher'), '')
   const byTitle = Object.fromEntries(summary.sections.filter((s) => s.title).map((s) => [s.title, s]))
-  assert.deepEqual(byTitle.Contact.titleButtons.map((b) => [b.actionId, b.label, b.chroming]), [['editContact', 'Edit', 'borderless']])
-  assert.deepEqual(byTitle.Contact.footerButtons, [])
-  assert.deepEqual(byTitle.Segment.titleButtons.map((b) => b.label), ['Add'])
-  assert.deepEqual(byTitle.Segment.footerButtons.map((b) => b.label), ['View more'])
-  assert.equal(byTitle.Segment.hasFooterButtons, true)
+  // they are oj-sp-section's own affordances: its one primary action (edit, else add) and view more
+  assert.deepEqual(byTitle.Contact.sectionActions.primary, { type: 'edit', display: 'on' })
+  assert.equal(byTitle.Contact.sectionActions.primaryAction.actionId, 'editContact')
+  assert.deepEqual([byTitle.Contact.titleButtons, byTitle.Contact.footerButtons], [[], []])
+  assert.deepEqual(byTitle.Segment.sectionActions.primary, { type: 'add', display: 'on' })
+  assert.equal(byTitle.Segment.sectionActions.viewMore, 'on')
+  assert.deepEqual([byTitle.Segment.titleButtons, byTitle.Segment.footerButtons], [[], []])
+  assert.equal(byTitle.Segment.hasFooterButtons, false)
   // and they leave the form's bottom action row
   assert.deepEqual(summary.actions.map((a) => a.actionId), [])
   assert.deepEqual(withoutSectionButtons([{ actionId: 'save' }, { actionId: 'addTag' }], summary.sections).map((a) => a.actionId), ['save'])

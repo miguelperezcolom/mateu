@@ -1268,6 +1268,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -1275,8 +1287,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -3540,6 +3555,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -3547,8 +3574,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -5307,6 +5337,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -5314,8 +5356,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -7107,6 +7152,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -7114,8 +7171,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -8874,6 +8934,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -8881,8 +8953,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -10693,6 +10768,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -10700,8 +10787,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -12509,6 +12599,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -12516,8 +12618,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -14288,6 +14393,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -14295,8 +14412,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -16068,6 +16188,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -16075,8 +16207,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -17864,6 +17999,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -17871,8 +18018,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -19944,6 +20094,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -19951,8 +20113,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -21997,6 +22162,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -22004,8 +22181,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -23762,6 +23942,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -23769,8 +23961,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -25030,10 +25225,18 @@
       <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
         <template>
           <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
-            <!-- the section title row: its heading + its own buttons (@Section editAction/addAction) -->
-            <oj-bind-if test="[[ $current.data.hasTitle || $current.data.hasTitleButtons ]]">
+            <!-- Spectra's section (oj-sp-section): its title with the accent marker and its affordances —
+                 one primary action (@Section editAction, else addAction) and viewMoreAction. A group with no
+                 title (fields outside any @Section) hides the section header (mateu-sp-section-untitled) -->
+            <oj-sp-section section-title="[[ $current.data.title ]]" level="section"
+              :class="[[ $current.data.hasTitle ? '' : 'mateu-sp-section-untitled' ]]"
+              primary-action="[[ $current.data.sectionActions.primary ]]"
+              display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+              on-sp-primary-action="[[ $listeners.formSectionPrimaryAction ]]"
+              on-sp-view-more-action="[[ $listeners.formSectionViewMoreAction ]]">
+            <!-- the section's OTHER title buttons (an @Inline type's @Toolbar), beside the title's place -->
+            <oj-bind-if test="[[ $current.data.hasTitleButtons ]]">
               <div class="oj-flex oj-sm-align-items-center oj-sm-margin-4x-bottom mateu-section-title-row">
-                <h3 style="margin: 0;" class="oj-typography-heading-xs oj-sm-margin-0"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                 <oj-bind-for-each data="[[ $current.data.titleButtons ]]">
                   <template>
                     <oj-button class="oj-button-sm oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
@@ -25307,6 +25510,7 @@
                 </oj-bind-for-each>
               </div>
             </oj-bind-if>
+            </oj-sp-section>
           </div>
         </template>
       </oj-bind-for-each>
@@ -26182,6 +26386,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.islandSectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.islandSectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -26189,8 +26405,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -27947,6 +28166,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.islandSectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.islandSectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -27954,8 +28185,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -29786,6 +30020,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -29793,8 +30039,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -31553,6 +31802,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -31560,8 +31821,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -33334,6 +33598,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -33341,8 +33617,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -35101,6 +35380,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -35108,8 +35399,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -36112,7 +36406,13 @@
              the card's atoms without the heading the section draws (sectionBodyOf) -->
         <oj-bind-if test="[[ $current.data.isCard && $current.data.spSection ]]">
           <div :class="[[ $current.data.blockClass + ' mateu-sp-section' ]]" :data-mateu-section="[[ $current.data.sectionTitle ]]">
-            <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section">
+            <!-- its affordances (@Section(editAction | addAction, viewMoreAction)) are the component's own:
+                 ONE primary action (edit, else add) and «View more» — each runs the section's action -->
+            <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+              primary-action="[[ $current.data.sectionActions.primary ]]"
+              display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+              on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+              on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]">
               <oj-bind-for-each data="[[ $current.data.sectionItems ]]">
                 <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                 <template>
@@ -36919,6 +37219,18 @@
                       <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                     </div>
                   </oj-bind-if>
+                  <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                       section with no body — title, accent marker, its one primary action and «View more» —; the
+                       section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                  <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                    <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                      <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                        primary-action="[[ $current.data.sectionActions.primary ]]"
+                        display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                        on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                        on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                    </div>
+                  </oj-bind-if>
                   <!-- TABS of a form (not the item-overview archetype: a form that
                        carries a TabLayout inside, like a process's detail). The active tab's
                        content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -36926,8 +37238,11 @@
                   <oj-bind-if test="[[ $current.data.isTabs ]]">
                     <!-- EXPLICIT edge=top: the default stacks the tabs
                          vertically (like the navigator), which is not what is wanted here;
-                         overflow popup: on a phone the tabs that do not fit go to a menu -->
-                    <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                         overflow popup: on a phone the tabs that do not fit go to a menu.
+                         Redwood's tab strip: the tabs at their own width from the start (layout
+                         condense — JET's default, stretch, spreads them over the whole width) over
+                         a full-width divider line (JET's oj-divider-bottom utility) -->
+                    <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                       selection="[[ $current.data.selectedId ]]"
                       on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                       <ul>
@@ -38686,6 +39001,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -38693,8 +39020,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>
@@ -40453,6 +40783,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.sectionPrimaryAction ]]"
+                          on-sp-view-more-action="[[ $listeners.sectionViewMoreAction ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -40460,8 +40802,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>

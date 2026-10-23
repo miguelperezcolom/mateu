@@ -802,6 +802,18 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- a SECTION's header inside a merged column (an @Aside form's main column): Spectra's own
+                         section with no body — title, accent marker, its one primary action and «View more» —; the
+                         section's fields follow as atoms. data-mateu-section: the sections index finds it -->
+                    <oj-bind-if test="[[ $current.data.isSpSectionHeader ]]">
+                      <div class="mateu-sp-section-header" :data-mateu-section="[[ $current.data.sectionTitle ]]">
+                        <oj-sp-section section-title="[[ $current.data.sectionTitle ]]" level="section"
+                          primary-action="[[ $current.data.sectionActions.primary ]]"
+                          display-options.view-more="[[ $current.data.sectionActions.viewMore ]]"
+                          on-sp-primary-action="[[ $listeners.{{sectionPrimary}} ]]"
+                          on-sp-view-more-action="[[ $listeners.{{sectionViewMore}} ]]"></oj-sp-section>
+                      </div>
+                    </oj-bind-if>
                     <!-- TABS of a form (not the item-overview archetype: a form that
                          carries a TabLayout inside, like a process's detail). The active tab's
                          content comes FLATTENED after it, as normal atoms — so it is painted by
@@ -809,8 +821,11 @@
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
                       <!-- EXPLICIT edge=top: the default stacks the tabs
                            vertically (like the navigator), which is not what is wanted here;
-                           overflow popup: on a phone the tabs that do not fit go to a menu -->
-                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top" overflow="popup"
+                           overflow popup: on a phone the tabs that do not fit go to a menu.
+                           Redwood's tab strip: the tabs at their own width from the start (layout
+                           condense — JET's default, stretch, spreads them over the whole width) over
+                           a full-width divider line (JET's oj-divider-bottom utility) -->
+                      <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom oj-divider-bottom" edge="top" layout="condense" overflow="popup"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
                         <ul>

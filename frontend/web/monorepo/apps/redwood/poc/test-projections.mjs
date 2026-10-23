@@ -379,6 +379,10 @@ test('a client-side grid page: range text, clamped page, an empty grid', () => {
 test('auto-fit tracks become responsive column classes; other templates are not translated', () => {
   assert.equal(autoFitColClass('repeat(auto-fill, minmax(200px, 1fr))'), 'oj-flex-item oj-sm-6 oj-md-4 oj-lg-2 oj-xl-2 oj-sm-padding-2x-end oj-sm-padding-2x-bottom')
   assert.equal(autoFitColClass('1fr 1fr'), null)
+  // a child that takes several cells (a DashboardPanel's colSpan) spans that many, never past the row;
+  // the KPI band (span 999) takes the whole row at every breakpoint
+  assert.equal(autoFitColClass('repeat(auto-fill, minmax(200px, 1fr))', 2), 'oj-flex-item oj-sm-12 oj-md-8 oj-lg-4 oj-xl-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom')
+  assert.equal(autoFitColClass('repeat(auto-fit, minmax(min(100%, 16rem), 1fr))', 999), 'oj-flex-item oj-sm-12 oj-md-12 oj-lg-12 oj-xl-12 oj-sm-padding-2x-end oj-sm-padding-2x-bottom')
   assert.equal(autoFitColClass('repeat(auto-fit, minmax(0px, 1fr))'), null)
 })
 

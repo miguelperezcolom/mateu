@@ -2,7 +2,7 @@ import { calendarAtomOf } from '../calendar.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
-import { collectTexts, isSectionNode, sectionHeadOf } from './tree.mjs'
+import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
@@ -469,7 +469,13 @@ export function islandContentOf(ctx, opts = {}) {
           blocks.splice(start)
           return false
         }
-        out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items), ...tag })
+        // the blocks are merged into one (a column cell cannot stack blocks): a Spectra section keeps
+        // its header — oj-sp-section with no body: its title, accent marker and affordances — and its
+        // body follows (an @Aside form's sections: its main column holds them all)
+        out.push({ isPlain: true, colClass: colClasses[i], ...tag,
+          items: created.flatMap((b) => (b.spSection
+            ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+            : b.items)) })
       }
     }
     blocks.push(...out)
@@ -847,10 +853,13 @@ export function islandContentOf(ctx, opts = {}) {
       // auto-fill / auto-fit tracks (repeat(auto-fit, minmax(16rem, 1fr))): as many tiles per row
       // as fit at each breakpoint — responsive oj-flex classes instead of stacking them
       // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
-      const autoFit = autoFitColClass(m.gridTemplateColumns
-        || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
+      const autoTemplate = m.gridTemplateColumns
+        || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT)
+      const autoFit = autoFitColClass(autoTemplate)
       const tracked = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-      const classes = tracked || (autoFit ? kids.map(() => autoFit) : null)
+      // auto-fit tiles keep each child's own width: a panel's colSpan, the KPI band the whole row (a
+      // Dashboard with columns() = 0 squeezed its KPI band and every panel into one narrow cell)
+      const classes = tracked || (autoFit ? kids.map((_, i) => (spans[i] > 1 ? autoFitColClass(autoTemplate, spans[i]) : autoFit)) : null)
       // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
       // blocks carry the mark, and the content wins over the generic form (hostContentShown).
       // So do the COLUMNS of explicit tracks (the @Zones of a crud's detail: «35% 65%»): the
@@ -909,7 +918,10 @@ export function islandContentOf(ctx, opts = {}) {
       // (with its accent marker) itself, so its body is the card's atoms without that heading
       if (card.sectionTitle) {
         card.spSection = true
-        card.sectionItems = sectionBodyOf(card.items)
+        // its affordances (@Section(addAction, editAction, viewMoreAction)) are the section's own
+        // buttons — add as its primary action, edit, view more — and leave the body
+        card.sectionActions = sectionAffordancesOf(node)
+        card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items), card.sectionActions)
       }
       plain = null
       return
