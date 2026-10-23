@@ -1,6 +1,6 @@
 # Publishes the two IDE plugins with the FRAMEWORK's release: the GitHub Release `v3.0-beta.N` that
 # publishes Mateu to Maven Central publishes the plugins at the same version (IntelliJ `3.0-beta.N`,
-# VS Code `3.0.N` — see scripts/plugin-versions.sh for the mapping and why). The versions are injected
+# VS Code `2.99.N` until the GA, identical from then on — see scripts/plugin-versions.sh for the mapping and why). The versions are injected
 # from the tag, so neither plugin file has to be bumped by hand. A `plugins-v*` tag (the old dedicated
 # plugin releases) still publishes them alone.
 #

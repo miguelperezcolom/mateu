@@ -26,8 +26,9 @@ The visual editor's palette drag works on the Redwood canvas, and the Mateu AI s
 ### Changed
 
 - **The IDE plugins follow the framework's version.** The framework's release now publishes the
-  IntelliJ plugin as `3.0-beta.9` and the VS Code extension as `3.0.9` (the VS Code Marketplace only
-  takes numeric versions); there are no separate `plugins-v*` releases any more (the last was 0.2.17).
+  IntelliJ plugin as `3.0-beta.9` and the VS Code extension as `2.99.9` (the VS Code Marketplace only
+  takes numeric, ever-growing versions: betas stay below `3.0.0`, and from the GA on every version
+  is the framework's own); there are no separate `plugins-v*` releases any more (the last was 0.2.17).
 
 ### Fixed
 
