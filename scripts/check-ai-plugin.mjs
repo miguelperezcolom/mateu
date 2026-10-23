@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Guards the AI guidance that ships OUTSIDE this repository, so it cannot drift from itself:
 //
-//   - the Claude Code marketplace (.claude-plugin/marketplace.json) lists the plugin by a path that
+//   - the Claude Code and Codex marketplaces list the SAME plugin by a path that
 //     exists, under the name its plugin.json declares;
 //   - ai/claude-plugin/mateu/skills is the ONLY copy of the skills: every .claude/skills/<name> of
 //     this repo is a symlink into it (a real directory there would be a second copy that drifts);
@@ -15,11 +15,17 @@
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { checkAntigravityPackage } from './package-antigravity-plugin.mjs'
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const problems = []
 const fail = (msg) => problems.push(msg)
 const json = (p) => JSON.parse(readFileSync(join(repo, p), 'utf8'))
+const args = process.argv.slice(2)
+if (args.length && (args.length !== 2 || args[0] !== '--antigravity')) {
+    console.error('Usage: node scripts/check-ai-plugin.mjs [--antigravity <generated-package-directory>]')
+    process.exit(2)
+}
 
 // --- marketplace + manifest
 const market = json('.claude-plugin/marketplace.json')
@@ -37,6 +43,25 @@ else {
     if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/.test(manifest.version ?? '')) fail(`plugin.json version '${manifest.version}' is not semver (scripts/bump-example-version.sh sets it)`)
     if (entry?.version) fail('version belongs in plugin.json only (the manifest wins and validate warns on a mismatch)')
 }
+
+// --- Codex catalog and compatibility overlay reuse the canonical skills directory
+const codexMarket = json('.agents/plugins/marketplace.json')
+if (codexMarket.name !== market.name) fail('Codex and Claude marketplace names differ')
+const codexEntry = (codexMarket.plugins ?? []).find((p) => p.name === entry?.name)
+if (!codexEntry) fail('Codex marketplace lists no Mateu plugin')
+else {
+    if (codexEntry.source?.source !== 'local' || codexEntry.source?.path !== entry?.source) {
+        fail('Codex marketplace must point at the canonical plugin using a local source')
+    }
+    if (codexEntry.policy?.installation !== 'AVAILABLE') fail('Codex plugin must be available for explicit installation')
+}
+const codex = json('ai/claude-plugin/mateu/.codex-plugin/plugin.json')
+const claude = json('ai/claude-plugin/mateu/.claude-plugin/plugin.json')
+for (const key of ['name', 'version', 'description', 'author', 'homepage', 'repository', 'license']) {
+    if (JSON.stringify(codex[key]) !== JSON.stringify(claude[key])) fail(`Codex manifest ${key} differs from Claude manifest`)
+}
+if (codex.skills !== './skills/') fail('Codex must load the canonical ./skills/ directory')
+if (!codex.interface?.displayName || !codex.interface?.shortDescription) fail('Codex interface metadata is missing')
 
 // --- skills
 const skillsDir = join(pluginDir, 'skills')
@@ -78,6 +103,9 @@ for (const skill of skills) {
         if (lstatSync(file).isSymbolicLink()) fail(`${relative(repo, file)}: a symlink inside the plugin (keep plugin files real)`)
         if (!file.endsWith('.md')) continue
         const text = readFileSync(file, 'utf8')
+        if (/\bAskUserQuestion\b|\$\{CLAUDE_PLUGIN_ROOT\}/.test(text)) {
+            fail(`${relative(repo, file)}: use host-neutral question instructions and skill-relative paths`)
+        }
         for (const m of text.matchAll(/\]\(([^)\s#]+)(#[^)]*)?\)/g)) {
             const target = m[1]
             if (/^[a-z]+:/i.test(target) || target.startsWith('/')) continue
@@ -120,9 +148,14 @@ else {
     if (s.enabledPlugins?.[`mateu@${market.name}`] !== true) fail(`${settingsPath}: enabledPlugins must enable mateu@${market.name}`)
 }
 
+if (args.length) {
+    try { checkAntigravityPackage(resolve(args[1]), repo) }
+    catch (error) { fail(error.message) }
+}
+
 if (problems.length) {
     console.error(`check-ai-plugin: ${problems.length} problem(s)`)
     for (const p of problems) console.error(`  - ${p}`)
     process.exit(1)
 }
-console.log(`check-ai-plugin: OK (${skills.length} skills: ${skills.join(', ')})`)
+console.log(`check-ai-plugin: OK (Claude Code + Codex${args.length ? ' + Antigravity' : ''}; ${skills.length} skills: ${skills.join(', ')})`)

@@ -36,11 +36,17 @@ jobs:
       - name: Bundles are not older than their source
         run: scripts/check-bundle-freshness.sh
 
-      # The AI guidance ships outside this repo (the Claude Code plugin in ai/claude-plugin/mateu,
-      # installed with `/plugin install mateu@mateu`), so it must stand alone and must not fork:
-      # .claude/skills are links into the plugin, skill links stay inside it, manifests agree.
-      - name: The Claude Code plugin is consistent
-        run: node scripts/check-ai-plugin.mjs
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      # Claude Code and Codex share the canonical skills; Antigravity receives a generated bundle.
+      # Validate the installable bundle as well as the manifests, links and release version updates.
+      - name: The AI plugin packages are consistent
+        run: |
+          node scripts/package-antigravity-plugin.mjs
+          node scripts/check-ai-plugin.mjs --antigravity ai/antigravity-plugin/mateu
+          node --test scripts/ai-plugin-package.test.mjs
 
       # The framework's own thesis, measured: a screen should need few annotations, and that number
       # should not creep up. Each new annotation is always justifiable alone; the sum is what drifts.

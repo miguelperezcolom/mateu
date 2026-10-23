@@ -123,13 +123,34 @@ quickstart: https://mateu.io/java-user-manual/start-here/quickstart/.
 
 ### With an AI assistant
 
-Every generated project and starter ships an `AGENTS.md`. For Claude Code, install the Mateu plugin
-(skills for Java, C#, Python and YAML screens, scaffolding, running and federation):
+Every generated project and starter ships an `AGENTS.md`. The Mateu plugin adds eight skills for
+Java, C#, Python and YAML screens, scaffolding, running and federation.
+
+**Claude Code:**
 
 ```text
 /plugin marketplace add miguelperezcolom/mateu
 /plugin install mateu@mateu
 ```
+
+**Codex CLI** (a version with `codex plugin` support):
+
+```bash
+codex plugin marketplace add miguelperezcolom/mateu --ref master \
+    --sparse .agents/plugins --sparse ai/claude-plugin/mateu
+codex plugin add mateu@mateu
+```
+
+**Antigravity CLI:** from a Mateu checkout, build the bundle with Node 22+ and install it:
+
+```bash
+node scripts/package-antigravity-plugin.mjs
+agy plugin install ./ai/antigravity-plugin/mateu
+```
+
+These are repository-based installation paths, independent of official directory listings.
+See [Build UIs with AI](https://mateu.io/build-uis-with-ai/) for version pinning, invocation,
+updates and verification.
 
 More — `llms.txt`, the JSON Schemas, MCP: https://mateu.io/build-uis-with-ai/
 
