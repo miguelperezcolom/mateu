@@ -189,6 +189,10 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
     title: titleIsPlaceholder ? extras.titlePlaceholder : declaredTitle,
     titleIsPlaceholder,
+    // oj-sp-header-create-edit draws the placeholder itself (pageTitlePlaceholder): the real title
+    // and the placeholder travel apart for it
+    declaredTitle,
+    titlePlaceholder: extras.titlePlaceholder || '',
     headerClass: titleIsPlaceholder ? 'mateu-title-placeholder' : '',
     subtitle,
     // the quiet line ABOVE the title (drawn by the page over the oj-sp header: it has no overline)
@@ -214,6 +218,12 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     factActions: factActionsJsonOf(headerFacts),
     // the record/context switcher (pageSwitcherOf): select-object / select-context of the header
     switcher,
+    // a CREATE / EDIT page (the toolbar's back affordance is a CANCEL, beside a primary action — a
+    // crud's editor or creation form, any form that saves or cancels; not a record's VIEW, whose
+    // `cancel-view` is the way back to the list): Spectra's transactional header,
+    // oj-sp-header-create-edit — its own Cancel (spCancel → backId) and primary (spPrimaryAction →
+    // primaryId) instead of general-overview's «‹ Cancel» link
+    createEdit: !!backBtn && !!primaryBtn && /^cancel(-(edit|new|create))?$/.test(String(backBtn.actionId || '')),
     showBand: showBand && !gopOn && !iopOn,
     showInline: showHeader && !showBand && !gopOn && !iopOn,
     showListBand,

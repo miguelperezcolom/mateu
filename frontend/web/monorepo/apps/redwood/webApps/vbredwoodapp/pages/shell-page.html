@@ -776,18 +776,16 @@
 
         <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
 
-        <!-- Changing screen: after the same delay as the busy bar, the old
-             screen is hidden and the skeleton takes ITS place, on top — it does not stack over it.
-             An action within the same screen does not navigate: only the bar, and the content
-             stays, which is the context of what is being waited for. -->
+        <!-- Changing screen: after the same delay as the busy bar, the old screen is hidden and
+             Redwood's page loader takes ITS place — the large indeterminate oj-progress-circle,
+             centred in the content, exactly as Redwood's own apps show while a page loads
+             (redwood.oracle.com: .main-loader while isLoading). An action within the same screen
+             does not navigate: only the bar, and the content stays, which is the context of what
+             is being waited for. (mateu-skeleton: the class the slow-network probe waits for.) -->
         <div class="oj-flex mateu-content" :class="[[ $application.variables.mateuNavigating ? 'mateu-navigating' : '' ]]">
           <oj-bind-if test="[[ $application.variables.mateuNavigating ]]">
-            <div class="mateu-skeleton" aria-hidden="true">
-              <div class="mateu-skeleton-bone mateu-skeleton-title"></div>
-              <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
-              <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
-              <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
-              <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+            <div class="mateu-skeleton mateu-page-loader">
+              <oj-progress-circle value="-1" size="lg" :aria-valuetext="[[ $application.translations.appBundle.loading ]]"></oj-progress-circle>
             </div>
           </oj-bind-if>
           <!-- Renders flow content. min-width:0 = standard flexbox fix (min-width:auto):

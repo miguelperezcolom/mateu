@@ -116,11 +116,21 @@ export const indexPage = ({ stylesheets, libraries, runtime, settings, requireCo
     <link rel="preconnect" href="https://static.oracle.com">
 ${stylesheets.map((s) => `    <link rel="stylesheet" type="text/css" href="${attr(s.href)}"${s.id ? ` id="${attr(s.id)}"` : ''}>`).join('\n')}
     <link rel="stylesheet" href="${appDir}/resources/css/app.css?v=${hash}">
-    <style>mateu-ui { display: none !important; }</style>
+    <style>mateu-ui { display: none !important; }
+      /* until Visual Builder mounts the app (Oracle's CDN is still downloading): Redwood's loader, the
+         large indeterminate progress circle — the very markup JET renders for oj-progress-circle, styled
+         by oj-redwood-min.css above, which arrives before any script. Gone as soon as VB fills
+         oj-vb-content. */
+      .mateu-boot-loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+      oj-vb-content:not(:empty) + .mateu-boot-loader { display: none; }</style>
   </head>
   <body class="oj-body">
     <oj-vb-content config="[[vbApplication]]"></oj-vb-content>
+    <div class="mateu-boot-loader" role="progressbar" aria-valuetext="Loading">
+      <div class="oj-progress-circle oj-progress-circle-lg"><div class="oj-progress-circle-indeterminate"><div class="oj-progress-circle-indeterminate-inner"></div></div></div>
+    </div>
     <noscript>
+      <style>.mateu-boot-loader { display: none; }</style>
       <p style="font: 18px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 20vh auto;">This application needs JavaScript. Please turn it on in your browser and reload the page.</p>
     </noscript>
     <!-- AQUIJS -->

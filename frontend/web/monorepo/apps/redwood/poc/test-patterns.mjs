@@ -704,9 +704,10 @@ test('fact action in the content: the EntityHeader atom keeps it on its fact, an
 
 test('fact action wiring: every oj-sp header with contextualInfo carries the actions; the atom button dispatches like a button', () => {
   const html = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((html.match(/:data-mateu-fact-actions="\[\[ \$application\.variables\.mateuPageHeader\.factActions \|\| null \]\]"/g) || []).length, 3)
+  assert.equal((html.match(/:data-mateu-fact-actions="\[\[ \$application\.variables\.mateuPageHeader\.factActions \|\| null \]\]"/g) || []).length, 5)
   assert.equal((html.match(/:data-mateu-fact-actions="\[\[ \$application\.variables\.mateuOverview\.factActions \|\| null \]\]"/g) || []).length, 1)
-  assert.equal((html.match(/contextual-info=/g) || []).length, 4)
+  // (the two create/edit headers, oj-sp-header-create-edit, are two of them)
+  assert.equal((html.match(/contextual-info=/g) || []).length, 6)
   // the content atom: an oj-button after the value, through the block's own listener
   const atoms = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
   const piece = atoms.slice(atoms.indexOf('isEntityHeader'), atoms.indexOf('isNotice'))

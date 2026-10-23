@@ -11,6 +11,21 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed
+
+- **Redwood: a record's create/edit page is Spectra's transactional page.** Following Redwood's
+  Advanced Create & Edit template, with Spectra's own components:
+  - the page header of a page that cancels beside a primary action (a crud's editor or creation
+    form) is `oj-sp-header-create-edit` — its Cancel and primary action, the record's badge and
+    contextual info, sticky on scroll;
+  - every titled `@Section` is `oj-sp-section` — its title with the accent marker, no white card,
+    the fields on the page, the title sticky while its section scrolls;
+  - the sections index (`@Toc`) is drawn as Spectra's vertical anchor navigator (its markup,
+    styles and keyboard; a "Sections" button with a popup on medium and small screens). It starts
+    under the page header and sticks under it; it used to sit beside the header.
+- **Redwood: Redwood's loader while the app loads.** The page shows Redwood's large progress circle
+  while Oracle's CDN downloads (it was blank) and while a new screen loads (it was a skeleton).
+
 ## [3.0-beta.10] — 2026-10-23
 
 Redwood: the tables on a record's edit page (a form's `List<Row>` fields) are editable.

@@ -82,7 +82,7 @@ slots de cada template soporta Mateu y cuáles no.
 | `task-organizer-page` | `TodoList` | ✅ **cubierto entero** |
 | `calendar` | `CalendarPage` | 🟡 vistas mes/semana/día/lista ✅ (2026-10-10); sin template slots de evento |
 | `foldout-layout` + `foldout-panel` | `Foldout` | ✅ (2026-10-10: `summary`) |
-| `advanced-create-edit` + headers transaccionales | `@Toc`/`@Aside` + header canónico | 🟡 |
+| `advanced-create-edit` + headers transaccionales | `@Toc`/`@Aside` + header canónico; Redwood: `oj-sp-header-create-edit` + `oj-sp-section` + índice con el aspecto de `oj-sp-vertical-anchor-navigator` (2026-10-23) | ✅ |
 | `collection-container` | `Crud`/`Listing` | ✅ **espejo casi 1:1** |
 | `section` / `detail-panel` | `@Section` / `AutoEditableView` | ✅ (2026-10-10: edit/add/viewMore) |
 | `simple-ui-shell` | app shell + `@PageWidth` | ✅ `PageWidthStyle` 1:1 |

@@ -129,6 +129,25 @@ test('page header: primary, back affordance, secondary; band only away from edge
   assert.deepEqual(formActionsBesideHeader([{ actionId: 'save' }], { showBand: false, showInline: false }, toolbar), [{ actionId: 'save' }])
 })
 
+test('page header: a page that CANCELS beside a primary action is a create/edit page (oj-sp-header-create-edit); a back button is not', () => {
+  const headerFor = (toolbar) => pageHeaderOf({ host: { tree: null }, hostEntity: null, summary: { title: 'Booking', trail: [] }, hostToolbar: toolbar, showHeader: true, pageWidth: 'fixed', gopOn: false }).header
+  // a crud editor: cancel-edit + save
+  const edit = headerFor([{ actionId: 'cancel-edit', label: 'Cancel' }, { actionId: 'save', label: 'Save' }])
+  assert.equal(edit.createEdit, true)
+  assert.equal(edit.backId, 'cancel-edit', "Spectra's Cancel (spCancel) runs the cancel")
+  assert.equal(edit.primaryId, 'save', 'its primary action saves')
+  assert.equal(headerFor([{ actionId: 'cancel-new', label: 'Cancel' }, { actionId: 'create', label: 'Create' }]).createEdit, true)
+  assert.equal(headerFor([{ actionId: 'cancel', label: 'Cancel' }, { actionId: 'submit', label: 'Submit' }]).createEdit, true)
+  // a record's view page goes BACK, it does not cancel; a cancel with nothing to save is no edit page
+  assert.equal(headerFor([{ actionId: 'back', label: 'Back' }, { actionId: 'edit', label: 'Edit' }]).createEdit, false)
+  assert.equal(headerFor([{ actionId: 'backToList', label: 'Back to list' }, { actionId: 'edit', label: 'Edit' }]).createEdit, false)
+  // a crud record's view page: its «Back to list» travels as cancel-view
+  assert.equal(headerFor([{ actionId: 'cancel-view', label: 'Back to list' }, { actionId: 'edit', label: 'Edit' }]).createEdit, false)
+  assert.equal(headerFor([{ actionId: 'cancel-create', label: 'Cancel' }, { actionId: 'create', label: 'Create' }]).createEdit, true)
+  assert.equal(headerFor([{ actionId: 'cancel-edit', label: 'Cancel' }]).createEdit, false)
+  assert.equal(headerFor([{ actionId: 'save', label: 'Save' }]).createEdit, false)
+})
+
 test('page layout: width anatomy, bleeding header and the band overlap', () => {
   assert.equal(pageWidthOf({ host: { pageWidth: 'fullWidth' } }), 'fullWidth')
   assert.equal(pageWidthOf({ host: { pageWidth: 'fullWidth' }, drawerNav: true }), 'edgeToEdge')
