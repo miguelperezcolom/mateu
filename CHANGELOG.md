@@ -11,6 +11,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.10] — 2026-10-23
+
+Redwood: the tables on a record's edit page (a form's `List<Row>` fields) are editable.
+
+### Fixed
+
+- **Redwood: a table on a record's edit page is editable.** A `List<Row>` field of a form edits its
+  rows in a dialog — "+ Add" below the table, Edit / Remove per row — whatever its form position.
+  Only `@DetailFormCustomisation(position = modal…)` used to count, and the default position is
+  `right`, so a plain list on an edit page came out as a read-only table. Demo: `demo-vb`
+  › Purchase orders.
+
 ## [3.0-beta.9] — 2026-10-23
 
 The visual editor's palette drag works on the Redwood canvas, and the Mateu AI skills install in Codex and Antigravity CLI too.
