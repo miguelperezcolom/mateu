@@ -1,9 +1,10 @@
-# Publishes the two IDE plugins when a DEDICATED plugin release is cut — a GitHub Release whose tag
-# starts with `plugins-v` (e.g. `plugins-v0.2.0`). The version is taken from the tag and injected into
-# both plugins, so the tag is the single source of truth and neither file has to be bumped by hand.
+# Publishes the two IDE plugins with the FRAMEWORK's release: the GitHub Release `v3.0-beta.N` that
+# publishes Mateu to Maven Central publishes the plugins at the same version (IntelliJ `3.0-beta.N`,
+# VS Code `3.0.N` — see scripts/plugin-versions.sh for the mapping and why). The versions are injected
+# from the tag, so neither plugin file has to be bumped by hand. A `plugins-v*` tag (the old dedicated
+# plugin releases) still publishes them alone.
 #
-# It does NOT run on the framework's `v3.0-alpha.N` releases (Maven Central) or the `mateu-desktop-*`
-# installer releases — the `if:` guard on each job scopes it to `plugins-v*`.
+# It does NOT run on the `mateu-desktop-*` installer releases — the `if:` guard on each job.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
 #   PUBLISH_TOKEN  — JetBrains Marketplace token   (https://plugins.jetbrains.com/author/me/tokens)
@@ -27,16 +28,16 @@ permissions:
 
 jobs:
   intellij:
-    if: startsWith(github.event.release.tag_name, 'plugins-v')
+    if: startsWith(github.event.release.tag_name, 'v') || startsWith(github.event.release.tag_name, 'plugins-v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Derive version from the tag
+      - name: Derive the versions from the tag
         env:
           TAG: ${{ github.event.release.tag_name }}
-        run: echo "PLUGIN_VERSION=${TAG#plugins-v}" >> "$GITHUB_ENV"
+        run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: 21
@@ -51,7 +52,7 @@ jobs:
       - name: Install monorepo dependencies
         run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
       - name: Set the plugin version from the tag
-        run: cd frontend/app/intellij-plugin && sed -i 's/^version = ".*"/version = "'"$PLUGIN_VERSION"'"/' build.gradle.kts
+        run: cd frontend/app/intellij-plugin && sed -i 's/^version = ".*"/version = "'"$INTELLIJ_VERSION"'"/' build.gradle.kts
       # Never publish what the Plugin Verifier rejects (compatibility with the recommended IDEs of the
       # since/until range, internal or removed API usage, descriptor problems).
       - name: Verify the plugin
@@ -86,7 +87,7 @@ jobs:
           echo "publishPlugin failed after 3 attempts."; exit 1
 
   vscode:
-    if: startsWith(github.event.release.tag_name, 'plugins-v')
+    if: startsWith(github.event.release.tag_name, 'v') || startsWith(github.event.release.tag_name, 'plugins-v')
     runs-on: ubuntu-latest
     # No marketplace token at job level: `npm ci`, the tests and `vsce package` run third-party code,
     # so each token is in the env of its publish step only. Whether Open VSX is configured travels as
@@ -97,10 +98,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Derive version from the tag
+      - name: Derive the versions from the tag
         env:
           TAG: ${{ github.event.release.tag_name }}
-        run: echo "PLUGIN_VERSION=${TAG#plugins-v}" >> "$GITHUB_ENV"
+        run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
@@ -118,7 +119,7 @@ jobs:
           npm ci --ignore-scripts
           npm rebuild @vscode/vsce-sign
       - name: Set the extension version from the tag
-        run: cd frontend/app/vscode-extension && npm version "$PLUGIN_VERSION" --no-git-tag-version --allow-same-version
+        run: cd frontend/app/vscode-extension && npm version "$VSCODE_VERSION" --no-git-tag-version --allow-same-version
       - name: Test the extension
         run: cd frontend/app/vscode-extension && npm run compile && npm test
       - name: Package the .vsix

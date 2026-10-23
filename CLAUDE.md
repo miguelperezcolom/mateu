@@ -652,7 +652,7 @@ byte-identical `specs/ui` (pinned by a test). A starter change flows to all thre
 
 ## Creating a Release
 
-Releases follow the pattern `Mateu v3.0-alpha.N`. To cut a new one:
+Releases follow the pattern `Mateu v3.0-beta.N` (formerly `v3.0-alpha.N`). To cut a new one:
 
 1. Check the latest release number:
    ```bash
@@ -660,10 +660,15 @@ Releases follow the pattern `Mateu v3.0-alpha.N`. To cut a new one:
    ```
 2. Create the next release (increment N by 1):
    ```bash
-   gh release create v3.0-alpha.N --title "Mateu v3.0-alpha.N" --notes "- summary of changes"
+   gh release create v3.0-beta.N --title "Mateu v3.0-beta.N" --notes "- summary of changes"
    ```
 
 GitHub Actions handle the rest (build, publish to Maven Central, etc.) automatically once the tag is pushed.
+The same release also publishes the IDE plugins (`publish-plugins.yml`) at the framework's version:
+IntelliJ `3.0-beta.N`, VS Code `3.0.N` (the VS Code Marketplace takes only numeric versions — mapping
+in `scripts/plugin-versions.sh`, published as an ordinary version, not pre-release). No separate
+`plugins-v*` release is needed any more (2026-10-23). The GA must keep VS Code's patch number growing
+(e.g. `v3.0.10` after `v3.0-beta.9`); an unmapped tag fails the plugin publish rather than guessing.
 
 ---
 
