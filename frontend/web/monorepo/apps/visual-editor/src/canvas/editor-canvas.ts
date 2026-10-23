@@ -89,10 +89,10 @@ export class EditorCanvas extends LitElement {
         .host.redwood redwood-frame { height: 100%; border-radius: inherit; overflow: hidden; }
         /* The container a drop lands in, and what is being dragged (it follows the pointer). */
         .drop-zone { position: absolute; pointer-events: none; z-index: 29; box-sizing: border-box; border-radius: 4px;
-                     border: 2px dashed var(--ve-primary, #4f8cff); background: rgba(79,140,255,.08); }
-        .drag-ghost { position: fixed; pointer-events: none; z-index: 1000; padding: 4px 10px; border-radius: 6px;
-                      font: 600 12px var(--ve-font, system-ui); color: #fff; background: var(--ve-primary, #4f8cff);
-                      box-shadow: 0 4px 14px rgba(0,0,0,.25); white-space: nowrap; opacity: .92; }
+                     border: 2px dashed var(--ve-primary, #4f8cff); background: var(--ve-primary-10, rgba(79,140,255,.08)); }
+        .drag-ghost { position: fixed; pointer-events: none; z-index: 1000; padding: 0.25rem 0.6rem; border-radius: 6px;
+                      font: 600 12px var(--ve-font, system-ui); color: var(--ve-on-primary, #fff); background: var(--ve-primary, #4f8cff);
+                      box-shadow: var(--ve-shadow-popup, 0 4px 14px rgba(0,0,0,.25)); white-space: nowrap; opacity: .92; }
         .drag-ghost.nowhere { background: var(--ve-tertiary, #9aa2ad); }
         .drop-line { position: absolute; background: var(--ve-primary, #4f8cff); border-radius: 2px; pointer-events: none; z-index: 30; box-shadow: 0 0 0 1px rgba(79,140,255,.4); }
         /* Selection & hover overlays — an editor-owned layer drawn OVER the live render (Webflow/Figma
