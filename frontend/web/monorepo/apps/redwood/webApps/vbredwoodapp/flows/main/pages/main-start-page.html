@@ -179,26 +179,27 @@
         <span slot="startIcon" class="oj-ux-ico-bullets"></span>
         <oj-bind-text value="[[ $application.translations.appBundle.sections ]]"></oj-bind-text>
       </oj-button>
-      <oj-popup id="mateuAnchorNavPopup" class="oj-sp-vertical-anchor-navigator-popup md" modality="modeless" auto-dismiss="focusLoss"
-        position.of="#mateuAnchorNavJump" position.collision="flipfit" aria-labelledby="mateuAnchorNavJump">
-        <div class="oj-typography-body-md oj-typography-bold oj-sm-padding-2x-bottom"><oj-bind-text value="[[ $application.translations.appBundle.sections ]]"></oj-bind-text></div>
-        <nav>
-          <ul role="tablist" class="ltr-mode" :aria-label="[[ $application.translations.appBundle.sections ]]">
-            <oj-bind-for-each data="[[ $application.variables.mateuToc.entries ]]">
-              <template>
-                <li role="tab" aria-selected="false"
-                  class="oj-sp-navigator-list-item oj-flex oj-sm-flex-direction-row oj-sm-justify-content-flex-start oj-sm-align-items-center oj-sm-flex-wrap-nowrap mateu-toc-item"
-                  :tabindex="[[ $current.data.tabIndex ]]" :data-toc-index="[[ $current.data.index ]]" :title="[[ $current.data.hint ]]">
-                  <div class="selected-anchor-item-icon oj-ux-ico-triangle-right-alt-s"></div>
-                  <span class="oj-line-clamp-3 oj-sm-padding-4x-start"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
-                </li>
-              </template>
-            </oj-bind-for-each>
-          </ul>
-        </nav>
-      </oj-popup>
     </div>
   </aside>
+  <!-- the md-down list, opened by the "Sections" button: OUTSIDE the index landmark (one list in it) -->
+  <oj-popup id="mateuAnchorNavPopup" class="oj-sp-vertical-anchor-navigator-popup md" modality="modeless" auto-dismiss="focusLoss"
+    position.of="#mateuAnchorNavJump" position.collision="flipfit" aria-labelledby="mateuAnchorNavJump">
+    <div class="oj-typography-body-md oj-typography-bold oj-sm-padding-2x-bottom"><oj-bind-text value="[[ $application.translations.appBundle.sections ]]"></oj-bind-text></div>
+    <nav>
+      <ul role="tablist" class="ltr-mode" :aria-label="[[ $application.translations.appBundle.sections ]]">
+        <oj-bind-for-each data="[[ $application.variables.mateuToc.entries ]]">
+          <template>
+            <li role="tab" aria-selected="false"
+              class="oj-sp-navigator-list-item oj-flex oj-sm-flex-direction-row oj-sm-justify-content-flex-start oj-sm-align-items-center oj-sm-flex-wrap-nowrap mateu-toc-item"
+              :tabindex="[[ $current.data.tabIndex ]]" :data-toc-index="[[ $current.data.index ]]" :title="[[ $current.data.hint ]]">
+              <div class="selected-anchor-item-icon oj-ux-ico-triangle-right-alt-s"></div>
+              <span class="oj-line-clamp-3 oj-sm-padding-4x-start"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+            </li>
+          </template>
+        </oj-bind-for-each>
+      </ul>
+    </nav>
+  </oj-popup>
 </oj-bind-if>
           </a>
         </template>
