@@ -847,10 +847,13 @@ export function islandContentOf(ctx, opts = {}) {
       // auto-fill / auto-fit tracks (repeat(auto-fit, minmax(16rem, 1fr))): as many tiles per row
       // as fit at each breakpoint — responsive oj-flex classes instead of stacking them
       // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
-      const autoFit = autoFitColClass(m.gridTemplateColumns
-        || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
+      const autoTemplate = m.gridTemplateColumns
+        || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT)
+      const autoFit = autoFitColClass(autoTemplate)
       const tracked = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-      const classes = tracked || (autoFit ? kids.map(() => autoFit) : null)
+      // auto-fit tiles keep each child's own width: a panel's colSpan, the KPI band the whole row (a
+      // Dashboard with columns() = 0 squeezed its KPI band and every panel into one narrow cell)
+      const classes = tracked || (autoFit ? kids.map((_, i) => (spans[i] > 1 ? autoFitColClass(autoTemplate, spans[i]) : autoFit)) : null)
       // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
       // blocks carry the mark, and the content wins over the generic form (hostContentShown).
       // So do the COLUMNS of explicit tracks (the @Zones of a crud's detail: «35% 65%»): the

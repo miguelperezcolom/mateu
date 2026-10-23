@@ -982,7 +982,7 @@ export function gridPageOf(rows, size, page) {
 export const AUTO_FIT_DEFAULT = 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))'
 /** `repeat(auto-fit, minmax(16rem, 1fr))` → classes that put as many tiles per row as fit at each
  *  breakpoint (sm 0, md 768px, lg 1024px, xl 1280px). null when the template is not that shape. */
-export function autoFitColClass(template) {
+export function autoFitColClass(template, cells = 1) {
   const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*(?:min\(\s*100%\s*,\s*)?([\d.]+)(px|rem|em)/i.exec(str(template))
   if (!m) return null
   const px = parseFloat(m[1]) * (m[2] === 'px' ? 1 : 16)
@@ -990,8 +990,10 @@ export function autoFitColClass(template) {
   const per = (width) => Math.max(1, Math.min(12, Math.floor(width / px)))
   const span = (width) => {
     const n = per(width)
-    // oj-flex columns are twelfths: the largest span that fits n per row
-    return Math.max(1, Math.floor(12 / n))
+    // oj-flex columns are twelfths: the largest span that fits n per row — times the cells the child
+    // takes (a DashboardPanel's colSpan; the KPI band, the whole row), never past the row
+    const want = Math.max(1, cells || 1)
+    return want >= n ? 12 : Math.max(1, Math.floor(12 / n) * want)
   }
   return 'oj-flex-item oj-sm-' + span(480) + ' oj-md-' + span(768) + ' oj-lg-' + span(1024) + ' oj-xl-' + span(1280) + ' oj-sm-padding-2x-end oj-sm-padding-2x-bottom'
 }

@@ -31,6 +31,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Redwood: content tabs look like Redwood's.** A form's tab strip shows the tabs at their own
   width from the start, over a full-width divider line (JET `oj-tab-bar` `layout="condense"` +
   `oj-divider-bottom`); they used to spread over the whole width with no line.
+- **Redwood: a Dashboard with the default `columns()` keeps each tile's width.** The KPI band takes
+  the whole row and a panel its `colSpan`; they were all squeezed into one narrow cell.
 - **Redwood: Redwood's loader while the app loads.** The page shows Redwood's large progress circle
   while Oracle's CDN downloads (it was blank) and while a new screen loads (it was a skeleton).
 

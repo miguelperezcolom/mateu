@@ -4579,10 +4579,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // auto-fill / auto-fit tracks (repeat(auto-fit, minmax(16rem, 1fr))): as many tiles per row
         // as fit at each breakpoint — responsive oj-flex classes instead of stacking them
         // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
-        const autoFit = autoFitColClass(m.gridTemplateColumns
-          || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
+        const autoTemplate = m.gridTemplateColumns
+          || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT)
+        const autoFit = autoFitColClass(autoTemplate)
         const tracked = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-        const classes = tracked || (autoFit ? kids.map(() => autoFit) : null)
+        // auto-fit tiles keep each child's own width: a panel's colSpan, the KPI band the whole row (a
+        // Dashboard with columns() = 0 squeezed its KPI band and every panel into one narrow cell)
+        const classes = tracked || (autoFit ? kids.map((_, i) => (spans[i] > 1 ? autoFitColClass(autoTemplate, spans[i]) : autoFit)) : null)
         // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
         // blocks carry the mark, and the content wins over the generic form (hostContentShown).
         // So do the COLUMNS of explicit tracks (the @Zones of a crud's detail: «35% 65%»): the
@@ -10476,7 +10479,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const AUTO_FIT_DEFAULT = 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))'
   /** `repeat(auto-fit, minmax(16rem, 1fr))` → classes that put as many tiles per row as fit at each
    *  breakpoint (sm 0, md 768px, lg 1024px, xl 1280px). null when the template is not that shape. */
-  function autoFitColClass(template) {
+  function autoFitColClass(template, cells = 1) {
     const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*(?:min\(\s*100%\s*,\s*)?([\d.]+)(px|rem|em)/i.exec(str(template))
     if (!m) return null
     const px = parseFloat(m[1]) * (m[2] === 'px' ? 1 : 16)
@@ -10484,8 +10487,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const per = (width) => Math.max(1, Math.min(12, Math.floor(width / px)))
     const span = (width) => {
       const n = per(width)
-      // oj-flex columns are twelfths: the largest span that fits n per row
-      return Math.max(1, Math.floor(12 / n))
+      // oj-flex columns are twelfths: the largest span that fits n per row — times the cells the child
+      // takes (a DashboardPanel's colSpan; the KPI band, the whole row), never past the row
+      const want = Math.max(1, cells || 1)
+      return want >= n ? 12 : Math.max(1, Math.floor(12 / n) * want)
     }
     return 'oj-flex-item oj-sm-' + span(480) + ' oj-md-' + span(768) + ' oj-lg-' + span(1024) + ' oj-xl-' + span(1280) + ' oj-sm-padding-2x-end oj-sm-padding-2x-bottom'
   }
