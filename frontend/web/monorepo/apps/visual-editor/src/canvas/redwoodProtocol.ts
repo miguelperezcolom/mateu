@@ -42,11 +42,18 @@ export type FrameToEditor =
     | { mateuPreview: 'route'; route: string }
     /** The answer to `measure`: the box of every painted node, in the frame's viewport. */
     | { mateuPreview: 'layout'; nodes: NodeBox[] }
+    /** A left-button PRESS on a painted node (not the page's bare background), at (x, y) in the frame's
+     *  viewport: the editor may turn it into a move drag once the pointer travels past its threshold. */
+    | { mateuPreview: 'press'; id: string; x: number; y: number }
+    /** While that press lasts, the pointer moving (`move`) and its release (`up`), in the frame's
+     *  viewport: a press inside an iframe keeps the mouse captured there, so the editor's own window
+     *  never sees them — the frame relays them. */
+    | { mateuPreview: 'pointer'; phase: 'move' | 'up'; x: number; y: number }
 
 /** A painted node's box (an element carrying its `data-node-id`), in its document's viewport. */
 export type NodeBox = { id: string; left: number; top: number; width: number; height: number }
 
-const KINDS = new Set(['hello', 'rendered', 'click', 'key', 'boot-failed', 'unavailable', 'call', 'route', 'layout'])
+const KINDS = new Set(['hello', 'rendered', 'click', 'key', 'boot-failed', 'unavailable', 'call', 'route', 'layout', 'press', 'pointer'])
 
 /** The message, when it is one of the frame's; null for anything else posted to the window. */
 export function frameMessageOf(data: unknown): FrameToEditor | null {
@@ -101,6 +108,16 @@ export function nodeBoxesOf(doc: Document): NodeBox[] {
         if (id && (r.width || r.height)) out.push({ id, left: r.left, top: r.top, width: r.width, height: r.height })
     }
     return out
+}
+
+/**
+ * A point the frame reported (in ITS viewport) in the editor window's viewport: offset by where the
+ * iframe's content box sits (its border included). The frame's own scroll is already in its
+ * viewport coordinates.
+ */
+export function frameToEditorPoint(frame: { left: number; top: number }, x: number, y: number,
+                                   border: { left: number; top: number } = { left: 0, top: 0 }): { x: number; y: number } {
+    return { x: frame.left + border.left + x, y: frame.top + border.top + y }
 }
 
 export const answerMessage = (id: number, status: number, json: unknown): EditorToFrame =>

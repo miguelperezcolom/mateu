@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { frameMessageOf, redwoodPreviewUrl, renderMessage, selectMessage, PREVIEW_KEY } from './redwoodProtocol'
+import { frameMessageOf, frameToEditorPoint, redwoodPreviewUrl, renderMessage, selectMessage, PREVIEW_KEY } from './redwoodProtocol'
 import { idToPath, pathToId } from '../model/pageModel'
 
 describe('the Redwood canvas protocol', () => {
@@ -37,5 +37,15 @@ describe('the Redwood canvas protocol', () => {
         expect(redwoodPreviewUrl({ location: { href: 'http://127.0.0.1:5199/' } })).toBe('http://127.0.0.1:5199/redwood-preview.html')
         expect(redwoodPreviewUrl({ __mateuRedwoodPreview: 'http://127.0.0.1:4711/redwood-preview.html', location: { href: 'vscode-webview://x/index.html' } }))
             .toBe('http://127.0.0.1:4711/redwood-preview.html')
+    })
+
+    it('reads a press on a node and the pointer it relays (a move drag starts in the frame)', () => {
+        expect(frameMessageOf({ mateuPreview: 'press', id: 've-0-1', x: 10, y: 20 })).toEqual({ mateuPreview: 'press', id: 've-0-1', x: 10, y: 20 })
+        expect(frameMessageOf({ mateuPreview: 'pointer', phase: 'up', x: 1, y: 2 })?.mateuPreview).toBe('pointer')
+    })
+
+    it('translates a point of the frame\'s viewport to the editor\'s: where the iframe sits, its border included', () => {
+        expect(frameToEditorPoint({ left: 200, top: 64 }, 10, 20)).toEqual({ x: 210, y: 84 })
+        expect(frameToEditorPoint({ left: 200, top: 64 }, 10, 20, { left: 1, top: 2 })).toEqual({ x: 211, y: 86 })
     })
 })

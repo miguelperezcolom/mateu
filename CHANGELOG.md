@@ -20,6 +20,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   fields. The generic form now leaves a listing's filters out; they are the smart filters of the
   list header only (offered in the search box's dropdown, and applied as chips that filter the rows,
   sample rows included).
+- **Visual editor: a node can be dragged to a new place on the Redwood canvas.** Pressing on a
+  component painted in the Redwood frame and dragging it never started a move (only the palette's
+  drags worked): the press happened inside the iframe, where the editor never sees it — and the
+  frame's own guard cancelled `pointerdown`, which suppresses `mousedown` altogether. The frame now
+  relays the press, the moves and the release by message (`press` / `pointer`, in its viewport; the
+  editor translates them), so the canvas runs the same move drag as on Vaadin — ghost, drop line,
+  drop zone, `node-moved` — same-origin (IntelliJ) and cross-origin (VS Code) alike. A press that
+  does not travel is still a click that selects, and the click ending a drag selects nothing.
 - **YAML starters: the home page declares `pageType: landing`.** The `yaml` and `static` starters'
   `home.yaml` (and the `mateu-yaml` skill's example) now say what their page is, like their
   `products.yaml` already declares `pageType: collection` — the YAML twin of `@PageTemplate` (a

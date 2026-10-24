@@ -1,7 +1,7 @@
 import { LitElement, css, html } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import {
-    BOOT_TIMEOUT_MS, PreviewFragment, frameMessageOf, measureMessage, nodeBoxesOf, redwoodPreviewUrl, renderMessage,
+    BOOT_TIMEOUT_MS, PreviewFragment, frameMessageOf, frameToEditorPoint, measureMessage, nodeBoxesOf, redwoodPreviewUrl, renderMessage,
     selectMessage, type FrameToEditor, type NodeBox,
 } from './redwoodProtocol'
 import { restSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
@@ -119,6 +119,13 @@ export class RedwoodFrame extends LitElement {
         return out
     }
 
+    /** A point of the frame's viewport in the editor window's viewport (null: no frame, or a bad point). */
+    private toEditor(x: unknown, y: unknown): { x: number; y: number } | null {
+        const frame = this.frame
+        if (!frame || typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return null
+        return frameToEditorPoint(frame.getBoundingClientRect(), x, y, { left: frame.clientLeft || 0, top: frame.clientTop || 0 })
+    }
+
     /** Asks the frame where its nodes are (a cross-origin frame answers with `layout`). */
     measure() {
         if (this.hello) this.post(measureMessage())
@@ -201,6 +208,19 @@ export class RedwoodFrame extends LitElement {
             case 'layout':
                 this.reported = Array.isArray(msg.nodes) ? msg.nodes : []
                 return
+            case 'press': {
+                // a press on a painted node: the canvas may start a MOVE drag from it (editor coordinates)
+                const p = this.toEditor(msg.x, msg.y)
+                if (!p || !msg.id) return
+                this.dispatchEvent(new CustomEvent('redwood-press', { detail: { id: msg.id, clientX: p.x, clientY: p.y }, bubbles: true, composed: true }))
+                return
+            }
+            case 'pointer': {
+                const p = this.toEditor(msg.x, msg.y)
+                if (!p) return
+                this.dispatchEvent(new CustomEvent('redwood-pointer', { detail: { phase: msg.phase, clientX: p.x, clientY: p.y }, bubbles: true, composed: true }))
+                return
+            }
             case 'boot-failed':
                 this.fail('offline', `This script could not be loaded: ${msg.url}.`)
                 return

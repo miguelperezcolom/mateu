@@ -14,7 +14,7 @@ import {
 } from './reduceContexts.mjs'
 import {
   PREVIEW_ROUTE, isEditorPreview, previewAppIncrement, previewLoadIncrement, previewAnswerOf, previewFetch,
-  stampNodeIds, nodeIdOfPath, elementOfNodeId, nodeBoxesOf,
+  stampNodeIds, nodeIdOfPath, elementOfNodeId, nodeBoxesOf, pressTracker, installEditorPreview, DRAG_THRESHOLD,
 } from './editorPreview.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -325,6 +325,85 @@ test('a page with a form AND a listing keeps its own fields in the form, without
   const summary = summarizeHost(previewed(page), PREVIEW_ROUTE)
   assert.deepEqual(Object.keys(summary.formMetadata), ['name'])
   assert.deepEqual(summary.fields.map((f) => f.fieldId), ['name'])
+})
+
+// ── moving a node: a press in the frame is relayed, the editor drives the drag ──
+// The editor's canvas starts a MOVE drag from a press on a node (past its 4 px threshold). A press
+// inside this iframe never reaches the editor's window — and while the button is down the browser
+// keeps the mouse here — so the frame relays the press, the moves and the release.
+const mouse = (x, y, extra = {}) => ({ button: 0, buttons: 1, clientX: x, clientY: y, ...extra })
+
+test('a press on a node is relayed with its moves and release; a press that travelled swallows its click', () => {
+  const t = pressTracker()
+  assert.equal(DRAG_THRESHOLD, 4)
+  assert.deepEqual(t.down(mouse(10, 20), 've-0-1'), { kind: 'press', id: 've-0-1', x: 10, y: 20 })
+  assert.deepEqual(t.move(mouse(12, 21)), { kind: 'pointer', phase: 'move', x: 12, y: 21 })
+  assert.deepEqual(t.move(mouse(40, 80)), { kind: 'pointer', phase: 'move', x: 40, y: 80 })
+  assert.deepEqual(t.up(mouse(40, 80, { buttons: 0 })), { kind: 'pointer', phase: 'up', x: 40, y: 80 })
+  assert.equal(t.swallowClick(), true, 'the click ending a drag is not a selection')
+  assert.equal(t.swallowClick(), false, '…only that one')
+  assert.equal(t.move(mouse(50, 90)), null, 'no press, nothing relayed')
+})
+
+test('a press that does not travel stays a click (the selection), and nothing else starts a drag', () => {
+  const t = pressTracker()
+  t.down(mouse(10, 20), 've-0')
+  t.move(mouse(12, 21)) // under the threshold
+  t.up(mouse(12, 21, { buttons: 0 }))
+  assert.equal(t.swallowClick(), false)
+  // the page's bare background, another button: no press for the editor
+  assert.equal(t.down(mouse(10, 20), null), null)
+  assert.equal(t.down(mouse(10, 20, { button: 2 }), 've-0'), null)
+  assert.equal(t.move(mouse(30, 30)), null)
+  // released where the frame did not see it (the editor had the pointer): the next move forgets it
+  t.down(mouse(10, 20), 've-0')
+  assert.equal(t.move(mouse(40, 40, { buttons: 0 })), null)
+  assert.equal(t.up(mouse(40, 40)), null)
+  assert.equal(t.swallowClick(), false)
+})
+
+test('installed, the frame posts press → pointer → up to the editor, and the dragged click selects nothing', () => {
+  // a window just big enough for installEditorPreview: listeners in order, stopImmediatePropagation honoured
+  const listeners = []
+  const posted = []
+  const el = (attrs = {}) => ({
+    children: [], style: {}, className: '', classList: { add() {}, toggle() {} },
+    getAttribute: (n) => (n in attrs ? attrs[n] : null), hasAttribute: (n) => n in attrs,
+    appendChild(c) { this.children.push(c); return c }, getBoundingClientRect: () => ({ left: 0, top: 0, width: 0, height: 0 }),
+  })
+  const doc = {
+    documentElement: { ...el(), addEventListener() {} }, head: el(), body: el(),
+    createElement: () => el(), getElementById: () => null, querySelector: () => null, querySelectorAll: () => [],
+  }
+  const win = {
+    document: doc, fetch: async () => ({}), parent: { postMessage: (m) => posted.push(m) },
+    MutationObserver: class { observe() {} }, requestAnimationFrame() {}, setTimeout() { return 0 }, clearTimeout() {},
+    addEventListener: (type, fn) => listeners.push({ type, fn }),
+  }
+  installEditorPreview(win, {})
+  const fire = (type, ev) => {
+    let stopped = false
+    const e = { ...ev, type, preventDefault() {}, stopImmediatePropagation() { stopped = true } }
+    for (const l of listeners) { if (l.type === type) l.fn(e); if (stopped) break }
+  }
+  const field = el({ 'data-node-id': 've-1' })
+  const at = (x, y, extra) => ({ ...mouse(x, y, extra), composedPath: () => [field] })
+  posted.length = 0
+  // pointer events: the inert guard cancels pointerdown, which suppresses mousedown/mouseup altogether
+  fire('pointerdown', at(10, 20))
+  fire('mousedown', at(10, 20))
+  fire('pointermove', at(30, 60))
+  fire('pointerup', at(30, 60, { buttons: 0 }))
+  fire('click', at(30, 60, { buttons: 0 }))
+  assert.deepEqual(posted.map((m) => m.mateuPreview + (m.phase ? ':' + m.phase : '')), ['press', 'pointer:move', 'pointer:up'])
+  assert.deepEqual(posted[0], { mateuPreview: 'press', kind: 'press', id: 've-1', x: 10, y: 20 })
+  // a plain click (no travel) still selects
+  posted.length = 0
+  fire('pointerdown', at(10, 20))
+  fire('pointerup', at(10, 20, { buttons: 0 }))
+  fire('click', at(10, 20, { buttons: 0 }))
+  assert.deepEqual(posted.map((m) => m.mateuPreview), ['press', 'pointer', 'click'])
+  assert.equal(posted[2].id, 've-1')
 })
 
 await Promise.all(pending)
