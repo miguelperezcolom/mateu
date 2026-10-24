@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -152,6 +153,35 @@ public class AdapterParityITFoundation {
         .then()
         .statusCode(403)
         .body(not(containsString("visibleField")));
+  }
+
+  /**
+   * Every response of Mateu's API carries the build id ({@code X-Mateu-Build}) — the same value on
+   * an answered action and on a REFUSED one (403), which is how a renderer tells a screen that went
+   * stale after a redeployment from a real permission refusal. A request naming a renderer of
+   * another wire major ({@code X-Mateu-Renderer}) is still answered.
+   */
+  public void stampsTheBuildOnEveryMateuResponse() {
+    String build =
+        given()
+            .contentType(ContentType.JSON)
+            .header("X-Mateu-Renderer", "vaadin/2.9.0 wire/2.0")
+            .body(RQ)
+            .when()
+            .post("/hello/mateu/v3/sync/_no_route")
+            .then()
+            .statusCode(200)
+            .header("X-Mateu-Build", matchesPattern("[A-Za-z0-9._-]{1,64}"))
+            .extract()
+            .header("X-Mateu-Build");
+    given()
+        .contentType(ContentType.JSON)
+        .body(action("noSuchThing"))
+        .when()
+        .post("/restricted/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(403)
+        .header("X-Mateu-Build", equalTo(build));
   }
 
   /**
@@ -535,7 +565,9 @@ public class AdapterParityITFoundation {
         .post("/hello/mateu/v3/sync/_no_route")
         .then()
         .statusCode(200)
-        .header("Access-Control-Allow-Origin", equalTo(ALLOWED_ORIGIN));
+        .header("Access-Control-Allow-Origin", equalTo(ALLOWED_ORIGIN))
+        // a cross-origin renderer must be able to read the build id
+        .header("Access-Control-Expose-Headers", containsString("X-Mateu-Build"));
   }
 
   /** {@code POST /mateu/mcp} does not exist unless {@code mateu.mcp.enabled=true}. */

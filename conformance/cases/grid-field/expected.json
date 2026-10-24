@@ -46,7 +46,7 @@
                   "children" : [ {
                     "children" : [ {
                       "metadata" : {
-                        "colspan" : 2,
+                        "colspan" : 1,
                         "columns" : [ {
                           "metadata" : {
                             "autoWidth" : true,
@@ -78,7 +78,7 @@
                         } ],
                         "dataType" : "array",
                         "fieldId" : "guests",
-                        "formColumns" : 2,
+                        "formColumns" : 1,
                         "formPosition" : "right",
                         "itemIdPath" : "_rowNumber",
                         "label" : "Guests",
@@ -100,7 +100,7 @@
                   "metadata" : {
                     "autoResponsive" : true,
                     "expandColumns" : true,
-                    "maxColumns" : 2,
+                    "maxColumns" : 1,
                     "type" : "FormLayout"
                   },
                   "type" : "ClientSide"

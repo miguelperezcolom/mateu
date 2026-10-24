@@ -408,6 +408,9 @@ class DispatchMixin(MixinBase):
             if rq.action_id == "goCalendarToday":
                 instance.go_calendar_today()
                 return self.render(type_, instance, rq)
+            if rq.action_id == "goCalendarToDate":
+                instance.go_calendar_to_date((rq.parameters or {}).get("_date"))
+                return self.render(type_, instance, rq)
             if rq.action_id == "switchCalendarView":
                 instance.switch_calendar_view((rq.parameters or {}).get("_view"))
                 return self.render(type_, instance, rq)

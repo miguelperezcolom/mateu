@@ -14,7 +14,9 @@ public class RoomRow
     public int Beds { get; set; } = 2;
 }
 
-[UI("field-crud"), Title("Rooms")]
+// declared two columns: a small form would otherwise infer one (the wide-widget rule is about
+// multi-column sections)
+[UI("field-crud"), Title("Rooms"), FormLayout(Columns = 2)]
 public class RoomsForm
 {
     public List<RoomRow> Rooms { get; set; } = [new() { Name = "101" }, new() { Name = "102" }];

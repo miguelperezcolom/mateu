@@ -185,12 +185,13 @@ public final class YamlMounts {
     // route stays the whole browser path (pathPrefix ""): a YAML mount's routes are matched with
     // the mount on them.
     return IndexPage.devHead(
-        IndexPage.withoutMarkers(
-            IndexPage.mountUi(
-                html,
-                "<mateu-ui baseUrl=\""
-                    + uiPath(basePath)
-                    + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>")));
+        OracleCdn.apply(
+            IndexPage.withoutMarkers(
+                IndexPage.mountUi(
+                    html,
+                    "<mateu-ui baseUrl=\""
+                        + uiPath(basePath)
+                        + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"))));
   }
 
   /** The {@code baseUrl} of a mount's {@code <mateu-ui>}: "" or "/back-office". */

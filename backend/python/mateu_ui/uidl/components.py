@@ -530,6 +530,9 @@ class HeroSection(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: A short line ABOVE the title introducing it (the Redwood welcome page's overline: "Good
+    #: morning", "Sales"…). None/blank for none.
+    overline: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "content", tuple(self.content))

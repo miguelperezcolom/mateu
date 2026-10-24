@@ -31,6 +31,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void stampsTheBuildOnEveryMateuResponse() {
+    contract.stampsTheBuildOnEveryMateuResponse();
+  }
+
+  @Test
   void refusesAnActionIdThatNamesNothing() {
     contract.refusesAnActionIdThatNamesNothing();
   }

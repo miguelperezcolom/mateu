@@ -277,6 +277,28 @@ class EditInDrawerSyncTest {
   }
 
   /**
+   * The drawer's form opts into the unsaved-changes guard exactly like the routed /new and
+   * /{id}/edit pages (MultiView.wrapView): what the user types marks the drawer dirty, so closing
+   * it by hand (✕, Esc, outside click, Cancel) asks before dropping it. The refused-save re-send
+   * keeps the flag, and a successful save still answers MarkAsClean before CloseModal.
+   */
+  @Test
+  void theDrawerFormIsDirtyTrackedLikeTheRoutedForm() {
+    for (var opening : List.of("new", "view")) {
+      var form = drawerForm(drawerOf(run(opening, Map.of("id", "b1"), null)));
+      assertThat(form.confirmOnNavigationIfDirty()).as(opening).isTrue();
+    }
+    var refused = drawerOf(run("create", Map.of("title", "", "pages", 5), null));
+    assertThat(drawerForm(refused).confirmOnNavigationIfDirty()).isTrue();
+
+    var saved = run("save", Map.of("id", "b1", "title", "Otro", "pages", 900), null);
+    var types = saved.commands().stream().map(command -> command.type()).toList();
+    assertThat(types).contains(UICommandTypeDto.MarkAsClean, UICommandTypeDto.CloseModal);
+    assertThat(types.indexOf(UICommandTypeDto.MarkAsClean))
+        .isLessThan(types.indexOf(UICommandTypeDto.CloseModal));
+  }
+
+  /**
    * What the browser sends now: the form bubbles its save, so the crud page's state is the
    * component state and the form travels as initiatorState. A refusal re-renders the form with the
    * banner and marks the refused field invalid on it.

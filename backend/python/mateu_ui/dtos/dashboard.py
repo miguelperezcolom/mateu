@@ -127,6 +127,8 @@ class HeroSectionMetadata(Wire):
     #: The band's tone: None = default look; otherwise ocean|pine|lilac|teal|rose|pebble|slate|
     #: plum|sienna — a dark tinted band with light ink (mirrors HeroSectionDto.tone).
     tone: str | None = None
+    #: A short line above the title introducing it; None for none (mirrors HeroSectionDto.overline).
+    overline: str | None = None
 
 
 class EmptyStateMetadata(Wire):

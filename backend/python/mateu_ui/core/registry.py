@@ -62,6 +62,11 @@ class MateuRegistry:
             elif isinstance(src, type):
                 self._register(src)
 
+    @property
+    def registered_types(self) -> list[type]:
+        """Every class a route or a serverSideType resolves to (the registered UI types)."""
+        return list(dict.fromkeys(self._by_name.values()))
+
     def _register(self, cls: type) -> None:
         if cls not in self.classes:
             self.classes.append(cls)

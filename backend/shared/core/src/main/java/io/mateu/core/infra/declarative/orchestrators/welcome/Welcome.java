@@ -19,8 +19,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
  *   <li>Any other component field is placed on the grid as-is.
  * </ul>
  *
- * Override {@link #heroTitle()}, {@link #heroSubtitle()} and {@link #heroImage()} for the hero
- * chrome.
+ * Override {@link #heroOverline()}, {@link #heroTitle()}, {@link #heroSubtitle()} and {@link
+ * #heroImage()} for the hero chrome.
  */
 public abstract class Welcome implements ComponentTreeSupplier {
 
@@ -29,6 +29,15 @@ public abstract class Welcome implements ComponentTreeSupplier {
   }
 
   protected String heroSubtitle() {
+    return null;
+  }
+
+  /**
+   * A short line above the hero title introducing it (the Redwood welcome page's overline: "Good
+   * morning", "Sales"…). {@code null} (the default) for none.
+   */
+  @Experimental("hero overline (3.0-beta.13)")
+  protected String heroOverline() {
     return null;
   }
 
@@ -55,6 +64,6 @@ public abstract class Welcome implements ComponentTreeSupplier {
   @Override
   public Component component(HttpRequest httpRequest) {
     return WelcomeComposer.compose(
-        this, id(), heroTitle(), heroSubtitle(), heroImage(), heroTone());
+        this, id(), heroTitle(), heroSubtitle(), heroImage(), heroTone(), heroOverline());
   }
 }

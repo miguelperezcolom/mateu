@@ -111,6 +111,10 @@ final class CrudDrawerBuilder {
             io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.createValidations(
                 editor, route, rq))
         .children(children)
+        // tracked like the routed /new and /{id}/edit pages (MultiView.wrapView): an edit marks
+        // the drawer dirty, so closing it by hand (✕, Esc, outside click, Cancel) asks before
+        // dropping what was typed; a save answers MarkAsClean + CloseModal and closes silently
+        .confirmOnNavigationIfDirty(true)
         .build();
   }
 

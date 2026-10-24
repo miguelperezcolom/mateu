@@ -3176,6 +3176,9 @@
         "image" : {
           "type" : "string"
         },
+        "overline" : {
+          "type" : "string"
+        },
         "subtitle" : {
           "type" : "string"
         },

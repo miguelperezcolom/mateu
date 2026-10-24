@@ -145,6 +145,7 @@ Mateu.Uidl.AppVariant const field System.String Tiles
 Mateu.Uidl.AppVariant static method System.String ToWire(System.String)
 Mateu.Uidl.ArchetypeComposers static method Mateu.Uidl.IComponent ComposeDashboard(System.Object, System.Int32, System.Boolean = False)
 Mateu.Uidl.ArchetypeComposers static method Mateu.Uidl.IComponent ComposeWelcome(System.Object, System.String, System.String, System.String, Mateu.Uidl.HeroTone = Auto)
+Mateu.Uidl.ArchetypeComposers static method Mateu.Uidl.IComponent ComposeWelcome(System.Object, System.String, System.String, System.String, Mateu.Uidl.HeroTone, System.String)
 Mateu.Uidl.AsideAttribute ctor()
 Mateu.Uidl.AsideAttribute property System.Boolean Sticky { get;init; }
 Mateu.Uidl.AsideAttribute property System.String Position { get;init; }
@@ -227,6 +228,7 @@ Mateu.Uidl.CalendarPage method Mateu.Uidl.IComponent Component()
 Mateu.Uidl.CalendarPage method System.Object CreateCalendarEvent()
 Mateu.Uidl.CalendarPage method System.Object OpenCalendarDay(System.String)
 Mateu.Uidl.CalendarPage method System.Object OpenCalendarEvent(System.String)
+Mateu.Uidl.CalendarPage method System.Void GoToDate(System.String)
 Mateu.Uidl.CalendarPage method System.Void GoToday()
 Mateu.Uidl.CalendarPage method System.Void NextMonth()
 Mateu.Uidl.CalendarPage method System.Void PreviousMonth()
@@ -810,6 +812,7 @@ Mateu.Uidl.HeroSection property System.Boolean Centered { get;init; }
 Mateu.Uidl.HeroSection property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
 Mateu.Uidl.HeroSection property System.String Height { get;init; }
 Mateu.Uidl.HeroSection property System.String Image { get;init; }
+Mateu.Uidl.HeroSection property System.String Overline { get;init; }
 Mateu.Uidl.HeroSection property System.String Subtitle { get;init; }
 Mateu.Uidl.HeroSection property System.String Title { get;init; }
 Mateu.Uidl.HeroTone enum Auto
@@ -836,6 +839,7 @@ Mateu.Uidl.ICalendarPage abstract method System.Void GoToday()
 Mateu.Uidl.ICalendarPage abstract method System.Void NextMonth()
 Mateu.Uidl.ICalendarPage abstract method System.Void PreviousMonth()
 Mateu.Uidl.ICalendarPage abstract method System.Void SwitchView(System.String)
+Mateu.Uidl.ICalendarPage virtual method System.Void GoToDate(System.String)
 Mateu.Uidl.IComponent property System.String CssClasses { get; }
 Mateu.Uidl.IComponent property System.String Id { get; }
 Mateu.Uidl.IComponent property System.String Style { get; }
@@ -1773,11 +1777,13 @@ Mateu.Uidl.Welcome ctor()
 Mateu.Uidl.Welcome method Mateu.Uidl.IComponent Component()
 Mateu.Uidl.Welcome property Mateu.Uidl.HeroTone HeroTone { get; }
 Mateu.Uidl.Welcome property System.String HeroImage { get; }
+Mateu.Uidl.Welcome property System.String HeroOverline { get; }
 Mateu.Uidl.Welcome property System.String HeroSubtitle { get; }
 Mateu.Uidl.Welcome property System.String HeroTitle { get; }
 Mateu.Uidl.WelcomeBannerAttribute ctor()
 Mateu.Uidl.WelcomeBannerAttribute property Mateu.Uidl.HeroTone Tone { get;set; }
 Mateu.Uidl.WelcomeBannerAttribute property System.String Image { get;set; }
+Mateu.Uidl.WelcomeBannerAttribute property System.String Overline { get;set; }
 Mateu.Uidl.WelcomeBannerAttribute property System.String Subtitle { get;set; }
 Mateu.Uidl.WelcomeBannerAttribute property System.String Title { get;set; }
 Mateu.Uidl.Wizard abstract method Mateu.Uidl.Message Complete()

@@ -15,5 +15,7 @@ public record HeroSectionDto(
      * rose, pebble, slate, plum, sienna — a dark tinted band with light ink, each renderer mapping
      * the hue onto its own palette.
      */
-    String tone)
+    String tone,
+    /** A short line above the title introducing it; {@code null} for none. */
+    String overline)
     implements ComponentMetadataDto {}

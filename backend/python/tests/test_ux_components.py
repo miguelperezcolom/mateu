@@ -1447,6 +1447,7 @@ def test_welcome_archetype_hero_ctas_and_highlight_tiles():
         "centered": True,
         # the hero tone (HeroSectionDto.tone): None = the default look
         "tone": None,
+        "overline": None,
     }
     assert hero["id"] == "hero"
     (cta,) = hero["children"]

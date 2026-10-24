@@ -78,6 +78,8 @@ public class MateuUIIndexerProcessor extends AbstractProcessor {
 
         StringBuilder sb = new StringBuilder();
         sb.append("class=").append(className).append("\n");
+        // read by the host to warn about modules built against another Mateu minor
+        appendVersion(sb, MATEU_VERSION);
         sb.append("simpleClassName=").append(simpleClassName).append("\n");
         sb.append("path=").append(path).append("\n");
         sb.append("indexHtmlPath=").append(indexHtmlPath).append("\n");
@@ -145,6 +147,40 @@ public class MateuUIIndexerProcessor extends AbstractProcessor {
 
     // Return false so that framework-specific APs can still see @UI in the same compilation
     return false;
+  }
+
+  /** This processor's own Mateu version (Maven's pom.properties), or null outside a jar. */
+  static final String MATEU_VERSION = readOwnVersion();
+
+  static String readOwnVersion() {
+    return versionFrom(
+        MateuUIIndexerProcessor.class.getResourceAsStream(
+            "/META-INF/maven/io.mateu/mateu-annotation-processor-indexer/pom.properties"));
+  }
+
+  /**
+   * The {@code version} of a Maven {@code pom.properties} stream (closed here); null when absent,
+   * blank or unreadable.
+   */
+  static String versionFrom(java.io.InputStream stream) {
+    if (stream == null) {
+      return null;
+    }
+    try (var in = stream) {
+      var properties = new java.util.Properties();
+      properties.load(in);
+      var version = properties.getProperty("version", "").trim();
+      return version.isEmpty() ? null : version;
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
+  /** Adds the {@code mateuVersion=} line of an index entry, when the version is known. */
+  static void appendVersion(StringBuilder sb, String version) {
+    if (version != null) {
+      sb.append("mateuVersion=").append(version).append("\n");
+    }
   }
 
   private void writeIndex() {

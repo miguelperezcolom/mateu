@@ -324,6 +324,7 @@ class ComponentMapperMixin(MixinBase):
             meta = HeroSectionMetadata(
                 title=c.title, subtitle=c.subtitle, image=c.image, height=c.height,
                 centered=c.centered, tone=hero_tone_wire(c.tone),
+                overline=c.overline if c.overline and c.overline.strip() else None,
             )
             return self._fluent_client(meta, c, [self.map_component(i) for i in c.content])
         if isinstance(c, fluent.EmptyState):

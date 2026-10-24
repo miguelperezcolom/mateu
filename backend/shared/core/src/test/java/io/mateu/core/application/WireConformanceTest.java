@@ -106,6 +106,23 @@ class WireConformanceTest {
     }
   }
 
+  /**
+   * The inferred column count: SEVEN visible fields lay out in TWO columns (up to six: one — every
+   * other form case pins that side), counted over the fields that render as form fields.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/form-columns")
+  @Title("Form columns")
+  public static class FormColumnsForm {
+    public String firstName = "Ada";
+    public String lastName = "Lovelace";
+    public String email = "ada@example.com";
+    public String phone = "555-0100";
+    public String city = "London";
+    public String country = "UK";
+    public String notes = "Analyst";
+  }
+
   /** The canonical page header: the elements a renderer hoists out of the body. */
   @SuppressWarnings("unused")
   @UI("/conformance/page-header")
@@ -1261,7 +1278,8 @@ class WireConformanceTest {
           "triggers",
           "field-help",
           "field-hints",
-          "page-toolbar");
+          "page-toolbar",
+          "form-columns");
 
   static TestMateu mateu;
 
@@ -1315,7 +1333,8 @@ class WireConformanceTest {
             TriggersForm.class,
             FieldHelpForm.class,
             FieldHintsPage.class,
-            PageToolbarForm.class);
+            PageToolbarForm.class,
+            FormColumnsForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

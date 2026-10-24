@@ -136,6 +136,29 @@ def test_cancel_just_closes_the_drawer():
     assert inc.fragments == []
 
 
+def test_the_drawer_form_is_dirty_tracked_like_the_routed_form():
+    """Java parity (EditInDrawerSyncTest.theDrawerFormIsDirtyTrackedLikeTheRoutedForm): the
+    drawer's form opts into the unsaved-changes guard, so closing it by hand asks first, and a
+    save answers MarkAsClean before closing."""
+    reset()
+    for action_id, params in (("new", {}), ("view", {"id": "2"})):
+        inc = handler().handle(
+            RunActionRq(route="/drawer-contacts", actionId=action_id,
+                        serverSideType=f"{__name__}.DrawerContacts", initiatorComponentId="ux_list",
+                        parameters=params)
+        )
+        form = inc.fragments[0].component.metadata.content
+        assert form.confirm_on_navigation_if_dirty is True, action_id
+    saved = handler().handle(
+        RunActionRq(route="/drawer-contacts/new", actionId="create",
+                    serverSideType=f"{__name__}.DrawerContacts", initiatorComponentId="ux_list",
+                    componentState={"name": "Katherine", "email": "katherine@nasa.gov"})
+    )
+    types = [c.type for c in saved.commands]
+    assert "MarkAsClean" in types
+    assert types.index("MarkAsClean") < types.index("CloseModal")
+
+
 def test_rail_wizard_emits_the_vertical_step_list_and_the_counter():
     inc = handler().handle(
         RunActionRq(route="/rail-signup", serverSideType=f"{__name__}.RailSignup",

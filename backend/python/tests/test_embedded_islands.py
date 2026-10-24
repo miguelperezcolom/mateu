@@ -96,7 +96,8 @@ def test_the_host_mounts_the_view_as_a_mediator_island_with_seeded_state():
     assert (app["type"], app["variant"]) == ("App", "MEDIATOR")
     assert app["homeRoute"] == "/documento?_embeddedMediator=1&_inline=1"
     assert app["homeConsumedRoute"] == "/documento"
-    assert doc["colspan"] == 2  # a sub-app spans the host form's whole row
+    # a sub-app spans the host form's whole row: one column, inferred for a small host form
+    assert doc["colspan"] == 1
     # the island is the island's business: nothing of it leaks into the host state
     assert set(comp["initialData"]) == {"reference"}
 

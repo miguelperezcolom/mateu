@@ -227,7 +227,9 @@ final class BundleWriter {
     // Oracle runtime cannot be loaded. The Redwood app reads the bundleUrl off this same element.
     html = html.replace("<!-- AQUIFAVICON -->", IndexPage.DEFAULT_FAVICON);
     // no template marker is left in the published page
-    return IndexPage.withoutMarkers(IndexPage.mountUi(html, ui));
+    // a mirror of Oracle's CDN (mateu.oracle-cdn.url at build time) replaces it in the page
+    return io.mateu.core.infra.OracleCdn.apply(
+        IndexPage.withoutMarkers(IndexPage.mountUi(html, ui)));
   }
 
   private static void copyTree(Path src, Path dest) throws IOException {

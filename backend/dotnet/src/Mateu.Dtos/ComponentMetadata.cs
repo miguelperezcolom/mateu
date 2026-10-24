@@ -175,6 +175,11 @@ public record HeroSectionMetadataDto(string? Title, string? Subtitle, string? Im
     /// io.mateu.dtos.HeroSectionDto.tone.)</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Tone { get; init; }
+
+    /// <summary>A short line above the title introducing it; null (omitted) for none. (Mirrors
+    /// io.mateu.dtos.HeroSectionDto.overline.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Overline { get; init; }
 }
 
 /// <summary>Friendly empty-state placeholder with an optional call-to-action.</summary>

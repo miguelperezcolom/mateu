@@ -1,0 +1,182 @@
+{
+  "commands" : [ {
+    "data" : "Form columns",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "firstName",
+                        "label" : "First name",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "lastName",
+                        "label" : "Last name",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "email",
+                        "label" : "Email",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "phone",
+                        "label" : "Phone",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "city",
+                        "label" : "City",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "country",
+                        "label" : "Country",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "notes",
+                        "label" : "Notes",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Form columns form",
+          "pageType" : "form",
+          "title" : "Form columns",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "city" : "London",
+        "country" : "UK",
+        "email" : "ada@example.com",
+        "firstName" : "Ada",
+        "lastName" : "Lovelace",
+        "notes" : "Analyst",
+        "phone" : "555-0100"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "city" : "London",
+      "country" : "UK",
+      "email" : "ada@example.com",
+      "firstName" : "Ada",
+      "lastName" : "Lovelace",
+      "notes" : "Analyst",
+      "phone" : "555-0100"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

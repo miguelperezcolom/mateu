@@ -37,6 +37,7 @@ public class ReflectionPageMapper {
               .subtitle(welcomeBanner.subtitle().isBlank() ? null : welcomeBanner.subtitle())
               .image(welcomeBanner.image().isBlank() ? null : welcomeBanner.image())
               .tone(welcomeBanner.tone())
+              .overline(welcomeBanner.overline().isBlank() ? null : welcomeBanner.overline())
               .centered(true)
               .build());
     }

@@ -57,7 +57,7 @@ from mateu_ui.uidl import (
     UseRadioButtons,
 )
 
-from .. import layout_inference
+from .. import form_columns_inference, layout_inference
 from ..rest_source_registry import source_dto
 from ..naming import (
     camel_case,
@@ -261,7 +261,7 @@ class FieldMapperMixin(MixinBase):
             form_position=detail.position,
             form_style=detail.style,
             form_theme=detail.theme,
-            form_columns=detail.columns or class_flag(row_type, "__mateu_form_layout_columns__", 2),
+            form_columns=detail.columns or form_columns_inference.form_columns(row_type),
             min_height_when_detail_visible=detail.min_height_when_detail_visible,
         )
         return ClientSideComponent(metadata=meta, id=field_id, children=[], style=style)

@@ -83,8 +83,11 @@ class LayoutSyncTest {
 
   @SuppressWarnings("unused")
   @UI("/layout/section-columns")
+  // declared, so the explicit columns=1 below is distinguishable from the inherited count (five
+  // fields would otherwise infer a single column for the whole form)
+  @io.mateu.uidl.annotations.FormLayout(columns = 2)
   public static class SectionColumnsPage {
-    // columns unset (default 0) → the section inherits the form default (2)
+    // columns unset (default 0) → the section inherits the form count (2, declared above)
     @Section("Ancha")
     String a = "a";
 

@@ -228,7 +228,8 @@ public class SectionFeatureTests
             .Where(o => o.TryGetProperty("type", out var t) && t.GetString() == "Separator")
             .ToList();
         Assert.Single(separators);
-        Assert.Equal("2", separators[0].GetProperty("attributes").GetProperty("data-colspan").GetString());
+        // spans the form's columns: one, inferred for a small form (Java parity)
+        Assert.Equal("1", separators[0].GetProperty("attributes").GetProperty("data-colspan").GetString());
     }
 
     [Fact]

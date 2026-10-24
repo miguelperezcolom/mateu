@@ -1613,6 +1613,9 @@
       "name" : "tone",
       "type" : "auto | ocean | pine | lilac | teal | rose | pebble | slate | plum | sienna"
     }, {
+      "name" : "overline",
+      "type" : "string"
+    }, {
       "name" : "content",
       "type" : "list of Component"
     } ]

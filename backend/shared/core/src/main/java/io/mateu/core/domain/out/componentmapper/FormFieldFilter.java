@@ -75,6 +75,35 @@ final class FormFieldFilter {
     return true;
   }
 
+  /**
+   * Whether the field renders in the form body for SOME caller in SOME mode — the class-only part
+   * of {@link #filterField} (no instance, no request, no permissions), plus the {@code @Version}
+   * plumbing no editor shows. What {@link FormColumnsInference} counts.
+   */
+  static boolean rendersInAnyForm(Field field) {
+    if (ComponentDto.class.isAssignableFrom(field.getType())
+        || Status.class.equals(field.getType())) {
+      return false;
+    }
+    if (MetaAnnotations.isPresent(field, Hidden.class)
+        && MetaAnnotations.find(field, Hidden.class).value().isEmpty()) {
+      return false;
+    }
+    if (MetaAnnotations.isPresent(field, Lookup.class)
+        || MetaAnnotations.isPresent(field, Searchable.class)) {
+      return true;
+    }
+    return !MetaAnnotations.isPresent(field, KPI.class)
+        && !MetaAnnotations.isPresent(field, BadgeInHeader.class)
+        && !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Timestamp.class)
+        && !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)
+        && !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Aside.class)
+        && !MetaAnnotations.isPresent(field, Menu.class)
+        && !MetaAnnotations.isPresent(field, Composition.class)
+        && !MetaAnnotations.isPresent(field, Version.class)
+        && !io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.isStoreManaged(field);
+  }
+
   private static final java.util.Set<String> WARNED_COMPOSITIONS =
       java.util.concurrent.ConcurrentHashMap.newKeySet();
 

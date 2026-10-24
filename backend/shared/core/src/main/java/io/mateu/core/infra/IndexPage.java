@@ -95,7 +95,7 @@ public final class IndexPage {
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
-    return devHead(withoutMarkers(html));
+    return devHead(OracleCdn.apply(withoutMarkers(html)));
   }
 
   /**

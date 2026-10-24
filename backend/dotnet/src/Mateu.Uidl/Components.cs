@@ -270,6 +270,9 @@ public sealed record HeroSection : ComponentBase
     public bool Centered { get; init; }
     /// <summary>The band's tone: Auto (default look) or a dark tinted band with light ink.</summary>
     public HeroTone Tone { get; init; } = HeroTone.Auto;
+    /// <summary>A short line ABOVE the title introducing it (the Redwood welcome page's overline:
+    /// "Good morning", "Sales"…). Null/blank for none. (Java's HeroSection.overline.)</summary>
+    public string? Overline { get; init; }
     public IReadOnlyList<IComponent> Content { get; init; } = [];
 }
 

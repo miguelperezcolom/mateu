@@ -39,6 +39,7 @@ class SixFieldsOneColumnForm:
 
 @ui("aside-six-two-col")
 @title("Six two col")
+@form_layout(columns=2)  # six fields would otherwise infer one column
 class SixFieldsTwoColumnsForm:
     """(b) Same shape but the default two columns: labels stay on top."""
 

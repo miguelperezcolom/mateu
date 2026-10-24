@@ -43,6 +43,13 @@ def labels_aside(fields, max_columns: int, cls=None) -> bool:
     mode = getattr(cls, "__mateu_labels_aside__", LabelsAsideMode.AUTO)
     if mode is not LabelsAsideMode.AUTO:
         return mode is LabelsAsideMode.ASIDE
+    # Labels aside is the idiom of a DECLARED single column: a small form that is single-column
+    # only because Mateu inferred it (form_columns_inference — up to 6 visible fields) keeps its
+    # labels on top, or every 6-field form would flip to labels aside (Java parity).
+    from .form_columns_inference import is_inferred
+
+    if is_inferred(cls):
+        return False
     return _infer(fields, max_columns)
 
 

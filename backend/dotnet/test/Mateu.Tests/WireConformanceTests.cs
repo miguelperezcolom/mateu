@@ -234,6 +234,7 @@ public class WireConformanceTests
         { "field-help", typeof(Wire.FieldHelpForm) },
         { "field-hints", typeof(Wire.FieldHintsPage) },
         { "page-toolbar", typeof(Wire.PageToolbarForm) },
+        { "form-columns", typeof(Wire.FormColumnsForm) },
     };
 
     [Fact]

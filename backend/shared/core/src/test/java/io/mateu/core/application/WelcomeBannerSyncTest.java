@@ -2,12 +2,14 @@ package io.mateu.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.mateu.core.infra.declarative.orchestrators.welcome.Welcome;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.HeroSectionDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.WelcomeBanner;
+import io.mateu.uidl.data.Button;
 import java.util.ArrayList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,11 +39,41 @@ class WelcomeBannerSyncTest {
     String name;
   }
 
+  @SuppressWarnings("unused")
+  @UI("/overlined-banner")
+  @Title("Overlined")
+  @WelcomeBanner(overline = "Good morning", title = "Front desk")
+  public static class OverlinedBannerForm {
+    String name;
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/overlined-welcome")
+  public static class OverlinedWelcome extends Welcome {
+
+    Button start = Button.builder().label("Start").actionId("start").build();
+
+    @Override
+    protected String heroOverline() {
+      return "Sales";
+    }
+
+    @Override
+    protected String heroTitle() {
+      return "Quarterly review";
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(BanneredForm.class, TitledBannerForm.class);
+    mateu =
+        TestMateu.withUis(
+            BanneredForm.class,
+            TitledBannerForm.class,
+            OverlinedBannerForm.class,
+            OverlinedWelcome.class);
   }
 
   @AfterAll
@@ -68,5 +100,24 @@ class WelcomeBannerSyncTest {
   @Test
   void theBannerTitleFallsBackToThePageTitle() {
     assertThat(heroOf("/titled-banner").title()).isEqualTo("The page title");
+  }
+
+  @Test
+  void theBannerOverlineTravelsAboveTheTitle() {
+    var hero = heroOf("/overlined-banner");
+    assertThat(hero.overline()).isEqualTo("Good morning");
+    assertThat(hero.title()).isEqualTo("Front desk");
+  }
+
+  @Test
+  void aBannerWithoutOverlineSendsNone() {
+    assertThat(heroOf("/bannered-form").overline()).isNull();
+  }
+
+  @Test
+  void theWelcomeArchetypeHeroCarriesItsOverline() {
+    var hero = heroOf("/overlined-welcome");
+    assertThat(hero.overline()).isEqualTo("Sales");
+    assertThat(hero.title()).isEqualTo("Quarterly review");
   }
 }

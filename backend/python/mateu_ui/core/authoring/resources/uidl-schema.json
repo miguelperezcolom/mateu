@@ -4909,6 +4909,9 @@
         "tone" : {
           "$ref" : "#/$defs/HeroTone"
         },
+        "overline" : {
+          "type" : "string"
+        },
         "content" : {
           "type" : "array",
           "items" : {

@@ -109,6 +109,40 @@ public class DrawerCrudAndRailTests
             a => a.GetProperty("id").GetString() == "create" && a.GetProperty("validationRequired").GetBoolean());
     }
 
+    /// <summary>Java's EditInDrawerSyncTest.theDrawerFormIsDirtyTrackedLikeTheRoutedForm: the
+    /// drawer's form opts into the unsaved-changes guard, so closing it by hand asks first, and a
+    /// save answers MarkAsClean before closing.</summary>
+    [Fact]
+    public void The_drawer_form_is_dirty_tracked_like_the_routed_form()
+    {
+        foreach (var (actionId, parameters) in new[]
+                 {
+                     ("new", new Dictionary<string, object?>()),
+                     ("view", new Dictionary<string, object?> { ["id"] = JsonDocument.Parse("\"2\"").RootElement }),
+                 })
+        {
+            var inc = Handler().Handle(new RunActionRqDto
+            {
+                Route = "/drawer-contacts", ActionId = actionId,
+                ServerSideType = typeof(DrawerContacts).FullName, InitiatorComponentId = "ux_list",
+                Parameters = parameters,
+            });
+            var drawer = Assert.IsType<DrawerMetadataDto>(
+                Assert.IsType<ClientSideComponentDto>(Assert.Single(inc.Fragments).Component).Metadata);
+            Assert.True(Assert.IsType<ServerSideComponentDto>(drawer.Content).ConfirmOnNavigationIfDirty, actionId);
+        }
+        var saved = Handler().Handle(new RunActionRqDto
+        {
+            Route = "/drawer-contacts/new", ActionId = "create",
+            ServerSideType = typeof(DrawerContacts).FullName, InitiatorComponentId = "ux_list",
+            ComponentState = new Dictionary<string, object?>
+                { ["name"] = JsonDocument.Parse("\"Delta\"").RootElement },
+        });
+        var types = saved.Commands.Select(c => c.Type).ToList();
+        Assert.True(types.IndexOf("MarkAsClean") >= 0
+                    && types.IndexOf("MarkAsClean") < types.IndexOf("CloseModal"));
+    }
+
     [Fact]
     public void Row_view_opens_the_edit_drawer_with_the_entity_loaded()
     {

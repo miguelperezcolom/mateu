@@ -28,7 +28,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
-from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, ui_page
+from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, ui_page, version_skew
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -163,6 +163,8 @@ def add_mateu(
     mcp_push_max_sessions: int | None = None,
     mcp_push_max_sessions_per_owner: int | None = None,
     mcp_push_max_anonymous_sessions_per_address: int | None = None,
+    build_id: str | None = None,
+    oracle_cdn_url: str | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -206,6 +208,16 @@ def add_mateu(
       (``MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS``, default 200) one client address — the
       address the server reports, so behind a reverse proxy run uvicorn with ``--proxy-headers``
       and ``--forwarded-allow-ips`` set to the proxy, or every anonymous UI shares its address.
+    - ``build_id`` — the id every response of a Mateu endpoint carries in ``X-Mateu-Build`` (how a
+      renderer tells the app was redeployed). Default: the ``MATEU_BUILD_ID`` env var, else a
+      fingerprint computed once of the package version, the source of the modules defining the
+      registered UI classes and the YAML specs served — identical on every replica of one release.
+    - ``oracle_cdn_url`` — a mirror of Oracle's CDN (``https://static.oracle.com/cdn``) the Redwood
+      renderer's page loads JET, Spectra, the Visual Builder runtime and the gallery images from, for
+      an organisation that hosts those files itself (``https://cdn.example.com/oracle/cdn``). Mateu
+      never bundles Oracle's files; it only re-points the URLs of the page it serves (only with
+      ``ui``). Default: the ``MATEU_ORACLE_CDN_URL`` env var; blank = off; a value that is not an
+      absolute http(s) URL, or carries a quote, ``<``, ``>`` or whitespace, is ignored with a warning.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -270,8 +282,14 @@ def add_mateu(
             allow_origins=list(cors_origins),
             allow_methods=["POST", "OPTIONS"],
             allow_headers=["*"],
-            expose_headers=[CORRELATION_HEADER],
+            expose_headers=[CORRELATION_HEADER, version_skew.BUILD_HEADER],
         )
+    # Version skew (X-Mateu-Build / X-Mateu-Renderer): added AFTER the CORS middleware, so it wraps it
+    # and also stamps the responses CORS answers (and exposes the header on a CORS the app added).
+    app.add_middleware(
+        version_skew.VersionSkewMiddleware,
+        skew=version_skew.VersionSkew(registry.registered_types, configured=build_id),
+    )
 
     prefix = base_url.rstrip("/")
 
@@ -542,10 +560,20 @@ def add_mateu(
             if app_type is not None
             else "Mateu"
         )
+        oracle_cdn, rejected = ui_page.resolve_oracle_cdn(oracle_cdn_url)
+        if rejected:
+            log.warning("%s", rejected)
         app.add_middleware(
-            MateuUiMiddleware, renderer=renderer, base_url=prefix, title=str(title), debug=show_details
+            MateuUiMiddleware,
+            renderer=renderer,
+            base_url=prefix,
+            title=str(title),
+            debug=show_details,
+            oracle_cdn=oracle_cdn,
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
+        if oracle_cdn:
+            log.info("Mateu UI: Oracle's CDN content is loaded from %s", oracle_cdn)
     else:
         # no renderer: a browser opening the mount gets a hint (still a 404), not a bare JSON 404
         app.add_middleware(MateuApiHintMiddleware, base_url=prefix)
@@ -609,8 +637,17 @@ class MateuUiMiddleware:
     #: the status the answer is sent with (the API hint answers a 404 with a body of its own)
     status = 200
 
-    def __init__(self, app, renderer: ui_page.RendererFiles, base_url: str, title: str, debug: bool = False):
+    def __init__(
+        self,
+        app,
+        renderer: ui_page.RendererFiles,
+        base_url: str,
+        title: str,
+        debug: bool = False,
+        oracle_cdn: str | None = None,
+    ):
         self.app = app
+        self.oracle_cdn = oracle_cdn
         self.renderer = renderer
         # the mount as a path ("" for the root, "/shop" otherwise), whatever spelling it was given in
         mount = base_url.strip("/")
@@ -631,7 +668,9 @@ class MateuUiMiddleware:
             return None
         if not ui_page.accepts_html(accept):
             return None
-        html = ui_page.render_index(self.renderer.index_template(), self.base_url, self.title, self.debug)
+        html = ui_page.render_index(
+            self.renderer.index_template(), self.base_url, self.title, self.debug, self.oracle_cdn
+        )
         return "text/html; charset=utf-8", html.encode("utf-8"), ui_page.REVALIDATE_CACHE_CONTROL
 
     async def __call__(self, scope, receive, send):

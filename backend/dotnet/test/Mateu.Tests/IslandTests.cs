@@ -185,7 +185,8 @@ public class IslandTests
         Assert.Null(host["initialData"]!["pedido"]);
         Assert.Equal("DOC-2026-0007", (string?)host["initialData"]!["documento"]);
         var cell = Assert.Single(Objects(host), o => (string?)o["type"] == "CustomField");
-        Assert.Equal(2, (int)cell["colspan"]!);
+        // spans the host form's columns: one, inferred for a small form
+        Assert.Equal(1, (int)cell["colspan"]!);
         var island = cell["content"]!;
         Assert.Equal("ServerSide", (string?)island["type"]);
         Assert.Equal(typeof(Pedido).FullName, (string?)island["serverSideType"]);

@@ -43,7 +43,7 @@
                   "metadata" : {
                     "autoResponsive" : true,
                     "expandColumns" : true,
-                    "maxColumns" : 2,
+                    "maxColumns" : 1,
                     "type" : "FormLayout"
                   },
                   "type" : "ClientSide"

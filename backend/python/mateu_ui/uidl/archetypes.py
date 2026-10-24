@@ -82,7 +82,8 @@ class ItemOverview(ComponentTreeSupplier):
 class Welcome(ComponentTreeSupplier):
     """Welcome page: ``Button`` fields become call-to-action buttons inside a centered hero;
     ``Panel(title)`` component fields become highlight tiles on a grid below. Override
-    :meth:`hero_title` / :meth:`hero_subtitle` / :meth:`hero_image` for the hero chrome."""
+    :meth:`hero_overline` / :meth:`hero_title` / :meth:`hero_subtitle` / :meth:`hero_image` for the
+    hero chrome."""
 
     def style(self) -> str | None:
         return None
@@ -94,6 +95,11 @@ class Welcome(ComponentTreeSupplier):
         return None
 
     def hero_image(self) -> str | None:
+        return None
+
+    def hero_overline(self) -> str | None:
+        """A short line above the hero title introducing it (the Redwood welcome page's
+        overline). None (the default) for none."""
         return None
 
     def hero_tone(self):

@@ -113,10 +113,61 @@ internal static class UiPage
 
     /// <summary>The renderer's page aimed at <paramref name="baseUrl"/> (the mount, "" for the root) and titled.</summary>
     /// <remarks>Like Java's <c>IndexPage.render</c>: the favicon marker becomes
-    /// <see cref="DefaultFavicon"/> and no template marker is left in the page.</remarks>
-    public static string RenderIndex(string template, string baseUrl, string title, bool debug = false) =>
-        WithoutMarkers(MountUi(
-            template.Replace(FaviconMarker, DefaultFavicon).Replace(TitleMarker, title), baseUrl, debug));
+    /// <see cref="DefaultFavicon"/> and no template marker is left in the page. With
+    /// <paramref name="oracleCdn"/> (an already validated mirror, see <see cref="ResolveOracleCdn"/>)
+    /// Oracle's CDN URLs are re-pointed at it AFTER the markers are filled.</remarks>
+    public static string RenderIndex(string template, string baseUrl, string title, bool debug = false,
+        string? oracleCdn = null) =>
+        RewriteOracleCdn(WithoutMarkers(MountUi(
+            template.Replace(FaviconMarker, DefaultFavicon).Replace(TitleMarker, title), baseUrl, debug)), oracleCdn);
+
+    /// <summary>The mirror of Oracle's CDN, when not set in <c>MateuOptions.OracleCdnUrl</c> (Java:
+    /// <c>mateu.oracle-cdn.url</c> / <c>MATEU_ORACLE_CDN_URL</c>).</summary>
+    public const string OracleCdnEnvVar = "MATEU_ORACLE_CDN_URL";
+
+    /// <summary>What the Redwood page loads JET, Spectra (oj-sp), the Visual Builder runtime and the
+    /// gallery images from. Mateu never bundles Oracle's files: an organisation that must not depend
+    /// on Oracle's CDN at runtime hosts a mirror of this folder, and the page is re-pointed at it.</summary>
+    public const string OracleCdn = "https://static.oracle.com/cdn";
+
+    /// <summary>The preconnect hint the Redwood page carries for Oracle's CDN origin.</summary>
+    public const string OracleCdnPreconnect = "href=\"https://static.oracle.com\"";
+
+    /// <summary>The mirror to serve Oracle's CDN content from: <paramref name="configured"/> when not
+    /// blank, else <c>MATEU_ORACLE_CDN_URL</c>; null (off — the page is unchanged) when neither is set
+    /// or the value is not usable, in which case <paramref name="rejected"/> carries a message to log.
+    /// Usable = an absolute http(s) URL with no quote, <c>&lt;</c>, <c>&gt;</c> or whitespace (it is
+    /// written into HTML attributes and inline script); a trailing slash is dropped.</summary>
+    public static string? ResolveOracleCdn(string? configured, out string? rejected)
+    {
+        rejected = null;
+        var value = string.IsNullOrWhiteSpace(configured) ? Environment.GetEnvironmentVariable(OracleCdnEnvVar) : configured;
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var trimmed = value.Trim();
+        var unsafeChar = trimmed.Any(c => c is '"' or '\'' or '<' or '>' or '`' || char.IsWhiteSpace(c) || char.IsControl(c));
+        if (unsafeChar
+            || !Uri.TryCreate(trimmed, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            || string.IsNullOrEmpty(uri.Host))
+        {
+            rejected = "Ignoring the Oracle CDN mirror (MateuOptions.OracleCdnUrl / " + OracleCdnEnvVar + ") '"
+                       + MateuLogging.Safe(trimmed) + "': it must be an absolute http(s) URL with no quotes, '<', '>' "
+                       + "or whitespace. The Redwood page keeps loading from " + OracleCdn + ".";
+            return null;
+        }
+        return trimmed.TrimEnd('/');
+    }
+
+    /// <summary>Java's <c>IndexPage.withOracleCdn</c>: every <see cref="OracleCdn"/> in
+    /// <paramref name="html"/> becomes <paramref name="mirror"/>, and the preconnect to Oracle's origin
+    /// becomes one to the mirror's origin. Nothing else changes; a null mirror leaves the page as is.</summary>
+    public static string RewriteOracleCdn(string html, string? mirror)
+    {
+        if (string.IsNullOrEmpty(mirror)) return html;
+        var origin = new Uri(mirror).GetLeftPart(UriPartial.Authority);
+        return html.Replace(OracleCdn, mirror, StringComparison.Ordinal)
+            .Replace(OracleCdnPreconnect, "href=\"" + origin + "\"", StringComparison.Ordinal);
+    }
 
     /// <summary>Java's <c>SpaFallback.candidate</c>: a deep link the page may answer — not the root
     /// itself, no file extension, and never the API (<c>/mateu/…</c>).</summary>

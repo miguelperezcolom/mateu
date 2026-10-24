@@ -42,7 +42,13 @@ public static class MateuExtensions
         if (options.Dev ?? DevSpecs.Enabled) DevSpecs.Enable(true);
         services.AddSingleton(options);
         services.AddHttpContextAccessor();
-        services.AddSingleton(new MateuRegistry(assemblies));
+        var registry0 = new MateuRegistry(assemblies);
+        services.AddSingleton(registry0);
+        // Version skew (X-Mateu-Build / X-Mateu-Renderer): a startup filter puts the middleware at
+        // the very START of the pipeline, so every Mateu response — 403s, 404s, an error page —
+        // carries the build header, and its response-start callback runs after the host's CORS one.
+        services.AddSingleton(new VersionSkew(options.BuildId, registry0));
+        services.AddTransient<IStartupFilter, VersionSkewStartupFilter>();
         // Live UI push (phase C): ONE in-memory session registry per host, shared by every mount.
         var agentSessions = options.McpPushEffective
             ? new Mateu.Core.AgentPush.AgentSessions(options.PushRatePerMinute, options.PushMaxSessions,
@@ -247,13 +253,16 @@ public static class MateuExtensions
             ? "Mateu"
             : appType.Find<AppAttribute>()?.Title ?? appType.Find<TitleAttribute>()?.Value ?? appType.Name;
         var debug = app.Environment.IsDevelopment();
+        var oracleCdn = UiPage.ResolveOracleCdn(app.Services.GetService<MateuOptions>()?.OracleCdnUrl, out var rejected);
+        if (rejected is not null) app.Logger.LogWarning("{Message}", rejected);
         app.Logger.LogInformation("Mateu UI: serving {Renderer} at {Mount}", renderer.Location, prefix.Length == 0 ? "/" : prefix);
+        if (oracleCdn is not null) app.Logger.LogInformation("Mateu UI: Oracle's CDN content is loaded from {Mirror}", oracleCdn);
         app.Use(async (ctx, next) =>
         {
             await next(ctx);
             if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
             if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
-            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug);
+            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn);
             if (answer is null) return;
             var (contentType, body, cacheControl) = answer.Value;
             ctx.Response.StatusCode = StatusCodes.Status200OK;
@@ -267,7 +276,8 @@ public static class MateuExtensions
     /// <summary>(content type, body, cache control) for what the UI middleware serves at <paramref name="path"/>,
     /// or null when the request is not its to answer.</summary>
     internal static (string ContentType, byte[] Body, string? CacheControl)? UiAnswer(
-        string path, string? accept, string prefix, RendererFiles renderer, string title, bool debug)
+        string path, string? accept, string prefix, RendererFiles renderer, string title, bool debug,
+        string? oracleCdn = null)
     {
         var last = path[(path.LastIndexOf('/') + 1)..];
         if (path != "/" && last.Contains('.'))
@@ -278,7 +288,7 @@ public static class MateuExtensions
         var isMount = path == (prefix.Length == 0 ? "/" : prefix) || path == prefix + "/";
         if (!(isMount || (UiPage.SpaCandidate(path) && UiPage.UnderMount(path, prefix)))) return null;
         if (!UiPage.AcceptsHtml(accept)) return null;
-        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug);
+        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug, oracleCdn);
         return ("text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(html), UiPage.RevalidateCacheControl);
     }
 

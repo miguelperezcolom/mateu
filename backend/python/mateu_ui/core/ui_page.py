@@ -22,6 +22,7 @@ import os
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlsplit
 
 #: The renderer the server serves, when not passed to ``add_mateu(ui=…)``.
 ENV_VAR = "MATEU_UI"
@@ -126,12 +127,66 @@ def mount_ui(html: str, base_url: str, debug: bool = False) -> str:
     return html[:start] + root + DEFERRED_BOOT + html[end:]
 
 
-def render_index(template: str, base_url: str, title: str, debug: bool = False) -> str:
+def render_index(
+    template: str, base_url: str, title: str, debug: bool = False, oracle_cdn: str | None = None
+) -> str:
     """The renderer's page aimed at ``base_url`` (the mount, ``""`` for the root) and titled. Like
     Java's ``IndexPage.render``: the favicon marker becomes ``DEFAULT_FAVICON`` and no template
-    marker is left in the page."""
+    marker is left in the page. With ``oracle_cdn`` (an already validated mirror, see
+    ``resolve_oracle_cdn``) Oracle's CDN URLs are re-pointed at it AFTER the markers are filled."""
     html = template.replace(FAVICON_MARKER, DEFAULT_FAVICON).replace(TITLE_MARKER, title)
-    return without_markers(mount_ui(html, base_url, debug))
+    return rewrite_oracle_cdn(without_markers(mount_ui(html, base_url, debug)), oracle_cdn)
+
+
+#: The mirror of Oracle's CDN, when not passed to ``add_mateu(oracle_cdn_url=…)`` (Java:
+#: ``mateu.oracle-cdn.url`` / ``MATEU_ORACLE_CDN_URL``).
+ORACLE_CDN_ENV_VAR = "MATEU_ORACLE_CDN_URL"
+
+#: What the Redwood page loads JET, Spectra (oj-sp), the Visual Builder runtime and the gallery
+#: images from. Mateu never bundles Oracle's files: an organisation that must not depend on Oracle's
+#: CDN at runtime hosts a mirror of this folder, and the page is re-pointed at it.
+ORACLE_CDN = "https://static.oracle.com/cdn"
+
+#: The preconnect hint the Redwood page carries for Oracle's CDN origin.
+ORACLE_CDN_PRECONNECT = 'href="https://static.oracle.com"'
+
+_UNSAFE_IN_URL = set("\"'<>`")
+
+
+def resolve_oracle_cdn(configured: str | None) -> tuple[str | None, str | None]:
+    """``(mirror, rejected)``: the mirror to serve Oracle's CDN content from — ``configured`` when not
+    blank, else ``MATEU_ORACLE_CDN_URL`` — or None (off: the page is unchanged) when neither is set
+    or the value is not usable, in which case ``rejected`` is a message to log. Usable = an absolute
+    http(s) URL with no quote, ``<``, ``>`` or whitespace (it is written into HTML attributes and
+    inline script); a trailing slash is dropped."""
+    value = configured if configured is not None and configured.strip() else os.environ.get(ORACLE_CDN_ENV_VAR)
+    if value is None or not value.strip():
+        return None, None
+    value = value.strip()
+    parsed = urlsplit(value)
+    if (
+        any(c in _UNSAFE_IN_URL or c.isspace() or not c.isprintable() for c in value)
+        or parsed.scheme not in ("http", "https")
+        or not parsed.hostname
+    ):
+        shown = "".join(c if c.isprintable() else "?" for c in value[:256])
+        return None, (
+            f"Ignoring the Oracle CDN mirror (oracle_cdn_url / {ORACLE_CDN_ENV_VAR}) '{shown}': it must be "
+            "an absolute http(s) URL with no quotes, '<', '>' or whitespace. The Redwood page keeps "
+            f"loading from {ORACLE_CDN}."
+        )
+    return value.rstrip("/"), None
+
+
+def rewrite_oracle_cdn(html: str, mirror: str | None) -> str:
+    """Java's ``IndexPage.withOracleCdn``: every ``ORACLE_CDN`` in ``html`` becomes ``mirror``, and
+    the preconnect to Oracle's origin becomes one to the mirror's origin. Nothing else changes; a
+    None mirror leaves the page as is."""
+    if not mirror:
+        return html
+    parts = urlsplit(mirror)
+    origin = f"{parts.scheme}://{parts.netloc.rsplit('@', 1)[-1]}"
+    return html.replace(ORACLE_CDN, mirror).replace(ORACLE_CDN_PRECONNECT, f'href="{origin}"')
 
 
 def spa_candidate(path: str) -> bool:

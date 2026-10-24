@@ -23,10 +23,30 @@ public record HeroSection(
      * default look, any other {@link HeroTone} paints a dark tinted band with light ink.
      */
     @Experimental("hero tone (3.0-alpha.409)") HeroTone tone,
+    /**
+     * A short line ABOVE the title introducing it (the Redwood welcome page's overline: "Good
+     * morning", "Sales"…). {@code null}/blank for none.
+     */
+    @Experimental("hero overline (3.0-beta.13)") String overline,
     List<Component> content,
     String style,
     String cssClasses)
     implements Component {
+
+  /** The 3.0-alpha.409 shape (no overline), kept so code compiled against it keeps linking. */
+  public HeroSection(
+      String id,
+      String title,
+      String subtitle,
+      String image,
+      String height,
+      boolean centered,
+      HeroTone tone,
+      List<Component> content,
+      String style,
+      String cssClasses) {
+    this(id, title, subtitle, image, height, centered, tone, null, content, style, cssClasses);
+  }
 
   /** The 3.0-alpha.408 shape (no tone), kept so code compiled against it keeps linking. */
   public HeroSection(
@@ -39,6 +59,6 @@ public record HeroSection(
       List<Component> content,
       String style,
       String cssClasses) {
-    this(id, title, subtitle, image, height, centered, null, content, style, cssClasses);
+    this(id, title, subtitle, image, height, centered, null, null, content, style, cssClasses);
   }
 }
