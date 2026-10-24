@@ -69,7 +69,7 @@
          backend-tests) with the add + deprecate recipe (api-compat/api-guard-enforce-true.groovy),
          unless it is listed in api-compat/japicmp-exclusions.properties.
          See reference/stability-and-versioning.md. -->
-    <mateu.japicmp.baseline>3.0-beta.12</mateu.japicmp.baseline>
+    <mateu.japicmp.baseline>3.0-beta.13</mateu.japicmp.baseline>
     <!-- THE switch, on by default: `-Dmateu.api.enforce=false` makes the check report-only (to read
          the full report of a break locally; never for a pull request). mateu.japicmp.enforce is the
          knob the plugin reads; it follows this one (mateu-dtos pins it to false). -->
