@@ -183,6 +183,9 @@ export const resolveTarget = (contexts, t) => {
 export function reduceContexts(reg, increment, opts = {}) {
   const contexts = { ...reg.contexts }
   const stack = [...reg.stack]
+  // an overlay refreshed IN PLACE gets a new context id: old id → new, so a command of the same
+  // increment aimed at the old one (the MarkAsClean of «Save and next») still lands on it
+  const refreshed = {}
   let shell = reg.shell || null
   const effects = {
     toasts: [],
@@ -295,7 +298,11 @@ export function reduceContexts(reg, increment, opts = {}) {
       const open = sameId ? stack.find((k) => contexts[k] && contexts[k].tree && contexts[k].tree.id === sameId
         && metaOf({ component: contexts[k].tree }).type === md.type) : null
       if (open) {
-        contexts[ctx.id] = { ...ctx, opener: contexts[open].opener || ctx.opener }
+        // …keeping its unsaved-changes flag: re-sent with an error banner and the values the user
+        // typed, they are still unsaved (the web's dirtyGuard.holdThroughReload); a successful
+        // «Save and next» clears it with the MarkAsClean that comes with it
+        contexts[ctx.id] = { ...ctx, opener: contexts[open].opener || ctx.opener, dirty: !!contexts[open].dirty }
+        refreshed[open] = ctx.id
         delete contexts[open]
         stack[stack.indexOf(open)] = ctx.id
         continue
@@ -402,12 +409,12 @@ export function reduceContexts(reg, increment, opts = {}) {
         emit(c.data)
         break
       case 'MarkAsClean': {
-        const id = t && contexts[t] ? t : opts.initiator
+        const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
         if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false }
         break
       }
       case 'MarkAsDirty': {
-        const id = t && contexts[t] ? t : opts.initiator
+        const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
         if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: true }
         break
       }

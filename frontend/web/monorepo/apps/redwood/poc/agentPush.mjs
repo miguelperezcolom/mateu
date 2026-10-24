@@ -1,6 +1,7 @@
 import { chromeText } from './i18n.mjs'
 import { announce } from './a11y.mjs'
 import { authHeadersOf } from './resilience.mjs'
+import { rendererHeaders } from './versionSkew.mjs'
 import { dispatchChatEvent } from './chat.mjs'
 import { callMateu } from './transport.mjs'
 
@@ -326,7 +327,7 @@ export function createAgentChannel({ fetchImpl, headers, now, setTimer, clearTim
     Promise.resolve().then(() => (fetchImpl || globalThis.fetch)(t.base + '/mateu/v3/sse/_no_route', {
       method: 'POST',
       signal: own.signal,
-      headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, headers ? headers() : authHeadersOf()),
+      headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, rendererHeaders(), headers ? headers() : authHeadersOf()),
       body: JSON.stringify(agentActionBodyOf(AGENT_CHANNEL_ACTION, {
         sessionId: t.sessionId, secret: t.secret, serverSideType: t.serverSideType, route: t.route ? t.route() : '',
       })),

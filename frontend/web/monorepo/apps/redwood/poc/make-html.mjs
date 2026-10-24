@@ -23,6 +23,29 @@ const partial = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').repl
 // that changes between copies is the change listener, which carries the marker:
 //   <!-- @fields-extra hostInputChanged -->  …  <!-- @end-fields-extra -->
 const fieldsPartial = readFileSync(join(here, 'templates', 'fields-extra.html'), 'utf8').replace(/\n$/, '')
+// The drawer's BODY (its default slot) in a THIRD partial: the drawer panel picks one of three Spectra
+// templates (general / create-edit / bottom) and VB cannot share a body between them, so each carries a
+// copy, between `<!-- @drawer-body <template> -->` and `<!-- @end-drawer-body -->`. It is expanded
+// FIRST: it brings its own @atoms and @fields-extra markers, which the next passes fill.
+const drawerBodyPartial = readFileSync(join(here, 'templates', 'drawer-body.html'), 'utf8').replace(/\n$/, '')
+
+/** Expands the @drawer-body markers (the partial is unindented: it takes the marker's indentation). */
+export const expandDrawerBodies = (html) => {
+  const lines = html.split('\n')
+  const out = []
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^(\s*)<!-- @drawer-body (\w+) -->/)
+    if (!m) { out.push(lines[i]); continue }
+    out.push(lines[i])
+    let j = i + 1
+    while (j < lines.length && !/<!-- @end-drawer-body -->/.test(lines[j])) j++
+    if (j === lines.length) throw new Error(`@drawer-body sin @end-drawer-body (línea ${i + 1})`)
+    out.push(...reindent(drawerBodyPartial, m[1]))
+    out.push(lines[j])
+    i = j
+  }
+  return out.join('\n')
+}
 
 const VARIANTS = {
   host: { blockAction: 'hostBlockAction', addonToggled: 'hostAddonToggled', menuAction: 'hostMenuAction',
@@ -54,7 +77,7 @@ export const expandFields = (html) => {
 }
 
 export const expand = (html) => {
-  const lines = html.split('\n')
+  const lines = expandDrawerBodies(html).split('\n')
   const out = []
   let count = 0
   for (let i = 0; i < lines.length; i++) {

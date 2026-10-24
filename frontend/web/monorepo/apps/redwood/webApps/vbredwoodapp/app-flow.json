@@ -463,7 +463,8 @@
         "actions": [],
         "blocks": [],
         "state": {},
-        "texts": []
+        "texts": [],
+        "sp": { "template": "", "edge": "end", "modality": "modal", "autoDismiss": "focus-loss", "footerActions": [] }
       },
       "description": "proyecci\u00f3n del overlay superior (drawer): t\u00edtulo + campos + acciones + bloques display (PaymentPicker, AddOnPicker, grids\u2026)"
     },
@@ -592,6 +593,26 @@
     "mateuWelcome": {
       "type": "any",
       "description": "proyecci\u00f3n del arquetipo Welcome (hero + CTAs + tiles)"
+    },
+    "mateuTodo": {
+      "type": "any",
+      "description": "the TodoList archetype on oj-sp-task-organizer-page (title + the queue blocks; todoListOf)"
+    },
+    "mateuDm": {
+      "type": "any",
+      "description": "DataManagement / GanttPage on oj-sp-data-management-page (main + inner end/bottom drawers; dataManagementPageOf)"
+    },
+    "mateuCd": {
+      "type": "any",
+      "description": "CollectionDetail on oj-sp-collection-detail-page (collection blocks, selected item, server-built detail; collectionDetailPageOf)"
+    },
+    "mateuItemOvHeader": {
+      "type": "any",
+      "description": "the ItemOverview's oj-sp-item-overview title/subtitle/badge (itemOverviewPageHeaderOf)"
+    },
+    "mateuDashboard": {
+      "type": "any",
+      "description": "the Dashboard archetype on oj-sp-dashboard-landing-page (kpi scoreboard + panels; dashboardOf)"
     },
     "mateuOverview": {
       "type": "any",
@@ -827,6 +848,11 @@
       "defaultValue": "",
       "description": "ultimo fallo de transporte YA TRADUCIDO a lenguaje de usuario (classifyRequestFailure)"
     },
+    "mateuReloadOffered": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "the error band shows a version-skew notice (app updated / stale screen, versionSkew.mjs): its button reloads the page instead of retrying"
+    },
     "mateuChatSseUrl": {
       "type": "string",
       "defaultValue": "",
@@ -940,6 +966,9 @@
         "message": "string"
       },
       "description": "Fire this event with an acknowledgement message to indicate to user that an operation was successful. The shell page will render the message using oj-sp-messages-toast component."
+    },
+    "mateuOverlaysClosed": {
+      "description": "a navigation closed every overlay (drawer, dialog, selector): the content page drops its overlay state and closes its dialogs"
     },
     "mateuRetryAction": {
       "description": "reintento de una accion que fallo: la banda de error de la shell la reenvia a la pagina de contenido, que es quien sabe ejecutarla",

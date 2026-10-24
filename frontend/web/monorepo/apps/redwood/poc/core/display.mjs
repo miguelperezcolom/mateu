@@ -104,6 +104,9 @@ export function timelineAtomOf(m, interp = (x) => x) {
       glyph: glyphOf(it.icon),
       dotClass: 'mateu-timeline-dot' + (toneOf(it.color) ? ' mateu-tone-' + toneOf(it.color) : ''),
       dotStyle: cssColorOf(it.color) ? { backgroundColor: cssColorOf(it.color) } : {},
+      // oj-sp-timeline-event-template paints the event (primary/secondary/tertiary text); a
+      // clickable event offers its action as the template's primaryActions menu ("Open")
+      primaryActions: it.actionId ? [{ id: 'open', label: chromeText('open'), display: 'on' }] : [],
       ...clickable(it.actionId, { _clickedItem: it }),
     }))),
   }
@@ -307,6 +310,27 @@ export function fileIconOf(type, name) {
   for (const [re, cls] of FILE_ICONS) if (re.test(probe)) return cls
   return 'oj-ux-ico-file'
 }
+const SIZE_UNITS = { b: 1, byte: 1, bytes: 1, kb: 1024, k: 1024, mb: 1024 ** 2, m: 1024 ** 2, gb: 1024 ** 3, g: 1024 ** 3, tb: 1024 ** 4 }
+/** A size as the wire writes it ("1.2 MB", "48 KB", 2048) → bytes; undefined when unreadable. */
+export function fileBytesOf(size) {
+  if (typeof size === 'number' && isFinite(size)) return size
+  const m = str(size).trim().replace(',', '.').match(/^(\d+(?:\.\d+)?)\s*([a-z]*)$/i)
+  if (!m) return undefined
+  const unit = SIZE_UNITS[(m[2] || 'b').toLowerCase()]
+  return unit ? Math.round(parseFloat(m[1]) * unit) : undefined
+}
+const MIME_BY_EXT = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+  svg: 'image/svg+xml', webp: 'image/webp', csv: 'text/csv', txt: 'text/plain', zip: 'application/zip',
+  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }
+// the type WORDS the FileList docs use ("image", "excel", "video"…) when the name has no known extension
+const MIME_BY_KIND = { image: 'image/*', video: 'video/*', audio: 'audio/*', excel: MIME_BY_EXT.xlsx, word: MIME_BY_EXT.docx, text: 'text/plain' }
+/** The file's MIME type: the wire's when it is one, else guessed from the name's extension, then the type word. */
+export function fileMimeOf(type, name) {
+  const t = str(type).trim().toLowerCase()
+  if (t.indexOf('/') > 0) return t
+  return MIME_BY_EXT[str(name).split('.').pop().toLowerCase()] || MIME_BY_EXT[t] || MIME_BY_KIND[t] || ''
+}
 export function fileListAtomOf(m, interp = (x) => x) {
   return {
     isFileList: true,
@@ -316,6 +340,18 @@ export function fileListAtomOf(m, interp = (x) => x) {
         name: interp(str(f.name)),
         meta: [f.size, f.type].filter(Boolean).map(str).join(' · '),
         iconClass: fileIconOf(f.type, f.name),
+        // oj-sp-attachment-chip (local data, no Oracle attachments REST): its size is a NUMBER of
+        // bytes and its type a MIME type — the wire carries both as display text
+        // the chip splits the name around its middle and drops a space there: no-break spaces keep it
+        chipName: interp(str(f.name)).replace(/ /g, '\u00a0'),
+        fileSize: fileBytesOf(f.size),
+        fileType: fileMimeOf(f.type, f.name),
+        // a file with a URL opens on a click (the chip's preview, external) and downloads from its
+        // menu (its href on data-mateu-href — installAttachmentChips); one with an action runs it on
+        // a click (the preview, external)
+        chipActions: f.actionId
+          ? { preview: 'external', download: 'off', delete: 'off' }
+          : { preview: href ? 'external' : 'off', download: href ? 'on' : 'off', delete: 'off' },
         href,
         hasHref: !!href && !f.actionId,
         noHref: !href || !!f.actionId,
@@ -1003,6 +1039,8 @@ export function heroAtomOf(m, interp = (x) => x) {
   const image = m.image ? elementModuleUrl(str(m.image)) : ''
   return {
     isHero: true,
+    // the quiet line above the title (HeroSectionDto.overline), '' for none
+    overline: interp(str(m.overline)),
     title: interp(str(m.title)),
     subtitle: interp(str(m.subtitle)),
     heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : ''),
@@ -1022,6 +1060,9 @@ export function emptyStateAtomOf(m, interp = (x) => x) {
     description: interp(str(m.description)),
     hasAction: !!(m.actionId && m.actionLabel),
     actionLabel: interp(str(m.actionLabel)),
+    // oj-sp-empty-state's own call to action (a callToAction button under the texts; its
+    // spPrimaryAction runs actionId); null = no button
+    primaryAction: m.actionId && m.actionLabel ? { label: interp(str(m.actionLabel)), type: 'callToAction', display: 'on' } : null,
     actionId: m.actionId || '',
     parameters: {},
   }

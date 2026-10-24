@@ -295,6 +295,16 @@
         }
       ]
     },
+    "chatSendText": {
+      "chains": [
+        {
+          "chain": "chatSend",
+          "parameters": {
+            "text": "{{ $event.detail.value }}"
+          }
+        }
+      ]
+    },
     "chatKeydown": {
       "chains": [
         {
@@ -415,6 +425,12 @@
     "components": {
       "oj-sp-messages-banner": {
         "path": "oj-sp/messages-banner/loader"
+      },
+      "oj-sp-chat-message-block": {
+        "path": "oj-sp/chat-message-block/loader"
+      },
+      "oj-sp-chat-input": {
+        "path": "oj-sp/chat-input/loader"
       },
       "oj-sp-messages-toast": {
         "path": "oj-sp/messages-toast/loader"

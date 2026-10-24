@@ -93,6 +93,44 @@ const objectLiteral = (o, indent) => '{\n' + Object.entries(o)
  * The page. `appDir` is the folder the app is served from (relative to the root), `hash` the
  * source hash appended to the app's own modules for cache busting (CDN urls are left alone).
  */
+/**
+ * A mirror of Oracle's CDN (mateu.oracle-cdn.url, core OracleCdn): the server rewrites the urls of
+ * the page, the runtime configuration included, but Oracle's own files — JET's bundle config,
+ * Spectra's loaders and shell config — carry absolute static.oracle.com urls of their own. Every
+ * module script passes through requirejs.load, so that is where they are pointed at the mirror; the
+ * module paths Visual Builder applies later go through require.config. The shell background
+ * (app.css) reads custom properties set in this page's <style>, rewritten like its other urls, and
+ * window.__mateuOracleCdn tells the bridge
+ * (poc/oracleCdn.mjs). The literal is split so the server's rewrite leaves it alone. Without a
+ * mirror, nothing is touched.
+ */
+export const ORACLE_CDN_MIRROR = `    <script type="text/mateu-deferred">
+      (function () {
+        var oracle = 'https://static.oracle.com' + '/cdn';
+        var m = String((window.vbInitConfig || {}).JET_CDN_PATH || '').match(/^(https?:\\/\\/[^\\s'"<>]+?)\\/jet\\/[^/]+\\/?$/);
+        var base = m ? m[1] : oracle;
+        window.__mateuOracleCdn = base;
+        if (base === oracle || !window.requirejs) return;
+        var mirrored = function (url) {
+          return typeof url === 'string' && url.indexOf(oracle) === 0 ? base + url.slice(oracle.length) : url;
+        };
+        // every url RequireJS resolves (scripts, css!, text!) comes out of the context's nameToUrl
+        var context = window.requirejs.s && window.requirejs.s.contexts && window.requirejs.s.contexts._;
+        if (context && context.nameToUrl) {
+          var nameToUrl = context.nameToUrl;
+          context.nameToUrl = function () { return mirrored(nameToUrl.apply(this, arguments)); };
+        }
+        var load = window.requirejs.load;
+        window.requirejs.load = function (context, id, url) { return load.call(this, context, id, mirrored(url)); };
+        var config = window.requirejs.config;
+        window.requirejs.config = function (c) {
+          if (c && c.paths) Object.keys(c.paths).forEach(function (k) { c.paths[k] = mirrored(c.paths[k]); });
+          return config.apply(this, arguments);
+        };
+        window.require.config = window.requirejs.config;
+      })();
+    </script>`
+
 export const indexPage = ({ stylesheets, libraries, runtime, settings, requireConfig }, { appDir, hash }) => {
   const runtimeConfig = {
     ...settings,
@@ -104,6 +142,8 @@ export const indexPage = ({ stylesheets, libraries, runtime, settings, requireCo
     INJECTED: { security: {} },
   }
   const parked = (src, extra = '') => `    <script type="text/mateu-deferred" data-src="${attr(src)}"${extra}></script>`
+  // right after require.js, before anything configures or loads a module: see ORACLE_CDN_MIRROR
+  const library = (u) => parked(u, /third-party/.test(u) ? ' charset="UTF-8"' : '') + (/\/require\.js$/.test(u) ? '\n' + ORACLE_CDN_MIRROR : '')
   return `<!-- Mateu — Apache License 2.0. Written by scripts/copy.mjs (apps/redwood/scripts/index-page.mjs). -->
 <!DOCTYPE html>
 <html class="oj-html" lang="en">
@@ -117,6 +157,12 @@ export const indexPage = ({ stylesheets, libraries, runtime, settings, requireCo
 ${stylesheets.map((s) => `    <link rel="stylesheet" type="text/css" href="${attr(s.href)}"${s.id ? ` id="${attr(s.id)}"` : ''}>`).join('\n')}
     <link rel="stylesheet" href="${appDir}/resources/css/app.css?v=${hash}">
     <style>mateu-ui { display: none !important; }
+      /* the shell background (app.css) from Oracle's gallery — written here, in the page, so a mirror
+         of Oracle's CDN (mateu.oracle-cdn.url) replaces it with the page's other urls */
+      :root {
+        --mateu-shell-bg-start: url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-start.png');
+        --mateu-shell-bg-end: url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-end.png');
+      }
       /* until Visual Builder mounts the app (Oracle's CDN is still downloading): Redwood's loader, the
          large indeterminate progress circle — the very markup JET renders for oj-progress-circle, styled
          by oj-redwood-min.css above, which arrives before any script. Gone as soon as VB fills
@@ -146,7 +192,7 @@ ${stylesheets.map((s) => `    <link rel="stylesheet" type="text/css" href="${att
       window.vbInitParams = Object.assign(window.vbInitParams || {}, { locale: document.documentElement.lang });
       window.vbInitConfig = ${objectLiteral(runtimeConfig, '      ')};
     </script>
-${libraries.map((u) => parked(u, /third-party/.test(u) ? ' charset="UTF-8"' : '')).join('\n')}
+${libraries.map(library).join('\n')}
     <script type="text/mateu-deferred" id="vb-require-bundles-config">
       // the app's own modules carry ?v=<source hash>; absolute (CDN) urls are left alone
       require.config({ urlArgs: function (id, url) { return /^(https?:)?\\/\\//.test(url) ? '' : (url.indexOf('?') < 0 ? '?' : '&') + 'v=${hash}'; } });

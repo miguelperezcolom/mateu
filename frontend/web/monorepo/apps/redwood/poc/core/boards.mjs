@@ -124,7 +124,9 @@ export function ganttAtomOf(m, id) {
   for (const row of atom.rows) {
     for (const task of row.tasks) {
       const done = shadeOf(colors[task.id], 0.6)
-      task.progress = { value: progress[task.id] || 0, ...(done ? { svgStyle: { fill: done } } : {}) }
+      const value = progress[task.id] || 0
+      task.progress = { value, ...(done ? { svgStyle: { fill: done } } : {}) }
+      Object.assign(task, ganttLabelOf(value))
     }
   }
   const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
@@ -136,6 +138,22 @@ export function ganttAtomOf(m, id) {
     majorScale: days > 60 ? 'months' : 'weeks',
     minorScale: days > 60 ? 'weeks' : 'days',
   }
+}
+
+/** Redwood's primary ink: the label of a bar drawn OUTSIDE it, on the chart's light background. */
+export const GANTT_OUTSIDE_LABEL_INK = '#161513'
+
+/**
+ * Where a task bar's label goes, and in which ink. A centred label sits over the middle of the
+ * bar, so it is only on the dark DONE fill when the task is well past half way (≥ 75%): then it goes
+ * inside, white. Otherwise the middle of the bar is its light unfilled part — white there could not
+ * be read — so the label goes OUTSIDE, after the bar (before it at the right edge of the chart, or
+ * nothing when neither fits: the tooltip still says it), in dark ink on the background.
+ */
+export function ganttLabelOf(progress) {
+  return progress >= 0.75
+    ? { labelPosition: ['innerCenter', 'innerStart', 'none'], labelStyle: { fill: '#ffffff' } }
+    : { labelPosition: ['end', 'start', 'none'], labelStyle: { fill: GANTT_OUTSIDE_LABEL_INK } }
 }
 
 /** The id of the task under the pointer: oj-gantt's getContextByNode gives a task bar's row and

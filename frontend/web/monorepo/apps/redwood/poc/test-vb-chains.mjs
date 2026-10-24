@@ -138,6 +138,7 @@ chains.runMateuIslandAction = chain('flows/main/pages/main-start-page-chains/run
 chains.hostInputChanged = chain('flows/main/pages/main-start-page-chains/hostInputChanged.js')
 chains.mateuFieldEdited = chain('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
 chains.islandFieldEdited = chain('flows/main/pages/main-start-page-chains/islandFieldEdited.js')
+chains.mateuOverlaysClosed = chain('flows/main/pages/main-start-page-chains/mateuOverlaysClosed.js')
 const planningGanttEvent = chain('flows/main/pages/main-start-page-chains/planningGanttEvent.js')
 
 // ── the backend: a scripted fetch ──────────────────────────────────────────────────────────────
@@ -508,7 +509,10 @@ const LANDINGS = [
   ['crud-view-zones', (v) => v.mateuHostContent.length === 2 && v.mateuFormSections.length === 0
     && /oj-md-4/.test(v.mateuHostContent[0].blockClass) && /oj-md-8/.test(v.mateuHostContent[1].blockClass)],
   ['crud-edit-zones', (v) => v.mateuHostContent.some((b) => /oj-md-4/.test(b.blockClass)) && v.mateuFormSections.length === 0],
-  ['tpl-collection-detail', (v) => v.mateuHostContent.some((b) => /oj-md-4/.test(b.blockClass) && b.items.some((a) => a.isQueue))],
+  // CollectionDetail → oj-sp-collection-detail-page (core/spPages.mjs): the queue in its collection
+  // area, no VB header, no host content
+  ['tpl-collection-detail', (v) => v.mateuCd && v.mateuCd.collection.some((b) => b.items.some((a) => a.isQueue))
+    && v.mateuHostContent.length === 0 && !v.mateuPageHeader.showBand && !v.mateuPageHeader.showInline],
 ]
 test('onMateuNavigate: every page family lands in its own template', async () => {
   for (const [name, check] of LANDINGS) {
@@ -587,6 +591,20 @@ test('gantt: a click on a bar selects its task (onTaskSelectionActionId), once, 
   assert.deepEqual(dispatched(), [])
 })
 
+test('dispatchHostBlockAction: a welcome secondary CTA (oj-sp-welcome-page says only its id) resolves to its action or route', async () => {
+  const dispatch = chain('flows/main/pages/main-start-page-chains/dispatchHostBlockAction.js')
+  const ctas = { cta1: { actionId: 'openDashboard', route: '' }, cta2: { actionId: '', route: 'products' } }
+  const ctx = newContext()
+  const real = chains.runMateuAction
+  delete chains.runMateuAction // recorded, not run: only WHICH action matters here
+  calls.length = 0
+  try { await new dispatch().run(ctx, { ctaId: 'cta1', ctas }) } finally { chains.runMateuAction = real }
+  assert.deepEqual(calls.filter((c) => c[0] === 'callChain').map((c) => [c[1], c[2].actionId]), [['runMateuAction', 'openDashboard']])
+  calls.length = 0
+  await new dispatch().run(ctx, { ctaId: 'cta2', ctas })
+  assert.deepEqual(calls.filter((c) => c[0] === 'event').map((c) => c[1]), ['application:mateuNavigate'])
+})
+
 // ═══ runMateuAction ═══════════════════════════════════════════════════════════════════════════
 
 const act = (ctx, actionId, parameters) => new chains.runMateuAction().run(ctx, { actionId, parameters })
@@ -648,16 +666,108 @@ test('mateuFieldEdited: ONE dirty rule with Vaadin — only a form that asks bef
   reg.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
   await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
   assert.equal(ctx.$application.variables.mateuDirty, true)
-  // a drawer open over it: its OWN flag decides (the crud drawer's form does not carry one)
+  // a drawer open over it: its OWN flag decides, and the edit lands in ITS scope (its registry
+  // context), never in the page's
   ctx.$application.variables.mateuDirty = false
   ctx.$application.variables.mateuRegistry = { ...reg, stack: ['dr'], contexts: { ...reg.contexts, dr: { tree: { type: 'ServerSide', actions: [], children: [] } } } }
   ctx.$application.variables.mateuDrawerOpen = true
   await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
   assert.equal(ctx.$application.variables.mateuDirty, false)
+  assert.equal(!!ctx.$application.variables.mateuRegistry.contexts.dr.dirty, false, 'a drawer form that does not ask')
   ctx.$application.variables.mateuRegistry.contexts.dr.tree.confirmOnNavigationIfDirty = true
   await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: typed })
-  assert.equal(ctx.$application.variables.mateuDirty, true)
+  assert.equal(ctx.$application.variables.mateuDirty, false, 'the page behind stays clean')
+  assert.equal(ctx.$application.variables.mateuRegistry.contexts.dr.dirty, true, 'the drawer holds the unsaved changes')
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true)
   ctx.$application.variables.mateuDrawerOpen = false
+})
+
+// ── the crud's create/edit DRAWER (CrudDrawerBuilder): its form sits in metadata.content ───────────
+const crudDrawerOpen = () => ({
+  commands: [], messages: [],
+  fragments: [{ targetComponentId: '', action: 'Add', state: {}, data: null, component: {
+    type: 'ClientSide', id: 'fieldId', metadata: { type: 'Drawer', headerTitle: 'Edit', position: 'end', initialData: { name: 'Ana' },
+      // the server's shape: the crud form as its own ServerSide, marked like the routed /edit page
+      content: { type: 'ServerSide', id: 'crud-drawer-form', serverSideType: 'x.Editor', route: '/people', confirmOnNavigationIfDirty: true,
+        initialData: { name: 'Ana' }, actions: [{ id: 'save' }, { id: 'cancel-edit' }], triggers: [], rules: [], validations: [],
+        children: [{ type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'name', label: 'Name', dataType: 'string' } }] } },
+    children: [] } }],
+})
+const openCrudDrawer = async () => {
+  answer(byRoute('/people'), replace(page('pl', 'x.People', 'People')))
+  answer(byRoute('/home'), replace(page('ph', 'x.Home', 'Home')))
+  answer((b) => b.actionId === 'edit', crudDrawerOpen())
+  const ctx = newContext()
+  ctx.$page.variables.mateuModalOpen = false
+  await navigate(ctx, '/home')
+  await navigate(ctx, '/people')
+  await act(ctx, 'edit')
+  assert.equal(ctx.$application.variables.mateuDrawerOpen, true, 'the drawer is open')
+  return ctx
+}
+const typeInDrawer = (ctx) => new chains.mateuFieldEdited().run(ctx, { fieldId: 'name', event: { detail: { value: 'Ana X', updatedFrom: 'internal' } } })
+const popTo = (ctx, route) => { setUrl(route); return new chains.onMateuNavigate().run(ctx, { event: { detail: { currentId: route } }, fromUrl: true }) }
+
+test('crud drawer: an edit in its form (metadata.content) marks the DRAWER\'s scope dirty', async () => {
+  const ctx = await openCrudDrawer()
+  await typeInDrawer(ctx)
+  const reg = ctx.$application.variables.mateuRegistry
+  assert.equal(reg.contexts[reg.stack[0]].dirty, true)
+  assert.equal(ctx.$application.variables.mateuDirty, false, 'the listing behind has nothing unsaved')
+  assert.equal(ctx.$page.variables.mateuDrawerDraft.name, 'Ana X')
+})
+
+test('crud drawer: the browser\'s Back with unsaved drawer edits asks; staying keeps the drawer, what was typed and the URL', async () => {
+  const ctx = await openCrudDrawer()
+  await typeInDrawer(ctx)
+  confirmAnswer = false
+  const before = sent.length
+  calls.length = 0
+  await popTo(ctx, '/home')
+  assert.equal(sent.length, before, 'nothing was loaded')
+  assert.equal(ctx.$application.variables.mateuSelectedRoute, '/people')
+  // PUSHED back (the web's rule): replacing would overwrite /home's entry and the next Back would leave the app
+  assert.ok(historyLog.some(([k, u]) => k === 'push' && /people$/.test(u)), 'the address goes back to /people')
+  assert.equal(ctx.$application.variables.mateuDrawerOpen, true, 'the drawer stays')
+  assert.equal(ctx.$application.variables.mateuRegistry.stack.length, 1)
+  assert.equal(ctx.$page.variables.mateuDrawerDraft.name, 'Ana X', 'with what was typed')
+  assert.ok(!calls.some((c) => c[0] === 'event' && c[1] === 'application:mateuOverlaysClosed'))
+})
+
+test('crud drawer: accepting the question discards the edits and CLOSES the drawer before the new page loads', async () => {
+  const ctx = await openCrudDrawer()
+  await typeInDrawer(ctx)
+  confirmAnswer = true
+  calls.length = 0
+  await popTo(ctx, '/home')
+  assert.equal(ctx.$application.variables.mateuSelectedRoute, '/home')
+  assert.equal(ctx.$application.variables.mateuDrawerOpen, false, 'no orphaned drawer over the new page')
+  assert.deepEqual(ctx.$application.variables.mateuRegistry.stack, [])
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), false)
+  assert.ok(calls.some((c) => c[0] === 'event' && c[1] === 'application:mateuOverlaysClosed'), 'the content page drops its overlay state')
+})
+
+test('crud drawer: a navigation with nothing unsaved asks nothing and closes the drawer too (menu, link, NavigateTo)', async () => {
+  const ctx = await openCrudDrawer()
+  confirmAnswer = false // a question would stop it
+  await navigate(ctx, '/home')
+  assert.equal(ctx.$application.variables.mateuSelectedRoute, '/home')
+  assert.equal(ctx.$application.variables.mateuDrawerOpen, false)
+  assert.deepEqual(ctx.$application.variables.mateuRegistry.stack, [])
+})
+
+test('mateuOverlaysClosed: the content page drops the drawer draft, its pending banner, and closes its dialogs', async () => {
+  const ctx = newContext()
+  Object.assign(ctx.$page.variables, { mateuDrawerDraft: { a: 1 }, mateuDrawerLeaving: { kind: 'close' }, mateuDrawerState: 'maximized', mateuModalOpen: true, mateuPickerOpen: true })
+  calls.length = 0
+  await new chains.mateuOverlaysClosed().run(ctx)
+  assert.deepEqual(ctx.$page.variables.mateuDrawerDraft, {})
+  assert.equal(ctx.$page.variables.mateuDrawerLeaving, null)
+  assert.equal(ctx.$page.variables.mateuDrawerState, 'auto')
+  assert.equal(ctx.$page.variables.mateuModalOpen, false)
+  assert.equal(ctx.$page.variables.mateuPickerOpen, false)
+  assert.ok(calls.some((c) => c[0] === 'method' && c[1] === '#mateuModal' && c[2] === 'close'))
+  assert.ok(calls.some((c) => c[0] === 'method' && c[1] === '#mateuPicker' && c[2] === 'close'))
 })
 
 test('islandFieldEdited and an island input through hostInputChanged: dirty only when the island asks before it is left', async () => {

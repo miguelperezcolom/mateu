@@ -1,6 +1,7 @@
 import { chromeText } from './i18n.mjs'
 import { announce } from './a11y.mjs'
 import { authHeadersOf } from './resilience.mjs'
+import { rendererHeaders } from './versionSkew.mjs'
 import { keyHint, isFunctionKeyShortcut, currentShortcutActions } from './keys.mjs'
 import { shortcutMatches } from './actionPanels.mjs'
 import { safeHref } from './core/display.mjs'
@@ -218,7 +219,7 @@ function liveConnect() {
   fetch(base + '/mateu/v3/sse/_no_route', {
     method: 'POST',
     signal: own.signal,
-    headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, authHeadersOf()),
+    headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, rendererHeaders(), authHeadersOf()),
     body: JSON.stringify({ appState: {}, componentState: {}, parameters: {}, initiatorComponentId: 'mateu-live-updates',
       consumedRoute: '', serverSideType: serverSideType || undefined, route: '', actionId: '_live-updates' }),
   }).then(async (res) => {

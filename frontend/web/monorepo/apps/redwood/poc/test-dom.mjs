@@ -32,7 +32,7 @@ import { chromeText } from './i18n.mjs'
 import { setChatEventHost } from './chat.mjs'
 import { applyFoldoutFolds, resetFoldoutFolds, FOLDED_CLASS } from './foldouts.mjs'
 import { sanitizeElementHtml, mountElements, setElementEventSink, setElementModuleBase } from './elements.mjs'
-import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents, decorateFactActions, installFactActions, setFactActionSink } from './displayDom.mjs'
+import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents, decorateFactActions, installFactActions, setFactActionSink, decorateScoreboard, installScoreboards, setScoreboardActionSink, setScoreboardDataResolver, scoreboardDrillInOf } from './displayDom.mjs'
 import { registerCustomComponent, fieldWidgetOf } from './reduceContexts.mjs'
 import { defineMarkupField, defineRichTextField, installRichText } from './richtext.mjs'
 
@@ -1338,6 +1338,50 @@ test('fact action: el clic lanza SU acción con SUS parámetros por el canal de 
   button.querySelector('span').click()
   assert.deepEqual(sink.calls, [['changeCompany', { stayId: 'S-1' }, {}]])
   setFactActionSink(null)
+})
+
+// ── the KPI band (oj-sp-scoreboard): its drill-in — and nothing else added ────────────────────
+// oj-sp paints each item as <div id="<id>_kpi_<key>" class="oj-sp-scoreboard-card-container"> with
+// the title in .oj-sp-scoreboard-metric-card-title; the keys are the item ids ('k<i>').
+const ojSpScoreboard = (e, titles) => e('oj-sp-scoreboard', { class: 'mateu-sp-scoreboard' }, ...titles.map((t, i) =>
+  e('div', { id: 'sb1_kpi_k' + i, class: 'oj-sp-scoreboard-card-container' },
+    e('span', { class: 'oj-sp-scoreboard-metric-card-title', text: t }))))
+const kpiAtom = { isScoreboard: true, metrics: [
+  { title: 'Revenue', actionId: '' },
+  { title: 'Orders', actionId: 'openOrders', parameters: { x: 1 }, surfaceId: 's1' },
+  { title: 'NPS', actionId: '' }] }
+
+test('scoreboard: the drilling card is marked and the card stays as Spectra draws it (no icon added); idempotent', () => {
+  const { doc, el } = makeDom()
+  const host = ojSpScoreboard(el, ['Revenue', 'Orders', 'NPS'])
+  doc.body.appendChild(host)
+  decorateScoreboard(host, { ...kpiAtom, metrics: kpiAtom.metrics.map((m) => ({ ...m, iconClass: 'oj-ux-ico-currency', iconText: '🛒' })) }, doc)
+  const titles = host.querySelectorAll('.oj-sp-scoreboard-metric-card-title')
+  // "pure KPI, like in Spectra": not even a stale icon field adds anything in front of the title
+  for (const t of Array.from(titles)) assert.equal(t.querySelectorAll('*').length, 0, 'the title is its text only')
+  assert.equal(host.querySelectorAll('.mateu-kpi-icon').length, 0)
+  assert.equal(host.querySelectorAll('.mateu-kpi-actionable').length, 1)
+  assert.equal(host.querySelectorAll('.mateu-kpi-actionable')[0].id, 'sb1_kpi_k1')
+  decorateScoreboard(host, kpiAtom, doc)
+  assert.equal(host.querySelectorAll('.mateu-kpi-actionable').length, 1, 'another pass adds nothing')
+})
+
+test('scoreboard: the list item action of a drilling card runs ITS action (any other card, nothing)', () => {
+  const { doc, el } = makeDom()
+  const host = ojSpScoreboard(el, ['Revenue', 'Orders', 'NPS'])
+  doc.body.appendChild(host)
+  const sink = sinkLog()
+  setScoreboardActionSink(sink)
+  setScoreboardDataResolver(() => kpiAtom)
+  installScoreboards(doc)
+  // oj-list-view's ojItemAction does not have to bubble: it is heard in the capture phase
+  const card = host.querySelectorAll('[id]').find((x) => x.id === 'sb1_kpi_k1')
+  card.dispatchEvent(new FakeEvent('ojItemAction', { bubbles: false, detail: { context: { key: 'k1' } } }))
+  card.dispatchEvent(new FakeEvent('ojItemAction', { bubbles: false, detail: { context: { key: 'k0' } } }))
+  assert.deepEqual(sink.calls, [['openOrders', { x: 1 }, { fromNested: false, surfaceId: 's1' }]])
+  assert.equal(scoreboardDrillInOf(kpiAtom, 'k9'), null)
+  setScoreboardActionSink(null)
+  setScoreboardDataResolver(null)
 })
 
 for (const { name, fn } of tests) {

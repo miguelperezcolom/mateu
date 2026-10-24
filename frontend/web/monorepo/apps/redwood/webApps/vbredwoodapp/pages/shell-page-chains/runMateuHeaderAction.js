@@ -57,7 +57,11 @@ define([
           method: 'open',
         });
       }
-      if (reg.effects.navigate && reg.effects.navigate.route) {
+      // a path outside this mount (another @UI's) is a browser path, as on the web renderer
+      const leaving = bridge.navigationLeavingMountOf(reg.effects.navigate, reg);
+      if (leaving) {
+        window.location.assign(leaving);
+      } else if (reg.effects.navigate && reg.effects.navigate.route) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
           params: { event: { detail: { currentId: reg.effects.navigate.route } } },

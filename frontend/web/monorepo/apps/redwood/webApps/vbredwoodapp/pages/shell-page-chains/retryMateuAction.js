@@ -18,6 +18,12 @@ define([
     async run(context) {
       const { $application } = context;
       $application.variables.mateuLastError = '';
+      // a version-skew notice (app updated / stale screen): the only fix is the new deployment
+      if ($application.variables.mateuReloadOffered) {
+        $application.variables.mateuReloadOffered = false;
+        window.location.reload();
+        return;
+      }
       const retry = bridge.takeLastRetry();
       if (!retry) return;
       if (retry.kind === 'navigate') {

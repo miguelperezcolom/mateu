@@ -565,22 +565,19 @@
                 <!-- the assistant's still-empty reply is not painted: what is going on is told by the
                      status row below -->
                 <oj-bind-if test="[[ $current.data.role === 'user' || !!$current.data.text ]]">
-                  <div class="oj-flex oj-sm-margin-3x-bottom"
-                    :class="[[ $current.data.role === 'user' ? 'oj-sm-justify-content-flex-end' : 'oj-sm-justify-content-flex-start' ]]">
-                    <div class="oj-sm-padding-3x oj-typography-body-md mateu-chat-bubble"
-                      :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10 mateu-chat-bubble' : 'oj-bg-neutral-20 mateu-chat-bubble' ]]">
-                      <!-- what the person writes, as is; what the assistant answers is markdown:
-                           it is painted formatted (lists, bold, tables, code), with the HTML escaped -->
-                      <oj-bind-if test="[[ $current.data.role === 'user' ]]">
-                        <span class="mateu-chat-user-text"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
-                      </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.role !== 'user' ]]">
-                        <div class="mateu-chat-markdown">
-                          <oj-bind-dom config="[[ $functions.chatMessageDom($current.data.text) ]]"></oj-bind-dom>
-                        </div>
-                      </oj-bind-if>
-                    </div>
-                  </div>
+                  <!-- Spectra's message block (oj-sp-chat-message-block): the bubble, its side and its
+                       Copy are Spectra's. The person's text goes as TEXT (chat-text paints a user's
+                       message as text); the assistant's markdown goes as HTML that WE render and
+                       escape first (bridge.chatMarkdownToHtml — chat-text pours a bot's text in as
+                       HTML, unsanitised, so it must never receive raw text). Re-rendered on every
+                       streamed chunk: the block follows its `messages` prop (oj-sp-chat-container is
+                       NOT used — its diff ignores a message whose text grew, so a stream would freeze) -->
+                  <oj-sp-chat-message-block class="oj-sm-margin-3x-bottom mateu-chat-block"
+                    sender="[[ $current.data.role === 'user' ? 'user' : 'bot' ]]"
+                    animate-options="none"
+                    display-options.bot-avatar="[[ false ]]" display-options.user-avatar="[[ false ]]"
+                    messages="[[ $functions.chatBlockMessages($current.data.role, $current.data.text) ]]">
+                  </oj-sp-chat-message-block>
                 </oj-bind-if>
               </template>
             </oj-bind-for-each>
@@ -643,44 +640,53 @@
               </oj-bind-for-each>
             </div>
           </oj-bind-if>
-          <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer">
-            <!-- attach: only with @AI(upload) -->
-            <oj-bind-if test="[[ !!$application.variables.mateuChatUploadUrl ]]">
-              <oj-button id="mateuChatAttach" display="icons" class="oj-sm-margin-2x-end" chroming="borderless"
-                :disabled="[[ $application.variables.mateuChatBusy || $application.variables.mateuChatUploading ]]"
-                on-oj-action="[[ $listeners.chatAttach ]]">
-                <span slot="startIcon" class="oj-ux-ico-attachment"></span>
-                <oj-bind-text value="[[ $application.translations.appBundle.chatAttach ]]"></oj-bind-text>
-              </oj-button>
-            </oj-bind-if>
-            <!-- dictate: only where the browser recognises speech; what is dictated is sent.
-                 Ctrl+Shift+M presses it with the panel open (shell-page.js). One button per state: the
-                 text of an oj-button (its tooltip and its accessible name) does not follow an oj-bind-text -->
-            <oj-bind-if test="[[ $application.variables.mateuChatMicAvailable ]]">
-              <oj-bind-if test="[[ !$application.variables.mateuChatListening ]]">
-                <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" chroming="borderless"
-                  aria-keyshortcuts="Control+Shift+M"
-                  :disabled="[[ $application.variables.mateuChatBusy ]]"
-                  on-oj-action="[[ $listeners.chatMic ]]">
-                  <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
-                  <oj-bind-text value="[[ $application.translations.appBundle.chatDictate ]]"></oj-bind-text>
+          <!-- the composer is Spectra's oj-sp-chat-input (its textarea, Enter/send, attach and
+               microphone buttons). Its attach and microphone buttons are routed (shell-page.js,
+               capture) to OUR flows, through the hidden triggers below — @AI(upload) takes any file,
+               Spectra's picker only images/PDF; our dictation sends one sentence. They are hidden
+               when the app has no upload / the browser no speech recognition; while dictating, the
+               microphone is marked (mateu-chat-listening). The send goes through its
+               ojSpChatInputValueChanged (Enter or its send arrow). -->
+          <div :class="[[ 'oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer mateu-chat-sp-composer' + ($application.variables.mateuChatUploadUrl ? '' : ' mateu-chat-no-attach') + ($application.variables.mateuChatMicAvailable ? '' : ' mateu-chat-no-mic') + ($application.variables.mateuChatListening ? ' mateu-chat-listening' : '') + ($application.variables.mateuChatUploading ? ' mateu-chat-uploading' : '') ]]">
+            <div class="mateu-chat-triggers" aria-hidden="true">
+              <!-- attach: only with @AI(upload) -->
+              <oj-bind-if test="[[ !!$application.variables.mateuChatUploadUrl ]]">
+                <oj-button id="mateuChatAttach" display="icons" class="oj-sm-margin-2x-end" chroming="borderless"
+                  :disabled="[[ $application.variables.mateuChatBusy || $application.variables.mateuChatUploading ]]"
+                  on-oj-action="[[ $listeners.chatAttach ]]">
+                  <span slot="startIcon" class="oj-ux-ico-attachment"></span>
+                  <oj-bind-text value="[[ $application.translations.appBundle.chatAttach ]]"></oj-bind-text>
                 </oj-button>
               </oj-bind-if>
-              <oj-bind-if test="[[ $application.variables.mateuChatListening ]]">
-                <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" chroming="callToAction"
-                  aria-keyshortcuts="Control+Shift+M"
-                  :disabled="[[ $application.variables.mateuChatBusy ]]"
-                  on-oj-action="[[ $listeners.chatMic ]]">
-                  <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
-                  <oj-bind-text value="[[ $application.translations.appBundle.chatStopDictation ]]"></oj-bind-text>
-                </oj-button>
+              <!-- dictate: only where the browser recognises speech; what is dictated is sent.
+                   Ctrl+Shift+M presses it with the panel open (shell-page.js). One button per state: the
+                   text of an oj-button (its tooltip and its accessible name) does not follow an oj-bind-text -->
+              <oj-bind-if test="[[ $application.variables.mateuChatMicAvailable ]]">
+                <oj-bind-if test="[[ !$application.variables.mateuChatListening ]]">
+                  <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" chroming="borderless"
+                    aria-keyshortcuts="Control+Shift+M"
+                    :disabled="[[ $application.variables.mateuChatBusy ]]"
+                    on-oj-action="[[ $listeners.chatMic ]]">
+                    <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
+                    <oj-bind-text value="[[ $application.translations.appBundle.chatDictate ]]"></oj-bind-text>
+                  </oj-button>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $application.variables.mateuChatListening ]]">
+                  <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" chroming="callToAction"
+                    aria-keyshortcuts="Control+Shift+M"
+                    :disabled="[[ $application.variables.mateuChatBusy ]]"
+                    on-oj-action="[[ $listeners.chatMic ]]">
+                    <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
+                    <oj-bind-text value="[[ $application.translations.appBundle.chatStopDictation ]]"></oj-bind-text>
+                  </oj-button>
+                </oj-bind-if>
               </oj-bind-if>
-            </oj-bind-if>
-            <oj-input-text id="mateuChatInput" class="oj-flex-item oj-sm-margin-2x-end" placeholder="[[ $application.translations.appBundle.chatPlaceholder ]]"
-              label-hint="[[ $application.translations.appBundle.chatInputLabel ]]" label-edge="none"
-              value="{{ $application.variables.mateuChatInput }}"></oj-input-text>
-            <oj-button id="mateuChatSend" chroming="callToAction" on-oj-action="[[ $listeners.chatSend ]]"
-              :disabled="[[ $application.variables.mateuChatBusy ]]"><oj-bind-text value="[[ $application.translations.appBundle.chatSend ]]"></oj-bind-text></oj-button>
+              <oj-button id="mateuChatSend" tabindex="-1" on-oj-action="[[ $listeners.chatSend ]]"
+                :disabled="[[ $application.variables.mateuChatBusy ]]"><oj-bind-text value="[[ $application.translations.appBundle.chatSend ]]"></oj-bind-text></oj-button>
+            </div>
+            <oj-sp-chat-input id="mateuChatInput" suggestion-data="[[ [] ]]"
+              disable-action="[[ $application.variables.mateuChatBusy ]]"
+              on-oj-sp-chat-input-value-changed="[[ $listeners.chatSendText ]]"></oj-sp-chat-input>
           </div>
         </oj-bind-if>
       </div>
@@ -762,7 +768,7 @@
                  offered here is the case where repeating was OUR decision and we decided not
                  to make it: the user makes it, who knows whether they can afford a duplicate. -->
             <oj-button chroming="callToAction" display="all"
-              on-oj-action="[[ $listeners.retryMateuAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.retry ]]"></oj-bind-text></oj-button>
+              on-oj-action="[[ $listeners.retryMateuAction ]]"><oj-bind-text value="[[ $application.variables.mateuReloadOffered ? $application.translations.appBundle.reload : $application.translations.appBundle.retry ]]"></oj-bind-text></oj-button>
             <oj-button chroming="borderless" display="all"
               on-oj-action="[[ $listeners.dismissMateuError ]]"><oj-bind-text value="[[ $application.translations.appBundle.close ]]"></oj-bind-text></oj-button>
           </div>

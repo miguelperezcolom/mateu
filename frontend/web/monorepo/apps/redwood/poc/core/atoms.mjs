@@ -3,7 +3,6 @@ import { sanitizeHtml, markdownToHtml } from '../richtext.mjs'
 import { formSectionsOf } from './tree.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { dataProviderFactory, hostContentOf, panelExpanded } from './content.mjs'
-import { ojIconOrGenericOf } from './shellNav.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
 
 // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
@@ -301,8 +300,6 @@ export function metricAriaLabel({ title, value, unit, timeframe, trendLabel, des
 }
 /** A MetricCard (KPI) ready for the template: big value, colored trend, and if it carries
  *  an actionId, a button that launches the action (e.g. the filtered search that explains it). */
-/** An icon NAME (`vaadin:users`, `lumo:edit`, an `oj-ux-` class) — not an emoji or a glyph. */
-export const isIconName = (icon) => !!icon && (/^[a-z][\w-]*:[\w-]+$/i.test(String(icon)) || String(icon).indexOf('oj-ux-') === 0)
 
 export function metricOf(m, interp = (x) => x) {
   const trend = m.trend || ''
@@ -315,19 +312,76 @@ export function metricOf(m, interp = (x) => x) {
   const description = interp(m.description || '')
   return {
     title,
-    // MetricCard.icon beside the title — it was not drawn: a NAME (vaadin:/lumo:…, an oj-ux- class)
-    // is Redwood's icon; anything else (an emoji, a glyph) is drawn as the text it is. '' without one
-    iconClass: isIconName(m.icon) ? ojIconOrGenericOf(m.icon) : '',
-    iconText: m.icon && !isIconName(m.icon) ? String(m.icon) : '',
+    // MetricCard.icon is NOT drawn on Redwood (owner's decision, 2026-10-24: "pure KPI, like in
+    // Spectra"): oj-sp-scoreboard's metric card has no icon, and the band is painted exactly as
+    // Spectra draws it — no icon slipped in front of the title.
     value,
     unit,
     timeframe,
     trendText: trend ? (TREND_TEXT[trend] || '') + (trendLabel ? ' ' + trendLabel : '') : trendLabel,
     trendClass: 'oj-typography-body-sm ' + (trend === 'up' ? 'mateu-trend-up' : trend === 'down' ? 'mateu-trend-down' : 'oj-text-color-secondary'),
     description,
+    // the raw trend, for the scoreboard item (scoreboardTrendOf)
+    trend,
+    trendLabel,
     ariaLabel: metricAriaLabel({ title, value, unit, timeframe, trendLabel, description }),
     actionId: m.actionId || '',
     parameters: {},
+  }
+}
+
+// ── Scoreboard → Spectra's oj-sp-scoreboard ─────────────────────────────────────────────────────
+// The KPI band is Redwood's scoreboard: each MetricCard becomes one of its items
+// ({id, title, metric, meta, periodChangeIndicator, trendColor, badge}). What the item has no
+// property for is carried another way, never dropped: timeframe + description → meta (one line,
+// the full text in its tooltip and in the card's accessible name); a trend whose label reads as a
+// percentage ("+8% vs last month") → the period-change indicator (arrow, %, comparison period);
+// any other trend ("+112", "stable") → a subtle badge with the arrow, coloured by the trend; the
+// drill-in (actionId) is added by installScoreboards (poc/displayDom.mjs), keyed by the item id, on
+// the card's own item action. MetricCard.icon is not shown: the card is Spectra's, as Spectra draws it.
+export const TREND_COLOR = { up: 'success', down: 'danger', neutral: 'neutral' }
+const PERCENT_TREND = /^\s*([+\-−]?)\s*(\d+(?:[.,]\d+)?)\s*%\s*(.*)$/
+
+/** A metric's trend as the scoreboard draws it: {periodChangeIndicator} for a percentage,
+ *  {badge} for anything else, {} without a trend. */
+export function scoreboardTrendOf(trend, trendLabel) {
+  const label = String(trendLabel || '').trim()
+  if (!trend && !label) return {}
+  const color = TREND_COLOR[trend] || 'neutral'
+  const pct = label.match(PERCENT_TREND)
+  if (pct) {
+    const magnitude = Number(pct[2].replace(',', '.'))
+    // an explicit sign wins; without one, the trend says which way it went
+    const negative = pct[1] === '-' || pct[1] === '−' || (!pct[1] && trend === 'down')
+    return { periodChangeIndicator: { value: negative ? -magnitude : magnitude, comparisonPeriod: pct[3].trim() }, trendColor: color }
+  }
+  const glyph = trend ? (TREND_TEXT[trend] || '') : ''
+  return { badge: { text: [glyph, label].filter(Boolean).join(' '), status: color }, trendColor: color }
+}
+
+/** One MetricCard (already projected by metricOf) → an oj-sp-scoreboard item. */
+export function scoreboardItemOf(metric, index) {
+  return {
+    id: 'k' + index,
+    _rowNumber: index,
+    title: metric.title,
+    metric: [metric.value, metric.unit].filter((s) => s != null && String(s).trim() !== '').join(' '),
+    meta: [metric.timeframe, metric.description].filter((s) => s && String(s).trim()).join(' · '),
+    ...scoreboardTrendOf(metric.trend, metric.trendLabel),
+  }
+}
+
+let scoreboardSeq = 0
+/** The Spectra half of a scoreboard atom (recomputed when a MetricCard joins the band). */
+export function scoreboardAtomOf(metrics) {
+  const sbItems = (metrics || []).map(scoreboardItemOf)
+  return {
+    // the element's id: oj-sp-scoreboard names each card `<id>_kpi_<key>` ('undefined_kpi_k0' without one)
+    sbId: 'mateuKpis' + (++scoreboardSeq),
+    sbItems,
+    sbProvider: dataProviderFactory ? dataProviderFactory(sbItems) : null,
+    // any card that drills in: the band then reads as clickable
+    sbActionable: (metrics || []).some((m) => !!m.actionId),
   }
 }
 

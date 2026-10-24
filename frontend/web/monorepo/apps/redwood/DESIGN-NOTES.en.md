@@ -1238,7 +1238,9 @@ asks for ONLY the pending ones.
   balance" / "Stay · left on X") + folio/charges/payment, and the key info ("Information":
   `claveCheckout` = departure + guests in check-out, huespedesRail in DEPARTED) as a
   narrow complementary zone. "Back to the reservation" travels as the gop header's secondary.
-  **Item-overview attempt REVERTED the same day**: `oj-sp-item-overview-page` +
+  **Item-overview attempt REVERTED the same day** (RETRIED AND ADOPTED 2026-10-24 for the `ItemOverview`
+  archetype — the column gets Redwood's panel surface from app.css `.mateu-iop`; see
+  design/redwood-templates/item-overview.md §7bis): `oj-sp-item-overview-page` +
   `oj-sp-item-overview` was mounted (detection by anatomy: narrow zone first → iop, wide first → gop;
   EntityHeader → panel with badge/facts;
   "Back…" → goToParent arrow; edge-to-edge format because the template sets its

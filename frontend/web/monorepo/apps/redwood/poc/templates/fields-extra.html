@@ -50,15 +50,40 @@
     </oj-bind-for-each>
   </oj-checkboxset>
 </oj-bind-if>
+<!-- money (and an Amount) → Spectra's oj-sp-input-currency: the currency code travels with the
+     field (an Amount's own, else the declared one), so no client-side currency service is needed -->
 <oj-bind-if test="[[ $current.data.isMoney ]]">
-  <oj-input-number
+  <oj-sp-input-currency
       label-hint="[[ $current.data.label ]]"
       value="[[ $current.data.value ]]"
-      converter="[[ $current.data.converter ]]"
+      currency="[[ $current.data.currency ]]"
+      currency-display="symbol"
       required="[[ $current.data.required ]]"
       readonly="[[ $current.data.readonly ]]"
       :data-field-id="[[ $current.data.fieldId ]]"
-      on-value-changed="[[ $listeners.{{change}} ]]"></oj-input-number>
+      on-value-changed="[[ $listeners.{{change}} ]]"></oj-sp-input-currency>
+</oj-bind-if>
+<!-- @Stereotype(email) / (link) → Spectra's typed inputs (format validation; read-only, a link) -->
+<!-- (both default to auto-focus=true: a form would open with its first email/link focused) -->
+<oj-bind-if test="[[ $current.data.isEmail ]]">
+  <oj-sp-input-email
+      auto-focus="false"
+      label-hint="[[ $current.data.label ]]"
+      value="[[ $current.data.value ]]"
+      required="[[ $current.data.required ]]"
+      readonly="[[ $current.data.readonly ]]"
+      :data-field-id="[[ $current.data.fieldId ]]"
+      on-value-changed="[[ $listeners.{{change}} ]]"></oj-sp-input-email>
+</oj-bind-if>
+<oj-bind-if test="[[ $current.data.isUrl ]]">
+  <oj-sp-input-url
+      auto-focus="false"
+      label-hint="[[ $current.data.label ]]"
+      value="[[ $current.data.value ]]"
+      required="[[ $current.data.required ]]"
+      readonly="[[ $current.data.readonly ]]"
+      :data-field-id="[[ $current.data.fieldId ]]"
+      on-value-changed="[[ $listeners.{{change}} ]]"></oj-sp-input-url>
 </oj-bind-if>
 <!-- file / image / signature / camera: JET has no component — mateu-capture-field (poc/inputs.mjs) -->
 

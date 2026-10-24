@@ -214,3 +214,33 @@ export function applyDomEffects(effects, reg, env = globalThis) {
   for (const h of effects.headerValues || []) ((env && env.mateuHeaderValue) || updateHeaderValue)(h.id, h.value)
   return n
 }
+
+/**
+ * FileList chips (oj-sp-attachment-chip, fed locally): the chip's DOWNLOAD action downloads the
+ * file's URL, which the atom puts on `data-mateu-href` (the chip has no href of its own — Oracle's
+ * attachments download through their REST providers). spDownload does not bubble: heard in CAPTURE.
+ */
+export function attachmentDownloadOf(target) {
+  const chip = target && target.closest ? target.closest('oj-sp-attachment-chip[data-mateu-href]') : null
+  const href = chip ? chip.getAttribute('data-mateu-href') : ''
+  return href || ''
+}
+export function installAttachmentChips(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuAttachmentChips) return
+  doc.__mateuAttachmentChips = true
+  const follow = (download) => (e) => {
+    const href = attachmentDownloadOf(e.target)
+    if (!href) return
+    const a = doc.createElement('a')
+    a.href = href
+    if (download) a.setAttribute('download', '')
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    doc.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+  // a click on the chip (its EXTERNAL preview) opens the file; its menu's Download downloads it
+  doc.addEventListener('spPreview', follow(false), true)
+  doc.addEventListener('spDownload', follow(true), true)
+}

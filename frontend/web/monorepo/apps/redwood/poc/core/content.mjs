@@ -1,9 +1,9 @@
-import { calendarAtomOf } from '../calendar.mjs'
+import { calendarAtomOf, calendarPageToolbarOf } from '../calendar.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
 import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
-import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
+import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
@@ -15,6 +15,19 @@ import { iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, 
 import { chromeText, moneyNumberText } from '../i18n.mjs'
 import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
+
+/** The action ids a tree advertises at any level (`actions: [{id | actionId}]`). */
+function advertisedIdsOf(tree) {
+  const ids = []
+  const walk = (n) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach(walk); return }
+    if (Array.isArray(n.actions)) for (const a of n.actions) { const id = a && (a.id ?? a.actionId ?? (typeof a === 'string' ? a : null)); if (id) ids.push(id) }
+    for (const k of Object.keys(n)) if (k !== 'actions' && n[k] && typeof n[k] === 'object') walk(n[k])
+  }
+  walk(tree)
+  return ids
+}
 
 /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
 export const BADGE_CLASSES = {
@@ -39,6 +52,9 @@ export function taskQueueOf(tree) {
   // …nor the list of a template with slots (CollectionDetail: TaskQueue@list next to its @detail):
   // it is content, and the detail that arrives on picking is painted beside it
   if (!node || node.slot) return null
+  // …nor the TodoList archetype's (its cards ACT, `openTodoItem`): that page is Spectra's task
+  // organizer (overviews.mjs todoListOf), not the queue + detail page
+  if (node.metadata && node.metadata.actionId === 'openTodoItem') return null
   // …nor a queue that is ONE more piece of a page with other content: queue mode paints the
   // queue + the detail and NOTHING else, so a page with a TaskQueue among charts, boards,
   // calendars… lost everything else (only the queue and a «Nothing here» remained)
@@ -550,6 +566,21 @@ export function islandContentOf(ctx, opts = {}) {
     // The atoms of a block stack, so the row used to come out as a column. A row of buttons only
     // keeps the button bar (isButtons); any other child (a grid, a form, a card…) keeps the
     // stacked projection — the templates cannot nest a whole block inside an atom.
+    // CALENDAR PAGE: its toolbar row (‹ Today › views + Create) right above the Calendar is
+    // folded into Spectra's calendar, whose own toolbar runs those actions — not drawn twice
+    if (t === 'VerticalLayout') {
+      const kids = kidsOf(node).filter(Boolean)
+      const at = kids.findIndex((k) => k.metadata && k.metadata.type === 'Calendar')
+      const nav = at > 0 ? calendarPageToolbarOf(kids[at - 1], advertisedIdsOf(ctx.tree)) : null
+      if (nav) {
+        kids.forEach((kid, i) => {
+          if (i === at - 1) return
+          if (i === at) atom(calendarAtomOf(kid.metadata, kid.id, undefined, nav), container)
+          else visit(kid, container)
+        })
+        return
+      }
+    }
     if (t === 'HorizontalLayout') {
       const row = inlineRowOf(node)
       if (row) { atom(row, container); return }
@@ -882,15 +913,20 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'Scoreboard') {
       const metrics = findAllByType(node, 'MetricCard').map((n) => withNodeId(metricOf(n.metadata, interp), n))
-      if (metrics.length) atom({ isScoreboard: true, metrics }, container)
+      if (metrics.length) atom({ isScoreboard: true, metrics, ...scoreboardAtomOf(metrics) }, container)
       return
     }
     if (t === 'MetricCard') {
       // consecutive ones join in the same band (like the buttons)
       const target = live(container) || plain
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
-      if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
-      else atom({ isScoreboard: true, metrics: [withNodeId(metricOf(m, interp), node)] }, container)
+      if (last && last.isScoreboard) {
+        last.metrics.push(withNodeId(metricOf(m, interp), node))
+        Object.assign(last, scoreboardAtomOf(last.metrics))
+      } else {
+        const metrics = [withNodeId(metricOf(m, interp), node)]
+        atom({ isScoreboard: true, metrics, ...scoreboardAtomOf(metrics) }, container)
+      }
       return
     }
     if (t === 'Chart' || t === 'TrendChart') {

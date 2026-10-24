@@ -491,6 +491,16 @@ const mdCells = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').spli
  * breaks, headings, lists (numbered and not), quotes, rules, code blocks and snippets, tables,
  * http(s) links (in another tab), bold and italics.
  */
+/** The `messages` of a conversation entry's Spectra block (oj-sp-chat-message-block, shell panel):
+ *  the person's text as is — Spectra's chat-text paints a user's message as text —, the assistant's
+ *  markdown as escaped HTML — chat-text pours a bot's text in as HTML, unsanitised, so it must never
+ *  get the raw text. */
+export function chatBlockMessagesOf(role, text) {
+  const raw = String(text ?? '')
+  // the assistant's HTML in .mateu-chat-markdown: the bubble's markdown styles (app.css)
+  return [{ type: 'text', text: role === 'user' ? raw : '<div class="mateu-chat-markdown">' + chatMarkdownToHtml(raw) + '</div>' }]
+}
+
 export function chatMarkdownToHtml(text) {
   const lines = String(text ?? '').replace(/\r\n?/g, '\n').split('\n')
   const out = []

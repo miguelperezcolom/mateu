@@ -14,9 +14,10 @@ body::after {
   inset: 270px 0 0 0;
   z-index: -1;
   pointer-events: none;
+  /* Oracle's gallery, or the organisation's mirror of it (the page sets the properties, see scripts/index-page.mjs) */
   background-image:
-    url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-start.png'),
-    url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-end.png');
+    var(--mateu-shell-bg-start, url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-start.png')),
+    var(--mateu-shell-bg-end, url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-end.png'));
   background-repeat: no-repeat, no-repeat;
   background-position: left bottom, right bottom;
 }
@@ -738,6 +739,25 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   border-inline-start: 3px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
 }
 
+/* Spectra's chat pieces in the panel (oj-sp-chat-message-block + oj-sp-chat-input): the hidden
+   triggers of our attach/dictate/send flows, which Spectra's buttons are routed to (shell-page.js);
+   its attach / microphone buttons only where the app uploads / the browser recognises speech; the
+   microphone marked while dictating. The user's text keeps its line breaks. */
+.mateu-chat-triggers { display: none; }
+.mateu-chat-no-attach .oj-sp-chat-input-attach-btn,
+.mateu-chat-no-mic .oj-sp-chat-input-voice-btn { display: none; }
+.mateu-chat-listening .oj-sp-chat-input-voice-btn {
+  color: var(--oj-core-text-color-inverse, #fff);
+  background: var(--oj-button-call-to-action-chrome-bg-color, #312d2a);
+  border-radius: 50%;
+}
+.mateu-chat-uploading .oj-sp-chat-input-attach-btn { opacity: 0.5; pointer-events: none; }
+.mateu-chat-block { display: block; white-space: pre-wrap; }
+.mateu-chat-sp-form { display: block; }
+.mateu-chat-sp-form > oj-sp-chat-input { display: block; width: 100%; }
+.mateu-chat-log > .mateu-chat-block { max-width: none; padding: 0; background: none; color: inherit; align-self: stretch; }
+.mateu-chat-block .mateu-chat-markdown { white-space: normal; }
+
 /* Wide panel mode (the web chat's ⤢): ~60% of the viewport, the page stays beside it (reflow). */
 .mateu-chat-panel.mateu-chat-wide {
   width: 60vw;
@@ -1447,6 +1467,21 @@ body:not(.mateu-scrolled) .mateu-sticky-header ~ .oj-sp-public-primary-content-c
 
 /* ── KPIs (Scoreboard / MetricCard) ── */
 .mateu-scoreboard .mateu-metric { min-width: 12rem; }
+/* oj-sp-scoreboard: its selection is off (a filter, not a drill-in), so a card that runs its
+   MetricCard.actionId (installScoreboards) gets the pointer and a hover of its own */
+oj-sp-scoreboard.mateu-sp-scoreboard { display: block; }
+oj-sp-scoreboard .oj-sp-scoreboard-card-container.mateu-kpi-actionable,
+oj-sp-scoreboard .oj-sp-scoreboard-card-container.mateu-kpi-actionable * { cursor: pointer !important; }
+oj-sp-scoreboard .oj-sp-scoreboard-card-container.mateu-kpi-actionable:hover .oj-sp-scoreboard-metric-card-title {
+  text-decoration: underline;
+}
+/* oj-sp-dashboard-grid (the Dashboard archetype on oj-sp-dashboard-landing-page): its "above the
+   fold" layout sizes each panel to the viewport and its content box clips (overflow hidden). Mateu's
+   panel bodies are VB atoms of their own height (a chart of 16–18rem), so a chart FILLS the panel
+   (it re-lays out on resize) and anything taller than its panel scrolls instead of being cut. */
+oj-sp-dashboard-grid .oj-sp-dashboard-panel-content { display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+oj-sp-dashboard-grid .oj-sp-dashboard-panel-content > div:has(> oj-chart) { flex: 1 1 auto; min-height: 10rem; display: flex; flex-direction: column; }
+oj-sp-dashboard-grid .oj-sp-dashboard-panel-content oj-chart { flex: 1 1 auto; height: auto !important; min-height: 10rem; }
 .mateu-trend-up { color: var(--oj-core-success-3, #2e7d32); }
 .mateu-trend-down { color: var(--oj-core-danger-3, #b3261e); }
 
@@ -1487,6 +1522,29 @@ body:not(.mateu-scrolled) .mateu-sticky-header ~ .oj-sp-public-primary-content-c
 .mateu-cal-warning { background-color: rgba(220, 140, 0, 0.16); }
 .mateu-cal-danger { background-color: rgba(200, 40, 30, 0.10); }
 .mateu-cal-danger .mateu-cal-label { color: #b3261e; }
+/* Spectra's calendar (oj-sp-calendar, mounted by calendar.mjs): once it has painted, the drawn
+   grid above (its fallback) goes; the wire's per-date tones and labels go on FullCalendar's cells */
+.mateu-cal-nav { font: inherit; padding: 0.25rem 0.6rem; border: 1px solid var(--oj-core-border-color, #c9c4bf); border-radius: 4px; background: transparent; cursor: pointer; }
+.mateu-cal.mateu-cal-sp-on > .mateu-cal-head, .mateu-cal.mateu-cal-sp-on > .mateu-cal-view, .mateu-cal.mateu-cal-sp-on > .mateu-cal-agenda,
+.mateu-cal.mateu-cal-sp-on > :not(.mateu-cal-sp):not(.mateu-cal-head) { display: none !important; }
+.mateu-cal-sp { display: block; }
+/* a Calendar with no page behind it holds the events of ONE period: Spectra's ‹ › Today and the
+   title's date picker would only reach empty months */
+.mateu-cal-sp-fixed [data-action-id="calendar_previous"], .mateu-cal-sp-fixed [data-action-id="calendar_next"],
+.mateu-cal-sp-fixed [data-action-id="calendar_today"] { display: none; }
+/* the title's date picker only where it can jump (the page advertises goCalendarToDate) */
+.mateu-cal-sp-nopick .oj-sp-calendar-title-date-picker-clickable { pointer-events: none; }
+.mateu-cal-sp-nopick .oj-sp-calendar-title-date-picker-clickable .oj-ux-ico-nav-down { display: none; }
+.mateu-cal-sp th .mateu-cal-sp-label { display: block; margin: 0; }
+.mateu-cal-sp .mateu-cal-sp-label { margin-right: auto; padding: 0.15rem 0.3rem; font-size: 0.75rem; font-weight: 600; color: var(--oj-core-text-color-secondary, #6f6a66); }
+.mateu-cal-sp .fc-daygrid-day-top { align-items: baseline; }
+.mateu-cal-sp .mateu-cal-sp-clickable { cursor: pointer; }
+.mateu-cal-sp td.mateu-cal-sp-clickable:hover { box-shadow: inset 0 0 0 2px var(--oj-core-focus-border-color, #227e9e); }
+.mateu-cal-sp .mateu-cal-sp-info { background-color: rgba(0, 110, 200, 0.08); }
+.mateu-cal-sp .mateu-cal-sp-success { background-color: rgba(30, 140, 60, 0.10); }
+.mateu-cal-sp .mateu-cal-sp-warning { background-color: rgba(220, 140, 0, 0.16); }
+.mateu-cal-sp .mateu-cal-sp-danger { background-color: rgba(200, 40, 30, 0.10); }
+.mateu-cal-sp .mateu-cal-sp-danger .mateu-cal-sp-label { color: #b3261e; }
 .mateu-cal-neutral { background-color: rgba(0, 0, 0, 0.035); }
 
 /* ── Inbox bell ── */
@@ -1971,5 +2029,74 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
    by the atom's gradient) the texts are light — they kept the dark heading colour and were unreadable */
 .mateu-hero { border-radius: var(--oj-core-border-radius-lg, 6px); margin-bottom: 1rem; }
 .mateu-hero-centered { text-align: center; }
+/* HeroSection.overline: the quiet line above the hero title */
+.mateu-hero-overline { margin: 0 0 .25rem; color: var(--oj-core-text-color-secondary); }
 .mateu-hero-image { background-size: cover; background-position: center; background-repeat: no-repeat; color: #fff; }
 .mateu-hero-image h2, .mateu-hero-image p { color: #fff; }
+
+/* ── The drawer panel's Spectra templates (#mateuDrawerPanel: general / create-edit / bottom drawer
+   template, tree.mjs spectraDrawerOf). The templates bring header, footer, size and padding; these
+   only fit the popup around them. ── */
+/* the side templates fill the popup's height, so their footer sits at the bottom edge */
+#mateuDrawerPanel .mateu-sp-drawer-host {
+  height: 100%;
+}
+#mateuDrawerPanel .mateu-sp-drawer:not(.mateu-sp-bottom-drawer) {
+  display: block;
+  height: 100%;
+}
+/* the bottom drawer spans the viewport: the popup sizes to it, Spectra's provider gives the heights
+   per drawerState (auto = half the viewport, maximized = 90%, minimized = the handle strip) */
+#mateuDrawerPanel .mateu-sp-bottom-drawer-host {
+  width: 100vw;
+  --oj-sp-bottom-drawer-template-height-maximized: 90vh;
+}
+/* Spectra leaves the bottom drawer's scrolling to its content */
+#mateuDrawerPanel .mateu-sp-bottom-drawer .oj-sp-bottom-drawer-template-content {
+  overflow: auto;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+/* the unsaved-changes banner our body shows when the template has no navigation of its own */
+#mateuDrawerPanel .mateu-drawer-unsaved {
+  display: block;
+}
+
+/* ── Spectra page templates with slots (core/spPages.mjs) ── */
+/* DATA MANAGEMENT / GANTT PAGE (oj-sp-data-management-page): its header is TRANSACTIONAL (Cancel +
+   a primary always drawn); the DataManagement / GanttPage archetypes have no transaction, so both
+   buttons are hidden — the title, the colour strip and the drawers stay Spectra's */
+.mateu-dm-page oj-sp-header-create-edit [id$="_cancelAction"],
+.mateu-dm-page oj-sp-header-create-edit [id$="_cancelActionMobile"],
+.mateu-dm-page oj-sp-header-create-edit [id$="_primaryActionFromHeader"],
+.mateu-dm-page oj-sp-header-create-edit [id$="_primaryActionFromHeaderMobile"],
+.mateu-dm-page oj-sp-header-create-edit [id$="_primaryActionFromOverflowMenu"] {
+  display: none !important;
+}
+/* the inner drawers' templates fill their slot; Spectra leaves the scrolling to the content */
+.mateu-dm-page .mateu-dm-end,
+.mateu-dm-page .mateu-dm-end > oj-sp-general-drawer-template {
+  display: block;
+  height: 100%;
+}
+.mateu-dm-page .oj-sp-bottom-drawer-template-content {
+  overflow: auto;
+  padding: 0 1.5rem 1rem;
+  box-sizing: border-box;
+}
+/* COLLECTION DETAIL (oj-sp-collection-detail-page): the collection column scrolls with the page */
+.mateu-cd-page .mateu-cd-collection {
+  padding: 1rem 0.5rem 1rem 1.5rem;
+}
+.mateu-cd-page .mateu-cd-detail {
+  padding-top: 1rem;
+}
+/* ITEM OVERVIEW (oj-sp-item-overview-page): in light mode the overview column paints no surface of
+   its own and the panel hung loose over the canvas — give the column Redwood's panel surface */
+.mateu-iop .oj-sp-item-overview-page-overview-section {
+  background-color: var(--oj-core-bg-color-content, #fff);
+  border-inline-end: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+}
+.mateu-iop .mateu-iop-main {
+  padding: 0 1.5rem 1.5rem;
+}

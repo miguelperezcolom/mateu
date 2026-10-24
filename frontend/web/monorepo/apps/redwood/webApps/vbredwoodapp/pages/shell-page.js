@@ -23,6 +23,47 @@ define(['resources/js/mateu-bridge'], (bridge) => {
     const button = document.querySelector('#mateuChatMic button:not([aria-keyshortcuts])');
     if (button) button.setAttribute('aria-keyshortcuts', bridge.CHAT_MIC_ARIA_KEYSHORTCUTS);
   };
+  /* A link to an app route in the assistant's answer ([4MBZS7](/booking/bookings/4MBZS7)) navigates
+   * INSIDE the console: the same navigation-requested the shell listens to (loadMateuShell), which
+   * resolves which pod the route goes to by its prefix. Ctrl/Cmd-click still opens it in another tab.
+   * Delegated: Spectra's message block paints the answer from an HTML string, nothing to hook per link. */
+  const onChatRouteLink = (event) => {
+    const anchor = event.target && event.target.closest && event.target.closest('#mateuChatPanel a.mateu-chat-route');
+    if (!anchor) return;
+    const route = bridge.chatRouteOfLink(anchor, event);
+    if (!route) return;
+    event.preventDefault();
+    anchor.dispatchEvent(new CustomEvent('navigation-requested', {
+      detail: { route }, bubbles: true, composed: true,
+    }));
+  };
+  /* The composer is Spectra's oj-sp-chat-input; its attach and microphone buttons run OUR flows:
+   * Spectra's own picker only takes images and PDFs (@AI(upload) takes any file) and its voice
+   * button enters a listen mode that expects the host's visualizer, while ours dictates one sentence
+   * and sends it. So a press on either is taken in capture, before Spectra's handler, and handed to
+   * the panel's (hidden) trigger of that flow — the same chains as before. */
+  const CHAT_INPUT_TRIGGERS = [
+    ['.oj-sp-chat-input-attach-btn', '#mateuChatAttach'],
+    ['.oj-sp-chat-input-voice-btn', '#mateuChatMic'],
+  ];
+  const onChatInputButton = (event) => {
+    const t = event.target;
+    if (!t || !t.closest || !t.closest('#mateuChatInput')) return;
+    for (const [from, to] of CHAT_INPUT_TRIGGERS) {
+      if (!t.closest(from)) continue;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const trigger = document.querySelector(to);
+      const button = trigger && (trigger.querySelector('button') || trigger);
+      if (button && !trigger.disabled) button.click();
+      return;
+    }
+  };
+  if (!document.__mateuChatSpectra) {
+    document.__mateuChatSpectra = true;
+    document.addEventListener('click', onChatRouteLink);
+    document.addEventListener('click', onChatInputButton, true);
+  }
   if (!document.__mateuChatMicShortcut) {
     document.__mateuChatMicShortcut = true;
     document.addEventListener('keydown', onMicShortcut, true);
@@ -110,27 +151,13 @@ define(['resources/js/mateu-bridge'], (bridge) => {
     }
 
     /**
-     * The assistant's answer as nodes for its bubble (oj-bind-dom): its markdown as safe HTML
-     * —escaped first, see chatMarkdownToHtml in poc/chat.mjs—. Re-evaluated with every chunk of the
-     * stream, so the markdown shows formatted while it arrives.
+     * The `messages` of a conversation entry's Spectra block (oj-sp-chat-message-block): the
+     * person's text as is (Spectra paints a user's message as text), the assistant's markdown as
+     * safe HTML — escaped first, see chatBlockMessagesOf / chatMarkdownToHtml in poc/chat.mjs —.
+     * Re-evaluated with every chunk of the stream, so the markdown shows formatted while it arrives.
      */
-    chatMessageDom(text) {
-      const template = document.createElement('template');
-      template.innerHTML = bridge.chatMarkdownToHtml(text);
-      // a link to an app route ([4MBZS7](/booking/bookings/4MBZS7)) navigates INSIDE the
-      // console: the same navigation-requested the shell listens to (loadMateuShell), which resolves
-      // which pod the route goes to by its prefix. Ctrl/Cmd-click still opens it in another tab.
-      template.content.querySelectorAll('a.mateu-chat-route').forEach((anchor) => {
-        anchor.addEventListener('click', (event) => {
-          const route = bridge.chatRouteOfLink(anchor, event);
-          if (!route) return;
-          event.preventDefault();
-          anchor.dispatchEvent(new CustomEvent('navigation-requested', {
-            detail: { route }, bubbles: true, composed: true,
-          }));
-        });
-      });
-      return { view: Array.from(template.content.childNodes), data: {} };
+    chatBlockMessages(role, text) {
+      return bridge.chatBlockMessagesOf(role, text);
     }
   }
 

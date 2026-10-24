@@ -1,9 +1,10 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
-import { interpolate, islandContentOf, editorNodeIds } from './content.mjs'
+import { interpolate, islandContentOf, hostContentOf, editorNodeIds } from './content.mjs'
 import { findByType, findFirst } from './listing.mjs'
-import { pageHeaderNodeOf, factProjectionOf, contextualInfoOf, factActionsJsonOf } from './pageHeader.mjs'
+import { pageHeaderNodeOf, factProjectionOf, contextualInfoOf, factActionsJsonOf, badgeStatusOf } from './pageHeader.mjs'
 import { gridColClasses, metricAriaLabel, panelColClass } from './atoms.mjs'
 import { chromeText } from '../i18n.mjs'
+import { oracleCdnUrl } from '../oracleCdn.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
 /** RENDER helper: every node of a type (without crossing island boundaries). */
@@ -80,8 +81,8 @@ export function welcomeToneLookOf(key, tone) {
     key,
     tone: t,
     theme,
-    illuBg: pair ? WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png' : '',
-    illu: pair ? WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png' : '',
+    illuBg: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png') : '',
+    illu: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png') : '',
   }
 }
 
@@ -94,8 +95,8 @@ export function welcomeLookOf(key, previous, random = Math.random, tone = null) 
   return {
     key,
     theme,
-    illuBg: WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png',
-    illu: WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png',
+    illuBg: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png'),
+    illu: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png'),
   }
 }
 
@@ -160,12 +161,14 @@ export function welcomeOf(ctx) {
     // editor mode: the banner is the hero's node, its CTAs (painted inside the banner, in order)
     // their Buttons' — the page binds both onto the banner (data-node-id / data-node-buttons)
     nodeId: editorNodeIds && hero.id ? String(hero.id) : '',
-    ctaNodeIds: editorNodeIds ? ctas.slice(0, 2).map((c) => c.nodeId || '').join(' ') : '',
+    ctaNodeIds: editorNodeIds ? ctas.map((c) => c.nodeId || '').join(' ') : '',
     // …and the band of tiles is the DashboardLayout's
     tilesNodeId: editorNodeIds ? String((findByType(ctx.tree, 'DashboardLayout') || {}).id || '') : '',
     trend,
     // HeroSectionDto.tone: null = the rotating look (welcomeLookOf)
     tone: md.tone || null,
+    // HeroSectionDto.overline → the template's overline-text (the line above the page title)
+    overline: md.overline || '',
     title: md.title || '',
     subtitle: md.subtitle || '',
     ctas,
@@ -177,8 +180,126 @@ export function welcomeOf(ctx) {
     secondaryCta: ctas.length > 1 ? { label: ctas[1].label } : null,
     secondaryCtaId: ctas.length > 1 ? ctas[1].actionId : '',
     secondaryCtaRoute: ctas.length > 1 ? ctas[1].route || '' : '',
+    // EVERY CTA after the first: oj-sp-welcome-page's `secondaryActions` (two as outlined buttons, the
+    // rest in its overflow menu). Only two were painted, so a third Button field was lost. The
+    // template's spSecondaryAction says WHICH by its id (`cta<n>`), which `secondaryById` resolves.
+    secondaryCtas: ctas.slice(1).map((c, i) => ({ id: 'cta' + (i + 1), label: c.label })),
+    secondaryById: Object.fromEntries(ctas.slice(1).map((c, i) => ['cta' + (i + 1), { actionId: c.actionId || '', route: c.route || '' }])),
+    // HeroSection.image (Welcome.heroImage()): the banner's own picture, full bleed like the Vaadin
+    // hero's background — instead of the rotating Oracle gallery illustration, which it ignored
+    image: md.image || '',
     tiles,
   }
+}
+
+// ── DASHBOARD archetype → Spectra's oj-sp-dashboard-landing-page ─────────────────────────────
+const DASHBOARD_PIECES = new Set(['Scoreboard', 'MetricCard', 'DashboardPanel'])
+
+/** Whether the tree has something besides a dashboard (a scoreboard + panels in layouts). */
+function holdsMoreThanADashboard(n, root) {
+  if (!n || typeof n !== 'object') return false
+  if (!root && n.type === 'ServerSide') return true
+  const t = n.metadata && n.metadata.type
+  if (t && DASHBOARD_PIECES.has(t)) return false
+  if (t && !WELCOME_FRAME.has(t)) return true
+  return (n.children || []).some((c) => holdsMoreThanADashboard(c, false))
+}
+
+/** The panels Spectra's oj-sp-dashboard-grid lays out itself (its predefined layouts: one to five). */
+export const DASHBOARD_GRID_MAX = 5
+
+/**
+ * Whether the dashboard DECLARES its own geometry — a panel with a colSpan / rowSpan other than the
+ * default (1), or a fixed column count (`Dashboard.columns()` ≠ 0: the grid's tracks on the wire, or
+ * a DashboardLayout's `columns`). oj-sp-dashboard-grid lays the panels out in its own predefined
+ * layouts and ignores all three, so a dashboard that declares any of them keeps our grid (the oj-flex
+ * row: each panel its colSpan of the declared columns) instead of losing what it asked for.
+ */
+export function dashboardDeclaresLayout(tree, panels) {
+  const spans = (panels || []).some((p) => {
+    const pm = (p && p.metadata) || {}
+    return Number(pm.colSpan || 1) > 1 || Number(pm.rowSpan || 1) > 1
+  })
+  if (spans) return true
+  const grids = findAllByType(tree, 'ResponsiveGrid')
+    .filter((g) => (g.children || []).some((k) => k && k.metadata && k.metadata.type === 'DashboardPanel'))
+  if (grids.some((g) => String((g.metadata && g.metadata.gridTemplateColumns) || '').trim())) return true
+  return findAllByType(tree, 'DashboardLayout').some((l) => l.metadata && Number(l.metadata.columns) > 0)
+}
+
+/**
+ * The DASHBOARD archetype (Dashboard / InferredDashboard: a Scoreboard of MetricCards + @Panel
+ * tiles, nothing else) as Spectra's DASHBOARD LANDING PAGE: its `kpi` slot holds the scoreboard
+ * (the oj-sp-scoreboard atom, drill-in included) and its default slot the panels, each an
+ * oj-sp-dashboard-panel (panelTitle / panelSubtitle) whose body is VB-painted atoms. The panels go
+ * on oj-sp-dashboard-grid — Spectra's own layouts — when it can take them (≤ 5, not reorderable by
+ * the viewer: the grid moves the panels into slots of its own, which our drag cannot follow) AND the
+ * dashboard declares no geometry of its own (no colSpan/rowSpan ≠ 1, no fixed columns() — the grid
+ * ignores them: dashboardDeclaresLayout); otherwise on the oj-flex row with each panel's colSpan. null when the page is not
+ * one (a hero makes it a welcome; anything else in the tree, the generic content).
+ */
+export function dashboardOf(ctx) {
+  const tree = ctx && ctx.tree
+  if (!tree) return null
+  const panels = findAllByType(tree, 'DashboardPanel')
+  const boards = findAllByType(tree, 'Scoreboard')
+  if (!panels.length && !boards.length) return null
+  if (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true)) return null
+  const blocks = islandContentOf(ctx) || []
+  const kpis = []
+  const rest = []
+  for (const b of blocks) {
+    const items = b.items || []
+    if (items.length && items.every((a) => a.isScoreboard)) kpis.push(...items)
+    else rest.push(b)
+  }
+  // one block per panel, in order: anything else and the page is not what this branch can paint
+  if (rest.length !== panels.length) return null
+  const reorderable = rest.some((b) => b.tileKey)
+  const tiles = panels.map((panel, i) => {
+    const pm = panel.metadata || {}
+    const title = pm.title || ''
+    const subtitle = pm.subtitle || ''
+    let items = rest[i].items || []
+    // the panel's own title/subtitle texts (content.mjs paints them as the card's first lines) are
+    // the oj-sp-dashboard-panel's panelTitle / panelSubtitle now — not repeated in its body
+    if (title && items[0] && items[0].isText && items[0].text === title) items = items.slice(1)
+    if (subtitle && items[0] && items[0].isText && items[0].text === subtitle) items = items.slice(1)
+    // blockClass: the panel's width on our grid (the oj-flex row the template paints when Spectra's grid
+    // is not used) — its colClass of the declared columns/colSpan; without it every panel was one
+    // narrow cell whatever it declared
+    const blockClass = rest[i].blockClass || rest[i].colClass || 'oj-flex-item oj-sm-12'
+    return { ...rest[i], ...(editorNodeIds && panel.id ? { nodeId: String(panel.id) } : {}), title, subtitle, items, blockClass }
+  })
+  return {
+    kpis,
+    hasKpis: kpis.length > 0,
+    panels: tiles,
+    useGrid: tiles.length > 0 && tiles.length <= DASHBOARD_GRID_MAX && !reorderable
+      && !dashboardDeclaresLayout(tree, panels),
+  }
+}
+
+// ── TODO LIST archetype → Spectra's oj-sp-task-organizer-page ────────────────────────────────
+/** The action the TodoList archetype's TaskQueue runs on a card (TodoList.java: `openTodoItem`). */
+export const TODO_ITEM_ACTION = 'openTodoItem'
+
+/**
+ * The TODO LIST archetype (TodoList<Row>: a TaskQueue of counted buckets whose cards ACT) as
+ * Spectra's TASK ORGANIZER page: its header (the page title, the toolbar's primary action) and its
+ * default slot holding the page's own content — the queue atom as the generic content paints it.
+ * null when the page is not one, or when its content is not the plain/card blocks this branch paints
+ * (then the generic content keeps it).
+ */
+export function todoListOf(ctx) {
+  const tree = ctx && ctx.tree
+  const queue = tree ? findByType(tree, 'TaskQueue') : null
+  if (!queue || !queue.metadata || queue.metadata.actionId !== TODO_ITEM_ACTION) return null
+  const page = findByType(tree, 'Page')
+  const title = (page && page.metadata && page.metadata.title) || ''
+  const blocks = hostContentOf(ctx, null, { title }) || []
+  if (!blocks.length || blocks.some((b) => !b.isCard && !b.isPlain)) return null
+  return { title, blocks }
 }
 
 /** The first child slotted `slot` of a ResponsiveGrid in the tree, and whether it leads its
@@ -290,9 +411,24 @@ export function generalOverviewOf(ctx) {
   } else {
     columns = [{ colClass: 'oj-flex-item oj-sm-12', cards }]
   }
+  // oj-sp-general-overview-page: its MAIN slot (the cards — two by two alone, stacked beside an info
+  // column) and its INFO slot (the GeneralOverview `info`, on the template's own neutral column;
+  // promoteInfoSlot when the archetype put it first)
+  const mainCards = (infoCard ? cards.filter((c) => c !== infoCard) : cards)
+    .map((c) => ({ ...c, colClass: infoCard ? 'oj-flex-item oj-sm-12' : 'oj-flex-item oj-sm-12 oj-md-6' }))
+  const infoCards = infoCard ? [{ ...infoCard, colClass: 'oj-flex-item oj-sm-12' }] : []
+  // the template's header has ONE status badge beside the title: the first EntityHeader badge takes
+  // it, the rest follow the subtitle (as on the page header, pageHeaderOf)
+  const [firstBadge, ...moreBadges] = md.badges || []
   return {
     title: md.title || '',
     subtitle: (md.subtitle || '') + (badgeText ? ' · ' + badgeText : ''),
+    pageSubtitle: [md.subtitle || ''].concat(moreBadges.map((b) => b.label)).filter((t) => t).join(' · '),
+    badge: firstBadge ? { text: firstBadge.label, status: badgeStatusOf(firstBadge.color) } : null,
+    mainCards,
+    infoCards,
+    hasInfo: infoCards.length > 0,
+    promoteInfo: !!(infoNode && infoNode.first),
     facts: contextualInfoOf(facts),
     factActions: factActionsJsonOf(facts),
     switcherField: switcher ? switcher.fieldId : '',

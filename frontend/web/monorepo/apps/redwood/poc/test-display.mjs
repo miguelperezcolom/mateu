@@ -19,8 +19,9 @@ import {
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
   welcomeOf, returnedConfirmDialogsOf, reduceContexts, withFormActions, hostContentOf, wizardForwardOf, itemOverviewOf,
-  summarizeHost, pageSubtitleOf, listingHeaderBlocksOf, buttonRouteOf,
+  summarizeHost, pageSubtitleOf, listingHeaderBlocksOf, buttonRouteOf, fileBytesOf, fileMimeOf,
 } from './reduceContexts.mjs'
+import { attachmentDownloadOf } from './files.mjs'
 import { bannerNotificationOf } from './notify.mjs'
 import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
@@ -665,11 +666,56 @@ test('the listing header (oj-sp-smart-filter-search) shows the page subtitle too
   }
 })
 
+test('the hero overline: the welcome template\'s overline-text, and a quiet line above the title in the content', () => {
+  const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Text', text: 't' })])])
+  const hero = node({ type: 'HeroSection', overline: 'Good morning', title: 'Front desk' })
+  const w = welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} })
+  assert.equal(w.overline, 'Good morning')
+  assert.equal(w.title, 'Front desk')
+  // none declared → '' (the template shows no overline)
+  assert.equal(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [node({ type: 'HeroSection', title: 'W' }), tiles]), state: {}, data: {} }).overline, '')
+  // a hero in the content (a @WelcomeBanner page) carries it on its atom…
+  assert.equal(heroAtomOf({ overline: 'Sales', title: 'Q3' }).overline, 'Sales')
+  assert.equal(heroAtomOf({ title: 'Q3' }).overline, '')
+  // …and the atom template paints it ABOVE the title, only when there is one
+  const atoms = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
+  const heroAt = atoms.indexOf('$current.data.isHero')
+  const block = atoms.slice(heroAt, atoms.indexOf('</oj-bind-if>\n                    <oj-bind-if', heroAt + 1) + 1)
+  assert.ok(block.indexOf('mateu-hero-overline') > 0 && block.indexOf('mateu-hero-overline') < block.indexOf('<h2'), block)
+  assert.match(block, /test="\[\[ !!\$current\.data\.overline \]\]"/)
+})
+
 test('a Welcome tile holding Markdown shows its text, markup dropped', () => {
   const hero = node({ type: 'HeroSection', title: 'Welcome' })
   const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Markdown', markdown: 'Find the **booking**' })])])
   const welcome = welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} })
   assert.deepEqual(welcome.tiles[0].texts, ['Find the booking'])
+})
+
+test('the Welcome is oj-sp-welcome-page: EVERY CTA travels (secondaryActions) and the hero image replaces the illustration', () => {
+  const hero = node({ type: 'HeroSection', title: 'Welcome', image: 'https://x/hero.jpg' }, [
+    node({ type: 'Button', label: 'Start', actionId: 'start' }),
+    node({ type: 'Button', label: 'Dashboard', actionId: 'dash' }),
+    node({ type: 'Button', label: 'Help', actionId: 'help' }),
+    node({ type: 'Button', label: 'Products', actionId: 'products', route: 'products' })])
+  const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Text', text: 't' })])])
+  const w = welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} })
+  assert.equal(w.primaryCta.label, 'Start')
+  assert.deepEqual(w.secondaryCtas, [{ id: 'cta1', label: 'Dashboard' }, { id: 'cta2', label: 'Help' }, { id: 'cta3', label: 'Products' }])
+  assert.deepEqual(w.secondaryById.cta2, { actionId: 'help', route: '' })
+  assert.deepEqual(w.secondaryById.cta3, { actionId: 'products', route: 'products' })
+  assert.equal(w.image, 'https://x/hero.jpg')
+  // the page paints Spectra's template (not the bare banner + our own tile row) and binds the image
+  const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  const start = html.indexOf('<oj-sp-welcome-page id="mateuWelcomeBanner"')
+  assert.ok(start > 0, 'oj-sp-welcome-page')
+  const tag = html.slice(start, html.indexOf('>', start))
+  assert.match(tag, /secondary-actions="\[\[ \$application\.variables\.mateuWelcome\.secondaryCtas \]\]"/)
+  assert.match(tag, /display-options\.image-stretch=/)
+  // HeroSection.overline → Spectra's own overline-text (the line above the page title)
+  assert.match(tag, /overline-text="\[\[ \$application\.variables\.mateuWelcome\.overline \]\]"/)
+  assert.ok(html.indexOf('</oj-sp-welcome-page>') > start, 'the tiles are its main slot')
+  assert.equal(html.indexOf('<oj-sp-header-welcome-banner id="mateuWelcomeBanner"'), -1)
 })
 
 test('what a composed page puts before its listing (the HeroSearch hero) is painted above the table', () => {
@@ -762,11 +808,15 @@ test('a RouteLink button in content keeps its route (it navigates); a plain one 
   assert.equal(welcome.secondaryCtaRoute, '')
   // the page's block-action and welcome listeners hand the route to the dispatchers
   const page = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
-  for (const [listener, route] of [['welcomePrimary', 'primaryCtaRoute'], ['welcomeSecondary', 'secondaryCtaRoute']]) {
-    const chain = page.eventListeners[listener].chains[0]
-    assert.equal(chain.chain, 'dispatchHostBlockAction', listener)
-    assert.equal(chain.parameters.route, `{{ $application.variables.mateuWelcome.${route} }}`, listener)
-  }
+  const primary = page.eventListeners.welcomePrimary.chains[0]
+  assert.equal(primary.chain, 'dispatchHostBlockAction')
+  assert.equal(primary.parameters.route, '{{ $application.variables.mateuWelcome.primaryCtaRoute }}')
+  // a secondary CTA is told apart by the id oj-sp-welcome-page's spSecondaryAction carries
+  const secondary = page.eventListeners.welcomeSecondary.chains[0]
+  assert.equal(secondary.chain, 'dispatchHostBlockAction')
+  assert.equal(secondary.parameters.ctaId, '{{ $event.detail.actionId }}')
+  assert.equal(secondary.parameters.ctas, '{{ $application.variables.mateuWelcome.secondaryById }}')
+  assert.deepEqual(welcome.secondaryById.cta1, { actionId: welcome.secondaryCtaId, route: '' })
   for (const listener of ['hostBlockAction', 'islandBlockAction']) {
     assert.equal(page.eventListeners[listener].chains[0].parameters.route, '{{ $current.data.route }}', listener + ' passes the route')
   }
@@ -869,6 +919,38 @@ test('a BPMN without diagram interchange is laid out left to right along its flo
   assert.ok(d.flows.every((f) => f.points.length === 2))
   assert.equal(bpmnDiagramOf('').nodes.length, 0)
   assert.deepEqual([bpmnDiagramOf('').width, bpmnDiagramOf('').height], [100, 80], 'an empty diagram keeps a minimal box')
+})
+
+test('FileList → oj-sp-attachment-chip fed locally; Timeline events → oj-sp-timeline-event-template', () => {
+  const files = fileListAtomOf({ files: [
+    { name: 'Contract.pdf', size: '1.2 MB', type: 'application/pdf', url: '/files/c.pdf' },
+    { name: 'Rooming.xlsx', size: '48 KB', type: 'xlsx', url: 'javascript:alert(1)' },
+    { name: 'Plan.png', size: 'big', type: 'PNG', actionId: 'openPlan' },
+  ] }).files
+  assert.equal(files[0].fileSize, Math.round(1.2 * 1024 * 1024), 'the chip takes a number of bytes')
+  assert.equal(files[0].fileType, 'application/pdf')
+  assert.deepEqual(files[0].chipActions, { preview: 'external', download: 'on', delete: 'off' }, 'a URL opens on a click, downloads from the menu')
+  assert.equal(files[1].fileType, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'a type word → its MIME')
+  assert.deepEqual(files[1].chipActions, { preview: 'off', download: 'off', delete: 'off' }, 'an unsafe URL is neither')
+  assert.equal(files[2].fileSize, undefined, 'an unreadable size is left to the chip')
+  assert.equal(files[2].fileType, 'image/png')
+  assert.deepEqual(files[2].chipActions, { preview: 'external', download: 'off', delete: 'off' }, 'an action opens through the preview')
+  assert.equal(fileBytesOf(2048), 2048)
+  assert.equal(fileMimeOf('', 'notes.txt'), 'text/plain')
+  const chip = { closest: (sel) => (sel.indexOf('data-mateu-href') >= 0 ? { getAttribute: () => '/files/c.pdf' } : null) }
+  assert.equal(attachmentDownloadOf(chip), '/files/c.pdf')
+  assert.equal(attachmentDownloadOf({ closest: () => null }), '')
+  const atoms = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
+  const fl = atoms.slice(atoms.indexOf('$current.data.isFileList'), atoms.indexOf('$current.data.isChecklist'))
+  assert.match(fl, /<oj-sp-attachment-chip[^>]*file-size="\[\[ \$current\.data\.fileSize \]\]"/)
+  assert.match(fl, /on-sp-preview="\[\[ \$listeners\.\{\{blockAction\}\} \]\]"/)
+  assert.match(fl, /:data-mateu-href="\[\[ \$current\.data\.href \]\]"/)
+  const tl = timelineAtomOf({ items: [{ title: 'Paid', description: 'Deposit', timestamp: 'Oct 21' }, { title: 'Moved', actionId: 'open' }] }).items
+  assert.deepEqual(tl[0].primaryActions, [], 'a plain event has no action menu')
+  assert.equal(tl[1].primaryActions.length, 1)
+  const tm = atoms.slice(atoms.indexOf('$current.data.isTimeline'), atoms.indexOf('$current.data.isPricing'))
+  assert.match(tm, /<oj-sp-timeline-event-template primary-text="\[\[ \$current\.data\.title \]\]"/)
+  assert.match(tm, /on-sp-primary-action="\[\[ \$listeners\.\{\{blockAction\}\} \]\]"/)
 })
 
 console.log(`\n${passed} display tests OK`)

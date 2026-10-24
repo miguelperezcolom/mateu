@@ -139,6 +139,55 @@ export function routeUnderMount(route) {
   return (r || (query ? '/' : '')) + (query || '')
 }
 
+/** Every route a menu names (its entries and their children, at any depth). */
+export function menuRoutesOf(menu) {
+  const out = []
+  const walk = (n) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach(walk); return }
+    if (typeof n.route === 'string' && n.route) out.push(n.route)
+    if (typeof n.routePrefix === 'string' && n.routePrefix) out.push(n.routePrefix)
+    for (const k of ['children', 'submenus', 'menu', 'items']) if (n[k]) walk(n[k])
+  }
+  walk(menu)
+  return out
+}
+
+/**
+ * Where a server NavigateTo (an action answering `URI.create("/dashboard-demo")`) really goes when it
+ * leaves THIS mount: the origin path to load, or null when it stays in the app. The web renderer
+ * treats a NavigateTo as a browser path (safeNavigate → a full load of that URL), so from the
+ * `/welcome-demo` mount `/dashboard-demo` is the OTHER mount — here it was taken as a route under
+ * this one and the browser went to /welcome-demo/dashboard-demo. In the app: the root mount (every
+ * path is its route), hash mode, a relative route, a path under the mount (a crud's '/products/new')
+ * and a route the app's own menu names (an App @UI("/app") lists its sections as '/section1').
+ */
+export function pathLeavingMountOf(route, menuRoutes = []) {
+  if (!mountPath) return null
+  const r = String(route == null ? '' : route)
+  if (r.charAt(0) !== '/' || r.charAt(1) === '/') return null
+  const path = r.split(/[?#]/)[0]
+  if (path === mountPath || path.startsWith(mountPath + '/')) return null
+  const own = (m) => { const p = String(m).split('?')[0].replace(/\/+$/, '') || '/'; return path === p || (p !== '/' && path.startsWith(p + '/')) }
+  if ((menuRoutes || []).some(own)) return null
+  return r
+}
+
+/** pathLeavingMountOf for a reducer's `navigate` effect, against the registry's shell menu. */
+export function navigationLeavingMountOf(navigate, reg) {
+  if (!navigate || navigate.url || !navigate.route) return null
+  return pathLeavingMountOf(navigate.route, menuRoutesOf(((reg && reg.shell) || {}).menu))
+}
+
+/** Loads the page of a navigate effect that leaves this mount (navigationLeavingMountOf) and says
+ *  whether it did — false: the navigation stays in the app, for the caller to do. */
+export function leftMountFor(navigate, reg, win = typeof window !== 'undefined' ? window : null) {
+  const path = navigationLeavingMountOf(navigate, reg)
+  if (!path || !win || !win.location) return false
+  win.location.assign(path)
+  return true
+}
+
 /** The route part (no query) of the browser path — what to compare a route against. */
 export function currentRoutePathOf(location) {
   if (!location) return ''
