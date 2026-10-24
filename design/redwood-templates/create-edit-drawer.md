@@ -66,3 +66,38 @@ Width = `editDrawerWidth()` (default `36rem`, `Crud.java:167`) on both renderers
    events).
 3. Crud drawer header: `@TitlePlaceholder` of the editor in create mode; optional `peerNav` across
    the listing rows (the same walk as `nextIdAfter`).
+
+## 7. Status — Spectra adopted (2026-10-24)
+
+The crud's drawer (`Drawer.id = crud-edit-drawer`) and any drawer with editable fields and an action
+are painted with **`oj-sp-create-edit-drawer-template`** (`tree.mjs spectraDrawerOf`):
+- primary = the form's `save`/`create` (else the call-to-action); the template's Cancel runs the
+  form's `cancel-*` action (or just closes); a single extra action is its `secondaryAction`.
+- **Save and next**: when the form offers `save-and-next`, `nextItem` is set, which turns the primary
+  into Spectra's «Save and Next» split button (`spPrimaryActionAndNext` → `save-and-next`;
+  «Save and Close» → `save`; just «Save and Close» on the last row). The header arrows walk the
+  listing rows on screen (`withListingPeers`; the row's `view` is sent from the HOST — sent from the
+  drawer its state's `id` wins on the server).
+- **Error banner**: the crud's `crud-drawer-error` Notice becomes `display-error-message-banner` +
+  `error-message` (and leaves the content).
+- **Unsaved changes (finding 1, Redwood half)**: the app owns `unsavedChanges` in Spectra's contract.
+  Cancel, the arrows, Esc and a click outside with a draft that differs from the opened values set
+  `mateuDrawerLeaving`, which shows the template's banner (with navigation) or the same
+  `oj-sp-message-banner-unsaved-changes` in the slot (without); Discard runs the held leave. Esc /
+  outside close only through a synchronous capture guard (`drawers.mjs installDrawerGuard`): the
+  popup's `ojBeforeClose` cannot be vetoed from a VB chain (it runs too late).
+Vaadin's half of finding 1 is closed (2026-10-24): the drawer's form now carries
+`confirmOnNavigationIfDirty` (CrudDrawerBuilder — Java; .NET capability forms; Python already did),
+and libs/mateu's `dirtyGuard` asks before a dirty dialog/drawer closes by hand (scoped per overlay).
+Redwood reads that same flag since 2026-10-24 (`shellFlows.mjs` `tracksUnsavedChanges` walks an
+overlay's `metadata.content`/surface): a drawer edit marks the DRAWER's registry context `dirty`
+(`withOverlayDirty`, its own scope — the page's `mateuDirty` is untouched, and the overlay's Cancel
+asks about it alone, `confirmLeaveAction`), any navigation (Back/Forward, menu, link, NavigateTo)
+asks once when the page or an open overlay is dirty (`confirmNavigationAway`; stay pushes the URL
+back after a popstate) and then closes every overlay (`overlaysClosedVarsOf` +
+`application:mateuOverlaysClosed` → `mateuOverlaysClosed.js`) — before, the drawer stayed
+orphaned over the next page. The template's banner stays the authority for closing the drawer
+itself (its Discard/leave clear the drawer's flag). An overlay refreshed in place (error banner,
+Save and next) keeps its flag; Save and next's MarkAsClean still finds it. Still open: title placeholder, arrows
+beyond the listing page on screen, `primaryActionType: create` (its «Create and new» has no Mateu
+counterpart).

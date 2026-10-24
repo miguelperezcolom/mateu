@@ -326,7 +326,7 @@ of each type and fail on a placeholder — not a string match on the source.
 | Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
 | Date picker | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
 | Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ |
-| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ radio, multi-select, checkboxes, toggle, number/money (`oj-input-number`), textarea, dates, lookups, file/image/signature/photo, slider (`oj-slider`), stars (`oj-rating-gauge`), color, rich text (own editor: HTML, legacy Quill Delta read), markdown/html read-only | ✅ | ✅ |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ radio, multi-select, checkboxes, toggle, number (`oj-input-number`), money/`Amount` (`oj-sp-input-currency`), email/link (`oj-sp-input-email`/`-url`), textarea, dates, lookups, file/image/signature/photo, slider (`oj-slider`), stars (`oj-rating-gauge`), color, rich text (own editor: HTML, legacy Quill Delta read), markdown/html read-only | ✅ | ✅ |
 | Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on every surface: the page, embedded islands and the open drawer/dialog | ✅ (shared engine) | ✅ (no-eval engine) |
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
 | FABs, header badges, KPIs, charts | ✅ | ✅ header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, funnel, several series); page and app `@Fab`s stacked above the shell FAB | ✅ (FABs as header buttons) | ✅ |
@@ -418,14 +418,14 @@ renderers, and its children still render.
 | `Drawer` | ✅ | oj-drawer-popup (overlay stack), subtitle, footer actions |
 | `DropZone` | ✅ | drop target for @DragRows listing rows (oj-table dnd); its content as text lines |
 | `Element` | ✅ | third-party web component, events wired back; a REMOTE screen's root-relative import loads from the remote's origin |
-| `EmptyState` | ✅ | oj-sp-empty-state: the page-level one, and any other in the content with its call to action |
+| `EmptyState` | ✅ | oj-sp-empty-state: the page-level one, and any other in the content with its call to action as the component's own `primaryAction` |
 | `EntityHeader` | ✅ | projected to the page header (sticky business card); a fact with an action gets its icon button after the value |
 | `Faq` | ✅ | oj-collapsible per question (client-side state), the answer as Markdown |
 | `FeatureGrid` | ✅ | oj-panel / oj-action-card tiles on an oj-flex grid of its columns |
 | `FileList` | ✅ | a row per file: icon by type, download link, size · type, its action |
 | `FoldoutLayout` | ✅ | oj-sp-foldout-layout (an open=false panel starts as a strip the layout selection unfolds); inside a tab, collapsible panels |
 | `Form` | ✅ | oj-form-layout |
-| `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, capture fields |
+| `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, oj-sp-input-currency/-email/-url, capture fields |
 | `FormLayout` | ✅ | oj-form-layout |
 | `Funnel` | ✅ | oj-chart type funnel |
 | `Gantt` | ✅ | oj-gantt: a row per task, progress fill, task click → onTaskSelectionActionId |
@@ -445,7 +445,7 @@ renderers, and its children still render.
 | `MessageInput` | ✅ | oj-input-text + Send oj-button; Enter or Send sends {message} |
 | `MessageList` | ✅ | oj-avatar + name, time and text per message |
 | `Meter` | ✅ | oj-progress-bar |
-| `MetricCard` | ✅ | KPI tile: value, trend, drill-in action |
+| `MetricCard` | ✅ | an oj-sp-scoreboard card: value, trend, timeframe, description, icon, the whole card drills in |
 | `MicroFrontend` | ✅ | loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it |
 | `NotFound` | ✅ |  |
 | `Notice` | ✅ | oj-sp-message-banner style band + actions |
@@ -464,7 +464,7 @@ renderers, and its children still render.
 | `ResourceGrid` | ✅ |  |
 | `ResponsiveGrid` | ✅ | fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→) |
 | `Result` | ✅ | oj-panel with the icon of its type, message, links and the what-next action |
-| `Scoreboard` | ✅ | KPI band |
+| `Scoreboard` | ✅ | KPI band = oj-sp-scoreboard |
 | `Separator` | ✅ |  |
 | `Skeleton` | ✅ | the shell skeleton bones (JET has no skeleton), text/card/grid/form × count |
 | `SplitLayout` | ✅ | two panes |

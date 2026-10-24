@@ -103,7 +103,7 @@ Renders the page fields in a responsive multi-column grid. This is the standard 
 public @interface FormLayout {
     String theme() default "";
     String style() default "";
-    int columns() default 2;
+    int columns() default 0;
 }
 ```
 
@@ -111,7 +111,7 @@ public @interface FormLayout {
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `columns` | `int` | `2` | Number of columns in the grid |
+| `columns` | `int` | `0` (unset) | Number of columns in the grid. Unset, Mateu infers it: 1 column up to 6 visible fields, 2 from 7 on ([how it counts](/java-ui-definition/forms/#how-many-columns)). Any explicit value ≥ 1 wins |
 | `style` | `String` | `""` | Inline CSS applied to the layout container |
 | `theme` | `String` | `""` | Theme variant string passed to the design system |
 

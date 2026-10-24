@@ -82,7 +82,7 @@ The view needs a method named after `markerActionId` (public, or marked `@Action
 | Renderer | How it draws the map |
 |---|---|
 | Vaadin | OpenLayers with OpenStreetMap tiles (or the `tileUrl` provider) |
-| Redwood | Leaflet, loaded from cdnjs, with OpenStreetMap tiles (or the `tileUrl` provider). JET has no street map component (`oj-thematic-map` draws GeoJSON geography, not tiles) |
+| Redwood | Leaflet, loaded from cdnjs, with OpenStreetMap tiles (or the `tileUrl` provider). JET has no street map component (`oj-thematic-map` draws GeoJSON geography, not tiles), and Spectra's `oj-sp-map` was evaluated and not adopted: it has no markers (only geofences), its basemaps are Oracle Maps (HERE data) tiles only, and it has no tile-provider option |
 | React Native, IntelliJ | A list of the markers, each opening the point on openstreetmap.org. Neither renderer ships a native map SDK |
 
 ## Tile provider

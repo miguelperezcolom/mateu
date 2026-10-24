@@ -34,6 +34,11 @@ Component files = FileList.builder()
 
 The renderer is dependency-free, themes through the standard CSS variables and works in dark mode.
 
+On the **Redwood** renderer each file is Spectra's `oj-sp-attachment-chip` (icon and colour by type,
+name, size), fed from the wire — not Oracle's `oj-sp-attachments`, which reads and writes through
+Oracle's attachments REST services. A click opens the file's `url` (the chip's menu downloads it); a
+file with an `actionId` runs it on the click.
+
 ## When to use it
 
 Use a `FileList` to **display attachments**. To let the user *add* files, pair it with the chat's upload button or an `@UploadableImage`/file field. Demo: `/filelist-demo`.

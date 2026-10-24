@@ -56,6 +56,7 @@ public class FrontDeskTasks extends TodoList<FrontDeskTasks.Task> {
 - **Badges** (`captionOf` / `badgesOf`) carry the due date and priority of each card.
 - When nothing is pending, the page shows an **"All caught up!"** empty state — override `emptyState()` to change it.
 - Works on every renderer and on the .NET (`TodoList<TRow>`) and Python (`TodoList[Row]`) backends — see the [parity matrix](/reference/parity/).
+- On the Redwood renderer the page **is** Spectra's `oj-sp-task-organizer-page` (since 2026-10-24): its header carries the title and the primary action, and its default slot holds the buckets and cards.
 
 ## Redwood parameter and slot reference
 
@@ -69,7 +70,7 @@ page-header elements shared by every template are documented once in
 | Redwood prop / slot | Mateu | |
 |---|---|---|
 | `pageTitle` | `@Title` | ✅ |
-| `primaryAction {label, icon, display}` + `spPrimaryAction` | a `Button` field with its `@Action` (the fluent `Button` carries `iconOnLeft`/`iconOnRight` and `disabled`) | ✅ |
+| `primaryAction {label, icon, display}` + `spPrimaryAction` | the page's primary `@Toolbar` method (Redwood binds the page header's primary to the template's); a `Button` field with its `@Action` stays in the content | ✅ |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
 | `displayMode` | the renderer adapts to the viewport | 🟡 |
 | **Slot** default (the task cards) | `rows()` + `idOf`/`titleOf`/`groupOf`, enriched by `captionOf`/`badgesOf`, composed as a `TaskQueue` | ✅ |

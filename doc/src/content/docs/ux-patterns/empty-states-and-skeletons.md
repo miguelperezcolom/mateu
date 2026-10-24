@@ -35,6 +35,8 @@ Object createBooking() { return URI.create("/bookings/new"); }
 ```
 
 The call-to-action dispatches the standard action mechanism — same contract as buttons and metric cards.
+On the Redwood renderer the block is Spectra's `oj-sp-empty-state` and the call to action is the
+component's own primary action (Spectra draws it as a small outlined button under the texts).
 
 ## Skeletons
 

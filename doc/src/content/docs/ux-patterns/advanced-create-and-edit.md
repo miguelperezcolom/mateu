@@ -214,7 +214,11 @@ On Redwood the page is **composed** from Spectra's own pieces: the header is
 `oj-sp-header-create-edit`, every titled `@Section` is an `oj-sp-section`. The section index is the
 one imitation: it reproduces the markup and behaviour of Spectra's vertical anchor navigator, because
 that component wants to render the sections itself and cannot host sections the page has already
-painted. The page is not (yet) wrapped in the `oj-sp-advanced-create-edit` container.
+painted. The page is deliberately **not** wrapped in the `oj-sp-advanced-create-edit` container
+(evaluated 2026-10-24): that container is exactly this header (`oj-sp-header-create-edit`) over two
+padded slot wrappers, so it would add nothing visible — while wrapping the shared content and form
+areas of every edit page in a second copy of their markup (VB has no conditional wrapper) and
+re-pinning the sticky header and the index to another element.
 
 ## Coverage
 
@@ -243,4 +247,4 @@ in the repository):
 - a section that declares both `editAction` and `addAction` gets only one of them as the section's own
   action — the other is a plain button;
 - the page is composed from Spectra pieces rather than wrapped in the `oj-sp-advanced-create-edit`
-  container.
+  container — a decision, not a pending item (see above).

@@ -69,6 +69,11 @@ public @interface Stereotype {
 | `multiSelect` | Listing filter over an enum (or an enum collection field): several values, IN semantics |
 | `primary` | A rich primary table column: title, optional caption line and leading avatar/icon (`@PrimaryColumn`) |
 
+On the Redwood renderer `email`, `link` and `money` (and any `Amount` field) use Spectra's typed
+inputs — `oj-sp-input-email`, `oj-sp-input-url` and `oj-sp-input-currency`: email and URL format
+validation while editing, a `mailto:`/web link when read-only, and the amount formatted with its own
+currency (an `Amount`'s, else a declared `currency` attribute, else EUR).
+
 ### Example
 
 From the Products demo:

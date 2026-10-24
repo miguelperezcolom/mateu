@@ -29,18 +29,18 @@ the `Dashboard` archetype (or a plain class with `MetricCard` fields under `@Aut
 
 | # | Region | Guide | Mateu (model) | Redwood (renderer) | Status |
 |---|---|---|---|---|---|
-| 1 | Header | title (req.), subtitle, primary action, timestamp, object/context switcher | `@Title` (window title); `@Toolbar` methods (`ComponentTreeSupplierMapper.java:83-121` wraps the tree in a `PageView` with toolbar/buttons only) | the shared VB header `oj-sp-header-general-overview` (title from `windowTitle`, `poc/core/pageHeader.mjs:536`; primary = `callToAction` button, `pageHeader.mjs:400-408`) | 🟡 title + actions only — subtitle/timestamp/switcher are page metadata the archetype never emits (only `ReflectionPageMapper.java:45-66` reads them) |
-| 2 | Scoreboard | strip of KPIs; scrolls sideways with arrows | consecutive `MetricCard` fields → `Scoreboard` (`DashboardComposer.java:50-54,93-98`) | `div.oj-flex.mateu-scoreboard` of `oj-panel` tiles (`atoms.html:226-255`) — **imitation**, not `oj-sp-scoreboard`; tiles wrap | 🟡 |
+| 1 | Header | title (req.), subtitle, primary action, timestamp, object/context switcher | `@Title` (window title); `@Toolbar` methods (`ComponentTreeSupplierMapper.java:83-121` wraps the tree in a `PageView` with toolbar/buttons only) | the template's own header (2026-10-24: `page-title`/`page-subtitle`/`primary-action`/`secondary-actions` from `mateuPageHeader`; the VB header is suppressed, `integratedHeader`) | 🟡 title + actions only — subtitle/timestamp/switcher are page metadata the archetype never emits (only `ReflectionPageMapper.java:45-66` reads them) |
+| 2 | Scoreboard | strip of KPIs; scrolls sideways with arrows | consecutive `MetricCard` fields → `Scoreboard` (`DashboardComposer.java:50-54,93-98`) **`oj-sp-scoreboard`** (2026-10-24, `scoreboardAtomOf` in `poc/core/atoms.mjs`; the hand-drawn `oj-panel` band stays only as the no-provider fallback); scrolls sideways with arrows | ✅ |
 | 3 | Performance title | optional featured heading | none | none | ❌ |
-| 4 | Dashboard grid | predefined layouts for 1–5 panels (hero / above the fold) | `ResponsiveGrid` with `columns()` tracks (`DashboardComposer.java:79-82`); `@Panel(colSpan,rowSpan)` | `columns()` > 0: `gridColClasses` → oj-flex columns honouring colSpan; `columns()` = 0 (default): auto-fit cells that keep each child's width — the Scoreboard the whole row, a panel its `colSpan` (fixed 2026-10-23, `autoFitColClass(template, cells)`) | 🟡 (`rowSpan` ignored) |
-| 5 | Dashboard panel | title + subtitle + one business story | `@Panel` → `DashboardPanel` (`DashboardComposer.java:58-68`) | card block with title/subtitle (`content.mjs:489-497`) inside `div.oj-panel` — not `oj-sp-dashboard-panel` | 🟡 |
-| — | The template itself | `oj-sp-dashboard-landing-page` (slot `kpi`, default) | — | **composed** (generic header + generic content) | 🟡 see §7 |
+| 4 | Dashboard grid | predefined layouts for 1–5 panels (hero / above the fold) | `ResponsiveGrid` with `columns()` tracks (`DashboardComposer.java:79-82`); `@Panel(colSpan,rowSpan)` | ≤ 5 panels, not `reorderable()` AND no declared geometry (every `colSpan`/`rowSpan` = 1, `columns()` = 0 — `dashboardDeclaresLayout`, 2026-10-24 owner rule): **`oj-sp-dashboard-grid`** — Spectra's own layouts (above-fold / hero-plus / small-screen), which ignore colSpan/rowSpan/columns(); charts fill their panel and a taller body scrolls (app.css). Otherwise the oj-flex row with `columns()` and each panel's `colSpan` (`rowSpan` not drawn) (`dashboardOf` → `useGrid`) | ✅ (Spectra's layouts) / 🟡 (> 5 panels) |
+| 5 | Dashboard panel | title + subtitle + one business story | `@Panel` → `DashboardPanel` (`DashboardComposer.java:58-68`) | **`oj-sp-dashboard-panel`** `panel-title`/`panel-subtitle`, its body the panel's atoms (title/subtitle texts dropped) | ✅ |
+| — | The template itself | `oj-sp-dashboard-landing-page` (slot `kpi`, default) | — | **`oj-sp-dashboard-landing-page`** (2026-10-24, `#mateuDashboardPage`; projection `dashboardOf` in `poc/core/overviews.mjs`) | ✅ see §7 |
 
 ## 3. Responsive behaviour
 
 | Breakpoint | Guide (image/category page) | Mateu / Redwood | Status |
 |---|---|---|---|
-| Wide | scoreboard one line (arrows), panels side by side per layout | wide: scoreboard tiles in one row while they fit, then wrap; panels per `columns()` | 🟡 |
+| Wide | scoreboard one line (arrows), panels side by side per layout | scoreboard one line (oj-sp-scoreboard's conveyor belt); panels per `columns()` | ✅ |
 | Narrow | panels stack | oj-flex `oj-sm-12` for every block → stacked | ✅ |
 
 ## 4. Page properties
@@ -59,8 +59,8 @@ the `Dashboard` archetype (or a plain class with `MetricCard` fields under `@Aut
 | 3 | Primary action | no | `@Toolbar(buttonStyle = primary)` | `primary-action` | ✅ |
 | 4 | Object / context switcher | no | `RecordSwitcherSupplier` exists, but only `ReflectionPageMapper` reads it | — | ❌ on the archetype |
 | 5 | Timestamp | no | `@Timestamp` unread here | — | ❌ |
-| 6 | KPI: label/value/unit/trend/caption | — | `MetricCard` | atom tile | ✅ (imitation) |
-| 7 | KPI selection / drill-in | no | `MetricCard.actionId` | a borderless "View" button under the value (`atoms.html:247-250`), the tile itself is not the target | 🟡 |
+| 6 | KPI: label/value/unit/trend/caption | — | `MetricCard` | scoreboard item: `title`, `metric` = value + unit, `meta` = timeframe · description, a `%` trend → `periodChangeIndicator` + `trendColor`, any other trend → a subtle `badge` (arrow + label, trend colour). `MetricCard.icon` is NOT shown (owner, 2026-10-24: "pure KPI, like in Spectra" — the card is drawn exactly as Spectra draws it) | ✅ |
+| 7 | KPI selection / drill-in | no | `MetricCard.actionId` | the tile is the target: `selection-mode="none"` (the scoreboard's selection is a FILTER that pre-selects the first card on mount — it would fire a drill-in on load) and `installScoreboards` runs the card's actionId on the inner list's `ojItemAction`, heard in the capture phase | ✅ |
 | 8 | `scoreboardSticky` | no | — | — | ❌ |
 | 9 | `maxKpis` | no | — | — | ❌ |
 | 10 | Performance title | no | — | — | ❌ |
@@ -96,8 +96,10 @@ generated surface.
 
 1. ~~Fix the auto-fit default~~ — done 2026-10-23: a `Scoreboard` keeps the full row and a
    `DashboardPanel` its `colSpan` without tracks too.
-2. **Dashboard branch on Spectra**: `oj-sp-dashboard-landing-page` + `oj-sp-scoreboard` (`kpi`) +
-   `oj-sp-dashboard-panel`; KPI click via the scoreboard's `selection` instead of a "View" button.
+2. ~~**Dashboard branch on Spectra**~~ — DONE 2026-10-24: `oj-sp-dashboard-landing-page` (kpi slot =
+   the scoreboard atom), `oj-sp-dashboard-grid` (≤ 5 panels, not reorderable), `oj-sp-dashboard-panel`.
+   Drill-in is NOT the scoreboard's `selection` (a filter that auto-selects the first card): it is
+   the inner list's item action, wired by `installScoreboards`.
 3. **Header metadata on composed archetypes**: let `withPageBars` also carry `@Subtitle`,
    `@Timestamp`, `RecordSwitcherSupplier`, `@Compact` (one fix for Dashboard, Welcome, ItemOverview,
    Foldout).

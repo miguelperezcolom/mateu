@@ -62,16 +62,22 @@ A federated deployment mixes jars: domain A may have been built against one Mate
 B against another, while the shell runs a third.
 
 **The policy: all the jars in one shell must be built against the same Mateu MINOR version.** Patch
-differences are fine; minor differences are not supported, and nothing checks it for you today.
+differences are fine; minor differences are not supported. The shell checks it: the indexer
+annotation processor records its Mateu version in each module's `META-INF/mateu/ui-registrations`,
+and on the first request the shell logs one WARN per module built against another minor (*"UI
+module … was built with Mateu 3.1.0, this application runs Mateu 3.0.2…"*). A module indexed by a
+release older than that record is not reported.
 
 That is not caution for its own sake — it follows from where the coupling actually is. A domain jar
 carries `@UI` classes compiled against `io.mateu:mateu-uidl` and an index written by that version's
-annotation processor; the shell's core reads both. Anything that changes the wire DTOs or the index
-format therefore has to be uniform, and Mateu is still `3.0-alpha`, where the wire is explicitly
-allowed to move.
+annotation processor; the shell's core reads both and runs the module's classes. Since `3.0-beta.1`
+the public API only changes through deprecation, but a minor may add API a module then depends on,
+so a module built against a newer minor than the shell can fail at runtime.
 
 In practice: **bump Mateu across all your domain modules in one go.** If you cannot, keep the
 straggler behind its own mount and a separate deployment rather than mixing it into a shared shell.
+What happens across separately deployed services — open tabs, renderer upgrades, remotes on other
+versions — is in [Versions across teams and deployments](/deploy/versions-across-teams/).
 
 ### Embedding outside a browser shell
 

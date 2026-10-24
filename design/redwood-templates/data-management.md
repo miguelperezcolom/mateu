@@ -66,3 +66,17 @@ height at `size` (default 16rem) and scrolls.
    `@Toolbar` methods and `@Timestamp`, or paint it inside `oj-sp-data-management-page` in Redwood.
 2. Add `endPanel`/`bottomPanel` to the showcase demo so the docked panels can be shown on Redwood.
 3. Longer term: a `DataGrid` (cell selection + editing → `oj-data-grid`) for the grid view.
+
+## 7. Status — Spectra adopted (2026-10-24, phase D2)
+
+Redwood paints the archetype with **`oj-sp-data-management-page`** (`poc/core/spPages.mjs`
+`dataManagementPageOf`, page branch `mateuDmPage`): the heading → its header's `pageTitle`; the
+toolbar (view switcher + panel toggles) and the grid/Gantt view → its default slot; `endPanel` → the
+`innerEnd` drawer as `oj-sp-general-drawer-template` (the DockedPanel's header row becomes the
+template header, its ✕ = `spClose` → `toggleEndPanel`); `bottomPanel` → the `innerBottom` drawer as
+`oj-sp-bottom-drawer-template` (closable; its ✕ writes back `drawerState: closed` → chain
+`dmPanelClosed` → `toggleBottomPanel`). Region 7 is now Spectra's own reflowing drawers; region 1 is
+its header **minus** Cancel / primary: `oj-sp-header-create-edit` draws both unconditionally and the
+archetype has no transaction, so app.css hides them (`.mateu-dm-page`). Still open: `DockedPanel.size`
+is not applied (Spectra's drawer sizes), outer drawers stay a returned `Drawer`, no header actions
+hook (finding 1).

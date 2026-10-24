@@ -40,6 +40,47 @@ como `initiatorState`).
 slot (se cubren con `Drawer`), `suggestions`/hotspot del hero search, `timer` del
 step-by-step, y los `⚪` de siempre (feedback, version history, content library).
 
+### Adopción de componentes Spectra en el renderer Redwood (2026-10-24)
+
+Directiva del owner: usar `oj-sp` en todo lo que se pueda. Fase A (átomos y campos):
+
+| Pieza | Antes | Ahora | Lo que el componente no lleva y cómo se conserva |
+|---|---|---|---|
+| Scoreboard / MetricCard | banda `oj-flex` de `oj-panel` + botón "View" | **`oj-sp-scoreboard`** (`scoreboardAtomOf`) | icono → NO se muestra (decisión del owner, "KPI puro, como en Spectra": la tarjeta tal cual la dibuja Spectra); drill-in (`actionId`) → el `ojItemAction` de su lista (la `selection` del scoreboard es un filtro que preselecciona la primera tarjeta, no sirve); `timeframe` + `description` → `meta`; tendencia no porcentual → `badge` |
+| EmptyState (átomo) con CTA | `oj-button` suelto bajo el componente | **`primaryAction` + `spPrimaryAction`** de `oj-sp-empty-state` | — (Spectra lo pinta siempre `outlined`, `sm`) |
+| `@Stereotype(email)` / `(link)` | `oj-input-text` | **`oj-sp-input-email` / `oj-sp-input-url`** (validación de formato; en solo lectura, enlace) | ambos traen `autoFocus=true` por defecto → `auto-focus="false"` |
+| money / `Amount` | `oj-input-number` + converter EUR (un `Amount` salía VACÍO en los formularios de sección) | **`oj-sp-input-currency`** con `currency` = la del `Amount`, la declarada o EUR; `currency-display="symbol"` (como las celdas) | — (sin servicio de divisas: sin `currency` caería en `userPreferences`/USD) |
+
+Fase C (page templates):
+
+| Pieza | Antes | Ahora | Por qué / lo que se conserva |
+|---|---|---|---|
+| `Welcome` | `oj-sp-header-welcome-banner` + fila propia de tiles; sólo 2 CTAs; `heroImage()` ignorada | **`oj-sp-welcome-page`** (banner + slot por defecto con los tiles) | TODAS las CTAs (1ª `primaryAction`, el resto `secondaryActions` → menú de desbordamiento de Spectra; el id `cta<n>` se resuelve con `secondaryById`); `heroImage()` → `illustration-background` + `imageStretch: full`. Overline: no hay campo en el wire (`HeroSection`). Slot `search`: el arquetipo no tiene búsqueda |
+| `GeneralOverview` | `oj-sp-header-general-overview` + columnas propias | **`oj-sp-general-overview-page`** (slots `main` / `info`, `promoteInfoSlot`, `badge`, acciones del `@Toolbar`) | `infoWidth()` no se aplica (Spectra dimensiona la columna info); prev/next, timestamp, avatar siguen sin cablear |
+| `Dashboard` | cabecera VB genérica + contenido genérico | **`oj-sp-dashboard-landing-page`** (`kpi` = el `oj-sp-scoreboard`) + **`oj-sp-dashboard-panel`** sobre **`oj-sp-dashboard-grid`** (≤ 5 paneles, no `reorderable()`) | en la rejilla de Spectra `colSpan`/`rowSpan`/`columns()` no se leen (sus layouts above-fold/hero-plus); > 5 paneles o `reorderable()` → la fila `oj-flex` con `colSpan`. CSS: el gráfico llena su panel y un cuerpo más alto hace scroll (el contenido de Spectra recorta) |
+| `TodoList` | página de cola (queue + detalle) | **`oj-sp-task-organizer-page`** (cabecera + slot por defecto con el átomo de cola) | `taskQueueOf` cede el paso a un `TaskQueue` con `actionId=openTodoItem` |
+| Advanced create/edit | header-create-edit + `oj-sp-section` + réplica del navegador | **sin cambio** (decisión) | el contenedor es ese mismo header sobre dos envoltorios de padding; adoptarlo exigiría duplicar todo el markup de contenido/formulario de las páginas de edición y re-anclar la cabecera fija y el índice — ver `redwood-templates/advanced-create-edit.md` §8.2 |
+| NavigateTo fuera del mount | `URI.create("/products")` desde `/dashboard-demo` iba a `/dashboard-demo/products` | **carga del navegador de `/products`**, como `safeNavigate` en Vaadin (`mount.mjs` `pathLeavingMountOf`/`leftMountFor`; dentro del mount o una ruta del menú sigue en la app) | — |
+
+Fase D1 (spikes calendario / mapa / chat):
+
+| Pieza | Antes | Ahora | Por qué / lo que se conserva |
+|---|---|---|---|
+| Calendar / `CalendarPage` | rejilla propia con tokens Redwood ("JET no tiene calendario") | **`oj-sp-calendar`** (`calendar.mjs` `spCalendarSpecOf` + `installCalendars`), alimentado con un `ArrayDataProvider` LOCAL; la barra ‹ › Hoy / vistas / Crear de un `CalendarPage` se pliega en la barra de Spectra y lanza las acciones de la página | colores por evento → la clave más cercana de las 6 de Spectra (no admite color por evento); tono + etiqueta por fecha y fecha clicable → pintados sobre las celdas de FullCalendar (`data-date`); salto del selector de fecha del título → sin acción en el wire, desactivado (pedir `_month` en `CalendarPage` para habilitarlo). La rejilla propia queda como reserva si no carga |
+| Map | Leaflet (cdnjs) + OSM | **sin cambio** | `oj-sp-map` no tiene marcadores (solo geocercas radiales), sus mapas base son SOLO estilos de Oracle Maps (`elocation`/`maps.oracle.com`, datos HERE, cabecera `x-oracle-pvtile` + cookies), sin opción de proveedor de teselas; mostrar los marcadores exigiría un servicio de Oracle |
+| Chat (panel del shell + componente `Chat`) | burbujas y compositor propios (`oj-input-text` + botones) | **`oj-sp-chat-message-block`** por turno + **`oj-sp-chat-input`** | NO `oj-sp-chat-container`: su diff ignora un mensaje cuyo texto crece (el streaming se congelaría) y sus updates esperan al transformador markdown (CKEditor). `chat-text` vuelca el texto del bot como HTML SIN sanear → recibe nuestro markdown ya escapado (`chatBlockMessagesOf`). Su botón adjuntar (solo imágenes/PDF) y su micro (modo escucha que espera un visualizador del host) se desvían en captura a NUESTROS flujos; estado, pasos de herramientas, tokens y chips de adjuntos siguen siendo nuestros |
+
+Fase D2 (páginas con slots + ficheros/actividad):
+
+| Pieza | Antes | Ahora | Por qué / lo que se conserva |
+|---|---|---|---|
+| `DataManagement` | `VerticalLayout` compuesto (título `Text` + barra + vista; paneles en `ResponsiveGrid`/debajo) | **`oj-sp-data-management-page`** (`core/spPages.mjs` `dataManagementPageOf`): título en su cabecera, barra + vista en el slot por defecto, `endPanel` en `innerEnd` como **`oj-sp-general-drawer-template`** (✕ → `toggleEndPanel`), `bottomPanel` en `innerBottom` como **`oj-sp-bottom-drawer-template`** cerrable (✕ → `toggleBottomPanel`, chain `dmPanelClosed`) | su cabecera es transaccional (Cancelar + primaria SIEMPRE pintadas): ocultas por CSS (`.mateu-dm-page`), el arquetipo no tiene transacción; `DockedPanel.size` no se aplica (alturas/anchos de Spectra); `outerEnd`/`outerBottom` siguen siendo un `Drawer` devuelto |
+| `GanttPage` | compuesto; el `bottomPanel` como `oj-collapsible` en el flujo | **`oj-sp-data-management-page`** (no existe `oj-sp-gantt-page`: el patrón VB se monta sobre esta página): `oj-gantt` + detalle en el slot por defecto, el cajón inferior persistente en `innerBottom` en modo `fixed` (asa, minimiza; sin ✕) — **cierra el pendiente de la fase B** | el clic en barra sigue abriendo el `Drawer` lateral (plantilla general, fase B) a la vez |
+| `CollectionDetail` | dos columnas `oj-flex` (cards + detalle) | **`oj-sp-collection-detail-page`** (`collectionDetailPageOf`): formulario de búsqueda + cards en su slot por defecto; `detailTemplate` estampado por el componente para `selectedItems = [{ id }]` y pinta el detalle que construyó el servidor (`mateuCd.detail`); sin selección → slot `noSelection` (`emptyDetail()`); en pantalla estrecha, el cajón propio de Spectra | el `detailTemplate` es plantilla de cliente y el detalle de Mateu es de servidor: el ítem que recibe es solo el id (su stacker compara `selectedItems` con `JSON.stringify` — un `adp` dentro no sirve); selección = `selectCollectionItem`, búsqueda con su auto-save debounced; la lista sigue siendo `oj-action-card` (no `oj-list-view`) |
+| `ItemOverview` | panel `oj-panel` + `oj-tab-bar` (el intento del 27-jul se revirtió por aspecto) | **`oj-sp-item-overview-page` + `oj-sp-item-overview`** (`itemOverviewPageHeaderOf`): título del ítem = el del `EntityHeader`, si no el título de la card o el primer encabezado del panel (sacado del cuerpo), si no el de la página; acciones del `@Toolbar` → sus `secondaryActions`; pestañas en el slot `main` | el fallo del 27-jul (la columna no pinta fondo en modo `light` y el panel flotaba) se arregla con CSS propio: la columna lleva la superficie de panel de Redwood + borde (`.mateu-iop`); `panelWidth()` no se aplica |
+| `FileList` | filas propias (icono + enlace + tamaño) | **`oj-sp-attachment-chip`** por fichero, alimentado en LOCAL (`fileListAtomOf`: tamaño → bytes, tipo → MIME) | NO `oj-sp-attachments`/`attachments-simple`: leen y escriben por los servicios REST de adjuntos de Oracle (Boss). Clic = abrir la `url` (preview `external` → `installAttachmentChips`), menú = descargar; con `actionId`, el clic lo lanza. El chip parte el nombre por la mitad y se comía un espacio: espacios duros |
+| `Timeline` | lista propia con marcadores | lista propia con marcadores + **`oj-sp-timeline-event-template`** por entrada | `oj-timeline` está deprecado en JET y Spectra no trae contenedor de timeline: el raíl (puntos de color) sigue siendo nuestro; la acción de una entrada va al menú de acciones de la plantilla |
+
 > **Fecha:** 2026-08-12. **Fuente de la superficie real:** `design/vb-page-template-apis.md`
 > (34 componentes extraídos de los loaders de `oj-sp` 2604.1.0 del CDN de Oracle, 2026-07-30).
 > **Pregunta que responde:** ¿entendemos y soportamos los parámetros y slots de *todos* los page
@@ -77,8 +118,8 @@ slots de cada template soporta Mateu y cuáles no.
 | `smart-search-page` (+ smart-filter-search) | `SmartSearchPage` | ✅ |
 | `dashboard-landing-page` (+ grid/panel/scoreboard) | `Dashboard` | ✅ |
 | `guided-process` | `Wizard` + `@WizardProgress(RAIL)` | ✅ |
-| Los 4 (5) drawer templates | `Drawer` + `editInDrawer()` | ✅ (2026-10-10: save-and-next + error banner) |
-| `data-management-page` | `DataManagement` | ✅ inner / 🟡 outer (2026-10-10: `DockedPanel`) |
+| Los 4 (5) drawer templates | `Drawer` + `editInDrawer()` | ✅ (2026-10-10: save-and-next + error banner; 2026-10-24: Redwood pinta los templates de Spectra general / create-edit / bottom dentro del `oj-drawer-popup` — tamaño, maximizar, flechas, ✕, anclado abajo, cambios sin guardar. El panel inferior compuesto EN la página, `GanttPage.bottomPanel`, va en el `innerBottom` de `oj-sp-data-management-page` desde la fase D2) |
+| `data-management-page` | `DataManagement` (+ `GanttPage`) | ✅ inner / 🟡 outer (2026-10-10: `DockedPanel`; 2026-10-24: Redwood pinta el componente Spectra con los paneles en sus cajones `innerEnd`/`innerBottom`) |
 | `task-organizer-page` | `TodoList` | ✅ **cubierto entero** |
 | `calendar` | `CalendarPage` | 🟡 vistas mes/semana/día/lista ✅ (2026-10-10); sin template slots de evento |
 | `foldout-layout` + `foldout-panel` | `Foldout` | ✅ (2026-10-10: `summary`) |
@@ -113,10 +154,10 @@ Estado de los 14 deltas priorizados en §3 del análisis, **reverificado hoy sol
 | 1 | `displayOptions` unificado por arquetipo (tri-estado `on\|off\|disabled`) | `displayOptions` | ❌ abierto |
 | 2 | Slot `info` en `GeneralOverview` (`promoteInfoSlot`) | `promoteInfoSlot` | ❌ abierto |
 | 3 | Wizard: `saveDraft`/`saveAndClose`/`resumeStepId`/`skip`/`availableFromStep` | `saveDraft`, `resumeStepId`, `availableFromStep` | ❌ abierto |
-| 4 | Create-edit drawer: `spPrimaryActionAndNext` + error banner | `spPrimaryActionAndNext`, `displayErrorMessageBanner` | ❌ abierto |
+| 4 | Create-edit drawer: `spPrimaryActionAndNext` + error banner | `spPrimaryActionAndNext`, `displayErrorMessageBanner` | ✅ **cerrado** (2026-10-10 en el modelo; 2026-10-24 Redwood pinta `oj-sp-create-edit-drawer-template` con ambos + banner de cambios sin guardar) |
 | 5 | Foldout: slot `summary` + `orientation: vertical` | `FoldoutOrientation`, `FoldoutNavigation` | 🟡 **parcialmente cerrado**: `orientation()` → `FoldoutOrientation.vertical` **sí existe**, y `FoldoutNavigation` ya cubre `goToParent` (parentLabel/actionId) y prev/next. Solo falta el slot `summary` de la tira colapsada |
 | 6 | Calendar: vistas week/day/list + template slots de evento | — | ❌ abierto (doc ya lo declara no construido) |
-| 7 | Data management: paneles acoplados (`innerEnd`/`outerEnd`/…) | — | ❌ abierto |
+| 7 | Data management: paneles acoplados (`innerEnd`/`outerEnd`/…) | `DockedPanel` | ✅ inner (2026-10-10 modelo; 2026-10-24 Redwood en los slots del componente) / 🟡 outer (un `Drawer`) |
 | 8 | Switcher de contexto/registro generalizado | `RecordSwitcher` | ❌ abierto |
 | 9 | Header: `overlineText` + `pageTitlePlaceholder` | ambos | ✅ **cerrado 2026-08-12** — `@Overline`/`OverlineSupplier` y `@TitlePlaceholder`/`TitlePlaceholderSupplier` → `PageDto.overline`/`.titlePlaceholder`, pintados por el header compartido; paridad .NET/Python |
 | 10 | Eventos `before*` cancelables | `spBeforeNext` | ❌ abierto |

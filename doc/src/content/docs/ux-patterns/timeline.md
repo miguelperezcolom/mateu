@@ -39,6 +39,10 @@ Component feed = Timeline.builder()
 
 The renderer is dependency-free, themes through the standard CSS variables, and works in dark mode. The rail line connects consecutive dots and stops at the last entry.
 
+On the **Redwood** renderer the rail keeps its coloured dots, and each entry is Spectra's
+`oj-sp-timeline-event-template` (title, description, timestamp); an entry with an `actionId` offers it
+in the template's action menu.
+
 ## When to use it
 
 Use a Timeline to **narrate** a sequence of past events. The `timestamp` is a free-form label (`"2h ago"`, `"Mar 3 14:20"`) so you format it however you like. For editable/interactive histories, make entries `actionId`-clickable and open a detail view. Demo: `/timeline-demo`.

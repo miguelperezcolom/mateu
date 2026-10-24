@@ -36,7 +36,7 @@ public @interface Section {
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `value` | `String` | — | Section heading label, displayed as a visible separator (required) |
-| `columns` | `int` | `0` | Number of form columns inside this section. `0` (unset) inherits the form-level count (`@FormLayout(columns = …)` on the class, else 2). Any explicit value ≥ 1 wins — including `1` to force single-column stacking on a form whose other sections stay multi-column |
+| `columns` | `int` | `0` | Number of form columns inside this section. `0` (unset) inherits the form-level count (`@FormLayout(columns = …)` on the class, else the inferred one: 1 column up to 6 visible fields, 2 from 7 on — see [how many columns](/java-ui-definition/forms/#how-many-columns)). Any explicit value ≥ 1 wins — including `1` to force single-column stacking on a form whose other sections stay multi-column |
 | `style` | `String` | `""` | Inline CSS applied to the section container |
 | `zone` | `String` | `""` | Name of the layout zone this section belongs to. Only meaningful when the enclosing class is annotated with [`@Zones`](/java-ui-definition/annotations/layout/#zones--zone); sections sharing a zone name are stacked inside that zone's column |
 
@@ -56,7 +56,7 @@ public class CustomerForm {
 }
 ```
 
-The `Personal data` section inherits the form's column count (two by default). The `Contact` section forces single-column stacking with an explicit `columns = 1`. Fields belong to whichever section was declared most recently above them.
+The `Personal data` section inherits the form's column count — one here, since the whole form has six fields (two from seven on). The `Contact` section forces single-column stacking with an explicit `columns = 1`. Fields belong to whichever section was declared most recently above them.
 
 ![Sections rendered as named cards](/images/docs/components/sections.png)
 

@@ -29,7 +29,7 @@ form that saves or cancels.
 | 2 | Main slot | transactional content | `@Section`s, `FormLayout` | `oj-sp-section` in BOTH paths: rich content (`PAGE:36126`) and the generic form (`PAGE:25036`) | ✅ (was 🟡: the generic form drew `.mateu-form-section` by hand — fixed on this branch) |
 | 3 | Vertical anchor navigator | part of the main slot; links to section titles | `@Toc` (tri-state; auto when ≥ 5 titled sections and no `@Zones`, `RW/poc/toc.mjs:17,62`) | replica of Spectra's navigator markup + classes (`PAGE:153-200`); the component cannot host sections VB already painted | ✅ (imitation, declared) |
 | 4 | Detail slot | contextual data; **exclusive** with the navigator | `@Aside` (→ `ContentLayout` aside) | painted as a content column; its sections keep their `oj-sp-section` header (merged-column atom, 2026-10-23) | ✅ on Redwood the index is never shown beside a detail slot (`toc.mjs` `hasAside`, 2026-10-23); Vaadin does not enforce it yet |
-| — | The template itself | `oj-sp-advanced-create-edit` (slots `main`/`detail`) | — | **composed** (header + sections + index), not the component | 🟡 see §7 |
+| — | The template itself | `oj-sp-advanced-create-edit` (slots `main`/`detail`) | — | **composed** (header + sections + index), not the component — a decision (§8.2) | 🟡 see §7 |
 
 ## 3. Responsive behaviour
 
@@ -99,8 +99,15 @@ branch of its own for editing pages (rich content + generic form inside `slot="m
 ## 8. Plan
 
 1. ~~**Generic form → `oj-sp-section`** with its actions~~ — done on `feat/redwood-section-actions`.
-2. **Editing page = `oj-sp-advanced-create-edit`** (§7): header through its props, content in
-   `main`, `@Aside` in `detail`, index (replica) inside `main`; drop the index when there is a detail.
+2. ~~**Editing page = `oj-sp-advanced-create-edit`**~~ — EVALUATED AND DECLINED 2026-10-24 (Spectra
+   adoption phase C). The container (oj-sp 2604.1.0 view) is `oj-sp-header-create-edit` — the header
+   we already paint — over `main`/`detail` slot wrappers that only add the same responsive padding
+   classes and an `oj-sp-messages-manager`, plus an `innerEnd` drawer we have no model for. Adopting
+   it would need a second copy of the whole host-content + generic-form markup (every atoms surface:
+   VB has no conditional wrapper, and these areas serve every page, not only edit pages) and
+   re-pinning the sticky header, the `@Toc` replica (`toc.mjs` measures the header element) and the
+   detail/index exclusion to the template's DOM — a large regression surface for no visible change.
+   The composition stays: header-create-edit + oj-sp-section + the navigator replica.
 3. **Header**: avatar (`PageDto.avatar`), next (peer nav), parent link when there is a parent.
 4. **Page layout**: force `fixed` on editing pages (or warn), and `display-mode` if it gets modelled.
 5. **Demo**: no Redwood demo route shows the full template (create-edit header + `@Toc` + ≥ 5

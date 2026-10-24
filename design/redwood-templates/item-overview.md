@@ -95,6 +95,23 @@ A retry would give: collapse on small screens, sticky overview, item actions, pr
 Mapping needed for the retry: a leading `EntityHeader` in the key-info tree → `itemTitle`,
 `itemSubtitle`, `badge`, facts → `body`; an `Avatar`/`Image` → `photo`; the rest of the tree → `body`.
 
+## 7bis. Status — retried and ADOPTED (2026-10-24, phase D2)
+
+Redwood paints the archetype with **`oj-sp-item-overview-page` + `oj-sp-item-overview`** (branch
+`mateuItemOvPage`): the key panel's atoms → the overview's `body` slot; the tab bar + chosen tab →
+the `main` slot; `itemTitle` = the PAGE's title — the EntityHeader's, else the window title
+(`@Title`; Spectra's page template has no title attribute, its `itemTitle` is where the page names
+the item — 2026-10-24) — and only without one the key card's title or the panel's LEADING heading (a
+heading atom, or the first `<h1–4>` of a rich text); a leading heading saying the title is taken out
+of the body, one saying something else stays, and so does a differing key card title
+(`itemOverviewPageHeaderOf`); `badge`/`itemSubtitle` from an EntityHeader; the
+page toolbar → its `secondaryActions`; back → `goToParent`. The look that caused the July revert is
+fixed with our own CSS: the overview column gets Redwood's panel surface and a divider
+(`.mateu-iop .oj-sp-item-overview-page-overview-section`), so it no longer floats on the canvas;
+`displayMode` stays `light`. The VB header is suppressed (the template brings its own). Still open:
+`panelWidth()` (the template sizes the column), the collapsed strip on small screens (it stacks),
+prev/next (plan item 3).
+
 ## 8. Proposed plan
 
 1. **Retry `oj-sp-item-overview-page`** with `displayMode: mixed` (or our own panel background) to

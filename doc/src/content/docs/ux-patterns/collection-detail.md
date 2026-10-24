@@ -46,8 +46,9 @@ The list column's width comes from `listWidth()` (default `24rem`); the detail t
 
 - **Wide screens** — list and detail side by side; the list keeps its column, the detail fills the
   rest.
-- **Narrow screens** — the two stack: the list on top, the detail of the picked item under it. (On
-  phones Redwood's own template tucks the list behind a menu instead; Mateu stacks.)
+- **Narrow screens** — Vaadin stacks the two: the list on top, the detail of the picked item under
+  it. Redwood uses its template's own behaviour: below the large breakpoint the list takes the page
+  and the picked item's detail slides in as a drawer.
 - Picking an item and typing in the search box re-render the page in place, so the scroll position
   and the rest of the page stay put.
 
@@ -64,7 +65,7 @@ The list column's width comes from `listWidth()` (default `24rem`); the detail t
 | Search | built in, debounced 400 ms | 🟡 | a plain text box, not Redwood's smart filter bar; no filter chips |
 | Item title / secondary text / badges | `titleOf`, `captionOf`, `badgesOf` (`Chip`) | ✅ | painted as action cards |
 | List label | `listLabel(count)` — default "1 item" / "N items", through your `Translator` | ✅ | |
-| List width | `listWidth()` | 🟡 | Redwood rounds it to a column fraction |
+| List width | `listWidth()` | 🟡 | Redwood uses its template's column (5/12 large, 3/12 extra large) |
 | Detail | `detail(Row, rq)` — any component | ✅ | |
 | Empty detail | `emptyDetail()` | ✅ | |
 | Selection | single, kept in page state | 🟡 | not in the URL: a reload clears it |
@@ -155,15 +156,19 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 | `selectedItems` (**plural** — multi-selection) | selection is single: `selectCollectionItem` sets one row | — |
 | `selectContext` switcher | — the record switcher is only available inside `GeneralOverview` | — |
 | List column sizing | `listWidth()` (default `24rem`), `listLabel(count)` — Mateu additions | ✅ |
-| `displayOptions.mobileMenu` | the renderer stacks list and detail on narrow viewports; not configurable | 🟡 |
+| `displayOptions.mobileMenu` | Redwood: the template's own small-screen drawer for the detail; Vaadin stacks | ✅ |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
-| `displayOptions.goToParent` + `spGoToParent` | breadcrumbs approximate it | 🟡 |
+| `displayOptions.goToParent` + `spGoToParent` | the page's back affordance (a back toolbar button, else the trail's parent) | ✅ |
 | `displayOptions.inFlowBack` + `spInFlowBack` | — | — |
 | `spSecondaryAction` | — page-level secondary actions come from the toolbar, not from the template | 🟡 |
 
-On Redwood the page is **composed**, not the `oj-sp-collection-detail-page` component: the list items
-are Redwood action cards, the detail is painted as the second column, and the search is a plain text
-box. The look follows Redwood; the template's own mobile menu and list toolbar are not there.
+On Redwood the page **is** the `oj-sp-collection-detail-page` component: its header, its collection
+area (the search form and the item cards, in its default slot) and its detail. The template's
+`detailTemplate` is a client-side template it stamps for the selected item; Mateu's detail is built
+by the server per selection, so the item handed to the template is only `{ id }` and the stamp paints
+the detail the server sent. Picking an item is still the `selectCollectionItem` round trip; nothing
+selected shows `emptyDetail()` in the `noSelection` slot. The list items stay Redwood action cards
+(not `oj-list-view`) and the search a text box (not the smart filter bar).
 
 ## Demo
 
@@ -176,8 +181,7 @@ On the Redwood renderer (details and code references in [collection-detail revie
 in the repository):
 
 - the selection is page state, not part of the URL — a reload or a shared link loses it;
-- composed from cards and a plain search box rather than the template, its list view and its smart
-  filter bar;
-- narrow screens stack the list over the detail instead of Redwood's mobile menu;
+- inside the template, the list is action cards and the search a plain text box, not its list view
+  and smart filter bar;
 - no list toolbar, no multi-selection, no avatar per item;
 - the *inline editing* and *create with a drawer* variations are composition, with no demo yet.

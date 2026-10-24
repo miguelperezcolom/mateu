@@ -72,3 +72,16 @@ action returning a `Drawer` whose content is read-only (`Drawer.java:16`).
    `modeless`.
 2. Small screens: full window below the `sm` breakpoint (Vaadin + Redwood).
 3. Optional `Drawer.avatar` (reuse `PageDto.avatar`'s shape).
+
+## 7. Status — Spectra adopted (2026-10-24)
+
+The Redwood renderer now paints a read-only `Drawer` with **`oj-sp-general-drawer-template`** inside
+the `oj-drawer-popup` (projection `tree.mjs spectraDrawerOf`, markup `#mateuDrawerPanel`, shared body
+`poc/templates/drawer-body.html`). Closed: findings 1–3 — `drawer-size` (DrawerSize, or the nearest
+size to `width`), `display-options.maximize` (written back through `drawerState`), `previous-item` /
+`next-item` from `PeerNav` (a side without a route disabled; a click closes the drawer and navigates),
+the required close icon (`close-action`, `spClose`), `edge` from `position` (start/end/bottom) and
+`modality` from `modeless`/`layout`; the small-screen full-window rule comes with the template.
+Footer: the primary (call-to-action, else the last) + up to two `secondaryActions` (deprecated in
+Spectra 2210 but still drawn); more than three keep our own bar in the slot.
+Still open: the `header` slot (tabs), `layout` reflow (Redwood draws it as a modeless popup), avatar.

@@ -32,9 +32,9 @@ switcher + overview + optional `info`).
 | # | Region | Guide (image + API) | Mateu (model) | Redwood (renderer) | Status |
 |---|---|---|---|---|---|
 | 1 | Header | title (+ object/context switcher), subtitle, badge, contextual info, actions, prev/next | switcher = `record` field + `switcherOptions()` (`GeneralOverview.java:35-36,45,121-129`); title/subtitle/badges/facts/metric from an `EntityHeader` in `overview()` | `oj-sp-header-general-overview` with `select-object` (data switcher = title), `contextual-info` (`main-start-page.html:11681-11689`) | 🟡 see §5 |
-| 2 | Main slot | titled sections of label/value pairs | `overview(row, rq)` (`:54`) | each piece of the `main` slot → a JET `oj-panel` card (`overviews.mjs:255-271`) | 🟡 JET cards, not `oj-sp-section`s |
-| 3 | Info slot | contextual side panel | `info(row, rq)` + `infoWidth()` (`:63-71`), composed as `ResponsiveGrid` `"main info"` (`:149-165`) | a narrower column of cards beside main (`overviews.mjs:272-292`) | 🟡 a column, not the template's `info` slot |
-| — | The template itself | `oj-sp-general-overview-page` (slots `main`/`info`/`search`/`announcement`) | — | **composed**: Spectra header + own columns | 🟡 see §7 |
+| 2 | Main slot | titled sections of label/value pairs | `overview(row, rq)` (`:54`) | the template's `main` slot; each piece → a JET `oj-panel` card (`overviews.mjs` `mainCards`) | 🟡 JET cards, not `oj-sp-section`s |
+| 3 | Info slot | contextual side panel | `info(row, rq)` + `infoWidth()` (`:63-71`), composed as `ResponsiveGrid` `"main info"` (`:149-165`) | the template's own `info` slot (neutral-20 column), `promoteInfoSlot` its display option (`infoCards`, `promoteInfo`) | ✅ (`infoWidth()` not applied: Spectra sizes the column) |
+| — | The template itself | `oj-sp-general-overview-page` (slots `main`/`info`/`search`/`announcement`) | — | **`oj-sp-general-overview-page`** (2026-10-24, `main-start-page.html` `#mateuOverviewHeader`) | ✅ see §7 |
 
 Detection (`overviews.mjs:231-237`): the archetype is painted as a general overview only when the
 tree holds an `EntityHeader` AND a field with options (the switcher). An overview without
@@ -66,9 +66,9 @@ form (switcher as a select, overview as content).
 | 4 | Switcher search | — (only `RecordSwitcher.searchable` on other pages) | not set | ❌ |
 | 5 | `dataSwitcherType: context` | — | always `selectObject` | 🟡 |
 | 6 | Subtitle | `EntityHeader.subtitle` | `page-subtitle` | ✅ |
-| 7 | Badge | `EntityHeader.badges` (Chips) | joined into the subtitle (`overviews.mjs:239,295`); the header's `badge` prop unused | 🟡 |
+| 7 | Badge | `EntityHeader.badges` (Chips) | the first → the template's `badge` (`badgeStatusOf`), the rest follow the subtitle (`pageSubtitle`) | ✅ |
 | 8 | Contextual info | `EntityHeader.facts` + metric (`overviews.mjs:240-241`) | `contextual-info` | ✅ |
-| 9 | Primary / secondary actions | `@Toolbar` methods (page toolbar) | not bound on `mateuOverviewHeader`; the VB header that would carry them is suppressed for this branch (`onMateuNavigate.js:503-506`) | ❌ |
+| 9 | Primary / secondary actions | `@Toolbar` methods (page toolbar) | the template's `primary-action`/`secondary-actions` from `mateuPageHeader` (`headerPrimary`/`headerSecondary`) | ✅ |
 | 10 | Previous / next item | `PeerNavigationSupplier` → `PageDto.peerNav` | not bound on `mateuOverviewHeader` | ❌ |
 | 11 | Avatar | `@Avatar` / `AvatarSupplier` | not bound | ❌ |
 | 12 | Timestamp | `@Timestamp` | not bound | ❌ |
@@ -90,9 +90,10 @@ background and padding, and drop the custom column code.
 
 ## 8. Proposed plan
 
-1. **Archetype → `oj-sp-general-overview-page`** (reuse the native-GOP branch, §7); bind
-   `primary-action`/`secondary-actions`, `previous-item`/`next-item`, `badge`, `timestamp`.
-2. **promoteInfoSlot**: keep info on the right at md+ (order classes), first only when stacked.
+1. ~~**Archetype → `oj-sp-general-overview-page`**~~ — DONE 2026-10-24 (its own branch bound to
+   `mateuOverview`: `main`/`info` slots, badge, primary/secondary actions, `promoteInfoSlot`).
+   Still open: `previous-item`/`next-item`, `timestamp`, avatar.
+2. ~~**promoteInfoSlot**~~ — now the template's own option (its layout, not ours).
 3. **Detection without `EntityHeader`**: fall back to the page `@Title` as the header title, so
    any `overview()` — and `emptyOverview()` — keep the template.
 4. `labelHint` from `recordLabel()`; `switcherSearch` when the option list is long.

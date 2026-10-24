@@ -57,10 +57,10 @@ and the docked panels; the grid and the Gantt are whatever components you hand i
 |---|---|---|---|
 | Full-width canvas | `pageWidth()` → `PageWidthStyle.FULL_WIDTH` | ✅ | |
 | Grid ⇄ Gantt switch | `gridView(rq)` / `ganttView(rq)`; labels `gridLabel()` / `ganttLabel()`; the active view is page state (`_view`) | ✅ | the grid is an `oj-table`, the Gantt an `oj-gantt` |
-| Page heading | `heading()` (from `@Title`; return blank to omit) | ✅ | a heading text, not Redwood's transactional header |
-| Docked end / bottom panels (reflow) | `endPanel(rq)` / `bottomPanel(rq)` → `DockedPanel(id, title, content, size, open)` | ✅ | a toolbar toggle and a ✕ per panel; open state is page state |
+| Page heading | `heading()` (from `@Title`; return blank to omit) | ✅ | Redwood paints it as the title of Spectra's `oj-sp-data-management-page` header (its Cancel / primary are hidden: the archetype has no transaction) |
+| Docked end / bottom panels (reflow) | `endPanel(rq)` / `bottomPanel(rq)` → `DockedPanel(id, title, content, size, open)` | ✅ | a toolbar toggle and a ✕ per panel; open state is page state. Redwood docks them in the template's `innerEnd` (`oj-sp-general-drawer-template`) and `innerBottom` (`oj-sp-bottom-drawer-template`) drawers; `size` is not applied there (Spectra's own drawer sizes) |
 | Overlay panels | return a `Drawer` (`modeless`, any `DrawerPosition`) from an action | 🟡 | Redwood opens every drawer modal at the end edge — see [Drawer](/ux-patterns/drawer/) |
-| Bottom drawer states (closed / minimized / maximized) | `DrawerPosition.bottom` + `collapsible` + `maximizable` | ❌ | not drawn by Redwood |
+| Bottom drawer states (closed / minimized / maximized) | `DrawerPosition.bottom` + `collapsible` + `maximizable` | ✅ | `oj-sp-bottom-drawer-template` (see [Drawer](/ux-patterns/drawer/)) |
 | Density | `@Compact`, `Grid.compact(true)` | ✅ | |
 | In-place editing in the grid | an embedded `AutoCrud` with `@InlineEditing` as `gridView` | 🟡 | a fluent `Grid` is read-only; not a spreadsheet-style data grid (no cell selection) |
 | Transactional header (Save, Cancel, undo/redo, history, timestamp) | — | ❌ | the archetype is a viewer; transact in an `AutoCrud` or a form |
@@ -175,7 +175,8 @@ modeless variant of the Redwood slots. For an *overlay* panel, return a `Drawer`
 - The grid is a table: no spreadsheet-like cell selection; editing needs an embedded crud with
   `@InlineEditing`.
 - Overlay panels inherit the Redwood drawer gaps (always modal, end edge).
-- Redwood draws the page by composition, not with Spectra's `oj-sp-data-management-page`.
+- On Redwood the page is Spectra's `oj-sp-data-management-page`; its header is transactional by
+  design, so the Cancel / primary buttons it always draws are hidden (the archetype has none).
 
 Details: [data-management review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/data-management.md).
 

@@ -99,14 +99,20 @@ The same `closeModal(eventName, payload)` contract works for `Dialog` too — it
 - Position `start`/`end` maps to the left/right edge. Width accepts any CSS length; the panel caps at 92vw.
 - Styling is design-system neutral (Lumo CSS variables with fallbacks), so it renders on every web renderer.
 
-:::caution[How Redwood draws a drawer today]
-The Redwood renderer paints every `Drawer` in one JET `oj-drawer-popup`, **modal, at the end
-edge**, with its own header (title and subtitle) and an action bar anchored at the bottom. It does
-not use Spectra's drawer templates yet (`oj-sp-general-drawer-template`,
-`oj-sp-bottom-drawer-template`, `oj-sp-create-edit-drawer-template`), and of the `Drawer` record it
-reads only the title, subtitle, width, content and actions: `size`, `maximizable`, `peerNav`,
-`position`, `modeless`, `layout`, `collapsible` and the `header` component are ignored, and the panel
-has no ✕ (Esc or a click outside closes it). The tables below mark each element accordingly.
+:::note[How Redwood draws a drawer]
+The Redwood renderer docks every `Drawer` in a JET `oj-drawer-popup` at the edge it names
+(`start`, `end` or `bottom`; modeless when `modeless`/`layout`) and paints it with **one of Spectra's
+drawer templates**, picked from what the drawer is:
+
+- a drawer docked at the **bottom** → `oj-sp-bottom-drawer-template`;
+- a drawer you **type into and save** (editable fields and an action — the crud's `editInDrawer()`,
+  an operation's form) → `oj-sp-create-edit-drawer-template`;
+- anything else (read-only detail) → `oj-sp-general-drawer-template`.
+
+The template brings the header (title, subtitle, ✕ or Cancel, maximize, previous/next arrows — in an
+overflow menu when there are too many), the size, the footer and the full-window layout on small
+screens; Mateu's content is its default slot. A `width` without a `size` is read as the nearest
+Spectra size (the crud's `36rem` → M). The tables below mark each element.
 :::
 
 ## General Drawer — read-only detail (subtitle, sizes, maximize, peer navigation)
@@ -141,11 +147,10 @@ extras.
 ### Responsive behaviour
 
 - **Wide screens** — the drawer opens over the page at its size (`size` or `width`).
-- **Narrow screens** — Redwood's guide makes the drawer take the whole window. Mateu does not do that
-  yet: the panel keeps its width, capped at 92% (Vaadin) / 90% (Redwood) of the viewport.
-- Redwood's guide also moves maximize and close into an overflow menu when a small drawer has more than
-  three header actions, and clamps a long title or subtitle to two lines with a tooltip; Mateu's
-  header simply wraps.
+- **Narrow screens** — Redwood's guide makes the drawer take the whole window: the Redwood renderer
+  does (Spectra's template); Vaadin keeps the width, capped at 92% of the viewport.
+- Redwood's guide also moves maximize and close into an overflow menu when the header has more than
+  three actions — the Redwood renderer does (the template); Vaadin's header simply wraps.
 
 ### What you can configure
 
@@ -153,17 +158,17 @@ extras.
 
 | Element | Mateu piece | Redwood | Note |
 |---|---|---|---|
-| Size S / M / L / XL (464px / 648px / 968px / 90%) | `size(DrawerSize.s \| m \| l \| xl)`; an explicit `width` overrides it | ❌ | Redwood uses `width`, or 26rem; `size` is ignored |
-| Maximize (one size up, not from XL) | `maximizable(true)` | ❌ | Vaadin steps the drawer up `s→m→l→xl` client-side |
+| Size S / M / L / XL (464px / 648px / 968px / 90%) | `size(DrawerSize.s \| m \| l \| xl)`; an explicit `width` overrides it | ✅ | Spectra's `drawerSize`; on Redwood a `width` alone maps to the nearest size |
+| Maximize (one size up, not from XL) | `maximizable(true)` | ✅ | the template's maximize (`drawerState`); Vaadin steps the drawer up `s→m→l→xl` client-side |
 | Title | `headerTitle` | ✅ | |
 | Subtitle | `subtitle` | ✅ | |
-| Close | built in (✕, Esc, backdrop) | 🟡 | no ✕ on Redwood: Esc or a click outside |
-| Previous / next object | `peerNav(new PeerNav(prevLabel, prevRoute, nextLabel, nextRoute))`; a `null` route disables that side | ❌ | |
+| Close | built in (✕, Esc, backdrop) | ✅ | the template's ✕ (`closeAction`), Esc, a click outside |
+| Previous / next object | `peerNav(new PeerNav(prevLabel, prevRoute, nextLabel, nextRoute))`; a `null` route disables that side | ✅ | the template's arrows; a click closes the drawer and navigates to the route |
 | Header slot (tabs) | `header` component | ❌ | on Redwood, put the tabs in `content` |
 | Avatar | — | ❌ | not modelled on `Drawer` |
-| Start or end edge | `position(DrawerPosition.start \| end)` | ❌ | Redwood always opens at the end |
-| Popup (modal or not) vs layout (push) | `modeless(true)` / `layout(true)` | ❌ | Redwood is always a modal popup |
-| Object-level actions | buttons in `content` / `footer` | ✅ | Redwood anchors them in a bottom bar |
+| Start or end edge | `position(DrawerPosition.start \| end)` | ✅ | the popup's `edge` |
+| Popup (modal or not) vs layout (push) | `modeless(true)` / `layout(true)` | 🟡 | Redwood: modeless popup for both — it does not push the page |
+| Object-level actions | buttons in `content` / `footer` | ✅ | Redwood: the template's footer (primary + up to two secondaries); more stay in a bar of their own |
 
 ### Building it with Mateu
 
@@ -200,9 +205,8 @@ Ported to .NET (`DrawerSize`, `Drawer { Subtitle, Size, Maximizable, PeerNav }`)
 
 ### Known gaps
 
-- Redwood: size, maximize, previous/next arrows, header slot, start edge, modeless/layout and the ✕
-  are not drawn; Spectra's `oj-sp-general-drawer-template` is not used.
-- No drawer goes full window on small screens.
+- Redwood: the `header` slot (tabs) is not used yet, and `layout(true)` does not push the page.
+- Vaadin: no full window on small screens.
 - No avatar in the drawer header.
 
 Details: [general-drawer review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/general-drawer.md).
@@ -229,8 +233,9 @@ and **fixed** (always present, folded to its header strip or unfolded with a han
 | Header | title (or tabs), subtitle, close or the expand/collapse handle, maximize | `headerTitle`, `subtitle`, the ✕, `collapsible(true)` (▾/▴), `maximizable` |
 | Main slot | form fields, collections and their toolbar, lists, tables | `content` |
 
-*No Redwood screenshot yet: the Redwood renderer still opens a bottom drawer on the side (see Known
-gaps below).*
+![A collapsible bottom drawer docked under the orders page, Spectra's handle on top](/images/docs/redwood-templates/bottom-drawer-1.png)
+
+![The same drawer folded to its handle strip](/images/docs/redwood-templates/bottom-drawer-2.png)
 
 ### Responsive behaviour
 
@@ -242,14 +247,14 @@ default and maximized.
 
 | Element | Mateu piece | Redwood | Note |
 |---|---|---|---|
-| Docked at the bottom, full width | `position(DrawerPosition.bottom)` | ❌ | Redwood opens it at the end edge, like a side drawer |
-| Expand / collapse handle (fixed mode) | `collapsible(true)` | ❌ | client-side ▾/▴ on Vaadin |
-| Close (closable mode) | built in | 🟡 | Esc / click outside, no ✕ |
+| Docked at the bottom, full width | `position(DrawerPosition.bottom)` | ✅ | `oj-sp-bottom-drawer-template` in a popup at the bottom edge |
+| Expand / collapse handle (fixed mode) | `collapsible(true)` | ✅ | Redwood: the template's `fixed` mode — its handle (`drawerState` auto ⇄ minimized), modeless, Esc closes it; Vaadin: client-side ▾/▴ |
+| Close (closable mode) | built in | ✅ | the template's ✕ (a non-collapsible bottom drawer) |
 | Fixed mode (cannot be dismissed) | — | ❌ | a returned `Drawer` can always be closed; only a drawer an archetype composes into the page (e.g. `GanttPage.bottomPanel`) stays |
-| Default / maximized height | — | ❌ | `maximizable` steps the *width*, which a bottom drawer ignores |
+| Default / maximized height | `maximizable(true)` | 🟡 | Redwood: the template's maximize (half the viewport → 90%); on Vaadin `maximizable` steps the *width*, which a bottom drawer ignores |
 | Title / subtitle | `headerTitle` / `subtitle` | ✅ | |
 | Tabs in the header | `header` | ❌ | |
-| Previous / next object | `peerNav` | ❌ | |
+| Previous / next object | `peerNav` | ❌ | the bottom template has no arrows |
 | Push the page up instead of covering it | `layout(true)` | ❌ | |
 | "Peek" tab so users discover it; cancelable state change | — | ❌ | |
 
@@ -279,8 +284,13 @@ Ported to .NET (`DrawerPosition.Bottom`, `Drawer { Collapsible }`) and Python
 
 ### Known gaps
 
-- Redwood does not dock it at the bottom (it opens at the end edge) and has no collapse handle.
-- No fixed (non-dismissable) mode for a returned drawer; maximize does not change the height.
+- A collapsible drawer is Spectra's *fixed* mode on Redwood, which has no ✕: it closes with Esc. A
+  drawer both collapsible and closable would need a Mateu flag for the fixed mode (Spectra keeps the
+  two apart).
+- The drawer an archetype composes INTO the page (`GanttPage.bottomPanel`) is still drawn inline as a
+  collapsible panel on Redwood, not docked: the template needs its body as slot content, and the
+  page's content is painted as flat atoms VB cannot nest in it.
+- Vaadin: maximize does not change the height.
 
 Details: [bottom-drawer review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/bottom-drawer.md).
 
@@ -330,10 +340,11 @@ The drawer has the width of `editDrawerWidth()` (default `36rem`), capped at 92%
 | Save and next | `display()` → `CrudDisplay.saveAndNext(Toggle.on)` + `nextIdAfter(id, rq)` + `saveAndNextLabel()` | ✅ | |
 | Error banner on a failed save | `CrudDisplay.errorBanner` (default `on`) | ✅ | |
 | New / Delete buttons on · off · disabled | `CrudDisplay.create` / `delete` | ✅ | on top of `canCreate`, `@NotCreatable`… |
-| Unsaved-changes confirmation on close | — | ❌ | ✕, Esc and Cancel close a dirty drawer without asking, on every web renderer |
-| Close | built in | 🟡 | no ✕ on Redwood |
+| Unsaved-changes confirmation on close | built in | ✅ | Cancel, ✕, Esc, a click outside and the record arrows ask before dropping unsaved edits. Redwood: Spectra's unsaved-changes banner (Discard / Cancel); Vaadin: the same confirmation the navigation guard uses ("Discard your changes?") |
+| Leaving the screen with the drawer open | built in | ✅ | the browser's Back/Forward, a menu entry, a link or a `NavigateTo` asks once when the drawer (or the page) has unsaved edits; staying keeps the drawer and its values (and the address), leaving — or a navigation with nothing unsaved — closes the drawer before the next page loads ([partial forms](/ux-patterns/partial-forms/#unsaved-changes-in-dialogs-and-drawers)) |
+| Close | built in | ✅ | Redwood: the template's Cancel (no ✕ in Spectra's create-edit header), Esc |
 | Title placeholder in create mode | — | ❌ | |
-| Previous / next record arrows | — | ❌ | *Save and next* is the only way forward |
+| Previous / next record arrows | with *Save and next* on | 🟡 | Redwood: the template's arrows walk the listing rows on screen, and its primary becomes «Save and next / Save and close»; Vaadin: *Save and next* only |
 
 ### Building it with Mateu
 
@@ -353,12 +364,28 @@ public class ContactsCrud extends AutoCrud<Contact> {
 }
 ```
 
-The listing never unmounts (scroll, filters and page survive); **Save** persists, closes the drawer and re-runs the listing's search in place (the closing drawer emits a saved event the listing subscribes to); **Cancel**/✕/Esc just close it. In this mode there is no separate read-only view page — a row click goes straight to the edit drawer (on read-only cruds row clicks keep navigating to the view).
+The listing never unmounts (scroll, filters and page survive); **Save** persists, closes the drawer and re-runs the listing's search in place (the closing drawer emits a saved event the listing subscribes to); **Cancel**/✕/Esc close it — asking first when the user typed something (see *Unsaved changes* below). In this mode there is no separate read-only view page — a row click goes straight to the edit drawer (on read-only cruds row clicks keep navigating to the view).
 
 ![The New button opens an empty create form in the drawer](/images/docs/redwood-templates/create-edit-drawer-1.png)
 
 Demo: `demo-admin-panel/.../drawercrud/ContactsDrawerCrud.java` and `demo-redwood-showcase`
 (`/drawer-crud-demo`). Tests: `EditInDrawerSyncTest`.
+
+### Unsaved changes
+
+The drawer's form is dirty-tracked exactly like the routed `/new` and `/{id}/edit` editors (the
+server marks it `confirmOnNavigationIfDirty`, as it does for those pages — in Java, .NET and
+Python, and for a capability listing's `Editable` drawer too). Once the user has typed something,
+closing the drawer by hand — **Cancel**, ✕, Esc, a click outside, the record arrows — asks *"Discard
+your changes?"*: **Discard** closes it, **Cancel** keeps the drawer open with what was typed.
+Nothing typed, nothing asked. A successful **Save** (or *Save and next*) answers `MarkAsClean` and
+closes or moves on without asking, and a refused save keeps the drawer dirty, so the typed values
+are still protected behind the error banner.
+
+The question is about the drawer only: a clean drawer over a page with its own unsaved changes
+closes without asking, and discarding the drawer's edits leaves the page's state alone (leaving the
+page still asks about it). The same applies to any `Dialog`/`Drawer` whose content is a tracked
+form (`@ConfirmOnNavigationIfDirty`). A `UICommand.closeModal()` sent by the server never asks.
 
 ### Save and next, and the error banner
 
@@ -391,16 +418,26 @@ public CrudDisplay display() {
 
 ![Save and next: the drawer moved on to the next row](/images/docs/drawer/save-and-next.png)
 
+On the Redwood renderer the drawer is Spectra's `oj-sp-create-edit-drawer-template`: **Save and next**
+is its primary split button («Save and Next», with «Save and Close» in its menu — just «Save and Close»
+on the last row), the record arrows in its header open the previous/next row of the listing on
+screen, the refused save shows the template's own error banner, and leaving with unsaved edits
+(Cancel, Esc, a click outside, an arrow) asks first through Spectra's unsaved-changes banner.
+
+![Redwood: Save and next moved the drawer on to the next row](/images/docs/redwood-templates/create-edit-drawer-2.png)
+
+![Redwood: a refused save keeps the drawer, with Spectra's error banner](/images/docs/redwood-templates/create-edit-drawer-3.png)
+
+![Redwood: Cancel with unsaved edits asks through Spectra's banner](/images/docs/redwood-templates/create-edit-drawer-4.png)
+
 ![A failed save keeps the drawer open with an error banner](/images/docs/drawer/error-banner.png)
 
 Tests: `CrudDisplaySyncTest`.
 
 ### Known gaps
 
-- A dirty drawer closes without the unsaved-changes confirmation the routed editor asks for.
-- Redwood draws its own header and footer around `oj-drawer-popup` instead of Spectra's
-  `oj-sp-create-edit-drawer-template`, and shows no ✕.
-- No title placeholder in create mode, no previous/next record arrows.
+- No title placeholder in create mode; the record arrows (Redwood) only walk the rows of the page on
+  screen, and only when *Save and next* is on.
 
 Details: [create-edit-drawer review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/create-edit-drawer.md).
 

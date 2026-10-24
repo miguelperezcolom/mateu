@@ -237,6 +237,36 @@ API mínima: `pageTitle`, `primaryAction {label, icon, display}`, `displayOption
   `emptyState {primaryText}`, `eventDetailActions[]`.
 - **Slots:** `eventTemplate`, `tooltipTemplate`, `eventDetailTemplate` (todos template slots).
 - **Eventos:** `spCalendarEventCreate/Update/DetailAction`.
+- **Contrato real (2026-10-24, renderer Redwood lo ADOPTA):** FullCalendar 6.1.15 por dentro
+  (`oj-sp-3rdparty-fullcalendar`, ruta que ya trae la config del visual-runtime). Evento =
+  `{id, eventTitle, start, end, allDay, calendarProvider, icon?}`; el `DataProvider` se consulta con
+  `filterCriterion` `$ge end` / `$le start` (un `ArrayDataProvider` sirve). El color sale del
+  PROVEEDOR (`calendarProviders[{name, color}]`, `color` ∈ blue/sienna/plum/rose/pine/teal), nunca
+  del evento. Clic en evento → `selected` (writeback, `selectionMode: single`); navegación →
+  `focusDate`/`selectedViewValue` writeback con `updatedFrom: 'internal'`; `+ Crear` →
+  `spCalendarEventCreate`. Creado imperativamente necesita `data-oj-binding-provider="none"` en el
+  host o se queda vacío (espera un binding de knockout que no llega).
+
+### 2.11b `map` (evaluado, NO adoptado)
+`basemap` (solo estilos de Oracle Maps: `REDWOOD_BRIGHT_VECTOR`… → `elocation.oracle.com` /
+`maps.oracle.com`, datos HERE, teselas con cabecera `x-oracle-pvtile` + cookies), `center`
+`[lon, lat]`, `zoomLevel`, `min/maxZoom`, `displayOptions.zoomToolbar`, `selection`, `editMode
+(none|view|fence)`, `geofenceData` (DataProvider de geocercas radiales); slot `geofenceDetail`;
+eventos `spGeofenceModified/DetailAction`. MapLibre (`oj-fa-maplibre-gl`) por dentro. **Sin
+marcadores ni proveedor de teselas propio** → el `Map` de Mateu sigue en Leaflet + OSM.
+
+### 2.11c chat (`oj-sp-chat-*`, bundle `oj-sp-chat-component-bundle`)
+- `chat-container {data[], markdownEnabled, avatar, displayOptions}` + slots `header`/`footer`:
+  su `componentDidUpdate` sale si no ha cargado el transformador markdown (CKEditor de
+  `@oracle/ortl`) y su `findDiff` NO detecta un texto que crece → no vale para streaming.
+- `chat-message-block {sender: bot|user|agent, messages[{type:'text', text}], animateOptions,
+  displayOptions{botAvatar,userAvatar}}`: re-renderiza al cambiar `messages` (streaming OK).
+  `chat-text` pinta el texto del BOT con `dangerouslySetInnerHTML` (sin sanear) y el del usuario
+  como texto.
+- `chat-input {value, suggestionData (OBLIGATORIO: [] o revienta), disableAction}`; eventos
+  `ojSpChatInputValueChanged {value}` (Enter / flecha de enviar), `ojSpChatInputAttachment
+  {selectedFiles}` (su picker: solo `image/*,application/pdf`), `ojSpChatInputVoiceAction
+  {endVoiceCallback}` (entra en su modo escucha); método `setChatInputMode`.
 
 ### 2.12 `foldout-layout` + `foldout-panel`
 - **Layout:** `orientation: horizontal|vertical`, `animate`, `selectedPanel` (controlado),

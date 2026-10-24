@@ -176,6 +176,11 @@ class Person:
 
 `Section("…")` on the first field of a group starts a titled card that following fields join.
 
+A form lays out in **one column with up to 6 visible fields and two from 7 on** (counted over the
+whole form, like the Java and .NET servers — see
+[how many columns](/java-ui-definition/forms/#how-many-columns)). `@form_layout(columns=N)` on the
+class fixes it (`columns=2` keeps two columns on a small form); a `@zones` form keeps two.
+
 ## CRUD
 
 Derive from `Crud[T]` and override `fetch` (and, as needed, `get` / `save` / `delete`). You get a

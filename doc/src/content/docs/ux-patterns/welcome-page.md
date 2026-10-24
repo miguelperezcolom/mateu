@@ -30,7 +30,7 @@ to the page that does that. Power users working the same screen all day are bett
 
 | # | Region | What it holds | Mateu piece |
 |---|---|---|---|
-| 1 | Banner (page information and actions) | Title, optional overline and description, the image, the action area (buttons or a search box), optional back navigation | `heroTitle()`, `heroSubtitle()`, `heroImage()`, `heroTone()`; `Button` fields |
+| 1 | Banner (page information and actions) | Title, optional overline and description, the image, the action area (buttons or a search box), optional back navigation | `heroOverline()`, `heroTitle()`, `heroSubtitle()`, `heroImage()`, `heroTone()`; `Button` fields |
 | 2 | Main slot | The information or tasks the user needs before starting: cards, list items, expandable lists, sections, a read-only form | component fields annotated `@Panel` (tiles on a responsive grid) |
 
 ## Responsive behaviour
@@ -38,8 +38,9 @@ to the page that does that. Power users working the same screen all day are bett
 On wide screens the banner places its picture beside the text; on small screens the picture moves
 above the text, whatever image layout was chosen. The tiles below reflow from several per row to one.
 
-In Mateu, the Redwood renderer paints the banner with Spectra's own `oj-sp-header-welcome-banner`,
-so the banner reflows exactly as Redwood specifies; the tiles stack below the `md` breakpoint. The
+In Mateu, the Redwood renderer paints the page with Spectra's own `oj-sp-welcome-page` template (its
+banner and its main slot, which holds the tiles), so the banner reflows exactly as Redwood specifies;
+the tiles stack below the `md` breakpoint. The
 other renderers centre the hero text over the image (with a dark overlay keeping it readable) and
 auto-fit the tiles.
 
@@ -54,13 +55,13 @@ auto-fit the tiles.
 | Page layout | `@PageWidth` on the class | ✅ | fixed by default; full width allowed; Redwood does not offer edge to edge for this template |
 | Page title (required) | `heroTitle()`; `@WelcomeBanner(title)` on other pages | ✅ | the archetype does **not** fall back to `@Title` — override `heroTitle()` |
 | Description | `heroSubtitle()` / `@WelcomeBanner(subtitle)` | ✅ | |
-| Overline (greeting above the title) | — | ❌ | `@Overline` is not read by the archetype nor passed to the banner |
-| Image | `heroImage()` / `@WelcomeBanner(image)` | 🟡 | Redwood shows one of its own gallery illustrations instead of your URL |
+| Overline (greeting above the title) | `heroOverline()` / `@WelcomeBanner(overline)` | ✅ | Spectra's `overlineText` on the welcome page; a small quiet line above the title on the other renderers (the page header's `@Overline` is a different element) |
+| Image | `heroImage()` / `@WelcomeBanner(image)` | ✅ | full bleed (the whole banner); without one, Redwood shows one of its own gallery illustrations |
 | Image layout: half the banner / whole banner | — | ❌ | the other renderers always use the image as the banner background |
 | Hide the image on phones | — | ❌ | |
 | Banner colour | `heroTone()` / `@WelcomeBanner(tone)` | ✅ | each `HeroTone` maps to the banner's `dark-<tone>` background |
 | Call-to-action button | first `Button` field | ✅ | its `actionId` runs the matching `@Action` method |
-| More actions (up to 7, the rest in an overflow menu) | further `Button` fields | 🟡 | Redwood paints only the first two |
+| More actions (up to 7, the rest in an overflow menu) | further `Button` fields | ✅ | every one travels: Spectra shows them as buttons or in its overflow menu |
 | Search box in the banner | — | ❌ | for a search-first landing use [Hero search](/ux-patterns/hero-search/) |
 | Back navigation (PWA) | — | ➖ | |
 | Main slot: cards | `@Panel` component fields | ✅ | title + subtitle + content per tile |
@@ -132,6 +133,21 @@ accent color strip only shows on pages WITHOUT a welcome banner** — so on any 
 one (this annotation, or a `HeroSection` anywhere in the content, like `Welcome` and
 `HeroSearch`), the Redwood renderer suppresses the strip automatically.
 
+## Overline
+
+A short line **above** the hero title introduces it — a greeting, the area the page belongs to:
+
+```java
+@Override
+protected String heroOverline() { return "Good morning"; }
+```
+
+or `@WelcomeBanner(overline = "Good morning")` on any page (`HeroSection.overline` when composing
+fluently). Empty or `null` shows none. Redwood passes it to the welcome template's own
+`overlineText`; Vaadin, React Native and IntelliJ draw it small and muted above the title. It is
+`@Experimental` (3.0-beta.13). In .NET override `HeroOverline` / set `[WelcomeBanner(Overline = …)]`;
+in Python override `hero_overline()` / pass `@welcome_banner(overline=…)`.
+
 ## Hero tone
 
 The hero band can take one of nine deep tones — the Redwood welcome palette idea, expressed as
@@ -159,7 +175,7 @@ enters the page and keeps it while they stay.
 | `@WelcomeBanner` on any page | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Hero tone | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-¹ Two CTAs at most; the banner shows a Redwood illustration rather than `heroImage()`.
+¹ On Spectra's `oj-sp-welcome-page`: every CTA (the rest in its overflow menu), `heroImage()` full bleed.
 
 ## Redwood parameter and slot reference
 
@@ -173,12 +189,12 @@ page-header elements shared by every template are documented once in
 |---|---|---|
 | `pageTitle` (hero title) | `heroTitle()`, or `@WelcomeBanner(title=…)` on any page | ✅ |
 | `descriptionText` | `heroSubtitle()` / `@WelcomeBanner(subtitle=…)` | ✅ |
-| `overlineText` (small text above the title) | — `@Overline` is read only on reflected pages, where it goes to the page header, not to the banner | — |
-| `primaryAction` / `secondaryAction` / `secondaryActions` | `Button` fields; the fluent `Button` carries `iconOnLeft`/`iconOnRight`, `disabled` and `actionId`. Redwood fills `primaryAction` and `secondaryAction` only | 🟡 |
+| `overlineText` (small text above the title) | `heroOverline()`, or `@WelcomeBanner(overline=…)` on any page (`HeroSection.overline`) | ✅ |
+| `primaryAction` / `secondaryAction` / `secondaryActions` | `Button` fields; the fluent `Button` carries `iconOnLeft`/`iconOnRight`, `disabled` and `actionId`. The first is `primaryAction`, the rest `secondaryActions` | ✅ |
 | `backgroundColor`: 9 dark tones + `auto` | `heroTone()` / `@WelcomeBanner(tone=…)` → `HeroTone` (ocean, pine, lilac, teal, rose, pebble, slate, plum, sienna, `auto`) | ✅ |
-| `illustrationBackground` + `illustrationForeground` (two illustration layers) | `heroImage()` — a single background image with a dark overlay; Redwood ignores it and uses its gallery pair | 🟡 |
+| `illustrationBackground` + `illustrationForeground` (two illustration layers) | `heroImage()` — one image, passed as the background layer (no foreground); without it, a gallery pair | ✅ |
 | `themedImage: pebbles \| none` | ⚪ an Oracle illustration asset; design-system-specific by nature | ⚪ |
-| `displayOptions.imageStretch: none \| full` | — | — |
+| `displayOptions.imageStretch: none \| full` | `full` when `heroImage()` is set (like the other renderers' background image), `none` for the gallery illustration; not configurable | 🟡 |
 | `displayOptions.mobileImage` | — | — |
 | `displayOptions.responsivePadding` | — | — |
 | `displayOptions.inFlowBack` + `spInFlowBack` | back/cancel affordances approximate it; no explicit in-flow back | 🟡 |
@@ -195,9 +211,9 @@ shows on pages without a welcome banner**, so any page carrying one — this arc
 The element-by-element review, with code references, is in [welcome review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/welcome.md).
 In short:
 
-- Redwood paints only two actions and ignores `heroImage()`.
-- No overline, no image layout choice (half / whole banner), no "hide image on phones", no search in
-  the banner.
+- No image layout choice (half / whole banner —
+  a `heroImage()` is always full bleed), no "hide image on phones", no search in the banner (the
+  archetype has no search).
 - The archetype's title does not fall back to `@Title`.
-- Redwood composes the page from Spectra's banner (`oj-sp-header-welcome-banner`) plus JET panels,
-  not from the `oj-sp-welcome-page` template.
+- Redwood paints the page with Spectra's `oj-sp-welcome-page` (since 2026-10-24); the tiles in its
+  main slot are JET panels.

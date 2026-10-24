@@ -86,7 +86,7 @@ public class HousekeepingCalendar extends CalendarPage {
 ![Calendar page](/images/docs/calendar/calendar-demo.png)
 
 - `initialMonth()` defaults to the current month; the displayed month is page state, so ‹ / › and *Today* round-trip through the backend and re-fetch.
-- Works on every renderer — Vaadin, Redwood (JET has no calendar component, so the grid is drawn with Redwood's tokens; the switcher is `oj-buttonset-one`), React Native and the IntelliJ plugin — and on the .NET (`CalendarPage`) and Python (`CalendarPage`) backends.
+- Works on every renderer — Vaadin, Redwood, React Native and the IntelliJ plugin — and on the .NET (`CalendarPage`) and Python (`CalendarPage`) backends. On Redwood the calendar **is Spectra's `oj-sp-calendar`**, fed from what the page sends (no Oracle data provider): a `CalendarPage`'s ‹ / › / *Today*, view buttons and *Create* are the component's own toolbar, running the page's actions; the date labels and tones are painted on its cells. Event colours map to the closest of Spectra's six event colours (it has no per-event colour). If the component cannot load, a grid drawn with Redwood's tokens is shown instead.
 
 ## Redwood parameter and slot reference
 
@@ -100,19 +100,19 @@ canonical page-header elements shared by every template are documented once in
 | Redwood prop / slot | Mateu | |
 |---|---|---|
 | `calendarEvents` | `events(LocalDate month, HttpRequest)` — fetched per displayed month, server-side | ✅ |
-| Month navigation | ‹ / › / *Today* round-trip through the backend; `initialMonth()` sets the start | ✅ |
+| Month navigation | ‹ / › / *Today* round-trip through the backend; `initialMonth()` sets the start; `goCalendarToDate` (parameter `_date`, an ISO date) jumps to the period holding any date. Redwood: Spectra's toolbar buttons run them, and its title date picker runs `goCalendarToDate` (only against a backend that advertises it — 3.0-beta.13+; Java, .NET `ICalendarPage.GoToDate`, Python `go_calendar_to_date`) | ✅ |
 | `displayOptions.createEvent` / `createEventLabel` | `showCreate()` + `createAction(HttpRequest)` | ✅ |
 | Event click | `actionOn(CalendarEvent, HttpRequest)` — return a `URI` to navigate | ✅ |
 | `selectedViewValue` + `displayOptions {monthView, weekView, dayView, listView}` | `views()` (+ `Calendar.view`/`views`): month, week, day and list | ✅ |
 | Date cell content / date click | `days(from, to)` labels and tones; `daysClickable()` + `actionOnDay(date)` | ✅ |
-| `displayOptions.firstDayOfWeek` | — the grid is Monday-first | — |
-| `displayOptions {eventCounter, eventSortCriteria, eventDetailMode}` | — | — |
+| `displayOptions.firstDayOfWeek` | Monday-first on every renderer (Redwood: `firstDayOfWeek: monday`) | 🟡 |
+| `displayOptions {eventCounter, eventSortCriteria, eventDetailMode}` | Redwood: Spectra's defaults (`eventCounter: auto`, its own sort; `eventDetailMode` off — a click runs `actionOn`) | 🟡 |
 | `calendarProviders[]` + `visibleCalendars[]` (multi-calendar) | — one event source per page | — |
 | `selectionMode: none \| single \| multiple` | events are actionable, not selectable | 🟡 |
 | `readonly` | the calendar is read-only by design; pair it with a form to create or move events | ⚪ |
 | `emptyState {primaryText}` | — | — |
 | `eventDetailActions[]` | a single `actionOn` per event | 🟡 |
-| **Slots** `eventTemplate` / `tooltipTemplate` / `eventDetailTemplate` | — events render as chips with an optional accent `color`; the chip shape is not overridable | — |
+| **Slots** `eventTemplate` / `tooltipTemplate` / `eventDetailTemplate` | — events render as chips with an optional accent `color` (Redwood: Spectra's own event chip, the colour mapped to its palette); the chip shape is not overridable | — |
 | `spCalendarEventCreate` / `Update` / `DetailAction` | `createCalendarEvent` / `openCalendarEvent` cover create and open; there is no update event | 🟡 |
 
 ## When to use it
