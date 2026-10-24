@@ -146,6 +146,27 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         }
 
         val ctx = AppContext(s)
+        // Version skew (io.mateu.ijp.api.BuildSkew): the backend was redeployed, or a refusal came
+        // from a stale screen → a STICKY notification (the errors group) with a Reload action that
+        // reloads the shell and every open Mateu view.
+        s.onBuildNotice = { kind ->
+            val texts = io.mateu.ijp.api.BuildSkew.texts(io.mateu.ijp.ui.MoneyValues.uiLocale())
+            val stale = kind == io.mateu.ijp.api.BuildSkew.Notice.STALE
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup(MessageGroups.ERRORS)
+                .createNotification(
+                    "Mateu",
+                    io.mateu.ijp.ui.SafeHtml.escape(if (stale) texts.stale else texts.updated),
+                    if (stale) NotificationType.ERROR else NotificationType.WARNING,
+                )
+                .addAction(
+                    com.intellij.notification.NotificationAction.createSimpleExpiring(texts.reload) {
+                        ctx.initialLoad(route)
+                        viewManager.reloadAll()
+                    },
+                )
+                .notify(project)
+        }
         ctx.appShell = true
         val root = ctx.newSlot()
         ctx.contentPane = root

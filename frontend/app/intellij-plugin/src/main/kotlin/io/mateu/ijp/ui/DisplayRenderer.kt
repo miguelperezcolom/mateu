@@ -30,6 +30,14 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     val tone = PageSlots.heroToneColor(metadata.text("tone"))
     panel.background = tone ?: Color(0x2B, 0x3A, 0x55)
     panel.isOpaque = true
+    // `overline`: a short quiet line above the title (the Redwood welcome page's overline).
+    val overline = metadata.text("overline")
+    if (overline.isNotBlank()) {
+        val o = JBLabel(plain(overline), SwingConstants.CENTER)
+        o.foreground = if (tone != null) PageSlots.HERO_SUBTITLE_INK else Color(0xD9, 0xE2, 0xF2)
+        o.font = o.font.deriveFont(Font.PLAIN, o.font.size2D * 0.9f)
+        panel.addStacked(o, 2)
+    }
     val title = JBLabel(plain(metadata.text("title")), SwingConstants.CENTER)
     title.font = title.font.deriveFont(Font.BOLD, 24f)
     title.foreground = Color.WHITE
