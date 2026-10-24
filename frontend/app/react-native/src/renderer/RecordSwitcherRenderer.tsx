@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { filterSwitcherOptions, switcherCurrentLabel, switcherPick, type RecordSwitcher, type SwitcherOption } from './patternGaps';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y, modalA11y } from '../a11y/a11y';
 
 /**
@@ -98,7 +99,7 @@ export function RecordSwitcherRenderer({ switcher }: { switcher: RecordSwitcher 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,4 +131,4 @@ const styles = StyleSheet.create({
   optionDescription: { fontSize: 12, color: theme.muted, marginTop: 2 },
   check: { fontSize: 16, color: theme.primary, marginLeft: 8 },
   empty: { padding: 16, color: theme.muted, textAlign: 'center' },
-});
+}));

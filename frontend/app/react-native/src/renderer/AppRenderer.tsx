@@ -1,9 +1,12 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { DarkTheme, DefaultTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { Appbar, Divider, Drawer as PaperDrawer, FAB, IconButton, Text as PaperText } from 'react-native-paper';
+import { navigationTheme, useThemeControl } from '../ui/MateuTheme';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { BackHandler, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { BackHandler, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
 import { NavTarget, declareMenuRemotes, navigationSession } from '../core/MateuSession';
@@ -11,7 +14,7 @@ import { firstComponentFragment, previewOverlayOf, type ChatScreenSnapshot } fro
 import type { MateuViewController } from '../core/MateuViewController';
 import { ChatPanel } from './ChatPanel';
 import { MateuViewHost } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { cardsOf, isCardsGroup } from './menuCards';
 import { canSignOut, signOut } from '../core/auth';
@@ -61,6 +64,8 @@ interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   /** The endpoint the chat's attach button uploads to (@AI(upload=…)). */
   uploadUrl?: string | null;
   themeToggle?: boolean;
+  /** @App(accentColor): the brand accent — the renderer's Material primary when it is a hex colour. */
+  accentColor?: string | null;
   fabs?: { id?: string; label?: string; actionId?: string; icon?: string }[];
   homeRoute?: string;
   homeConsumedRoute?: string;
@@ -168,10 +173,8 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
     <View style={[styles.stackHost, { paddingBottom: bottomInset }]}>
       {stack.length > 0 && (
         <View style={styles.backBar}>
-          <TouchableOpacity {...buttonA11y({ label: 'Back' })} onPress={pop} style={styles.backButton} hitSlop={theme.hitSlop}>
-            <Text style={styles.backText}>‹ Back</Text>
-          </TouchableOpacity>
-          {!!top.label && <Text style={styles.backTitle}>{top.label}</Text>}
+          <IconButton icon="arrow-left" accessibilityLabel="Back" onPress={() => void pop()} iconColor={theme.ink} />
+          {!!top.label && <PaperText variant="titleMedium" numberOfLines={1} style={styles.backTitle}>{top.label}</PaperText>}
         </View>
       )}
       <MateuViewHost
@@ -195,10 +198,8 @@ function PreviewScreen({ preview, onDismiss, bottomInset }: { preview: ContentPr
   return (
     <View style={[styles.stackHost, { paddingBottom: bottomInset }]}>
       <View style={styles.backBar}>
-        <TouchableOpacity {...buttonA11y({ label: 'Close preview' })} onPress={onDismiss} style={styles.backButton} hitSlop={theme.hitSlop}>
-          <Text style={styles.backText}>✕</Text>
-        </TouchableOpacity>
-        <Text style={styles.backTitle}>{preview.title || 'Assistant preview'}</Text>
+        <IconButton icon="close" accessibilityLabel="Close preview" onPress={onDismiss} iconColor={theme.ink} />
+        <PaperText variant="titleMedium" numberOfLines={1} style={styles.backTitle}>{preview.title || 'Assistant preview'}</PaperText>
       </View>
       <MateuViewHost
         key={preview.version}
@@ -625,7 +626,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
   const renderItems = (items: MenuItem[], depth = 0): React.ReactNode[] => {
     return items.map((item, i) => {
       if (item.separator) {
-        return <View key={`sep-${i}`} style={styles.separator} />;
+        return <Divider key={`sep-${i}`} style={styles.separator} />;
       }
       if (isCardsGroup(item)) {
         return <MenuCards key={i} group={item} onNavigate={onNavigate} />;
@@ -633,19 +634,25 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       const hasSubmenus = item.submenus && item.submenus.length > 0;
       if (hasSubmenus && depth === 0) {
         return (
-          <View key={i}>
-            <Text style={styles.menuGroupLabel}>{(item.label ?? '').toUpperCase()}</Text>
+          <PaperDrawer.Section key={i} title={item.label ?? ''} showDivider={false}>
             {renderItems(item.submenus!, depth + 1)}
-          </View>
+          </PaperDrawer.Section>
         );
       }
       // "You are here": the current destination carries the active indicator (Nielsen #1,
       // visibility of system status; the Material navigation drawer's selected item).
       const selected = isCurrentDestination(item, currentRoute);
       return (
-        <TouchableOpacity {...buttonA11y({ selected })} key={i} style={[styles.menuItem, selected && styles.menuItemSelected, { paddingLeft: 12 + depth * 12 }]} onPress={() => onNavigate(item)}>
-          <Text style={[styles.menuItemText, selected && styles.menuItemTextSelected]}>{item.label}</Text>
-        </TouchableOpacity>
+        // the Material 3 navigation drawer item: a pill with the active indicator on "you are here"
+        <PaperDrawer.Item
+          key={i}
+          label={item.label ?? ''}
+          active={selected}
+          onPress={() => onNavigate(item)}
+          accessibilityLabel={item.label ?? undefined}
+          accessibilityState={{ selected }}
+          style={depth > 1 ? { marginLeft: 12 + (depth - 1) * 12 } : undefined}
+        />
       );
     });
   };
@@ -655,7 +662,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
   const canOut = session.signOut ? true : session.api.auth === undefined && canSignOut();
   const doSignOut = () => void (session.signOut ? session.signOut() : signOut());
   return (
-    <DrawerContentScrollView style={styles.sidebar}>
+    <DrawerContentScrollView style={styles.sidebar} contentContainerStyle={styles.sidebarContent}>
       {hub && (
         // The Mateu hub app: the drawer top is where the user jumps back to their list of UIs or
         // to another UI (design/mobile-app-hub.md §4, "switch between UIs").
@@ -668,7 +675,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
           </TouchableOpacity>
         </View>
       )}
-      <Text style={styles.sidebarTitle}>{appMeta.title ?? 'Mateu'}</Text>
+      <PaperText variant="titleLarge" style={styles.sidebarTitle} accessibilityRole="header">{appMeta.title ?? 'Mateu'}</PaperText>
       <HeaderValuesView />
       <QuickLaunch meta={appMeta} onLaunch={onLaunch} />
       {appMeta.globalSearchEnabled === true && <GlobalSearchBox appMeta={appMeta} onNavigate={onNavigate} />}
@@ -677,9 +684,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
       {canOut && (
-        <TouchableOpacity {...buttonA11y({ label: 'Sign out' })} style={[styles.menuItem, { paddingLeft: 12 }]} onPress={doSignOut}>
-          <Text style={styles.menuItemText}>Sign out</Text>
-        </TouchableOpacity>
+        <PaperDrawer.Item label="Sign out" icon="logout" onPress={doSignOut} accessibilityLabel="Sign out" />
       )}
     </DrawerContentScrollView>
   );
@@ -727,15 +732,15 @@ function AppOverlays({ appMeta, connectAiFab = false }: { appMeta: AppMeta; conn
     <>
       <View style={styles.appFabStack} pointerEvents="box-none">
         {fabs.map((fab, i) => (
-          <TouchableOpacity {...buttonA11y({ label: fab.label || fab.actionId || fab.id || 'Action' })} key={i} style={styles.appFab} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')}>
-            <Text style={styles.appFabText}>{fab.label || '+'}</Text>
-          </TouchableOpacity>
+          fab.label ? (
+            <FAB key={i} label={fab.label} accessibilityLabel={fab.label} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
+          ) : (
+            <FAB key={i} icon="plus" accessibilityLabel={fab.actionId || fab.id || 'Action'} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
+          )
         ))}
         {connectAi && <ConnectAiEntry meta={appMeta} asFab />}
         {!!appMeta.sseUrl && (
-          <TouchableOpacity {...buttonA11y({ label: 'Open assistant' })} style={[styles.appFab, styles.chatFab]} onPress={() => setChatOpen(true)}>
-            <Text style={styles.appFabText}>💬</Text>
-          </TouchableOpacity>
+          <FAB icon="chat-processing-outline" accessibilityLabel="Open assistant" onPress={() => setChatOpen(true)} />
         )}
       </View>
       {/* mounted while hidden: the conversation survives closing it (and a navigation it asked for) */}
@@ -756,11 +761,18 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // bumped when an @AppContext selector changes so the current screen remounts (and thus reloads
   // with the new appState)
   const [contextVersion, setContextVersion] = useState(0);
-  // themeToggle = true on @App: light/dark switch applied to the navigation chrome
-  const [dark, setDark] = useState(false);
-  const navTheme = dark ? DarkTheme : DefaultTheme;
+  // themeToggle = true on @App: a light/dark switch for the whole renderer (src/ui/MateuTheme.tsx);
+  // the app's accent colour (@App(accentColor)) becomes the Material primary
+  const { dark, setSchemeOverride, setAccent } = useThemeControl();
+  const navTheme = navigationTheme();
+  React.useEffect(() => setAccent(appMeta.accentColor), [appMeta.accentColor, setAccent]);
 
   const { session } = useAppContext();
+  // the version-skew notices' Reload (core/buildSkew.ts): remount the current screen, so it re-runs
+  // its load from scratch against the redeployed backend — the same remount an @AppContext change does
+  React.useEffect(() => {
+    session.reload = () => setContextVersion((v) => v + 1);
+  }, [session]);
   // the remotes the app's menu names are the ones its backend chose: they may carry credentials
   declareMenuRemotes(session, appMeta.menu);
   const runAppAction = useRunAppAction(appMeta);
@@ -999,18 +1011,22 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
           screenOptions={{
             headerShown: true,
             title: appMeta.title ?? 'Mateu',
-            headerRight: appMeta.themeToggle
-              ? () => (
-                  <TouchableOpacity
-                    {...buttonA11y({ label: dark ? 'Switch to light theme' : 'Switch to dark theme' })}
-                    style={styles.themeToggle}
-                    hitSlop={theme.hitSlop}
-                    onPress={() => setDark(!dark)}
-                  >
-                    <Text style={styles.themeToggleText}>{dark ? '☀️' : '🌙'}</Text>
-                  </TouchableOpacity>
-                )
-              : undefined,
+            // the Material 3 small top app bar; the root SafeAreaView already keeps it below the
+            // status bar, so it adds no inset of its own (it used to: a band of empty space)
+            header: ({ navigation }) => (
+              <Appbar.Header statusBarHeight={0} style={styles.appBar}>
+                <Appbar.Action icon="menu" accessibilityLabel="Open menu" onPress={() => (navigation as { toggleDrawer: () => void }).toggleDrawer()} />
+                <Appbar.Content title={appMeta.title ?? 'Mateu'} titleStyle={styles.appBarTitle} />
+                {appMeta.themeToggle && (
+                  <Appbar.Action
+                    icon={dark ? 'white-balance-sunny' : 'weather-night'}
+                    accessibilityLabel={dark ? 'Switch to light theme' : 'Switch to dark theme'}
+                    onPress={() => setSchemeOverride(dark ? 'light' : 'dark')}
+                  />
+                )}
+              </Appbar.Header>
+            ),
+            drawerStyle: { backgroundColor: theme.surface },
           }}
         >
           <Drawer.Screen name="Main" children={() => mainScreen} />
@@ -1029,34 +1045,31 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   hubRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8, paddingTop: 4, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ddd', marginBottom: 8 },
   hubButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 },
   hubButtonText: { color: theme.primary, fontWeight: '600', fontSize: 15 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: theme.danger, padding: 16, fontSize: 14 },
-  stackHost: { flex: 1, backgroundColor: theme.white },
-  appFabStack: { position: 'absolute', right: FAB_MARGIN, bottom: FAB_MARGIN, gap: 10, alignItems: 'flex-end', zIndex: 50 },
-  appFab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
-  chatFab: { backgroundColor: theme.ink },
-  appFabText: { color: theme.white, fontWeight: '600', fontSize: 16 },
-  themeToggle: { paddingHorizontal: 14, minHeight: theme.minTouch, justifyContent: 'center' },
-  themeToggleText: { fontSize: 18 },
-  backBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4, minHeight: theme.minTouch, borderBottomWidth: 1, borderBottomColor: theme.divider, backgroundColor: theme.background },
-  backButton: { paddingVertical: 8, paddingRight: 12 },
-  backText: { color: theme.primary, fontSize: 15, fontWeight: '600' },
-  backTitle: { fontSize: 15, fontWeight: '600', color: theme.ink },
+  stackHost: { flex: 1, backgroundColor: theme.surface },
+  appFabStack: { position: 'absolute', right: FAB_MARGIN, bottom: FAB_MARGIN, gap: 12, alignItems: 'flex-end', zIndex: 50 },
+  appBar: { backgroundColor: theme.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  appBarTitle: { fontWeight: '600' },
+  backBar: { flexDirection: 'row', alignItems: 'center', paddingRight: 16, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider, backgroundColor: theme.surface },
+  backTitle: { flex: 1, color: theme.ink },
   // A light navigation drawer with an active indicator on the current destination — the Material 3
   // navigation drawer / iOS sidebar idiom (the former dark custom sidebar read as another product's
   // chrome and its grey labels fell under AA contrast).
-  sidebar: { flex: 1, backgroundColor: theme.white },
-  sidebarTitle: { color: theme.ink, fontSize: 18, fontWeight: '700', padding: 20, paddingTop: 16 },
+  sidebar: { flex: 1, backgroundColor: theme.surface },
+  // the root SafeAreaView already keeps the drawer below the status bar: no second inset
+  sidebarContent: { paddingTop: 8 },
+  sidebarTitle: { color: theme.ink, fontWeight: '600', paddingHorizontal: 28, paddingTop: 16, paddingBottom: 12 },
   menuGroupLabel: { color: theme.muted, fontSize: 12, fontWeight: '600', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, letterSpacing: 0.5 },
   menuItem: { minHeight: theme.minTouch, justifyContent: 'center', paddingVertical: 10, paddingRight: 20, marginHorizontal: 8, borderRadius: theme.radiusPill },
   menuItemSelected: { backgroundColor: theme.infoBg },
   menuItemText: { color: theme.ink, fontSize: 15 },
   menuItemTextSelected: { color: theme.info, fontWeight: '700' },
-  separator: { height: 1, backgroundColor: theme.divider, marginVertical: 4 },
+  separator: { marginVertical: 8, marginHorizontal: 28 },
   // card menus (display: "cards" groups)
   menuCard: { marginHorizontal: 12, marginVertical: 4, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusMd, backgroundColor: theme.white, overflow: 'hidden' },
   menuCardHeader: { flexDirection: 'row', alignItems: 'center', padding: 12 },
@@ -1073,13 +1086,13 @@ const styles = StyleSheet.create({
   contextValue: { color: theme.ink, fontSize: 14, fontWeight: '700' },
   contextValueUnset: { color: theme.muted, fontWeight: '400' },
   contextOption: { paddingVertical: 10, paddingLeft: 32, paddingRight: 20, minHeight: theme.minTouch, justifyContent: 'center' },
-  contextSearch: { marginHorizontal: 20, marginBottom: 4, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, color: theme.ink, fontSize: 14 },
+  contextSearch: { marginHorizontal: 20, marginBottom: 4, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 15 },
   contextOptionText: { color: theme.ink, fontSize: 14 },
   contextOptionSelected: { fontWeight: '700', color: theme.info },
   // notification bell (drawer inbox)
   bellRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bellBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: theme.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  bellBadgeText: { color: theme.white, fontSize: 11, fontWeight: '700' },
+  bellBadgeText: { color: theme.onFill, fontSize: 11, fontWeight: '700' },
   bellEmpty: { color: theme.muted, fontSize: 13, paddingLeft: 32, paddingVertical: 8 },
   bellEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 10, paddingLeft: 20, paddingRight: 20, minHeight: theme.minTouch },
   bellDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'transparent', marginTop: 5 },
@@ -1094,11 +1107,11 @@ const styles = StyleSheet.create({
   bellMarkAllText: { color: theme.info, fontSize: 13, fontWeight: '600' },
   bellMarkAllDisabled: { color: theme.disabled },
   // global search (drawer command palette)
-  globalSearchInput: { marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, color: theme.ink, fontSize: 14 },
+  globalSearchInput: { marginHorizontal: 16, marginBottom: 8, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 15 },
   globalSearchResults: { marginBottom: 4 },
   globalSearchHit: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 20, minHeight: theme.minTouch },
   globalSearchHitBody: { flex: 1, minWidth: 0 },
   globalSearchHitLabel: { color: theme.ink, fontSize: 14, fontWeight: '600' },
   globalSearchHitDescription: { color: theme.muted, fontSize: 12, marginTop: 1 },
   globalSearchHitCategory: { color: theme.faint, fontSize: 11, fontWeight: '600', textTransform: 'uppercase' },
-});
+}));

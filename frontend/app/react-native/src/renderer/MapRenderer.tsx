@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { mapRows, markerParameters, type MapMeta, type MapRow } from './mapRows';
 import { openExternal } from './openExternal';
@@ -61,7 +62,7 @@ export function MapRenderer({ metadata }: { metadata: Record<string, unknown> })
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   card: {
     borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusMd,
     backgroundColor: theme.white, padding: theme.spacing.sm,
@@ -79,4 +80,4 @@ const styles = StyleSheet.create({
   description: { fontSize: 12, color: theme.muted },
   open: { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.xs },
   openText: { fontSize: 13, color: theme.info, textDecorationLine: 'underline' },
-});
+}));

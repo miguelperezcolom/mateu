@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../ui/Text';
 import Svg, { Circle, Path, Polyline, Rect } from 'react-native-svg';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { chartTextAlternative, formatTick } from '../core/uxRules';
 
 /** ChartDto renderer (bar/line/pie families) on react-native-svg — same palette-by-index
@@ -10,7 +11,7 @@ import { chartTextAlternative, formatTick } from '../core/uxRules';
 // Categorical series colours: the Okabe-Ito colour-blind-safe set (minus its yellow, unreadable on
 // white). The old palette started with the brand red — the error colour — so every first series
 // read as "bad", and its first two entries were both blues once the accent became blue.
-const PALETTE = ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#D55E00', '#56B4E9', theme.muted, theme.ink];
+const PALETTE = themed(() => ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#D55E00', '#56B4E9', theme.muted, theme.ink]);
 
 interface Dataset {
   label?: string;
@@ -132,7 +133,7 @@ function PieChart({ values, doughnut }: { values: number[]; doughnut: boolean })
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   box: { alignItems: 'center', paddingVertical: 8 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -141,4 +142,4 @@ const styles = StyleSheet.create({
   xLabels: { flexDirection: 'row', width: W, paddingLeft: PAD, marginTop: 2 },
   xLabel: { flex: 1, fontSize: 11, color: theme.faint, textAlign: 'center' },
   yMax: { alignSelf: 'flex-start', fontSize: 11, color: theme.faint, marginBottom: 2 },
-});
+}));

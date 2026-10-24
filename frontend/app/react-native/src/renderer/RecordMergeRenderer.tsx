@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import {
   CUSTOM, initialPicks, mergeParameters, mergeSummary, mergedValue, pickLabel, summaryText, valueText, visibleFields,
@@ -123,7 +124,7 @@ export function RecordMergeRenderer({ metadata }: { metadata: Record<string, unk
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   root: { gap: 8, paddingVertical: 4 },
   title: { fontSize: 17, fontWeight: '700', color: theme.ink },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: theme.minTouch },
@@ -149,4 +150,4 @@ const styles = StyleSheet.create({
   summary: { color: theme.muted, fontSize: 13, marginTop: 4 },
   mergeButton: { backgroundColor: theme.primary, borderRadius: theme.radiusSm, minHeight: theme.minTouch, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, marginTop: 4 },
   mergeText: { color: theme.onPrimary, fontWeight: '700', fontSize: 15 },
-});
+}));

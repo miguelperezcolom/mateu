@@ -5,9 +5,9 @@
  */
 export function toastLifetime(
   variant: string,
-  options?: { duration?: number; undo?: unknown },
+  options?: { duration?: number; undo?: unknown; sticky?: boolean },
 ): number {
-  if (variant === 'error') return 0;
+  if (variant === 'error' || options?.sticky) return 0;
   if (options?.duration && options.duration > 0) return options.duration;
   return options?.undo ? 10000 : 4000;
 }

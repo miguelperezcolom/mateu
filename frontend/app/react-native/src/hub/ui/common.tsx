@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Alert, Image, Platform, StyleSheet, TouchableOpacity, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Text } from '../../ui/Text';
 import { buttonA11y } from '../../a11y/a11y';
-import { theme } from '../../theme';
+import { theme, themed } from '../../theme';
 
 /** A yes/no question: native Alert on iOS/Android, window.confirm on web (same as the dirty guard). */
 export function confirmDialog(title: string, message: string, okLabel: string, destructive = false): Promise<boolean> {
@@ -82,7 +83,7 @@ export function SecondaryButton({ label, onPress, style, danger, a11yLabel }: { 
   );
 }
 
-export const hubStyles = StyleSheet.create({
+export const hubStyles = themed(() => StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.background },
   header: {
     flexDirection: 'row',
@@ -117,12 +118,12 @@ export const hubStyles = StyleSheet.create({
   warningText: { color: theme.warning, fontSize: 14 },
   note: { backgroundColor: theme.infoBg, borderRadius: theme.radiusSm, padding: 12 },
   noteText: { color: theme.info, fontSize: 14 },
-});
+}));
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   iconImage: { backgroundColor: theme.divider },
   initials: { alignItems: 'center', justifyContent: 'center' },
-  initialsText: { color: theme.white, fontWeight: '700' },
+  initialsText: { color: theme.onFill, fontWeight: '700' },
   primary: {
     backgroundColor: theme.primary,
     minHeight: theme.minTouch,
@@ -135,4 +136,4 @@ const styles = StyleSheet.create({
   primaryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 16 },
   secondary: { minHeight: theme.minTouch, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
   secondaryText: { color: theme.primary, fontWeight: '600', fontSize: 15 },
-});
+}));

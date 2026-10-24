@@ -3,6 +3,18 @@ import { handleSessionExpired } from '../core/sessionGuard.ts';
 import { checkWireVersion } from '../core/wireVersion.ts';
 import { parseSseChunk } from '../core/appShellExtras.ts';
 import { CredentialScope, withoutCredentials } from '../core/credentialScope.ts';
+import {
+  BUILD_HEADER,
+  RENDERER_HEADER,
+  StaleScreenError,
+  backendKeyOf,
+  buildSkew,
+  isMateuForbidden,
+  rendererHeaderValue,
+  skewTexts,
+  type SkewNotice,
+} from '../core/buildSkew.ts';
+import { uiLocale } from '../core/money.ts';
 
 /** A fetch whose response body is a readable STREAM (React Native's global fetch buffers the whole
  *  body). Registered by the app (expo/fetch); without one a stream is read once it has ended. */
@@ -37,6 +49,9 @@ export class MateuApiClient {
   /** Host hook: told ONCE when the server's wireVersion is outside what this build supports. */
   onWireMismatch: (message: string) => void = () => {};
   private wireChecked = false;
+  /** Host hook: the backend was redeployed ('updated', once) or a refusal came from a screen built
+   *  by an older deployment ('stale') — see core/buildSkew.ts. */
+  onBuildNotice: (kind: Exclude<SkewNotice, 'none'>) => void = () => {};
 
   /**
    * This client's own token provider. `undefined` (the single-backend renderer) = use the global one
@@ -104,6 +119,7 @@ export class MateuApiClient {
         deliver(false);
       },
       signal,
+      true,
     );
     deliver(true);
   }
@@ -115,13 +131,26 @@ export class MateuApiClient {
    * Session expiry, exactly as runAction: a 401 gives the app (or this client's own provider) one
    * chance to re-authenticate, then the request is retried once — nothing has been streamed yet.
    */
-  async postStream(url: string, body: string, onText: (text: string) => void, signal?: AbortSignal): Promise<void> {
+  async postStream(
+    url: string,
+    body: string,
+    onText: (text: string) => void,
+    signal?: AbortSignal,
+    mateuEndpoint = false,
+  ): Promise<void> {
     const send = streamingFetch ?? fetch;
+    const extra: Record<string, string> = { Accept: 'text/event-stream' };
+    if (mateuEndpoint) extra[RENDERER_HEADER] = rendererHeaderValue();
     // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
     const doFetch = async () =>
-      send(url, { method: 'POST', headers: await this.headers({ Accept: 'text/event-stream' }, url), body, ...(signal ? { signal } : {}) });
+      send(url, { method: 'POST', headers: { ...(await this.headers({}, url)), ...extra }, body, ...(signal ? { signal } : {}) });
     const response = await this.withReauth(url, doFetch);
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    if (!response.ok) {
+      const text = await response.text();
+      if (mateuEndpoint) this.observeBuild(url, response, text);
+      throw new Error(`HTTP ${response.status}: ${text}`);
+    }
+    if (mateuEndpoint) this.observeBuild(url, response, '');
     const reader = (response.body as ReadableStream<Uint8Array> | null)?.getReader?.();
     if (!reader) {
       onText(await response.text());
@@ -212,7 +241,8 @@ export class MateuApiClient {
     devLog('[Mateu]     body:', payload.slice(0, 500));
 
     // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
-    const doFetch = async () => fetch(url, { method: 'POST', headers: await this.headers(), body: payload });
+    const doFetch = async () =>
+      fetch(url, { method: 'POST', headers: { ...(await this.headers()), [RENDERER_HEADER]: rendererHeaderValue() }, body: payload });
 
     let response = await doFetch();
     // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
@@ -222,6 +252,7 @@ export class MateuApiClient {
     }
     const text = await response.text();
     devLog('[Mateu] <--', response.status, text.slice(0, 500));
+    this.observeBuild(url, response, text);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${text}`);
@@ -230,6 +261,24 @@ export class MateuApiClient {
     const json = JSON.parse(text);
     this.checkWire(json);
     return json;
+  }
+
+  /**
+   * The deployment skew check of one Mateu response: the first `X-Mateu-Build` per backend is its
+   * baseline; a success with another build tells the host once ('updated'); a Mateu 403 with
+   * another build is a stale screen — told to the host and thrown as a StaleScreenError so the
+   * generic "forbidden" text is not shown as well.
+   */
+  private observeBuild(url: string, response: Response, body: string): void {
+    const build = response.headers?.get?.(BUILD_HEADER) ?? null;
+    const notice = buildSkew.observe(backendKeyOf(url), {
+      build,
+      ok: response.ok,
+      mateuForbidden: isMateuForbidden(response.status, body),
+    });
+    if (notice === 'none') return;
+    this.onBuildNotice(notice);
+    if (notice === 'stale') throw new StaleScreenError(skewTexts(uiLocale()).stale);
   }
 
   /** The first response that carries `wireVersion` decides; a mismatch is reported once. */

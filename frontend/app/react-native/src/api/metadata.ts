@@ -58,6 +58,8 @@ export interface HeroSection {
   centered?: boolean;
   /** Band tone (ocean|pine|lilac|teal|rose|pebble|slate|plum|sienna); null = default look. */
   tone?: string | null;
+  /** A short line above the title introducing it (the Redwood welcome page's overline). */
+  overline?: string | null;
 }
 
 export interface EmptyState {

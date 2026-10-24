@@ -141,6 +141,8 @@ export interface ColDef {
   display: boolean;
   cellAction: string;
   editable: boolean;
+  /** A status column's badge tone per raw value (GridColumn.tones): such a cell is a chip. */
+  tones?: Record<string, string> | null;
 }
 
 /** The columns the listing renders as cells (the row-action columns become the row's menu). */
@@ -168,7 +170,69 @@ export function columnDefsOf(
         display: !!rowOpen && isDisplayColumn(cm),
         cellAction: cellActionOf(cm),
         editable: cm['editable'] === true,
+        tones: (cm['tones'] as Record<string, string> | null | undefined) ?? null,
       };
     })
     .filter((c) => !ACTION_COLUMN_TYPES.has(c.dataType));
+}
+
+/**
+ * The tone a cell is painted with, when it is a STATUS: the column's `tones` for the raw value
+ * (`@Status` mappings, `GridColumn.tones`), or a status object's own `type` (SUCCESS / DANGER …).
+ * null = not a status — the cell is plain text.
+ */
+export function cellTone(value: unknown, col: Pick<ColDef, 'tones' | 'dataType'>): string | null {
+  if (value === null || value === undefined || value === '') return null;
+  if (col.tones) {
+    const tone = col.tones[String(typeof value === 'object' ? ((value as Dict)['value'] ?? (value as Dict)['type'] ?? '') : value)];
+    if (tone) return tone;
+  }
+  if (typeof value === 'object' && typeof (value as Dict)['type'] === 'string' && 'message' in (value as Dict)) {
+    return String((value as Dict)['type']).toLowerCase();
+  }
+  return col.dataType === 'status' ? 'neutral' : null;
+}
+
+const isBooleanColumn = (col: Pick<ColDef, 'dataType'>, value: unknown): boolean =>
+  typeof value === 'boolean' || col.dataType === 'bool' || col.dataType === 'boolean';
+
+/** One row of the phone LIST layout (Material list item): headline, supporting text, chips. */
+export interface ListRowModel {
+  /** The first column: what the row IS. */
+  headline: string;
+  /** The other plain columns, " · "-joined. */
+  supporting: string;
+  /** Status columns (tone chips) and TRUE boolean columns (their label, a neutral chip). */
+  chips: { label: string; tone: string }[];
+}
+
+/**
+ * A listing row as a list item. A status cell becomes a chip coloured by its tone (it used to be
+ * plain text among the others); a boolean column reads as its LABEL when true (a "Certified" chip)
+ * and is left out when false — "true"/"false" in a sentence of values told the user nothing. The
+ * row keeps every raw value: this is presentation only.
+ */
+export function listRowModel(
+  row: Dict,
+  cols: Pick<ColDef, 'fieldId' | 'label' | 'dataType' | 'stereotype' | 'valueLabels' | 'tones'>[],
+  text: (value: unknown, col: (typeof cols)[number]) => string,
+): ListRowModel {
+  const [first, ...rest] = cols;
+  const headline = first ? text(row[first.fieldId], first) : '';
+  const supporting: string[] = [];
+  const chips: { label: string; tone: string }[] = [];
+  for (const col of rest) {
+    const value = row[col.fieldId];
+    const tone = cellTone(value, col);
+    if (tone) {
+      const label = text(value, col);
+      if (label) chips.push({ label, tone });
+    } else if (isBooleanColumn(col, value)) {
+      if (value === true || value === 'true') chips.push({ label: col.label || col.fieldId, tone: 'neutral' });
+    } else {
+      const t = text(value, col);
+      if (t) supporting.push(t);
+    }
+  }
+  return { headline, supporting: supporting.join(' · '), chips };
 }

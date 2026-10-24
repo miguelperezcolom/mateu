@@ -1,14 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Modal,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { Modal, Switch, TouchableOpacity, View, StyleSheet, ScrollView } from 'react-native';
+import { HelperText, Switch as PaperSwitch, Text as PaperText } from 'react-native-paper';
+import { MateuButton, OutlinedDecimalInput, OutlinedInput, OutlinedTrigger } from '../ui/controls';
+import { Text, TextInput } from '../ui/Text';
 import { PhotoCaptureField, SignatureField } from './CaptureFields';
 import { DateField } from './DateField';
 import {
@@ -31,7 +25,7 @@ import { showsAsReadOnlyText } from './readOnlyText';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, mapItemsToOptions, type FetchedOption } from '../core/restFetch';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
 import { fieldPlaceholder } from '../core/uxRules';
 import { richTextHtml } from '../core/richTextValue';
@@ -157,6 +151,10 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     );
   }
 
+  // Text-like inputs, selects and dates draw their label INSIDE the outline (Material outlined
+  // field) and their error under it; everything else keeps the label above.
+  let ownLabel = false;
+  const outlined = { label: label || fieldId, required, error, a11y };
   const renderInput = () => {
     // Grid: an array-of-rows field (nested collection). Read-only shows the table; editable
     // opens a row form on tap (mobile-friendly counterpart of the web's inline editors).
@@ -183,15 +181,23 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Boolean (also the toggle/checkbox stereotypes)
     if (dataType === 'bool' || dataType === 'boolean' || dataType === 'Boolean') {
+      ownLabel = true;
       return (
-        // RN-07: the switch carries the field's name (it was announced as an unnamed "switch").
-        <Switch
-          {...a11y}
-          accessibilityRole="switch"
-          value={Boolean(rawValue)}
-          onValueChange={(v) => commit(fieldId, v)}
-          disabled={!editable}
-        />
+        // a Material switch row: the label on the left, the switch on the right
+        <View style={styles.switchRow}>
+          <PaperText variant="bodyLarge" style={styles.switchLabel} importantForAccessibility="no" accessibilityElementsHidden>
+            {label || fieldId}{required ? ' *' : ''}
+          </PaperText>
+          {/* RN-07: the switch carries the field's name (it was announced as an unnamed "switch"). */}
+          <PaperSwitch
+            {...a11y}
+            accessibilityRole="switch"
+            value={Boolean(rawValue)}
+            onValueChange={(v) => commit(fieldId, v)}
+            disabled={!editable}
+            color={theme.primary}
+          />
+        </View>
       );
     }
 
@@ -274,16 +280,16 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       // a legacy (Quill Delta JSON) richText value opens as its HTML, like on the web
       const content = stereotype === 'richText' ? richTextHtml(stringValue) : stringValue;
       if (!editable) return <RichText value={content} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
+      ownLabel = true;
       return (
-        <TextInput
-          {...a11y}
-          style={[styles.input, styles.textarea]}
+        <OutlinedInput
+          {...outlined}
+          style={styles.textarea}
           value={content}
           onChangeText={(v) => commit(fieldId, v)}
           multiline
           numberOfLines={6}
           placeholder={placeholder}
-          placeholderTextColor={theme.faint}
         />
       );
     }
@@ -291,9 +297,13 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     // Date / datetime: calendar picker committing the ISO wire format
     if (dataType === 'date' || dataType === 'datetime') {
       if (!editable) return <ReadOnlyValue label={label || fieldId} text={stringValue.replace('T', ' ')} />;
+      ownLabel = true;
       return (
         <DateField
           {...a11y}
+          label={label || fieldId}
+          required={required}
+          error={error}
           value={stringValue}
           editable={editable}
           withTime={dataType === 'datetime'}
@@ -320,8 +330,10 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Tree select: the dropdown unfolds a TREE (options carry children)
     if (stereotype === 'treeSelect') {
+      ownLabel = true;
       return (
         <TreeSelectField
+          label={label || fieldId}
           options={options}
           leavesOnly={(metadata as { treeLeavesOnly?: boolean }).treeLeavesOnly === true}
           value={stringValue}
@@ -342,8 +354,12 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // @RestOptions: options fetched CLIENT-SIDE from an arbitrary REST endpoint.
     if (metadata.optionsSource) {
+      ownLabel = true;
       return (
         <RestOptionsField
+          label={label || fieldId}
+          required={required}
+          error={error}
           source={metadata.optionsSource}
           fieldId={fieldId}
           state={state}
@@ -358,7 +374,8 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     // Options (enum / static list)
     if (options.length > 0) {
       if (!editable) return <ReadOnlyValue label={label || fieldId} text={options.find((o) => o.value === stringValue)?.label ?? stringValue} />;
-      return <OptionsField label={label || fieldId} options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+      ownLabel = true;
+      return <OptionsField label={label || fieldId} required={required} error={error} options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
     }
 
     // RN-08: a read-only value is TEXT, not an input box. A disabled TextInput looked exactly like
@@ -371,43 +388,42 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Textarea
     if (stereotype === 'textarea') {
+      ownLabel = true;
       return (
-        <TextInput
-          {...a11y}
-          style={[styles.input, styles.textarea]}
+        <OutlinedInput
+          {...outlined}
+          style={styles.textarea}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v)}
           multiline
           numberOfLines={4}
           editable={editable}
           placeholder={placeholder}
-          placeholderTextColor={theme.faint}
         />
       );
     }
 
     // Password
     if (stereotype === 'password') {
+      ownLabel = true;
       return (
-        <TextInput
-          {...a11y}
-          style={styles.input}
+        <OutlinedInput
+          {...outlined}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v)}
           secureTextEntry
           editable={editable}
           placeholder={placeholder}
-          placeholderTextColor={theme.faint}
         />
       );
     }
 
     // Time (LocalTime): HH:MM input
     if (dataType === 'time') {
+      ownLabel = true;
       return (
-        <TextInput
-          {...a11y}
-          style={styles.input}
+        <OutlinedInput
+          {...outlined}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v)}
           placeholder="HH:MM"
@@ -429,16 +445,15 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           />
         );
       }
+      ownLabel = true;
       return (
-        <TextInput
-          {...a11y}
-          style={styles.input}
+        <OutlinedInput
+          {...outlined}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v === '' ? null : parseInt(v, 10))}
           keyboardType="number-pad"
           editable={editable}
           placeholder={placeholder}
-          placeholderTextColor={theme.faint}
         />
       );
     }
@@ -449,30 +464,28 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
         return <Text style={styles.plainText}>{formatMoney(rawValue)}</Text>;
       }
       const money = dataType === 'money' || ['money', 'currency'].includes(stereotype);
+      ownLabel = true;
       return (
-        <DecimalInput
-          {...a11y}
-          style={styles.input}
+        <OutlinedDecimalInput
+          {...outlined}
           text={money ? moneyInputText(rawValue) : stringValue}
           onChangeText={(v) => commit(fieldId, money ? moneyInputCommit(rawValue, v) : v === '' ? null : parseFloat(v.replace(',', '.')))}
           keyboardType="decimal-pad"
           editable={editable}
           placeholder={placeholder}
-          placeholderTextColor={theme.faint}
         />
       );
     }
 
     // Default text (email keyboard for the email stereotype)
+    ownLabel = true;
     return (
-      <TextInput
-        {...a11y}
-        style={styles.input}
+      <OutlinedInput
+        {...outlined}
         value={stringValue}
         onChangeText={(v) => commit(fieldId, v)}
         editable={editable}
         placeholder={placeholder}
-          placeholderTextColor={theme.faint}
         keyboardType={stereotype === 'email' ? 'email-address' : 'default'}
         autoCapitalize="none"
       />
@@ -481,9 +494,16 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label ?? fieldId}{required ? ' *' : ''}</Text>
-      {renderInput()}
-      {!!error && <Text style={styles.fieldError}>{error}</Text>}
+      {(() => {
+        const input = renderInput();
+        return (
+          <>
+            {!ownLabel && <PaperText variant="labelLarge" style={styles.label}>{label ?? fieldId}{required ? ' *' : ''}</PaperText>}
+            {input}
+            {!!error && !ownLabel && <HelperText type="error" visible style={styles.fieldError}>{error}</HelperText>}
+          </>
+        );
+      })()}
     </View>
   );
 }
@@ -611,9 +631,12 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
           <ScrollView>
             {columns.map((c) => (
               <View key={c.id} style={styles.container}>
-                <Text style={styles.label}>{c.label || c.id}</Text>
+                {(isBool(c) || (c.editorOptions?.length ?? 0) > 0 || c.dataType === 'date' || c.dataType === 'datetime') && (
+                  <PaperText variant="labelLarge" style={styles.label}>{c.label || c.id}</PaperText>
+                )}
                 {isBool(c) ? (
-                  <Switch
+                  <PaperSwitch
+                    accessibilityLabel={c.label || c.id}
                     value={Boolean(draft[c.id])}
                     onValueChange={(v) => setDraft({ ...draft, [c.id]: v })}
                   />
@@ -632,8 +655,8 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
                     onChange={(v) => setDraft({ ...draft, [c.id]: v })}
                   />
                 ) : (
-                  <TextInput
-                    style={styles.input}
+                  <OutlinedInput
+                    label={c.label || c.id}
                     value={draft[c.id] === null || draft[c.id] === undefined ? '' : String(draft[c.id])}
                     keyboardType={isNumber(c) ? 'decimal-pad' : 'default'}
                     onChangeText={(v) =>
@@ -649,18 +672,10 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
             ))}
           </ScrollView>
           <View style={styles.rowFormButtons}>
-            {!isNew && (
-              <TouchableOpacity {...buttonA11y()} style={[styles.rowFormButton, styles.rowFormDelete]} onPress={onDelete}>
-                <Text style={styles.rowFormDeleteText}>Delete</Text>
-              </TouchableOpacity>
-            )}
+            {!isNew && <MateuButton label="Delete" buttonStyle="tertiary" color="error" onPress={onDelete} />}
             <View style={{ flex: 1 }} />
-            <TouchableOpacity {...buttonA11y()} style={styles.rowFormButton} onPress={onCancel}>
-              <Text>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity {...buttonA11y()} style={[styles.rowFormButton, styles.rowFormSave]} onPress={() => onSave(draft)}>
-              <Text style={styles.rowFormSaveText}>Save</Text>
-            </TouchableOpacity>
+            <MateuButton label="Cancel" buttonStyle="tertiary" onPress={onCancel} />
+            <MateuButton label="Save" buttonStyle="primary" onPress={() => onSave(draft)} />
           </View>
         </View>
       </View>
@@ -670,7 +685,10 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
 
 // @RestOptions: a select whose options are fetched CLIENT-SIDE from an arbitrary REST endpoint on
 // mount (and refetched when the interpolated url changes — a state-dependent source).
-function RestOptionsField({ source, fieldId, state, appState, value, editable, onChange }: {
+function RestOptionsField({ label, required, error, source, fieldId, state, appState, value, editable, onChange }: {
+  label?: string;
+  required?: boolean;
+  error?: string;
   source: NonNullable<FieldMeta['optionsSource']>;
   fieldId: string;
   state: Record<string, unknown>;
@@ -700,10 +718,10 @@ function RestOptionsField({ source, fieldId, state, appState, value, editable, o
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
-  return <OptionsField options={options} value={value} editable={editable} onChange={onChange} />;
+  return <OptionsField label={label} required={required} error={error} options={options} value={value} editable={editable} onChange={onChange} />;
 }
 
-function OptionsField({ label, options, value, editable, onChange }: { label?: string; options: Option[]; value: string; editable: boolean; onChange: (v: string) => void }) {
+function OptionsField({ label, required, error, options, value, editable, onChange }: { label?: string; required?: boolean; error?: string; options: Option[]; value: string; editable: boolean; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
   const shown = selected?.label ?? (value || 'Select…');
@@ -712,24 +730,39 @@ function OptionsField({ label, options, value, editable, onChange }: { label?: s
     <View>
       {/* RN-07: the trigger is named after the FIELD and says its value + whether the list is open
           (it was announced as just the value — "Available, button" — with no field name). */}
-      <TouchableOpacity
-        {...buttonA11y({ label: label ? `${label}: ${selected?.label ?? (value || 'not selected')}` : undefined, expanded: open, disabled: !editable })}
-        style={styles.input}
-        onPress={() => editable && setOpen(!open)}
-        activeOpacity={editable ? 0.7 : 1}
-      >
-        <Text style={!selected ? styles.placeholder : undefined}>{shown} ▾</Text>
-      </TouchableOpacity>
+      {label ? (
+        <OutlinedTrigger
+          label={label}
+          required={required}
+          error={error}
+          value={selected?.label ?? value}
+          placeholder="Select…"
+          icon={open ? 'menu-up' : 'menu-down'}
+          expanded={open}
+          disabled={!editable}
+          accessibilityLabel={`${label}: ${selected?.label ?? (value || 'not selected')}`}
+          onPress={() => editable && setOpen(!open)}
+        />
+      ) : (
+        <TouchableOpacity
+          {...buttonA11y({ expanded: open, disabled: !editable })}
+          style={styles.input}
+          onPress={() => editable && setOpen(!open)}
+          activeOpacity={editable ? 0.7 : 1}
+        >
+          <Text style={!selected ? styles.placeholder : undefined}>{shown} ▾</Text>
+        </TouchableOpacity>
+      )}
       {open && (
         <View style={styles.dropdown}>
           <ScrollView style={{ maxHeight: 200 }}>
             {options.map((opt) => (
               <TouchableOpacity {...buttonA11y({ selected: opt.value === value })}
                 key={opt.value}
-                style={styles.dropdownItem}
+                style={[styles.dropdownItem, opt.value === value && styles.dropdownItemSelected]}
                 onPress={() => { onChange(opt.value); setOpen(false); }}
               >
-                <Text>{opt.label}</Text>
+                <Text style={opt.value === value ? styles.dropdownTextSelected : undefined}>{opt.label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -741,7 +774,8 @@ function OptionsField({ label, options, value, editable, onChange }: { label?: s
 
 // The tree variant of OptionsField (@TreeSelect): nodes with children expand/collapse in place;
 // with leavesOnly, tapping a group only toggles it.
-function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
+function TreeSelectField({ label, options, leavesOnly, value, editable, onChange }: {
+  label?: string;
   options: Option[]; leavesOnly: boolean; value: string; editable: boolean; onChange: (v: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -769,9 +803,15 @@ function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
 
   return (
     <View>
-      <TouchableOpacity {...buttonA11y()} style={styles.input} onPress={() => editable && setOpen(!open)} activeOpacity={editable ? 0.7 : 1}>
-        <Text style={!value ? styles.placeholder : undefined}>{currentLabel}</Text>
-      </TouchableOpacity>
+      <OutlinedTrigger
+        label={label}
+        value={value ? currentLabel : ''}
+        placeholder="Select…"
+        icon={open ? 'menu-up' : 'menu-down'}
+        expanded={open}
+        disabled={!editable}
+        onPress={() => editable && setOpen(!open)}
+      />
       {open && (
         <View style={styles.dropdown}>
           <ScrollView style={{ maxHeight: 240 }}>
@@ -812,8 +852,12 @@ function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
   );
 }
 
-const styles = StyleSheet.create({
-  fieldError: { color: theme.danger, fontSize: 12, marginTop: 4 },
+const styles = themed(() => StyleSheet.create({
+  fieldError: { paddingHorizontal: 0 },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 50, marginTop: 6, gap: 12 },
+  switchLabel: { flex: 1, color: theme.ink },
+  dropdownItemSelected: { backgroundColor: theme.primaryContainer },
+  dropdownTextSelected: { color: theme.onPrimaryContainer, fontWeight: '600' },
   plainText: { fontSize: 14, color: theme.ink, paddingVertical: 6 },
   readOnlyValue: { fontSize: 15, color: theme.ink, paddingVertical: 6 },
   readOnlyEmpty: { color: theme.faint },
@@ -826,8 +870,8 @@ const styles = StyleSheet.create({
   bulletedFieldRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 2 },
   bulletedFieldDot: { color: theme.faint, lineHeight: 20 },
   bulletedFieldText: { flex: 1, color: theme.ink, fontSize: 14, lineHeight: 20 },
-  container: { marginBottom: 12 },
-  label: { fontSize: 12, color: theme.muted, marginBottom: 4, fontWeight: '500' },
+  container: { marginBottom: 14 },
+  label: { color: theme.muted, marginBottom: 4 },
   input: {
     borderWidth: 1,
     borderColor: theme.border,
@@ -839,14 +883,15 @@ const styles = StyleSheet.create({
     minHeight: 42,
     justifyContent: 'center',
   },
-  textarea: { height: 100, textAlignVertical: 'top', paddingTop: 10 },
+  textarea: { minHeight: 110, textAlignVertical: 'top' },
   placeholder: { color: theme.faint },
   dropdown: {
     borderWidth: 1,
     borderColor: theme.border,
-    borderRadius: theme.radiusSm,
-    backgroundColor: theme.white,
-    marginTop: 2,
+    borderRadius: 8,
+    backgroundColor: theme.surface,
+    marginTop: 4,
+    overflow: 'hidden',
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -854,7 +899,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     zIndex: 100,
   },
-  dropdownItem: { paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.divider },
+  dropdownItem: { paddingHorizontal: 16, paddingVertical: 14, minHeight: 48, justifyContent: 'center' },
   gridBox: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, overflow: 'hidden' },
   gridRow: { flexDirection: 'row', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: theme.divider },
   gridRowAlt: { backgroundColor: theme.background },
@@ -865,11 +910,11 @@ const styles = StyleSheet.create({
   gridAdd: { padding: 10, alignItems: 'center' },
   gridAddText: { color: theme.primary, fontWeight: '600', fontSize: 13 },
   rowFormBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
-  rowFormCard: { backgroundColor: theme.white, borderRadius: 12, padding: 16, maxHeight: '80%' },
+  rowFormCard: { backgroundColor: theme.surface, borderRadius: theme.radiusLg, padding: 24, maxHeight: '80%' },
   rowFormButtons: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   rowFormButton: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
   rowFormSave: { backgroundColor: theme.primary, borderColor: theme.primary },
-  rowFormSaveText: { color: theme.white, fontWeight: '600' },
+  rowFormSaveText: { color: theme.onFill, fontWeight: '600' },
   rowFormDelete: { borderColor: theme.danger },
   rowFormDeleteText: { color: theme.danger },
-});
+}));

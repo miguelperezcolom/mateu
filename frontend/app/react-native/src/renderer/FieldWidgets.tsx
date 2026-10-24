@@ -1,15 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
-import { theme } from '../theme';
-import {
-  Image,
-  PanResponder,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { theme, themed } from '../theme';
+import { Image, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import { buttonA11y } from '../a11y/a11y';
 import { decimalDraft, moneyText } from '../core/uxRules';
 import { stripHtml } from './htmlText';
@@ -342,7 +335,7 @@ export function BadgeChip({ label, on }: { label: string; on: boolean }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   radioGroup: { gap: 8 },
   radioRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: theme.faint, alignItems: 'center', justifyContent: 'center' },
@@ -353,7 +346,7 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.white },
   chipOn: { backgroundColor: theme.primary, borderColor: theme.primary },
   chipText: { fontSize: 13, color: theme.ink },
-  chipOnText: { fontSize: 13, color: theme.white },
+  chipOnText: { fontSize: 13, color: theme.onFill },
   sliderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sliderBound: { fontSize: 11, color: theme.faint },
   sliderTrack: { flex: 1, height: 28, justifyContent: 'center' },
@@ -385,4 +378,4 @@ const styles = StyleSheet.create({
   badgeChipOn: { backgroundColor: theme.successBg },
   badgeChipText: { fontSize: 12, color: theme.faint },
   badgeChipOnText: { fontSize: 12, color: theme.success, fontWeight: '600' },
-});
+}));

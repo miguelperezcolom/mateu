@@ -10,6 +10,8 @@ import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
 import { CredentialScope, appStateFor } from './credentialScope.ts';
 import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
 import { AgentPushState } from './agentPush.ts';
+import { skewTexts, type SkewNotice } from './buildSkew.ts';
+import { uiLocale } from './money.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -17,7 +19,10 @@ export type MessageVariant = 'info' | 'warning' | 'error';
  *  (Message.undoLabel/undoActionId on the wire) that runs the reverse action when pressed. */
 export interface NotifyOptions {
   duration?: number;
+  /** A button on the toast (an Undo, the version-skew Reload); pressing it dismisses the toast. */
   undo?: { label: string; onPress: () => void };
+  /** Stays until dismissed, whatever the variant. */
+  sticky?: boolean;
 }
 
 export interface NavTarget {
@@ -72,6 +77,13 @@ export class MateuSession {
 
   /** Host hook: show a non-blocking message (toast/snackbar). */
   notify: (title: string | null, text: string, variant: MessageVariant, options?: NotifyOptions) => void = () => {};
+
+  /** Host hook: reload the app from scratch — the current screen re-runs its load (the Reload of
+   *  the version-skew notices, core/buildSkew.ts). */
+  reload: () => void = () => {};
+
+  /** The session whose toast host / reload a derived session (island, navigation) uses. */
+  private readonly noticeTarget: MateuSession;
 
   /** Host hook: open a route as a NEW screen (navigation push). */
   openView: (target: NavTarget) => void = () => {};
@@ -153,6 +165,18 @@ export class MateuSession {
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.
     this.api.onWireMismatch = (message) => this.notify(null, message, 'error', { duration: 30000 });
+    // A redeployed backend / a screen built by an older deployment: one sticky notice with Reload.
+    this.noticeTarget = storesFrom?.noticeTarget ?? this;
+    this.api.onBuildNotice = (kind) => this.noticeTarget.showBuildNotice(kind);
+  }
+
+  /** The version-skew notice (en/es by the UI's locale), sticky, with a Reload button. */
+  showBuildNotice(kind: Exclude<SkewNotice, 'none'>): void {
+    const texts = skewTexts(uiLocale());
+    this.notify(null, kind === 'stale' ? texts.stale : texts.updated, kind === 'stale' ? 'error' : 'warning', {
+      sticky: true,
+      undo: { label: texts.reload, onPress: () => this.reload() },
+    });
   }
 
   subscribe(owner: unknown, eventName: string, handler: (payload: unknown) => boolean | void): void {

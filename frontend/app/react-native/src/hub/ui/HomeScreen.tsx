@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../../ui/Text';
 import { buttonA11y, fieldA11y, headingA11y } from '../../a11y/a11y';
-import { theme } from '../../theme';
+import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import { searchEntries, type HubEntry } from '../uiStore';
 import { PrimaryButton, SecondaryButton, UiIcon, hubStyles } from './common';
@@ -154,7 +155,7 @@ function EntryRow({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   searchBox: { paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md },
   list: { padding: theme.spacing.md, gap: theme.spacing.sm },
   noMatch: { alignSelf: 'center', marginTop: theme.spacing.lg },
@@ -171,4 +172,4 @@ const styles = StyleSheet.create({
   footer: { padding: theme.spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border, backgroundColor: theme.white, alignItems: 'stretch' },
   footerButton: { alignSelf: 'stretch' },
   emptyButton: { marginTop: theme.spacing.md, alignSelf: 'stretch', maxWidth: 340 },
-});
+}));

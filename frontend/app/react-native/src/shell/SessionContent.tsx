@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { toastLifetime } from '../core/toastLifetime';
 import { useAppContext } from '../context/AppContext';
 import { bootFailureOf, loadFailureMessage } from '../core/uxRules';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
+import { IconButton, Snackbar, Text as PaperText } from 'react-native-paper';
+import { MateuButton } from '../ui/controls';
 import { AppRenderer } from '../renderer/AppRenderer';
 import { MateuViewHost } from '../renderer/MateuViewHost';
 import { overlayContentWithData, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
@@ -34,6 +37,8 @@ interface Toast {
   text: string;
   variant: 'info' | 'warning' | 'error';
   undo?: { label: string; onPress: () => void };
+  /** ms; 0 = stays until dismissed (gets a ✕) */
+  lifetime: number;
 }
 
 /** Non-blocking messages from the backend (toasts on the web) as stacked banners. Undoable
@@ -45,11 +50,11 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
 
   useEffect(() => {
     session.notify = (title, text, variant, options) => {
-      const toast: Toast = { id: nextId.current++, title, text, variant, undo: options?.undo };
-      setToasts((t) => [...t, toast]);
       // undoable toasts default to 10s (like the web's SSEService) so the button can be pressed;
-      // an error stays until dismissed (toastLifetime)
+      // an error (or a sticky notice) stays until dismissed (toastLifetime)
       const duration = toastLifetime(variant, options);
+      const toast: Toast = { id: nextId.current++, title, text, variant, undo: options?.undo, lifetime: duration };
+      setToasts((t) => [...t, toast]);
       if (duration > 0) setTimeout(() => setToasts((t) => t.filter((x) => x.id !== toast.id)), duration);
     };
   }, [session]);
@@ -58,35 +63,25 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
 
   if (toasts.length === 0 || !visible) return null;
   return (
+    // Material snackbars, stacked above the floating buttons; an undoable one carries its action,
+    // a sticky one (an error, the "app updated — Reload" notice) a close icon
     <View style={styles.toastHost} pointerEvents="box-none">
       {toasts.map((t) => (
-        <View key={t.id} style={[styles.toast, styles[`toast_${t.variant}`]]}>
-          {!!t.title && <Text style={styles.toastTitle}>{t.title}</Text>}
-          <View style={styles.toastBody}>
-            <Text style={[styles.toastText, styles.toastTextGrow]}>{t.text}</Text>
-            {!!t.undo && (
-              <TouchableOpacity
-                style={styles.toastUndo}
-                onPress={() => {
-                  t.undo!.onPress();
-                  dismiss(t.id);
-                }}
-              >
-                <Text style={styles.toastUndoText}>{t.undo.label}</Text>
-              </TouchableOpacity>
-            )}
-            {toastLifetime(t.variant) === 0 && (
-              <TouchableOpacity
-                style={styles.toastUndo}
-                accessibilityRole="button"
-                accessibilityLabel="Dismiss"
-                onPress={() => dismiss(t.id)}
-              >
-                <Text style={styles.toastUndoText}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        <Snackbar
+          key={t.id}
+          visible
+          onDismiss={() => {}}
+          duration={Number.MAX_SAFE_INTEGER}
+          wrapperStyle={styles.toastWrapper}
+          style={[styles.toast, t.variant === 'error' && styles.toastError]}
+          theme={t.variant === 'error' ? { colors: { inverseOnSurface: theme.onFill, inversePrimary: theme.onFill } } : undefined}
+          action={t.undo ? { label: t.undo.label, onPress: () => { t.undo!.onPress(); dismiss(t.id); } } : undefined}
+          onIconPress={t.lifetime === 0 ? () => dismiss(t.id) : undefined}
+          iconAccessibilityLabel="Dismiss"
+          accessibilityRole={t.variant === 'error' ? 'alert' : undefined}
+        >
+          {t.title ? `${t.title} — ${t.text}` : t.text}
+        </Snackbar>
       ))}
     </View>
   );
@@ -169,12 +164,12 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
     // announced as bare text, unreachable as a control)
     <Modal {...modalA11y(title || 'Dialog')} accessibilityViewIsModal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
       <View style={styles.overlayBackdrop}>
+        {/* a Material bottom sheet: drag handle, title, close */}
         <View style={styles.overlaySheet}>
+          <View style={styles.overlayHandle} />
           <View style={styles.overlayHeader}>
-            <Text {...headingA11y(2)} style={styles.overlayTitle}>{title}</Text>
-            <TouchableOpacity {...buttonA11y({ label: title ? `Close ${title}` : 'Close' })} hitSlop={theme.hitSlop} onPress={() => session.closeTopOverlay()}>
-              <Text style={styles.overlayClose}>✕</Text>
-            </TouchableOpacity>
+            <PaperText variant="titleLarge" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
+            <IconButton icon="close" accessibilityLabel={title ? `Close ${title}` : 'Close'} onPress={() => session.closeTopOverlay()} />
           </View>
           {content ? (
             <MateuViewHost
@@ -234,8 +229,7 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={styles.loadingText}>Loading…</Text>
+        <ActivityIndicator size="large" color={theme.primary} accessibilityLabel="Loading" />
       </View>
     );
   }
@@ -250,14 +244,7 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
       <View style={styles.centered} accessibilityRole="alert">
         <Text style={styles.errorTitle} accessibilityRole="header">{message.title}</Text>
         <Text style={styles.errorDetail}>{message.detail}</Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Try again"
-          style={styles.retryButton}
-          onPress={() => setAttempt((a) => a + 1)}
-        >
-          <Text style={styles.retryText}>Try again</Text>
-        </TouchableOpacity>
+        <MateuButton label="Try again" buttonStyle="primary" icon="refresh" onPress={() => setAttempt((a) => a + 1)} />
         {message.detail !== error && <Text style={styles.errorTechnical}>{error}</Text>}
       </View>
     );
@@ -277,38 +264,18 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
   return <MateuViewHost session={session} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  loadingText: { marginTop: 12, fontSize: 14, color: '#666' },
-  errorTitle: { fontSize: 18, fontWeight: '700', color: theme.ink, textAlign: 'center', marginBottom: 8 },
-  errorDetail: { fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 20, maxWidth: 320 },
+const styles = themed(() => StyleSheet.create({
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: theme.background },
+  errorTitle: { fontSize: 20, fontWeight: '600', color: theme.ink, textAlign: 'center', marginBottom: 8 },
+  errorDetail: { fontSize: 15, color: theme.muted, textAlign: 'center', marginBottom: 24, maxWidth: 320 },
   errorTechnical: { fontSize: 12, color: theme.faint, textAlign: 'center', marginTop: 16 },
-  retryButton: { backgroundColor: theme.primary, paddingHorizontal: 24, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
-  retryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 15 },
-  toastHost: { position: 'absolute', top: 40, left: 16, right: 16, gap: 8 },
-  toast: { borderRadius: 8, padding: 12, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
-  toast_info: { backgroundColor: '#e8f0fe' },
-  toast_warning: { backgroundColor: '#fdf6e3' },
-  toast_error: { backgroundColor: '#fbe9e7' },
-  toastTitle: { fontWeight: '700', fontSize: 13, color: '#1a1a1a', marginBottom: 2 },
-  toastText: { fontSize: 13, color: '#1a1a1a' },
-  toastBody: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  toastTextGrow: { flex: 1 },
-  toastUndo: { borderWidth: 1, borderColor: '#1a1a1a', borderRadius: 4, paddingHorizontal: 10, paddingVertical: 3 },
-  toastUndoText: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  toastHost: { position: 'absolute', bottom: 88, left: 0, right: 0, gap: 8 },
+  toastWrapper: { position: 'relative' },
+  toast: { borderRadius: 4 },
+  toastError: { backgroundColor: theme.danger },
   overlayBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  overlaySheet: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '85%', minHeight: '50%' },
-  overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  overlayTitle: { fontSize: 16, fontWeight: '600', color: '#1a1a1a' },
-  overlayClose: { fontSize: 18, color: '#666', paddingHorizontal: 8 },
-  updateTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
-  updateDetail: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 },
-  updateSpinner: { marginVertical: 8 },
-  updateButton: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, marginTop: 4 },
-  updateButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  updateFallback: { marginTop: 16, alignItems: 'center' },
-  updateRecheck: { marginTop: 20, padding: 8 },
-  signInError: { marginTop: 12 },
-  updateRecheckText: { color: theme.primary, fontSize: 13, fontWeight: '600' },
-});
+  overlaySheet: { backgroundColor: theme.surface, borderTopLeftRadius: theme.radiusLg, borderTopRightRadius: theme.radiusLg, maxHeight: '88%', minHeight: '50%', overflow: 'hidden' },
+  overlayHandle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 10 },
+  overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: 24, paddingRight: 8, paddingTop: 4, paddingBottom: 4 },
+  overlayTitle: { flex: 1, color: theme.ink },
+}));

@@ -1,8 +1,9 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import { MateuSession } from '../core/MateuSession';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { RichText } from './FieldWidgets';
 import {
@@ -250,7 +251,7 @@ export function ChatPanel({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: theme.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, height: '75%' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: theme.divider },
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
   bubble: { maxWidth: '85%', borderRadius: 12, padding: 10 },
   userBubble: { alignSelf: 'flex-end', backgroundColor: theme.primary },
   agentBubble: { alignSelf: 'flex-start', backgroundColor: theme.divider },
-  userText: { color: theme.white, fontSize: 14 },
+  userText: { color: theme.onFill, fontSize: 14 },
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
   progress: { color: theme.muted, fontSize: 13, fontStyle: 'italic' },
   usage: { color: theme.faint, fontSize: 11, alignSelf: 'flex-end' },
@@ -274,5 +275,5 @@ const styles = StyleSheet.create({
   attachText: { fontSize: 16 },
   input: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, fontSize: 14 },
   send: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
-  sendText: { color: theme.white, fontSize: 16 },
-});
+  sendText: { color: theme.onFill, fontSize: 16 },
+}));

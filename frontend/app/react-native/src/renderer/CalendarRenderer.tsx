@@ -1,7 +1,8 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import {
   agenda, anchorOf, dayA11yLabel, dayInfo, dayOfMonth, dayParameters, eventA11yLabel, eventsOn, initialView,
@@ -191,7 +192,7 @@ export function CalendarRenderer({ component }: { component: unknown }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   calendar: { gap: 8 },
   toolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
   title: { fontWeight: '700', fontSize: 16, color: theme.ink },
@@ -230,4 +231,4 @@ const styles = StyleSheet.create({
   chipTitle: { fontWeight: '600', color: theme.ink },
   chipTitleCompact: { fontSize: 10, fontWeight: '500' },
   empty: { color: theme.faint, fontStyle: 'italic' },
-});
+}));

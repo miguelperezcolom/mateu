@@ -54,3 +54,45 @@ test('the accent is not the error colour (an accent that reads as an error makes
 test('touch targets follow the platform minimum (HIG 44pt)', () => {
   assert.ok(theme.minTouch >= 44);
 });
+
+test('dark scheme: text tokens reach AA on the dark surfaces, semantic text on its tinted background', async () => {
+  const { applyTheme } = await import('./theme.ts');
+  applyTheme('dark');
+  try {
+    for (const color of [theme.ink, theme.muted, theme.faint]) {
+      for (const surface of [theme.surface, theme.background]) {
+        assert.ok(contrast(color, surface) >= AA, `${color} on ${surface}: ${contrast(color, surface).toFixed(2)}`);
+      }
+    }
+    for (const [fg, bg] of [[theme.success, theme.successBg], [theme.warning, theme.warningBg], [theme.danger, theme.dangerBg], [theme.info, theme.infoBg]]) {
+      assert.ok(contrast(fg, bg) >= AA, `${fg} on ${bg}`);
+      assert.ok(contrast(theme.onFill, fg) >= AA, `onFill on ${fg}`);
+    }
+    assert.ok(contrast(theme.primary, theme.surface) >= AA, 'the dark primary reads as text on the surface');
+    assert.ok(contrast(theme.onPrimary, theme.primary) >= AA);
+  } finally {
+    applyTheme('light');
+  }
+});
+
+test('the app accent becomes the primary, adjusted until it reads; anything that is not hex is ignored', async () => {
+  const { accentFor } = await import('./theme.ts');
+  const light = accentFor('light', '#FFD400'); // a yellow brand: darkened until white text reads on it
+  assert.ok(contrast('#FFFFFF', light.primary) >= AA, light.primary);
+  const kept = accentFor('light', '#0B6E4F'); // already dark enough: kept as is
+  assert.equal(kept.primary, '#0B6E4F');
+  assert.equal(accentFor('light', 'rebeccapurple').primary, accentFor('light', null).primary);
+  const dark = accentFor('dark', '#0B6E4F'); // lightened until it reads on the dark surface
+  assert.ok(contrast(dark.primary, '#1C1D21') >= AA, dark.primary);
+});
+
+test('a themed stylesheet is rebuilt when the scheme changes', async () => {
+  const { applyTheme, themed } = await import('./theme.ts');
+  const styles = themed(() => ({ box: { backgroundColor: theme.surface } }));
+  applyTheme('light');
+  const light = styles.box.backgroundColor;
+  applyTheme('dark');
+  assert.notEqual(styles.box.backgroundColor, light);
+  applyTheme('light');
+  assert.equal(styles.box.backgroundColor, light);
+});

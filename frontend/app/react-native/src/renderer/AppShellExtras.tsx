@@ -1,10 +1,12 @@
 import React from 'react';
-import { AppState, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { AppState, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import { fetch as streamingFetch } from 'expo/fetch';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { announce, announceLive, buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { useAppContext } from '../context/AppContext';
 import { openExternal } from './openExternal';
+import { RENDERER_HEADER, rendererHeaderValue } from '../core/buildSkew';
 import {
   headerChangesOf, idlePhase, launchableShortcuts, parseSseChunk, quickLaunchMatch, reconnectDelay,
   signOutTarget, type AppShortcut, type HeaderValue, type IdleSession,
@@ -69,7 +71,7 @@ export function useLiveUpdates(meta: ShellExtrasMeta) {
         const response = await streamingFetch(`${session.api.baseUrl}/mateu/v3/sse/${route}`, {
           method: 'POST',
           signal: own.signal,
-          headers: await session.api.headers({ Accept: 'text/event-stream' }),
+          headers: { ...(await session.api.headers({ Accept: 'text/event-stream' })), [RENDERER_HEADER]: rendererHeaderValue() },
           body: JSON.stringify({
             serverSideType: meta.serverSideType ?? null, appState: session.appState, componentState: {}, parameters: {},
             initiatorComponentId: 'mateu-live-updates', consumedRoute: '', route: '/' + route, actionId: '_live-updates',
@@ -272,14 +274,14 @@ export function IdleSessionGuard({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   flex: { flex: 1 },
   values: { paddingHorizontal: 20, paddingBottom: 8, gap: 2 },
   valueRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   valueLabel: { color: theme.muted, fontSize: 13 },
   valueText: { color: theme.ink, fontSize: 13, fontWeight: '700' },
   quick: { paddingBottom: 8 },
-  quickInput: { marginHorizontal: 20, marginBottom: 4, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, color: theme.ink, fontSize: 14 },
+  quickInput: { marginHorizontal: 16, marginBottom: 4, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 15 },
   quickRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, minHeight: theme.minTouch },
   quickLabel: { color: theme.ink, fontSize: 14 },
   quickCode: { color: theme.info, fontSize: 12, fontWeight: '700' },
@@ -292,4 +294,4 @@ const styles = StyleSheet.create({
   primaryText: { color: theme.onPrimary, fontWeight: '700' },
   secondary: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, minHeight: theme.minTouch, paddingHorizontal: 16, justifyContent: 'center' },
   secondaryText: { color: theme.ink, fontWeight: '600' },
-});
+}));

@@ -5,7 +5,9 @@ import {
   activeFilterCount,
   allRowsSelected,
   applySearchToState,
+  cellTone,
   columnDefsOf,
+  listRowModel,
   extractListing,
   firstRowAction,
   isBlankFilterValue,
@@ -109,4 +111,31 @@ test('column definitions: the row-action columns are not cells; display columns 
   const navigable = columnDefsOf(columns, { kind: 'action', actionId: 'view' });
   assert.equal(navigable[2].display, true);
   assert.equal(navigable[0].display, false);
+});
+
+test('a status cell is painted by its column tones, or by the status object it carries', () => {
+  const col = { dataType: 'status', tones: { Available: 'success', OutOfStock: 'danger' } };
+  assert.equal(cellTone('Available', col), 'success');
+  assert.equal(cellTone('OutOfStock', col), 'danger');
+  assert.equal(cellTone('Other', col), 'neutral', 'an unmapped status value is still a status');
+  assert.equal(cellTone({ type: 'WARNING', message: 'Low' }, { dataType: '', tones: null }), 'warning');
+  assert.equal(cellTone('x', { dataType: 'string', tones: null }), null);
+  assert.equal(cellTone(null, col), null);
+});
+
+test('a list row: first column headlines, statuses and true booleans become chips, the rest is supporting text', () => {
+  const cols = [
+    { fieldId: 'id', label: 'Id', dataType: 'string', stereotype: '', valueLabels: null, tones: null },
+    { fieldId: 'name', label: 'Name', dataType: 'string', stereotype: '', valueLabels: null, tones: null },
+    { fieldId: 'certified', label: 'Certified', dataType: 'bool', stereotype: '', valueLabels: null, tones: null },
+    { fieldId: 'status', label: 'Status', dataType: 'status', stereotype: '', valueLabels: { OutOfStock: 'Out of stock' }, tones: { OutOfStock: 'danger' } },
+    { fieldId: 'price', label: 'Price', dataType: 'number', stereotype: '', valueLabels: null, tones: null },
+  ];
+  const text = (v: unknown, c: { valueLabels?: Record<string, string> | null }) => (v == null ? '' : c.valueLabels?.[String(v)] ?? String(v));
+  assert.deepEqual(listRowModel({ id: '0006', name: 'Producto 6', certified: true, status: 'OutOfStock', price: 30 }, cols, text), {
+    headline: '0006',
+    supporting: 'Producto 6 · 30',
+    chips: [{ label: 'Certified', tone: 'neutral' }, { label: 'Out of stock', tone: 'danger' }],
+  });
+  assert.deepEqual(listRowModel({ id: '1', name: 'N', certified: false, status: null, price: 1 }, cols, text).chips, []);
 });

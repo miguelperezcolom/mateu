@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '../../ui/Text';
 import { headingA11y } from '../../a11y/a11y';
-import { theme } from '../../theme';
+import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import { fetchManifest, versionGate, type UiManifest } from '../manifest';
 import type { HubEntry } from '../uiStore';
@@ -176,7 +177,7 @@ export function ConfirmImportScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   headerSpacer: { width: 60 },
   caption: { fontSize: 12, color: theme.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
   domain: { fontSize: 26, fontWeight: '700', color: theme.ink },
@@ -189,4 +190,4 @@ const styles = StyleSheet.create({
   importRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   importDomain: { fontSize: 15, fontWeight: '600', color: theme.ink, flex: 1 },
   importState: { fontSize: 13, color: theme.muted },
-});
+}));

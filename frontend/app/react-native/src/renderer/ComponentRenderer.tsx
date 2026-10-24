@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
 import { useButtonPress } from './useButtonPress';
@@ -38,7 +39,8 @@ import { DropZoneRenderer } from './DropZoneRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
+import { MateuButton } from '../ui/controls';
 import { buttonA11y, headingA11y, imageA11y } from '../a11y/a11y';
 import { headingLevel } from '../core/uxRules';
 
@@ -156,6 +158,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           onStateChange={() => {}}
           renderComponent={renderComponent}
           direction="row"
+          formRow={metaType === 'FormRow'}
         />
       );
 
@@ -172,18 +175,15 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       const press = pressButton(metadata, { state, data }, () => void controller.runAction(id, parameters), label);
       const disabled = metadata['disabled'] === true || press.disabled;
       const onPress = press.onPress;
-      const emphasis = String(metadata['buttonStyle'] ?? '').toLowerCase();
-      const boxStyle = emphasis === 'primary' ? styles.btnPrimary : emphasis === 'tertiary' ? styles.btnTertiary : styles.btnDefault;
-      const textStyle = emphasis === 'primary' ? styles.btnPrimaryText : emphasis === 'tertiary' ? styles.btnTertiaryText : styles.btnDefaultText;
       return (
-        <TouchableOpacity
-          {...buttonA11y({ disabled })}
+        <MateuButton
+          label={label}
+          buttonStyle={metadata['buttonStyle'] as string | undefined}
+          color={metadata['color'] as string | undefined}
           disabled={disabled}
-          style={[boxStyle, disabled && styles.btnDisabled]}
           onPress={onPress}
-        >
-          <Text style={textStyle}>{label}</Text>
-        </TouchableOpacity>
+          style={styles.wireButton}
+        />
       );
     }
 
@@ -468,7 +468,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
   }
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   centered: { alignSelf: 'center', margin: 20 },
   error: { color: theme.danger, padding: 8, fontSize: 13 },
   text: { fontSize: 14, color: theme.ink, flexShrink: 1 },
@@ -476,11 +476,5 @@ const styles = StyleSheet.create({
   separator: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border, width: '100%', marginVertical: 8 },
   unknown: { fontSize: 12, color: theme.faint, fontStyle: 'italic' },
   image: { width: '100%', height: 200, borderRadius: theme.radiusSm, backgroundColor: theme.background },
-  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border, alignSelf: 'flex-start' },
-  btnDefaultText: { color: theme.ink, fontSize: 14 },
-  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, alignSelf: 'flex-start' },
-  btnPrimaryText: { color: theme.onPrimary, fontSize: 14, fontWeight: '600' },
-  btnTertiary: { paddingHorizontal: 6, paddingVertical: 4, alignSelf: 'flex-start' },
-  btnTertiaryText: { color: theme.info, fontSize: 13, fontWeight: '600' },
-  btnDisabled: { opacity: 0.45 },
-});
+  wireButton: { alignSelf: 'flex-start' },
+}));
