@@ -11,6 +11,7 @@ import { FocusTrap, trapFocus } from '@infra/a11y/focusTrap.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { hasOverlayInside } from '@infra/ui/overlayStack.ts'
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 
 /*
  * Design-system-neutral modal dialog — a fixed backdrop + centered card (no `@vaadin`). Preserves
@@ -26,8 +27,18 @@ export class MateuDialog extends ComponentElement {
     /** Owns the focus while the dialog is open; see infra/a11y/focusTrap. */
     private focusTrap: FocusTrap | undefined
 
+    /**
+     * The USER closes the dialog (✕, Esc, the backdrop): when its form holds unsaved changes ask
+     * first; "stay" keeps it open with what was typed. A close the server commands (CloseModal)
+     * calls close() directly and never asks.
+     */
+    requestClose = () => {
+        if (dirtyGuard.confirmDiscard(this)) this.close()
+    }
+
     close = () => {
         this.opened = false
+        dirtyGuard.release(this)
         // Release BEFORE the unmount, while the element the focus should return to is still
         // known and the dialog's own content still exists to be released from.
         this.releaseFocusTrap()
@@ -42,7 +53,7 @@ export class MateuDialog extends ComponentElement {
     }
 
     private onKeydown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && this.opened) { e.stopPropagation(); this.close() }
+        if (e.key === 'Escape' && this.opened) { e.stopPropagation(); this.requestClose() }
     }
 
     // Esc pressed with the focus OUTSIDE the dialog (it has not moved in yet, or the user clicked
@@ -53,7 +64,7 @@ export class MateuDialog extends ComponentElement {
         const root = this.getRootNode() as Document | ShadowRoot
         const overlays = Array.from(root.querySelectorAll('mateu-drawer, mateu-dialog'))
             .filter(o => (o as unknown as { opened?: boolean }).opened !== false)
-        if (overlays[overlays.length - 1] === this) { e.stopPropagation(); this.close() }
+        if (overlays[overlays.length - 1] === this) { e.stopPropagation(); this.requestClose() }
     }
 
     connectedCallback() {
@@ -65,6 +76,8 @@ export class MateuDialog extends ComponentElement {
     disconnectedCallback() {
         super.disconnectedCallback()
         document.removeEventListener('keydown', this.onDocumentKeydown)
+        // torn down for good (not just moved by an owner re-render): its edits go with it
+        setTimeout(() => { if (!this.isConnected) dirtyGuard.release(this) })
         // A dialog torn down without close() (an owner re-render, a navigation) must not leave
         // the trap installed.
         this.releaseFocusTrap()
@@ -115,7 +128,7 @@ export class MateuDialog extends ComponentElement {
 
         return html`
             <div class="backdrop ${metadata.modeless ? 'modeless' : ''}"
-                 @click="${(e: Event) => { if (!metadata.modeless && e.target === e.currentTarget) this.close() }}">
+                 @click="${(e: Event) => { if (!metadata.modeless && e.target === e.currentTarget) this.requestClose() }}">
                 <div class="dialog ${metadata.noPadding ? 'no-padding' : ''} ${this.component?.cssClasses ?? ''}"
                      role="dialog"
                      aria-modal="${metadata.modeless ? 'false' : 'true'}"
@@ -127,7 +140,7 @@ export class MateuDialog extends ComponentElement {
                                 ${title ? html`<span class="dialog-title">${title}</span>` : nothing}
                                 ${metadata.header ? renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData) : nothing}
                             </mateu-event-interceptor>
-                            ${metadata.closeButtonOnHeader ? html`<button class="dialog-close" @click="${this.close}" aria-label="${chromeText('close')}">✕</button>` : nothing}
+                            ${metadata.closeButtonOnHeader ? html`<button class="dialog-close" @click="${this.requestClose}" aria-label="${chromeText('close')}">✕</button>` : nothing}
                         </div>` : nothing}
                     ${metadata.content ? html`
                         <div class="dialog-body">

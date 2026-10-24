@@ -9,6 +9,9 @@ import { ComponentState } from "@infra/ui/renderers/types.ts";
 import { RunActionOptions } from "@domain/MateuApiClient";
 import { isStaleResponse, StaleResponse } from "@infra/ui/staleViewGuard.ts";
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
+import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
+import { isStaleScreenRefusal, observeMateuResponse, STALE_SCREEN } from '@infra/http/buildWatch.ts'
+import { isMateuRefusal } from '@infra/http/requestPolicy.ts'
 import { asAnsweredBy } from '@infra/ui/untrustedDefinition.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
 
@@ -63,9 +66,11 @@ export class SSEService implements Service {
         }
         // …and only to an origin trusted with them (credentialScope.ts)
         Object.assign(headers, credentialHeadersFor(baseUrl + '/mateu/v3/sse/' + route))
+        // only Mateu's own endpoints are told who calls (rendererIdentity.ts)
+        Object.assign(headers, rendererHeaders())
 
-        fetch(baseUrl + '/mateu/v3/sse/' +
-            route, {
+        const sseUrl = baseUrl + '/mateu/v3/sse/' + route
+        fetch(sseUrl, {
             method: 'POST',
             headers,
             body: JSON.stringify(payload)
@@ -84,12 +89,23 @@ export class SSEService implements Service {
             // used to read as an empty stream and report SUCCESS — the action silently did nothing.
             if (response.ok === false) {
                 let message = `HTTP ${response.status}`
+                let body: unknown
                 try {
                     const text = await response.text()
-                    try { message = JSON.parse(text)?.message || message } catch { if (text.trim()) message = text.trim() }
+                    body = text
+                    try { body = JSON.parse(text); message = (body as { message?: string })?.message || message } catch { if (text.trim()) message = text.trim() }
                 } catch { /* no body */ }
+                // Mateu's refusal from another deployment than the screen's: a stale screen, told
+                // as such with a Reload (buildWatch.ts, requestPolicy.ts)
+                if (response.status === 403 && isMateuRefusal(body)
+                    && isStaleScreenRefusal(sseUrl, response.headers)) {
+                    throw Object.assign(new Error(message), {
+                        [STALE_SCREEN]: true, response: { status: 403, data: body },
+                    })
+                }
                 throw new Error(message)
             }
+            observeMateuResponse(sseUrl, response.headers)
             reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()
             if (reader) {
                 let buffer = ''

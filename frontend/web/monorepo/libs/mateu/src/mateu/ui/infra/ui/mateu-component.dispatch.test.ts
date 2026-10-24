@@ -258,6 +258,40 @@ describe('a leave action on a screen with unsaved changes (dirtyGuard)', () => {
         expect(sent).toHaveLength(1)
     })
 
+    it('a Cancel pressed INSIDE a drawer asks about the drawer\'s edits only (the crud drawer\'s Cancel bubbles to the crud)', async () => {
+        dirtyGuard.install()
+        const crud = await mount(serverSide({ id: 'crud', actions: [{ id: 'cancel-new' }] }))
+        const drawer = document.createElement('mateu-drawer') as HTMLElement & { component?: unknown }
+        drawer.component = { type: 'ClientSide', id: 'd', children: [],
+            metadata: { type: 'Drawer', id: 'crud-edit-drawer' } }
+        document.body.appendChild(drawer)
+        const button = document.createElement('button')
+        drawer.appendChild(button)
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        // the page behind is dirty but the drawer is not: the drawer's Cancel closes it, no question
+        dirtyGuard.markDirty()
+        request(crud, 'cancel-new', { _originElement: button })
+        expect(confirm).not.toHaveBeenCalled()
+        expect(sent).toHaveLength(1)
+        // typed in the drawer: its Cancel asks the discard question; "stay" sends nothing
+        button.dispatchEvent(new CustomEvent('dirty', { bubbles: true, composed: true }))
+        pendingActions.reset()
+        request(crud, 'cancel-new', { _originElement: button })
+        expect(confirm).toHaveBeenCalledWith(dirtyGuard.discardMessage)
+        expect(sent).toHaveLength(1)
+        // "discard" sends it and leaves the page's own unsaved changes alone
+        confirm.mockReturnValue(true)
+        pendingActions.reset()
+        request(crud, 'cancel-new', { _originElement: button })
+        expect(sent).toHaveLength(2)
+        expect(dirtyGuard.overlayDirty(drawer)).toBe(false)
+        expect(dirtyGuard.dirty).toBe(true)
+        // ...and asks no more once the drawer's edits are gone
+        pendingActions.reset()
+        request(crud, 'cancel-new', { _originElement: button })
+        expect(confirm).toHaveBeenCalledTimes(2)
+    })
+
     it('a Cancel that bubbles to the component that owns it asks once, there', async () => {
         const outer = await mount(serverSide({ id: 'outer', actions: [{ id: 'cancel-edit' }] }))
         const holder = document.createElement('div')

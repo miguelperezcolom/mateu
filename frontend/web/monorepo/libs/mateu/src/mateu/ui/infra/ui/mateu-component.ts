@@ -71,7 +71,7 @@ import { fabStyles } from '@infra/ui/layout/fabRail.ts'
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { runJs } from '@infra/ui/runJs.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
-import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
+import { dirtyGuard, enclosingOverlay } from '@infra/ui/dirtyGuard.ts'
 import { isConflictDialogAnswer, isLeaveAction } from '@infra/ui/leaveActions.ts'
 import { humanizeFieldId } from '@infra/ui/humanize.ts'
 import { trapFocus, type FocusTrap } from '@infra/a11y/focusTrap.ts'
@@ -352,8 +352,10 @@ export class MateuComponent extends ComponentElement {
             // the same lifecycle that rebuilds formerState makes dirty-state reset
             // reliable instead of depending on the backend sending MarkAsClean.
             if (this.component?.confirmOnNavigationIfDirty) {
+                // reason 'load': cleans only the scope this form lives in (the page, or the
+                // dialog/drawer holding it) — see dirtyGuard._onClean
                 this.dispatchEvent(new CustomEvent('clean', {
-                    detail: {},
+                    detail: { reason: 'load' },
                     bubbles: true,
                     composed: true
                 }))
@@ -521,6 +523,8 @@ export class MateuComponent extends ComponentElement {
             // returned ConfirmDialog's buttons): it belongs to this component's server side even
             // when the component never advertised it, since it did not exist when it rendered
             serverNamed?: boolean
+            // the leave question (unsaved changes) was already asked for this action
+            _leaveChecked?: boolean
         }
         // The control the user pressed, so the busy state can be shown ON it. An action that
         // bubbles up to an ancestor component carries the original control in the detail —
@@ -565,10 +569,17 @@ export class MateuComponent extends ComponentElement {
                 // Asked once, by the component that runs it: confirming clears the flag.
                 // A wizard's Back steps inside the screen: its owner advertises `next`.
                 // The conflict dialog's Reload already said it drops the edits: no second question.
-                if (isLeaveAction(detail.actionId, serverSideComponent.actions?.map(a => a.id) ?? [])
-                    && !isConflictDialogAnswer(detail.parameters)
-                    && !dirtyGuard.confirmLeave()) {
-                    return
+                // Pressed inside a dialog/drawer (the crud drawer's Cancel bubbles here from its
+                // form), it leaves THAT overlay: ask about the overlay's own edits only.
+                if (!detail._leaveChecked
+                    && isLeaveAction(detail.actionId, serverSideComponent.actions?.map(a => a.id) ?? [])
+                    && !isConflictDialogAnswer(detail.parameters)) {
+                    const overlay = enclosingOverlay(origin)
+                    if (!(overlay ? dirtyGuard.confirmDiscard(overlay) : dirtyGuard.confirmLeave())) {
+                        return
+                    }
+                    // a bubbling leave action must not be asked about again by the ancestor
+                    detail._leaveChecked = true
                 }
 
                 if (action && action.rowsSelectedRequired) {

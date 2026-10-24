@@ -1,4 +1,5 @@
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { isMarkedStaleScreen } from '@infra/http/buildWatch.ts'
 
 /**
  * Request policy — turns a transport failure into something a USER can act on.
@@ -48,6 +49,11 @@ export interface RequestFailure {
     retryable: boolean
     /** HTTP status when the server did answer. */
     status?: number
+    /**
+     * The screen is stale (a Mateu refusal from another deployment than the one it was opened
+     * from, buildWatch.ts): the only fix is reloading the page, so the toast offers that.
+     */
+    reload?: boolean
 }
 
 /** Shape we read off an axios error without depending on axios types. */
@@ -130,7 +136,8 @@ export const classifyRequestFailure = (
     if (status === 401) return failure('unauthorized')
     if (status === 403) {
         const refused = failure('forbidden')
-        return isMateuRefusal(err.response?.data) ? refused : { ...refused, message: chromeText('failSecurityRefused') }
+        if (!isMateuRefusal(err.response?.data)) return { ...refused, message: chromeText('failSecurityRefused') }
+        return isMarkedStaleScreen(error) ? { ...refused, message: chromeText('staleScreen'), reload: true } : refused
     }
     if (status === 404 || status === 410) return failure('notFound')
     // 408 Request Timeout / 429 Too Many Requests / 503 are all "come back in a moment".

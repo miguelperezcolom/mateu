@@ -6,6 +6,7 @@ import { connectivity } from "@infra/http/connectivity.ts";
 import { anyPending } from "@infra/ui/pendingIndicator.ts";
 import { reportClientError, failureReportOf } from "@infra/http/clientErrorReporter.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { reloadPage } from '@infra/http/buildWatch.ts'
 
 /**
  * The global busy affordance — the LAST resort, not the first.
@@ -66,6 +67,14 @@ export class MateuApiCaller extends LitElement {
         // here is the case where repeating was OUR call to make and we declined to make it —
         // so the decision goes to the user, who knows whether they can afford a duplicate.
         const retry = offersManualRetry(failure) ? detail.retry as (() => void) | undefined : undefined
+        if (failure.reload) {
+            // a stale screen (buildWatch.ts): retrying answers the same; reloading fixes it
+            notify({
+                text: failure.message, variant: 'error', duration: 0, position: 'bottomEnd',
+                actionLabel: chromeText('reload'), onAction: reloadPage,
+            }, this)
+            return
+        }
         notify({
             text: failure.message,
             variant: 'error',

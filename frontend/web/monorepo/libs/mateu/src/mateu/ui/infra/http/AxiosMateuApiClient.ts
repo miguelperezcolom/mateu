@@ -18,6 +18,9 @@ import { observeWireVersion } from '@infra/http/wireVersion.ts'
 import { mayCarryCredentials } from '@infra/http/credentialScope.ts'
 import { asAnsweredBy } from '@infra/ui/untrustedDefinition.ts'
 import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
+import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
+import { isStaleScreenRefusal, observeMateuResponse, STALE_SCREEN } from '@infra/http/buildWatch.ts'
+import { isMateuRefusal } from '@infra/http/requestPolicy.ts'
 
 let abortControllers: AbortController[] = []
 
@@ -233,6 +236,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
         abortControllers = [...abortControllers, abortController]
         return this.axiosInstance.post(uri, data,{
             signal: abortController.signal,
+            // only Mateu's own endpoints are told who calls (rendererIdentity.ts)
+            headers: rendererHeaders(),
             // read by the 401 interceptor (no re-authentication for a view no longer on screen)
             ...(isStale ? {__mateuIsStale: isStale} : {}),
             ...(timeoutMillis && timeoutMillis > 0 ? {timeout: timeoutMillis} : {})
@@ -360,14 +365,31 @@ export class AxiosMateuApiClient implements MateuApiClient {
         const send = () => this.post(uri, payload, options.timeoutMillis, options.isStale)
             .then((response) => {
                 observeWireVersion(response.data)
+                // redeployed while the page was open? (buildWatch.ts)
+                observeMateuResponse(uri, response.headers)
                 // an origin the app does not trust answers through the untrusted strip (R1)
                 return asAnsweredBy(uri, response.data as UIIncrement)
+            }, (error: unknown) => {
+                markStaleScreen(uri, error)
+                throw error
             })
         return await this.wrap<UIIncrement>(
             () => this.sendWithRetry(send, idempotent, options.quiet, options.isStale), initiator, background,
             actionId, options.retry, options.quiet, options.isStale)
     }
 
+}
+
+/**
+ * A Mateu refusal (403) answered by another build than the screen's: tag the error so it is told
+ * as a stale screen, not as a missing permission (requestPolicy.ts).
+ */
+const markStaleScreen = (uri: string, error: unknown): void => {
+    const response = (error as { response?: { status?: number, data?: unknown, headers?: unknown } } | undefined)?.response
+    if (response?.status !== 403 || !isMateuRefusal(response.data)) return
+    if (isStaleScreenRefusal(uri, response.headers) && error && typeof error === 'object') {
+        (error as Record<string, unknown>)[STALE_SCREEN] = true
+    }
 }
 
 export const mateuApiClient = new AxiosMateuApiClient()
