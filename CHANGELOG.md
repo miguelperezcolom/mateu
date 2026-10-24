@@ -20,6 +20,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   fields. The generic form now leaves a listing's filters out; they are the smart filters of the
   list header only (offered in the search box's dropdown, and applied as chips that filter the rows,
   sample rows included).
+- **YAML starters: the home page declares `pageType: landing`.** The `yaml` and `static` starters'
+  `home.yaml` (and the `mateu-yaml` skill's example) now say what their page is, like their
+  `products.yaml` already declares `pageType: collection` — the YAML twin of `@PageTemplate` (a
+  Java Welcome page resolves to `landing`). The generator's cases pin both.
 
 ## [3.0-beta.11] — 2026-10-23
 

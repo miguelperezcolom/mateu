@@ -42,6 +42,7 @@ columns:
 
 # starters/yaml/src/main/resources/specs/ui/home.yaml, as shipped
 HOME = """
+pageType: landing
 type: VerticalLayout
 fullWidth: true
 horizontalAlignment: STRETCH
