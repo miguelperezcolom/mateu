@@ -88,7 +88,7 @@ you run, so mirror whole version folders and refresh the mirror when you upgrade
 The mirror must answer with the right content types, and with `Access-Control-Allow-Origin` for
 fonts and the files RequireJS fetches as text (any origin, or your app's).
 
-**Check it.** `e2e/oracle-cdn-mirror-probe.mjs` acts as a forwarding mirror, opens a screen of your
+**Check it.** `e2e/oracle-cdn-mirror-probe.mjs` plays the mirror (it intercepts the browser's requests to it and answers them from Oracle's CDN), opens a screen of your
 app and fails if anything was fetched from `static.oracle.com` directly. It also lists the trees the
 screen fetched — what your mirror needs:
 

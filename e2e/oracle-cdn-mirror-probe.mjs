@@ -3,8 +3,9 @@
  * Oracle's runtime (JET, Spectra, the Visual Builder runtime, the gallery's images and fonts) from the
  * mirror, and none of it from static.oracle.com.
  *
- * The probe IS the mirror: it starts a forwarding server (http://localhost:<MIRROR_PORT>/oracle/cdn/…
- * → https://static.oracle.com/cdn/…), so no copy of Oracle's files is needed. Start the app against it:
+ * The probe IS the mirror: the browser's requests to http://localhost:<MIRROR_PORT>/oracle/cdn/… are
+ * intercepted (Playwright routing — no server is started) and answered with the matching file of
+ * https://static.oracle.com/cdn/…, so no copy of Oracle's files is needed. Start the app against it:
  *
  *   java -Dmateu.oracle-cdn.url=http://localhost:9777/oracle/cdn -jar app.jar   (a Redwood app)
  *   cd e2e && BASE=http://localhost:8595 ROUTE=/products node oracle-cdn-mirror-probe.mjs
@@ -12,8 +13,6 @@
  * It prints the CDN trees the page fetched — what an organisation has to mirror — and exits non-zero
  * if the screen does not render or anything was fetched from static.oracle.com directly.
  */
-import http from 'node:http'
-import https from 'node:https'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -27,12 +26,14 @@ const OUT = process.env.OUT ?? path.join(fs.mkdtempSync(path.join(os.tmpdir(), '
 const PREFIX = '/oracle/cdn/'
 const UPSTREAM = new URL('https://static.oracle.com/cdn/')
 
-/** The upstream URL a mirror request forwards to, or null when its path is not a plain CDN path:
- *  segments of [A-Za-z0-9._~-] only — no `..`, no empty segment (`//`), no scheme — and the
+/** The upstream URL a mirror request is answered from, or null when its path is not a plain CDN
+ *  path: segments of [A-Za-z0-9._~-] only — no `..`, no empty segment (`//`), no scheme — and the
  *  resolved URL must still be on Oracle's CDN origin, under /cdn/ (a query string is dropped). */
 function upstreamOf(requestUrl) {
-    if (typeof requestUrl !== 'string' || !requestUrl.startsWith(PREFIX)) return null
-    const rest = requestUrl.slice(PREFIX.length).split(/[?#]/)[0]
+    let pathname
+    try { pathname = new URL(requestUrl).pathname } catch { return null }
+    if (!pathname.startsWith(PREFIX)) return null
+    const rest = pathname.slice(PREFIX.length)
     const segments = rest.split('/')
     if (!rest || segments.some((s) => !/^[A-Za-z0-9._~-]+$/.test(s) || s === '.' || s === '..')) return null
     const target = new URL(rest, UPSTREAM)
@@ -41,29 +42,20 @@ function upstreamOf(requestUrl) {
 }
 
 const mirrored = []
-const server = http.createServer((req, res) => {
-    const target = upstreamOf(req.url)
-    if (!target) {
-        res.statusCode = 404
-        res.end()
-        return
-    }
-    mirrored.push(target.pathname.slice(UPSTREAM.pathname.length))
-    https.get(target, (up) => {
-        res.writeHead(up.statusCode, { ...up.headers, 'access-control-allow-origin': '*' })
-        up.pipe(res)
-    }).on('error', () => {
-        res.statusCode = 502
-        res.end()
-    })
-})
-await new Promise((resolve) => server.listen(MIRROR_PORT, resolve))
-
 const direct = []
 const browser = await chromium.launch()
 let rendered = false
 try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+    // the mirror: answered in the browser's network layer from Oracle's CDN (fetched by Playwright's
+    // own request context, so it never counts as a page request to static.oracle.com)
+    await page.route(`http://localhost:${MIRROR_PORT}${PREFIX}**`, async (route) => {
+        const target = upstreamOf(route.request().url())
+        if (!target) return route.abort()
+        mirrored.push(target.pathname.slice(UPSTREAM.pathname.length))
+        const response = await route.fetch({ url: target.href })
+        await route.fulfill({ response, headers: { ...response.headers(), 'access-control-allow-origin': '*' } })
+    })
     page.on('request', (r) => {
         let host = ''
         try { host = new URL(r.url()).hostname } catch { /* not a URL (data:, about:) */ }
@@ -75,7 +67,6 @@ try {
     await page.screenshot({ path: OUT })
 } finally {
     await browser.close()
-    server.close()
 }
 
 // the trees an organisation mirrors: the first three path segments (product/version) of each fetch
