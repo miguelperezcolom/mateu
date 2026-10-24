@@ -215,4 +215,48 @@ public class VersionSkewTests
         Assert.Equal(2, VersionSkew.WireMajorOf("redwood/3.0.0 wire/2.1"));
         Assert.Null(VersionSkew.WireMajorOf("redwood/3.0.0"));
     }
+
+    [Theory]
+    [InlineData("redwood/3.0.0 wire/2.1", 2)]
+    [InlineData("wire/7", 7)]
+    [InlineData("  vaadin/1 wire/x.1 wire/4.0  ", 4)]
+    [InlineData("vaadin/1 wire/2.1.3", null)]
+    [InlineData("vaadin/1 wire/", null)]
+    [InlineData("vaadin/1 wire/2.", null)]
+    [InlineData("vaadin/1 xwire/2.1", null)]
+    [InlineData("vaadin/1 wire/99999999999", null)]
+    [InlineData("   ", null)]
+    [InlineData(null, null)]
+    public void The_wire_major_is_read_off_the_first_wire_token(string? header, int? major) =>
+        Assert.Equal(major, VersionSkew.WireMajorOf(header));
+
+    [Theory]
+    [InlineData(" release 42/blue ", "release42blue")]
+    [InlineData("v1.2_3-rc", "v1.2_3-rc")]
+    [InlineData("ñ/ /é", null)]
+    [InlineData("", null)]
+    [InlineData(null, null)]
+    public void An_override_keeps_only_the_contract_charset(string? value, string? expected) =>
+        Assert.Equal(expected, VersionSkew.Sanitize(value));
+
+    [Fact]
+    public void A_garbled_server_version_warns_about_nothing()
+    {
+        var skew = new VersionSkew("x", new MateuRegistry(typeof(HttpSecurityProbeView).Assembly));
+        Assert.Null(skew.WarningFor("r/1 wire/2.0", "garbled"));
+        Assert.Null(skew.WarningFor("r/1 wire/3.1", "3.0"));
+        Assert.True(VersionSkew.IsMateuPath("/app/mateu"));
+        Assert.True(VersionSkew.IsMateuPath("/mateu/v3/sync"));
+        Assert.False(VersionSkew.IsMateuPath("/mateuish"));
+        Assert.False(VersionSkew.IsMateuPath(null));
+    }
+
+    [Fact]
+    public void A_missing_specs_directory_leaves_the_id_to_the_code()
+    {
+        var registry = new MateuRegistry(typeof(HttpSecurityProbeView).Assembly);
+        var missing = Path.Combine(Path.GetTempPath(), "mateu-no-specs-" + Guid.NewGuid().ToString("N"));
+        Assert.Equal(16, VersionSkew.Compute(registry, missing).Length);
+        Assert.Equal(VersionSkew.Compute(registry, missing), VersionSkew.Compute(registry, missing));
+    }
 }

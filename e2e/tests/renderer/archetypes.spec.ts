@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 /**
  * The page archetypes on any renderer (sample1 /arch/*): semantic assertions only, so the same
@@ -7,6 +7,13 @@ import { test, expect } from '@playwright/test';
  */
 
 const T = 20000;
+
+/** On Redwood a Calendar is first DRAWN and then handed to Spectra's oj-sp-calendar, which hides the
+ *  drawn grid once it has painted: wait for that swap before clicking (no-op on Vaadin). */
+const calendarSettled = async (page: Page) => {
+  if (test.info().project.name === 'renderer-vb')
+    await page.locator('.mateu-cal.mateu-cal-sp-on').first().waitFor({ timeout: 30000 });
+};
 
 test.describe('page archetypes, on any renderer', () => {
   test('a composed page is titled by its @Title', async ({ page }) => {
@@ -40,7 +47,9 @@ test.describe('page archetypes, on any renderer', () => {
 
   test('CalendarPage: the next month', async ({ page }) => {
     await page.goto('/arch/calendar');
-    await page.getByRole('button', { name: '›' }).first().click({ timeout: T });
+    await calendarSettled(page);
+    // the page's › (Vaadin, the drawn grid) or oj-sp-calendar's own «Next month» (Redwood)
+    await page.getByRole('button', { name: /^(›|Next month)$/ }).filter({ visible: true }).first().click({ timeout: T });
     const next = new Date();
     next.setMonth(next.getMonth() + 1, 1);
     await expect(page.getByText(next.toLocaleString('en-US', { month: 'long', year: 'numeric' })).first())

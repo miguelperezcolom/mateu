@@ -646,6 +646,150 @@ test('calendar: cambiar de vista es del DOM; un evento clicable o un día (clic 
   assert.ok(ev.defaultPrevented)
 })
 
+test('calendar: a nav button runs its action (garbled params read as none); nothing runs without a sink', () => {
+  const { doc, el, fire } = makeDom()
+  const next = el('button', { 'data-cal-nav-action': 'nextCalendarMonth', 'data-cal-nav-params': '{"_view":"week"}' })
+  const broken = el('button', { 'data-cal-nav-action': 'prevCalendarMonth', 'data-cal-nav-params': '{oops' })
+  const other = el('span', { text: 'nothing here' })
+  const cal = el('div', { class: 'mateu-cal' }, next, broken, other)
+  doc.body.appendChild(cal)
+  installCalendars(doc)
+  installCalendars(doc) // once per document
+  setCalendarActionSink(null)
+  assert.equal(fire(next, 'click').defaultPrevented, false, 'no sink: the click is left alone')
+  const sink = sinkLog()
+  setCalendarActionSink(sink)
+  assert.ok(fire(next, 'click').defaultPrevented)
+  fire(broken, 'keydown', { key: ' ' })
+  assert.deepEqual(sink.calls, [['nextCalendarMonth', { _view: 'week' }, {}], ['prevCalendarMonth', {}, {}]])
+  assert.equal(fire(other, 'click').defaultPrevented, false, 'a click on no event, day or button runs nothing')
+  fire(other, 'keydown', { key: 'a' })
+  assert.equal(sink.calls.length, 2)
+})
+
+test('calendar: oj-sp-calendar is mounted from data-cal-sp — its selection, toolbar, views, create and day cells run the page actions, and the wire tones/labels are painted on its cells', async () => {
+  const { doc, el, fire } = makeDom()
+  const observers = []
+  globalThis.MutationObserver = class { constructor(fn) { this.fn = fn; observers.push(this) } observe(target, opts) { this.target = target; this.opts = opts } }
+  const required = []
+  class ADP { constructor(data, opts) { this.data = data; this.opts = opts } }
+  globalThis.window = { require: (mods, ok, fail) => { required.push({ mods, ok, fail }); ok(ADP) } }
+  const spec = {
+    events: [{ id: 'e1', title: 'Standup' }], providers: [{ name: 'team' }], focusDate: '2026-10-05', view: 'month',
+    anchor: '2026-10-01', displayOptions: { allDay: 'off' },
+    actions: { e1: { actionId: 'openCalendarEvent', id: 'e1', title: 'Standup', date: '2026-10-05' } },
+    nav: { prev: 'prevCalendarMonth', next: 'nextCalendarMonth', goTo: 'goCalendarToDate', viewAction: 'switchCalendarView', views: ['month', 'week'], create: 'createCalendarEvent' },
+    dayActionId: 'openCalendarDay',
+    days: { '2026-10-06': { tone: 'success', label: 'Holiday' } },
+  }
+  try {
+    const cal = el('div', { class: 'mateu-cal', 'data-cal-sp': JSON.stringify(spec) })
+    doc.body.appendChild(cal)
+    installCalendars(doc)
+    const sink = sinkLog()
+    setCalendarActionSink(sink)
+    assert.deepEqual(required[0].mods, ['ojs/ojarraydataprovider', 'oj-sp/calendar/loader'])
+    const host = cal.querySelector('.mateu-cal-sp')
+    assert.ok(host, 'a host outside VB bindings')
+    assert.equal(host.getAttribute('data-oj-binding-provider'), 'none')
+    assert.equal(host.className, 'mateu-cal-sp', 'navigable and with a date picker')
+    const sp = host.querySelector('oj-sp-calendar')
+    assert.deepEqual(sp.calendarEvents.data, spec.events)
+    assert.deepEqual(sp.visibleCalendars, ['team'])
+    assert.equal(sp.selectedViewValue, 'month')
+    assert.equal(sp.readonly, true)
+    // selecting an event runs its action and clears the selection
+    fire(sp, 'selectedChanged', { detail: { value: ['e1'] } })
+    fire(sp, 'selectedChanged', { detail: { value: ['unknown'] } })
+    fire(sp, 'selectedChanged', { detail: {} })
+    assert.deepEqual(sink.calls[0], ['openCalendarEvent', { _clickedEvent: { id: 'e1', title: 'Standup', date: '2026-10-05' } }, {}])
+    assert.equal(sink.calls.length, 1)
+    await sleep(2)
+    assert.deepEqual(sp.selected, [])
+    // the toolbar: next month = the page's next; within the period = nothing; far away = goTo; external = ignored
+    fire(sp, 'focusDateChanged', { detail: { updatedFrom: 'internal', value: '2026-11-03' } })
+    fire(sp, 'focusDateChanged', { detail: { updatedFrom: 'internal', value: '2026-10-20' } })
+    fire(sp, 'focusDateChanged', { detail: { updatedFrom: 'internal', value: '2027-05-03T00:00:00' } })
+    fire(sp, 'focusDateChanged', { detail: { updatedFrom: 'external', value: '2026-11-03' } })
+    assert.deepEqual(sink.calls.slice(1), [['nextCalendarMonth', {}, {}], ['goCalendarToDate', { _date: '2027-05-03' }, {}]])
+    // a garbled date: no step, the focus goes back to the page's date
+    sp.focusDate = 'elsewhere'
+    fire(sp, 'focusDateChanged', { detail: { updatedFrom: 'internal', value: '' } })
+    await sleep(2)
+    assert.equal(sp.focusDate, '2026-10-05')
+    // views: another declared view runs the switch; the same or an undeclared one does not
+    fire(sp, 'selectedViewValueChanged', { detail: { updatedFrom: 'internal', value: 'week' } })
+    fire(sp, 'selectedViewValueChanged', { detail: { updatedFrom: 'internal', value: 'month' } })
+    fire(sp, 'selectedViewValueChanged', { detail: { updatedFrom: 'internal', value: 'day' } })
+    fire(sp, 'selectedViewValueChanged', { detail: { updatedFrom: 'external', value: 'week' } })
+    fire(sp, 'spCalendarEventCreate', {})
+    assert.deepEqual(sink.calls.slice(3), [['switchCalendarView', { _view: 'week' }, {}], ['createCalendarEvent', {}, {}]])
+    // FullCalendar's cells: a day's click or Enter runs dayActionId; an event inside it does not
+    const top = el('div', { class: 'fc-daygrid-day-top' })
+    const chip = el('a', { class: 'fc-event' })
+    const day = el('td', { class: 'fc-daygrid-day', 'data-date': '2026-10-06' }, top, chip)
+    const plain = el('td', { class: 'fc-daygrid-day', 'data-date': '2026-10-07' }, el('div', { class: 'fc-daygrid-day-top' }))
+    const header = el('th', { class: 'fc-col-header-cell', 'data-date': '2026-10-06' }, el('div', { class: 'fc-scrollgrid-sync-inner' }))
+    // a browser's HTML elements report their tag in upper case (the fake one in lower case)
+    for (const c of [day, plain]) c.tagName = 'TD'
+    header.tagName = 'TH'
+    sp.appendChild(el('div', { class: 'fc' }, day, plain, header))
+    const before = sink.calls.length
+    assert.ok(fire(top, 'click').defaultPrevented)
+    fire(chip, 'click')
+    fire(top, 'keydown', { key: 'Enter' })
+    fire(top, 'keydown', { key: 'x' })
+    assert.deepEqual(sink.calls.slice(before), [['openCalendarDay', { _date: '2026-10-06' }, {}], ['openCalendarDay', { _date: '2026-10-06' }, {}]])
+    // once Spectra has painted (oj-complete), the drawn grid goes and the wire's tones/labels are on its cells
+    sp.classList.add('oj-complete')
+    await sleep(150)
+    assert.ok(cal.classList.contains('mateu-cal-sp-on'))
+    assert.ok(day.classList.contains('mateu-cal-sp-success'))
+    assert.ok(day.classList.contains('mateu-cal-sp-clickable'))
+    assert.ok(!header.classList.contains('mateu-cal-sp-clickable'), 'a header is not a day to click')
+    assert.equal(top.querySelector('.mateu-cal-sp-label').textContent, 'Holiday')
+    assert.equal(header.querySelector('.mateu-cal-sp-label').textContent, 'Holiday')
+    assert.ok(!plain.querySelector('.mateu-cal-sp-label'))
+    // the observer re-decorates (once per burst) and decorating is idempotent; a stale label goes
+    const spObserver = observers.find((o) => o.target === sp)
+    const stale = el('span', { class: 'mateu-cal-sp-label', text: 'old' })
+    plain.querySelector('.fc-daygrid-day-top').appendChild(stale)
+    top.querySelector('.mateu-cal-sp-label').textContent = 'edited'
+    spObserver.fn([]); spObserver.fn([])
+    await sleep(2)
+    assert.equal(top.querySelectorAll('.mateu-cal-sp-label').length, 1)
+    assert.equal(top.querySelector('.mateu-cal-sp-label').textContent, 'Holiday')
+    assert.ok(!stale.isConnected, 'a label the wire does not have goes')
+    // a new spec on the attribute re-mounts; the same one does not; garbled JSON is ignored
+    const bodyObserver = observers.find((o) => o.target === doc.body)
+    assert.deepEqual(bodyObserver.opts.attributeFilter, ['data-cal-sp'])
+    cal.setAttribute('data-cal-sp', JSON.stringify({ ...spec, nav: null, days: {} }))
+    bodyObserver.fn([{ type: 'attributes', target: cal }])
+    bodyObserver.fn([{ type: 'attributes', target: cal }])
+    assert.equal(required.length, 2)
+    assert.equal(cal.querySelectorAll('.mateu-cal-sp').length, 1, 'the old one is replaced')
+    assert.equal(cal.querySelector('.mateu-cal-sp').className, 'mateu-cal-sp mateu-cal-sp-fixed mateu-cal-sp-nopick')
+    const fixed = cal.querySelector('oj-sp-calendar')
+    fire(fixed, 'focusDateChanged', { detail: { updatedFrom: 'internal', value: '2026-11-03' } })
+    fire(fixed, 'selectedViewValueChanged', { detail: { updatedFrom: 'internal', value: 'week' } })
+    fire(fixed, 'spCalendarEventCreate', {})
+    const added = el('div', {}, el('div', { class: 'mateu-cal', 'data-cal-sp': '{garbled' }))
+    doc.body.appendChild(added)
+    bodyObserver.fn([{ type: 'childList', addedNodes: [added, doc.createTextNode('x')] }])
+    assert.equal(required.length, 2, 'garbled JSON mounts nothing')
+    // a calendar whose host left the page stops waiting for Spectra
+    const gone = el('div', { class: 'mateu-cal', 'data-cal-sp': JSON.stringify({ ...spec, days: {} }) })
+    doc.body.appendChild(gone)
+    bodyObserver.fn([{ type: 'childList', addedNodes: [gone] }])
+    gone.remove()
+    await sleep(150)
+    assert.ok(!gone.classList.contains('mateu-cal-sp-on'))
+  } finally {
+    delete globalThis.window
+    delete globalThis.MutationObserver
+  }
+})
+
 // ── @Toc: the sticky sections index ──────────────────────────────────────────────────────────
 test('toc: a click on an entry scrolls to its section (no anchor navigation) and keeps it highlighted; Ctrl+Alt+N jumps; the spy follows the reading line', async () => {
   const { doc, win, el, fire } = makeDom()

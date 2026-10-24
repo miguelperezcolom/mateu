@@ -5953,8 +5953,8 @@ test('versionSkew: X-Mateu-Renderer = redwood/<version> wire/3.0, only on Mateu 
   // unstamped sources (Node) → unknown; the bridge is stamped with package.json's version
   assert.equal(rendererVersion(), 'unknown')
   assert.equal(rendererVersion('1.2.3'), '1.2.3')
-  assert.equal(withRendererHeader('http://h/app/mateu/v3/sync/x', { headers: { A: '1' } }).headers['X-Mateu-Renderer'], 'redwood/unknown wire/3.0')
-  assert.equal(withRendererHeader('http://h/app/mateu/v3/sync/x', { headers: { A: '1' } }).headers.A, '1')
+  assert.equal(withRendererHeader('https://h/app/mateu/v3/sync/x', { headers: { A: '1' } }).headers['X-Mateu-Renderer'], 'redwood/unknown wire/3.0')
+  assert.equal(withRendererHeader('https://h/app/mateu/v3/sync/x', { headers: { A: '1' } }).headers.A, '1')
   // a third-party REST source is left alone
   const rest = { headers: { A: '1' } }
   assert.equal(withRendererHeader('https://swapi.mateu.io/people', rest), rest)
@@ -5965,15 +5965,15 @@ test('versionSkew: X-Mateu-Renderer = redwood/<version> wire/3.0, only on Mateu 
 })
 
 test('versionSkew: backend key = absolute URL up to /mateu/', () => {
-  assert.equal(backendKeyOf('http://h:8080/app/mateu/v3/sync/x'), 'http://h:8080/app')
-  assert.equal(backendKeyOf('/mateu/v3/sync/x', 'http://h/products'), 'http://h')
-  assert.equal(backendKeyOf('/app/mateu/v3/sse/y', 'http://h/products'), 'http://h/app')
+  assert.equal(backendKeyOf('https://h:8080/app/mateu/v3/sync/x'), 'https://h:8080/app')
+  assert.equal(backendKeyOf('/mateu/v3/sync/x', 'https://h/products'), 'https://h')
+  assert.equal(backendKeyOf('/app/mateu/v3/sse/y', 'https://h/products'), 'https://h/app')
 })
 
 test('versionSkew: baseline = first build; another build → updated ONCE per backend; Mateu 403 → stale', () => {
   resetVersionSkew()
-  const a = 'http://a/mateu/v3/sync/x'
-  const b = 'http://b/mateu/v3/sync/x'
+  const a = 'https://a/mateu/v3/sync/x'
+  const b = 'https://b/mateu/v3/sync/x'
   assert.equal(noteResponseBuild(a, null), null, 'no header: nothing')
   assert.equal(noteResponseBuild(a, 'b1'), null, 'baseline')
   assert.equal(noteResponseBuild(a, 'b1'), null)
@@ -6006,33 +6006,33 @@ atest('versionSkew: fetchWithPolicy sends X-Mateu-Renderer and turns builds into
   const quietConsole = console.error
   try {
     answer = ok('b1')
-    await fetchWithPolicy('http://k/mateu/v3/sync/x', { headers: { 'Content-Type': 'application/json' } }, { actionId: '' })
+    await fetchWithPolicy('https://k/mateu/v3/sync/x', { headers: { 'Content-Type': 'application/json' } }, { actionId: '' })
     assert.equal(sent[0][1]['X-Mateu-Renderer'], 'redwood/unknown wire/3.0')
     assert.equal(sent[0][1]['Content-Type'], 'application/json')
     // a refusal from the SAME build: the usual forbidden text
     answer = refused('b1')
-    await assert.rejects(fetchWithPolicy('http://k/mateu/v3/sync/x', {}, { actionId: 'save' }))
+    await assert.rejects(fetchWithPolicy('https://k/mateu/v3/sync/x', {}, { actionId: 'save' }))
     assert.equal(failures.at(-1).message, "You're not allowed to do this.")
     assert.ok(!failures.at(-1).reload)
     // a refusal from ANOTHER build: the screen is stale, Reload offered
     answer = refused('b2')
-    await assert.rejects(fetchWithPolicy('http://k/mateu/v3/sync/x', {}, { actionId: 'save' }))
+    await assert.rejects(fetchWithPolicy('https://k/mateu/v3/sync/x', {}, { actionId: 'save' }))
     assert.equal(failures.at(-1).message, 'This screen has changed since you opened it. Reload to continue.')
     assert.equal(failures.at(-1).reload, true)
     // …and the «updated» notice is not shown on top of it
     answer = ok('b2')
-    await fetchWithPolicy('http://k/mateu/v3/sync/x', {}, { actionId: '' })
+    await fetchWithPolicy('https://k/mateu/v3/sync/x', {}, { actionId: '' })
     assert.equal(notices.length, 0)
     // another backend redeployed: the notice, once
     answer = ok('c1')
-    await fetchWithPolicy('http://other/mateu/v3/sync/x', {}, { actionId: '' })
+    await fetchWithPolicy('https://other/mateu/v3/sync/x', {}, { actionId: '' })
     answer = ok('c2')
-    await fetchWithPolicy('http://other/mateu/v3/sync/x', {}, { actionId: '' })
-    await fetchWithPolicy('http://other/mateu/v3/sync/x', {}, { actionId: '' })
+    await fetchWithPolicy('https://other/mateu/v3/sync/x', {}, { actionId: '' })
+    await fetchWithPolicy('https://other/mateu/v3/sync/x', {}, { actionId: '' })
     assert.deepEqual(notices, ['This app has been updated. Reload to use the latest version.'])
     // no header (static bundle, older server): nothing
     answer = ok(null)
-    await fetchWithPolicy('http://other/mateu/v3/sync/x', {}, { actionId: '' })
+    await fetchWithPolicy('https://other/mateu/v3/sync/x', {}, { actionId: '' })
     assert.equal(notices.length, 1)
   } finally {
     console.error = quietConsole

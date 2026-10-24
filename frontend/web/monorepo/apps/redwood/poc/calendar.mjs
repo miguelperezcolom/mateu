@@ -201,7 +201,9 @@ export function spCalendarSpecOf(m, nav = null, today = new Date().toISOString()
   const onOff = (v) => (views.includes(v) || v === view ? 'on' : 'off')
   return {
     events,
-    providers: colours.map((c) => ({ name: c, color: c })),
+    // displayName: Spectra appends it to each event's accessible name («Meeting, <calendar>») — a
+    // colour key means nothing to a screen reader, and without one it read «Meeting, undefined»
+    providers: colours.map((c) => ({ name: c, color: c, displayName: '' })),
     focusDate: anchor + 'T12:00:00',
     anchor,
     view,

@@ -66,7 +66,7 @@ export function planningAtomOf(m, id) {
         // inside the bar or nothing: outside, white text on the background is unreadable (and the full
         // summary is still in the tooltip)
         labelPosition: ['innerCenter', 'innerStart', 'none'],
-        labelStyle: { fill: '#ffffff' },
+        labelStyle: { fill: '#ffffff' }, // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
       })),
     }
   })
@@ -141,7 +141,7 @@ export function ganttAtomOf(m, id) {
 }
 
 /** Redwood's primary ink: the label of a bar drawn OUTSIDE it, on the chart's light background. */
-export const GANTT_OUTSIDE_LABEL_INK = '#161513'
+export const GANTT_OUTSIDE_LABEL_INK = '#161513' // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
 
 /**
  * Where a task bar's label goes, and in which ink. A centred label sits over the middle of the
@@ -152,7 +152,7 @@ export const GANTT_OUTSIDE_LABEL_INK = '#161513'
  */
 export function ganttLabelOf(progress) {
   return progress >= 0.75
-    ? { labelPosition: ['innerCenter', 'innerStart', 'none'], labelStyle: { fill: '#ffffff' } }
+    ? { labelPosition: ['innerCenter', 'innerStart', 'none'], labelStyle: { fill: '#ffffff' } } // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
     : { labelPosition: ['end', 'start', 'none'], labelStyle: { fill: GANTT_OUTSIDE_LABEL_INK } }
 }
 

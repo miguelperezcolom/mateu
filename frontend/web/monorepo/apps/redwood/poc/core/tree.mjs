@@ -533,7 +533,7 @@ export function spectraDrawerSize(size, width) {
   if (unit === 'vw' || unit === '%') return n >= 75 ? 'xl' : n >= 55 ? 'lg' : n >= 38 ? 'md' : 'sm'
   const px = unit === 'px' ? n : n * 16
   const sizes = [['sm', 464], ['md', 648], ['lg', 968], ['xl', 1296]]
-  return sizes.reduce((best, s) => (Math.abs(s[1] - px) < Math.abs(best[1] - px) ? s : best))[0]
+  return sizes.reduce((best, s) => (Math.abs(s[1] - px) < Math.abs(best[1] - px) ? s : best), sizes[0])[0]
 }
 
 /** PeerNav → the templates' previousItem/nextItem ({id, label, display}); a side without a route is
@@ -560,9 +560,16 @@ export function spectraDrawerOf(ctx, parts) {
   const actions = parts.actions || []
   const editable = (parts.fields || []).some((f) => !f.readonly)
   const position = ctx.position || md.position || 'end'
-  const template = position === 'bottom' ? 'bottom'
-    : (ctx.tree && (ctx.tree.id === CRUD_DRAWER_ID || md.id === CRUD_DRAWER_ID)) || (editable && actions.length) ? 'createEdit' : 'general'
   const peers = spectraPeersOf(md.peerNav)
+  const crudDrawer = !!(ctx.tree && (ctx.tree.id === CRUD_DRAWER_ID || md.id === CRUD_DRAWER_ID))
+  // with arrows of its own (peerNav) the create-edit template turns its footer into «<primary> and
+  // next» and drops the secondary: only right when the drawer offers Save and next; a form drawer
+  // with peer arrows and buttons of its own is a general drawer (its arrows in the header, its
+  // buttons in the footer, all of them)
+  const ownPeers = !!(peers.previousItem || peers.nextItem)
+  const offersSaveAndNext = actions.some((a) => a.actionId === SAVE_AND_NEXT)
+  const template = position === 'bottom' ? 'bottom'
+    : crudDrawer || (editable && actions.length && (!ownPeers || offersSaveAndNext)) ? 'createEdit' : 'general'
   const base = {
     template,
     isGeneral: template === 'general',

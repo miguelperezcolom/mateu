@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Mateu.Core;
 
@@ -12,7 +11,7 @@ namespace Mateu.Core;
 /// release — and a renderer announces itself in <c>X-Mateu-Renderer</c>
 /// (<c>&lt;name&gt;/&lt;version&gt; wire/&lt;major&gt;.&lt;minor&gt;</c>); a renderer speaking another
 /// wire MAJOR is warned about once per distinct value, never refused. Nothing changes on the wire JSON.</summary>
-internal sealed partial class VersionSkew
+internal sealed class VersionSkew
 {
     /// <summary>The response header carrying the build id.</summary>
     public const string BuildHeader = "X-Mateu-Build";
@@ -45,7 +44,7 @@ internal sealed partial class VersionSkew
     internal static string? Sanitize(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return null;
-        var clean = NotAllowed().Replace(value.Trim(), "");
+        var clean = new string(value.Trim().Where(IsAllowed).ToArray());
         if (clean.Length > 64) clean = clean[..64];
         return clean.Length == 0 ? null : clean;
     }
@@ -105,9 +104,21 @@ internal sealed partial class VersionSkew
     private static (int Major, string Version)? WireOf(string? header)
     {
         if (string.IsNullOrWhiteSpace(header)) return null;
-        var m = WireToken().Match(header);
-        return m.Success && int.TryParse(m.Groups[1].Value, out var major) ? (major, m.Value.Trim()["wire/".Length..]) : null;
+        // the first whitespace-delimited `wire/<major>[.<minor>]` token
+        foreach (var token in header.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!token.StartsWith("wire/", StringComparison.Ordinal)) continue;
+            var version = token["wire/".Length..];
+            var parts = version.Split('.');
+            if (parts.Length > 2 || !parts.All(IsAsciiNumber)) continue;
+            if (int.TryParse(parts[0], out var major)) return (major, version);
+        }
+        return null;
     }
+
+    private static bool IsAsciiNumber(string s) => s.Length > 0 && s.All(char.IsAsciiDigit);
+
+    private static bool IsAllowed(char c) => char.IsAsciiLetterOrDigit(c) || c is '.' or '_' or '-';
 
     /// <summary>The warning for <paramref name="header"/> the FIRST time this distinct value speaks
     /// another wire major than <paramref name="serverWireVersion"/>; null otherwise (same major,
@@ -128,10 +139,4 @@ internal sealed partial class VersionSkew
     public static bool IsMateuPath(string? path) =>
         path is not null && (path.Contains("/mateu/", StringComparison.Ordinal)
                              || path.EndsWith("/mateu", StringComparison.Ordinal));
-
-    [GeneratedRegex("[^A-Za-z0-9._-]")]
-    private static partial Regex NotAllowed();
-
-    [GeneratedRegex(@"(?:^|\s)wire/(\d+)(?:\.\d+)?(?=\s|$)")]
-    private static partial Regex WireToken();
 }

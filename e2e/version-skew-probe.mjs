@@ -14,17 +14,21 @@
  * id ({build} is replaced; the command must return once the server answers):
  *
  *   cd e2e && START_CMD='./start-sut.sh {build}' node version-skew-probe.mjs
- *   BASE=http://localhost:8595 ROUTE=/products START_CMD='…' OUT=/tmp/shots node version-skew-probe.mjs
+ *   BASE=http://localhost:8595 ROUTE=/products START_CMD='…' OUT=./shots/probe node version-skew-probe.mjs
  *
  * The server must read the build id from -Dmateu.build-id / MATEU_BUILD_ID. Works with the Vaadin
  * and the Redwood renderer. Exits non-zero if any check fails.
  */
 import { execSync } from 'child_process'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { chromium } from 'playwright'
 
 const BASE = process.env.BASE ?? 'http://localhost:8080'
 const ROUTE = process.env.ROUTE ?? '/products'
-const OUT = process.env.OUT ?? '/tmp/mateu-version-skew-probe'
+// the screenshots' path prefix: a private directory of its own unless one is named (never a fixed /tmp path)
+const OUT = process.env.OUT ?? path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mateu-version-skew-')), 'probe')
 const START_CMD = process.env.START_CMD
 if (!START_CMD) {
     console.error('START_CMD is required, e.g. START_CMD="./start-sut.sh {build}"')

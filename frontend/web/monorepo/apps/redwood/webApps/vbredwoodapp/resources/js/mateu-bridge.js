@@ -1252,7 +1252,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const onOff = (v) => (views.includes(v) || v === view ? 'on' : 'off')
     return {
       events,
-      providers: colours.map((c) => ({ name: c, color: c })),
+      // displayName: Spectra appends it to each event's accessible name («Meeting, <calendar>») — a
+      // colour key means nothing to a screen reader, and without one it read «Meeting, undefined»
+      providers: colours.map((c) => ({ name: c, color: c, displayName: '' })),
       focusDate: anchor + 'T12:00:00',
       anchor,
       view,
@@ -2569,7 +2571,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (unit === 'vw' || unit === '%') return n >= 75 ? 'xl' : n >= 55 ? 'lg' : n >= 38 ? 'md' : 'sm'
     const px = unit === 'px' ? n : n * 16
     const sizes = [['sm', 464], ['md', 648], ['lg', 968], ['xl', 1296]]
-    return sizes.reduce((best, s) => (Math.abs(s[1] - px) < Math.abs(best[1] - px) ? s : best))[0]
+    return sizes.reduce((best, s) => (Math.abs(s[1] - px) < Math.abs(best[1] - px) ? s : best), sizes[0])[0]
   }
 
   /** PeerNav → the templates' previousItem/nextItem ({id, label, display}); a side without a route is
@@ -2596,9 +2598,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const actions = parts.actions || []
     const editable = (parts.fields || []).some((f) => !f.readonly)
     const position = ctx.position || md.position || 'end'
-    const template = position === 'bottom' ? 'bottom'
-      : (ctx.tree && (ctx.tree.id === CRUD_DRAWER_ID || md.id === CRUD_DRAWER_ID)) || (editable && actions.length) ? 'createEdit' : 'general'
     const peers = spectraPeersOf(md.peerNav)
+    const crudDrawer = !!(ctx.tree && (ctx.tree.id === CRUD_DRAWER_ID || md.id === CRUD_DRAWER_ID))
+    // with arrows of its own (peerNav) the create-edit template turns its footer into «<primary> and
+    // next» and drops the secondary: only right when the drawer offers Save and next; a form drawer
+    // with peer arrows and buttons of its own is a general drawer (its arrows in the header, its
+    // buttons in the footer, all of them)
+    const ownPeers = !!(peers.previousItem || peers.nextItem)
+    const offersSaveAndNext = actions.some((a) => a.actionId === SAVE_AND_NEXT)
+    const template = position === 'bottom' ? 'bottom'
+      : crudDrawer || (editable && actions.length && (!ownPeers || offersSaveAndNext)) ? 'createEdit' : 'general'
     const base = {
       template,
       isGeneral: template === 'general',
@@ -10061,7 +10070,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // inside the bar or nothing: outside, white text on the background is unreadable (and the full
           // summary is still in the tooltip)
           labelPosition: ['innerCenter', 'innerStart', 'none'],
-          labelStyle: { fill: '#ffffff' },
+          labelStyle: { fill: '#ffffff' }, // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
         })),
       }
     })
@@ -10136,7 +10145,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** Redwood's primary ink: the label of a bar drawn OUTSIDE it, on the chart's light background. */
-  const GANTT_OUTSIDE_LABEL_INK = '#161513'
+  const GANTT_OUTSIDE_LABEL_INK = '#161513' // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
 
   /**
    * Where a task bar's label goes, and in which ink. A centred label sits over the middle of the
@@ -10147,7 +10156,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function ganttLabelOf(progress) {
     return progress >= 0.75
-      ? { labelPosition: ['innerCenter', 'innerStart', 'none'], labelStyle: { fill: '#ffffff' } }
+      ? { labelPosition: ['innerCenter', 'innerStart', 'none'], labelStyle: { fill: '#ffffff' } } // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
       : { labelPosition: ['end', 'start', 'none'], labelStyle: { fill: GANTT_OUTSIDE_LABEL_INK } }
   }
 
@@ -11628,9 +11637,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function leadingHeadingOf(html) {
     const m = String(html || '').match(/^\s*<h([1-4])[^>]*>([\s\S]*?)<\/h\1>/i)
     if (!m) return null
-    const text = m[2].replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').trim()
+    const text = decodeHeadingEntities(headingTextOf(m[2])).trim()
     return text ? { text, rest: String(html).slice(m[0].length) } : null
   }
+
+  /** The text of an html fragment: everything between a `<` and its `>` dropped, scanned one character
+   *  at a time (no regex pass a nested `<scr<b>ipt>` could survive), a stray `>` dropped too. The result
+   *  is TEXT (a title), never written back as html. */
+  function headingTextOf(html) {
+    let out = ''
+    let inTag = false
+    for (const c of String(html)) {
+      if (c === '<') inTag = true
+      else if (c === '>') inTag = false
+      else if (!inTag) out += c
+    }
+    return out
+  }
+
+  const HEADING_ENTITIES = { amp: '&', nbsp: ' ', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'" }
+  /** The few named entities a rich-text heading carries, decoded in ONE pass (so `&amp;lt;` stays `&lt;`). */
+  const decodeHeadingEntities = (text) => text.replace(/&(amp|nbsp|lt|gt|quot|apos|#39);/g, (_, name) => HEADING_ENTITIES[name])
 
   /**
    * ItemOverview → oj-sp-item-overview-page: its OVERVIEW slot is oj-sp-item-overview — the item's
@@ -14152,6 +14179,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // DOM effects the (pure) reducer only DESCRIBES: downloading a file and opening a URL in
   // another tab. Before, `effects.download` was computed and nobody read it — a listing's CSV or
   // a folio's PDF reached the browser and got lost. Each chain that reduces an increment
@@ -14373,8 +14401,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function attachmentDownloadOf(target) {
     const chip = target && target.closest ? target.closest('oj-sp-attachment-chip[data-mateu-href]') : null
-    const href = chip ? chip.getAttribute('data-mateu-href') : ''
-    return href || ''
+    // the attribute was written from a safe href, but it is read back off the DOM: checked again
+    // (http/https/relative only — never javascript:, data:…) before it becomes a link
+    return chip ? safeHref(chip.getAttribute('data-mateu-href')) : ''
   }
   function installAttachmentChips(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuAttachmentChips) return
@@ -14383,7 +14412,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const href = attachmentDownloadOf(e.target)
       if (!href) return
       const a = doc.createElement('a')
-      a.href = href
+      a.setAttribute('href', href)
       if (download) a.setAttribute('download', '')
       a.target = '_blank'
       a.rel = 'noopener noreferrer'

@@ -6,8 +6,10 @@ serves."""
 from __future__ import annotations
 
 import logging
+import re
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 
@@ -104,7 +106,9 @@ def test_the_served_page_is_re_pointed_at_the_mirror(tmp_path, caplog, mirror, r
     with caplog.at_level(logging.WARNING):
         add_mateu(app, MODULE, ui=tmp_path, oracle_cdn_url=mirror)
     page = TestClient(app, headers={"accept": "text/html"}).get("/").text
-    assert ("static.oracle.com" in page) is (not rewritten)
+    urls = set(re.findall(r"https?://[^\s\"'<>]+", page))
+    hosts = {urlparse(u).hostname for u in urls}
+    assert ("static.oracle.com" in hosts) is (not rewritten)
     if rewritten:
-        assert "https://cdn.example.com/oracle/cdn/vb/2510.3/visual-runtime.js" in page
+        assert "https://cdn.example.com/oracle/cdn/vb/2510.3/visual-runtime.js" in urls
     assert ("Ignoring the Oracle CDN mirror" in caplog.text) is (mirror == "not a url")

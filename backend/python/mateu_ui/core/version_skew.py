@@ -104,7 +104,9 @@ def wire_of(header: str | None) -> tuple[int, str] | None:
 
 def is_mateu_path(path: str | None) -> bool:
     """Whether ``path`` is one of Mateu's endpoints (a ``/mateu/`` segment)."""
-    return bool(path) and ("/mateu/" in path or path.endswith("/mateu"))
+    if not path:
+        return False
+    return "/mateu/" in path or path.endswith("/mateu")
 
 
 def _log_safe(value: str) -> str:

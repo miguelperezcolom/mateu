@@ -894,6 +894,16 @@ test('spectra drawer: a hand-built drawer with a form and an action is create-ed
   assert.equal(op.sp.cancelActionId, '', 'no cancel on the wire: the template\'s Cancel just closes')
 })
 
+test('spectra drawer: a form drawer with peer arrows and buttons of its own is general — create-edit would turn its footer into «X and next» and drop the other button', () => {
+  const peerNav = { prevLabel: 'Previous', prevRoute: '/a', nextLabel: 'Next', nextRoute: '/b' }
+  const ov = overlayOf(openDrawer({ headerTitle: 'Edit contact', peerNav }, [node({ type: 'FormField', fieldId: 'contactName', dataType: 'string', label: 'Contact name' }),
+    node({ type: 'Button', label: 'Save contact', actionId: 'saveContact' }), node({ type: 'Button', label: 'Open nested dialog', actionId: 'nested' })]))
+  assert.equal(ov.sp.template, 'general')
+  assert.equal(ov.sp.primaryActionId, 'nested')
+  assert.deepEqual(ov.sp.secondaryActions.map((a) => a.label), ['Save contact'], 'every button stays on the footer')
+  assert.equal(ov.sp.nextItem.id, '/b', 'the arrows stay in the header')
+})
+
 test('spectra drawer: DrawerPosition.bottom is the BOTTOM template, docked at the bottom; collapsible = fixed mode', () => {
   const closable = overlayOf(openDrawer({ headerTitle: 'Lines', position: 'bottom' }, [node({ type: 'Text', text: '3 lines' })]))
   assert.equal(closable.sp.template, 'bottom')

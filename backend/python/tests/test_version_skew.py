@@ -74,7 +74,9 @@ def test_a_non_mateu_path_does_not_carry_it():
 
 def test_the_build_id_is_stable_across_apps_of_the_same_release(monkeypatch):
     monkeypatch.delenv(version_skew.BUILD_ID_ENV, raising=False)
-    assert sync(client()).headers["x-mateu-build"] == sync(client()).headers["x-mateu-build"]
+    first, second = client(), client()
+    assert first is not second
+    assert sync(first).headers["x-mateu-build"] == sync(second).headers["x-mateu-build"]
 
 
 def test_the_option_overrides_it_sanitised():

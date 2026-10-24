@@ -147,9 +147,27 @@ export function collectionDetailPageOf(ctx, { title = '' } = {}) {
 function leadingHeadingOf(html) {
   const m = String(html || '').match(/^\s*<h([1-4])[^>]*>([\s\S]*?)<\/h\1>/i)
   if (!m) return null
-  const text = m[2].replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').trim()
+  const text = decodeHeadingEntities(headingTextOf(m[2])).trim()
   return text ? { text, rest: String(html).slice(m[0].length) } : null
 }
+
+/** The text of an html fragment: everything between a `<` and its `>` dropped, scanned one character
+ *  at a time (no regex pass a nested `<scr<b>ipt>` could survive), a stray `>` dropped too. The result
+ *  is TEXT (a title), never written back as html. */
+function headingTextOf(html) {
+  let out = ''
+  let inTag = false
+  for (const c of String(html)) {
+    if (c === '<') inTag = true
+    else if (c === '>') inTag = false
+    else if (!inTag) out += c
+  }
+  return out
+}
+
+const HEADING_ENTITIES = { amp: '&', nbsp: ' ', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'" }
+/** The few named entities a rich-text heading carries, decoded in ONE pass (so `&amp;lt;` stays `&lt;`). */
+const decodeHeadingEntities = (text) => text.replace(/&(amp|nbsp|lt|gt|quot|apos|#39);/g, (_, name) => HEADING_ENTITIES[name])
 
 /**
  * ItemOverview → oj-sp-item-overview-page: its OVERVIEW slot is oj-sp-item-overview — the item's

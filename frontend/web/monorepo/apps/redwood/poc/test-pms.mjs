@@ -1160,7 +1160,7 @@ test('calendario Spectra: colores a las seis claves de Redwood, eventos en hora 
   assert.deepEqual(conv, { id: 'conv', eventTitle: 'Convention', start: '2026-10-29T09:00', end: '2026-10-31T18:00', allDay: false, calendarProvider: 'teal' })
   assert.deepEqual(spCalendarSpecOf({ events: [{ id: 'a', title: 'A', date: '2026-10-02' }] }).events[0],
     { id: 'a', eventTitle: 'A', start: '2026-10-02T00:00:00', end: '2026-10-02T23:59:59', allDay: true, calendarProvider: 'teal' }, 'todo el día, sin Z')
-  assert.deepEqual(spec.providers, [{ name: 'teal', color: 'teal' }])
+  assert.deepEqual(spec.providers, [{ name: 'teal', color: 'teal', displayName: '' }])
   assert.deepEqual(spec.actions, { conv: { actionId: 'openCalendarEvent', id: 'conv', title: 'Convention', date: '2026-10-29' } }, 'sólo los eventos con acción')
   assert.deepEqual(spec.days, { '2026-10-30': { tone: 'danger', label: 'Avail 3' } })
   assert.equal(spec.dayActionId, 'openCalendarDay')
@@ -2312,6 +2312,12 @@ test('ItemOverview → oj-sp-item-overview-page: the key panel in oj-sp-item-ove
   assert.ok(!/<h3>/.test(h.keyItems[0].html), 'taken out of the body (it was said twice)')
   assert.equal(itemOverviewPageHeaderOf(null, { key: { title: '', items: [{ isHeading: true, text: 'Chair' }, { isText: true, text: 'x' }] } }).keyItems.length, 1)
   assert.equal(itemOverviewPageHeaderOf(null, { key: { title: 'Card', items: [{ isHeading: true, text: 'Chair' }] } }).itemTitle, 'Card')
+  // a rich-text heading's TEXT: tags out (a nested one too), entities decoded once (`&amp;lt;` stays `&lt;`)
+  const rich = (html) => itemOverviewPageHeaderOf(null, { key: { title: '', items: [{ isRichText: true, html }] } })
+  assert.equal(rich('<h2>Tom &amp; Jerry&nbsp;<b>&quot;EC&quot;</b> &amp;lt;x&gt;</h2><p>body</p>').itemTitle, 'Tom & Jerry "EC" &lt;x>')
+  assert.equal(rich('<h3><scr<b>ipt>alert(1)</h3>').itemTitle, 'iptalert(1)', 'a tag split by another leaves no markup')
+  assert.equal(rich('<h3><i></i></h3>rest').itemTitle, '', 'an empty heading is no title')
+  assert.equal(rich('<p>no heading</p>').itemTitle, '')
   // the PAGE's title (@Title → the window title) is the item title, as Vaadin draws it above the panels
   assert.equal(host.windowTitle, 'Ergonomic chair EC-200')
   const titled = itemOverviewPageHeaderOf({ ...host, windowTitle: 'Product EC-200' }, item)

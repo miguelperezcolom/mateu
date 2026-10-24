@@ -29,6 +29,10 @@ const fieldsPartial = readFileSync(join(here, 'templates', 'fields-extra.html'),
 // FIRST: it brings its own @atoms and @fields-extra markers, which the next passes fill.
 const drawerBodyPartial = readFileSync(join(here, 'templates', 'drawer-body.html'), 'utf8').replace(/\n$/, '')
 
+/** A copy's literal ids suffixed with its template (`id="x"` → `id="x-general"`): the three copies
+ *  live in ONE page, where an id must be unique. Bound ids (`:id=`) and `data-*-id` are left alone. */
+export const uniqueIds = (html, copy) => html.replace(/(^|\s)id="([^"]+)"/g, (all, lead, id) => `${lead}id="${id}-${copy}"`)
+
 /** Expands the @drawer-body markers (the partial is unindented: it takes the marker's indentation). */
 export const expandDrawerBodies = (html) => {
   const lines = html.split('\n')
@@ -40,7 +44,7 @@ export const expandDrawerBodies = (html) => {
     let j = i + 1
     while (j < lines.length && !/<!-- @end-drawer-body -->/.test(lines[j])) j++
     if (j === lines.length) throw new Error(`@drawer-body sin @end-drawer-body (línea ${i + 1})`)
-    out.push(...reindent(drawerBodyPartial, m[1]))
+    out.push(...reindent(uniqueIds(drawerBodyPartial, m[2]), m[1]))
     out.push(lines[j])
     i = j
   }

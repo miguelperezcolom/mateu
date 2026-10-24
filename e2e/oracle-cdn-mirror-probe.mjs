@@ -14,23 +14,42 @@
  */
 import http from 'node:http'
 import https from 'node:https'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { chromium } from 'playwright'
 
 const BASE = process.env.BASE ?? 'http://localhost:8080'
 const ROUTE = process.env.ROUTE ?? '/'
 const MIRROR_PORT = Number(process.env.MIRROR_PORT ?? 9777)
-const OUT = process.env.OUT ?? '/tmp/mateu-oracle-cdn-mirror-probe.png'
+// the screenshot goes to a private directory of its own unless one is named (never a fixed /tmp path)
+const OUT = process.env.OUT ?? path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mateu-oracle-cdn-')), 'mirror-probe.png')
 const PREFIX = '/oracle/cdn/'
+const UPSTREAM = new URL('https://static.oracle.com/cdn/')
+
+/** The upstream URL a mirror request forwards to, or null when its path is not a plain CDN path:
+ *  segments of [A-Za-z0-9._~-] only — no `..`, no empty segment (`//`), no scheme — and the
+ *  resolved URL must still be on Oracle's CDN origin, under /cdn/ (a query string is dropped). */
+function upstreamOf(requestUrl) {
+    if (typeof requestUrl !== 'string' || !requestUrl.startsWith(PREFIX)) return null
+    const rest = requestUrl.slice(PREFIX.length).split(/[?#]/)[0]
+    const segments = rest.split('/')
+    if (!rest || segments.some((s) => !/^[A-Za-z0-9._~-]+$/.test(s) || s === '.' || s === '..')) return null
+    const target = new URL(rest, UPSTREAM)
+    if (target.origin !== UPSTREAM.origin || !target.pathname.startsWith(UPSTREAM.pathname)) return null
+    return target
+}
 
 const mirrored = []
 const server = http.createServer((req, res) => {
-    if (!req.url.startsWith(PREFIX)) {
+    const target = upstreamOf(req.url)
+    if (!target) {
         res.statusCode = 404
         res.end()
         return
     }
-    mirrored.push(req.url.slice(PREFIX.length))
-    https.get('https://static.oracle.com/cdn/' + req.url.slice(PREFIX.length), (up) => {
+    mirrored.push(target.pathname.slice(UPSTREAM.pathname.length))
+    https.get(target, (up) => {
         res.writeHead(up.statusCode, { ...up.headers, 'access-control-allow-origin': '*' })
         up.pipe(res)
     }).on('error', () => {
@@ -46,7 +65,9 @@ let rendered = false
 try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
     page.on('request', (r) => {
-        if (r.url().includes('static.oracle.com')) direct.push(r.url())
+        let host = ''
+        try { host = new URL(r.url()).hostname } catch { /* not a URL (data:, about:) */ }
+        if (host === UPSTREAM.hostname) direct.push(r.url())
     })
     await page.goto(BASE + ROUTE)
     rendered = await page.locator('oj-vb-content *').first().waitFor({ timeout: 60000 }).then(() => true, () => false)
@@ -58,7 +79,7 @@ try {
 }
 
 // the trees an organisation mirrors: the first three path segments (product/version) of each fetch
-const trees = [...new Set(mirrored.map((p) => p.split('/').slice(0, 3).join('/')))].sort()
+const trees = [...new Set(mirrored.map((p) => p.split('/').slice(0, 3).join('/')))].sort((a, b) => a.localeCompare(b))
 console.log(`fetched through the mirror: ${mirrored.length} files from`)
 trees.forEach((t) => console.log(`  ${t}/`))
 console.log(`${rendered ? 'PASS' : 'FAIL'} the screen renders`)

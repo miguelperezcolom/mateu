@@ -940,6 +940,8 @@ test('FileList → oj-sp-attachment-chip fed locally; Timeline events → oj-sp-
   const chip = { closest: (sel) => (sel.indexOf('data-mateu-href') >= 0 ? { getAttribute: () => '/files/c.pdf' } : null) }
   assert.equal(attachmentDownloadOf(chip), '/files/c.pdf')
   assert.equal(attachmentDownloadOf({ closest: () => null }), '')
+  const forged = { closest: () => ({ getAttribute: () => 'javascript:alert(1)' }) }
+  assert.equal(attachmentDownloadOf(forged), '', 'a forged attribute is no link')
   const atoms = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
   const fl = atoms.slice(atoms.indexOf('$current.data.isFileList'), atoms.indexOf('$current.data.isChecklist'))
   assert.match(fl, /<oj-sp-attachment-chip[^>]*file-size="\[\[ \$current\.data\.fileSize \]\]"/)

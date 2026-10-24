@@ -104,7 +104,7 @@ function splitTop(src, sep) {
   return out
 }
 const matchesCompound = (el, s) => el.nodeType === 1
-  && (!s.tag || el.tagName === s.tag)
+  && (!s.tag || String(el.tagName).toLowerCase() === s.tag)
   && (!s.id || el.getAttribute('id') === s.id)
   && s.classes.every((c) => el.classList.contains(c))
   && s.attrs.every((a) => el.hasAttribute(a.name) && (a.value == null || el.getAttribute(a.name) === a.value))
@@ -251,7 +251,12 @@ export class FakeElement extends Target {
   }
   contains(other) { for (let n = other; n; n = n.parentNode) if (n === this) return true; return false }
   _descendants() { const out = []; const walk = (n) => { for (const c of n.childNodes) { if (c.nodeType === 1) { out.push(c); walk(c) } } }; walk(this); return out }
-  querySelectorAll(sel) { const c = compile(sel); return this._descendants().filter((el) => matchesSelector(el, c)) }
+  querySelectorAll(sel) {
+    // `:scope > x`: the element's own children only (the one pseudo-class the core uses)
+    const scoped = /^:scope\s*>\s*/.exec(sel)
+    if (scoped) { const c = compile(sel.slice(scoped[0].length)); return this.children.filter((el) => matchesSelector(el, c)) }
+    const c = compile(sel); return this._descendants().filter((el) => matchesSelector(el, c))
+  }
   querySelector(sel) { return this.querySelectorAll(sel)[0] || null }
   matches(sel) { return matchesSelector(this, compile(sel)) }
   closest(sel) { const c = compile(sel); for (let n = this; n && n.nodeType === 1; n = n.parentNode) if (matchesSelector(n, c)) return n; return null }

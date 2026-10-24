@@ -1,6 +1,7 @@
 import { takeUndoToasts, showUndoToasts } from './notify.mjs'
 import { announce } from './a11y.mjs'
 import { updateHeaderValue } from './appExtras.mjs'
+import { safeHref } from './core/display.mjs'
 // DOM effects the (pure) reducer only DESCRIBES: downloading a file and opening a URL in
 // another tab. Before, `effects.download` was computed and nobody read it — a listing's CSV or
 // a folio's PDF reached the browser and got lost. Each chain that reduces an increment
@@ -222,8 +223,9 @@ export function applyDomEffects(effects, reg, env = globalThis) {
  */
 export function attachmentDownloadOf(target) {
   const chip = target && target.closest ? target.closest('oj-sp-attachment-chip[data-mateu-href]') : null
-  const href = chip ? chip.getAttribute('data-mateu-href') : ''
-  return href || ''
+  // the attribute was written from a safe href, but it is read back off the DOM: checked again
+  // (http/https/relative only — never javascript:, data:…) before it becomes a link
+  return chip ? safeHref(chip.getAttribute('data-mateu-href')) : ''
 }
 export function installAttachmentChips(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuAttachmentChips) return
@@ -232,7 +234,7 @@ export function installAttachmentChips(doc = typeof document !== 'undefined' ? d
     const href = attachmentDownloadOf(e.target)
     if (!href) return
     const a = doc.createElement('a')
-    a.href = href
+    a.setAttribute('href', href)
     if (download) a.setAttribute('download', '')
     a.target = '_blank'
     a.rel = 'noopener noreferrer'

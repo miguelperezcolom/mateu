@@ -396,12 +396,12 @@ renderers, and its children still render.
 | `Breadcrumbs` | ✅ | a breadcrumb nav in the content (the shell keeps its own trail) |
 | `BulletedList` | ✅ |  |
 | `Button` | ✅ | oj-button |
-| `Calendar` | ✅ | month, week, day and list views (JET has no calendar: a Redwood-token grid, oj-buttonset-one switcher), per-date cells, clickable dates |
+| `Calendar` | ✅ | Spectra's oj-sp-calendar (fed locally: ArrayDataProvider): month/week/day/list, a CalendarPage's ‹ › Today/views/Create run from its toolbar, per-date tone+label and clickable dates on its cells; the Redwood-token grid stays as fallback |
 | `CalloutCard` | ✅ | oj-panel band with its theme, icon and CTA oj-button |
 | `Card` | ✅ | oj-panel |
 | `CarouselLayout` | ✅ | an image gallery is an oj-film-strip; other slides one at a time with a ‹ › pager and dots (client-side) |
 | `Chart` | ✅ | oj-chart: bar, line, pie, doughnut, radar/polar area, scatter; several series |
-| `Chat` | ✅ | an inline conversation streamed from its sseUrl (poc/chat.mjs); the app-level assistant is the shell panel |
+| `Chat` | ✅ | an inline conversation streamed from its sseUrl (poc/chat.mjs) in Spectra's oj-sp-chat-message-block + oj-sp-chat-input; the app-level assistant is the shell panel (same pieces) |
 | `Checklist` | ✅ | oj-checkboxset per item (sends {_item, _done}) + oj-progress-bar |
 | `CommentThread` | ✅ | replies indented under their comment, oj-avatar per author |
 | `ComparisonCard` | ✅ | oj-panel: both values and the delta with its trend |
@@ -411,18 +411,18 @@ renderers, and its children still render.
 | `Crud` | ✅ | oj-table + smart search; groups, totals, tones, columns, saved views, export |
 | `CustomComponent` | ✅ | a registry the app fills (bridge.registerCustomComponent); without a view, a visible placeholder + its children — same contract as the web |
 | `DashboardLayout` | ✅ | oj-flex columns, each panel its colSpan |
-| `DashboardPanel` | ✅ | oj-panel tile (title, subtitle, content) |
+| `DashboardPanel` | ✅ | the Dashboard archetype: oj-sp-dashboard-panel (panelTitle/panelSubtitle) on oj-sp-dashboard-grid inside oj-sp-dashboard-landing-page; elsewhere an oj-panel tile (title, subtitle, content) |
 | `Details` | ✅ | oj-collapsible (client-side state) |
 | `Dialog` | ✅ | oj-dialog (overlay stack) |
 | `Directory` | ✅ | a column per group with its links (in-app routes navigate inside the shell) |
-| `Drawer` | ✅ | oj-drawer-popup (overlay stack), subtitle, footer actions |
+| `Drawer` | ✅ | oj-drawer-popup (overlay stack) docked at its edge + Spectra drawer template (general / create-edit / bottom, tree.mjs spectraDrawerOf): size, maximize, peers, close, Save and next, error banner, unsaved changes |
 | `DropZone` | ✅ | drop target for @DragRows listing rows (oj-table dnd); its content as text lines |
 | `Element` | ✅ | third-party web component, events wired back; a REMOTE screen's root-relative import loads from the remote's origin |
 | `EmptyState` | ✅ | oj-sp-empty-state: the page-level one, and any other in the content with its call to action as the component's own `primaryAction` |
 | `EntityHeader` | ✅ | projected to the page header (sticky business card); a fact with an action gets its icon button after the value |
 | `Faq` | ✅ | oj-collapsible per question (client-side state), the answer as Markdown |
 | `FeatureGrid` | ✅ | oj-panel / oj-action-card tiles on an oj-flex grid of its columns |
-| `FileList` | ✅ | a row per file: icon by type, download link, size · type, its action |
+| `FileList` | ✅ | Spectra's oj-sp-attachment-chip per file, fed locally (no attachments REST): a click opens the url, its menu downloads it, an actionId runs on the click |
 | `FoldoutLayout` | ✅ | oj-sp-foldout-layout (an open=false panel starts as a strip the layout selection unfolds); inside a tab, collapsible panels |
 | `Form` | ✅ | oj-form-layout |
 | `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, oj-sp-input-currency/-email/-url, capture fields |
@@ -431,13 +431,13 @@ renderers, and its children still render.
 | `Gantt` | ✅ | oj-gantt: a row per task, progress fill, task click → onTaskSelectionActionId |
 | `Grid` | ✅ | oj-table (list display): tree rows with disclosure, client-side paging by its size |
 | `Heatmap` | ✅ | JET has none: a calendar heatmap (a column per week), 4 levels + legend, values on hover |
-| `HeroSection` | ✅ | the Welcome archetype: oj-sp-header-welcome-banner; in the content, a hero band (title, subtitle, background image) over its children |
+| `HeroSection` | ✅ | the Welcome archetype: oj-sp-welcome-page (every CTA, heroImage full bleed); in the content, a hero band (title, subtitle, background image) over its children |
 | `HorizontalLayout` | ✅ | oj-flex row |
 | `Icon` | ✅ | the Redwood icon font (oj-ux-ico-*), an emoji as text |
 | `Image` | ✅ | JET has no image component: an <img>; relative sources are served by the backend |
 | `Kanban` | ✅ | JET has no board: oj-panel columns, cards as oj-action-card when they act (_clickedCard) |
 | `Ledger` | ✅ |  |
-| `Map` | ✅ | Leaflet + OSM tiles (JET has no street map): markers, fit, markerActionId |
+| `Map` | ✅ | Leaflet + OSM tiles (JET has no street map; oj-sp-map has no markers API and its tiles are Oracle Maps): markers, fit, markerActionId |
 | `Markdown` | ✅ | formatted (headings, lists, quotes, code, tables, bold, italics, links, allowed inline HTML) as allowlist-sanitized HTML |
 | `MasterDetailLayout` | ✅ | list + detail panes |
 | `MatrixGrid` | ✅ | oj-data-grid |
@@ -445,7 +445,7 @@ renderers, and its children still render.
 | `MessageInput` | ✅ | oj-input-text + Send oj-button; Enter or Send sends {message} |
 | `MessageList` | ✅ | oj-avatar + name, time and text per message |
 | `Meter` | ✅ | oj-progress-bar |
-| `MetricCard` | ✅ | an oj-sp-scoreboard card: value, trend, timeframe, description, icon, the whole card drills in |
+| `MetricCard` | ✅ | an oj-sp-scoreboard card exactly as Spectra draws it (pure KPI: value, trend, timeframe, description — no icon), the whole card drills in |
 | `MicroFrontend` | ✅ | loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it |
 | `NotFound` | ✅ |  |
 | `Notice` | ✅ | oj-sp-message-banner style band + actions |
@@ -473,10 +473,10 @@ renderers, and its children still render.
 | `Stepper` | ✅ | a numbered step header per child, its content below |
 | `TabLayout` | ✅ | oj-tab-bar (nested strips flattened) |
 | `TaskProgress` | ✅ |  |
-| `TaskQueue` | ✅ |  |
+| `TaskQueue` | ✅ | the TodoList archetype: inside oj-sp-task-organizer-page |
 | `Testimonials` | ✅ | oj-panel quotes, oj-avatar, oj-rating-gauge (read only) |
 | `Text` | ✅ |  |
-| `Timeline` | ✅ | oj-timeline is deprecated: a Redwood list with markers, items with an action as borderless oj-buttons (_clickedItem) |
+| `Timeline` | ✅ | oj-timeline is deprecated: a Redwood list with markers whose events are Spectra's oj-sp-timeline-event-template; an item's action is its template action menu (_clickedItem) |
 | `Tooltip` | ✅ | the wrapped component keeps its view; the text opens in the shared oj-popup on hover/focus (on the button itself, or an info marker) |
 | `TrendChart` | ✅ | oj-chart line/area |
 | `VirtualList` | ✅ | every item through the same projection (no windowing — neither has the neutral web renderer) |
