@@ -195,8 +195,12 @@
           "    label: Dashboard\n    route: dashboard"
         ],
         "src/main/resources/specs/ui/home.yaml": [
+          "pageType: landing",
           "title: Ops portal",
           "type: RouteLink\n          route: products"
+        ],
+        "src/main/resources/specs/ui/products.yaml": [
+          "pageType: collection"
         ],
         "src/main/resources/specs/ui/form.yaml": [
           "type: Form",
@@ -271,7 +275,11 @@
           "    label: Home\n    route: home"
         ],
         "src/main/resources/specs/ui/home.yaml": [
+          "pageType: landing",
           "title: Catalogue site"
+        ],
+        "src/main/resources/specs/ui/products.yaml": [
+          "pageType: collection"
         ],
         "src/main/resources/specs/ui/app.ui.yaml": [
           "home: home"
@@ -328,6 +336,7 @@
           "    label: Products\n    route: products"
         ],
         "src/main/resources/specs/ui/home.yaml": [
+          "pageType: landing",
           "title: Crm",
           "type: RouteLink\n          route: products"
         ],
@@ -388,6 +397,7 @@
           "    label: Products\n    route: products"
         ],
         "src/main/resources/specs/ui/home.yaml": [
+          "pageType: landing",
           "title: Crm",
           "type: RouteLink\n          route: products"
         ],
@@ -448,6 +458,7 @@
           "    label: Products\n    route: products"
         ],
         "src/main/resources/specs/ui/home.yaml": [
+          "pageType: landing",
           "title: Crm",
           "type: RouteLink\n          route: products"
         ],

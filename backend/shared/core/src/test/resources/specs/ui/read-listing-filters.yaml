@@ -1,0 +1,19 @@
+# A read-only Listing with a declared select FILTER, rows from a source's `sample:` data — the shape a
+# static (specsOnly/staticOnly) project writes. Its filters must reach the wire Crud's `filters` (the
+# renderers paint them as the listing's filter bar / Redwood's smart filters), never get dropped.
+type: Listing
+title: Filtered Products
+searchable: true
+filters:
+  - type: FormField
+    id: status
+    label: Status
+    stereotype: select
+    options:
+      - {value: AVAILABLE, label: Available}
+      - {value: OUT_OF_STOCK, label: Out of stock}
+rowsSource:
+  url: https://example.test/api/products
+columns:
+  - {type: GridColumn, id: name, label: Name, identifier: true}
+  - {type: GridColumn, id: status, label: Status, dataType: status}

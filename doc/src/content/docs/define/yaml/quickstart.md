@@ -66,6 +66,7 @@ nothing behind it to run:
 
 ```yaml
 # home.yaml
+pageType: landing
 type: VerticalLayout
 fullWidth: true
 horizontalAlignment: STRETCH
@@ -87,6 +88,7 @@ The listing reads its rows from a **named source**:
 
 ```yaml
 # products.yaml
+pageType: collection
 type: Listing
 title: Products
 searchable: true

@@ -250,6 +250,52 @@ html.mateu-editor-preview [data-node-id] { cursor: default; }
  * @param opts.dataOf element → its bound data (knockout's contextFor(el).$current.data)
  * @returns { booted() } — the shell calls it once its first navigation is done
  */
+/** Pixels a press must travel before it is a drag, not a click — the editor canvas's DRAG_THRESHOLD. */
+export const DRAG_THRESHOLD = 4
+
+/**
+ * What a press on the canvas tells the editor, so it can MOVE a node (pure: test-editor.mjs feeds it
+ * plain events). The editor cannot see a press inside this frame — and while the button is down the
+ * browser keeps the mouse here — so:
+ *   - `down` on a painted node (its id) → `press` {id, x, y}; on the bare background, nothing;
+ *   - while that press lasts, every `move` → `pointer` move, and the release → `pointer` up (frame
+ *     viewport coordinates; the editor translates them to its own);
+ *   - the click the browser fires after a press that TRAVELLED (a drag) is not a selection:
+ *     `swallowClick()` says so once. A press that did not travel clicks as ever.
+ * A move with the button no longer down (released outside, or over the editor while the frame let the
+ * pointer through) forgets the press.
+ */
+export function pressTracker(threshold = DRAG_THRESHOLD) {
+  let press = null
+  let dragged = false
+  return {
+    down(e, id) {
+      press = null
+      dragged = false
+      if (!e || e.button !== 0 || !id) return null
+      press = { x: e.clientX, y: e.clientY, moved: false }
+      return { kind: 'press', id, x: e.clientX, y: e.clientY }
+    },
+    move(e) {
+      if (!press) return null
+      if (typeof e.buttons === 'number' && (e.buttons & 1) === 0) { press = null; return null }
+      if (!press.moved && Math.hypot(e.clientX - press.x, e.clientY - press.y) >= threshold) press.moved = true
+      return { kind: 'pointer', phase: 'move', x: e.clientX, y: e.clientY }
+    },
+    up(e) {
+      if (!press) return null
+      dragged = press.moved
+      press = null
+      return { kind: 'pointer', phase: 'up', x: e.clientX, y: e.clientY }
+    },
+    swallowClick() {
+      const swallow = dragged
+      dragged = false
+      return swallow
+    },
+  }
+}
+
 export function installEditorPreview(win, opts = {}) {
   const doc = win.document
   const post = (msg) => { try { win.parent.postMessage({ [PREVIEW_MESSAGE_KEY]: msg.kind, ...msg }, '*') } catch (e) { /* no parent */ } }
@@ -329,16 +375,25 @@ export function installEditorPreview(win, opts = {}) {
   win.addEventListener('scroll', reposition, true)
   win.addEventListener('resize', reposition)
 
-  // ── inert canvas: a click selects ──
+  // ── inert canvas: a click selects, a press on a node may move it (the editor drives the drag) ──
   const stop = (e) => { e.preventDefault(); e.stopImmediatePropagation() }
+  const pathOf = (e) => (typeof e.composedPath === 'function' ? e.composedPath() : [e.target])
+  const presses = pressTracker()
+  const relay = (msg) => { if (msg) post(msg) }
+  // POINTER events, registered BEFORE the inert guard (which stops every other listener of the window):
+  // the guard cancels pointerdown, and a cancelled pointerdown suppresses the mousedown/mouseup that
+  // would follow — a mouse listener here never heard a press
+  win.addEventListener('pointerdown', (e) => relay(presses.down(e, nodeIdOfPath(pathOf(e)))), true)
+  win.addEventListener('pointerup', (e) => relay(presses.up(e)), true)
+  win.addEventListener('pointermove', (e) => relay(presses.move(e)), true)
   for (const name of INERT_EVENTS) win.addEventListener(name, stop, true)
   win.addEventListener('click', (e) => {
     stop(e)
-    const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target]
-    post({ kind: 'click', id: nodeIdOfPath(path) })
+    if (presses.swallowClick()) return // the end of a drag, not a selection
+    post({ kind: 'click', id: nodeIdOfPath(pathOf(e)) })
   }, true)
   win.addEventListener('mousemove', (e) => {
-    const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target]
+    const path = pathOf(e)
     const id = nodeIdOfPath(path)
     if (id === hovered.id) return
     hovered = { id, label: '' }

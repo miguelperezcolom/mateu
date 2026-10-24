@@ -39,6 +39,7 @@ public class YamlListingTests
 
     // starters/yaml/src/main/resources/specs/ui/home.yaml, as shipped
     private const string Home = """
+        pageType: landing
         type: VerticalLayout
         fullWidth: true
         horizontalAlignment: STRETCH
