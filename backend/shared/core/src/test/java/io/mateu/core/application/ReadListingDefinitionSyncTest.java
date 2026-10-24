@@ -43,4 +43,21 @@ class ReadListingDefinitionSyncTest {
     var crud = (ClientSideComponentDto) component;
     assertThat(crud.metadata().getClass().getSimpleName()).contains("Crud");
   }
+
+  @Test
+  void aListingsDeclaredFiltersReachTheWireCrudWithTheirOptions() {
+    // A YAML Listing's `filters:` are the listing's filter bar (Redwood: the smart filters of its
+    // search header): they ride in the Crud's own `filters`, each a FormField with its fieldId and
+    // options — the renderers never find them anywhere else.
+    var increment = mateu.sync("/read-listing-filters");
+    var crud = (ClientSideComponentDto) increment.fragments().get(0).component();
+    var filters = ((io.mateu.dtos.CrudlDto) crud.metadata()).filters();
+    assertThat(filters).hasSize(1);
+    var status = filters.get(0);
+    assertThat(status.fieldId()).isEqualTo("status");
+    assertThat(status.stereotype()).isEqualTo("select");
+    assertThat(status.options())
+        .extracting(io.mateu.dtos.OptionDto::value)
+        .containsExactly("AVAILABLE", "OUT_OF_STOCK");
+  }
 }

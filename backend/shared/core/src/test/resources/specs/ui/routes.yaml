@@ -116,6 +116,8 @@ routes:
   # Simple read-only listing (no viewModel) — Phase 6 expander golden source.
   - route: read-listing
     definition: read-listing.yaml
+  - route: read-listing-filters
+    definition: read-listing-filters.yaml
 
   # The component shapes of the IDE page templates — Phase 6 expander golden sources
   # (TemplateComponentsDefinitionSyncTest).

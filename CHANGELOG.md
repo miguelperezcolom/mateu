@@ -11,6 +11,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+
+- **Redwood: a YAML listing's filters stay in its search header.** In the visual editor's Redwood
+  canvas and Play (and for a read-only listing the server sends as a bare Crud), a `type: Listing`
+  with `filters:` painted each filter a second time as a loose form field under the grid — the page
+  arrives with no `pageType`, so it was taken for a form and the Crud's filter FormFields became its
+  fields. The generic form now leaves a listing's filters out; they are the smart filters of the
+  list header only (offered in the search box's dropdown, and applied as chips that filter the rows,
+  sample rows included).
+
 ## [3.0-beta.11] — 2026-10-23
 
 Redwood, the Redwood way: a record's create/edit page is Spectra's transactional page (its header,

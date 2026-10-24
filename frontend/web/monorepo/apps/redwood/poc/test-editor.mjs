@@ -8,7 +8,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { islandContentOf, setEditorNodeIds, fieldListOf, actionsOf, formSectionsOf, welcomeOf, itemOverviewOf } from './reduceContexts.mjs'
+import {
+  islandContentOf, setEditorNodeIds, fieldListOf, actionsOf, formSectionsOf, welcomeOf, itemOverviewOf,
+  reduceContexts, HOST_ID, summarizeHost, listingOf, smartFiltersOf,
+} from './reduceContexts.mjs'
 import {
   PREVIEW_ROUTE, isEditorPreview, previewAppIncrement, previewLoadIncrement, previewAnswerOf, previewFetch,
   stampNodeIds, nodeIdOfPath, elementOfNodeId, nodeBoxesOf,
@@ -276,6 +279,52 @@ test('a drag measures the page: every painted node\'s box, nothing unpainted', (
     box('ve-1', { left: 0, top: 0, width: 0, height: 0 }), // hidden: a tab not showing
   ] : []) }
   assert.deepEqual(nodeBoxesOf(doc), [{ id: 've-0', left: 10, top: 20, width: 300, height: 40 }])
+})
+
+// A YAML `type: Listing` with `filters:`, as the editor's expander hands it (canvas and Play): a bare
+// ClientSide Crud — no ServerSide page, so no `pageType: collection` either. Its filters are FormFields
+// on the wire, and the page used to be taken for a FORM: each filter came out again as a loose field
+// (a «Status» select) under the grid. They belong to the listing's search header only.
+const filteredListing = () => ({
+  id: 'crud', sizing: 'fill', type: 'ClientSide', children: [],
+  metadata: {
+    type: 'Crud', crudlType: 'table', title: 'Products', searchable: true, pageSize: 10,
+    rowsSource: { ref: 'products' },
+    filters: [{ type: 'FormField', fieldId: 'status', label: 'Status', stereotype: 'select', dataType: 'string',
+      options: [{ value: 'AVAILABLE', label: 'Available' }, { value: 'OUT_OF_STOCK', label: 'Out of stock' }] }],
+    columns: [
+      node({ type: 'GridColumn', id: 'name', label: 'Name' }, [], 'name'),
+      node({ type: 'GridColumn', id: 'status', label: 'Status', dataType: 'status' }, [], 'status'),
+    ],
+  },
+})
+const previewed = (component) => reduceContexts(
+  reduceContexts({ contexts: {}, stack: [], shell: null }, previewAppIncrement()),
+  previewLoadIncrement({ component }, { route: PREVIEW_ROUTE }))
+
+test('a previewed listing\'s filters go to its search header, never to a form under the grid', async () => {
+  const reg = previewed(filteredListing())
+  const summary = summarizeHost(reg, PREVIEW_ROUTE)
+  assert.equal(reg.contexts[HOST_ID].pageType, undefined, 'the case: no pageType on the wire')
+  assert.equal(summary.formMetadata, null)
+  assert.deepEqual(summary.fields, [])
+  assert.deepEqual(summary.sections, [])
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.deepEqual(listing.filters.map((f) => [f.fieldId, f.kind, f.options.map((o) => o.value)]),
+    [['status', 'options', ['AVAILABLE', 'OUT_OF_STOCK']]])
+  // …which the header's smart filters offer (the search box's dropdown)
+  const config = await smartFiltersOf(listing.filters, {}, '')
+  assert.ok(config.suggestions, 'the filter is offered by the smart-filter search')
+})
+
+test('a page with a form AND a listing keeps its own fields in the form, without the listing\'s filters', () => {
+  const page = node({ type: 'VerticalLayout' }, [
+    node({ type: 'FormField', fieldId: 'name', label: 'Name', dataType: 'string', stereotype: 'regular' }, [], 'name'),
+    filteredListing(),
+  ])
+  const summary = summarizeHost(previewed(page), PREVIEW_ROUTE)
+  assert.deepEqual(Object.keys(summary.formMetadata), ['name'])
+  assert.deepEqual(summary.fields.map((f) => f.fieldId), ['name'])
 })
 
 await Promise.all(pending)
