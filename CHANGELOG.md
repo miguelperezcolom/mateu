@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.13] — 2026-10-24
+
+Version skew handled end to end (a redeployment and a stale screen are told to the user, every
+renderer names itself), Oracle's CDN from your own mirror, Spectra wherever it fits on Redwood, a
+one-column default for short forms, unsaved changes asked about in drawers, and a Material Design
+React Native app.
+
 ### Added
 
 - **The React Native renderer looks like a Material app.** Material Design 3 through React Native
