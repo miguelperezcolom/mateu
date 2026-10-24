@@ -45,14 +45,14 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.40</version>
+            <version>1.18.48</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
-            <version>3.8.6</version>
+            <version>3.8.7</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -71,7 +71,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.16.0</version>
                 <configuration>
                     <source>21</source>
                     <target>21</target>
@@ -79,7 +79,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.40</version>
+                            <version>1.18.48</version>
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>

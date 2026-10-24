@@ -24,7 +24,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
              -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
-        <mateu.version>3.0-beta.6</mateu.version>
+        <mateu.version>3.0-beta.12</mateu.version>
     </properties>
 
     <dependencies>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
