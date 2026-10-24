@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.1.0"
-    id("org.jetbrains.intellij.platform") version "2.17.0"
+    kotlin("jvm") version "2.4.21"
+    id("org.jetbrains.intellij.platform") version "2.19.0"
     // Line coverage of the plugin's own code (`koverLog` / `koverXmlReport`, verified by `koverVerify`).
-    id("org.jetbrains.kotlinx.kover") version "0.9.1"
+    id("org.jetbrains.kotlinx.kover") version "0.9.11"
 }
 
 group = "io.mateu"
