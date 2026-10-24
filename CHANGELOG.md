@@ -113,6 +113,34 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   changes under an open tab, when the renderer is upgraded and when teams release independently,
   and the rules that keep it working. The wire specification documents the two transport headers.
 
+## [3.0-beta.12] — 2026-10-24
+
+Fixes from trying a static YAML project on Redwood: a listing's filters stay in its search header in
+the visual editor and Play, a node can be dragged to a new place on the Redwood canvas, and the YAML
+starters' home page says it is a landing page.
+
+### Fixed
+
+- **Redwood: a YAML listing's filters stay in its search header.** In the visual editor's Redwood
+  canvas and Play (and for a read-only listing the server sends as a bare Crud), a `type: Listing`
+  with `filters:` painted each filter a second time as a loose form field under the grid — the page
+  arrives with no `pageType`, so it was taken for a form and the Crud's filter FormFields became its
+  fields. The generic form now leaves a listing's filters out; they are the smart filters of the
+  list header only (offered in the search box's dropdown, and applied as chips that filter the rows,
+  sample rows included).
+- **Visual editor: a node can be dragged to a new place on the Redwood canvas.** Pressing on a
+  component painted in the Redwood frame and dragging it never started a move (only the palette's
+  drags worked): the press happened inside the iframe, where the editor never sees it — and the
+  frame's own guard cancelled `pointerdown`, which suppresses `mousedown` altogether. The frame now
+  relays the press, the moves and the release by message (`press` / `pointer`, in its viewport; the
+  editor translates them), so the canvas runs the same move drag as on Vaadin — ghost, drop line,
+  drop zone, `node-moved` — same-origin (IntelliJ) and cross-origin (VS Code) alike. A press that
+  does not travel is still a click that selects, and the click ending a drag selects nothing.
+- **YAML starters: the home page declares `pageType: landing`.** The `yaml` and `static` starters'
+  `home.yaml` (and the `mateu-yaml` skill's example) now say what their page is, like their
+  `products.yaml` already declares `pageType: collection` — the YAML twin of `@PageTemplate` (a
+  Java Welcome page resolves to `landing`). The generator's cases pin both.
+
 ## [3.0-beta.11] — 2026-10-23
 
 Redwood, the Redwood way: a record's create/edit page is Spectra's transactional page (its header,

@@ -1197,7 +1197,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!md || md.type !== 'HorizontalLayout') return null
     const kids = (node.children || []).filter(Boolean)
     if (!kids.length || !kids.every((k) => k.metadata && k.metadata.type === 'Button')) return null
-    // a jump to any date (the title's date picker) needs goCalendarToDate on the server (3.0-beta.12+):
+    // a jump to any date (the title's date picker) needs goCalendarToDate on the server (3.0-beta.13+):
     // used only when the page advertises it, so an older backend never receives an action it lacks
     const goTo = advertised.includes('goCalendarToDate') ? 'goCalendarToDate' : ''
     const nav = { prev: '', today: '', next: '', goTo, viewAction: '', views: [], create: '', createLabel: '', buttons: [] }
@@ -2080,6 +2080,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
+  /**
+   * The surface's FORM fields: its FormFields minus a listing's FILTERS. A Crud's `filters` are
+   * FormFields on the wire too (fieldId, options…), but they belong to the listing's search header
+   * (smart filters, listing.mjs) — never to the page's generic form. A listing page arriving with no
+   * `pageType` (the visual editor's canvas and Play, which expand the definition in the browser; a
+   * read-only YAML listing the server sends as a bare ClientSide Crud) was taken for a form, and each
+   * filter was painted again as a loose field under the grid. Lookups and option loads still see the
+   * filters (collectFields): only the form projection leaves them out.
+   */
+  function collectFormFields(node) {
+    const filters = new Set()
+    walkWithinSurface(node, (n) => {
+      if (n.type === 'Crud' && Array.isArray(n.filters)) n.filters.forEach((f) => filters.add(f))
+    })
+    return collectFields(node).filter((f) => !filters.has(f))
+  }
+
   /** RENDER helper: collects the surface's buttons/actions (without crossing islands). */
   function collectActions(node, out = []) {
     walkWithinSurface(node, (n) => { if (n.actionId && n.label && !n.fieldId) out.push(n) })
@@ -2129,7 +2146,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function dynFormMetadataOf(tree) {
     const NUMERIC = ['integer', 'int', 'long', 'number', 'double', 'float', 'money']
     const metadata = {}
-    for (const f of collectFields(tree)) {
+    for (const f of collectFormFields(tree)) {
       if (!f.dataType || metadata[f.fieldId]) continue // duplicates = FormRow references
       // a LIST (form grid) is not a text field: the content paints it as a table
       // (a multi-id @Searchable IS a field: its chips)
@@ -2186,7 +2203,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const seen = {}
     const out = []
     const ids = editorNodeIds ? ownerIdsOf(tree) : null
-    for (const f of collectFields(tree)) {
+    for (const f of collectFormFields(tree)) {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
       // a list is a table (not a field) except @Searchable and multiple-choice ones
@@ -23941,6 +23958,52 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * @param opts.dataOf element → its bound data (knockout's contextFor(el).$current.data)
    * @returns { booted() } — the shell calls it once its first navigation is done
    */
+  /** Pixels a press must travel before it is a drag, not a click — the editor canvas's DRAG_THRESHOLD. */
+  const DRAG_THRESHOLD = 4
+
+  /**
+   * What a press on the canvas tells the editor, so it can MOVE a node (pure: test-editor.mjs feeds it
+   * plain events). The editor cannot see a press inside this frame — and while the button is down the
+   * browser keeps the mouse here — so:
+   *   - `down` on a painted node (its id) → `press` {id, x, y}; on the bare background, nothing;
+   *   - while that press lasts, every `move` → `pointer` move, and the release → `pointer` up (frame
+   *     viewport coordinates; the editor translates them to its own);
+   *   - the click the browser fires after a press that TRAVELLED (a drag) is not a selection:
+   *     `swallowClick()` says so once. A press that did not travel clicks as ever.
+   * A move with the button no longer down (released outside, or over the editor while the frame let the
+   * pointer through) forgets the press.
+   */
+  function pressTracker(threshold = DRAG_THRESHOLD) {
+    let press = null
+    let dragged = false
+    return {
+      down(e, id) {
+        press = null
+        dragged = false
+        if (!e || e.button !== 0 || !id) return null
+        press = { x: e.clientX, y: e.clientY, moved: false }
+        return { kind: 'press', id, x: e.clientX, y: e.clientY }
+      },
+      move(e) {
+        if (!press) return null
+        if (typeof e.buttons === 'number' && (e.buttons & 1) === 0) { press = null; return null }
+        if (!press.moved && Math.hypot(e.clientX - press.x, e.clientY - press.y) >= threshold) press.moved = true
+        return { kind: 'pointer', phase: 'move', x: e.clientX, y: e.clientY }
+      },
+      up(e) {
+        if (!press) return null
+        dragged = press.moved
+        press = null
+        return { kind: 'pointer', phase: 'up', x: e.clientX, y: e.clientY }
+      },
+      swallowClick() {
+        const swallow = dragged
+        dragged = false
+        return swallow
+      },
+    }
+  }
+
   function installEditorPreview(win, opts = {}) {
     const doc = win.document
     const post = (msg) => { try { win.parent.postMessage({ [PREVIEW_MESSAGE_KEY]: msg.kind, ...msg }, '*') } catch (e) { /* no parent */ } }
@@ -24020,16 +24083,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     win.addEventListener('scroll', reposition, true)
     win.addEventListener('resize', reposition)
 
-    // ── inert canvas: a click selects ──
+    // ── inert canvas: a click selects, a press on a node may move it (the editor drives the drag) ──
     const stop = (e) => { e.preventDefault(); e.stopImmediatePropagation() }
+    const pathOf = (e) => (typeof e.composedPath === 'function' ? e.composedPath() : [e.target])
+    const presses = pressTracker()
+    const relay = (msg) => { if (msg) post(msg) }
+    // POINTER events, registered BEFORE the inert guard (which stops every other listener of the window):
+    // the guard cancels pointerdown, and a cancelled pointerdown suppresses the mousedown/mouseup that
+    // would follow — a mouse listener here never heard a press
+    win.addEventListener('pointerdown', (e) => relay(presses.down(e, nodeIdOfPath(pathOf(e)))), true)
+    win.addEventListener('pointerup', (e) => relay(presses.up(e)), true)
+    win.addEventListener('pointermove', (e) => relay(presses.move(e)), true)
     for (const name of INERT_EVENTS) win.addEventListener(name, stop, true)
     win.addEventListener('click', (e) => {
       stop(e)
-      const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target]
-      post({ kind: 'click', id: nodeIdOfPath(path) })
+      if (presses.swallowClick()) return // the end of a drag, not a selection
+      post({ kind: 'click', id: nodeIdOfPath(pathOf(e)) })
     }, true)
     win.addEventListener('mousemove', (e) => {
-      const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target]
+      const path = pathOf(e)
       const id = nodeIdOfPath(path)
       if (id === hovered.id) return
       hovered = { id, label: '' }

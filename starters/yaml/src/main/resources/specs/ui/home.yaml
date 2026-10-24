@@ -2,6 +2,7 @@
 # navigates because its actionable is a RouteLink — no code behind it. Open it in the Mateu visual
 # editor (IntelliJ or VS Code) to edit it on a canvas.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+pageType: landing
 type: VerticalLayout
 fullWidth: true
 horizontalAlignment: STRETCH

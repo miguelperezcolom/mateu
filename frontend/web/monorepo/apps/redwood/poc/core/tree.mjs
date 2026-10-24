@@ -44,6 +44,23 @@ export function collectFields(node, out = []) {
   return out
 }
 
+/**
+ * The surface's FORM fields: its FormFields minus a listing's FILTERS. A Crud's `filters` are
+ * FormFields on the wire too (fieldId, options…), but they belong to the listing's search header
+ * (smart filters, listing.mjs) — never to the page's generic form. A listing page arriving with no
+ * `pageType` (the visual editor's canvas and Play, which expand the definition in the browser; a
+ * read-only YAML listing the server sends as a bare ClientSide Crud) was taken for a form, and each
+ * filter was painted again as a loose field under the grid. Lookups and option loads still see the
+ * filters (collectFields): only the form projection leaves them out.
+ */
+export function collectFormFields(node) {
+  const filters = new Set()
+  walkWithinSurface(node, (n) => {
+    if (n.type === 'Crud' && Array.isArray(n.filters)) n.filters.forEach((f) => filters.add(f))
+  })
+  return collectFields(node).filter((f) => !filters.has(f))
+}
+
 /** RENDER helper: collects the surface's buttons/actions (without crossing islands). */
 export function collectActions(node, out = []) {
   walkWithinSurface(node, (n) => { if (n.actionId && n.label && !n.fieldId) out.push(n) })
@@ -93,7 +110,7 @@ export function collectIslands(tree, out = []) {
 export function dynFormMetadataOf(tree) {
   const NUMERIC = ['integer', 'int', 'long', 'number', 'double', 'float', 'money']
   const metadata = {}
-  for (const f of collectFields(tree)) {
+  for (const f of collectFormFields(tree)) {
     if (!f.dataType || metadata[f.fieldId]) continue // duplicates = FormRow references
     // a LIST (form grid) is not a text field: the content paints it as a table
     // (a multi-id @Searchable IS a field: its chips)
@@ -150,7 +167,7 @@ export function fieldListOf(tree, state, data) {
   const seen = {}
   const out = []
   const ids = editorNodeIds ? ownerIdsOf(tree) : null
-  for (const f of collectFields(tree)) {
+  for (const f of collectFormFields(tree)) {
     if (!f.dataType || seen[f.fieldId]) continue
     seen[f.fieldId] = true
     // a list is a table (not a field) except @Searchable and multiple-choice ones

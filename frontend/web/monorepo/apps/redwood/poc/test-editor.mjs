@@ -8,10 +8,13 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { islandContentOf, setEditorNodeIds, fieldListOf, actionsOf, formSectionsOf, welcomeOf, itemOverviewOf } from './reduceContexts.mjs'
+import {
+  islandContentOf, setEditorNodeIds, fieldListOf, actionsOf, formSectionsOf, welcomeOf, itemOverviewOf,
+  reduceContexts, HOST_ID, summarizeHost, listingOf, smartFiltersOf,
+} from './reduceContexts.mjs'
 import {
   PREVIEW_ROUTE, isEditorPreview, previewAppIncrement, previewLoadIncrement, previewAnswerOf, previewFetch,
-  stampNodeIds, nodeIdOfPath, elementOfNodeId, nodeBoxesOf,
+  stampNodeIds, nodeIdOfPath, elementOfNodeId, nodeBoxesOf, pressTracker, installEditorPreview, DRAG_THRESHOLD,
 } from './editorPreview.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -276,6 +279,131 @@ test('a drag measures the page: every painted node\'s box, nothing unpainted', (
     box('ve-1', { left: 0, top: 0, width: 0, height: 0 }), // hidden: a tab not showing
   ] : []) }
   assert.deepEqual(nodeBoxesOf(doc), [{ id: 've-0', left: 10, top: 20, width: 300, height: 40 }])
+})
+
+// A YAML `type: Listing` with `filters:`, as the editor's expander hands it (canvas and Play): a bare
+// ClientSide Crud — no ServerSide page, so no `pageType: collection` either. Its filters are FormFields
+// on the wire, and the page used to be taken for a FORM: each filter came out again as a loose field
+// (a «Status» select) under the grid. They belong to the listing's search header only.
+const filteredListing = () => ({
+  id: 'crud', sizing: 'fill', type: 'ClientSide', children: [],
+  metadata: {
+    type: 'Crud', crudlType: 'table', title: 'Products', searchable: true, pageSize: 10,
+    rowsSource: { ref: 'products' },
+    filters: [{ type: 'FormField', fieldId: 'status', label: 'Status', stereotype: 'select', dataType: 'string',
+      options: [{ value: 'AVAILABLE', label: 'Available' }, { value: 'OUT_OF_STOCK', label: 'Out of stock' }] }],
+    columns: [
+      node({ type: 'GridColumn', id: 'name', label: 'Name' }, [], 'name'),
+      node({ type: 'GridColumn', id: 'status', label: 'Status', dataType: 'status' }, [], 'status'),
+    ],
+  },
+})
+const previewed = (component) => reduceContexts(
+  reduceContexts({ contexts: {}, stack: [], shell: null }, previewAppIncrement()),
+  previewLoadIncrement({ component }, { route: PREVIEW_ROUTE }))
+
+test('a previewed listing\'s filters go to its search header, never to a form under the grid', async () => {
+  const reg = previewed(filteredListing())
+  const summary = summarizeHost(reg, PREVIEW_ROUTE)
+  assert.equal(reg.contexts[HOST_ID].pageType, undefined, 'the case: no pageType on the wire')
+  assert.equal(summary.formMetadata, null)
+  assert.deepEqual(summary.fields, [])
+  assert.deepEqual(summary.sections, [])
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.deepEqual(listing.filters.map((f) => [f.fieldId, f.kind, f.options.map((o) => o.value)]),
+    [['status', 'options', ['AVAILABLE', 'OUT_OF_STOCK']]])
+  // …which the header's smart filters offer (the search box's dropdown)
+  const config = await smartFiltersOf(listing.filters, {}, '')
+  assert.ok(config.suggestions, 'the filter is offered by the smart-filter search')
+})
+
+test('a page with a form AND a listing keeps its own fields in the form, without the listing\'s filters', () => {
+  const page = node({ type: 'VerticalLayout' }, [
+    node({ type: 'FormField', fieldId: 'name', label: 'Name', dataType: 'string', stereotype: 'regular' }, [], 'name'),
+    filteredListing(),
+  ])
+  const summary = summarizeHost(previewed(page), PREVIEW_ROUTE)
+  assert.deepEqual(Object.keys(summary.formMetadata), ['name'])
+  assert.deepEqual(summary.fields.map((f) => f.fieldId), ['name'])
+})
+
+// ── moving a node: a press in the frame is relayed, the editor drives the drag ──
+// The editor's canvas starts a MOVE drag from a press on a node (past its 4 px threshold). A press
+// inside this iframe never reaches the editor's window — and while the button is down the browser
+// keeps the mouse here — so the frame relays the press, the moves and the release.
+const mouse = (x, y, extra = {}) => ({ button: 0, buttons: 1, clientX: x, clientY: y, ...extra })
+
+test('a press on a node is relayed with its moves and release; a press that travelled swallows its click', () => {
+  const t = pressTracker()
+  assert.equal(DRAG_THRESHOLD, 4)
+  assert.deepEqual(t.down(mouse(10, 20), 've-0-1'), { kind: 'press', id: 've-0-1', x: 10, y: 20 })
+  assert.deepEqual(t.move(mouse(12, 21)), { kind: 'pointer', phase: 'move', x: 12, y: 21 })
+  assert.deepEqual(t.move(mouse(40, 80)), { kind: 'pointer', phase: 'move', x: 40, y: 80 })
+  assert.deepEqual(t.up(mouse(40, 80, { buttons: 0 })), { kind: 'pointer', phase: 'up', x: 40, y: 80 })
+  assert.equal(t.swallowClick(), true, 'the click ending a drag is not a selection')
+  assert.equal(t.swallowClick(), false, '…only that one')
+  assert.equal(t.move(mouse(50, 90)), null, 'no press, nothing relayed')
+})
+
+test('a press that does not travel stays a click (the selection), and nothing else starts a drag', () => {
+  const t = pressTracker()
+  t.down(mouse(10, 20), 've-0')
+  t.move(mouse(12, 21)) // under the threshold
+  t.up(mouse(12, 21, { buttons: 0 }))
+  assert.equal(t.swallowClick(), false)
+  // the page's bare background, another button: no press for the editor
+  assert.equal(t.down(mouse(10, 20), null), null)
+  assert.equal(t.down(mouse(10, 20, { button: 2 }), 've-0'), null)
+  assert.equal(t.move(mouse(30, 30)), null)
+  // released where the frame did not see it (the editor had the pointer): the next move forgets it
+  t.down(mouse(10, 20), 've-0')
+  assert.equal(t.move(mouse(40, 40, { buttons: 0 })), null)
+  assert.equal(t.up(mouse(40, 40)), null)
+  assert.equal(t.swallowClick(), false)
+})
+
+test('installed, the frame posts press → pointer → up to the editor, and the dragged click selects nothing', () => {
+  // a window just big enough for installEditorPreview: listeners in order, stopImmediatePropagation honoured
+  const listeners = []
+  const posted = []
+  const el = (attrs = {}) => ({
+    children: [], style: {}, className: '', classList: { add() {}, toggle() {} },
+    getAttribute: (n) => (n in attrs ? attrs[n] : null), hasAttribute: (n) => n in attrs,
+    appendChild(c) { this.children.push(c); return c }, getBoundingClientRect: () => ({ left: 0, top: 0, width: 0, height: 0 }),
+  })
+  const doc = {
+    documentElement: { ...el(), addEventListener() {} }, head: el(), body: el(),
+    createElement: () => el(), getElementById: () => null, querySelector: () => null, querySelectorAll: () => [],
+  }
+  const win = {
+    document: doc, fetch: async () => ({}), parent: { postMessage: (m) => posted.push(m) },
+    MutationObserver: class { observe() {} }, requestAnimationFrame() {}, setTimeout() { return 0 }, clearTimeout() {},
+    addEventListener: (type, fn) => listeners.push({ type, fn }),
+  }
+  installEditorPreview(win, {})
+  const fire = (type, ev) => {
+    let stopped = false
+    const e = { ...ev, type, preventDefault() {}, stopImmediatePropagation() { stopped = true } }
+    for (const l of listeners) { if (l.type === type) l.fn(e); if (stopped) break }
+  }
+  const field = el({ 'data-node-id': 've-1' })
+  const at = (x, y, extra) => ({ ...mouse(x, y, extra), composedPath: () => [field] })
+  posted.length = 0
+  // pointer events: the inert guard cancels pointerdown, which suppresses mousedown/mouseup altogether
+  fire('pointerdown', at(10, 20))
+  fire('mousedown', at(10, 20))
+  fire('pointermove', at(30, 60))
+  fire('pointerup', at(30, 60, { buttons: 0 }))
+  fire('click', at(30, 60, { buttons: 0 }))
+  assert.deepEqual(posted.map((m) => m.mateuPreview + (m.phase ? ':' + m.phase : '')), ['press', 'pointer:move', 'pointer:up'])
+  assert.deepEqual(posted[0], { mateuPreview: 'press', kind: 'press', id: 've-1', x: 10, y: 20 })
+  // a plain click (no travel) still selects
+  posted.length = 0
+  fire('pointerdown', at(10, 20))
+  fire('pointerup', at(10, 20, { buttons: 0 }))
+  fire('click', at(10, 20, { buttons: 0 }))
+  assert.deepEqual(posted.map((m) => m.mateuPreview), ['press', 'pointer', 'click'])
+  assert.equal(posted[2].id, 've-1')
 })
 
 await Promise.all(pending)

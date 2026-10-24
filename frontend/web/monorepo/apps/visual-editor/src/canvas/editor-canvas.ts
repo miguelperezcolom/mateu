@@ -184,8 +184,11 @@ export class EditorCanvas extends LitElement {
                 ${this.renderer === 'redwood'
                     // The real Redwood app, framed: it outlines the selection itself (a cross-origin
                     // frame's DOM is out of reach) and a click in it comes back as redwood-click.
-                    ? html`<redwood-frame ?dragging=${!!this.drag} .selectedId=${this.selectedPath ? pathToId(this.selectedPath) : null}
-                                          .selectedLabel=${this.selTag} @redwood-click=${this.onRedwoodClick}></redwood-frame>`
+                    // `dragging` only once a drag is REAL (past the threshold): a press that is just a
+                    // click must reach the frame whole, or its click — the selection — never happens.
+                    ? html`<redwood-frame ?dragging=${!!this.drag?.active} .selectedId=${this.selectedPath ? pathToId(this.selectedPath) : null}
+                                          .selectedLabel=${this.selTag} @redwood-click=${this.onRedwoodClick}
+                                          @redwood-press=${this.onRedwoodPress} @redwood-pointer=${this.onRedwoodPointer}></redwood-frame>`
                     : keyed(this.uxKey, html`<mateu-ux .preventNavigation=${true} theme=${this.theme}></mateu-ux>`)}
                 ${this.isEmptyPage() ? html`<div class="empty-hint">This page is empty.<br>Drag a component here, or add one from the Insert panel.</div>` : ''}
                 ${this.hoverBox && !this.drag && this.renderer !== 'redwood' ? this.renderHoverOverlay() : ''}
@@ -581,6 +584,28 @@ export class EditorCanvas extends LitElement {
         this.startDrag({ kind: 'move', from: path, startX: e.clientX, startY: e.clientY, active: false })
     }
 
+    /**
+     * A press on a node painted in the Redwood frame (relayed by the frame, already in editor
+     * coordinates): the same potential MOVE drag as a press on the Vaadin canvas. The frame keeps the
+     * mouse while the button is down, so it relays the moves and the release too (onRedwoodPointer);
+     * a press that never travels past the threshold ends as a plain click, which the frame reports
+     * as redwood-click (the selection).
+     */
+    private onRedwoodPress = (e: CustomEvent<{ id: string; clientX: number; clientY: number }>) => {
+        if (this.drag) return
+        const path = idToPath(e.detail.id)
+        if (!path || path.length === 0) return // the page root is not moved
+        this.startDrag({ kind: 'move', from: path, startX: e.detail.clientX, startY: e.detail.clientY, active: false })
+    }
+
+    /** The pointer moving / released while a press made in the Redwood frame lasts (editor coordinates). */
+    private onRedwoodPointer = (e: CustomEvent<{ phase: 'move' | 'up'; clientX: number; clientY: number }>) => {
+        if (!this.drag) return
+        const point = { clientX: e.detail.clientX, clientY: e.detail.clientY } as MouseEvent
+        if (e.detail.phase === 'up') this.onDocMouseUp()
+        else this.onDocMouseMove(point)
+    }
+
     private onPaletteDragStart = (e: CustomEvent) => {
         const { node, clientX, clientY } = e.detail as { node: PageNode; clientX: number; clientY: number }
         this.startDrag({ kind: 'add', node, startX: clientX, startY: clientY, active: true })
@@ -601,7 +626,8 @@ export class EditorCanvas extends LitElement {
         if (!drag) return
         if (!drag.active) {
             if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < DRAG_THRESHOLD) return
-            drag.active = true
+            // reassigned, not mutated: the Redwood frame lets the pointer through (`dragging`) from here
+            this.drag = { ...drag, active: true }
             this.grab()
         }
         this.ghostAt = { x: e.clientX, y: e.clientY }
