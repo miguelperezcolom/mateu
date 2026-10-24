@@ -21,7 +21,9 @@ import {
   pageKpisOf, pageSubtitleOf, bannersOf, pageHeaderNodeOf, shellNavOf, headerActionRouteOf,
   pageHeaderExtrasOf, badgeStatusOf, headerTimestampOf,
   entityHeaderOf, mergeNestedContent, factProjectionOf, factActionsJsonOf, hostContentOf,
+  spectraDrawerSize, spectraPeersOf, withListingPeers,
 } from './reduceContexts.mjs'
+import { drawerHasUnsavedChanges, noteDrawerUnsaved, installDrawerGuard, isDrawerUnsaved } from './drawers.mjs'
 import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf, fabsOf } from './pageProjection.mjs'
 import { applyDomEffects } from './files.mjs'
 
@@ -789,4 +791,195 @@ test('foldout: content in place for the same structure; panel count or orientati
   assert.equal(sameFoldoutStructure(null, one), false)
   assert.deepEqual(foldoutContentOf(one), { overview: { blocks: [1] }, panels: [{}], header: { back: true } })
   assert.deepEqual(foldoutContentOf(null), { overview: { blocks: [] }, panels: [], header: {} })
+})
+
+// ── Spectra drawer templates (#6 general, #7 create-edit, #8 bottom) ─────────────────────────────
+
+const openDrawer = (md, children = [], id = 'd1', initialData = {}) => reduceContexts(
+  { contexts: { [HOST_ID]: host(node({ type: 'VerticalLayout' }, [])) }, stack: [], shell: null },
+  { commands: [], messages: [], fragments: [{ action: 'Add', targetComponentId: HOST_ID, component: node({ type: 'Drawer', ...md, initialData }, children, id) }] })
+
+test('spectra drawer: a read-only Drawer is the GENERAL template — size, maximize, peers, close', () => {
+  const ov = overlayOf(openDrawer({ headerTitle: 'Ada Lovelace', subtitle: 'Employee #100', size: 'l', maximizable: true,
+    peerNav: { prevLabel: null, prevRoute: null, nextLabel: 'Alan Turing', nextRoute: '/people/2' } },
+  [node({ type: 'Text', text: 'Read-only details' })]))
+  assert.equal(ov.sp.template, 'general')
+  assert.equal(ov.sp.size, 'lg')
+  assert.deepEqual(ov.sp.displayOptions, { maximize: 'on' })
+  assert.deepEqual(ov.sp.closeAction, { display: 'on' }, 'the close icon the guide requires')
+  assert.deepEqual(ov.sp.nextItem, { id: '/people/2', label: 'Alan Turing', display: 'on' })
+  assert.deepEqual(ov.sp.previousItem, { id: '-', label: '', display: 'disabled' }, 'a side without route is disabled')
+  assert.equal(ov.sp.edge, 'end')
+  assert.equal(ov.sp.modality, 'modal')
+  assert.equal(ov.subtitle, 'Employee #100')
+})
+
+test('spectra drawer: sizes — DrawerSize wins, else the nearest standard size to the width', () => {
+  assert.deepEqual(['s', 'm', 'l', 'xl'].map((x) => spectraDrawerSize(x)), ['sm', 'md', 'lg', 'xl'])
+  assert.equal(spectraDrawerSize(null, null), 'sm')
+  assert.equal(spectraDrawerSize(null, '26rem'), 'sm')
+  assert.equal(spectraDrawerSize(null, '36rem'), 'md', "the crud's editDrawerWidth()")
+  assert.equal(spectraDrawerSize(null, '60rem'), 'lg')
+  assert.equal(spectraDrawerSize(null, '90vw'), 'xl')
+  assert.equal(spectraDrawerSize('m', '90vw'), 'md')
+  assert.deepEqual(spectraPeersOf(null), { previousItem: null, nextItem: null })
+})
+
+test('spectra drawer: a general drawer\'s actions go to its footer — primary + up to two secondaries', () => {
+  const ov = overlayOf(openDrawer({ headerTitle: 'Order' }, [node({ type: 'Text', text: 'x' }),
+    node({ type: 'Button', label: 'Print', actionId: 'print' }), node({ type: 'Button', label: 'Open', actionId: 'open', buttonStyle: 'primary' })]))
+  assert.equal(ov.sp.template, 'general')
+  assert.deepEqual(ov.sp.primaryAction, { label: 'Open', display: 'on' })
+  assert.equal(ov.sp.primaryActionId, 'open')
+  assert.deepEqual(ov.sp.secondaryActions, [{ id: 'print', label: 'Print', display: 'on' }])
+  assert.deepEqual(ov.sp.footerActions, [], 'the template holds them: no bar of our own')
+})
+
+// the crud's drawer as CrudDrawerBuilder sends it: its form is a ServerSide of its own in Drawer.content
+const crudDrawer = (extra = [], initialData = { id: '2', name: 'Grace' }, buttons = null) => openDrawer({ id: 'crud-edit-drawer', headerTitle: 'Edit', width: '36rem',
+  content: { type: 'ServerSide', id: 'crud-edit-drawer-form', serverSideType: 'com.acme.Contact', initialData, actions: [], children: [
+    ...extra,
+    node({ type: 'FormField', fieldId: 'name', dataType: 'string', label: 'Name' }),
+    ...(buttons || [node({ type: 'Button', label: 'Cancel', actionId: 'cancel-edit' }), node({ type: 'Button', label: 'Save', actionId: 'save', buttonStyle: 'primary' })]),
+  ] } }, [], 'crud-edit-drawer', initialData)
+
+test('spectra drawer: the crud\'s drawer is the CREATE-EDIT template — Cancel is its own, Save its primary', () => {
+  const ov = overlayOf(crudDrawer())
+  assert.equal(ov.sp.template, 'createEdit')
+  assert.equal(ov.sp.size, 'md')
+  assert.equal(ov.sp.cancelActionId, 'cancel-edit')
+  assert.equal(ov.sp.primaryActionId, 'save')
+  assert.deepEqual(ov.sp.primaryAction, { label: 'Save', display: 'on' })
+  assert.equal(ov.sp.hasNavigation, false)
+  assert.equal(ov.sp.nextItem, null)
+  assert.deepEqual(ov.sp.footerActions, [])
+})
+
+test('spectra drawer: «Save and next» opens the template\'s navigation footer; the listing rows give the arrows', () => {
+  const ov = overlayOf(crudDrawer([], { id: '2', name: 'Grace' }, [
+    node({ type: 'Button', label: 'Cancel', actionId: 'cancel-edit' }),
+    node({ type: 'Button', label: 'Save and next', actionId: 'save-and-next' }),
+    node({ type: 'Button', label: 'Save', actionId: 'save', buttonStyle: 'primary' }),
+  ]))
+  assert.equal(ov.sp.saveAndNextActionId, 'save-and-next')
+  assert.deepEqual(ov.sp.nextItem, { label: 'Save and next', display: 'on' }, 'no id: no header arrow, only the footer')
+  assert.equal(ov.sp.hasNavigation, true)
+  const rows = [{ id: '1', name: 'Ada', _rowNumber: 0 }, { id: '2', name: 'Grace', _rowNumber: 1 }, { id: '3', name: 'Margaret', _rowNumber: 2 }]
+  const walked = withListingPeers(ov, rows)
+  assert.deepEqual(walked.sp.previousItem, { id: '1', label: 'Ada', display: 'on' })
+  assert.deepEqual(walked.sp.nextItem, { id: '3', label: 'Margaret', display: 'on' })
+  assert.equal(walked.sp.listingPeers, true)
+  // the last row: no next (the template then says «Save and close»)
+  const last = withListingPeers({ ...ov, state: { id: '3' } }, rows)
+  assert.equal(last.sp.nextItem.display, 'disabled')
+  // a record not on this page, a drawer without «Save and next»: untouched
+  const away = { ...ov, state: { id: '9' } }
+  assert.equal(withListingPeers(away, rows), away)
+  const plain = overlayOf(crudDrawer())
+  assert.equal(withListingPeers(plain, rows), plain)
+})
+
+test('spectra drawer: a refused save shows the TEMPLATE\'s error banner (the crud\'s danger Notice leaves the content)', () => {
+  const ov = overlayOf(crudDrawer([node({ type: 'Notice', theme: 'danger', text: 'Name is taken', fullWidth: true }, [], 'crud-drawer-error')]))
+  assert.equal(ov.sp.errorBanner, true)
+  assert.equal(ov.sp.errorMessage, 'Name is taken')
+  assert.ok(!ov.content.some((b) => b.items.some((a) => a.isNotice)), 'not drawn twice')
+})
+
+test('spectra drawer: a hand-built drawer with a form and an action is create-edit; without fields it is general', () => {
+  const op = overlayOf(openDrawer({ headerTitle: 'Payment' }, [node({ type: 'FormField', fieldId: 'amount', dataType: 'number', label: 'Amount' }),
+    node({ type: 'Button', label: 'Charge', actionId: 'charge' })]))
+  assert.equal(op.sp.template, 'createEdit')
+  assert.equal(op.sp.primaryActionId, 'charge')
+  assert.equal(op.sp.cancelActionId, '', 'no cancel on the wire: the template\'s Cancel just closes')
+})
+
+test('spectra drawer: a form drawer with peer arrows and buttons of its own is general — create-edit would turn its footer into «X and next» and drop the other button', () => {
+  const peerNav = { prevLabel: 'Previous', prevRoute: '/a', nextLabel: 'Next', nextRoute: '/b' }
+  const ov = overlayOf(openDrawer({ headerTitle: 'Edit contact', peerNav }, [node({ type: 'FormField', fieldId: 'contactName', dataType: 'string', label: 'Contact name' }),
+    node({ type: 'Button', label: 'Save contact', actionId: 'saveContact' }), node({ type: 'Button', label: 'Open nested dialog', actionId: 'nested' })]))
+  assert.equal(ov.sp.template, 'general')
+  assert.equal(ov.sp.primaryActionId, 'nested')
+  assert.deepEqual(ov.sp.secondaryActions.map((a) => a.label), ['Save contact'], 'every button stays on the footer')
+  assert.equal(ov.sp.nextItem.id, '/b', 'the arrows stay in the header')
+})
+
+test('spectra drawer: DrawerPosition.bottom is the BOTTOM template, docked at the bottom; collapsible = fixed mode', () => {
+  const closable = overlayOf(openDrawer({ headerTitle: 'Lines', position: 'bottom' }, [node({ type: 'Text', text: '3 lines' })]))
+  assert.equal(closable.sp.template, 'bottom')
+  assert.equal(closable.sp.edge, 'bottom', 'it used to open at the end edge')
+  assert.deepEqual(closable.sp.bottomOptions, { drawerMode: 'closable', title: 'on', maximize: 'off' })
+  assert.equal(closable.sp.modality, 'modal')
+  const fixed = overlayOf(openDrawer({ headerTitle: 'Lines', position: 'bottom', collapsible: true, maximizable: true }, [node({ type: 'Text', text: '3 lines' })]))
+  assert.deepEqual(fixed.sp.bottomOptions, { drawerMode: 'fixed', title: 'on', maximize: 'on' })
+  assert.equal(fixed.sp.modality, 'modeless', 'docked: the page stays usable')
+  assert.equal(fixed.sp.autoDismiss, 'none')
+  const start = overlayOf(openDrawer({ headerTitle: 'Nav', position: 'start' }, []))
+  assert.equal(start.sp.edge, 'start')
+})
+
+test('spectra drawer: unsaved changes = the draft differs from the values the drawer opened with', () => {
+  const drawer = { state: { id: '2', name: 'Grace', phone: null } }
+  assert.equal(drawerHasUnsavedChanges(drawer, {}), false)
+  assert.equal(drawerHasUnsavedChanges(drawer, { name: 'Grace' }), false)
+  assert.equal(drawerHasUnsavedChanges(drawer, { phone: '' }), false, 'blank stays blank')
+  assert.equal(drawerHasUnsavedChanges(drawer, { name: 'Grace B.' }), true)
+  assert.equal(drawerHasUnsavedChanges(null, { a: 1 }), false)
+})
+
+test('spectra drawer: the guard holds Esc / a click outside while unsaved, and hands it to the page', () => {
+  const listeners = []
+  const doc = { addEventListener: (type, fn, capture) => listeners.push({ type, fn, capture }) }
+  installDrawerGuard(doc)
+  installDrawerGuard(doc)
+  assert.equal(listeners.length, 1, 'installed once')
+  assert.equal(listeners[0].type, 'ojBeforeClose')
+  assert.equal(listeners[0].capture, true, 'synchronously, before the popup closes')
+  const dispatched = []
+  const panel = { id: 'mateuDrawerPanel', dispatchEvent: (e) => dispatched.push(e.type) }
+  const event = () => ({ target: panel, prevented: false, stopped: false, preventDefault() { this.prevented = true }, stopPropagation() { this.stopped = true } })
+  noteDrawerUnsaved(false)
+  const free = event(); listeners[0].fn(free)
+  assert.equal(free.prevented, false)
+  noteDrawerUnsaved(true)
+  assert.equal(isDrawerUnsaved(), true)
+  const held = event(); listeners[0].fn(held)
+  assert.equal(held.prevented, true)
+  assert.equal(held.stopped, true, 'the page\'s ojBeforeClose listener (which drops the overlay) never hears it')
+  assert.deepEqual(dispatched, ['mateuDrawerLeave'])
+  const other = { target: { id: 'mateuRowDetailPanel' }, prevented: false, preventDefault() { this.prevented = true } }
+  listeners[0].fn(other)
+  assert.equal(other.prevented, false, 'only the drawer panel')
+  noteDrawerUnsaved(false)
+})
+
+test('spectra drawer: the panel paints the three templates around ONE generated body, wired to its chain', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const at = html.indexOf('<oj-drawer-popup id="mateuDrawerPanel"')
+  const panel = html.slice(at, html.indexOf('</oj-drawer-popup>', at))
+  for (const tag of ['<oj-sp-general-drawer-template', '<oj-sp-create-edit-drawer-template', '<oj-sp-bottom-drawer-template'])
+    assert.equal(panel.split(tag).length - 1, 1, tag)
+  assert.equal((panel.match(/<!-- @drawer-body \w+ -->/g) || []).length, 3)
+  assert.match(panel, /edge="\[\[ \$application\.variables\.mateuDrawer\.sp\.edge \|\| 'end' \]\]"/)
+  assert.match(panel, /drawer-state="\{\{ \$variables\.mateuDrawerState \}\}"/)
+  assert.match(panel, /on-mateu-drawer-leave="\[\[ \$listeners\.mateuDrawerLeaveRequested \]\]"/)
+  assert.match(panel, /class="oj-sp-bottom-drawer-template-height-provider/)
+  // our unsaved-changes banner (a template without navigation) must exist BEFORE the leave: Spectra's
+  // banner only paints on a visible false → true change, so one an oj-bind-if creates already
+  // visible stays 0 px high and the Cancel of a dirty «New» drawer looked dead
+  const banners = panel.match(/<oj-bind-if test="[^"]*">\s*<oj-sp-message-banner-unsaved-changes/g) || []
+  assert.equal(banners.length, 3)
+  for (const b of banners) assert.doesNotMatch(b, /mateuDrawerLeaving/)
+  assert.match(panel, /<oj-sp-message-banner-unsaved-changes[^>]*visible="\[\[ !!\$variables\.mateuDrawerLeaving \]\]"/)
+  const page = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
+  for (const c of ['oj-sp-general-drawer-template', 'oj-sp-create-edit-drawer-template', 'oj-sp-bottom-drawer-template', 'oj-sp-message-banner-unsaved-changes'])
+    assert.ok(page.imports.components[c], c)
+  for (const l of ['mateuDrawerLeaveRequested', 'mateuDrawerPrevious', 'mateuDrawerNext', 'mateuDrawerPrimary', 'mateuDrawerSecondary',
+    'mateuDrawerCancel', 'mateuDrawerPrimaryAndNext', 'mateuDrawerDiscard', 'mateuDrawerKeepEditing', 'mateuDrawerStateChanged']) {
+    assert.ok(page.eventListeners[l], l)
+    assert.equal(page.eventListeners[l].chains[0].chain, 'mateuDrawerTemplateAction', l)
+  }
+  for (const name of ['installDrawerGuard', 'noteDrawerUnsaved', 'drawerHasUnsavedChanges', 'withListingPeers'])
+    assert.ok(webApp('resources/js/mateu-bridge.js').includes('    ' + name + ',\n'), name)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installDrawerGuard\(\)/)
 })

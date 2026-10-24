@@ -8,6 +8,7 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.data.Markdown;
+import io.mateu.uidl.data.Message;
 import java.net.URI;
 
 /**
@@ -26,6 +27,12 @@ public class WelcomeDemo extends Welcome {
 
   Button learnMore = Button.builder().label("See the dashboard").actionId("openDashboard").build();
 
+  // a third and a fourth CTA: oj-sp-welcome-page shows the first secondary ones as buttons and the
+  // rest in its overflow menu — none of them is lost
+  Button tasks = Button.builder().label("Open the task list").actionId("openTasks").build();
+
+  Button guide = Button.builder().label("Read the guide").actionId("openGuide").build();
+
   @Panel(title = "1 · Search the booking")
   Markdown step1 = new Markdown("Find the reservation by locator, guest name or room.", null, null);
 
@@ -34,6 +41,11 @@ public class WelcomeDemo extends Welcome {
 
   @Panel(title = "3 · Assign and charge")
   Markdown step3 = new Markdown("Assign the room, take the deposit and hand over the keys.", null, null);
+
+  @Override
+  protected String heroOverline() {
+    return "Good morning";
+  }
 
   @Override
   protected String heroTitle() {
@@ -53,5 +65,15 @@ public class WelcomeDemo extends Welcome {
   @Action
   Object openDashboard() {
     return URI.create("/dashboard-demo");
+  }
+
+  @Action
+  Object openTasks() {
+    return URI.create("/todo-list-demo");
+  }
+
+  @Action
+  Object openGuide() {
+    return new Message("The check-in guide would open here.");
   }
 }

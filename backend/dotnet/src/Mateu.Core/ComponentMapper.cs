@@ -40,6 +40,7 @@ internal static class ComponentMapper
             {
                 // Auto = the default look: nothing on the wire (Java's HeroSectionMapper)
                 Tone = h.Tone == HeroTone.Auto ? null : LowerName(h.Tone),
+                Overline = string.IsNullOrWhiteSpace(h.Overline) ? null : h.Overline,
             },
             h.Content.Select(Map)),
 

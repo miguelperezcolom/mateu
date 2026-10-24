@@ -124,6 +124,16 @@ tokens in the keychain/keystore) is configured by an `auth` block in the registr
 and retries once. Redirect URIs to allow at the IdP: `mateu://auth` and `<web origin>/auth`. Your
 own login: `setTokenProvider(...)` in `src/core/auth.ts`.
 
+## Look and theming
+
+Material Design 3 through **React Native Paper** (MIT) with **@expo/vector-icons** (MIT) for its
+icons — pure JS, so Expo Go keeps working. Light/dark follows the device (or `@App(themeToggle)`),
+the primary colour is the app's `@App(accentColor)` when it is a hex colour. Tokens:
+`src/theme.ts` (mutated by `applyTheme`; build stylesheets with `themed(() => StyleSheet.create(…))`
+so they follow a scheme change, and import `Text`/`TextInput` from `src/ui/Text` so text gets the
+theme's ink instead of React Native's black); Paper theme: `src/ui/MateuTheme.tsx`; shared Material
+primitives: `src/ui/controls.tsx`. Docs: `doc/.../native/react-native.md#5-look-and-theming`.
+
 ## Architecture (short version)
 
 - `src/core/MateuViewController.ts` — pure-TS UIIncrement pipeline for one view: fragments,

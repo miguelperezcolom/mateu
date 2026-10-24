@@ -221,6 +221,7 @@ const en = {
     cookiesDismiss: 'Ok. Thanks :).',
     // messages
     unsavedChanges: 'You have unsaved changes. Are you sure you want to leave this page?',
+    unsavedChangesInOverlay: 'Discard your changes? What you typed here has not been saved.',
     selectRowsFirst: 'You first need to select some rows',
     validationErrors: 'There are validation errors',
     requestFailed: 'Request failed{status}',
@@ -238,6 +239,10 @@ const en = {
     failNotFound: 'This is no longer available. It may have been moved or deleted.',
     failClient: 'The request was rejected{status}.',
     failUnknown: 'Something went wrong. Please try again.',
+    // version skew (buildWatch.ts): the app was redeployed while this page was open
+    appUpdated: 'This app has been updated. Reload to use the latest version.',
+    staleScreen: 'This screen has changed since you opened it. Reload to continue.',
+    reload: 'Reload',
     errorStatus: ' (error {status})',
     // E2 patterns: record merge
     mergeShowDifferences: 'Show only differences',
@@ -465,6 +470,7 @@ const es: Catalogue = {
     cookiesMessage: 'Este sitio web usa cookies.',
     cookiesDismiss: 'Entendido, gracias.',
     unsavedChanges: 'Tienes cambios sin guardar. ¿Seguro que quieres salir de esta página?',
+    unsavedChangesInOverlay: '¿Descartar los cambios? Lo que has escrito aquí no se ha guardado.',
     selectRowsFirst: 'Primero selecciona alguna fila',
     validationErrors: 'Hay errores de validación',
     requestFailed: 'La petición falló{status}',
@@ -482,6 +488,9 @@ const es: Catalogue = {
     failNotFound: 'Esto ya no está disponible. Puede que se haya movido o borrado.',
     failClient: 'La petición fue rechazada{status}.',
     failUnknown: 'Algo ha ido mal. Inténtalo de nuevo.',
+    appUpdated: 'Esta aplicación se ha actualizado. Recarga para usar la última versión.',
+    staleScreen: 'Esta pantalla ha cambiado desde que la abriste. Recarga para continuar.',
+    reload: 'Recargar',
     errorStatus: ' (error {status})',
     mergeShowDifferences: 'Mostrar solo las diferencias',
     mergeField: 'Campo',

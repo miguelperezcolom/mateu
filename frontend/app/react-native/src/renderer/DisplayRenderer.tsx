@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { foldoutSummaryOf, heroToneColors } from './patternGaps';
 import { ganttSelection } from './ganttSelection';
@@ -76,6 +77,12 @@ export function HeroSectionRenderer({ component, state }: { component: unknown; 
 
   const content = (
     <View style={[styles.heroContent, { alignItems: centered ? 'center' : 'flex-start' }]}>
+      {!!m.overline && (
+        // HeroSectionDto.overline: a short quiet line above the title.
+        <Text style={[styles.heroSubtitle, { fontSize: 13, fontWeight: '500' }, onImage && styles.heroTextOnImage, subtitleInk, { textAlign: centered ? 'center' : 'left' }]}>
+          {m.overline}
+        </Text>
+      )}
       {!!m.title && (
         <Text style={[styles.heroTitle, onImage && styles.heroTextOnImage, titleInk, { textAlign: centered ? 'center' : 'left' }]}>
           {m.title}
@@ -1156,7 +1163,7 @@ export function ProcessMonitorRenderer({ component }: { component: unknown }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
   foldoutOverview: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 16 },
@@ -1176,7 +1183,7 @@ const styles = StyleSheet.create({
   heroContent: { padding: 24, gap: 8 },
   heroTitle: { fontSize: 28, fontWeight: '700', lineHeight: 34, color: theme.ink },
   heroSubtitle: { fontSize: 16, color: theme.muted },
-  heroTextOnImage: { color: theme.white },
+  heroTextOnImage: { color: theme.onFill },
   heroCtas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   // EmptyState
   emptyState: { alignItems: 'center', justifyContent: 'center', gap: 6, padding: 24 },
@@ -1222,7 +1229,7 @@ const styles = StyleSheet.create({
   timelineRow: { flexDirection: 'row', gap: 10 },
   timelineRail: { alignItems: 'center', width: 26 },
   timelineDot: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  timelineDotIcon: { fontSize: 12, color: theme.white },
+  timelineDotIcon: { fontSize: 12, color: theme.onFill },
   timelineLine: { flex: 1, width: 2, backgroundColor: theme.border, marginVertical: 2, minHeight: 8 },
   timelineBody: { flex: 1, paddingBottom: 16 },
   timelineHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
@@ -1253,7 +1260,7 @@ const styles = StyleSheet.create({
   pricing: { gap: 12 },
   planCard: { padding: 18, borderWidth: 1, borderColor: theme.border, borderRadius: 14, backgroundColor: theme.white, gap: 6 },
   planCardFeatured: { borderColor: theme.primary, borderWidth: 2 },
-  planBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '700', color: theme.white, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  planBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '700', color: theme.onFill, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   planName: { fontWeight: '600', color: theme.muted },
   planPrice: { fontSize: 30, fontWeight: '800', color: theme.ink },
   planPeriod: { fontSize: 14, fontWeight: '500', color: theme.faint },
@@ -1261,7 +1268,7 @@ const styles = StyleSheet.create({
   planCta: { marginTop: 6, borderRadius: 8, paddingVertical: 12, alignItems: 'center', backgroundColor: theme.divider },
   planCtaFeatured: { backgroundColor: theme.primary },
   planCtaText: { fontWeight: '600', color: theme.ink },
-  planCtaTextFeatured: { color: theme.white },
+  planCtaTextFeatured: { color: theme.onFill },
   // OrgChart (indented tree)
   org: { gap: 6 },
   orgRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderLeftWidth: 3, paddingLeft: 8, paddingVertical: 6, backgroundColor: theme.background, borderRadius: theme.radiusSm },
@@ -1278,7 +1285,7 @@ const styles = StyleSheet.create({
   funnelLabel: { fontWeight: '600', color: theme.ink },
   funnelConv: { fontSize: 11, color: theme.faint },
   funnelBar: { height: 34, borderRadius: theme.radiusSm, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
-  funnelValue: { color: theme.white, fontWeight: '700' },
+  funnelValue: { color: theme.onFill, fontWeight: '700' },
   // TrendChart
   trend: { gap: 4 },
   trendTitle: { fontWeight: '600', color: theme.ink },
@@ -1312,7 +1319,7 @@ const styles = StyleSheet.create({
   calloutTitle: { fontWeight: '700', fontSize: 16, color: theme.ink },
   calloutDesc: { color: theme.muted, lineHeight: 20 },
   calloutCta: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 16 },
-  calloutCtaText: { color: theme.white, fontWeight: '600' },
+  calloutCtaText: { color: theme.onFill, fontWeight: '600' },
   // CommentThread
   commentThread: { gap: 14 },
   commentNode: { gap: 10, marginTop: 10 },
@@ -1336,7 +1343,7 @@ const styles = StyleSheet.create({
   checkItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
   checkBox: { width: 20, height: 20, borderRadius: 5, borderWidth: 2, borderColor: theme.border, alignItems: 'center', justifyContent: 'center' },
   checkBoxDone: { backgroundColor: theme.success, borderColor: theme.success },
-  checkMark: { color: theme.white, fontSize: 13, fontWeight: '700' },
+  checkMark: { color: theme.onFill, fontSize: 13, fontWeight: '700' },
   checkLabel: { color: theme.ink, flex: 1 },
   checkLabelDone: { color: theme.faint, textDecorationLine: 'line-through' },
   // ComparisonCard
@@ -1350,7 +1357,7 @@ const styles = StyleSheet.create({
   cmpArrow: { fontSize: 18, color: theme.faint },
   cmpDelta: { fontWeight: '700', fontSize: 12, borderRadius: 999, paddingVertical: 2, paddingHorizontal: 8, overflow: 'hidden' },
   // Shared chip (badge palette)
-  uxChip: { color: theme.white, fontSize: 10, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden', alignSelf: 'flex-start' },
+  uxChip: { color: theme.onFill, fontSize: 10, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden', alignSelf: 'flex-start' },
   // EntityHeader
   entityHeader: { flexDirection: 'row', gap: 16, padding: 16, borderWidth: 1, borderColor: theme.border, borderRadius: 14, backgroundColor: theme.background },
   entityLeft: { flex: 1, gap: 4 },
@@ -1380,20 +1387,20 @@ const styles = StyleSheet.create({
   taskProgressLabel: { flex: 1, color: theme.ink, fontWeight: '500', minWidth: 120 },
   taskProgressPills: { flexDirection: 'row', gap: 4 },
   taskProgressPill: { fontSize: 11, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden' },
-  taskProgressPillDone: { backgroundColor: theme.success, color: theme.white },
+  taskProgressPillDone: { backgroundColor: theme.success, color: theme.onFill },
   taskProgressPillTodo: { borderWidth: 1, borderColor: theme.faint, color: theme.muted },
   taskProgressBtn: { backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
-  taskProgressBtnText: { color: theme.white, fontWeight: '600', fontSize: 13 },
+  taskProgressBtnText: { color: theme.onFill, fontWeight: '600', fontSize: 13 },
   // Notice
   notice: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
   noticeSlim: { paddingVertical: 3, paddingHorizontal: 8, gap: 6 },
   noticeIcon: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  noticeIconText: { color: theme.white, fontSize: 11, fontWeight: '700' },
+  noticeIconText: { color: theme.onFill, fontSize: 11, fontWeight: '700' },
   noticeText: { fontWeight: '600', fontSize: 13 },
   noticeBody: { flex: 1, gap: 4 },
   noticeBodyInline: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   noticeBtn: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  noticeBtnText: { color: theme.white, fontWeight: '600', fontSize: 11 },
+  noticeBtnText: { color: theme.onFill, fontWeight: '600', fontSize: 11 },
   // BulletedList
   bulletedList: { gap: 2, paddingVertical: 2 },
   bulletedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 2 },
@@ -1428,7 +1435,7 @@ const styles = StyleSheet.create({
   resourceCardAccent: { borderColor: theme.primary, borderWidth: 2 },
   resourceCardSelected: { backgroundColor: 'rgba(26,115,232,0.08)' },
   resourceCardDisabled: { opacity: 0.45 },
-  resourceTag: { alignSelf: 'flex-start', fontSize: 8, fontWeight: '800', color: theme.white, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden', letterSpacing: 0.5 },
+  resourceTag: { alignSelf: 'flex-start', fontSize: 8, fontWeight: '800', color: theme.onFill, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden', letterSpacing: 0.5 },
   resourceTitle: { fontSize: 17, fontWeight: '700', color: theme.ink },
   resourceSubtitle: { fontSize: 12, color: theme.faint },
   resourceNote: { fontSize: 11 },
@@ -1436,7 +1443,7 @@ const styles = StyleSheet.create({
   offerCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 14, overflow: 'hidden', backgroundColor: theme.white },
   offerCardAccent: { borderColor: theme.primary, borderWidth: 2 },
   offerImage: { width: '100%', aspectRatio: 16 / 9 },
-  offerTag: { alignSelf: 'flex-start', fontSize: 10, fontWeight: '800', color: theme.white, backgroundColor: theme.ink, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', letterSpacing: 0.5 },
+  offerTag: { alignSelf: 'flex-start', fontSize: 10, fontWeight: '800', color: theme.onFill, backgroundColor: theme.ink, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', letterSpacing: 0.5 },
   offerTagFloating: { position: 'absolute', top: 10, left: 10 },
   offerBody: { padding: 14, gap: 6 },
   offerTitle: { fontSize: 17, fontWeight: '700', color: theme.ink },
@@ -1446,7 +1453,7 @@ const styles = StyleSheet.create({
   offerCurrentLabel: { color: theme.faint, fontWeight: '500', marginTop: 4 },
   offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
   offerCtaAdded: { backgroundColor: theme.success },
-  offerCtaText: { color: theme.white, fontWeight: '600' },
+  offerCtaText: { color: theme.onFill, fontWeight: '600' },
   offerCtaPrice: { color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontVariant: ['tabular-nums'] },
   // AddOnPicker
   addOnPicker: { gap: 8 },
@@ -1461,7 +1468,7 @@ const styles = StyleSheet.create({
   addOnToggle: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
   addOnToggleAdded: { backgroundColor: theme.primary },
   addOnToggleText: { color: theme.primary, fontWeight: '700', fontSize: 16 },
-  addOnToggleTextAdded: { color: theme.white },
+  addOnToggleTextAdded: { color: theme.onFill },
   addOnPrice: { color: theme.primary, fontWeight: '600', fontVariant: ['tabular-nums'] },
   addOnIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 13 },
   // Ledger
@@ -1485,7 +1492,7 @@ const styles = StyleSheet.create({
   paymentContextLabel: { fontSize: 9, fontWeight: '700', color: theme.success, letterSpacing: 0.6 },
   paymentContextValue: { fontWeight: '700', color: theme.ink, fontVariant: ['tabular-nums'] },
   paymentConfirm: { marginLeft: 'auto', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 11 },
-  paymentConfirmText: { color: theme.white, fontWeight: '700' },
+  paymentConfirmText: { color: theme.onFill, fontWeight: '700' },
   // ProcessMonitor
   processMonitor: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' },
   processRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
@@ -1497,4 +1504,4 @@ const styles = StyleSheet.create({
   processCounter: { fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] },
   processBtn: { borderWidth: 1, borderColor: theme.warning, backgroundColor: 'rgba(240,171,0,0.12)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
   processBtnText: { color: '#8a6100', fontWeight: '600', fontSize: 12 },
-});
+}));

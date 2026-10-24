@@ -128,10 +128,11 @@ def test_an_editable_grid_carries_the_row_editor_wiring():
     assert ids == ["name", "age", "_select"]
     select = grid["columns"][-1]["metadata"]
     assert (select["stereotype"], select["text"], select["actionId"]) == ("button", "Edit", "guests_select")
-    assert grid["formPosition"] == "right" and grid["formColumns"] == 2
+    assert grid["formPosition"] == "right" and grid["formColumns"] == 1  # the row form is small: one column
     assert grid["minHeightWhenDetailVisible"] == "16rem"
     assert grid["onItemSelectionActionId"] == "guests_selected"
-    assert grid["colspan"] == 2  # a grid spans the whole row of a two-column form
+    # a grid spans the whole row of its form: one column here, inferred for a small form
+    assert grid["colspan"] == 1
 
 
 def test_wide_fields_span_the_whole_row_unless_told_otherwise():

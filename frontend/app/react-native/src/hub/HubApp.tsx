@@ -2,7 +2,7 @@ import * as Linking from 'expo-linking';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet, View } from 'react-native';
 import { announce } from '../a11y/a11y';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { parseHubLink, type HubLink, type ParseOptions } from './links';
 import type { UiManifest } from './manifest';
 import { allowInsecure, appVersion, extraLinkHosts, uiStore } from './storage';
@@ -248,8 +248,8 @@ export function HubApp() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.background },
   front: { ...StyleSheet.absoluteFill },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-});
+}));

@@ -257,6 +257,14 @@ class CalendarPage(ComponentTreeSupplier):
         """``goCalendarToday``: moves the displayed period back to today (re-render)."""
         self.month = date.today().isoformat()
 
+    def go_calendar_to_date(self, requested):
+        """``goCalendarToDate``: moves the displayed period to the one holding ``requested`` (an ISO
+        date — what a renderer's date picker sends as ``_date``); an unparseable date is ignored."""
+        try:
+            self.month = date.fromisoformat(str(requested)).isoformat()
+        except (TypeError, ValueError):
+            pass
+
     def switch_calendar_view(self, requested):
         """``switchCalendarView``: switches to the requested view (re-render); None is ignored."""
         if requested is not None:

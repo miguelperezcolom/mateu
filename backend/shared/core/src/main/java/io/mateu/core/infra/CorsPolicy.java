@@ -182,6 +182,8 @@ public final class CorsPolicy {
     if (allowCredentials) {
       headers.put("Access-Control-Allow-Credentials", "true");
     }
+    // a cross-origin renderer reads the build id to notice a redeployment
+    headers.put("Access-Control-Expose-Headers", io.mateu.core.infra.versioning.AppBuild.HEADER);
     return headers;
   }
 

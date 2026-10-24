@@ -83,3 +83,16 @@ version is an imitation and the user doc says so.
 6. Avatar/icon per item missing from `QueueItem`.
 7. The search field label «Search» is a hard-coded `@Label` (`CD:40`) — check it goes through the
    translator like the other built-in texts.
+
+## 8. Status — Spectra adopted (2026-10-24, phase D2)
+
+Redwood paints the archetype with **`oj-sp-collection-detail-page`** (`collectionDetailPageOf`,
+branch `mateuCdPage`). The contract mismatch of §6 is resolved by handing the template's stacker only
+`selectedItems = [{ id }]` — it compares them with `JSON.stringify`, so no live data provider may ride
+inside — and letting its `detailTemplate` stamp paint the detail blocks the server built for that
+selection (`mateuCd.detail`); none selected → its `noSelection` slot with `emptyDetail()`. Selecting
+is still the `selectCollectionItem` round trip and the search keeps its debounced auto-save (the form
+atom keeps the host listeners). Below the large breakpoint the template's own drawer shows the
+detail (gap 3 now behaves like Redwood's mobile pattern). Still open: the list is `oj-action-card`
+cards, not `oj-list-view` items; the search is the form's text box, not the smart filter bar; gaps 1,
+4–7 unchanged.

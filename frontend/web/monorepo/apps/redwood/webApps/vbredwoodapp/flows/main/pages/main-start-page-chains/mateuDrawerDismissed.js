@@ -27,6 +27,9 @@ define([
       $application.variables.mateuDrawerOpen = false;
       $application.variables.mateuDrawer = bridge.EMPTY_OVERLAY;
       $page.variables.mateuDrawerDraft = {};
+      $page.variables.mateuDrawerLeaving = null;
+      $page.variables.mateuDrawerState = 'auto';
+      bridge.noteDrawerUnsaved(false);
     }
   }
 

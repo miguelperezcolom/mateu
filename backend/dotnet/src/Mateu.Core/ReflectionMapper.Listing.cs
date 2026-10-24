@@ -495,6 +495,9 @@ internal sealed partial class ReflectionMapper
             Rules = MapRules(formType, entity),
             Validations = readOnly ? [] : MapValidations(formType),
             PageType = PageTypeOf(listingType),
+            // an editable/creation form guards its unsaved changes, routed or in the editable
+            // listing's drawer (Java's MultiView edit/new + CrudDrawerBuilder): closing it asks first
+            ConfirmOnNavigationIfDirty = !readOnly,
         };
     }
 

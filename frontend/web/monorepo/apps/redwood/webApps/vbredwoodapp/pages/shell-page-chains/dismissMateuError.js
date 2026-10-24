@@ -14,6 +14,7 @@ define([
     async run(context) {
       const { $application } = context;
       $application.variables.mateuLastError = '';
+      $application.variables.mateuReloadOffered = false;
     }
   }
 

@@ -59,13 +59,13 @@ the top in every width.
 | Switcher label | `recordLabel()` | 🟡 | Redwood always labels it "Record" |
 | Switcher type-ahead search | — | ❌ | available for header switchers on other pages (`RecordSwitcherSupplier`) |
 | Subtitle | `EntityHeader.subtitle` | ✅ | |
-| Status badge | `EntityHeader.badges` | 🟡 | Redwood appends the badges to the subtitle instead of using the header's badge |
+| Status badge | `EntityHeader.badges` | ✅ | the first is the template header's badge, the rest follow the subtitle |
 | Contextual facts | `EntityHeader.facts`, `metricLabel`/`metricValue` | ✅ | the metric becomes one more fact |
-| Primary / secondary actions | `@Toolbar` methods | ❌ | the overview header carries no actions on Redwood |
+| Primary / secondary actions | `@Toolbar` methods | ✅ | the template header's primary / secondary actions |
 | Previous / next record | `PeerNavigationSupplier` | ❌ | travels on the wire, but the overview header does not draw the arrows |
 | Main slot sections | `Card`s (titled) and any other component | ✅ | each piece is one card; a lone column puts two cards per row |
-| Info slot | `info(row, rq)`, `infoWidth()` | 🟡 | a side column of cards, not the template's own `info` slot |
-| `promoteInfoSlot` | `display()` → `GeneralOverviewDisplay.promoteInfoSlot` | 🟡 | Redwood also moves the info column to the **left** on wide screens |
+| Info slot | `info(row, rq)`, `infoWidth()` | ✅ | the template's own `info` slot (its neutral column); `infoWidth()` is not applied — Spectra sizes it |
+| `promoteInfoSlot` | `display()` → `GeneralOverviewDisplay.promoteInfoSlot` | ✅ | the template's own display option |
 | Hide the info panel | `display()` → `GeneralOverviewDisplay.info(Toggle.off)` | ✅ | |
 | Nothing selected | `emptyOverview()` | 🟡 | shown, but Redwood paints the page as a plain form meanwhile |
 | Density | `@Compact` | ✅ | a general overview is a reflected page, so `@Compact` is read |
@@ -162,11 +162,10 @@ This archetype's switcher is a field in the page body. For a record or context s
 |---|---|---|---|---|---|---|---|
 | Switcher + overview | ✅ | ✅ | ✅ | ✅ | ✅ ¹ | ✅ | ✅ |
 | `info` slot | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `promoteInfoSlot` | ✅ | ✅ | ✅ | ✅ | 🟡 ² | ✅ | ✅ |
+| `promoteInfoSlot` | ✅ | ✅ | ✅ | ✅ | ✅ ² | ✅ | ✅ |
 
-¹ When the overview contains an `EntityHeader`.
-² Redwood puts the promoted info column first in every width, so it also sits on the left on wide
-screens.
+¹ When the overview contains an `EntityHeader`; painted with Spectra's `oj-sp-general-overview-page`.
+² The template's own `displayOptions.promoteInfoSlot`.
 
 ## Redwood parameter and slot reference
 
@@ -187,8 +186,10 @@ facts, `@Timestamp`, peer navigation — are documented once in
 | `displayOptions.contextualInfoLabel` / `contextualInfoSticky` | `@KPI` facts render, but neither toggle exists | 🟡 |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
 | `previousItem` / `nextItem` + `spPreviousItem` / `spNextItem` | `PeerNavigationSupplier` → `PeerNav`; the Redwood overview header does not draw them | 🟡 |
+| `primaryAction` / `secondaryActions` | the page's `@Toolbar` methods | ✅ |
+| `badge` | the first `EntityHeader` badge | ✅ |
 | **Slot** `main` | `overview(Row, HttpRequest)` | ✅ |
-| **Slot** `info` (contextual side panel) | `info(Row, HttpRequest)` + `infoWidth()` | ✅ |
+| **Slot** `info` (contextual side panel) | `info(Row, HttpRequest)`; `infoWidth()` is not applied on Redwood | ✅ |
 | **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
 | **Slot** `announcement` (aria-live) | `UICommand.announce(text)` from any action | ✅ |
 | Switcher change event | `switchRecord` — re-renders in place, no navigation | ✅ |
@@ -203,10 +204,10 @@ The element-by-element review, with code references, is in
 [general-overview review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/general-overview.md). In short:
 
 - Redwood needs an `EntityHeader` in the overview to paint the template at all.
-- The overview header on Redwood carries no actions and no previous/next arrows.
-- The info panel is a column of cards, not the template's `info` slot, and `promoteInfoSlot` also
-  moves it to the left on wide screens.
-- Badges join the subtitle; the switcher label is fixed.
+- Since 2026-10-24 Redwood paints the archetype with Spectra's `oj-sp-general-overview-page`
+  (header with switcher, badge, facts and actions; `main` and `info` slots).
+- No previous/next arrows on the overview header; `infoWidth()` is not applied (Spectra sizes the
+  info column); the switcher label is fixed ("Record").
 
 ## Demo
 

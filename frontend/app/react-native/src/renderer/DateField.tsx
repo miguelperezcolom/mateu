@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { theme } from '../theme';
+import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
+import { theme, themed } from '../theme';
+import { OutlinedTrigger } from '../ui/controls';
 import { buttonA11y } from '../a11y/a11y';
 import { committedValue, displayValue, MONTHS, monthWeeks, parseIso, shiftedMonth, today, WEEKDAYS, type Ymd } from './dateCalendar';
 
@@ -17,9 +19,13 @@ interface Props {
   withTime?: boolean;
   placeholder?: string;
   onChange: (value: string) => void;
+  /** With a label the trigger is a Material outlined field (label inside, calendar icon). */
+  label?: string;
+  required?: boolean;
+  error?: string;
 }
 
-export function DateField({ value, editable, withTime = false, placeholder, onChange }: Props) {
+export function DateField({ value, editable, withTime = false, placeholder, onChange, label, required, error }: Props) {
   const [open, setOpen] = useState(false);
   const parsed = parseIso(value);
   // month shown by the calendar (defaults to the value's month, else the current one)
@@ -51,9 +57,23 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
 
   return (
     <View>
-      <TouchableOpacity {...buttonA11y()} style={styles.input} onPress={openCalendar} activeOpacity={editable ? 0.7 : 1}>
-        <Text style={!display ? styles.placeholder : undefined}>{display || placeholder || 'YYYY-MM-DD'}</Text>
-      </TouchableOpacity>
+      {label ? (
+        <OutlinedTrigger
+          label={label}
+          required={required}
+          error={error}
+          value={display}
+          placeholder={placeholder || 'YYYY-MM-DD'}
+          icon="calendar-blank-outline"
+          disabled={!editable}
+          accessibilityLabel={`${label}: ${display || 'not set'}`}
+          onPress={openCalendar}
+        />
+      ) : (
+        <TouchableOpacity {...buttonA11y({ label: placeholder ? `${placeholder}: ${display || 'not set'}` : undefined })} style={styles.input} onPress={openCalendar} activeOpacity={editable ? 0.7 : 1}>
+          <Text style={!display ? styles.placeholder : undefined}>{display || placeholder || 'YYYY-MM-DD'}</Text>
+        </TouchableOpacity>
+      )}
       {open && (
         <Modal accessibilityViewIsModal accessibilityLabel="Date picker" animationType="fade" transparent onRequestClose={() => setOpen(false)}>
           <TouchableOpacity {...buttonA11y()} style={styles.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
@@ -122,7 +142,7 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: theme.border,
@@ -135,7 +155,7 @@ const styles = StyleSheet.create({
   },
   placeholder: { color: theme.faint },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 32 },
-  calendar: { backgroundColor: theme.white, borderRadius: 12, padding: 16, maxWidth: 360, alignSelf: 'center', width: '100%' },
+  calendar: { backgroundColor: theme.surface, borderRadius: theme.radiusLg, padding: 20, maxWidth: 360, alignSelf: 'center', width: '100%' },
   monthBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   monthNav: { paddingHorizontal: 14, paddingVertical: 4 },
   monthNavText: { fontSize: 20, color: theme.primary },
@@ -147,11 +167,11 @@ const styles = StyleSheet.create({
   dayText: { fontSize: 13, color: theme.ink },
   todayCell: { borderWidth: 1, borderColor: theme.primary, borderRadius: 16 },
   selectedCell: { backgroundColor: theme.primary, borderRadius: 16 },
-  selectedText: { color: theme.white, fontWeight: '600' },
+  selectedText: { color: theme.onFill, fontWeight: '600' },
   timeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   timeLabel: { fontSize: 12, color: theme.muted, fontWeight: '500' },
   timeInput: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 6, fontSize: 14 },
   footer: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   footerButton: { paddingHorizontal: 12, paddingVertical: 8 },
   footerText: { color: theme.primary, fontWeight: '600', fontSize: 13 },
-});
+}));

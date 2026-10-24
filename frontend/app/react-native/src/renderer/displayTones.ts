@@ -1,15 +1,15 @@
 // The colors and glyphs DisplayRenderer.tsx picks for the display components: badge palette,
 // severity themes (callout, notice), trends (stat, comparison), meter thresholds, process health
 // and the stepper's states. Pure TypeScript over the theme tokens, tested by node's runner.
-import { theme } from '../theme.ts';
+import { theme, themed } from '../theme.ts';
 
 /** Icons arrive as web icon tokens ("vaadin:chart") or emoji — only emoji/plain text render natively. */
 export const displayIcon = (icon?: string): string => (icon && !icon.includes(':') ? icon : '');
 
 /** Badge palette (normal | success | warning | error | contrast), mirroring BadgeRenderer. */
-export const PALETTE: Record<string, string> = {
+export const PALETTE: Record<string, string> = themed(() => ({
   success: theme.success, warning: theme.warning, error: theme.danger, danger: theme.danger, contrast: theme.ink, normal: theme.muted,
-};
+}));
 
 /** A chip/note color by its palette name; unknown → muted. */
 export const paletteColor = (c?: string): string => PALETTE[c ?? 'normal'] ?? theme.muted;
@@ -40,12 +40,12 @@ export function calloutColors(themeName?: string): { accent: string; background:
   return { accent, background };
 }
 
-const NOTICE_COLORS: Record<string, { bg: string; ink: string; badge: string }> = {
+const NOTICE_COLORS: Record<string, { bg: string; ink: string; badge: string }> = themed(() => ({
   info: { bg: theme.infoBg, ink: theme.info, badge: theme.info },
   success: { bg: theme.successBg, ink: theme.success, badge: theme.success },
   warning: { bg: theme.warningBg, ink: theme.warning, badge: theme.warning },
   danger: { bg: theme.dangerBg, ink: theme.danger, badge: theme.danger },
-};
+}));
 const NOTICE_ICONS: Record<string, string> = { info: 'ℹ', success: '✓', warning: '!', danger: '!' };
 
 /** A Notice's look: the theme (unknown → info), its colors and the icon (a declared one wins). */
@@ -92,7 +92,7 @@ export function stepLook(status: string | undefined, index: number): {
     muted: s === 'upcoming',
     dotColor: done ? theme.primary : current ? theme.white : theme.border,
     borderColor: current ? theme.primary : 'transparent',
-    textColor: done ? theme.white : current ? theme.primary : theme.muted,
+    textColor: done ? theme.onFill : current ? theme.primary : theme.muted,
     lineColor: done ? theme.primary : theme.border,
     glyph: done ? '✓' : String(index + 1),
   };

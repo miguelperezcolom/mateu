@@ -106,9 +106,12 @@ public abstract class Welcome : IComponentTreeSupplier
     /// <summary>The hero band's tone: Auto (default look) or a dark tinted band with light ink
     /// (the Redwood welcome-page backgroundColor). (Java's Welcome.heroTone.)</summary>
     protected virtual HeroTone HeroTone => HeroTone.Auto;
+    /// <summary>A short line above the hero title introducing it (the Redwood welcome page's
+    /// overline). Null (the default) for none. (Java's Welcome.heroOverline.)</summary>
+    protected virtual string? HeroOverline => null;
 
     public IComponent Component() =>
-        ArchetypeComposers.ComposeWelcome(this, HeroTitle, HeroSubtitle, HeroImage, HeroTone);
+        ArchetypeComposers.ComposeWelcome(this, HeroTitle, HeroSubtitle, HeroImage, HeroTone, HeroOverline);
 }
 
 /// <summary>Item overview page: the first component property without [Panel] is the key-info panel
@@ -197,7 +200,13 @@ public static class ArchetypeComposers
 
     public static IComponent ComposeWelcome(
         object host, string? heroTitle, string? heroSubtitle, string? heroImage,
-        HeroTone heroTone = HeroTone.Auto)
+        HeroTone heroTone = HeroTone.Auto) =>
+        ComposeWelcome(host, heroTitle, heroSubtitle, heroImage, heroTone, null);
+
+    /// <summary>The welcome composition with a hero overline (the line above the title).</summary>
+    public static IComponent ComposeWelcome(
+        object host, string? heroTitle, string? heroSubtitle, string? heroImage,
+        HeroTone heroTone, string? heroOverline)
     {
         var ctas = new List<IComponent>();
         var tiles = new List<IComponent>();
@@ -219,7 +228,7 @@ public static class ArchetypeComposers
             new HeroSection
             {
                 Id = "hero", Title = heroTitle, Subtitle = heroSubtitle, Image = heroImage,
-                Centered = true, Tone = heroTone, Content = ctas,
+                Centered = true, Tone = heroTone, Overline = heroOverline, Content = ctas,
             },
         };
         // The highlight tiles land on the one responsive grid (coherence-plan #9), auto-fitting — the
@@ -595,6 +604,11 @@ public interface ICalendarPage
     /// <summary>Moves the displayed period back to today.</summary>
     void GoToday();
 
+    /// <summary>Moves the displayed period to the one holding <paramref name="date"/> (an ISO date —
+    /// what a renderer's date picker dispatches as <c>goCalendarToDate</c>); an unparseable date is
+    /// ignored. Default: nothing, for implementations written before it existed.</summary>
+    void GoToDate(string? date) { }
+
     /// <summary>Switches to the requested view (month|week|day|list); ignored when null.</summary>
     void SwitchView(string? view);
 
@@ -730,6 +744,12 @@ public abstract class CalendarPage : IComponentTreeSupplier, ICalendarPage
     public void NextMonth() => Month = Iso(Step(CurrentMonth(), 1));
 
     public void GoToday() => Month = Iso(DateOnly.FromDateTime(DateTime.Today));
+
+    public void GoToDate(string? date)
+    {
+        if (date is not null && DateOnly.TryParse(date, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            Month = Iso(parsed);
+    }
 
     public void SwitchView(string? view)
     {

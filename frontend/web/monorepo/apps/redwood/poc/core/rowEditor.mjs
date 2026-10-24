@@ -512,7 +512,7 @@ export const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
 export const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
 
 /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
-export function extraWidgetOf(f, options) {
+export function extraWidgetOf(f, options, value) {
   const st = f.stereotype
   // an editable password is typed into a masked input (oj-input-password): as plain text it
   // showed the secret in clear. A read-only one stays a text value — the fixed mask above.
@@ -521,12 +521,22 @@ export function extraWidgetOf(f, options) {
   if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
   if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
     return { isCheckboxSet: true }
+  // email / link → Spectra's typed inputs (oj-sp-input-email / oj-sp-input-url): their own
+  // format validation and, read-only, the value as a mailto: / web link
+  if (st === 'email') return { isEmail: true }
+  if (st === 'link' && (!f.dataType || f.dataType === 'string')) return { isUrl: true }
   if (st === 'money' || f.dataType === 'money') {
-    const currency = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
+    const declared = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
+    // an Amount carries its own currency; else the declared one; else EUR (as before)
+    const own = value != null && typeof value === 'object' && !Array.isArray(value) && value.currency ? String(value.currency) : ''
+    const currency = String(declared || own || 'EUR').toUpperCase()
     return {
       isMoney: true,
-      // JET converter (oj-input-number): number with 2 decimals and its currency symbol
-      converter: converterOf({ type: 'number', options: { style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 2 } }),
+      // Spectra's oj-sp-input-currency: number with its currency symbol, from the code it is given
+      // (no currency service: without one it would fall back to the user preferences' or USD)
+      currency,
+      // kept for the row editor's oj-input-number (it has no Spectra input)
+      converter: converterOf({ type: 'number', options: { style: 'currency', currency, minimumFractionDigits: 2 } }),
     }
   }
   if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
@@ -568,6 +578,7 @@ export function committedValueOf(previous, value) {
 /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
 export function isExtraLayoutField(md) {
   return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+    || md.stereotype === 'email' || md.stereotype === 'link'
     || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
     || (md.stereotype === 'richText' && !md.readOnly)
     || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
@@ -584,7 +595,7 @@ export const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
 export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
   if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
-  const extra = extraWidgetOf(f, optionsOf(f, data))
+  const extra = extraWidgetOf(f, optionsOf(f, data), value)
   if (extra) {
     const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
     return {
@@ -598,6 +609,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
       ...flags,
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
       isSlider: false, isStars: false, isColor: false, isRichEditor: false, isMarkupEditor: false, markupKind: '', min: 0, max: 0, step: 1,
+      isEmail: false, isUrl: false, currency: '',
       converter: null, captureMode: '', accept: '',
       ...extra,
     }
@@ -638,6 +650,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
     isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
     isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
+    isEmail: false, isUrl: false, currency: '',
     converter: null, captureMode: '', accept: '',
   }
 }

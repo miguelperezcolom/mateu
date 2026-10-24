@@ -28,6 +28,10 @@ internal static class LabelsAsideInference
     {
         if (viewType?.Find<FormLayoutAttribute>() is { LabelsAside: not LabelsAsideMode.Auto } annotation)
             return annotation.LabelsAside == LabelsAsideMode.Aside;
+        // Labels aside is the idiom of a DECLARED single column: a small form that is single-column
+        // only because Mateu inferred it (FormColumnsInference — up to 6 visible fields) keeps its
+        // labels on top, or every 6-field form would flip to labels aside (Java parity).
+        if (FormColumnsInference.IsInferred(viewType)) return false;
         return Infer(fields, maxColumns, translate ?? (s => s));
     }
 

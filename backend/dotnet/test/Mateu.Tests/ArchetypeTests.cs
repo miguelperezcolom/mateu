@@ -374,6 +374,26 @@ public class ArchetypeTests
     }
 
     [Fact]
+    public void A_date_jump_moves_to_the_period_holding_that_date()
+    {
+        var json = Render(Run("/team-calendar", typeof(TeamCalendar), "goCalendarToDate",
+            state: new Dictionary<string, object?> { ["month"] = Val("\"2026-07-01\"") },
+            parameters: new Dictionary<string, object?> { ["_date"] = Val("\"2026-08-20\"") }));
+        Assert.Contains("\"month\":\"2026-08-20\"", json);
+        Assert.Contains("August retro", json);
+        Assert.DoesNotContain("Sprint planning", json);
+    }
+
+    [Fact]
+    public void A_garbled_date_jump_stays_on_the_current_period()
+    {
+        var json = Render(Run("/team-calendar", typeof(TeamCalendar), "goCalendarToDate",
+            state: new Dictionary<string, object?> { ["month"] = Val("\"2026-07-01\"") },
+            parameters: new Dictionary<string, object?> { ["_date"] = Val("\"next tuesday\"") }));
+        Assert.Contains("Sprint planning", json);
+    }
+
+    [Fact]
     public void Clicking_an_event_runs_ActionOn_and_navigates_to_its_result()
     {
         var inc = Run("/team-calendar", typeof(TeamCalendar), "openCalendarEvent",

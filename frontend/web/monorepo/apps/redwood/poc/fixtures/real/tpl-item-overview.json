@@ -1,0 +1,239 @@
+{
+ "commands": [
+  {
+   "targetComponentId": "",
+   "type": "SetWindowTitle",
+   "data": "Ergonomic chair EC-200"
+  }
+ ],
+ "messages": [],
+ "fragments": [
+  {
+   "targetComponentId": "",
+   "component": {
+    "type": "ServerSide",
+    "id": "19c855d3-a32b-4d75-8ce8-47e77d097b59",
+    "serverSideType": "io.mateu.mdd.redwoodshowcase.ui.itemoverview.ProductOverview",
+    "route": "_empty",
+    "children": [
+     {
+      "type": "ClientSide",
+      "metadata": {
+       "type": "ResponsiveGrid",
+       "gridTemplateColumns": "22rem 1fr",
+       "gap": null,
+       "colSpans": null,
+       "stackBelow": "48rem",
+       "gridTemplateAreas": "\"keyinfo tabs\"",
+       "stickyAreas": [
+        "keyinfo"
+       ],
+       "reorderable": false
+      },
+      "id": "io.mateu.mdd.redwoodshowcase.ui.itemoverview.ProductOverview",
+      "children": [
+       {
+        "type": "ClientSide",
+        "metadata": {
+         "type": "Card",
+         "media": null,
+         "headerPrefix": null,
+         "header": null,
+         "title": null,
+         "subtitle": null,
+         "headerSuffix": null,
+         "content": {
+          "type": "ClientSide",
+          "metadata": {
+           "type": "Markdown",
+           "markdown": "### Ergonomic chair EC-200\n\n**SKU:** EC-200-BLK\n**Category:** Office seating\n**Status:** Active\n**Stock:** 143 units\n**Price:** 349 €\n\nLumbar support, 4D armrests, mesh back.\n"
+          },
+          "id": "markdown-341e4444",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null,
+          "sizing": null
+         },
+         "footer": null,
+         "variants": null
+        },
+        "id": "key-info",
+        "children": [],
+        "style": null,
+        "cssClasses": null,
+        "slot": "keyinfo",
+        "sizing": null
+       },
+       {
+        "type": "ClientSide",
+        "metadata": {
+         "type": "TabLayout",
+         "orientation": null,
+         "variant": null,
+         "groupRelationship": null,
+         "adaptable": false
+        },
+        "id": "item-tabs",
+        "children": [
+         {
+          "type": "ClientSide",
+          "metadata": {
+           "type": "Tab",
+           "id": null,
+           "active": false,
+           "label": "Sales",
+           "shortcut": null,
+           "routeKey": null,
+           "badge": null
+          },
+          "id": null,
+          "children": [
+           {
+            "type": "ClientSide",
+            "metadata": {
+             "type": "Chart",
+             "chartType": "bar",
+             "chartData": {
+              "labels": [
+               "Jan",
+               "Feb",
+               "Mar",
+               "Apr",
+               "May",
+               "Jun"
+              ],
+              "datasets": [
+               {
+                "label": "Units",
+                "data": [
+                 42,
+                 55,
+                 38,
+                 61,
+                 70,
+                 66
+                ]
+               }
+              ]
+             },
+             "chartOptions": null
+            },
+            "id": "chart-1c91245c",
+            "children": [],
+            "style": null,
+            "cssClasses": null,
+            "slot": null,
+            "sizing": null
+           }
+          ],
+          "style": "",
+          "cssClasses": "",
+          "slot": null,
+          "sizing": null
+         },
+         {
+          "type": "ClientSide",
+          "metadata": {
+           "type": "Tab",
+           "id": null,
+           "active": false,
+           "label": "Specifications",
+           "shortcut": null,
+           "routeKey": null,
+           "badge": null
+          },
+          "id": null,
+          "children": [
+           {
+            "type": "ClientSide",
+            "metadata": {
+             "type": "Markdown",
+             "markdown": "| Property | Value |\n|---|---|\n| Max load | 130 kg |\n| Seat height | 44–54 cm |\n| Materials | Mesh, aluminium |\n| Warranty | 5 years |\n"
+            },
+            "id": "markdown-92ce3c7f",
+            "children": [],
+            "style": null,
+            "cssClasses": null,
+            "slot": null,
+            "sizing": null
+           }
+          ],
+          "style": "",
+          "cssClasses": "",
+          "slot": null,
+          "sizing": null
+         },
+         {
+          "type": "ClientSide",
+          "metadata": {
+           "type": "Tab",
+           "id": null,
+           "active": false,
+           "label": "Reviews",
+           "shortcut": null,
+           "routeKey": null,
+           "badge": null
+          },
+          "id": null,
+          "children": [
+           {
+            "type": "ClientSide",
+            "metadata": {
+             "type": "Markdown",
+             "markdown": "⭐⭐⭐⭐⭐ *\"Best chair I've owned\"* — María\n⭐⭐⭐⭐ *\"Great support, assembly took a while\"* — Joan\n"
+            },
+            "id": "markdown-1746d9a4",
+            "children": [],
+            "style": null,
+            "cssClasses": null,
+            "slot": null,
+            "sizing": null
+           }
+          ],
+          "style": "",
+          "cssClasses": "",
+          "slot": null,
+          "sizing": null
+         }
+        ],
+        "style": null,
+        "cssClasses": null,
+        "slot": "tabs",
+        "sizing": null
+       }
+      ],
+      "style": null,
+      "cssClasses": null,
+      "slot": null,
+      "sizing": null
+     }
+    ],
+    "initialData": {},
+    "style": null,
+    "cssClasses": null,
+    "actions": [],
+    "triggers": [],
+    "rules": [],
+    "validations": [],
+    "slot": null,
+    "containerId": null,
+    "confirmOnNavigationIfDirty": false,
+    "emitsName": null,
+    "pageWidth": null,
+    "pageType": "detail",
+    "staticView": false,
+    "structureHash": "b43e1f0ec58393bbfb97e63a95fcc9a584eb4bc586dd5fa00cfd0f9d851f8cc5"
+   },
+   "state": {},
+   "data": {},
+   "action": "Replace",
+   "containerId": null
+  }
+ ],
+ "banners": [],
+ "appendBanners": false,
+ "appData": null,
+ "appState": null,
+ "wireVersion": "3.0"
+}

@@ -68,6 +68,8 @@ public class WireTypePolicy implements io.mateu.core.infra.dev.SpecsCache {
     this.routeRegistry = routeRegistry;
     this.yamlUidlLoader = yamlUidlLoader;
     io.mateu.core.infra.dev.DevSpecs.register(this);
+    // the build id fingerprints exactly the types this policy accepts
+    io.mateu.core.infra.versioning.AppBuild.register(this::exposedTypeNames);
   }
 
   /** Dev mode: a spec changed — the authored view models may be different ones now. */
@@ -75,6 +77,16 @@ public class WireTypePolicy implements io.mateu.core.infra.dev.SpecsCache {
   public void invalidateSpecs() {
     registered = null;
     reachable = null;
+    io.mateu.core.infra.versioning.AppBuild.invalidate();
+  }
+
+  /**
+   * Every type this policy accepts by registration or reachability, sorted (the build id's input).
+   */
+  public java.util.List<String> exposedTypeNames() {
+    var names = new java.util.TreeSet<String>(registered());
+    names.addAll(reachable());
+    return java.util.List.copyOf(names);
   }
 
   /**

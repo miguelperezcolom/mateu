@@ -49,7 +49,9 @@ internal sealed partial class ReflectionMapper
         // The current step's form: the regular section card of a form (Java's stepForm), under a
         // spacer Div.
         var card = Client(new DivMetadataDto(), null,
-            [SectionCard(null, fields, formType: type, props: currentProps)]) with
+            // each step is its own form: its column count is inferred from the STEP's properties
+            [SectionCard(null, fields, formType: type, props: currentProps,
+                columnsOverride: FormColumnsInference.FormColumns(type, currentProps))]) with
             {
                 Style = "width: 100%; margin-top: 1rem;",
             };

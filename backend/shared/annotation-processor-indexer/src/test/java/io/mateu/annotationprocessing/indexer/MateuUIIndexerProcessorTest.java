@@ -262,4 +262,34 @@ public class MateuUIIndexerProcessorTest {
       StringWriter writer,
       Set<TypeElement> annotations,
       RoundEnvironment roundEnv) {}
+
+  @Test
+  public void recordsItsOwnMateuVersionWhenKnown() throws IOException {
+    var sb = new StringBuilder();
+    MateuUIIndexerProcessor.appendVersion(sb, null);
+    assertThat(sb.toString()).isEmpty();
+    MateuUIIndexerProcessor.appendVersion(sb, "3.0-beta.12");
+    assertThat(sb.toString()).isEqualTo("mateuVersion=3.0-beta.12\n");
+    assertThat(MateuUIIndexerProcessor.versionFrom(null)).isNull();
+    // outside a jar (these tests) there is no pom.properties: nothing is recorded
+    assertThat(MateuUIIndexerProcessor.readOwnVersion()).isNull();
+    // an unreadable stream records nothing rather than failing the compilation
+    assertThat(
+            MateuUIIndexerProcessor.versionFrom(
+                new java.io.InputStream() {
+                  @Override
+                  public int read() throws IOException {
+                    throw new IOException("boom");
+                  }
+                }))
+        .isNull();
+    assertThat(
+            MateuUIIndexerProcessor.versionFrom(
+                new java.io.ByteArrayInputStream("version=3.1.0\n".getBytes())))
+        .isEqualTo("3.1.0");
+    assertThat(
+            MateuUIIndexerProcessor.versionFrom(
+                new java.io.ByteArrayInputStream("groupId=io.mateu\n".getBytes())))
+        .isNull();
+  }
 }

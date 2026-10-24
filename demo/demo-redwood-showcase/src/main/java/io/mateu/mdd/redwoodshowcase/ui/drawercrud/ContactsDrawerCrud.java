@@ -1,7 +1,10 @@
 package io.mateu.mdd.redwoodshowcase.ui.drawercrud;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
+import io.mateu.uidl.UserFacingException;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.data.CrudDisplay;
+import io.mateu.uidl.data.Toggle;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
@@ -18,6 +21,7 @@ import lombok.NoArgsConstructor;
  * Demo of {@code editInDrawer()} (the Redwood "Create and Edit - Drawer" template): New and row
  * clicks open the crud form in a drawer sliding over the listing — the listing never unmounts;
  * saving persists, closes the drawer and shows the refreshed listing, cancelling just closes it.
+ * "Save and next" is on, and a contact named "Taken" is refused, to show the error banner.
  */
 @UI("/drawer-crud-demo")
 @Title("Contacts (edit in drawer)")
@@ -55,6 +59,12 @@ public class ContactsDrawerCrud extends AutoCrud<ContactsDrawerCrud.Contact> {
     return true;
   }
 
+  /** "Save and next" on (it moves the drawer on to the next contact); the error banner stays on. */
+  @Override
+  public CrudDisplay display() {
+    return new CrudDisplay(Toggle.on, Toggle.on, Toggle.on, Toggle.on);
+  }
+
   @Override
   public CrudStore<Contact> store() {
     return new CrudStore<>() {
@@ -66,6 +76,10 @@ public class ContactsDrawerCrud extends AutoCrud<ContactsDrawerCrud.Contact> {
 
       @Override
       public String save(Contact entity) {
+        // a refused save, to see the drawer's error banner: the drawer stays open with the values
+        if ("Taken".equalsIgnoreCase(entity.getName())) {
+          throw new UserFacingException("Another contact is already called " + entity.getName());
+        }
         if (entity.getId() == null || entity.getId().isBlank()) {
           entity.setId(UUID.randomUUID().toString());
           CONTACTS.add(entity);

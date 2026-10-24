@@ -5,6 +5,8 @@ import { vendorChunks } from '../../vite.vendorChunks'
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 
+const rendererVersion: string = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')).version ?? 'unknown'
+
 // A hash of the sources the bundle is built from, stamped on the entry chunk. A source change that
 // minifies to the same bytes (renaming a local, a comment) would otherwise leave the committed
 // bundle untouched, and scripts/check-bundle-freshness.sh — which compares COMMITS, not bytes —
@@ -41,6 +43,10 @@ const bypassHtml = (req: IncomingMessage) =>
     req.headers.accept?.includes('text/html') ? '/index.html' : undefined
 
 export default defineConfig({
+    // the renderer's own version, announced to the server in X-Mateu-Renderer (rendererIdentity.ts)
+    define: {
+        __MATEU_RENDERER_VERSION__: JSON.stringify(rendererVersion),
+    },
     resolve: {
         // 1. DEDUPE: Obliga a Vite a usar una única instancia de estas librerías críticas.
         // Esto evita el error "dom-module has already been defined".

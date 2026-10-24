@@ -18,6 +18,7 @@ export const CHROME_TEXTS = {
     // ── generic ──
     close: 'Close',
     retry: 'Retry',
+    reload: 'Reload',
     loading: 'Loading',
     search: 'Search…',
     noData: 'No data',
@@ -106,6 +107,9 @@ export const CHROME_TEXTS = {
     errServerStatus: 'The server could not complete the request (error {status}). Try again.',
     errUnauthorized: 'Your session is no longer valid. Sign in again.',
     errForbidden: "You're not allowed to do this.",
+    // version skew (versionSkew.mjs): another deployment answered than the one this page started with
+    appUpdated: 'This app has been updated. Reload to use the latest version.',
+    screenChanged: 'This screen has changed since you opened it. Reload to continue.',
     errSecurityRefused: "The server's security layer refused this request before the app could handle it (for example its CSRF protection). If it keeps happening, tell your administrator.",
     errNotFound: 'This is no longer available. It may have been moved or deleted.',
     errClient: 'The request was rejected.',
@@ -249,6 +253,7 @@ export const CHROME_TEXTS = {
   es: {
     close: 'Cerrar',
     retry: 'Reintentar',
+    reload: 'Recargar',
     loading: 'Cargando',
     search: 'Buscar…',
     noData: 'Sin datos',
@@ -330,6 +335,8 @@ export const CHROME_TEXTS = {
     errServerStatus: 'El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.',
     errUnauthorized: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
     errForbidden: 'No tienes permiso para hacer esto.',
+    appUpdated: 'Esta aplicación se ha actualizado. Recarga para usar la última versión.',
+    screenChanged: 'Esta pantalla ha cambiado desde que la abriste. Recarga para continuar.',
     errSecurityRefused: 'La capa de seguridad del servidor rechazó la petición antes de que la aplicación pudiera atenderla (por ejemplo, su protección CSRF). Si se repite, avisa a tu administrador.',
     errNotFound: 'Esto ya no está disponible. Puede que se haya movido o borrado.',
     errClient: 'La petición ha sido rechazada.',

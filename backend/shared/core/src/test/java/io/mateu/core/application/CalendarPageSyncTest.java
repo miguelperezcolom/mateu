@@ -145,6 +145,21 @@ class CalendarPageSyncTest {
   }
 
   @Test
+  void aDateJumpMovesToThePeriodHoldingThatDate() {
+    var increment =
+        run("goCalendarToDate", Map.of("_month", "2026-10-01"), Map.of("_date", "2026-11-20"));
+    assertThat(calendarOf(increment).month()).isEqualTo("2026-11-20");
+    assertThat(eventTitles(increment)).containsExactly("Planning");
+  }
+
+  @Test
+  void aGarbledDateJumpStaysOnTheCurrentPeriod() {
+    var increment =
+        run("goCalendarToDate", Map.of("_month", "2026-10-01"), Map.of("_date", "next tuesday"));
+    assertThat(eventTitles(increment)).containsExactly("Kickoff", "Review");
+  }
+
+  @Test
   void previousMonthMovesBackwards() {
     var increment = run("previousCalendarMonth", Map.of("_month", "2026-11-15"), Map.of());
     assertThat(eventTitles(increment)).containsExactly("Kickoff", "Review");

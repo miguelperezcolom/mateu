@@ -31,6 +31,22 @@ public sealed class MateuOptions
     /// "only when the MATEU_DEV environment variable is true" — never set it in a production profile.</summary>
     public bool? Dev { get; set; }
 
+    /// <summary>The build id every response of a Mateu endpoint carries in <c>X-Mateu-Build</c> (what a
+    /// renderer compares to tell the app was redeployed, or that a refusal comes from a newer build).
+    /// Null (the default) reads <c>MATEU_BUILD_ID</c>; none → a fingerprint computed once of Mateu's
+    /// version, the registered UI types' assemblies (MVIDs) and names, and the YAML specs served —
+    /// identical on every replica of one release. Reduced to <c>[A-Za-z0-9._-]</c>, at most 64 chars.</summary>
+    public string? BuildId { get; set; }
+
+    /// <summary>A mirror of Oracle's CDN (<c>https://static.oracle.com/cdn</c>) the Redwood renderer's
+    /// page loads JET, Spectra, the Visual Builder runtime and the gallery images from — for an
+    /// organisation that hosts those files itself (e.g. <c>https://cdn.example.com/oracle/cdn</c>).
+    /// Mateu never bundles Oracle's files; it only re-points the URLs of the page it serves. Null (the
+    /// default) reads <c>MATEU_ORACLE_CDN_URL</c>; blank = off. A value that is not an absolute http(s)
+    /// URL, or that carries a quote, <c>&lt;</c>, <c>&gt;</c> or whitespace, is ignored with a warning.
+    /// Java: <c>mateu.oracle-cdn.url</c>.</summary>
+    public string? OracleCdnUrl { get; set; }
+
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
     public HttpClient? HttpClient { get; set; }
 

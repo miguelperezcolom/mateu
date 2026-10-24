@@ -1,0 +1,174 @@
+<!-- GENERATED into the three Spectra drawer templates of #mateuDrawerPanel by poc/make-html.mjs
+     (the @drawer-body markers) — edit HERE, never the copies. The template draws the header and the
+     footer; this is its default slot. -->
+<!-- ONE element child: a Spectra template (a VComponent) slots the ELEMENTS it finds when it renders;
+     what an oj-bind-if / oj-bind-for-each inserts later straight under it is never projected, and the
+     panel kept showing the previous record after «Save and next» -->
+<div class="mateu-sp-drawer-body">
+  <!-- unsaved changes on leaving a create/edit drawer (✕, Esc, Cancel) when the template has no
+       navigation of its own: the same Spectra banner the template shows for prev/next. It must
+       EXIST before the leave: the banner only paints on a `visible` false → true change, so one
+       created already visible stayed 0 px high and the Cancel looked dead -->
+  <oj-bind-if test="[[ !$application.variables.mateuDrawer.sp.hasNavigation ]]">
+    <oj-sp-message-banner-unsaved-changes class="oj-sm-margin-4x-bottom mateu-drawer-unsaved"
+      visible="[[ !!$variables.mateuDrawerLeaving ]]"
+      on-oj-sp-discard-changes="[[ $listeners.mateuDrawerDiscard ]]"
+      on-oj-sp-cancel="[[ $listeners.mateuDrawerKeepEditing ]]"></oj-sp-message-banner-unsaved-changes>
+  </oj-bind-if>
+  <!-- a LISTING in the drawer (a Listing embedded in it): the selector's search, table and pages
+       (searchPickerOf, inDrawer), the row click is the listing's `view` -->
+  <oj-bind-if test="[[ !!$application.variables.mateuDrawer.isListing && !!$variables.mateuPicker && !!$variables.mateuPicker.inDrawer ]]">
+    <div class="oj-sm-margin-4x-top mateu-picker-body">
+      <oj-bind-if test="[[ $variables.mateuPicker.searchable ]]">
+        <oj-input-search class="oj-sm-margin-2x-bottom oj-form-control-full-width"
+          aria-label="Search"
+          value="[[ $variables.mateuPicker.searchText ]]"
+          on-oj-value-action="[[ $listeners.mateuPickerSearch ]]"></oj-input-search>
+      </oj-bind-if>
+      <oj-table id="mateuDrawerListTable" class="oj-sm-12 mateu-picker-table"
+        display="list"
+        data="[[ $variables.pickerADP ]]"
+        columns="[[ $variables.mateuPicker.columns ]]"
+        selection-mode="[[ $variables.mateuPicker.selectionMode ]]"
+        on-oj-row-action="[[ $listeners.mateuPickerRowAction ]]">
+        <template slot="noData">
+          <oj-sp-empty-state primary-text="[[ $variables.mateuPicker.emptyText ]]" secondary-text=""></oj-sp-empty-state>
+        </template>
+        <template slot="cellClip">
+          <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]" :data-mateu-hover="[[ ($current.data && $current.data.hover) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
+        </template>
+      </oj-table>
+      <oj-bind-if test="[[ $variables.mateuPicker.paging.visible ]]">
+        <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+          <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $variables.mateuPicker.paging.rangeText ]]"></oj-bind-text></span>
+          <oj-button display="icons" chroming="borderless" data-page="prev"
+            disabled="[[ $variables.mateuPicker.paging.prevDisabled ]]"
+            on-oj-action="[[ $listeners.mateuPickerPage ]]">
+            <span slot="startIcon" class="oj-ux-ico-chevron-left"></span>
+            <oj-bind-text value="[[ $variables.mateuPicker.paging.labels.prev ]]"></oj-bind-text>
+          </oj-button>
+          <oj-button display="icons" chroming="borderless" data-page="next"
+            disabled="[[ $variables.mateuPicker.paging.nextDisabled ]]"
+            on-oj-action="[[ $listeners.mateuPickerPage ]]">
+            <span slot="startIcon" class="oj-ux-ico-chevron-right"></span>
+            <oj-bind-text value="[[ $variables.mateuPicker.paging.labels.next ]]"></oj-bind-text>
+          </oj-button>
+        </div>
+      </oj-bind-if>
+    </div>
+  </oj-bind-if>
+  <oj-bind-if test="[[ $application.variables.mateuDrawer.hasContent ]]">
+    <div class="oj-sm-margin-4x-top">
+      <oj-bind-for-each data="[[ $application.variables.mateuDrawer.content ]]">
+        <template>
+          <div>
+            <oj-bind-for-each data="[[ $current.data.items ]]">
+                <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
+                <!-- @end-atoms -->
+              </oj-bind-for-each>
+          </div>
+        </template>
+      </oj-bind-for-each>
+    </div>
+  </oj-bind-if>
+  <!-- the fields, GROUPED by their sections (@Section: title + FormLayout columns;
+       bridge.formSectionsOf): without sections it is a single untitled group -->
+  <oj-bind-for-each data="[[ $application.variables.mateuDrawer.sections ]]">
+    <template>
+      <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
+        <oj-bind-if test="[[ $current.data.hasTitle ]]">
+          <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+        </oj-bind-if>
+        <!-- each group keeps its columns (a section's, a FormLayout's maxColumns, a row's
+             fields — formSectionsOf byLayout); oj-form-layout drops them as the overlay narrows -->
+        <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row">
+          <oj-bind-for-each data="[[ $current.data.fields ]]">
+            <template>
+              <oj-bind-if test="[[ $current.data.isText ]]">
+                <oj-input-text
+                  label-hint="[[ $current.data.label ]]"
+                  value="[[ $current.data.value ]]"
+                  required="[[ $current.data.required ]]"
+                  readonly="[[ $current.data.readonly ]]"
+                  :data-field-id="[[ $current.data.fieldId ]]"
+                  on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                <oj-text-area
+                  label-hint="[[ $current.data.label ]]"
+                  value="[[ $current.data.value ]]"
+                  rows="4"
+                  required="[[ $current.data.required ]]"
+                  readonly="[[ $current.data.readonly ]]"
+                  :data-field-id="[[ $current.data.fieldId ]]"
+                  on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-text-area>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isNumber ]]">
+                <oj-input-number
+                  label-hint="[[ $current.data.label ]]"
+                  value="[[ $current.data.value ]]"
+                  required="[[ $current.data.required ]]"
+                  readonly="[[ $current.data.readonly ]]"
+                  :data-field-id="[[ $current.data.fieldId ]]"
+                  on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isDate ]]">
+                <oj-input-date
+                  label-hint="[[ $current.data.label ]]"
+                  value="[[ $current.data.value ]]"
+                  required="[[ $current.data.required ]]"
+                  readonly="[[ $current.data.readonly ]]"
+                  :data-field-id="[[ $current.data.fieldId ]]"
+                  on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                <oj-input-date-time
+                  label-hint="[[ $current.data.label ]]"
+                  value="[[ $current.data.value ]]"
+                  required="[[ $current.data.required ]]"
+                  readonly="[[ $current.data.readonly ]]"
+                  :data-field-id="[[ $current.data.fieldId ]]"
+                  on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date-time>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                <oj-switch
+                  label-hint="[[ $current.data.label ]]"
+                  value="[[ $current.data.value ]]"
+                  readonly="[[ $current.data.readonly ]]"
+                  :data-field-id="[[ $current.data.fieldId ]]"
+                  on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isSelect ]]">
+                <oj-select-one
+                  label-hint="[[ $current.data.label ]]"
+                  value="[[ $current.data.value ]]"
+                  options="[[ $current.data.options ]]"
+                  placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
+                  required="[[ $current.data.required ]]"
+                  readonly="[[ $current.data.readonly ]]"
+                  :data-field-id="[[ $current.data.fieldId ]]"
+                  on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
+              </oj-bind-if>
+              <!-- @fields-extra mateuFieldChanged -->
+              <!-- @end-fields-extra -->
+            </template>
+          </oj-bind-for-each>
+        </oj-form-layout>
+      </div>
+    </template>
+  </oj-bind-for-each>
+  <!-- actions the template's footer cannot hold (a third secondary…): our own bar, at the end -->
+  <oj-bind-if test="[[ ($application.variables.mateuDrawer.sp.footerActions || []).length > 0 ]]">
+    <div class="oj-flex oj-divider-top oj-sm-padding-4x-top oj-sm-margin-4x-top">
+      <oj-bind-for-each data="[[ $application.variables.mateuDrawer.sp.footerActions ]]">
+        <template>
+          <oj-button class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+            :data-action-id="[[ $current.data.actionId ]]"
+            chroming="[[ $current.data.chroming ]]"
+            disabled="[[ !!$current.data.disabled ]]"
+            on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+        </template>
+      </oj-bind-for-each>
+    </div>
+  </oj-bind-if>
+</div>

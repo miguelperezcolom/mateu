@@ -62,3 +62,13 @@ No responsive section in the guide. Mateu: edge to edge (`PageWidthStyle.EDGE_TO
    `PlanningBoard` contract) — `oj-gantt` already supports both.
 2. Header actions + `@Timestamp` on the archetype (shared with DataManagement).
 3. Translate the default `taskDetail` line.
+
+## 7. Status — Spectra adopted (2026-10-24, phase D2)
+
+There is no `oj-sp-gantt-page` component — the VB Gantt page pattern is built on
+**`oj-sp-data-management-page`**, which Redwood now paints (`dataManagementPageOf`, kind `gantt`):
+the heading → its header title; the `oj-gantt` canvas + `detail(rq)` card → its default slot; the
+persistent `bottomPanel(rq)` → its `innerBottom` drawer as `oj-sp-bottom-drawer-template` in
+**fixed** mode (a handle minimizes / restores it; no ✕), docked at the bottom edge — closing
+finding 4 and the bottom-drawer review's pending #10. A bar click still opens the side task drawer
+(`oj-sp-general-drawer-template`, at its size) while the bottom drawer stays docked.

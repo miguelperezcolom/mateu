@@ -63,3 +63,21 @@ styles). Redwood: n/a (not docked at the bottom).
 2. Make `maximizable` on a bottom drawer switch the height (default → full), as the guide's
    "Default / Maximized" sizing.
 3. Consider a `Drawer.fixed` (no close) flag for the fixed mode.
+
+## 7. Status — Spectra adopted (2026-10-24)
+
+A returned `Drawer` with `position(bottom)` is docked at the BOTTOM edge of the `oj-drawer-popup` and
+painted with **`oj-sp-bottom-drawer-template`** inside Spectra's `oj-sp-bottom-drawer-template-height-provider`
+(auto = half the viewport, maximized = 90vh, minimized = the handle strip). `collapsible` →
+`displayOptions.drawerMode: fixed` (the handle; `drawerState` auto ⇄ minimized written back), a
+modeless popup that a click on the page does not dismiss; otherwise `closable` (the template's ✕ writes
+back `closed`, which drops the overlay). `maximizable` → `displayOptions.maximize`.
+Spectra keeps fixed and closable apart: a collapsible drawer has no ✕ on Redwood (Esc closes it) —
+a `Drawer.fixed` flag (finding 3) would let a drawer be collapsible AND closable.
+
+**#10 — ADOPTED in phase D2 (2026-10-24)**: `GanttPage.bottomPanel` (and `DataManagement.bottomPanel`) now dock in the `innerBottom` drawer of `oj-sp-data-management-page` as `oj-sp-bottom-drawer-template` (fixed for the Gantt page's persistent drawer, closable for a DockedPanel) — see data-management.md / gantt-page.md §7. Phase B's earlier note follows: NOT adopted, kept as the inline
+`oj-collapsible`. The template needs its body as slot content; the page content is painted as flat
+atoms (one VB template, no nesting), and the only nestable body (`drawer-body.html`) lives in the
+overlay popup, which the side task drawer GanttPage opens at the same time takes, and which overlays
+instead of reflowing. Way forward: `oj-sp-data-management-page`'s `innerBottom` slot (plan #10, full)
+or a second docked popup with the body partial parametrised + a page padding for the reflow.

@@ -190,6 +190,9 @@ class ViewMapperMixin(MixinBase):
                         image=banner_image or None,
                         centered=True,
                         tone=hero_tone_wire(getattr(cls, "__mateu_welcome_banner_tone__", None)),
+                        overline=self._opt_t(
+                            getattr(cls, "__mateu_welcome_banner_overline__", "") or None
+                        ),
                     )
                 )
             ] + children
@@ -328,7 +331,7 @@ def _builtin_archetype_actions(instance) -> frozenset[str]:
     ids: set[str] = set()
     if isinstance(instance, CalendarPage):
         ids |= {"openCalendarEvent", "previousCalendarMonth", "nextCalendarMonth", "goCalendarToday",
-                "switchCalendarView", "openCalendarDay", "createCalendarEvent"}
+                "goCalendarToDate", "switchCalendarView", "openCalendarDay", "createCalendarEvent"}
     if isinstance(instance, GanttPage):
         ids.add("selectGanttTask")
     if isinstance(instance, TodoList):

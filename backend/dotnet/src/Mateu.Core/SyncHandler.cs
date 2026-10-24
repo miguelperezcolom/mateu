@@ -394,6 +394,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                     case "goCalendarToday":
                         calendarPage.GoToday();
                         return Render(type, instance, rq);
+                    case "goCalendarToDate":
+                        calendarPage.GoToDate(StateString(GetState(rq.Parameters, "_date")));
+                        return Render(type, instance, rq);
                     case "switchCalendarView":
                         calendarPage.SwitchView(StateString(GetState(rq.Parameters, "_view")));
                         return Render(type, instance, rq);

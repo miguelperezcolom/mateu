@@ -64,12 +64,21 @@ test.describe('create and edit in a drawer (/j/tasks)', () => {
     await expect.poll(() => rowsOf(page)).toContain('T-02 | Write the release notes | 2 | 2')
   })
 
-  test('Cancel discards what was typed', async ({ page }) => {
+  test('Cancel discards what was typed — after asking', async ({ page }) => {
     await page.goto('/j/tasks')
     await page.getByText('Plan the release').click()
     await drawer(page).getByRole('textbox', { name: 'Title' }).fill('Never saved')
+    // unsaved edits: Cancel asks first (the Redwood drawer's "Discard your changes?"); staying
+    // keeps the drawer and what was typed
+    const asked: string[] = []
+    page.once('dialog', d => { asked.push(d.message()); void d.dismiss() })
+    await drawer(page).getByRole('button', { name: 'Cancel' }).click()
+    await expect.poll(() => asked.length).toBe(1)
+    await expect(drawer(page).getByRole('textbox', { name: 'Title' })).toHaveValue('Never saved')
+    page.once('dialog', d => { asked.push(d.message()); void d.accept() })
     await drawer(page).getByRole('button', { name: 'Cancel' }).click()
     await expect(drawer(page)).toHaveCount(0)
+    expect(asked).toHaveLength(2)
     await page.reload()
     await expect.poll(() => rowsOf(page)).toContain('T-01 | Plan the release | 3 | 1')
   })

@@ -31,6 +31,23 @@ public class NoWelcomeBannerForm
     public string? Name { get; set; }
 }
 
+/// <summary>A banner with an overline: the short line above the title.</summary>
+[UI("welcome-banner/overlined"), Title("Overlined"),
+ WelcomeBanner(Overline = "Good morning", Title = "Front desk")]
+public class OverlinedWelcomeBannerForm
+{
+    public string? Name { get; set; }
+}
+
+/// <summary>The Welcome archetype's hero carries HeroOverline.</summary>
+[UI("welcome-banner/overlined-welcome")]
+public class OverlinedWelcome : Welcome
+{
+    protected override string? HeroOverline => "Sales";
+    protected override string? HeroTitle => "Quarterly review";
+    public Button Start { get; } = new("Start", "start");
+}
+
 /// <summary>[WelcomeBanner] prepends a centered HeroSection (id "welcome-banner") to the page
 /// content — the hero IS the banner, there is no new wire type. An empty Title falls back to the
 /// view's [Title]. (Mirror of Java's WelcomeBannerSyncTest.)</summary>
@@ -80,6 +97,32 @@ public class WelcomeBannerTests
         Assert.Null(ComponentOfType(root, "HeroSection"));
         Assert.DoesNotContain(Objects(root), o => o.TryGetProperty("id", out var id)
                                                   && id.GetString() == "welcome-banner");
+    }
+
+    [Fact]
+    public void Welcome_banner_overline_travels_above_the_title()
+    {
+        var metadata = FirstPageChild(RenderView(typeof(OverlinedWelcomeBannerForm)))
+            .GetProperty("metadata");
+        Assert.Equal("Good morning", metadata.GetProperty("overline").GetString());
+        Assert.Equal("Front desk", metadata.GetProperty("title").GetString());
+    }
+
+    [Fact]
+    public void A_banner_without_overline_sends_none()
+    {
+        var metadata = FirstPageChild(RenderView(typeof(WelcomeBannerForm))).GetProperty("metadata");
+        Assert.False(metadata.TryGetProperty("overline", out _));
+    }
+
+    [Fact]
+    public void Welcome_archetype_hero_carries_its_overline()
+    {
+        var hero = ComponentOfType(RenderView(typeof(OverlinedWelcome)), "HeroSection");
+        Assert.NotNull(hero);
+        var metadata = hero!.Value.GetProperty("metadata");
+        Assert.Equal("Sales", metadata.GetProperty("overline").GetString());
+        Assert.Equal("Quarterly review", metadata.GetProperty("title").GetString());
     }
 
     // ── helpers (same walking approach as SectionFeatureTests) ────────────────

@@ -127,7 +127,26 @@ class AppSession(
      *  Notifications system (balloons + event log); unset → dialog fallback. */
     var notifier: ((String?, String, String, Pair<String, () -> Unit>?) -> Unit)? = null
 
+    /**
+     * Host hook: a version-skew notice ([io.mateu.ijp.api.BuildSkew]) — the backend was redeployed,
+     * or a refusal came from a stale screen. The plugin shows a sticky notification with a Reload
+     * action; unset → the [notifier] (no reload). Called on the EDT.
+     */
+    var onBuildNotice: ((io.mateu.ijp.api.BuildSkew.Notice) -> Unit)? = null
+
     init {
+        apiClient.onBuildNotice = { kind ->
+            SwingUtilities.invokeLater {
+                val host = onBuildNotice
+                if (host != null) {
+                    host(kind)
+                } else {
+                    val texts = io.mateu.ijp.api.BuildSkew.texts(io.mateu.ijp.ui.MoneyValues.uiLocale())
+                    val stale = kind == io.mateu.ijp.api.BuildSkew.Notice.STALE
+                    notifier?.invoke("Mateu", if (stale) texts.stale else texts.updated, if (stale) "error" else "warning", null)
+                }
+            }
+        }
         // Another wire MAJOR: an IDE balloon (once) instead of a half-rendered screen; read lazily, so
         // the host can install the notifier after the session is created.
         apiClient.onWireMismatch = { message ->

@@ -1,5 +1,6 @@
 import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
+import { urlOfRoute } from './mount.mjs'
 
 // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
 // code) travel on the wire App as `actions`, each with its steps LOWERED to `commands`. A menu leaf
@@ -189,20 +190,113 @@ export function screenActionIdsOf(reg) {
 }
 
 /**
- * Before running a LEAVE action (isLeaveAction) on a screen with unsaved changes (`mateuDirty` in
- * VB's application variables `vars`): the same question a menu click or the browser's back button
- * asks (onMateuNavigate's dirtyGuard, `unsavedLeave`). False = the user stays: send nothing. True =
- * go on; when it asked, the flag is cleared so the navigation the action answers with does not ask
- * again. What the Vaadin renderer does in mateu-component (dirtyGuard.confirmLeave).
+ * Before running a LEAVE action (isLeaveAction) on a screen with unsaved changes: the same question
+ * a menu click or the browser's back button asks (onMateuNavigate, `unsavedLeave`). False = the user
+ * stays: send nothing. True = go on; when it asked, the scope's flag is cleared so the navigation the
+ * action answers with does not ask again. What the Vaadin renderer does in mateu-component
+ * (dirtyGuard.confirmLeave / confirmDiscard).
+ *
+ * SCOPED like the web's dirtyGuard: while an overlay is open every action is the overlay's
+ * (actionPlan.outboundActionOf sends it with the overlay's state), so its Cancel asks about the
+ * overlay's own edits (`dirty` on its registry context) — never about the page behind it, and a
+ * clean drawer over a dirty page leaves without a question. With no overlay, the page's
+ * (`mateuDirty` in VB's application variables `vars`).
  */
 export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined), parameters = undefined) {
-  if (!vars || !vars.mateuDirty) return true
+  if (!vars) return true
+  const top = topOverlayContextOf(vars.mateuRegistry)
+  const dirty = top ? !!top.dirty : !!vars.mateuDirty
+  if (!dirty) return true
   if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
   // the conflict dialog's Reload already said it drops the edits: no second question
   if (isConflictDialogAnswer(parameters)) return true
   if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
-  vars.mateuDirty = false
+  if (top) vars.mateuRegistry = withOverlayDirty(vars.mateuRegistry, false)
+  else vars.mateuDirty = false
   return true
+}
+
+/** The registry context of the TOP overlay (drawer, dialog, selector), or null when none is open. */
+export function topOverlayContextOf(reg) {
+  const stack = (reg && reg.stack) || []
+  const id = stack.length ? stack[stack.length - 1] : null
+  return id && reg.contexts ? reg.contexts[id] || null : null
+}
+
+/**
+ * The registry with the TOP overlay's unsaved-changes flag set to `dirty` — the overlay's own scope
+ * (its context's `dirty`, which the server's MarkAsClean/MarkAsDirty also target). Marking it dirty
+ * only takes when the overlay asks before it is left (tracksUnsavedChanges: the crud's create/edit
+ * drawer); clearing always does. Same reg when nothing changes.
+ */
+export function withOverlayDirty(reg, dirty = true) {
+  const stack = (reg && reg.stack) || []
+  const id = stack.length ? stack[stack.length - 1] : null
+  const ctx = id && reg.contexts ? reg.contexts[id] : null
+  if (!ctx || !!ctx.dirty === !!dirty) return reg
+  if (dirty && !tracksUnsavedChanges(ctx)) return reg
+  return { ...reg, contexts: { ...reg.contexts, [id]: { ...ctx, dirty: !!dirty } } }
+}
+
+/** Does an open overlay (any on the stack) hold unsaved changes? */
+export function overlaysHoldUnsavedChanges(reg) {
+  const contexts = (reg && reg.contexts) || {}
+  return ((reg && reg.stack) || []).some((id) => !!(contexts[id] && contexts[id].dirty))
+}
+
+/**
+ * Anything on screen — the page (`mateuDirty`) or an open overlay — holds unsaved changes: what a
+ * navigation away (menu, link, NavigateTo, the browser's back/forward), a reload or a chat preview
+ * replacing the screen asks about. The web's `dirtyGuard.dirty`.
+ */
+export function hasUnsavedChanges(vars) {
+  return !!vars && (!!vars.mateuDirty || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+}
+
+/**
+ * The navigation guard (onMateuNavigate, the chat preview): true = go on. With unsaved changes it
+ * asks ONCE (`unsavedLeave`) for the page and every open overlay together; accepting discards them
+ * all (the overlays are closed by the caller — closeOverlaysOnNavigation). False = stay: nothing
+ * changes (the caller restores the URL of a back/forward).
+ */
+export function confirmNavigationAway(vars, win = (typeof window !== 'undefined' ? window : undefined)) {
+  if (!hasUnsavedChanges(vars)) return true
+  if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
+  vars.mateuDirty = false
+  vars.mateuRegistry = withoutOverlays(vars.mateuRegistry)
+  return true
+}
+
+/**
+ * The user chose to STAY (confirmNavigationAway said no): the address goes back to the screen still
+ * on display (`route`, as urlOfRoute writes it). After a back/forward (`fromUrl`) the browser has
+ * already moved to the other entry, so the URL is PUSHED — what the web renderer does (mateu-ui's
+ * popstate); replacing it would overwrite the entry moved to and the next Back would leave the app.
+ * A menu/link navigation had not touched the URL yet: replaced (a no-op at worst).
+ */
+export function restoreUrlAfterStaying(route, fromUrl, win = (typeof window !== 'undefined' ? window : undefined)) {
+  if (!route || !win || !win.history) return undefined
+  const url = urlOfRoute(route)
+  if (fromUrl) win.history.pushState(null, '', url)
+  else win.history.replaceState(null, '', url)
+  return undefined
+}
+
+/** Is any overlay (drawer, dialog, selector) open in the registry? */
+export function hasOpenOverlays(reg) {
+  return !!(reg && reg.stack && reg.stack.length)
+}
+
+/**
+ * The registry with EVERY open overlay gone (their contexts too): another screen is loading, and a
+ * drawer opened over the previous one must not stay, orphaned, over the new one. The web gets this
+ * for free (its overlays are children of the page component the navigation replaces).
+ */
+export function withoutOverlays(reg) {
+  if (!hasOpenOverlays(reg)) return reg
+  const contexts = { ...reg.contexts }
+  for (const id of reg.stack) delete contexts[id]
+  return { ...reg, contexts, stack: [] }
 }
 
 /**
@@ -211,9 +305,12 @@ export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'und
  * (a crud mediator wrapping its form).
  */
 export function tracksUnsavedChanges(ctx) {
+  // …or inside an OVERLAY's content: a Drawer/Dialog carries its form in `metadata.content` (the
+  // crud's create/edit drawer — CrudDrawerBuilder marks that form), not in its children
   const walk = (node) => !!node && typeof node === 'object'
-    && (node.confirmOnNavigationIfDirty === true || (node.children || []).some(walk))
-  return !!(ctx && walk(ctx.tree))
+    && (node.confirmOnNavigationIfDirty === true || (node.children || []).some(walk)
+      || walk(node.metadata && node.metadata.content))
+  return !!(ctx && (walk(ctx.tree) || walk(ctx.surface)))
 }
 
 /**

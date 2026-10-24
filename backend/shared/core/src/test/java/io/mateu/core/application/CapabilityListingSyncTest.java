@@ -475,6 +475,11 @@ class CapabilityListingSyncTest {
         .forEach(
             f -> FieldKindsSyncTest.walk(f.component(), io.mateu.dtos.DrawerDto.class, drawers));
     assertThat(drawers).isNotEmpty();
+    // the editor in the drawer is dirty-tracked like a routed edit page: closing it asks first
+    assertThat(drawers.get(0).content())
+        .isInstanceOfSatisfying(
+            io.mateu.dtos.ServerSideComponentDto.class,
+            form -> assertThat(form.confirmOnNavigationIfDirty()).isTrue());
 
     run(
         EditableBooks.class,

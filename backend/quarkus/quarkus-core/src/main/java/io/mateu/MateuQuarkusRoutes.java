@@ -80,6 +80,7 @@ public class MateuQuarkusRoutes {
   boolean assetCachingEnabled;
 
   void register(@Observes Router router) {
+    versionHeaders(router);
     cors(router);
     jsonBodies(router);
     if (assetCachingEnabled) {
@@ -95,6 +96,35 @@ public class MateuQuarkusRoutes {
       dev(router);
     }
     yamlMounts(router);
+  }
+
+  /**
+   * The version headers of Mateu's endpoints: every response carries the build id ({@link
+   * io.mateu.core.infra.versioning.AppBuild#HEADER}) — refusals and errors included — and the
+   * renderer a request names is checked against this server's wire major. The id is set when the
+   * headers are written: the first request is the one that builds the wire type allow-list.
+   */
+  private void versionHeaders(Router router) {
+    router
+        .route()
+        .order(EARLY)
+        .handler(
+            rc -> {
+              var request = rc.request();
+              if (CorsPolicy.appliesTo(request.path())) {
+                io.mateu.core.infra.versioning.RendererCompatibility.check(
+                    request.getHeader(io.mateu.core.infra.versioning.RendererCompatibility.HEADER));
+                rc.addHeadersEndHandler(
+                    v -> {
+                      var build = io.mateu.core.infra.versioning.AppBuild.id();
+                      if (build != null) {
+                        rc.response()
+                            .putHeader(io.mateu.core.infra.versioning.AppBuild.HEADER, build);
+                      }
+                    });
+              }
+              rc.next();
+            });
   }
 
   private void cors(Router router) {

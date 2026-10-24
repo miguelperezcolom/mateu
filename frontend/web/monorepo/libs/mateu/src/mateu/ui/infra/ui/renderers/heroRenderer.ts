@@ -71,6 +71,7 @@ export const renderHeroSection = (container: LitElement, component: ClientSideCo
                  style="position: absolute; inset: 0 0 0 auto; width: min(55%, 40rem); background-image: ${image}; background-repeat: no-repeat; background-position: right center; background-size: auto 150%; pointer-events: none;"></div>` : nothing}
             <div class="mateu-hero-text"
                  style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: ${alignment}; justify-content: center; gap: var(--lumo-space-s, .5rem); text-align: ${textAlign}; padding: var(--lumo-space-xl, 2.5rem); ${image ? 'max-width: min(60%, 42rem);' : ''} box-sizing: border-box;">
+                ${metadata.overline?html`<p class="mateu-hero-overline" style="margin: 0; font-size: var(--lumo-font-size-s, .875rem); font-weight: 500; letter-spacing: .02em; color: var(--lumo-secondary-text-color);">${metadata.overline}</p>`:nothing}
                 ${metadata.title?html`<h1 style="margin: 0; font-family: var(--lumo-font-family); font-size: var(--lumo-font-size-xxxl, 2.5rem); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; color: inherit;">${metadata.title}</h1>`:nothing}
                 ${metadata.subtitle?html`<p style="margin: 0; font-size: var(--lumo-font-size-l, 1.125rem); color: var(--lumo-secondary-text-color); max-width: 40rem;">${metadata.subtitle}</p>`:nothing}
                 ${component.children?.length?html`

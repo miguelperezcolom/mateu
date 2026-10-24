@@ -14,7 +14,8 @@ define([
 ], (ActionChain, bridge) => {
   'use strict';
 
-  const inputEl = () => document.querySelector('#mateuChatInput input');
+  // the composer is Spectra's oj-sp-chat-input: its textarea (the old oj-input-text's input kept as fallback)
+  const inputEl = () => document.querySelector('#mateuChatInput textarea, #mateuChatInput input');
   const clearInput = ($application) => {
     $application.variables.mateuChatInput = '';
     const oj = document.querySelector('#mateuChatInput');
@@ -25,11 +26,18 @@ define([
   const focusInput = () => setTimeout(() => { const el = inputEl(); if (el) el.focus(); }, 30);
 
   class chatSend extends ActionChain {
-    async run(context) {
+    /**
+     * @param {Object} context
+     * @param {Object} params
+     * @param {string} params.text  what oj-sp-chat-input sent (its ojSpChatInputValueChanged); without
+     *                              it (the dictation's hidden Send), the input's live value
+     */
+    async run(context, params) {
       const { $application } = context;
       const vars = $application.variables;
       const el = inputEl();
-      const text = ((el && el.value) || vars.mateuChatInput || '').trim();
+      const given = params && typeof params.text === 'string' ? params.text : '';
+      const text = (given || (el && el.value) || vars.mateuChatInput || '').trim();
       const attachments = vars.mateuChatAttachments || [];
       // a message with only attachments (no text) is sent too, as in the web chat
       if ((!text && !attachments.length) || vars.mateuChatBusy) return;

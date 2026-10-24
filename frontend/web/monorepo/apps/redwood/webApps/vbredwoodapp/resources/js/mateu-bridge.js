@@ -23,6 +23,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // ── generic ──
       close: 'Close',
       retry: 'Retry',
+      reload: 'Reload',
       loading: 'Loading',
       search: 'Search…',
       noData: 'No data',
@@ -111,6 +112,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       errServerStatus: 'The server could not complete the request (error {status}). Try again.',
       errUnauthorized: 'Your session is no longer valid. Sign in again.',
       errForbidden: "You're not allowed to do this.",
+      // version skew (versionSkew.mjs): another deployment answered than the one this page started with
+      appUpdated: 'This app has been updated. Reload to use the latest version.',
+      screenChanged: 'This screen has changed since you opened it. Reload to continue.',
       errSecurityRefused: "The server's security layer refused this request before the app could handle it (for example its CSRF protection). If it keeps happening, tell your administrator.",
       errNotFound: 'This is no longer available. It may have been moved or deleted.',
       errClient: 'The request was rejected.',
@@ -254,6 +258,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     es: {
       close: 'Cerrar',
       retry: 'Reintentar',
+      reload: 'Recargar',
       loading: 'Cargando',
       search: 'Buscar…',
       noData: 'Sin datos',
@@ -335,6 +340,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       errServerStatus: 'El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.',
       errUnauthorized: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
       errForbidden: 'No tienes permiso para hacer esto.',
+      appUpdated: 'Esta aplicación se ha actualizado. Recarga para usar la última versión.',
+      screenChanged: 'Esta pantalla ha cambiado desde que la abriste. Recarga para continuar.',
       errSecurityRefused: 'La capa de seguridad del servidor rechazó la petición antes de que la aplicación pudiera atenderla (por ejemplo, su protección CSRF). Si se repite, avisa a tu administrador.',
       errNotFound: 'Esto ya no está disponible. Puede que se haya movido o borrado.',
       errClient: 'La petición ha sido rechazada.',
@@ -553,6 +560,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
     return moneyNumberText(n, own)
+  }
+
+
+  // A mirror of Oracle's CDN (static.oracle.com/cdn) that the deploying organisation hosts.
+  //
+  // Mateu never ships Oracle's files (NOTICE.md); with `mateu.oracle-cdn.url` set the SERVER rewrites
+  // the page it serves (core OracleCdn): the theme, the scripts and the runtime's configuration. What
+  // the page does not carry — the gallery images this bridge paints, the welcome banner's default
+  // illustrations of app-flow.json — follows the same mirror here, derived from that very
+  // configuration (the page's mirror script records it; else vbInitConfig.JET_CDN_PATH =
+  // <mirror>/jet/<version>), so there is one setting and nothing to keep in step. Unconfigured, every
+  // url is Oracle's, unchanged.
+
+  const ORACLE_CDN = 'https://static.oracle.com/cdn'
+
+  /** The base the page's runtime configuration points at: the mirror, or Oracle's CDN. */
+  function oracleCdnBase(config = globalThis.vbInitConfig) {
+    // the page's mirror script records the base before Visual Builder starts (scripts/index-page.mjs)
+    if (config === globalThis.vbInitConfig && typeof globalThis.__mateuOracleCdn === 'string'
+        && /^https?:\/\/[^\s'"<>]+$/.test(globalThis.__mateuOracleCdn)) {
+      return globalThis.__mateuOracleCdn
+    }
+    const path = config && typeof config.JET_CDN_PATH === 'string' ? config.JET_CDN_PATH : ''
+    const match = path.match(/^(https?:\/\/[^\s'"<>]+?)\/jet\/[^/]+\/?$/)
+    return match ? match[1] : ORACLE_CDN
+  }
+
+  /** `url` on the mirror when it is one of Oracle's CDN urls; anything else unchanged. */
+  function oracleCdnUrl(url, config = globalThis.vbInitConfig) {
+    if (typeof url !== 'string' || !url.startsWith(ORACLE_CDN + '/')) return url
+    const base = oracleCdnBase(config)
+    return base === ORACLE_CDN ? url : base + url.slice(ORACLE_CDN.length)
   }
 
 
@@ -1047,7 +1086,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const longDate = (iso) => DOWS_LONG[calWeekday(iso)] + ', ' + monthName(iso) + ' ' + dayNum(iso)
 
   /** The calendar atom, with the four views precomputed. */
-  function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10)) {
+  function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null) {
     const anchor = m.month || today
     const events = m.events || []
     const days = {}
@@ -1091,6 +1130,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const views = (m.views || []).filter((v) => ['month', 'week', 'day', 'list'].includes(v))
     return {
       isCalendar: true,
+      // the Spectra calendar (oj-sp-calendar) that installCalendars mounts over the drawn grid; the
+      // grid stays as the fallback while it loads, or when the component cannot be loaded
+      spSpec: JSON.stringify(spCalendarSpecOf(m, nav, today)),
+      // a CalendarPage's toolbar folded into the calendar: the fallback grid keeps it as plain buttons
+      navButtons: nav ? nav.buttons : [],
       calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_'),
       view,
       dayActionId: dayAction,
@@ -1113,6 +1157,151 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  // ── Spectra's calendar (oj-sp-calendar) ──────────────────────────────────────────
+  // Spectra HAS a calendar (FullCalendar inside, Redwood-styled): month/week/day/list, its own
+  // toolbar (title + date picker, ‹ › Today, + Create, the view buttonset). It is fed a DataProvider
+  // of {id, eventTitle, start, end, allDay, calendarProvider}; colours come from the PROVIDER and are
+  // one of six Redwood keys (it ignores a per-event colour), so each wire colour maps to the closest
+  // key. Clicking an event writes `selected` (selectionMode single) — that is our openCalendarEvent.
+  // Wire features it has no prop for are added on its DOM (FullCalendar stamps data-date on every
+  // cell): the per-date tone + label (CalendarDay) and the clickable dates (dayActionId).
+
+  /** Spectra's event colours (EventColors in oj-sp/calendar) by hue: [key, hue]. */
+  const SP_EVENT_HUES = [['rose', 355], ['sienna', 30], ['pine', 130], ['teal', 185], ['blue', 215], ['plum', 290]]
+
+  /** The Spectra colour key closest to a wire colour (#rgb / #rrggbb); grey or unreadable → teal. */
+  function spColorKeyOf(color) {
+    const hex = String(color || '').trim().replace(/^#/, '')
+    const full = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex
+    if (!/^[0-9a-fA-F]{6}$/.test(full)) return 'teal'
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255)
+    const max = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
+    if (max - min < 0.08) return 'teal'
+    const d = max - min
+    let h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4
+    h = (h * 60 + 360) % 360
+    let best = SP_EVENT_HUES[0]
+    const dist = (a) => Math.min(Math.abs(a - h), 360 - Math.abs(a - h))
+    for (const k of SP_EVENT_HUES) if (dist(k[1]) < dist(best[1])) best = k
+    return best[0]
+  }
+
+  const SP_VIEWS = ['month', 'week', 'day', 'list']
+
+  /** The calendar toolbar a CalendarPage puts above its Calendar (HorizontalLayout of Buttons:
+   *  ‹ Today › [views…] [+ Create]) → its actions, so Spectra's own toolbar runs them; null when
+   *  the row is anything else (then it stays a row of buttons and the calendar navigates alone). */
+  function calendarPageToolbarOf(node, advertised = []) {
+    const md = node && node.metadata
+    if (!md || md.type !== 'HorizontalLayout') return null
+    const kids = (node.children || []).filter(Boolean)
+    if (!kids.length || !kids.every((k) => k.metadata && k.metadata.type === 'Button')) return null
+    // a jump to any date (the title's date picker) needs goCalendarToDate on the server (3.0-beta.13+):
+    // used only when the page advertises it, so an older backend never receives an action it lacks
+    const goTo = advertised.includes('goCalendarToDate') ? 'goCalendarToDate' : ''
+    const nav = { prev: '', today: '', next: '', goTo, viewAction: '', views: [], create: '', createLabel: '', buttons: [] }
+    for (const k of kids) {
+      const b = k.metadata
+      const id = b.actionId || ''
+      nav.buttons.push({ label: String(b.label || ''), actionId: id, params: JSON.stringify(b.parameters || {}) })
+      if (id === 'previousCalendarMonth') nav.prev = id
+      else if (id === 'nextCalendarMonth') nav.next = id
+      else if (id === 'goCalendarToday') nav.today = id
+      else if (id === 'switchCalendarView' && b.parameters && SP_VIEWS.includes(b.parameters._view)) {
+        nav.viewAction = id
+        nav.views.push(b.parameters._view)
+      } else if (id === 'createCalendarEvent') {
+        nav.create = id
+        nav.createLabel = String(b.label || '').replace(/^\+\s*/, '')
+      } else return null
+    }
+    return nav.prev && nav.next ? nav : null
+  }
+
+  /** What oj-sp-calendar is fed for a wire Calendar (+ the page toolbar's actions, when a
+   *  CalendarPage drives it). Dates are LOCAL ISO strings (no Z), as FullCalendar places them in the
+   *  browser's zone: a UTC midnight would move an all-day event to the day before west of Greenwich. */
+  function spCalendarSpecOf(m, nav = null, today = new Date().toISOString().slice(0, 10)) {
+    const anchor = m.month || today
+    const colours = []
+    const events = (m.events || []).filter((e) => e && e.date).map((e, i) => {
+      const key = spColorKeyOf(e.color)
+      if (!colours.includes(key)) colours.push(key)
+      const timed = !!e.startTime
+      const end = e.endDate || e.date
+      return {
+        id: e.id || 'event-' + i,
+        eventTitle: e.title || '',
+        start: e.date + 'T' + (timed ? e.startTime : '00:00:00'),
+        end: timed ? end + 'T' + (e.endTime || e.startTime) : end + 'T23:59:59',
+        allDay: !timed,
+        calendarProvider: key,
+      }
+    })
+    const actions = {}
+    for (const [i, e] of (m.events || []).filter((x) => x && x.date).entries()) {
+      if (e.actionId) actions[e.id || 'event-' + i] = { actionId: e.actionId, id: e.id || '', title: e.title || '', date: e.date }
+    }
+    const days = {}
+    for (const d of m.days || []) if (d && d.date) days[d.date] = { tone: TONES[d.tone] ? d.tone : '', label: d.label || '' }
+    const view = SP_VIEWS.includes(m.view) ? m.view : 'month'
+    // the views the user may switch between: the page toolbar's (server-side) or the Calendar's own
+    const offered = nav ? nav.views : (m.views || []).filter((v) => SP_VIEWS.includes(v))
+    const views = offered.length ? offered : [view]
+    const onOff = (v) => (views.includes(v) || v === view ? 'on' : 'off')
+    return {
+      events,
+      // displayName: Spectra appends it to each event's accessible name («Meeting, <calendar>») — a
+      // colour key means nothing to a screen reader, and without one it read «Meeting, undefined»
+      providers: colours.map((c) => ({ name: c, color: c, displayName: '' })),
+      focusDate: anchor + 'T12:00:00',
+      anchor,
+      view,
+      displayOptions: {
+        monthView: onOff('month'), weekView: onOff('week'), dayView: onOff('day'), listView: onOff('list'),
+        createEvent: nav && nav.create ? 'on' : 'off',
+        createEventLabel: nav && nav.createLabel ? nav.createLabel : '',
+        calendars: 'off', eventDetailMode: 'off', firstDayOfWeek: 'monday',
+      },
+      actions,
+      days,
+      dayActionId: m.dayActionId || '',
+      nav: nav || null,
+    }
+  }
+
+  /** A local date (YYYY-MM-DD) of an ISO value written by the calendar. */
+  const localDateOf = (iso) => {
+    const d = new Date(iso)
+    if (isNaN(d.valueOf())) return ''
+    const p = (n) => String(n).padStart(2, '0')
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+  }
+
+  /** Which page action a navigation inside oj-sp-calendar maps to (the server owns the period):
+   *  the period with today → Today, one step after/before → ›/‹, the same period → nothing; any
+   *  other jump (the title's date picker) → goCalendarToDate with that `_date` when the page
+   *  advertises it, else null (the calendar is put back). */
+  function spNavActionOf(nav, view, anchor, toIso, today = localDateOf(new Date().toISOString())) {
+    if (!nav) return null
+    const to = toIso.length === 10 ? toIso : localDateOf(toIso)
+    if (!to) return null
+    const v = view === 'list' ? 'month' : view
+    const inPeriod = (d, a) => { const p = calPeriod(v, a); return d >= p.from && d <= p.to }
+    if (inPeriod(to, anchor)) return { kind: 'same' }
+    const step = (n) => (v === 'day' ? calAddDays(anchor, n) : v === 'week' ? calAddDays(anchor, 7 * n) : shiftMonth(anchor, n))
+    if (inPeriod(to, step(1))) return { kind: 'action', actionId: nav.next }
+    if (inPeriod(to, step(-1))) return { kind: 'action', actionId: nav.prev }
+    if (nav.today && inPeriod(today, to)) return { kind: 'action', actionId: nav.today }
+    if (nav.goTo) return { kind: 'action', actionId: nav.goTo, params: { _date: to } }
+    return null
+  }
+  const shiftMonth = (iso, n) => {
+    const [y, mo] = iso.split('-').map(Number)
+    return fromUtc(Date.UTC(y, mo - 1 + n, 1))
+  }
+
   // ── DOM behaviour (once per document) ────────────────────────────────────────────
   let calendarSink = null
   function setCalendarActionSink(fn) { calendarSink = typeof fn === 'function' ? fn : null }
@@ -1120,6 +1309,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function installCalendars(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuCalendars) return
     doc.__mateuCalendars = true
+    mountSpCalendars(doc)
     // switching view: the oj-buttonset-one does NOT bubble valueChanged; capture does see it
     doc.addEventListener('valueChanged', (e) => {
       const set = e.target
@@ -1131,6 +1321,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const chip = target.closest('[data-cal-event]')
       const cal = target.closest('.mateu-cal')
       if (!cal || !calendarSink) return false
+      const navButton = target.closest('[data-cal-nav-action]')
+      if (navButton) {
+        let params = {}
+        try { params = JSON.parse(navButton.getAttribute('data-cal-nav-params') || '{}') } catch (e) { params = {} }
+        calendarSink(navButton.getAttribute('data-cal-nav-action'), params, {})
+        return true
+      }
       if (chip) {
         if (chip.getAttribute('data-cal-clickable') !== 'true') return false
         calendarSink(chip.getAttribute('data-cal-action'), {
@@ -1156,6 +1353,142 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     doc.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.closest && e.target.closest('.mateu-cal') && run(e.target)) e.preventDefault()
     }, true)
+  }
+
+  // ── mounting oj-sp-calendar (DOM; the pure parts above are tested in Node) ────────
+  const SP_CAL_DATE_CELLS = 'td.fc-daygrid-day[data-date], td.fc-timegrid-col[data-date], th.fc-col-header-cell[data-date]'
+
+  /** Paints the wire's per-date tone/label on FullCalendar's cells (idempotent: the observer that
+   *  calls it also sees its own changes). */
+  function decorateSpCalendar(el, spec) {
+    for (const cell of el.querySelectorAll(SP_CAL_DATE_CELLS)) {
+      const info = spec.days[cell.getAttribute('data-date')] || {}
+      for (const t of Object.keys(TONES)) cell.classList.toggle('mateu-cal-sp-' + t, info.tone === t)
+      cell.classList.toggle('mateu-cal-sp-clickable', !!spec.dayActionId && cell.tagName === 'TD')
+      // the month cell's top row (FullCalendar lays it out row-reverse: last child = leftmost, the
+      // number stays right) or the week/day column header
+      const top = cell.querySelector('.fc-daygrid-day-top') || (cell.tagName === 'TH' ? cell.querySelector('.fc-scrollgrid-sync-inner') : null)
+      if (!top) continue
+      let label = top.querySelector('.mateu-cal-sp-label')
+      if (!info.label) { if (label) label.remove(); continue }
+      if (!label) {
+        label = el.ownerDocument.createElement('span')
+        label.className = 'mateu-cal-sp-label'
+        top.appendChild(label)
+      }
+      if (label.textContent !== info.label) label.textContent = info.label
+    }
+  }
+
+  /** The host's classes: `-fixed` when nothing can move the period (no page behind the Calendar),
+   *  `-nopick` when the title's date picker cannot jump (the page does not advertise
+   *  goCalendarToDate) — only then is the picker switched off. */
+  function spCalendarHostClassOf(spec) {
+    const nav = spec && spec.nav
+    return 'mateu-cal-sp' + (nav ? '' : ' mateu-cal-sp-fixed') + (nav && nav.goTo ? '' : ' mateu-cal-sp-nopick')
+  }
+
+  function buildSpCalendar(doc, cal, spec, ADP) {
+    const old = cal.querySelector(':scope > .mateu-cal-sp')
+    if (old) old.remove()
+    // a host OUTSIDE VB's knockout bindings: a JET element inside a bound page waits for a
+    // binding pass that never comes for a node added later (it stays empty, 0×0)
+    const host = doc.createElement('div')
+    host.className = spCalendarHostClassOf(spec)
+    host.setAttribute('data-oj-binding-provider', 'none')
+    const el = doc.createElement('oj-sp-calendar')
+    el.calendarEvents = new ADP(spec.events, { keyAttributes: 'id' })
+    el.calendarProviders = spec.providers
+    el.visibleCalendars = spec.providers.map((p) => p.name)
+    el.focusDate = spec.focusDate
+    el.selectedViewValue = spec.view
+    el.selectionMode = 'single'
+    el.readonly = true
+    el.displayOptions = spec.displayOptions
+    // an event: Spectra selects it → its action, with the same parameters the drawn chips send
+    el.addEventListener('selectedChanged', (e) => {
+      const ids = (e.detail && e.detail.value) || []
+      const hit = ids.length ? spec.actions[ids[ids.length - 1]] : null
+      if (!hit || !calendarSink) return
+      calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, {})
+      setTimeout(() => { el.selected = [] }, 0)
+    })
+    // the toolbar: with a CalendarPage behind, its ‹ › Today and views are the page's (server-side) actions
+    el.addEventListener('focusDateChanged', (e) => {
+      if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav) return
+      const step = spNavActionOf(spec.nav, el.selectedViewValue || spec.view, spec.anchor, String(e.detail.value || ''))
+      if (step && step.kind === 'same') return
+      if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, {}); return }
+      setTimeout(() => { el.focusDate = spec.focusDate }, 0)
+    })
+    el.addEventListener('selectedViewValueChanged', (e) => {
+      if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav || !spec.nav.viewAction) return
+      const v = e.detail.value
+      if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, {})
+    })
+    el.addEventListener('spCalendarEventCreate', () => {
+      if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, {})
+    })
+    // a date's cell (dayActionId): FullCalendar stamps data-date on it
+    const dayOf = (target) => {
+      if (!spec.dayActionId || target.closest('.fc-event, .fc-more-link, .fc-daygrid-more-link, button')) return null
+      const cell = target.closest('td.fc-daygrid-day[data-date], td.fc-timegrid-col[data-date]')
+      return cell && el.contains(cell) ? cell.getAttribute('data-date') : null
+    }
+    host.addEventListener('click', (e) => {
+      const date = dayOf(e.target)
+      if (!date || !calendarSink) return
+      e.preventDefault(); e.stopPropagation()
+      calendarSink(spec.dayActionId, { _date: date }, {})
+    }, true)
+    host.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return
+      const date = dayOf(e.target)
+      if (!date || !calendarSink) return
+      e.preventDefault()
+      calendarSink(spec.dayActionId, { _date: date }, {})
+    }, true)
+    let queued = false
+    new MutationObserver(() => {
+      if (queued) return
+      queued = true
+      setTimeout(() => { queued = false; decorateSpCalendar(el, spec) }, 0)
+    }).observe(el, { childList: true, subtree: true })
+    host.appendChild(el)
+    cal.appendChild(host)
+    // the drawn grid goes once Spectra has painted (oj-complete); until then (or if it never loads) it stays
+    const ready = (n = 0) => {
+      if (!host.isConnected) return
+      if (el.classList.contains('oj-complete') && el.querySelector('.fc')) { cal.classList.add('mateu-cal-sp-on'); decorateSpCalendar(el, spec); return }
+      if (n < 100) setTimeout(() => ready(n + 1), 100)
+    }
+    ready()
+  }
+
+  function mountSpCalendars(doc) {
+    if (typeof MutationObserver === 'undefined' || typeof window === 'undefined' || typeof window.require !== 'function') return
+    const fill = (cal) => {
+      const raw = cal.getAttribute('data-cal-sp') || ''
+      if (!raw || cal.__mateuSpCal === raw) return
+      cal.__mateuSpCal = raw
+      let spec
+      try { spec = JSON.parse(raw) } catch (e) { return }
+      window.require(['ojs/ojarraydataprovider', 'oj-sp/calendar/loader'], (ADP) => {
+        if (cal.__mateuSpCal === raw && cal.isConnected) buildSpCalendar(doc, cal, spec, ADP)
+      }, () => { /* no Spectra calendar: the drawn grid stays */ })
+    }
+    const scan = (root) => {
+      if (!root || root.nodeType !== 1) return
+      if (root.matches('.mateu-cal[data-cal-sp]')) fill(root)
+      for (const el of root.querySelectorAll('.mateu-cal[data-cal-sp]')) fill(el)
+    }
+    scan(doc.body || doc.documentElement)
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === 'attributes') fill(r.target)
+        else for (const n of r.addedNodes) scan(n)
+      }
+    }).observe(doc.body || doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-cal-sp'] })
   }
 
 
@@ -1705,6 +2038,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
 
   const HOST_ID = '__root__'
@@ -1884,7 +2218,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
       if (widget.isMultiSelect || widget.isCheckboxSet)
         value = Array.isArray(raw) ? raw.map((v) => plainValueOf(v)) : (raw == null || raw === '' ? [] : String(raw).split(','))
-      else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
+      else if (widget.isMoney) {
+        // an Amount travels as {currency, value, locale}: the input shows its number
+        const n = raw != null && typeof raw === 'object' && !Array.isArray(raw) ? raw.value : raw
+        value = n == null || n === '' || Number.isNaN(Number(n)) ? null : Number(n)
+      }
       out.push({ ...widget, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
     }
     return out
@@ -2168,8 +2506,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         id, title: ctx.title || '', subtitle: ctx.subtitle || '', position: ctx.position || 'end',
         width: ctx.width, state: ctx.state || {}, fields: [], sections: [], actions: [], content: [],
         hasContent: false, isDialog, isListing: true, texts: [],
+        sp: spectraDrawerOf(ctx, { fields: [], actions: [] }),
       }
     }
+    const fields = fieldListOf(surface, ctx.state, ctx.data)
+    const actions = actionsOf(surface).filter((a) => !contentActionIds.has(a.actionId))
+    // the Spectra drawer template the panel is painted with (spectraDrawerOf): its error banner
+    // replaces the danger Notice the crud puts on top of the form, which then leaves the content
+    const sp = isDialog ? null : spectraDrawerOf(ctx, { fields, actions })
+    const shownContent = sp && sp.errorBanner
+      ? content.map((block) => ({ ...block, items: block.items.filter((a) => !(a.isNotice && a.text === sp.errorMessage)) }))
+        .filter((block) => block.items.length)
+      : content
     return {
       id,
       title: ctx.title || '',
@@ -2178,13 +2526,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       position: ctx.position || 'end',
       width: ctx.width,
       state: ctx.state || {},
-      fields: fieldListOf(surface, ctx.state, ctx.data),
+      fields,
       // the fields keep the layout they were given: a section's columns, a FormLayout's
       // maxColumns, a HorizontalLayout row (the templates bind max-columns to each group)
       sections: formSectionsOf(surface, ctx.state, ctx.data, { byLayout: true }),
-      actions: actionsOf(surface).filter((a) => !contentActionIds.has(a.actionId)),
-      content: content,
-      hasContent: !!content.length,
+      actions,
+      content: shownContent,
+      hasContent: !!shownContent.length,
+      ...(sp ? { sp } : {}),
       // a Dialog overlay is painted as a MODAL (oj-dialog: one-off decision), not as a
       // drawer (task with a form); texts = its message lines. A dialog showing more than lines (an
       // EntityHeader, a Badge, a Meter, a StatusList…) is painted from its content, in order — the modal
@@ -2192,6 +2541,176 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isDialog,
       hasRichContent: isDialog && content.some((block) => block.items.some((a) => !a.isText)),
       texts: isDialog && content.some((block) => block.items.some((a) => !a.isText)) ? [] : withoutFirst(collectTexts(surface), overlayTitle),
+    }
+  }
+
+  // ── Spectra drawer templates ────────────────────────────────────────────────────────────────
+  // A Drawer is painted INSIDE the oj-drawer-popup with one of Spectra's drawer templates (the
+  // Redwood rule: their template and contract before our own drawing):
+  //   bottom      → oj-sp-bottom-drawer-template   (DrawerPosition.bottom; collapsible = drawerMode fixed)
+  //   createEdit  → oj-sp-create-edit-drawer-template (a drawer you TYPE into and save: editable fields
+  //                 and an action — the crud's editInDrawer, an operation's form)
+  //   general     → oj-sp-general-drawer-template  (read-only detail: everything else)
+  // The id of the crud's create/edit drawer and of its refused-save banner (CrudDrawerBuilder).
+  const CRUD_DRAWER_ID = 'crud-edit-drawer'
+  const CRUD_DRAWER_ERROR_ID = 'crud-drawer-error'
+  /** The crud drawer's "Save and next" (PersistActionHandler.SAVE_AND_NEXT). */
+  const SAVE_AND_NEXT = 'save-and-next'
+
+  /** Mateu's DrawerSize (s|m|l|xl) — or, without one, the drawer's CSS width — as Spectra's drawerSize
+   *  (sm 29rem · md 40.5rem · lg 60.5rem · xl 90vw): the template sizes itself by class, so a width is
+   *  read as the NEAREST standard size (the crud's 36rem → md; no width → sm). */
+  function spectraDrawerSize(size, width) {
+    const bySize = { s: 'sm', m: 'md', l: 'lg', xl: 'xl', sm: 'sm', md: 'md', lg: 'lg' }
+    if (size && bySize[String(size).toLowerCase()]) return bySize[String(size).toLowerCase()]
+    const w = String(width || '').trim()
+    const m = /^([\d.]+)\s*(rem|em|px|vw|%)?$/.exec(w)
+    if (!m) return 'sm'
+    const n = parseFloat(m[1])
+    const unit = m[2] || 'px'
+    if (unit === 'vw' || unit === '%') return n >= 75 ? 'xl' : n >= 55 ? 'lg' : n >= 38 ? 'md' : 'sm'
+    const px = unit === 'px' ? n : n * 16
+    const sizes = [['sm', 464], ['md', 648], ['lg', 968], ['xl', 1296]]
+    return sizes.reduce((best, s) => (Math.abs(s[1] - px) < Math.abs(best[1] - px) ? s : best), sizes[0])[0]
+  }
+
+  /** PeerNav → the templates' previousItem/nextItem ({id, label, display}); a side without a route is
+   *  shown DISABLED while the other side exists (Vaadin's rule), none at all → null. The id is the
+   *  route, which spPrevious/spNext hand back. */
+  function spectraPeersOf(peerNav) {
+    const p = peerNav || {}
+    if (!p.prevRoute && !p.nextRoute) return { previousItem: null, nextItem: null }
+    const side = (route, label) => ({ id: route || '-', label: label || '', display: route ? 'on' : 'disabled' })
+    return { previousItem: side(p.prevRoute, p.prevLabel), nextItem: side(p.nextRoute, p.nextLabel) }
+  }
+
+  const isCancelAction = (a) => /^cancel(-|$)/.test(a.actionId || '') && a.actionId !== 'cancel-view'
+  const isSaveAction = (a) => ['save', 'create'].includes(a.actionId)
+
+  /**
+   * Projection of a drawer onto its Spectra template (the `sp` of the overlay projection).
+   * `parts` = the overlay's own projected fields and footer actions. What the template cannot carry
+   * (a third secondary action…) stays in `footerActions`, drawn by our own bar inside its default slot.
+   */
+  function spectraDrawerOf(ctx, parts) {
+    const md = (ctx.tree && ctx.tree.metadata) || {}
+    const surface = ctx.surface || ctx.tree
+    const actions = parts.actions || []
+    const editable = (parts.fields || []).some((f) => !f.readonly)
+    const position = ctx.position || md.position || 'end'
+    const peers = spectraPeersOf(md.peerNav)
+    const crudDrawer = !!(ctx.tree && (ctx.tree.id === CRUD_DRAWER_ID || md.id === CRUD_DRAWER_ID))
+    // with arrows of its own (peerNav) the create-edit template turns its footer into «<primary> and
+    // next» and drops the secondary: only right when the drawer offers Save and next; a form drawer
+    // with peer arrows and buttons of its own is a general drawer (its arrows in the header, its
+    // buttons in the footer, all of them)
+    const ownPeers = !!(peers.previousItem || peers.nextItem)
+    const offersSaveAndNext = actions.some((a) => a.actionId === SAVE_AND_NEXT)
+    const template = position === 'bottom' ? 'bottom'
+      : crudDrawer || (editable && actions.length && (!ownPeers || offersSaveAndNext)) ? 'createEdit' : 'general'
+    const base = {
+      template,
+      isGeneral: template === 'general',
+      isCreateEdit: template === 'createEdit',
+      isBottom: template === 'bottom',
+      // JET's popup docks at the edge the drawer names (a bottom drawer used to open on the right)
+      edge: position === 'start' ? 'start' : position === 'bottom' ? 'bottom' : 'end',
+      // modeless/layout: no backdrop, the page stays usable (a collapsible bottom drawer is docked)
+      modality: md.modeless || md.layout || (template === 'bottom' && md.collapsible) ? 'modeless' : 'modal',
+      // a docked bottom drawer is not dismissed by a click on the page it sits under
+      autoDismiss: template === 'bottom' && md.collapsible ? 'none' : 'focus-loss',
+      size: spectraDrawerSize(md.size || ctx.size, md.width || ctx.width),
+      displayOptions: { maximize: md.maximizable ? 'on' : 'off' },
+      previousItem: peers.previousItem,
+      nextItem: peers.nextItem,
+      peerRoutes: !!(peers.previousItem || peers.nextItem),
+      hasNavigation: !!(peers.previousItem || peers.nextItem),
+      closeAction: { display: 'on' },
+      primaryAction: null,
+      primaryActionId: '',
+      secondaryActions: [],
+      secondaryAction: null,
+      secondaryActionId: '',
+      cancelActionId: '',
+      saveAndNextActionId: '',
+      errorBanner: false,
+      errorMessage: '',
+      footerActions: actions,
+    }
+    if (template === 'bottom') {
+      return {
+        ...base,
+        bottomOptions: { drawerMode: md.collapsible ? 'fixed' : 'closable', title: 'on', maximize: md.maximizable ? 'on' : 'off' },
+      }
+    }
+    if (template === 'general') {
+      // footer: the primary (the call-to-action, else the last) and up to two secondaries — more than
+      // the template holds keeps our own bar
+      if (!actions.length || actions.length > 3) return base
+      const primary = actions.find((a) => a.chroming === 'callToAction') || actions[actions.length - 1]
+      const rest = actions.filter((a) => a !== primary)
+      return {
+        ...base,
+        primaryAction: { label: primary.label || primary.actionId, display: primary.disabled ? 'disabled' : 'on' },
+        primaryActionId: primary.actionId,
+        // the footer lays secondaries out REVERSED: handed reversed, they read in the wire's order
+        secondaryActions: rest.map((a) => ({ id: a.actionId, label: a.label || a.actionId, display: a.disabled ? 'disabled' : 'on' })).reverse(),
+        footerActions: [],
+      }
+    }
+    // createEdit: Cancel is the template's own button (spCancel → the form's cancel action), the save is
+    // its primary; "Save and next" turns the primary into Spectra's «Save and next / Save and close»
+    const cancel = actions.find(isCancelAction)
+    const saveAndNext = actions.find((a) => a.actionId === SAVE_AND_NEXT && !a.disabled)
+    const others = actions.filter((a) => a !== cancel && a.actionId !== SAVE_AND_NEXT)
+    const primary = others.find(isSaveAction) || others.find((a) => a.chroming === 'callToAction') || others[others.length - 1]
+    const rest = others.filter((a) => a !== primary)
+    const errorNotice = findFirst(surface, (n) => n.id === CRUD_DRAWER_ERROR_ID)
+      || (surface !== ctx.tree ? findFirst(ctx.tree, (n) => n.id === CRUD_DRAWER_ERROR_ID) : null)
+    // without arrows of its own the footer still says «Save and next» when the crud offers it: a
+    // nextItem WITHOUT id opens the template's navigation footer and draws no header arrow
+    const nextItem = base.nextItem || (saveAndNext ? { label: saveAndNext.label || '', display: 'on' } : null)
+    return {
+      ...base,
+      nextItem,
+      hasNavigation: !!(base.previousItem || nextItem),
+      primaryAction: primary ? { label: primary.label || primary.actionId, display: primary.disabled ? 'disabled' : 'on' } : null,
+      primaryActionId: primary ? primary.actionId : '',
+      secondaryAction: rest.length === 1 ? { label: rest[0].label || rest[0].actionId, display: rest[0].disabled ? 'disabled' : 'on' } : null,
+      secondaryActionId: rest.length === 1 ? rest[0].actionId : '',
+      cancelActionId: cancel ? cancel.actionId : '',
+      saveAndNextActionId: saveAndNext ? saveAndNext.actionId : '',
+      errorBanner: !!errorNotice,
+      errorMessage: errorNotice ? String((errorNotice.metadata && errorNotice.metadata.text) || '') : '',
+      footerActions: rest.length > 1 ? rest : [],
+    }
+  }
+
+  /** The listing rows around the record a crud drawer edits (by its `id`), as the create-edit template's
+   *  previous/next items — so its arrows and «Save and next» walk the rows on screen. A drawer with
+   *  arrows of its own (peerNav), a new record or a record not on this page keeps what it had. */
+  function withListingPeers(drawer, rows) {
+    const sp = drawer && drawer.sp
+    if (!sp || !sp.isCreateEdit || sp.peerRoutes || !sp.saveAndNextActionId) return drawer
+    const id = drawer.state && drawer.state.id
+    const list = (rows || []).filter((r) => r && !r._group && r.id != null)
+    const at = id == null ? -1 : list.findIndex((r) => String(r.id) === String(id))
+    if (at < 0) return drawer
+    const labelOf = (r) => {
+      const v = [r.name, r.title, r.label].find((x) => typeof x === 'string' && x)
+      return v || String(r.id)
+    }
+    const prev = list[at - 1]
+    const next = list[at + 1]
+    return {
+      ...drawer,
+      sp: {
+        ...sp,
+        previousItem: prev ? { id: String(prev.id), label: labelOf(prev), display: 'on' } : { id: '-', label: '', display: 'disabled' },
+        nextItem: next ? { id: String(next.id), label: labelOf(next), display: 'on' } : { id: '-', label: sp.nextItem ? sp.nextItem.label : '', display: 'disabled' },
+        hasNavigation: true,
+        listingPeers: true,
+      },
     }
   }
 
@@ -2601,7 +3120,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
 
   // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
@@ -2899,8 +3417,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   /** A MetricCard (KPI) ready for the template: big value, colored trend, and if it carries
    *  an actionId, a button that launches the action (e.g. the filtered search that explains it). */
-  /** An icon NAME (`vaadin:users`, `lumo:edit`, an `oj-ux-` class) — not an emoji or a glyph. */
-  const isIconName = (icon) => !!icon && (/^[a-z][\w-]*:[\w-]+$/i.test(String(icon)) || String(icon).indexOf('oj-ux-') === 0)
 
   function metricOf(m, interp = (x) => x) {
     const trend = m.trend || ''
@@ -2913,19 +3429,76 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const description = interp(m.description || '')
     return {
       title,
-      // MetricCard.icon beside the title — it was not drawn: a NAME (vaadin:/lumo:…, an oj-ux- class)
-      // is Redwood's icon; anything else (an emoji, a glyph) is drawn as the text it is. '' without one
-      iconClass: isIconName(m.icon) ? ojIconOrGenericOf(m.icon) : '',
-      iconText: m.icon && !isIconName(m.icon) ? String(m.icon) : '',
+      // MetricCard.icon is NOT drawn on Redwood (owner's decision, 2026-10-24: "pure KPI, like in
+      // Spectra"): oj-sp-scoreboard's metric card has no icon, and the band is painted exactly as
+      // Spectra draws it — no icon slipped in front of the title.
       value,
       unit,
       timeframe,
       trendText: trend ? (TREND_TEXT[trend] || '') + (trendLabel ? ' ' + trendLabel : '') : trendLabel,
       trendClass: 'oj-typography-body-sm ' + (trend === 'up' ? 'mateu-trend-up' : trend === 'down' ? 'mateu-trend-down' : 'oj-text-color-secondary'),
       description,
+      // the raw trend, for the scoreboard item (scoreboardTrendOf)
+      trend,
+      trendLabel,
       ariaLabel: metricAriaLabel({ title, value, unit, timeframe, trendLabel, description }),
       actionId: m.actionId || '',
       parameters: {},
+    }
+  }
+
+  // ── Scoreboard → Spectra's oj-sp-scoreboard ─────────────────────────────────────────────────────
+  // The KPI band is Redwood's scoreboard: each MetricCard becomes one of its items
+  // ({id, title, metric, meta, periodChangeIndicator, trendColor, badge}). What the item has no
+  // property for is carried another way, never dropped: timeframe + description → meta (one line,
+  // the full text in its tooltip and in the card's accessible name); a trend whose label reads as a
+  // percentage ("+8% vs last month") → the period-change indicator (arrow, %, comparison period);
+  // any other trend ("+112", "stable") → a subtle badge with the arrow, coloured by the trend; the
+  // drill-in (actionId) is added by installScoreboards (poc/displayDom.mjs), keyed by the item id, on
+  // the card's own item action. MetricCard.icon is not shown: the card is Spectra's, as Spectra draws it.
+  const TREND_COLOR = { up: 'success', down: 'danger', neutral: 'neutral' }
+  const PERCENT_TREND = /^\s*([+\-−]?)\s*(\d+(?:[.,]\d+)?)\s*%\s*(.*)$/
+
+  /** A metric's trend as the scoreboard draws it: {periodChangeIndicator} for a percentage,
+   *  {badge} for anything else, {} without a trend. */
+  function scoreboardTrendOf(trend, trendLabel) {
+    const label = String(trendLabel || '').trim()
+    if (!trend && !label) return {}
+    const color = TREND_COLOR[trend] || 'neutral'
+    const pct = label.match(PERCENT_TREND)
+    if (pct) {
+      const magnitude = Number(pct[2].replace(',', '.'))
+      // an explicit sign wins; without one, the trend says which way it went
+      const negative = pct[1] === '-' || pct[1] === '−' || (!pct[1] && trend === 'down')
+      return { periodChangeIndicator: { value: negative ? -magnitude : magnitude, comparisonPeriod: pct[3].trim() }, trendColor: color }
+    }
+    const glyph = trend ? (TREND_TEXT[trend] || '') : ''
+    return { badge: { text: [glyph, label].filter(Boolean).join(' '), status: color }, trendColor: color }
+  }
+
+  /** One MetricCard (already projected by metricOf) → an oj-sp-scoreboard item. */
+  function scoreboardItemOf(metric, index) {
+    return {
+      id: 'k' + index,
+      _rowNumber: index,
+      title: metric.title,
+      metric: [metric.value, metric.unit].filter((s) => s != null && String(s).trim() !== '').join(' '),
+      meta: [metric.timeframe, metric.description].filter((s) => s && String(s).trim()).join(' · '),
+      ...scoreboardTrendOf(metric.trend, metric.trendLabel),
+    }
+  }
+
+  let scoreboardSeq = 0
+  /** The Spectra half of a scoreboard atom (recomputed when a MetricCard joins the band). */
+  function scoreboardAtomOf(metrics) {
+    const sbItems = (metrics || []).map(scoreboardItemOf)
+    return {
+      // the element's id: oj-sp-scoreboard names each card `<id>_kpi_<key>` ('undefined_kpi_k0' without one)
+      sbId: 'mateuKpis' + (++scoreboardSeq),
+      sbItems,
+      sbProvider: dataProviderFactory ? dataProviderFactory(sbItems) : null,
+      // any card that drills in: the band then reads as clickable
+      sbActionable: (metrics || []).some((m) => !!m.actionId),
     }
   }
 
@@ -3070,6 +3643,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
   /** RENDER helper: every node of a type (without crossing island boundaries). */
@@ -3146,8 +3720,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       key,
       tone: t,
       theme,
-      illuBg: pair ? WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png' : '',
-      illu: pair ? WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png' : '',
+      illuBg: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png') : '',
+      illu: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png') : '',
     }
   }
 
@@ -3160,8 +3734,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       key,
       theme,
-      illuBg: WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png',
-      illu: WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png',
+      illuBg: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png'),
+      illu: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png'),
     }
   }
 
@@ -3226,12 +3800,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // editor mode: the banner is the hero's node, its CTAs (painted inside the banner, in order)
       // their Buttons' — the page binds both onto the banner (data-node-id / data-node-buttons)
       nodeId: editorNodeIds && hero.id ? String(hero.id) : '',
-      ctaNodeIds: editorNodeIds ? ctas.slice(0, 2).map((c) => c.nodeId || '').join(' ') : '',
+      ctaNodeIds: editorNodeIds ? ctas.map((c) => c.nodeId || '').join(' ') : '',
       // …and the band of tiles is the DashboardLayout's
       tilesNodeId: editorNodeIds ? String((findByType(ctx.tree, 'DashboardLayout') || {}).id || '') : '',
       trend,
       // HeroSectionDto.tone: null = the rotating look (welcomeLookOf)
       tone: md.tone || null,
+      // HeroSectionDto.overline → the template's overline-text (the line above the page title)
+      overline: md.overline || '',
       title: md.title || '',
       subtitle: md.subtitle || '',
       ctas,
@@ -3243,8 +3819,126 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       secondaryCta: ctas.length > 1 ? { label: ctas[1].label } : null,
       secondaryCtaId: ctas.length > 1 ? ctas[1].actionId : '',
       secondaryCtaRoute: ctas.length > 1 ? ctas[1].route || '' : '',
+      // EVERY CTA after the first: oj-sp-welcome-page's `secondaryActions` (two as outlined buttons, the
+      // rest in its overflow menu). Only two were painted, so a third Button field was lost. The
+      // template's spSecondaryAction says WHICH by its id (`cta<n>`), which `secondaryById` resolves.
+      secondaryCtas: ctas.slice(1).map((c, i) => ({ id: 'cta' + (i + 1), label: c.label })),
+      secondaryById: Object.fromEntries(ctas.slice(1).map((c, i) => ['cta' + (i + 1), { actionId: c.actionId || '', route: c.route || '' }])),
+      // HeroSection.image (Welcome.heroImage()): the banner's own picture, full bleed like the Vaadin
+      // hero's background — instead of the rotating Oracle gallery illustration, which it ignored
+      image: md.image || '',
       tiles,
     }
+  }
+
+  // ── DASHBOARD archetype → Spectra's oj-sp-dashboard-landing-page ─────────────────────────────
+  const DASHBOARD_PIECES = new Set(['Scoreboard', 'MetricCard', 'DashboardPanel'])
+
+  /** Whether the tree has something besides a dashboard (a scoreboard + panels in layouts). */
+  function holdsMoreThanADashboard(n, root) {
+    if (!n || typeof n !== 'object') return false
+    if (!root && n.type === 'ServerSide') return true
+    const t = n.metadata && n.metadata.type
+    if (t && DASHBOARD_PIECES.has(t)) return false
+    if (t && !WELCOME_FRAME.has(t)) return true
+    return (n.children || []).some((c) => holdsMoreThanADashboard(c, false))
+  }
+
+  /** The panels Spectra's oj-sp-dashboard-grid lays out itself (its predefined layouts: one to five). */
+  const DASHBOARD_GRID_MAX = 5
+
+  /**
+   * Whether the dashboard DECLARES its own geometry — a panel with a colSpan / rowSpan other than the
+   * default (1), or a fixed column count (`Dashboard.columns()` ≠ 0: the grid's tracks on the wire, or
+   * a DashboardLayout's `columns`). oj-sp-dashboard-grid lays the panels out in its own predefined
+   * layouts and ignores all three, so a dashboard that declares any of them keeps our grid (the oj-flex
+   * row: each panel its colSpan of the declared columns) instead of losing what it asked for.
+   */
+  function dashboardDeclaresLayout(tree, panels) {
+    const spans = (panels || []).some((p) => {
+      const pm = (p && p.metadata) || {}
+      return Number(pm.colSpan || 1) > 1 || Number(pm.rowSpan || 1) > 1
+    })
+    if (spans) return true
+    const grids = findAllByType(tree, 'ResponsiveGrid')
+      .filter((g) => (g.children || []).some((k) => k && k.metadata && k.metadata.type === 'DashboardPanel'))
+    if (grids.some((g) => String((g.metadata && g.metadata.gridTemplateColumns) || '').trim())) return true
+    return findAllByType(tree, 'DashboardLayout').some((l) => l.metadata && Number(l.metadata.columns) > 0)
+  }
+
+  /**
+   * The DASHBOARD archetype (Dashboard / InferredDashboard: a Scoreboard of MetricCards + @Panel
+   * tiles, nothing else) as Spectra's DASHBOARD LANDING PAGE: its `kpi` slot holds the scoreboard
+   * (the oj-sp-scoreboard atom, drill-in included) and its default slot the panels, each an
+   * oj-sp-dashboard-panel (panelTitle / panelSubtitle) whose body is VB-painted atoms. The panels go
+   * on oj-sp-dashboard-grid — Spectra's own layouts — when it can take them (≤ 5, not reorderable by
+   * the viewer: the grid moves the panels into slots of its own, which our drag cannot follow) AND the
+   * dashboard declares no geometry of its own (no colSpan/rowSpan ≠ 1, no fixed columns() — the grid
+   * ignores them: dashboardDeclaresLayout); otherwise on the oj-flex row with each panel's colSpan. null when the page is not
+   * one (a hero makes it a welcome; anything else in the tree, the generic content).
+   */
+  function dashboardOf(ctx) {
+    const tree = ctx && ctx.tree
+    if (!tree) return null
+    const panels = findAllByType(tree, 'DashboardPanel')
+    const boards = findAllByType(tree, 'Scoreboard')
+    if (!panels.length && !boards.length) return null
+    if (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true)) return null
+    const blocks = islandContentOf(ctx) || []
+    const kpis = []
+    const rest = []
+    for (const b of blocks) {
+      const items = b.items || []
+      if (items.length && items.every((a) => a.isScoreboard)) kpis.push(...items)
+      else rest.push(b)
+    }
+    // one block per panel, in order: anything else and the page is not what this branch can paint
+    if (rest.length !== panels.length) return null
+    const reorderable = rest.some((b) => b.tileKey)
+    const tiles = panels.map((panel, i) => {
+      const pm = panel.metadata || {}
+      const title = pm.title || ''
+      const subtitle = pm.subtitle || ''
+      let items = rest[i].items || []
+      // the panel's own title/subtitle texts (content.mjs paints them as the card's first lines) are
+      // the oj-sp-dashboard-panel's panelTitle / panelSubtitle now — not repeated in its body
+      if (title && items[0] && items[0].isText && items[0].text === title) items = items.slice(1)
+      if (subtitle && items[0] && items[0].isText && items[0].text === subtitle) items = items.slice(1)
+      // blockClass: the panel's width on our grid (the oj-flex row the template paints when Spectra's grid
+      // is not used) — its colClass of the declared columns/colSpan; without it every panel was one
+      // narrow cell whatever it declared
+      const blockClass = rest[i].blockClass || rest[i].colClass || 'oj-flex-item oj-sm-12'
+      return { ...rest[i], ...(editorNodeIds && panel.id ? { nodeId: String(panel.id) } : {}), title, subtitle, items, blockClass }
+    })
+    return {
+      kpis,
+      hasKpis: kpis.length > 0,
+      panels: tiles,
+      useGrid: tiles.length > 0 && tiles.length <= DASHBOARD_GRID_MAX && !reorderable
+        && !dashboardDeclaresLayout(tree, panels),
+    }
+  }
+
+  // ── TODO LIST archetype → Spectra's oj-sp-task-organizer-page ────────────────────────────────
+  /** The action the TodoList archetype's TaskQueue runs on a card (TodoList.java: `openTodoItem`). */
+  const TODO_ITEM_ACTION = 'openTodoItem'
+
+  /**
+   * The TODO LIST archetype (TodoList<Row>: a TaskQueue of counted buckets whose cards ACT) as
+   * Spectra's TASK ORGANIZER page: its header (the page title, the toolbar's primary action) and its
+   * default slot holding the page's own content — the queue atom as the generic content paints it.
+   * null when the page is not one, or when its content is not the plain/card blocks this branch paints
+   * (then the generic content keeps it).
+   */
+  function todoListOf(ctx) {
+    const tree = ctx && ctx.tree
+    const queue = tree ? findByType(tree, 'TaskQueue') : null
+    if (!queue || !queue.metadata || queue.metadata.actionId !== TODO_ITEM_ACTION) return null
+    const page = findByType(tree, 'Page')
+    const title = (page && page.metadata && page.metadata.title) || ''
+    const blocks = hostContentOf(ctx, null, { title }) || []
+    if (!blocks.length || blocks.some((b) => !b.isCard && !b.isPlain)) return null
+    return { title, blocks }
   }
 
   /** The first child slotted `slot` of a ResponsiveGrid in the tree, and whether it leads its
@@ -3356,9 +4050,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     } else {
       columns = [{ colClass: 'oj-flex-item oj-sm-12', cards }]
     }
+    // oj-sp-general-overview-page: its MAIN slot (the cards — two by two alone, stacked beside an info
+    // column) and its INFO slot (the GeneralOverview `info`, on the template's own neutral column;
+    // promoteInfoSlot when the archetype put it first)
+    const mainCards = (infoCard ? cards.filter((c) => c !== infoCard) : cards)
+      .map((c) => ({ ...c, colClass: infoCard ? 'oj-flex-item oj-sm-12' : 'oj-flex-item oj-sm-12 oj-md-6' }))
+    const infoCards = infoCard ? [{ ...infoCard, colClass: 'oj-flex-item oj-sm-12' }] : []
+    // the template's header has ONE status badge beside the title: the first EntityHeader badge takes
+    // it, the rest follow the subtitle (as on the page header, pageHeaderOf)
+    const [firstBadge, ...moreBadges] = md.badges || []
     return {
       title: md.title || '',
       subtitle: (md.subtitle || '') + (badgeText ? ' · ' + badgeText : ''),
+      pageSubtitle: [md.subtitle || ''].concat(moreBadges.map((b) => b.label)).filter((t) => t).join(' · '),
+      badge: firstBadge ? { text: firstBadge.label, status: badgeStatusOf(firstBadge.color) } : null,
+      mainCards,
+      infoCards,
+      hasInfo: infoCards.length > 0,
+      promoteInfo: !!(infoNode && infoNode.first),
       facts: contextualInfoOf(facts),
       factActions: factActionsJsonOf(facts),
       switcherField: switcher ? switcher.fieldId : '',
@@ -3766,6 +4475,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
+  /** The action ids a tree advertises at any level (`actions: [{id | actionId}]`). */
+  function advertisedIdsOf(tree) {
+    const ids = []
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach(walk); return }
+      if (Array.isArray(n.actions)) for (const a of n.actions) { const id = a && (a.id ?? a.actionId ?? (typeof a === 'string' ? a : null)); if (id) ids.push(id) }
+      for (const k of Object.keys(n)) if (k !== 'actions' && n[k] && typeof n[k] === 'object') walk(n[k])
+    }
+    walk(tree)
+    return ids
+  }
+
   /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
   const BADGE_CLASSES = {
     error: 'oj-badge oj-badge-danger oj-badge-subtle',
@@ -3789,6 +4511,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // …nor the list of a template with slots (CollectionDetail: TaskQueue@list next to its @detail):
     // it is content, and the detail that arrives on picking is painted beside it
     if (!node || node.slot) return null
+    // …nor the TodoList archetype's (its cards ACT, `openTodoItem`): that page is Spectra's task
+    // organizer (overviews.mjs todoListOf), not the queue + detail page
+    if (node.metadata && node.metadata.actionId === 'openTodoItem') return null
     // …nor a queue that is ONE more piece of a page with other content: queue mode paints the
     // queue + the detail and NOTHING else, so a page with a TaskQueue among charts, boards,
     // calendars… lost everything else (only the queue and a «Nothing here» remained)
@@ -4300,6 +5025,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // The atoms of a block stack, so the row used to come out as a column. A row of buttons only
       // keeps the button bar (isButtons); any other child (a grid, a form, a card…) keeps the
       // stacked projection — the templates cannot nest a whole block inside an atom.
+      // CALENDAR PAGE: its toolbar row (‹ Today › views + Create) right above the Calendar is
+      // folded into Spectra's calendar, whose own toolbar runs those actions — not drawn twice
+      if (t === 'VerticalLayout') {
+        const kids = kidsOf(node).filter(Boolean)
+        const at = kids.findIndex((k) => k.metadata && k.metadata.type === 'Calendar')
+        const nav = at > 0 ? calendarPageToolbarOf(kids[at - 1], advertisedIdsOf(ctx.tree)) : null
+        if (nav) {
+          kids.forEach((kid, i) => {
+            if (i === at - 1) return
+            if (i === at) atom(calendarAtomOf(kid.metadata, kid.id, undefined, nav), container)
+            else visit(kid, container)
+          })
+          return
+        }
+      }
       if (t === 'HorizontalLayout') {
         const row = inlineRowOf(node)
         if (row) { atom(row, container); return }
@@ -4632,15 +5372,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (t === 'Scoreboard') {
         const metrics = findAllByType(node, 'MetricCard').map((n) => withNodeId(metricOf(n.metadata, interp), n))
-        if (metrics.length) atom({ isScoreboard: true, metrics }, container)
+        if (metrics.length) atom({ isScoreboard: true, metrics, ...scoreboardAtomOf(metrics) }, container)
         return
       }
       if (t === 'MetricCard') {
         // consecutive ones join in the same band (like the buttons)
         const target = live(container) || plain
         const last = target && target.items.length ? target.items[target.items.length - 1] : null
-        if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
-        else atom({ isScoreboard: true, metrics: [withNodeId(metricOf(m, interp), node)] }, container)
+        if (last && last.isScoreboard) {
+          last.metrics.push(withNodeId(metricOf(m, interp), node))
+          Object.assign(last, scoreboardAtomOf(last.metrics))
+        } else {
+          const metrics = [withNodeId(metricOf(m, interp), node)]
+          atom({ isScoreboard: true, metrics, ...scoreboardAtomOf(metrics) }, container)
+        }
         return
       }
       if (t === 'Chart' || t === 'TrendChart') {
@@ -7991,6 +8736,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function reduceContexts(reg, increment, opts = {}) {
     const contexts = { ...reg.contexts }
     const stack = [...reg.stack]
+    // an overlay refreshed IN PLACE gets a new context id: old id → new, so a command of the same
+    // increment aimed at the old one (the MarkAsClean of «Save and next») still lands on it
+    const refreshed = {}
     let shell = reg.shell || null
     const effects = {
       toasts: [],
@@ -8103,7 +8851,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const open = sameId ? stack.find((k) => contexts[k] && contexts[k].tree && contexts[k].tree.id === sameId
           && metaOf({ component: contexts[k].tree }).type === md.type) : null
         if (open) {
-          contexts[ctx.id] = { ...ctx, opener: contexts[open].opener || ctx.opener }
+          // …keeping its unsaved-changes flag: re-sent with an error banner and the values the user
+          // typed, they are still unsaved (the web's dirtyGuard.holdThroughReload); a successful
+          // «Save and next» clears it with the MarkAsClean that comes with it
+          contexts[ctx.id] = { ...ctx, opener: contexts[open].opener || ctx.opener, dirty: !!contexts[open].dirty }
+          refreshed[open] = ctx.id
           delete contexts[open]
           stack[stack.indexOf(open)] = ctx.id
           continue
@@ -8210,12 +8962,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           emit(c.data)
           break
         case 'MarkAsClean': {
-          const id = t && contexts[t] ? t : opts.initiator
+          const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
           if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false }
           break
         }
         case 'MarkAsDirty': {
-          const id = t && contexts[t] ? t : opts.initiator
+          const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
           if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: true }
           break
         }
@@ -8780,7 +9532,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
 
   /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
-  function extraWidgetOf(f, options) {
+  function extraWidgetOf(f, options, value) {
     const st = f.stereotype
     // an editable password is typed into a masked input (oj-input-password): as plain text it
     // showed the secret in clear. A read-only one stays a text value — the fixed mask above.
@@ -8789,12 +9541,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
     if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
       return { isCheckboxSet: true }
+    // email / link → Spectra's typed inputs (oj-sp-input-email / oj-sp-input-url): their own
+    // format validation and, read-only, the value as a mailto: / web link
+    if (st === 'email') return { isEmail: true }
+    if (st === 'link' && (!f.dataType || f.dataType === 'string')) return { isUrl: true }
     if (st === 'money' || f.dataType === 'money') {
-      const currency = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
+      const declared = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
+      // an Amount carries its own currency; else the declared one; else EUR (as before)
+      const own = value != null && typeof value === 'object' && !Array.isArray(value) && value.currency ? String(value.currency) : ''
+      const currency = String(declared || own || 'EUR').toUpperCase()
       return {
         isMoney: true,
-        // JET converter (oj-input-number): number with 2 decimals and its currency symbol
-        converter: converterOf({ type: 'number', options: { style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 2 } }),
+        // Spectra's oj-sp-input-currency: number with its currency symbol, from the code it is given
+        // (no currency service: without one it would fall back to the user preferences' or USD)
+        currency,
+        // kept for the row editor's oj-input-number (it has no Spectra input)
+        converter: converterOf({ type: 'number', options: { style: 'currency', currency, minimumFractionDigits: 2 } }),
       }
     }
     if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
@@ -8836,6 +9598,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
   function isExtraLayoutField(md) {
     return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+      || md.stereotype === 'email' || md.stereotype === 'link'
       || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
       || (md.stereotype === 'richText' && !md.readOnly)
       || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
@@ -8852,7 +9615,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
     if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
-    const extra = extraWidgetOf(f, optionsOf(f, data))
+    const extra = extraWidgetOf(f, optionsOf(f, data), value)
     if (extra) {
       const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
       return {
@@ -8866,6 +9629,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...flags,
         isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
         isSlider: false, isStars: false, isColor: false, isRichEditor: false, isMarkupEditor: false, markupKind: '', min: 0, max: 0, step: 1,
+        isEmail: false, isUrl: false, currency: '',
         converter: null, captureMode: '', accept: '',
         ...extra,
       }
@@ -8906,6 +9670,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
       isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
+      isEmail: false, isUrl: false, currency: '',
       converter: null, captureMode: '', accept: '',
     }
   }
@@ -9305,7 +10070,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // inside the bar or nothing: outside, white text on the background is unreadable (and the full
           // summary is still in the tooltip)
           labelPosition: ['innerCenter', 'innerStart', 'none'],
-          labelStyle: { fill: '#ffffff' },
+          labelStyle: { fill: '#ffffff' }, // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
         })),
       }
     })
@@ -9363,7 +10128,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const row of atom.rows) {
       for (const task of row.tasks) {
         const done = shadeOf(colors[task.id], 0.6)
-        task.progress = { value: progress[task.id] || 0, ...(done ? { svgStyle: { fill: done } } : {}) }
+        const value = progress[task.id] || 0
+        task.progress = { value, ...(done ? { svgStyle: { fill: done } } : {}) }
+        Object.assign(task, ganttLabelOf(value))
       }
     }
     const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
@@ -9375,6 +10142,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       majorScale: days > 60 ? 'months' : 'weeks',
       minorScale: days > 60 ? 'weeks' : 'days',
     }
+  }
+
+  /** Redwood's primary ink: the label of a bar drawn OUTSIDE it, on the chart's light background. */
+  const GANTT_OUTSIDE_LABEL_INK = '#161513' // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
+
+  /**
+   * Where a task bar's label goes, and in which ink. A centred label sits over the middle of the
+   * bar, so it is only on the dark DONE fill when the task is well past half way (≥ 75%): then it goes
+   * inside, white. Otherwise the middle of the bar is its light unfilled part — white there could not
+   * be read — so the label goes OUTSIDE, after the bar (before it at the right edge of the chart, or
+   * nothing when neither fits: the tooltip still says it), in dark ink on the background.
+   */
+  function ganttLabelOf(progress) {
+    return progress >= 0.75
+      ? { labelPosition: ['innerCenter', 'innerStart', 'none'], labelStyle: { fill: '#ffffff' } } // design-token-ok: oj-gantt labelStyle is a DVT style object painted onto SVG text, not a CSS cascade — a var() is not resolved there
+      : { labelPosition: ['end', 'start', 'none'], labelStyle: { fill: GANTT_OUTSIDE_LABEL_INK } }
   }
 
   /** The id of the task under the pointer: oj-gantt's getContextByNode gives a task bar's row and
@@ -9625,6 +10408,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         glyph: glyphOf(it.icon),
         dotClass: 'mateu-timeline-dot' + (toneOf(it.color) ? ' mateu-tone-' + toneOf(it.color) : ''),
         dotStyle: cssColorOf(it.color) ? { backgroundColor: cssColorOf(it.color) } : {},
+        // oj-sp-timeline-event-template paints the event (primary/secondary/tertiary text); a
+        // clickable event offers its action as the template's primaryActions menu ("Open")
+        primaryActions: it.actionId ? [{ id: 'open', label: chromeText('open'), display: 'on' }] : [],
         ...clickable(it.actionId, { _clickedItem: it }),
       }))),
     }
@@ -9828,6 +10614,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const [re, cls] of FILE_ICONS) if (re.test(probe)) return cls
     return 'oj-ux-ico-file'
   }
+  const SIZE_UNITS = { b: 1, byte: 1, bytes: 1, kb: 1024, k: 1024, mb: 1024 ** 2, m: 1024 ** 2, gb: 1024 ** 3, g: 1024 ** 3, tb: 1024 ** 4 }
+  /** A size as the wire writes it ("1.2 MB", "48 KB", 2048) → bytes; undefined when unreadable. */
+  function fileBytesOf(size) {
+    if (typeof size === 'number' && isFinite(size)) return size
+    const m = str(size).trim().replace(',', '.').match(/^(\d+(?:\.\d+)?)\s*([a-z]*)$/i)
+    if (!m) return undefined
+    const unit = SIZE_UNITS[(m[2] || 'b').toLowerCase()]
+    return unit ? Math.round(parseFloat(m[1]) * unit) : undefined
+  }
+  const MIME_BY_EXT = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+    svg: 'image/svg+xml', webp: 'image/webp', csv: 'text/csv', txt: 'text/plain', zip: 'application/zip',
+    xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }
+  // the type WORDS the FileList docs use ("image", "excel", "video"…) when the name has no known extension
+  const MIME_BY_KIND = { image: 'image/*', video: 'video/*', audio: 'audio/*', excel: MIME_BY_EXT.xlsx, word: MIME_BY_EXT.docx, text: 'text/plain' }
+  /** The file's MIME type: the wire's when it is one, else guessed from the name's extension, then the type word. */
+  function fileMimeOf(type, name) {
+    const t = str(type).trim().toLowerCase()
+    if (t.indexOf('/') > 0) return t
+    return MIME_BY_EXT[str(name).split('.').pop().toLowerCase()] || MIME_BY_EXT[t] || MIME_BY_KIND[t] || ''
+  }
   function fileListAtomOf(m, interp = (x) => x) {
     return {
       isFileList: true,
@@ -9837,6 +10644,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           name: interp(str(f.name)),
           meta: [f.size, f.type].filter(Boolean).map(str).join(' · '),
           iconClass: fileIconOf(f.type, f.name),
+          // oj-sp-attachment-chip (local data, no Oracle attachments REST): its size is a NUMBER of
+          // bytes and its type a MIME type — the wire carries both as display text
+          // the chip splits the name around its middle and drops a space there: no-break spaces keep it
+          chipName: interp(str(f.name)).replace(/ /g, '\u00a0'),
+          fileSize: fileBytesOf(f.size),
+          fileType: fileMimeOf(f.type, f.name),
+          // a file with a URL opens on a click (the chip's preview, external) and downloads from its
+          // menu (its href on data-mateu-href — installAttachmentChips); one with an action runs it on
+          // a click (the preview, external)
+          chipActions: f.actionId
+            ? { preview: 'external', download: 'off', delete: 'off' }
+            : { preview: href ? 'external' : 'off', download: href ? 'on' : 'off', delete: 'off' },
           href,
           hasHref: !!href && !f.actionId,
           noHref: !href || !!f.actionId,
@@ -10524,6 +11343,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const image = m.image ? elementModuleUrl(str(m.image)) : ''
     return {
       isHero: true,
+      // the quiet line above the title (HeroSectionDto.overline), '' for none
+      overline: interp(str(m.overline)),
       title: interp(str(m.title)),
       subtitle: interp(str(m.subtitle)),
       heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : ''),
@@ -10543,6 +11364,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       description: interp(str(m.description)),
       hasAction: !!(m.actionId && m.actionLabel),
       actionLabel: interp(str(m.actionLabel)),
+      // oj-sp-empty-state's own call to action (a callToAction button under the texts; its
+      // spPrimaryAction runs actionId); null = no button
+      primaryAction: m.actionId && m.actionLabel ? { label: interp(str(m.actionLabel)), type: 'callToAction', display: 'on' } : null,
       actionId: m.actionId || '',
       parameters: {},
     }
@@ -10661,6 +11485,217 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     CarouselLayout: 1, DashboardLayout: 1, CustomField: 1,
     App: 1, Page: 1, Form: 1, Crud: 1, HeroSection: 1, EmptyState: 1, NotFound: 1, ProgressBar: 1,
     Dialog: 1, Drawer: 1,
+  }
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes painted with
+  // Spectra's PAGE TEMPLATES whose regions are SLOTS the composed wire maps onto — the Data management
+  // page (DataManagement / GanttPage: inner end & bottom drawers), the Collection detail page
+  // (CollectionDetail: list + server-built detail) and the Item overview page (ItemOverview: key panel
+  // + main). Pure: wire tree → the variable its page branch binds.
+
+  /** The ids the archetypes give their composed trees (DataManagement.java / GanttPage.java). */
+  const DATA_MANAGEMENT_ID = 'data-management'
+  const GANTT_PAGE_ID = 'gantt-page'
+  const isNode = (n, id) => !!n && (n.id === id || (n.metadata && n.metadata.id === id))
+  const typeOf = (n) => (n && n.metadata && n.metadata.type) || ''
+  const FULL = 'oj-flex-item oj-sm-12'
+
+  /** The content blocks of a list of nodes (a slot holds a column of them: full width each). */
+  function blocksOfNodes(ctx, nodes, id) {
+    const tree = { type: 'ClientSide', id, metadata: { type: 'VerticalLayout' }, children: nodes.filter(Boolean) }
+    return (islandContentOf({ ...ctx, tree }) || []).map((b) => ({ ...b, blockClass: FULL }))
+  }
+
+  /**
+   * A DockedPanel as DataManagement composes it (a VerticalLayout: a header row — its title Text and
+   * the ✕ Button that toggles it — over its content) → the drawer template's own header (title + close)
+   * and its body. The row is dropped: the template draws both.
+   */
+  function dockedPanelOf(ctx, node, id) {
+    const kids = (node && node.children) || []
+    const head = kids[0]
+    const headKids = (head && head.children) || []
+    const titleNode = headKids.find((c) => typeOf(c) === 'Text')
+    const close = headKids.find((c) => typeOf(c) === 'Button')
+    const isHeader = typeOf(head) === 'HorizontalLayout' && !!titleNode && !!close
+    return {
+      on: true,
+      title: isHeader ? String(titleNode.metadata.text || '') : '',
+      closeActionId: isHeader ? String(close.metadata.actionId || '') : '',
+      blocks: blocksOfNodes(ctx, isHeader ? kids.slice(1) : kids, id),
+    }
+  }
+
+  const NO_PANEL = { on: false, title: '', closeActionId: '', blocks: [] }
+
+  /**
+   * DataManagement / GanttPage → oj-sp-data-management-page: its transactional header (the page
+   * title), its main content (the toolbar + the grid/gantt view, or the gantt + the detail card), the
+   * docked END panel in `innerEnd` (oj-sp-general-drawer-template: title + ✕ → the panel's toggle
+   * action) and the docked BOTTOM panel in `innerBottom` (oj-sp-bottom-drawer-template: closable → its
+   * toggle action; GanttPage's persistent collapsible drawer → `fixed`, the handle minimizes it).
+   * null when the page is not one of them.
+   */
+  function dataManagementPageOf(ctx) {
+    const tree = ctx && ctx.tree
+    if (!tree) return null
+    const root = findFirst(tree, (n) => isNode(n, DATA_MANAGEMENT_ID) || isNode(n, GANTT_PAGE_ID))
+    if (!root) return null
+    const gantt = isNode(root, GANTT_PAGE_ID)
+    const kids = root.children || []
+    const titleNode = kids.find((c) => typeOf(c) === 'Text' && /-title$/.test(String(c.id || (c.metadata && c.metadata.id) || '')))
+    const rest = kids.filter((c) => c !== titleNode)
+    let main = []
+    let end = NO_PANEL
+    let bottom = NO_PANEL
+    let bottomMode = 'closable'
+    if (gantt) {
+      const drawer = rest.find((c) => typeOf(c) === 'Drawer')
+      main = rest.filter((c) => c !== drawer)
+      if (drawer) {
+        const md = drawer.metadata || {}
+        bottom = {
+          on: true,
+          title: String(md.headerTitle || ''),
+          closeActionId: '',
+          blocks: blocksOfNodes(ctx, [md.content].concat(drawer.children || []), GANTT_PAGE_ID + '-bottom'),
+        }
+        // a collapsible drawer the page composes is PERSISTENT: Spectra's fixed mode (a handle, no ✕)
+        bottomMode = md.collapsible ? 'fixed' : 'closable'
+      }
+    } else {
+      const toolbar = rest.find((c) => isNode(c, DATA_MANAGEMENT_ID + '-toolbar'))
+      const after = rest.slice(rest.indexOf(toolbar) + 1)
+      const body = after[0]
+      if (isNode(body, DATA_MANAGEMENT_ID + '-body')) {
+        const [view, panel] = body.children || []
+        main = [toolbar, view]
+        if (panel) end = dockedPanelOf(ctx, panel, DATA_MANAGEMENT_ID + '-end')
+      } else {
+        main = [toolbar, body]
+      }
+      if (after[1]) bottom = dockedPanelOf(ctx, after[1], DATA_MANAGEMENT_ID + '-bottom')
+    }
+    return {
+      kind: gantt ? 'gantt' : 'dataManagement',
+      title: titleNode ? String(titleNode.metadata.text || '') : '',
+      main: blocksOfNodes(ctx, main, root.id || DATA_MANAGEMENT_ID),
+      end,
+      bottom,
+      endOpened: end.on ? 'inner' : 'none',
+      bottomOpened: bottom.on ? 'inner' : 'none',
+      bottomOptions: { drawerMode: bottomMode, title: 'on', maximize: 'off' },
+    }
+  }
+
+  /** The action the CollectionDetail archetype's TaskQueue runs on a card (CollectionDetail.java). */
+  const COLLECTION_ITEM_ACTION = 'selectCollectionItem'
+  const COLLECTION_DETAIL_ID = 'collection-detail'
+
+  /**
+   * CollectionDetail → oj-sp-collection-detail-page: its header (the page title), its COLLECTION area
+   * (the search form + the TaskQueue cards, as the generic content paints them) and its DETAIL — the
+   * template's `detailTemplate` is a client-side template it stamps per selected item, while Mateu's
+   * detail is built by the server per selection: the selected item handed to the template is only
+   * `{ id }`, and the template paints the server's detail blocks from this projection. No selection →
+   * the `noSelection` slot (the archetype's emptyDetail()). Selecting stays the `selectCollectionItem`
+   * round trip; the search keeps its debounced auto-save. null when the page is not one.
+   */
+  function collectionDetailPageOf(ctx, { title = '' } = {}) {
+    const tree = ctx && ctx.tree
+    if (!tree) return null
+    const queue = findByType(tree, 'TaskQueue')
+    if (!queue || !queue.metadata || queue.metadata.actionId !== COLLECTION_ITEM_ACTION) return null
+    if (!findFirst(tree, (n) => isNode(n, COLLECTION_DETAIL_ID))) return null
+    const blocks = hostContentOf(ctx, null, { title }) || []
+    const isList = (b) => (b.items || []).some((a) => a && a.isQueue)
+    const list = blocks.find(isList)
+    // the detail is the template column that is not the list (ResponsiveGrid "list detail")
+    const detail = blocks.find((b) => b !== list && b.fromTemplate)
+    if (!list || !detail) return null
+    const rest = blocks.filter((b) => b !== list && b !== detail)
+      // the page title (a text block of its own) is the template header's
+      .filter((b) => !((b.items || []).length === 1 && b.items[0].isText && b.items[0].text === title))
+    const items = (list.items || []).flatMap((a) => (a && a.isQueue ? a.groups || [] : [])).flatMap((g) => g.items || [])
+    const selected = items.find((i) => i && i.selected)
+    const full = (b) => ({ ...b, blockClass: FULL })
+    const detailBlocks = [full(detail)]
+    return {
+      title,
+      collection: rest.map(full).concat([full(list)]),
+      selectedItems: selected ? [{ id: String(selected.id) }] : [],
+      detail: selected ? detailBlocks : [],
+      noSelection: selected ? [] : detailBlocks,
+    }
+  }
+
+  /** A leading <h1>–<h4> of a rich-text html: { text, rest } or null. */
+  function leadingHeadingOf(html) {
+    const m = String(html || '').match(/^\s*<h([1-4])[^>]*>([\s\S]*?)<\/h\1>/i)
+    if (!m) return null
+    const text = decodeHeadingEntities(headingTextOf(m[2])).trim()
+    return text ? { text, rest: String(html).slice(m[0].length) } : null
+  }
+
+  /** The text of an html fragment: everything between a `<` and its `>` dropped, scanned one character
+   *  at a time (no regex pass a nested `<scr<b>ipt>` could survive), a stray `>` dropped too. The result
+   *  is TEXT (a title), never written back as html. */
+  function headingTextOf(html) {
+    let out = ''
+    let inTag = false
+    for (const c of String(html)) {
+      if (c === '<') inTag = true
+      else if (c === '>') inTag = false
+      else if (!inTag) out += c
+    }
+    return out
+  }
+
+  const HEADING_ENTITIES = { amp: '&', nbsp: ' ', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'" }
+  /** The few named entities a rich-text heading carries, decoded in ONE pass (so `&amp;lt;` stays `&lt;`). */
+  const decodeHeadingEntities = (text) => text.replace(/&(amp|nbsp|lt|gt|quot|apos|#39);/g, (_, name) => HEADING_ENTITIES[name])
+
+  /**
+   * ItemOverview → oj-sp-item-overview-page: its OVERVIEW slot is oj-sp-item-overview — the item's
+   * TITLE over the key panel's atoms as its body — and its MAIN slot the tab bar with the chosen tab's
+   * atoms. The page template has no title of its own: Spectra puts the page's title in the overview's
+   * `itemTitle` («the focus of the overview, such as the name of a product»), at the top of the page.
+   * So the title is the PAGE's — an EntityHeader's, else the window title (@Title, what Vaadin draws
+   * above the panels) — and only without one the key card's title or the key panel's LEADING heading
+   * (a heading atom, or the first heading of a rich text). A leading heading that says the title is
+   * taken out of the body (the panel would say it twice); one that says something else stays, and so
+   * does a key card title that is not the title (as the body's first heading). `entity` (an
+   * EntityHeader on the page) gives the subtitle and badge.
+   */
+  function itemOverviewPageHeaderOf(ctx, item) {
+    const entity = ctx ? entityHeaderOf(ctx) : null
+    const badge = entity && (entity.badges || [])[0]
+    const key = (item && item.key) || { title: '', items: [] }
+    let items = key.items || []
+    const same = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase()
+    const pageTitle = (entity && entity.title) || (ctx && ctx.windowTitle) || ''
+    let title = pageTitle || key.title || ''
+    const first = items[0]
+    const heading = first && first.isRichText ? leadingHeadingOf(first.html) : null
+    const leading = first && first.isHeading && first.text ? String(first.text) : heading ? heading.text : ''
+    if (leading && (!title || same(leading, title))) {
+      title = title || leading
+      items = first.isHeading ? items.slice(1)
+        : heading.rest.trim() ? [{ ...first, html: heading.rest }].concat(items.slice(1)) : items.slice(1)
+    }
+    if (pageTitle && key.title && !same(key.title, pageTitle)) {
+      items = [{ isText: true, isHeading: true, text: key.title }].concat(items)
+    }
+    return {
+      itemTitle: title,
+      itemSubtitle: entity ? (entity.subtitlePlain != null ? entity.subtitlePlain : (entity.subtitle || '')) : '',
+      badge: badge ? { text: badge.label, status: badge.status, style: 'subtle', position: 'trailing' } : null,
+      keyItems: items,
+    }
   }
 
 
@@ -11383,6 +12418,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── classification ────────────────────────────────────────────────────────────────────────
 
   /** Default ceiling of a request, in ms. Overridden by `@Action(timeoutMillis = …)`. */
@@ -11690,6 +12726,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const error = new Error(`Mateu → HTTP ${res.status}${text ? `: ${text}` : ''}`)
         error.status = res.status
         error.body = text
+        // the deployment that refused (versionSkew.mjs): a 403 from ANOTHER build is a stale screen
+        error.build = buildOfHeaders(res.headers)
         throw error
       }
       return res
@@ -11813,6 +12851,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * outcome as far as the UI is concerned: one loading state, one message.
    */
   async function fetchWithPolicy(url, init, options = {}) {
+    // who is calling (X-Mateu-Renderer), on Mateu's own endpoints only (versionSkew.mjs)
+    init = withRendererHeader(url, init)
     // The token is read on EVERY send, not once: after a 401 the bootstrap leaves a new one in
     // localStorage and the retry has to carry that one, not the expired one.
     // The token the LAST send went out with (undefined if it did not carry ours): on a 401
@@ -11864,6 +12904,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       try {
         const res = await sendOnce(url, await withAuth(), options.timeoutMillis)
         if (!isolated) connectivity.noteReachable()
+        // another deployment answered than the one this page started with: «app updated», once
+        reportAppUpdated(noteResponseBuild(url, buildOfHeaders(res.headers), { ok: true }))
         if (isViewStale(view)) dropStale()
         notifyUnlessQuiet('onSettle', { actionId, failure: null })
         return res
@@ -11879,7 +12921,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           reauthenticated = true
           if (await askForReauthentication(sentToken)) continue
         }
-        const failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
+        let failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
+        // Mateu's refusal from ANOTHER build than this page's: the screen changed under the user,
+        // it is not a permission problem — say so, and offer to reload (versionSkew.mjs)
+        if (error && error.status != null && error.build) {
+          const verdict = noteResponseBuild(url, error.build, {
+            ok: false, status: error.status, mateuRefusal: error.status === 403 && isMateuRefusalBody(error.body),
+          })
+          if (verdict === 'stale') failure = { ...failure, message: staleScreenMessage(), staleScreen: true, reload: true }
+        }
         if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
         attempt++
         if (!shouldRetry(failure, attempt, { idempotent })) {
@@ -11960,6 +13010,150 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Test hook: forget that a mismatch was already reported. */
   function resetWireVersionCheck() {
     wireVersionState.reported = false
+  }
+
+
+  // Version skew between this renderer and the backend it talks to (the shared contract every
+  // Mateu renderer follows — transport HEADERS only, nothing in the wire JSON):
+  //
+  //  - every request to a Mateu endpoint (sync / sse) says who is calling:
+  //      X-Mateu-Renderer: redwood/<version> wire/<major>.<minor>
+  //    never a third-party REST source (restSources.mjs fetches those itself, without this header);
+  //  - every Mateu response says which deployment answered: X-Mateu-Build (opaque, equality only).
+  //    The FIRST build seen per backend (origin + baseUrl, the URL up to `/mateu/`) is the baseline of
+  //    this page; a later success from another build → «this app has been updated» once per backend;
+  //    a Mateu 403 refusal from another build → the screen is STALE, not a permission problem.
+  //
+  // Pure decisions here (noteResponseBuild, backendKeyOf, rendererHeaderValue); resilience.mjs
+  // (fetchWithPolicy) feeds them and the shell (loadMateuShell.js) shows the notices in the error band
+  // with a Reload that does location.reload().
+
+
+
+  const RENDERER_NAME = 'redwood'
+
+  // make-amd.mjs replaces the placeholder with apps/redwood/package.json's version when it writes the
+  // bridge; run from the sources (Node tests) it stays a placeholder and reads as 'unknown'.
+  const RENDERER_VERSION_STAMP = "2604.1.0"
+
+  /** The renderer's own version, or 'unknown' when the bridge was not stamped. */
+  function rendererVersion(stamp = RENDERER_VERSION_STAMP) {
+    return typeof stamp === 'string' && stamp && !stamp.startsWith('@@') ? stamp : 'unknown'
+  }
+
+  /** The wire version this renderer was built for: the major it checks, minor 0. */
+  const RENDERER_WIRE_VERSION = `${SUPPORTED_WIRE_MAJOR}.0`
+
+  const RENDERER_HEADER = 'X-Mateu-Renderer'
+  const BUILD_HEADER = 'X-Mateu-Build'
+
+  /** `redwood/<version> wire/<major>.<minor>` */
+  function rendererHeaderValue(version = rendererVersion(), wire = RENDERER_WIRE_VERSION) {
+    return `${RENDERER_NAME}/${version || 'unknown'} wire/${wire}`
+  }
+
+  /** Index of the `/mateu/` segment of a URL, or -1 (not a Mateu endpoint). */
+  function mateuSegmentOf(url) {
+    return typeof url === 'string' ? url.indexOf('/mateu/') : -1
+  }
+
+  /** Whether a URL is one of Mateu's own endpoints (it has a `/mateu/` segment). */
+  function isMateuEndpoint(url) {
+    return mateuSegmentOf(url) >= 0
+  }
+
+  /** The request init with the renderer header added — only for a Mateu endpoint. */
+  function withRendererHeader(url, init) {
+    if (!isMateuEndpoint(url)) return init
+    const headers = (init && init.headers) || {}
+    if (typeof headers.set === 'function') {
+      headers.set(RENDERER_HEADER, rendererHeaderValue())
+      return init
+    }
+    return { ...(init || {}), headers: { ...headers, [RENDERER_HEADER]: rendererHeaderValue() } }
+  }
+
+  /** A plain headers object with the renderer header, for the streams that call fetch themselves. */
+  function rendererHeaders() {
+    return { [RENDERER_HEADER]: rendererHeaderValue() }
+  }
+
+  /**
+   * The backend a request belongs to: the ABSOLUTE URL up to (excluding) `/mateu/`. A relative URL
+   * (same-origin base '') is resolved against the page; without a page (Node) it is kept as written.
+   */
+  function backendKeyOf(url, pageHref = typeof location !== 'undefined' ? location.href : undefined) {
+    if (typeof url !== 'string') return ''
+    let absolute = url
+    if (pageHref) {
+      try { absolute = new URL(url, pageHref).href } catch (e) { absolute = url }
+    }
+    const i = mateuSegmentOf(absolute)
+    return i >= 0 ? absolute.slice(0, i) : absolute
+  }
+
+  /** The X-Mateu-Build of a response (fetch Response or a plain headers object), or null. */
+  function buildOfHeaders(headers) {
+    if (!headers) return null
+    let value = null
+    try {
+      value = typeof headers.get === 'function'
+        ? headers.get(BUILD_HEADER)
+        : (headers[BUILD_HEADER] || headers[BUILD_HEADER.toLowerCase()])
+    } catch (e) {
+      value = null
+    }
+    return typeof value === 'string' && value.trim() ? value.trim() : null
+  }
+
+  // per backend: the baseline build of this page, and whether its notice was already shown
+  const skew = { baselines: new Map(), shown: new Set(), listener: null }
+
+  /**
+   * The verdict for one response: `'updated'` (a success from another build, first time for that
+   * backend), `'stale'` (a Mateu 403 refusal from another build) or null (nothing to say).
+   * The baseline is the first build seen and is never moved; a missing header says nothing.
+   */
+  function noteResponseBuild(url, build, { ok = true, status, mateuRefusal = false } = {}) {
+    if (!build) return null
+    const key = backendKeyOf(url)
+    if (!skew.baselines.has(key)) {
+      skew.baselines.set(key, build)
+      return null
+    }
+    if (skew.baselines.get(key) === build) return null
+    if (ok) {
+      if (skew.shown.has(key)) return null
+      skew.shown.add(key)
+      return 'updated'
+    }
+    if (status === 403 && mateuRefusal) {
+      // the stale-screen error replaces the «updated» notice for that backend: never both
+      skew.shown.add(key)
+      return 'stale'
+    }
+    return null
+  }
+
+  /** The texts, in the interface's language. */
+  function appUpdatedMessage(lang) { return chromeText('appUpdated', {}, lang) }
+  function staleScreenMessage(lang) { return chromeText('screenChanged', {}, lang) }
+
+  /** The shell's hook for the «app updated» notice: called once per backend with the message. */
+  function setAppUpdatedListener(fn) {
+    skew.listener = typeof fn === 'function' ? fn : null
+  }
+
+  /** Called by the transport with a SUCCESSFUL response's verdict. */
+  function reportAppUpdated(verdict) {
+    if (verdict !== 'updated' || !skew.listener) return
+    try { skew.listener(appUpdatedMessage()) } catch (e) { /* the UI must not break the transport */ }
+  }
+
+  /** Test hook: forget every baseline and notice. */
+  function resetVersionSkew() {
+    skew.baselines.clear()
+    skew.shown.clear()
   }
 
 
@@ -12985,6 +14179,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // DOM effects the (pure) reducer only DESCRIBES: downloading a file and opening a URL in
   // another tab. Before, `effects.download` was computed and nobody read it — a listing's CSV or
   // a folio's PDF reached the browser and got lost. Each chain that reduces an increment
@@ -13197,6 +14392,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // UICommand.updateHeaderValue: the header repaints and the other tabs follow (appExtras.mjs)
     for (const h of effects.headerValues || []) ((env && env.mateuHeaderValue) || updateHeaderValue)(h.id, h.value)
     return n
+  }
+
+  /**
+   * FileList chips (oj-sp-attachment-chip, fed locally): the chip's DOWNLOAD action downloads the
+   * file's URL, which the atom puts on `data-mateu-href` (the chip has no href of its own — Oracle's
+   * attachments download through their REST providers). spDownload does not bubble: heard in CAPTURE.
+   */
+  function attachmentDownloadOf(target) {
+    const chip = target && target.closest ? target.closest('oj-sp-attachment-chip[data-mateu-href]') : null
+    // the attribute was written from a safe href, but it is read back off the DOM: checked again
+    // (http/https/relative only — never javascript:, data:…) before it becomes a link
+    return chip ? safeHref(chip.getAttribute('data-mateu-href')) : ''
+  }
+  function installAttachmentChips(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuAttachmentChips) return
+    doc.__mateuAttachmentChips = true
+    const follow = (download) => (e) => {
+      const href = attachmentDownloadOf(e.target)
+      if (!href) return
+      const a = doc.createElement('a')
+      a.setAttribute('href', href)
+      if (download) a.setAttribute('download', '')
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      doc.body.appendChild(a)
+      a.click()
+      a.remove()
+    }
+    // a click on the chip (its EXTERNAL preview) opens the file; its menu's Download downloads it
+    doc.addEventListener('spPreview', follow(false), true)
+    doc.addEventListener('spDownload', follow(true), true)
   }
 
 
@@ -13940,6 +15166,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
   // code) travel on the wire App as `actions`, each with its steps LOWERED to `commands`. A menu leaf
   // (RuleLink) whose RunAction rule names one runs those commands in the browser — no server
@@ -14128,20 +15355,113 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Before running a LEAVE action (isLeaveAction) on a screen with unsaved changes (`mateuDirty` in
-   * VB's application variables `vars`): the same question a menu click or the browser's back button
-   * asks (onMateuNavigate's dirtyGuard, `unsavedLeave`). False = the user stays: send nothing. True =
-   * go on; when it asked, the flag is cleared so the navigation the action answers with does not ask
-   * again. What the Vaadin renderer does in mateu-component (dirtyGuard.confirmLeave).
+   * Before running a LEAVE action (isLeaveAction) on a screen with unsaved changes: the same question
+   * a menu click or the browser's back button asks (onMateuNavigate, `unsavedLeave`). False = the user
+   * stays: send nothing. True = go on; when it asked, the scope's flag is cleared so the navigation the
+   * action answers with does not ask again. What the Vaadin renderer does in mateu-component
+   * (dirtyGuard.confirmLeave / confirmDiscard).
+   *
+   * SCOPED like the web's dirtyGuard: while an overlay is open every action is the overlay's
+   * (actionPlan.outboundActionOf sends it with the overlay's state), so its Cancel asks about the
+   * overlay's own edits (`dirty` on its registry context) — never about the page behind it, and a
+   * clean drawer over a dirty page leaves without a question. With no overlay, the page's
+   * (`mateuDirty` in VB's application variables `vars`).
    */
   function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined), parameters = undefined) {
-    if (!vars || !vars.mateuDirty) return true
+    if (!vars) return true
+    const top = topOverlayContextOf(vars.mateuRegistry)
+    const dirty = top ? !!top.dirty : !!vars.mateuDirty
+    if (!dirty) return true
     if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
     // the conflict dialog's Reload already said it drops the edits: no second question
     if (isConflictDialogAnswer(parameters)) return true
     if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
-    vars.mateuDirty = false
+    if (top) vars.mateuRegistry = withOverlayDirty(vars.mateuRegistry, false)
+    else vars.mateuDirty = false
     return true
+  }
+
+  /** The registry context of the TOP overlay (drawer, dialog, selector), or null when none is open. */
+  function topOverlayContextOf(reg) {
+    const stack = (reg && reg.stack) || []
+    const id = stack.length ? stack[stack.length - 1] : null
+    return id && reg.contexts ? reg.contexts[id] || null : null
+  }
+
+  /**
+   * The registry with the TOP overlay's unsaved-changes flag set to `dirty` — the overlay's own scope
+   * (its context's `dirty`, which the server's MarkAsClean/MarkAsDirty also target). Marking it dirty
+   * only takes when the overlay asks before it is left (tracksUnsavedChanges: the crud's create/edit
+   * drawer); clearing always does. Same reg when nothing changes.
+   */
+  function withOverlayDirty(reg, dirty = true) {
+    const stack = (reg && reg.stack) || []
+    const id = stack.length ? stack[stack.length - 1] : null
+    const ctx = id && reg.contexts ? reg.contexts[id] : null
+    if (!ctx || !!ctx.dirty === !!dirty) return reg
+    if (dirty && !tracksUnsavedChanges(ctx)) return reg
+    return { ...reg, contexts: { ...reg.contexts, [id]: { ...ctx, dirty: !!dirty } } }
+  }
+
+  /** Does an open overlay (any on the stack) hold unsaved changes? */
+  function overlaysHoldUnsavedChanges(reg) {
+    const contexts = (reg && reg.contexts) || {}
+    return ((reg && reg.stack) || []).some((id) => !!(contexts[id] && contexts[id].dirty))
+  }
+
+  /**
+   * Anything on screen — the page (`mateuDirty`) or an open overlay — holds unsaved changes: what a
+   * navigation away (menu, link, NavigateTo, the browser's back/forward), a reload or a chat preview
+   * replacing the screen asks about. The web's `dirtyGuard.dirty`.
+   */
+  function hasUnsavedChanges(vars) {
+    return !!vars && (!!vars.mateuDirty || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+  }
+
+  /**
+   * The navigation guard (onMateuNavigate, the chat preview): true = go on. With unsaved changes it
+   * asks ONCE (`unsavedLeave`) for the page and every open overlay together; accepting discards them
+   * all (the overlays are closed by the caller — closeOverlaysOnNavigation). False = stay: nothing
+   * changes (the caller restores the URL of a back/forward).
+   */
+  function confirmNavigationAway(vars, win = (typeof window !== 'undefined' ? window : undefined)) {
+    if (!hasUnsavedChanges(vars)) return true
+    if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
+    vars.mateuDirty = false
+    vars.mateuRegistry = withoutOverlays(vars.mateuRegistry)
+    return true
+  }
+
+  /**
+   * The user chose to STAY (confirmNavigationAway said no): the address goes back to the screen still
+   * on display (`route`, as urlOfRoute writes it). After a back/forward (`fromUrl`) the browser has
+   * already moved to the other entry, so the URL is PUSHED — what the web renderer does (mateu-ui's
+   * popstate); replacing it would overwrite the entry moved to and the next Back would leave the app.
+   * A menu/link navigation had not touched the URL yet: replaced (a no-op at worst).
+   */
+  function restoreUrlAfterStaying(route, fromUrl, win = (typeof window !== 'undefined' ? window : undefined)) {
+    if (!route || !win || !win.history) return undefined
+    const url = urlOfRoute(route)
+    if (fromUrl) win.history.pushState(null, '', url)
+    else win.history.replaceState(null, '', url)
+    return undefined
+  }
+
+  /** Is any overlay (drawer, dialog, selector) open in the registry? */
+  function hasOpenOverlays(reg) {
+    return !!(reg && reg.stack && reg.stack.length)
+  }
+
+  /**
+   * The registry with EVERY open overlay gone (their contexts too): another screen is loading, and a
+   * drawer opened over the previous one must not stay, orphaned, over the new one. The web gets this
+   * for free (its overlays are children of the page component the navigation replaces).
+   */
+  function withoutOverlays(reg) {
+    if (!hasOpenOverlays(reg)) return reg
+    const contexts = { ...reg.contexts }
+    for (const id of reg.stack) delete contexts[id]
+    return { ...reg, contexts, stack: [] }
   }
 
   /**
@@ -14150,9 +15470,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * (a crud mediator wrapping its form).
    */
   function tracksUnsavedChanges(ctx) {
+    // …or inside an OVERLAY's content: a Drawer/Dialog carries its form in `metadata.content` (the
+    // crud's create/edit drawer — CrudDrawerBuilder marks that form), not in its children
     const walk = (node) => !!node && typeof node === 'object'
-      && (node.confirmOnNavigationIfDirty === true || (node.children || []).some(walk))
-    return !!(ctx && walk(ctx.tree))
+      && (node.confirmOnNavigationIfDirty === true || (node.children || []).some(walk)
+        || walk(node.metadata && node.metadata.content))
+    return !!(ctx && (walk(ctx.tree) || walk(ctx.surface)))
   }
 
   /**
@@ -14170,6 +15493,60 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       : overlay ? (stack.length ? contexts[stack[stack.length - 1]] : undefined)
         : contexts[HOST_ID]
     return tracksUnsavedChanges(ctx)
+  }
+
+
+  // The drawer panel's Spectra templates, the DOM side (the projection is tree.mjs spectraDrawerOf).
+  //
+  // oj-sp-create-edit-drawer-template's contract for unsaved changes: the APP decides when they exist
+  // and sets `unsavedChanges`, the template shows Spectra's banner and answers Discard / Cancel. Its
+  // own buttons (Cancel, the arrows) reach the chains, which can hold them; but Esc and a click
+  // outside close the oj-drawer-popup itself, and its ojBeforeClose is cancelable only SYNCHRONOUSLY —
+  // a VB chain runs too late. installDrawerGuard listens in the capture phase, holds that close while
+  // the open create/edit drawer has unsaved edits and hands it to the page as a `mateuDrawerLeave`
+  // event (on-mateu-drawer-leave), which asks through the banner.
+
+  let drawerUnsaved = false
+
+  /** The chains say whether the open create/edit drawer has unsaved edits (false on open/close). */
+  function noteDrawerUnsaved(flag) {
+    drawerUnsaved = !!flag
+  }
+
+  function isDrawerUnsaved() {
+    return drawerUnsaved
+  }
+
+  const sameValue = (a, b) => {
+    const blank = (v) => v === undefined || v === null || v === ''
+    if (blank(a) && blank(b)) return true
+    if (a === b) return true
+    if (typeof a === 'object' || typeof b === 'object') {
+      try { return JSON.stringify(a) === JSON.stringify(b) } catch (_) { return false }
+    }
+    return String(a) === String(b)
+  }
+
+  /** Does the drawer's draft (what was typed: fieldId → value) differ from the values it opened with? */
+  function drawerHasUnsavedChanges(drawer, draft) {
+    if (!drawer || !draft) return false
+    const state = drawer.state || {}
+    return Object.keys(draft).some((k) => !sameValue(draft[k], state[k]))
+  }
+
+  /** Holds the user's close (Esc, a click outside) of a create/edit drawer with unsaved edits. */
+  function installDrawerGuard(doc = (typeof document !== 'undefined' ? document : null)) {
+    if (!doc || doc.__mateuDrawerGuard) return
+    doc.__mateuDrawerGuard = true
+    doc.addEventListener('ojBeforeClose', (event) => {
+      const panel = event.target
+      if (!panel || panel.id !== 'mateuDrawerPanel' || !drawerUnsaved) return
+      event.preventDefault()
+      // …and the page's own ojBeforeClose listener (mateuDrawerDismissed) must not hear it: it would
+      // drop the overlay the popup is keeping open
+      event.stopPropagation()
+      panel.dispatchEvent(new CustomEvent('mateuDrawerLeave', { bubbles: false }))
+    }, true)
   }
 
 
@@ -14588,6 +15965,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // The APP-LEVEL extras of the E2 patterns on the VB shell — the same contract (and the same
   // localStorage keys, so a Vaadin tab and a Redwood tab of one origin cooperate) as the web
   // renderer's libs/mateu appShortcuts.ts / headerValues.ts / liveUpdates.ts / idleSession.ts:
@@ -14801,7 +16179,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     fetch(base + '/mateu/v3/sse/_no_route', {
       method: 'POST',
       signal: own.signal,
-      headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, authHeadersOf()),
+      headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, rendererHeaders(), authHeadersOf()),
       body: JSON.stringify({ appState: {}, componentState: {}, parameters: {}, initiatorComponentId: 'mateu-live-updates',
         consumedRoute: '', serverSideType: serverSideType || undefined, route: '', actionId: '_live-updates' }),
     }).then(async (res) => {
@@ -17308,6 +18686,55 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return (r || (query ? '/' : '')) + (query || '')
   }
 
+  /** Every route a menu names (its entries and their children, at any depth). */
+  function menuRoutesOf(menu) {
+    const out = []
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach(walk); return }
+      if (typeof n.route === 'string' && n.route) out.push(n.route)
+      if (typeof n.routePrefix === 'string' && n.routePrefix) out.push(n.routePrefix)
+      for (const k of ['children', 'submenus', 'menu', 'items']) if (n[k]) walk(n[k])
+    }
+    walk(menu)
+    return out
+  }
+
+  /**
+   * Where a server NavigateTo (an action answering `URI.create("/dashboard-demo")`) really goes when it
+   * leaves THIS mount: the origin path to load, or null when it stays in the app. The web renderer
+   * treats a NavigateTo as a browser path (safeNavigate → a full load of that URL), so from the
+   * `/welcome-demo` mount `/dashboard-demo` is the OTHER mount — here it was taken as a route under
+   * this one and the browser went to /welcome-demo/dashboard-demo. In the app: the root mount (every
+   * path is its route), hash mode, a relative route, a path under the mount (a crud's '/products/new')
+   * and a route the app's own menu names (an App @UI("/app") lists its sections as '/section1').
+   */
+  function pathLeavingMountOf(route, menuRoutes = []) {
+    if (!mountPath) return null
+    const r = String(route == null ? '' : route)
+    if (r.charAt(0) !== '/' || r.charAt(1) === '/') return null
+    const path = r.split(/[?#]/)[0]
+    if (path === mountPath || path.startsWith(mountPath + '/')) return null
+    const own = (m) => { const p = String(m).split('?')[0].replace(/\/+$/, '') || '/'; return path === p || (p !== '/' && path.startsWith(p + '/')) }
+    if ((menuRoutes || []).some(own)) return null
+    return r
+  }
+
+  /** pathLeavingMountOf for a reducer's `navigate` effect, against the registry's shell menu. */
+  function navigationLeavingMountOf(navigate, reg) {
+    if (!navigate || navigate.url || !navigate.route) return null
+    return pathLeavingMountOf(navigate.route, menuRoutesOf(((reg && reg.shell) || {}).menu))
+  }
+
+  /** Loads the page of a navigate effect that leaves this mount (navigationLeavingMountOf) and says
+   *  whether it did — false: the navigation stays in the app, for the caller to do. */
+  function leftMountFor(navigate, reg, win = typeof window !== 'undefined' ? window : null) {
+    const path = navigationLeavingMountOf(navigate, reg)
+    if (!path || !win || !win.location) return false
+    win.location.assign(path)
+    return true
+  }
+
   /** The route part (no query) of the browser path — what to compare a route against. */
   function currentRoutePathOf(location) {
     if (!location) return ''
@@ -19396,6 +20823,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * breaks, headings, lists (numbered and not), quotes, rules, code blocks and snippets, tables,
    * http(s) links (in another tab), bold and italics.
    */
+  /** The `messages` of a conversation entry's Spectra block (oj-sp-chat-message-block, shell panel):
+   *  the person's text as is — Spectra's chat-text paints a user's message as text —, the assistant's
+   *  markdown as escaped HTML — chat-text pours a bot's text in as HTML, unsanitised, so it must never
+   *  get the raw text. */
+  function chatBlockMessagesOf(role, text) {
+    const raw = String(text ?? '')
+    // the assistant's HTML in .mateu-chat-markdown: the bubble's markdown styles (app.css)
+    return [{ type: 'text', text: role === 'user' ? raw : '<div class="mateu-chat-markdown">' + chatMarkdownToHtml(raw) + '</div>' }]
+  }
+
   function chatMarkdownToHtml(text) {
     const lines = String(text ?? '').replace(/\r\n?/g, '\n').split('\n')
     const out = []
@@ -20185,10 +21622,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     ? globalThis.crypto.randomUUID()
     : Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join(''))
 
+  /** Spectra's chat pieces (oj-sp-chat-message-block, oj-sp-chat-input), when the page can load them
+   *  (VB with requirejs): the Chat component's turns and composer are then Spectra's; without them (a
+   *  bare DOM, the Node tests) the hand-drawn ones. */
+  function withSpectraChat(cb) {
+    const req = typeof window !== 'undefined' && typeof window.require === 'function' ? window.require : null
+    if (!req) { cb(false); return }
+    req(['oj-sp/chat-message-block/loader', 'oj-sp/chat-input/loader'], () => cb(true), () => cb(false))
+  }
+
   function installChatComponents(doc = typeof document !== 'undefined' ? document : null) {
     observeSlots(doc, '__mateuChatComponents', '[data-mateu-chat-url]', ['data-mateu-chat-url'], (el) => {
       if (el.__mateuChat) return
       el.__mateuChat = true
+      withSpectraChat((sp) => { if (el.isConnected !== false) buildChatComponent(doc, el, sp) })
+    })
+  }
+
+  function buildChatComponent(doc, el, sp) {
+    {
       const key = el.id || el.getAttribute('data-mateu-chat-url')
       if (!conversations.has(key)) conversations.set(key, { sessionId: newSessionId(), turns: [], busy: false })
       const conv = conversations.get(key)
@@ -20199,6 +21651,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       log.setAttribute('aria-live', 'polite')
       const form = doc.createElement('form')
       form.className = 'mateu-chat-form'
+      // Spectra: its composer (textarea, Enter/send arrow, attach), outside VB's bindings
+      if (sp) el.setAttribute('data-oj-binding-provider', 'none')
+      const spInput = sp ? doc.createElement('oj-sp-chat-input') : null
+      if (spInput) {
+        spInput.suggestionData = []
+        spInput.className = 'mateu-chat-sp-input mateu-chat-no-mic'
+      }
       const input = doc.createElement('textarea')
       input.className = 'mateu-chat-input oj-typography-body-md'
       input.rows = 2
@@ -20247,31 +21706,66 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           attached.textContent = attachments.length ? '📎 ' + attachments.map((a) => a.name).join(', ') : ''
         })
         form.appendChild(picker)
-        form.appendChild(attach)
+        if (spInput) {
+          // Spectra's attach button opens OUR picker (any file; Spectra's own takes only images/PDF)
+          spInput.addEventListener('click', (e) => {
+            if (!e.target || !e.target.closest || !e.target.closest('.oj-sp-chat-input-attach-btn')) return
+            e.preventDefault()
+            e.stopImmediatePropagation()
+            if (picker.click) picker.click()
+          }, true)
+        } else form.appendChild(attach)
+      } else if (spInput) spInput.className += ' mateu-chat-no-attach'
+      if (spInput) {
+        form.classList.add('mateu-chat-sp-form')
+        form.appendChild(spInput)
+      } else {
+        form.appendChild(input)
+        form.appendChild(send)
       }
-      form.appendChild(input)
-      form.appendChild(send)
       el.appendChild(log)
       el.appendChild(status)
       el.appendChild(tokens)
       el.appendChild(attached)
       el.appendChild(form)
       const paint = () => {
-        log.textContent = ''
-        for (const turn of chatTurnsOf(conv.turns)) {
-          const div = doc.createElement('div')
-          div.className = turn.cls
-          div.innerHTML = turn.html
-          log.appendChild(div)
+        const turns = chatTurnsOf(conv.turns)
+        if (sp) {
+          // one Spectra block per turn, REUSED while the answer streams (only its messages change):
+          // the person's text as text, the assistant's as the sanitised HTML chatTurnsOf rendered
+          while (log.children.length > turns.length) log.removeChild(log.lastChild)
+          turns.forEach((turn, i) => {
+            let block = log.children[i]
+            if (!block) {
+              block = doc.createElement('oj-sp-chat-message-block')
+              block.animateOptions = 'none'
+              block.displayOptions = { botAvatar: false, userAvatar: false }
+              // classList, never className: JET keeps a custom element hidden until it carries oj-complete
+              block.classList.add(...turn.cls.split(' '), 'mateu-chat-block')
+              block.sender = turn.role === 'user' ? 'user' : 'bot'
+              log.appendChild(block)
+            }
+            const text = turn.role === 'user' ? String(conv.turns[i].text || '') : '<div class="mateu-chat-markdown">' + turn.html + '</div>'
+            if (block.__mateuText !== text) { block.__mateuText = text; block.messages = [{ type: 'text', text }] }
+          })
+        } else {
+          log.textContent = ''
+          for (const turn of turns) {
+            const div = doc.createElement('div')
+            div.className = turn.cls
+            div.innerHTML = turn.html
+            log.appendChild(div)
+          }
         }
         log.scrollTop = log.scrollHeight
         tokens.textContent = chatUsageTextOf(conv.usage)
       }
-      const submit = async () => {
-        const text = input.value.trim()
+      const submit = async (given) => {
+        const text = (typeof given === 'string' ? given : input.value).trim()
         if ((!text && !attachments.length) || conv.busy) return
         input.value = ''
         conv.busy = true
+        if (spInput) spInput.disableAction = true
         const sentAttachments = attachments
         attachments = []
         attached.textContent = ''
@@ -20313,15 +21807,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           conv.usage = latestUsage(conv.usage, turnUsage)
           status.textContent = ''
           conv.busy = false
+          if (spInput) spInput.disableAction = false
           paint()
         }
         await events
       }
+      if (spInput) spInput.addEventListener('ojSpChatInputValueChanged', (e) => { void submit(String((e.detail && e.detail.value) || '')) })
       send.addEventListener('ojAction', (e) => { e.stopPropagation(); void submit() })
       form.addEventListener('submit', (e) => { e.preventDefault(); void submit() })
       input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void submit() } })
       paint()
-    })
+    }
   }
 
   // ── Fact actions in an oj-sp header: the icon button right after the fact's value ─────────────
@@ -20420,6 +21916,91 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
   }
 
+  // ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────
+  // The KPI band is Spectra's scoreboard (scoreboardAtomOf), drawn exactly as Spectra draws it: its
+  // items have no icon and none is added (MetricCard.icon is not shown on Redwood — owner's "pure
+  // KPI, like in Spectra"). Its only interaction is SELECTION — a filter that pre-selects the first
+  // card on mount —, so a MetricCard's actionId (drill-in) cannot ride it. The band is painted with
+  // selection off and this adds the drill-in, keyed by the item id ('k<i>' = the atom's metrics[i]),
+  // on the list's own item action (click or Enter on the card), sent through the page's action channel. The atom is read from the element's binding
+  // context (setScoreboardDataResolver: knockout's $current.data), so a band inside an inline island
+  // keeps the surface its metrics were tagged with.
+  let scoreboardSink = null
+  let scoreboardData = null
+  /** Who runs a card's drill-in (the shell: the page's action channel). */
+  function setScoreboardActionSink(fn) { scoreboardSink = typeof fn === 'function' ? fn : null }
+  /** How to read the scoreboard atom from its element (the bridge: knockout's binding context). */
+  function setScoreboardDataResolver(fn) { scoreboardData = typeof fn === 'function' ? fn : null }
+
+  const SCOREBOARD_HOST = 'oj-sp-scoreboard'
+  const KPI_ID = /_kpi_k(\d+)$/
+
+  /** The metric index of a scoreboard card container (its id ends in `_kpi_k<i>`), or -1. */
+  function scoreboardIndexOf(el) {
+    const m = el && el.id ? String(el.id).match(KPI_ID) : null
+    return m ? Number(m[1]) : -1
+  }
+
+  /** Marks the cards that drill in (pointer + hover). Idempotent. */
+  function decorateScoreboard(host, atom, doc = host.ownerDocument) {
+    const metrics = (atom && atom.metrics) || []
+    if (!metrics.length) return
+    for (const card of Array.from(host.querySelectorAll('[id]'))) {
+      const i = scoreboardIndexOf(card)
+      const metric = i >= 0 ? metrics[i] : null
+      if (!metric) continue
+      const actionable = !!metric.actionId
+      const cls = String(card.getAttribute('class') || '')
+      const marked = /(^|\s)mateu-kpi-actionable(\s|$)/.test(cls)
+      if (actionable && !marked) card.setAttribute('class', (cls + ' mateu-kpi-actionable').trim())
+      if (!actionable && marked) card.setAttribute('class', cls.replace(/(^|\s)mateu-kpi-actionable(?=\s|$)/g, ' ').trim())
+    }
+  }
+
+  /** What a card's item action runs: [actionId, parameters, {fromNested, surfaceId}] or null. */
+  function scoreboardDrillInOf(atom, key) {
+    const m = String(key == null ? '' : key).match(/^k(\d+)$/)
+    const metric = m && atom && atom.metrics ? atom.metrics[Number(m[1])] : null
+    if (!metric || !metric.actionId) return null
+    return [metric.actionId, metric.parameters || {}, { fromNested: !!(atom.fromNested || metric.fromNested), surfaceId: metric.surfaceId || atom.surfaceId || '' }]
+  }
+
+  /** Installs (once) the scoreboards' drill-ins over the whole document. */
+  function installScoreboards(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuScoreboards) return
+    doc.__mateuScoreboards = true
+    const atomOf = (host) => {
+      try { return scoreboardData ? scoreboardData(host) : null } catch (e) { return null }
+    }
+    // capture: the list's item action does not have to bubble out of the scoreboard to be heard
+    doc.addEventListener('ojItemAction', (e) => {
+      const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
+      if (!host || !scoreboardSink) return
+      const key = e.detail && e.detail.context ? e.detail.context.key : null
+      const run = scoreboardDrillInOf(atomOf(host), key)
+      if (run) scoreboardSink(run[0], run[1], run[2])
+    }, true)
+    if (typeof MutationObserver === 'undefined') return
+    const root = doc.body || doc.documentElement
+    const pass = (hosts) => { for (const host of hosts) decorateScoreboard(host, atomOf(host), doc) }
+    pass(Array.from(root.querySelectorAll(SCOREBOARD_HOST)))
+    new MutationObserver((records) => {
+      const hosts = new Set()
+      for (const r of records) {
+        const target = r.target && r.target.nodeType === 1 ? r.target : r.target && r.target.parentNode
+        const host = target && target.closest ? target.closest(SCOREBOARD_HOST) : null
+        if (host) hosts.add(host)
+        for (const n of r.addedNodes || []) {
+          if (n.nodeType !== 1) continue
+          if (n.matches && n.matches(SCOREBOARD_HOST)) hosts.add(n)
+          for (const h of Array.from(n.querySelectorAll ? n.querySelectorAll(SCOREBOARD_HOST) : [])) hosts.add(h)
+        }
+      }
+      pass(hosts)
+    }).observe(root, { subtree: true, childList: true })
+  }
+
+
 
 
 
@@ -20437,7 +22018,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The collection header of a listing: its toolbar's first button is the primary action, the
    *  rest its secondary actions. */
   /** What an empty overlay variable looks like (the templates read its fields unconditionally). */
-  const EMPTY_OVERLAY = { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} }
+  const EMPTY_OVERLAY = { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {},
+    // the drawer panel's Spectra template (tree.mjs spectraDrawerOf): none while nothing is open
+    sp: { template: '', edge: 'end', modality: 'modal', autoDismiss: 'focus-loss', footerActions: [] } }
 
   /**
    * The overlay variables after an increment: the DRAWER panel shows the top-most drawer of the stack
@@ -20455,6 +22038,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       drawerOpen: !!drawer && !(picker && !picker.inDrawer),
       modal: !!dialog && !picker,
     }
+  }
+
+  /**
+   * The application variables of a navigation that closes every open overlay (onMateuNavigate): the
+   * registry without them, the drawer panel shut and both overlay projections empty.
+   */
+  function overlaysClosedVarsOf(reg) {
+    const next = withoutOverlays(reg)
+    const vars = overlayVarsOf(next, null)
+    return { mateuRegistry: next, mateuDrawerOpen: false, mateuDrawer: vars.drawer, mateuDialog: vars.dialog }
   }
 
   function listHeaderVarsOf(listingSummary) {
@@ -20498,7 +22091,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const welcome = welcomeOf(host)
     const overview = generalOverviewOf(host)
     const item = itemOverviewOf(host)
+    // the Dashboard archetype → oj-sp-dashboard-landing-page (its own header, kpi slot, panels)
+    const dashboard = welcome || overview || item ? null : dashboardOf(host)
+    // the TodoList archetype → oj-sp-task-organizer-page (its header + the queue in its slot)
+    const todo = welcome || overview || item || dashboard ? null : todoListOf(host)
+    // Spectra page templates with slots (core/spPages.mjs): DataManagement / GanttPage →
+    // oj-sp-data-management-page, CollectionDetail → oj-sp-collection-detail-page
+    const dm = welcome || overview || item || dashboard || todo ? null : dataManagementPageOf(host)
+    const cd = welcome || overview || item || dashboard || todo || dm ? null : collectionDetailPageOf(host, { title: pageTitleOf(host) })
     const vars = {
+      mateuDashboard: dashboard,
+      mateuTodo: todo,
+      mateuDm: dm,
+      mateuCd: cd,
+      // the ItemOverview archetype on oj-sp-item-overview-page: its oj-sp-item-overview's title/badge
+      mateuItemOvHeader: item ? itemOverviewPageHeaderOf(host, item) : null,
       mateuWelcomeTrendItems: welcome && welcome.trend ? welcome.trend.items : [],
       mateuWelcome: welcome,
       mateuOverview: overview,
@@ -20514,7 +22121,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       vars.mateuWelcomeIlluBg = look.illuBg
       vars.mateuWelcomeIllu = look.illu
     }
-    return { vars, welcome, overview, item }
+    // spPage: a page template that brings its own header and owns the page (the chains suppress the VB
+    // header and the generic form for it, like the dashboard/todo branches)
+    return { vars, welcome, overview, item, dashboard, todo, dm, cd, spPage: !!(dm || cd || item) }
+  }
+
+  /** The Page node's title ('' without one). */
+  function pageTitleOf(host) {
+    const page = host && host.tree ? findByType(host.tree, 'Page') : null
+    return (page && page.metadata && page.metadata.title) || ''
   }
 
   /** The island (an embedded mediator) projected: its fields, sections, actions and content; null
@@ -20541,7 +22156,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * EntityHeader the screen header takes (kept on a foldout: the 360 keeps its guest in the band).
    */
   function hostContentPlanOf(host, { islandRawBlocks, title, activeTabs, wizard, listing, welcome, overview, item, queue, foldout }) {
-    const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout
+    // the dashboard branch (oj-sp-dashboard-landing-page) owns the page like the other archetypes
+    const dashboard = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout ? dashboardOf(host) : null
+    // …and so does the TodoList's task organizer
+    const todo = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard ? todoListOf(host) : null
+    // …and the Spectra slot templates (data management / gantt page, collection detail)
+    const spPage = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo
+      ? (dataManagementPageOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
+    const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo && !spPage
     const hostEntity = (!wizard && (noOtherBranch || foldout)) ? entityHeaderOf(host) : null
     const opts = { title, dropEntityHeader: !!hostEntity }
     if (activeTabs !== undefined) opts.activeTabs = activeTabs
@@ -21108,6 +22730,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // LIVE UI PUSH (phase C, conformance/mcp/README.md "Live UI push"): an agent speaking MCP sends UI
   // to THIS browser tab — a screen (render), a navigation or a custom event — once the user paired the
   // tab with it ("Connect AI" → a one-time code the agent passes to mateu_pair_session).
@@ -21430,7 +23053,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       Promise.resolve().then(() => (fetchImpl || globalThis.fetch)(t.base + '/mateu/v3/sse/_no_route', {
         method: 'POST',
         signal: own.signal,
-        headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, headers ? headers() : authHeadersOf()),
+        headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, rendererHeaders(), headers ? headers() : authHeadersOf()),
         body: JSON.stringify(agentActionBodyOf(AGENT_CHANNEL_ACTION, {
           sessionId: t.sessionId, secret: t.secret, serverSideType: t.serverSideType, route: t.route ? t.route() : '',
         })),
@@ -23071,14 +24694,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc',
+    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
+    'installDrawerGuard', 'installAttachmentChips',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
   const CONTENT_ACTION_SINKS = Object.freeze([
     'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
     'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
-    'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink',
+    'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink', 'setScoreboardActionSink',
   ])
 
   /** What the standalone shell installs and the component deliberately does NOT, and why. */
@@ -23375,6 +24999,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   defineRichTextField();
   defineMarkupField();
   defineColorField();
+  // the scoreboard's drill-in reads its atom from the element's binding context ($current.data);
+  // knockout is already loaded by then (VB paints with it), so the synchronous require answers
+  setScoreboardDataResolver((el) => {
+    const ko = require('knockout');
+    const c = ko && ko.contextFor ? ko.contextFor(el) : null;
+    return c && c.$current ? c.$current.data : null;
+  });
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -23411,6 +25042,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // wire-version check (wireVersion.mjs): the shell shows a mismatch in the error band
     setWireMismatchListener,
     checkWireVersion,
+    // version skew (versionSkew.mjs): the «app updated» notice of a redeployed backend
+    setAppUpdatedListener,
+    rendererHeaderValue,
+    // a mirror of Oracle's CDN (oracleCdn.mjs): the gallery urls follow it
+    oracleCdnUrl,
     mountElements,
     setElementEventSink,
     setElementModuleBase,
@@ -23424,6 +25060,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     planningActionOf,
     ganttTaskIdAt,
     applyDomEffects,
+    installAttachmentChips,
     installRules,
     setPanelExpanded,
     panelExpanded,
@@ -23503,6 +25140,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     dialogOverlayOf,
     dismissOverlayById,
     overlayVarsOf,
+    overlaysClosedVarsOf,
+    // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
+    withListingPeers,
+    drawerHasUnsavedChanges,
+    noteDrawerUnsaved,
+    installDrawerGuard,
     EMPTY_OVERLAY,
     dynFormMetadataOf,
     actionsOf,
@@ -23603,6 +25246,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     confirmLeaveAction,
     tracksUnsavedChanges,
     fieldEditLeavesUnsavedChanges,
+    // unsaved changes SCOPED per overlay (the page's mateuDirty + each open overlay's own), and
+    // what a navigation does with them: one question, then every overlay closes
+    topOverlayContextOf,
+    withOverlayDirty,
+    overlaysHoldUnsavedChanges,
+    hasUnsavedChanges,
+    confirmNavigationAway,
+    restoreUrlAfterStaying,
+    hasOpenOverlays,
+    withoutOverlays,
     // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
     pageFlowOf,
     catalogueActionOf,
@@ -23669,6 +25322,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     routeOfPath,
     pathOfRoute,
     routeUnderMount,
+    menuRoutesOf,
+    pathLeavingMountOf,
+    navigationLeavingMountOf,
+    leftMountFor,
     scrollToTopOnNavigate,
     bootstrapShell,
     bootstrapHasApp,
@@ -23776,6 +25433,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
+    chatBlockMessagesOf,
     chatRouteOfLink,
     // the agent's UI events (navigation-requested, close-requested, render-screen, any other):
     // one dispatcher for the shell panel and the inline Chat component, mid-stream
@@ -23817,6 +25475,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // an EntityHeader fact's action inside an oj-sp header (its icon button after the value)
     installFactActions,
     setFactActionSink,
+    // the KPI band (oj-sp-scoreboard): a card's icon and its drill-in (actionId)
+    installScoreboards,
+    setScoreboardActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,
     runSurfaceAction,

@@ -39,7 +39,11 @@ define([
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, { selector: '#mateuToast', method: 'open' });
       }
-      if (reg.effects.navigate && reg.effects.navigate.route) {
+      // a path outside this mount (another @UI's) is a browser path, as on the web renderer
+      const leaving = bridge.navigationLeavingMountOf(reg.effects.navigate, reg);
+      if (leaving) {
+        window.location.assign(leaving);
+      } else if (reg.effects.navigate && reg.effects.navigate.route) {
         document.dispatchEvent(new CustomEvent('navigation-requested', {
           detail: { route: reg.effects.navigate.route }, bubbles: true, composed: true,
         }));

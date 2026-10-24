@@ -56,6 +56,24 @@ Body: {
   idempotent reads. See the transport notes in [Slow connections](/ux-patterns/slow-connections/).
 - SSE variants stream partial increments for long tasks; each streamed frame is a `UIIncrementDto`.
 
+### Transport headers
+
+Two HTTP headers travel next to the payload. They are not part of `UIIncrementDto` (so neither the
+schema nor the conformance corpus covers them), but every first-party backend and renderer
+implements them:
+
+| Header | Direction | Value | Meaning |
+|---|---|---|---|
+| `X-Mateu-Build` | response, on **every** response of a path with a `/mateu/` segment — refusals (403) and errors included | opaque, `[A-Za-z0-9._-]{1,64}` | fingerprint of the deployed UI: the same on every replica of one release, different when a screen changes. Compare for equality only. Replaced by the setting `mateu.build-id` / `MATEU_BUILD_ID` |
+| `X-Mateu-Renderer` | request, on Mateu sync/SSE calls only (never on third-party REST sources) | `<name>/<version> wire/<major>.<minor>`, e.g. `vaadin/0.0.15 wire/3.0` | which renderer calls, and the wire it was built for. A server logs one WARN per distinct value of another wire major and never refuses the request |
+
+A consumer keeps, per backend (the URL up to the `/mateu/` segment), the first build it saw as its
+baseline. A later response with another build means the app was deployed again; a **Mateu 403
+refusal** carrying another build means the screen the request came from no longer exists in that
+form (a removed action, a renamed view model) — a stale screen, not a permission problem. With CORS
+enabled, `X-Mateu-Build` is listed in `Access-Control-Expose-Headers`. See
+[Versions across teams and deployments](/deploy/versions-across-teams/).
+
 ## The envelope — `UIIncrementDto`
 
 | Field | Meaning |

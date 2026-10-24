@@ -252,6 +252,7 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
                 null, true)
             {
                 Tone = banner.Tone == HeroTone.Auto ? null : banner.Tone.ToString().ToLowerInvariant(),
+                Overline = banner.Overline.Length > 0 ? T(banner.Overline) : null,
             }, "welcome-banner", []));
 
         var compact = type.Find<CompactAttribute>() != null;
@@ -466,7 +467,7 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         if (instance is ITodoList) ids.Add("openTodoItem");
         if (instance is ICalendarPage)
             ids.UnionWith(["openCalendarEvent", "previousCalendarMonth", "nextCalendarMonth", "goCalendarToday",
-                "switchCalendarView", "openCalendarDay", "createCalendarEvent"]);
+                "goCalendarToDate", "switchCalendarView", "openCalendarDay", "createCalendarEvent"]);
         if (instance is IGanttPage) ids.Add("selectGanttTask");
         if (instance is IDataManagement) ids.UnionWith(["switchToGrid", "switchToGantt"]);
         if (instance is DataManagement) ids.UnionWith(["toggleEndPanel", "toggleBottomPanel"]);

@@ -13,5 +13,7 @@ export default interface HeroSection extends ComponentMetadata {
      * tinted band with light ink; absent = the default look.
      */
     tone?: string
+    /** A short line ABOVE the title introducing it (the Redwood welcome page's overline). */
+    overline?: string
 
 }

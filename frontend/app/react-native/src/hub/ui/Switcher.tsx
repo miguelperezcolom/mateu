@@ -1,7 +1,8 @@
 import React from 'react';
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../../ui/Text';
 import { buttonA11y, headingA11y, modalA11y } from '../../a11y/a11y';
-import { theme } from '../../theme';
+import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import type { HubEntry } from '../uiStore';
 import { SecondaryButton, UiIcon } from './common';
@@ -57,7 +58,7 @@ export function Switcher({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.4)' },
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '70%', backgroundColor: theme.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingBottom: 24 },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
@@ -67,4 +68,4 @@ const styles = StyleSheet.create({
   rowText: { flex: 1 },
   name: { fontSize: 16, fontWeight: '600', color: theme.ink },
   domain: { fontSize: 13, color: theme.muted },
-});
+}));

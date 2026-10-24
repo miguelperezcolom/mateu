@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { interpolate } from '../core/expressions';
 import { actionPanelView, panelLabel, type ActionPanelMeta, type PanelAction } from './actionPanel';
@@ -112,7 +113,7 @@ export function ActionPanelRenderer({ metadata, state }: { metadata: Record<stri
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   trigger: {
     backgroundColor: theme.background, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm,
     borderWidth: 1, borderColor: theme.border, alignSelf: 'flex-start',
@@ -140,4 +141,4 @@ const styles = StyleSheet.create({
   populated: { fontWeight: '700' },
   disabled: { color: theme.faint },
   more: { fontSize: 13, color: theme.primary },
-});
+}));

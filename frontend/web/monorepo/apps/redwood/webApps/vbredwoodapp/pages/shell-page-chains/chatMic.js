@@ -9,7 +9,7 @@ define(['vb/action/actionChain', 'resources/js/mateu-bridge'], (ActionChain, bri
 
   let recognition = null;
 
-  const inputEl = () => document.querySelector('#mateuChatInput input');
+  const inputEl = () => document.querySelector('#mateuChatInput textarea, #mateuChatInput input');
 
   function recognizer($application) {
     if (recognition) return recognition;

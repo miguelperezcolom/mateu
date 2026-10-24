@@ -372,7 +372,8 @@ define([
       // (bridge.overlayVarsOf): a Dialog opened OVER a Drawer leaves the drawer where it is
       const pickerNow = bridge.searchPickerOf(reg);
       const overlayVars = bridge.overlayVarsOf(reg, pickerNow);
-      $application.variables.mateuDrawer = overlayVars.drawer;
+      // a crud drawer's Spectra arrows walk the listing rows on screen (tree.mjs withListingPeers)
+      $application.variables.mateuDrawer = bridge.withListingPeers(overlayVars.drawer, $application.variables.mateuListingRows);
       $application.variables.mateuDialog = overlayVars.dialog;
       const esModal = overlayVars.modal;
       // a listing in a Drawer is drawn inside the drawer (pickerNow.inDrawer), not in the selector's dialog
@@ -386,6 +387,10 @@ define([
       }
       if (!overlayNow || !overlayBefore || overlayNow.id !== overlayBefore.id) {
         $page.variables.mateuDrawerDraft = {};
+        // another drawer (or none): its Spectra template starts at its size, nothing pending
+        $page.variables.mateuDrawerState = 'auto';
+        $page.variables.mateuDrawerLeaving = null;
+        bridge.noteDrawerUnsaved(false);
       }
       if (pickerNow) {
         $page.variables.mateuPicker = pickerNow;
@@ -523,7 +528,7 @@ define([
       const welcome = archetypes.welcome;
       const overviewProjection = archetypes.overview;
       const itemProjection = archetypes.item;
-      if (welcome || overviewProjection || itemProjection) {
+      if (welcome || overviewProjection || itemProjection || archetypes.dashboard || archetypes.todo || archetypes.spPage) {
         // their fields/buttons are painted by the archetype's branches (or the foldout's panels:
         // a crud's @FoldoutDetail view), not by the generic form
         assign(bridge.noGenericFormVars());
@@ -596,7 +601,7 @@ define([
       // general rule: the page header is ALWAYS painted by a vb header; only the
       // templates that already integrate their own (guided process / general overview / welcome /
       // the listing's smart-filter-search) suppress it
-      const integratedHeader = !!(wizardProjection || welcome
+      const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
         || overviewProjection || listingSummary
         || (foldoutNow && !hostEntity2 && !hostToolbarA.length));
       const showHeaderA = !integratedHeader && !notFoundAfter;
@@ -725,7 +730,7 @@ define([
         if (effects.navigate.url) {
           // an absolute URL (another console's) opens in its own tab, as in Vaadin
           window.open(effects.navigate.url, '_blank', 'noopener');
-        } else {
+        } else if (!bridge.leftMountFor(effects.navigate, $application.variables.mateuRegistry)) { // another @UI's path loads in the browser
           // `force`: the action says go to a route, even the one already shown — «+ 10 reservas
           // demo» goes back to the listing to show the new ones, «Cancel booking» to the booking
           // to show it cancelled. Without forcing, the shell took the route for the echo of its

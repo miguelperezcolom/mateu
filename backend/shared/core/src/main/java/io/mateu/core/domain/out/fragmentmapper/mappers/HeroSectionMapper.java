@@ -28,6 +28,10 @@ public class HeroSectionMapper {
                 heroSection.tone() == null || heroSection.tone() == io.mateu.uidl.data.HeroTone.auto
                     ? null
                     : heroSection.tone().name())
+            .overline(
+                heroSection.overline() == null || heroSection.overline().isBlank()
+                    ? null
+                    : heroSection.overline())
             .build(),
         heroSection.id(),
         heroSection.content() != null

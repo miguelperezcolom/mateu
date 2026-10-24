@@ -5,6 +5,7 @@
 
 import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
+import { ORACLE_CDN, oracleCdnBase, oracleCdnUrl } from './oracleCdn.mjs'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
@@ -39,7 +40,7 @@ import {
   buildChatMenuContext, buildChatBody, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
   createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
-  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink, stickChatToBottom, isChatMicShortcut,
+  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatBlockMessagesOf, chatRouteOfLink, stickChatToBottom, isChatMicShortcut,
   CHAT_MIC_ARIA_KEYSHORTCUTS,
   chatConfigOf, chatTurnOf, chatTurnTextOf, chatToolStepsOf, withAttachments,
 } from './chat.mjs'
@@ -90,6 +91,32 @@ const atest = (name, fn) => {
 }
 
 // 1) Bootstrap: the App configures the shell (menu→navigator) and creates no content context.
+test('Oracle CDN mirror: derived from the page runtime configuration, Oracle by default', () => {
+  const mirror = { JET_CDN_PATH: 'https://cdn.example.com/oracle/cdn/jet/18.1.0-2510.3' }
+  assert.equal(oracleCdnBase(undefined), ORACLE_CDN)
+  assert.equal(oracleCdnBase({ JET_CDN_PATH: ORACLE_CDN + '/jet/18.1.0-2510.3' }), ORACLE_CDN)
+  assert.equal(oracleCdnBase(mirror), 'https://cdn.example.com/oracle/cdn')
+  const img = ORACLE_CDN + '/fnd/gallery/2307.0.2/images/illust-welcome-banner-bg-01.png'
+  assert.equal(oracleCdnUrl(img, undefined), img)
+  assert.equal(oracleCdnUrl(img, mirror), 'https://cdn.example.com/oracle/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-bg-01.png')
+  // anything that is not Oracle's CDN is left alone
+  assert.equal(oracleCdnUrl('https://cdnjs.cloudflare.com/x.js', mirror), 'https://cdnjs.cloudflare.com/x.js')
+  assert.equal(oracleCdnUrl(null, mirror), null)
+  // a garbled configuration never yields a url built from it
+  assert.equal(oracleCdnBase({ JET_CDN_PATH: "javascript:alert(1)/jet/1" }), ORACLE_CDN)
+})
+
+test('Oracle CDN mirror: the base the page recorded wins over the runtime configuration', () => {
+  globalThis.__mateuOracleCdn = 'https://rec.example.com/cdn'
+  try {
+    assert.equal(oracleCdnBase(), 'https://rec.example.com/cdn')
+    globalThis.__mateuOracleCdn = 'javascript:alert(1)'
+    assert.equal(oracleCdnBase(), ORACLE_CDN)
+  } finally {
+    delete globalThis.__mateuOracleCdn
+  }
+})
+
 test('bootstrap App → shell con menú; ningún contexto de contenido', () => {
   const { contexts, shell } = reduceContexts(empty(), fx('app'))
   assert.equal(Object.keys(contexts).length, 0)
@@ -1048,6 +1075,10 @@ test('welcomeOf/generalOverviewOf/itemOverviewOf proyectan los tres arquetipos',
   assert.equal(overview.switcherValue, 'r1')
   assert.equal(overview.facts.find((f) => f.label === 'Amount').value.includes('12.480'), true)
   assert.deepEqual(overview.cards.map((c) => c.title), ['Details', 'Approval'])
+  // oj-sp-general-overview-page: the status (first badge) is the template's badge, not subtitle text
+  assert.deepEqual(overview.badge && overview.badge.text, 'Processing')
+  assert.doesNotMatch(overview.pageSubtitle, /Processing/)
+  assert.deepEqual(overview.mainCards.map((c) => c.title), ['Details', 'Approval'])
   const item = itemOverviewOf(reduceContexts(empty(), fx('load-chair')).contexts[HOST_ID])
   assert.equal(item.key.texts.length, 5)
   assert.deepEqual(item.tabs.map((t) => t.label), ['Specifications', 'Reviews'])
@@ -2920,13 +2951,22 @@ test('chat: la respuesta del asistente se pinta como markdown, con el HTML escap
     '<p><a href="https://a.b/c?d=1&amp;e=&quot;2&quot;" target="_blank" rel="noopener noreferrer">doc</a></p>')
   assert.equal(md(''), '')
   assert.equal(md(null), '')
-  // the assistant's bubble paints it with oj-bind-dom (the person's, text as is)
+  // the conversation is Spectra's oj-sp-chat-message-block: the person's text as TEXT, the
+  // assistant's as the HTML rendered and escaped HERE (chat-text pours a bot's text in unsanitised)
+  assert.deepEqual(chatBlockMessagesOf('user', '<b>hola</b>\n2'), [{ type: 'text', text: '<b>hola</b>\n2' }])
+  assert.deepEqual(chatBlockMessagesOf('agent', 'Hay **2** <img src=x onerror=alert(1)>'),
+    [{ type: 'text', text: '<div class="mateu-chat-markdown"><p>Hay <strong>2</strong> &lt;img src=x onerror=alert(1)&gt;</p></div>' }])
+  assert.deepEqual(chatBlockMessagesOf('agent', null), [{ type: 'text', text: '<div class="mateu-chat-markdown"></div>' }])
   const shell = webApp('pages/shell-page.html')
-  assert.match(shell, /<oj-bind-dom config="\[\[ \$functions\.chatMessageDom\(\$current\.data\.text\) \]\]"><\/oj-bind-dom>/)
-  assert.match(shell, /<span class="mateu-chat-user-text"><oj-bind-text value="\[\[ \$current\.data\.text \]\]"><\/oj-bind-text><\/span>/)
-  assert.match(webApp('pages/shell-page.js'), /bridge\.chatMarkdownToHtml\(text\)/)
-  assert.equal(JSON.parse(webApp('pages/shell-page.json')).imports.components['oj-bind-dom'].path, 'ojs/ojbinddom')
-  assert.match(webApp('resources/js/mateu-bridge.js'), /chatMarkdownToHtml,/)
+  assert.match(shell, /<oj-sp-chat-message-block class="oj-sm-margin-3x-bottom mateu-chat-block"\s+sender="\[\[ \$current\.data\.role === 'user' \? 'user' : 'bot' \]\]"/)
+  assert.match(shell, /messages="\[\[ \$functions\.chatBlockMessages\(\$current\.data\.role, \$current\.data\.text\) \]\]"/)
+  assert.doesNotMatch(shell, /<oj-sp-chat-container/, 'its diff ignores a streamed text that grows')
+  assert.match(webApp('pages/shell-page.js'), /bridge\.chatBlockMessagesOf\(role, text\)/)
+  assert.match(webApp('pages/shell-page.js'), /closest\('#mateuChatPanel a\.mateu-chat-route'\)/, 'route links: delegated')
+  const comps = JSON.parse(webApp('pages/shell-page.json')).imports.components
+  assert.equal(comps['oj-sp-chat-message-block'].path, 'oj-sp/chat-message-block/loader')
+  assert.equal(comps['oj-sp-chat-input'].path, 'oj-sp/chat-input/loader')
+  assert.match(webApp('resources/js/mateu-bridge.js'), /chatBlockMessagesOf,/)
 })
 
 test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dictar — con JET', () => {
@@ -5145,6 +5185,103 @@ import { isLeaveAction, isConflictDialogAnswer, confirmLeaveAction, tracksUnsave
   })
 }
 
+// ── unsaved changes SCOPED per overlay (the web's dirtyGuard): the page's + each open overlay's ───
+import { withOverlayDirty, overlaysHoldUnsavedChanges, hasUnsavedChanges, confirmNavigationAway, withoutOverlays, hasOpenOverlays, topOverlayContextOf } from './shellFlows.mjs'
+{
+  // the crud's create/edit drawer as the server sends it: the form is a ServerSide in metadata.content
+  const crudDrawer = { type: 'ClientSide', id: 'fieldId', metadata: { type: 'Drawer', content: {
+    type: 'ServerSide', id: 'crud-drawer-form', confirmOnNavigationIfDirty: true, actions: [{ id: 'save' }, { id: 'cancel-edit' }], children: [] } }, children: [] }
+  const host = { tree: { type: 'ServerSide', actions: [], children: [] } }
+  const withDrawer = (dirty) => ({ stack: ['d1'], contexts: { [HOST_ID]: host, d1: { tree: crudDrawer, dirty } } })
+
+  test('tracksUnsavedChanges: an overlay\'s form asks from metadata.content (and from its surface)', () => {
+    assert.equal(tracksUnsavedChanges({ tree: crudDrawer }), true)
+    assert.equal(tracksUnsavedChanges({ tree: { metadata: { type: 'Drawer', content: { type: 'ClientSide', metadata: {} } } } }), false)
+    assert.equal(tracksUnsavedChanges({ tree: {}, surface: { confirmOnNavigationIfDirty: true } }), true)
+    assert.equal(fieldEditLeavesUnsavedChanges(withDrawer(false), { overlay: true }), true)
+  })
+
+  test('withOverlayDirty: marks the TOP overlay\'s own scope — only one that asks; clearing always takes', () => {
+    const marked = withOverlayDirty(withDrawer(false), true)
+    assert.equal(marked.contexts.d1.dirty, true)
+    assert.equal(marked.contexts[HOST_ID], host, 'the page is untouched')
+    assert.equal(withOverlayDirty(marked, true), marked, 'same reg when nothing changes')
+    const plain = { stack: ['d1'], contexts: { d1: { tree: { metadata: { type: 'Drawer' } } } } }
+    assert.equal(withOverlayDirty(plain, true), plain, 'a drawer that does not ask never holds unsaved changes')
+    assert.equal(withOverlayDirty(marked, false).contexts.d1.dirty, false)
+    assert.equal(topOverlayContextOf(marked), marked.contexts.d1)
+    assert.equal(topOverlayContextOf({ stack: [], contexts: {} }), null)
+  })
+
+  test('hasUnsavedChanges: the page OR any open overlay', () => {
+    assert.equal(hasUnsavedChanges({ mateuDirty: false, mateuRegistry: withDrawer(false) }), false)
+    assert.equal(hasUnsavedChanges({ mateuDirty: true, mateuRegistry: withDrawer(false) }), true)
+    assert.equal(hasUnsavedChanges({ mateuDirty: false, mateuRegistry: withDrawer(true) }), true)
+    assert.equal(overlaysHoldUnsavedChanges(withDrawer(true)), true)
+    assert.equal(hasUnsavedChanges(undefined), false)
+  })
+
+  test('confirmNavigationAway: ONE question for page + overlays; stay changes nothing, accept discards them all', () => {
+    const asked = []
+    const win = (answer) => ({ confirm: (m) => { asked.push(m); return answer } })
+    const clean = { mateuDirty: false, mateuRegistry: withDrawer(false) }
+    assert.equal(confirmNavigationAway(clean, win(false)), true)
+    assert.equal(clean.mateuRegistry.stack.length, 1, 'the caller closes a clean overlay, not the guard')
+    assert.equal(asked.length, 0)
+    const vars = { mateuDirty: true, mateuRegistry: withDrawer(true) }
+    assert.equal(confirmNavigationAway(vars, win(false)), false, 'stay')
+    assert.equal(vars.mateuDirty, true)
+    assert.equal(vars.mateuRegistry.contexts.d1.dirty, true, 'the drawer keeps what was typed')
+    assert.equal(confirmNavigationAway(vars, win(true)), true, 'leave')
+    assert.deepEqual(asked, [chromeText('unsavedLeave'), chromeText('unsavedLeave')], 'one question per attempt')
+    assert.equal(vars.mateuDirty, false)
+    assert.deepEqual(vars.mateuRegistry.stack, [], 'every overlay discarded')
+    assert.equal(vars.mateuRegistry.contexts.d1, undefined)
+  })
+
+  test('withoutOverlays: every overlay context and the stack go; the page stays', () => {
+    const reg = { stack: ['d1', 'd2'], contexts: { [HOST_ID]: host, d1: {}, d2: {} }, shell: { x: 1 } }
+    const next = withoutOverlays(reg)
+    assert.deepEqual(Object.keys(next.contexts), [HOST_ID])
+    assert.deepEqual(next.stack, [])
+    assert.equal(next.shell, reg.shell)
+    assert.equal(hasOpenOverlays(next), false)
+    assert.equal(withoutOverlays(next), next)
+  })
+
+  test('confirmLeaveAction is scoped: an overlay\'s Cancel asks about ITS edits, never the page\'s', () => {
+    const asked = []
+    const win = { confirm: (m) => { asked.push(m); return false } }
+    // a clean drawer over a dirty page leaves without a question
+    assert.equal(confirmLeaveAction('cancel-edit', { mateuDirty: true, mateuRegistry: withDrawer(false) }, win), true)
+    assert.equal(asked.length, 0)
+    // a dirty drawer asks; staying keeps its flag
+    const vars = { mateuDirty: false, mateuRegistry: withDrawer(true) }
+    assert.equal(confirmLeaveAction('cancel-edit', vars, win), false)
+    assert.equal(vars.mateuRegistry.contexts.d1.dirty, true)
+    // leaving clears the DRAWER's scope only
+    const page = { mateuDirty: true, mateuRegistry: withDrawer(true) }
+    assert.equal(confirmLeaveAction('cancel-edit', page, { confirm: () => true }), true)
+    assert.equal(page.mateuRegistry.contexts.d1.dirty, false)
+    assert.equal(page.mateuDirty, true, 'the page behind keeps its unsaved changes')
+  })
+
+  test('reducer: an overlay refreshed IN PLACE keeps its unsaved flag (error banner); the MarkAsClean of «Save and next» still lands on it', () => {
+    const drawerAdd = (extra = {}) => ({ commands: [], messages: [], fragments: [{ targetComponentId: '', action: 'Add', state: {}, data: null,
+      component: { type: 'ClientSide', id: 'crud-drawer', metadata: { type: 'Drawer', content: crudDrawer.metadata.content }, children: [] } }], ...extra })
+    let reg = reduceContexts({ contexts: {}, stack: [] }, drawerAdd())
+    const first = reg.stack[0]
+    reg = withOverlayDirty(reg, true)
+    // the error banner: re-sent with no MarkAsClean → still unsaved
+    const banner = reduceContexts(reg, drawerAdd(), { initiator: first })
+    assert.notEqual(banner.stack[0], first, 'a new context id (the chains reset the draft on it)')
+    assert.equal(banner.contexts[banner.stack[0]].dirty, true)
+    // «Save and next»: re-sent WITH MarkAsClean aimed at the drawer that asked (its old id)
+    const next = reduceContexts(reg, drawerAdd({ commands: [{ type: 'MarkAsClean' }] }), { initiator: first })
+    assert.equal(next.contexts[next.stack[0]].dirty, false)
+  })
+}
+
 // ── the ACTION catalogue: owner first, then App.actionCatalogue ──────────────────────────────────
 import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
 {
@@ -5649,7 +5786,8 @@ test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las de
   // the template exists in the listing table (and in the picker, and in a drawer's listing), and
   // app.css cuts with an ellipsis
   const html = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 3)
+  // (the drawer's listing once per Spectra drawer template: general / create-edit / bottom)
+  assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 5)
   assert.match(webApp('resources/css/app.css'), /\.mateu-cell-clip \{[\s\S]*text-overflow: ellipsis;[\s\S]*white-space: nowrap;/)
 })
 
@@ -5804,6 +5942,113 @@ test('wireVersion: mismo major vale; otro major se avisa UNA vez, en claro; sin 
   const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.match(shell, /bridge\.setWireMismatchListener\(/)
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'wireVersion\.mjs'/)
+})
+
+
+import { rendererHeaderValue, rendererVersion, withRendererHeader, backendKeyOf, noteResponseBuild, setAppUpdatedListener, resetVersionSkew, RENDERER_WIRE_VERSION } from './versionSkew.mjs'
+
+test('versionSkew: X-Mateu-Renderer = redwood/<version> wire/3.0, only on Mateu endpoints', () => {
+  assert.equal(RENDERER_WIRE_VERSION, '3.0')
+  assert.equal(rendererHeaderValue('2604.1.0'), 'redwood/2604.1.0 wire/3.0')
+  // unstamped sources (Node) → unknown; the bridge is stamped with package.json's version
+  assert.equal(rendererVersion(), 'unknown')
+  assert.equal(rendererVersion('1.2.3'), '1.2.3')
+  assert.equal(withRendererHeader('https://h/app/mateu/v3/sync/x', { headers: { A: '1' } }).headers['X-Mateu-Renderer'], 'redwood/unknown wire/3.0')
+  assert.equal(withRendererHeader('https://h/app/mateu/v3/sync/x', { headers: { A: '1' } }).headers.A, '1')
+  // a third-party REST source is left alone
+  const rest = { headers: { A: '1' } }
+  assert.equal(withRendererHeader('https://swapi.mateu.io/people', rest), rest)
+  const pkg = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8'))
+  const bridge = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'js', 'mateu-bridge.js'), 'utf8')
+  assert.ok(bridge.includes(`const RENDERER_VERSION_STAMP = ${JSON.stringify(pkg.version)}`), 'npm run bridge stamps the version')
+  assert.doesNotMatch(readFileSync(join(here, 'restSources.mjs'), 'utf8'), /X-Mateu-Renderer|versionSkew/)
+})
+
+test('versionSkew: backend key = absolute URL up to /mateu/', () => {
+  assert.equal(backendKeyOf('https://h:8080/app/mateu/v3/sync/x'), 'https://h:8080/app')
+  assert.equal(backendKeyOf('/mateu/v3/sync/x', 'https://h/products'), 'https://h')
+  assert.equal(backendKeyOf('/app/mateu/v3/sse/y', 'https://h/products'), 'https://h/app')
+})
+
+test('versionSkew: baseline = first build; another build → updated ONCE per backend; Mateu 403 → stale', () => {
+  resetVersionSkew()
+  const a = 'https://a/mateu/v3/sync/x'
+  const b = 'https://b/mateu/v3/sync/x'
+  assert.equal(noteResponseBuild(a, null), null, 'no header: nothing')
+  assert.equal(noteResponseBuild(a, 'b1'), null, 'baseline')
+  assert.equal(noteResponseBuild(a, 'b1'), null)
+  assert.equal(noteResponseBuild(a, 'b2'), 'updated')
+  assert.equal(noteResponseBuild(a, 'b3'), null, 'shown once')
+  assert.equal(noteResponseBuild(a, 'b1'), null)
+  // another backend has its own baseline
+  assert.equal(noteResponseBuild(b, 'x1', { ok: false, status: 403, mateuRefusal: true }), null, 'no baseline yet → unchanged')
+  assert.equal(noteResponseBuild(b, 'x1', { ok: false, status: 403, mateuRefusal: true }), null, 'same build → plain forbidden')
+  assert.equal(noteResponseBuild(b, 'x2', { ok: false, status: 403, mateuRefusal: false }), null, 'not Mateu\'s refusal')
+  assert.equal(noteResponseBuild(b, 'x2', { ok: false, status: 500 }), null)
+  assert.equal(noteResponseBuild(b, 'x2', { ok: false, status: 403, mateuRefusal: true }), 'stale')
+  assert.equal(noteResponseBuild(b, 'x2', { ok: true }), null, 'stale already told: no updated notice too')
+  resetVersionSkew()
+})
+
+atest('versionSkew: fetchWithPolicy sends X-Mateu-Renderer and turns builds into notices', async () => {
+  resetVersionSkew()
+  connectivity.reset()
+  const notices = []
+  const failures = []
+  setAppUpdatedListener((m) => notices.push(m))
+  setTransportHooks({ onSettle: (e) => { if (e.failure) failures.push(e.failure) } })
+  const original = globalThis.fetch
+  const sent = []
+  let answer
+  globalThis.fetch = async (url, init) => { sent.push([url, init && init.headers]); return answer() }
+  const ok = (build) => () => ({ ok: true, status: 200, headers: new Headers(build ? { 'X-Mateu-Build': build } : {}), json: async () => ({}) })
+  const refused = (build, text = 'Forbidden') => () => ({ ok: false, status: 403, headers: new Headers({ 'X-Mateu-Build': build }), text: async () => text })
+  const quietConsole = console.error
+  try {
+    answer = ok('b1')
+    await fetchWithPolicy('https://k/mateu/v3/sync/x', { headers: { 'Content-Type': 'application/json' } }, { actionId: '' })
+    assert.equal(sent[0][1]['X-Mateu-Renderer'], 'redwood/unknown wire/3.0')
+    assert.equal(sent[0][1]['Content-Type'], 'application/json')
+    // a refusal from the SAME build: the usual forbidden text
+    answer = refused('b1')
+    await assert.rejects(fetchWithPolicy('https://k/mateu/v3/sync/x', {}, { actionId: 'save' }))
+    assert.equal(failures.at(-1).message, "You're not allowed to do this.")
+    assert.ok(!failures.at(-1).reload)
+    // a refusal from ANOTHER build: the screen is stale, Reload offered
+    answer = refused('b2')
+    await assert.rejects(fetchWithPolicy('https://k/mateu/v3/sync/x', {}, { actionId: 'save' }))
+    assert.equal(failures.at(-1).message, 'This screen has changed since you opened it. Reload to continue.')
+    assert.equal(failures.at(-1).reload, true)
+    // …and the «updated» notice is not shown on top of it
+    answer = ok('b2')
+    await fetchWithPolicy('https://k/mateu/v3/sync/x', {}, { actionId: '' })
+    assert.equal(notices.length, 0)
+    // another backend redeployed: the notice, once
+    answer = ok('c1')
+    await fetchWithPolicy('https://other/mateu/v3/sync/x', {}, { actionId: '' })
+    answer = ok('c2')
+    await fetchWithPolicy('https://other/mateu/v3/sync/x', {}, { actionId: '' })
+    await fetchWithPolicy('https://other/mateu/v3/sync/x', {}, { actionId: '' })
+    assert.deepEqual(notices, ['This app has been updated. Reload to use the latest version.'])
+    // no header (static bundle, older server): nothing
+    answer = ok(null)
+    await fetchWithPolicy('https://other/mateu/v3/sync/x', {}, { actionId: '' })
+    assert.equal(notices.length, 1)
+  } finally {
+    console.error = quietConsole
+    globalThis.fetch = original
+    setTransportHooks(null)
+    setAppUpdatedListener(null)
+    connectivity.reset()
+    resetVersionSkew()
+  }
+  // the shell shows both in the error band, whose button reloads
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.setAppUpdatedListener\(/)
+  assert.match(shell, /mateuReloadOffered = !!failure\.reload/)
+  assert.match(webApp('pages/shell-page-chains/retryMateuAction.js'), /mateuReloadOffered[\s\S]*location\.reload\(\)/)
+  assert.match(webApp('pages/shell-page.html'), /mateuReloadOffered \? \$application\.translations\.appBundle\.reload/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'versionSkew\.mjs'/)
 })
 
 

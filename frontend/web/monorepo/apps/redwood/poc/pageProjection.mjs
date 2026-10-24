@@ -1,12 +1,13 @@
 import {
-  wizardForwardOf, welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, fieldListOf,
+  wizardForwardOf, welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, dashboardOf, todoListOf, fieldListOf,
   formSectionsOf, actionsOf, islandContentOf, mergeNestedContent, entityHeaderOf, hostContentOf,
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
   pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf, contextualInfoOf, factActionsJsonOf,
-  drawerOverlayOf, dialogOverlayOf,
+  drawerOverlayOf, dialogOverlayOf, dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 import { chromeText } from './i18n.mjs'
+import { withoutOverlays } from './shellFlows.mjs'
 
 // THE PAGE PROJECTION — what the two big page chains (shell onMateuNavigate: a navigation;
 // content runMateuAction: an action's answer) assign to the VB variables once the registry is
@@ -21,7 +22,9 @@ export const noGenericFormVars = () => ({ mateuFormMetadata: null, mateuFormFiel
 /** The collection header of a listing: its toolbar's first button is the primary action, the
  *  rest its secondary actions. */
 /** What an empty overlay variable looks like (the templates read its fields unconditionally). */
-export const EMPTY_OVERLAY = { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} }
+export const EMPTY_OVERLAY = { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {},
+  // the drawer panel's Spectra template (tree.mjs spectraDrawerOf): none while nothing is open
+  sp: { template: '', edge: 'end', modality: 'modal', autoDismiss: 'focus-loss', footerActions: [] } }
 
 /**
  * The overlay variables after an increment: the DRAWER panel shows the top-most drawer of the stack
@@ -39,6 +42,16 @@ export function overlayVarsOf(reg, picker = null) {
     drawerOpen: !!drawer && !(picker && !picker.inDrawer),
     modal: !!dialog && !picker,
   }
+}
+
+/**
+ * The application variables of a navigation that closes every open overlay (onMateuNavigate): the
+ * registry without them, the drawer panel shut and both overlay projections empty.
+ */
+export function overlaysClosedVarsOf(reg) {
+  const next = withoutOverlays(reg)
+  const vars = overlayVarsOf(next, null)
+  return { mateuRegistry: next, mateuDrawerOpen: false, mateuDrawer: vars.drawer, mateuDialog: vars.dialog }
 }
 
 export function listHeaderVarsOf(listingSummary) {
@@ -82,7 +95,21 @@ export function archetypeVarsOf(host, previousLook) {
   const welcome = welcomeOf(host)
   const overview = generalOverviewOf(host)
   const item = itemOverviewOf(host)
+  // the Dashboard archetype → oj-sp-dashboard-landing-page (its own header, kpi slot, panels)
+  const dashboard = welcome || overview || item ? null : dashboardOf(host)
+  // the TodoList archetype → oj-sp-task-organizer-page (its header + the queue in its slot)
+  const todo = welcome || overview || item || dashboard ? null : todoListOf(host)
+  // Spectra page templates with slots (core/spPages.mjs): DataManagement / GanttPage →
+  // oj-sp-data-management-page, CollectionDetail → oj-sp-collection-detail-page
+  const dm = welcome || overview || item || dashboard || todo ? null : dataManagementPageOf(host)
+  const cd = welcome || overview || item || dashboard || todo || dm ? null : collectionDetailPageOf(host, { title: pageTitleOf(host) })
   const vars = {
+    mateuDashboard: dashboard,
+    mateuTodo: todo,
+    mateuDm: dm,
+    mateuCd: cd,
+    // the ItemOverview archetype on oj-sp-item-overview-page: its oj-sp-item-overview's title/badge
+    mateuItemOvHeader: item ? itemOverviewPageHeaderOf(host, item) : null,
     mateuWelcomeTrendItems: welcome && welcome.trend ? welcome.trend.items : [],
     mateuWelcome: welcome,
     mateuOverview: overview,
@@ -98,7 +125,15 @@ export function archetypeVarsOf(host, previousLook) {
     vars.mateuWelcomeIlluBg = look.illuBg
     vars.mateuWelcomeIllu = look.illu
   }
-  return { vars, welcome, overview, item }
+  // spPage: a page template that brings its own header and owns the page (the chains suppress the VB
+  // header and the generic form for it, like the dashboard/todo branches)
+  return { vars, welcome, overview, item, dashboard, todo, dm, cd, spPage: !!(dm || cd || item) }
+}
+
+/** The Page node's title ('' without one). */
+function pageTitleOf(host) {
+  const page = host && host.tree ? findByType(host.tree, 'Page') : null
+  return (page && page.metadata && page.metadata.title) || ''
 }
 
 /** The island (an embedded mediator) projected: its fields, sections, actions and content; null
@@ -125,7 +160,14 @@ export function nestedVarOf(nestedBlocks) {
  * EntityHeader the screen header takes (kept on a foldout: the 360 keeps its guest in the band).
  */
 export function hostContentPlanOf(host, { islandRawBlocks, title, activeTabs, wizard, listing, welcome, overview, item, queue, foldout }) {
-  const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout
+  // the dashboard branch (oj-sp-dashboard-landing-page) owns the page like the other archetypes
+  const dashboard = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout ? dashboardOf(host) : null
+  // …and so does the TodoList's task organizer
+  const todo = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard ? todoListOf(host) : null
+  // …and the Spectra slot templates (data management / gantt page, collection detail)
+  const spPage = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo
+    ? (dataManagementPageOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
+  const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo && !spPage
   const hostEntity = (!wizard && (noOtherBranch || foldout)) ? entityHeaderOf(host) : null
   const opts = { title, dropEntityHeader: !!hostEntity }
   if (activeTabs !== undefined) opts.activeTabs = activeTabs

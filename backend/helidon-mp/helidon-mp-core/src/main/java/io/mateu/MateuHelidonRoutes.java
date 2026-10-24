@@ -84,6 +84,19 @@ public class MateuHelidonRoutes {
     routing.addFilter(
         (chain, req, res) -> {
           String path = req.path().path();
+          if (CorsPolicy.appliesTo(path)) {
+            // the version headers: the build id on every response (refusals and errors included),
+            // set when the response is sent — the first request builds the wire type allow-list
+            io.mateu.core.infra.versioning.RendererCompatibility.check(
+                header(req, io.mateu.core.infra.versioning.RendererCompatibility.HEADER));
+            res.beforeSend(
+                () -> {
+                  var build = io.mateu.core.infra.versioning.AppBuild.id();
+                  if (build != null) {
+                    res.header(io.mateu.core.infra.versioning.AppBuild.HEADER, build);
+                  }
+                });
+          }
           if (policy.enabled() && CorsPolicy.appliesTo(path)) {
             String origin = header(req, "Origin");
             if (origin != null) {

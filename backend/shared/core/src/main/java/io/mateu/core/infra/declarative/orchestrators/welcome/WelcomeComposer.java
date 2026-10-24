@@ -38,6 +38,17 @@ public final class WelcomeComposer {
       String heroSubtitle,
       String heroImage,
       io.mateu.uidl.data.HeroTone heroTone) {
+    return compose(host, id, heroTitle, heroSubtitle, heroImage, heroTone, null);
+  }
+
+  public static Component compose(
+      Object host,
+      String id,
+      String heroTitle,
+      String heroSubtitle,
+      String heroImage,
+      io.mateu.uidl.data.HeroTone heroTone,
+      String heroOverline) {
     List<Component> ctas = new ArrayList<>();
     List<Component> tiles = new ArrayList<>();
     for (Field field : getAllFields(host.getClass())) {
@@ -82,6 +93,7 @@ public final class WelcomeComposer {
             .subtitle(heroSubtitle)
             .image(heroImage)
             .tone(heroTone)
+            .overline(heroOverline)
             .centered(true)
             .content(ctas)
             .build());

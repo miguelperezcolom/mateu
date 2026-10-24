@@ -268,6 +268,26 @@ public abstract class CalendarPage implements io.mateu.core.domain.RequestBound,
     return this;
   }
 
+  /**
+   * Moves the displayed period to the one holding {@code _date} (an ISO date, {@code 2027-03-10}):
+   * what a renderer's date picker in the calendar's title dispatches. An unparseable date leaves
+   * the period as it is.
+   */
+  @io.mateu.uidl.annotations.Action
+  @Experimental("calendar date jump (3.0-beta.13)")
+  public Object goCalendarToDate(HttpRequest httpRequest) {
+    currentRequest = httpRequest;
+    var date = httpRequest.runActionRq().parameters().get("_date");
+    if (date != null) {
+      try {
+        _month = LocalDate.parse(String.valueOf(date));
+      } catch (java.time.format.DateTimeParseException e) {
+        // a garbled date from the client: stay where we are
+      }
+    }
+    return this;
+  }
+
   @io.mateu.uidl.annotations.Action
   @Experimental("calendar views (3.0-alpha.409)")
   public Object switchCalendarView(HttpRequest httpRequest) {

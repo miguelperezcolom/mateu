@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { interpolate } from '../core/expressions';
 import { PageBanner } from '../core/MateuViewController';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
+import { FAB, IconButton, Text as PaperText } from 'react-native-paper';
+import { MateuButton, StatusChip } from '../ui/controls';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
@@ -16,6 +19,7 @@ interface ButtonDto {
   id?: string;
   label?: string;
   buttonStyle?: string;
+  color?: string | null;
   disabled?: boolean;
   route?: string;
 }
@@ -27,21 +31,13 @@ interface Props {
   data: unknown;
 }
 
-const BADGE_COLORS: Record<string, string> = {
-  normal: theme.divider,
-  success: theme.successBg,
-  error: theme.dangerBg,
-  warning: theme.warningBg,
-  contrast: theme.border,
-};
-
-const BANNER_COLORS: Record<string, { bg: string; border: string }> = {
+const BANNER_COLORS: Record<string, { bg: string; border: string }> = themed(() => ({
   info: { bg: theme.infoBg, border: theme.primary },
   success: { bg: theme.successBg, border: theme.success },
   warning: { bg: theme.warningBg, border: theme.warning },
   danger: { bg: theme.dangerBg, border: theme.danger },
   error: { bg: theme.dangerBg, border: theme.danger },
-};
+}));
 
 /** Page banners: the static @Banner list (metadata) + action-returned banners (controller),
  *  rendered below the header. Closeable ones dismiss locally; timeoutSeconds auto-dismisses. */
@@ -73,9 +69,7 @@ function Banners({ metadata, state }: { metadata: Record<string, unknown>; state
               {!!banner.description && <Text style={styles.bannerText}>{interpolate(banner.description, { state })}</Text>}
             </View>
             {banner.hasCloseButton && (
-              <TouchableOpacity {...buttonA11y({ label: 'Dismiss notice' })} hitSlop={theme.hitSlop} onPress={() => setDismissed((d) => [...d, i])}>
-                <Text style={styles.bannerClose}>✕</Text>
-              </TouchableOpacity>
+              <IconButton icon="close" size={18} style={styles.bannerClose} accessibilityLabel="Dismiss notice" onPress={() => setDismissed((d) => [...d, i])} />
             )}
           </View>
         );
@@ -105,6 +99,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
     controller.session.openView({ label, route, consumedRoute: '', serverSideType: '' });
 
   const handleAction = (actionId: string) => runAction(actionId);
+  const onlyListing =
+    children.length === 1 &&
+    ((children[0] as Record<string, unknown>)?.['metadata'] as Record<string, unknown> | undefined)?.['type'] === 'Crud';
   const pressButton = useButtonPress();
 
   return (
@@ -113,15 +110,15 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         <View style={styles.header}>
           {!!extras.overline && <Text style={styles.overline}>{extras.overline}</Text>}
           {!title && !!extras.placeholder && (
-            <Text style={[styles.title, styles.placeholder]} {...headingA11y(1)}>{extras.placeholder}</Text>
+            <PaperText variant="headlineSmall" style={[styles.title, styles.placeholder]} {...headingA11y(1)}>{extras.placeholder}</PaperText>
           )}
           {!!title && (
             // Marked as a heading so the rotor / reading controls can jump between screens'
             // sections instead of forcing a linear read from the top.
-            <Text style={styles.title} {...headingA11y(1)}>{title}</Text>
+            <PaperText variant="headlineSmall" style={styles.title} {...headingA11y(1)}>{title}</PaperText>
           )}
           {!!switcher && <RecordSwitcherRenderer switcher={switcher} />}
-          {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {!!subtitle && <PaperText variant="bodyMedium" style={styles.subtitle}>{subtitle}</PaperText>}
           {!!extras.timestamp && <Text style={styles.timestamp}>{extras.timestamp}</Text>}
           {!!extras.peers && (
             <View style={styles.peers}>
@@ -130,15 +127,15 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
                 if (!peer) return null;
                 const disabled = !peer.route;
                 return (
-                  <TouchableOpacity
+                  <MateuButton
                     key={side}
-                    {...buttonA11y({ label: `${side === 'prev' ? 'Previous' : 'Next'}: ${peer.label}`, disabled })}
+                    label={peer.label}
+                    icon={side === 'prev' ? 'chevron-left' : 'chevron-right'}
+                    accessibilityLabel={`${side === 'prev' ? 'Previous' : 'Next'}: ${peer.label}`}
                     disabled={disabled}
-                    style={[styles.btnDefault, disabled && styles.btnDisabled]}
+                    compact
                     onPress={() => peer.route && openPeer(peer.label, peer.route)}
-                  >
-                    <Text style={styles.btnDefaultText}>{side === 'prev' ? `‹ ${peer.label}` : `${peer.label} ›`}</Text>
-                  </TouchableOpacity>
+                  />
                 );
               })}
             </View>
@@ -146,9 +143,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
           {badges.length > 0 && (
             <View style={styles.badges}>
               {badges.map((b, i) => (
-                <View key={i} style={[styles.badge, { backgroundColor: BADGE_COLORS[String(b.color ?? 'normal').toLowerCase()] ?? BADGE_COLORS.normal }]}>
-                  <Text style={styles.badgeText}>{interpolate(b.text ?? '', ctx)}</Text>
-                </View>
+                <StatusChip key={i} label={interpolate(b.text ?? '', ctx)} tone={b.color} />
               ))}
             </View>
           )}
@@ -166,15 +161,10 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
             <View style={styles.toolbar}>
               {toolbar.map((btn, i) => {
                 const id = btn.actionId ?? btn.id ?? '';
-                const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
                 const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
                 const disabled = !!btn.disabled || press.disabled;
                 return (
-                  <TouchableOpacity {...buttonA11y({ disabled })} key={i} disabled={disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, disabled && styles.btnDisabled]} onPress={press.onPress}>
-                    <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>
-                      {interpolate(btn.label ?? id, ctx)}
-                    </Text>
-                  </TouchableOpacity>
+                  <MateuButton key={i} label={interpolate(btn.label ?? id, ctx)} buttonStyle={btn.buttonStyle} color={btn.color} disabled={disabled} onPress={press.onPress} />
                 );
               })}
             </View>
@@ -184,26 +174,28 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
 
       <Banners metadata={metadata} state={state} />
 
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        {children.map((child, i) => (
-          <ComponentRenderer key={i} component={child} state={state} data={data} />
-        ))}
-      </ScrollView>
+      {onlyListing ? (
+        // a page that is just a listing (an AutoCrud's page) IS the listing: edge to edge, scrolling
+        // by itself — inside the padded body it was an inset panel and its list a virtualized list
+        // nested in a ScrollView
+        <ComponentRenderer component={children[0]} state={state} data={data} />
+      ) : (
+        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          {children.map((child, i) => (
+            <ComponentRenderer key={i} component={child} state={state} data={data} />
+          ))}
+        </ScrollView>
+      )}
 
 
       {buttons.length > 0 && (
         <View style={styles.bottomBar}>
           {buttons.map((btn, i) => {
             const id = btn.actionId ?? btn.id ?? '';
-            const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
             const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
             const disabled = !!btn.disabled || press.disabled;
             return (
-              <TouchableOpacity {...buttonA11y({ disabled })} key={i} disabled={disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, disabled && styles.btnDisabled]} onPress={press.onPress}>
-                <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>
-                  {interpolate(btn.label ?? id, ctx)}
-                </Text>
-              </TouchableOpacity>
+              <MateuButton key={i} label={interpolate(btn.label ?? id, ctx)} buttonStyle={btn.buttonStyle} color={btn.color} disabled={disabled} onPress={press.onPress} />
             );
           })}
         </View>
@@ -213,9 +205,11 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
       {fabs.length > 0 && (
         <View style={[styles.fabStack, { bottom: fabBottom(buttons.length > 0) }]} pointerEvents="box-none">
           {fabs.map((fab, i) => (
-            <TouchableOpacity {...buttonA11y({ label: fab.label ? interpolate(fab.label, ctx) : fab.actionId || fab.id || 'Action' })} key={i} style={styles.fab} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')}>
-              <Text style={styles.fabText}>{fab.label ? interpolate(fab.label, ctx) : '+'}</Text>
-            </TouchableOpacity>
+            fab.label ? (
+              <FAB key={i} label={interpolate(fab.label, ctx)} accessibilityLabel={interpolate(fab.label, ctx)} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
+            ) : (
+              <FAB key={i} icon="plus" accessibilityLabel={fab.actionId || fab.id || 'Action'} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')} />
+            )
           ))}
         </View>
       )}
@@ -223,22 +217,22 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.white },
-  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.divider },
-  title: { fontSize: 22, fontWeight: '700', color: theme.ink },
-  subtitle: { fontSize: 14, color: theme.muted, marginTop: 4 },
+const styles = themed(() => StyleSheet.create({
+  root: { flex: 1, backgroundColor: theme.surface },
+  header: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 16, backgroundColor: theme.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  title: { color: theme.ink, fontWeight: '600' },
+  subtitle: { color: theme.muted, marginTop: 4 },
   overline: { fontSize: 12, color: theme.muted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
   placeholder: { opacity: 0.45 },
   timestamp: { fontSize: 12, color: theme.muted, marginTop: 4 },
   peers: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  toolbar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, gap: 8 },
+  toolbar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 14, gap: 8 },
   body: { padding: 16, paddingBottom: 24 },
   banners: { paddingHorizontal: 16, paddingTop: 12, gap: 8 },
-  banner: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 8, borderLeftWidth: 4, padding: 12, gap: 8 },
+  banner: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: theme.radiusMd, borderLeftWidth: 4, padding: 12, gap: 8 },
   bannerTitle: { fontWeight: '700', fontSize: 13, color: theme.ink, marginBottom: 2 },
   bannerText: { fontSize: 13, color: theme.ink },
-  bannerClose: { fontSize: 14, color: theme.muted, paddingHorizontal: 4 },
+  bannerClose: { margin: -6 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
   badgeText: { fontSize: 11, fontWeight: '600', color: theme.ink },
@@ -246,20 +240,20 @@ const styles = StyleSheet.create({
   kpi: { alignItems: 'flex-start' },
   kpiText: { fontSize: 20, fontWeight: '700', color: theme.ink },
   kpiTitle: { fontSize: 11, color: theme.faint },
-  fabStack: { position: 'absolute', right: 16, bottom: 24, gap: 10, alignItems: 'flex-end' },
-  fab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 5, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
-  fabText: { color: theme.white, fontWeight: '600', fontSize: 15 },
+  fabStack: { position: 'absolute', right: 16, bottom: 24, gap: 12, alignItems: 'flex-end' },
   bottomBar: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     padding: 16,
-    borderTopWidth: 1,
+    backgroundColor: theme.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: theme.divider,
     gap: 8,
     justifyContent: 'flex-end',
   },
   btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
-  btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 14 },
+  btnPrimaryText: { color: theme.onFill, fontWeight: '600', fontSize: 14 },
   btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
   btnDefaultText: { color: theme.ink, fontSize: 14 },
   btnDisabled: { opacity: 0.45 },
-});
+}));

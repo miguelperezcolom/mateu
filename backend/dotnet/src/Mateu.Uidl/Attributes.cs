@@ -552,8 +552,11 @@ public enum LabelsAsideMode
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class FormLayoutAttribute : Attribute
 {
-    /// <summary>Maximum columns of the responsive form grid (default 2, like Java's columns()).</summary>
-    public int Columns { get; set; } = 2;
+    /// <summary>Maximum columns of the responsive form grid. 0 (the default) = unset: Mateu decides
+    /// from the form's size — ONE column up to 6 visible fields, TWO from 7 on (like Java's
+    /// columns()). Any explicit value ≥ 1 wins; <c>Columns = 2</c> keeps the two-column look of a
+    /// small form.</summary>
+    public int Columns { get; set; }
 
     /// <summary>Where the field labels sit. Default <see cref="LabelsAsideMode.Auto"/>: Mateu
     /// infers it from the form's shape (labels-aside only for dense single-column forms of

@@ -1,5 +1,6 @@
 import { islandContentOf, subresourceIslandOf, inlineIslandOf, editorNodeIds } from './content.mjs'
 import { fieldWidgetOf, isExtraLayoutField, isListingOverlay, plainValueOf } from './rowEditor.mjs'
+import { findFirst } from './listing.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
 
 export const HOST_ID = '__root__'
@@ -179,7 +180,11 @@ export function fieldListOf(tree, state, data) {
     let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
     if (widget.isMultiSelect || widget.isCheckboxSet)
       value = Array.isArray(raw) ? raw.map((v) => plainValueOf(v)) : (raw == null || raw === '' ? [] : String(raw).split(','))
-    else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
+    else if (widget.isMoney) {
+      // an Amount travels as {currency, value, locale}: the input shows its number
+      const n = raw != null && typeof raw === 'object' && !Array.isArray(raw) ? raw.value : raw
+      value = n == null || n === '' || Number.isNaN(Number(n)) ? null : Number(n)
+    }
     out.push({ ...widget, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
   }
   return out
@@ -463,8 +468,18 @@ function overlayProjectionOf(reg, id) {
       id, title: ctx.title || '', subtitle: ctx.subtitle || '', position: ctx.position || 'end',
       width: ctx.width, state: ctx.state || {}, fields: [], sections: [], actions: [], content: [],
       hasContent: false, isDialog, isListing: true, texts: [],
+      sp: spectraDrawerOf(ctx, { fields: [], actions: [] }),
     }
   }
+  const fields = fieldListOf(surface, ctx.state, ctx.data)
+  const actions = actionsOf(surface).filter((a) => !contentActionIds.has(a.actionId))
+  // the Spectra drawer template the panel is painted with (spectraDrawerOf): its error banner
+  // replaces the danger Notice the crud puts on top of the form, which then leaves the content
+  const sp = isDialog ? null : spectraDrawerOf(ctx, { fields, actions })
+  const shownContent = sp && sp.errorBanner
+    ? content.map((block) => ({ ...block, items: block.items.filter((a) => !(a.isNotice && a.text === sp.errorMessage)) }))
+      .filter((block) => block.items.length)
+    : content
   return {
     id,
     title: ctx.title || '',
@@ -473,13 +488,14 @@ function overlayProjectionOf(reg, id) {
     position: ctx.position || 'end',
     width: ctx.width,
     state: ctx.state || {},
-    fields: fieldListOf(surface, ctx.state, ctx.data),
+    fields,
     // the fields keep the layout they were given: a section's columns, a FormLayout's
     // maxColumns, a HorizontalLayout row (the templates bind max-columns to each group)
     sections: formSectionsOf(surface, ctx.state, ctx.data, { byLayout: true }),
-    actions: actionsOf(surface).filter((a) => !contentActionIds.has(a.actionId)),
-    content: content,
-    hasContent: !!content.length,
+    actions,
+    content: shownContent,
+    hasContent: !!shownContent.length,
+    ...(sp ? { sp } : {}),
     // a Dialog overlay is painted as a MODAL (oj-dialog: one-off decision), not as a
     // drawer (task with a form); texts = its message lines. A dialog showing more than lines (an
     // EntityHeader, a Badge, a Meter, a StatusList…) is painted from its content, in order — the modal
@@ -487,6 +503,176 @@ function overlayProjectionOf(reg, id) {
     isDialog,
     hasRichContent: isDialog && content.some((block) => block.items.some((a) => !a.isText)),
     texts: isDialog && content.some((block) => block.items.some((a) => !a.isText)) ? [] : withoutFirst(collectTexts(surface), overlayTitle),
+  }
+}
+
+// ── Spectra drawer templates ────────────────────────────────────────────────────────────────
+// A Drawer is painted INSIDE the oj-drawer-popup with one of Spectra's drawer templates (the
+// Redwood rule: their template and contract before our own drawing):
+//   bottom      → oj-sp-bottom-drawer-template   (DrawerPosition.bottom; collapsible = drawerMode fixed)
+//   createEdit  → oj-sp-create-edit-drawer-template (a drawer you TYPE into and save: editable fields
+//                 and an action — the crud's editInDrawer, an operation's form)
+//   general     → oj-sp-general-drawer-template  (read-only detail: everything else)
+// The id of the crud's create/edit drawer and of its refused-save banner (CrudDrawerBuilder).
+export const CRUD_DRAWER_ID = 'crud-edit-drawer'
+export const CRUD_DRAWER_ERROR_ID = 'crud-drawer-error'
+/** The crud drawer's "Save and next" (PersistActionHandler.SAVE_AND_NEXT). */
+export const SAVE_AND_NEXT = 'save-and-next'
+
+/** Mateu's DrawerSize (s|m|l|xl) — or, without one, the drawer's CSS width — as Spectra's drawerSize
+ *  (sm 29rem · md 40.5rem · lg 60.5rem · xl 90vw): the template sizes itself by class, so a width is
+ *  read as the NEAREST standard size (the crud's 36rem → md; no width → sm). */
+export function spectraDrawerSize(size, width) {
+  const bySize = { s: 'sm', m: 'md', l: 'lg', xl: 'xl', sm: 'sm', md: 'md', lg: 'lg' }
+  if (size && bySize[String(size).toLowerCase()]) return bySize[String(size).toLowerCase()]
+  const w = String(width || '').trim()
+  const m = /^([\d.]+)\s*(rem|em|px|vw|%)?$/.exec(w)
+  if (!m) return 'sm'
+  const n = parseFloat(m[1])
+  const unit = m[2] || 'px'
+  if (unit === 'vw' || unit === '%') return n >= 75 ? 'xl' : n >= 55 ? 'lg' : n >= 38 ? 'md' : 'sm'
+  const px = unit === 'px' ? n : n * 16
+  const sizes = [['sm', 464], ['md', 648], ['lg', 968], ['xl', 1296]]
+  return sizes.reduce((best, s) => (Math.abs(s[1] - px) < Math.abs(best[1] - px) ? s : best), sizes[0])[0]
+}
+
+/** PeerNav → the templates' previousItem/nextItem ({id, label, display}); a side without a route is
+ *  shown DISABLED while the other side exists (Vaadin's rule), none at all → null. The id is the
+ *  route, which spPrevious/spNext hand back. */
+export function spectraPeersOf(peerNav) {
+  const p = peerNav || {}
+  if (!p.prevRoute && !p.nextRoute) return { previousItem: null, nextItem: null }
+  const side = (route, label) => ({ id: route || '-', label: label || '', display: route ? 'on' : 'disabled' })
+  return { previousItem: side(p.prevRoute, p.prevLabel), nextItem: side(p.nextRoute, p.nextLabel) }
+}
+
+const isCancelAction = (a) => /^cancel(-|$)/.test(a.actionId || '') && a.actionId !== 'cancel-view'
+const isSaveAction = (a) => ['save', 'create'].includes(a.actionId)
+
+/**
+ * Projection of a drawer onto its Spectra template (the `sp` of the overlay projection).
+ * `parts` = the overlay's own projected fields and footer actions. What the template cannot carry
+ * (a third secondary action…) stays in `footerActions`, drawn by our own bar inside its default slot.
+ */
+export function spectraDrawerOf(ctx, parts) {
+  const md = (ctx.tree && ctx.tree.metadata) || {}
+  const surface = ctx.surface || ctx.tree
+  const actions = parts.actions || []
+  const editable = (parts.fields || []).some((f) => !f.readonly)
+  const position = ctx.position || md.position || 'end'
+  const peers = spectraPeersOf(md.peerNav)
+  const crudDrawer = !!(ctx.tree && (ctx.tree.id === CRUD_DRAWER_ID || md.id === CRUD_DRAWER_ID))
+  // with arrows of its own (peerNav) the create-edit template turns its footer into «<primary> and
+  // next» and drops the secondary: only right when the drawer offers Save and next; a form drawer
+  // with peer arrows and buttons of its own is a general drawer (its arrows in the header, its
+  // buttons in the footer, all of them)
+  const ownPeers = !!(peers.previousItem || peers.nextItem)
+  const offersSaveAndNext = actions.some((a) => a.actionId === SAVE_AND_NEXT)
+  const template = position === 'bottom' ? 'bottom'
+    : crudDrawer || (editable && actions.length && (!ownPeers || offersSaveAndNext)) ? 'createEdit' : 'general'
+  const base = {
+    template,
+    isGeneral: template === 'general',
+    isCreateEdit: template === 'createEdit',
+    isBottom: template === 'bottom',
+    // JET's popup docks at the edge the drawer names (a bottom drawer used to open on the right)
+    edge: position === 'start' ? 'start' : position === 'bottom' ? 'bottom' : 'end',
+    // modeless/layout: no backdrop, the page stays usable (a collapsible bottom drawer is docked)
+    modality: md.modeless || md.layout || (template === 'bottom' && md.collapsible) ? 'modeless' : 'modal',
+    // a docked bottom drawer is not dismissed by a click on the page it sits under
+    autoDismiss: template === 'bottom' && md.collapsible ? 'none' : 'focus-loss',
+    size: spectraDrawerSize(md.size || ctx.size, md.width || ctx.width),
+    displayOptions: { maximize: md.maximizable ? 'on' : 'off' },
+    previousItem: peers.previousItem,
+    nextItem: peers.nextItem,
+    peerRoutes: !!(peers.previousItem || peers.nextItem),
+    hasNavigation: !!(peers.previousItem || peers.nextItem),
+    closeAction: { display: 'on' },
+    primaryAction: null,
+    primaryActionId: '',
+    secondaryActions: [],
+    secondaryAction: null,
+    secondaryActionId: '',
+    cancelActionId: '',
+    saveAndNextActionId: '',
+    errorBanner: false,
+    errorMessage: '',
+    footerActions: actions,
+  }
+  if (template === 'bottom') {
+    return {
+      ...base,
+      bottomOptions: { drawerMode: md.collapsible ? 'fixed' : 'closable', title: 'on', maximize: md.maximizable ? 'on' : 'off' },
+    }
+  }
+  if (template === 'general') {
+    // footer: the primary (the call-to-action, else the last) and up to two secondaries — more than
+    // the template holds keeps our own bar
+    if (!actions.length || actions.length > 3) return base
+    const primary = actions.find((a) => a.chroming === 'callToAction') || actions[actions.length - 1]
+    const rest = actions.filter((a) => a !== primary)
+    return {
+      ...base,
+      primaryAction: { label: primary.label || primary.actionId, display: primary.disabled ? 'disabled' : 'on' },
+      primaryActionId: primary.actionId,
+      // the footer lays secondaries out REVERSED: handed reversed, they read in the wire's order
+      secondaryActions: rest.map((a) => ({ id: a.actionId, label: a.label || a.actionId, display: a.disabled ? 'disabled' : 'on' })).reverse(),
+      footerActions: [],
+    }
+  }
+  // createEdit: Cancel is the template's own button (spCancel → the form's cancel action), the save is
+  // its primary; "Save and next" turns the primary into Spectra's «Save and next / Save and close»
+  const cancel = actions.find(isCancelAction)
+  const saveAndNext = actions.find((a) => a.actionId === SAVE_AND_NEXT && !a.disabled)
+  const others = actions.filter((a) => a !== cancel && a.actionId !== SAVE_AND_NEXT)
+  const primary = others.find(isSaveAction) || others.find((a) => a.chroming === 'callToAction') || others[others.length - 1]
+  const rest = others.filter((a) => a !== primary)
+  const errorNotice = findFirst(surface, (n) => n.id === CRUD_DRAWER_ERROR_ID)
+    || (surface !== ctx.tree ? findFirst(ctx.tree, (n) => n.id === CRUD_DRAWER_ERROR_ID) : null)
+  // without arrows of its own the footer still says «Save and next» when the crud offers it: a
+  // nextItem WITHOUT id opens the template's navigation footer and draws no header arrow
+  const nextItem = base.nextItem || (saveAndNext ? { label: saveAndNext.label || '', display: 'on' } : null)
+  return {
+    ...base,
+    nextItem,
+    hasNavigation: !!(base.previousItem || nextItem),
+    primaryAction: primary ? { label: primary.label || primary.actionId, display: primary.disabled ? 'disabled' : 'on' } : null,
+    primaryActionId: primary ? primary.actionId : '',
+    secondaryAction: rest.length === 1 ? { label: rest[0].label || rest[0].actionId, display: rest[0].disabled ? 'disabled' : 'on' } : null,
+    secondaryActionId: rest.length === 1 ? rest[0].actionId : '',
+    cancelActionId: cancel ? cancel.actionId : '',
+    saveAndNextActionId: saveAndNext ? saveAndNext.actionId : '',
+    errorBanner: !!errorNotice,
+    errorMessage: errorNotice ? String((errorNotice.metadata && errorNotice.metadata.text) || '') : '',
+    footerActions: rest.length > 1 ? rest : [],
+  }
+}
+
+/** The listing rows around the record a crud drawer edits (by its `id`), as the create-edit template's
+ *  previous/next items — so its arrows and «Save and next» walk the rows on screen. A drawer with
+ *  arrows of its own (peerNav), a new record or a record not on this page keeps what it had. */
+export function withListingPeers(drawer, rows) {
+  const sp = drawer && drawer.sp
+  if (!sp || !sp.isCreateEdit || sp.peerRoutes || !sp.saveAndNextActionId) return drawer
+  const id = drawer.state && drawer.state.id
+  const list = (rows || []).filter((r) => r && !r._group && r.id != null)
+  const at = id == null ? -1 : list.findIndex((r) => String(r.id) === String(id))
+  if (at < 0) return drawer
+  const labelOf = (r) => {
+    const v = [r.name, r.title, r.label].find((x) => typeof x === 'string' && x)
+    return v || String(r.id)
+  }
+  const prev = list[at - 1]
+  const next = list[at + 1]
+  return {
+    ...drawer,
+    sp: {
+      ...sp,
+      previousItem: prev ? { id: String(prev.id), label: labelOf(prev), display: 'on' } : { id: '-', label: '', display: 'disabled' },
+      nextItem: next ? { id: String(next.id), label: labelOf(next), display: 'on' } : { id: '-', label: sp.nextItem ? sp.nextItem.label : '', display: 'disabled' },
+      hasNavigation: true,
+      listingPeers: true,
+    },
   }
 }
 

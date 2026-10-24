@@ -2,7 +2,8 @@ import Constants from 'expo-constants';
 import * as ExpoCrypto from 'expo-crypto';
 import * as Updates from 'expo-updates';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from './src/ui/Text';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { MateuAppProvider } from './src/context/AppContext';
 import {
@@ -18,12 +19,17 @@ import { oidcConfigFrom, oidcConfigFromEnv, type OidcConfig } from './src/core/o
 import { platformStore } from './src/core/secureStore';
 import { installSessionId } from './src/core/sessionId';
 import { installSecureRandom } from './src/core/secureRandom';
-import { theme } from './src/theme';
+import { theme, themed } from './src/theme';
+import { setRendererVersion } from './src/core/buildSkew';
 import { SessionContent } from './src/shell/SessionContent';
 import { HubApp } from './src/hub/HubApp';
+import { MateuThemeProvider } from './src/ui/MateuTheme';
+import { StatusBar } from 'expo-status-bar';
 
 // Hermes has no crypto.getRandomValues: expo-crypto's is the secure source (core/secureRandom.ts)
 installSecureRandom(ExpoCrypto.getRandomValues);
+// X-Mateu-Renderer: react-native/<app version> (core/buildSkew.ts)
+setRendererVersion(Constants.expoConfig?.version);
 
 // ─── Boot modes ──────────────────────────────────────────────────────────────
 // HUB (default): the generic "Mateu" app — the user's own list of UIs, added by QR / address / deep
@@ -267,19 +273,27 @@ function AuthGate({ config }: { config: BootConfig }) {
 }
 
 export default function App() {
+  // Material Design 3 (React Native Paper), light/dark from the device or the app's toggle, the
+  // accent from the app (src/ui/MateuTheme.tsx). A render FUNCTION, so a theme change re-renders
+  // the whole tree against the new tokens.
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea}>
-        {readRegistryConfig() || directMode() ? <RegistryBoot /> : <HubApp />}
-      </SafeAreaView>
+      <MateuThemeProvider>
+        {() => (
+          <SafeAreaView style={styles.safeArea}>
+            <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
+            {readRegistryConfig() || directMode() ? <RegistryBoot /> : <HubApp />}
+          </SafeAreaView>
+        )}
+      </MateuThemeProvider>
     </SafeAreaProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
+const styles = themed(() => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.surface },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  loadingText: { marginTop: 12, fontSize: 14, color: '#666' },
+  loadingText: { marginTop: 12, fontSize: 14, color: theme.muted },
   errorTitle: { fontSize: 18, fontWeight: '700', color: theme.ink, textAlign: 'center', marginBottom: 8 },
   errorDetail: { fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 20, maxWidth: 320 },
   errorTechnical: { fontSize: 12, color: theme.faint, textAlign: 'center', marginTop: 16 },
@@ -287,27 +301,27 @@ const styles = StyleSheet.create({
   retryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 15 },
   toastHost: { position: 'absolute', top: 40, left: 16, right: 16, gap: 8 },
   toast: { borderRadius: 8, padding: 12, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
-  toast_info: { backgroundColor: '#e8f0fe' },
-  toast_warning: { backgroundColor: '#fdf6e3' },
-  toast_error: { backgroundColor: '#fbe9e7' },
-  toastTitle: { fontWeight: '700', fontSize: 13, color: '#1a1a1a', marginBottom: 2 },
-  toastText: { fontSize: 13, color: '#1a1a1a' },
+  toast_info: { backgroundColor: theme.infoBg },
+  toast_warning: { backgroundColor: theme.warningBg },
+  toast_error: { backgroundColor: theme.dangerBg },
+  toastTitle: { fontWeight: '700', fontSize: 13, color: theme.ink, marginBottom: 2 },
+  toastText: { fontSize: 13, color: theme.ink },
   toastBody: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   toastTextGrow: { flex: 1 },
-  toastUndo: { borderWidth: 1, borderColor: '#1a1a1a', borderRadius: 4, paddingHorizontal: 10, paddingVertical: 3 },
-  toastUndoText: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  toastUndo: { borderWidth: 1, borderColor: theme.ink, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 3 },
+  toastUndoText: { fontSize: 13, fontWeight: '600', color: theme.ink },
   overlayBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  overlaySheet: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '85%', minHeight: '50%' },
-  overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  overlayTitle: { fontSize: 16, fontWeight: '600', color: '#1a1a1a' },
-  overlayClose: { fontSize: 18, color: '#666', paddingHorizontal: 8 },
-  updateTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
-  updateDetail: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 },
+  overlaySheet: { backgroundColor: theme.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '85%', minHeight: '50%' },
+  overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: theme.divider },
+  overlayTitle: { fontSize: 16, fontWeight: '600', color: theme.ink },
+  overlayClose: { fontSize: 18, color: theme.muted, paddingHorizontal: 8 },
+  updateTitle: { fontSize: 18, fontWeight: '700', color: theme.ink, marginBottom: 8 },
+  updateDetail: { fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 12 },
   updateSpinner: { marginVertical: 8 },
   updateButton: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, marginTop: 4 },
-  updateButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  updateButtonText: { color: theme.onPrimary, fontWeight: '600', fontSize: 14 },
   updateFallback: { marginTop: 16, alignItems: 'center' },
   updateRecheck: { marginTop: 20, padding: 8 },
   signInError: { marginTop: 12 },
   updateRecheckText: { color: theme.primary, fontSize: 13, fontWeight: '600' },
-});
+}));

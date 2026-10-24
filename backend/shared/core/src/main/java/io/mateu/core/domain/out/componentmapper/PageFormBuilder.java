@@ -63,12 +63,13 @@ public class PageFormBuilder {
         0);
   }
 
+  /**
+   * The form's column count: {@code @FormLayout(columns = N)} when declared, 2 for a {@code @Zones}
+   * form, else inferred from the form's size — 1 column up to 6 visible fields, 2 from 7 on (see
+   * {@link FormColumnsInference}).
+   */
   public static int getFormColumns(Class<?> instanceType) {
-    if (MetaAnnotations.isPresent(instanceType, io.mateu.uidl.annotations.FormLayout.class)) {
-      return MetaAnnotations.find(instanceType, io.mateu.uidl.annotations.FormLayout.class)
-          .columns();
-    }
-    return 2;
+    return FormColumnsInference.formColumns(instanceType);
   }
 
   public static Collection<? extends Component> getForm(

@@ -1,7 +1,8 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import {
   cellA11yLabel, cellParameters, cellTone, groupHeaders, initialCollapsed, isActionableLink, matrixLines,
@@ -177,7 +178,7 @@ export function MatrixGridRenderer({ metadata }: { metadata: Record<string, unkn
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   grid: {
     flexDirection: 'row', borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusSm,
     overflow: 'hidden', backgroundColor: theme.white,
@@ -201,4 +202,4 @@ const styles = StyleSheet.create({
     height: LINE_H - 8, borderWidth: 1, borderColor: theme.info, borderRadius: theme.radiusSm, paddingHorizontal: 4,
     fontSize: 13, textAlign: 'right', color: theme.ink,
   },
-});
+}));

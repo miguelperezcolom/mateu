@@ -21,11 +21,14 @@ import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
 import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TILES } from './map.mjs'
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
+import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf } from './reduceContexts.mjs'
+import { hostContentPlanOf } from './pageProjection.mjs'
+import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
-import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
-import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
+import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
+import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers } from './polling.mjs'
 import { onLoadTriggers, mediatorOf } from './reduceContexts.mjs'
@@ -82,6 +85,10 @@ const fakeEnv = () => {
   }
   return { env, log }
 }
+
+// the copies of the fields OUTSIDE the atoms surfaces: the row editor, the generic form, the wizard,
+// the island… and the drawer's, once per Spectra drawer template (general / create-edit / bottom)
+const FIELD_COPIES_OUTSIDE_ATOMS = 9
 
 test('DownloadFile: el reducer acumula TODOS los ficheros del increment', () => {
   const file = (n) => ({ type: 'DownloadFile', data: { filename: n, mimeType: 'text/csv', base64Content: 'YSxiCjEsMg==' } })
@@ -501,12 +508,12 @@ test('el form layout pinta los mismos widgets nuevos; una lista sin estereotipo 
   assert.equal(layoutFieldOf(md({ dataType: 'array', stereotype: 'grid' }), {}), null)
 })
 
-test('plantilla: los widgets nuevos están en cada superficie de átomos y en las 7 copias de campos', () => {
+test('plantilla: los widgets nuevos están en cada superficie de átomos y en las copias de campos de fuera', () => {
   const page = webApp('flows/main/pages/main-start-page.html')
   const surfaces = (page.match(/<!-- @atoms /g) || []).length
   // (a field's oj-checkboxset opens a line of its own; the Checklist atom's one does not)
   for (const tag of ['<oj-radioset', '<oj-select-many', '<oj-checkboxset\n', '<mateu-capture-field', '<oj-slider', '<mateu-rich-text-field', '<mateu-color-field'])
-    assert.equal(page.split(tag).length - 1, surfaces + 7, tag)
+    assert.equal(page.split(tag).length - 1, surfaces + FIELD_COPIES_OUTSIDE_ATOMS, tag)
   // each copy keeps ITS change listener
   assert.match(page, /<oj-select-many[^>]*\n[^]*?on-value-changed="\[\[ \$listeners\.mateuRowFieldChanged \]\]"/)
   const imports = JSON.parse(webApp('flows/main/pages/main-start-page.json')).imports.components
@@ -1140,6 +1147,94 @@ test('calendario: la plantilla pinta las vistas por data-cal-shown, con oj-butto
   assert.match(webApp('resources/css/app.css'), /\.mateu-cal\[data-cal-shown="week"\] \.mateu-cal-view\[data-for="week"\]/)
 })
 
+// ── Spectra #13: the calendar is oj-sp-calendar, fed locally ───────────────────────────────────
+test('calendario Spectra: colores a las seis claves de Redwood, eventos en hora LOCAL, días y acciones', () => {
+  assert.equal(spColorKeyOf('#c74634'), 'rose')
+  assert.equal(spColorKeyOf('#2e7d32'), 'pine')
+  assert.equal(spColorKeyOf('#b8860b'), 'sienna')
+  assert.equal(spColorKeyOf('#3b82f6'), 'blue')
+  assert.equal(spColorKeyOf('#777'), 'teal', 'gris → la clave por defecto de Spectra')
+  assert.equal(spColorKeyOf('nope'), 'teal')
+  const spec = spCalendarSpecOf(calWire, null, '2026-10-28')
+  const conv = spec.events.find((e) => e.id === 'conv')
+  assert.deepEqual(conv, { id: 'conv', eventTitle: 'Convention', start: '2026-10-29T09:00', end: '2026-10-31T18:00', allDay: false, calendarProvider: 'teal' })
+  assert.deepEqual(spCalendarSpecOf({ events: [{ id: 'a', title: 'A', date: '2026-10-02' }] }).events[0],
+    { id: 'a', eventTitle: 'A', start: '2026-10-02T00:00:00', end: '2026-10-02T23:59:59', allDay: true, calendarProvider: 'teal' }, 'todo el día, sin Z')
+  assert.deepEqual(spec.providers, [{ name: 'teal', color: 'teal', displayName: '' }])
+  assert.deepEqual(spec.actions, { conv: { actionId: 'openCalendarEvent', id: 'conv', title: 'Convention', date: '2026-10-29' } }, 'sólo los eventos con acción')
+  assert.deepEqual(spec.days, { '2026-10-30': { tone: 'danger', label: 'Avail 3' } })
+  assert.equal(spec.dayActionId, 'openCalendarDay')
+  assert.equal(spec.focusDate, '2026-10-28T12:00:00')
+  assert.deepEqual([spec.displayOptions.monthView, spec.displayOptions.weekView, spec.displayOptions.dayView, spec.displayOptions.listView], ['on', 'on', 'on', 'on'])
+  assert.equal(spec.displayOptions.createEvent, 'off')
+  assert.equal(spec.nav, null)
+  const onlyMonth = spCalendarSpecOf({ month: '2026-10-01', events: [] })
+  assert.deepEqual([onlyMonth.displayOptions.weekView, onlyMonth.displayOptions.listView], ['off', 'off'])
+  assert.equal(JSON.parse(calendarAtomOf(calWire, 'cal', '2026-10-28').spSpec).events.length, 3, 'el átomo lleva la spec')
+})
+
+const calPageToolbar = node({ type: 'HorizontalLayout' }, [
+  node({ type: 'Button', label: '‹', actionId: 'previousCalendarMonth' }),
+  node({ type: 'Button', label: 'Hoy', actionId: 'goCalendarToday' }),
+  node({ type: 'Button', label: '›', actionId: 'nextCalendarMonth' }),
+  node({ type: 'Button', label: 'Month', actionId: 'switchCalendarView', parameters: { _view: 'month' } }),
+  node({ type: 'Button', label: 'Week', actionId: 'switchCalendarView', parameters: { _view: 'week' } }),
+  node({ type: 'Button', label: '+ Create', actionId: 'createCalendarEvent' }),
+])
+test('calendario Spectra: la barra de un CalendarPage pasa a la barra de oj-sp-calendar (y no se pinta dos veces)', () => {
+  const nav = calendarPageToolbarOf(calPageToolbar)
+  assert.equal(nav.prev, 'previousCalendarMonth')
+  assert.equal(nav.today, 'goCalendarToday')
+  assert.deepEqual(nav.views, ['month', 'week'])
+  assert.equal(nav.createLabel, 'Create')
+  assert.equal(calendarPageToolbarOf(node({ type: 'HorizontalLayout' }, [node({ type: 'Button', label: 'x', actionId: 'save' })])), null)
+  const spec = spCalendarSpecOf({ month: '2026-10-28', view: 'week', events: [] }, nav)
+  assert.deepEqual([spec.displayOptions.monthView, spec.displayOptions.weekView, spec.displayOptions.dayView], ['on', 'on', 'off'])
+  assert.equal(spec.displayOptions.createEvent, 'on')
+  assert.equal(spec.displayOptions.createEventLabel, 'Create')
+  const items = atomsOf(node({ type: 'Page' }, [node({ type: 'VerticalLayout' }, [calPageToolbar, node({ type: 'Calendar', month: '2026-10-28', view: 'month', events: [] })])]))
+  const cal = items.find((a) => a.isCalendar)
+  assert.ok(cal, 'hay calendario')
+  assert.equal(items.filter((a) => a.isButtons || a.isRow).length, 0, 'la barra no se pinta aparte')
+  assert.equal(JSON.parse(cal.spSpec).nav.next, 'nextCalendarMonth')
+  assert.deepEqual(cal.navButtons.map((b) => b.label), ['‹', 'Hoy', '›', 'Month', 'Week', '+ Create'], 'la rejilla de reserva conserva la barra')
+})
+
+test('calendario Spectra: navegar en su barra = la acción de página (‹ › Hoy, vista); un salto sin acción → null', () => {
+  const nav = calendarPageToolbarOf(calPageToolbar)
+  assert.deepEqual(spNavActionOf(nav, 'month', '2026-10-28', '2026-11-01', '2026-10-28'), { kind: 'action', actionId: 'nextCalendarMonth' })
+  assert.deepEqual(spNavActionOf(nav, 'month', '2026-10-28', '2026-09-01', '2026-10-28'), { kind: 'action', actionId: 'previousCalendarMonth' })
+  assert.deepEqual(spNavActionOf(nav, 'month', '2026-10-28', '2026-10-05', '2026-10-28'), { kind: 'same' })
+  assert.deepEqual(spNavActionOf(nav, 'week', '2026-10-28', '2026-11-04', '2026-10-28'), { kind: 'action', actionId: 'nextCalendarMonth' })
+  assert.deepEqual(spNavActionOf(nav, 'month', '2027-03-10', '2026-10-24', '2026-10-24'), { kind: 'action', actionId: 'goCalendarToday' })
+  assert.equal(spNavActionOf(nav, 'month', '2026-10-28', '2027-05-01', '2026-10-28'), null, 'el selector de fecha del título no tiene acción en el wire')
+  assert.equal(spNavActionOf(null, 'month', '2026-10-28', '2026-11-01'), null)
+  // a backend that advertises goCalendarToDate (3.0-beta.13+): the title's date picker jumps there
+  const jumping = calendarPageToolbarOf(calPageToolbar, ['openCalendarEvent', 'goCalendarToDate'])
+  assert.equal(nav.goTo, '', 'an older backend: no date jump')
+  assert.equal(jumping.goTo, 'goCalendarToDate')
+  assert.deepEqual(spNavActionOf(jumping, 'month', '2026-10-28', '2027-05-01', '2026-10-28'),
+    { kind: 'action', actionId: 'goCalendarToDate', params: { _date: '2027-05-01' } })
+  // the neighbours still use their own actions
+  assert.deepEqual(spNavActionOf(jumping, 'month', '2026-10-28', '2026-11-01', '2026-10-28'), { kind: 'action', actionId: 'nextCalendarMonth' })
+})
+
+test('calendario Spectra: la plantilla lleva data-cal-sp y la shell lo monta; CSS oculta la rejilla de reserva', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /:data-cal-sp="\[\[ \$current\.data\.spSpec \]\]"/)
+  assert.match(page, /data-cal-nav-action/)
+  const css = webApp('resources/css/app.css')
+  assert.match(css, /\.mateu-cal\.mateu-cal-sp-on > \.mateu-cal-head/)
+  assert.match(css, /\.mateu-cal-sp-fixed \[data-action-id="calendar_next"\]/)
+  // the title's date picker is switched off ONLY where it cannot jump — never on a page that
+  // advertises goCalendarToDate (it used to be off everywhere, so the jump was unreachable)
+  assert.match(css, /\.mateu-cal-sp-nopick \.oj-sp-calendar-title-date-picker-clickable \{ pointer-events: none; \}/)
+  assert.doesNotMatch(css, /\.mateu-cal-sp \.oj-sp-calendar-title-date-picker-clickable \{ pointer-events: none/)
+  assert.equal(spCalendarHostClassOf({ nav: null }), 'mateu-cal-sp mateu-cal-sp-fixed mateu-cal-sp-nopick')
+  assert.equal(spCalendarHostClassOf({ nav: { goTo: '' } }), 'mateu-cal-sp mateu-cal-sp-nopick')
+  assert.equal(spCalendarHostClassOf({ nav: { goTo: 'goCalendarToDate' } }), 'mateu-cal-sp')
+})
+
 // ── P1 #17 notification bell and toasts with undo ────────────────────────────────────────────
 test('campana: la lista de la respuesta Data, no leídas en negrita, insignia y etiqueta accesible', () => {
   const inc = { fragments: [{ targetComponentId: '', data: { _notifications: [
@@ -1311,7 +1406,7 @@ test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante
     assert.equal(cell.title, '')
   }
   const page = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 3, 'las tres plantillas cellClip (listado, selector, listado en un drawer)')
+  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 5, 'las plantillas cellClip (listado, selector, listado en un drawer × 3 plantillas Spectra)')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
 })
 
@@ -1397,6 +1492,7 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
 })
 
 import { ganttAtomOf, itemOverviewOf, generalOverviewOf, isRichAtom } from './reduceContexts.mjs'
+import { ganttLabelOf, GANTT_OUTSIDE_LABEL_INK } from './core/boards.mjs'
 import { sanitizeHtml, markdownToHtml } from './richtext.mjs'
 
 test('Markdown: con su formato — HTML saneado que installRichText vuelca en su contenedor', () => {
@@ -1448,6 +1544,14 @@ test('Gantt: una fila por tarea sobre oj-gantt, avance 0..1, selección → _cli
   assert.deepEqual(p.progress, { value: 0.15, svgStyle: { fill: '#304e15' } })
   assert.deepEqual(q.progress, { value: 0.15 })
   assert.equal(g.majorScale, 'months', 'un plan de meses se lee por meses')
+  // the bar's label is READABLE: white only over the dark done fill (≥ 75%), else outside in dark ink
+  const [t1, t2] = g.rows.map((r) => r.tasks[0])
+  assert.deepEqual(t1.labelPosition, ['end', 'start', 'none'], 'half done: the middle of the bar is light — the label goes outside')
+  assert.equal(t1.labelStyle.fill, GANTT_OUTSIDE_LABEL_INK)
+  assert.deepEqual(t2.labelPosition, ['innerCenter', 'innerStart', 'none'])
+  assert.equal(t2.labelStyle.fill, '#ffffff')
+  assert.equal(ganttLabelOf(0.8).labelStyle.fill, '#ffffff')
+  assert.equal(ganttLabelOf(0).labelStyle.fill, GANTT_OUTSIDE_LABEL_INK)
   assert.deepEqual(planningActionOf(g, 'select', { value: ['t1'] }) || planningActionOf(g, 'select', { taskId: 't1' }),
     { actionId: 'selectGanttTask', parameters: { _clickedTaskId: 't1' } })
   assert.ok(atomsOf(node({ type: 'Gantt', tasks: [{ id: 'a', start: '2026-01-01', end: '2026-01-02' }] }))[0].isGantt)
@@ -1533,8 +1637,19 @@ test('General Overview: everything the main slot draws is a card, in order; main
   // the real GeneralOverview (con-micronaut demo): its three main cards in one column, the info slot in the other
   const real = generalOverviewOf(reduceContexts(empty(), JSON.parse(readFileSync(join(here, 'fixtures', 'real', 'tpl-general-overview.json'), 'utf8'))).contexts[HOST_ID])
   assert.deepEqual(real.columns.map((c) => c.cards.map((k) => k.title)), [['Resultados', 'Notas por materia', 'Asistencia mensual'], ['']])
-  // the page loops the columns, then each column's cards
-  assert.match(webApp('flows/main/pages/main-start-page.html'), /data="\[\[ \$application\.variables\.mateuOverview\.columns \]\]"[\s\S]{0,400}data="\[\[ \$current\.data\.cards \]\]"/)
+  // …and the page is Spectra's oj-sp-general-overview-page: the main cards in its MAIN slot, the
+  // info slot in its INFO slot (promoteInfoSlot when it travels first)
+  assert.deepEqual([real.mainCards.map((k) => k.title), real.infoCards.length, real.hasInfo], [['Resultados', 'Notas por materia', 'Asistencia mensual'], 1, true])
+  assert.deepEqual([go.promoteInfo, promoted.promoteInfo, promoted.infoCards[0].items[0].html], [false, true, '<p>side</p>'])
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const at = html.indexOf('<oj-sp-general-overview-page id="mateuOverviewHeader"')
+  assert.ok(at > 0, 'the archetype paints the template')
+  const body = html.slice(at, html.indexOf('</oj-sp-general-overview-page>', at))
+  assert.match(body, /<div slot="main">[\s\S]{0,200}mateuOverview\.mainCards/)
+  assert.match(body, /<div slot="info">[\s\S]{0,200}mateuOverview\.infoCards/)
+  assert.match(body, /display-options\.promote-info-slot="\[\[ !!\$application\.variables\.mateuOverview\.promoteInfo \]\]"/)
+  // the archetype's @Toolbar methods: the template header's primary / secondary actions
+  assert.match(body, /primary-action="\[\[ \$application\.variables\.mateuPageHeader\.primary \]\]"/)
 })
 
 import { withInitialValues } from './reduceContexts.mjs'
@@ -1914,7 +2029,6 @@ atest('navigating to another screen starts it at its top — not on back/forward
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
-console.log(`\n${pass} tests PMS OK`)
 void HOST_ID
 
 import { meterAtomOf } from './reduceContexts.mjs'
@@ -1933,14 +2047,289 @@ test('Meter: its unit, its thresholds and its fill percent (mateu-meter); a Metr
   assert.equal(meterAtomOf({ value: 150, max: 100, warnAt: 70 }).fillWidth, '100%')
   // money keeps its value against its limit
   assert.match(meterAtomOf({ value: 1710.5, max: 2000, unit: '€' }, (x) => x, (v) => '€ ' + v).valueText, /€ 1710.5 \/ € 2000/)
-  // MetricCard.icon → Redwood's icon class beside the title
-  assert.ok(metricOf({ title: 'Students', value: 412, icon: 'vaadin:users' }).iconClass)
-  assert.equal(metricOf({ title: 'Students', value: 412, icon: 'vaadin:users' }).iconText, '')
-  assert.deepEqual([metricOf({ title: 'Grades', value: 7, icon: '📝' }).iconClass, metricOf({ title: 'Grades', value: 7, icon: '📝' }).iconText], ['', '📝'], 'an emoji is drawn as itself, not as the generic icon')
-  assert.deepEqual([metricOf({ title: 'Students', value: 412 }).iconClass, metricOf({ title: 'Students', value: 412 }).iconText], ['', ''])
+  // MetricCard.icon is not shown on Redwood ("pure KPI, like in Spectra"): the KPI carries no icon
+  for (const icon of ['vaadin:users', '📝', undefined]) {
+    const k = metricOf({ title: 'Students', value: 412, icon })
+    assert.deepEqual([k.iconClass, k.iconText], [undefined, undefined], String(icon))
+  }
   // a StatusItem in the info tone has a colour (it was the secondary grey)
   const list = islandContentOf({ state: {}, data: {}, tree: node({ type: 'StatusList', items: [{ id: 'a', title: 'A', status: 'Info', statusColor: 'info' }] }) })
   assert.equal(list[0].items[0].items[0].statusClass, 'mateu-text-info')
   const css = webApp('resources/css/app.css')
   for (const cls of ['mateu-text-info', 'mateu-meter-success', 'mateu-meter-warning', 'mateu-meter-error']) assert.match(css, new RegExp('\\.' + cls + ' \\{'))
 })
+
+// ── Spectra adoption (phase A): KPI band = oj-sp-scoreboard, EmptyState CTA, typed inputs ────────
+test('Scoreboard → oj-sp-scoreboard items: nothing a MetricCard says is dropped', () => {
+  // a percentage trend → the period-change indicator (signed by the label, else by the trend)
+  assert.deepEqual(scoreboardTrendOf('up', '+8% vs last month'), { periodChangeIndicator: { value: 8, comparisonPeriod: 'vs last month' }, trendColor: 'success' })
+  assert.deepEqual(scoreboardTrendOf('down', '12%'), { periodChangeIndicator: { value: -12, comparisonPeriod: '' }, trendColor: 'danger' })
+  assert.equal(scoreboardTrendOf('down', '-3,5 % WoW').periodChangeIndicator.value, -3.5)
+  // anything else → a badge with the arrow, coloured by the trend (the indicator would print "%")
+  assert.deepEqual(scoreboardTrendOf('up', '+112'), { badge: { text: '▲ +112', status: 'success' }, trendColor: 'success' })
+  assert.deepEqual(scoreboardTrendOf('neutral', 'stable').badge, { text: '■ stable', status: 'neutral' })
+  assert.deepEqual(scoreboardTrendOf('', ''), {})
+  // value + unit → metric; timeframe + description → meta
+  const m = metricOf({ title: 'NPS', value: 62, unit: 'pts', timeframe: 'Last 30 days', description: 'Net promoter score', trend: 'neutral', trendLabel: 'stable' })
+  const item = scoreboardItemOf(m, 3)
+  assert.deepEqual([item.id, item._rowNumber, item.title, item.metric, item.meta], ['k3', 3, 'NPS', '62 pts', 'Last 30 days · Net promoter score'])
+  // the band: one item per card, actionable when any card drills in (installScoreboards runs it)
+  const band = scoreboardAtomOf([metricOf({ title: 'A', value: 1 }), metricOf({ title: 'B', value: 2, actionId: 'openB' })])
+  assert.deepEqual(band.sbItems.map((i) => i.id), ['k0', 'k1'])
+  assert.equal(band.sbActionable, true)
+  assert.equal(scoreboardAtomOf([metricOf({ title: 'A', value: 1 })]).sbActionable, false)
+})
+
+test('Scoreboard: the band carries its items as consecutive MetricCards join it; the page paints oj-sp-scoreboard', () => {
+  const reg = fixture('dashboard').reduce((r, inc) => reduceContexts(r, inc), empty())
+  const kpis = hostContentOf(reg.contexts[HOST_ID], null, { title: 'Dashboard' })[0].items.find((a) => a.isScoreboard)
+  assert.deepEqual(kpis.sbItems.map((i) => i.title), kpis.metrics.map((x) => x.title))
+  assert.equal(kpis.sbActionable, true, 'In house drills in')
+  const page = webApp('flows/main/pages/main-start-page.html')
+  const surfaces = (page.match(/<!-- @atoms /g) || []).length
+  // one per atoms surface, plus the dashboard landing page's `kpi` slot
+  assert.equal(page.split('<oj-sp-scoreboard :id="[[ $current.data.sbId ]]" class="mateu-sp-scoreboard').length - 1, surfaces + 1)
+  assert.match(kpis.sbId, /^mateuKpis\d+$/)
+  const imports = JSON.parse(webApp('flows/main/pages/main-start-page.json')).imports.components
+  for (const c of ['oj-sp-scoreboard', 'oj-sp-input-email', 'oj-sp-input-url', 'oj-sp-input-currency']) assert.ok(imports[c], c)
+})
+
+test('EmptyState: the call to action is oj-sp-empty-state\'s own primaryAction', () => {
+  assert.deepEqual(emptyStateAtomOf({ actionId: 'go', actionLabel: 'Create' }).primaryAction, { label: 'Create', type: 'callToAction', display: 'on' })
+  assert.equal(emptyStateAtomOf({ title: 'Nothing' }).primaryAction, null)
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /primary-action="\[\[ \$current\.data\.primaryAction \]\]"\s+on-sp-primary-action="\[\[ \$listeners\.hostBlockAction \]\]"/)
+  assert.match(page, /on-sp-primary-action="\[\[ \$listeners\.islandBlockAction \]\]"/)
+})
+
+test('email / link / money fields → oj-sp-input-email / -url / -currency (the currency travels with the field)', () => {
+  const md = (extra) => ({ type: 'FormField', fieldId: 'x', label: 'X', dataType: 'string', ...extra })
+  const email = layoutFieldOf(md({ stereotype: 'email' }), { x: 'a@b.c' })
+  assert.deepEqual([email.isEmail, email.isText, email.value], [true, false, 'a@b.c'])
+  const url = layoutFieldOf(md({ stereotype: 'link', readOnly: true }), { x: 'https://mateu.io' })
+  assert.deepEqual([url.isUrl, url.readonly, url.isText], [true, true, false])
+  // an Amount brings its own currency; a declared one wins; EUR otherwise
+  const amount = layoutFieldOf(md({ dataType: 'money', stereotype: 'money' }), { x: { currency: 'usd', value: 12.5, locale: 'en-US' } })
+  assert.deepEqual([amount.isMoney, amount.currency, amount.value], [true, 'USD', 12.5])
+  assert.equal(layoutFieldOf(md({ dataType: 'number', stereotype: 'money', attributes: [{ key: 'currency', value: 'GBP' }] }), { x: 3 }).currency, 'GBP')
+  assert.equal(layoutFieldOf(md({ dataType: 'number', stereotype: 'money' }), { x: 3 }).currency, 'EUR')
+  // the section form (formSectionsOf) shows an Amount's number too (it painted the field empty)
+  const tree = { type: 'ServerSide', metadata: { type: 'Form' }, children: [{ metadata: { type: 'FormField', fieldId: 'dep', label: 'Deposit', dataType: 'money', stereotype: 'money' } }] }
+  const f = formSectionsOf(tree, { dep: { currency: 'GBP', value: 320, locale: 'en-GB' } }, {}).flatMap((s) => s.fields).find((x) => x.fieldId === 'dep')
+  assert.deepEqual([f && f.isMoney, f && f.value, f && f.currency], [true, 320, 'GBP'])
+  // every copy of the fields carries the three Spectra inputs, each with ITS change listener
+  const page = webApp('flows/main/pages/main-start-page.html')
+  const surfaces = (page.match(/<!-- @atoms /g) || []).length
+  for (const tag of ['<oj-sp-input-currency', '<oj-sp-input-email', '<oj-sp-input-url']) assert.equal(page.split(tag).length - 1, surfaces + FIELD_COPIES_OUTSIDE_ATOMS, tag)
+})
+
+
+test('a server NavigateTo OUTSIDE the mount is a browser path (as on the web renderer); inside it, a route of the app', () => {
+  // the showcase: /dashboard-demo's openOrders answers URI.create("/products") — another @UI's mount
+  setMount('/dashboard-demo')
+  assert.equal(pathLeavingMountOf('/products'), '/products')
+  assert.equal(pathLeavingMountOf('/products?x=1'), '/products?x=1')
+  // under the mount (a crud's inner route), relative, protocol-relative: the app's own
+  assert.equal(pathLeavingMountOf('/dashboard-demo/3'), null)
+  assert.equal(pathLeavingMountOf('/dashboard-demo'), null)
+  assert.equal(pathLeavingMountOf('orders'), null)
+  assert.equal(pathLeavingMountOf('//evil.example'), null)
+  // a route the app's own menu names (an App @UI("/app") lists '/section1'), and below it
+  const menu = [{ label: 'S', route: '/section1', submenus: [{ label: 'T', route: '/section2' }] }, { remote: true, routePrefix: '/billing' }]
+  assert.deepEqual(menuRoutesOf(menu), ['/section1', '/section2', '/billing'])
+  for (const r of ['/section1', '/section2/7', '/billing/invoices']) assert.equal(pathLeavingMountOf(r, menuRoutesOf(menu)), null, r)
+  // the chains' entry: it loads the page when it leaves (a URL is another tab's business), else not
+  const assigned = []
+  const win = { location: { assign: (p) => assigned.push(p) } }
+  assert.equal(leftMountFor({ route: '/products' }, { shell: { menu } }, win), true)
+  assert.equal(leftMountFor({ route: '/section1' }, { shell: { menu } }, win), false)
+  assert.equal(leftMountFor({ url: 'https://x' }, null, win), false)
+  assert.deepEqual(assigned, ['/products'])
+  // the root mount and hash mode: every route is the app's
+  setMount('')
+  assert.equal(pathLeavingMountOf('/products'), null)
+  setMount(null)
+  assert.equal(pathLeavingMountOf('/products'), null)
+})
+
+test('Dashboard on Redwood: Spectra\'s grid UNLESS the dashboard declares its own geometry (colSpan/rowSpan ≠ 1, fixed columns)', () => {
+  const panel = (title, extra = {}) => node({ type: 'DashboardPanel', title, colSpan: 1, rowSpan: 1, ...extra }, [node({ type: 'Text', text: title })])
+  const dash = (panels, gridMeta = {}) => ({ type: 'ServerSide', id: 'd', children: [node({ type: 'ResponsiveGrid', ...gridMeta }, [
+    node({ type: 'Scoreboard' }, [node({ type: 'MetricCard', title: 'Revenue', value: 1 })]), ...panels])] })
+  const useGrid = (tree) => dashboardOf({ id: HOST_ID, kind: 'host', tree, state: {}, data: {} }).useGrid
+  // nothing declared (the defaults: colSpan/rowSpan 1, columns() = 0 → no tracks): Spectra's grid
+  assert.equal(useGrid(dash([panel('A'), panel('B'), panel('C')])), true)
+  // a fluent DashboardPanel with 0 spans is "not declared" too
+  assert.equal(useGrid(dash([panel('A', { colSpan: 0, rowSpan: 0 }), panel('B')])), true)
+  // a panel spanning two columns or two rows: our grid, which honours it
+  assert.equal(useGrid(dash([panel('A', { colSpan: 2 }), panel('B')])), false)
+  // …and our grid gives each panel its width: the spanning one takes twice the twelfths of the other
+  const spanned = dashboardOf({ id: HOST_ID, kind: 'host', tree: dash([panel('A', { colSpan: 2 }), panel('B')]), state: {}, data: {} })
+  const xl = (b) => parseInt((b.blockClass.match(/oj-xl-(\d+)/) || [])[1] || '0', 10)
+  assert.equal(xl(spanned.panels[0]), 2 * xl(spanned.panels[1]), spanned.panels.map((b) => b.blockClass).join(' | '))
+  // a fixed column count: the panels share the declared tracks (3 columns → a third each)
+  const fixed = dashboardOf({ id: HOST_ID, kind: 'host', tree: dash([panel('A'), panel('B'), panel('C')], { gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)' }), state: {}, data: {} })
+  assert.ok(fixed.panels.every((b) => /oj-md-4/.test(b.blockClass)), fixed.panels.map((b) => b.blockClass).join(' | '))
+  assert.equal(useGrid(dash([panel('A'), panel('B', { rowSpan: 2 })])), false)
+  // a fixed column count (Dashboard.columns() = 3 → three fill tracks on the wire): our grid
+  assert.equal(useGrid(dash([panel('A'), panel('B')], { gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)' })), false)
+  // …and a legacy DashboardLayout with its own columns
+  const legacy = { type: 'ServerSide', id: 'd', children: [node({ type: 'DashboardLayout', columns: 2 }, [panel('A'), panel('B')])] }
+  const l = dashboardOf({ id: HOST_ID, kind: 'host', tree: legacy, state: {}, data: {} })
+  if (l) assert.equal(l.useGrid, false)
+  assert.equal(dashboardDeclaresLayout(legacy, findAllByType(legacy, 'DashboardPanel')), true)
+  assert.equal(dashboardDeclaresLayout(dash([panel('A')]), [panel('A')]), false)
+})
+
+test('Dashboard archetype → oj-sp-dashboard-landing-page: the scoreboard in its kpi slot, the @Panels as oj-sp-dashboard-panel', () => {
+  const kpi = (title, extra = {}) => node({ type: 'MetricCard', title, value: 1, ...extra })
+  const panel = (title, subtitle, kids, colSpan = 1) => node({ type: 'DashboardPanel', title, subtitle, colSpan }, kids)
+  const dash = (panels) => ({ type: 'ServerSide', id: 'd', children: [node({ type: 'ResponsiveGrid' }, [
+    node({ type: 'Scoreboard' }, [kpi('Revenue'), kpi('Orders', { actionId: 'openOrders' })]), ...panels])] })
+  const three = [panel('Monthly sales', 'Units', [node({ type: 'Text', text: 'body' })]), panel('Mix', '', [node({ type: 'Markdown', markdown: 'x' })]), panel('Notes', '', [node({ type: 'Text', text: 'n' })])]
+  const d = dashboardOf({ id: HOST_ID, kind: 'host', tree: dash(three), state: {}, data: {} })
+  assert.ok(d)
+  assert.deepEqual(d.kpis.map((k) => k.isScoreboard), [true])
+  assert.equal(d.kpis[0].sbActionable, true, 'the drill-in rides along')
+  assert.deepEqual(d.panels.map((p) => [p.title, p.subtitle]), [['Monthly sales', 'Units'], ['Mix', ''], ['Notes', '']])
+  // the panel's title/subtitle are the panel's props, not repeated as its first texts
+  assert.deepEqual(d.panels[0].items.map((a) => a.text), ['body'])
+  assert.equal(d.useGrid, true, 'up to five panels: Spectra\'s own grid')
+  // six panels: the oj-flex row (colSpan kept)
+  const six = Array.from({ length: 6 }, (_, i) => panel('P' + i, '', [node({ type: 'Text', text: 't' + i })]))
+  assert.equal(dashboardOf({ id: HOST_ID, kind: 'host', tree: dash(six), state: {}, data: {} }).useGrid, false)
+  // a hero makes it a welcome; anything else beside the tiles, the generic content
+  assert.equal(dashboardOf({ tree: { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'HeroSection', title: 'W' }), ...three])] }, state: {}, data: {} }), null)
+  assert.equal(dashboardOf({ tree: { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'Notice', text: 'n' }), ...three])] }, state: {}, data: {} }), null)
+  assert.equal(dashboardOf({ tree: { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: 'plain' })])] }, state: {}, data: {} }), null)
+  // the page claims it: no generic content, the template's header instead of the VB one
+  const plan = hostContentPlanOf({ id: HOST_ID, kind: 'host', tree: dash(three), state: {}, data: {} }, {})
+  assert.equal(plan.hostBlocks, null)
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const at = html.indexOf('<oj-sp-dashboard-landing-page id="mateuDashboardPage"')
+  assert.ok(at > 0)
+  const body = html.slice(at, html.indexOf('</oj-sp-dashboard-landing-page>', at))
+  assert.match(body, /<div slot="kpi">[\s\S]{0,300}<oj-sp-scoreboard/)
+  assert.match(body, /<oj-sp-dashboard-grid[\s\S]{0,400}<oj-sp-dashboard-panel/)
+  const imports = JSON.parse(webApp('flows/main/pages/main-start-page.json')).imports.components
+  for (const c of ['oj-sp-dashboard-landing-page', 'oj-sp-dashboard-grid', 'oj-sp-dashboard-panel']) assert.ok(imports[c], c)
+  for (const chain of ['pages/shell-page-chains/onMateuNavigate.js', 'flows/main/pages/main-start-page-chains/runMateuAction.js']) {
+    assert.match(webApp(chain), /integratedHeader = !!\(wizardProjection \|\| welcome \|\| archetypes\.dashboard/, chain)
+  }
+})
+
+test('TodoList archetype → oj-sp-task-organizer-page: its header + the queue as the generic content paints it', () => {
+  const queue = node({ type: 'TaskQueue', actionId: 'openTodoItem', groups: [{ label: 'Today (1)', items: [{ id: 'T1', title: 'Call Ada' }] }] })
+  const tree = { type: 'ServerSide', id: 't', children: [node({ type: 'Page', title: 'Front desk tasks' }, [
+    node({ type: 'Card', content: node({ type: 'CustomField', content: queue }) })])] }
+  const todo = todoListOf({ id: HOST_ID, kind: 'host', tree, state: {}, data: {} })
+  assert.equal(todo.title, 'Front desk tasks')
+  assert.ok(todo.blocks.flatMap((b) => b.items).some((a) => a.isQueue), 'the queue atom rides in its slot')
+  // the page claims it (no generic content twice) — and a TaskQueue of another archetype is not one
+  assert.equal(hostContentPlanOf({ id: HOST_ID, kind: 'host', tree, state: {}, data: {} }, {}).hostBlocks, null)
+  // …and the queue + detail page steps aside (it painted the list a second time below)
+  assert.equal(taskQueueOf(tree), null)
+  const other = { type: 'ServerSide', children: [node({ type: 'TaskQueue', actionId: 'selectCollectionItem', groups: [] })] }
+  assert.equal(todoListOf({ tree: other, state: {}, data: {} }), null)
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const at = html.indexOf('<oj-sp-task-organizer-page id="mateuTodoPage"')
+  assert.ok(at > 0)
+  assert.match(html.slice(at, html.indexOf('</oj-sp-task-organizer-page>', at)), /mateuTodo\.blocks/)
+  assert.ok(JSON.parse(webApp('flows/main/pages/main-start-page.json')).imports.components['oj-sp-task-organizer-page'])
+})
+
+// ── Spectra page templates with slots (core/spPages.mjs, phase D2) ──────────────────────────────
+const realHost = (name) => reduceContexts(empty(), JSON.parse(readFileSync(join(here, 'fixtures', 'real', name + '.json'), 'utf8'))).contexts[HOST_ID]
+const sectionOf = (html, open, close) => { const at = html.indexOf(open); assert.ok(at > 0, open); return html.slice(at, html.indexOf(close, at)) }
+
+test('DataManagement → oj-sp-data-management-page: the view in its default slot, the DockedPanels in its inner drawers', () => {
+  const dm = dataManagementPageOf(realHost('tpl-data-management-docked'))
+  assert.equal(dm.kind, 'dataManagement')
+  assert.equal(dm.title, 'Plan del proyecto')
+  const atoms = dm.main.flatMap((b) => b.items)
+  assert.deepEqual(atoms.find((a) => a.isButtons).buttons.map((b) => b.actionId), ['switchToGrid', 'switchToGantt', 'toggleEndPanel', 'toggleBottomPanel'], 'the view switcher + panel toggles stay in the content')
+  assert.ok(atoms.some((a) => a.isGrid), 'the grid view')
+  assert.ok(!atoms.some((a) => a.isText && a.text === 'Resumen'), 'the end panel is not painted in the content')
+  assert.deepEqual([dm.end.title, dm.end.closeActionId, dm.endOpened], ['Resumen', 'toggleEndPanel', 'inner'], 'the end panel: its header row becomes the template header')
+  assert.ok(!dm.end.blocks.flatMap((b) => b.items).some((a) => a.isButtons), 'its ✕ is the template\'s close, not a button of the body')
+  assert.deepEqual([dm.bottom.title, dm.bottom.closeActionId, dm.bottomOpened, dm.bottomOptions.drawerMode], ['Registro', 'toggleBottomPanel', 'inner', 'closable'])
+  // a closed panel (only its toggle in the toolbar) leaves its drawer closed
+  const other = dataManagementPageOf(realHost('tpl-data-management'))
+  assert.deepEqual([other.title, other.endOpened, other.bottomOpened, other.end.on, other.bottom.on], ['Planificación de cursos', 'inner', 'none', true, false])
+  // the page claims it
+  assert.equal(hostContentPlanOf(realHost('tpl-data-management-docked'), {}).hostBlocks, null)
+  assert.equal(dataManagementPageOf({ tree: node({ type: 'VerticalLayout' }), state: {}, data: {} }), null)
+})
+
+test('GanttPage → oj-sp-data-management-page: the canvas + detail in the default slot, the persistent drawer docked at the bottom in fixed mode', () => {
+  const g = dataManagementPageOf(realHost('tpl-gantt-page'))
+  assert.equal(g.kind, 'gantt')
+  assert.ok(g.main.flatMap((b) => b.items).some((a) => a.isPlanning), 'the oj-gantt canvas')
+  assert.ok(g.bottom.on && g.bottom.blocks.length > 0, 'the bottom drawer\'s content')
+  assert.equal(g.bottom.closeActionId, '', 'a persistent drawer has no toggle to run')
+  assert.equal(g.bottomOptions.drawerMode, 'fixed', 'collapsible = Spectra\'s fixed mode (the handle)')
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const page = sectionOf(html, '<oj-sp-data-management-page id="mateuDmPage"', '</oj-sp-data-management-page>')
+  assert.match(page, /<div slot="innerEnd"[^>]*>\s*<oj-bind-if[^>]*>\s*<oj-sp-general-drawer-template[\s\S]*on-sp-close="\[\[ \$listeners\.dmEndPanelClosed \]\]"/)
+  assert.match(page, /<div slot="innerBottom"[^>]*>\s*<oj-bind-if[^>]*>\s*<oj-sp-bottom-drawer-template[\s\S]*drawer-state="\{\{ \$variables\.mateuDmBottomState \}\}"/)
+  assert.match(page, /end-opened="\[\[ \$application\.variables\.mateuDm\.endOpened \]\]"/)
+  const pageJson = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
+  assert.ok(pageJson.imports.components['oj-sp-data-management-page'])
+  assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].chain, 'dmPanelClosed')
+  assert.ok(existsSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'dmPanelClosed.js')))
+  assert.match(webApp('resources/css/app.css'), /\.mateu-dm-page oj-sp-header-create-edit \[id\$="_cancelAction"\]/, 'no transaction: Cancel/primary hidden')
+})
+
+test('CollectionDetail → oj-sp-collection-detail-page: the collection in its default slot, the server-built detail stamped for the selected item', () => {
+  const host = realHost('tpl-collection-detail')
+  const title = 'Hotel directory'
+  const cd = collectionDetailPageOf(host, { title })
+  assert.ok(cd.collection.some((b) => b.items.some((a) => a.isQueue)), 'the cards')
+  assert.ok(cd.collection.some((b) => b.items.some((a) => a.isFormLayout)), 'the search form (its debounced auto-save keeps working)')
+  assert.deepEqual(cd.selectedItems, [], 'nothing selected')
+  assert.ok(cd.noSelection.flatMap((b) => b.items).some((a) => a.isEmptyStateAtom), 'emptyDetail() in the noSelection slot')
+  // selecting: the selected card carries the server's detail; the template gets only { id }
+  const state = JSON.parse(JSON.stringify(host))
+  const queue = findAllByType(state.tree, 'TaskQueue')[0]
+  queue.metadata.groups[0].items[1].selected = true
+  const sel = collectionDetailPageOf(state, { title })
+  assert.deepEqual(sel.selectedItems, [{ id: queue.metadata.groups[0].items[1].id }])
+  assert.equal(sel.detail.length, 1)
+  assert.deepEqual(sel.noSelection, [])
+  assert.equal(hostContentPlanOf(host, { title }).hostBlocks, null, 'the page claims it')
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const page = sectionOf(html, '<oj-sp-collection-detail-page id="mateuCdPage"', '</oj-sp-collection-detail-page>')
+  assert.match(page, /selected-items="\[\[ \$application\.variables\.mateuCd\.selectedItems \]\]"/)
+  assert.match(page, /<template slot="detailTemplate">[\s\S]*mateuCd\.detail/)
+  assert.match(page, /<div slot="noSelection"[\s\S]*mateuCd\.noSelection/)
+})
+
+test('ItemOverview → oj-sp-item-overview-page: the key panel in oj-sp-item-overview (its leading heading is the item title), the tabs in main', () => {
+  const host = realHost('tpl-item-overview')
+  const item = itemOverviewOf(host)
+  const h = itemOverviewPageHeaderOf(host, item)
+  assert.equal(h.itemTitle, 'Ergonomic chair EC-200', 'the key panel\'s leading heading')
+  assert.ok(!/<h3>/.test(h.keyItems[0].html), 'taken out of the body (it was said twice)')
+  assert.equal(itemOverviewPageHeaderOf(null, { key: { title: '', items: [{ isHeading: true, text: 'Chair' }, { isText: true, text: 'x' }] } }).keyItems.length, 1)
+  assert.equal(itemOverviewPageHeaderOf(null, { key: { title: 'Card', items: [{ isHeading: true, text: 'Chair' }] } }).itemTitle, 'Card')
+  // a rich-text heading's TEXT: tags out (a nested one too), entities decoded once (`&amp;lt;` stays `&lt;`)
+  const rich = (html) => itemOverviewPageHeaderOf(null, { key: { title: '', items: [{ isRichText: true, html }] } })
+  assert.equal(rich('<h2>Tom &amp; Jerry&nbsp;<b>&quot;EC&quot;</b> &amp;lt;x&gt;</h2><p>body</p>').itemTitle, 'Tom & Jerry "EC" &lt;x>')
+  assert.equal(rich('<h3><scr<b>ipt>alert(1)</h3>').itemTitle, 'iptalert(1)', 'a tag split by another leaves no markup')
+  assert.equal(rich('<h3><i></i></h3>rest').itemTitle, '', 'an empty heading is no title')
+  assert.equal(rich('<p>no heading</p>').itemTitle, '')
+  // the PAGE's title (@Title → the window title) is the item title, as Vaadin draws it above the panels
+  assert.equal(host.windowTitle, 'Ergonomic chair EC-200')
+  const titled = itemOverviewPageHeaderOf({ ...host, windowTitle: 'Product EC-200' }, item)
+  assert.equal(titled.itemTitle, 'Product EC-200', 'the page title, not the panel\'s heading')
+  assert.match(titled.keyItems[0].html, /<h3>Ergonomic chair EC-200/, 'a heading saying something else stays in the body')
+  const carded = itemOverviewPageHeaderOf({ tree: {}, windowTitle: 'Chair' }, { key: { title: 'Key info', items: [{ isText: true, text: 'x' }] } })
+  assert.equal(carded.itemTitle, 'Chair')
+  assert.deepEqual(carded.keyItems.map((a) => a.text), ['Key info', 'x'], 'the key card\'s own title heads the body')
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const page = sectionOf(html, '<oj-sp-item-overview-page id="mateuItemOvPage"', '</oj-sp-item-overview-page>')
+  assert.match(page, /<oj-sp-item-overview slot="overview"[\s\S]*<div slot="body"/)
+  assert.match(page, /<div slot="main"[\s\S]*<oj-tab-bar id="mateuItemTabs"/)
+  assert.match(webApp('resources/css/app.css'), /\.mateu-iop \.oj-sp-item-overview-page-overview-section \{\s*background-color/, 'the overview column gets a surface (the 2026-07-27 revert)')
+})
+console.log(`\n${pass} tests PMS OK`)

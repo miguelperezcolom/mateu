@@ -1,6 +1,7 @@
 import type App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
+import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
 import { updateHeaderValue } from '@infra/ui/headerValues.ts'
 
 /**
@@ -80,7 +81,7 @@ const connect = () => {
     const { baseUrl, route, serverSideType } = target
     const headers: Record<string, string> = { 'Accept': 'text/event-stream', 'Content-Type': 'application/json' }
     const path = (route || '_no_route').replace(/^\/+/, '')
-    Object.assign(headers, credentialHeadersFor(baseUrl + '/mateu/v3/sse/' + path))
+    Object.assign(headers, credentialHeadersFor(baseUrl + '/mateu/v3/sse/' + path), rendererHeaders())
     fetch(baseUrl + '/mateu/v3/sse/' + path, {
         method: 'POST',
         headers,

@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../../ui/Text';
 import { buttonA11y, headingA11y } from '../../a11y/a11y';
 import { MateuAppProvider } from '../../context/AppContext';
 import { OidcTokenProvider } from '../../core/oidc';
 import type { MateuSession } from '../../core/MateuSession';
 import { SessionContent } from '../../shell/SessionContent';
-import { theme } from '../../theme';
+import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import { fetchManifest, versionGate, type UiManifest } from '../manifest';
 import { allowInsecure, appVersion, secretStore, uiStore } from '../storage';
@@ -199,7 +200,7 @@ export function UiSession({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   session: { ...StyleSheet.absoluteFill, backgroundColor: '#FFFFFF' },
   hidden: { display: 'none' },
   bar: { flexDirection: 'row', alignItems: 'center', minHeight: theme.minTouch, paddingHorizontal: 4 },
@@ -208,4 +209,4 @@ const styles = StyleSheet.create({
   barTitle: { flex: 1, minHeight: theme.minTouch, alignItems: 'center', justifyContent: 'center' },
   barName: { fontSize: 15, fontWeight: '700' },
   wide: { alignSelf: 'stretch', maxWidth: 340, marginTop: theme.spacing.sm },
-});
+}));

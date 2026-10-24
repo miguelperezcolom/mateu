@@ -19,7 +19,7 @@ from mateu_ui.dtos import (
 )
 from mateu_ui.uidl import Draftable, Step
 
-from .. import labels_aside_inference
+from .. import form_columns_inference, labels_aside_inference
 from ..naming import (
     camel_case,
     humanize,
@@ -167,8 +167,9 @@ class WizardMapperMixin(MixinBase):
             )
         # The current step's form: the regular section card of a form (Java's stepForm), under a
         # spacer Div.
-        max_columns = 2
         current_fields = [f for f, s in step_fields if s == current]
+        # each step is its own form: its column count is inferred from the STEP's fields
+        max_columns = form_columns_inference.form_columns(cls, current_fields)
         card = ClientSideComponent(
             metadata=DivMetadata(),
             children=[self.section_card(

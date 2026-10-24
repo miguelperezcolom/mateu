@@ -117,6 +117,15 @@ the corresponding Oracle service (the Visual Builder entitlement the user alread
 their subscription). Think of this renderer as a connector: the code is free; the service it
 connects to is not.
 
+**A mirror of Oracle's CDN.** An organisation that cannot (or will not) load Oracle's runtime from
+`static.oracle.com` may host its own copy and set `mateu.oracle-cdn.url`: the server then points the
+page at that mirror, and the renderer follows it for everything it loads. The copy is the
+ORGANISATION's, and whether it may make one is between it and Oracle: JET/Redwood theme are UPL, but
+Spectra, the Visual Builder runtime and the gallery have no public redistribution licence, so hosting
+them needs the organisation's agreement with Oracle to allow it. Mateu provides only the setting; this
+repository and its jars still contain nothing from `static.oracle.com`. See the guide *Serving Oracle's CDN from your own
+mirror* (`doc/src/content/docs/deploy/oracle-cdn-mirror.md`).
+
 ## Trademarks
 
 Oracle, Oracle JET, Redwood and Visual Builder are trademarks of Oracle and/or its affiliates. This

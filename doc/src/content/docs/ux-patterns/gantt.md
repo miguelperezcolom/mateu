@@ -94,10 +94,10 @@ months.
 |---|---|---|---|
 | Edge-to-edge canvas | `pageWidth()` (declared by the archetype) | ✅ | |
 | Bars: dates, progress, colour | `GanttTask(id, title, start, end, progress, color)` | ✅ | JET's `oj-gantt`; the done part in a darker shade of the bar's colour |
-| Page heading | `heading()` (blank omits it) | ✅ | a heading text, not Redwood's transactional header |
-| Task click → side drawer | `taskDrawer(task, rq)` / `taskDetail(task, rq)` | 🟡 | Redwood ignores the drawer's `size` (see [Drawer](/ux-patterns/drawer/)) |
+| Page heading | `heading()` (blank omits it) | ✅ | Redwood paints the page with Spectra's `oj-sp-data-management-page` (the Gantt page pattern is built on it): the heading is its header's title |
+| Task click → side drawer | `taskDrawer(task, rq)` / `taskDetail(task, rq)` | ✅ | `oj-sp-general-drawer-template` at the drawer's size (see [Drawer](/ux-patterns/drawer/)) |
 | Detail under the canvas | `detail(rq)` | ✅ | |
-| Persistent bottom drawer | `bottomPanel(rq)`, `bottomPanelTitle()` | 🟡 | Redwood draws it as a collapsible panel in the page flow, not docked to the bottom edge |
+| Persistent bottom drawer | `bottomPanel(rq)`, `bottomPanelTitle()` | ✅ | Redwood docks it in the data-management page's `innerBottom` drawer as `oj-sp-bottom-drawer-template` in fixed mode (a handle minimizes it; no ✕) |
 | Hierarchical rows (expand / collapse) | — | ❌ | rows are flat |
 | Several segments per row, downtime, calendar events | — | ❌ | a `PlanningBoard` puts several blocks on a row |
 | Dependencies between tasks | — | ❌ | |
@@ -147,7 +147,8 @@ table in the bottom drawer).
   drag/resize, no time-range control.
 - No transactional page header.
 - The default task-drawer text is in Spanish (`"… % completado"`) — override `taskDetail`.
-- Redwood: the bottom drawer is not docked and the task drawer ignores its size; the page is
-  composed, not Spectra's `oj-sp-gantt-page-pattern`.
+- Redwood: the page is Spectra's `oj-sp-data-management-page` (bottom drawer docked in its
+  `innerBottom` slot); the Gantt canvas stays JET's `oj-gantt`. The header's Cancel / primary are
+  hidden (no transaction).
 
 Details: [gantt-page review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/gantt-page.md).

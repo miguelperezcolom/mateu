@@ -8,6 +8,19 @@ namespace Mateu.Tests.Wire;
 
 // ── Fixtures. Mirror the Java and Python ones with the same semantics. ────────────────────────
 
+// The inferred column count: seven visible fields lay out in two columns (≤ 6: one).
+[UI("conformance/form-columns"), Title("Form columns")]
+public class FormColumnsForm
+{
+    public string? FirstName { get; set; } = "Ada";
+    public string? LastName { get; set; } = "Lovelace";
+    public string? Email { get; set; } = "ada@example.com";
+    public string? Phone { get; set; } = "555-0100";
+    public string? City { get; set; } = "London";
+    public string? Country { get; set; } = "UK";
+    public string? Notes { get; set; } = "Analyst";
+}
+
 [UI("conformance/simple-form"), Title("Simple form"), Subtitle("Every basic field kind")]
 public class SimpleForm
 {

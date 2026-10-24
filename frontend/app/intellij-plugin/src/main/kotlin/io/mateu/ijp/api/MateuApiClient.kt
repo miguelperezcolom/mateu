@@ -31,7 +31,13 @@ class MateuApiClient(
     /** Whether a request to a url may carry the credentials (see [CredentialScope]); by default only
      *  this client's own backend. */
     private val credentialsFor: (String) -> Boolean = CredentialScope(baseUrl)::mayCarryCredentials,
+    /** The deployment-skew baselines ([BuildSkew]); the IDE session's shared one by default. */
+    private val skew: BuildSkew = BuildSkew.SHARED,
 ) {
+    /** Host hook: the backend was redeployed ([BuildSkew.Notice.UPDATED], once) or a refusal came
+     *  from a screen an older deployment built ([BuildSkew.Notice.STALE]). Called on the request's thread. */
+    var onBuildNotice: ((BuildSkew.Notice) -> Unit)? = null
+
     /** True when a request to [url] (this client's backend by default) may carry the credentials. */
     fun carriesCredentials(url: String = baseUrl): Boolean = credentialsFor(url)
 
@@ -103,6 +109,7 @@ class MateuApiClient(
                 .timeout(Duration.ofSeconds(60))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
+                .header(BuildSkew.RENDERER_HEADER, BuildSkew.rendererHeaderValue())
             credentialHeaders(url, token).forEach { (k, v) -> b.header(k, v) }
             return b.POST(HttpRequest.BodyPublishers.ofString(json)).build()
         }
@@ -120,6 +127,7 @@ class MateuApiClient(
         if (response.statusCode() == 401) throw UnauthorizedException(url)
         val responseBody = response.body()
         log("[Mateu] <-- ${response.statusCode()}")
+        observeBuild(url, response.statusCode(), response.headers().firstValue(BuildSkew.BUILD_HEADER).orElse(null), responseBody)
         log(
             "[Mateu]     response (first 3000 chars): " +
                 if (responseBody.length > 3000) responseBody.substring(0, 3000) + "..." else responseBody,
@@ -168,6 +176,7 @@ class MateuApiClient(
                 .uri(URI.create(url))
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
+                .header(BuildSkew.RENDERER_HEADER, BuildSkew.rendererHeaderValue())
             credentialHeaders(url, token).forEach { (k, v) -> b.header(k, v) }
             return b.POST(HttpRequest.BodyPublishers.ofString(json)).build()
         }
@@ -186,7 +195,13 @@ class MateuApiClient(
             response.body().close()
             throw UnauthorizedException(url)
         }
-        if (response.statusCode() >= 400) throw RuntimeException("HTTP ${response.statusCode()}")
+        val build = response.headers().firstValue(BuildSkew.BUILD_HEADER).orElse(null)
+        if (response.statusCode() >= 400) {
+            val text = response.body().use { lines -> lines.iterator().asSequence().joinToString("\n") }
+            observeBuild(url, response.statusCode(), build, text)
+            throw RuntimeException("HTTP ${response.statusCode()}")
+        }
+        observeBuild(url, response.statusCode(), build, null)
         response.body().use { lines ->
             for (raw in lines.iterator()) {
                 val line = raw.trim()
@@ -196,6 +211,22 @@ class MateuApiClient(
                 onIncrement(increment)
             }
         }
+    }
+
+    /**
+     * The deployment skew check of one Mateu response: the first `X-Mateu-Build` per backend is its
+     * baseline; a success with another build tells the host once; a Mateu 403 with another build is
+     * a STALE screen — told to the host and thrown as [StaleScreenException], so the generic
+     * "forbidden" text is not shown as well.
+     */
+    internal fun observeBuild(url: String, status: Int, build: String?, body: String?) {
+        val notice = skew.observe(
+            BuildSkew.backendKeyOf(url), build, ok = status in 200..299,
+            mateuForbidden = BuildSkew.isMateuForbidden(status, body),
+        )
+        if (notice == BuildSkew.Notice.NONE) return
+        onBuildNotice?.invoke(notice)
+        if (notice == BuildSkew.Notice.STALE) throw StaleScreenException("HTTP 403: stale screen (build $build)")
     }
 
     /** The first response of another wire major is reported (once); rendering goes on regardless. */

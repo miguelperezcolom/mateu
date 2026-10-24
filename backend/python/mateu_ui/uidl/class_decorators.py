@@ -253,16 +253,18 @@ def rest_data(
 
 
 def welcome_banner(
-    title: str = "", subtitle: str = "", image: str = "", tone=None
+    title: str = "", subtitle: str = "", image: str = "", tone=None, overline: str = ""
 ) -> Callable[[type], type]:
     """Class-level: prepends the Redwood "Welcome Banner" element to the page content — a
     centered HeroSection (id "welcome-banner") with the given title (empty → the page title),
     subtitle and background image. ``tone`` (a ``HeroTone`` or its name; None/auto = the default
-    look) paints a dark tinted band. The Python analogue of Java's ``@WelcomeBanner``."""
+    look) paints a dark tinted band; ``overline`` is a short line above the title (empty for
+    none). The Python analogue of Java's ``@WelcomeBanner``."""
 
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_welcome_banner__", (title, subtitle, image))
         setattr(cls, "__mateu_welcome_banner_tone__", tone)
+        setattr(cls, "__mateu_welcome_banner_overline__", overline)
         return cls
 
     return deco
@@ -589,9 +591,11 @@ class LabelsAsideMode(Enum):
     TOP = "top"
 
 
-def form_layout(columns: int = 2, labels_aside: LabelsAsideMode = LabelsAsideMode.AUTO):
+def form_layout(columns: int = 0, labels_aside: LabelsAsideMode = LabelsAsideMode.AUTO):
     """Class-level form layout declaration: fixes the form's column count and where the field
-    labels sit. The explicit ``labels_aside=ASIDE|TOP`` always wins over the inference; with the
+    labels sit. ``columns=0`` (the default) leaves the count to Mateu — ONE column up to 6
+    visible fields, TWO from 7 on; any explicit value ≥ 1 wins (``columns=2`` keeps the
+    two-column look of a small form). The explicit ``labels_aside=ASIDE|TOP`` always wins over the inference; with the
     default ``AUTO`` Mateu infers it from the form's shape. The Python analogue of Java's
     ``@FormLayout``."""
 

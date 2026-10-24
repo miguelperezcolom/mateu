@@ -55,7 +55,15 @@ In Mateu the grid is one `ResponsiveGrid`:
 - **`columns()` = N**: N equal tracks on wide screens; each `@Panel(colSpan)` takes that many of
   them, the KPI strip takes the whole row, and everything stacks on small screens.
 
-The KPI tiles wrap onto a second line rather than scrolling sideways.
+On the Redwood renderer the page is Spectra's own `oj-sp-dashboard-landing-page`: the KPI strip is
+its scoreboard in the `kpi` slot, so it behaves like Redwood's — one line that scrolls sideways (with
+arrows) when the tiles do not fit — and up to five panels go on Spectra's `oj-sp-dashboard-grid`,
+which picks its own layout for the width (above the fold, hero plus, stacked on a phone). That grid
+ignores `colSpan`, `rowSpan` and `columns()`, so it is used only when the dashboard declares none of
+them: as soon as a `@Panel` has a `colSpan` or `rowSpan` other than 1, or `columns()` is not 0, the
+panels stay on Mateu's grid, which honours the declared columns and spans (as it does with more than
+five panels or with `reorderable()`). The Vaadin renderer
+wraps the KPI tiles onto a second line instead.
 
 ## What you can configure
 
@@ -63,19 +71,20 @@ The KPI tiles wrap onto a second line rather than scrolling sideways.
 
 | Element | Mateu piece | Redwood | Notes |
 |---|---|---|---|
-| Page title (required) | `@Title` | ✅ | painted by the shared Spectra page header |
+| Page title (required) | `@Title` | ✅ | the `oj-sp-dashboard-landing-page` header |
 | Subtitle | — | ❌ | a dashboard composes its own tree, so `@Subtitle` is not read |
 | Primary action | `@Toolbar(buttonStyle = ButtonStyle.primary)` method | ✅ | further `@Toolbar` methods become secondary actions |
 | Timestamp ("last updated") | — | ❌ | `@Timestamp` is a form-page feature |
 | Context / object switcher | — | ❌ | `RecordSwitcherSupplier` needs a reflected page header |
-| KPI tiles | `MetricCard` fields → scoreboard | 🟡 | painted as a row of JET panels, not Spectra's `oj-sp-scoreboard` |
-| KPI drill-in | `MetricCard.actionId` | 🟡 | Redwood adds a "View" button under the value instead of making the tile clickable |
+| KPI tiles | `MetricCard` fields → scoreboard | ✅ | Spectra's `oj-sp-scoreboard`, drawn exactly as Spectra draws it ("pure KPI"): value + unit, a percentage trend as its period-change indicator, any other trend as a coloured badge, timeframe and description as the tile's meta line |
+| KPI icon | `MetricCard.icon` | ➖ | not shown on Redwood: Spectra's metric card has no icon, and none is added (the other renderers draw it) |
+| KPI drill-in | `MetricCard.actionId` | ✅ | the whole tile is the target (click or Enter); the scoreboard's own *selection* is a filter, so it stays off |
 | KPI timeframe | `MetricCard.timeframe` | ✅ | shown under the value and read in the tile's accessible name |
 | Sticky scoreboard | — | ❌ | the strip scrolls with the page |
 | Maximum visible KPIs | — | ❌ | every declared metric renders |
 | Performance title | — | ❌ | |
-| Grid arrangement (hero / above the fold) | `columns()` + `@Panel(colSpan)` | 🟡 | `colSpan` honoured with or without `columns()`; `rowSpan` is ignored on Redwood |
-| Panel title and subtitle | `@Panel(title, subtitle)` | 🟡 | a JET `oj-panel` card, not `oj-sp-dashboard-panel` |
+| Grid arrangement (hero / above the fold) | `columns()` + `@Panel(colSpan)` | 🟡 | nothing declared and up to five panels: Spectra's `oj-sp-dashboard-grid` lays them out itself (its above-the-fold / hero-plus layouts); a `colSpan`/`rowSpan` ≠ 1 or `columns()` ≠ 0, more than five panels, or `reorderable()`: Mateu's grid with `columns()` and `colSpan` (`rowSpan` is not drawn as a row span on that grid) |
+| Panel title and subtitle | `@Panel(title, subtitle)` | ✅ | Spectra's `oj-sp-dashboard-panel` (`panelTitle` / `panelSubtitle`) |
 | Panel content: chart | `Chart`, `TrendChart` | ✅ | JET `oj-chart` |
 | Panel content: list | `Grid`, `StatusList`, `Markdown`… | ✅ | |
 | Panel content: map | `Map` | ✅ | Leaflet over OpenStreetMap (JET has no street map) |
@@ -236,7 +245,7 @@ every template are documented once in [Page templates](/ux-patterns/page-templat
 | `scoreboard.selection` / `selectionMode: none \| single` | `MetricCard.actionId` makes a tile actionable, but a tile cannot hold selected state | 🟡 |
 | `scoreboard.maxKpis` | — every declared metric renders | — |
 | `dashboard-panel {panelTitle, panelSubtitle}` | `@Panel(title, subtitle)` / `DashboardPanel` | ✅ |
-| `dashboard-grid` placement | `@Panel(colSpan, rowSpan)`; `columns()` fixes the column count (`0` = responsive auto-fit) | ✅ |
+| `dashboard-grid` placement | up to five panels: Spectra's own layouts (`@Panel(colSpan, rowSpan)` and `columns()` not read); more, or `reorderable()`: Mateu's grid with `colSpan` | 🟡 |
 | `displayOptions.scoreboardSticky` | — the band scrolls with the page | — |
 | `displayOptions.density: standard \| compact` | override `style()` to return `StyleConstants.COMPACT` (`@Compact` is read only on reflected pages) | 🟡 |
 | `selectContext` / `selectObject` + `displayOptions.switcherSearch` | `RecordSwitcherSupplier`, but only on a reflected page with a header — the `Dashboard` archetype (and an `@AutoPage`-inferred dashboard) composes its own tree and cannot carry one | 🟡 |
@@ -254,7 +263,7 @@ every template are documented once in [Page templates](/ux-patterns/page-templat
 | `@AutoPage` inference (MetricCard fields → dashboard) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Reorderable tiles | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
 
-¹ With `columns()` set; see the caution under [Responsive behaviour](#responsive-behaviour).
+¹ On Spectra's `oj-sp-dashboard-landing-page` (scoreboard in its `kpi` slot, `oj-sp-dashboard-panel`s on `oj-sp-dashboard-grid` up to five panels); `MetricCard.icon` is not shown.
 
 The renderer columns of the first three rows need no dashboard code: the archetype is pure
 composition on the one responsive grid. Tile reordering is client-side (the viewer's own order),
@@ -265,8 +274,9 @@ built on the web renderers (Vaadin, Redwood) only.
 The full element-by-element review, with code references, is in
 [dashboard-landing review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/dashboard-landing.md). In short:
 
-- On Redwood a KPI drill-in is a «View» button rather than a clickable tile, and `rowSpan` is ignored.
-- The page is composed from Redwood pieces, not Spectra's `oj-sp-dashboard-landing-page`,
-  `oj-sp-scoreboard` or `oj-sp-dashboard-panel`.
+- Since 2026-10-24 Redwood paints the archetype with Spectra's `oj-sp-dashboard-landing-page`,
+  `oj-sp-scoreboard`, `oj-sp-dashboard-grid` and `oj-sp-dashboard-panel`. On Spectra's grid (≤ 5
+  panels) `colSpan`/`rowSpan`/`columns()` are not read — Spectra picks the layout; `MetricCard.icon`
+  is not shown.
 - No subtitle, timestamp, record switcher, performance title or sticky scoreboard on the archetype.
 - `@Compact` is not read on a dashboard; use `style()`.

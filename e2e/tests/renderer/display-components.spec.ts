@@ -10,6 +10,13 @@ import { test, expect, Page } from '@playwright/test';
 
 const said = (page: Page, text: string) => expect(page.getByText(text).first()).toBeVisible({ timeout: 15000 });
 
+/** On Redwood a Calendar is first DRAWN and then handed to Spectra's oj-sp-calendar, which hides the
+ *  drawn grid once it has painted: wait for that swap before clicking (no-op on Vaadin). */
+const calendarSettled = async (page: Page) => {
+  if (test.info().project.name === 'renderer-vb')
+    await page.locator('.mateu-cal.mateu-cal-sp-on').first().waitFor({ timeout: 30000 });
+};
+
 test.describe('display components, on any renderer', () => {
   test('every component of a composed page is painted (not just a TaskQueue)', async ({ page }) => {
     await page.goto('/arch/interactive');
@@ -40,7 +47,8 @@ test.describe('display components, on any renderer', () => {
     // on VB the event chip is an <a href="#">: its click used to navigate to /# and reboot the whole
     // app (nothing ran, the map was torn down); a marker is a keyboard-reachable button on both
     await page.goto('/arch/interactive');
-    await page.getByText('Meeting', { exact: true }).first().click({ timeout: 20000 });
+    await calendarSettled(page);
+    await page.getByText('Meeting', { exact: true }).filter({ visible: true }).first().click({ timeout: 20000 });
     await said(page, 'openEvent');
     await expect(page).toHaveURL(/\/arch\/interactive/);
     const marker = page.getByRole('button', { name: 'Palma' }).first();

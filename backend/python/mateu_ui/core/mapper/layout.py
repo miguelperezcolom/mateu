@@ -42,6 +42,7 @@ from mateu_ui.uidl import (
 )
 
 from .. import (
+    form_columns_inference,
     labels_aside_inference,
     layout_inference,
 )
@@ -195,7 +196,9 @@ class LayoutMapperMixin(MixinBase):
 
         # @form_layout on the class: the form's column count and where the field labels sit
         # (an explicit labels_aside=ASIDE|TOP wins; AUTO infers it from the form's shape).
-        max_columns = class_flag(cls, "__mateu_form_layout_columns__", 2)
+        # Undeclared, the count is inferred from the form's size: 1 column up to 6 visible
+        # fields, 2 from 7 on (form_columns_inference — Java's PageFormBuilder.getFormColumns).
+        max_columns = form_columns_inference.form_columns(cls)
         aside = labels_aside_inference.labels_aside(fields, max_columns, cls)
 
         # @zones columns on the class: sections lay out side by side (zones win over inference).
@@ -218,11 +221,11 @@ class LayoutMapperMixin(MixinBase):
             )]
 
         if self.prefer_tabs(cls, sections, read_only):
-            return [self.tabs_from_sections(sections, instance, read_only)]
+            return [self.tabs_from_sections(sections, instance, read_only, max_columns)]
 
         plan = self.fold_plan(cls, sections, read_only)
         if plan is not None:
-            return [self.folded_card(plan[0], plan[1], instance, read_only)]
+            return [self.folded_card(plan[0], plan[1], instance, read_only, max_columns)]
 
         # Several stacked sections carry their titles (each an <h3> inside its Card) and sit in a
         # full-width VerticalLayout; a single section is untitled (Java parity).
@@ -259,8 +262,11 @@ class LayoutMapperMixin(MixinBase):
         # A tab is marked active ONLY when it declares @Tab(open=True); the renderer defaults to
         # the first tab otherwise, so Java does not emit active on the default-selected tab.
         comps = []
+        max_columns = form_columns_inference.form_columns(cls)
         for i, (nm, is_open, fs) in enumerate(tabs):
-            form_layout = self.client(FormLayoutMetadata(), None, self.form_rows(fs))
+            form_layout = self.client(
+                FormLayoutMetadata(max_columns=max_columns), None, self.form_rows(fs, max_columns)
+            )
             comps.append(
                 self.client(
                     TabMetadata(label=self.T(nm), active=bool(is_open)), None, [form_layout]
@@ -320,19 +326,21 @@ class LayoutMapperMixin(MixinBase):
         total = sum(self.field_weight(cls, f) for _, fs in sections for f in fs)
         return total >= layout_inference.TABS_WEIGHT_THRESHOLD
 
-    def folded_card(self, main, folded, instance, read_only: bool) -> ClientSideComponent:
+    def folded_card(
+        self, main, folded, instance, read_only: bool, max_columns: int = 2
+    ) -> ClientSideComponent:
         """The fold-optionals presentation (Java ``SectionFormRenderer.buildSectionBody``): the
         required fields' form layout, then a collapsed "More options" accordion panel hosting the
         optional fields — all inside the usual unnamed-section card."""
         main_layout = self.client(
-            FormLayoutMetadata(),
+            FormLayoutMetadata(max_columns=max_columns),
             None,
-            self.form_rows(self.map_fields(main, instance, read_only)),
+            self.form_rows(self.map_fields(main, instance, read_only), max_columns),
         )
         folded_layout = self.client(
-            FormLayoutMetadata(),
+            FormLayoutMetadata(max_columns=max_columns),
             None,
-            self.form_rows(self.map_fields(folded, instance, read_only)),
+            self.form_rows(self.map_fields(folded, instance, read_only), max_columns),
         )
         panel = self.client(
             AccordionPanelMetadata(label=layout_inference.MORE_OPTIONS_LABEL),
@@ -344,16 +352,18 @@ class LayoutMapperMixin(MixinBase):
         div = self.client(DivMetadata(), "fieldId", [vlayout])
         return self.client(CardMetadata(content=div), "fieldId", [])
 
-    def tabs_from_sections(self, sections, instance, read_only: bool) -> ClientSideComponent:
+    def tabs_from_sections(
+        self, sections, instance, read_only: bool, max_columns: int = 2
+    ) -> ClientSideComponent:
         """Sections-as-tabs presentation (Java ``SectionFormRenderer.tabsFromSections``): one tab
         per section (label = section title). The tab layout carries the group semantics and is
         marked adaptable so renderers may degrade it to an accordion on narrow viewports."""
         comps = []
         for i, (title_, fs) in enumerate(sections):
             form_layout = self.client(
-                FormLayoutMetadata(),
+                FormLayoutMetadata(max_columns=max_columns),
                 None,
-                self.form_rows(self.map_fields(fs, instance, read_only)),
+                self.form_rows(self.map_fields(fs, instance, read_only), max_columns),
             )
             comps.append(
                 self.client(
@@ -613,6 +623,8 @@ class LayoutMapperMixin(MixinBase):
             field = self._widened(field, max_columns)
             # A separator always takes a full row of its own (data-colspan spans the columns).
             if isinstance(field.metadata, SeparatorMetadata):
+                field = field.model_copy(update={"metadata": field.metadata.model_copy(
+                    update={"attributes": {"data-colspan": str(max_columns)}})})
                 if pending:
                     rows.append(self.client(FormRowMetadata(), None, pending))
                     pending, used = [], 0

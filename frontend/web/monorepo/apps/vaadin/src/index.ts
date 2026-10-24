@@ -1,3 +1,4 @@
+import './rendererIdentity'  // X-Mateu-Renderer — before anything can call the server
 import './vaadinElements'  // register the Vaadin custom elements (moved out of the shared core)
 import '@infra/ui/mateu-ui'
 import { VaadinComponentRenderer } from "./VaadinComponentRenderer";

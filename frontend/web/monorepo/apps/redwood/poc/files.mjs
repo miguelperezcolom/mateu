@@ -1,6 +1,7 @@
 import { takeUndoToasts, showUndoToasts } from './notify.mjs'
 import { announce } from './a11y.mjs'
 import { updateHeaderValue } from './appExtras.mjs'
+import { safeHref } from './core/display.mjs'
 // DOM effects the (pure) reducer only DESCRIBES: downloading a file and opening a URL in
 // another tab. Before, `effects.download` was computed and nobody read it — a listing's CSV or
 // a folio's PDF reached the browser and got lost. Each chain that reduces an increment
@@ -213,4 +214,35 @@ export function applyDomEffects(effects, reg, env = globalThis) {
   // UICommand.updateHeaderValue: the header repaints and the other tabs follow (appExtras.mjs)
   for (const h of effects.headerValues || []) ((env && env.mateuHeaderValue) || updateHeaderValue)(h.id, h.value)
   return n
+}
+
+/**
+ * FileList chips (oj-sp-attachment-chip, fed locally): the chip's DOWNLOAD action downloads the
+ * file's URL, which the atom puts on `data-mateu-href` (the chip has no href of its own — Oracle's
+ * attachments download through their REST providers). spDownload does not bubble: heard in CAPTURE.
+ */
+export function attachmentDownloadOf(target) {
+  const chip = target && target.closest ? target.closest('oj-sp-attachment-chip[data-mateu-href]') : null
+  // the attribute was written from a safe href, but it is read back off the DOM: checked again
+  // (http/https/relative only — never javascript:, data:…) before it becomes a link
+  return chip ? safeHref(chip.getAttribute('data-mateu-href')) : ''
+}
+export function installAttachmentChips(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuAttachmentChips) return
+  doc.__mateuAttachmentChips = true
+  const follow = (download) => (e) => {
+    const href = attachmentDownloadOf(e.target)
+    if (!href) return
+    const a = doc.createElement('a')
+    a.setAttribute('href', href)
+    if (download) a.setAttribute('download', '')
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    doc.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+  // a click on the chip (its EXTERNAL preview) opens the file; its menu's Download downloads it
+  doc.addEventListener('spPreview', follow(false), true)
+  doc.addEventListener('spDownload', follow(true), true)
 }

@@ -132,14 +132,50 @@ publishes a new JS bundle to production installables; `runtimeVersion` follows t
 so an update only reaches binaries it is compatible with. The camera permission is the only
 runtime permission requested (for `@PhotoCapture`); the microphone is explicitly not.
 
-## 5. Compatibility
+## 5. Look and theming
+
+The app is drawn with **Material Design 3** through [React Native Paper](https://callstack.github.io/react-native-paper/)
+(MIT): top app bar, navigation drawer, filled / tonal / outlined / text buttons, outlined text
+fields with the label in the outline, switches, checkboxes, segmented buttons for short tab
+strips, cards, chips, dialogs, bottom sheets, snackbars and FABs. Icons come from
+`@expo/vector-icons` (MIT, Material Community Icons). Everything is pure JavaScript, so it keeps
+working in Expo Go.
+
+- **Light or dark** follows the device. When the app declares `@App(themeToggle = true)`, the
+  sun/moon button in the top bar switches the whole app for the session.
+- **The primary colour** is the app's `@App(accentColor)` when it is a hex colour (`#0B6E4F`);
+  without one, a neutral blue. The accent is adjusted until it reads: darkened in light mode until
+  white text reaches WCAG AA on it, lightened in dark mode until it reads as text on the dark
+  surface. Red stays reserved for errors and destructive actions.
+- **Buttons** follow the wire's `buttonStyle`: `primary` → filled, `secondary` → tonal,
+  `tertiary` → text, anything else → outlined; a `color: "error"` action (Delete) is painted in
+  the error colour.
+- **Listings** on a phone are Material list items: the first column is the headline, the other
+  columns the supporting text, and a **status column (`@Status`, `GridColumn.tones`) is a chip
+  coloured by its tone**; a true boolean column shows as a chip with its label. Rows use Material's
+  three-line density (88dp).
+- **The create action** of a CRUD listing (its `New` button) is an **extended FAB** ("+ New") at the
+  bottom right, above the pagination bar and above the app's assistant FAB; the listing's other
+  toolbar actions (bulk actions, Delete) stay in the action row.
+- **Phones (window narrower than 600dp)**: every form section lays out in **one column**, whatever
+  its `@Section(columns = …)` or `@FormLayout(columns = …)` says — two fields side by side are too
+  narrow for their values. Tablets keep the declared columns. A `@WizardProgress(RAIL)` wizard shows
+  its step rail **above** the form, collapsed to one line ("Step 2 of 4 · Account type") with a
+  linear progress bar, instead of beside it.
+
+The tokens live in `src/theme.ts` (both schemes, contrast-checked by `theme.test.ts`); the Paper
+theme is built from them in `src/ui/MateuTheme.tsx`, and the shared Material primitives (button,
+status chip, checkbox, outlined field and picker trigger) are in `src/ui/controls.tsx`. A host app
+that needs another brand changes the tokens there.
+
+## 6. Compatibility
 
 The app declares the oldest wire it supports (`MIN_WIRE_VERSION = "3.0"`,
 `src/core/wireVersion.ts`). Every response carries `wireVersion`: a server speaking another major
 version (or an older minor) gets a one-time **Version mismatch** warning instead of screens that
 silently render wrong; a newer minor is fine (the wire is additive within a major).
 
-## 6. Checks
+## 7. Checks
 
 ```bash
 npm test             # unit tests (node --test)

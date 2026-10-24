@@ -1,8 +1,9 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useRef, useState } from 'react';
-import { Linking, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Linking, Platform, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../../ui/Text';
 import { announce, fieldA11y, headingA11y } from '../../a11y/a11y';
-import { theme } from '../../theme';
+import { theme, themed } from '../../theme';
 import { normalizeBaseUrl, parseHubLink, type HubLink, type ParseOptions } from '../links';
 import { PrimaryButton, SecondaryButton, hubStyles } from './common';
 
@@ -156,11 +157,11 @@ function Scanner({ linkOptions, onLink, onType }: { linkOptions: ParseOptions; o
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   left: { textAlign: 'left', maxWidth: undefined },
   wide: { alignSelf: 'stretch', maxWidth: 340, marginTop: theme.spacing.sm },
   scanner: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
   frame: { width: 240, height: 240, borderWidth: 3, borderColor: '#FFFFFF', borderRadius: 16 },
   scanHint: { position: 'absolute', bottom: 40, left: 24, right: 24, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 8, padding: 12 },
   scanHintText: { color: '#FFFFFF', fontSize: 15, textAlign: 'center' },
-});
+}));

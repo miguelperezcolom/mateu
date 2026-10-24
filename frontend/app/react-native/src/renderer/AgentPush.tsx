@@ -1,6 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, AppState, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { theme } from '../theme';
+import { ActivityIndicator, AppState, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
+import { theme, themed } from '../theme';
 import { announceLive, buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { useAppContext } from '../context/AppContext';
 import { AGENT_CHANNEL_ACTION, AGENT_RENDERER, AgentChannel, agentActionRequest, type AgentAppMeta } from '../core/agentPush';
@@ -202,7 +203,7 @@ export function ConnectAiModal({ meta, onClose }: { meta: AgentPushMeta; onClose
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch },
   dot: { width: 8, height: 8, borderRadius: 4, borderWidth: 1, borderColor: theme.muted },
   dotConnected: { backgroundColor: theme.success, borderColor: theme.success },
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
   rowTextConnected: { color: theme.success },
   fab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: theme.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
   fabConnected: { backgroundColor: theme.success },
-  fabText: { color: theme.white, fontWeight: '700', fontSize: 15 },
+  fabText: { color: theme.onFill, fontWeight: '700', fontSize: 15 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', padding: 24 },
   dialog: { backgroundColor: theme.white, borderRadius: theme.radiusMd, padding: 20, gap: 12 },
   title: { fontSize: 18, fontWeight: '700', color: theme.ink },
@@ -229,4 +230,4 @@ const styles = StyleSheet.create({
   primaryText: { color: theme.onPrimary, fontWeight: '700' },
   secondary: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, minHeight: theme.minTouch, paddingHorizontal: 16, justifyContent: 'center' },
   secondaryText: { color: theme.ink, fontWeight: '600' },
-});
+}));

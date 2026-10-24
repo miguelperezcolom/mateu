@@ -26,20 +26,23 @@ const strip = (file) =>
 const CORE_PIECES = [...readFileSync(join(here, 'reduceContexts.mjs'), 'utf8')
   .matchAll(/^export \* from '\.\/(core\/[\w-]+\.mjs)'/gm)].map((m) => m[1])
 
+// versionSkew.mjs after wireVersion.mjs: its top-level wire constant reads SUPPORTED_WIRE_MAJOR.
 // bundle.mjs before transport.mjs: transport.loadRoute consults the loaded manifest.
 // restSources.mjs (REST sources + sample mode) before bundle.mjs and transport.mjs, which use it.
 // chat.mjs is self-contained (only the SSE transport of the AI chat); it goes at the end of the shared scope.
 export const MODULES = [
-  'i18n.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
+  'i18n.mjs', 'oracleCdn.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
-  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'a11y.mjs', 'elements.mjs', 'foldouts.mjs',
-  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
+  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'versionSkew.mjs', 'a11y.mjs', 'elements.mjs', 'foldouts.mjs',
+  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'drawers.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'toc.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'untrusted.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'agentPush.mjs', 'theme.mjs', 'qr.mjs',
   'editorPreview.mjs', 'embedded.mjs',
   'liveReload.mjs',
 ]
-const body = MODULES.map(strip).join('\n\n')
+// the renderer's own version, sent in X-Mateu-Renderer (versionSkew.mjs): package.json's, stamped here
+const RENDERER_VERSION = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')).version || 'unknown'
+const body = MODULES.map(strip).join('\n\n').replace("'@@MATEU_REDWOOD_VERSION@@'", JSON.stringify(RENDERER_VERSION))
 
 // All modules fall into ONE scope: two top-level declarations with the same name do not
 // fail, the LAST one silently wins — that is how elements.mjs's sanitizer shadowed richtext.mjs's
@@ -103,6 +106,13 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   defineRichTextField();
   defineMarkupField();
   defineColorField();
+  // the scoreboard's drill-in reads its atom from the element's binding context ($current.data);
+  // knockout is already loaded by then (VB paints with it), so the synchronous require answers
+  setScoreboardDataResolver((el) => {
+    const ko = require('knockout');
+    const c = ko && ko.contextFor ? ko.contextFor(el) : null;
+    return c && c.$current ? c.$current.data : null;
+  });
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -139,6 +149,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // wire-version check (wireVersion.mjs): the shell shows a mismatch in the error band
     setWireMismatchListener,
     checkWireVersion,
+    // version skew (versionSkew.mjs): the «app updated» notice of a redeployed backend
+    setAppUpdatedListener,
+    rendererHeaderValue,
+    // a mirror of Oracle's CDN (oracleCdn.mjs): the gallery urls follow it
+    oracleCdnUrl,
     mountElements,
     setElementEventSink,
     setElementModuleBase,
@@ -152,6 +167,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     planningActionOf,
     ganttTaskIdAt,
     applyDomEffects,
+    installAttachmentChips,
     installRules,
     setPanelExpanded,
     panelExpanded,
@@ -231,6 +247,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dialogOverlayOf,
     dismissOverlayById,
     overlayVarsOf,
+    overlaysClosedVarsOf,
+    // the drawer panel's Spectra templates (tree.mjs spectraDrawerOf + drawers.mjs)
+    withListingPeers,
+    drawerHasUnsavedChanges,
+    noteDrawerUnsaved,
+    installDrawerGuard,
     EMPTY_OVERLAY,
     dynFormMetadataOf,
     actionsOf,
@@ -331,6 +353,16 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     confirmLeaveAction,
     tracksUnsavedChanges,
     fieldEditLeavesUnsavedChanges,
+    // unsaved changes SCOPED per overlay (the page's mateuDirty + each open overlay's own), and
+    // what a navigation does with them: one question, then every overlay closes
+    topOverlayContextOf,
+    withOverlayDirty,
+    overlaysHoldUnsavedChanges,
+    hasUnsavedChanges,
+    confirmNavigationAway,
+    restoreUrlAfterStaying,
+    hasOpenOverlays,
+    withoutOverlays,
     // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
     pageFlowOf,
     catalogueActionOf,
@@ -397,6 +429,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     routeOfPath,
     pathOfRoute,
     routeUnderMount,
+    menuRoutesOf,
+    pathLeavingMountOf,
+    navigationLeavingMountOf,
+    leftMountFor,
     scrollToTopOnNavigate,
     bootstrapShell,
     bootstrapHasApp,
@@ -504,6 +540,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
+    chatBlockMessagesOf,
     chatRouteOfLink,
     // the agent's UI events (navigation-requested, close-requested, render-screen, any other):
     // one dispatcher for the shell panel and the inline Chat component, mid-stream
@@ -545,6 +582,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // an EntityHeader fact's action inside an oj-sp header (its icon button after the value)
     installFactActions,
     setFactActionSink,
+    // the KPI band (oj-sp-scoreboard): a card's icon and its drill-in (actionId)
+    installScoreboards,
+    setScoreboardActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,
     runSurfaceAction,

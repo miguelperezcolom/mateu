@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '../ui/Text';
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
 import { progressFraction } from '../core/uxRules';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
+import { Card, List, ProgressBar, SegmentedButtons, Text as PaperText } from 'react-native-paper';
+import { MateuButton, StatusChip } from '../ui/controls';
+import { headingA11y } from '../a11y/a11y';
 import { buttonA11y } from '../a11y/a11y';
 import { popoverOpensOnPress } from './hoverDetails';
 import { openExternal } from './openExternal';
@@ -27,10 +31,13 @@ function Children({ component, state }: { component: unknown; state: Dict }) {
 export function SectionRenderer({ component, state }: { component: unknown; state: Dict }) {
   const title = interpolate((meta(component)['title'] as string) ?? '', { state });
   return (
-    <View style={styles.card}>
-      {!!title && <Text style={styles.cardTitle}>{title}</Text>}
-      <Children component={component} state={state} />
-    </View>
+    // a Material outlined card with its title as the card's heading
+    <Card mode="outlined" style={styles.card}>
+      <Card.Content style={styles.cardContent}>
+        {!!title && <PaperText variant="titleMedium" style={styles.cardTitle} {...headingA11y(2)}>{title}</PaperText>}
+        <Children component={component} state={state} />
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -38,7 +45,7 @@ export function SubSectionRenderer({ component, state }: { component: unknown; s
   const title = interpolate((meta(component)['title'] as string) ?? '', { state });
   return (
     <View style={styles.subsection}>
-      {!!title && <Text style={styles.subTitle}>{title}</Text>}
+      {!!title && <PaperText variant="titleSmall" style={styles.subTitle} {...headingA11y(3)}>{title}</PaperText>}
       <Children component={component} state={state} />
     </View>
   );
@@ -48,13 +55,15 @@ export function CardRenderer({ component, state }: { component: unknown; state: 
   const m = meta(component);
   const title = m['title'];
   return (
-    <View style={styles.card}>
-      {typeof title === 'string' && !!title && <Text style={styles.cardTitle}>{interpolate(title, { state })}</Text>}
-      {typeof title === 'object' && title && <ComponentRenderer component={title} state={state} />}
-      {!!m['content'] && typeof m['content'] === 'object' && <ComponentRenderer component={m['content']} state={state} />}
-      <Children component={component} state={state} />
-      {!!m['footer'] && typeof m['footer'] === 'object' && <ComponentRenderer component={m['footer']} state={state} />}
-    </View>
+    <Card mode="outlined" style={styles.card}>
+      <Card.Content style={styles.cardContent}>
+        {typeof title === 'string' && !!title && <PaperText variant="titleMedium" style={styles.cardTitle} {...headingA11y(2)}>{interpolate(title, { state })}</PaperText>}
+        {typeof title === 'object' && title && <ComponentRenderer component={title} state={state} />}
+        {!!m['content'] && typeof m['content'] === 'object' && <ComponentRenderer component={m['content']} state={state} />}
+        <Children component={component} state={state} />
+        {!!m['footer'] && typeof m['footer'] === 'object' && <ComponentRenderer component={m['footer']} state={state} />}
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -66,13 +75,30 @@ export function TabsRenderer({ component, state }: { component: unknown; state: 
   const active = tabs[selected] as Dict | undefined;
   return (
     <View>
-      <View style={styles.tabBar}>
-        {tabs.map((t, i) => (
-          <TouchableOpacity {...buttonA11y()} key={i} style={[styles.tab, i === selected && styles.tabActive]} onPress={() => setSelected(i)}>
-            <Text style={[styles.tabText, i === selected && styles.tabTextActive]}>{interpolate((meta(t)['label'] as string) ?? '', { state })}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {tabs.length <= 4 ? (
+        // a handful of tabs: Material segmented buttons (each a tab with its selected state)
+        <SegmentedButtons
+          style={styles.segments}
+          value={String(selected)}
+          onValueChange={(v) => setSelected(Number(v))}
+          buttons={tabs.map((t, i) => ({
+            value: String(i),
+            label: interpolate((meta(t)['label'] as string) ?? '', { state }),
+            accessibilityLabel: interpolate((meta(t)['label'] as string) ?? '', { state }),
+            showSelectedCheck: false,
+            labelStyle: styles.segmentLabel,
+          }))}
+        />
+      ) : (
+        // more: a scrollable underlined tab bar (segments would squeeze the labels)
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabBar} accessibilityRole="tablist">
+          {tabs.map((t, i) => (
+            <TouchableOpacity {...buttonA11y({ role: 'tab', selected: i === selected })} key={i} style={[styles.tab, i === selected && styles.tabActive]} onPress={() => setSelected(i)}>
+              <Text style={[styles.tabText, i === selected && styles.tabTextActive]}>{interpolate((meta(t)['label'] as string) ?? '', { state })}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
       <View style={styles.tabContent}>
         {active && <Children component={active} state={state} />}
       </View>
@@ -92,11 +118,15 @@ export function AccordionRenderer({ component, state }: { component: unknown; st
     <View>
       {panels.map((p, i) => (
         <View key={i} style={styles.panel}>
-          <TouchableOpacity {...buttonA11y()} style={styles.panelHeader} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
-            <Text style={styles.panelTitle}>{interpolate((meta(p)['label'] as string) ?? '', { state })}</Text>
-            <Text style={styles.panelChevron}>{open[i] ? '▾' : '▸'}</Text>
-          </TouchableOpacity>
-          {open[i] && <View style={styles.panelBody}><Children component={p} state={state} /></View>}
+          <List.Accordion
+            title={interpolate((meta(p)['label'] as string) ?? '', { state })}
+            expanded={!!open[i]}
+            onPress={() => setOpen({ ...open, [i]: !open[i] })}
+            style={styles.panelHeader}
+            titleStyle={styles.panelTitle}
+          >
+            <View style={styles.panelBody}><Children component={p} state={state} /></View>
+          </List.Accordion>
         </View>
       ))}
     </View>
@@ -117,10 +147,7 @@ export function SplitRenderer({ component, state }: { component: unknown; state:
 
 // ── Badge / Anchor / ProgressBar ────────────────────────────────────────────────
 export function BadgeRenderer({ metadata }: { metadata: Dict }) {
-  const color = (metadata['color'] as string) ?? '';
-  const bg = color === 'success' ? theme.success : color === 'error' || color === 'danger' ? theme.danger
-    : color === 'warning' ? theme.warning : color === 'info' ? theme.info : theme.muted;
-  return <Text style={[styles.badge, { backgroundColor: bg }]}>{(metadata['text'] as string) ?? ''}</Text>;
+  return <StatusChip label={(metadata['text'] as string) ?? ''} tone={(metadata['color'] as string) ?? ''} />;
 }
 
 export function AnchorRenderer({ metadata }: { metadata: Dict }) {
@@ -151,9 +178,7 @@ export function ProgressBarRenderer({ metadata, state }: { metadata: Dict; state
       accessibilityValue={{ min: 0, max: 100, now: Math.round(frac * 100) }}
     >
       {!!text && <Text style={styles.progressText}>{text}</Text>}
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${frac * 100}%` }]} />
-      </View>
+      <ProgressBar progress={frac} color={theme.primary} style={styles.progressTrack} />
     </View>
   );
 }
@@ -163,7 +188,7 @@ export function DialogRenderer({ component, state }: { component: unknown; state
   const m = meta(component);
   return (
     <View style={styles.dialog}>
-      {!!m['headerTitle'] && <Text style={styles.dialogTitle}>{m['headerTitle'] as string}</Text>}
+      {!!m['headerTitle'] && <PaperText variant="headlineSmall" style={styles.dialogTitle}>{m['headerTitle'] as string}</PaperText>}
       {!!m['content'] && typeof m['content'] === 'object' && <ComponentRenderer component={m['content']} state={state} />}
       <Children component={component} state={state} />
       {!!m['footer'] && typeof m['footer'] === 'object' && <ComponentRenderer component={m['footer']} state={state} />}
@@ -205,58 +230,49 @@ export function ConfirmDialogRenderer({ metadata, state }: { metadata: Dict; sta
   const m = metadata;
   return (
     <View style={styles.dialog}>
-      {!!m['header'] && <Text style={styles.dialogTitle}>{m['header'] as string}</Text>}
+      {!!m['header'] && <PaperText variant="headlineSmall" style={styles.dialogTitle}>{m['header'] as string}</PaperText>}
       {!!m['content'] && typeof m['content'] === 'object' && <ComponentRenderer component={m['content']} state={state} />}
       <View style={styles.dialogFooter}>
-        <TouchableOpacity {...buttonA11y()} style={styles.btnPrimary} onPress={() => runAction((m['confirmActionId'] as string) ?? '')}>
-          <Text style={styles.btnPrimaryText}>{(m['confirmText'] as string) ?? 'OK'}</Text>
-        </TouchableOpacity>
-        {!!m['canReject'] && (
-          <TouchableOpacity {...buttonA11y()} style={styles.btnDefault} onPress={() => runAction((m['rejectActionId'] as string) ?? '')}>
-            <Text>{(m['rejectText'] as string) ?? 'No'}</Text>
-          </TouchableOpacity>
-        )}
         {!!m['canCancel'] && (
-          <TouchableOpacity {...buttonA11y()} style={styles.btnDefault} onPress={() => runAction((m['cancelActionId'] as string) ?? '')}>
-            <Text>{(m['cancelText'] as string) ?? 'Cancel'}</Text>
-          </TouchableOpacity>
+          <MateuButton label={(m['cancelText'] as string) ?? 'Cancel'} buttonStyle="tertiary" onPress={() => runAction((m['cancelActionId'] as string) ?? '')} />
         )}
+        {!!m['canReject'] && (
+          <MateuButton label={(m['rejectText'] as string) ?? 'No'} onPress={() => runAction((m['rejectActionId'] as string) ?? '')} />
+        )}
+        <MateuButton label={(m['confirmText'] as string) ?? 'OK'} buttonStyle="primary" onPress={() => runAction((m['confirmActionId'] as string) ?? '')} />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: theme.radiusSm, padding: 16, marginBottom: 12, gap: 8 },
-  cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
+const styles = themed(() => StyleSheet.create({
+  card: { backgroundColor: theme.surface, borderColor: theme.border, borderRadius: theme.radiusMd, marginBottom: 16 },
+  cardContent: { gap: 10, paddingTop: 16, paddingBottom: 16 },
+  cardTitle: { color: theme.ink, fontWeight: '600', marginBottom: 2 },
   subsection: { gap: 6, marginVertical: 8 },
-  subTitle: { fontWeight: '700' },
-  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.border, gap: 4 },
-  tab: { paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  subTitle: { color: theme.muted },
+  segments: { marginBottom: 4 },
+  segmentLabel: { marginHorizontal: 6 },
+  tabBar: { flexGrow: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border },
+  tab: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 3, borderBottomColor: 'transparent', minHeight: 48, justifyContent: 'center' },
   tabActive: { borderBottomColor: theme.primary },
-  tabText: { color: theme.ink },
-  tabTextActive: { color: theme.primary, fontWeight: '700' },
+  tabText: { color: theme.muted, fontWeight: '500' },
+  tabTextActive: { color: theme.primary, fontWeight: '600' },
   tabContent: { paddingVertical: 12 },
-  panel: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, marginBottom: 8, overflow: 'hidden' },
-  panelHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 12, backgroundColor: theme.background },
-  panelTitle: { fontWeight: '700' },
-  panelChevron: { color: theme.muted },
-  panelBody: { padding: 12 },
-  badge: { color: theme.white, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden', alignSelf: 'flex-start', fontSize: 12 },
+  panel: { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusMd, marginBottom: 8, overflow: 'hidden', backgroundColor: theme.surface },
+  panelHeader: { backgroundColor: theme.surface, paddingVertical: 4 },
+  panelTitle: { fontWeight: '600', color: theme.ink },
+  panelBody: { paddingHorizontal: 16, paddingBottom: 16 },
   link: { color: theme.primary, textDecorationLine: 'underline' },
   progressText: { fontSize: 13, color: theme.muted, marginBottom: 4 },
-  progressTrack: { height: 8, backgroundColor: theme.divider, borderRadius: 4, overflow: 'hidden', marginBottom: 8 },
-  progressFill: { height: 8, backgroundColor: theme.primary },
-  dialog: { backgroundColor: theme.white, borderColor: theme.faint, borderWidth: 1, borderRadius: 8, padding: 20, gap: 12, marginVertical: 12 },
-  dialogTitle: { fontSize: 18, fontWeight: '700' },
+  progressTrack: { height: 6, borderRadius: 3, backgroundColor: theme.divider, marginBottom: 8 },
+  dialog: { backgroundColor: theme.surface, borderRadius: theme.radiusLg, padding: 24, gap: 16, marginVertical: 12, elevation: 3, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
+  dialogTitle: { color: theme.ink },
   popoverHost: { alignSelf: 'flex-start' },
   popoverPanel: {
     backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: theme.radiusSm,
     padding: 10, marginTop: 4, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
-  dialogFooter: { flexDirection: 'row', gap: 8 },
-  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm },
-  btnPrimaryText: { color: theme.white },
-  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
-});
+  dialogFooter: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8 },
+}));

@@ -285,6 +285,10 @@ public class CapabilityListingTests
         Assert.Contains("\"type\":\"Drawer\"", drawerJson);
         Assert.Contains("El Quijote", drawerJson);
         Assert.DoesNotContain(drawer.Commands, c => c.Type == "NavigateTo");
+        // the editor in the drawer is dirty-tracked like a routed edit form: closing it asks first
+        var drawerMeta = Assert.IsType<DrawerMetadataDto>(
+            Assert.IsType<ClientSideComponentDto>(fragment.Component).Metadata);
+        Assert.True(Assert.IsType<ServerSideComponentDto>(drawerMeta.Content).ConfirmOnNavigationIfDirty);
 
         var saved = Run(typeof(EditableBooks), "/editable-books", "save",
             new Dictionary<string, object?>

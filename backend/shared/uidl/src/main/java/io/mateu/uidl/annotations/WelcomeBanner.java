@@ -22,6 +22,10 @@ import java.lang.annotation.Target;
 @Documented
 public @interface WelcomeBanner {
 
+  /** A short line above the title introducing it ("Good morning", "Sales"…). Empty for none. */
+  @Experimental("hero overline (3.0-beta.13)")
+  String overline() default "";
+
   /** Big banner title. Defaults to the page {@code @Title}. */
   String title() default "";
 

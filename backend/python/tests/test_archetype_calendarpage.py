@@ -85,6 +85,25 @@ def test_next_calendar_month_re_fetches_showing_only_the_new_months_event():
     assert "Boardmeeting" not in j
 
 
+def test_a_date_jump_moves_to_the_period_holding_that_date():
+    inc = handler().handle(
+        RunActionRq(route="/team-calendar", actionId="goCalendarToDate", parameters={"_date": "2026-03-20"},
+                    serverSideType=f"{__name__}.TeamCalendar", initiatorComponentId="ux_main")
+    )
+    j = render(inc)
+    assert '"month":"2026-03-20"' in j
+    assert "Kickoff" in j
+    assert "Releasev3" not in j
+
+
+def test_a_garbled_date_jump_stays_on_the_current_period():
+    inc = handler().handle(
+        RunActionRq(route="/team-calendar", actionId="goCalendarToDate", parameters={"_date": "next tuesday"},
+                    serverSideType=f"{__name__}.TeamCalendar", initiatorComponentId="ux_main")
+    )
+    assert "Kickoff" not in render(inc)
+
+
 def test_clicking_an_event_runs_action_on_and_navigates_to_the_returned_uri():
     inc = handler().handle(
         RunActionRq(route="/team-calendar", actionId="openCalendarEvent",

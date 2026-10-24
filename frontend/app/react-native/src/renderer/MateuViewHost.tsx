@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { loadFailureMessage } from '../core/uxRules';
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
 import { ComponentRenderer } from './ComponentRenderer';
 import { firstComponentFragment } from '../core/chatStream';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
+import { MateuButton } from '../ui/controls';
 
 /** The controller of the view a component belongs to — field editors write state through it,
  *  buttons dispatch actions, cruds register data handlers. */
@@ -103,9 +105,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
       <View style={styles.centered} accessibilityRole="alert">
         <Text style={styles.failureTitle} {...headingA11y(2)}>{message.title}</Text>
         <Text style={styles.failureDetail}>{message.detail}</Text>
-        <TouchableOpacity {...buttonA11y({ label: 'Try again' })} style={styles.retryButton} onPress={retry}>
-          <Text style={styles.retryText}>Try again</Text>
-        </TouchableOpacity>
+        <MateuButton label="Try again" buttonStyle="primary" icon="refresh" onPress={retry} />
       </View>
     );
   }
@@ -157,7 +157,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   host: { flex: 1 },
   // a bare-layout root (e.g. a wizard) gets the same 16pt gutter as Page/Form roots — it was flush
   // against the screen edges (RN-17)
@@ -169,4 +169,4 @@ const styles = StyleSheet.create({
   retryButton: { backgroundColor: theme.primary, paddingHorizontal: 24, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
   retryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 15 },
   loadingOverlay: { position: 'absolute', top: 8, right: 8, zIndex: 10 },
-});
+}));

@@ -42,8 +42,9 @@ collapses it into a strip above the main area, and the user taps it to see every
 
 In Mateu the two regions sit on one responsive grid: on Vaadin the key-info column is fixed-width
 (`panelWidth()`, 22rem by default) and **sticky**, and the page stacks the panel above the tabs below
-48rem. The Redwood renderer uses a one-third / two-thirds split that stacks below its `md`
-breakpoint; the panel is neither sticky nor collapsible there yet.
+48rem. The Redwood renderer paints Spectra's `oj-sp-item-overview-page`: the overview column beside
+the main area on large screens (the template's width, `panelWidth()` is not applied), stacked above
+it below the large breakpoint.
 
 ![The item overview on a phone-width window](/images/docs/redwood-templates/item-overview-2.png)
 
@@ -58,14 +59,14 @@ breakpoint; the panel is neither sticky nor collapsible there yet.
 | Parent navigation | a `@Toolbar` method named `back` (or `cancel`, `close`), or the automatic parent breadcrumb | ✅ | Redwood's "go to parent" link in the page header |
 | Search in the navigation | — | ❌ | |
 | Previous / next item | — | ❌ | `PeerNavigationSupplier` is not read on composed archetypes; host the overview in a CRUD record page that provides it |
-| Item title / subtitle | an `EntityHeader` (or `Text`s) in the key-info panel; `@Title` for the page header | 🟡 | composed inside the panel, not the component's own title |
-| Badge | `EntityHeader.badges` in the panel | 🟡 | |
+| Item title / subtitle | an `EntityHeader` (or `Text`s) in the key-info panel; `@Title` for the page header | ✅ | Redwood: `oj-sp-item-overview`'s own title — the EntityHeader's, else the panel's card title or leading heading (taken out of the body), else the page title |
+| Badge | `EntityHeader.badges` in the panel | ✅ | Redwood: the overview's badge (subtle, trailing) |
 | Avatar / photo | an `Avatar` or `Image` in the panel | 🟡 | no 1:1 / 4:3 aspect setting |
 | Edit / share / favourite | — | ❌ | declare your own `@Toolbar` actions instead |
-| Secondary item actions (up to 3) | `@Toolbar` methods | 🟡 | they go to the page header, not to the panel |
+| Secondary item actions (up to 3) | `@Toolbar` methods | ✅ | Redwood: the overview's secondary actions (Vaadin: the page header) |
 | Body (key values) | the panel's component tree (property rows, `Markdown`, a read-only form) | ✅ | |
 | Footer links | links or buttons at the end of the panel's tree | 🟡 | no dedicated footer area |
-| Panel width | `panelWidth()` | 🟡 | ignored by Redwood (one third of the row) |
+| Panel width | `panelWidth()` | 🟡 | ignored by Redwood (the template's column) |
 | Sticky key-info panel | built in | 🟡 | sticky on Vaadin, not on Redwood |
 | Collapsed panel on small screens | — | ❌ | the panel stacks fully expanded |
 | Main slot: table, list | `Grid`, `StatusList`, any component in a `@Panel` tab | ✅ | Redwood draws tables with `oj-table` |
@@ -148,12 +149,12 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 
 | Redwood prop / slot | Mateu | |
 |---|---|---|
-| `itemTitle` / `itemSubtitle` | compose them in the key-info panel — typically an `EntityHeader`; Redwood paints it inside the panel | 🟡 |
+| `itemTitle` / `itemSubtitle` | the `EntityHeader`'s title/subtitle, else the panel's title or leading heading, else the page title | ✅ |
 | `photo {src}` | `EntityHeader` image / any component in the panel | ✅ |
 | `badge {text, style: strong \| subtle, position: leading \| trailing}` | `@BadgeInHeader` / `EntityHeader` badges; no `position` control | 🟡 |
 | `isFavorite` + `spExpand` | — | — |
 | `displayOptions {edit, share, favorite}` | — no built-in affordance bar; declare your own buttons | — |
-| **Slots** `body` / `footer` | the panel is a single component tree; compose a `VerticalLayout` | 🟡 |
+| **Slots** `body` / `footer` | the panel's component tree is the `body`; no footer area | 🟡 |
 | `spEdit` / `spShare` | your own `@Action` methods behind declared buttons | 🟡 |
 
 ## Known gaps
@@ -161,8 +162,10 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 The element-by-element review, with code references, is in
 [item-overview review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/item-overview.md). In short:
 
-- Redwood paints the page with JET pieces (a panel and an `oj-tab-bar`), not Spectra's
-  `oj-sp-item-overview-page`; an attempt was made and reverted.
-- On Redwood the key-info panel is not sticky, ignores `panelWidth()` and does not collapse on
-  small screens.
+- Redwood paints the page with Spectra's `oj-sp-item-overview-page` + `oj-sp-item-overview` (the
+  2026-07-27 attempt was reverted because the overview column floated with no surface in light mode;
+  the renderer now gives that column Redwood's panel surface). The tabs stay an `oj-tab-bar` in the
+  `main` slot.
+- On Redwood the key-info panel ignores `panelWidth()` and does not collapse into a strip on small
+  screens (it stacks above the tabs).
 - No previous/next, search, edit/share/favourite or footer area on the archetype.

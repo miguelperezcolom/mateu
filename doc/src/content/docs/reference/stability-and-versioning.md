@@ -218,19 +218,19 @@ same concepts.
 
 **Experimental members** of otherwise stable types:
 
-- `io.mateu.core.infra.declarative.orchestrators.calendar.CalendarPage`: `actionOnDay`, `days`, `daysClickable`, `openCalendarDay`, `switchCalendarView`, `views`
+- `io.mateu.core.infra.declarative.orchestrators.calendar.CalendarPage`: `actionOnDay`, `days`, `daysClickable`, `goCalendarToDate`, `openCalendarDay`, `switchCalendarView`, `views`
 - `io.mateu.core.infra.declarative.orchestrators.crud.Crud`: `display`, `nextIdAfter`, `saveAndNextLabel`
 - `io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard`: `reorderable`
 - `io.mateu.core.infra.declarative.orchestrators.datamanagement.DataManagement`: `bottomPanel`, `endPanel`, `toggleBottomPanel`, `toggleEndPanel`
 - `io.mateu.core.infra.declarative.orchestrators.foldout.Foldout`: `panelSummary`
 - `io.mateu.core.infra.declarative.orchestrators.generaloverview.GeneralOverview`: `display`, `info`, `infoWidth`
 - `io.mateu.core.infra.declarative.orchestrators.smartsearch.SmartSearchPage`: `preSearchContent`
-- `io.mateu.core.infra.declarative.orchestrators.welcome.Welcome`: `heroTone`
+- `io.mateu.core.infra.declarative.orchestrators.welcome.Welcome`: `heroOverline`, `heroTone`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `beforeStepNavigate`, `display`, `stepSkippable`
 - `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`
 - `io.mateu.uidl.annotations.Menu`: `display`, `image`
 - `io.mateu.uidl.annotations.Section`: `addAction`, `editAction`, `viewMoreAction`
-- `io.mateu.uidl.annotations.WelcomeBanner`: `tone`
+- `io.mateu.uidl.annotations.WelcomeBanner`: `overline`, `tone`
 - `io.mateu.uidl.annotations.WizardCompletionAction`: `availableFromStep`
 - `io.mateu.uidl.data.AppHeaderAction`: `route`
 - `io.mateu.uidl.data.Calendar`: `dayActionId`, `days`, `view`, `views`
@@ -238,7 +238,7 @@ same concepts.
 - `io.mateu.uidl.data.FieldLink`: `presentation`
 - `io.mateu.uidl.data.FoldoutPanel`: `summary`
 - `io.mateu.uidl.data.GridColumn`: `tones`
-- `io.mateu.uidl.data.HeroSection`: `tone`
+- `io.mateu.uidl.data.HeroSection`: `overline`, `tone`
 - `io.mateu.uidl.data.Map`: `attribution`, `markerActionId`, `markers`, `tileUrl`
 - `io.mateu.uidl.data.Menu`: `presentation`
 - `io.mateu.uidl.data.MetricCard`: `timeframe`
@@ -375,6 +375,10 @@ in short:
   backends speak the same wire as the Java one of the same release.
 - The [conformance corpus](/reference/wire-specification/#conformance) is the executable definition
   of "wire-equivalent": a change that makes it fail is a breaking change.
+
+These rules cover Mateu's own changes. What happens when **your** screens change under an open tab,
+when the renderer is upgraded, or when several teams release on their own schedules is in
+[Versions across teams and deployments](/deploy/versions-across-teams/).
 
 ## Schemas and YAML
 

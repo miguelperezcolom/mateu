@@ -1,5 +1,6 @@
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
 import { applyClientRules } from './clientRules.ts';
+import { isStaleScreenError } from './buildSkew.ts';
 import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './viewWire.ts';
@@ -305,7 +306,8 @@ export class MateuViewController {
       // OnSuccess triggers (the polling loop) — only if we are still on the screen that dispatched it
       this.polling.actionSucceeded(generation, actionId);
     } catch (e) {
-      if (silent || this.silentErrors) devLog('[Mateu] action failed:', actionId, errorText(e));
+      // a stale-screen refusal already showed its own notice (with Reload) — not a second toast
+      if (silent || this.silentErrors || isStaleScreenError(e)) devLog('[Mateu] action failed:', actionId, errorText(e));
       else this.session.notify(null, `Action failed: ${errorText(e)}`, 'error');
     }
   }

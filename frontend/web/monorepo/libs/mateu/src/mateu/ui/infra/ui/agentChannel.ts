@@ -4,6 +4,7 @@ import { safeSessionStorage } from '@infra/safeStorage.ts'
 import { sessionId } from '@infra/http/authToken.ts'
 import { AGENT_SECRET_KEY, tabSessionReady } from '@infra/http/tabSession.ts'
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
+import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { SseParser } from './chatStream'
 import { CLOSE_REQUESTED } from './chatEvents'
@@ -188,7 +189,7 @@ const connect = () => {
     ;(tabSessionReady() ?? Promise.resolve()).then(() => {
         if (own.signal.aborted) throw new Error('agent channel: stopped')
         const headers: Record<string, string> = { 'Accept': 'text/event-stream', 'Content-Type': 'application/json' }
-        Object.assign(headers, credentialHeadersFor(url))
+        Object.assign(headers, credentialHeadersFor(url), rendererHeaders())
         return fetch(url, {
             method: 'POST',
             headers,

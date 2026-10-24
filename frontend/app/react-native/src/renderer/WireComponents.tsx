@@ -11,17 +11,8 @@
  * read-only. The decisions that can be made without React live in wireWidgets.ts / diagrams.ts.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { Image, Modal, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import Svg, { Circle, G, Polygon, Polyline, Rect, Text as SvgText } from 'react-native-svg';
 import { ComponentRenderer } from './ComponentRenderer';
 import { MateuViewHost, useViewController } from './MateuViewHost';
@@ -51,7 +42,7 @@ import {
 import { interpolate } from '../core/expressions';
 import { platformStore } from '../core/secureStore';
 import { useAppContext } from '../context/AppContext';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { openExternal } from './openExternal';
 
@@ -981,7 +972,7 @@ export function FormEditorRenderer({ metadata }: { metadata: Dict }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   stack: { gap: 8 },
   row: { flexDirection: 'row', alignItems: 'center' },
   wrap: { flexWrap: 'wrap' },
@@ -1002,7 +993,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: '600', color: theme.ink },
   // avatar
   avatar: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  avatarText: { color: theme.white, fontWeight: '700' },
+  avatarText: { color: theme.onFill, fontWeight: '700' },
   avatarRing: { borderWidth: 2, borderColor: theme.white },
   avatarOverlap: { marginLeft: -10 },
   icon: { fontSize: 18, color: theme.ink },
@@ -1025,7 +1016,7 @@ const styles = StyleSheet.create({
   sheetItem: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
   sheetItemText: { fontSize: 15, color: theme.ink },
   tooltip: { marginTop: 4, backgroundColor: theme.ink, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 6, alignSelf: 'flex-start' },
-  tooltipText: { color: theme.white, fontSize: 12 },
+  tooltipText: { color: theme.onFill, fontSize: 12 },
   dirGroup: { gap: 2, marginBottom: 8 },
   dirGroupTitle: { fontWeight: '700', color: theme.ink, fontSize: 14, marginBottom: 2 },
   // grid
@@ -1037,7 +1028,7 @@ const styles = StyleSheet.create({
   // stepper
   stepRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   stepDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: theme.info, alignItems: 'center', justifyContent: 'center' },
-  stepDotText: { color: theme.white, fontSize: 12, fontWeight: '700' },
+  stepDotText: { color: theme.onFill, fontSize: 12, fontWeight: '700' },
   // carousel
   carouselNav: { justifyContent: 'center', gap: 8, marginTop: 8 },
   carouselArrow: { fontSize: 22, color: theme.ink, paddingHorizontal: 8 },
@@ -1058,8 +1049,8 @@ const styles = StyleSheet.create({
   // overlays in place
   notification: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, backgroundColor: theme.background, borderRadius: theme.radiusMd, padding: 12 },
   consent: { backgroundColor: theme.ink, borderRadius: theme.radiusMd, padding: 14 },
-  consentText: { color: theme.white, fontSize: 13 },
-  consentLink: { color: theme.white, textDecorationLine: 'underline', fontSize: 13 },
+  consentText: { color: theme.onFill, fontSize: 13 },
+  consentLink: { color: theme.onFill, textDecorationLine: 'underline', fontSize: 13 },
   consentBtn: { backgroundColor: theme.white, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 6 },
   consentBtnText: { color: theme.ink, fontWeight: '600', fontSize: 13 },
   // element
@@ -1068,6 +1059,6 @@ const styles = StyleSheet.create({
   // diagrams / form definition
   diagramBox: { borderWidth: 1, borderColor: theme.divider, borderRadius: theme.radiusMd, backgroundColor: theme.white, maxHeight: 480 },
   formDefRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
-  typeBadge: { fontSize: 11, color: theme.white, backgroundColor: theme.info, borderRadius: theme.radiusPill, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  typeBadge: { fontSize: 11, color: theme.onFill, backgroundColor: theme.info, borderRadius: theme.radiusPill, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   stereoBadge: { backgroundColor: theme.muted },
-});
+}));

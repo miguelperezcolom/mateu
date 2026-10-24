@@ -129,6 +129,11 @@ public enum Role { Guest, Admin }
 
 `[Section("…")]` groups the fields that follow it into a titled card.
 
+A form lays out in **one column with up to 6 visible fields and two from 7 on** (counted over the
+whole form, like the Java and Python servers — see
+[how many columns](/java-ui-definition/forms/#how-many-columns)). `[FormLayout(Columns = N)]` on
+the class fixes it (`Columns = 2` keeps two columns on a small form); a `[Zone]`d form keeps two.
+
 ## CRUD
 
 Derive from `Crud<T>` and override `Fetch` (and, as needed, `Get`/`Save`/`Delete`). You get a

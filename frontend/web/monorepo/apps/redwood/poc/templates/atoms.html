@@ -122,12 +122,21 @@
                         :data-mateu-pop-html="[[ $current.data.html ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></button>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
-                      <!-- Calendar: JET has no calendar — a grid with Redwood tokens, an oj-buttonset-one view
-                           switcher, events as links; all four views are painted and the one in
-                           data-cal-shown is shown (installCalendars) -->
+                      <!-- Calendar: Spectra's oj-sp-calendar, mounted by installCalendars from data-cal-sp
+                           (calendar.mjs spCalendarSpecOf). The grid below (Redwood tokens, an
+                           oj-buttonset-one view switcher, events as links, all four views painted and
+                           the one in data-cal-shown shown) is its fallback until it loads, or if it
+                           cannot — .mateu-cal-sp-on hides it -->
                       <div class="mateu-cal oj-sm-margin-2x-bottom" :id="[[ $current.data.calId ]]"
-                        :data-cal-shown="[[ $current.data.view ]]" :data-day-action="[[ $current.data.dayActionId ]]">
+                        :data-cal-shown="[[ $current.data.view ]]" :data-day-action="[[ $current.data.dayActionId ]]"
+                        :data-cal-sp="[[ $current.data.spSpec ]]">
                         <div class="mateu-cal-head">
+                          <oj-bind-for-each data="[[ $current.data.navButtons ]]">
+                            <template>
+                              <button type="button" class="mateu-cal-nav" :data-cal-nav-action="[[ $current.data.actionId ]]"
+                                :data-cal-nav-params="[[ $current.data.params ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></button>
+                            </template>
+                          </oj-bind-for-each>
                           <span class="oj-typography-subheading-sm mateu-cal-title" data-for="month"><oj-bind-text value="[[ $current.data.titles.month ]]"></oj-bind-text></span>
                           <span class="oj-typography-subheading-sm mateu-cal-title" data-for="week"><oj-bind-text value="[[ $current.data.titles.week ]]"></oj-bind-text></span>
                           <span class="oj-typography-subheading-sm mateu-cal-title" data-for="day"><oj-bind-text value="[[ $current.data.titles.day ]]"></oj-bind-text></span>
@@ -223,16 +232,24 @@
                         </div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isScoreboard ]]">
-                      <!-- KPI band (Scoreboard / MetricCard): big value, trend, and the button of the
-                           action that explains it (e.g. the filtered search) -->
+                    <oj-bind-if test="[[ $current.data.isScoreboard && !!$current.data.sbProvider ]]">
+                      <!-- KPI band (Scoreboard / MetricCard) = Spectra's oj-sp-scoreboard: one item per
+                           MetricCard (scoreboardItemOf). Its selection is a FILTER (it pre-selects the
+                           first card), not a drill-in, so it stays off: installScoreboards (displayDom.mjs)
+                           runs a card's actionId on the list's own item action (no icon: pure KPI, as Spectra draws it) -->
+                      <oj-sp-scoreboard :id="[[ $current.data.sbId ]]" class="mateu-sp-scoreboard oj-sm-margin-2x-bottom" selection-mode="none"
+                        data="[[ $current.data.sbProvider ]]"
+                        :data-mateu-actionable="[[ $current.data.sbActionable ? 'true' : 'false' ]]"></oj-sp-scoreboard>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isScoreboard && !$current.data.sbProvider ]]">
+                      <!-- without a data provider (no JET: the editor's static canvas) the band is drawn by hand -->
                       <div class="oj-flex mateu-scoreboard oj-sm-margin-2x-bottom">
                         <oj-bind-for-each data="[[ $current.data.metrics ]]">
                           <template>
                             <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
                               role="group" :aria-label="[[ $current.data.ariaLabel ]]">
                               <div class="oj-typography-body-sm oj-text-color-secondary">
-                                <oj-bind-if test="[[ !!$current.data.iconClass ]]"><span class="oj-sm-margin-1x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconText ]]"><span class="oj-sm-margin-1x-end" aria-hidden="true"><oj-bind-text value="[[ $current.data.iconText ]]"></oj-bind-text></span></oj-bind-if><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
                               <oj-bind-if test="[[ !!$current.data.timeframe ]]">
@@ -1089,7 +1106,9 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isTimeline ]]">
-                      <!-- Timeline: oj-timeline is deprecated in JET — a Redwood list with markers -->
+                      <!-- Timeline: oj-timeline is deprecated in JET — a Redwood list with markers whose events are
+                           Spectra's oj-sp-timeline-event-template (title/description/time; a clickable
+                           event's action in the template's own action menu) -->
                       <ol class="mateu-timeline oj-sm-margin-2x-bottom">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
                           <template>
@@ -1098,14 +1117,9 @@
                                 <span :class="[[ $current.data.iconClass ]]"></span><oj-bind-text value="[[ $current.data.glyph ]]"></oj-bind-text>
                               </span>
                               <div class="mateu-timeline-body">
-                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.timestamp ]]"></oj-bind-text></div>
-                                <oj-bind-if test="[[ $current.data.clickable ]]">
-                                  <oj-button chroming="borderless" class="mateu-link-button" on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></oj-button>
-                                </oj-bind-if>
-                                <oj-bind-if test="[[ $current.data.plain ]]">
-                                  <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                </oj-bind-if>
-                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                <oj-sp-timeline-event-template primary-text="[[ $current.data.title ]]" secondary-text="[[ $current.data.description ]]"
+                                  tertiary-text="[[ $current.data.timestamp ]]" primary-actions="[[ $current.data.primaryActions ]]"
+                                  on-sp-primary-action="[[ $listeners.{{blockAction}} ]]"></oj-sp-timeline-event-template>
                               </div>
                             </li>
                           </template>
@@ -1283,27 +1297,27 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isFileList ]]">
-                      <ul class="mateu-files oj-sm-margin-2x-bottom">
+                      <!-- FileList: Spectra's oj-sp-attachment-chip per file, fed LOCALLY (no attachments REST):
+                           a URL downloads through the chip's download action (installAttachmentChips reads
+                           data-mateu-href), an actionId opens through its preview (external) -->
+                      <div class="mateu-files oj-flex oj-sm-flex-wrap oj-sm-margin-2x-bottom" role="list">
                         <oj-bind-for-each data="[[ $current.data.files ]]">
                           <template>
-                            <li class="mateu-file oj-flex oj-sm-align-items-center">
-                              <span class="mateu-file-icon oj-sm-margin-2x-end" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span>
-                              <div class="oj-flex-item">
-                                <oj-bind-if test="[[ $current.data.hasHref ]]">
-                                  <a class="oj-typography-body-md" :href="[[ $current.data.href ]]" target="_blank" rel="noopener noreferrer" download><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></a>
-                                </oj-bind-if>
-                                <oj-bind-if test="[[ $current.data.noHref ]]">
-                                  <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></span>
-                                </oj-bind-if>
-                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
-                              </div>
+                            <div class="mateu-file-chip oj-sm-margin-2x-end oj-sm-margin-2x-bottom" role="listitem">
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.{{blockAction}} ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
+                                <oj-sp-attachment-chip display-style="summary" file-name="[[ $current.data.chipName ]]" file-size="[[ $current.data.fileSize ]]"
+                                  file-type="[[ $current.data.fileType ]]" action-options="[[ $current.data.chipActions ]]"
+                                  on-sp-preview="[[ $listeners.{{blockAction}} ]]"></oj-sp-attachment-chip>
                               </oj-bind-if>
-                            </li>
+                              <oj-bind-if test="[[ $current.data.plain ]]">
+                                <oj-sp-attachment-chip display-style="summary" file-name="[[ $current.data.chipName ]]" file-size="[[ $current.data.fileSize ]]"
+                                  file-type="[[ $current.data.fileType ]]" action-options="[[ $current.data.chipActions ]]"
+                                  :data-mateu-href="[[ $current.data.href ]]"></oj-sp-attachment-chip>
+                              </oj-bind-if>
+                            </div>
                           </template>
                         </oj-bind-for-each>
-                      </ul>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isChecklist ]]">
                       <div class="mateu-checklist oj-sm-margin-2x-bottom">
@@ -1583,18 +1597,19 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHero ]]">
                       <div :class="[[ $current.data.heroClass ]]" :style="[[ $current.data.heroStyle ]]">
+                        <oj-bind-if test="[[ !!$current.data.overline ]]">
+                          <p class="mateu-hero-overline oj-typography-body-sm"><oj-bind-text value="[[ $current.data.overline ]]"></oj-bind-text></p>
+                        </oj-bind-if>
                         <h2 class="oj-typography-heading-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h2>
                         <p class="oj-typography-body-lg"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></p>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isEmptyStateAtom ]]">
                       <div class="oj-sm-margin-4x-vertical">
-                        <oj-sp-empty-state primary-text="[[ $current.data.title ]]" secondary-text="[[ $current.data.description ]]"></oj-sp-empty-state>
-                        <oj-bind-if test="[[ $current.data.hasAction ]]">
-                          <div class="oj-flex oj-sm-justify-content-center">
-                            <oj-button chroming="callToAction" on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
-                          </div>
-                        </oj-bind-if>
+                        <!-- the call to action is the component's own primaryAction (spPrimaryAction) -->
+                        <oj-sp-empty-state primary-text="[[ $current.data.title ]]" secondary-text="[[ $current.data.description ]]"
+                          primary-action="[[ $current.data.primaryAction ]]"
+                          on-sp-primary-action="[[ $listeners.{{blockAction}} ]]"></oj-sp-empty-state>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgressBar ]]">

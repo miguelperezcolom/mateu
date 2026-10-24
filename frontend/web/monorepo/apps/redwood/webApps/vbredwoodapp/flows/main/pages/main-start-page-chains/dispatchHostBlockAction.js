@@ -24,8 +24,12 @@ define([
      * @param {boolean} params.fromNested
      * @param {string} params.surfaceId  the surface a MicroFrontend atom belongs to
      * @param {string} params.route  the RouteLink of a navigating button
+     * @param {string} params.ctaId  a component that paints buttons from props (oj-sp-welcome-page's
+     *   secondaryActions) says WHICH by an id of its own…
+     * @param {Object} params.ctas  …that this map resolves to its { actionId, route }
      */
-    async run(context, { actionId, parameters, fromNested, surfaceId, route }) {
+    async run(context, { actionId, parameters, fromNested, surfaceId, route, ctaId, ctas }) {
+      if (ctaId && ctas && ctas[ctaId]) ({ actionId, route } = ctas[ctaId]);
       const click = bridge.blockClickOf({ actionId, parameters, route });
       if (click.navigate) {
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: click.navigate, force: true } });

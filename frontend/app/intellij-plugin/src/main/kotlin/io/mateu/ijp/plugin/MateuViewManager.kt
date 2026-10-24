@@ -134,6 +134,23 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         ctx.navigate(route, consumedRoute, serverSideType, actionId)
     }
 
+    /**
+     * Reloads every open Mateu view from scratch (the Reload of the version-skew notices): each
+     * editor tab and results tab re-runs its load against its own route — a redeployed backend
+     * answers with the new screen. The transient preview tab is closed instead.
+     */
+    fun reloadAll() {
+        closePreview()
+        val contexts = LinkedHashSet<AppContext>()
+        FileEditorManager.getInstance(project).openFiles.filterIsInstance<MateuVirtualFile>().mapNotNullTo(contexts) { it.ctx }
+        ToolWindowManager.getInstance(project).getToolWindow(RESULTS_ID)?.contentManagerIfCreated?.contents
+            ?.mapNotNullTo(contexts) { it.getUserData(MATEU_VIEW_CTX) }
+        for (ctx in contexts) {
+            ctx.setDirtyState(false)
+            ctx.navigate(ctx.currentRoute, ctx.currentConsumedRoute, ctx.currentServerSideType, null)
+        }
+    }
+
     /** Crud listing → a tab in the bottom "Mateu" results tool window; actions on the title bar. */
     private fun placeCrudList(ctx: AppContext, panel: JComponent, title: String): () -> Unit {
         val twm = ToolWindowManager.getInstance(project)

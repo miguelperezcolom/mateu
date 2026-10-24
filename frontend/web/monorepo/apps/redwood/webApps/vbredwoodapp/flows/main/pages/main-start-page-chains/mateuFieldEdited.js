@@ -35,19 +35,28 @@ define([
       if (event && event.target) {
         bridge.clearFieldError(event.target);
       }
-      // unsaved changes only where the field's owner asks before it is left (Vaadin's rule, shellFlows.mjs)
-      if (bridge.fieldEditLeavesUnsavedChanges($application.variables.mateuRegistry,
-        { overlay: !!($application.variables.mateuDrawerOpen || $page.variables.mateuModalOpen) })) {
-        context.$application.variables.mateuDirty = true;
-      }
       // a dialog's form (the modal of a Dialog overlay) writes to the overlay's draft,
       // like the drawer's: it is the state that travels with its actions
       if ($application.variables.mateuDrawerOpen || $page.variables.mateuModalOpen) {
+        // unsaved changes only where the field's owner asks before it is left (Vaadin's rule,
+        // shellFlows.mjs) — and in the OVERLAY's own scope (its registry context), not the page's:
+        // closing it, or navigating away, asks about it; the page behind keeps its own flag
+        const markedReg = bridge.withOverlayDirty($application.variables.mateuRegistry, true);
+        if (markedReg !== $application.variables.mateuRegistry) {
+          $application.variables.mateuRegistry = markedReg;
+        }
         const draft = Object.assign({}, $page.variables.mateuDrawerDraft);
         // an Amount keeps its currency: the money input edits only the number
         draft[fieldId] = bridge.committedValueOf(draft[fieldId], detail.value);
         $page.variables.mateuDrawerDraft = draft;
+        // a create/edit drawer (Spectra template) holds Esc / a click outside while this differs
+        const drawerNow = $application.variables.mateuDrawer || {};
+        bridge.noteDrawerUnsaved(!!(drawerNow.sp && drawerNow.sp.isCreateEdit) && $application.variables.mateuDrawerOpen
+          && bridge.drawerHasUnsavedChanges(drawerNow, draft));
       } else {
+        if (bridge.fieldEditLeavesUnsavedChanges($application.variables.mateuRegistry)) {
+          $application.variables.mateuDirty = true;
+        }
         const draft = Object.assign({}, $page.variables.mateuDraft);
         const hostState = (($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID] || {}).state || {};
         // an Amount keeps its currency: the money input edits only the number

@@ -249,7 +249,8 @@ def test_separator_before_paints_a_full_width_divider_above_the_field():
     tree = component_tree(SeparatorForm)
     separators = all_metadata(tree, "Separator")
     assert len(separators) == 1
-    assert separators[0]["metadata"]["attributes"] == {"data-colspan": "2"}
+    # spans the form's columns: one, inferred for a small form (Java parity)
+    assert separators[0]["metadata"]["attributes"] == {"data-colspan": "1"}
 
 
 def test_separator_before_is_honoured_inside_a_tab():

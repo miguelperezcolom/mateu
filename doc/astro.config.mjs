@@ -73,6 +73,7 @@ export default defineConfig({
 			favicon: '/favicon.png',
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/miguelperezcolom/mateu' },
+				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/YFb9utDMYK' },
 			],
 			sidebar: [
 				{
@@ -568,6 +569,8 @@ export default defineConfig({
 						{ slug: 'deploy/environments', label: 'Environments' },
 						{ slug: 'java-user-manual/build/derived-openapi', label: 'The OpenAPI your UI implies' },
 						{ slug: 'deploy/production-checklist', label: 'Production checklist' },
+						{ slug: 'deploy/versions-across-teams', label: 'Versions across teams' },
+						{ slug: 'deploy/oracle-cdn-mirror', label: "Oracle's CDN from a mirror" },
 						{
 							label: 'Guides',
 							items: [

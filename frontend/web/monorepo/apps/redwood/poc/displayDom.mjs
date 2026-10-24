@@ -178,10 +178,25 @@ const newSessionId = () => 'mateu-' + (globalThis.crypto && globalThis.crypto.ra
   ? globalThis.crypto.randomUUID()
   : Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join(''))
 
+/** Spectra's chat pieces (oj-sp-chat-message-block, oj-sp-chat-input), when the page can load them
+ *  (VB with requirejs): the Chat component's turns and composer are then Spectra's; without them (a
+ *  bare DOM, the Node tests) the hand-drawn ones. */
+function withSpectraChat(cb) {
+  const req = typeof window !== 'undefined' && typeof window.require === 'function' ? window.require : null
+  if (!req) { cb(false); return }
+  req(['oj-sp/chat-message-block/loader', 'oj-sp/chat-input/loader'], () => cb(true), () => cb(false))
+}
+
 export function installChatComponents(doc = typeof document !== 'undefined' ? document : null) {
   observeSlots(doc, '__mateuChatComponents', '[data-mateu-chat-url]', ['data-mateu-chat-url'], (el) => {
     if (el.__mateuChat) return
     el.__mateuChat = true
+    withSpectraChat((sp) => { if (el.isConnected !== false) buildChatComponent(doc, el, sp) })
+  })
+}
+
+function buildChatComponent(doc, el, sp) {
+  {
     const key = el.id || el.getAttribute('data-mateu-chat-url')
     if (!conversations.has(key)) conversations.set(key, { sessionId: newSessionId(), turns: [], busy: false })
     const conv = conversations.get(key)
@@ -192,6 +207,13 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
     log.setAttribute('aria-live', 'polite')
     const form = doc.createElement('form')
     form.className = 'mateu-chat-form'
+    // Spectra: its composer (textarea, Enter/send arrow, attach), outside VB's bindings
+    if (sp) el.setAttribute('data-oj-binding-provider', 'none')
+    const spInput = sp ? doc.createElement('oj-sp-chat-input') : null
+    if (spInput) {
+      spInput.suggestionData = []
+      spInput.className = 'mateu-chat-sp-input mateu-chat-no-mic'
+    }
     const input = doc.createElement('textarea')
     input.className = 'mateu-chat-input oj-typography-body-md'
     input.rows = 2
@@ -240,31 +262,66 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
         attached.textContent = attachments.length ? '📎 ' + attachments.map((a) => a.name).join(', ') : ''
       })
       form.appendChild(picker)
-      form.appendChild(attach)
+      if (spInput) {
+        // Spectra's attach button opens OUR picker (any file; Spectra's own takes only images/PDF)
+        spInput.addEventListener('click', (e) => {
+          if (!e.target || !e.target.closest || !e.target.closest('.oj-sp-chat-input-attach-btn')) return
+          e.preventDefault()
+          e.stopImmediatePropagation()
+          if (picker.click) picker.click()
+        }, true)
+      } else form.appendChild(attach)
+    } else if (spInput) spInput.className += ' mateu-chat-no-attach'
+    if (spInput) {
+      form.classList.add('mateu-chat-sp-form')
+      form.appendChild(spInput)
+    } else {
+      form.appendChild(input)
+      form.appendChild(send)
     }
-    form.appendChild(input)
-    form.appendChild(send)
     el.appendChild(log)
     el.appendChild(status)
     el.appendChild(tokens)
     el.appendChild(attached)
     el.appendChild(form)
     const paint = () => {
-      log.textContent = ''
-      for (const turn of chatTurnsOf(conv.turns)) {
-        const div = doc.createElement('div')
-        div.className = turn.cls
-        div.innerHTML = turn.html
-        log.appendChild(div)
+      const turns = chatTurnsOf(conv.turns)
+      if (sp) {
+        // one Spectra block per turn, REUSED while the answer streams (only its messages change):
+        // the person's text as text, the assistant's as the sanitised HTML chatTurnsOf rendered
+        while (log.children.length > turns.length) log.removeChild(log.lastChild)
+        turns.forEach((turn, i) => {
+          let block = log.children[i]
+          if (!block) {
+            block = doc.createElement('oj-sp-chat-message-block')
+            block.animateOptions = 'none'
+            block.displayOptions = { botAvatar: false, userAvatar: false }
+            // classList, never className: JET keeps a custom element hidden until it carries oj-complete
+            block.classList.add(...turn.cls.split(' '), 'mateu-chat-block')
+            block.sender = turn.role === 'user' ? 'user' : 'bot'
+            log.appendChild(block)
+          }
+          const text = turn.role === 'user' ? String(conv.turns[i].text || '') : '<div class="mateu-chat-markdown">' + turn.html + '</div>'
+          if (block.__mateuText !== text) { block.__mateuText = text; block.messages = [{ type: 'text', text }] }
+        })
+      } else {
+        log.textContent = ''
+        for (const turn of turns) {
+          const div = doc.createElement('div')
+          div.className = turn.cls
+          div.innerHTML = turn.html
+          log.appendChild(div)
+        }
       }
       log.scrollTop = log.scrollHeight
       tokens.textContent = chatUsageTextOf(conv.usage)
     }
-    const submit = async () => {
-      const text = input.value.trim()
+    const submit = async (given) => {
+      const text = (typeof given === 'string' ? given : input.value).trim()
       if ((!text && !attachments.length) || conv.busy) return
       input.value = ''
       conv.busy = true
+      if (spInput) spInput.disableAction = true
       const sentAttachments = attachments
       attachments = []
       attached.textContent = ''
@@ -306,15 +363,17 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
         conv.usage = latestUsage(conv.usage, turnUsage)
         status.textContent = ''
         conv.busy = false
+        if (spInput) spInput.disableAction = false
         paint()
       }
       await events
     }
+    if (spInput) spInput.addEventListener('ojSpChatInputValueChanged', (e) => { void submit(String((e.detail && e.detail.value) || '')) })
     send.addEventListener('ojAction', (e) => { e.stopPropagation(); void submit() })
     form.addEventListener('submit', (e) => { e.preventDefault(); void submit() })
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void submit() } })
     paint()
-  })
+  }
 }
 
 // ── Fact actions in an oj-sp header: the icon button right after the fact's value ─────────────
@@ -411,4 +470,88 @@ export function installFactActions(doc = typeof document !== 'undefined' ? docum
     }
     for (const host of hosts) decorateFactActions(host, doc)
   }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
+}
+
+// ── Scoreboard (oj-sp-scoreboard): a card's drill-in ─────────────────────────────────────────
+// The KPI band is Spectra's scoreboard (scoreboardAtomOf), drawn exactly as Spectra draws it: its
+// items have no icon and none is added (MetricCard.icon is not shown on Redwood — owner's "pure
+// KPI, like in Spectra"). Its only interaction is SELECTION — a filter that pre-selects the first
+// card on mount —, so a MetricCard's actionId (drill-in) cannot ride it. The band is painted with
+// selection off and this adds the drill-in, keyed by the item id ('k<i>' = the atom's metrics[i]),
+// on the list's own item action (click or Enter on the card), sent through the page's action channel. The atom is read from the element's binding
+// context (setScoreboardDataResolver: knockout's $current.data), so a band inside an inline island
+// keeps the surface its metrics were tagged with.
+let scoreboardSink = null
+let scoreboardData = null
+/** Who runs a card's drill-in (the shell: the page's action channel). */
+export function setScoreboardActionSink(fn) { scoreboardSink = typeof fn === 'function' ? fn : null }
+/** How to read the scoreboard atom from its element (the bridge: knockout's binding context). */
+export function setScoreboardDataResolver(fn) { scoreboardData = typeof fn === 'function' ? fn : null }
+
+const SCOREBOARD_HOST = 'oj-sp-scoreboard'
+const KPI_ID = /_kpi_k(\d+)$/
+
+/** The metric index of a scoreboard card container (its id ends in `_kpi_k<i>`), or -1. */
+export function scoreboardIndexOf(el) {
+  const m = el && el.id ? String(el.id).match(KPI_ID) : null
+  return m ? Number(m[1]) : -1
+}
+
+/** Marks the cards that drill in (pointer + hover). Idempotent. */
+export function decorateScoreboard(host, atom, doc = host.ownerDocument) {
+  const metrics = (atom && atom.metrics) || []
+  if (!metrics.length) return
+  for (const card of Array.from(host.querySelectorAll('[id]'))) {
+    const i = scoreboardIndexOf(card)
+    const metric = i >= 0 ? metrics[i] : null
+    if (!metric) continue
+    const actionable = !!metric.actionId
+    const cls = String(card.getAttribute('class') || '')
+    const marked = /(^|\s)mateu-kpi-actionable(\s|$)/.test(cls)
+    if (actionable && !marked) card.setAttribute('class', (cls + ' mateu-kpi-actionable').trim())
+    if (!actionable && marked) card.setAttribute('class', cls.replace(/(^|\s)mateu-kpi-actionable(?=\s|$)/g, ' ').trim())
+  }
+}
+
+/** What a card's item action runs: [actionId, parameters, {fromNested, surfaceId}] or null. */
+export function scoreboardDrillInOf(atom, key) {
+  const m = String(key == null ? '' : key).match(/^k(\d+)$/)
+  const metric = m && atom && atom.metrics ? atom.metrics[Number(m[1])] : null
+  if (!metric || !metric.actionId) return null
+  return [metric.actionId, metric.parameters || {}, { fromNested: !!(atom.fromNested || metric.fromNested), surfaceId: metric.surfaceId || atom.surfaceId || '' }]
+}
+
+/** Installs (once) the scoreboards' drill-ins over the whole document. */
+export function installScoreboards(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuScoreboards) return
+  doc.__mateuScoreboards = true
+  const atomOf = (host) => {
+    try { return scoreboardData ? scoreboardData(host) : null } catch (e) { return null }
+  }
+  // capture: the list's item action does not have to bubble out of the scoreboard to be heard
+  doc.addEventListener('ojItemAction', (e) => {
+    const host = e.target && e.target.closest ? e.target.closest(SCOREBOARD_HOST) : null
+    if (!host || !scoreboardSink) return
+    const key = e.detail && e.detail.context ? e.detail.context.key : null
+    const run = scoreboardDrillInOf(atomOf(host), key)
+    if (run) scoreboardSink(run[0], run[1], run[2])
+  }, true)
+  if (typeof MutationObserver === 'undefined') return
+  const root = doc.body || doc.documentElement
+  const pass = (hosts) => { for (const host of hosts) decorateScoreboard(host, atomOf(host), doc) }
+  pass(Array.from(root.querySelectorAll(SCOREBOARD_HOST)))
+  new MutationObserver((records) => {
+    const hosts = new Set()
+    for (const r of records) {
+      const target = r.target && r.target.nodeType === 1 ? r.target : r.target && r.target.parentNode
+      const host = target && target.closest ? target.closest(SCOREBOARD_HOST) : null
+      if (host) hosts.add(host)
+      for (const n of r.addedNodes || []) {
+        if (n.nodeType !== 1) continue
+        if (n.matches && n.matches(SCOREBOARD_HOST)) hosts.add(n)
+        for (const h of Array.from(n.querySelectorAll ? n.querySelectorAll(SCOREBOARD_HOST) : [])) hosts.add(h)
+      }
+    }
+    pass(hosts)
+  }).observe(root, { subtree: true, childList: true })
 }

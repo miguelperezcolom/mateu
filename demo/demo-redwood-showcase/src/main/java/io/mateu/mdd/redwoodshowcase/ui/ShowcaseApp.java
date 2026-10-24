@@ -9,6 +9,7 @@ import io.mateu.mdd.redwoodshowcase.ui.drawercrud.ContactsDrawerCrud;
 import io.mateu.mdd.redwoodshowcase.ui.emptystates.EmptyStatesDemo;
 import io.mateu.mdd.redwoodshowcase.ui.foldout.BookingFoldout;
 import io.mateu.mdd.redwoodshowcase.ui.foldout.BookingFoldoutHorizontal;
+import io.mateu.mdd.redwoodshowcase.ui.forms.ContactAndMoneyFields;
 import io.mateu.mdd.redwoodshowcase.ui.forms.GuestProfile;
 import io.mateu.mdd.redwoodshowcase.ui.generaloverview.RequisitionOverview;
 import io.mateu.mdd.redwoodshowcase.ui.herosearch.HotelSearch;
@@ -61,6 +62,8 @@ public class ShowcaseApp {
 
   @Menu EmptyStatesDemo emptyStates;
 
+  @Menu io.mateu.mdd.redwoodshowcase.ui.activity.ActivityDemo activity;
+
   @Menu Catalog listCrud;
 
   @Menu ContactsDrawerCrud drawerCrud;
@@ -82,4 +85,6 @@ public class ShowcaseApp {
   @Menu BookingWizard guidedProcess;
 
   @Menu GuestProfile zonesForm;
+
+  @Menu ContactAndMoneyFields typedInputs;
 }

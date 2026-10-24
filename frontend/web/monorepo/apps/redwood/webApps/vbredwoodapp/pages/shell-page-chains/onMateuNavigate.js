@@ -135,16 +135,17 @@ define([
       if (!force && target.same && !window.__mateuChatPreviewShown) {
         return;
       }
-      // dirtyGuard (1.5): unsaved local edit → confirm; on cancel, restore the URL
-      if (!force && $application.variables.mateuDirty) {
-        if (!window.confirm(bridge.chromeText('unsavedLeave'))) {
-          const previous = $application.variables.mateuSelectedRoute;
-          if (previous) {
-            window.history.replaceState(null, '', bridge.urlOfRoute(previous));
-          }
-          return;
-        }
-        $application.variables.mateuDirty = false;
+      // unsaved on the page OR an open overlay → ONE confirm (shellFlows.mjs); stay = URL restored —
+      // PUSHED after a back/forward, as on the web (replacing it, the next Back would leave the app)
+      if (!force && !bridge.confirmNavigationAway($application.variables)) {
+        return bridge.restoreUrlAfterStaying($application.variables.mateuSelectedRoute, fromUrl);
+      }
+      // Another screen: every overlay closes, not left orphaned over the new page (the content page
+      // drops its drafts and dialogs on mateuOverlaysClosed; the drawer guard must not hold the close)
+      if (bridge.hasOpenOverlays($application.variables.mateuRegistry) || $application.variables.mateuDrawerOpen) {
+        bridge.noteDrawerUnsaved(false);
+        Object.assign($application.variables, bridge.overlaysClosedVarsOf($application.variables.mateuRegistry));
+        await Actions.fireEvent(context, { name: 'application:mateuOverlaysClosed' });
       }
 
       // The URL changes WHEN the navigation STARTS, not when loading finishes: that is what a
@@ -405,7 +406,7 @@ define([
           await Actions.callComponentMethod(context, { selector: '#mateuItemTabs', method: 'refresh' });
         } catch (ignored) { /* not mounted yet */ }
       }
-      if (welcome || overviewProjection || itemProjection || foldoutNow) {
+      if (welcome || overviewProjection || itemProjection || archetypes.dashboard || archetypes.todo || archetypes.spPage || foldoutNow) {
         // their fields/buttons are painted by the archetype's branches (or by the foldout's panels:
         // a crud's @FoldoutDetail view), not by the generic form
         assign(bridge.noGenericFormVars());
@@ -501,7 +502,7 @@ define([
       // the listing's smart-filter-search) suppress it
       // a foldout with page actions (a crud's @FoldoutDetail view: Edit, Cancel…)
       // keeps the vb header, which is where those actions go
-      const integratedHeader = !!(wizardProjection || welcome
+      const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
         || overviewProjection || listingSummary
         || (foldoutNow && !hostEntity && !hostToolbar.length));
       // the not-found page brings its own heading (the oj-sp-empty-state): no vb header

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Animated, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, PanResponder, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { PlanningBlock, PlanningBoard, PlanningResource } from '../api/metadata';
 import { useViewController } from './MateuViewHost';
 import { blockGesture, computePlanningMove } from './planningDrag';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { DAY_MS, laneBlocks, parseDay, planningRows, planningWindow, todayDayNumber, todayOffset, type BoardRow } from './timeline';
 import { buttonA11y } from '../a11y/a11y';
 
@@ -210,7 +211,7 @@ function DraggableBlock({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   board: { flexDirection: 'row', borderWidth: 1, borderColor: theme.border, borderRadius: 8, overflow: 'hidden', backgroundColor: theme.white, marginVertical: 8 },
   empty: { fontSize: 13, color: theme.faint, padding: 12 },
   corner: { borderBottomWidth: 1, borderBottomColor: theme.divider },
@@ -228,6 +229,6 @@ const styles = StyleSheet.create({
   groupLane: { backgroundColor: theme.background, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   gridLine: { position: 'absolute', top: 0, bottom: 0, width: StyleSheet.hairlineWidth, backgroundColor: theme.divider },
   block: { position: 'absolute', top: 4, bottom: 4, borderRadius: 5, justifyContent: 'center', paddingHorizontal: 6 },
-  blockLabel: { fontSize: 11, fontWeight: '600', color: theme.white },
+  blockLabel: { fontSize: 11, fontWeight: '600', color: theme.onFill },
   today: { position: 'absolute', top: 0, width: 2, backgroundColor: theme.danger, opacity: 0.6 },
-});
+}));

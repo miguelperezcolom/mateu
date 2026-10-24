@@ -100,6 +100,14 @@ An enum field with up to **4 constants** renders as radio buttons instead of a d
 
 To force radio buttons regardless of the enum size — with or without `@AutoLayout` — annotate the field with `@UseRadioButtons` (equivalent to `@Stereotype(FieldStereotype.radio)`, but self-documenting).
 
+### Always on: the column count
+
+Independently of `@AutoLayout` (it applies to every form), a form that declares no column count lays
+out in **one column with up to 6 visible fields and two from 7 on**, counted over the whole form —
+see [how many columns](/java-ui-definition/forms/#how-many-columns) for what counts. Declaring
+`@FormLayout(columns = N)`, `@Section(columns = N)` or `@Zones` steps the rule aside. Labels-aside
+stays the idiom of a *declared* single column: an inferred one keeps its labels on top.
+
 ## Page-level inference: `@AutoPage`
 
 The same idea, one altitude up: `@AutoLayout` infers the presentation of a *form*; `@AutoPage`

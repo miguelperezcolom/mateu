@@ -36,6 +36,18 @@ describe('the hero', () => {
         expect((draw({ title: 'Hola', centered: false }).querySelector('.mateu-hero-text') as HTMLElement).getAttribute('style')).toContain('text-align: start')
     })
 
+    it('puts the overline above the title, quiet, and none when not declared', () => {
+        const hero = draw({ overline: 'Good morning', title: 'Front desk' })
+        const overline = hero.querySelector('.mateu-hero-overline') as HTMLElement
+        expect(overline.textContent).toBe('Good morning')
+        expect(overline.getAttribute('style')).toContain('var(--lumo-secondary-text-color)')
+        // it comes BEFORE the title in the text column
+        const text = hero.querySelector('.mateu-hero-text') as HTMLElement
+        expect(text.firstElementChild).toBe(overline)
+        expect(overline.nextElementSibling!.tagName).toBe('H1')
+        expect(draw({ title: 'Hola' }).querySelector('.mateu-hero-overline')).toBeNull()
+    })
+
     it('ignores an image URL that would end the declaration', () => {
         expect(heroImageCss('x") ; background: red')).toBeUndefined()
         expect(heroImageCss(' /images/a b.png ')).toBe('url("/images/a b.png")')

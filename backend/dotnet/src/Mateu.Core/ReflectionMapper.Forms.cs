@@ -315,15 +315,17 @@ internal sealed partial class ReflectionMapper
         return Client(new CardMetadataDto(div), "fieldId", []);
     }
 
-    /// <summary>The form's column count: [FormLayout(Columns = …)] when declared, else 2
-    /// (mirrors Java's PageFormBuilder.getFormColumns).</summary>
-    internal static int FormColumns(Type? type) => type?.Find<FormLayoutAttribute>()?.Columns ?? 2;
+    /// <summary>The form's column count: [FormLayout(Columns = …)] when declared, 2 for a zoned
+    /// form, else inferred from the form's size — 1 column up to 6 visible fields, 2 from 7 on
+    /// (mirrors Java's PageFormBuilder.getFormColumns; see <see cref="FormColumnsInference"/>).</summary>
+    internal static int FormColumns(Type? type) => FormColumnsInference.FormColumns(type);
 
     private ClientSideComponentDto SectionCard(
         string? title, List<ClientSideComponentDto> fields, SectionAttribute? section = null,
-        Type? formType = null, IReadOnlyList<PropertyInfo>? props = null, bool titled = false)
+        Type? formType = null, IReadOnlyList<PropertyInfo>? props = null, bool titled = false,
+        int? columnsOverride = null)
     {
-        var columns = FormColumns(formType);
+        var columns = columnsOverride ?? FormColumns(formType);
         // [Section(PropertyList = true)]: every data field becomes a read-only property row
         // (label left / value right, divider between rows), stacked full-width — so the body is a
         // plain vertical layout instead of the responsive form layout (mirrors Java's
@@ -726,8 +728,15 @@ internal sealed partial class ReflectionMapper
         {
             var field = WidenIfIntrinsicallyWide(declared, maxColumns);
             // A separator always takes a full row of its own (its data-colspan spans the columns).
-            if (field.Metadata is SeparatorMetadataDto)
+            if (field.Metadata is SeparatorMetadataDto separator)
             {
+                field = field with
+                {
+                    Metadata = separator with
+                    {
+                        Attributes = new Dictionary<string, string> { ["data-colspan"] = maxColumns.ToString() },
+                    },
+                };
                 if (pending.Count > 0)
                 {
                     rows.Add(Client(new FormRowMetadataDto(), null, pending));

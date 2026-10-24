@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 
 interface LookupOption {
@@ -113,7 +114,7 @@ export function LookupField({ fieldId, label, value, editable, action, onChange 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: theme.border,
@@ -136,4 +137,4 @@ const styles = StyleSheet.create({
   optionDescription: { fontSize: 12, color: theme.faint, marginTop: 2 },
   clear: { padding: 10, alignItems: 'center' },
   clearText: { color: theme.danger, fontWeight: '600', fontSize: 13 },
-});
+}));

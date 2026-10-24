@@ -13,7 +13,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_ui.uidl import title, ui, welcome_banner  # noqa: E402
+from mateu_ui.uidl import Welcome, title, ui, welcome_banner  # noqa: E402
+from mateu_ui.uidl.components import Button  # noqa: E402
 
 
 # ── (a) A form carrying a @welcome_banner with title and subtitle ─────────────
@@ -30,6 +31,26 @@ class WelcomeBannerForm:
 @welcome_banner()
 class DefaultTitleWelcomeBannerForm:
     name: str = "n"
+
+
+# ── (c) A banner with an overline (the short line above the title) ────────────
+@ui("welcome-banner-overlined")
+@title("Overlined")
+@welcome_banner(overline="Good morning", title="Front desk")
+class OverlinedWelcomeBannerForm:
+    name: str = "n"
+
+
+# ── (d) The Welcome archetype's hero carries hero_overline() ──────────────────
+@ui("welcome-overlined")
+class OverlinedWelcome(Welcome):
+    start: Button = Button(label="Start", action_id="start")
+
+    def hero_overline(self):
+        return "Sales"
+
+    def hero_title(self):
+        return "Quarterly review"
 
 
 MODULE = sys.modules[__name__]
@@ -70,3 +91,36 @@ def test_an_empty_banner_title_falls_back_to_the_page_title():
     assert meta["type"] == "HeroSection"
     assert meta["title"] == "Onboarding"
     assert meta["centered"] is True
+
+
+def _heroes(node) -> list[dict]:
+    found = []
+    if isinstance(node, dict):
+        meta = node.get("metadata")
+        if isinstance(meta, dict) and meta.get("type") == "HeroSection":
+            found.append(meta)
+        for v in node.values():
+            found += _heroes(v)
+    elif isinstance(node, list):
+        for v in node:
+            found += _heroes(v)
+    return found
+
+
+# ── (c) The banner overline travels above the title ───────────────────────────
+def test_the_banner_overline_travels_above_the_title():
+    meta = page_children(component_tree(OverlinedWelcomeBannerForm))[0]["metadata"]
+    assert meta["overline"] == "Good morning"
+    assert meta["title"] == "Front desk"
+
+
+def test_a_banner_without_overline_sends_none():
+    meta = page_children(component_tree(WelcomeBannerForm))[0]["metadata"]
+    assert meta.get("overline") is None
+
+
+# ── (d) The Welcome archetype hero carries its overline ───────────────────────
+def test_the_welcome_archetype_hero_carries_its_overline():
+    (hero,) = _heroes(component_tree(OverlinedWelcome))
+    assert hero["overline"] == "Sales"
+    assert hero["title"] == "Quarterly review"

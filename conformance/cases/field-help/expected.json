@@ -27,7 +27,13 @@
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
-                    }, {
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "integer",
@@ -50,7 +56,7 @@
                   "metadata" : {
                     "autoResponsive" : true,
                     "expandColumns" : true,
-                    "maxColumns" : 2,
+                    "maxColumns" : 1,
                     "type" : "FormLayout"
                   },
                   "type" : "ClientSide"

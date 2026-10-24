@@ -122,6 +122,25 @@ public record Subform2(
 | `@Toolbar` on the page class | Global toolbar action that can access all sections |
 | `@ConfirmOnNavigationIfDirty` | Warns the user before navigating away with unsaved changes |
 
+### Unsaved changes in dialogs and drawers
+
+A tracked form opened in a **dialog or drawer** (a CRUD's create/edit drawer — `editInDrawer()` or
+an `Editable` listing without `Navigable` — is tracked automatically) is guarded too: closing the
+overlay by hand (Cancel, ✕, Esc, a click outside, the drawer's record arrows) with unsaved edits asks
+*"Discard your changes?"* first; staying keeps the overlay open with what was typed. The question
+is about that overlay only — the page behind keeps its own dirty state — and a close the server
+sends after a successful save (`UICommand.markAsClean()` + `closeModal()`) never asks. Every
+renderer behaves the same way: Vaadin through the same confirmation the navigation guard uses,
+Redwood through Spectra's unsaved-changes banner.
+
+Leaving the **screen** while an overlay is open — the browser's Back or Forward, a menu entry, a
+link, a `NavigateTo` — asks *once* when the page **or** an open dialog/drawer holds unsaved changes.
+Staying keeps everything as it was (the drawer and what was typed in it; after a Back or Forward the
+address is put back); leaving discards the changes and closes every open dialog and drawer before
+the new page loads. A navigation with nothing unsaved closes them too, so no drawer is left over
+the next page. Vaadin and Redwood behave alike here (on Redwood the question is the navigation
+guard's, not the drawer template's banner, which belongs to closing the drawer itself).
+
 ---
 
 ## Structure

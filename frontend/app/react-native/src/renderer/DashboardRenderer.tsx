@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { DashboardPanel, MetricCard } from '../api/metadata';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { metricA11yLabel, metricTimeframe } from './metricCard';
 
@@ -102,7 +103,7 @@ export function DashboardLayoutRenderer({ component, state }: { component: unkno
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   metricCard: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 12, gap: 4, flex: 1 },
   metricHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   metricTitle: { fontSize: 13, color: theme.muted, flexShrink: 1 },
@@ -120,4 +121,4 @@ const styles = StyleSheet.create({
   panelCardTitle: { fontSize: 16, fontWeight: '700' },
   panelCardSubtitle: { fontSize: 13, color: theme.muted },
   dashboard: { gap: 12 },
-});
+}));

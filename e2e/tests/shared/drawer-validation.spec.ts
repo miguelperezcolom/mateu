@@ -59,3 +59,45 @@ test('an @Email the browser rejects is marked in the drawer and not sent', async
   await expect(input(page, 'email')).toHaveValue('not-an-email');
   expect(sent, 'the browser does not send an invalid form').toHaveLength(0);
 });
+
+// Closing the drawer by hand (✕, Esc, Cancel) with unsaved edits asks first — the same question
+// the Redwood create-edit drawer asks ("Discard your changes?"); "stay" keeps the drawer and what
+// was typed, "discard" closes it. A successful save closes it without asking.
+test('closing the drawer with unsaved edits asks first; a save closes it without asking', async ({ page }) => {
+  await page.goto('/drawer-validation');
+  await page.getByRole('button', { name: 'New', exact: true }).click();
+
+  // nothing typed: ✕ just closes
+  const asked: string[] = [];
+  let answer: 'accept' | 'dismiss' = 'dismiss';
+  page.on('dialog', d => { asked.push(d.message()); void (answer === 'accept' ? d.accept() : d.dismiss()) });
+  await drawer(page).getByRole('button', { name: /Close|Cerrar/ }).click();
+  await expect(drawer(page)).toHaveCount(0);
+  expect(asked).toHaveLength(0);
+
+  await page.getByRole('button', { name: 'New', exact: true }).click();
+  const name = `Ada ${Date.now()}`;
+  await input(page, 'name').fill(name);
+  await input(page, 'name').blur();
+
+  await drawer(page).getByRole('button', { name: /Close|Cerrar/ }).click();
+  await page.keyboard.press('Escape');
+  await drawer(page).getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect.poll(() => asked.length).toBe(3);
+  expect(asked[0]).toMatch(/Discard your changes|Descartar los cambios/);
+  await expect(drawer(page)).toBeVisible();
+  await expect(input(page, 'name')).toHaveValue(name);
+
+  answer = 'accept';
+  await drawer(page).getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(drawer(page)).toHaveCount(0);
+
+  // a save closes without asking
+  await page.getByRole('button', { name: 'New', exact: true }).click();
+  await input(page, 'name').fill(name);
+  await input(page, 'name').blur();
+  const before = asked.length;
+  await drawer(page).getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(drawer(page)).toHaveCount(0);
+  expect(asked).toHaveLength(before);
+});

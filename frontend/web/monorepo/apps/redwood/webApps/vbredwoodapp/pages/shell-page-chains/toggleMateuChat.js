@@ -8,12 +8,13 @@ define(['vb/action/actionChain', 'vb/action/actions', 'resources/js/mateu-bridge
   // panel's first tabbable (the ✕). It is put back in the typing field as long as the focus
   // is still elsewhere inside the panel — if the user has already gone somewhere else, it is not taken away.
   const focusInput = () => {
-    const el = document.querySelector('#mateuChatInput input');
+    const el = document.querySelector('#mateuChatInput textarea, #mateuChatInput input');
     if (el) el.focus();
     return el;
   };
   const wireEnter = (el) => {
-    if (!el || el.__mateuEnterWired) return;
+    // Spectra's oj-sp-chat-input (a textarea) sends on Enter itself: only a plain input is wired
+    if (!el || el.__mateuEnterWired || el.tagName !== 'INPUT') return;
     el.__mateuEnterWired = true;
     el.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.keyCode === 13) && !e.shiftKey) {
@@ -28,7 +29,7 @@ define(['vb/action/actionChain', 'vb/action/actions', 'resources/js/mateu-bridge
     for (const delay of [500, 800, 1200]) {
       setTimeout(() => {
         const panel = document.querySelector('#mateuChatPanel');
-        const input = document.querySelector('#mateuChatInput input');
+        const input = document.querySelector('#mateuChatInput textarea, #mateuChatInput input');
         const active = document.activeElement;
         const strayInPanel = panel && active && active !== input
           && (panel.contains(active) || (panel.parentElement && active === panel.parentElement));

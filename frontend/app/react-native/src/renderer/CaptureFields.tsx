@@ -1,9 +1,10 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useRef, useState } from 'react';
-import { Image, PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../ui/Text';
 import Svg, { Polyline } from 'react-native-svg';
 import { captureRef } from 'react-native-view-shot';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 
 // Capture fields (@Signature / @PhotoCapture): both commit a data URI through onChange, the same
@@ -176,7 +177,7 @@ export function PhotoCaptureField({ value, editable, onChange }: {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   pad: { height: 160, backgroundColor: theme.white, borderWidth: 1, borderStyle: 'dashed', borderColor: theme.faint, borderRadius: theme.radiusSm },
   viewfinder: { height: 260, borderRadius: theme.radiusSm, overflow: 'hidden' },
   preview: { height: 160, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, backgroundColor: theme.white },
@@ -185,8 +186,8 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: 8, marginTop: 8 },
   button: { paddingVertical: 8, paddingHorizontal: 14, backgroundColor: theme.divider, borderRadius: theme.radiusSm },
   primary: { backgroundColor: theme.info },
-  primaryText: { color: theme.white },
+  primaryText: { color: theme.onFill },
   danger: { color: '#b3311f' },
   disabled: { opacity: 0.5 },
   hint: { marginTop: 6, fontSize: 12, color: theme.muted },
-});
+}));

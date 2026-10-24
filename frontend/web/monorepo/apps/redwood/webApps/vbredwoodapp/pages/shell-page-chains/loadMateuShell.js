@@ -121,6 +121,11 @@ define([
       // no room for it): its icon button after the value, run like a Button's
       bridge.installFactActions();
       bridge.setFactActionSink(runPageAction);
+      // the KPI band is oj-sp-scoreboard: each card's icon, and its drill-in (MetricCard.actionId)
+      bridge.installScoreboards();
+      bridge.setScoreboardActionSink(runPageAction);
+      // a FileList's oj-sp-attachment-chip downloads its file's URL (local data, no Oracle REST)
+      bridge.installAttachmentChips();
       // dragging rows (@DragRows) onto a DropZone: its action with origin and destination
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);
@@ -166,13 +171,15 @@ define([
       // The live regions have to EXIST before anything writes to them: one created
       // and filled in the same tick is often not announced.
       bridge.installAnnouncer();
+      // Esc / a click outside a create/edit drawer with unsaved edits asks first (drawers.mjs)
+      bridge.installDrawerGuard();
       bridge.mountSkipLink();
       // Ctrl+P leaves the chrome out, like UICommand.print
       bridge.installPrintSupport();
       // Reloading or closing the tab with unsaved changes: the browser's own prompt (a navigation
       // inside the app asks in onMateuNavigate). Reads the LIVE context, as the popstate listener.
       bridge.installUnsavedChangesGuard(window,
-        () => !!(window.__mateuShellContext || context).$application.variables.mateuDirty);
+        () => bridge.hasUnsavedChanges((window.__mateuShellContext || context).$application.variables));
       // The pressed control is tracked at document level: the app's buttons go through
       // different chains and threading the event through all of them would be forgotten in the next one.
       bridge.trackPressedControls();
@@ -184,6 +191,8 @@ define([
           // 'cancelled' is our own decision (navigation, abort): it is never news.
           if (failure && failure.kind !== 'cancelled') {
             $application.variables.mateuLastError = failure.message;
+            // a Mateu refusal from another build: the screen is stale, the band offers Reload
+            $application.variables.mateuReloadOffered = !!failure.reload;
             // The band is a visual signal; a screen-reader user would not notice it.
             bridge.announce(failure.message, { politeness: 'assertive' });
           }
@@ -194,7 +203,19 @@ define([
       // Another wire MAJOR: a clear notice (once) in the error band, not a broken screen.
       bridge.setWireMismatchListener((message) => {
         $application.variables.mateuLastError = message;
+        $application.variables.mateuReloadOffered = false;
         bridge.announce(message, { politeness: 'assertive' });
+      });
+      // The backend was redeployed since this page loaded (X-Mateu-Build changed): a sticky notice,
+      // once per backend, whose button reloads the page (versionSkew.mjs).
+      // A mirror of Oracle's CDN (oracleCdn.mjs, mateu.oracle-cdn.url): the welcome banner's default
+      // illustrations come from it too (unchanged without one).
+      $application.variables.mateuWelcomeIllu = bridge.oracleCdnUrl($application.variables.mateuWelcomeIllu);
+      $application.variables.mateuWelcomeIlluBg = bridge.oracleCdnUrl($application.variables.mateuWelcomeIlluBg);
+      bridge.setAppUpdatedListener((message) => {
+        $application.variables.mateuLastError = message;
+        $application.variables.mateuReloadOffered = true;
+        bridge.announce(message, { politeness: 'polite' });
       });
       bridge.connectivity.subscribe((online) => {
         $application.variables.mateuOffline = !online;
@@ -420,8 +441,7 @@ define([
             // it replaces the screen on show: unsaved changes there are asked about first, like
             // any navigation away (onMateuNavigate's dirtyGuard); kept → not painted
             const app = liveContext().$application.variables;
-            if (app.mateuDirty && !window.confirm(bridge.chromeText('unsavedLeave'))) return undefined;
-            app.mateuDirty = false;
+            if (!bridge.confirmNavigationAway(app)) return undefined;
             window.__mateuChatPreviewShown = true;
             liveContext().$application.variables.mateuSelectedNavId = '';
           }

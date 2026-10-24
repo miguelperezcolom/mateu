@@ -15,6 +15,9 @@ import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 /** The wire major this renderer was built for. */
 export const SUPPORTED_WIRE_MAJOR = 3
 
+/** The full wire version (major.minor) this renderer was built for — announced in `X-Mateu-Renderer`. */
+export const SUPPORTED_WIRE_VERSION = `${SUPPORTED_WIRE_MAJOR}.0`
+
 export type WireCheck = { ok: true } | { ok: false; serverMajor: number; received: string }
 
 /** Same major → ok; another major → not ok. Unparseable or absent → ok (nothing to judge). */

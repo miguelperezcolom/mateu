@@ -11,6 +11,108 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **The React Native renderer looks like a Material app.** Material Design 3 through React Native
+  Paper (MIT): top app bar, navigation drawer, Material buttons, outlined fields, cards, segmented
+  tabs, dialogs, bottom sheets, snackbars and FABs; listing status columns are chips coloured by
+  their tone; dark mode follows the device (or `@App(themeToggle)`) and the primary colour is the
+  app's `@App(accentColor)`. A CRUD listing's `New` is an extended FAB ("+ New") above the
+  pagination bar; on a phone (< 600dp) every form section is one column and a RAIL wizard's step
+  rail collapses to "Step 2 of 4 · Title" above the form.
+- **Version skew is handled, not just tolerated.** For distributed setups where teams release on
+  their own schedules and tabs stay open across deployments:
+  - every response of Mateu's API carries **`X-Mateu-Build`**, a fingerprint of the deployed UI
+    (Mateu version + the bytecode of the exposed view models + `specs/ui`), the same on every
+    replica of a release; `mateu.build-id` / `MATEU_BUILD_ID` replaces it with your own (a CI build
+    number). Java (all five adapters), .NET and Python. Exposed through CORS;
+  - every renderer (Vaadin, Redwood, React Native, IntelliJ) notices a redeployment and offers
+    *"This app has been updated. Reload to use the latest version."*, and tells a screen that went
+    stale apart from a permission refusal: a removed action or a renamed `@UI` class from an old tab
+    now says *"This screen has changed since you opened it. Reload to continue."* instead of
+    *"You are not allowed to do this."*;
+  - every renderer names itself in **`X-Mateu-Renderer`** (`<name>/<version> wire/<major>.<minor>`);
+    the server logs one WARN per renderer of another wire major;
+  - the indexer annotation processor records its Mateu version in `ui-registrations`, and the host
+    logs one WARN per in-process UI module built against another Mateu minor;
+  - `e2e/version-skew-probe.mjs` restarts a real app with another build and asserts what the user
+    sees (Vaadin and Redwood).
+
+- **Redwood: Oracle's CDN from your own mirror.** `mateu.oracle-cdn.url` (`MATEU_ORACLE_CDN_URL`;
+  .NET `MateuOptions.OracleCdnUrl`, Python `add_mateu(oracle_cdn_url=…)`, `-Dmateu.oracle-cdn.url`
+  for a static bundle) points the Redwood renderer at a mirror of `https://static.oracle.com/cdn`
+  your organisation hosts — if its agreement with Oracle allows it (JET is UPL; Spectra, the VB
+  runtime and the gallery are not redistributable without it). Mateu still ships nothing of
+  Oracle's. The served page is rewritten, and Oracle's own files (JET's bundle config, Spectra's
+  loaders) are redirected as RequireJS resolves them: a screen loads with zero requests to
+  `static.oracle.com`. `e2e/oracle-cdn-mirror-probe.mjs` checks it and lists the trees to mirror.
+
+- **`CalendarPage` jumps to any date**: the new `goCalendarToDate` action (`_date`, an ISO date)
+  moves the displayed period to the one holding it — Java, .NET (`ICalendarPage.GoToDate`, a default
+  interface method) and Python (`go_calendar_to_date`). The Redwood renderer's Spectra calendar runs it
+  from its title date picker, only against a backend that advertises it.
+
+- **A welcome hero can carry an overline** — the short line above its title ("Good morning",
+  "Sales"): `Welcome.heroOverline()`, `@WelcomeBanner(overline = …)` and `HeroSection.overline`
+  (wire `HeroSectionDto.overline`; `@Experimental`). .NET `HeroOverline` / `[WelcomeBanner(Overline)]`
+  / `HeroSection.Overline`, Python `hero_overline()` / `@welcome_banner(overline=…)` /
+  `HeroSection(overline=…)`. Redwood binds it to Spectra's `overlineText` on `oj-sp-welcome-page`
+  (and paints it above a content hero's title); Vaadin, React Native and IntelliJ draw it small and
+  muted above the title.
+
+### Changed
+
+- **Redwood dashboards keep the geometry they declare.** Spectra's `oj-sp-dashboard-grid` (up to five
+  panels) lays the panels out itself and ignores `@Panel(colSpan, rowSpan)` and `columns()`, so it is
+  now used only when the dashboard declares none of them; a panel spanning more than one column or
+  row, or a fixed `columns()`, keeps Mateu's grid with the declared columns and spans. That grid
+  now really gives each panel its width (it painted every panel as one narrow cell, spans ignored).
+
+- **A small form is one column.** A form that declares no column count lays out in ONE column when
+  it has up to 6 visible fields and in TWO from 7 on (it was always 2), counted over the whole form
+  — every section shares the result — and over the fields that render as form fields (not
+  `@Hidden`, `@KPI`, `@BadgeInHeader`, `@Timestamp`, `@AppContext`, `@Aside`, `@Menu`,
+  `@Composition`, `@Version` or component-holder fields; a grid counts as one; permission-gated
+  fields count, so one class has one layout). Each wizard step is its own form. Declarations win:
+  `@FormLayout(columns = N)` (whose default is now `0` = unset), `@Section(columns = N)` and
+  `@Zones` (which keeps 2). **To keep the old look on a small form, add `@FormLayout(columns = 2)`**
+  (.NET `[FormLayout(Columns = 2)]`, Python `@form_layout(columns=2)` — the three servers apply the
+  same rule, pinned by the new `form-columns` conformance case). Labels-aside still needs a
+  DECLARED single column, so an inferred one keeps its labels on top. See
+  [how many columns](https://mateu.io/java-ui-definition/forms/#how-many-columns).
+
+### Fixed
+
+- **A CRUD create/edit drawer no longer drops unsaved edits silently on the Vaadin renderer.** The
+  drawer's form (`editInDrawer()`, or an `Editable` listing without `Navigable`) is dirty-tracked
+  like the routed editor (`confirmOnNavigationIfDirty`, Java + .NET capability forms; Python
+  already did), and closing a dialog or drawer by hand — Cancel, ✕, Esc, a click outside, the
+  record arrows — with unsaved edits asks "Discard your changes?" first, as Redwood does through
+  its drawer template's unsaved-changes banner. The question is scoped to that overlay (a dirty
+  page behind is neither asked about nor cleaned); a server `closeModal` after a save never asks,
+  and a refused save keeps the drawer dirty.
+- **Redwood: leaving a screen with a create/edit drawer open.** Redwood now scopes unsaved changes
+  per overlay as the web does: an edit in a drawer marks the DRAWER (its form's
+  `confirmOnNavigationIfDirty` is read from the overlay's content — before, drawer edits were
+  never tracked), so the browser's Back, a menu entry, a link or a `NavigateTo` asks once when the
+  page or an open overlay holds unsaved changes; staying keeps the drawer and what was typed (a
+  Back gets its address back, pushed so the next Back still stays in the app), leaving discards
+  them. Any navigation now closes the open drawers and dialogs — they used to stay, orphaned,
+  over the new page.
+- **Redwood: the item overview shows the page's title.** Spectra's item overview page has no title
+  of its own; the page's title (`@Title`, or an `EntityHeader`'s) is now the `itemTitle` of its
+  overview panel, instead of whatever heading the key panel started with.
+- **Redwood: readable gantt bar labels.** A task's label is drawn inside its bar, in white, only
+  when the bar is mostly done (≥ 75%); otherwise it goes beside the bar in dark ink — white on
+  the light, unfilled part of the bar could not be read.
+
+### Documentation
+
+- New page *Serving Oracle's CDN from your own mirror* (Serve & deploy).
+- New page *Versions across teams and deployments* (Serve & deploy): what happens when a screen
+  changes under an open tab, when the renderer is upgraded and when teams release independently,
+  and the rules that keep it working. The wire specification documents the two transport headers.
+
 ## [3.0-beta.12] — 2026-10-24
 
 Fixes from trying a static YAML project on Redwood: a listing's filters stay in its search header in

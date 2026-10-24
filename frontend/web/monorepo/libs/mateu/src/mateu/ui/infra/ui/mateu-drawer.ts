@@ -11,6 +11,7 @@ import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { hasOverlayInside } from '@infra/ui/overlayStack.ts'
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 
 @customElement('mateu-drawer')
 export class MateuDrawer extends ComponentElement {
@@ -94,8 +95,24 @@ export class MateuDrawer extends ComponentElement {
         this.focusTrap = undefined
     }
 
+    /**
+     * The USER closes the drawer (✕, Esc, the backdrop): when its form holds unsaved changes
+     * (a crud create/edit drawer the user typed in) ask first — "stay" keeps the drawer open with
+     * what was typed. A close the server commands (CloseModal after a save) calls close() directly.
+     */
+    requestClose = () => {
+        if (dirtyGuard.confirmDiscard(this)) this.close()
+    }
+
+    /** Leaves for another record (the peer arrows) — the same question as closing. */
+    private peerNavigate(route: string | undefined) {
+        if (!route || !dirtyGuard.confirmDiscard(this)) return
+        safeNavigate(route)
+    }
+
     close = () => {
         this.opened = false
+        dirtyGuard.release(this)
         this.releaseLayoutInset()
         // Release BEFORE the unmount, while the element the focus should return to is still
         // known and the drawer's own content still exists to be released from.
@@ -152,6 +169,10 @@ export class MateuDrawer extends ComponentElement {
             const previous = (_changedProperties.get('component') as ClientSideComponent | undefined)
                 ?.metadata as Drawer | undefined
             if (!previous || previous.initialData !== metadata.initialData) {
+                // re-sent in place while holding unsaved changes (a refused save with its error
+                // banner and the typed values): they stay unsaved through the form's reload. A
+                // re-send with another record (save and next) comes with a MarkAsClean.
+                if (previous) dirtyGuard.holdThroughReload(this)
                 this.state = metadata.initialData
             }
         }
@@ -206,6 +227,8 @@ export class MateuDrawer extends ComponentElement {
     disconnectedCallback() {
         // the listeners above go with this.connection (ConnectedElement.disconnectedCallback)
         this.releaseLayoutInset()
+        // torn down for good (not just moved by an owner re-render): its edits go with it
+        setTimeout(() => { if (!this.isConnected) dirtyGuard.release(this) })
         // A drawer torn down without close() (an owner re-render, a navigation) must not leave
         // the trap installed.
         this.releaseFocusTrap()
@@ -225,7 +248,7 @@ export class MateuDrawer extends ComponentElement {
         // Esc closed the drawer underneath and left the dialog open on top of nothing
         if (overlays[overlays.length - 1] === this && !hasOverlayInside(this)) {
             e.stopPropagation()
-            this.close()
+            this.requestClose()
         }
     }
 
@@ -244,7 +267,7 @@ export class MateuDrawer extends ComponentElement {
 
         return html`
         ${metadata.modeless || metadata.layout ? nothing : html`
-            <div class="backdrop ${this.opened ? 'open' : ''}" @click="${this.close}"></div>
+            <div class="backdrop ${this.opened ? 'open' : ''}" @click="${this.requestClose}"></div>
         `}
         <section
                 class="panel ${position} ${this.opened ? 'open' : ''} ${this.collapsed ? 'collapsed' : ''} ${this.component?.cssClasses ?? ''}"
@@ -277,9 +300,9 @@ export class MateuDrawer extends ComponentElement {
                 ` : nothing}
                 ${peerNav ? html`
                     <button class="drawer-icon" aria-label="${peerNav.prevLabel ?? chromeText('previous')}" title="${peerNav.prevLabel ?? chromeText('previous')}"
-                            ?disabled="${!peerNav.prevRoute}" @click="${() => { if (peerNav.prevRoute) safeNavigate(peerNav.prevRoute) }}">‹</button>
+                            ?disabled="${!peerNav.prevRoute}" @click="${() => this.peerNavigate(peerNav.prevRoute)}">‹</button>
                     <button class="drawer-icon" aria-label="${peerNav.nextLabel ?? chromeText('next')}" title="${peerNav.nextLabel ?? chromeText('next')}"
-                            ?disabled="${!peerNav.nextRoute}" @click="${() => { if (peerNav.nextRoute) safeNavigate(peerNav.nextRoute) }}">›</button>
+                            ?disabled="${!peerNav.nextRoute}" @click="${() => this.peerNavigate(peerNav.nextRoute)}">›</button>
                 ` : nothing}
                 ${metadata.collapsible ? html`
                     <button class="drawer-icon" aria-label="${this.collapsed ? chromeText('expand') : chromeText('collapse')}" title="${this.collapsed ? chromeText('expand') : chromeText('collapse')}"
@@ -288,7 +311,7 @@ export class MateuDrawer extends ComponentElement {
                 ${this.canMaximize(metadata) ? html`
                     <button class="drawer-icon" aria-label="${chromeText('maximize')}" title="${chromeText('maximize')}" @click="${() => this.maximizeSteps++}">⤢</button>
                 ` : nothing}
-                <button class="drawer-close" aria-label="${chromeText('close')}" @click="${this.close}">✕</button>
+                <button class="drawer-close" aria-label="${chromeText('close')}" @click="${this.requestClose}">✕</button>
             </header>
             ${this.collapsed ? nothing : html`
             <div class="content ${metadata.noPadding ? 'no-padding' : ''}">

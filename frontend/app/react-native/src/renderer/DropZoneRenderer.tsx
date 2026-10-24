@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
-import { theme } from '../theme';
+import { theme, themed } from '../theme';
 import { type DropZoneMeta } from './dragDrop';
 
 let seq = 0;
@@ -44,7 +45,7 @@ export function DropZoneRenderer({ component, state, renderComponent }: {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   zone: {
     borderWidth: 1,
     borderStyle: 'dashed',
@@ -57,4 +58,4 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 15, fontWeight: '700', color: theme.ink, fontFamily: theme.fontFamily },
   subtitle: { fontSize: 13, color: theme.muted, fontFamily: theme.fontFamily },
-});
+}));

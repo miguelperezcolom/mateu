@@ -16,6 +16,7 @@
 
 import { clientErrors } from './clientLog.mjs'
 import { chromeText } from './i18n.mjs'
+import { withRendererHeader, buildOfHeaders, noteResponseBuild, reportAppUpdated, staleScreenMessage } from './versionSkew.mjs'
 import { hostHeadersFor, lastHostHeadersOf, hostAuthorizes, hostCredentials, storedTokenMayGoTo, hasHostHeaderProvider } from './hostHeaders.mjs'
 
 // ── classification ────────────────────────────────────────────────────────────────────────
@@ -325,6 +326,8 @@ async function sendOnce(url, init, timeoutMillis) {
       const error = new Error(`Mateu → HTTP ${res.status}${text ? `: ${text}` : ''}`)
       error.status = res.status
       error.body = text
+      // the deployment that refused (versionSkew.mjs): a 403 from ANOTHER build is a stale screen
+      error.build = buildOfHeaders(res.headers)
       throw error
     }
     return res
@@ -448,6 +451,8 @@ function raiseSessionExpired() {
  * outcome as far as the UI is concerned: one loading state, one message.
  */
 export async function fetchWithPolicy(url, init, options = {}) {
+  // who is calling (X-Mateu-Renderer), on Mateu's own endpoints only (versionSkew.mjs)
+  init = withRendererHeader(url, init)
   // The token is read on EVERY send, not once: after a 401 the bootstrap leaves a new one in
   // localStorage and the retry has to carry that one, not the expired one.
   // The token the LAST send went out with (undefined if it did not carry ours): on a 401
@@ -499,6 +504,8 @@ export async function fetchWithPolicy(url, init, options = {}) {
     try {
       const res = await sendOnce(url, await withAuth(), options.timeoutMillis)
       if (!isolated) connectivity.noteReachable()
+      // another deployment answered than the one this page started with: «app updated», once
+      reportAppUpdated(noteResponseBuild(url, buildOfHeaders(res.headers), { ok: true }))
       if (isViewStale(view)) dropStale()
       notifyUnlessQuiet('onSettle', { actionId, failure: null })
       return res
@@ -514,7 +521,15 @@ export async function fetchWithPolicy(url, init, options = {}) {
         reauthenticated = true
         if (await askForReauthentication(sentToken)) continue
       }
-      const failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
+      let failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
+      // Mateu's refusal from ANOTHER build than this page's: the screen changed under the user,
+      // it is not a permission problem — say so, and offer to reload (versionSkew.mjs)
+      if (error && error.status != null && error.build) {
+        const verdict = noteResponseBuild(url, error.build, {
+          ok: false, status: error.status, mateuRefusal: error.status === 403 && isMateuRefusalBody(error.body),
+        })
+        if (verdict === 'stale') failure = { ...failure, message: staleScreenMessage(), staleScreen: true, reload: true }
+      }
       if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
       attempt++
       if (!shouldRetry(failure, attempt, { idempotent })) {

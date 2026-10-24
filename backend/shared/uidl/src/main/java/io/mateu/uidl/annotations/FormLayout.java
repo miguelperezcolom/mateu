@@ -15,7 +15,13 @@ public @interface FormLayout {
 
   String style() default "";
 
-  int columns() default 2;
+  /**
+   * Column count of the form. {@code 0} (the default) means unset: Mateu decides from the size of
+   * the form — ONE column when it has up to 6 visible fields, TWO from 7 on (see the forms guide).
+   * Any explicit value ≥ 1 wins; {@code @FormLayout(columns = 2)} keeps the two-column look of a
+   * small form.
+   */
+  int columns() default 0;
 
   /**
    * Where the field labels sit. Default {@link LabelsAsideMode#AUTO}: Mateu infers it from the

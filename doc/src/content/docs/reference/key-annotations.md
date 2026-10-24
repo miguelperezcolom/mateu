@@ -338,11 +338,13 @@ Controls form rendering.
 public class MixedPage {}
 ```
 
-Use it when you want to change the default form layout.
+Use it when you want to change the default form layout — e.g. `@FormLayout(columns = 2)` keeps
+two columns on a form of 6 fields or fewer, which Mateu would otherwise lay out in one.
 
 ### Key fields
 
-- `columns()` — default 2
+- `columns()` — default 0 = unset: 1 column up to 6 visible fields, 2 from 7 on (see
+  [how many columns](/java-ui-definition/forms/#how-many-columns)); any explicit value wins
 - `labelsAside()` — `LabelsAsideMode.AUTO` (default: infer), `ASIDE` (labels left of the fields)
   or `TOP` (labels above) — see [labels on top vs labels aside](/java-ui-definition/forms/#labels-on-top-vs-labels-aside)
 - `theme()`

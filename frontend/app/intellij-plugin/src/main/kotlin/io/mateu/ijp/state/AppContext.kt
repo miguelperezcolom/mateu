@@ -1290,7 +1290,16 @@ class AppContext(val session: AppSession) {
                 val result = work()
                 SwingUtilities.invokeLater { runCatching { onOk(result) }.onFailure { showError("Render failed: ${it.message}") } }
             } catch (t: Throwable) {
-                SwingUtilities.invokeLater { onErr(t) }
+                SwingUtilities.invokeLater {
+                    // a stale-screen refusal already showed its own notice (with Reload): run the
+                    // caller's cleanup, but without a second, generic error
+                    if (t is io.mateu.ijp.api.StaleScreenException) {
+                        suppressErrors = true
+                        try { onErr(t) } finally { suppressErrors = false }
+                    } else {
+                        onErr(t)
+                    }
+                }
             }
         }
     }
@@ -1316,7 +1325,11 @@ class AppContext(val session: AppSession) {
         JOptionPane.showMessageDialog(session.frame, text, "Mateu", type)
     }
 
+    /** True while a stale-screen failure's cleanup runs: its generic error is not shown. */
+    private var suppressErrors = false
+
     private fun showError(message: String?) {
+        if (suppressErrors) return
         if (silentErrors) { println("[Mateu] error: $message"); return }
         session.notifier?.let { it(null, message ?: "Error", "error", null); return }
         JOptionPane.showMessageDialog(session.frame, message ?: "Error", "Error", JOptionPane.ERROR_MESSAGE)

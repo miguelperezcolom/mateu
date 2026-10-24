@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Platform, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { Text } from '../../ui/Text';
 import QRCode from 'react-native-qrcode-svg';
 import { announce, headingA11y } from '../../a11y/a11y';
-import { theme } from '../../theme';
+import { theme, themed } from '../../theme';
 import { domainOf, exportLink } from '../links';
 import { PrimaryButton, SecondaryButton, hubStyles } from './common';
 
@@ -68,10 +69,10 @@ export function ExportScreen({ baseUrls, onClose }: { baseUrls: string[]; onClos
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   spacer: { width: 60 },
   center: { alignItems: 'center' },
   qr: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: theme.radiusMd, minHeight: 272, minWidth: 272, alignItems: 'center', justifyContent: 'center' },
   wide: { alignSelf: 'stretch' },
   domain: { fontSize: 15, color: theme.ink, paddingVertical: 2 },
-});
+}));
