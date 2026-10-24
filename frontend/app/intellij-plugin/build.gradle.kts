@@ -82,6 +82,13 @@ intellijPlatform {
 
 kotlin {
     jvmToolchain(21)
+    compilerOptions {
+        // Kotlin ≥ 2.2 generates bridges for interface default methods in every implementing class
+        // by default; for the platform's ToolWindowFactory those bridges "override" members it marks
+        // @ApiStatus.Internal (getAnchor/getIcon), and the Plugin Verifier refuses the plugin
+        // (INTERNAL_API_USAGES). No bridges: the defaults stay the platform's.
+        jvmDefault.set(org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.NO_COMPATIBILITY)
+    }
 }
 
 // Keep the embedded web bundle (`resources/visual-editor`) from going stale: rebuild + copy the shared
