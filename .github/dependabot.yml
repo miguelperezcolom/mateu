@@ -145,6 +145,12 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # the Expo SDK pins these: a minor bump Dependabot proposes (react 19.2 → 19.3) is not what the
+      # SDK supports — they move with `npx expo install --fix`, never on their own
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "react-native"
+      - dependency-name: "@types/react"
     groups:
       react-native-minor-patch:
         update-types: ["minor", "patch"]
