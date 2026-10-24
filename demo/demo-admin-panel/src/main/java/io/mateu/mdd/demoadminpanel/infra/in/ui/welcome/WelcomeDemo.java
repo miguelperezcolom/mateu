@@ -36,6 +36,11 @@ public class WelcomeDemo extends Welcome {
   Markdown step3 = new Markdown("Assign the room, take the deposit and hand over the keys.", null, null);
 
   @Override
+  protected String heroOverline() {
+    return "Good morning";
+  }
+
+  @Override
   protected String heroTitle() {
     return "Front desk check-in";
   }

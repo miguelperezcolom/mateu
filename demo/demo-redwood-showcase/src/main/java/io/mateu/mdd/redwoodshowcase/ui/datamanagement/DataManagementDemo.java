@@ -4,6 +4,7 @@ import io.mateu.core.infra.declarative.orchestrators.datamanagement.DataManageme
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.DockedPanel;
 import io.mateu.uidl.data.Drawer;
 import io.mateu.uidl.data.DrawerSize;
 import io.mateu.uidl.data.Gantt;
@@ -77,6 +78,28 @@ public class DataManagementDemo extends DataManagement {
                 GridColumn.builder().id("progress").label("%").build()))
         .page(new Page<Object>("", 20, 1, rows.size(), Arrays.asList(rows.toArray())))
         .build();
+  }
+
+  /** A properties pane docked at the END of the grid/gantt (Redwood's innerEnd drawer). */
+  @Override
+  protected DockedPanel endPanel(HttpRequest httpRequest) {
+    return new DockedPanel(
+        "summary-panel",
+        "Resumen",
+        new Text("5 tareas · 2 en curso · 1 pendiente. Fin previsto: 27 de marzo de 2026."),
+        "20rem",
+        true);
+  }
+
+  /** A log strip docked UNDER the grid/gantt (Redwood's innerBottom drawer). */
+  @Override
+  protected DockedPanel bottomPanel(HttpRequest httpRequest) {
+    return new DockedPanel(
+        "log-panel",
+        "Registro",
+        new Text("09:12 Ana movió «Diseño» al 12 de enero · 10:40 Luis cerró «Análisis»"),
+        "10rem",
+        true);
   }
 
   @Override

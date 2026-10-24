@@ -24,11 +24,11 @@ public class ProductOverview extends ItemOverview {
           """
           ### Ergonomic chair EC-200
 
-          **SKU:** EC-200-BLK
-          **Category:** Office seating
-          **Status:** Active
-          **Stock:** 143 units
-          **Price:** 349 €
+          - **SKU:** EC-200-BLK
+          - **Category:** Office seating
+          - **Status:** Active
+          - **Stock:** 143 units
+          - **Price:** 349 €
 
           Lumbar support, 4D armrests, mesh back.
           """,
