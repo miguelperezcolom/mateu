@@ -11,6 +11,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.12] — 2026-10-24
+
+Fixes from trying a static YAML project on Redwood: a listing's filters stay in its search header in
+the visual editor and Play, a node can be dragged to a new place on the Redwood canvas, and the YAML
+starters' home page says it is a landing page.
+
 ### Fixed
 
 - **Redwood: a YAML listing's filters stay in its search header.** In the visual editor's Redwood
