@@ -163,4 +163,18 @@ public class DevServerTest {
     assertThat(DevServer.basePathOf("https://cdn.example.com/app")).isEmpty();
     assertThat(DevServer.basePathOf(null)).isEmpty();
   }
+
+  @Test
+  public void noServiceWorkerWhileDeveloping() throws Exception {
+    start(true, "");
+    var worker = open("/mateu-sw.js", "GET");
+    assertThat(worker.getResponseCode()).isEqualTo(200);
+    assertThat(worker.getContentType()).startsWith("text/javascript");
+    // the worker that unregisters itself, whatever the bundle on disk carries
+    assertThat(body(worker)).contains("unregister()");
+    var register = open("/pwa/register.js", "GET");
+    assertThat(body(register)).isEqualTo(DevServer.NO_WORKER);
+    assertThat(DevServer.contentType("manifest.webmanifest"))
+        .isEqualTo("application/manifest+json");
+  }
 }

@@ -54,6 +54,7 @@ final class DevServer implements AutoCloseable {
           Map.entry("mjs", "text/javascript; charset=utf-8"),
           Map.entry("css", "text/css; charset=utf-8"),
           Map.entry("json", "application/json; charset=utf-8"),
+          Map.entry("webmanifest", "application/manifest+json"),
           Map.entry("map", "application/json; charset=utf-8"),
           Map.entry("txt", "text/plain; charset=utf-8"),
           Map.entry("xml", "application/xml; charset=utf-8"),
@@ -241,6 +242,9 @@ final class DevServer implements AutoCloseable {
         stream(exchange);
         return;
       }
+      if (offline(exchange, path, head)) {
+        return;
+      }
       serve(exchange, path, head);
     }
   }
@@ -272,6 +276,33 @@ final class DevServer implements AutoCloseable {
       body = inject(new String(body, StandardCharsets.UTF_8));
     }
     respond(exchange, 200, contentType(file), body, head);
+  }
+
+  /** What the registration script is in development: nothing to register. */
+  static final String NO_WORKER = "/* mateu dev: no service worker while developing */\n";
+
+  /**
+   * No service worker in development: a cached shell would only get in the way of live reload. The
+   * bundle on disk is the one {@code mateu-bundle:bundle} writes, so it is answered here — the
+   * worker's URL with the worker that unregisters itself (a browser keeps one installed by a
+   * previous {@code npx serve} of the same origin, :3000 too, until it fetches it again), the
+   * registration script with nothing.
+   */
+  private boolean offline(HttpExchange exchange, String path, boolean head) throws IOException {
+    if (("/" + BundleWriter.WORKER).equals(path)) {
+      respond(
+          exchange,
+          200,
+          "text/javascript; charset=utf-8",
+          io.mateu.core.infra.Pwa.resource(io.mateu.core.infra.Pwa.WORKER_OFF),
+          head);
+      return true;
+    }
+    if (("/" + BundleWriter.PWA_DIR + io.mateu.core.infra.Pwa.REGISTER).equals(path)) {
+      respond(exchange, 200, "text/javascript; charset=utf-8", bytes(NO_WORKER), head);
+      return true;
+    }
+    return false;
   }
 
   /** The file to answer {@code path} with: itself when it is a file, else the SPA's index. */

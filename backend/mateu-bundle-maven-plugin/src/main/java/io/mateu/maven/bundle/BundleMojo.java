@@ -130,6 +130,17 @@ public class BundleMojo extends AbstractMojo {
   @Parameter(property = "mateu.bundle.renderer")
   private String renderer;
 
+  /**
+   * Ship the bundle as an installable Progressive Web App (on by default): a web app manifest
+   * ({@code pwa/manifest.webmanifest}, named and coloured like the app shell — the same derivation
+   * as the mobile app's manifest), default icons, and a network-first service worker ({@code
+   * mateu-sw.js}) that gives the shell an offline start. {@code false} writes a worker that
+   * unregisters itself instead, so the browsers that installed the previous one let it go. See
+   * {@code io.mateu.core.infra.Pwa}.
+   */
+  @Parameter(property = "mateu.bundle.pwa", defaultValue = "true")
+  private boolean pwa = true;
+
   /** The renderer this bundle ships: explicit, else the project's, else the served one. */
   static ProjectRenderer chooseRenderer(String explicit, ClassLoader appLoader) {
     var named = ProjectRenderer.parse(explicit);
@@ -232,7 +243,14 @@ public class BundleMojo extends AbstractMojo {
                 : exporter.exportAll(baseUrl, appLoader, true, !skipParamRoutes, expandInBrowser);
 
         BundleWriter.write(
-            target.toPath(), manifest, assetsFrom, appLoader, baseUrl, pageTitle, chosen);
+            target.toPath(),
+            manifest,
+            assetsFrom,
+            appLoader,
+            baseUrl,
+            pageTitle,
+            chosen,
+            new BundleWriter.PwaOptions(pwa, shellOf(boot, discovered)));
 
         long ok = manifest.entries().stream().filter(BundleEntry::ok).count();
         manifest.entries().stream()
@@ -300,6 +318,40 @@ public class BundleMojo extends AbstractMojo {
         }
       }
     }
+  }
+
+  /**
+   * What the bundled app declares about itself (name, theme colour, icon) for its installable app:
+   * the root YAML mount's app shell, else the root {@code @UI} class, else the first one.
+   */
+  static io.mateu.core.infra.MobileManifest.Source shellOf(
+      BootContext boot, List<RouteRegistrations.RouteRef> discovered) {
+    try {
+      var registry = boot.bean(io.mateu.core.application.runaction.RouteRegistry.class);
+      var loader = boot.bean(io.mateu.core.application.runaction.YamlAppLoader.class);
+      if (registry != null && loader != null && !registry.mounts().isEmpty()) {
+        var mounts = registry.mounts();
+        var root =
+            mounts.stream()
+                .filter(m -> m.basePath() == null || m.basePath().isEmpty())
+                .findFirst()
+                .orElse(mounts.get(0));
+        var shell =
+            loader.load(registry.rootDefinitionFor(root.basePath() == null ? "" : root.basePath()));
+        if (shell != null) {
+          return io.mateu.core.infra.MobileManifest.sourceOf(shell);
+        }
+      }
+    } catch (RuntimeException e) {
+      // no YAML mount to read: the classes below
+    }
+    var root =
+        discovered.stream()
+            .filter(r -> r.route() == null || r.route().isEmpty() || r.route().equals("/"))
+            .findFirst()
+            .or(() -> discovered.stream().findFirst());
+    return root.map(r -> io.mateu.core.infra.MobileManifest.sourceOf(r.className()))
+        .orElse(io.mateu.core.infra.MobileManifest.sourceOf((io.mateu.uidl.fluent.AppShell) null));
   }
 
   private void info(String message) {
