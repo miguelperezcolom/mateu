@@ -60,7 +60,7 @@ import {
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf, notFoundOf,
   islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
-  filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf,
+  filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf, columnSizingOf, finishColumnSizing, isCompactColumn, estimateTextPx, withoutDefaultSizing,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, smartFilterDropdownRowsOf, dropdownRowsFor, suggestionsProviderOf, setMetadataProviderFactory, KEYWORD_FILTER,
   listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
@@ -5775,9 +5775,10 @@ test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las de
   assert.equal(name.template, 'cellClip')
   assert.deepEqual(listing.rows[0].name__clipCell, { text: rows[0].name, title: rows[0].name, hover: '', cls: 'mateu-cell-clip' })
   assert.equal(listing.rows[0].name, rows[0].name) // the row, untouched
-  // the rest of the columns, as before: no width and no clipping template
+  // the rest of the columns, as before: never clipped (they are sized by the default rule, see
+  // the «default column sizing» test, which never fixes a maximum)
   for (const c of listing.columns.filter((c) => c.id !== 'name')) {
-    assert.equal(c.width, undefined)
+    assert.equal(c.maxWidth, undefined)
     assert.notEqual(c.template, 'cellClip')
   }
   // sorting by the header returns the wire id; the selection sends the row without the cell
@@ -5789,6 +5790,115 @@ test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las de
   // (the drawer's listing once per Spectra drawer template: general / create-edit / bottom)
   assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 5)
   assert.match(webApp('resources/css/app.css'), /\.mateu-cell-clip \{[\s\S]*text-overflow: ellipsis;[\s\S]*white-space: nowrap;/)
+})
+
+// DEFAULT column sizing (a listing that only lists its columns, no widths): compact columns fit
+// their content and do not grow, text columns grow and share the rest by weight, and the table
+// uses oj-table's layout="fixed" (honours the weights, fills the width, scrolls when it must).
+test('listing: sin anchos declarados, las columnas compactas se ajustan y las de texto reparten el resto', () => {
+  // which columns are compact
+  for (const c of [{ identifier: true, dataType: 'string' }, { dataType: 'integer' }, { dataType: 'number' }, { dataType: 'money' },
+    { stereotype: 'money', dataType: 'string' }, { dataType: 'bool' }, { dataType: 'status' }, { dataType: 'date' },
+    { dataType: 'dateTime' }, { dataType: 'time' }, { dataType: 'actionGroup' }, { stereotype: 'button' },
+    { dataType: 'string', valueLabels: { IN_HOUSE: 'In house' } }]) assert.equal(isCompactColumn(c), true, JSON.stringify(c))
+  for (const c of [{ dataType: 'string' }, { dataType: 'string', stereotype: 'primary' }, { dataType: 'string', stereotype: 'link' },
+    { dataType: 'component' }, {}, { dataType: 'string', valueLabels: {} }]) assert.equal(isCompactColumn(c), false, JSON.stringify(c))
+  // the width estimate: generous but in the ballpark of what Redwood paints (16px Oracle Sans:
+  // "P-001" measures 45px, "Espresso machine" 131px, "249.00" 52px)
+  assert.ok(Math.abs(estimateTextPx('P-001') - 45) < 4)
+  assert.ok(Math.abs(estimateTextPx('Espresso machine') - 131) < 8)
+  assert.ok(Math.abs(estimateTextPx('249.00') - 52) < 4)
+  assert.equal(estimateTextPx(null), 0)
+
+  // the products listing of a YAML-only project: Id (identifier), Name, Price (money), Status
+  const rows = [
+    { id: 'P-001', name: 'Espresso machine', price: '249.00', status: { type: 'SUCCESS', message: 'Available' } },
+    { id: 'P-002', name: 'Coffee grinder', price: '89.50', status: { type: 'NONE', message: 'Out of stock' } },
+  ]
+  const id = columnSizingOf({ id: 'id', label: 'Id', identifier: true, sortable: true, dataType: 'string', autoWidth: true }, rows)
+  const name = columnSizingOf({ id: 'name', label: 'Name', sortable: true, dataType: 'string', autoWidth: true }, rows)
+  const price = columnSizingOf({ id: 'price', label: 'Price', stereotype: 'money', sortable: true, dataType: 'string', autoWidth: true }, rows)
+  const status = columnSizingOf({ id: 'status', label: 'Status', dataType: 'status', sortable: true, autoWidth: true }, rows)
+  assert.equal(id.kind, 'fit')
+  assert.equal(price.kind, 'fit')
+  assert.equal(status.kind, 'fit')
+  assert.deepEqual(Object.keys(id.def), ['width']) // a fixed width: it does not grow
+  assert.equal(id.def.width, id.px + 'px')
+  // fits header + sort icon + "P-001" — not the 200px it got from oj-table's own sizing
+  assert.ok(id.px >= 80 && id.px <= 130, 'id ' + id.px)
+  assert.ok(price.px >= 100 && price.px <= 140, 'price ' + price.px)
+  // the widest badge ("Out of stock") + its padding
+  assert.ok(status.px >= 130 && status.px <= 170, 'status ' + status.px)
+  assert.equal(name.kind, 'grow')
+  assert.deepEqual(name.def, { minWidth: name.px + 'px', weight: 1 })
+  assert.ok(name.px >= 120 && name.px <= 240)
+  // the header counts: a long label on a short value is not cut
+  assert.ok(columnSizingOf({ id: 'n', label: 'Number of guests', dataType: 'integer' }, [{ n: 2 }]).px >= estimateTextPx('Number of guests') + 24)
+  // and the total (@Aggregate) too
+  assert.ok(columnSizingOf({ id: 'n', label: 'N', dataType: 'number' }, [{ n: 2 }], 'n', '1,234,567.89').px > estimateTextPx('1,234,567.89'))
+  // a long text column grows from at most GROW_MIN_MAX (240px), and it wraps below that
+  assert.equal(columnSizingOf({ id: 'd', label: 'Description', dataType: 'string' }, [{ d: 'x'.repeat(200) }]).def.minWidth, '240px')
+  // row actions: sized to their buttons
+  const actions = columnSizingOf({ id: 'a', label: '', dataType: 'actionGroup' }, [{ a: { actions: [{ label: 'Edit' }, { label: 'Delete' }] } }])
+  assert.equal(actions.kind, 'fit')
+  assert.ok(actions.px >= 120 && actions.px <= 180, 'actions ' + actions.px)
+  // an in-cell editor needs room for its input
+  assert.ok(columnSizingOf({ id: 'q', label: 'Qty', dataType: 'integer', editable: true }, [{ q: 1 }]).px >= 160)
+  assert.ok(columnSizingOf({ id: 't', label: 'Notes', dataType: 'string', editable: true }, [{ t: 'a' }]).px >= 256)
+
+  // weight: N grows N times as much as weight 1 (the default); flexGrow, when declared, is the weight
+  assert.equal(columnSizingOf({ id: 'd', label: 'D', dataType: 'string', weight: 2 }, []).def.weight, 2)
+  assert.equal(columnSizingOf({ id: 'd', label: 'D', dataType: 'string', flexGrow: '3', weight: 2 }, []).def.weight, 3)
+  // a declared flexGrow beats the type: "0" fits a text column, N makes a compact one grow
+  assert.equal(columnSizingOf({ id: 'd', label: 'D', dataType: 'string', flexGrow: '0' }, [{ d: 'abc' }]).kind, 'fit')
+  assert.deepEqual(columnSizingOf({ id: 'n', label: 'N', dataType: 'integer', flexGrow: '2' }, []).def.weight, 2)
+  // a declared width wins, exactly as before (columnWidthOf)
+  assert.deepEqual(columnSizingOf({ id: 'd', label: 'D', dataType: 'string', width: '420px', flexGrow: '0' }, []),
+    { kind: 'declared', def: { width: '420px', minWidth: '420px', maxWidth: '420px' } })
+  assert.deepEqual(columnSizingOf({ id: 'n', label: 'N', dataType: 'integer', width: '12rem' }, []).def, { width: '12rem', minWidth: '12rem' })
+
+  // finishColumnSizing: weights below 1 keep their ratio (oj-table reads < 1 as 1)…
+  assert.deepEqual(finishColumnSizing([{ id: 'a', weight: 0.5 }, { id: 'b', weight: 1 }, { id: 'c', width: '80px' }], {}).map((d) => d.weight),
+    [1, 2, undefined])
+  // …and with NO growing column the compact ones share the width, each from its content width and
+  // in proportion to it (a declared width stays as it is)
+  assert.deepEqual(finishColumnSizing([{ id: 'a', width: '80px' }, { id: 'c', width: '120px' }, { id: 'b', width: '420px', minWidth: '420px', maxWidth: '420px' }], { a: 80, c: 120 }),
+    [{ id: 'a', minWidth: '80px', weight: 1 }, { id: 'c', minWidth: '120px', weight: 1.5 }, { id: 'b', width: '420px', minWidth: '420px', maxWidth: '420px' }])
+  // a table whose columns all declare their widths stays as it was
+  const declared = [{ id: 'b', width: '420px' }]
+  assert.equal(finishColumnSizing(declared, {}), declared)
+
+  // through the projection (a real listing: id/name string, price number, active bool)
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  let reg = reduceContexts(empty(), content)
+  const search = fx('search-listing')
+  search.fragments[0].targetComponentId = ''
+  reg = reduceContexts(reg, search)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.equal(listing.tableLayout, 'fixed')
+  const col = (k) => listing.columns.find((c) => c.id === k)
+  // id and name are text (this id column is not flagged identifier) → they grow; price and active fit
+  assert.equal(col('id').weight, 1)
+  assert.equal(col('name').weight, 1)
+  assert.match(col('price').width, /^\d+px$/)
+  assert.match(col('active').width, /^\d+px$/)
+  assert.equal(col('price').weight, undefined)
+  // the user hides the text columns (column preferences): what is left fills the width
+  const prefsOnly = finishColumnSizing(listing.columns.filter((c) => c.id === 'price' || c.id === 'active'), listing.fitColumns)
+  assert.ok(prefsOnly.every((c) => c.weight >= 1 && /px$/.test(c.minWidth) && c.width === undefined))
+  // the search picker and the listing in an overlay (no tableLayout bound there) keep oj-table's
+  // own sizing: only declared widths reach them
+  assert.ok(withoutDefaultSizing(listing.columns, listing).every((c) => c.width === undefined && c.minWidth === undefined && c.weight === undefined))
+  assert.ok(withoutDefaultSizing(listing.columns, listing).every((c) => c.field && c.headerText))
+  // every column declaring its width keeps oj-table's default layout ('contents')
+  const content2 = fx('load-listing-content')
+  content2.fragments[0].targetComponentId = ''
+  for (const c of findByType(content2.fragments[0].component, 'Crud').metadata.columns) Object.assign(c.metadata || c, { width: '100px', flexGrow: '0' })
+  assert.equal(listingOf(reduceContexts(empty(), content2).contexts[HOST_ID]).tableLayout, 'contents')
+  // the listing table binds it
+  assert.match(webApp('flows/main/pages/main-start-page.html'),
+    /<oj-table id="mateuTable"[^>]*layout="\[\[ \$application\.variables\.mateuListing\.tableLayout \|\| 'contents' \]\]"/)
 })
 
 test('listing: tooltipPath a otro campo lo pone en la ventana flotante (no en el title), sin cortar el texto', () => {

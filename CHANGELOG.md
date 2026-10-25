@@ -11,6 +11,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed
+
+- **Listings size their columns sensibly when none of them declares a width.** This applies to both
+  renderers, Vaadin and Redwood. Identifiers, numbers, amounts, dates, booleans, statuses, enums and
+  row actions fit their content and don't grow. Text columns share the rest of the width, each in
+  proportion to its `weight` (default 1). The table fills the width, and it scrolls horizontally
+  rather than squeezing the columns. Before, Redwood's own sizing could give an `Id` holding
+  "P-001" 200px, and Vaadin gave every column the same share. A declared `width` or `flexGrow`
+  still wins.
+  On Redwood the listing table now uses `oj-table` `layout="fixed"`, where a long text is cut with
+  an ellipsis. The full text shows on hover.
+
 ## [3.0-beta.13] — 2026-10-24
 
 Version skew handled end to end (a redeployment and a stale screen are told to the user, every
