@@ -23,8 +23,15 @@ public final class YamlMounts {
    *
    * @param basePath {@code ""} for a root mount, e.g. {@code "back-office"} otherwise (no slash)
    * @param title the page title, from the mount's app shell definition
+   * @param shell what the mount's app shell declares for its installable app (theme colour, icon —
+   *     see {@link Pwa}); null when unknown
    */
-  public record Mount(String basePath, String title) {
+  public record Mount(String basePath, String title, MobileManifest.Source shell) {
+
+    /** A mount whose shell declarations are unknown. */
+    public Mount(String basePath, String title) {
+      this(basePath, title, null);
+    }
 
     /** Where the SPA shell is served: {@code /} or {@code /back-office}. */
     public String spaPath() {
@@ -38,7 +45,7 @@ public final class YamlMounts {
 
     /** The SPA shell page. */
     public String indexHtml() {
-      return YamlMounts.indexHtml(basePath, title);
+      return YamlMounts.indexHtml(basePath, title, shell);
     }
   }
 
@@ -57,7 +64,12 @@ public final class YamlMounts {
     var mounts = new ArrayList<Mount>();
     for (var mount : routeRegistry.mounts()) {
       var basePath = mount.basePath() == null ? "" : mount.basePath();
-      mounts.add(new Mount(basePath, titleOf(routeRegistry, yamlAppLoader, basePath)));
+      var shell = yamlAppLoader.load(routeRegistry.rootDefinitionFor(basePath));
+      mounts.add(
+          new Mount(
+              basePath,
+              shell != null && shell.title() != null ? shell.title() : "Mateu",
+              MobileManifest.sourceOf(shell)));
     }
     return mounts;
   }
@@ -151,13 +163,6 @@ public final class YamlMounts {
     return best;
   }
 
-  private static String titleOf(
-      RouteRegistry routeRegistry, YamlAppLoader appLoader, String basePath) {
-    var definition = routeRegistry.rootDefinitionFor(basePath);
-    var shell = appLoader.load(definition);
-    return shell != null && shell.title() != null ? shell.title() : "Mateu";
-  }
-
   /**
    * The mobile app's manifest ({@link MobileManifest}) of the mount at {@code basePath}, from its
    * app shell definition — served at {@code <apiPrefix>/v3/manifest}.
@@ -169,10 +174,31 @@ public final class YamlMounts {
   }
 
   /**
+   * A file of the installable app ({@link Pwa}) of the mount at {@code basePath} — served at {@code
+   * <apiPrefix>/v3/pwa/<file>} — or null when {@code file} is none of them.
+   */
+  public static Pwa.Asset pwaAsset(
+      RouteRegistry routeRegistry, YamlAppLoader appLoader, String basePath, String file) {
+    var base = basePath == null ? "" : basePath;
+    return Pwa.asset(
+        file,
+        uiPath(base),
+        () -> MobileManifest.sourceOf(appLoader.load(routeRegistry.rootDefinitionFor(base))));
+  }
+
+  /**
    * The SPA shell HTML with a {@code <mateu-ui baseUrl="{basePath}">} injected; the SPA then POSTs
    * {@code /{basePath}/mateu/v3/**} and the YAML-defined mount answers.
    */
   public static String indexHtml(String basePath, String title) {
+    return indexHtml(basePath, title, null);
+  }
+
+  /**
+   * As {@link #indexHtml(String, String)}, with the installable-app head ({@link Pwa}) reading the
+   * theme colour and icon {@code shell} declares.
+   */
+  public static String indexHtml(String basePath, String title, MobileManifest.Source shell) {
     ProjectRendererCheck.warnOnce(Thread.currentThread().getContextClassLoader());
     String html = InputStreamReader.readFromClasspath(YamlMounts.class, "/static/_index.html");
     html = html.replace("<!-- AQUIFAVICON -->", IndexPage.DEFAULT_FAVICON);
@@ -185,13 +211,16 @@ public final class YamlMounts {
     // route stays the whole browser path (pathPrefix ""): a YAML mount's routes are matched with
     // the mount on them.
     return IndexPage.devHead(
-        OracleCdn.apply(
-            IndexPage.withoutMarkers(
-                IndexPage.mountUi(
-                    html,
-                    "<mateu-ui baseUrl=\""
-                        + uiPath(basePath)
-                        + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"))));
+        Pwa.served(
+            OracleCdn.apply(
+                IndexPage.withoutMarkers(
+                    IndexPage.mountUi(
+                        html,
+                        "<mateu-ui baseUrl=\""
+                            + uiPath(basePath)
+                            + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"))),
+            uiPath(basePath),
+            shell));
   }
 
   /** The {@code baseUrl} of a mount's {@code <mateu-ui>}: "" or "/back-office". */

@@ -61,7 +61,8 @@ class IndexPageTest {
             true);
     var html = IndexPage.render(VITE_PAGE, spec);
     assertThat(html).contains("debug=\"true\"");
-    assertThat(html).contains("<meta name=\"a\" content=\"b\"></head>");
+    // the app's own head comes before the installable-app head (Pwa), which is added last
+    assertThat(html).contains("<meta name=\"a\" content=\"b\"><link rel=\"manifest\"");
     assertThat(html).contains("<link rel=icon>");
     assertThat(html).contains("<script type='module' src='/x.js'></script><title>T</title>");
   }
