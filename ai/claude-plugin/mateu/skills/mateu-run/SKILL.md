@@ -95,6 +95,19 @@ Inside the Mateu repo the same script is `e2e/screenshot.mjs`; doc images go to
 `doc/public/images/docs/<topic>/<name>.png`. Follow the repository's screenshot conventions
 when working inside that repository; other projects can choose their own output directory.
 
+## 5. The installable app (PWA) and stale screens
+
+Every Mateu UI is an installable Progressive Web App: its page links
+`<base>/mateu/v3/pwa/manifest.webmanifest` and registers a network-first service worker
+(`<base>/mateu/v3/pwa/sw.js`; a static bundle: `pwa/manifest.webmanifest` + `mateu-sw.js`). Online it
+never serves a cached copy, so it is not a reason for a stale screen — but when two apps take turns
+on the same `localhost:<port>`, a worker installed by the first can still answer the second's page
+when the server is down. Clear it in DevTools → Application → Service workers (Unregister) or run
+with `mateu.pwa.enabled=false` / `MATEU_PWA_ENABLED=false` (`-Dmateu.bundle.pwa=false` for a bundle).
+`mateu.dev=true` and `mvn mateu-bundle:dev` never register it. Check installability in Chrome:
+DevTools → Application → Manifest (no installability errors), or CDP
+`Page.getInstallabilityErrors` in a Playwright script.
+
 ## Related
 
 - Wiring the build so it generates anything at all → **mateu-scaffold** (+ its `verify.md`).

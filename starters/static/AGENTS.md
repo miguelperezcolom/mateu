@@ -43,6 +43,10 @@ busy port moves to the next free one (`-Dmateu.dev.port=…` to choose); Ctrl+C 
 Deploy `target/mateu-bundle/` to any static host with an SPA fallback (every non-file path serves
 `index.html`; Netlify reads the shipped `_redirects`, nginx `try_files $uri /index.html`).
 
+The bundle is an installable app (PWA): Chrome/Edge offer "Install app" (own window and icon) and
+phones add it to the home screen. Its name, colour and icon come from `app.yaml` (`title`,
+`accentColor`, `logo`); `-Dmateu.bundle.pwa=false` turns it off. https://mateu.io/deploy/install-as-app/
+
 ## Rules to respect
 
 - **Edit `specs/ui` only.** No Java, no server code, no frontend code: there is nothing to run them.

@@ -174,6 +174,16 @@ backend at `baseUrl`. That is a legitimate deployment too.
   then the sources use relative URLs and there is no CORS at all.
 - **Re-pointing** an environment is an edit of `sources` in `manifest.json`.
 
+## Install as a desktop or phone app
+
+The bundle is an installable **Progressive Web App**: Chrome and Edge offer **Install app** on the
+desktop (its own window and icon), phones add it to the home screen, and it opens **offline**,
+screens included, because the definitions travel in `manifest.json`. The build writes
+`pwa/manifest.webmanifest` (named and coloured from the app shell), default icons and a
+network-first service worker, `mateu-sw.js`, at the bundle's root; data from REST sources is never
+cached. On by default; `-Dmateu.bundle.pwa=false` turns it off, and the `dev` goal never registers
+the worker. See [Install as a desktop or phone app](/deploy/install-as-app/).
+
 ## Auth, and what it can and cannot do
 
 - **Who the user is** comes from your identity provider in the browser. Register a provider with
