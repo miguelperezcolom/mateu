@@ -267,7 +267,7 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-sort-column
                                 path="${mateuColumn.id}"
-                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType)??nothing}"
+                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType, mateuColumn.stereotype)??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
                                 ?auto-width="${mateuColumn.autoWidth}"
@@ -305,7 +305,7 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-filter-column
                                 path="${mateuColumn.id}"
-                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType)??nothing}"
+                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType, mateuColumn.stereotype)??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
                                 ?auto-width="${mateuColumn.autoWidth}"
@@ -341,7 +341,7 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-column
                                 path="${mateuColumn.id}"
-                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType)??nothing}"
+                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType, mateuColumn.stereotype)??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
                                 ?auto-width="${mateuColumn.autoWidth}"

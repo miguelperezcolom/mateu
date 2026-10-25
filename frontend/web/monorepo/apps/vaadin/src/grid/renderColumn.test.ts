@@ -75,6 +75,17 @@ describe('column width policy', () => {
         expect(c.hasAttribute('frozen')).toBe(true)
         expect(c.getAttribute('text-align')).toBe('end')
     })
+
+    it('honours the alignment on every column element (header + cells), including an amount by stereotype', () => {
+        // a YAML column expanded in the browser: stereotype money on a string column, no align
+        for (const extra of [{}, { sortable: true }, { filterable: true }]) {
+            expect(mountColumn({ dataType: 'string', stereotype: 'money', ...extra }).getAttribute('text-align')).toBe('end')
+        }
+        expect(mountColumn({ dataType: 'integer', sortable: true }).getAttribute('text-align')).toBe('end')
+        expect(mountColumn({ dataType: 'bool' }).getAttribute('text-align')).toBe('center')
+        expect(mountColumn({ dataType: 'string', align: 'right' }).getAttribute('text-align')).toBe('end')
+        expect(mountColumn({ dataType: 'string' }).hasAttribute('text-align')).toBe(false)
+    })
 })
 
 describe('inline-edited cells', () => {
