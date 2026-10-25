@@ -906,6 +906,83 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * Every UI is an installable app ({@code io.mateu.core.infra.Pwa}): its page links the web app
+   * manifest and registers the service worker, and {@code <baseUrl>/mateu/v3/pwa/} serves the
+   * manifest (derived like the mobile one), the worker (allowed to control the whole UI), the
+   * registration script and the default icons — never the index page, whatever the request accepts;
+   * an unknown file is a 404.
+   */
+  public void servesTheInstallableApp() {
+    servesTheInstallableApp("/plain", "Plain form");
+  }
+
+  /** {@link #servesTheInstallableApp()} for the YAML mount fixture ({@value #YAML_MOUNT}). */
+  public void servesAYamlMountsInstallableApp() {
+    servesTheInstallableApp(YAML_MOUNT, YAML_MOUNT_TITLE);
+  }
+
+  private void servesTheInstallableApp(String baseUrl, String name) {
+    given()
+        .accept("text/html")
+        .when()
+        .get(baseUrl)
+        .then()
+        .statusCode(200)
+        .body(
+            containsString(
+                "<link rel=\"manifest\" href=\""
+                    + baseUrl
+                    + "/mateu/v3/pwa/manifest.webmanifest\" crossorigin=\"use-credentials\">"))
+        .body(containsString("<script src=\"" + baseUrl + "/mateu/v3/pwa/register.js\""))
+        .body(containsString("data-scope=\"" + baseUrl + "\""));
+    for (String accept : new String[] {"application/manifest+json", "text/html"}) {
+      given()
+          .accept(accept)
+          .when()
+          .get(baseUrl + "/mateu/v3/pwa/manifest.webmanifest")
+          .then()
+          .statusCode(200)
+          .header("Content-Type", startsWith("application/manifest+json"))
+          .header("X-Content-Type-Options", equalTo("nosniff"))
+          .body(
+              startsWith(
+                  "{\"id\":\""
+                      + baseUrl
+                      + "\",\"name\":\""
+                      + name
+                      + "\",\"short_name\":\""
+                      + name
+                      + "\",\"start_url\":\""
+                      + baseUrl
+                      + "\",\"scope\":\""
+                      + baseUrl
+                      + "\",\"display\":\"standalone\""));
+    }
+    given()
+        .when()
+        .get(baseUrl + "/mateu/v3/pwa/sw.js")
+        .then()
+        .statusCode(200)
+        .header("Content-Type", startsWith("text/javascript"))
+        .header("Service-Worker-Allowed", equalTo(baseUrl))
+        .header("Cache-Control", equalTo("no-cache"))
+        .body(containsString("networkFirst"));
+    given()
+        .when()
+        .get(baseUrl + "/mateu/v3/pwa/register.js")
+        .then()
+        .statusCode(200)
+        .header("Content-Type", startsWith("text/javascript"));
+    given()
+        .when()
+        .get(baseUrl + "/mateu/v3/pwa/icon-512.png")
+        .then()
+        .statusCode(200)
+        .header("Content-Type", equalTo("image/png"));
+    given().when().get(baseUrl + "/mateu/v3/pwa/nope.js").then().statusCode(404);
+  }
+
+  /**
    * Mateu's own settings are read from the FRAMEWORK's configuration ({@code
    * application.properties} / {@code application.yml} / MicroProfile Config), not only from JVM
    * system properties and environment variables: run with {@code

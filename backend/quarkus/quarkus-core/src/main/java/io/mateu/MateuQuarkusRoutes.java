@@ -429,6 +429,22 @@ public class MateuQuarkusRoutes {
                     YamlMounts.manifestJson(routeRegistry, yamlAppLoader, mount.basePath()));
               });
       router
+          .get(mount.apiPrefix() + "/v3/pwa/:file")
+          .order(AFTER_SECURITY)
+          .blockingHandler(
+              rc -> {
+                var asset =
+                    YamlMounts.pwaAsset(
+                        routeRegistry, yamlAppLoader, mount.basePath(), rc.pathParam("file"));
+                if (asset == null) {
+                  rc.response().setStatusCode(404).end();
+                  return;
+                }
+                var response = rc.response();
+                asset.headers().forEach(response::putHeader);
+                response.end(io.vertx.core.buffer.Buffer.buffer(asset.body()));
+              });
+      router
           .postWithRegex(java.util.regex.Pattern.quote(mount.apiPrefix() + "/v3/") + ".*")
           .order(AFTER_SECURITY + 1)
           .handler(BodyHandler.create())

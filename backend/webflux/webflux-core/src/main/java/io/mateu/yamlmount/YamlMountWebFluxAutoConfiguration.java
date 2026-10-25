@@ -65,6 +65,12 @@ public class YamlMountWebFluxAutoConfiguration {
           .GET(
               mount.apiPrefix() + "/v3/manifest",
               request -> manifest(YamlMounts.manifestJson(routeRegistry, yamlAppLoader, basePath)))
+          .GET(
+              mount.apiPrefix() + "/v3/pwa/{file}",
+              request ->
+                  pwa(
+                      YamlMounts.pwaAsset(
+                          routeRegistry, yamlAppLoader, basePath, request.pathVariable("file"))))
           .POST(mount.apiPrefix() + "/v3/sse/**", request -> sse(service, request, basePath))
           .POST(mount.apiPrefix() + "/v3/**", request -> sync(service, request, basePath));
       if (!basePath.isEmpty()) {
@@ -93,6 +99,16 @@ public class YamlMountWebFluxAutoConfiguration {
     io.mateu.core.infra.MobileManifest.HEADERS.forEach(
         (name, value) -> response.header(name, value));
     return response.bodyValue(json);
+  }
+
+  /** A file of the installable app ({@link io.mateu.core.infra.Pwa}), or a 404. */
+  private static Mono<ServerResponse> pwa(io.mateu.core.infra.Pwa.Asset asset) {
+    if (asset == null) {
+      return ServerResponse.notFound().build();
+    }
+    var response = ServerResponse.ok();
+    asset.headers().forEach((name, value) -> response.header(name, value));
+    return response.bodyValue(asset.body());
   }
 
   private static Mono<ServerResponse> sync(
