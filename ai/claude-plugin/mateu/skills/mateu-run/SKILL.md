@@ -29,7 +29,7 @@ A single-module app (screens in the app itself) just builds the app.
 | Quarkus | `mvn quarkus:dev` | http://localhost:8080 |
 | Micronaut | `mvn mn:run` | http://localhost:8080 |
 | Helidon MP | `mvn package && java -jar target/<artifactId>.jar` (no version in the jar name) | http://localhost:8080 |
-| static bundle | `mvn package && npx serve -s target/mateu-bundle` | http://localhost:3000 |
+| static bundle | `mvn mateu-bundle:dev` (rebuilds + reloads on every save; read the `mateu-dev: serving …` line for the port) — or the finished bundle: `mvn package && npx serve -s target/mateu-bundle` | http://localhost:3000 |
 | .NET | `MATEU_UI=<mateu-vaadin jar or its static/> dotnet run` | http://localhost:8080 |
 | Python | `MATEU_UI=<mateu-vaadin jar or its static/> uvicorn main:app --port 8080` | http://localhost:8080 |
 

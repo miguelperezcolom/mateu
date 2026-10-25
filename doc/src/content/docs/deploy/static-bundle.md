@@ -86,6 +86,22 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `static` (config `<staticOnly>`) | `false` | declare the bundle **100 % static**: runs the [static-safety report](/deploy/static-ui/#the-static-safety-report) and **fails the build** if any route still needs a server |
 | `specsOnly` | `false` | ship each definition-only route the browser can expand as its **raw definition** instead of pre-rendering it ([specs mode](/deploy/static-ui/#two-ways-to-build-it)) |
 
+### The `dev` goal
+
+`mvn mateu-bundle:dev` builds the same bundle (same parameters), serves it on
+`http://localhost:3000` and rebuilds it on every change to the resource directories, reloading the
+open pages — a failing rebuild is logged and the last good bundle stays up. Its own parameters:
+
+| Parameter (`-Dmateu.dev.*`) | Default | Meaning |
+|---|---|---|
+| `port` | `3000` | the port; a busy one moves to the next free one |
+| `host` | `localhost` | the interface to bind (`0.0.0.0` for your network) |
+| `liveReload` | `true` | reload the open pages after each successful rebuild |
+| `pollMillis` | `300` | how often the watched directories are checked |
+
+It runs the build up to `process-classes` first; a change to Java code needs a restart. See
+[Develop with live reload](/deploy/static-ui/#develop-with-live-reload).
+
 ### Knowing which bundle you are looking at
 
 The manifest carries a `structureHash`: a stable identity of **what the bundle contains**,

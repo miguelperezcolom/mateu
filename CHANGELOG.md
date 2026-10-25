@@ -11,6 +11,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **`mvn mateu-bundle:dev` — a static UI with live reload.** The bundle plugin's new `dev` goal
+  builds the bundle exactly as `mateu-bundle:bundle` does (same configuration, `mateu.bundle.mock`
+  included), serves it on http://localhost:3000 with the SPA fallback (JDK only, no Node), and
+  rebuilds it on every change under the resource directories, reloading the open pages
+  (`-Dmateu.dev.liveReload=false` to refresh by hand). A rebuild that fails — a YAML error, a
+  `staticOnly` violation — is logged and the last good bundle keeps being served.
+  `-Dmateu.dev.port` (a busy port moves to the next free one), `-Dmateu.dev.host`. The `static`
+  starter, its `AGENTS.md` and the docs use it.
+
 ## [3.0-beta.13] — 2026-10-24
 
 Version skew handled end to end (a redeployment and a stale screen are told to the user, every

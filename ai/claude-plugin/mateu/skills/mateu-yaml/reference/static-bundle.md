@@ -32,6 +32,13 @@ or CDN. The browser reads the definitions and calls the APIs in `sources.yaml` i
 `mvn package` → `target/mateu-bundle/`. Preview: `npx serve -s target/mateu-bundle` (the `-s` SPA
 fallback is what makes deep links like `/orders/1001` work).
 
+While editing: `mvn mateu-bundle:dev` builds the same bundle, serves it on http://localhost:3000 (SPA
+fallback, JDK only) and rebuilds on every change under `src/main/resources`, reloading the open
+pages; `-Dmateu.dev.liveReload=false` keeps the rebuilds but not the reload. A failing rebuild (YAML
+error, `staticOnly` violation) is logged as `mateu-dev: build failed — …` and the last good bundle
+stays served. `-Dmateu.dev.port` (busy → next free, logged), `-Dmateu.dev.host`. The prefix resolves
+because the pom declares the plugin; otherwise `mvn io.mateu:mateu-bundle-maven-plugin:dev`.
+
 ## Goal parameters (`-Dmateu.bundle.<name>` or `<configuration>`)
 
 | Parameter | Default | Meaning |

@@ -36,6 +36,9 @@ Preview it locally before deploying:
 npx serve -s target/mateu-bundle
 ```
 
+While you are still editing the screens, `mvn mateu-bundle:dev` serves the bundle and rebuilds it on
+every save (see [Develop with live reload](/deploy/static-ui/#develop-with-live-reload)).
+
 ### What Netlify needs from the folder
 
 - **SPA fallback.** The bundle ships a `_redirects` file with `/* /index.html 200`, which Netlify

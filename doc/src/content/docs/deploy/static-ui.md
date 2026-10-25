@@ -78,6 +78,32 @@ pre-rendered; edit a definition in `manifest.json`, refresh, see it.
 Either way the output is `target/mateu-bundle/`: `index.html`, `manifest.json`, the renderer's
 static app (`assets/` for Vaadin, `_redwood/` for Redwood) and a `_redirects` SPA fallback.
 
+## Develop with live reload
+
+While you work on the screens, run the `dev` goal instead of rebuilding by hand:
+
+```bash
+mvn mateu-bundle:dev                                # http://localhost:3000
+mvn mateu-bundle:dev -Dmateu.dev.liveReload=false   # same, but you refresh the page yourself
+```
+
+It builds exactly what `mvn package` builds — the plugin's `<configuration>`, the
+`-Dmateu.bundle.*` properties and `.mvn/maven.config` (sample data included) — into
+`target/mateu-bundle/`, serves it with the SPA fallback, and rebuilds it whenever a file under the
+resource directories changes (`specs/ui/**`: definitions, sources and their samples, translations).
+Each rebuild logs one line; with live reload on (the default) the open pages reload after it. The
+reload script is added as the page is served, never written to the bundle.
+
+A change that breaks the build — a YAML error, a screen that would need a server under `staticOnly`
+— is logged (and shown in the browser console) and **the last good bundle keeps being served**; the
+next good save picks up from there. Nothing but a JDK is needed (no Node). `-Dmateu.dev.port`
+chooses the port (a busy one moves to the next free one, and says so), `-Dmateu.dev.host=0.0.0.0`
+opens it to your network; Ctrl+C stops it. The `mateu-bundle:` prefix resolves because the pom
+declares the plugin; elsewhere use `mvn io.mateu:mateu-bundle-maven-plugin:dev`.
+
+To look at the finished bundle as a static host will serve it, build it and serve the folder:
+`mvn package && npx serve -s target/mateu-bundle`.
+
 ## Choosing the renderer
 
 The bundle ships the **project's renderer**, the one `specs/ui/project.yaml` names (see
