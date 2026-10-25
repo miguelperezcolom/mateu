@@ -31,6 +31,9 @@ TEMPLATE = (
 @pytest.fixture(autouse=True)
 def _no_env(monkeypatch):
     monkeypatch.delenv(ui_page.ORACLE_CDN_ENV_VAR, raising=False)
+    # the installable-app head (pwa) hashes the page into the worker's URL: off, so "only the URLs
+    # change" compares the CDN rewrite alone
+    monkeypatch.setenv("MATEU_PWA_ENABLED", "false")
 
 
 def test_off_leaves_the_page_unchanged():
