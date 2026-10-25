@@ -145,24 +145,26 @@ const welcomeTree = (tone) => page({}, [node({ type: 'HeroSection', title: 'Welc
 test('A3: HeroSection.tone → the welcome banner\'s dark-<tone> background, every visit the same', () => {
   const ctx = host(welcomeTree('lilac'))
   assert.equal(welcomeOf(ctx).tone, 'lilac')
-  const look = welcomeLookOf('k', null, () => 0, 'lilac')
+  const look = welcomeLookOf('k', 'lilac')
   assert.equal(look.theme, 'dark-lilac')
   assert.equal(look.illu, '') // lilac has no gallery pair
   assert.equal(welcomeToneLookOf('k', 'ocean').theme, 'dark-ocean')
   assert.match(welcomeToneLookOf('k', 'ocean').illu, /fg-01/)
   for (const t of ['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna'])
     assert.equal(welcomeToneLookOf('k', t).theme, 'dark-' + t)
-  // the archetype projection: a declared tone wins over the rotation (and over the look on screen)
-  const { vars } = archetypeVarsOf(ctx, { key: 'p1', theme: 'dark-pine', illuBg: 'a', illu: 'b' })
+  // the archetype projection: a declared tone wins over the page's hashed look
+  const { vars } = archetypeVarsOf(ctx)
   assert.equal(vars.mateuWelcomeTheme, 'dark-lilac')
 })
 
-test('A3: no tone, or an unknown one, keeps the rotating look', () => {
+test('A3: no tone, or an unknown one, keeps the page\'s own hashed look', () => {
   assert.equal(welcomeToneLookOf('k', null), null)
   assert.equal(welcomeToneLookOf('k', 'chartreuse'), null)
-  assert.equal(welcomeLookOf('k', null, () => 0, 'chartreuse').theme, 'dark-ocean')
-  const kept = { key: 'k', theme: 'dark-plum', illuBg: '', illu: '' }
-  assert.equal(welcomeLookOf('k', kept, () => 0, null), kept)
+  const own = welcomeLookOf('k')
+  assert.deepEqual(welcomeLookOf('k', 'chartreuse'), own)
+  assert.deepEqual(welcomeLookOf('k', null), own)
+  // every key gets the SAME look for each tone it declares, whatever its hash
+  for (const k of ['route:home', 'route:landing', 'com.x.Welcome']) assert.equal(welcomeLookOf(k, 'pine').theme, 'dark-pine')
 })
 
 // ── A4 foldout summary ────────────────────────────────────────────────────────────────────

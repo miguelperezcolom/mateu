@@ -88,10 +88,10 @@ export function wizardVarsOf(host, wizardProjection, summaryActions, { keepStep 
 
 /**
  * The composed archetypes (welcome / general overview / item overview). The welcome hero's look
- * rotates when the welcome is ENTERED and is kept while one stays on it (`previousLook`: the look
- * on screen, or null when no welcome was shown).
+ * is the page's own (welcomeLookOf: its declared tone, else a stable hash of its identity), so it
+ * is the same on every visit and while one stays on it.
  */
-export function archetypeVarsOf(host, previousLook) {
+export function archetypeVarsOf(host) {
   const welcome = welcomeOf(host)
   const overview = generalOverviewOf(host)
   const item = itemOverviewOf(host)
@@ -119,7 +119,7 @@ export function archetypeVarsOf(host, previousLook) {
     mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : [],
   }
   if (welcome) {
-    const look = welcomeLookOf(welcomeKeyOf(host), previousLook, Math.random, welcome.tone)
+    const look = welcomeLookOf(welcomeKeyOf(host), welcome.tone)
     vars.mateuWelcomeKey = look.key
     vars.mateuWelcomeTheme = look.theme
     vars.mateuWelcomeIlluBg = look.illuBg

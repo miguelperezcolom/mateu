@@ -57,7 +57,7 @@ import {
   ojIconOf, ojIconOrGenericOf, GENERIC_ICON, navTargetOf,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
-  welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf, notFoundOf,
+  welcomeOf, welcomeKeyOf, welcomeLookOf, WELCOME_LOOKS, stableHashOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf, notFoundOf,
   islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf,
@@ -1048,18 +1048,41 @@ test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la ana
 })
 
 // 22) Composed archetypes: welcome, general overview and item overview are projected from the core.
-test('welcomeLookOf: el hero rota al entrar en la welcome y se queda mientras se sigue en ella', () => {
+test('welcomeLookOf: el hero sale de un hash estable de la página — mismo aspecto en cada visita', () => {
   const ctx = reduceContexts(empty(), fx('load-welcome')).contexts[HOST_ID]
   const key = welcomeKeyOf(ctx)
   assert.ok(key, 'la welcome tiene una clave')
-  const first = welcomeLookOf(key, null, () => 0.5)
-  assert.equal(first.theme, 'dark-plum')
-  assert.ok(first.illu.endsWith('illust-welcome-banner-fg-03.png'))
-  // the response of an action launched from it (a CTA that navigates) re-projects it: same look
-  assert.equal(welcomeLookOf(key, first, () => 0), first)
-  // another welcome, or re-entering after another screen (no welcome was painted): rotates
-  assert.equal(welcomeLookOf('otra.Welcome', first, () => 0).theme, 'dark-ocean')
-  assert.equal(welcomeLookOf(key, null, () => 0.99).theme, 'dark-teal')
+  const first = welcomeLookOf(key)
+  assert.ok(WELCOME_LOOKS.some(([th]) => th === first.theme))
+  const n = WELCOME_LOOKS.find(([th]) => th === first.theme)[1]
+  assert.ok(first.illu.endsWith('illust-welcome-banner-fg-' + n + '.png'))
+  assert.ok(first.illuBg.endsWith('illust-welcome-banner-bg-' + n + '.png'))
+  // the same welcome — re-projected by an action launched from it, or visited again — same look
+  for (let i = 0; i < 5; i++) assert.deepEqual(welcomeLookOf(key), first)
+  assert.deepEqual(welcomeLookOf(welcomeKeyOf(reduceContexts(empty(), fx('load-welcome')).contexts[HOST_ID])), first)
+  // different welcomes spread across the looks (a fixed, known spread: FNV-1a)
+  const themes = new Set(['route:home', 'route:welcome', 'route:dashboard', 'route:inicio', 'route:start']
+    .map((k) => welcomeLookOf(k).theme))
+  assert.ok(themes.size >= 3, 'cinco welcomes no colapsan en un solo aspecto: ' + [...themes])
+  assert.equal(stableHashOf('a'), 0xe40c292c) // FNV-1a 32-bit reference value
+  assert.equal(stableHashOf(''), 0x811c9dc5)
+})
+
+test('welcomeKeyOf: su clase si la tiene; si no (YAML, servida o de un bundle estático), la ruta', () => {
+  // a welcome with its own class: the class, whatever route reached it
+  assert.equal(welcomeKeyOf({ tree: { serverSideType: 'com.x.Welcome', id: 't' }, outbound: { route: '/a' } }), 'com.x.Welcome')
+  // a served YAML page: the generic SeededYamlPage wrapper is NOT its identity — the route is
+  const seeded = 'io.mateu.core.application.runaction.SeededYamlPage'
+  const home = welcomeKeyOf({ tree: { serverSideType: seeded }, outbound: { route: '/home' } })
+  const other = welcomeKeyOf({ tree: { serverSideType: seeded }, outbound: { route: '/landing' } })
+  assert.equal(home, 'route:home')
+  assert.equal(other, 'route:landing')
+  // a static bundle's expanded layout: no class, no id — the route (slashes and query ignored)
+  assert.equal(welcomeKeyOf({ tree: { type: 'ClientSide' }, outbound: { route: 'home/' } }), 'route:home')
+  assert.equal(welcomeKeyOf({ tree: { type: 'ClientSide' }, outbound: { route: '/home?x=1' } }), 'route:home')
+  // nothing better known: the tree id, else ''
+  assert.equal(welcomeKeyOf({ tree: { id: 'page_root' } }), 'page_root')
+  assert.equal(welcomeKeyOf(null), '')
 })
 
 test('welcomeOf/generalOverviewOf/itemOverviewOf proyectan los tres arquetipos', () => {
