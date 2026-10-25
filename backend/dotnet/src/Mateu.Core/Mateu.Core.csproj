@@ -32,6 +32,16 @@
     <EmbeddedResource Include="../../../shared/uidl/authoring-guide.md" LogicalName="Mateu.Authoring.authoring-guide.md" Link="Authoring/authoring-guide.md" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The PWA's files (Pwa.cs): byte-identical copies of Java's
+         backend/shared/core/src/main/resources/io/mateu/core/infra/pwa/ (PwaTests compares them). -->
+    <EmbeddedResource Include="PwaFiles/sw.js" LogicalName="Mateu.Pwa.sw.js" />
+    <EmbeddedResource Include="PwaFiles/sw-off.js" LogicalName="Mateu.Pwa.sw-off.js" />
+    <EmbeddedResource Include="PwaFiles/register.js" LogicalName="Mateu.Pwa.register.js" />
+    <EmbeddedResource Include="PwaFiles/icon-192.png" LogicalName="Mateu.Pwa.icon-192.png" />
+    <EmbeddedResource Include="PwaFiles/icon-512.png" LogicalName="Mateu.Pwa.icon-512.png" />
+    <EmbeddedResource Include="PwaFiles/icon-maskable-512.png" LogicalName="Mateu.Pwa.icon-maskable-512.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />
   </ItemGroup>
 </Project>
