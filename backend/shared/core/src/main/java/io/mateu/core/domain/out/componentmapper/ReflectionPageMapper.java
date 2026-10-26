@@ -107,6 +107,67 @@ public class ReflectionPageMapper {
   }
 
   /**
+   * The title a view model DECLARES ({@code TitleSupplier}, else {@code @Title}), or null — unlike
+   * {@link #getTitle(Object)}, never derived from the class name or the record's data.
+   */
+  public static String getDeclaredTitle(Object instance) {
+    if (instance instanceof TitleSupplier
+        || MetaAnnotations.isPresent(instance.getClass(), Title.class)) {
+      return PageMetadataExtractor.getTitle(instance);
+    }
+    return null;
+  }
+
+  /**
+   * The canonical page-header pieces a view model declares — subtitle, overline, timestamp, peer
+   * navigation, record switcher, avatar, header badges, KPIs and banners — as a title-less {@link
+   * PageView} with no content, or {@code null} when it declares none of them. The composed
+   * archetypes (a {@code Dashboard}, a {@code DataManagement}…) build their own tree, so this is
+   * how what a reflected page reads into its header reaches theirs. {@code withHeroChrome = false}
+   * leaves out the subtitle and the overline: a page whose tree opens with a hero already shows
+   * them there.
+   */
+  public static PageView headerOf(
+      Object instance,
+      boolean withHeroChrome,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    var subtitle = withHeroChrome ? getSubtitle(instance) : null;
+    var overline = withHeroChrome ? getOverline(instance) : null;
+    var timestamp = getTimestamp(instance);
+    var peerNav = getPeerNav(instance, httpRequest);
+    var switcher = getSwitcher(instance, httpRequest);
+    var avatar = getAvatar(instance, baseUrl, route, initiatorComponentId, httpRequest);
+    var badges = getBadges(instance, httpRequest);
+    var kpis = getKpis(instance);
+    var banners = getBanners(instance, httpRequest);
+    if (subtitle == null
+        && overline == null
+        && timestamp == null
+        && peerNav == null
+        && switcher == null
+        && avatar == null
+        && (badges == null || badges.isEmpty())
+        && (kpis == null || kpis.isEmpty())
+        && (banners == null || banners.isEmpty())) {
+      return null;
+    }
+    return PageView.builder()
+        .subtitle(subtitle)
+        .overline(overline)
+        .timestamp(timestamp)
+        .peerNav(peerNav)
+        .switcher(switcher)
+        .avatar(avatar)
+        .badges(badges != null ? badges : List.of())
+        .kpis(kpis != null ? kpis : List.of())
+        .banners(banners != null ? banners : List.of())
+        .build();
+  }
+
+  /**
    * The page title of {@code instance}, remembered for this request as a DATA title (rendered as
    * text — {@code PageDto.titleIsText}) when it is the record's own {@code toString()}.
    */

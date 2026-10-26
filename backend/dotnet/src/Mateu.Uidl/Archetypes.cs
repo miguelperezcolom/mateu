@@ -96,11 +96,14 @@ public abstract class Foldout : IComponentTreeSupplier, IPageWidthSupplier
 
 /// <summary>Welcome page: a centered hero (title, subtitle, optional background image) with
 /// call-to-action <see cref="Button"/> properties inside it, plus a grid of highlight tiles below
-/// ([Panel] component properties). Override the Hero* members for the hero chrome.</summary>
+/// ([Panel] component properties). Override the Hero* members for the hero chrome; the hero's
+/// title and subtitle default to the page's [Title] and [Subtitle].</summary>
 public abstract class Welcome : IComponentTreeSupplier
 {
-    protected virtual string? HeroTitle => null;
-    protected virtual string? HeroSubtitle => null;
+    /// <summary>The hero's title: the page's declared [Title] unless overridden.</summary>
+    protected virtual string? HeroTitle => GetType().GetCustomAttribute<TitleAttribute>(true)?.Value;
+    /// <summary>The hero's subtitle: the page's declared [Subtitle] unless overridden.</summary>
+    protected virtual string? HeroSubtitle => GetType().GetCustomAttribute<SubtitleAttribute>(true)?.Value;
     /// <summary>Optional background image URL for the hero.</summary>
     protected virtual string? HeroImage => null;
     /// <summary>The hero band's tone: Auto (default look) or a dark tinted band with light ink

@@ -35,6 +35,7 @@ from ..reflection import (
 from ..registry import type_name
 from ..titles import record_title, titled_by_data
 from ._base import MixinBase
+from .composed_page_header import composed_page_header
 from .decorations import triggered_action_ids
 from .layout import section_affordance_ids
 from ._common import (
@@ -232,6 +233,10 @@ class ViewMapperMixin(MixinBase):
             # ComponentTreeSupplier.style(), default "max-width:900px;margin: auto;").
             server_children = children
             server_style = instance.style()
+            # its page bars and declared header pieces wrap the tree in a page that carries them
+            wrapper = composed_page_header(page_meta, children)
+            if wrapper is not None:
+                server_children = [ClientSideComponent(metadata=wrapper, children=children)]
         else:
             page = ClientSideComponent(
                 metadata=page_meta,

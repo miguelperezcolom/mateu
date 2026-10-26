@@ -1,21 +1,20 @@
 package io.mateu.core.infra.declarative.orchestrators.welcome;
 
-import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.core.domain.out.componentmapper.ReflectionPageMapper;
 import io.mateu.uidl.annotations.PageTemplate;
 import io.mateu.uidl.annotations.PageType;
 import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 /**
  * Bridge that renders a plain {@code @AutoPage} class as a {@link Welcome} landing without
- * subclassing — same pattern as {@code InferredDashboard}. The hero title comes from the class's
- * {@code @Title} (declared information); subtitle and background image have no declarative source
- * on a plain class, so extending {@link Welcome} remains the way to set them. Advertises the model
- * as {@code serverSideType} so CTA actions keep routing to the model class, and carries
- * {@code @PageTemplate(LANDING)} for the wire {@code pageType}.
+ * subclassing — same pattern as {@code InferredDashboard}. The hero title and subtitle come from
+ * the class's {@code @Title} and {@code @Subtitle} (declared information); the background image has
+ * no declarative source on a plain class, so extending {@link Welcome} remains the way to set it.
+ * Advertises the model as {@code serverSideType} so CTA actions keep routing to the model class,
+ * and carries {@code @PageTemplate(LANDING)} for the wire {@code pageType}.
  */
 @PageTemplate(PageType.LANDING)
 public class InferredWelcome implements ComponentTreeSupplier, io.mateu.core.infra.ModelBridge {
@@ -43,8 +42,12 @@ public class InferredWelcome implements ComponentTreeSupplier, io.mateu.core.inf
 
   @Override
   public Component component(HttpRequest httpRequest) {
-    var title = MetaAnnotations.find(model.getClass(), Title.class);
-    return WelcomeComposer.compose(model, id(), title != null ? title.value() : null, null, null);
+    return WelcomeComposer.compose(
+        model,
+        id(),
+        ReflectionPageMapper.getDeclaredTitle(model),
+        ReflectionPageMapper.getPageSubtitle(model),
+        null);
   }
 
   @Override

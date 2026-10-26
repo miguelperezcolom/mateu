@@ -19,17 +19,26 @@ import io.mateu.uidl.interfaces.HttpRequest;
  *   <li>Any other component field is placed on the grid as-is.
  * </ul>
  *
+ * The hero's title and subtitle default to the page's {@code @Title} and {@code @Subtitle}.
  * Override {@link #heroOverline()}, {@link #heroTitle()}, {@link #heroSubtitle()} and {@link
  * #heroImage()} for the hero chrome.
  */
 public abstract class Welcome implements ComponentTreeSupplier {
 
+  /**
+   * The hero's title. Defaults to the title the page declares ({@code @Title} / {@code
+   * TitleSupplier}), null when it declares none.
+   */
   protected String heroTitle() {
-    return null;
+    return io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getDeclaredTitle(this);
   }
 
+  /**
+   * The hero's subtitle. Defaults to the subtitle the page declares ({@code @Subtitle} / {@code
+   * SubtitleSupplier}), null when it declares none.
+   */
   protected String heroSubtitle() {
-    return null;
+    return io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getPageSubtitle(this);
   }
 
   /**

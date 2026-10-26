@@ -10,6 +10,8 @@
 # caller through IdentityResolver; the _agent-channel runner is an action runner like the others — reviewed.
 # Workshop fixes (2026-10-20): the CRUD navigation of an authored sub-route page — the bean that
 # recognises it reads the Crud's label hooks (infra); its runner is an action runner like the others — reviewed.
+# Archetype page header (2026-10-26): the page around a composed tree belongs to the model behind
+# an @AutoPage bridge (ModelBridge, infra) — the same read TreeActionHarvester makes — reviewed.
 application -> infra: io/mateu/core/application/agentpush/AgentCaller.java
 application -> infra: io/mateu/core/application/agentpush/AgentPush.java
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
@@ -111,6 +113,7 @@ domain -> infra: io/mateu/core/domain/out/componentmapper/SectionFormRenderer.ja
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/ComponentToFragmentDtoMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/UIFragmentAssembler.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMapper.java
+domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentTreeSupplierMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ConstraintValidationMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ListingDescriptorBuilder.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/StateMapper.java
