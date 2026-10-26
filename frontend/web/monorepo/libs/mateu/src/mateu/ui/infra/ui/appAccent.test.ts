@@ -27,47 +27,10 @@ describe("the app's brand accent", () => {
         expect(host.style.getPropertyValue('--mateu-accent')).toBe('')
     })
 
-    it('draws the accent strip as a plain accent band when the app declares no strip image', () => {
+    it('never draws a colour strip: Redwood removes it as soon as an app brings its own brand', () => {
         const host = document.createElement('div')
         applyAccent(host, '#464c68')
-        expect(host.style.getPropertyValue('--mateu-page-band-h')).toBe('10px')
-        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#464c68, #464c68)')
-    })
-
-    it("draws the app's strip image (@App(accentStrip)) when it declares one", () => {
-        const host = document.createElement('div')
-        applyAccent(host, '#464c68', ' /images/strip-control-plane.svg ')
-        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('url("/images/strip-control-plane.svg")')
-    })
-
-    it('draws no strip with no accent, and removes the one it drew', () => {
-        const host = document.createElement('div')
-        applyAccent(host, undefined, '/images/strip.svg')
-        expect(host.style.getPropertyValue('--mateu-page-band-h')).toBe('')
-        applyAccent(host, '#D2232A')
-        applyAccent(host, undefined)
         expect(host.style.getPropertyValue('--mateu-page-band-h')).toBe('')
         expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('')
-    })
-
-    it('draws the strip the server generated from the accent (a base64 SVG data URI)', () => {
-        const host = document.createElement('div')
-        const generated = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4K'
-        applyAccent(host, '#D2232A', generated)
-        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe(`url("${generated}")`)
-    })
-
-    it('ignores a data URI that is not a base64 SVG, falling back to the plain band', () => {
-        const host = document.createElement('div')
-        applyAccent(host, '#D2232A', 'data:text/html;base64,PHNjcmlwdD4=')
-        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#D2232A, #D2232A)')
-        applyAccent(host, '#D2232A', 'data:image/svg+xml;utf8,<svg onload="x"/>')
-        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#D2232A, #D2232A)')
-    })
-
-    it('ignores a strip URL that would end the declaration, falling back to the plain band', () => {
-        const host = document.createElement('div')
-        applyAccent(host, '#D2232A', 'x"); background: red')
-        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#D2232A, #D2232A)')
     })
 })

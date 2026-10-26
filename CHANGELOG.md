@@ -11,6 +11,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed
+
+- **The Vaadin shell follows Redwood's cobranding rules for the brand accent.** Redwood removes its
+  colour strip as soon as an app brings its own brand and puts the accent on the Section dash, so
+  `@App(accentColor)` no longer draws an accent strip (under page headers, on top of listings or at
+  the foot of the welcome hero). It now colours the Section dash, a short rule under every section
+  title (the primary colour when no accent is declared). `@App(accentStrip)`,
+  `@App(accentStripSeed)` and `io.mateu.core.infra.AccentStrip` are deprecated for removal and have
+  no effect; `AppDto.accentStrip`/`generatedAccentStrip` are no longer sent.
+
 ## [3.0-beta.13] — 2026-10-24
 
 Version skew handled end to end (a redeployment and a stale screen are told to the user, every

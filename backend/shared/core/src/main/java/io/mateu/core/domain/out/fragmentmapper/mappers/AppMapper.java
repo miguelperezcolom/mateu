@@ -103,8 +103,6 @@ public final class AppMapper {
             .askLabel(appAnnotationValue(app, io.mateu.uidl.annotations.App::askLabel))
             .askIcon(appAnnotationValue(app, io.mateu.uidl.annotations.App::askIcon))
             .accentColor(getAccentColor(app))
-            .accentStrip(getAccentStrip(app))
-            .generatedAccentStrip(getGeneratedAccentStrip(app))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .locale(getLocale(httpRequest))
             .actions(mapShellActions(app))
@@ -427,36 +425,6 @@ public final class AppMapper {
     return notBlank(app.accentColor())
         ? app.accentColor().trim()
         : appAnnotationValue(app, io.mateu.uidl.annotations.App::accentColor);
-  }
-
-  /**
-   * The app's own strip image, {@code @App(accentStrip)}, as declared (with or without an accent,
-   * as before) — except {@code "none"}, which says "no strip" and travels as null.
-   */
-  static String getAccentStrip(AppShell app) {
-    var declared = appAnnotationValue(app, io.mateu.uidl.annotations.App::accentStrip);
-    return declared == null || "none".equalsIgnoreCase(declared) ? null : declared;
-  }
-
-  /**
-   * The strip Mateu draws for the Vaadin renderer when the app declares no {@code accentStrip}:
-   * from the accent (a hex colour) and {@code @App(accentStripSeed)}. Null with a declared strip,
-   * {@code "none"}, no accent or a non-hex accent.
-   */
-  static String getGeneratedAccentStrip(AppShell app) {
-    var accent = getAccentColor(app);
-    if (accent == null) return null;
-    if (appAnnotationValue(app, io.mateu.uidl.annotations.App::accentStrip) != null) return null;
-    return io.mateu.core.infra.AccentStrip.dataUri(accent, getAccentStripSeed(app));
-  }
-
-  private static int getAccentStripSeed(AppShell app) {
-    if (app.serverSideType() == null) return io.mateu.core.infra.AccentStrip.DEFAULT_SEED;
-    var appClass = forName(app.serverSideType());
-    if (!MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
-      return io.mateu.core.infra.AccentStrip.DEFAULT_SEED;
-    }
-    return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).accentStripSeed();
   }
 
   private static boolean notBlank(String s) {

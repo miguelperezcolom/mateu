@@ -191,8 +191,6 @@ export class MateuPage extends LitElement {
         // a page whose first thing is the welcome hero (no header above it): the hero keeps its top
         // gap; under a header it drops it (see :host(:not([data-hero-top])))
         this.toggleAttribute('data-hero-top', this._heroOnTop())
-        // a listing page: its crud draws the accent strip on top of its results (see the styles)
-        this.toggleAttribute('data-crud-page', this._hasCrud())
         if (changedProperties.has('_activeToc')) this._revealActiveInBar()
         if (changedProperties.has('component') && changedProperties.get('component') !== undefined) {
             this.dismissedStaticBannerIndices = new Set()
@@ -475,12 +473,11 @@ export class MateuPage extends LitElement {
         ;(root ?? window).scrollBy({ top: delta, behavior: 'smooth' })
     }
 
-    /** Design-system hook: a decorative band under the page header, invisible by default
-     *  (height/image come from CSS custom properties, which pierce shadow DOM — e.g. the
-     *  Redwood renderer sets them to the RDS color strip). Pages whose content is a crud skip
-     *  it: their collection container carries the band (below the search bar) instead. Pages
-     *  with a welcome banner (a HeroSection in the content) skip it too: in the Redwood anatomy
-     *  the accent strip only shows on pages WITHOUT one. */
+    /** Design-system hook: a decorative band under the page header — where Redwood draws its
+     *  texture strip — invisible by default: Mateu never sets it (Redwood removes the strip as
+     *  soon as an app brings its own brand), only an app's or a design system's own CSS can,
+     *  through --mateu-page-band-h / --mateu-page-band-image (custom properties pierce shadow DOM).
+     *  Listing pages and pages with a welcome banner (a HeroSection in the content) skip it. */
     private _showHeaderBand(): boolean {
         const metadata = this.component?.metadata as PageComponent
         const hasHeader = !!(metadata?.title || metadata?.subtitle || (metadata as any)?.overline
@@ -601,19 +598,6 @@ export class MateuPage extends LitElement {
         :host([data-edge]) .page-banners {
             padding-left: var(--mateu-shell-gutter, 2rem);
             padding-right: var(--mateu-shell-gutter, 2rem);
-        }
-
-        /* The accent strip of a listing goes on top of its results, drawn by the crud itself
-           (mateu-table-crud .crud-band): only the crud that IS this page's listing draws it, not
-           one embedded further down, nor any crud in a nested page. */
-        :host {
-            --mateu-crud-band-h: 0px;
-        }
-        :host([data-crud-page]) {
-            --mateu-crud-band-h: var(--mateu-page-band-h, 0px);
-        }
-        :host([data-nested]) {
-            --mateu-crud-band-h: 0px;
         }
 
         .page-header-band {

@@ -90,11 +90,9 @@ describe('mateu-page banners', () => {
 })
 
 describe('mateu-page attributes the shell styles read', () => {
-    it('marks nested pages, listing pages and edge-to-edge pages', async () => {
+    it('marks nested pages and edge-to-edge pages', async () => {
         const nested = await mount(page({ level: 1 }))
         expect(nested.hasAttribute('data-nested')).toBe(true)
-        const listing = await mount(page({ title: 'L' }, [{ id: 'c', type: 'ClientSide', metadata: { type: ComponentMetadataType.Crud } }]))
-        expect(listing.hasAttribute('data-crud-page')).toBe(true)
         const edge = await mount(page({ pageWidth: 'edgeToEdge' }))
         expect(edge.hasAttribute('data-edge')).toBe(true)
     })
