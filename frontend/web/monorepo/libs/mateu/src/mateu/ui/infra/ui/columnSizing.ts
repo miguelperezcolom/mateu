@@ -49,7 +49,9 @@ export const defaultSizingOf = <T extends ColumnLike>(c: T): T => {
     return { ...c, autoWidth: true, flexGrow: String(weight) }
 }
 
-interface ColumnNode { metadata?: any }
+// a wire node's metadata: a GridColumn, or a GridGroupColumn with its own columns
+type ColumnMeta = ColumnLike & { type?: string, columns?: ColumnNode[], [k: string]: unknown }
+interface ColumnNode { metadata?: ColumnMeta }
 
 const isGroup = (n: ColumnNode) => n?.metadata?.type === 'GridGroupColumn'
 
@@ -72,16 +74,20 @@ const memoized = (n: ColumnNode, mode: string, make: () => ColumnNode): ColumnNo
  */
 export const withDefaultColumnSizing = <N extends ColumnNode>(columns: N[]): N[] => {
     const nodes = columns ?? []
-    const leaves = (ns: ColumnNode[]): any[] => ns.flatMap(n => isGroup(n) ? leaves(n.metadata.columns ?? []) : [n?.metadata])
-    const grows = (c: any) => c && String(c.flexGrow ?? '1') !== '0'
+    const leaves = (ns: ColumnNode[]): (ColumnMeta | undefined)[] => ns.flatMap(n => isGroup(n) ? leaves(n.metadata?.columns ?? []) : [n?.metadata])
+    const grows = (c: ColumnLike | undefined) => !!c && String(c.flexGrow ?? '1') !== '0'
     // nothing would grow: the compact DEFAULTS share the width (from their content), the declared stay
     const share = !leaves(nodes).some(c => c && grows(declaresSizing(c) ? c : defaultSizingOf(c)))
     const mode = share ? 'share' : 'size'
-    const sizeLeaf = (n: ColumnNode): ColumnNode => !n?.metadata ? n : memoized(n, mode, () => {
-        const sized = defaultSizingOf(n.metadata)
-        return { ...n, metadata: share && !declaresSizing(n.metadata) ? { ...sized, flexGrow: '1' } : sized }
-    })
+    const sizeLeaf = (n: ColumnNode): ColumnNode => {
+        const meta = n?.metadata
+        if (!meta) return n
+        return memoized(n, mode, () => {
+            const sized = defaultSizingOf(meta)
+            return { ...n, metadata: share && !declaresSizing(meta) ? { ...sized, flexGrow: '1' } : sized }
+        })
+    }
     return nodes.map(n => isGroup(n)
-        ? memoized(n, mode, () => ({ ...n, metadata: { ...n.metadata, columns: (n.metadata.columns ?? []).map(sizeLeaf) } }))
+        ? memoized(n, mode, () => ({ ...n, metadata: { ...n.metadata, columns: (n.metadata?.columns ?? []).map(sizeLeaf) } }))
         : sizeLeaf(n)) as N[]
 }

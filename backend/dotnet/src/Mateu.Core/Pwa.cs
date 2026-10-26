@@ -414,7 +414,7 @@ internal static class Pwa
 
     /// <summary>Java's <c>URLEncoder.encode(value, UTF_8)</c>: A-Z a-z 0-9 <c>. - * _</c> kept, a space
     /// becomes <c>+</c>, every other UTF-8 byte <c>%XX</c> (uppercase hex). Not
-    /// <see cref="Uri.EscapeDataString"/>, which differs on the space, <c>*</c> and <c>~</c>.</summary>
+    /// <c>Uri.EscapeDataString</c>, which differs on the space, <c>*</c> and <c>~</c>.</summary>
     internal static string UrlEncode(string value)
     {
         var sb = new StringBuilder();
