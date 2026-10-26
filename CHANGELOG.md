@@ -30,6 +30,15 @@ IntelliJ opens a Mateu UI on any renderer from one run configuration.
 
 ### Added
 
+- **IntelliJ: one run configuration, every renderer.** A **Mateu App** run configuration starts the
+  project's UI in development mode and opens it on the web, in the IDE's Mateu tool window (desktop),
+  in the Mateu app on an Android emulator or iOS simulator, or on a phone through a QR code; Debug
+  attaches the JVM debugger. YAML-only projects run with `mateu-bundle:dev`. **Run | Open Mateu App
+  In…** opens the running app on another target without restarting it. .NET and Python projects
+  come later.
+
+### Added
+
 - **`mvn mateu-bundle:dev` — a static UI with live reload.** The bundle plugin's new `dev` goal
   builds the bundle exactly as `mateu-bundle:bundle` does (same configuration, `mateu.bundle.mock`
   included), serves it on http://localhost:3000 with the SPA fallback (JDK only, no Node), and

@@ -6,11 +6,12 @@ import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.process.KillableColoredProcessHandler
+import com.intellij.execution.process.CapturingProcessHandler
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.remote.RemoteConfiguration
 import com.intellij.execution.remote.RemoteConfigurationType
-import com.intellij.execution.RunContentExecutor
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -19,18 +20,26 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.PopupStep
+import com.intellij.openapi.ui.popup.util.BaseListPopupStep
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.wm.ToolWindowManager
+import io.mateu.ijp.plugin.MateuProjectService
 import io.mateu.ijp.plugin.MateuSettings
-import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * Live development of a Mateu app from the IDE: one action starts the project's app in DEVELOPMENT
- * MODE with the debug agent listening, attaches the debugger (so code changes HotSwap), opens the
- * running app, and — after every HotSwap — asks the backend to re-render the open screen
- * (`POST /mateu/dev/reload`). Spec edits (YAML, or the visual editor's canvas, which writes the same
- * files) reach the open screen by themselves: the backend watches the sources.
+ * Live development of a Mateu app from the IDE. A [MateuAppRunConfiguration] starts the project's app
+ * in DEVELOPMENT MODE (the JVM debug agent listening), and this service takes it from there: once the
+ * app answers it attaches the debugger (Debug), opens the app on the configuration's [LaunchTarget],
+ * and — after every HotSwap — asks the backend to re-render the open screen (`POST
+ * /mateu/dev/reload`). Spec edits (YAML, or the visual editor's canvas, which writes the same files)
+ * reach the open screen by themselves: the backend watches the sources. The running app can also be
+ * opened on any other target ([OpenMateuAppInAction]) without restarting it.
  */
 @Service(Service.Level.PROJECT)
 class MateuLiveService(private val project: Project) {
@@ -41,54 +50,125 @@ class MateuLiveService(private val project: Project) {
     @Volatile var appUrl: String? = null
         private set
 
+    @Volatile var plan: LiveRunPlan? = null
+        private set
+
     private val scheduler = Executors.newSingleThreadScheduledExecutor { r ->
         Thread(r, "mateu-live").apply { isDaemon = true }
     }
 
     @Volatile private var hotSwapHooked = false
 
-    fun start() {
-        val root = project.basePath?.let(::File) ?: return
-        val module = appModuleOf(root)
-        val plan = liveRunPlanOf(module, root)
-        if (plan == null) {
-            notify("No pom.xml or build.gradle found under ${root.path}: nothing to run.", NotificationType.WARNING)
-            return
-        }
-        running?.takeIf { !it.isProcessTerminated }?.destroyProcess()
-        val commandLine = GeneralCommandLine(plan.command)
-            .withWorkDirectory(plan.workDir)
-            .withEnvironment(plan.environment)
-            .withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
-        val handler = KillableColoredProcessHandler(commandLine)
+    /** Whether a launched app is still running. */
+    val isRunning: Boolean get() = running?.isProcessTerminated == false
+
+    /** A [MateuAppRunConfiguration] started [handler]: wait for the app, then debug and open it. */
+    fun launched(handler: ProcessHandler, plan: LiveRunPlan, target: LaunchTarget, debug: Boolean) {
+        running?.takeIf { it !== handler && !it.isProcessTerminated }?.destroyProcess()
         running = handler
-        appUrl = plan.appUrl
-        RunContentExecutor(project, handler)
-            .withTitle("Mateu (live)")
-            .withActivateToolWindow(true)
-            .run()
-        notify(
-            "Starting the ${plan.framework.label} app in development mode (${plan.command.joinToString(" ")}). " +
-                "Specs are watched; HotSwap re-renders the open screen.",
-            NotificationType.INFORMATION,
-        )
-        hookHotSwap()
-        // Once the app answers: attach the debugger (HotSwap) and open it.
+        this.plan = plan
+        if (plan.framework == Framework.STATIC_BUNDLE) {
+            // the dev goal moves to the next free port when 3000 is taken: wait for the URL it logs —
+            // polling 3000 meanwhile could find ANOTHER server there and open it
+            appUrl = null
+            handler.addProcessListener(object : ProcessListener {
+                override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+                    BUNDLE_SERVING_LINE.find(event.text)?.let { appUrl = it.groupValues[1] }
+                }
+            })
+        } else {
+            appUrl = plan.appUrl
+            hookHotSwap()
+        }
+        if (debug && plan.debugPort == null) {
+            notify("A static bundle has no backend to debug: debug its UI with the browser's developer tools.",
+                NotificationType.INFORMATION)
+        }
         val deadline = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5)
-        scheduler.execute(object : Runnable {
+        scheduler.schedule(object : Runnable {
             override fun run() {
                 if (handler.isProcessTerminated) return
-                if (!MateuDevClient.answers(plan.appUrl)) {
+                val url = appUrl
+                if (url == null || !MateuDevClient.answers(url)) {
                     if (System.currentTimeMillis() < deadline) scheduler.schedule(this, 1, TimeUnit.SECONDS)
+                    else notify("The Mateu app did not answer at ${url ?: plan.appUrl} within 5 minutes.", NotificationType.WARNING)
                     return
                 }
                 ApplicationManager.getApplication().invokeLater {
-                    attachDebugger(plan.debugPort)
-                    pointTheIdeAt(plan.appUrl)
-                    BrowserUtil.browse(plan.appUrl)
+                    if (debug) plan.debugPort?.let(::attachDebugger)
+                    open(target)
                 }
             }
-        })
+        }, 1, TimeUnit.SECONDS)
+    }
+
+    /** Opens the running app on [target]. */
+    fun open(target: LaunchTarget) {
+        val url = appUrl ?: return
+        val framework = plan?.framework ?: Framework.UNKNOWN
+        target.unsupportedReason(framework)?.let { notify(it, NotificationType.WARNING); return }
+        when (target) {
+            LaunchTarget.WEB -> BrowserUtil.browse(url)
+            LaunchTarget.DESKTOP -> openOnDesktop(url)
+            LaunchTarget.ANDROID_EMULATOR, LaunchTarget.IOS_SIMULATOR -> openOnSimulator(target, url)
+            LaunchTarget.PHONE -> openOnPhone(url)
+        }
+    }
+
+    /** The Mateu tool window, pointed at the running app (and reconnected when it pointed elsewhere). */
+    private fun openOnDesktop(url: String) {
+        val state = MateuSettings.getInstance(project).state
+        if (state.baseUrl != url || state.registryUrl.isNotBlank()) {
+            state.baseUrl = url
+            state.registryUrl = ""
+            notify("Settings | Tools | Mateu now points at the running app ($url).", NotificationType.INFORMATION)
+        }
+        project.service<MateuProjectService>().reconnect()
+        ToolWindowManager.getInstance(project).getToolWindow("Mateu")?.let {
+            it.isAvailable = true
+            it.activate(null)
+        }
+    }
+
+    /** `adb … am start` / `xcrun simctl openurl`: the Mateu app's add link, on the running simulator. */
+    private fun openOnSimulator(target: LaunchTarget, url: String) {
+        val command = simulatorCommandOf(target, url, adbOf()) ?: return
+        ApplicationManager.getApplication().executeOnPooledThread {
+            val output = runCatching { CapturingProcessHandler(GeneralCommandLine(command)).runProcess(30_000) }
+            val failure = output.fold(
+                onSuccess = { out ->
+                    when {
+                        out.isTimeout -> "it did not answer in 30 s"
+                        out.exitCode != 0 || "Error" in out.stderr || "Error" in out.stdout ->
+                            (out.stderr.ifBlank { out.stdout }).trim().ifBlank { "exit code ${out.exitCode}" }
+                        else -> null
+                    }
+                },
+                onFailure = { it.message ?: it.toString() },
+            )
+            if (failure == null) {
+                notify("Opened in the Mateu app on the ${target.label}.", NotificationType.INFORMATION)
+            } else {
+                val help = if (target == LaunchTarget.ANDROID_EMULATOR) {
+                    "Start an emulator (Android Studio › Device Manager) with a development build of the Mateu app, " +
+                        "and make sure adb is on the PATH or ANDROID_HOME is set."
+                } else {
+                    "Boot a simulator (Xcode › Open Developer Tool › Simulator) with a development build of the Mateu app."
+                }
+                notify("Could not open the app on the ${target.label} (${command.first()}): $failure. $help",
+                    NotificationType.WARNING)
+            }
+        }
+    }
+
+    /** A dialog with the QR code a phone's camera scans to add the app. */
+    private fun openOnPhone(url: String) {
+        val lan = lanAddressOf()
+        if (lan == null) {
+            notify("This machine has no address on a local network: a phone cannot reach the app.", NotificationType.WARNING)
+            return
+        }
+        PhoneLinkDialog(project, universalLinkOf(lanUrlOf(url, lan))).show()
     }
 
     /** Remote JVM Debug to the app's agent: the session HotSwap works through. */
@@ -112,16 +192,6 @@ class MateuLiveService(private val project: Project) {
         }
     }
 
-    /** The plugin's app tool window and the visual editor's Play follow the project's base URL. */
-    private fun pointTheIdeAt(url: String) {
-        val state = MateuSettings.getInstance(project).state
-        if (state.baseUrl.isBlank() && state.registryUrl.isBlank()) {
-            state.baseUrl = url
-            notify("Settings | Tools | Mateu now points at the running app ($url): the Mateu tool window " +
-                "and the visual editor's Play use it.", NotificationType.INFORMATION)
-        }
-    }
-
     /** After a HotSwap the code is new but nothing on screen asked for it: re-render the screen. */
     private fun hookHotSwap() {
         if (hotSwapHooked) return
@@ -130,7 +200,7 @@ class MateuLiveService(private val project: Project) {
             HotSwapUI.getInstance(project).addListener(HotSwapVetoableListener {
                 // Called as the swap starts; the classes are redefined right after. Give it a moment.
                 val url = appUrl
-                if (url != null && running?.isProcessTerminated == false) {
+                if (url != null && isRunning) {
                     scheduler.schedule({ MateuDevClient.reload(url) }, 1500, TimeUnit.MILLISECONDS)
                 }
                 true
@@ -159,7 +229,11 @@ class MateuLiveService(private val project: Project) {
     }
 }
 
-/** Run | Run Mateu App (live): the app in development mode, debugger attached, opened. */
+/**
+ * Run | Run Mateu App (live): debugs the project's "Mateu App" run configuration (created on first
+ * use, opening on the web) — the app in development mode, debugger attached, opened. Pick another
+ * target (desktop, emulator, simulator, phone) in Run | Edit Configurations….
+ */
 class RunMateuLiveAction : AnAction() {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -169,7 +243,41 @@ class RunMateuLiveAction : AnAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        MateuLiveService.getInstance(project).start()
+        val runManager = RunManager.getInstance(project)
+        val settings = runManager.allSettings.firstOrNull { it.configuration is MateuAppRunConfiguration }
+            ?: runManager.createConfiguration("Mateu App", MateuAppConfigurationType::class.java).also {
+                runManager.addConfiguration(it)
+            }
+        runManager.selectedConfiguration = settings
+        ProgramRunnerUtil.executeConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance())
+    }
+}
+
+/** Run | Open Mateu App In…: the RUNNING app on another target, without restarting it. */
+class OpenMateuAppInAction : AnAction() {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+    override fun update(e: AnActionEvent) {
+        val project = e.project
+        e.presentation.isVisible = project != null
+        e.presentation.isEnabled = project != null && MateuLiveService.getInstance(project).isRunning
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+        val project = e.project ?: return
+        val service = MateuLiveService.getInstance(project)
+        val plan = service.plan
+        val framework = plan?.framework ?: Framework.UNKNOWN
+        // the phone needs the app listening on the network, which only a launch decides
+        val lan = plan != null && reachableFromLan(plan)
+        val targets = LaunchTarget.entries.filter { (lan || !it.needsLan) && it.unsupportedReason(framework) == null }
+        val step = object : BaseListPopupStep<LaunchTarget>("Open Mateu App In", targets) {
+            override fun onChosen(selectedValue: LaunchTarget, finalChoice: Boolean): PopupStep<*>? {
+                ApplicationManager.getApplication().invokeLater { service.open(selectedValue) }
+                return FINAL_CHOICE
+            }
+        }
+        JBPopupFactory.getInstance().createListPopup(step).showCenteredInCurrentWindow(project)
     }
 }
 

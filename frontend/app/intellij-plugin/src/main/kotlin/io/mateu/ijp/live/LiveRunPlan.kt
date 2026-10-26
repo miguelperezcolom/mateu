@@ -16,8 +16,9 @@ data class LiveRunPlan(
     val framework: Framework,
     val command: List<String>,
     val environment: Map<String, String>,
-    /** The JDWP port the IDE attaches its debugger to. */
-    val debugPort: Int,
+    /** The JDWP port the IDE attaches its debugger to; null when there is no JVM app to debug (a
+     *  static bundle is served by Maven itself, its UI is debugged in the browser). */
+    val debugPort: Int?,
     /** Where the app answers once it is up. */
     val appUrl: String,
     val workDir: File,
@@ -28,12 +29,20 @@ enum class Framework(val label: String) {
     QUARKUS("Quarkus"),
     MICRONAUT("Micronaut"),
     HELIDON("Helidon"),
+    /** A YAML-only project built into a static bundle: `mvn mateu-bundle:dev` serves it, no backend. */
+    STATIC_BUNDLE("static bundle"),
     UNKNOWN("unknown"),
 }
 
 enum class BuildTool { MAVEN, GRADLE }
 
 const val DEBUG_PORT = 5005
+
+/** The port `mateu-bundle:dev` serves on by default (it moves to the next free one, and says so). */
+const val BUNDLE_DEV_PORT = 3000
+
+/** The line `mateu-bundle:dev` logs once it serves — the URL it really bound (the port may have moved). */
+val BUNDLE_SERVING_LINE = Regex("mateu-dev: serving (https?://\\S+?)/?\\s")
 
 /** The framework a build file declares (first match wins; Spring Boot is the most common). */
 fun frameworkOf(buildFile: String): Framework = when {
@@ -42,6 +51,7 @@ fun frameworkOf(buildFile: String): Framework = when {
         "micronaut-parent" in buildFile -> Framework.MICRONAUT
     "helidon" in buildFile -> Framework.HELIDON
     "spring-boot" in buildFile || "org.springframework.boot" in buildFile -> Framework.SPRING_BOOT
+    "mateu-bundle-maven-plugin" in buildFile -> Framework.STATIC_BUNDLE
     else -> Framework.UNKNOWN
 }
 
@@ -69,8 +79,27 @@ fun specsDirsOf(root: File, maxDepth: Int = 4): List<File> =
         .toList()
 
 /**
+ * The switches that make the app listen on every interface, so a phone on the same network reaches
+ * it ([lan] launches). Spring Boot and Micronaut already bind every interface by default.
+ */
+fun lanBindingOf(framework: Framework): List<String> = when (framework) {
+    Framework.QUARKUS -> listOf("-Dquarkus.http.host=0.0.0.0")
+    Framework.HELIDON -> listOf("-Dserver.host=0.0.0.0")
+    Framework.STATIC_BUNDLE -> listOf("-Dmateu.dev.host=0.0.0.0")
+    else -> emptyList()
+}
+
+/** Whether a phone on the network reaches the app [plan] starts: it listens on every interface. */
+fun reachableFromLan(plan: LiveRunPlan): Boolean {
+    if (plan.framework == Framework.UNKNOWN) return false
+    val command = plan.command.joinToString(" ")
+    return lanBindingOf(plan.framework).all { it in command }
+}
+
+/**
  * The launch plan for the app module at [moduleDir]. [buildFile] is the content of its pom.xml /
- * build.gradle(.kts); [properties] that of its application.properties (or empty).
+ * build.gradle(.kts); [properties] that of its application.properties (or empty). [lan] makes the
+ * app reachable from other devices on the network (the phone target).
  */
 fun liveRunPlan(
     moduleDir: File,
@@ -79,12 +108,28 @@ fun liveRunPlan(
     properties: String,
     specsDirs: List<File>,
     isWindows: Boolean = System.getProperty("os.name", "").lowercase().contains("win"),
+    lan: Boolean = false,
 ): LiveRunPlan {
     val framework = frameworkOf(buildFile)
+    val mvnCommand = if (isWindows) "mvn.cmd" else "mvn"
+    if (framework == Framework.STATIC_BUNDLE) {
+        // the dev goal builds, serves, watches and live-reloads the bundle itself; the IDE shows
+        // its own phone link, so the terminal QR stays off
+        return LiveRunPlan(
+            framework = framework,
+            command = listOf(mvnCommand, "mateu-bundle:dev", "-Dmateu.dev.port=$BUNDLE_DEV_PORT", "-Dmateu.dev.qr=false") +
+                (if (lan) lanBindingOf(framework) else emptyList()),
+            environment = emptyMap(),
+            debugPort = null,
+            appUrl = "http://localhost:$BUNDLE_DEV_PORT",
+            workDir = moduleDir,
+        )
+    }
     val specs = specsDirs.joinToString(",") { it.absolutePath }
     val devProps = buildList {
         add("-Dmateu.dev=true")
         if (specs.isNotEmpty()) add("-Dmateu.dev.specs-dir=$specs")
+        if (lan) addAll(lanBindingOf(framework))
     }
     val agent = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:$DEBUG_PORT"
     val mvn = if (isWindows) "mvn.cmd" else "mvn"
@@ -123,7 +168,7 @@ fun liveRunPlan(
 }
 
 /** Reads the module at [moduleDir] from disk and builds its plan (null when it has no build file). */
-fun liveRunPlanOf(moduleDir: File, projectRoot: File): LiveRunPlan? {
+fun liveRunPlanOf(moduleDir: File, projectRoot: File, lan: Boolean = false): LiveRunPlan? {
     val pom = File(moduleDir, "pom.xml")
     val gradle = listOf("build.gradle.kts", "build.gradle").map { File(moduleDir, it) }.firstOrNull { it.isFile }
     val (tool, build) = when {
@@ -134,7 +179,7 @@ fun liveRunPlanOf(moduleDir: File, projectRoot: File): LiveRunPlan? {
     val props = listOf("application.properties", "application.yml", "application.yaml")
         .map { File(moduleDir, "src/main/resources/$it") }
         .firstOrNull { it.isFile }?.readText() ?: ""
-    return liveRunPlan(moduleDir, tool, build, props, specsDirsOf(projectRoot))
+    return liveRunPlan(moduleDir, tool, build, props, specsDirsOf(projectRoot), lan = lan)
 }
 
 /** Whether a build file declares a runnable app (not just a library that depends on a framework). */
@@ -146,18 +191,24 @@ fun declaresRunnableApp(fileName: String, text: String): Boolean =
         "org.springframework.boot" in text || "io.quarkus" in text || "io.micronaut.application" in text
     }
 
+/** Whether a Maven build declares the static-bundle plugin (a YAML-only project with no backend). */
+fun declaresStaticBundle(fileName: String, text: String): Boolean =
+    fileName == "pom.xml" && "mateu-bundle-maven-plugin" in text
+
 /**
  * The module to run: the one whose build declares a runnable app (a Spring Boot / Quarkus /
- * Micronaut / Helidon plugin), nearest to [root] first; [root] itself when nothing more specific.
+ * Micronaut / Helidon plugin), nearest to [root] first; else one that builds a static bundle; [root]
+ * itself when nothing more specific.
  */
 fun appModuleOf(root: File): File {
-    val candidates = root.walkTopDown()
+    val builds = root.walkTopDown()
         .maxDepth(4)
         .onEnter { it.name !in setOf("node_modules", "target", "build", ".git", ".idea", "out", "src") }
         .filter { it.isFile && (it.name == "pom.xml" || it.name.startsWith("build.gradle")) }
-        .filter { file -> declaresRunnableApp(file.name, file.readText()) }
-        .map { it.parentFile }
-        .sortedBy { it.absolutePath.length }
+        .map { it to it.readText() }
+        .sortedBy { it.first.absolutePath.length }
         .toList()
-    return candidates.firstOrNull() ?: root
+    return builds.firstOrNull { (file, text) -> declaresRunnableApp(file.name, text) }?.first?.parentFile
+        ?: builds.firstOrNull { (file, text) -> declaresStaticBundle(file.name, text) }?.first?.parentFile
+        ?: root
 }
