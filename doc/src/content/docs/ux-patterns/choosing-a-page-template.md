@@ -19,6 +19,48 @@ For the catalog (template → Mateu piece → demo route) see [Page templates](/
 page is the *how do I pick one*. For each of the six page types with its anatomy and a minimal YAML and
 code example, see [Page types](/ux/page-types/).
 
+## The decision tree at a glance
+
+One question picks the family: **what is the user doing on this screen?** Inside a family, take
+the first condition that holds, top to bottom.
+
+```mermaid
+flowchart LR
+  Q{"What is the user<br/>doing here?"}
+  Q -->|"reading a summary<br/>to decide what to attend"| O[Overview]
+  Q -->|"understanding one object<br/>and its peers"| D[Detail]
+  Q -->|"creating or changing<br/>business objects"| T[Transactional]
+  Q -->|"finding work<br/>or a place to start"| S[Find & start]
+
+  O --> O1["numbers tell what needs attention<br/>→ Dashboard"]
+  O --> O2["invites to start a flow<br/>→ Welcome"]
+
+  D --> D1["property cards + switch record on top<br/>→ GeneralOverview"]
+  D --> D2["one category at a time, summary pinned<br/>→ ItemOverview"]
+  D --> D3["several categories side by side<br/>→ Foldout"]
+  D --> D4["extra info without leaving the page<br/>→ Drawer (side or bottom)"]
+
+  T --> T1["ordered steps, or steps that depend on answers<br/>→ Wizard"]
+  T --> T2["walk a list, act on the selected item<br/>→ CollectionDetail"]
+  T --> T3["same records as a grid and a Gantt<br/>→ DataManagement / GanttPage"]
+  T --> T4["a few fields, stay on the list<br/>→ editInDrawer()"]
+  T --> T5["one record, any order<br/>→ AutoCrud / form with @Section (+ @Toc)"]
+
+  S --> S1["a work tool that starts empty<br/>→ SmartSearchPage"]
+  S --> S2["the visual front door<br/>→ HeroSearch"]
+  S --> S3["tasks that get done and disappear<br/>→ TodoList"]
+  S --> S5["dated events on a calendar<br/>→ CalendarPage"]
+  S --> S4["'I want to…' from anywhere<br/>→ @App(commandCenter = true)"]
+```
+
+Two tie-breakers settle most screens that fit two branches:
+
+- **The main task wins.** A customer record the user edits now and then is a *Detail* page with an
+  Edit action, not a *Transactional* one.
+- **A panel only if nobody needs a link to it.** Before choosing a drawer (`Drawer`,
+  `editInDrawer()`, a wizard in a drawer), check the user will never share it, bookmark it or come
+  back to it with the browser's Back button. If they will, it is a page.
+
 ## Step 1 — Category, from the user's goal
 
 Every page answers one of three goals. Ask what the user is fundamentally doing:
@@ -94,6 +136,22 @@ wrong for your case.
 Every template in the tables above is available today — each links to its archetype, annotation or
 composition.
 
+## Close calls
+
+When two templates both seem to fit, one question usually decides:
+
+| Torn between | The question that decides |
+|---|---|
+| GeneralOverview · ItemOverview · Foldout | Are a few property cards and a record switcher enough? → **GeneralOverview**. Does the user read one category at a time with the summary always in view? → **ItemOverview**. Must they see several categories at once, side by side? → **Foldout** |
+| Drawer · page | Does the user go straight back to what was underneath? → **Drawer**. Do they share it, bookmark it or return with Back? → **page** |
+| CollectionDetail · listing with `Navigable` | Does the user walk the items one after another, reading each detail? → **CollectionDetail**. Do they look for one item and open it? → **`Listing` + `Navigable`** (the selection of a CollectionDetail is not in the URL) |
+| Dashboard · Welcome | Does the screen tell, with numbers, what needs attention? → **Dashboard**. Does it invite the user to start something? → **Welcome** |
+| TodoList · listing | Is each row a task that gets done and leaves the list? → **TodoList**. Are they records that stay? → **listing** |
+| `editInDrawer()` · edit page | A few fields while the user keeps working on the list? → **`editInDrawer()`**. Several sections, or a link needed? → **page** (with `@Toc` past four sections) |
+| Wizard · form with sections | Is there a mandatory order, or steps that depend on earlier answers? → **Wizard**. Can it be filled in any order? → **form with `@Section`** |
+| DataManagement · `@InlineEditing` | Does the user also need the same data as a Gantt? → **DataManagement**. Otherwise → a listing with **`@InlineEditing`** |
+| SmartSearchPage · HeroSearch | Is it a work tool? → **SmartSearchPage**. Is it the visual front door into the app? → **HeroSearch** |
+
 ## How the choice is encoded
 
 - **Category** → the `pageType` on the wire (`landing`/`collection`/`detail`/`form`/`process`/
@@ -103,6 +161,33 @@ composition.
 - **Template** → extend the archetype (or set the flag) from Step 3. Everything below is
   composition of wire components that already render on every renderer — except where the
   Redwood column of [Page templates](/ux-patterns/page-templates/) says otherwise.
+
+## What goes in the page header
+
+Once the template is chosen, every piece of data has a place. The rule behind almost every case:
+what the user must keep in sight while working goes **up and pinned**; what they read at leisure
+goes to the **body**; supporting material goes to a **side panel** or a **drawer**. For the header:
+
+| If the data… | It goes to | Mateu |
+|---|---|---|
+| identifies the object, or says what the page is for | Title (required) | `@Title` / `TitleSupplier`; while creating, `@TitlePlaceholder` |
+| situates the object (area, collection, parent) | Overline | `@Overline` / `OverlineSupplier` |
+| adds a line of context | Subtitle | `@Subtitle` / `SubtitleSupplier` |
+| is a lifecycle state (Draft, Approved, Blocked) | One badge, neutral unless it asks for action | `@BadgeInHeader` on the field / `HeaderBadgesSupplier` |
+| must stay in view while the user works below (customer, balance, dates, amount) | Contextual info, at most four, labelled when the value alone is ambiguous | `@KPI` on the field |
+| says when it was last saved | Timestamp — required whenever there is a Save action | `@Timestamp("Last updated")` on the field |
+| identifies a person or organisation | Avatar — never decorative | `@Avatar` on the field / `AvatarSupplier` |
+| leads to a sibling object of the same shape | Previous / next | `PeerNavigationSupplier` |
+| picks another object without going back to the list | Record switcher | `RecordSwitcherSupplier` |
+| anything else | Body | fields and `@Section` |
+
+Fields that go up to the header (`@BadgeInHeader`, `@KPI`, `@Timestamp`) leave the body on their
+own. For actions: **one** primary action with a concrete verb (Create, Send, Publish rather than
+Submit), a Cancel that warns about unsaved changes (`cancel*`/`back` actions do so automatically),
+and secondary actions after them.
+
+Each template page lists what goes in **its own regions** (the key-info panel of an item overview,
+the panels of a foldout, the KPI band of a dashboard…) under *Anatomy* — see the links in Step 3.
 
 You are never forced onto a template: a plain `@UI` class with declared fields still infers a valid
 layout ([layout inference](/ux-patterns/layout-inference/)). The templates are opinionated rails on top, not a
