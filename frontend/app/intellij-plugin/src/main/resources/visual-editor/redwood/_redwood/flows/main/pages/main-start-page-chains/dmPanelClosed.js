@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{state,actionId}){const{$page}=context;"closed"===state&&($page.variables.mateuDmBottomState="auto",actionId&&(await Actions.callChain(context,{chain:"runMateuAction",params:{actionId,parameters:{}}})))}};});
+//# sourceMappingURL=dmPanelClosed.js.map
