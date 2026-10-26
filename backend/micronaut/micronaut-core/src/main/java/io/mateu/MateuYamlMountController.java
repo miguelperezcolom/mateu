@@ -113,6 +113,29 @@ public class MateuYamlMountController {
     return response.contentType(MediaType.APPLICATION_JSON_TYPE);
   }
 
+  /** A file of the installable app ({@link io.mateu.core.infra.Pwa}) of the mount, or a 404. */
+  @Get(uri = "/{+path:.*mateu/v3/pwa/[^/]+}", produces = MediaType.ALL)
+  @ExecuteOn(TaskExecutors.BLOCKING)
+  public HttpResponse<byte[]> pwa(@PathVariable("path") String path) {
+    var requested = "/" + path;
+    var mount = YamlMounts.mountForApiPath(mounts(), requested);
+    if (mount == null) {
+      return HttpResponse.status(HttpStatus.NOT_FOUND);
+    }
+    var asset =
+        YamlMounts.pwaAsset(
+            routeRegistry,
+            yamlAppLoader,
+            mount.basePath(),
+            requested.substring(requested.lastIndexOf('/') + 1));
+    if (asset == null) {
+      return HttpResponse.status(HttpStatus.NOT_FOUND);
+    }
+    var response = HttpResponse.ok(asset.body());
+    asset.headers().forEach((name, value) -> response.header(name, value));
+    return response.contentType(asset.contentType());
+  }
+
   // client-log is excluded: served next to the generated controllers, this catch-all would be
   // Micronaut's pick for a class's POST <base>/mateu/v3/client-log (both match, and only this one
   // explicitly consumes JSON — the generated route consumes ALL) and answer it empty, a 404.

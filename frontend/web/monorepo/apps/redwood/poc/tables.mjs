@@ -34,16 +34,39 @@ function applyRowTonesSoon(frames = 10) {
   requestAnimationFrame(tick)
 }
 
-/** Watches (once) the oj-table's repaints to put the tones back. */
+/** Watches (once) the oj-table's repaints to put the tones back (and gives cut cells their title). */
 export function installRowTones(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuRowTones || typeof MutationObserver === 'undefined') return
   doc.__mateuRowTones = true
+  installCellTitles(doc)
   let pending = false
   new MutationObserver(() => {
     if (pending || !tones.some(Boolean)) return
     pending = true
     requestAnimationFrame(() => { pending = false; applyRowTones(doc) })
   }).observe(doc.body, { childList: true, subtree: true })
+}
+
+// ── CUT cells: the listing's oj-table in layout="fixed" (default column sizing, listing.mjs
+// columnSizingOf) cuts a text longer than its column with an ellipsis (white-space: nowrap). The
+// whole text goes to the cell's title while the pointer is on it — only when it IS cut, and never
+// over a title of its own.
+const AUTO_TITLE = 'data-mateu-auto-title'
+
+/** The title a cell earns: its whole text when it overflows its width; '' when it fits. */
+export function overflowTitleOf(cell) {
+  if (!cell || !(cell.scrollWidth > cell.clientWidth + 1)) return ''
+  return String(cell.textContent || '').replace(/\s+/g, ' ').trim()
+}
+
+function installCellTitles(doc) {
+  doc.addEventListener('mouseover', (e) => {
+    const td = e.target && typeof e.target.closest === 'function' ? e.target.closest('#mateuTable td') : null
+    if (!td || (td.getAttribute('title') && !td.hasAttribute(AUTO_TITLE))) return
+    const title = overflowTitleOf(td)
+    if (title) { td.setAttribute('title', title); td.setAttribute(AUTO_TITLE, '') }
+    else if (td.hasAttribute(AUTO_TITLE)) { td.removeAttribute('title'); td.removeAttribute(AUTO_TITLE) }
+  }, true)
 }
 
 // ── record header FIXED and compact on scroll (OPERA's «business card») ─────────────

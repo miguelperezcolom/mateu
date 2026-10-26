@@ -166,6 +166,9 @@ The web renderers work under a CSP; the parts to allow:
   in `script-src`, `style-src`, `font-src` and `img-src`.
 - `img-src data:` if you use `@UploadableImage`, `@Signature` or `@PhotoCapture` (their values are
   data URIs).
+- `manifest-src 'self'` and `worker-src 'self'`: every UI is an
+  [installable app](/deploy/install-as-app/) with a web app manifest and a service worker
+  (`mateu.pwa.enabled=false` turns that off).
 
 Start in `Content-Security-Policy-Report-Only` mode and tighten from the reports.
 

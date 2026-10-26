@@ -576,6 +576,7 @@ export default defineConfig({
 							items: [
 								{ slug: 'deploy/netlify', label: 'Netlify' },
 								{ slug: 'deploy/kubernetes-hetzner-cloudfleet', label: 'Kubernetes on Hetzner (Cloudfleet)' },
+								{ slug: 'deploy/install-as-app', label: 'Install as a desktop or phone app' },
 								{ slug: 'deploy/mobile-app-stores', label: 'App Store & Google Play' },
 								{ slug: 'mateu-about/standalone-desktop', label: 'Standalone desktop app' },
 							],

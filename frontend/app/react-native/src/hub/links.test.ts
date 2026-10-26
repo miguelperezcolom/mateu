@@ -179,3 +179,16 @@ test('addLink encodes base url and route', () => {
   assert.equal(addLink('https://acme.com/crm', 'orders'), 'https://mateu.io/add?u=https%3A%2F%2Facme.com%2Fcrm&r=%2Forders');
   assert.deepEqual(parseHubLink(addLink('https://acme.com/crm', '/orders')), { kind: 'add', baseUrl: 'https://acme.com/crm', route: '/orders' });
 });
+
+test('Expo Go dev links (exp://host/--/add?u=…) stand for mateu://add — on development builds only', async () => {
+  const { fromExpoDevLink } = await import('./links.ts');
+  const dev = { allowInsecure: true };
+  const link = 'exp://192.168.1.5:8081/--/add?u=http%3A%2F%2F192.168.1.5%3A3000';
+  assert.equal(fromExpoDevLink(link, dev), 'mateu://add?u=http%3A%2F%2F192.168.1.5%3A3000');
+  const parsed = parseHubLink(fromExpoDevLink(link, dev)!, dev);
+  assert.deepEqual(parsed, { kind: 'add', baseUrl: 'http://192.168.1.5:3000' });
+  assert.equal(fromExpoDevLink(link, {}), null); // a release build: foreign, ignored
+  assert.equal(fromExpoDevLink('exp://192.168.1.5:8081', dev), null); // a plain Expo Go launch
+  assert.equal(fromExpoDevLink('exp://192.168.1.5:8081/--/settings?u=x', dev), null);
+  assert.equal(fromExpoDevLink('https://evil.example/--/add?u=x', dev), null);
+});

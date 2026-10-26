@@ -48,7 +48,7 @@ export function listingOf(ctx, opts = {}) {
   // mount, not a stand-in that leaves, so the projection does it.
   const preSearch = listingPreSearchBlocksOf(ctx)
   const header = listingHeaderBlocksOf(ctx)
-  return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs),
+  return { ...listing, allColumns: listing.columns, columns: finishColumnSizing(applyColumnPrefs(listing.columns, prefs), listing.fitColumns),
     headerBlocks: preSearch ? header.concat(preSearch) : header,
     showPreSearch: !!preSearch,
     // the card grid shows unless the pre-search blocks stand in for the results (like the table)
@@ -169,6 +169,84 @@ export function listingBaseOf(ctx, opts = {}) {
   // «Label: value» pairs — see rowLinesOf / the cellLines template
   const lines = rowLinesSplit(md.columns || [])
   const tableColumns = lines.extra.length ? lines.first : (md.columns || [])
+  // what each cell PAINTS (labels, badges, clipped/abbreviated text), before group rows are
+  // interleaved: the content a compact column is sized to (columnSizingOf)
+  const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
+  const footers = aggregateFootersOf(md, (ctx.data || {}).crud) || {}
+  // the columns sized by the DEFAULT rule (they declare no width/flexGrow): id → their compact
+  // width (fit) — finishColumnSizing lets them grow when no other column does
+  const fitColumns = {}
+  const defaultSized = []
+  const columns = tableColumns.map((col) => {
+    const c = col.metadata || col
+    const def = { headerText: c.label || c.id, field: c.id }
+    // editable cell → editor template per type (always visible, commit per cell:
+    // the contract is update-row + parameters._editedRow; fixtures/real/update-row.json)
+    if (c.editable && c.editorType) {
+      def.template = c.editorType === 'boolean' ? 'cellEditBoolean'
+        : (c.editorType === 'integer' || c.editorType === 'number') ? 'cellEditNumber'
+          : 'cellEditText'
+    }
+    // per-row ACTIONS (ColumnActionGroup): buttons that dispatch
+    // action-on-row-<method> with the row's id (Listing.handleActionOnRow)
+    if (c.dataType === 'actionGroup') {
+      def.template = 'cellRowActions'
+      def.headerText = ''
+      def.sortable = 'disabled'
+    }
+    // the column key = the wire id: ojSort returns it and it is what the server
+    // sorts by (the cell may read another field, e.g. the abbreviated UUID)
+    def.id = c.id
+    // totals footer (@Aggregate): the footerTotal template reads totals[columnKey]
+    if (aggregateFootersOf(md, (ctx.data || {}).crud)) def.footerTemplate = 'footerTotal'
+    // STATUS as a badge (@Status): the cell value is {type, message} — the badge's JET
+    // class is precomputed on the rows (statusBadgeRows, CSP without ternaries)
+    if (c.dataType === 'status') {
+      def.template = 'cellStatusBadge'
+    }
+    // PRIMARY COLUMN (@PrimaryColumn: stereotype 'primary'): image before the title
+    // (leadingPath, e.g. the guest's flag) and a caption line below (captionPath) —
+    // row fields that are not columns. Precomputed per row in primaryCellRows (CSP).
+    if (!def.template && c.stereotype === 'primary') {
+      def.field = c.id + PRIMARY_CELL_SUFFIX
+      def.template = 'cellPrimary'
+    }
+    // Abbreviated UUID: a text column whose values are UUIDs is painted "…-<last block>"
+    // with the whole UUID in the tooltip. The row does NOT change: the cell reads a separate field,
+    // precomputed in uuidCellRows (VB CSP: the template cannot trim the text).
+    if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
+      def.field = c.id + UUID_CELL_SUFFIX
+      def.template = 'cellUuid'
+    }
+    const align = alignOf(c)
+    if (align && !def.template) {
+      def.className = 'oj-helper-text-align-' + align
+      def.headerClassName = 'oj-helper-text-align-' + align
+      def.footerClassName = 'oj-helper-text-align-' + align
+    }
+    if (!def.template && clipColumn(c)) {
+      def.field = c.id + CLIP_CELL_SUFFIX
+      def.template = 'cellClip'
+    }
+    // an enum is read by its label («In house», not IN_HOUSE): the cell reads <id>__labelCell
+    if (!def.template && labelColumn(c)) {
+      def.field = c.id + LABEL_CELL_SUFFIX
+    }
+    // column WIDTH. A DECLARED width (@ColumnWidth: width + flexGrow "0" + tooltipPath on the
+    // wire, the same contract Vaadin's gridRenderer applies) wins: oj-table fixes that width; with
+    // flexGrow 0 the column does not grow (min = max = width) and its text is clipped with an
+    // ellipsis, whole in the tooltip (tooltipPath). A column that declares none is sized by the
+    // DEFAULT rule (columnSizingOf): compact types fit their content, text columns share the rest.
+    // (after the cell's field is final: it is what the content is read from)
+    const sizing = columnSizingOf(c, cellRows, def.field, footers[c.id])
+    Object.assign(def, sizing.def)
+    if (sizing.kind !== 'declared') defaultSized.push(c.id)
+    if (sizing.kind === 'fit') fitColumns[c.id] = sizing.px
+    // WHOLE-ROW CLICK: a cell with its own click (editor, buttons, link, menu, component,
+    // column with its own action) carries the class mateuRowClicked respects — see isDisplayColumn
+    if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
+    return def
+  }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : [])
   return {
     // PAGINATION: the page the server sent (Page: pageNumber/pageSize/totalElements) →
     // table footer with the range and the controls; precomputed (VB CSP)
@@ -180,71 +258,12 @@ export function listingBaseOf(ctx, opts = {}) {
     searchable: !!md.searchable,
     pageSize: md.pageSize || 20,
     emptyStateMessage: md.emptyStateMessage || 'No data.',
-    columns: tableColumns.map((col) => {
-      const c = col.metadata || col
-      const def = { headerText: c.label || c.id, field: c.id }
-      // editable cell → editor template per type (always visible, commit per cell:
-      // the contract is update-row + parameters._editedRow; fixtures/real/update-row.json)
-      if (c.editable && c.editorType) {
-        def.template = c.editorType === 'boolean' ? 'cellEditBoolean'
-          : (c.editorType === 'integer' || c.editorType === 'number') ? 'cellEditNumber'
-            : 'cellEditText'
-      }
-      // per-row ACTIONS (ColumnActionGroup): buttons that dispatch
-      // action-on-row-<method> with the row's id (Listing.handleActionOnRow)
-      if (c.dataType === 'actionGroup') {
-        def.template = 'cellRowActions'
-        def.headerText = ''
-        def.sortable = 'disabled'
-      }
-      // the column key = the wire id: ojSort returns it and it is what the server
-      // sorts by (the cell may read another field, e.g. the abbreviated UUID)
-      def.id = c.id
-      // totals footer (@Aggregate): the footerTotal template reads totals[columnKey]
-      if (aggregateFootersOf(md, (ctx.data || {}).crud)) def.footerTemplate = 'footerTotal'
-      // STATUS as a badge (@Status): the cell value is {type, message} — the badge's JET
-      // class is precomputed on the rows (statusBadgeRows, CSP without ternaries)
-      if (c.dataType === 'status') {
-        def.template = 'cellStatusBadge'
-      }
-      // PRIMARY COLUMN (@PrimaryColumn: stereotype 'primary'): image before the title
-      // (leadingPath, e.g. the guest's flag) and a caption line below (captionPath) —
-      // row fields that are not columns. Precomputed per row in primaryCellRows (CSP).
-      if (!def.template && c.stereotype === 'primary') {
-        def.field = c.id + PRIMARY_CELL_SUFFIX
-        def.template = 'cellPrimary'
-      }
-      // Abbreviated UUID: a text column whose values are UUIDs is painted "…-<last block>"
-      // with the whole UUID in the tooltip. The row does NOT change: the cell reads a separate field,
-      // precomputed in uuidCellRows (VB CSP: the template cannot trim the text).
-      if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
-        def.field = c.id + UUID_CELL_SUFFIX
-        def.template = 'cellUuid'
-      }
-      // column WIDTH (@ColumnWidth: width + flexGrow "0" + tooltipPath on the wire, the
-      // same contract Vaadin's gridRenderer applies): oj-table fixes that width; with
-      // flexGrow 0 the column does not grow (min = max = width) and its text is clipped with an ellipsis,
-      // whole in the tooltip (tooltipPath). The other columns follow their content.
-      Object.assign(def, columnWidthOf(c))
-      const align = alignOf(c)
-      if (align && !def.template) {
-        def.className = 'oj-helper-text-align-' + align
-        def.headerClassName = 'oj-helper-text-align-' + align
-        def.footerClassName = 'oj-helper-text-align-' + align
-      }
-      if (!def.template && clipColumn(c)) {
-        def.field = c.id + CLIP_CELL_SUFFIX
-        def.template = 'cellClip'
-      }
-      // an enum is read by its label («In house», not IN_HOUSE): the cell reads <id>__labelCell
-      if (!def.template && labelColumn(c)) {
-        def.field = c.id + LABEL_CELL_SUFFIX
-      }
-      // WHOLE-ROW CLICK: a cell with its own click (editor, buttons, link, menu, component,
-      // column with its own action) carries the class mateuRowClicked respects — see isDisplayColumn
-      if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
-      return def
-    }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
+    columns: finishColumnSizing(columns, fitColumns),
+    fitColumns,
+    defaultSizedColumns: defaultSized,
+    // oj-table `layout`: 'fixed' sizes the columns by our widths/weights (and fills the width);
+    // a table whose every column declares its width keeps JET's default, 'contents', as before
+    tableLayout: defaultSized.length ? 'fixed' : 'contents',
     // gridLayout = cards: a responsive grid of CARDS instead of the table (the web renderer's
     // card grid) — the cards are precomputed per row (VB CSP); see listingCardsOf
     cardLayout: isCardLayout(md),
@@ -284,7 +303,7 @@ export function listingBaseOf(ctx, opts = {}) {
       .concat((md.toolbar || []).filter((b) => b && b.rowsSelectedRequired).map((b) => b.actionId)),
     // @RowStatus: each row carries its tone (_tone) — tables.mjs paints it on the oj-table's tr;
     // @GroupBy: interleaved group rows (value (n) + subtotals), presentation only
-    rows: groupedRows(toneRows(rowLinesRows(labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
+    rows: groupedRows(toneRows(rowLinesRows(cellRows, lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
     // @Aggregate: the totals of the filtered set, per column (oj-table footer)
     totals: aggregateFootersOf(md, (ctx.data || {}).crud),
     hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
@@ -743,6 +762,169 @@ export function columnWidthOf(c) {
   return String(c.flexGrow) === '0'
     ? { width, minWidth: width, maxWidth: width }
     : { width, minWidth: width }
+}
+
+/**
+ * DEFAULT COLUMN SIZING — the rule for a column that declares no width (the same rule the web
+ * renderer applies, libs/mateu columnSizing.ts):
+ *  - COMPACT columns FIT their content and do not grow: identifiers, numbers, amounts, dates and
+ *    times, booleans, statuses, enums (a column with value labels), row actions and buttons;
+ *  - TEXT columns (string, primary, anything else) GROW and share what is left, each by its
+ *    weight: flexGrow when it declares one, else `weight`, else 1 (`weight: 2` grows twice as much);
+ *  - a declared width (+ flexGrow) wins as before (columnWidthOf), and a declared flexGrow without a
+ *    width picks the behaviour: "0" fits the content, N grows with weight N.
+ * The table then uses oj-table's `layout="fixed"` (tableLayout), which honours the weights, fills
+ * the available width and scrolls horizontally when the columns' minimums do not fit.
+ * 'fixed' does not measure the cells, so a compact column's width is ESTIMATED from what its header,
+ * cells (the page that arrived) and total paint (estimateTextPx) — a little generously.
+ */
+const COMPACT_DATA_TYPES = ['integer', 'number', 'double', 'decimal', 'long', 'float', 'money', 'bool', 'boolean',
+  'status', 'date', 'time', 'dateTime', 'dateRange', 'range', 'action', 'actionGroup', 'menu']
+const COMPACT_STEREOTYPES = ['money', 'button', 'toggle', 'checkbox', 'badge', 'stars', 'color', 'numberRange', 'dateRange']
+export function isCompactColumn(c) {
+  if (!c) return false
+  if (c.identifier) return true
+  if (c.dataType && COMPACT_DATA_TYPES.indexOf(c.dataType) >= 0) return true
+  if (c.stereotype && COMPACT_STEREOTYPES.indexOf(c.stereotype) >= 0) return true
+  return !!(c.valueLabels && Object.keys(c.valueLabels).length)
+}
+
+/** The flexGrow a column declares as a number (null when it declares none). */
+function declaredFlexGrow(c) {
+  if (!c || c.flexGrow == null || c.flexGrow === '') return null
+  const n = parseFloat(c.flexGrow)
+  return isNaN(n) || n < 0 ? null : n
+}
+
+// Redwood's table font (Oracle Sans 16px): approximate advance per character, in px
+const charPx = (ch) => {
+  const code = ch.codePointAt(0)
+  if (code >= 0x2e80) return 16 // CJK & co.: full width
+  if (ch >= '0' && ch <= '9') return 9.6
+  if (' .,:;!|\'`'.indexOf(ch) >= 0) return 4.5
+  if ('ijlft()[]'.indexOf(ch) >= 0) return 5
+  if (ch === '-' || ch === '/') return 6.5
+  if (ch === 'M' || ch === 'W' || ch === 'm' || ch === 'w' || ch === '@' || ch === '%') return 13
+  if ('OQGDCH'.indexOf(ch) >= 0) return 12
+  if (ch >= 'A' && ch <= 'Z') return 10.5
+  return 8.2
+}
+
+/** Estimated width (px) of a text in the table font, scaled for another size/weight. */
+export function estimateTextPx(text, scale = 1) {
+  if (text == null) return 0
+  let w = 0
+  for (const ch of String(text)) w += charPx(ch)
+  return w * scale
+}
+
+// paddings measured on the Redwood table (list display): header 16 + 8 and a 36px sort icon (on
+// every sortable header: oj-table offers sorting on all but the disabled ones), cell 16 + 16; a
+// status badge (13.7px) adds 12 + 12, a small button 12 + 12 and its margin. SLACK covers the
+// estimate's error (a few %): too narrow clips, too wide only costs a few px
+const HEADER_PAD = 24
+const SORT_ICON = 36
+const CELL_PAD = 32
+const BADGE_PAD = 24
+const BUTTON_PAD = 28
+const SLACK = 1.04
+const COMPACT_MIN = 56
+const COMPACT_MAX = 400
+// a growing column never starts narrower than this, nor (from its content) wider than GROW_MIN_MAX
+const GROW_MIN = 120
+const GROW_MIN_MAX = 240
+// an in-cell editor needs room for its input
+const EDITOR_MIN = 128
+
+/** What a cell paints, as text: a badge's message, a clipped cell's text, a primary cell's title… */
+function cellTextOf(v) {
+  if (v == null) return ''
+  if (typeof v !== 'object') return String(v)
+  return String(v.message || v.text || v.title || v.label || v.type || '')
+}
+
+/** The estimated width (px) of a column's CONTENT: header, the cells of the page and its total. */
+function contentPxOf(c, rows, field, footerText) {
+  const actions = c.dataType === 'actionGroup'
+  const header = HEADER_PAD + estimateTextPx(c.label || (actions ? '' : c.id), 1.06) + (actions ? 0 : SORT_ICON)
+  let cells = 0
+  for (const row of (rows || []).slice(0, 100)) {
+    let w
+    if (actions) {
+      const buttons = (row[c.id] && row[c.id].actions) || []
+      w = buttons.reduce((sum, a) => sum + estimateTextPx(a.label || a.methodNameInCrud, 0.875) + BUTTON_PAD, 0)
+    } else if (c.dataType === 'status') {
+      const text = cellTextOf(row[field])
+      w = text ? estimateTextPx(text, 0.86) + BADGE_PAD : 0
+    } else if (c.stereotype === 'button') {
+      w = estimateTextPx(c.text || cellTextOf(row[field]), 0.875) + BUTTON_PAD
+    } else {
+      w = estimateTextPx(cellTextOf(row[field]))
+    }
+    if (w > cells) cells = w
+  }
+  const footer = footerText ? estimateTextPx(footerText, 1.06) : 0
+  return { header, cells: CELL_PAD + Math.max(cells, footer) }
+}
+
+/**
+ * How a column is sized: { kind, def, px }. kind 'declared' = its own width (columnWidthOf, as
+ * before); 'fit' = a compact column at its content width (def.width, px); 'grow' = a text column
+ * that grows by its weight from a minimum (def.minWidth + def.weight). `def` are oj-table keys.
+ */
+export function columnSizingOf(c, rows, field, footerText) {
+  const declared = columnWidthOf(c)
+  if (declared.width) return { kind: 'declared', def: declared }
+  const grow = declaredFlexGrow(c)
+  const { header, cells } = contentPxOf(c, rows, field || c.id, footerText)
+  if (grow === 0 || (grow == null && isCompactColumn(c))) {
+    let px = Math.ceil(Math.max(header, cells) * SLACK + 4)
+    if (c.editable) px = Math.max(px, EDITOR_MIN + CELL_PAD)
+    px = Math.min(COMPACT_MAX, Math.max(COMPACT_MIN, px))
+    return { kind: 'fit', px, def: { width: px + 'px' } }
+  }
+  const weight = grow != null ? grow : (typeof c.weight === 'number' && c.weight > 0 ? c.weight : 1)
+  let min = Math.max(GROW_MIN, Math.ceil(header * SLACK + 4), Math.ceil(Math.min(cells * SLACK + 4, GROW_MIN_MAX)))
+  if (c.editable) min = Math.max(min, 2 * EDITOR_MIN)
+  return { kind: 'grow', px: min, def: { minWidth: min + 'px', weight } }
+}
+
+/**
+ * The last step, on the columns ACTUALLY painted (after the user's column preferences): the
+ * growing columns' weights are normalised (oj-table reads any weight below 1 as 1, so 0.5 vs 1
+ * becomes 1 vs 2) and, when NO column grows, the compact ones share the width instead of leaving
+ * a gap: each from its content width, in proportion to it. `fitColumns` = id → px of the compact
+ * defaults.
+ */
+export function finishColumnSizing(columns, fitColumns) {
+  const fits = fitColumns || {}
+  const growing = columns.filter((d) => typeof d.weight === 'number')
+  if (!growing.length) {
+    const fitted = columns.filter((d) => fits[d.id] != null).map((d) => fits[d.id])
+    if (!fitted.length) return columns
+    const least = Math.min(...fitted)
+    return columns.map((d) => {
+      if (fits[d.id] == null) return d
+      const { width, ...rest } = d
+      return { ...rest, minWidth: fits[d.id] + 'px', weight: Math.round((fits[d.id] / least) * 100) / 100 }
+    })
+  }
+  const least = Math.min(...growing.map((d) => d.weight))
+  if (least >= 1 || least <= 0) return columns
+  return columns.map((d) => typeof d.weight === 'number' ? { ...d, weight: Math.round((d.weight / least) * 100) / 100 } : d)
+}
+
+/** The columns WITHOUT the default sizing (only the widths they declare), for the tables that do
+ *  not bind `tableLayout` — the search picker and the listing in an overlay keep oj-table's own
+ *  content-based sizing in their narrower dialogs/drawers. */
+export function withoutDefaultSizing(columns, listing) {
+  const ids = (listing && listing.defaultSizedColumns) || []
+  if (!ids.length) return columns
+  return (columns || []).map((d) => {
+    if (ids.indexOf(d.id) < 0) return d
+    const { width, minWidth, maxWidth, weight, ...rest } = d
+    return rest
+  })
 }
 
 // a TEXT column with a fixed width (flexGrow 0) or with a tooltip: its cell is clipped with an ellipsis

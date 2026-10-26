@@ -51,23 +51,36 @@ export const WELCOME_LOOKS = [
 ]
 export const WELCOME_GALLERY = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/'
 
-/** Which welcome is being painted: its server class (or, without one, the tree id). */
-export function welcomeKeyOf(ctx) {
-  const tree = ctx && ctx.tree
-  return tree ? (tree.serverSideType || tree.id || '') : ''
-}
+/** The framework wrapper every served definition-only (YAML) page arrives in: a type, but not the
+ *  PAGE's identity — every YAML welcome would share it. */
+const GENERIC_PAGE_TYPE = /(^|\.)SeededYamlPage$/
 
 /**
- * The hero's look: a random one on ENTERING a welcome, and the same one while staying on it.
- *
- * It rotated on every projection, and a welcome is reprojected with the response of every action
- * launched from it — including that of a CTA returning a route ("Ir a Reservas"): the hero changed
- * color right before navigating, for as long as the next page took to arrive.
- * Now it only rotates on a new visit: no welcome was painted (`previous` null) or it was another one.
- *
- * @param key       welcomeKeyOf of the context being projected
- * @param previous  the painted look ({key, theme, illuBg, illu}) if there was already a welcome, or null
+ * Which welcome is being painted: its OWN class when it has one (a Java/C#/Python welcome is the
+ * same page whatever route reached it); else the route it was loaded from (ctx.outbound.route —
+ * a YAML page, served or from a static bundle, has no class, or only the generic SeededYamlPage
+ * wrapper, and its tree has no id of its own); else the tree id. '' when nothing is known.
  */
+export function welcomeKeyOf(ctx) {
+  const tree = ctx && ctx.tree
+  const type = tree && tree.serverSideType
+  if (type && !GENERIC_PAGE_TYPE.test(type)) return type
+  const route = String((ctx && ctx.outbound && ctx.outbound.route) || '').split(/[?#]/)[0].replace(/^\/+|\/+$/g, '')
+  if (route) return 'route:' + route
+  return (tree && (tree.id || type)) || ''
+}
+
+/** FNV-1a (32-bit) of a string: a stable, well-spread hash (no crypto needed — it picks a colour). */
+export function stableHashOf(s) {
+  let h = 0x811c9dc5
+  const str = String(s == null ? '' : s)
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 0x01000193) >>> 0
+  }
+  return h >>> 0
+}
+
 /** HeroSection.tone (the server's HeroTone) → the banner's background-color. oj-sp's welcome banner
  *  ships a dark-* tone for each of the nine (dark-ocean … dark-sienna); the five that have an
  *  illustration pair in the gallery keep it, the other four go without one. */
@@ -86,12 +99,22 @@ export function welcomeToneLookOf(key, tone) {
   }
 }
 
-export function welcomeLookOf(key, previous, random = Math.random, tone = null) {
-  // a DECLARED tone (Welcome.heroTone / @WelcomeBanner(tone)) wins over the rotation, every time
+/**
+ * The hero's look (background tone + illustration pair): a DECLARED tone wins; without one, the
+ * look is picked by a stable hash of the welcome's identity (welcomeKeyOf), so a given page always
+ * shows the same hero — on every visit, every reload, and while it is reprojected with the answer
+ * of an action launched from it (a CTA that navigates: the hero no longer changes color on the
+ * way out) — while different welcomes still spread across the looks. It used to be random on
+ * every visit.
+ *
+ * @param key   welcomeKeyOf of the context being projected
+ * @param tone  HeroSection.tone (the server's HeroTone), or null
+ */
+export function welcomeLookOf(key, tone = null) {
+  // a DECLARED tone (Welcome.heroTone / @WelcomeBanner(tone)) wins over the hashed look, every time
   const toned = welcomeToneLookOf(key, tone)
   if (toned) return toned
-  if (previous && previous.theme && previous.key === key) return previous
-  const [theme, n] = WELCOME_LOOKS[Math.floor(random() * WELCOME_LOOKS.length) % WELCOME_LOOKS.length]
+  const [theme, n] = WELCOME_LOOKS[stableHashOf(key) % WELCOME_LOOKS.length]
   return {
     key,
     theme,
@@ -165,7 +188,7 @@ export function welcomeOf(ctx) {
     // …and the band of tiles is the DashboardLayout's
     tilesNodeId: editorNodeIds ? String((findByType(ctx.tree, 'DashboardLayout') || {}).id || '') : '',
     trend,
-    // HeroSectionDto.tone: null = the rotating look (welcomeLookOf)
+    // HeroSectionDto.tone: null = the page's own hashed look (welcomeLookOf)
     tone: md.tone || null,
     // HeroSectionDto.overline → the template's overline-text (the line above the page title)
     overline: md.overline || '',

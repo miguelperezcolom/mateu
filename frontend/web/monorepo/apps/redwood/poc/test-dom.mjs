@@ -26,7 +26,7 @@ import { setRulesContext, setRulesContexts, applyRulesNow, installRules, setRule
 import { installCalendars, setCalendarActionSink } from './calendar.mjs'
 import { installToc, tocActiveIndex, tocSectionsOf } from './toc.mjs'
 import { defineCaptureField, defineColorField, captureTexts } from './inputs.mjs'
-import { installRowTones, setListingTones, installStickyHeader } from './tables.mjs'
+import { installRowTones, setListingTones, installStickyHeader, overflowTitleOf } from './tables.mjs'
 import { readTileOrder } from './prefs.mjs'
 import { chromeText } from './i18n.mjs'
 import { setChatEventHost } from './chat.mjs'
@@ -1120,6 +1120,35 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
       assert.deepEqual(tbody.children.map((r) => r.className), ['mateu-row-tone-warning', '', ''])
     } finally {
       delete globalThis.requestAnimationFrame
+      delete globalThis.MutationObserver
+    }
+  }))
+}
+
+{
+  const { doc, el } = makeDom()
+  test('tables: una celda cortada por el ancho de su columna (layout fixed) lleva el texto entero en el title', withDocument(doc, async () => {
+    // the pure part: only a cell that overflows earns it
+    assert.equal(overflowTitleOf({ scrollWidth: 300, clientWidth: 240, textContent: '  Leave the parcel\n with the neighbour ' }), 'Leave the parcel with the neighbour')
+    assert.equal(overflowTitleOf({ scrollWidth: 240, clientWidth: 240, textContent: 'fits' }), '')
+    assert.equal(overflowTitleOf(null), '')
+    globalThis.MutationObserver = FakeObserver
+    try {
+      const cut = el('td', { text: 'A very long note' })
+      const own = el('td', { text: 'Another long one', title: 'its own' })
+      const short = el('td', { text: 'ok' })
+      for (const [td, sw] of [[cut, 300], [own, 300], [short, 100]]) Object.assign(td, { scrollWidth: sw, clientWidth: 200 })
+      doc.body.appendChild(el('oj-table', { id: 'mateuTable' }, el('table', {}, el('tbody', {}, el('tr', {}, cut, own, short)))))
+      installRowTones(doc)
+      for (const td of [cut, own, short]) td.dispatchEvent(new FakeEvent('mouseover', { bubbles: true }))
+      assert.equal(cut.getAttribute('title'), 'A very long note')
+      assert.equal(own.getAttribute('title'), 'its own') // a title of its own is never replaced
+      assert.equal(short.getAttribute('title'), null)
+      // the column widens (the user resized, the window grew): the text fits, the title goes
+      cut.scrollWidth = 150
+      cut.dispatchEvent(new FakeEvent('mouseover', { bubbles: true }))
+      assert.equal(cut.getAttribute('title'), null)
+    } finally {
       delete globalThis.MutationObserver
     }
   }))

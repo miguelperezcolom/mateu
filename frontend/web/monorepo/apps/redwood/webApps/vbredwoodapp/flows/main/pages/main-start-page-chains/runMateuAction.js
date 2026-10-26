@@ -516,14 +516,9 @@ define([
       // the constant, not the variable: an `any` set to null reads as a truthy proxy in the chain
       const notFoundAfter = bridge.notFoundOf(hostAfter.tree, document.documentElement.lang || navigator.language);
       vars.mateuNotFound = notFoundAfter;
-      // composed archetypes (welcome / general overview / item overview); the hero's look
-      // rotates on ENTERING a welcome and is kept while you stay on it
-      const archetypes = bridge.archetypeVarsOf(hostAfter, vars.mateuWelcome ? {
-        key: vars.mateuWelcomeKey,
-        theme: vars.mateuWelcomeTheme,
-        illuBg: vars.mateuWelcomeIlluBg,
-        illu: vars.mateuWelcomeIllu,
-      } : null);
+      // composed archetypes (welcome / general overview / item overview); the hero's look is
+      // the page's own (a stable hash of its identity), so it does not change while you stay on it
+      const archetypes = bridge.archetypeVarsOf(hostAfter);
       assign(archetypes.vars);
       const welcome = archetypes.welcome;
       const overviewProjection = archetypes.overview;

@@ -259,6 +259,22 @@ public class MateuHelidonRoutes {
                 YamlMounts.manifestJson(
                     routeRegistry.get(), yamlAppLoader.get(), mount.basePath()));
           });
+      routing.get(
+          mount.apiPrefix() + "/v3/pwa/{file}",
+          (req, res) -> {
+            var asset =
+                YamlMounts.pwaAsset(
+                    routeRegistry.get(),
+                    yamlAppLoader.get(),
+                    mount.basePath(),
+                    req.path().pathParameters().get("file"));
+            if (asset == null) {
+              res.status(Status.NOT_FOUND_404).send();
+              return;
+            }
+            asset.headers().forEach(res::header);
+            res.send(asset.body());
+          });
       if (mount.basePath().isEmpty()) {
         // A deep link into the ROOT mount (/products on a reload or a shared link) had no handler:
         // only "/" was routed, so it answered Jersey's "Endpoint not found". Claim only the paths

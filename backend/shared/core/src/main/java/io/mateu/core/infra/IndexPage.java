@@ -39,6 +39,8 @@ public final class IndexPage {
    * @param extraHead markup appended to {@code <head>}
    *     ({@code @Meta}/{@code @Link}/{@code @Script}), may be empty
    * @param debug whether {@code <mateu-ui>} gets {@code debug="true"}
+   * @param uiId the fully-qualified name of the {@code @UI} class, whose declarations (theme
+   *     colour, icon) the installable-app head ({@link Pwa}) reads; null when there is none
    */
   public record Spec(
       String path,
@@ -47,7 +49,8 @@ public final class IndexPage {
       List<String> externalScripts,
       Keycloak keycloak,
       String extraHead,
-      boolean debug) {
+      boolean debug,
+      String uiId) {
 
     public Spec {
       path = path == null ? "" : path;
@@ -57,12 +60,28 @@ public final class IndexPage {
       extraHead = extraHead == null ? "" : extraHead;
     }
 
+    /** As the canonical constructor, with no {@code uiId} (controllers generated before it). */
+    public Spec(
+        String path,
+        String title,
+        String favicon,
+        List<String> externalScripts,
+        Keycloak keycloak,
+        String extraHead,
+        boolean debug) {
+      this(path, title, favicon, externalScripts, keycloak, extraHead, debug, null);
+    }
+
     public static Spec of(String path, String title) {
-      return new Spec(path, title, "", List.of(), null, "", false);
+      return new Spec(path, title, "", List.of(), null, "", false, null);
     }
 
     public Spec withDebug(boolean debug) {
-      return new Spec(path, title, favicon, externalScripts, keycloak, extraHead, debug);
+      return new Spec(path, title, favicon, externalScripts, keycloak, extraHead, debug, uiId);
+    }
+
+    public Spec withUiId(String uiId) {
+      return new Spec(path, title, favicon, externalScripts, keycloak, extraHead, debug, uiId);
     }
   }
 
@@ -95,7 +114,12 @@ public final class IndexPage {
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
-    return devHead(OracleCdn.apply(withoutMarkers(html)));
+    // the installable-app head (manifest, theme colour, worker), last: it hashes the final page
+    return devHead(
+        Pwa.served(
+            OracleCdn.apply(withoutMarkers(html)),
+            spec.path(),
+            spec.uiId() == null ? null : MobileManifest.sourceOf(spec.uiId())));
   }
 
   /**

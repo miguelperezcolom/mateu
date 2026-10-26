@@ -142,9 +142,14 @@ Choose **YAML only, static (no backend)** instead (`-Dauthoring=static`) and the
 is bundled at build time into plain files:
 
 ```bash
+mvn mateu-bundle:dev               # http://localhost:3000, rebuilt and reloaded on every save
 mvn package                        # → target/mateu-bundle/: index.html, manifest.json, assets/
-npx serve -s target/mateu-bundle   # preview it at http://localhost:3000
+npx serve -s target/mateu-bundle   # preview the finished bundle at http://localhost:3000
 ```
+
+`mateu-bundle:dev` keeps serving the last good bundle when a save breaks the build, and
+`-Dmateu.dev.liveReload=false` turns the page reload off (the rebuilds go on). See
+[Develop with live reload](/deploy/static-ui/#develop-with-live-reload).
 
 Deploy `target/mateu-bundle/` to any static host with an SPA fallback. The browser calls the APIs
 named in `sources.yaml` itself, so they must allow your site's origin (CORS); `.mvn/maven.config`

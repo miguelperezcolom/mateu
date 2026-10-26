@@ -22,6 +22,7 @@ import { installSecureRandom } from './src/core/secureRandom';
 import { theme, themed } from './src/theme';
 import { setRendererVersion } from './src/core/buildSkew';
 import { SessionContent } from './src/shell/SessionContent';
+import { fetchStaticBundle, type StaticBundle } from './src/core/staticBundle';
 import { HubApp } from './src/hub/HubApp';
 import { MateuThemeProvider } from './src/ui/MateuTheme';
 import { StatusBar } from 'expo-status-bar';
@@ -216,12 +217,17 @@ function AuthGate({ config }: { config: BootConfig }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [phase, setPhase] = useState<'checking' | 'signin' | 'ready'>('checking');
   const [signInError, setSignInError] = useState('');
+  // The base URL may serve a STATIC BUNDLE (mateu-bundle:bundle / mateu-bundle:dev) rather than a
+  // Mateu server: then the app runs from its manifest.json, with no /mateu/v3 calls at all.
+  const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const provider = React.useMemo(() => (config.oidc ? new OidcTokenProvider(config.oidc, platformStore) : null), [config.oidc]);
 
   useEffect(() => {
     let alive = true;
     setTokenProvider(provider ?? undefined);
     void (async () => {
+      const found = await fetchStaticBundle(config.baseUrl);
+      if (alive) setBundle(found.ok ? found.bundle : null);
       const id = await installSessionId(platformStore);
       const needsSignIn = !!provider && config.oidc?.loginOnStart !== false && !(await provider.isSignedIn());
       if (!alive) return;
@@ -234,7 +240,7 @@ function AuthGate({ config }: { config: BootConfig }) {
       off();
       setTokenProvider(undefined);
     };
-  }, [provider, config.oidc]);
+  }, [provider, config.oidc, config.baseUrl]);
 
   const signIn = async () => {
     setSignInError('');
@@ -266,7 +272,7 @@ function AuthGate({ config }: { config: BootConfig }) {
     );
   }
   return (
-    <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState }}>
+    <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle }}>
       <SessionContent initialRoute={MATEU_ROUTE} />
     </MateuAppProvider>
   );

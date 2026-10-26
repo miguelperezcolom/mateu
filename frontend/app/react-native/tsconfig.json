@@ -6,6 +6,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@mateu/*": [
+        "../../web/monorepo/libs/mateu/src/mateu/*"
       ]
     }
   },

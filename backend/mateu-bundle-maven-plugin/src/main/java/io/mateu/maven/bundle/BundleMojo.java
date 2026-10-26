@@ -6,6 +6,7 @@ import io.mateu.core.application.export.RouteRegistrations;
 import io.mateu.core.infra.ProjectRendererCheck;
 import io.mateu.uidl.data.ProjectRenderer;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -129,6 +130,17 @@ public class BundleMojo extends AbstractMojo {
   @Parameter(property = "mateu.bundle.renderer")
   private String renderer;
 
+  /**
+   * Ship the bundle as an installable Progressive Web App (on by default): a web app manifest
+   * ({@code pwa/manifest.webmanifest}, named and coloured like the app shell — the same derivation
+   * as the mobile app's manifest), default icons, and a network-first service worker ({@code
+   * mateu-sw.js}) that gives the shell an offline start. {@code false} writes a worker that
+   * unregisters itself instead, so the browsers that installed the previous one let it go. See
+   * {@code io.mateu.core.infra.Pwa}.
+   */
+  @Parameter(property = "mateu.bundle.pwa", defaultValue = "true")
+  private boolean pwa = true;
+
   /** The renderer this bundle ships: explicit, else the project's, else the served one. */
   static ProjectRenderer chooseRenderer(String explicit, ClassLoader appLoader) {
     var named = ProjectRenderer.parse(explicit);
@@ -143,19 +155,38 @@ public class BundleMojo extends AbstractMojo {
     return served != null ? served : ProjectRenderer.vaadin;
   }
 
+  /**
+   * Quiet mode (the {@code dev} goal's rebuilds): the progress lines are not logged, only what went
+   * wrong — the caller logs one line per build.
+   */
+  private boolean quiet;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    var appLoader = buildAppLoader();
+    bundleInto(outputDirectory);
+  }
+
+  /** Builds the bundle into {@code target}: what {@code execute()} does, to any directory. */
+  void bundleInto(File target) throws MojoExecutionException, MojoFailureException {
+    try (var appLoader = buildAppLoader()) {
+      bundleWith(appLoader, target);
+    } catch (IOException e) {
+      getLog().debug("mateu-bundle: could not close the app classpath: " + e.getMessage());
+    }
+  }
+
+  private void bundleWith(URLClassLoader appLoader, File target)
+      throws MojoExecutionException, MojoFailureException {
     var previous = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(appLoader);
     var previousEnvironment = System.getProperty("mateu.environment");
     if (environment != null && !environment.isBlank()) {
-      getLog().info("mateu-bundle: REST sources for environment '" + environment.trim() + "'");
+      info("mateu-bundle: REST sources for environment '" + environment.trim() + "'");
       System.setProperty("mateu.environment", environment.trim());
     }
     try {
       var discovered = RouteRegistrations.read(appLoader);
-      getLog().info("mateu-bundle: discovered " + discovered.size() + " declared route(s)");
+      info("mateu-bundle: discovered " + discovered.size() + " declared route(s)");
 
       var uiClasses = new ArrayList<Class<?>>();
       for (var e : discovered) {
@@ -178,22 +209,24 @@ public class BundleMojo extends AbstractMojo {
           (basePackages != null && !basePackages.isEmpty())
               ? basePackages
               : inferBasePackages(uiClasses);
-      getLog().info("mateu-bundle: scanning app packages " + packages);
+      info("mateu-bundle: scanning app packages " + packages);
 
       if (renderer != null && !renderer.isBlank() && ProjectRenderer.parse(renderer) == null) {
         throw new MojoFailureException(
             "mateu-bundle: unknown renderer '" + renderer + "' (vaadin | redwood)");
       }
       var chosen = chooseRenderer(renderer, appLoader);
-      getLog().info("mateu-bundle: renderer " + chosen + " (" + chosen.coordinates() + ")");
+      info("mateu-bundle: renderer " + chosen + " (" + chosen.coordinates() + ")");
       var expandInBrowser = specsOnly;
       if (specsOnly && chosen == ProjectRenderer.redwood) {
         // The Redwood renderer has no client-side expander: it answers route loads only from
         // PRE-RENDERED increments, so a raw definition would never paint. Pre-render instead.
-        getLog()
-            .warn(
-                "mateu-bundle: specsOnly is not supported by the redwood renderer (it has no"
-                    + " client-side expander) — pre-rendering every route instead");
+        if (!quiet) {
+          getLog()
+              .warn(
+                  "mateu-bundle: specsOnly is not supported by the redwood renderer (it has no"
+                      + " client-side expander) — pre-rendering every route instead");
+        }
         expandInBrowser = false;
       }
 
@@ -210,30 +243,38 @@ public class BundleMojo extends AbstractMojo {
                 : exporter.exportAll(baseUrl, appLoader, true, !skipParamRoutes, expandInBrowser);
 
         BundleWriter.write(
-            outputDirectory.toPath(), manifest, assetsFrom, appLoader, baseUrl, pageTitle, chosen);
+            target.toPath(),
+            manifest,
+            assetsFrom,
+            appLoader,
+            baseUrl,
+            pageTitle,
+            chosen,
+            new BundleWriter.PwaOptions(pwa, shellOf(boot, discovered)));
+        // the UI manifest the Mateu mobile app reads, as a file where a server would answer it
+        MobileManifestFile.write(
+            target.toPath(), MobileManifestFile.json(appLoader, discovered, pageTitle));
 
         long ok = manifest.entries().stream().filter(BundleEntry::ok).count();
         manifest.entries().stream()
             .filter(e -> !e.ok())
             .forEach(
                 e -> getLog().warn("mateu-bundle: skipped " + e.route() + " — " + e.skipReason()));
-        getLog()
-            .info(
-                "mateu-bundle: "
-                    + ok
-                    + "/"
-                    + manifest.entries().size()
-                    + " route(s) rendered → "
-                    + outputDirectory);
+        info(
+            "mateu-bundle: "
+                + ok
+                + "/"
+                + manifest.entries().size()
+                + " route(s) rendered → "
+                + target);
         if (failOnEmpty && ok == 0) {
           throw new MojoFailureException("mateu-bundle: no routes rendered");
         }
         if (!manifest.definitions().isEmpty() && expandInBrowser) {
-          getLog()
-              .info(
-                  "mateu-bundle: specs mode — "
-                      + manifest.definitions().size()
-                      + " raw definition(s) shipped for the browser to expand");
+          info(
+              "mateu-bundle: specs mode — "
+                  + manifest.definitions().size()
+                  + " raw definition(s) shipped for the browser to expand");
         }
         if (staticOnly) {
           var violations = exporter.staticSafety(manifest, appLoader);
@@ -251,7 +292,7 @@ public class BundleMojo extends AbstractMojo {
                     + " @RestListing, a direct source with no secret), or drop staticOnly to"
                     + " deploy the bundle in front of a backend.");
           }
-          getLog().info("mateu-bundle: static-safety report clean — no route needs a server");
+          info("mateu-bundle: static-safety report clean — no route needs a server");
         }
         var skipped = manifest.entries().stream().filter(e -> !e.ok()).toList();
         if (failOnSkipped && !skipped.isEmpty()) {
@@ -280,6 +321,66 @@ public class BundleMojo extends AbstractMojo {
         }
       }
     }
+  }
+
+  /**
+   * What the bundled app declares about itself (name, theme colour, icon) for its installable app:
+   * the root YAML mount's app shell, else the root {@code @UI} class, else the first one.
+   */
+  static io.mateu.core.infra.MobileManifest.Source shellOf(
+      BootContext boot, List<RouteRegistrations.RouteRef> discovered) {
+    try {
+      var registry = boot.bean(io.mateu.core.application.runaction.RouteRegistry.class);
+      var loader = boot.bean(io.mateu.core.application.runaction.YamlAppLoader.class);
+      if (registry != null && loader != null && !registry.mounts().isEmpty()) {
+        var mounts = registry.mounts();
+        var root =
+            mounts.stream()
+                .filter(m -> m.basePath() == null || m.basePath().isEmpty())
+                .findFirst()
+                .orElse(mounts.get(0));
+        var shell =
+            loader.load(registry.rootDefinitionFor(root.basePath() == null ? "" : root.basePath()));
+        if (shell != null) {
+          return io.mateu.core.infra.MobileManifest.sourceOf(shell);
+        }
+      }
+    } catch (RuntimeException e) {
+      // no YAML mount to read: the classes below
+    }
+    var root =
+        discovered.stream()
+            .filter(r -> r.route() == null || r.route().isEmpty() || r.route().equals("/"))
+            .findFirst()
+            .or(() -> discovered.stream().findFirst());
+    return root.map(r -> io.mateu.core.infra.MobileManifest.sourceOf(r.className()))
+        .orElse(io.mateu.core.infra.MobileManifest.sourceOf((io.mateu.uidl.fluent.AppShell) null));
+  }
+
+  private void info(String message) {
+    if (!quiet) {
+      getLog().info(message);
+    }
+  }
+
+  void quiet(boolean quiet) {
+    this.quiet = quiet;
+  }
+
+  MavenProject project() {
+    return project;
+  }
+
+  File outputDirectory() {
+    return outputDirectory;
+  }
+
+  String baseUrl() {
+    return baseUrl;
+  }
+
+  String assetsFrom() {
+    return assetsFrom;
   }
 
   /**

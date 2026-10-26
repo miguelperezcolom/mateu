@@ -1,7 +1,7 @@
 import { HOST_ID, collectFields } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES } from './atoms.mjs'
 import { converterOf, interpolate } from './content.mjs'
-import { ROW_LINES_FIELD, findByType, isBlank, listingOf } from './listing.mjs'
+import { ROW_LINES_FIELD, findByType, isBlank, listingOf, withoutDefaultSizing } from './listing.mjs'
 import { chromeText, chromeLanguage } from '../i18n.mjs'
 import { evaluateExpression, evaluateTemplate } from '../rules.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
@@ -383,7 +383,7 @@ export function searchPickerOf(reg) {
     multi,
     searchable: !!listing.searchable,
     searchText: state.searchText || '',
-    columns: (listing.columns || []).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
+    columns: withoutDefaultSizing(listing.columns || [], listing).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
     rows: listing.rows || [],
     isEmpty: !!listing.isEmpty,
     emptyText: listing.emptyStateMessage || 'No data.',
@@ -409,7 +409,7 @@ function listingOverlayOf(id, ctx) {
     searchable: !!listing.searchable,
     searchText: (ctx.state || {}).searchText || '',
     // the row's own action column is the click itself: no «View» button column
-    columns: (listing.columns || []).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
+    columns: withoutDefaultSizing(listing.columns || [], listing).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
     rows: listing.rows || [],
     isEmpty: !!listing.isEmpty,
     emptyText: listing.emptyStateMessage || 'No data.',

@@ -13,6 +13,20 @@ describe('columnAlign (numeric columns right-aligned by default)', () => {
         expect(columnAlign(undefined, 'string')).toBeUndefined()
         expect(columnAlign('start', 'money')).toBe('start')
     })
+    it('aligns an amount declared by stereotype (a string column with stereotype money) to the end', () => {
+        expect(columnAlign(undefined, 'string', 'money')).toBe('end')
+        expect(columnAlign(null, null, 'money')).toBe('end')
+        expect(columnAlign(undefined, 'string', 'regular')).toBeUndefined()
+        expect(columnAlign('start', 'string', 'money')).toBe('start')
+    })
+    it('normalises a declared alignment to what vaadin-grid-column text-align takes', () => {
+        expect(columnAlign('end', 'string')).toBe('end')
+        expect(columnAlign('END', 'string')).toBe('end')
+        expect(columnAlign('right', 'string')).toBe('end')
+        expect(columnAlign('center', 'string')).toBe('center')
+        expect(columnAlign('left', 'number')).toBe('start')
+        expect(columnAlign('justify', 'string')).toBeUndefined()
+    })
 })
 
 describe('formatNumberCell (numbers in the page locale)', () => {

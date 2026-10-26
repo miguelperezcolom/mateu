@@ -7,6 +7,7 @@ setStreamingFetch(expoFetch as unknown as typeof fetch);
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';
+import type { StaticBundle } from '../core/staticBundle';
 
 export interface MateuConfig {
   baseUrl: string;
@@ -16,6 +17,8 @@ export interface MateuConfig {
   auth?: TokenProvider | null;
   /** Called once with the session, before the first render (hub hooks). */
   onSession?: (session: MateuSession) => void;
+  /** The base URL serves a static bundle (no Mateu server): the app runs from it. */
+  bundle?: StaticBundle | null;
 }
 
 interface AppContextValue {
@@ -42,6 +45,7 @@ export function MateuAppProvider({ config, children }: Props) {
   const ref = useRef<MateuSession | null>(null);
   if (!ref.current) {
     ref.current = new MateuSession(config.baseUrl, config.sessionId ?? randomUuid(), config.appState ?? {}, config.auth);
+    if (config.bundle) ref.current.openStaticBundle(config.bundle);
     config.onSession?.(ref.current);
   }
   const session = ref.current;

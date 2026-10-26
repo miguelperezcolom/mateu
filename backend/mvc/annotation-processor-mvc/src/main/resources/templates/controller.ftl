@@ -44,6 +44,20 @@ public class ${simpleClassName}MateuController implements MateuController {
         return response.body(io.mateu.core.infra.MobileManifest.json(uiId));
     }
 
+    // The installable app (io.mateu.core.infra.Pwa): web app manifest, service worker, its
+    // registration script and the default icons, under v3/pwa/.
+    @org.springframework.web.bind.annotation.GetMapping("v3/pwa/{file}")
+    public org.springframework.http.ResponseEntity<byte[]> pwa(
+            @org.springframework.web.bind.annotation.PathVariable("file") String file) {
+        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, baseUrl);
+        if (asset == null) {
+            return org.springframework.http.ResponseEntity.notFound().build();
+        }
+        var response = org.springframework.http.ResponseEntity.ok();
+        asset.headers().forEach((name, value) -> response.header(name, value));
+        return response.body(asset.body());
+    }
+
     // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment.
     @PostMapping("v3/sse/**")
     public SseEmitter runSseAction(

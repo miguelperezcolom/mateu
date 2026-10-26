@@ -285,6 +285,7 @@
           "home: home"
         ],
         "AGENTS.md": [
+          "mvn mateu-bundle:dev",
           "npx serve -s target/mateu-bundle"
         ],
         ".claude/settings.json": [

@@ -55,6 +55,15 @@ final class BootContext implements AutoCloseable {
     service = ctx.getBean(MateuService.class);
   }
 
+  /** A bean of the booted context, or null when there is none (or it cannot be built). */
+  <T> T bean(Class<T> type) {
+    try {
+      return ctx.getBean(type);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
   @Override
   public void close() {
     ctx.close();

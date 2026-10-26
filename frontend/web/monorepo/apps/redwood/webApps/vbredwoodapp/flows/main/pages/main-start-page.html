@@ -37927,6 +37927,7 @@
       <oj-bind-if test="[[ !$application.variables.mateuListing.cardLayout ]]">
       <oj-table id="mateuTable" :class="[[ $application.variables.mateuListing.tableClass || 'oj-sm-12' ]]"
         display="[[ $application.variables.mateuListing.display ]]"
+        layout="[[ $application.variables.mateuListing.tableLayout || 'contents' ]]"
         data="[[ $functions.serverSorted($variables.listingADP) ]]"
         columns="[[ $application.variables.mateuListing.columns ]]"
         selection-mode="[[ $application.variables.mateuListing.selectionMode ]]"

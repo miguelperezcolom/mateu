@@ -90,6 +90,64 @@ class MateuYamlMountControllerTest {
   }
 
   @Test
+  void servesTheInstallableAppOfTheMount() {
+    // dev mode switches the installable app off, and another test in this JVM may have left it on
+    io.mateu.core.infra.dev.DevMode.disable();
+    try {
+      servesTheInstallableApp();
+    } finally {
+      io.mateu.core.infra.dev.DevMode.reset();
+    }
+  }
+
+  private void servesTheInstallableApp() {
+    // the shell links it…
+    var shell = indexController.index("yaml-parity", "text/html").body();
+    assertThat(
+        shell,
+        containsString(
+            "<link rel=\"manifest\" href=\"/yaml-parity/mateu/v3/pwa/manifest.webmanifest\""));
+    assertThat(shell, containsString("<script src=\"/yaml-parity/mateu/v3/pwa/register.js\""));
+
+    // …the manifest names the mount's app shell and is scoped to the mount…
+    var manifest = controller.pwa("yaml-parity/mateu/v3/pwa/manifest.webmanifest");
+    assertThat(manifest.status(), equalTo(HttpStatus.OK));
+    assertThat(
+        manifest.getContentType().orElseThrow().toString(),
+        startsWith("application/manifest+json"));
+    assertThat(manifest.getHeaders().get("X-Content-Type-Options"), equalTo("nosniff"));
+    assertThat(
+        new String(manifest.body(), java.nio.charset.StandardCharsets.UTF_8),
+        startsWith(
+            "{\"id\":\"/yaml-parity\",\"name\":\"YAML parity\",\"short_name\":\"YAML parity\","
+                + "\"start_url\":\"/yaml-parity\",\"scope\":\"/yaml-parity\""));
+
+    // …the worker, served under /mateu/v3/pwa/, is allowed to control the whole mount…
+    var worker = controller.pwa("yaml-parity/mateu/v3/pwa/sw.js");
+    assertThat(worker.status(), equalTo(HttpStatus.OK));
+    assertThat(worker.getContentType().orElseThrow().toString(), startsWith("text/javascript"));
+    assertThat(worker.getHeaders().get("Service-Worker-Allowed"), equalTo("/yaml-parity"));
+    assertThat(worker.getHeaders().get("Cache-Control"), equalTo("no-cache"));
+    assertThat(
+        new String(worker.body(), java.nio.charset.StandardCharsets.UTF_8),
+        containsString("addEventListener('fetch'"));
+
+    // …and the icons are plain PNGs
+    var icon = controller.pwa("yaml-parity/mateu/v3/pwa/icon-192.png");
+    assertThat(icon.status(), equalTo(HttpStatus.OK));
+    assertThat(icon.getContentType().orElseThrow().toString(), equalTo("image/png"));
+    assertThat(icon.body().length > 0, is(true));
+  }
+
+  @Test
+  void anUnknownInstallableAppFileOrMountIsNotFound() {
+    assertThat(
+        controller.pwa("yaml-parity/mateu/v3/pwa/nope.js").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(
+        controller.pwa("elsewhere/mateu/v3/pwa/sw.js").status(), equalTo(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
   void aFreshDeepLinkAnswersTheShellAimedAtTheRouteRelativeToTheMount() throws Throwable {
     var rq = rq("_empty");
     var increment =

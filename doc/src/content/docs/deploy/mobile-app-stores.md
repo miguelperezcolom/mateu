@@ -15,6 +15,10 @@ A Mateu UI reaches a phone in one of two ways:
 Both use the same renderer and talk to your backend over the same `/mateu/v3/*` API. Nothing about
 your UI changes between them.
 
+There is also a third way that needs no store and no app at all: every Mateu UI is an installable
+**Progressive Web App**, which phones add to the home screen from the browser (and desktop Chrome and
+Edge install in its own window). See [Install as a desktop or phone app](/deploy/install-as-app/).
+
 ## A. Make your UI available in the Mateu app
 
 ### How the hub works
@@ -62,6 +66,11 @@ GET <baseUrl>/mateu/v3/manifest
   tells the app which identity provider your backend trusts.
 - A server that publishes no manifest (an older Mateu) still works. The entry is named after its
   domain.
+
+A UI with **no backend** — a static bundle — publishes the same manifest as a file: `mateu-bundle`
+writes `mateu/v3/manifest` into the bundle (from the app shell; `mateu.mobile.*` settings apply at
+build time) with one more member, `"bundle": "manifest.json"`, and the app runs from that bundle.
+See [Same project on web and phone](/deploy/static-ui/#same-project-on-web-and-phone).
 
 ### 2. The QR code and the deep link
 

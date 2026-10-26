@@ -63,6 +63,25 @@ purposes. `@Weight` / `@ColumnWidth` still override it.
 
 **Compact columns** are columns marked as the identifier (`@Priority(identifier = true)`) or with a priority value ≤ 2 (`@Priority(1)`, `@Priority(2)`). They are the fields shown in the condensed views (list row title, master-detail panel header).
 
+### Column widths in the table
+
+You can list the columns without giving them widths. Both renderers (Vaadin and Redwood) then size
+them the same way:
+
+- **Columns with short values fit their content and do not grow.** These are identifiers, numbers,
+  amounts (`money`), dates and times, booleans, statuses, enums (columns with value labels), row
+  actions and buttons.
+- **Text columns grow** and share the remaining width. Each one gets a share in proportion to its
+  weight (default 1), so `weight: 2` (or `@Weight(2)`) gets twice as much as a column with weight 1.
+- The table fills the available width. When the columns don't fit, it scrolls horizontally instead
+  of squeezing them. On Redwood, a text column starts at no more than 240px. Longer text is cut
+  with an ellipsis, and the full text shows on hover.
+- If no column grows, the compact ones share the width between them.
+
+A declared `width` (`@ColumnWidth`) or `flexGrow` replaces this rule for that column, as before.
+`flexGrow: "0"` makes a text column fit its content. `flexGrow: "2"` makes a compact column grow,
+with weight 2.
+
 ---
 
 ## Telling the compact layouts what matters

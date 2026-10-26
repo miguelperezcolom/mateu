@@ -205,6 +205,23 @@ public static class MateuExtensions
             await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl), ctx.RequestAborted);
         });
 
+        // The installable web app (Mateu.Core.Pwa): its manifest, service worker, registration script
+        // and icons. Public — the browser fetches them before anyone logs in, and none carries a secret.
+        app.MapGet(prefix + Pwa.Dir + "{file}", async (HttpContext ctx, MateuRegistry registry, string file) =>
+        {
+            var asset = Pwa.Asset(file, prefix,
+                () => MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl)),
+                ctx.RequestServices.GetService<MateuOptions>()?.Pwa);
+            if (asset is null)
+            {
+                ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+            foreach (var (name, value) in asset.Headers) ctx.Response.Headers[name] = value;
+            ctx.Response.ContentLength = asset.Body.Length;
+            if (!HttpMethods.IsHead(ctx.Request.Method)) await ctx.Response.Body.WriteAsync(asset.Body, ctx.RequestAborted);
+        });
+
         // Live reload (development mode only): the event stream and the re-render trigger. Absent
         // otherwise — a production app does not even route them.
         if (DevSpecs.Enabled) MapDevEndpoints(app);
@@ -216,7 +233,7 @@ public static class MateuExtensions
         var options = app.Services.GetService<MateuOptions>();
         if (options?.Mcp ?? MateuOptions.McpEnabledByEnvironment()) MapMcpEndpoint(app, prefix);
 
-        if (UiPage.ConfiguredRenderer(ui) is { } renderer) ServeUi(app, prefix, renderer);
+        if (UiPage.ConfiguredRenderer(ui) is { } renderer) ServeUi(app, prefix, baseUrl, renderer);
         else ServeApiHint(app, prefix);
     }
 
@@ -246,9 +263,10 @@ public static class MateuExtensions
     /// endpoints, and the sync API, always win); a streamed response is never touched. What it answers:
     /// a file of the renderer at the origin root (<c>/assets/…</c>), the renderer's page at the mount
     /// and at any deep link under it that accepts HTML and names no file; nothing under <c>/mateu</c>.</summary>
-    private static void ServeUi(WebApplication app, string prefix, RendererFiles renderer)
+    private static void ServeUi(WebApplication app, string prefix, string baseUrl, RendererFiles renderer)
     {
-        var appType = app.Services.GetRequiredService<MateuRegistry>().AppType;
+        var registry = app.Services.GetRequiredService<MateuRegistry>();
+        var appType = registry.AppType;
         var title = appType is null
             ? "Mateu"
             : appType.Find<AppAttribute>()?.Title ?? appType.Find<TitleAttribute>()?.Value ?? appType.Name;
@@ -257,12 +275,18 @@ public static class MateuExtensions
         if (rejected is not null) app.Logger.LogWarning("{Message}", rejected);
         app.Logger.LogInformation("Mateu UI: serving {Renderer} at {Mount}", renderer.Location, prefix.Length == 0 ? "/" : prefix);
         if (oracleCdn is not null) app.Logger.LogInformation("Mateu UI: Oracle's CDN content is loaded from {Mirror}", oracleCdn);
+        // The PWA's head goes on LAST, as on Java (after the Oracle CDN rewrite and the markers): its
+        // worker version hashes the page exactly as served.
+        var pwaOption = app.Services.GetService<MateuOptions>()?.Pwa;
+        var versionSkew = app.Services.GetService<VersionSkew>();
+        string PwaHead(string html) => Pwa.Served(html, prefix,
+            MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl)), versionSkew?.BuildId, pwaOption);
         app.Use(async (ctx, next) =>
         {
             await next(ctx);
             if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
             if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
-            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn);
+            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn, PwaHead);
             if (answer is null) return;
             var (contentType, body, cacheControl) = answer.Value;
             ctx.Response.StatusCode = StatusCodes.Status200OK;
@@ -277,8 +301,10 @@ public static class MateuExtensions
     /// or null when the request is not its to answer.</summary>
     internal static (string ContentType, byte[] Body, string? CacheControl)? UiAnswer(
         string path, string? accept, string prefix, RendererFiles renderer, string title, bool debug,
-        string? oracleCdn = null)
+        string? oracleCdn = null, Func<string, string>? head = null)
     {
+        // the PWA's files are its endpoint's alone: never a renderer file, never the page
+        if (Pwa.IsEndpoint(path)) return null;
         var last = path[(path.LastIndexOf('/') + 1)..];
         if (path != "/" && last.Contains('.'))
         {
@@ -289,6 +315,7 @@ public static class MateuExtensions
         if (!(isMount || (UiPage.SpaCandidate(path) && UiPage.UnderMount(path, prefix)))) return null;
         if (!UiPage.AcceptsHtml(accept)) return null;
         var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug, oracleCdn);
+        if (head is not null) html = head(html);
         return ("text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(html), UiPage.RevalidateCacheControl);
     }
 

@@ -11,6 +11,64 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **`mvn mateu-bundle:dev` — a static UI with live reload.** The bundle plugin's new `dev` goal
+  builds the bundle exactly as `mateu-bundle:bundle` does (same configuration, `mateu.bundle.mock`
+  included), serves it on http://localhost:3000 with the SPA fallback (JDK only, no Node), and
+  rebuilds it on every change under the resource directories, reloading the open pages
+  (`-Dmateu.dev.liveReload=false` to refresh by hand). A rebuild that fails — a YAML error, a
+  `staticOnly` violation — is logged and the last good bundle keeps being served.
+  `-Dmateu.dev.port` (a busy port moves to the next free one), `-Dmateu.dev.host`. The `static`
+  starter, its `AGENTS.md` and the docs use it.
+- **Every Mateu UI is an installable app (PWA).** Chrome and Edge offer "Install app" on the
+  desktop (its own window and icon), phones add it to the home screen, and the shell opens offline.
+  Every served page (the five Java adapters, YAML mounts, .NET, Python) links a web app manifest
+  and registers a service worker, both under `<baseUrl>/mateu/v3/pwa/`; a static bundle ships
+  `pwa/manifest.webmanifest` and `mateu-sw.js`, and opens offline with its screens. The manifest's
+  name, colour and icon are derived exactly like the mobile app's (`mateu.mobile.*` > `@MobileApp` >
+  the app shell); Mateu's own 192/512 px and maskable icons always follow the declared one. The
+  worker is network first (never hides a new deploy), versioned per build, and never caches the
+  Mateu API or REST-source data. On by default: `mateu.pwa.enabled=false` / `MATEU_PWA_ENABLED`
+  (.NET also `MateuOptions.Pwa`), `-Dmateu.bundle.pwa=false` for a bundle; always off in
+  development mode and under `mateu-bundle:dev`. Turned off, the worker's URL answers a worker that
+  unregisters itself. See [Install as a desktop or phone app](https://mateu.io/deploy/install-as-app/).
+
+- **The same static UI on a phone.** The React Native renderer (the Mateu app) opens a static
+  bundle — a YAML-only project with no backend — natively: the hub accepts its URL (QR, link, typed
+  address), and every screen is answered on the device from `manifest.json` by the web's own
+  resolver and client-side expander (now a platform-neutral module of `libs/mateu`,
+  `bundleResolver.ts`), whatever web renderer the project uses; sources are called from the device
+  (sample data in a mock build), listings filter/search/sort/page and `restAction`s write as on the
+  web. `mateu-bundle:bundle` writes the UI manifest the app reads (`mateu/v3/manifest`, with
+  `"bundle": "manifest.json"`); `mateu-bundle:dev` prints the simulator/emulator URLs and, with
+  `-Dmateu.dev.host=0.0.0.0`, the LAN URL and a terminal QR code (`-Dmateu.dev.expoUrl`,
+  `-Dmateu.dev.qr`). RN also honours a `restAction`'s `successRoute` now.
+
+### Changed
+
+- **Listings size their columns sensibly when none of them declares a width.** This applies to both
+  renderers, Vaadin and Redwood. Identifiers, numbers, amounts, dates, booleans, statuses, enums and
+  row actions fit their content and don't grow. Text columns share the rest of the width, each in
+  proportion to its `weight` (default 1). The table fills the width, and it scrolls horizontally
+  rather than squeezing the columns. Before, Redwood's own sizing could give an `Id` holding
+  "P-001" 200px, and Vaadin gave every column the same share. A declared `width` or `flexGrow`
+  still wins.
+  On Redwood the listing table now uses `oj-table` `layout="fixed"`, where a long text is cut with
+  an ellipsis. The full text shows on hover.
+- **A Redwood welcome hero keeps the same look on every visit.** Without a declared tone, the hero's
+  background and illustration were drawn at random each time the page was entered; they are now
+  chosen from the page's identity — its class, or its route for a YAML page (served or from a
+  static bundle) — so a page always looks the same, while different welcome pages still vary. A
+  declared `heroTone()` / `@WelcomeBanner(tone)` / `tone:` still wins.
+
+### Fixed
+
+- **Vaadin: money columns line up on the right.** A YAML listing expanded in the browser
+  (`specsOnly`) carried no `align` for a `stereotype: money` column, so Price sat on the left;
+  `columnAlign` now also reads the stereotype (as the server's column mapper does) and normalizes a
+  declared alignment (`end`/`right`, `center`, `start`/`left`).
+
 ## [3.0-beta.13] — 2026-10-24
 
 Version skew handled end to end (a redeployment and a stale screen are told to the user, every

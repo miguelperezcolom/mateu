@@ -78,6 +78,61 @@ pre-rendered; edit a definition in `manifest.json`, refresh, see it.
 Either way the output is `target/mateu-bundle/`: `index.html`, `manifest.json`, the renderer's
 static app (`assets/` for Vaadin, `_redwood/` for Redwood) and a `_redirects` SPA fallback.
 
+## Develop with live reload
+
+While you work on the screens, run the `dev` goal instead of rebuilding by hand:
+
+```bash
+mvn mateu-bundle:dev                                # http://localhost:3000
+mvn mateu-bundle:dev -Dmateu.dev.liveReload=false   # same, but you refresh the page yourself
+```
+
+It builds exactly what `mvn package` builds — the plugin's `<configuration>`, the
+`-Dmateu.bundle.*` properties and `.mvn/maven.config` (sample data included) — into
+`target/mateu-bundle/`, serves it with the SPA fallback, and rebuilds it whenever a file under the
+resource directories changes (`specs/ui/**`: definitions, sources and their samples, translations).
+Each rebuild logs one line; with live reload on (the default) the open pages reload after it. The
+reload script is added as the page is served, never written to the bundle.
+
+A change that breaks the build — a YAML error, a screen that would need a server under `staticOnly`
+— is logged (and shown in the browser console) and **the last good bundle keeps being served**; the
+next good save picks up from there. Nothing but a JDK is needed (no Node). `-Dmateu.dev.port`
+chooses the port (a busy one moves to the next free one, and says so), `-Dmateu.dev.host=0.0.0.0`
+opens it to your network; Ctrl+C stops it. The `mateu-bundle:` prefix resolves because the pom
+declares the plugin; elsewhere use `mvn io.mateu:mateu-bundle-maven-plugin:dev`.
+
+To look at the finished bundle as a static host will serve it, build it and serve the folder:
+`mvn package && npx serve -s target/mateu-bundle`.
+
+## Same project on web and phone
+
+The bundle is also a UI the **Mateu app** (the React Native renderer) opens natively — the same
+YAML, no backend, no second project. The build writes, next to `manifest.json`, the UI manifest the
+app reads (`mateu/v3/manifest`: name, icon and colour from the app shell, plus
+`"bundle": "manifest.json"`); the app then answers every screen on the device from the bundle — the
+same resolver and expander the web renderers use, whatever renderer `project.yaml` picks — and calls
+your `sources` from the phone (their `sample:` data in a mock build). Filters, search, sorting and
+paging of a `rowsSource` listing, and `restAction` writes, run on the device as in the browser.
+
+```bash
+mvn mateu-bundle:dev                              # simulators: the URLs are printed
+mvn mateu-bundle:dev -Dmateu.dev.host=0.0.0.0     # a phone on your Wi-Fi: URL + a QR code
+```
+
+- **iOS simulator**: add `http://localhost:3000` in the app (or open
+  `exp://localhost:8081/--/add?u=http%3A%2F%2Flocalhost%3A3000` when you run the app from source).
+- **Android emulator**: the host is `http://10.0.2.2:3000`.
+- **A real phone**: with `-Dmateu.dev.host=0.0.0.0` the goal prints your LAN address and a terminal
+  QR code of `https://mateu.io/add?u=http://<lan ip>:3000` — scan it with the camera. Plain `http` is
+  accepted by **development builds** of the app only; with the React Native renderer running from
+  source in Expo Go, pass `-Dmateu.dev.expoUrl=exp://<lan ip>:8081` and the QR opens Expo Go
+  instead. `-Dmateu.dev.qr=false` prints the link without the code.
+
+Deployed, it is the same: add `https://your-cdn.example.com/app` in the app (a bundle built before
+the UI manifest file existed is recognised by its `manifest.json` and named from its app shell). The
+APIs are called from the phone — a native app needs no CORS, the app's web build does. Live reload
+does not reach the phone: reopen the UI after a change.
+
 ## Choosing the renderer
 
 The bundle ships the **project's renderer**, the one `specs/ui/project.yaml` names (see
@@ -147,6 +202,16 @@ backend at `baseUrl`. That is a legitimate deployment too.
   zero-code alternative is a **same-origin reverse proxy** at the CDN (route `/api/*` to the API) —
   then the sources use relative URLs and there is no CORS at all.
 - **Re-pointing** an environment is an edit of `sources` in `manifest.json`.
+
+## Install as a desktop or phone app
+
+The bundle is an installable **Progressive Web App**: Chrome and Edge offer **Install app** on the
+desktop (its own window and icon), phones add it to the home screen, and it opens **offline**,
+screens included, because the definitions travel in `manifest.json`. The build writes
+`pwa/manifest.webmanifest` (named and coloured from the app shell), default icons and a
+network-first service worker, `mateu-sw.js`, at the bundle's root; data from REST sources is never
+cached. On by default; `-Dmateu.bundle.pwa=false` turns it off, and the `dev` goal never registers
+the worker. See [Install as a desktop or phone app](/deploy/install-as-app/).
 
 ## Auth, and what it can and cannot do
 

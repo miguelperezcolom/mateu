@@ -43,6 +43,7 @@ import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { columnRenderer, renderColumnOrGroup, sorterChanged } from "./renderColumn.ts";
 import { splitLines } from "@infra/ui/listingLines.ts";
+import { withDefaultColumnSizing } from "@infra/ui/columnSizing.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
@@ -380,7 +381,9 @@ export class MateuTable extends LitElement {
             c.metadata?.type === ComponentMetadataType.GridGroupColumn ? undefined : c.metadata as GridColumn)
         const multiLine = lines.extra.length > 0
         const extraLines = lines.extra.map(line => line.map(c => c.metadata as GridColumn))
-        const gridColumns = multiLine ? lines.first : (this.metadata?.columns ?? [])
+        // columns that declare no width: compact ones fit their content, text ones share the rest
+        // by weight (columnSizing.ts — the same rule as the Redwood renderer)
+        const gridColumns = withDefaultColumnSizing(multiLine ? lines.first : (this.metadata?.columns ?? []))
         const hasDetail = !!this.metadata?.detailPath
         const loadedRows: any[] = (items ?? page?.content ?? []) as any[]
         const gridDetailsOpened = multiLine ? loadedRows.filter(row => !isGroupRow(row)) : this.detailsOpenedItems

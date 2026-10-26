@@ -6,9 +6,10 @@ import { MateuAppProvider } from '../../context/AppContext';
 import { OidcTokenProvider } from '../../core/oidc';
 import type { MateuSession } from '../../core/MateuSession';
 import { SessionContent } from '../../shell/SessionContent';
+import { fetchStaticBundle, type StaticBundle } from '../../core/staticBundle';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
-import { fetchManifest, versionGate, type UiManifest } from '../manifest';
+import { fetchManifest, versionGate, type ManifestFetch, type UiManifest } from '../manifest';
 import { allowInsecure, appVersion, secretStore, uiStore } from '../storage';
 import { uiSecretKeys, type HubEntry } from '../uiStore';
 import { uiSessionId } from '../uiSession';
@@ -35,6 +36,29 @@ type Phase =
  * MateuAppProvider (own MateuSession, API client, token provider, app state, navigation container),
  * and stays mounted while the user is elsewhere, so coming back finds it where it was left.
  */
+type Found<T> = { ok: true } & T | { ok: false; reason: string };
+
+/** The UI's manifest: the one just fetched (stored for the list), or offline the cached copy. */
+async function manifestOf(fetched: ManifestFetch, entry: HubEntry): Promise<Found<{ manifest: UiManifest }>> {
+  if (fetched.ok) {
+    if (!('missing' in fetched) || !entry.manifest) await uiStore.applyManifest(entry.id, fetched.manifest);
+    return { ok: true, manifest: fetched.manifest };
+  }
+  // offline: the cached copy keeps the list and the gate working
+  return entry.manifest ? { ok: true, manifest: entry.manifest } : { ok: false, reason: fetched.reason };
+}
+
+/** A static UI runs from its bundle: fetched now (or already, while it was recognised); null for a served UI. */
+async function staticBundleOf(
+  fetched: ManifestFetch,
+  manifest: UiManifest,
+  baseUrl: string,
+): Promise<Found<{ bundle: StaticBundle | null }>> {
+  if (!manifest.bundle) return { ok: true, bundle: null };
+  if (fetched.ok && 'bundle' in fetched && fetched.bundle) return { ok: true, bundle: fetched.bundle };
+  return fetchStaticBundle(baseUrl, manifest.bundle);
+}
+
 export function UiSession({
   entry,
   route,
@@ -51,6 +75,8 @@ export function UiSession({
   const [phase, setPhase] = useState<Phase>({ name: 'manifest' });
   const [manifest, setManifest] = useState<UiManifest | undefined>(entry.manifest);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  /** A static UI (no server): the bundle it runs from. */
+  const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   const provider = useMemo(
@@ -66,23 +92,24 @@ export function UiSession({
       setPhase({ name: 'manifest' });
       void uiStore.touch(entry.id);
       const fetched = await fetchManifest(entry.baseUrl, undefined, { allowInsecure });
-      let m: UiManifest | undefined;
-      if (fetched.ok) {
-        m = fetched.manifest;
-        if (!('missing' in fetched) || !entry.manifest) await uiStore.applyManifest(entry.id, m);
-      } else if (entry.manifest) {
-        m = entry.manifest; // offline: the cached copy keeps the list and the gate working
-      } else {
-        if (alive) setPhase({ name: 'error', reason: fetched.reason });
+      const m = await manifestOf(fetched, entry);
+      if (!m.ok) {
+        if (alive) setPhase({ name: 'error', reason: m.reason });
+        return;
+      }
+      const found = await staticBundleOf(fetched, m.manifest, entry.baseUrl);
+      if (!found.ok) {
+        if (alive) setPhase({ name: 'error', reason: found.reason });
         return;
       }
       const id = await uiSessionId(secretStore, entry.id);
       if (!alive) return;
-      setManifest(m);
+      setManifest(m.manifest);
+      setBundle(found.bundle);
       setSessionId(id);
-      const gate = versionGate(m, appVersion());
+      const gate = versionGate(m.manifest, appVersion());
       if (!gate.ok) return setPhase({ name: 'update', reason: gate.reason });
-      setPhase(m.auth ? { name: 'signin' } : { name: 'ready' });
+      setPhase(m.manifest.auth ? { name: 'signin' } : { name: 'ready' });
     })();
     return () => {
       alive = false;
@@ -170,7 +197,7 @@ export function UiSession({
     );
   } else {
     body = (
-      <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession }}>
+      <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle }}>
         <SessionContent initialRoute={route} visible={visible} />
       </MateuAppProvider>
     );

@@ -1,5 +1,5 @@
 
-import{_ as e,a as t,b as n,g as r,o as i,s as a,w as o}from"./vendor-lit.js";import{E as s,T as c}from"./mateu-vaadin.js";var l=class extends r{constructor(...e){super(...e),this.fieldId=``,this.signing=!1,this.hasStrokes=!1,this.drawing=!1,this.startStroke=e=>{let t=e.target;this.ensureCanvasSize(t),t.setPointerCapture(e.pointerId),this.drawing=!0;let n=t.getContext(`2d`);n.lineWidth=2,n.lineCap=`round`,n.lineJoin=`round`,n.strokeStyle=getComputedStyle(this).getPropertyValue(`--lumo-body-text-color`)||`#1a1a1a`;let[r,i]=this.pointerPosition(e);n.beginPath(),n.moveTo(r,i),e.preventDefault()},this.stroke=e=>{if(!this.drawing)return;let t=e.target.getContext(`2d`),[n,r]=this.pointerPosition(e);t.lineTo(n,r),t.stroke(),this.hasStrokes=!0,e.preventDefault()},this.endStroke=e=>{this.drawing=!1,e.target.releasePointerCapture(e.pointerId)}}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}canvas(){return this.renderRoot.querySelector(`canvas`)}pointerPosition(e){let t=e.target.getBoundingClientRect();return[e.clientX-t.left,e.clientY-t.top]}ensureCanvasSize(e){let t=e.getBoundingClientRect();(e.width!==Math.round(t.width)||e.height!==Math.round(t.height))&&(e.width=Math.round(t.width),e.height=Math.round(t.height))}clear(){let e=this.canvas();e&&e.getContext(`2d`).clearRect(0,0,e.width,e.height),this.hasStrokes=!1}accept(){let e=this.canvas();!e||!this.hasStrokes||(this.signing=!1,this.emit(e.toDataURL(`image/png`)))}renderPad(){return n`
+import{C as e,D as t,b as n,i as r,n as i,r as a,y as o}from"./vendor-lit.js";import{E as s,T as c}from"./mateu-vaadin.js";var l=class extends o{constructor(...e){super(...e),this.fieldId=``,this.signing=!1,this.hasStrokes=!1,this.drawing=!1,this.startStroke=e=>{let t=e.target;this.ensureCanvasSize(t),t.setPointerCapture(e.pointerId),this.drawing=!0;let n=t.getContext(`2d`);n.lineWidth=2,n.lineCap=`round`,n.lineJoin=`round`,n.strokeStyle=getComputedStyle(this).getPropertyValue(`--lumo-body-text-color`)||`#1a1a1a`;let[r,i]=this.pointerPosition(e);n.beginPath(),n.moveTo(r,i),e.preventDefault()},this.stroke=e=>{if(!this.drawing)return;let t=e.target.getContext(`2d`),[n,r]=this.pointerPosition(e);t.lineTo(n,r),t.stroke(),this.hasStrokes=!0,e.preventDefault()},this.endStroke=e=>{this.drawing=!1,e.target.releasePointerCapture(e.pointerId)}}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}canvas(){return this.renderRoot.querySelector(`canvas`)}pointerPosition(e){let t=e.target.getBoundingClientRect();return[e.clientX-t.left,e.clientY-t.top]}ensureCanvasSize(e){let t=e.getBoundingClientRect();(e.width!==Math.round(t.width)||e.height!==Math.round(t.height))&&(e.width=Math.round(t.width),e.height=Math.round(t.height))}clear(){let e=this.canvas();e&&e.getContext(`2d`).clearRect(0,0,e.width,e.height),this.hasStrokes=!1}accept(){let e=this.canvas();e&&this.hasStrokes&&(this.signing=!1,this.emit(e.toDataURL(`image/png`)))}renderPad(){return e`
             <canvas class="pad"
                     @pointerdown="${this.startStroke}"
                     @pointermove="${this.stroke}"
@@ -9,14 +9,14 @@ import{_ as e,a as t,b as n,g as r,o as i,s as a,w as o}from"./vendor-lit.js";im
                 <button class="button" @click="${this.clear}">${s(`clear`)}</button>
                 <button class="button button--primary" ?disabled="${!this.hasStrokes}"
                         @click="${this.accept}">${s(`accept`)}</button>
-                ${this.value?n`
-                    <button class="button" @click="${()=>{this.signing=!1}}">${s(`cancel`)}</button>`:e}
-            </div>`}render(){let e=this.value!=null&&this.value!==``;return this.signing||!e?this.renderPad():n`
+                ${this.value?e`
+                    <button class="button" @click="${()=>{this.signing=!1}}">${s(`cancel`)}</button>`:n}
+            </div>`}render(){let t=this.value!=null&&this.value!==``;return this.signing||!t?this.renderPad():e`
             <img class="preview" src="${this.value}" alt="Signature"/>
             <div class="actions">
                 <button class="button" @click="${()=>{this.signing=!0,this.hasStrokes=!1,this.updateComplete.then(()=>this.clear())}}">${s(`signAgain`)}</button>
                 <button class="button button--danger" @click="${()=>this.emit(``)}">${s(`delete`)}</button>
-            </div>`}static{this.styles=o`
+            </div>`}static{this.styles=t`
         :host {
             display: block;
             max-width: 420px;
@@ -66,4 +66,4 @@ import{_ as e,a as t,b as n,g as r,o as i,s as a,w as o}from"./vendor-lit.js";im
         .button--danger {
             color: var(--lumo-error-text-color, rgb(179, 49, 31));
         }
-    `}};c([i()],l.prototype,`fieldId`,void 0),c([i()],l.prototype,`value`,void 0),c([t()],l.prototype,`signing`,void 0),c([t()],l.prototype,`hasStrokes`,void 0),l=c([a(`mateu-signature-pad`)],l);export{l as MateuSignaturePad};
+    `}};c([a()],l.prototype,`fieldId`,void 0),c([a()],l.prototype,`value`,void 0),c([i()],l.prototype,`signing`,void 0),c([i()],l.prototype,`hasStrokes`,void 0),l=c([r(`mateu-signature-pad`)],l);export{l as MateuSignaturePad};
