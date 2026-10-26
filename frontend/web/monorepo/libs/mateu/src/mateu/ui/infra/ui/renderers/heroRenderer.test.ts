@@ -24,11 +24,11 @@ describe('the hero', () => {
         expect(hero.querySelector('h1')!.textContent).toBe('Plano de control')
     })
 
-    it("sits on a deep tone of the app's accent and carries the accent strip at its foot", () => {
+    it("sits on a deep tone of the app's accent, with no colour strip at its foot (Redwood's welcome banner has none)", () => {
         const hero = draw({ title: 'Hola' })
         expect(hero.getAttribute('style')).toContain('var(--mateu-accent')
-        const strip = hero.querySelector('.mateu-hero-strip') as HTMLElement
-        expect(strip.getAttribute('style')).toContain('var(--mateu-page-band-image')
+        expect(hero.querySelector('.mateu-hero-strip')).toBeNull()
+        expect(hero.innerHTML).not.toContain('--mateu-page-band')
     })
 
     it('keeps the declared alignment with no image', () => {

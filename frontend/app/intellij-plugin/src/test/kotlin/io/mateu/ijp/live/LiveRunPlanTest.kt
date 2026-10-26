@@ -89,4 +89,50 @@ class LiveRunPlanTest {
             MateuDevClient.reloadUrl("http://localhost:8080", "app"))
         assertFalse(MateuDevClient.reload("http://localhost:1"))
     }
+
+    private val bundlePom = """
+        <project><build><plugins><plugin><groupId>io.mateu</groupId>
+        <artifactId>mateu-bundle-maven-plugin</artifactId></plugin></plugins></build></project>
+    """.trimIndent()
+
+    @Test
+    fun `a static bundle project runs mateu-bundle dev, with nothing to attach a debugger to`() {
+        assertEquals(Framework.STATIC_BUNDLE, frameworkOf(bundlePom))
+        val plan = liveRunPlan(File("/work/ui"), BuildTool.MAVEN, bundlePom, "", emptyList(), isWindows = false)
+        assertEquals(listOf("mvn", "mateu-bundle:dev", "-Dmateu.dev.port=3000", "-Dmateu.dev.qr=false"), plan.command)
+        assertEquals("http://localhost:3000", plan.appUrl)
+        assertEquals(null, plan.debugPort)
+    }
+
+    @Test
+    fun `the URL a static bundle really serves on is read from its log line`() {
+        val line = "[INFO] mateu-dev: serving http://localhost:3001/ (live reload on), watching [...]\n"
+        assertEquals("http://localhost:3001", BUNDLE_SERVING_LINE.find(line)?.groupValues?.get(1))
+    }
+
+    @Test
+    fun `a LAN launch makes the app listen on every interface`() {
+        val quarkus = liveRunPlan(File("."), BuildTool.MAVEN, "quarkus-maven-plugin", "", emptyList(),
+            isWindows = false, lan = true)
+        assertTrue(quarkus.command.contains("-Dquarkus.http.host=0.0.0.0"))
+        val bundle = liveRunPlan(File("."), BuildTool.MAVEN, bundlePom, "", emptyList(), isWindows = false, lan = true)
+        assertTrue(bundle.command.contains("-Dmateu.dev.host=0.0.0.0"))
+        val spring = liveRunPlan(File("."), BuildTool.MAVEN, springPom, "", emptyList(), isWindows = false, lan = true)
+        assertFalse(spring.command.any { "0.0.0.0" in it })
+        // Spring Boot listens on every interface anyway; Quarkus only when launched for the network
+        assertTrue(reachableFromLan(spring))
+        assertTrue(reachableFromLan(quarkus))
+        assertFalse(reachableFromLan(liveRunPlan(File("."), BuildTool.MAVEN, "quarkus-maven-plugin", "", emptyList(),
+            isWindows = false)))
+    }
+
+    @Test
+    fun `the app module is a runnable app first, else a static bundle`() {
+        val root = Files.createTempDirectory("proj").toFile()
+        File(root, "pom.xml").writeText("<project><modules/></project>")
+        File(root, "ui").mkdirs(); File(root, "ui/pom.xml").writeText(bundlePom)
+        assertEquals(File(root, "ui"), appModuleOf(root))
+        File(root, "app").mkdirs(); File(root, "app/pom.xml").writeText(springPom)
+        assertEquals(File(root, "app"), appModuleOf(root))
+    }
 }

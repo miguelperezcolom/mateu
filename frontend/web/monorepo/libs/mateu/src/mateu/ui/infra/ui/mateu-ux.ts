@@ -702,19 +702,22 @@ export class MateuUx extends ConnectedElement {
             margin: 0 auto;
         }
 
-        /* Anatomía de anchos RDS (data-page-width — el valor RESUELTO fixed|full|edge que
-           applyFragment estampa en el host): fixed = columna de contenido con tope RDS
-           (1408px) centrada; full = fluido sin tope pero CON gutter de 24px siempre (el
-           contenido posee el gutter — así una página SUELTA sin app-shell no queda a sangre
-           por accidente; dentro de un app-shell el shell ya aporta su propio padding); edge =
-           a sangre — los gutters del shell caen por el hook no-padding (compact-changed) y el
-           header de mateu-page conserva el suyo. Solo aplica al mateu-ux de CONTENIDO. */
+        /* Redwood's page widths ("Page resolutions and margins", data-page-width — the RESOLVED
+           fixed|full|edge value applyFragment stamps on the host; only the CONTENT mateu-ux):
+           - fixed: the content grows to 1392px, then the margins grow and centre it — so at
+             1440px and above the margin is (width − 1392) / 2, never less than the gutter;
+           - full: a 24px margin up to 1440px, then it grows with the screen up to 96px (reached
+             at 1584px), and from there the content grows;
+           - edge: no margins — the shell's gutters drop through the no-padding hook
+             (compact-changed) and mateu-page's header keeps its own.
+           The content owns the gutter, so a STANDALONE page (no app shell) is not edge-to-edge
+           by accident. */
         /* --mateu-content-gutter: the gutter a shell WITHOUT padded content area asks its content
            view for (MENU_ON_TOP's two-band shell: 24px, 16px on a phone); a padded .app-content
-           sets it to 0. Fixed keeps its 1408px column and gets the gutter when narrower. */
+           sets it to 0. Fixed keeps its 1392px column and gets the gutter when narrower. */
         :host([data-page-width='fixed']) {
             box-sizing: border-box;
-            max-width: min(calc(1408px + 2 * var(--mateu-content-gutter, var(--lumo-space-m, 1rem))), 100%);
+            max-width: min(calc(1392px + 2 * var(--mateu-content-gutter, var(--lumo-space-m, 1rem))), 100%);
             margin-inline: auto;
             /* a STANDALONE page (no app shell to set the gutter) keeps the design system's side
                gutter — on a phone the content used to touch the screen edges (UX review W-V-GUTTER);
@@ -723,7 +726,8 @@ export class MateuUx extends ConnectedElement {
         }
         :host([data-page-width='full']) {
             box-sizing: border-box;
-            padding-inline: var(--mateu-content-gutter, 24px);
+            /* the gutter, plus what Redwood's full-width margin grows past 1440px (up to 96px) */
+            padding-inline: calc(var(--mateu-content-gutter, 24px) + clamp(0px, (100% - 1440px) / 2, 72px));
         }
         /* the view that took the gutter is the page: views nested in it (islands, a drawer's
            content) are not, and must not take it again. An edge view (a remote shell's root)
@@ -743,10 +747,10 @@ export class MateuUx extends ConnectedElement {
         /* The aside channel (layout/fabRail.ts): when the page has FABs or a section index, the
            content view leaves room at its end for them, so they sit OUTSIDE the work area. Fixed:
            narrowed only as much as its margin lacks for the channel, both sides alike to stay
-           centred (the Redwood shell's box is the 1408px column plus a channel each side). Full: the channel is
+           centred (the box is the 1392px column plus a channel each side). Full: the channel is
            its end padding. The values are measured and set by the view that owns the channel. */
         :host([data-page-width='fixed'][data-aside]) {
-            max-width: min(calc(1408px + 2 * var(--mateu-content-gutter, 0px)), 100% - 2 * var(--mateu-aside-squeeze, 0px));
+            max-width: min(calc(1392px + 2 * var(--mateu-content-gutter, 0px)), 100% - 2 * var(--mateu-aside-squeeze, 0px));
         }
         :host([data-page-width='full'][data-aside]) {
             padding-inline-end: var(--mateu-aside-pad-end, 24px);

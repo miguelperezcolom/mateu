@@ -55,6 +55,20 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
     private var booting = false
     private var homeOpened = false
 
+    /**
+     * Drops the current session and boots again from the settings (call on the EDT) — what a Mateu App
+     * run configuration does when it opens the app it just started on the desktop: the backend may
+     * not have been up when the project opened, or the settings pointed elsewhere.
+     */
+    fun reconnect() {
+        if (booting) return
+        session?.dispose()
+        session = null
+        project.putUserData(MATEU_SESSION, null)
+        homeOpened = false
+        ensureBooted()
+    }
+
     /** Boot the session + app shell (idempotent; call on the EDT). */
     fun ensureBooted() {
         if (session != null || booting) return

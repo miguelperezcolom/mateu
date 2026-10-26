@@ -587,7 +587,6 @@ describe('what the shell publishes on boot', () => {
     it('the brand accent and the favicon', async () => {
         const el = await mount(app({ accentColor: '#c74634', favicon: '/favicon.png' }))
         expect(el.style.getPropertyValue('--mateu-accent')).toBe('#c74634')
-        expect(el.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#c74634, #c74634)')
         expect((document.querySelector("link[rel~='icon']") as HTMLLinkElement).href).toContain('/favicon.png')
         // an accent that would break out of the declaration is ignored, and the old one removed
         el.component = app({ accentColor: 'red; background: url(x)' }) as never
@@ -595,9 +594,11 @@ describe('what the shell publishes on boot', () => {
         expect(el.style.getPropertyValue('--mateu-accent')).toBe('')
     })
 
-    it('an accent strip image goes on the band', async () => {
-        const el = await mount(app({ accentColor: 'teal', accentStrip: '/img/strip.svg' }))
-        expect(el.style.getPropertyValue('--mateu-page-band-image')).toBe('url("/img/strip.svg")')
+    it('an accent draws no colour strip, not even with a strip image (Redwood drops the strip for a custom brand)', async () => {
+        const el = await mount(app({ accentColor: 'teal', accentStrip: '/img/strip.svg', generatedAccentStrip: 'data:image/svg+xml;base64,PHN2Zy8+' }))
+        expect(el.style.getPropertyValue('--mateu-accent')).toBe('teal')
+        expect(el.style.getPropertyValue('--mateu-page-band-h')).toBe('')
+        expect(el.style.getPropertyValue('--mateu-page-band-image')).toBe('')
     })
 
     it('the app-scope data source is fetched once into the app data, and the screens are told', async () => {

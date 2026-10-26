@@ -587,7 +587,7 @@ export class MateuVaadinFoldout extends LitElement {
             height: 4px;
             margin-top: .6rem;
             border-radius: 2px;
-            background: var(--mateu-foldout-accent, var(--lumo-primary-color, #1976d2));
+            background: var(--mateu-foldout-accent, var(--mateu-accent, var(--lumo-primary-color, #1976d2)));
         }
         .panel-header h3 {
             margin: 0;

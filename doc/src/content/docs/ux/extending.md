@@ -151,7 +151,7 @@ and event bindings, plus a script to load it. See
 
 A brand is a **token layer** set once (colours, typography, radii, density), not per-screen
 styling. Each renderer exposes its design system's tokens; the shell adds an
-[accent colour and strip](/design-systems/accent-strip/). Per-page density is `@Compact`; per-page
+[accent colour](/design-systems/accent-strip/). Per-page density is `@Compact`; per-page
 width is `@PageWidth`. Inline `style`/`cssClasses` exist on every component, but they are a
 renderer-specific escape and do not travel well. See
 [branding and design tokens](/design-systems/branding-and-design-tokens/) and, for designers, the

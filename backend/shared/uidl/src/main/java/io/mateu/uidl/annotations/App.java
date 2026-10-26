@@ -114,36 +114,34 @@ public @interface App {
    * The app's brand accent — a CSS colour, e.g. {@code "#D2232A"}. It is NOT the theme's primary
    * colour: primary means "you can click this", the accent only says whose app this is. The Vaadin
    * shell uses it for the console name in the section band (light theme only — in dark it stays
-   * body text, where a brand red loses contrast), the welcome hero's background and the accent
-   * strip — where Redwood draws its colour strip: under a page's header, on top of a listing's
-   * results, at the foot of the hero. Blank (the default): no accent. Exposed to the page as the
-   * {@code --mateu-accent} custom property, which an app's own CSS can also set.
+   * body text, where a brand red loses contrast), the welcome hero's background and the Section
+   * dash, the short rule under every section title — which is where a custom Redwood theme puts its
+   * accent colour. It draws no colour strip: Redwood removes its strip as soon as an app brings its
+   * own brand. Blank (the default): no accent (the dash takes the primary colour). Exposed to the
+   * page as the {@code --mateu-accent} custom property, which an app's own CSS can also set.
    */
   String accentColor() default "";
 
   /**
-   * The image of the accent strip (see {@link #accentColor()}), the Vaadin shell's take on
-   * Redwood's decorative colour band (the Redwood renderer shows its own Spectra strips and ignores
-   * all of this):
+   * Ignored. The accent strip was the Vaadin shell's take on Redwood's colour strip, but Redwood
+   * removes that strip as soon as an app brings its own brand (Redwood Cobranding: "visual elements
+   * like the strip and data textures are removed to avoid conflicting branding"), so no renderer
+   * draws one any more; the app's accent goes to the Section dash instead (see {@link
+   * #accentColor()}).
    *
-   * <ul>
-   *   <li>blank (the default): Mateu draws the strip itself, from {@link #accentColor()} — hills,
-   *       arches, peaks and blocks in a palette derived from the accent (see {@link
-   *       #accentStripSeed()} and {@code io.mateu.core.infra.AccentStrip}). Only a hex accent
-   *       ({@code #rgb}/{@code #rrggbb}) can be drawn; any other gets the plain band;
-   *   <li>a URL, e.g. {@code "/images/strip.svg"}: the app's own image, repeated along the strip;
-   *   <li>{@code "none"}: no drawing — the strip is a plain band in the accent colour.
-   * </ul>
-   *
-   * Ignored with no accent.
+   * @deprecated no effect, and no replacement: remove it — the accent goes to the Section dash
+   *     through {@link #accentColor()}.
    */
+  @Deprecated(since = "3.0-beta.15", forRemoval = true)
   String accentStrip() default "";
 
   /**
-   * The seed of the strip Mateu draws when {@link #accentStrip()} is blank: the drawing is a seeded
-   * random walk, so the same accent and seed always give the same strip, and another seed another
-   * strip in the same palette. Try a few and keep the one you like.
+   * Ignored, like {@link #accentStrip()}: Mateu no longer draws an accent strip.
+   *
+   * @deprecated no effect, and no replacement: remove it — the accent goes to the Section dash
+   *     through {@link #accentColor()}.
    */
+  @Deprecated(since = "3.0-beta.15", forRemoval = true)
   int accentStripSeed() default 7;
 
   /**
