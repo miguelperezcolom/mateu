@@ -59,6 +59,10 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <projectConfigurable parentId="tools" id="io.mateu.settings" displayName="Mateu"
                              instance="io.mateu.ijp.plugin.MateuConfigurable"/>
         <notificationGroup id="Mateu" displayType="BALLOON"/>
+        <!-- Mateu App run configuration: the UI in development mode, opened on the web, this IDE's
+             Mateu tool window, the Mateu app on an emulator/simulator, or a phone (io.mateu.ijp.live). -->
+        <configurationType implementation="io.mateu.ijp.live.MateuAppConfigurationType"/>
+        <programRunner implementation="io.mateu.ijp.live.MateuAppDebugRunner"/>
         <!-- an error stays until dismissed, in every renderer (owner, 2026-10-12) -->
         <notificationGroup id="Mateu errors" displayType="STICKY_BALLOON"/>
         <!-- File | New | Project… › Mateu: the shared project generator over the bundled starters
@@ -119,7 +123,13 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
              opened; spec edits and HotSwaps re-render the open screen. See io.mateu.ijp.live. -->
         <action id="io.mateu.RunLive" class="io.mateu.ijp.live.RunMateuLiveAction"
                 text="Run Mateu App (Live)"
-                description="Start this project's Mateu app in development mode (live reload) with the debugger attached, and open it">
+                description="Debug this project's Mateu App run configuration: the app in development mode (live reload), the debugger attached, opened where the configuration says">
+            <add-to-group group-id="RunMenu" anchor="last"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+        <action id="io.mateu.OpenAppIn" class="io.mateu.ijp.live.OpenMateuAppInAction"
+                text="Open Mateu App In…"
+                description="Open the running Mateu app on another target: the browser, this IDE, an Android emulator, an iOS simulator or a phone">
             <add-to-group group-id="RunMenu" anchor="last"/>
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>

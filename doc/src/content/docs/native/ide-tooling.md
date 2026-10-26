@@ -160,15 +160,36 @@ The standalone desktop distribution (the IDE rebranded as your app, see
 [Desktop & Mobile](/native/)) is the only place the plugin takes over the frame title, hides foreign
 tool windows and lands on the home route.
 
-## Live development: Run Mateu App (Live)
+## Live development: the Mateu App run configuration
 
-**Run | Run Mateu App (Live)** (also under **Tools**) starts the project's app in development mode
-(`mateu.dev=true`, every `src/main/resources/specs/ui` of the project watched) with the debug agent
-listening, attaches a *Remote JVM Debug* session once it answers, points **Settings | Tools | Mateu** at
-it when nothing else is configured — so this tool window and the **visual editor's Play** use the
-running app — and opens it in the browser. From then on a YAML edit (in the text editor or the visual
-editor's canvas) re-renders the open screen in place, and every **HotSwap** fires
-`POST /mateu/dev/reload` so the screen shows the new code. **Run | Reload Mateu Screen** fires it by
-hand. Spring Boot, Quarkus, Micronaut and Helidon apps (Maven or Gradle) are detected. VS Code has the
-same pair: **Mateu: Run App (Live)** and **Mateu: Reload Screen** (also fired on a Java hot code
-replace). Details, adapters and limits: [Live reload](/java-user-manual/build/live-reload/).
+A **Mateu App** run configuration (**Run | Edit Configurations… › + › Mateu App**) starts the
+project's UI in development mode and opens it where you choose, so the same UI can be tried on the
+web, on the desktop and in the mobile app from the IDE:
+
+| Open in | What happens once the app answers |
+|---|---|
+| **Web (browser)** | the default browser opens it — the web renderer |
+| **Desktop (this IDE)** | **Settings | Tools | Mateu** points at it and the **Mateu** tool window reconnects — the IntelliJ renderer |
+| **Android emulator** | `adb shell am start` opens `mateu://add?u=http://10.0.2.2:<port>` in the Mateu app on the running emulator |
+| **iOS simulator** | `xcrun simctl openurl booted mateu://add?u=http://localhost:<port>` (macOS) |
+| **Phone (QR code)** | the app listens on the network and a dialog shows the QR of `https://mateu.io/add?u=http://<lan ip>:<port>` |
+
+**Run** starts it; **Debug** also attaches a *Remote JVM Debug* session to the app (it is started with
+the debug agent either way). The module is found from the project — a Spring Boot, Quarkus, Micronaut
+or Helidon app (Maven or Gradle) first, else a YAML-only project that builds a **static bundle**, which
+runs with `mvn mateu-bundle:dev` (no backend: nothing to attach a debugger to, and the desktop target
+is refused because the IntelliJ renderer needs a backend). The *Module directory* field overrides the
+choice. The Mateu app accepts a plain `http` address only in a **development build**, so the
+emulator, simulator and phone targets need one installed.
+
+**Run | Open Mateu App In…** opens the app that is already running on another target without
+restarting it (the phone only when the app already listens on the network). **Run | Run Mateu App
+(Live)** debugs the project's Mateu App configuration, creating one that opens on the web the first
+time.
+
+In development mode (`mateu.dev=true`, every `src/main/resources/specs/ui` of the project watched) a
+YAML edit (in the text editor or the visual editor's canvas) re-renders the open screen in place, and
+every **HotSwap** fires `POST /mateu/dev/reload` so the screen shows the new code. **Run | Reload
+Mateu Screen** fires it by hand. VS Code has **Mateu: Run App (Live)** and **Mateu: Reload Screen**
+(also fired on a Java hot code replace), opening on the web. Details, adapters and limits: [Live
+reload](/java-user-manual/build/live-reload/).
