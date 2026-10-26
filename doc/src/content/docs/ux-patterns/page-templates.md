@@ -53,7 +53,8 @@ Three notes on how to read the table:
   sized: capped and centered, fluid with side margins, or touching the viewport edges. When
   neither is set, the renderer infers it from the content (full-bleed canvases → edge-to-edge,
   dense datagrids → full width, anything else → fixed). On the Vaadin shell all three modes
-  render: *fixed* caps the content column at 1408 px centered, *full width* is fluid, and
+  render: *fixed* caps the content column at 1392 px centered, *full width* is fluid with margins
+  that grow from 24 px to 96 px on wide screens, and
   *edge to edge* drops the shell gutters for the content while the page header keeps its own
   side padding (so the title never touches the viewport edge).
 - **A leading `EntityHeader` becomes the page header.** When a page's content starts with an

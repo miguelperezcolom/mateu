@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-ol.js","assets/rolldown-runtime.js","assets/marked.esm.js","assets/vendor.js","assets/mateu-chat.js","assets/vendor-lit.js","assets/neutralChrome.js","assets/mateu-workflow.js","assets/mateu-form-editor.js","assets/mateu-planning-board.js","assets/mateu-gantt.js","assets/mateu-matrix-grid.js","assets/mateu-signature-pad.js","assets/mateu-camera-capture.js","assets/vendor-chartjs.js","assets/vendor-diagrams.js","assets/mateu-agent-connect-dialog.js","assets/mateu-mobile-qr-dialog.js","assets/vendor-editor.js","assets/vcf-date-range-picker.js","assets/vendor-vaadin.js"])))=>i.map(i=>d[i]);
-/* mateu sources 8b96fd6200b27518 */
+/* mateu sources 19514567d7c9f21b */
 import{t as e}from"./rolldown-runtime.js";import{B as t,C as n,O as r,R as i,S as a,T as o,V as s,_ as c,b as l,g as u,h as d,m as f,v as p,y as m}from"./vendor-vaadin.js";import{C as h,D as g,a as _,b as v,d as y,g as b,h as ee,i as x,k as te,m as ne,n as S,p as re,r as C,s as ie,t as ae,u as oe,w as se,x as ce,y as w}from"./vendor-lit.js";import{a as le,i as T,n as ue,o as de}from"./vendor.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),t.credentials=e.crossOrigin===`use-credentials`?`include`:e.crossOrigin===`anonymous`?`omit`:`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var fe=window.Vaadin=window.Vaadin||{},pe=fe.suppressPostFinalizeStylesWarning;fe.suppressPostFinalizeStylesWarning=!0;try{i(`vaadin-card`,g`
         :host(.mateu-section) {
           --vaadin-card-border-width: 0 !important;
@@ -7389,19 +7389,22 @@ ${t}
             margin: 0 auto;
         }
 
-        /* Anatomía de anchos RDS (data-page-width — el valor RESUELTO fixed|full|edge que
-           applyFragment estampa en el host): fixed = columna de contenido con tope RDS
-           (1408px) centrada; full = fluido sin tope pero CON gutter de 24px siempre (el
-           contenido posee el gutter — así una página SUELTA sin app-shell no queda a sangre
-           por accidente; dentro de un app-shell el shell ya aporta su propio padding); edge =
-           a sangre — los gutters del shell caen por el hook no-padding (compact-changed) y el
-           header de mateu-page conserva el suyo. Solo aplica al mateu-ux de CONTENIDO. */
+        /* Redwood's page widths ("Page resolutions and margins", data-page-width — the RESOLVED
+           fixed|full|edge value applyFragment stamps on the host; only the CONTENT mateu-ux):
+           - fixed: the content grows to 1392px, then the margins grow and centre it — so at
+             1440px and above the margin is (width − 1392) / 2, never less than the gutter;
+           - full: a 24px margin up to 1440px, then it grows with the screen up to 96px (reached
+             at 1584px), and from there the content grows;
+           - edge: no margins — the shell's gutters drop through the no-padding hook
+             (compact-changed) and mateu-page's header keeps its own.
+           The content owns the gutter, so a STANDALONE page (no app shell) is not edge-to-edge
+           by accident. */
         /* --mateu-content-gutter: the gutter a shell WITHOUT padded content area asks its content
            view for (MENU_ON_TOP's two-band shell: 24px, 16px on a phone); a padded .app-content
-           sets it to 0. Fixed keeps its 1408px column and gets the gutter when narrower. */
+           sets it to 0. Fixed keeps its 1392px column and gets the gutter when narrower. */
         :host([data-page-width='fixed']) {
             box-sizing: border-box;
-            max-width: min(calc(1408px + 2 * var(--mateu-content-gutter, var(--lumo-space-m, 1rem))), 100%);
+            max-width: min(calc(1392px + 2 * var(--mateu-content-gutter, var(--lumo-space-m, 1rem))), 100%);
             margin-inline: auto;
             /* a STANDALONE page (no app shell to set the gutter) keeps the design system's side
                gutter — on a phone the content used to touch the screen edges (UX review W-V-GUTTER);
@@ -7410,7 +7413,8 @@ ${t}
         }
         :host([data-page-width='full']) {
             box-sizing: border-box;
-            padding-inline: var(--mateu-content-gutter, 24px);
+            /* the gutter, plus what Redwood's full-width margin grows past 1440px (up to 96px) */
+            padding-inline: calc(var(--mateu-content-gutter, 24px) + clamp(0px, (100% - 1440px) / 2, 72px));
         }
         /* the view that took the gutter is the page: views nested in it (islands, a drawer's
            content) are not, and must not take it again. An edge view (a remote shell's root)
@@ -7430,10 +7434,10 @@ ${t}
         /* The aside channel (layout/fabRail.ts): when the page has FABs or a section index, the
            content view leaves room at its end for them, so they sit OUTSIDE the work area. Fixed:
            narrowed only as much as its margin lacks for the channel, both sides alike to stay
-           centred (the Redwood shell's box is the 1408px column plus a channel each side). Full: the channel is
+           centred (the box is the 1392px column plus a channel each side). Full: the channel is
            its end padding. The values are measured and set by the view that owns the channel. */
         :host([data-page-width='fixed'][data-aside]) {
-            max-width: min(calc(1408px + 2 * var(--mateu-content-gutter, 0px)), 100% - 2 * var(--mateu-aside-squeeze, 0px));
+            max-width: min(calc(1392px + 2 * var(--mateu-content-gutter, 0px)), 100% - 2 * var(--mateu-aside-squeeze, 0px));
         }
         :host([data-page-width='full'][data-aside]) {
             padding-inline-end: var(--mateu-aside-pad-end, 24px);
