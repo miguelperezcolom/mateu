@@ -1,5 +1,5 @@
 import type Action from '@mateu/shared/apiClients/dtos/componentmetadata/Action.ts'
-import { lowerAction } from '@infra/expander/expandDefinition.ts'
+import { lowerAction } from '../expander/expandDefinition.ts'
 
 /**
  * The app's ACTION catalogue, client side: named client-runnable actions (a flow lowered to

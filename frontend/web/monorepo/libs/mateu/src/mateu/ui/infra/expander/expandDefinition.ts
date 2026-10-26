@@ -11,15 +11,21 @@
 // Server-only fields the renderer does not require (wireVersion, appData/appState) are omitted — see
 // the render-parity note in design/phase6-client-side-expander.md.
 
-import { humanizeFieldId } from '@infra/ui/humanize'
+import { humanizeFieldId } from '../ui/humanize.ts'
 import { withoutAccessKeys } from './accessKeys.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
-import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction'
-import { expandComponent, type FluentNode } from '@infra/expander/expandComponent'
+import type { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction'
+import { expandComponent, type FluentNode } from './expandComponent.ts'
 import type Component from '@mateu/shared/apiClients/dtos/Component'
-import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
-import { actionCatalogue, referencedCatalogueActions } from '@infra/ui/actionCatalogue'
-import { resolveFieldTypes } from '@infra/expander/fieldTypes'
+import type { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
+import { actionCatalogue, referencedCatalogueActions } from '../ui/actionCatalogue.ts'
+import { resolveFieldTypes } from './fieldTypes.ts'
+
+// The wire enums as values, without loading the enum modules: this closure is shared with the native
+// renderer, whose test runner strips types and cannot run a TS `enum` (see http/bundleResolver.ts).
+const REPLACE = 'Replace' as unknown as UIFragmentAction // i18n-ok: a wire enum value
+const SERVER_SIDE = 'ServerSide' as unknown as ComponentType
+const CLIENT_SIDE = 'ClientSide' as unknown as ComponentType
 
 /** A parsed definition: either an envelope with a `layout:` (+ optional viewModel/actions/triggers),
  *  or a bare component tree (the whole object IS the layout). Loose by design — the authored surface
@@ -136,7 +142,7 @@ export function expandDefinition(spec: DefinitionSpec, route: string, title?: st
                 component: withBehaviour(spec, component, ctx),
                 data: undefined,
                 state: undefined,
-                action: UIFragmentAction.Replace,
+                action: REPLACE,
                 containerId: undefined,
             },
         ],
@@ -207,7 +213,7 @@ function withBehaviour(spec: DefinitionSpec, component: Component, ctx: Expansio
     }
     const path = ctx.path ?? ''
     return {
-        type: ComponentType.ServerSide,
+        type: SERVER_SIDE,
         id: 'page_' + (path || 'root').replace(/[^A-Za-z0-9_-]/g, '_'),
         // No class behind it: every action it declares runs in the browser (restAction).
         serverSideType: undefined,
@@ -432,7 +438,7 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
         fragments: [{
             targetComponentId: MAIN,
             component: {
-                type: ComponentType.ClientSide,
+                type: CLIENT_SIDE,
                 id: 'app',
                 metadata: {
                     type: 'App',
@@ -488,7 +494,7 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
             } as unknown as Component,
             data: undefined,
             state: undefined,
-            action: UIFragmentAction.Replace,
+            action: REPLACE,
             containerId: undefined,
         }],
         banners: [],
