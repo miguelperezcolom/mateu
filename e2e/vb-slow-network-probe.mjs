@@ -20,7 +20,10 @@ const VB_URL = process.env.VB_URL || 'http://localhost:9006/'
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const results = []
 const check = (n, ok, d='') => { results.push(ok); console.log(`${ok?'PASS':'FAIL'}  ${n}${d?` — ${d}`:''}`) }
-const SYNC = '**/mateu/v3/**'
+// The Mateu API: every /mateu/v3/ request but the installable app's files (/mateu/v3/pwa/: the
+// page's register.js, the worker, the manifest), which are static files, not loads — counting the
+// register.js as "the shell's load" held the REAL shell load instead and nothing ever painted.
+const SYNC = (url) => url.pathname.includes('/mateu/v3/') && !url.pathname.includes('/mateu/v3/pwa/')
 const browser = await chromium.launch()
 
 // 1) backend lento → barra de ocupado
