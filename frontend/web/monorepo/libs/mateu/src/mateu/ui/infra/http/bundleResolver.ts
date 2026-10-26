@@ -168,36 +168,50 @@ export const matchRouteEntry = (
     state: BundleState,
     path: string,
 ): { entry: RouteEntry; pathParams: Record<string, string> } | undefined => {
-    const norm = (s: string) => s.replace(/^\/+/, '').replace(/\/+$/, '')
-    const target = norm(path === '_no_route' ? '' : path)
-    const targetSegments = target === '' ? [] : target.split('/')
+    const targetSegments = segmentsOf(path === '_no_route' ? '' : path)
     let best: { entry: RouteEntry; pathParams: Record<string, string> } | undefined
     for (const entry of state.routeEntries) {
-        const pattern = norm(entry.route ?? '')
-        const patternSegments = pattern === '' ? [] : pattern.split('/')
-        if (patternSegments.length !== targetSegments.length) continue
-        const pathParams: Record<string, string> = {}
-        let matches = true
-        for (let i = 0; i < patternSegments.length; i++) {
-            const seg = patternSegments[i]
-            if (seg.startsWith(':') && seg.length > 1) pathParams[seg.substring(1)] = targetSegments[i]
-            else if (seg !== targetSegments[i]) { matches = false; break }
-        }
-        if (!matches) continue
-        const candidate = { entry, pathParams }
-        if (!best
-            || paramNamesOf(pattern).length < paramNamesOf(norm(best.entry.route ?? '')).length) {
-            best = candidate
-        }
+        const pathParams = pathParamsOf(segmentsOf(entry.route ?? ''), targetSegments)
+        if (!pathParams) continue
+        if (!best || paramCountOf(entry) < paramCountOf(best.entry)) best = { entry, pathParams }
     }
     return best
+}
+
+/** `s` without its leading and trailing slashes (no regex: `/\/+$/` backtracks on a long run of them). */
+const trimSlashes = (s: string): string => {
+    let start = 0
+    let end = s.length
+    while (start < end && s[start] === '/') start++
+    while (end > start && s[end - 1] === '/') end--
+    return s.substring(start, end)
+}
+
+/** The segments of a route or path, its leading and trailing slashes aside ('' → none). */
+const segmentsOf = (route: string): string[] => {
+    const trimmed = trimSlashes(route)
+    return trimmed === '' ? [] : trimmed.split('/')
+}
+
+const paramCountOf = (entry: RouteEntry): number => paramNamesOf(entry.route ?? '').length
+
+/** The path params a route pattern's segments read off a path's, or undefined when it does not match. */
+const pathParamsOf = (pattern: string[], target: string[]): Record<string, string> | undefined => {
+    if (pattern.length !== target.length) return undefined
+    const pathParams: Record<string, string> = {}
+    for (let i = 0; i < pattern.length; i++) {
+        const seg = pattern[i]
+        if (seg.startsWith(':') && seg.length > 1) pathParams[seg.substring(1)] = target[i]
+        else if (seg !== target[i]) return undefined
+    }
+    return pathParams
 }
 
 /** `carried` with `defaults` filling every key it has no value for — a null is no value, as in the
  *  server's `putIfAbsent` (RouteSegmentUtils.addParameterValues). */
 const withDefaults = (defaults: Record<string, unknown>, carried: Record<string, unknown> | undefined) => {
-    const out: Record<string, unknown> = { ...defaults, ...(carried ?? {}) }
-    for (const key of Object.keys(defaults)) if (out[key] === null || out[key] === undefined) out[key] = defaults[key]
+    const out: Record<string, unknown> = { ...defaults, ...carried }
+    for (const key of Object.keys(defaults)) out[key] ??= defaults[key]
     return out
 }
 
@@ -229,7 +243,7 @@ export const applyRouteParams = (state: BundleState, syncPath: string, increment
     return {
         ...increment,
         // `appState:` goes UNDER what the increment (the client's app context) already carries
-        ...(Object.keys(appSeed).length ? { appState: { ...appSeed, ...(increment.appState ?? {}) } } : {}),
+        ...(Object.keys(appSeed).length ? { appState: { ...appSeed, ...increment.appState } } : {}),
         fragments: (increment.fragments ?? []).map(f => ({
             ...f,
             state: { ...withDefaults(defaults, f.state), ...pathParams, ...fixed },
@@ -243,8 +257,8 @@ export const applyRouteParams = (state: BundleState, syncPath: string, increment
 export const toSyncPath = (route: string | undefined): string => {
     // the query string is a listing's filters, page and sort — never part of the screen: with it a
     // deep link (/products?status=X) or a reload of a filtered listing answered nothing at all
-    const path = route && route.includes('?') ? route.substring(0, route.indexOf('?')) : route
-    const r = path && path.startsWith('/') ? path.substring(1) : (path ?? '')
+    const path = route?.includes('?') ? route.substring(0, route.indexOf('?')) : route
+    const r = path?.startsWith('/') ? path.substring(1) : (path ?? '')
     return r === '' ? '_no_route' : r
 }
 
@@ -263,7 +277,7 @@ export const bundledIncrement = (state: BundleState, syncPath: string): UIIncrem
  *  from initialData would ask the API for `__mateu_param__`. */
 const withInitialData = <T,>(component: T, params: Record<string, string>): T => {
     const c = component as unknown as { initialData?: unknown } | undefined
-    if (!c || !c.initialData || typeof c.initialData !== 'object') return component
+    if (!c?.initialData || typeof c.initialData !== 'object') return component
     return { ...c, initialData: { ...(c.initialData as Record<string, unknown>), ...params } } as unknown as T
 }
 
@@ -287,8 +301,8 @@ export const bundledTemplate = (state: BundleState, syncPath: string, content = 
             fragments: (increment.fragments ?? []).map(f => ({
                 ...f,
                 component: withInitialData(f.component, params),
-                state: { ...(f.state ?? {}), ...params },
-                data: { ...(f.data ?? {}), ...params },
+                state: { ...f.state, ...params },
+                data: { ...f.data, ...params },
             })),
         }
         // …and then the registry's own, so a pinned parameter still outranks the path.

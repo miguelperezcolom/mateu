@@ -38,6 +38,7 @@ import {
   type Localize,
 } from '../shared/mateuLib.ts';
 import { uiLocale } from './money.ts';
+import { withoutTrailingSlashes } from './trailingSlashes.ts';
 
 type Json = Record<string, unknown>;
 
@@ -70,7 +71,7 @@ export function bundlePath(path: unknown): string | undefined {
 
 /** The URL of a bundle manifest: `<baseUrl>/<path>`. */
 export const bundleUrl = (baseUrl: string, path: string = BUNDLE_MANIFEST): string =>
-  `${baseUrl.replace(/\/+$/, '')}/${path}`;
+  `${withoutTrailingSlashes(baseUrl)}/${path}`;
 
 const deepCopy = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
@@ -83,7 +84,7 @@ export class StaticBundle {
 
   constructor(manifest: BundleManifest, baseUrl: string, locales: () => string[] = () => [uiLocale()]) {
     this.manifest = manifest;
-    this.baseUrl = baseUrl.replace(/\/+$/, '');
+    this.baseUrl = withoutTrailingSlashes(baseUrl);
     this.state = parseBundleManifest(manifest);
     this.locales = locales;
   }

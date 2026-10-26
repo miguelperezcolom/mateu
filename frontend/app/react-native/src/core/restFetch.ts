@@ -3,6 +3,8 @@
 // libs/mateu externalOptions.ts. url/headers/body are interpolated by the caller (pass a resolve
 // that runs the shared `interpolate`); the endpoint is fetched directly, no Mateu server mediating.
 
+import { withoutTrailingSlashes } from './trailingSlashes.ts';
+
 type Json = Record<string, any>;
 
 /** Client-side secure auth for DIRECT (non-proxy) external REST fetches: a host app registers a
@@ -121,7 +123,7 @@ export class RestSourceCatalogue {
     if (!base || !url || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url) || url.startsWith('//')) return url;
     const origin = /^(https?:\/\/[^/?#]+)/i.exec(base)?.[1];
     if (!origin) return url;
-    return url.startsWith('/') ? `${origin}${url}` : `${base.replace(/\/+$/, '')}/${url}`;
+    return url.startsWith('/') ? `${origin}${url}` : `${withoutTrailingSlashes(base)}/${url}`;
   }
 
   /** Store the app's REST source catalogue (`AppDto.restSources`, a list of `{name, source, …}`). */

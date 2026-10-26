@@ -1,6 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { directive, Directive, PartType, type ChildPart, type PartInfo } from "lit/directive.js";
-import { isNodeIdStamping, setNodeIdStamping } from "./nodeIdStampFlag.ts";
+import { isNodeIdStamping } from "./nodeIdStampFlag.ts";
 
 /**
  * Editor-only: stamp every painted component's root element with the id of the wire component it
@@ -15,7 +15,7 @@ import { isNodeIdStamping, setNodeIdStamping } from "./nodeIdStampFlag.ts";
  * renderer returns in {@link stampNodeId} when stamping is on, and the directive tags the first
  * element the renderer painted. OFF by default: a production page never carries editor ids.
  */
-export { isNodeIdStamping, setNodeIdStamping }
+export { isNodeIdStamping, setNodeIdStamping } from "./nodeIdStampFlag.ts";
 
 /**
  * For a renderer that paints a child component ITSELF instead of through renderComponent (a tab's

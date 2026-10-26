@@ -18,9 +18,9 @@
  */
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 
-const COMPACT_DATA_TYPES = ['integer', 'number', 'double', 'decimal', 'long', 'float', 'money', 'bool', 'boolean',
-    'status', 'date', 'time', 'dateTime', 'dateRange', 'range', 'action', 'actionGroup', 'menu']
-const COMPACT_STEREOTYPES = ['money', 'button', 'toggle', 'checkbox', 'badge', 'stars', 'color', 'numberRange', 'dateRange']
+const COMPACT_DATA_TYPES = new Set(['integer', 'number', 'double', 'decimal', 'long', 'float', 'money', 'bool', 'boolean',
+    'status', 'date', 'time', 'dateTime', 'dateRange', 'range', 'action', 'actionGroup', 'menu'])
+const COMPACT_STEREOTYPES = new Set(['money', 'button', 'toggle', 'checkbox', 'badge', 'stars', 'color', 'numberRange', 'dateRange'])
 
 type ColumnLike = Partial<Pick<GridColumn, 'identifier' | 'dataType' | 'stereotype' | 'valueLabels' | 'width' | 'flexGrow' | 'weight' | 'autoWidth'>>
 
@@ -28,8 +28,8 @@ type ColumnLike = Partial<Pick<GridColumn, 'identifier' | 'dataType' | 'stereoty
 export const isCompactColumn = (c: ColumnLike | null | undefined): boolean => {
     if (!c) return false
     if (c.identifier) return true
-    if (c.dataType && COMPACT_DATA_TYPES.includes(c.dataType)) return true
-    if (c.stereotype && COMPACT_STEREOTYPES.includes(c.stereotype)) return true
+    if (c.dataType && COMPACT_DATA_TYPES.has(c.dataType)) return true
+    if (c.stereotype && COMPACT_STEREOTYPES.has(c.stereotype)) return true
     return !!(c.valueLabels && Object.keys(c.valueLabels).length)
 }
 

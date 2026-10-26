@@ -141,7 +141,7 @@ export const loadRemoteBundle = (url: string, fetchImpl: typeof fetch = fetch): 
         })()
         const settled = loading
         // a failed load is asked again next time (the remote-menu retry), not cached forever
-        settled.then((parsed) => { if (!parsed && remoteBundles.get(url) === settled) remoteBundles.delete(url) })
+        void settled.then((parsed) => { if (!parsed && remoteBundles.get(url) === settled) remoteBundles.delete(url) })
         remoteBundles.set(url, settled)
     }
     return loading

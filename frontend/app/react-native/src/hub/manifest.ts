@@ -95,17 +95,24 @@ export function parseManifest(raw: unknown, baseUrl: string, allowInsecure = fal
   if (typeof r['minAppVersion'] === 'string' && /^\d+(\.\d+){0,3}$/.test(r['minAppVersion'])) {
     manifest.minAppVersion = r['minAppVersion'];
   }
-  const auth = oidcConfigFrom(r['auth']);
-  // the identity provider must be https too: the user's password goes there
-  if (auth && (/^https:\/\//i.test(auth.issuer) || (allowInsecure && /^http:\/\//i.test(auth.issuer)))) {
-    manifest.auth = auth;
-  }
-  // a static UI: only a plain relative .json path — never another host (core/staticBundle.ts)
-  if (r['bundle'] !== undefined && r['bundle'] !== null) {
-    const bundle = typeof r['bundle'] === 'string' && r['bundle'] ? bundlePath(r['bundle']) : undefined;
-    if (bundle) manifest.bundle = bundle;
-  }
+  const auth = authOf(r['auth'], allowInsecure);
+  if (auth) manifest.auth = auth;
+  const bundle = bundleOf(r['bundle']);
+  if (bundle) manifest.bundle = bundle;
   return manifest;
+}
+
+/** The manifest's sign-in, when its identity provider is https too: the user's password goes there. */
+function authOf(raw: unknown, allowInsecure: boolean): UiManifest['auth'] {
+  const auth = oidcConfigFrom(raw);
+  if (!auth) return undefined;
+  const secure = /^https:\/\//i.test(auth.issuer) || (allowInsecure && /^http:\/\//i.test(auth.issuer));
+  return secure ? auth : undefined;
+}
+
+/** A static UI's bundle: only a plain relative .json path — never another host (core/staticBundle.ts). */
+function bundleOf(raw: unknown): string | undefined {
+  return typeof raw === 'string' && raw ? bundlePath(raw) : undefined;
 }
 
 export type VersionGate = { ok: true } | { ok: false; reason: string };
