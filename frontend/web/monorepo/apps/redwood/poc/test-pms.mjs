@@ -21,7 +21,7 @@ import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
 import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TILES } from './map.mjs'
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
-import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf } from './reduceContexts.mjs'
+import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
 import { hostContentPlanOf } from './pageProjection.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
@@ -2181,6 +2181,17 @@ test('Dashboard on Redwood: Spectra\'s grid UNLESS the dashboard declares its ow
   assert.equal(dashboardDeclaresLayout(dash([panel('A')]), [panel('A')]), false)
 })
 
+test('Dashboard declaring header pieces: inside a Page it is still the landing page, and the Page\'s subtitle is its header\'s', () => {
+  const dash = node({ type: 'ResponsiveGrid' }, [node({ type: 'Scoreboard' }, [node({ type: 'MetricCard', title: 'Revenue', value: 1 })]),
+    node({ type: 'DashboardPanel', title: 'A', colSpan: 1, rowSpan: 1 }, [node({ type: 'Text', text: 'a' })])])
+  const tree = { type: 'ServerSide', id: 'd', children: [node({ type: 'Page', title: 'Ops', subtitle: 'Today' }, [dash])] }
+  const host = { id: HOST_ID, kind: 'host', tree, state: {}, data: {} }
+  const d = dashboardOf(host)
+  assert.ok(d, 'the Page wrapper (the declared header) keeps the dashboard branch')
+  assert.equal(d.panels.length, 1)
+  assert.equal(pageSubtitleOf(host), 'Today')
+})
+
 test('Dashboard archetype → oj-sp-dashboard-landing-page: the scoreboard in its kpi slot, the @Panels as oj-sp-dashboard-panel', () => {
   const kpi = (title, extra = {}) => node({ type: 'MetricCard', title, value: 1, ...extra })
   const panel = (title, subtitle, kids, colSpan = 1) => node({ type: 'DashboardPanel', title, subtitle, colSpan }, kids)
@@ -2277,7 +2288,12 @@ test('GanttPage → oj-sp-data-management-page: the canvas + detail in the defau
   assert.ok(pageJson.imports.components['oj-sp-data-management-page'])
   assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].chain, 'dmPanelClosed')
   assert.ok(existsSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'dmPanelClosed.js')))
-  assert.match(webApp('resources/css/app.css'), /\.mateu-dm-page oj-sp-header-create-edit \[id\$="_cancelAction"\]/, 'no transaction: Cancel/primary hidden')
+  assert.match(webApp('resources/css/app.css'), /\.mateu-dm-page:not\(\.mateu-dm-transactional\) oj-sp-header-create-edit \[id\$="_cancelAction"\]/, 'no transaction: Cancel/primary hidden')
+  // a page declaring a cancel + a primary @Toolbar action (pageHeaderOf → createEdit) shows them:
+  // the template's own Cancel/primary run the header's back/primary actions
+  assert.match(page, /:class="\[\[ \$application\.variables\.mateuPageHeader\.createEdit \? 'mateu-dm-page mateu-dm-transactional' : 'mateu-dm-page' \]\]"/)
+  assert.match(page, /on-sp-primary-action="\[\[ \$listeners\.headerPrimary \]\]"/)
+  assert.match(page, /on-sp-cancel="\[\[ \$listeners\.headerGoToParent \]\]"/)
 })
 
 test('CollectionDetail → oj-sp-collection-detail-page: the collection in its default slot, the server-built detail stamped for the selected item', () => {

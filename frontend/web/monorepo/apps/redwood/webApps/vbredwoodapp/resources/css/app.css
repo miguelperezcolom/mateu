@@ -2064,13 +2064,14 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
 
 /* ── Spectra page templates with slots (core/spPages.mjs) ── */
 /* DATA MANAGEMENT / GANTT PAGE (oj-sp-data-management-page): its header is TRANSACTIONAL (Cancel +
-   a primary always drawn); the DataManagement / GanttPage archetypes have no transaction, so both
-   buttons are hidden — the title, the colour strip and the drawers stay Spectra's */
-.mateu-dm-page oj-sp-header-create-edit [id$="_cancelAction"],
-.mateu-dm-page oj-sp-header-create-edit [id$="_cancelActionMobile"],
-.mateu-dm-page oj-sp-header-create-edit [id$="_primaryActionFromHeader"],
-.mateu-dm-page oj-sp-header-create-edit [id$="_primaryActionFromHeaderMobile"],
-.mateu-dm-page oj-sp-header-create-edit [id$="_primaryActionFromOverflowMenu"] {
+   a primary always drawn); a DataManagement / GanttPage has no transaction unless it declares one (a
+   cancel + a primary @Toolbar action → .mateu-dm-transactional), so both buttons are hidden — the
+   title, the colour strip and the drawers stay Spectra's */
+.mateu-dm-page:not(.mateu-dm-transactional) oj-sp-header-create-edit [id$="_cancelAction"],
+.mateu-dm-page:not(.mateu-dm-transactional) oj-sp-header-create-edit [id$="_cancelActionMobile"],
+.mateu-dm-page:not(.mateu-dm-transactional) oj-sp-header-create-edit [id$="_primaryActionFromHeader"],
+.mateu-dm-page:not(.mateu-dm-transactional) oj-sp-header-create-edit [id$="_primaryActionFromHeaderMobile"],
+.mateu-dm-page:not(.mateu-dm-transactional) oj-sp-header-create-edit [id$="_primaryActionFromOverflowMenu"] {
   display: none !important;
 }
 /* the inner drawers' templates fill their slot; Spectra leaves the scrolling to the content */

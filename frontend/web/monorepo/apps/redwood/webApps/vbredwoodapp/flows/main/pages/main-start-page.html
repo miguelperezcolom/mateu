@@ -21278,16 +21278,20 @@
 </oj-bind-if>
 
 <!-- DATA MANAGEMENT / GANTT PAGE archetypes: Spectra's DATA MANAGEMENT PAGE (oj-sp-data-management-page)
-     — its transactional header (the page title; Cancel/primary hidden: these archetypes have no
-     transaction, app.css .mateu-dm-page), the toolbar + grid/gantt view in its default slot and the
+     — its transactional header (the page title; Cancel/primary hidden unless the page declares a
+     cancel + a primary @Toolbar action — mateuPageHeader.createEdit → mateu-dm-transactional, app.css
+     .mateu-dm-page), the toolbar + grid/gantt view in its default slot and the
      DockedPanels in its INNER drawers (reflow): innerEnd = oj-sp-general-drawer-template (✕ → the
      panel's toggle action), innerBottom = oj-sp-bottom-drawer-template (closable ✕ → its toggle;
      GanttPage's persistent collapsible drawer = fixed mode, the handle minimizes it). Each slot holds
      ONE stable element (a Spectra template only slots the elements it finds when it renders). -->
 <oj-bind-if test="[[ !!$application.variables.mateuDm ]]">
-  <oj-sp-data-management-page id="mateuDmPage" class="mateu-dm-page"
+  <oj-sp-data-management-page id="mateuDmPage"
+    :class="[[ $application.variables.mateuPageHeader.createEdit ? 'mateu-dm-page mateu-dm-transactional' : 'mateu-dm-page' ]]"
     page-title="[[ $application.variables.mateuDm.title || $application.variables.mateuPageHeader.title ]]"
-    primary-action="[[ { label: ' ', disabled: true } ]]"
+    primary-action="[[ $application.variables.mateuPageHeader.createEdit ? { label: $application.variables.mateuPageHeader.primary.label, disabled: $application.variables.mateuPageHeader.primary.display === 'disabled' } : { label: ' ', disabled: true } ]]"
+    on-sp-primary-action="[[ $listeners.headerPrimary ]]"
+    on-sp-cancel="[[ $listeners.headerGoToParent ]]"
     display-options="[[ { save: 'off', goToParent: false, bottomDrawerMode: $application.variables.mateuDm.bottomOptions.drawerMode } ]]"
     end-opened="[[ $application.variables.mateuDm.endOpened ]]"
     bottom-opened="[[ $application.variables.mateuDm.bottomOpened ]]"
