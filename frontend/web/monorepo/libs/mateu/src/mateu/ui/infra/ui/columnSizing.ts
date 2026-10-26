@@ -72,8 +72,9 @@ const memoized = (n: ColumnNode, mode: string, make: () => ColumnNode): ColumnNo
  * default sizing applied to every leaf column that declares none. Returns new nodes (the same ones
  * for the same wire nodes); the wire's are untouched.
  */
-export const withDefaultColumnSizing = <N extends ColumnNode>(columns: N[]): N[] => {
-    const nodes = columns ?? []
+// N is any wire node (ClientSideComponent…): its metadata is read as a column's, whatever it is typed as
+export const withDefaultColumnSizing = <N extends object>(columns: N[]): N[] => {
+    const nodes = (columns ?? []) as ColumnNode[]
     const leaves = (ns: ColumnNode[]): (ColumnMeta | undefined)[] => ns.flatMap(n => isGroup(n) ? leaves(n.metadata?.columns ?? []) : [n?.metadata])
     const grows = (c: ColumnLike | undefined) => !!c && String(c.flexGrow ?? '1') !== '0'
     // nothing would grow: the compact DEFAULTS share the width (from their content), the declared stay
@@ -89,5 +90,5 @@ export const withDefaultColumnSizing = <N extends ColumnNode>(columns: N[]): N[]
     }
     return nodes.map(n => isGroup(n)
         ? memoized(n, mode, () => ({ ...n, metadata: { ...n.metadata, columns: (n.metadata?.columns ?? []).map(sizeLeaf) } }))
-        : sizeLeaf(n)) as N[]
+        : sizeLeaf(n)) as unknown as N[]
 }
