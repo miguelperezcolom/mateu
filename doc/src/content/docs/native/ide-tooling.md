@@ -91,7 +91,7 @@ Page templates follow the [page templates](/ux-patterns/page-templates/) Mateu s
 | Planning Board | `PlanningBoard` resources × days | edge to edge |
 | Blank layout | an empty `VerticalLayout` | renderer decides |
 
-The **page width** (fixed = centred, max 1408px · full width = the whole content width · edge to
+The **page width** (fixed = centred, max 1392px · full width = the whole content width · edge to
 edge = no margins) is written as the root layout's `style`, because a YAML definition has no
 `pageWidth` key; choose *Let the renderer decide* to leave it out. The style never adds a side
 gutter: the view the page renders in already has one (the app shell's, or the design system's when

@@ -5,14 +5,14 @@ import io.mateu.uidl.annotations.PageWidthStyle;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 
-/** Fixed page width — the content slab is capped at 1408px and centered on the canvas. */
+/** Fixed page width — the content slab is capped at 1392px and centered on the canvas. */
 @UI("/width-fixed")
 @Title("Fixed width")
 @PageWidth(PageWidthStyle.FIXED)
 public class WidthFixed extends WidthDemoBase {
   @Override
   String heading() {
-    return "Fixed width — capped at 1408px, centered";
+    return "Fixed width — capped at 1392px, centered";
   }
 
   @Override
@@ -20,7 +20,7 @@ public class WidthFixed extends WidthDemoBase {
     return """
         This page uses **`@PageWidth(FIXED)`**.
 
-        The content slab is capped at **1408px** and centered, so the page canvas shows at the
+        The content slab is capped at **1392px** and centered, so the page canvas shows at the
         sides on wide screens. This is the Redwood default for most detail and form pages.
         """;
   }

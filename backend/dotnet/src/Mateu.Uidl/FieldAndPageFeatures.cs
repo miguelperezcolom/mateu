@@ -271,8 +271,9 @@ public sealed class StaticViewAttribute : Attribute;
 /// Oracle Redwood page templates; the names follow them). Selected with [PageWidth] or the
 /// <see cref="IPageWidthSupplier"/> hook; when neither is present the renderer infers the width
 /// from the page content (full-bleed canvases like gantt/planning boards → edge-to-edge, dense
-/// inline-editing datagrids → full width, anything else → fixed). Fixed caps the column (1408px
-/// in Redwood) and centers it; FullWidth keeps the side margins but is never capped; EdgeToEdge
+/// inline-editing datagrids → full width, anything else → fixed). Fixed caps the column (1392px
+/// in Redwood) and centers it; FullWidth keeps side margins (24px, growing to 96px on wide
+/// screens) but is never capped; EdgeToEdge
 /// touches the viewport edges. (C# analogue of Java's PageWidthStyle.)</summary>
 public enum PageWidthStyle { Fixed, FullWidth, EdgeToEdge }
 

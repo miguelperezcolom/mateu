@@ -62,8 +62,8 @@ Width is the first parameter of every page template:
 
 | Width | What it does | Good for |
 |---|---|---|
-| **Fixed** | caps the content column at 1408 px and centres it | text and forms, which get harder to read when too wide |
-| **Full width** | fluid, keeping 24 px side gutters | dense grids and tables |
+| **Fixed** | the content column grows to 1392 px, then the margins grow to centre it | text and forms, which get harder to read when too wide |
+| **Full width** | fluid: 24 px side margins, growing from a 1440 px screen up to 96 px, then the content grows | dense grids and tables |
 | **Edge to edge** | no side margins | canvases: Gantt, planning board, foldout, map |
 
 Resolution order: a declaration (`@PageWidth(FULL_WIDTH)`, C# `[PageWidth(PageWidthStyle.FullWidth)]`,

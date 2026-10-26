@@ -96,8 +96,8 @@ def wizard_progress(style: str) -> Callable[[type], type]:
 
 class PageWidth(Enum):
     """How a page's content column is sized within the viewport (the first parameter of the
-    Oracle Redwood page templates): FIXED caps the column (1408px in Redwood) and centers it,
-    FULL_WIDTH keeps the side margins but never caps, EDGE_TO_EDGE touches the viewport edges
+    Oracle Redwood page templates): FIXED caps the column (1392px in Redwood) and centers it,
+    FULL_WIDTH keeps side margins (24px, growing to 96px on wide screens) but never caps, EDGE_TO_EDGE touches the viewport edges
     (full-bleed canvases such as gantt charts or planning boards). The member values are the
     wire names. The Python analogue of Java's PageWidthStyle."""
 

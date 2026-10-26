@@ -84,7 +84,7 @@
   ],
   "$pageWidths": "A page template's width, written as its root's `style:`. The styles size the page and never add a side gutter: the view the page renders in already owns it (24px in an app shell, the design system's gutter standalone), so a gutter here doubled it and pushed the page off the shell's column.",
   "pageWidths": [
-    {"id": "fixed", "label": "Fixed (centered, max 1408px)", "style": "width: 100%; max-width: 1408px; margin-inline: auto;"},
+    {"id": "fixed", "label": "Fixed (centered, max 1392px)", "style": "width: 100%; max-width: 1392px; margin-inline: auto;"},
     {"id": "fullWidth", "label": "Full width", "style": "width: 100%;"},
     {"id": "edgeToEdge", "label": "Edge to edge (no margins)", "style": "padding: 0;"},
     {"id": "auto", "label": "Let the renderer decide", "style": null}

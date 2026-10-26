@@ -12,15 +12,17 @@ package io.mateu.uidl.annotations;
 public enum PageWidthStyle {
 
   /**
-   * The content column is capped ({@code 1408px} in Redwood) and centered: fluid with side margins
-   * on smaller viewports, fixed with auto margins on wide ones — the canvas background stays
-   * visible at the sides. The Redwood default for most templates.
+   * The content column grows to {@code 1392px} (Redwood) and is then centered: fluid with side
+   * margins on smaller viewports, fixed with growing margins on wide ones — the canvas background
+   * stays visible at the sides. The Redwood default for most templates (text and forms read worse
+   * when too wide). The Redwood renderer follows the Spectra shell, which measures 1408px.
    */
   FIXED,
 
   /**
-   * The content column keeps its side margins ({@code 24px} in Redwood) but is never capped: it
-   * keeps growing with the viewport. The Redwood "Full Width" variant, typical of dense data pages.
+   * The content column is never capped: its side margins ({@code 24px} in Redwood) grow from a
+   * 1440px viewport up to {@code 96px}, and from there the content keeps growing. The Redwood "Full
+   * Width" variant, typical of dense data pages (tables, data grids, Gantt charts).
    */
   FULL_WIDTH,
 

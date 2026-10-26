@@ -20,7 +20,7 @@ const TEMPLATES = resolve(__dirname, '../../../../../../../../../app/intellij-pl
 export function renderTemplate(text: string, title = 'Sample page'): string {
     return text.split('\n')
         .map((line) => line.trim() === '__PAGE_WIDTH__'
-            ? line.replace('__PAGE_WIDTH__', 'style: "max-width: min(1408px, 100% - 48px); margin-inline: auto;"')
+            ? line.replace('__PAGE_WIDTH__', 'style: "max-width: min(1392px, 100% - 48px); margin-inline: auto;"')
             : line)
         .join('\n')
         .replace(/__TITLE__/g, title)
