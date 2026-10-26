@@ -102,3 +102,51 @@ test('fetchManifest: ok, missing (older server), error, not JSON, offline', asyn
   });
   assert.deepEqual(offline.ok ? null : offline.offline, true);
 });
+
+// ── static UIs (no server): a mateu-bundle bundle on any static host ──
+
+const STATIC = 'http://192.168.1.5:3000';
+const bundleJson = JSON.stringify({
+  entries: [{
+    route: '/', syncPath: '_no_route', ok: true,
+    json: JSON.stringify({ fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', title: 'Shop', accentColor: '#0a7', homeRoute: '/home' } } }] }),
+  }],
+  routes: { routes: [{ route: '' }] },
+});
+/** A static host: the files it has, everything else its SPA fallback (index.html, 200). */
+const staticHost = (files: Record<string, string>) => async (url: string) => {
+  const path = url.slice(STATIC.length);
+  const body = files[path] ?? '<!doctype html><html><body>app</body></html>';
+  return { ok: true, status: 200, json: async () => JSON.parse(body), text: async () => body };
+};
+
+test('a static UI publishing its manifest file: it names the bundle it runs from', async () => {
+  const r = await fetchManifest(STATIC, staticHost({
+    '/mateu/v3/manifest': JSON.stringify({ name: 'Shop', themeColor: '#00aa77', wireVersion: '3.0', bundle: 'manifest.json' }),
+  }) as never, { allowInsecure: true });
+  assert.equal(r.ok && r.manifest.name, 'Shop');
+  assert.equal(r.ok && r.manifest.bundle, 'manifest.json');
+});
+
+test('an older bundle (no manifest file, the SPA fallback answers): recognised by its manifest.json, named from its shell', async () => {
+  const r = await fetchManifest(STATIC, staticHost({ '/manifest.json': bundleJson }) as never, { allowInsecure: true });
+  assert.equal(r.ok, true);
+  if (!r.ok) return;
+  assert.equal(r.manifest.name, 'Shop');
+  assert.equal(r.manifest.themeColor, '#0a7');
+  assert.equal(r.manifest.bundle, 'manifest.json');
+  assert.ok('bundle' in r && r.bundle, 'the bundle fetched while recognising it is handed over');
+  assert.equal('missing' in r, false);
+});
+
+test('a site that is neither a Mateu server nor a bundle is still refused', async () => {
+  const r = await fetchManifest(STATIC, staticHost({}) as never, { allowInsecure: true });
+  assert.equal(r.ok, false);
+});
+
+test('a manifest cannot point the app at another host through `bundle`', () => {
+  for (const bundle of ['https://evil.example/manifest.json', '//evil.example/m.json', '../manifest.json', 'manifest.js', 42]) {
+    assert.equal(parseManifest({ name: 'X', bundle }, STATIC, true).bundle, undefined, String(bundle));
+  }
+  assert.equal(parseManifest({ name: 'X' }, STATIC, true).bundle, undefined); // a server: no bundle
+});

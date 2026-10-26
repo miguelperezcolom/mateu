@@ -281,6 +281,18 @@ function importOf(list: unknown[], options: ParseOptions): HubLink {
   return { kind: 'import', baseUrls, rejected };
 }
 
+/**
+ * DEVELOPMENT ONLY: the link an Expo Go QR carries to open THIS app at a hub path —
+ * `exp://<dev server>/--/add?u=…` (what `mvn mateu-bundle:dev -Dmateu.dev.expoUrl=exp://…` prints) —
+ * as the `mateu://add?u=…` it stands for. Anything else (a plain Expo Go launch, another path) and
+ * every link on a release build (`allowInsecure` off) answer null and stay foreign.
+ */
+export function fromExpoDevLink(url: string, options: ParseOptions = {}): string | null {
+  if (!options.allowInsecure || typeof url !== 'string') return null;
+  const m = /^exps?:\/\/[^/?#\s]+\/--\/(add|import)(\?[^#\s]*)?$/i.exec(url.trim());
+  return m ? `mateu://${m[1].toLowerCase()}${m[2] ?? ''}` : null;
+}
+
 /** The "Export my UIs" link: base URLs only — never tokens, names or anything else. The universal-link
  *  form so the system camera on another phone opens the app directly. */
 export function exportLink(baseUrls: string[]): string {

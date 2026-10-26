@@ -40,6 +40,11 @@ serves it with the SPA fallback and watches `src/main/resources`. A change that 
 YAML error, a screen that needs a server) is logged and the last good bundle keeps being served. A
 busy port moves to the next free one (`-Dmateu.dev.port=…` to choose); Ctrl+C stops it.
 
+**Same project on a phone**: the bundle also opens natively in the Mateu app (React Native) — no
+second project. `mvn mateu-bundle:dev` prints the iOS simulator (`localhost`) and Android emulator
+(`10.0.2.2`) addresses; with `-Dmateu.dev.host=0.0.0.0` it prints your LAN URL and a QR code that
+adds the UI on a phone (a development build of the app accepts plain http).
+
 Deploy `target/mateu-bundle/` to any static host with an SPA fallback (every non-file path serves
 `index.html`; Netlify reads the shipped `_redirects`, nginx `try_files $uri /index.html`).
 

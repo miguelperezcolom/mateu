@@ -25,12 +25,15 @@
 // design/phase6-client-side-expander.md, "golden strategy"). Reproducing every component's defaults
 // would be a fourth copy of what the three backends already hold.
 
-import { expandFormHeader } from '@infra/expander/pageHeader'
+import { expandFormHeader } from './pageHeader.ts'
 import type Component from '@mateu/shared/apiClients/dtos/Component'
 import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
-import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
-import { resolveComponent } from '@infra/http/componentCatalogue'
-import { isNodeIdStamping } from '@infra/ui/renderers/nodeIdStamp.ts'
+import type { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
+import { resolveComponent } from '../http/componentCatalogue.ts'
+import { isNodeIdStamping } from '../ui/renderers/nodeIdStampFlag.ts'
+
+// ComponentType.ClientSide as a value, without loading the enum module (see expandDefinition.ts).
+const CLIENT_SIDE = 'ClientSide' as unknown as ComponentType
 
 /** An authored fluent node: a `type` discriminator plus arbitrary type-specific fields, with child
  *  content under `content` or `children`. This is what `js-yaml`/`JSON.parse` yields from a
@@ -136,7 +139,7 @@ export function expandComponent(authored: FluentNode): Component {
         const resolved = resolveComponent(node.ref as string | undefined)
         if (resolved) return resolved
         return {
-            type: ComponentType.ClientSide,
+            type: CLIENT_SIDE,
             metadata: { type: 'Text', text: `Unknown business component: ${node.ref as string}` },
             children: [],
         } as unknown as ClientSideComponent
@@ -213,7 +216,7 @@ export function expandComponent(authored: FluentNode): Component {
     // them. The expander emits the same minimal shape (render-parity), so this is deliberate.
     return {
         ...envelope,
-        type: ComponentType.ClientSide,
+        type: CLIENT_SIDE,
         metadata,
         children: kids.map(expandComponent),
     } as unknown as ClientSideComponent
@@ -298,7 +301,7 @@ function expandFoldout(node: FluentNode): Component {
     }
     return {
         ...envelope,
-        type: ComponentType.ClientSide,
+        type: CLIENT_SIDE,
         metadata,
         children: kids,
     } as unknown as ClientSideComponent
@@ -348,7 +351,7 @@ function expandListing(node: FluentNode): Component {
 
     return {
         ...envelope,
-        type: ComponentType.ClientSide,
+        type: CLIENT_SIDE,
         metadata,
         children: [],
     } as unknown as ClientSideComponent

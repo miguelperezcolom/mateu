@@ -104,6 +104,35 @@ declares the plugin; elsewhere use `mvn io.mateu:mateu-bundle-maven-plugin:dev`.
 To look at the finished bundle as a static host will serve it, build it and serve the folder:
 `mvn package && npx serve -s target/mateu-bundle`.
 
+## Same project on web and phone
+
+The bundle is also a UI the **Mateu app** (the React Native renderer) opens natively — the same
+YAML, no backend, no second project. The build writes, next to `manifest.json`, the UI manifest the
+app reads (`mateu/v3/manifest`: name, icon and colour from the app shell, plus
+`"bundle": "manifest.json"`); the app then answers every screen on the device from the bundle — the
+same resolver and expander the web renderers use, whatever renderer `project.yaml` picks — and calls
+your `sources` from the phone (their `sample:` data in a mock build). Filters, search, sorting and
+paging of a `rowsSource` listing, and `restAction` writes, run on the device as in the browser.
+
+```bash
+mvn mateu-bundle:dev                              # simulators: the URLs are printed
+mvn mateu-bundle:dev -Dmateu.dev.host=0.0.0.0     # a phone on your Wi-Fi: URL + a QR code
+```
+
+- **iOS simulator**: add `http://localhost:3000` in the app (or open
+  `exp://localhost:8081/--/add?u=http%3A%2F%2Flocalhost%3A3000` when you run the app from source).
+- **Android emulator**: the host is `http://10.0.2.2:3000`.
+- **A real phone**: with `-Dmateu.dev.host=0.0.0.0` the goal prints your LAN address and a terminal
+  QR code of `https://mateu.io/add?u=http://<lan ip>:3000` — scan it with the camera. Plain `http` is
+  accepted by **development builds** of the app only; with the React Native renderer running from
+  source in Expo Go, pass `-Dmateu.dev.expoUrl=exp://<lan ip>:8081` and the QR opens Expo Go
+  instead. `-Dmateu.dev.qr=false` prints the link without the code.
+
+Deployed, it is the same: add `https://your-cdn.example.com/app` in the app (a bundle built before
+the UI manifest file existed is recognised by its `manifest.json` and named from its app shell). The
+APIs are called from the phone — a native app needs no CORS, the app's web build does. Live reload
+does not reach the phone: reopen the UI after a change.
+
 ## Choosing the renderer
 
 The bundle ships the **project's renderer**, the one `specs/ui/project.yaml` names (see

@@ -251,6 +251,9 @@ public class BundleMojo extends AbstractMojo {
             pageTitle,
             chosen,
             new BundleWriter.PwaOptions(pwa, shellOf(boot, discovered)));
+        // the UI manifest the Mateu mobile app reads, as a file where a server would answer it
+        MobileManifestFile.write(
+            target.toPath(), MobileManifestFile.json(appLoader, discovered, pageTitle));
 
         long ok = manifest.entries().stream().filter(BundleEntry::ok).count();
         manifest.entries().stream()

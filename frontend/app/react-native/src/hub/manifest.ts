@@ -10,11 +10,18 @@
  * trusted yet (the confirm screen is where they decide), so every field is validated and anything
  * odd is dropped rather than rendered: a name is plain text with a length cap, an icon is an https
  * URL (or http on a dev build) or a raster `data:image/…` URI, a colour is a hex literal.
+ *
+ * A UI with NO server — a static bundle (`mateu-bundle:bundle`), served by any static host — is
+ * opened too. Its build writes the same manifest as a file (`<bundle>/mateu/v3/manifest`, computed by
+ * the servers' own code) with one more member, `"bundle": "manifest.json"`: the bundle the app runs
+ * from instead of calling `/mateu/v3/sync`. A bundle built before that file existed is recognised by
+ * its `manifest.json` when the manifest path does not answer JSON, and named from its app shell.
  */
 import { compareVersionStrings } from './version.ts';
 import { MIN_WIRE_VERSION } from '../core/wireVersion.ts';
 import { oidcConfigFrom, type OidcConfig } from '../core/oidcConfig.ts';
 import { domainOf, normalizeBaseUrl } from './links.ts';
+import { BUNDLE_MANIFEST, bundlePath, fetchStaticBundle, type StaticBundle } from '../core/staticBundle.ts';
 
 export const MANIFEST_PATH = '/mateu/v3/manifest';
 export const MAX_NAME = 60;
@@ -29,10 +36,13 @@ export interface UiManifest {
   wireVersion?: string;
   minAppVersion?: string;
   auth?: OidcConfig;
+  /** A STATIC UI: the bundle manifest it runs from, relative to its base URL (core/staticBundle.ts). */
+  bundle?: string;
 }
 
 export type ManifestFetch =
-  | { ok: true; manifest: UiManifest }
+  /** `bundle`: the static bundle already fetched while recognising a static UI. */
+  | { ok: true; manifest: UiManifest; bundle?: StaticBundle }
   /** The server answered but publishes no manifest (an older Mateu): usable, named after its domain. */
   | { ok: true; manifest: UiManifest; missing: true }
   | { ok: false; reason: string; offline?: boolean };
@@ -90,6 +100,11 @@ export function parseManifest(raw: unknown, baseUrl: string, allowInsecure = fal
   if (auth && (/^https:\/\//i.test(auth.issuer) || (allowInsecure && /^http:\/\//i.test(auth.issuer)))) {
     manifest.auth = auth;
   }
+  // a static UI: only a plain relative .json path — never another host (core/staticBundle.ts)
+  if (r['bundle'] !== undefined && r['bundle'] !== null) {
+    const bundle = typeof r['bundle'] === 'string' && r['bundle'] ? bundlePath(r['bundle']) : undefined;
+    if (bundle) manifest.bundle = bundle;
+  }
   return manifest;
 }
 
@@ -117,7 +132,26 @@ type FetchLike = (url: string, init?: { headers?: Record<string, string>; signal
   ok: boolean;
   status: number;
   json(): Promise<unknown>;
+  text?(): Promise<string>;
 }>;
+
+/**
+ * Is there a static bundle at `baseUrl`? Asked only when the manifest path did not answer a manifest
+ * (no such endpoint, or a static host's SPA fallback answering its index.html): a bundle is then
+ * named from its own app shell, validated like a manifest.
+ */
+async function recogniseBundle(baseUrl: string, fetchImpl: FetchLike, allowInsecure?: boolean): Promise<ManifestFetch | undefined> {
+  const found = await fetchStaticBundle(baseUrl, BUNDLE_MANIFEST, {
+    fetchImpl: async (url, init) => {
+      const res = await fetchImpl(url, init);
+      return { ok: res.ok, status: res.status, text: async () => (res.text ? res.text() : JSON.stringify(await res.json())) };
+    },
+  });
+  if (!found.ok) return undefined;
+  const manifest = parseManifest(found.bundle.uiManifestSource(), baseUrl, allowInsecure);
+  manifest.bundle = BUNDLE_MANIFEST;
+  return { ok: true, manifest, bundle: found.bundle };
+}
 
 /** Fetches + validates the manifest. Network errors are `offline` (the cached copy is then used). */
 export async function fetchManifest(
@@ -130,14 +164,14 @@ export async function fetchManifest(
   try {
     const res = await fetchImpl(`${baseUrl}${MANIFEST_PATH}`, { headers: { Accept: 'application/json' }, signal: controller?.signal });
     if (res.status === 404 || res.status === 405) {
-      return { ok: true, manifest: { name: domainOf(baseUrl) }, missing: true };
+      return (await recogniseBundle(baseUrl, fetchImpl, options.allowInsecure)) ?? { ok: true, manifest: { name: domainOf(baseUrl) }, missing: true };
     }
     if (!res.ok) return { ok: false, reason: `The server answered with an error (HTTP ${res.status}).` };
     let body: unknown;
     try {
       body = await res.json();
     } catch {
-      return { ok: false, reason: 'The server is not a Mateu app (its manifest is not JSON).' };
+      return (await recogniseBundle(baseUrl, fetchImpl, options.allowInsecure)) ?? { ok: false, reason: 'The server is not a Mateu app (its manifest is not JSON).' };
     }
     return { ok: true, manifest: parseManifest(body, baseUrl, options.allowInsecure) };
   } catch {

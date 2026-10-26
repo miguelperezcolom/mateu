@@ -43,9 +43,20 @@ const devLog = (...args: unknown[]): void => {
   if (isDev()) console.log(...args);
 };
 
+/** Answers requests with NO server behind them — a static bundle (core/staticBundle.ts). */
+export interface LocalTransport {
+  answer(request: { route: string; consumedRoute: string; actionId: string }): unknown;
+}
+
 export class MateuApiClient {
   readonly baseUrl: string;
   readonly sessionId: string;
+  /**
+   * Set when the base URL serves a STATIC BUNDLE instead of a Mateu server: every request is then
+   * answered on the device from the bundle (route loads) and nothing is POSTed to `/mateu/v3/*` —
+   * the host only serves files. Null = a Mateu server.
+   */
+  local: LocalTransport | null = null;
   /** Host hook: told ONCE when the server's wireVersion is outside what this build supports. */
   onWireMismatch: (message: string) => void = () => {};
   private wireChecked = false;
@@ -99,6 +110,10 @@ export class MateuApiClient {
    * ARRIVES — the progress dialog moves while the task runs, as on the web. Same body as a sync call.
    */
   async runActionStream(params: RunActionParams, onIncrement: (increment: unknown) => void, signal?: AbortSignal): Promise<void> {
+    if (this.local) {
+      onIncrement(this.local.answer(params));
+      return;
+    }
     const { urlSegment, payload } = this.requestOf(params);
     const url = `${this.baseUrl}/mateu/v3/sse/${urlSegment}`;
     devLog('[Mateu] --> POST (stream)', url);
@@ -213,6 +228,8 @@ export class MateuApiClient {
   }
 
   async runAction(params: RunActionParams): Promise<unknown> {
+    // a static bundle: answered here, from the bundle — there is no server to POST to
+    if (this.local) return this.local.answer(params);
     const routeStripped = params.route.startsWith('/') ? params.route.slice(1) : params.route;
     const urlSegment = routeStripped === '' ? '_no_route' : routeStripped;
     const bodyRoute = routeStripped === '' ? '' : '/' + routeStripped;

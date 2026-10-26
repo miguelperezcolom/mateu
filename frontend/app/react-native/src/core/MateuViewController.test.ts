@@ -443,6 +443,28 @@ test('@RestAction runs against the endpoint in the client and merges the result 
   }
 });
 
+test('a @RestAction successRoute navigates after a 2xx (the web rule); without one the screen stays', async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async () => ({ ok: true, status: 200, json: async () => ({ id: '7' }) })) as any;
+  try {
+    const { c, session } = harness([fragment(ssc({
+      actions: [
+        { id: 'save', restAction: { source: { url: 'https://api.x/people', method: 'POST' }, resultPath: '', successRoute: 'people/${state.id}' } },
+        { id: 'keep', restAction: { source: { url: 'https://api.x/people', method: 'POST' } } },
+      ],
+    }))]);
+    const opened: Json[] = [];
+    session.openView = (t) => opened.push(t as Json);
+    await c.initialLoad('/form');
+    await c.runAction('save');
+    assert.equal(opened.at(-1)!.route, 'people/7');
+    await c.runAction('keep');
+    assert.equal(opened.length, 1);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 test('proxied sources go through the reserved __restfetch__ action; a failure answers {}', async () => {
   const { c, calls } = harness([{ appData: { _restfetch: { rows: [1] } } }, new Error('down')]);
   assert.deepEqual(await c.fetchViaProxy('options', 'country'), { rows: [1] });

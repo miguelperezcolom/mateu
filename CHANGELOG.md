@@ -34,6 +34,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   development mode and under `mateu-bundle:dev`. Turned off, the worker's URL answers a worker that
   unregisters itself. See [Install as a desktop or phone app](https://mateu.io/deploy/install-as-app/).
 
+- **The same static UI on a phone.** The React Native renderer (the Mateu app) opens a static
+  bundle — a YAML-only project with no backend — natively: the hub accepts its URL (QR, link, typed
+  address), and every screen is answered on the device from `manifest.json` by the web's own
+  resolver and client-side expander (now a platform-neutral module of `libs/mateu`,
+  `bundleResolver.ts`), whatever web renderer the project uses; sources are called from the device
+  (sample data in a mock build), listings filter/search/sort/page and `restAction`s write as on the
+  web. `mateu-bundle:bundle` writes the UI manifest the app reads (`mateu/v3/manifest`, with
+  `"bundle": "manifest.json"`); `mateu-bundle:dev` prints the simulator/emulator URLs and, with
+  `-Dmateu.dev.host=0.0.0.0`, the LAN URL and a terminal QR code (`-Dmateu.dev.expoUrl`,
+  `-Dmateu.dev.qr`). RN also honours a `restAction`'s `successRoute` now.
+
 ### Changed
 
 - **Listings size their columns sensibly when none of them declares a width.** This applies to both

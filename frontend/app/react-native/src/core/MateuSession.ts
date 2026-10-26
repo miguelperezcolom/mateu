@@ -12,6 +12,7 @@ import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './ch
 import { AgentPushState } from './agentPush.ts';
 import { skewTexts, type SkewNotice } from './buildSkew.ts';
 import { uiLocale } from './money.ts';
+import type { StaticBundle } from './staticBundle.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -185,6 +186,19 @@ export class MateuSession {
 
   unsubscribeAll(owner: unknown): void {
     this.subscriptions = this.subscriptions.filter((s) => s.owner !== owner);
+  }
+
+  /**
+   * Runs this app from a STATIC BUNDLE (core/staticBundle.ts) instead of a Mateu server: route loads
+   * are answered on the device, the bundle's source catalogue (samples included in a mock build)
+   * and action catalogue are this app's, and relative source urls resolve against the bundle's base.
+   */
+  openStaticBundle(bundle: StaticBundle): void {
+    this.api.local = bundle;
+    this.sources.register(bundle.sources);
+    this.sources.relativeBase = bundle.baseUrl;
+    if (bundle.mockSources) this.sources.setSampleMode(true);
+    this.actionCatalogue.register(bundle.actions);
   }
 
   /** Delivers an event to its subscribers; true when one of them took it. */

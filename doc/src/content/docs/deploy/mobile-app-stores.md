@@ -67,6 +67,11 @@ GET <baseUrl>/mateu/v3/manifest
 - A server that publishes no manifest (an older Mateu) still works. The entry is named after its
   domain.
 
+A UI with **no backend** — a static bundle — publishes the same manifest as a file: `mateu-bundle`
+writes `mateu/v3/manifest` into the bundle (from the app shell; `mateu.mobile.*` settings apply at
+build time) with one more member, `"bundle": "manifest.json"`, and the app runs from that bundle.
+See [Same project on web and phone](/deploy/static-ui/#same-project-on-web-and-phone).
+
 ### 2. The QR code and the deep link
 
 The QR code is a link:
