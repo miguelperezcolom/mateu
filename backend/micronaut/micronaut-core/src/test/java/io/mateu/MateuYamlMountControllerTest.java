@@ -91,6 +91,16 @@ class MateuYamlMountControllerTest {
 
   @Test
   void servesTheInstallableAppOfTheMount() {
+    // dev mode switches the installable app off, and another test in this JVM may have left it on
+    io.mateu.core.infra.dev.DevMode.disable();
+    try {
+      servesTheInstallableApp();
+    } finally {
+      io.mateu.core.infra.dev.DevMode.reset();
+    }
+  }
+
+  private void servesTheInstallableApp() {
     // the shell links it…
     var shell = indexController.index("yaml-parity", "text/html").body();
     assertThat(

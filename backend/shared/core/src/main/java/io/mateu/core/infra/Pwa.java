@@ -500,11 +500,17 @@ public final class Pwa {
                   headers("text/javascript; charset=utf-8", "no-cache", null),
                   resource(REGISTER))
               : null;
-      case ICON_192, ICON_512, ICON_MASKABLE ->
-          new Asset(
-              "image/png", headers("image/png", "public, max-age=86400", null), resource(file));
+      case ICON_192 -> icon(ICON_192);
+      case ICON_512 -> icon(ICON_512);
+      case ICON_MASKABLE -> icon(ICON_MASKABLE);
       default -> null;
     };
+  }
+
+  // a CONSTANT name, never the request's: the resource path cannot depend on what was asked for
+  private static Asset icon(String name) {
+    return new Asset(
+        "image/png", headers("image/png", "public, max-age=86400", null), resource(name));
   }
 
   private static Map<String, String> headers(
