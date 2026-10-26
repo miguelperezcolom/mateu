@@ -271,7 +271,12 @@ final class DevServer implements AutoCloseable {
     if (INDEX.equals(file)) {
       body = inject(new String(body, StandardCharsets.UTF_8));
     }
-    respond(exchange, 200, contentType(file), body, head);
+    // the UI manifest the mobile app reads has no extension: it is JSON, as a server answers it
+    var type =
+        "manifest".equals(file) && path.endsWith(MobileManifestFile.PATH)
+            ? CONTENT_TYPES.get("json")
+            : contentType(file);
+    respond(exchange, 200, type, body, head);
   }
 
   /** The file to answer {@code path} with: itself when it is a file, else the SPA's index. */
@@ -333,6 +338,10 @@ final class DevServer implements AutoCloseable {
     var headers = exchange.getResponseHeaders();
     headers.set("Content-Type", contentType);
     headers.set("Cache-Control", "no-store");
+    // A development server of public files: any origin may read them — the React Native app's web
+    // build (Expo, another port) opens the bundle with fetch() (docs: "Same project on web and
+    // phone").
+    headers.set("Access-Control-Allow-Origin", "*");
     if (head) {
       exchange.sendResponseHeaders(status, -1);
       return;

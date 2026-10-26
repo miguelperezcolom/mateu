@@ -316,6 +316,46 @@ public class DevMojoTest {
     return field.get(target);
   }
 
+  @Test
+  public void servesTheUiManifestTheMobileAppReadsFromTheAppShell() throws Exception {
+    Files.writeString(
+        src.resolve("specs/ui/routes.yaml"),
+        "type: Routes\nroutes:\n  - route: \"\"\n    layout: app.yaml\n"
+            + "  - route: home\n    layout: home.yaml\n");
+    Files.writeString(
+        src.resolve("specs/ui/app.yaml"),
+        "type: AppShell\ntitle: Corner shop\naccentColor: \"#0a7f5a\"\nmenu:\n"
+            + "  - type: RouteLink\n    label: Home\n    route: home\n");
+    mojo(false).start();
+
+    // a file where a server answers it, so the Mateu app adds a static UI like a served one
+    assertThat(out.resolve(MobileManifestFile.PATH)).exists();
+    var connection =
+        (HttpURLConnection)
+            URI.create("http://localhost:" + mojo.port() + "/mateu/v3/manifest")
+                .toURL()
+                .openConnection();
+    assertThat(connection.getResponseCode()).isEqualTo(200);
+    assertThat(connection.getContentType()).startsWith("application/json");
+    // the React Native web build (another origin) reads the bundle with fetch()
+    assertThat(connection.getHeaderField("Access-Control-Allow-Origin")).isEqualTo("*");
+    var manifest = get("/mateu/v3/manifest");
+    assertThat(manifest)
+        .contains("\"name\":\"Corner shop\"")
+        .contains("\"themeColor\":\"#0a7f5a\"")
+        .contains("\"wireVersion\"")
+        .contains("\"bundle\":\"manifest.json\"");
+  }
+
+  @Test
+  public void withoutAnAppShellTheUiManifestIsNamedAfterThePage() throws Exception {
+    mojo(false).start();
+
+    assertThat(get("/mateu/v3/manifest"))
+        .contains("\"name\":\"Dev test\"")
+        .contains("\"bundle\":\"manifest.json\"");
+  }
+
   /** Collects the {@code event:} lines of the live-reload stream. */
   private void listen(BlockingQueue<String> events) {
     var thread =

@@ -69,6 +69,21 @@ public class DevMojo extends BundleMojo {
   @Parameter(property = "mateu.dev.liveReload", defaultValue = "true")
   private boolean liveReload;
 
+  /**
+   * Print a QR code on the terminal when serving on the LAN ({@code -Dmateu.dev.host=0.0.0.0}): the
+   * link that adds this UI to the Mateu app on a phone (see {@link DevPhone}).
+   */
+  @Parameter(property = "mateu.dev.qr", defaultValue = "true")
+  private boolean qr;
+
+  /**
+   * The Expo dev server of a React Native renderer run from source ({@code exp://<lan ip>:8081},
+   * what {@code npx expo start} prints): the QR then opens THAT build in Expo Go with this UI,
+   * instead of the {@code https://mateu.io/add} link the installed Mateu app answers.
+   */
+  @Parameter(property = "mateu.dev.expoUrl")
+  private String expoUrl;
+
   /** How often the watched directories are polled for changes, in milliseconds. */
   @Parameter(property = "mateu.dev.pollMillis", defaultValue = "300")
   private long pollMillis;
@@ -118,7 +133,8 @@ public class DevMojo extends BundleMojo {
     var watched = watched();
     watcher = new DevWatcher(watched, pollMillis, this::onChange);
     watcher.start();
-    var url = "http://" + host + ":" + boundPort + DevServer.basePathOf(baseUrl()) + "/";
+    var shown = DevPhone.isWildcard(host) ? "localhost" : host;
+    var url = "http://" + shown + ":" + boundPort + DevServer.basePathOf(baseUrl()) + "/";
     getLog()
         .info(
             "mateu-dev: serving "
@@ -128,6 +144,17 @@ public class DevMojo extends BundleMojo {
                 + "), watching "
                 + watched
                 + ". Ctrl+C to stop.");
+    // the same UI on a phone / simulator, in the Mateu app (the React Native renderer)
+    for (var line :
+        DevPhone.banner(
+            host,
+            boundPort,
+            DevServer.basePathOf(baseUrl()),
+            expoUrl,
+            qr,
+            DevPhone.isWildcard(host) ? DevPhone.lanAddress() : Optional.empty())) {
+      getLog().info(line);
+    }
   }
 
   /** Stops watching and serving. Idempotent. */
