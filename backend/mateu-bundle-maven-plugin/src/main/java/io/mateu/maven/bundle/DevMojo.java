@@ -223,13 +223,14 @@ public class DevMojo extends BundleMojo {
                       : "nothing to serve yet")
                   + ":\n"
                   + message);
-      if (server != null) {
-        server.failed(message);
-      }
+      // clean up BEFORE announcing the failure: whoever reacts to the event sees the final state
       try {
         deleteTree(staging);
       } catch (IOException ignored) {
         // a leftover staging directory is replaced by the next build
+      }
+      if (server != null) {
+        server.failed(message);
       }
       return false;
     }
