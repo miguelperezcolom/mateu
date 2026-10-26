@@ -62,6 +62,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   static bundle) — so a page always looks the same, while different welcome pages still vary. A
   declared `heroTone()` / `@WelcomeBanner(tone)` / `tone:` still wins.
 
+### Fixed
+
+- **Vaadin: money columns line up on the right.** A YAML listing expanded in the browser
+  (`specsOnly`) carried no `align` for a `stereotype: money` column, so Price sat on the left;
+  `columnAlign` now also reads the stereotype (as the server's column mapper does) and normalizes a
+  declared alignment (`end`/`right`, `center`, `start`/`left`).
+
 ## [3.0-beta.13] — 2026-10-24
 
 Version skew handled end to end (a redeployment and a stale screen are told to the user, every
