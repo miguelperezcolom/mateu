@@ -53,8 +53,8 @@ auto-fit the tiles.
 | Element | Mateu piece | Redwood | Notes |
 |---|---|---|---|
 | Page layout | `@PageWidth` on the class | ✅ | fixed by default; full width allowed; Redwood does not offer edge to edge for this template |
-| Page title (required) | `heroTitle()`; `@WelcomeBanner(title)` on other pages | ✅ | the archetype does **not** fall back to `@Title` — override `heroTitle()` |
-| Description | `heroSubtitle()` / `@WelcomeBanner(subtitle)` | ✅ | |
+| Page title (required) | `heroTitle()` (defaults to the page's `@Title` / `TitleSupplier`); `@WelcomeBanner(title)` on other pages | ✅ | an override wins over `@Title` |
+| Description | `heroSubtitle()` (defaults to the page's `@Subtitle` / `SubtitleSupplier`) / `@WelcomeBanner(subtitle)` | ✅ | |
 | Overline (greeting above the title) | `heroOverline()` / `@WelcomeBanner(overline)` | ✅ | Spectra's `overlineText` on the welcome page; a small quiet line above the title on the other renderers (the page header's `@Overline` is a different element) |
 | Image | `heroImage()` / `@WelcomeBanner(image)` | ✅ | full bleed (the whole banner); without one, Redwood shows one of its own gallery illustrations |
 | Image layout: half the banner / whole banner | — | ❌ | the other renderers always use the image as the banner background |
@@ -215,6 +215,5 @@ In short:
 - No image layout choice (half / whole banner —
   a `heroImage()` is always full bleed), no "hide image on phones", no search in the banner (the
   archetype has no search).
-- The archetype's title does not fall back to `@Title`.
 - Redwood paints the page with Spectra's `oj-sp-welcome-page` (since 2026-10-24); the tiles in its
   main slot are JET panels.
