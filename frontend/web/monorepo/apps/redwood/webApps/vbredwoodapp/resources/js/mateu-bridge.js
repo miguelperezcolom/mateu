@@ -9138,7 +9138,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const emit = (data) => {
       if (!data) return
       if (typeof data === 'string') effects.events.push({ name: data, detail: null, source })
-      else if (data.eventName) effects.events.push({ name: data.eventName, detail: data.detail ?? null, source })
+      // DispatchEventData carries `payload` on the wire; `detail` is the CloseModal's
+      else if (data.eventName) effects.events.push({ name: data.eventName, detail: data.payload ?? data.detail ?? null, source })
     }
     for (const c of increment.commands || []) {
       const t = c.targetComponentId
@@ -9165,12 +9166,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           emit(c.data) // the close's eventName → bus (e.g. refresh of the crud's listing)
           break
         }
-        case 'DispatchEvent':
+        case 'DispatchEvent': {
           // what an overlay component returns to whoever opened it (the selector of a
           // @Searchable: the chosen value, its label, and closing itself)
           if (applyOverlayEvent(contexts, stack, c.data)) break
+          // a navigation-requested the server sends (a task page's «Back to list») is a navigation,
+          // as the web renderer's shell takes it (updateRoute) — not a bus event nobody subscribes to
+          const navigation = navigationRequestedOf(c.data)
+          if (navigation) {
+            effects.navigate = { route: navigation.route }
+            break
+          }
           emit(c.data)
           break
+        }
         case 'MarkAsClean': {
           const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
           if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false }
@@ -9213,6 +9222,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (reg.appLevels) kept.appLevels = reg.appLevels
     if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
     return { ...kept, contexts, stack, shell, effects }
+  }
+
+  /** The detail of a DispatchEvent asking the shell to navigate (`navigation-requested`, its fields in
+   *  `payload` — or `detail` — with a route), or null for any other event. */
+  function navigationRequestedOf(data) {
+    if (!data || typeof data !== 'object' || data.eventName !== 'navigation-requested') return null
+    const detail = data.payload ?? data.detail
+    return detail && typeof detail === 'object' && typeof detail.route === 'string' && detail.route ? detail : null
   }
 
   /** The SetWindowTitle an increment addresses to the screen (not the shell's: the App's own title

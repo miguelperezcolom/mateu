@@ -200,6 +200,19 @@ test('open-drawer apila un overlay con initialData y anatomía del Drawer', () =
   assert.deepEqual(ov.state, { id: null, name: null, price: 0, active: false })
 })
 
+// A server-sent navigation-requested (forms' «Back to list», DispatchEventData{eventName, payload}) is a
+// navigation, as in the web renderer; another DispatchEvent keeps going to the bus, with its payload.
+test('DispatchEvent navigation-requested navega; otro evento va al bus con su payload', () => {
+  const before = reduceContexts(empty(), fx('load-form'))
+  const nav = reduceContexts(before, { commands: [{ type: 'DispatchEvent', data: { eventName: 'navigation-requested',
+    payload: { route: '/forms/tasks', consumedRoute: '', baseUrl: '/_forms-admin', serverSideType: 'io.mateu.workflow.infra.in.ui.FormsHome' } } }] })
+  assert.deepEqual(nav.effects.navigate, { route: '/forms/tasks' })
+  assert.deepEqual(nav.effects.events, [])
+  const bus = reduceContexts(before, { commands: [{ type: 'DispatchEvent', data: { eventName: 'lab-ping', payload: { from: 'B' } } }] })
+  assert.equal(bus.effects.navigate, null)
+  assert.deepEqual(bus.effects.events.map((e) => [e.name, e.detail]), [['lab-ping', { from: 'B' }]])
+})
+
 // 8) Save-in-drawer: CloseModal closes by pure state AND emits the bus event with which
 //    the subscribed listing refreshes; MarkAsClean with no target applies to the initiator.
 test('save-in-drawer: pop del stack + evento mateu-crud:saved-in-drawer + toast', () => {
