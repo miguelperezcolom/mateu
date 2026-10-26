@@ -39,6 +39,14 @@ error, `staticOnly` violation) is logged as `mateu-dev: build failed — …` an
 stays served. `-Dmateu.dev.port` (busy → next free, logged), `-Dmateu.dev.host`. The prefix resolves
 because the pom declares the plugin; otherwise `mvn io.mateu:mateu-bundle-maven-plugin:dev`.
 
+Same project on a phone: the bundle ships `mateu/v3/manifest` (the UI manifest, from the app shell,
+plus `"bundle": "manifest.json"`), so the Mateu app (React Native) adds the bundle's base URL like a
+served UI and renders it on the device — same resolver/expander as the web, sources called from the
+phone, `sample:` data in a mock build. `dev` prints the simulator URLs (iOS `localhost`, Android
+emulator `10.0.2.2`); `-Dmateu.dev.host=0.0.0.0` adds the LAN URL + a terminal QR of
+`https://mateu.io/add?u=…` (`-Dmateu.dev.expoUrl=exp://<ip>:8081` → an Expo Go link instead,
+`-Dmateu.dev.qr=false` → no QR). Plain http is accepted by development builds of the app only.
+
 ## Goal parameters (`-Dmateu.bundle.<name>` or `<configuration>`)
 
 | Parameter | Default | Meaning |

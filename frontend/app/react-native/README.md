@@ -71,6 +71,29 @@ npm run ios        # macOS + Xcode only
 > From IntelliJ: use the integrated terminal, or create an **npm Run Configuration**
 > (Run → Edit Configurations → `+` → npm → this module's `package.json`, script `web` or `start`).
 
+## A static UI (no backend)
+
+A base URL that serves a `mateu-bundle` build (`mvn package` / `mvn mateu-bundle:dev` of a YAML-only
+project) is opened too: the hub reads its `mateu/v3/manifest` file (`"bundle": "manifest.json"`),
+or recognises an older bundle by `<base>/manifest.json`; direct mode probes the base URL the same
+way. Route loads are then answered on the device from the bundle (`src/core/staticBundle.ts`) — by
+the web's own resolver and client-side expander, imported from `libs/mateu` through
+`src/shared/mateuLib.ts` (Metro watches that folder, see `metro.config.js`) — and nothing is POSTed
+to `/mateu/v3`. Sources resolve against the bundle's base URL; a mock bundle answers from `sample:`.
+
+```bash
+# in the YAML project
+mvn mateu-bundle:dev                              # http://localhost:3000, prints simulator URLs
+mvn mateu-bundle:dev -Dmateu.dev.host=0.0.0.0 -Dmateu.dev.expoUrl=exp://<lan ip>:8081
+# here
+EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:3000 npm run web   # direct mode
+npm start   # hub mode: open the QR the dev goal printed (Expo Go), or
+            # xcrun simctl openurl booted "exp://localhost:8081/--/add?u=http%3A%2F%2Flocalhost%3A3000"
+```
+
+Android emulator: the bundle is at `http://10.0.2.2:3000`. The web build reads the bundle
+cross-origin: the dev goal allows it; `npx serve` needs `--cors`.
+
 ## Building installables (APK / App Store / Play Store)
 
 Builds go through [EAS](https://docs.expo.dev/build/introduction/) (Expo's build service — sign in
