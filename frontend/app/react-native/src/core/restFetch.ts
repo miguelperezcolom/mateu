@@ -108,6 +108,22 @@ export class RestSourceCatalogue {
   // the app; an app without the flag leaves it as it is. Never silently in production.
   private sampleMode = false;
 
+  /**
+   * The base a RELATIVE source url (`/api/products`) is resolved against. On the web it is the page;
+   * a static bundle opened natively has no page, so its sources are relative to the bundle's base
+   * URL (set by the session that opens one). Undefined = urls are used as declared.
+   */
+  relativeBase: string | undefined;
+
+  /** The url a fetch goes to: a relative one made absolute against {@link relativeBase}. */
+  absolute(url: string): string {
+    const base = this.relativeBase;
+    if (!base || !url || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url) || url.startsWith('//')) return url;
+    const origin = /^(https?:\/\/[^/?#]+)/i.exec(base)?.[1];
+    if (!origin) return url;
+    return url.startsWith('/') ? `${origin}${url}` : `${base.replace(/\/+$/, '')}/${url}`;
+  }
+
   /** Store the app's REST source catalogue (`AppDto.restSources`, a list of `{name, source, …}`). */
   register(sources: unknown): void {
     const map: Record<string, Json> = {};
@@ -280,7 +296,7 @@ export async function fetchExternalJson(
   // SAMPLE mode: a sampled source is not fetched — a read gets a copy of the sample, a write null.
   if (sources.isSampled(declared)) return sources.sampledResponse(declared, String(source['method'] ?? 'GET'));
   // the url resolves with its values percent-encoded by position (interpolateUrl), like the proxy
-  const url = resolveUrl(source['url']);
+  const url = sources.absolute(resolveUrl(source['url']));
   const method = String(source['method'] ?? 'GET').toUpperCase();
   const headers: Record<string, string> = {};
   for (const [k, v] of Object.entries((source['headers'] as Json) ?? {})) headers[k] = resolve(v);

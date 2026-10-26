@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Platform, StyleSheet, View } from 'react-native';
 import { announce } from '../a11y/a11y';
 import { theme, themed } from '../theme';
-import { parseHubLink, type HubLink, type ParseOptions } from './links';
+import { fromExpoDevLink, parseHubLink, type HubLink, type ParseOptions } from './links';
 import type { UiManifest } from './manifest';
 import { allowInsecure, appVersion, extraLinkHosts, uiStore } from './storage';
 import { DEMO_BASE_URL, type HubEntry } from './uiStore';
@@ -100,7 +100,9 @@ export function HubApp() {
   );
 
   const handleUrl = useCallback(
-    (url: string | null) => {
+    (raw: string | null) => {
+      // Expo Go (development): exp://<dev server>/--/add?u=… is the hub's own add link
+      const url = (raw && fromExpoDevLink(raw, linkOptions)) || raw;
       if (!url || isForeign(url)) return;
       const link = parseHubLink(url, linkOptions);
       if (link.kind === 'invalid' && !lookedLikeOurs(url)) return;

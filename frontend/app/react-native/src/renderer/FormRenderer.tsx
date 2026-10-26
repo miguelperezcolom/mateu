@@ -30,7 +30,10 @@ export function FormRenderer({ component, metadata, state }: Props) {
   const subtitle = (metadata['subtitle'] as string) ?? '';
   const readOnly = Boolean(metadata['readOnly']);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
-  const actions = (metadata['actions'] as ButtonDto[]) ?? [];
+  // Header buttons. A form expanded on the device (a static bundle's raw definition) also carries
+  // its declared action DEFINITIONS here (`actions:` — id + restAction/steps, no label): those are
+  // what its buttons run, not buttons of their own, so an entry with no label is not painted.
+  const actions = ((metadata['actions'] as ButtonDto[]) ?? []).filter((a) => !!a?.label);
   const children = (component['children'] as unknown[]) ?? [];
 
   const handleAction = (actionId: string) => void controller.runAction(actionId);

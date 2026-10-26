@@ -224,7 +224,12 @@ export class MateuViewController {
       (!this.ownsAction(actionId) && BUBBLED_SUBMIT_ACTIONS.has(actionId));
     if (requiresValidation) {
       const errors = this.collectFieldErrors();
+      const hadErrors = Object.keys(this.fieldErrors).length > 0;
       this.fieldErrors = {};
+      // fixed since the last attempt: the old messages go (they stayed under a now-valid field)
+      if (hadErrors && Object.keys(errors).length === 0) {
+        this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
+      }
       if (Object.keys(errors).length > 0) {
         this.fieldErrors = errors;
         // the version bump remounts the field tree — render against the EDITED state
@@ -349,7 +354,7 @@ export class MateuViewController {
         const kind = actionId === '__restdata__' ? 'data' : 'action';
         json = await this.fetchViaProxy(kind, actionId ?? '');
       } else {
-        const url = interpolateUrl(str(target['url']), ctx);
+        const url = this.session.sources.absolute(interpolateUrl(str(target['url']), ctx));
         const method = (str(target['method']) || 'GET').toUpperCase();
         const headers: Record<string, string> = {};
         for (const [k, v] of Object.entries((target['headers'] as Json) ?? {})) headers[k] = resolve(v);
@@ -378,6 +383,10 @@ export class MateuViewController {
       }
       const message = interpolate(str(rest['successMessage']), ctx);
       if (message) this.session.notify(null, message, 'info', { duration: 3000 });
+      // successRoute: where a 2xx lands, interpolated against the state the result merged into
+      // (the web's rule)
+      const successRoute = interpolate(str(rest['successRoute']), ctx);
+      if (successRoute && !successRoute.includes('${')) this.handleCommand({ type: 'NavigateTo', data: successRoute });
     } catch (e) {
       if (this.silentErrors) devLog('[Mateu] rest action failed:', errorText(e));
       else this.session.notify(null, 'Request failed', 'error');

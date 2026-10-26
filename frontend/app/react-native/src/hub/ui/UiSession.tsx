@@ -6,6 +6,7 @@ import { MateuAppProvider } from '../../context/AppContext';
 import { OidcTokenProvider } from '../../core/oidc';
 import type { MateuSession } from '../../core/MateuSession';
 import { SessionContent } from '../../shell/SessionContent';
+import { fetchStaticBundle, type StaticBundle } from '../../core/staticBundle';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import { fetchManifest, versionGate, type UiManifest } from '../manifest';
@@ -51,6 +52,8 @@ export function UiSession({
   const [phase, setPhase] = useState<Phase>({ name: 'manifest' });
   const [manifest, setManifest] = useState<UiManifest | undefined>(entry.manifest);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  /** A static UI (no server): the bundle it runs from. */
+  const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   const provider = useMemo(
@@ -76,9 +79,22 @@ export function UiSession({
         if (alive) setPhase({ name: 'error', reason: fetched.reason });
         return;
       }
+      // a static UI runs from its bundle: fetched now (or already, while it was recognised)
+      let staticBundle: StaticBundle | null = null;
+      if (m.bundle) {
+        const found = fetched.ok && 'bundle' in fetched && fetched.bundle
+          ? { ok: true as const, bundle: fetched.bundle }
+          : await fetchStaticBundle(entry.baseUrl, m.bundle);
+        if (!found.ok) {
+          if (alive) setPhase({ name: 'error', reason: found.reason });
+          return;
+        }
+        staticBundle = found.bundle;
+      }
       const id = await uiSessionId(secretStore, entry.id);
       if (!alive) return;
       setManifest(m);
+      setBundle(staticBundle);
       setSessionId(id);
       const gate = versionGate(m, appVersion());
       if (!gate.ok) return setPhase({ name: 'update', reason: gate.reason });
@@ -170,7 +186,7 @@ export function UiSession({
     );
   } else {
     body = (
-      <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession }}>
+      <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle }}>
         <SessionContent initialRoute={route} visible={visible} />
       </MateuAppProvider>
     );
