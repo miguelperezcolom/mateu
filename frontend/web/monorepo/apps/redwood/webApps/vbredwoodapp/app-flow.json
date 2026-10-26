@@ -806,17 +806,17 @@
     "mateuWelcomeKey": {
       "type": "string",
       "defaultValue": "",
-      "description": "qu\u00e9 welcome pinta el hero (welcomeKeyOf): con la misma, su aspecto no rota"
+      "description": "qu\u00e9 welcome pinta el hero (welcomeKeyOf): su aspecto sale de un hash estable de esta clave"
     },
     "mateuWelcomeTheme": {
       "type": "string",
       "defaultValue": "auto",
-      "description": "tono del hero de la welcome (rota en cada visita entre la paleta oscura RDS)"
+      "description": "tono del hero de la welcome (el declarado, o uno de la paleta oscura RDS elegido por hash de la p\u00e1gina: siempre el mismo)"
     },
     "mateuWelcomeImage": {
       "type": "string",
       "defaultValue": "pebbles",
-      "description": "imagen tem\u00e1tica del hero de la welcome (rota junto al tono)"
+      "description": "imagen tem\u00e1tica del hero de la welcome (va con el tono)"
     },
     "mateuWelcomeIllu": {
       "type": "string",

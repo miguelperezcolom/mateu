@@ -22,6 +22,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   still wins.
   On Redwood the listing table now uses `oj-table` `layout="fixed"`, where a long text is cut with
   an ellipsis. The full text shows on hover.
+- **A Redwood welcome hero keeps the same look on every visit.** Without a declared tone, the hero's
+  background and illustration were drawn at random each time the page was entered; they are now
+  chosen from the page's identity — its class, or its route for a YAML page (served or from a
+  static bundle) — so a page always looks the same, while different welcome pages still vary. A
+  declared `heroTone()` / `@WelcomeBanner(tone)` / `tone:` still wins.
 
 ## [3.0-beta.13] — 2026-10-24
 

@@ -162,8 +162,9 @@ or `@WelcomeBanner(tone = HeroTone.plum)` on any page. `auto` (the default) keep
 own band. Vaadin, React Native and IntelliJ paint Mateu's palette (ocean `#1f4e79`, pine `#2d5a3d`,
 lilac `#5b4a7a`, teal `#1f5c5c`, rose `#7a3b4f`, pebble `#5a5550`, slate `#3d4a57`, plum `#5e3557`,
 sienna `#7a4a2e`, with light ink); Redwood maps each tone onto its welcome banner's
-`dark-<tone>` background. With `auto`, Redwood picks one of its illustrated looks when the user
-enters the page and keeps it while they stay.
+`dark-<tone>` background. With `auto`, Redwood gives each page one of its illustrated looks,
+chosen from the page's identity (its class, or its route for a YAML page): a page always shows
+the same look, on every visit, while different welcome pages vary.
 
 ![A pine hero](/images/docs/welcome/hero-tone.png)
 
