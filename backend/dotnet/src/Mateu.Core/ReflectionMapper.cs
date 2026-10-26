@@ -190,8 +190,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         List<ComponentDto> content;
         // Page-level inference ([AutoPage]): a plain class whose structure spells an archetype
         // is composed as it — the C# analogue of Java's InferredDashboard/InferredWelcome. The
-        // welcome hero title is the declared [Title]; subtitle/image have no declarative source,
-        // so setting them remains a reason to subclass Welcome.
+        // welcome hero title/subtitle are the declared [Title]/[Subtitle]; the image has no
+        // declarative source, so setting it remains a reason to subclass Welcome.
         // A YAML page's layout (bound to this instance as its ModelView) is rendered as the page
         // content exactly like an archetype's fluent tree — its FormField ids bind to the instance's
         // state, its Button actionIds (collected below) route back to the instance's methods.
@@ -199,7 +199,8 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
             ?? (instance is IComponentTreeSupplier supplier ? supplier.Component()
             : PageInference.ComposesDashboard(type) ? ArchetypeComposers.ComposeDashboard(instance, 0)
             : PageInference.ComposesWelcome(type)
-                ? ArchetypeComposers.ComposeWelcome(instance, type.Find<TitleAttribute>()?.Value, null, null)
+                ? ArchetypeComposers.ComposeWelcome(
+                    instance, type.Find<TitleAttribute>()?.Value, type.Find<SubtitleAttribute>()?.Value, null)
                 : null);
         // A ComponentTreeSupplier view (an archetype, or an [AutoPage]-inferred dashboard/welcome)
         // is NOT a page: Java emits the supplied tree DIRECTLY as the ServerSideComponent's child,
@@ -290,6 +291,13 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         {
             children = content;
             containerStyle = treeStyle;
+            // The page bars and the canonical header pieces the view declares ([Toolbar]/[Button],
+            // [Subtitle], [Overline], [Timestamp], [Kpi], badges, banners, peer navigation, a record
+            // switcher) wrap the tree in a page that carries them — titled like the view unless
+            // the tree names itself; a view declaring none renders exactly as before. (Mirrors
+            // Java's ComponentTreeSupplierMapper.withPageBars.)
+            if (ComposedPageHeader.Of(pageMeta, content) is { } wrapper)
+                children = [new ClientSideComponentDto(wrapper, null, content, null, null, null)];
             // An explicit [Size] on the view sizes its whole surface (coherence-plan #8): a
             // full-canvas screen that fills the viewport and scrolls internally. Overrides inference.
             var sizing = SizingOf(type);

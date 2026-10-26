@@ -268,7 +268,12 @@ export function dashboardOf(ctx) {
   const boards = findAllByType(tree, 'Scoreboard')
   if (!panels.length && !boards.length) return null
   if (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true)) return null
-  const blocks = islandContentOf(ctx) || []
+  // a dashboard declaring header pieces (@Subtitle, @KPI…) comes inside a Page: its title is the
+  // landing page's header (mateuPageHeader), not a block of the content
+  const page = pageHeaderNodeOf(tree)
+  const pageTitle = page && page.metadata ? String(page.metadata.title || '') : ''
+  const isPageTitle = (b) => !!pageTitle && (b.items || []).length === 1 && b.items[0].isText && b.items[0].text === pageTitle
+  const blocks = (islandContentOf(ctx) || []).filter((b) => !isPageTitle(b))
   const kpis = []
   const rest = []
   for (const b of blocks) {

@@ -83,16 +83,18 @@ class Welcome(ComponentTreeSupplier):
     """Welcome page: ``Button`` fields become call-to-action buttons inside a centered hero;
     ``Panel(title)`` component fields become highlight tiles on a grid below. Override
     :meth:`hero_overline` / :meth:`hero_title` / :meth:`hero_subtitle` / :meth:`hero_image` for the
-    hero chrome."""
+    hero chrome; the hero's title and subtitle default to the page's ``@title`` / ``@subtitle``."""
 
     def style(self) -> str | None:
         return None
 
     def hero_title(self) -> str | None:
-        return None
+        """The hero's title: the page's declared ``@title`` unless overridden."""
+        return getattr(type(self), "__mateu_title__", None)
 
     def hero_subtitle(self) -> str | None:
-        return None
+        """The hero's subtitle: the page's declared ``@subtitle`` unless overridden."""
+        return getattr(type(self), "__mateu_subtitle__", None)
 
     def hero_image(self) -> str | None:
         return None

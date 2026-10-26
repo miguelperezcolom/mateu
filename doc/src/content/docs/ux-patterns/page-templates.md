@@ -125,6 +125,24 @@ Three notes on how to read the table:
   template (`position`/`width`/`sticky` come from the annotation). You keep declaring data as usual
   and just point at the one supporting panel that belongs to the side.
 
+## The header on composed archetypes
+
+The archetypes that build their own tree (`Dashboard`, `Welcome`, `ItemOverview`, `Foldout`,
+`DataManagement`, `GanttPage`, `HeroSearch`, `SmartSearchPage`, and the `@AutoPage` inferred
+pages) read the same header pieces a plain page does: `@Subtitle`, `@Overline`, a `@Timestamp`
+field, `@KPI` fields, `@BadgeInHeader` / `HeaderBadgesSupplier`, `@Avatar`, `@Banner`,
+`PeerNavigationSupplier` and `RecordSwitcherSupplier`, plus their `@Toolbar` / `@Button`
+methods. When an archetype declares any of them, its tree goes inside a page that carries them,
+titled with the page title unless the tree already shows one (a hero, an `EntityHeader`, the
+`DataManagement` / `GanttPage` heading). An archetype that declares none renders exactly as
+before. A tree that opens with a hero (`Welcome`, `HeroSearch`) keeps its subtitle and overline
+in the hero: `Welcome.heroTitle()` / `heroSubtitle()` default to `@Title` / `@Subtitle`.
+
+On Vaadin the pieces render in the usual page header. On Redwood the oj-sp page templates show
+what their header has a slot for: the Dashboard landing page takes the title and subtitle, and
+the Data management page takes a declared Cancel + primary. The other pieces are not drawn on
+those templates yet. Same rule on .NET and Python.
+
 ## The header in YAML
 
 Every header element on this page — overline, title placeholder, timestamp, badges, KPIs, peer

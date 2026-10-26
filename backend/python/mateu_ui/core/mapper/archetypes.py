@@ -203,10 +203,11 @@ class ArchetypeMapperMixin(MixinBase):
             hero_tone = instance.hero_tone()
             hero_overline = instance.hero_overline()
         else:
-            # @auto_page plain class: the hero title is the declared @title; subtitle and
-            # image have no declarative source — setting them is a reason to subclass Welcome.
+            # @auto_page plain class: the hero title/subtitle are the declared @title/@subtitle;
+            # the image has no declarative source — setting it is a reason to subclass Welcome.
             hero_title = getattr(type(instance), "__mateu_title__", None)
-            hero_subtitle = hero_image = None
+            hero_subtitle = getattr(type(instance), "__mateu_subtitle__", None)
+            hero_image = None
             hero_tone = None
             hero_overline = None
         content = [

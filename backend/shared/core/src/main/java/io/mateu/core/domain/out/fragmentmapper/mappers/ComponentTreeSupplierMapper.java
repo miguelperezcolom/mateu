@@ -7,6 +7,7 @@ import io.mateu.core.application.runaction.PartialExpander;
 import io.mateu.core.domain.act.FluentHandlerButtons;
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
+import io.mateu.core.domain.out.componentmapper.ReflectionPageMapper;
 import io.mateu.core.domain.out.componentmapper.SizingResolver;
 import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
 import io.mateu.dtos.ClientSideComponentDto;
@@ -28,7 +29,12 @@ public class ComponentTreeSupplierMapper {
       HttpRequest httpRequest) {
     var tree =
         withPageBars(
-            componentTreeSupplier, componentTreeSupplier.component(httpRequest), httpRequest);
+            componentTreeSupplier,
+            componentTreeSupplier.component(httpRequest),
+            baseUrl,
+            route,
+            initiatorComponentId,
+            httpRequest);
     var leaf =
         mapComponentToDto(
             componentTreeSupplier,
@@ -77,27 +83,35 @@ public class ComponentTreeSupplierMapper {
    * ComponentTreeSupplier}) gets the same bars a normal page has: its {@code @Toolbar} and
    * {@code @Button} methods and fields — dispatched to it like a normal page's — and the CRUD
    * navigation of a page overriding a CRUD's sub-screen. They were ignored: the tree was all there
-   * was. The tree goes inside a page that carries them (a tree that IS a page gets them added); a
-   * view with none of them renders exactly as before.
+   * was. Likewise the canonical header pieces a reflected page reads ({@code @Subtitle},
+   * {@code @Overline}, {@code @Timestamp}, {@code @KPI}, {@code @BadgeInHeader}, {@code @Avatar},
+   * {@code @Banner}, peer navigation, a record switcher — {@link ReflectionPageMapper#headerOf}).
+   * The tree goes inside a page that carries them (a tree that IS a page gets them added), titled
+   * with the view's title unless the tree already names itself; a view with none of them renders
+   * exactly as before. For a bridge ({@code @AutoPage}) the page belongs to the model behind it.
    */
   static io.mateu.uidl.fluent.Component withPageBars(
-      ComponentTreeSupplier view, io.mateu.uidl.fluent.Component tree, HttpRequest httpRequest) {
-    if (tree == null || !io.mateu.core.domain.RoutedView.is(view, httpRequest)) {
+      ComponentTreeSupplier view,
+      io.mateu.uidl.fluent.Component tree,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    var owner = io.mateu.core.infra.ModelBridge.ownerOf(view);
+    if (tree == null || !io.mateu.core.domain.RoutedView.is(owner, httpRequest)) {
       return tree;
     }
     var toolbar =
         io.mateu.core.domain.CrudNavigation.withToolbar(
-            view,
-            httpRequest,
-            io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.toolbarOf(
-                view, httpRequest));
+            owner, httpRequest, ReflectionPageMapper.toolbarOf(owner, httpRequest));
     var buttons =
         io.mateu.core.domain.CrudNavigation.withButtons(
-            view,
-            httpRequest,
-            io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.buttonsOf(
-                view, httpRequest));
-    if (toolbar.isEmpty() && buttons.isEmpty()) {
+            owner, httpRequest, ReflectionPageMapper.buttonsOf(owner, httpRequest));
+    var opensWithHero = SelfNamingTree.opensWithHero(tree);
+    var header =
+        ReflectionPageMapper.headerOf(
+            owner, !opensWithHero, baseUrl, route, initiatorComponentId, httpRequest);
+    if (toolbar.isEmpty() && buttons.isEmpty() && header == null) {
       return tree;
     }
     if (tree instanceof io.mateu.uidl.fluent.PageView page) {
@@ -107,17 +121,52 @@ public class ComponentTreeSupplierMapper {
       var mergedButtons = new java.util.ArrayList<io.mateu.uidl.fluent.UserTrigger>();
       if (page.buttons() != null) mergedButtons.addAll(page.buttons());
       mergedButtons.addAll(buttons);
-      return page.toBuilder()
-          .clearToolbar()
-          .toolbar(mergedToolbar)
-          .clearButtons()
-          .buttons(mergedButtons)
-          .build();
+      var merged =
+          page.toBuilder()
+              .clearToolbar()
+              .toolbar(mergedToolbar)
+              .clearButtons()
+              .buttons(mergedButtons);
+      return header == null ? merged.build() : withHeader(merged, page, header).build();
     }
-    return io.mateu.uidl.fluent.PageView.builder()
-        .toolbar(toolbar)
-        .buttons(buttons)
-        .content(java.util.List.of(tree))
-        .build();
+    var wrapper =
+        io.mateu.uidl.fluent.PageView.builder()
+            .toolbar(toolbar)
+            .buttons(buttons)
+            .content(java.util.List.of(tree));
+    if (!SelfNamingTree.namesItself(tree)) {
+      wrapper.title(ReflectionPageMapper.getTitle(owner, httpRequest));
+    }
+    if (header != null) {
+      wrapper =
+          wrapper
+              .subtitle(header.subtitle())
+              .overline(header.overline())
+              .timestamp(header.timestamp())
+              .peerNav(header.peerNav())
+              .switcher(header.switcher())
+              .avatar(header.avatar())
+              .badges(header.badges())
+              .kpis(header.kpis())
+              .banners(header.banners());
+    }
+    return wrapper.build();
+  }
+
+  /** What the tree's own page leaves unset is taken from the view's declared header. */
+  private static io.mateu.uidl.fluent.PageView.PageViewBuilder withHeader(
+      io.mateu.uidl.fluent.PageView.PageViewBuilder builder,
+      io.mateu.uidl.fluent.PageView page,
+      io.mateu.uidl.fluent.PageView header) {
+    if (page.subtitle() == null) builder.subtitle(header.subtitle());
+    if (page.overline() == null) builder.overline(header.overline());
+    if (page.timestamp() == null) builder.timestamp(header.timestamp());
+    if (page.peerNav() == null) builder.peerNav(header.peerNav());
+    if (page.switcher() == null) builder.switcher(header.switcher());
+    if (page.avatar() == null) builder.avatar(header.avatar());
+    if (page.badges() == null || page.badges().isEmpty()) builder.badges(header.badges());
+    if (page.kpis() == null || page.kpis().isEmpty()) builder.kpis(header.kpis());
+    if (page.banners() == null || page.banners().isEmpty()) builder.banners(header.banners());
+    return builder;
   }
 }

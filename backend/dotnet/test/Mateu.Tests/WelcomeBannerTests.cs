@@ -48,6 +48,21 @@ public class OverlinedWelcome : Welcome
     public Button Start { get; } = new("Start", "start");
 }
 
+/// <summary>The Welcome archetype's hero defaults to the page's [Title] and [Subtitle].</summary>
+[UI("welcome-banner/titled-welcome"), Title("Welcome aboard"), Subtitle("Start here")]
+public class TitledWelcome : Welcome
+{
+    public Button Start { get; } = new("Start", "start");
+}
+
+/// <summary>An overridden HeroTitle wins over the declared [Title].</summary>
+[UI("welcome-banner/overridden-welcome"), Title("Declared")]
+public class OverriddenWelcome : Welcome
+{
+    protected override string? HeroTitle => "Overridden";
+    public Button Start { get; } = new("Start", "start");
+}
+
 /// <summary>[WelcomeBanner] prepends a centered HeroSection (id "welcome-banner") to the page
 /// content — the hero IS the banner, there is no new wire type. An empty Title falls back to the
 /// view's [Title]. (Mirror of Java's WelcomeBannerSyncTest.)</summary>
@@ -126,6 +141,23 @@ public class WelcomeBannerTests
     }
 
     // ── helpers (same walking approach as SectionFeatureTests) ────────────────
+
+    [Fact]
+    public void Welcome_archetype_hero_defaults_to_the_page_title_and_subtitle()
+    {
+        var metadata = ComponentOfType(RenderView(typeof(TitledWelcome)), "HeroSection")!.Value
+            .GetProperty("metadata");
+        Assert.Equal("Welcome aboard", metadata.GetProperty("title").GetString());
+        Assert.Equal("Start here", metadata.GetProperty("subtitle").GetString());
+    }
+
+    [Fact]
+    public void Welcome_archetype_overridden_hero_title_wins()
+    {
+        var metadata = ComponentOfType(RenderView(typeof(OverriddenWelcome)), "HeroSection")!.Value
+            .GetProperty("metadata");
+        Assert.Equal("Overridden", metadata.GetProperty("title").GetString());
+    }
 
     private static JsonElement FirstPageChild(JsonElement root)
     {

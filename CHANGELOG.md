@@ -11,6 +11,36 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.17] — 2026-10-26
+
+Composed page templates read the same header pieces as a normal page, and the docs gain a
+one-question decision tree for choosing a page template.
+
+### Added
+
+- **Header pieces on the composed archetypes.** `Dashboard`, `Welcome`, `ItemOverview`, `Foldout`,
+  `DataManagement`, `GanttPage`, `HeroSearch`, `SmartSearchPage` and the `@AutoPage` pages now pick
+  up what a reflected page puts in its header: `@Subtitle`, `@Overline`, `@Timestamp`, `@KPI`,
+  `@BadgeInHeader`, `@Avatar`, `@Banner`, `PeerNavigationSupplier` and `RecordSwitcherSupplier`.
+  An archetype that declares none of them renders exactly as before. Java, .NET and Python. On
+  Redwood the dashboard landing page shows the subtitle; the other Spectra templates do not draw
+  these pieces yet.
+- **Opt-in Cancel and primary action on `DataManagement` and `GanttPage`.** A `cancel` `@Toolbar`
+  method plus one `@Toolbar(buttonStyle = primary)` method go to the page header; on Redwood they
+  become the data-management page's own Cancel and primary buttons, which stayed hidden before.
+- **Docs: choosing a page template.** A decision tree (what is the user doing → family →
+  template), the questions that settle the close calls between templates, and a table of what goes
+  in the page header.
+
+### Changed
+
+- **`Welcome.heroTitle()` and `heroSubtitle()` fall back to the page's `@Title`/`TitleSupplier`
+  and `@Subtitle`/`SubtitleSupplier`** (they returned null). An override still wins. Same in .NET
+  and Python.
+- **A composed archetype with `@Toolbar`/`@Button` methods is now titled** like the view, unless its
+  tree already names itself (a hero, an entity header, a title text). It used to be wrapped with no
+  title, which also hid the Vaadin composed heading.
+
 ## [3.0-beta.16] — 2026-10-26
 
 The Vaadin shell follows Redwood's own guidelines for the brand accent and the page widths, and

@@ -57,13 +57,15 @@ and the docked panels; the grid and the Gantt are whatever components you hand i
 |---|---|---|---|
 | Full-width canvas | `pageWidth()` → `PageWidthStyle.FULL_WIDTH` | ✅ | |
 | Grid ⇄ Gantt switch | `gridView(rq)` / `ganttView(rq)`; labels `gridLabel()` / `ganttLabel()`; the active view is page state (`_view`) | ✅ | the grid is an `oj-table`, the Gantt an `oj-gantt` |
-| Page heading | `heading()` (from `@Title`; return blank to omit) | ✅ | Redwood paints it as the title of Spectra's `oj-sp-data-management-page` header (its Cancel / primary are hidden: the archetype has no transaction) |
+| Page heading | `heading()` (from `@Title`; return blank to omit) | ✅ | Redwood paints it as the title of Spectra's `oj-sp-data-management-page` header |
 | Docked end / bottom panels (reflow) | `endPanel(rq)` / `bottomPanel(rq)` → `DockedPanel(id, title, content, size, open)` | ✅ | a toolbar toggle and a ✕ per panel; open state is page state. Redwood docks them in the template's `innerEnd` (`oj-sp-general-drawer-template`) and `innerBottom` (`oj-sp-bottom-drawer-template`) drawers; `size` is not applied there (Spectra's own drawer sizes) |
 | Overlay panels | return a `Drawer` (`modeless`, any `DrawerPosition`) from an action | 🟡 | Redwood opens every drawer modal at the end edge — see [Drawer](/ux-patterns/drawer/) |
 | Bottom drawer states (closed / minimized / maximized) | `DrawerPosition.bottom` + `collapsible` + `maximizable` | ✅ | `oj-sp-bottom-drawer-template` (see [Drawer](/ux-patterns/drawer/)) |
 | Density | `@Compact`, `Grid.compact(true)` | ✅ | |
 | In-place editing in the grid | an embedded `AutoCrud` with `@InlineEditing` as `gridView` | 🟡 | a fluent `Grid` is read-only; not a spreadsheet-style data grid (no cell selection) |
-| Transactional header (Save, Cancel, undo/redo, history, timestamp) | — | ❌ | the archetype is a viewer; transact in an `AutoCrud` or a form |
+| Transactional header (Cancel + one primary) | a `@Toolbar` method named `cancel` and one `@Toolbar(buttonStyle = primary)` method | ✅ | opt-in: without them the header has no Cancel/primary. Redwood binds them to the template's own Cancel and primary buttons |
+| Header pieces (subtitle, overline, `@Timestamp`, `@KPI`, badges, peer navigation, record switcher) | the same annotations / supplier interfaces as any page | 🟡 | Vaadin draws them in the page header; Redwood's data-management template has no slot for them yet |
+| Undo/redo, history | — | ❌ | |
 | Tab bar under the header | — | ❌ | |
 | Messages | toasts and alerts ride on the wire's `messages`, not as a page slot | 🟡 | |
 | Search | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 | |
@@ -170,13 +172,14 @@ modeless variant of the Redwood slots. For an *overlay* panel, return a `Drawer`
 
 ## Known gaps
 
-- No transactional page header (Save/Cancel, undo/redo, history, timestamp) and no tab bar: the
-  archetype composes a heading and a toolbar only.
+- The transactional header is opt-in (a `cancel` + one primary `@Toolbar` method); no undo/redo,
+  history or tab bar.
 - The grid is a table: no spreadsheet-like cell selection; editing needs an embedded crud with
   `@InlineEditing`.
 - Overlay panels inherit the Redwood drawer gaps (always modal, end edge).
 - On Redwood the page is Spectra's `oj-sp-data-management-page`; its header is transactional by
-  design, so the Cancel / primary buttons it always draws are hidden (the archetype has none).
+  design, so the Cancel / primary buttons it always draws stay hidden unless the page declares
+  them. Subtitle, KPIs and the other header pieces are not drawn there yet.
 
 Details: [data-management review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/data-management.md).
 
