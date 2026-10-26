@@ -21,7 +21,8 @@ public class ${simpleClassName}Controller {
             java.util.List.of(<#list externalScripts as x>"${x?j_string}"<#sep>, </#sep></#list>),
             <#if keycloak??>new IndexPage.Keycloak("${keycloak.url?j_string}", "${keycloak.realm?j_string}", "${keycloak.clientId?j_string}", "${keycloak.jsUrl?j_string}")<#else>null</#if>,
             "${extraHead?j_string}",
-            false);
+            false,
+            "${className?j_string}");
 
     private static boolean debug() {
         return ConfigProvider.getConfig().getOptionalValue("mateu.debug", Boolean.class).orElse(false);

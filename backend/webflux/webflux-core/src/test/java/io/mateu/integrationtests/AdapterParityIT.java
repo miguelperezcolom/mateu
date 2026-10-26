@@ -127,6 +127,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void servesTheInstallableApp() {
+      contract.servesTheInstallableApp();
+    }
+
+    @Test
     void servesTheRuntimeBundle() {
       contract.servesTheRuntimeBundle();
     }
@@ -134,6 +139,11 @@ class AdapterParityIT {
     @Test
     void servesAYamlMount() {
       contract.servesAYamlMount();
+    }
+
+    @Test
+    void servesAYamlMountsInstallableApp() {
+      contract.servesAYamlMountsInstallableApp();
     }
 
     @Test

@@ -113,6 +113,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void servesTheInstallableApp() {
+    contract.servesTheInstallableApp();
+  }
+
+  @Test
   void servesTheRuntimeBundle() {
     contract.servesTheRuntimeBundle();
   }

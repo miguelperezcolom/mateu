@@ -64,6 +64,8 @@ target/mateu-bundle/
 ├── index.html        # boots <mateu-ui bundleUrl="/manifest.json">
 ├── manifest.json     # one pre-rendered increment per static route
 ├── assets/           # the renderer bundle (mateu-vaadin.js, vendors, css)
+├── mateu-sw.js       # the service worker of the installable app
+├── pwa/              # web app manifest, its registration script, default icons
 └── _redirects        # SPA fallback (/* → /index.html) for static hosts
 ```
 
@@ -85,6 +87,23 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `failOnSkipped` | `false` | fail the build if **any** route could not be bundled — turn it on once your bundled set is stable, so a route dropping out stops being a silent regression |
 | `static` (config `<staticOnly>`) | `false` | declare the bundle **100 % static**: runs the [static-safety report](/deploy/static-ui/#the-static-safety-report) and **fails the build** if any route still needs a server |
 | `specsOnly` | `false` | ship each definition-only route the browser can expand as its **raw definition** instead of pre-rendering it ([specs mode](/deploy/static-ui/#two-ways-to-build-it)) |
+| `pwa` | `true` | ship the bundle as an [installable app](/deploy/install-as-app/) (web app manifest, icons, network-first service worker); `false` writes a worker that unregisters itself instead |
+
+### The `dev` goal
+
+`mvn mateu-bundle:dev` builds the same bundle (same parameters), serves it on
+`http://localhost:3000` and rebuilds it on every change to the resource directories, reloading the
+open pages — a failing rebuild is logged and the last good bundle stays up. Its own parameters:
+
+| Parameter (`-Dmateu.dev.*`) | Default | Meaning |
+|---|---|---|
+| `port` | `3000` | the port; a busy one moves to the next free one |
+| `host` | `localhost` | the interface to bind (`0.0.0.0` for your network) |
+| `liveReload` | `true` | reload the open pages after each successful rebuild |
+| `pollMillis` | `300` | how often the watched directories are checked |
+
+It runs the build up to `process-classes` first; a change to Java code needs a restart. See
+[Develop with live reload](/deploy/static-ui/#develop-with-live-reload).
 
 ### Knowing which bundle you are looking at
 

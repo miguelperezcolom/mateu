@@ -36,7 +36,10 @@
     <build>
         <plugins>
             <!-- mvn package → target/mateu-bundle/: index.html, manifest.json (the screens and the
-                 source catalogue), the renderer's assets/ and a _redirects SPA fallback. -->
+                 source catalogue), the renderer's assets/ and a _redirects SPA fallback.
+                 mvn mateu-bundle:dev → the same bundle served on http://localhost:3000, rebuilt on
+                 every change under src/main/resources, the page reloading itself
+                 (-Dmateu.dev.liveReload=false to refresh by hand). -->
             <plugin>
                 <groupId>io.mateu</groupId>
                 <artifactId>mateu-bundle-maven-plugin</artifactId>

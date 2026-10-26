@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.application.export.BundleManifest;
 import io.mateu.core.application.export.MateuBundleExporter;
 import io.mateu.core.infra.IndexPage;
+import io.mateu.core.infra.MobileManifest;
+import io.mateu.core.infra.Pwa;
 import io.mateu.uidl.data.ProjectRenderer;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +16,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.List;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
@@ -33,6 +39,21 @@ final class BundleWriter {
   private static final ObjectMapper MAPPER = MateuBundleExporter.defaultWireMapper();
 
   static final String INDEX = "static/_index.html";
+
+  /** The service worker, at the bundle's root so a static host needs no header for its scope. */
+  static final String WORKER = "mateu-sw.js";
+
+  /** The folder of the installable app's other files (manifest, registration script, icons). */
+  static final String PWA_DIR = "pwa/";
+
+  /**
+   * Whether the bundle is an installable Progressive Web App, and what its app shell declares
+   * (name, theme colour, icon). See {@link Pwa}.
+   */
+  record PwaOptions(boolean enabled, MobileManifest.Source shell) {
+    static final PwaOptions ON = new PwaOptions(true, null);
+  }
+
   static final String REDWOOD_MARKER = "_redwood/app-flow.json";
 
   /** Where a renderer's static app comes from: a directory or a jar on the app classpath. */
@@ -74,12 +95,35 @@ final class BundleWriter {
       String pageTitle,
       ProjectRenderer renderer)
       throws IOException {
+    write(
+        outputDirectory,
+        manifest,
+        assetsFrom,
+        appLoader,
+        baseUrl,
+        pageTitle,
+        renderer,
+        PwaOptions.ON);
+  }
+
+  /**
+   * @param pwa whether (and as what) the bundle is an installable app
+   */
+  static void write(
+      Path outputDirectory,
+      BundleManifest manifest,
+      String assetsFrom,
+      ClassLoader appLoader,
+      String baseUrl,
+      String pageTitle,
+      ProjectRenderer renderer,
+      PwaOptions pwa)
+      throws IOException {
     Files.createDirectories(outputDirectory);
 
     // 1. manifest.json — the primary contract the client's bundle mode reads.
-    Files.writeString(
-        outputDirectory.resolve("manifest.json"),
-        MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(manifest));
+    var manifestJson = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(manifest);
+    Files.writeString(outputDirectory.resolve("manifest.json"), manifestJson);
 
     // 2. locate the renderer's static app.
     StaticApp app = locate(assetsFrom, appLoader, renderer);
@@ -100,11 +144,83 @@ final class BundleWriter {
     app.copyTo(outputDirectory);
 
     // 4. stamp index.html from _index.html.
-    Files.writeString(
-        outputDirectory.resolve("index.html"), stampIndex(app.index(), baseUrl, pageTitle));
+    var index = stampIndex(app.index(), baseUrl, pageTitle);
+
+    // 4b. the installable app: manifest, worker, registration script, icons (Pwa).
+    index =
+        writePwa(outputDirectory, index, baseUrl, manifestJson, pwa == null ? PwaOptions.ON : pwa);
+    Files.writeString(outputDirectory.resolve("index.html"), index);
 
     // 5. SPA fallback for static hosts (client-side routing).
     Files.writeString(outputDirectory.resolve("_redirects"), "/*    /index.html    200\n");
+  }
+
+  /**
+   * Writes the installable app's files and returns {@code index} with its head. Off, only the
+   * worker is written — the one that unregisters itself — and the page is left as it was.
+   */
+  static String writePwa(
+      Path out, String index, String baseUrl, String manifestJson, PwaOptions pwa)
+      throws IOException {
+    if (!pwa.enabled()) {
+      Files.write(out.resolve(WORKER), Pwa.resource(Pwa.WORKER_OFF));
+      return index;
+    }
+    var base = basePathOf(baseUrl);
+    var scope = base + "/";
+    var dir = out.resolve(PWA_DIR);
+    Files.createDirectories(dir);
+    Files.writeString(dir.resolve(Pwa.MANIFEST), Pwa.manifestJson(pwa.shell(), scope, scope));
+    for (var file : List.of(Pwa.REGISTER, Pwa.ICON_192, Pwa.ICON_512, Pwa.ICON_MASKABLE)) {
+      Files.write(dir.resolve(file), Pwa.resource(file));
+    }
+    Files.write(out.resolve(WORKER), Pwa.resource(Pwa.WORKER));
+    var links =
+        new Pwa.Links(
+            base + "/" + PWA_DIR + Pwa.MANIFEST,
+            base + "/" + WORKER,
+            base + "/" + PWA_DIR + Pwa.REGISTER,
+            base + "/" + PWA_DIR + Pwa.ICON_192,
+            scope,
+            List.of(base + "/manifest.json"));
+    // the worker's version: the page and the bundle's content (a new build, a new worker)
+    return Pwa.withHead(index, links, pwa.shell(), sha256(manifestJson));
+  }
+
+  /**
+   * The path the bundle is served under: {@code ""} for a host's root, {@code /app} for {@code
+   * baseUrl} {@code /app} or {@code https://cdn.example.com/app/}.
+   */
+  static String basePathOf(String baseUrl) {
+    if (baseUrl == null || baseUrl.isBlank()) {
+      return "";
+    }
+    var path = baseUrl.trim();
+    if (!path.startsWith("/")) {
+      try {
+        path = java.net.URI.create(path).getPath();
+      } catch (IllegalArgumentException e) {
+        return "";
+      }
+      if (path == null) {
+        return "";
+      }
+    }
+    while (path.endsWith("/")) {
+      path = path.substring(0, path.length() - 1);
+    }
+    return path.startsWith("/") || path.isEmpty() ? path : "/" + path;
+  }
+
+  private static String sha256(String text) {
+    try {
+      return HexFormat.of()
+          .formatHex(
+              MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)))
+          .substring(0, 16);
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   /** The static app of {@code renderer} (or of whatever is served, when null), or null. */

@@ -28,7 +28,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
-from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, ui_page, version_skew
+from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, pwa, ui_page, version_skew
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -286,10 +286,8 @@ def add_mateu(
         )
     # Version skew (X-Mateu-Build / X-Mateu-Renderer): added AFTER the CORS middleware, so it wraps it
     # and also stamps the responses CORS answers (and exposes the header on a CORS the app added).
-    app.add_middleware(
-        version_skew.VersionSkewMiddleware,
-        skew=version_skew.VersionSkew(registry.registered_types, configured=build_id),
-    )
+    skew = version_skew.VersionSkew(registry.registered_types, configured=build_id)
+    app.add_middleware(version_skew.VersionSkewMiddleware, skew=skew)
 
     prefix = base_url.rstrip("/")
 
@@ -487,6 +485,16 @@ def add_mateu(
 
     app.add_api_route(f"{prefix}{mobile_manifest.PATH}", manifest, methods=["GET"])
 
+    # The Progressive Web App's files (Java's Pwa): the web app manifest, the service worker, its
+    # registration script and Mateu's icons — public; an unknown file is a 404 (never the page).
+    async def pwa_file(file: str) -> Response:
+        served = pwa.asset(file, prefix, registry.app_type)
+        if served is None:
+            return Response(status_code=404)
+        return Response(content=served.body, status_code=200, headers=served.headers)
+
+    app.add_api_route(f"{prefix}{pwa.DIR}{{file}}", pwa_file, methods=["GET"])
+
     # Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
     # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync, and the
     # SAME error boundary: a tool call that fails shows the generic text + reference, never the raw
@@ -570,6 +578,8 @@ def add_mateu(
             title=str(title),
             debug=show_details,
             oracle_cdn=oracle_cdn,
+            app_type=app_type,
+            build_id=lambda: skew.build_id,
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
         if oracle_cdn:
@@ -645,9 +655,13 @@ class MateuUiMiddleware:
         title: str,
         debug: bool = False,
         oracle_cdn: str | None = None,
+        app_type: type | None = None,
+        build_id: Callable[[], str] | None = None,
     ):
         self.app = app
         self.oracle_cdn = oracle_cdn
+        self.app_type = app_type
+        self.build_id = build_id
         self.renderer = renderer
         # the mount as a path ("" for the root, "/shop" otherwise), whatever spelling it was given in
         mount = base_url.strip("/")
@@ -669,7 +683,13 @@ class MateuUiMiddleware:
         if not ui_page.accepts_html(accept):
             return None
         html = ui_page.render_index(
-            self.renderer.index_template(), self.base_url, self.title, self.debug, self.oracle_cdn
+            self.renderer.index_template(),
+            self.base_url,
+            self.title,
+            self.debug,
+            self.oracle_cdn,
+            self.app_type,
+            self.build_id() if self.build_id else None,
         )
         return "text/html; charset=utf-8", html.encode("utf-8"), ui_page.REVALIDATE_CACHE_CONTROL
 

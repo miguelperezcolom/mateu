@@ -47,6 +47,20 @@ public class ${simpleClassName}MateuController implements MateuController {
         return response.build();
     }
 
+    // The installable app (io.mateu.core.infra.Pwa): web app manifest, service worker, its
+    // registration script and the default icons, under v3/pwa/.
+    @Path("v3/pwa/{file}")
+    @jakarta.ws.rs.GET
+    public jakarta.ws.rs.core.Response pwa(@jakarta.ws.rs.PathParam("file") String file) {
+        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, baseUrl);
+        if (asset == null) {
+            return jakarta.ws.rs.core.Response.status(404).build();
+        }
+        var response = jakarta.ws.rs.core.Response.ok(asset.body());
+        asset.headers().forEach((name, value) -> response.header(name, value));
+        return response.build();
+    }
+
     @Path("v3/{ignored:.*}")
     @POST
     public UIIncrementDto runStep(

@@ -59,6 +59,19 @@ public class ${simpleClassName}MateuController implements MateuController {
         return response.contentType(MediaType.APPLICATION_JSON_TYPE);
     }
 
+    // The installable app (io.mateu.core.infra.Pwa): web app manifest, service worker, its
+    // registration script and the default icons, under v3/pwa/.
+    @io.micronaut.http.annotation.Get(value = "v3/pwa/{file}", produces = MediaType.ALL)
+    public HttpResponse<byte[]> pwa(@PathVariable("file") String file) {
+        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, baseUrl);
+        if (asset == null) {
+            return HttpResponse.notFound();
+        }
+        var response = HttpResponse.ok(asset.body());
+        asset.headers().forEach((name, value) -> response.header(name, value));
+        return response.contentType(asset.contentType());
+    }
+
     @Post("v3/{/ignored:(?!sse/|sse$|client-log$).*}")
     public Mono<UIIncrementDto> runStepSync(
         @PathVariable("ignored") @Nullable String ignored,

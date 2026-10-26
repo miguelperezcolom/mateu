@@ -15,6 +15,10 @@ A Mateu UI reaches a phone in one of two ways:
 Both use the same renderer and talk to your backend over the same `/mateu/v3/*` API. Nothing about
 your UI changes between them.
 
+There is also a third way that needs no store and no app at all: every Mateu UI is an installable
+**Progressive Web App**, which phones add to the home screen from the browser (and desktop Chrome and
+Edge install in its own window). See [Install as a desktop or phone app](/deploy/install-as-app/).
+
 ## A. Make your UI available in the Mateu app
 
 ### How the hub works

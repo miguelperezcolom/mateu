@@ -12,6 +12,12 @@ This is how internal utilities are often shipped: no deployment, no URL to
 remember, no separate install of a frontend. The user double-clicks a jar (or a
 native launcher) and a normal-looking desktop app appears.
 
+:::tip[Just an icon on the desktop?]
+If the UI is deployed anyway and users only want it in its own window with its own icon, they can
+install it from Chrome or Edge: every Mateu UI is an installable web app. See
+[Install as a desktop or phone app](/deploy/install-as-app/).
+:::
+
 ## Two ways to run it as a desktop tool
 
 **Native desktop renderer — no browser.** Mateu ships an

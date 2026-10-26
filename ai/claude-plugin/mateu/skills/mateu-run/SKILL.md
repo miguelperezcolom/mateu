@@ -29,7 +29,7 @@ A single-module app (screens in the app itself) just builds the app.
 | Quarkus | `mvn quarkus:dev` | http://localhost:8080 |
 | Micronaut | `mvn mn:run` | http://localhost:8080 |
 | Helidon MP | `mvn package && java -jar target/<artifactId>.jar` (no version in the jar name) | http://localhost:8080 |
-| static bundle | `mvn package && npx serve -s target/mateu-bundle` | http://localhost:3000 |
+| static bundle | `mvn mateu-bundle:dev` (rebuilds + reloads on every save; read the `mateu-dev: serving …` line for the port) — or the finished bundle: `mvn package && npx serve -s target/mateu-bundle` | http://localhost:3000 |
 | .NET | `MATEU_UI=<mateu-vaadin jar or its static/> dotnet run` | http://localhost:8080 |
 | Python | `MATEU_UI=<mateu-vaadin jar or its static/> uvicorn main:app --port 8080` | http://localhost:8080 |
 
@@ -94,6 +94,19 @@ Then look at the PNG (read the image) and check the screen shows what you declar
 Inside the Mateu repo the same script is `e2e/screenshot.mjs`; doc images go to
 `doc/public/images/docs/<topic>/<name>.png`. Follow the repository's screenshot conventions
 when working inside that repository; other projects can choose their own output directory.
+
+## 5. The installable app (PWA) and stale screens
+
+Every Mateu UI is an installable Progressive Web App: its page links
+`<base>/mateu/v3/pwa/manifest.webmanifest` and registers a network-first service worker
+(`<base>/mateu/v3/pwa/sw.js`; a static bundle: `pwa/manifest.webmanifest` + `mateu-sw.js`). Online it
+never serves a cached copy, so it is not a reason for a stale screen — but when two apps take turns
+on the same `localhost:<port>`, a worker installed by the first can still answer the second's page
+when the server is down. Clear it in DevTools → Application → Service workers (Unregister) or run
+with `mateu.pwa.enabled=false` / `MATEU_PWA_ENABLED=false` (`-Dmateu.bundle.pwa=false` for a bundle).
+`mateu.dev=true` and `mvn mateu-bundle:dev` never register it. Check installability in Chrome:
+DevTools → Application → Manifest (no installability errors), or CDP
+`Page.getInstallabilityErrors` in a Playwright script.
 
 ## Related
 

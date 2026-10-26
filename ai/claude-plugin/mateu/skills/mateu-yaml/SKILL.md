@@ -124,7 +124,9 @@ the Mateu extension) take
    message / WARN). Then open the page in a browser to see it render (the `mateu-run` skill
    screenshots it).
 4. **Static flavour**: `mvn package` → `target/mateu-bundle/`; `staticOnly` fails the build naming
-   any screen that still needs a server. Preview with `npx serve -s target/mateu-bundle`.
+   any screen that still needs a server. While editing, `mvn mateu-bundle:dev` serves it on
+   http://localhost:3000 and rebuilds + reloads on every save; preview a finished bundle with
+   `npx serve -s target/mateu-bundle`.
 
 Docs: https://mateu.io/define/yaml/quickstart/ · https://mateu.io/concepts/routes-and-mounts/ ·
 https://mateu.io/concepts/data-sources/ · https://mateu.io/deploy/static-ui/

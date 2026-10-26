@@ -27,7 +27,7 @@ Code and the tools that read `AGENTS.md` get the same guidance.
 | [`dotnet`](dotnet) | ASP.NET Core 8 (C#) | `dotnet run` | sync API on http://localhost:8080; the page too with `MATEU_UI=<mateu-vaadin jar or its static/>` |
 | [`python`](python) | FastAPI (Python 3.11+) | `PYTHONPATH=../../backend/python uvicorn main:app --port 8080` | sync API on http://localhost:8080; the page too with `MATEU_UI=<mateu-vaadin jar or its static/>` |
 | [`yaml`](yaml) | Spring Boot 4 (MVC) serving YAML only | `mvn spring-boot:run` | http://localhost:8080 |
-| [`static`](static) | none — a static bundle | `mvn package && npx serve -s target/mateu-bundle` | http://localhost:3000 |
+| [`static`](static) | none — a static bundle | `mvn mateu-bundle:dev` (live reload; the finished bundle: `mvn package && npx serve -s target/mateu-bundle`) | http://localhost:3000 |
 
 The Java starters are the [quickstart](https://mateu.io/java-user-manual/start-here/quickstart/)
 of the documentation, file for file.

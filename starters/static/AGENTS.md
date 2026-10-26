@@ -26,15 +26,26 @@ src/main/resources/specs/ui/ THE UI
   project.yaml     type: Project — the renderer
 ```
 
-## Build and preview
+## Develop, build and preview
 
 ```bash
+mvn mateu-bundle:dev                 # http://localhost:3000 — rebuilt on every save, the page reloads
+mvn mateu-bundle:dev -Dmateu.dev.liveReload=false   # rebuilt on every save; refresh by hand
 mvn package                          # → target/mateu-bundle/ (index.html, manifest.json, assets/)
-npx serve -s target/mateu-bundle     # preview at http://localhost:3000 (-s = SPA fallback)
+npx serve -s target/mateu-bundle     # preview the finished bundle (-s = SPA fallback)
 ```
+
+`mateu-bundle:dev` builds exactly what `mvn package` builds (same configuration, same sample data),
+serves it with the SPA fallback and watches `src/main/resources`. A change that breaks the build (a
+YAML error, a screen that needs a server) is logged and the last good bundle keeps being served. A
+busy port moves to the next free one (`-Dmateu.dev.port=…` to choose); Ctrl+C stops it.
 
 Deploy `target/mateu-bundle/` to any static host with an SPA fallback (every non-file path serves
 `index.html`; Netlify reads the shipped `_redirects`, nginx `try_files $uri /index.html`).
+
+The bundle is an installable app (PWA): Chrome/Edge offer "Install app" (own window and icon) and
+phones add it to the home screen. Its name, colour and icon come from `app.yaml` (`title`,
+`accentColor`, `logo`); `-Dmateu.bundle.pwa=false` turns it off. https://mateu.io/deploy/install-as-app/
 
 ## Rules to respect
 

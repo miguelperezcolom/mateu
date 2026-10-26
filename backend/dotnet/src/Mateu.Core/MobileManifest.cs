@@ -39,16 +39,22 @@ internal static class MobileManifest
         ["X-Content-Type-Options"] = "nosniff",
     };
 
+    /// <summary>The app mounted at <paramref name="baseUrl"/>: the class routed there, else the
+    /// registry's [App] class (null = none).</summary>
+    public static Type? AppTypeOf(MateuRegistry registry, string? baseUrl) =>
+        registry.Resolve(null, baseUrl ?? "") ?? registry.AppType;
+
     /// <summary>The manifest of the app mounted at <paramref name="baseUrl"/>: the class routed
     /// there, else the registry's [App] class.</summary>
-    public static string ForMount(MateuRegistry registry, string? baseUrl)
-    {
-        var type = registry.Resolve(null, baseUrl ?? "") ?? registry.AppType;
-        return Json(type);
-    }
+    public static string ForMount(MateuRegistry registry, string? baseUrl) => Json(AppTypeOf(registry, baseUrl));
 
-    /// <summary>The manifest of <paramref name="appType"/> (null = an anonymous "Mateu" app).</summary>
-    public static string Json(Type? appType)
+    /// <summary>The members that describe the app itself — what the web app manifest of the PWA
+    /// (<see cref="Pwa"/>) is derived from too, so a rename reaches both.</summary>
+    internal sealed record Derived(string Name, string ShortName, string? Icon, string? ThemeColor);
+
+    /// <summary>The name, short name, icon and theme colour of <paramref name="appType"/> (null = an
+    /// anonymous "Mateu" app), each from its environment variable, else [MobileApp], else the app.</summary>
+    internal static Derived Derive(Type? appType)
     {
         var mobile = appType?.GetCustomAttribute<MobileAppAttribute>();
         var app = appType?.GetCustomAttribute<AppAttribute>();
@@ -60,6 +66,14 @@ internal static class MobileManifest
         var shortName = Setting("MATEU_MOBILE_SHORT_NAME") ?? Blank(mobile?.ShortName) ?? name;
         var icon = Setting("MATEU_MOBILE_ICON") ?? Blank(mobile?.Icon);
         var themeColor = Setting("MATEU_MOBILE_THEME_COLOR") ?? Blank(mobile?.ThemeColor);
+        return new Derived(name, shortName, icon, themeColor);
+    }
+
+    /// <summary>The manifest of <paramref name="appType"/> (null = an anonymous "Mateu" app).</summary>
+    public static string Json(Type? appType)
+    {
+        var mobile = appType?.GetCustomAttribute<MobileAppAttribute>();
+        var (name, shortName, icon, themeColor) = Derive(appType);
         var minAppVersion = Setting("MATEU_MOBILE_MIN_APP_VERSION") ?? Blank(mobile?.MinAppVersion)
                             ?? DefaultMinAppVersion;
         var issuer = Setting("MATEU_MOBILE_OIDC_ISSUER") ?? Blank(mobile?.OidcIssuer);

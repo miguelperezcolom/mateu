@@ -24,6 +24,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from . import pwa
+
 #: The renderer the server serves, when not passed to ``add_mateu(ui=…)``.
 ENV_VAR = "MATEU_UI"
 
@@ -128,14 +130,23 @@ def mount_ui(html: str, base_url: str, debug: bool = False) -> str:
 
 
 def render_index(
-    template: str, base_url: str, title: str, debug: bool = False, oracle_cdn: str | None = None
+    template: str,
+    base_url: str,
+    title: str,
+    debug: bool = False,
+    oracle_cdn: str | None = None,
+    app_type: type | None = None,
+    build_id: str | None = None,
 ) -> str:
     """The renderer's page aimed at ``base_url`` (the mount, ``""`` for the root) and titled. Like
     Java's ``IndexPage.render``: the favicon marker becomes ``DEFAULT_FAVICON`` and no template
     marker is left in the page. With ``oracle_cdn`` (an already validated mirror, see
-    ``resolve_oracle_cdn``) Oracle's CDN URLs are re-pointed at it AFTER the markers are filled."""
+    ``resolve_oracle_cdn``) Oracle's CDN URLs are re-pointed at it AFTER the markers are filled.
+    LAST, the Progressive Web App's head (``pwa.served``: the manifest of ``app_type``, the theme
+    colour, the worker of ``build_id``), unless it is switched off."""
     html = template.replace(FAVICON_MARKER, DEFAULT_FAVICON).replace(TITLE_MARKER, title)
-    return rewrite_oracle_cdn(without_markers(mount_ui(html, base_url, debug)), oracle_cdn)
+    html = rewrite_oracle_cdn(without_markers(mount_ui(html, base_url, debug)), oracle_cdn)
+    return pwa.served(html, base_url, app_type, build_id) or html
 
 
 #: The mirror of Oracle's CDN, when not passed to ``add_mateu(oracle_cdn_url=…)`` (Java:
@@ -191,8 +202,15 @@ def rewrite_oracle_cdn(html: str, mirror: str | None) -> str:
 
 def spa_candidate(path: str) -> bool:
     """Java's ``SpaFallback.candidate``: a deep link the page may answer — not the root itself, no
-    file extension, and never the API (``/mateu/…``)."""
-    return bool(path) and path != "/" and "." not in path and not path.startswith("/mateu")
+    file extension, never the API (``/mateu/…``) and never a PWA file of a nested mount
+    (``/crm/mateu/v3/pwa/…``)."""
+    return (
+        bool(path)
+        and path != "/"
+        and "." not in path
+        and not path.startswith("/mateu")
+        and not pwa.is_endpoint(path)
+    )
 
 
 def accepts_html(accept: str | None) -> bool:

@@ -27,6 +27,13 @@ accounts.
 URL. Credentials are entered at login (OIDC). A photographed or forwarded QR grants nothing: at
 worst it adds an entry to someone's list.
 
+:::tip[No app at all]
+Every Mateu UI is also an installable **Progressive Web App**: a phone adds it to the home screen
+from the browser, and desktop Chrome and Edge install it in its own window. Its web app manifest is
+derived from the same members as the UI manifest below (the same settings and `@MobileApp`). See
+[Install as a desktop or phone app](/deploy/install-as-app/).
+:::
+
 ## The UI manifest
 
 Every UI answers a small, public, cacheable description of itself:

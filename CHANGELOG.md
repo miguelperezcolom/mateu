@@ -11,6 +11,29 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **`mvn mateu-bundle:dev` — a static UI with live reload.** The bundle plugin's new `dev` goal
+  builds the bundle exactly as `mateu-bundle:bundle` does (same configuration, `mateu.bundle.mock`
+  included), serves it on http://localhost:3000 with the SPA fallback (JDK only, no Node), and
+  rebuilds it on every change under the resource directories, reloading the open pages
+  (`-Dmateu.dev.liveReload=false` to refresh by hand). A rebuild that fails — a YAML error, a
+  `staticOnly` violation — is logged and the last good bundle keeps being served.
+  `-Dmateu.dev.port` (a busy port moves to the next free one), `-Dmateu.dev.host`. The `static`
+  starter, its `AGENTS.md` and the docs use it.
+- **Every Mateu UI is an installable app (PWA).** Chrome and Edge offer "Install app" on the
+  desktop (its own window and icon), phones add it to the home screen, and the shell opens offline.
+  Every served page (the five Java adapters, YAML mounts, .NET, Python) links a web app manifest
+  and registers a service worker, both under `<baseUrl>/mateu/v3/pwa/`; a static bundle ships
+  `pwa/manifest.webmanifest` and `mateu-sw.js`, and opens offline with its screens. The manifest's
+  name, colour and icon are derived exactly like the mobile app's (`mateu.mobile.*` > `@MobileApp` >
+  the app shell); Mateu's own 192/512 px and maskable icons always follow the declared one. The
+  worker is network first (never hides a new deploy), versioned per build, and never caches the
+  Mateu API or REST-source data. On by default: `mateu.pwa.enabled=false` / `MATEU_PWA_ENABLED`
+  (.NET also `MateuOptions.Pwa`), `-Dmateu.bundle.pwa=false` for a bundle; always off in
+  development mode and under `mateu-bundle:dev`. Turned off, the worker's URL answers a worker that
+  unregisters itself. See [Install as a desktop or phone app](https://mateu.io/deploy/install-as-app/).
+
 ### Changed
 
 - **Listings size their columns sensibly when none of them declares a width.** This applies to both

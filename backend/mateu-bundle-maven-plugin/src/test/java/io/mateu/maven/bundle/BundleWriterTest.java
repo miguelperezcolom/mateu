@@ -151,4 +151,68 @@ public class BundleWriterTest {
     assertEquals(ProjectRenderer.redwood, BundleMojo.chooseRenderer(null, loader(redwoodJar())));
     assertEquals(ProjectRenderer.vaadin, BundleMojo.chooseRenderer(null, loader(vaadinJar())));
   }
+
+  @Test
+  public void theBundleIsAnInstallableApp() throws Exception {
+    var out = tmp.newFolder("out").toPath();
+    var shell = new io.mateu.core.infra.MobileManifest.Source("Shop", null, null, "#1f6feb", null);
+    BundleWriter.write(
+        out,
+        manifest(),
+        null,
+        loader(vaadinJar()),
+        "/app",
+        "Shop",
+        ProjectRenderer.vaadin,
+        new BundleWriter.PwaOptions(true, shell));
+    var webManifest = Files.readString(out.resolve("pwa/manifest.webmanifest"));
+    assertTrue(
+        webManifest,
+        webManifest.startsWith(
+            "{\"id\":\"/app/\",\"name\":\"Shop\",\"short_name\":\"Shop\",\"start_url\":\"/app/\","
+                + "\"scope\":\"/app/\",\"display\":\"standalone\",\"background_color\":\"#ffffff\","
+                + "\"theme_color\":\"#1f6feb\""));
+    for (var file :
+        List.of(
+            "pwa/register.js",
+            "pwa/icon-192.png",
+            "pwa/icon-512.png",
+            "pwa/icon-maskable-512.png")) {
+      assertTrue(file, Files.isRegularFile(out.resolve(file)));
+    }
+    assertTrue(Files.readString(out.resolve("mateu-sw.js")).contains("networkFirst"));
+    var index = Files.readString(out.resolve("index.html"));
+    assertTrue(
+        index, index.contains("<link rel=\"manifest\" href=\"/app/pwa/manifest.webmanifest\""));
+    assertTrue(index, index.contains("<meta name=\"theme-color\" content=\"#1f6feb\">"));
+    assertTrue(index, index.contains("data-sw=\"/app/mateu-sw.js?v="));
+    // the bundle's own data file is cached for an offline start
+    assertTrue(index, index.contains("&amp;p=%2Fapp%2Fmanifest.json\" data-scope=\"/app/\""));
+  }
+
+  @Test
+  public void switchedOffTheBundleShipsTheWorkerThatUnregisters() throws Exception {
+    var out = tmp.newFolder("out").toPath();
+    BundleWriter.write(
+        out,
+        manifest(),
+        null,
+        loader(vaadinJar()),
+        "",
+        "Shop",
+        ProjectRenderer.vaadin,
+        new BundleWriter.PwaOptions(false, null));
+    assertTrue(Files.readString(out.resolve("mateu-sw.js")).contains("unregister()"));
+    assertFalse(Files.exists(out.resolve("pwa")));
+    assertFalse(Files.readString(out.resolve("index.html")).contains("manifest.webmanifest"));
+  }
+
+  @Test
+  public void theBasePathOfABundle() {
+    assertEquals("", BundleWriter.basePathOf(""));
+    assertEquals("", BundleWriter.basePathOf(null));
+    assertEquals("/app", BundleWriter.basePathOf("/app/"));
+    assertEquals("/app", BundleWriter.basePathOf("https://cdn.example.com/app/"));
+    assertEquals("", BundleWriter.basePathOf("https://cdn.example.com"));
+  }
 }

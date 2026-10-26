@@ -47,6 +47,14 @@ public sealed class MateuOptions
     /// Java: <c>mateu.oracle-cdn.url</c>.</summary>
     public string? OracleCdnUrl { get; set; }
 
+    /// <summary>Serve every UI as an installable Progressive Web App: the served page links a web app
+    /// manifest and registers a network-first service worker (an offline shell; never the API or the
+    /// REST-source data), both under <c>{mount}/mateu/v3/pwa/</c>. Null (the default) means ON unless the
+    /// environment variable <c>MATEU_PWA_ENABLED</c> is <c>false</c>; always off in development mode.
+    /// Switched off, the worker's URL answers a worker that unregisters itself. Java:
+    /// <c>mateu.pwa.enabled</c>.</summary>
+    public bool? Pwa { get; set; }
+
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
     public HttpClient? HttpClient { get; set; }
 
