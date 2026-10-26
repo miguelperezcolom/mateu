@@ -16,7 +16,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 The Vaadin shell follows Redwood's own guidelines for the brand accent and the page widths, and
 IntelliJ opens a Mateu UI on any renderer from one run configuration.
 
+### Added
+
+- **IntelliJ: one run configuration, every renderer.** A **Mateu App** run configuration starts the
+  project's UI in development mode and opens it on the web, in the IDE's Mateu tool window (desktop),
+  in the Mateu app on an Android emulator or iOS simulator, or on a phone through a QR code; Debug
+  attaches the JVM debugger. YAML-only projects run with `mateu-bundle:dev`. **Run | Open Mateu App
+  In…** opens the running app on another target without restarting it. .NET and Python projects
+  come later.
+
 ### Changed
+
+- **Vaadin page widths follow Redwood's "Page resolutions and margins".** Fixed width caps the
+  content at 1392px (was 1408px), so from a 1440px screen the margin is (width − 1392) / 2. Full
+  width keeps a 24px margin up to 1440px, then grows it with the screen up to 96px (reached at
+  1584px) and lets the content grow from there (it was 24px at every width). The Redwood renderer
+  keeps the 1408px it measured on the Spectra shell, which places its floating chrome with it.
 
 - **The Vaadin shell follows Redwood's cobranding rules for the brand accent.** Redwood removes its
   colour strip as soon as an app brings its own brand and puts the accent on the Section dash, so
@@ -27,15 +42,6 @@ IntelliJ opens a Mateu UI on any renderer from one run configuration.
   no effect; `AppDto.accentStrip`/`generatedAccentStrip` are no longer sent.
 
 ## [3.0-beta.15] — 2026-10-26
-
-### Added
-
-- **IntelliJ: one run configuration, every renderer.** A **Mateu App** run configuration starts the
-  project's UI in development mode and opens it on the web, in the IDE's Mateu tool window (desktop),
-  in the Mateu app on an Android emulator or iOS simulator, or on a phone through a QR code; Debug
-  attaches the JVM debugger. YAML-only projects run with `mateu-bundle:dev`. **Run | Open Mateu App
-  In…** opens the running app on another target without restarting it. .NET and Python projects
-  come later.
 
 ### Added
 

@@ -111,7 +111,6 @@ domain -> infra: io/mateu/core/domain/out/componentmapper/SectionFormRenderer.ja
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/ComponentToFragmentDtoMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/UIFragmentAssembler.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMapper.java
-domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/AppMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ConstraintValidationMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ListingDescriptorBuilder.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/StateMapper.java
