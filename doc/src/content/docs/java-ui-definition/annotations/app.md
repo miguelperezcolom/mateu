@@ -57,8 +57,6 @@ public @interface App {
     AppLayout layout() default AppLayout.SINGLE_SLOT;
     boolean themeToggle() default false;
     String accentColor() default "";
-    String accentStrip() default "";
-    int accentStripSeed() default 7;
 }
 ```
 
@@ -68,8 +66,6 @@ public @interface App {
 | `layout` | `AppLayout` | `SINGLE_SLOT` | Content area layout (`SINGLE_SLOT` or `SPLIT`) |
 | `themeToggle` | `boolean` | `false` | Shows a moon/sun icon button in the header to switch dark/light mode (ignored by the Redwood renderer, which is light only) |
 | `accentColor` | `String` | `""` | The app's brand accent (a CSS colour). Not the primary colour: see below |
-| `accentStrip` | `String` | `""` | The accent strip's image (a URL, repeated along it); blank = a strip Mateu draws from the accent; `"none"` = a plain band in the accent colour (Vaadin renderer) |
-| `accentStripSeed` | `int` | `7` | The seed of the generated strip: another seed, another drawing in the same palette |
 | `backLink` | `BackLink` | `BREADCRUMBS` | `PARENT` draws a single «← Parent» link (labelled with the title of the nearest screen above the app's route) and drops the breadcrumb trail inside the app — the console style for a record master |
 
 An `@App` with **no menu of its own** that answers a `routes.yaml` route with `children` offers
@@ -120,11 +116,13 @@ public class MyApp { ... }
 
 `accentColor` gives the shell the app's brand colour, for example `@App(accentColor = "#D2232A")`. It is kept separate from the theme's primary colour on purpose. Primary means "you can click this", and the accent never does. The Vaadin shell uses it in these places:
 
-- the **accent strip**, drawn where Redwood draws its colour strip rather than fixed under the header: under a page's header, on top of a listing's results and at the foot of the welcome hero. By default Mateu draws it from the accent, a Redwood-style band in a palette derived from the colour (`accentStripSeed` picks the drawing). `accentStrip` can name the app's own image instead (for example `@App(accentColor = "#464c68", accentStrip = "/images/strip.svg")`), repeated along the strip, or say `"none"` for a plain band in the accent colour. See [Accent colour and strip](/design-systems/accent-strip/). The Redwood renderer keeps its own Spectra strips;
+- the **Section dash**, the short rule under every section title. This is where a custom Redwood theme puts its accent colour. With no accent the dash takes the primary colour;
 - the welcome hero's background, a deep tone of the accent;
 - the console name in the menu band, in the light theme only. In dark mode the name stays in the header text colour, because a brand red loses contrast on the dark base.
 
-With no accent there is no strip. The values reach the page as custom properties on `mateu-app` (`--mateu-accent`, `--mateu-page-band-h`, `--mateu-page-band-image`; the hero also reads `--mateu-hero-background`), which an app's own CSS can also set.
+The accent draws **no colour strip**. Redwood removes its texture strip as soon as an app brings its own brand, so Mateu doesn't draw one either. `accentStrip` and `accentStripSeed` are deprecated and have no effect. See [Accent colour](/design-systems/accent-strip/).
+
+The accent reaches the page as the `--mateu-accent` custom property on `mateu-app`, which an app's own CSS can also set (the hero also reads `--mateu-hero-background`).
 
 ---
 

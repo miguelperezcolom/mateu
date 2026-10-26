@@ -64,20 +64,19 @@ public record AppDto(
     String askIcon,
     /**
      * The app's brand accent ({@code @App(accentColor)}), a CSS colour; null = no accent. Not the
-     * primary colour: the shell draws it on the console name, the welcome hero and the accent
-     * strip.
+     * primary colour: the shell draws it on the console name, the welcome hero and the Section dash
+     * (the rule under a section title).
      */
     String accentColor,
     /**
-     * The accent strip's image ({@code @App(accentStrip)}), a URL repeated along the strip; null =
-     * none declared ({@code "none"} also travels as null).
+     * Deprecated: never sent any more (always null). Redwood removes its colour strip as soon as an
+     * app brings its own brand, so no renderer draws an accent strip; {@code @App(accentStrip)} is
+     * ignored. Kept on the wire because removing a member is a wire break.
      */
     String accentStrip,
     /**
-     * The strip Mateu draws from the accent colour when the app declares no {@code accentStrip}: a
-     * {@code data:image/svg+xml;base64,…} URI (see {@code io.mateu.core.infra.AccentStrip}). Read
-     * by the Vaadin renderer only — Redwood shows its own Spectra strips. Null when the app
-     * declares a strip, says {@code "none"}, has no accent or a non-hex one.
+     * Deprecated: never sent any more (always null) — the server no longer generates an accent
+     * strip (see {@link #accentStrip}).
      */
     String generatedAccentStrip,
     /**

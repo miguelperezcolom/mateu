@@ -1351,6 +1351,22 @@ export class MateuComponent extends ComponentElement {
             gap: max(0.45rem, var(--lumo-space-s));
         }
 
+        /* Redwood's Section dash: a short rule under every section title, in the app's accent
+           (@App(accentColor) → --mateu-accent) — where a custom Redwood theme puts its accent
+           colour —, else the primary colour, as Redwood does when no accent is assigned. The
+           title is the section's first item: the heading itself, or the row holding it and the
+           section's toolbar. */
+        vaadin-card.mateu-section > vaadin-vertical-layout > :is(h3, h4, h5, h6):first-child::after,
+        vaadin-card.mateu-section > vaadin-vertical-layout > vaadin-horizontal-layout:first-child > :is(h3, h4, h5, h6):first-child::after {
+            content: '';
+            display: block;
+            width: 2.25rem;
+            height: 4px;
+            margin-top: .5rem;
+            border-radius: 2px;
+            background: var(--mateu-section-dash-color, var(--mateu-accent, var(--lumo-primary-color, #1976d2)));
+        }
+
         /* A pinned section (@Section(sticky=true)) must be OPAQUE — the section cards are frameless
            (transparent), so without a background the content scrolling underneath bleeds through the
            pinned band. Give it the base color + a small horizontal pad so the band isn't flush, a

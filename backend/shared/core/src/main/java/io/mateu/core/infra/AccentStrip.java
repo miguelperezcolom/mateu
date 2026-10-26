@@ -39,7 +39,12 @@ import java.util.regex.Pattern;
  * }</pre>
  *
  * Only hex colours ({@code #rgb} or {@code #rrggbb}) can be turned into a strip.
+ *
+ * @deprecated Mateu no longer draws an accent strip — Redwood removes its colour strip as soon as
+ *     an app brings its own brand, and the app's accent goes to the Section dash instead. Nothing
+ *     in Mateu calls this any more.
  */
+@Deprecated(since = "3.0-beta.15", forRemoval = true)
 public final class AccentStrip {
 
   /** The seed {@code @App(accentStripSeed)} defaults to. */

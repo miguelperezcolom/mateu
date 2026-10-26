@@ -63,34 +63,21 @@ export const reachableBaseUrl = (app: App, reachedAt: string | undefined): strin
 
 /**
  * The app's brand accent (@App(accentColor)) as the --mateu-accent custom property on the shell —
- * the console name in the section band (light theme), the welcome hero's background — and the
- * ACCENT STRIP, Redwood's colour strip: a band drawn where Redwood draws it, not fixed under the
- * header — under a page's header (mateu-page .page-header-band), on top of a listing's results
- * (mateu-table-crud .crud-band) and at the foot of the welcome hero. The strip is the app's image
- * (@App(accentStrip)) or, when it declares none, the one the server draws from the accent
- * (generatedAccentStrip, a data:image/svg+xml;base64 URI), repeated along it; with neither (or
- * @App(accentStrip = "none")) a plain band in the accent colour. It reaches those
- * places as --mateu-page-band-h / --mateu-page-band-image, which pierce their shadow roots.
+ * the console name in the section band (light theme), the welcome hero's background and the
+ * Section dash, the short rule under every section title, which is where a custom Redwood theme
+ * puts its accent colour (Redwood Cobranding). There is no accent strip: Redwood removes its
+ * colour strip as soon as an app brings its own brand, so an app's accent never draws one.
  *
- * Only what the shell set itself is ever removed: an app may set these in its own CSS instead. A
- * value that is not a plain colour, or a strip URL that would end the declaration, is ignored.
+ * Only what the shell set itself is ever removed: an app may set it in its own CSS instead. A
+ * value that is not a plain colour is ignored.
  */
-export const ACCENT_STRIP_HEIGHT = '10px'
-
-const ACCENT_PROPERTIES = ['--mateu-accent', '--mateu-page-band-h', '--mateu-page-band-image']
-
-export const applyAccent = (host: HTMLElement & { _mateuAccent?: string }, accent: string | undefined, strip?: string) => {
+export const applyAccent = (host: HTMLElement & { _mateuAccent?: string }, accent: string | undefined) => {
     const value = accent && /^[#\w\s(),.%-]+$/.test(accent.trim()) ? accent.trim() : undefined
-    const stripUrl = strip && (/^[\w\s/.:%~?&=#+,@-]+$/.test(strip.trim())
-        || /^data:image\/svg\+xml;base64,[A-Za-z0-9+/]+=*$/.test(strip.trim())) ? strip.trim() : undefined
     if (value) {
         host.style.setProperty('--mateu-accent', value)
-        host.style.setProperty('--mateu-page-band-h', ACCENT_STRIP_HEIGHT)
-        host.style.setProperty('--mateu-page-band-image',
-            stripUrl ? `url("${stripUrl}")` : `linear-gradient(${value}, ${value})`)
         host._mateuAccent = value
     } else if (host._mateuAccent) {
-        ACCENT_PROPERTIES.forEach(property => host.style.removeProperty(property))
+        host.style.removeProperty('--mateu-accent')
         host._mateuAccent = undefined
     }
 }
@@ -1025,7 +1012,7 @@ export class MateuApp extends ComponentElement {
                             .catch(e => console.error('app-scope data source fetch failed', e))
                     }
                 }
-                applyAccent(this, app.accentColor, app.accentStrip || app.generatedAccentStrip)
+                applyAccent(this, app.accentColor)
                 if (app.favicon) {
                     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {
@@ -1174,8 +1161,7 @@ export class MateuApp extends ComponentElement {
             background-color: var(--lumo-base-color);
             color: var(--lumo-body-text-color);
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
-            /* (no accent line here: the app's accent is a strip drawn where Redwood draws its
-               colour strip — under the page header, on top of a listing — see applyAccent) */
+            /* (no accent line here: the app's accent goes to the Section dash — see applyAccent) */
         }
         /* home / section links are buttons (no href="javascript:…", which a strict CSP blocks):
            reset to look like the links they replace */

@@ -52,9 +52,9 @@ export const heroImageCss = (image: string | undefined): string | undefined =>
 /**
  * The hero (a welcome's banner), drawn the way Redwood draws its welcome banner: a deep themed
  * band, the title and the subtitle in light header type on the start side, the app's hero image
- * (`heroImage()`) on the end side — an illustration, not a photo under a dark veil — and the app's
- * accent strip along its foot (mateu-app applyAccent: --mateu-page-band-*). With no image the text
- * keeps the declared alignment.
+ * (`heroImage()`) on the end side — an illustration, not a photo under a dark veil. No colour strip
+ * at its foot: Redwood's welcome banner has none. With no image the text keeps the declared
+ * alignment.
  */
 export const renderHeroSection = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as HeroSection
@@ -80,8 +80,6 @@ export const renderHeroSection = (container: LitElement, component: ClientSideCo
                     </div>
                 `:nothing}
             </div>
-            <div class="mateu-hero-strip" aria-hidden="true"
-                 style="position: relative; flex-shrink: 0; height: var(--mateu-page-band-h, 0px); background-image: var(--mateu-page-band-image, none); background-repeat: repeat-x; background-size: auto 100%;"></div>
         </div>
     `
 }

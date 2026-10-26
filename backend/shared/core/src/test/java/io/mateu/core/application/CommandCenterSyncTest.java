@@ -8,6 +8,7 @@ import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ class CommandCenterSyncTest {
     @Menu String home = "/";
   }
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings({"unused", "removal"})
   @UI("/cc-branded")
   @Title("Branded")
   @App(
@@ -64,7 +65,7 @@ class CommandCenterSyncTest {
     @Menu String home = "/";
   }
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings({"unused", "removal"})
   @UI("/cc-generated-seed")
   @Title("Generated strip, another seed")
   @App(accentColor = "#D2232A", accentStripSeed = 11)
@@ -72,7 +73,7 @@ class CommandCenterSyncTest {
     @Menu String home = "/";
   }
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings({"unused", "removal"})
   @UI("/cc-no-strip")
   @Title("No strip")
   @App(accentColor = "#D2232A", accentStrip = " none ")
@@ -151,48 +152,27 @@ class CommandCenterSyncTest {
     assertThat(app("/cc-branded").accentColor()).isEqualTo("#D2232A");
   }
 
+  /**
+   * Redwood removes its colour strip as soon as an app brings its own brand (Redwood Cobranding),
+   * so no accent strip travels — not a declared image, not a generated one, whatever the accent.
+   */
   @Test
-  void theAccentStripIsOnlyThereWhenTheAppDeclaresIt() {
-    assertThat(app("/cc-plain").accentStrip()).isNull();
-    assertThat(app("/cc-branded").accentStrip()).isEqualTo("/images/strip.svg");
-  }
-
-  @Test
-  void aDeclaredStripImageTravelsAsBeforeAndNothingIsGenerated() {
-    var app = app("/cc-branded");
-    assertThat(app.accentStrip()).isEqualTo("/images/strip.svg");
-    assertThat(app.generatedAccentStrip()).isNull();
-  }
-
-  @Test
-  void anAccentWithNoStripGetsOneDrawnFromItForVaadinOnly() {
-    var app = app("/cc-generated");
-    // accentStrip keeps meaning "what the app declared": Redwood's payload is unchanged
-    assertThat(app.accentStrip()).isNull();
-    assertThat(app.generatedAccentStrip())
-        .isEqualTo(io.mateu.core.infra.AccentStrip.dataUri("#D2232A", 7))
-        .startsWith("data:image/svg+xml;base64,");
-  }
-
-  @Test
-  void theSeedPicksAnotherStrip() {
-    assertThat(app("/cc-generated-seed").generatedAccentStrip())
-        .isEqualTo(io.mateu.core.infra.AccentStrip.dataUri("#D2232A", 11))
-        .isNotEqualTo(app("/cc-generated").generatedAccentStrip());
-  }
-
-  @Test
-  void noneMeansNoStripImageAtAll() {
-    var app = app("/cc-no-strip");
-    assertThat(app.accentColor()).isEqualTo("#D2232A");
-    assertThat(app.accentStrip()).isNull();
-    assertThat(app.generatedAccentStrip()).isNull();
-  }
-
-  @Test
-  void noAccentOrANonHexAccentDrawsNothing() {
-    assertThat(app("/cc-plain").generatedAccentStrip()).isNull();
+  @SuppressWarnings("removal")
+  void noAccentStripTravelsWhateverTheAppDeclares() {
+    for (var route :
+        List.of(
+            "/cc-plain",
+            "/cc-branded",
+            "/cc-generated",
+            "/cc-generated-seed",
+            "/cc-no-strip",
+            "/cc-css-accent")) {
+      var app = app(route);
+      assertThat(app.accentStrip()).as(route).isNull();
+      assertThat(app.generatedAccentStrip()).as(route).isNull();
+    }
+    // the accent itself still travels: it is the Section dash's colour
+    assertThat(app("/cc-generated").accentColor()).isEqualTo("#D2232A");
     assertThat(app("/cc-css-accent").accentColor()).isEqualTo("rgb(210, 35, 42)");
-    assertThat(app("/cc-css-accent").generatedAccentStrip()).isNull();
   }
 }
