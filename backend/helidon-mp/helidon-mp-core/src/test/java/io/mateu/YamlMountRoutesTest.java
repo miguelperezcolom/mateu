@@ -26,6 +26,16 @@ class YamlMountRoutesTest {
 
   @Test
   void servesAYamlMount() {
+    // dev mode switches the installable app off, and another test in this JVM may have left it on
+    io.mateu.core.infra.dev.DevMode.disable();
+    try {
+      servesTheMount();
+    } finally {
+      io.mateu.core.infra.dev.DevMode.reset();
+    }
+  }
+
+  private void servesTheMount() {
     var cdi = CDI.current();
     var service = cdi.select(MateuService.class).get();
     var routeRegistry = cdi.select(RouteRegistry.class).get();
