@@ -487,7 +487,8 @@ def add_mateu(
 
     # The Progressive Web App's files (Java's Pwa): the web app manifest, the service worker, its
     # registration script and Mateu's icons — public; an unknown file is a 404 (never the page).
-    async def pwa_file(file: str) -> Response:
+    # a plain def: FastAPI runs it in its threadpool, and reading a packaged file blocks
+    def pwa_file(file: str) -> Response:
         served = pwa.asset(file, prefix, registry.app_type)
         if served is None:
             return Response(status_code=404)

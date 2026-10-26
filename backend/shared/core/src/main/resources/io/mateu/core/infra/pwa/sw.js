@@ -68,26 +68,26 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-/** 'page', 'file' or false: whether (and how) a request is handled at all. */
+/** 'page', 'file' or '' (not handled at all): whether, and how, a request is handled. */
 function handled(href, method, mode, destination) {
   if (method !== 'GET') {
-    return false;
+    return '';
   }
   let url;
   try {
     url = new URL(href);
   } catch (e) {
-    return false;
+    return '';
   }
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-    return false;
+    return '';
   }
   const sameOrigin = url.origin === self.location.origin;
   if (sameOrigin && url.pathname.includes('/mateu/')) {
-    return false; // the Mateu API of any mount, and its dev endpoints
+    return ''; // the Mateu API of any mount, and its dev endpoints
   }
   if (mode === 'navigate') {
-    return sameOrigin ? 'page' : false;
+    return sameOrigin ? 'page' : '';
   }
   const bare = url.origin + url.pathname;
   if (PRECACHE.includes(bare) || STATIC.some((s) => bare.startsWith(s))) {
@@ -99,7 +99,7 @@ function handled(href, method, mode, destination) {
   if (sameOrigin && destination === 'image' && !url.search && IMAGE.test(url.pathname)) {
     return 'file';
   }
-  return false;
+  return '';
 }
 
 function storable(response) {
@@ -138,8 +138,12 @@ async function networkFirst(request, page) {
  * that brought a new build), sent by register.js: fetched again into the cache, so the next visit
  * opens offline too. Same rules as the fetch handler. */
 self.addEventListener('message', (event) => {
+  // only a page of this origin (register.js) hands it files to fetch
+  if (event.origin !== self.location.origin) {
+    return;
+  }
   const data = event.data;
-  if (!data || data.type !== 'mateu-pwa-warm' || !Array.isArray(data.files)) {
+  if (data?.type !== 'mateu-pwa-warm' || !Array.isArray(data.files)) {
     return;
   }
   event.waitUntil(warm(data.files.slice(0, 500)));
@@ -161,40 +165,49 @@ function destinationOf(initiator, pathname) {
   return '';
 }
 
+/* One file after the other, not all at once: the page that sent them is still loading. */
 async function warm(files) {
   const cache = await caches.open(CACHE);
-  for (const file of files) {
-    if (!file || typeof file.url !== 'string') {
-      continue;
+  return files.reduce(
+    (previous, file) => previous.then(() => warmOne(cache, file)),
+    Promise.resolve(),
+  );
+}
+
+/** The url of a file the page loaded that the fetch handler would cache, or null. */
+function warmable(file) {
+  if (!file || typeof file.url !== 'string') {
+    return null;
+  }
+  let url;
+  try {
+    url = new URL(file.url);
+  } catch (e) {
+    return null;
+  }
+  const destination = destinationOf(String(file.initiator || ''), url.pathname);
+  return handled(url.href, 'GET', 'no-cors', destination) === 'file' ? url : null;
+}
+
+async function warmOne(cache, file) {
+  const url = warmable(file);
+  if (!url || (await cache.match(url.href))) {
+    return;
+  }
+  try {
+    let response;
+    if (url.origin === self.location.origin) {
+      response = await fetch(url.href, { credentials: 'same-origin' });
+    } else {
+      // CORS first (a font needs it); a server that does not allow it gives an opaque copy
+      response = await fetch(url.href, { mode: 'cors', credentials: 'omit' }).catch(() =>
+        fetch(url.href, { mode: 'no-cors', credentials: 'omit' }),
+      );
     }
-    let url;
-    try {
-      url = new URL(file.url);
-    } catch (e) {
-      continue;
+    if (storable(response)) {
+      await cache.put(url.href, response);
     }
-    const destination = destinationOf(String(file.initiator || ''), url.pathname);
-    if (handled(url.href, 'GET', 'no-cors', destination) !== 'file') {
-      continue;
-    }
-    if (await cache.match(url.href)) {
-      continue;
-    }
-    try {
-      let response;
-      if (url.origin === self.location.origin) {
-        response = await fetch(url.href, { credentials: 'same-origin' });
-      } else {
-        // CORS first (a font needs it); a server that does not allow it gives an opaque copy
-        response = await fetch(url.href, { mode: 'cors', credentials: 'omit' }).catch(() =>
-          fetch(url.href, { mode: 'no-cors', credentials: 'omit' }),
-        );
-      }
-      if (storable(response)) {
-        await cache.put(url.href, response);
-      }
-    } catch (e) {
-      // offline again, or refused: the next visit caches it on the way
-    }
+  } catch (e) {
+    // offline again, or refused: the next visit caches it on the way
   }
 }

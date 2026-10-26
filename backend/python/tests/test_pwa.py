@@ -110,7 +110,8 @@ def test_a_setting_wins_as_for_the_mobile_manifest(monkeypatch):
 
 def test_only_hex_theme_colours_and_safe_icons_are_kept():
     json = pwa.manifest_json(_source("http://insecure.example/logo.png", "red"), "/", "/")
-    assert "theme_color" not in json and "insecure" not in json
+    assert "theme_color" not in json
+    assert "insecure" not in json
     assert pwa.declared_icon(_source("logo.png")) == "/logo.png"
     assert pwa.declared_icon(_source("/favicon.ico")) is None
     assert pwa.declared_icon(_source("javascript:alert(1)")) is None
@@ -187,7 +188,8 @@ def test_the_worker_version_follows_the_page():
 
     a = pwa.served(VAADIN_PAGE, "", None, "build")
     b = pwa.served(VAADIN_PAGE.replace("mateu-vaadin.js", "mateu-vaadin2.js"), "", None, "build")
-    assert len(version_of(a)) == 16 and version_of(a) != version_of(b)
+    assert len(version_of(a)) == 16
+    assert version_of(a) != version_of(b)
     assert version_of(a) == version_of(pwa.served(VAADIN_PAGE, "", None, "build"))
     assert version_of(a) != version_of(pwa.served(VAADIN_PAGE, "", None, "another build"))
 
@@ -346,7 +348,8 @@ def test_the_files_are_served_on_every_mount(base_url, scope):
     assert worker.content == pwa.resource(pwa.WORKER)
 
     icon = client.get(f"{base_url}/mateu/v3/pwa/icon-192.png")
-    assert icon.status_code == 200 and icon.headers["content-type"] == "image/png"
+    assert icon.status_code == 200
+    assert icon.headers["content-type"] == "image/png"
     assert icon.content == pwa.resource(pwa.ICON_192)
 
     for missing in ("sw-off.js", "nope.js", "nope"):
@@ -371,7 +374,8 @@ def test_the_page_served_with_a_renderer_carries_the_head_and_never_answers_the_
     # an unknown PWA file is a 404, never the page
     for missing in ("nope.js", "nope"):
         response = client.get(f"{dir_}{missing}")
-        assert response.status_code == 404 and "<html" not in response.text
+        assert response.status_code == 404
+        assert "<html" not in response.text
     # the version carries the build id
     expected = ui_page.render_index(
         renderer.joinpath("_index.html").read_text(), base_url, "Acme CRM", app_type=AcmeApp, build_id="pwa-build"

@@ -56,6 +56,11 @@ WORKER_OFF = "sw-off.js"
 #: The splash-screen background of an installed app.
 BACKGROUND_COLOR = "#ffffff"
 
+_DATA = "data:"
+_PNG = "image/png"
+_SVG = "image/svg+xml"
+_JAVASCRIPT = "text/javascript; charset=utf-8"
+
 _PACKAGE = "mateu_ui.core"
 _RESOURCES = "pwa_files"
 
@@ -134,7 +139,7 @@ def declared_icon(app_type: type | None) -> str | None:
         return None
     icon = value.strip()
     lower = icon.lower()
-    if lower.startswith("data:"):
+    if lower.startswith(_DATA):
         return icon if icon_type(icon) is not None else None
     if "<" in lower or '"' in lower or " " in lower:
         return None
@@ -160,19 +165,19 @@ def icon_type(icon: str) -> str | None:
     """The MIME type of an icon URL: a recognised image type, ``""`` for a path of unknown
     extension, None for a ``data:`` URI a browser would not show as an app icon."""
     lower = icon.lower()
-    if lower.startswith("data:"):
-        for kind in ("image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"):
-            if lower.startswith("data:" + kind + ";") or lower.startswith("data:" + kind + ","):
+    if lower.startswith(_DATA):
+        for kind in (_PNG, "image/jpeg", "image/webp", "image/gif", _SVG):
+            if lower.startswith((_DATA + kind + ";", _DATA + kind + ",")):
                 return kind
         return None
     path = _path_of(lower)
     if path.endswith(".png"):
-        return "image/png"
+        return _PNG
     if path.endswith(".svg"):
-        return "image/svg+xml"
+        return _SVG
     if path.endswith(".webp"):
         return "image/webp"
-    if path.endswith(".jpg") or path.endswith(".jpeg"):
+    if path.endswith((".jpg", ".jpeg")):
         return "image/jpeg"
     if path.endswith(".gif"):
         return "image/gif"
@@ -192,9 +197,13 @@ def icons(app_type: type | None) -> list[dict[str, Any]]:
             icon["type"] = kind
         icon["purpose"] = "any"
         out.append(icon)
-    out.append(_icon(ICON_192, "192x192", "any"))
-    out.append(_icon(ICON_512, "512x512", "any"))
-    out.append(_icon(ICON_MASKABLE, "512x512", "maskable"))
+    out.extend(
+        [
+            _icon(ICON_192, "192x192", "any"),
+            _icon(ICON_512, "512x512", "any"),
+            _icon(ICON_MASKABLE, "512x512", "maskable"),
+        ]
+    )
     return out
 
 
@@ -307,19 +316,10 @@ def static_folders(html: str) -> list[str]:
 
 
 def _folder_of(url: str) -> str | None:
-    lower = url.lower()
-    origin = ""
-    if lower.startswith(("https://", "http://", "//")):
-        start = 2 if lower.startswith("//") else url.find("//") + 2
-        slash = url.find("/", start)
-        if slash < 0:
-            return None
-        origin = ("https:" if lower.startswith("//") else "") + url[:slash]
-        path = url[slash:]
-    elif _SCHEME.fullmatch(lower) or lower.startswith("#"):
-        return None  # data:, blob:, javascript:…
-    else:
-        path = url if url.startswith("/") else "/" + (url[2:] if url.startswith("./") else url)
+    split = _origin_and_path(url)
+    if split is None:
+        return None
+    origin, path = split
     path = _path_of(path)
     second = path.find("/", 1)
     if second < 0:
@@ -328,6 +328,25 @@ def _folder_of(url: str) -> str | None:
     if segment in ("", "mateu", "..", "."):
         return None
     return origin + "/" + segment + "/"
+
+
+def _origin_and_path(url: str) -> tuple[str, str] | None:
+    """The origin (``""`` for the page's own) and the absolute path of a URL the page loads, or
+    None for one that is no file of a folder (``data:``, ``blob:``, a fragment…)."""
+    lower = url.lower()
+    if lower.startswith(("https://", "http://", "//")):
+        protocol_relative = lower.startswith("//")
+        start = 2 if protocol_relative else url.find("//") + 2
+        slash = url.find("/", start)
+        if slash < 0:
+            return None
+        return ("https:" if protocol_relative else "") + url[:slash], url[slash:]
+    if _SCHEME.fullmatch(lower) or lower.startswith("#"):
+        return None  # data:, blob:, javascript:…
+    if url.startswith("/"):
+        return "", url
+    relative = url[2:] if url.startswith("./") else url
+    return "", "/" + relative
 
 
 # ------------------------------------------------------------------------------------------------
@@ -362,20 +381,20 @@ def asset(file: str | None, base_url: str | None, app_type: type | None = None) 
         )
     if file == WORKER:
         return Asset(
-            "text/javascript; charset=utf-8",
-            _headers("text/javascript; charset=utf-8", "no-cache", scope),
+            _JAVASCRIPT,
+            _headers(_JAVASCRIPT, "no-cache", scope),
             resource(WORKER if on else WORKER_OFF),
         )
     if file == REGISTER:
         if not on:
             return None
         return Asset(
-            "text/javascript; charset=utf-8",
-            _headers("text/javascript; charset=utf-8", "no-cache", None),
+            _JAVASCRIPT,
+            _headers(_JAVASCRIPT, "no-cache", None),
             resource(REGISTER),
         )
     if file in (ICON_192, ICON_512, ICON_MASKABLE):
-        return Asset("image/png", _headers("image/png", "public, max-age=86400", None), resource(file))
+        return Asset(_PNG, _headers(_PNG, "public, max-age=86400", None), resource(file))
     return None
 
 
