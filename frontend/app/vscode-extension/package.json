@@ -142,13 +142,13 @@
     "package": "vsce package --out mateu-visual-editor.vsix"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "@types/vscode": "^1.85.0",
-    "@vitest/coverage-v8": "^4.1.12",
-    "@vscode/vsce": "^3.9.2",
+    "@types/node": "^26.6.5",
+    "@types/vscode": "^1.140.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "@vscode/vsce": "^4.0.0",
     "ajv": "^8.20.0",
-    "typescript": "^5.4.0",
-    "vitest": "^4.1.12"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "yaml": "^2.4.0"
