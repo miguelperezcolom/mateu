@@ -154,7 +154,7 @@ define([
       // the HOST's actions advertised Action.sse(true) (e.g. opFirma → tablet) go through the
       // /sse endpoint: ALL the stream's increments are applied and the events/toasts of each
       // one are ACCUMULATED (each reduce replaces effects)
-      const isSse = ((host && host.sseActionIds) || []).indexOf(id) >= 0;
+      const isSse = bridge.isSseAction(host, id);
       let reg = before;
       const allEvents = [];
       const allToasts = [];
@@ -173,7 +173,7 @@ define([
         refusedFields = bridge.refusedFieldsOf(inc, reg) || refusedFields;
         bridge.applyDomEffects(reg.effects, reg);
         if (touchesHost(inc)) hostRepainted = true;
-        allEvents.push.apply(allEvents, reg.effects.events || []);
+        allEvents.push.apply(allEvents, bridge.followUpsOf(reg.effects)); // its bus events and RunActions
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
       // OWNER FIRST, then the app's ACTION catalogue: a flow the page declares — or, when the page
@@ -299,15 +299,13 @@ define([
 
       const effects = reg.effects;
 
-      // bus events (CloseModal/DispatchEvent) → subscribed OnCustomEvent triggers
+      // bus events (CloseModal/DispatchEvent) → subscribed OnCustomEvent triggers; a RunAction → its action
       for (const busEvent of allEvents) {
         const hostNow = reg.contexts[bridge.HOST_ID];
-        for (const triggerActionId of bridge.eventTriggersOf(hostNow, busEvent.name)) {
-          const listing = bridge.listingOf(hostNow);
-          const refresh = await bridge.runMateuAction(
-            base, hostNow, route, triggerActionId,
-            Object.assign({}, hostNow.state, busEvent.detail || {},
-              { page: 0, size: (listing && listing.pageSize) || 20 }),
+        for (const triggerActionId of bridge.followUpActionsOf(hostNow, busEvent)) {
+          const refresh = await bridge.runMateuAction(base, hostNow, route, triggerActionId, // a listing: its own query, same page
+            bridge.followUpStateOf(hostNow, triggerActionId, busEvent.detail, { searchText: $application.variables.mateuLastSearchText,
+              filters: $application.variables.mateuFilterValues, sort: $application.variables.mateuListingSort }),
             { appState, parameters: busEvent.detail || {} },
           );
           reg = bridge.reduceContexts(reg, refresh);

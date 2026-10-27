@@ -13,12 +13,12 @@ import {
   overlayVarsOf, EMPTY_OVERLAY,
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, refusedFieldsOf } from './actionPlan.mjs'
-import { validationErrorsOf } from './core/rowEditor.mjs'
+import { validationErrorsOf, isSseAction } from './core/rowEditor.mjs'
 import { sameRowsSameProvider } from './core/content.mjs'
 import { evaluateExpression } from './rules.mjs'
 import {
   HOST_ID, hostContentOf, actionsOf, withFormActions, withFormActionsRowOf, tabOnlyActionIdsOf, pageToolbarOf,
-  reduceContexts, overlayOf, drawerOverlayOf, dialogOverlayOf, dismissOverlayById,
+  reduceContexts, overlayOf, drawerOverlayOf, dialogOverlayOf, dismissOverlayById, followUpsOf, followUpActionsOf,
 } from './reduceContexts.mjs'
 import { hostContentBesideHeader, fabsOf, sameProjectedValue, changedOnly, stagedVariables } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
@@ -85,6 +85,38 @@ test('changedOnly: the action chain projects through it (a poll with the same da
   assert.match(chain, /const changed = bridge\.changedOnly\(\$application\.variables\)/)
   assert.match(chain, /const staged = bridge\.stagedVariables\(\$application\.variables\)[\s\S]*?const vars = staged\.vars;[\s\S]*?vars\.mateuDirty = false;\s*const committed = staged\.commit\(\);[\s\S]*?committed\.has\('mateuHostContent'\)/)
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /\n {4}changedOnly,\n/)
+})
+
+test('followUps: a RunAction the server answers with runs its action after the answer (the crud refreshes its listing)', () => {
+  // ec-demo1's dictionary after «Ask the agent» / Approve, as it travels (its target is Vaadin's id)
+  const answer = { commands: [
+    { targetComponentId: '_list', type: 'RunAction', data: { actionId: 'search', targetComponentId: 'ux___cs_list' } },
+    { targetComponentId: '_list', type: 'PushStateToHistory', data: '' },
+  ], messages: [{ variant: 'success', text: 'The agent answered' }], fragments: [] }
+  const host = { tree: { triggers: [{ type: 'OnCustomEvent', eventName: 'mateu-crud:saved-in-drawer', actionId: 'search' }] } }
+  const followUps = followUpsOf(reduceContexts({ contexts: { [HOST_ID]: host }, stack: [] }, answer).effects)
+  assert.deepEqual(followUps, [{ runAction: 'search' }])
+  assert.deepEqual(followUpActionsOf(host, followUps[0]), ['search'], 'the RunAction runs, whatever its Vaadin target')
+  // a bus event still goes to the triggers subscribed to it, before the RunActions
+  assert.deepEqual(followUpsOf({ events: [{ name: 'mateu-crud:saved-in-drawer' }], runActions: [{ actionId: 'search' }, {}] })
+    .map((f) => followUpActionsOf(host, f)), [['search'], ['search']])
+  assert.deepEqual(followUpActionsOf(host, { name: 'nobody-listens' }), [])
+  const chain = webApp('flows/main/pages/main-start-page-chains/runMateuAction.js')
+  assert.match(chain, /allEvents\.push\.apply\(allEvents, bridge\.followUpsOf\(reg\.effects\)\)/)
+  assert.match(chain, /for \(const triggerActionId of bridge\.followUpActionsOf\(hostNow, busEvent\)\)/)
+})
+
+test('isSseAction: the wrapper\'s sse actions, and a crud toolbar button whose tree declares it sse (a LongTask)', () => {
+  assert.ok(isSseAction({ sseActionIds: ['escanear'] }, 'escanear'))
+  const crud = { sseActionIds: [], tree: { actions: [
+    { id: 'action-on-row-askTheAgent', sse: true, bubble: true }, { id: 'action-on-row-approve', sse: false },
+  ] } }
+  assert.ok(isSseAction(crud, 'action-on-row-askTheAgent'), 'a @ListToolbarButton @Action(sse = true) goes through /sse')
+  assert.ok(!isSseAction(crud, 'action-on-row-approve'))
+  assert.ok(!isSseAction(null, 'x'))
+  for (const chain of ['runMateuAction.js', 'runMateuIslandAction.js', 'runMateuNestedAction.js']) {
+    assert.match(webApp('flows/main/pages/main-start-page-chains/' + chain), /const isSse = bridge\.isSseAction\(/)
+  }
 })
 
 test('collection header: the first toolbar button is primary, the rest secondary', () => {

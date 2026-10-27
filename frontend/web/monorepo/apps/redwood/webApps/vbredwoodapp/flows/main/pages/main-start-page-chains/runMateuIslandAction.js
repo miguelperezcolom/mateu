@@ -69,7 +69,7 @@ define([
       };
 
       // actions advertised Action.sse(true) (LongTask, e.g. scanning) → /sse endpoint
-      const isSse = (islandContext.sseActionIds || []).indexOf(actionId) >= 0;
+      const isSse = bridge.isSseAction(islandContext, actionId);
       let lastIncrement = null;
       if (isSse) {
         // LongTask: live progress dialog (same treatment as runMateuAction)

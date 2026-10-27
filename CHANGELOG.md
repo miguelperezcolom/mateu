@@ -11,6 +11,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.20] — 2026-10-27
+
+On Redwood, a crud refreshes its listing after an action as the server asks — keeping its query — and a crud toolbar button can show a LongTask's progress dialog.
+
+### Fixed
+
+- **Redwood: a `RunAction` the server answers with runs.** A crud that refreshes its listing after an
+  action (`UICommand.runAction("search")`, `CrudActionResult.withActionToRun`) got its `search`
+  collected and never run, so the listing stayed as it was; now it runs after the answer, after the
+  bus events' triggers, as on Vaadin.
+- **Redwood: a listing refreshed after an action keeps its query.** The `search` a crud runs after an
+  action (a RunAction, or the refresh after a save in its drawer) went back to page 1 with only the
+  host state, dropping the search text, the filter chips and the sort; it now re-runs the listing's
+  own query — same text, chips, sort and page.
+- **Redwood: a crud toolbar button declared `@Action(sse = true)` goes through `/sse`.** Only the
+  page wrapper's actions were noted as SSE when the route loaded; a `@ListToolbarButton` comes in
+  the crud's tree, so it went out as a plain sync and its `LongTask` never showed its progress dialog.
+
 ## [3.0-beta.19] — 2026-10-27
 
 A Redwood page that polls its status refreshes when it should, and only repaints what changed.
