@@ -11,6 +11,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.19] — 2026-10-27
+
+A Redwood page that polls its status refreshes when it should, and only repaints what changed.
+
 ### Fixed
 
 - **Redwood: a periodic refresh reads its trigger's condition.** An `OnLoad`/`OnSuccess` poll with
