@@ -17,6 +17,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   action (`UICommand.runAction("search")`, `CrudActionResult.withActionToRun`) got its `search`
   collected and never run, so the listing stayed as it was; now it runs after the answer, after the
   bus events' triggers, as on Vaadin.
+- **Redwood: a listing refreshed after an action keeps its query.** The `search` a crud runs after an
+  action (a RunAction, or the refresh after a save in its drawer) went back to page 1 with only the
+  host state, dropping the search text, the filter chips and the sort; it now re-runs the listing's
+  own query — same text, chips, sort and page.
 
 ## [3.0-beta.19] — 2026-10-27
 

@@ -7046,6 +7046,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return eventTriggersOf(ctx, followUp && followUp.name)
   }
 
+  /** The state a follow-up action runs with. A listing's `search` (a crud refreshing after an action, or
+   *  after a save in its drawer) is the listing's own query again — its text, its filter chips, its sort
+   *  and the PAGE it is on, as runMateuSearch sends it; it used to go back to page 1 with only the host
+   *  state, dropping the text, the chips and the sort. Anything else runs with the host state and the
+   *  event's detail. `view`: { searchText, filters, sort } as the page holds them. */
+  function followUpStateOf(ctx, actionId, detail, view = {}) {
+    const listing = listingOf(ctx)
+    const base = Object.assign({}, (ctx && ctx.state) || {}, detail || {})
+    if (actionId !== 'search' || !listing) return Object.assign(base, { page: 0, size: (listing && listing.pageSize) || 20 })
+    return listingSearchStateOf(base, {
+      searchText: view.searchText, filters: view.filters, sort: view.sort,
+      page: (listing.paging && listing.paging.pageNumber) || 0, size: listing.pageSize,
+    })
+  }
+
   /** The host's @AutoSave/AutoSaveTrigger trigger (search-as-you-type, autosave):
    *  {actionId, debounceMillis} or null. The renderer honors it by re-launching the action
    *  debounced on every keystroke (raw-value of the host's inputs). */
@@ -25618,6 +25633,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     eventTriggersOf,
     followUpsOf,
     followUpActionsOf,
+    followUpStateOf,
     // the shell's FLOWS: a menu RuleLink running a declared flow client-side (shellFlows.mjs)
     isMenuRuleId,
     menuRulesOf,

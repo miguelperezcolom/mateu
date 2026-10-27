@@ -303,11 +303,9 @@ define([
       for (const busEvent of allEvents) {
         const hostNow = reg.contexts[bridge.HOST_ID];
         for (const triggerActionId of bridge.followUpActionsOf(hostNow, busEvent)) {
-          const listing = bridge.listingOf(hostNow);
-          const refresh = await bridge.runMateuAction(
-            base, hostNow, route, triggerActionId,
-            Object.assign({}, hostNow.state, busEvent.detail || {},
-              { page: 0, size: (listing && listing.pageSize) || 20 }),
+          const refresh = await bridge.runMateuAction(base, hostNow, route, triggerActionId, // a listing: its own query, same page
+            bridge.followUpStateOf(hostNow, triggerActionId, busEvent.detail, { searchText: $application.variables.mateuLastSearchText,
+              filters: $application.variables.mateuFilterValues, sort: $application.variables.mateuListingSort }),
             { appState, parameters: busEvent.detail || {} },
           );
           reg = bridge.reduceContexts(reg, refresh);

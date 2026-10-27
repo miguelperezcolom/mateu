@@ -627,6 +627,39 @@ test('runMateuAction: save sends the host state + the form draft, the answer upd
   assert.ok(calls.some((c) => c[0] === 'method' && c[1] === '#mateuToast' && c[2] === 'open'))
 })
 
+test('runMateuAction: an action answering RunAction search re-runs the listing\'s query — same text, chips, sort and page', async () => {
+  const crud = page('pl', 'x.Dictionary', 'Dictionary', [{ type: 'ClientSide', metadata: {
+    type: 'Crud', id: 'crud', title: 'Dictionary', searchable: true, pageSize: 10, toolbar: [],
+    columns: [{ metadata: { id: 'code', label: 'Code', dataType: 'string' } }],
+    filters: [{ metadata: { fieldId: 'integration', label: 'Integration', dataType: 'string' } }],
+  } }], { triggers: [{ type: 'OnLoad', actionId: 'search' }] })
+  answer(byRoute('/dictionary'), replace(crud))
+  const searches = []
+  answer(byRoute('/dictionary', 'search'), (b) => { searches.push(b.componentState); return { commands: [], messages: [], fragments: [{
+    targetComponentId: 'pl', action: 'Replace', component: null, state: null,
+    data: { crud: { page: { pageSize: 10, pageNumber: 2, totalElements: 45, content: [{ _rowNumber: 0, code: 'STD-KING', id: '1' }] } } },
+  }] } })
+  // ec-demo1's dictionary after «Approve», as it travels: a message and «run search»
+  answer((b) => b.actionId === 'action-on-row-approve', () => ({ commands: [
+    { targetComponentId: '_list', type: 'RunAction', data: { actionId: 'search', targetComponentId: 'ux___cs_list' } },
+  ], messages: [{ variant: 'success', text: '45 approved' }], fragments: [] }))
+  const ctx = newContext()
+  await navigate(ctx, '/dictionary?page=2&sort=code:descending')
+  const v = ctx.$application.variables
+  v.mateuLastSearchText = 'king'
+  v.mateuFilterValues = { integration: 'MRU01' }
+  v.mateuListingSort = [{ field: 'code', direction: 'descending' }]
+  searches.length = 0
+  await act(ctx, 'action-on-row-approve')
+  assert.equal(searches.length, 1, 'the listing searched again after the action')
+  const q = searches[0]
+  assert.equal(q.page, 2, 'on the page it was on')
+  assert.equal(q.size, 10)
+  assert.equal(q.searchText, 'king')
+  assert.equal(q.integration, 'MRU01', 'with its filter chips')
+  assert.deepEqual(q.sort, [{ field: 'code', direction: 'descending' }], 'and its sort')
+})
+
 test('runMateuAction: a LEAVE action (Cancel…) with unsaved changes asks first; «stay» sends nothing', async () => {
   answer(byRoute('/person'), fx('load-form'))
   const cancelled = []

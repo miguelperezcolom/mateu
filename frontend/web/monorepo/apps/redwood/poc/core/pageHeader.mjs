@@ -1,7 +1,7 @@
 import { autoTrail } from '../breadcrumbs.mjs'
 import { HOST_ID, actionsOf, dynFormMetadataOf, fieldListOf, formSectionsOf } from './tree.mjs'
 import { interpolate } from './content.mjs'
-import { findByType } from './listing.mjs'
+import { findByType, listingOf, listingSearchStateOf } from './listing.mjs'
 import { evaluateTemplate } from '../rules.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
@@ -468,6 +468,21 @@ export function followUpsOf(effects) {
 export function followUpActionsOf(ctx, followUp) {
   if (followUp && followUp.runAction) return [followUp.runAction]
   return eventTriggersOf(ctx, followUp && followUp.name)
+}
+
+/** The state a follow-up action runs with. A listing's `search` (a crud refreshing after an action, or
+ *  after a save in its drawer) is the listing's own query again — its text, its filter chips, its sort
+ *  and the PAGE it is on, as runMateuSearch sends it; it used to go back to page 1 with only the host
+ *  state, dropping the text, the chips and the sort. Anything else runs with the host state and the
+ *  event's detail. `view`: { searchText, filters, sort } as the page holds them. */
+export function followUpStateOf(ctx, actionId, detail, view = {}) {
+  const listing = listingOf(ctx)
+  const base = Object.assign({}, (ctx && ctx.state) || {}, detail || {})
+  if (actionId !== 'search' || !listing) return Object.assign(base, { page: 0, size: (listing && listing.pageSize) || 20 })
+  return listingSearchStateOf(base, {
+    searchText: view.searchText, filters: view.filters, sort: view.sort,
+    page: (listing.paging && listing.paging.pageNumber) || 0, size: listing.pageSize,
+  })
 }
 
 /** The host's @AutoSave/AutoSaveTrigger trigger (search-as-you-type, autosave):
