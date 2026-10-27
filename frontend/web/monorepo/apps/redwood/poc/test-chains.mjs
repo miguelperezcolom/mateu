@@ -14,12 +14,13 @@ import {
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, refusedFieldsOf } from './actionPlan.mjs'
 import { validationErrorsOf } from './core/rowEditor.mjs'
+import { sameRowsSameProvider } from './core/content.mjs'
 import { evaluateExpression } from './rules.mjs'
 import {
   HOST_ID, hostContentOf, actionsOf, withFormActions, withFormActionsRowOf, tabOnlyActionIdsOf, pageToolbarOf,
   reduceContexts, overlayOf, drawerOverlayOf, dialogOverlayOf, dismissOverlayById,
 } from './reduceContexts.mjs'
-import { hostContentBesideHeader, fabsOf } from './pageProjection.mjs'
+import { hostContentBesideHeader, fabsOf, sameProjectedValue, changedOnly, stagedVariables } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { applyLightTheme } from './theme.mjs'
 import { committedValueOf } from './core/rowEditor.mjs'
@@ -30,6 +31,61 @@ let passed = 0
 const test = (name, fn) => { fn(); passed++; console.log('  ✓ ' + name) }
 const node = (metadata, children = [], id = '') => ({ type: 'ClientSide', id, metadata, children })
 const webApp = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8')
+
+test('changedOnly: a value equal to the one there is not assigned, so nothing bound to it repaints', () => {
+  assert.ok(sameProjectedValue({ a: [1, { b: 'x' }], c: null }, { a: [1, { b: 'x' }], c: null }))
+  assert.ok(!sameProjectedValue({ a: [1] }, { a: [2] }))
+  assert.ok(!sameProjectedValue({ a: 1 }, { a: 1, b: 2 }), 'one more key is a change')
+  assert.ok(sameProjectedValue({ a: 1, disabled: false }, { a: 1 }), 'a false the page wrote into the painted value is not')
+  assert.ok(!sameProjectedValue({ a: 1, disabled: true }, { a: 1 }))
+  assert.ok(sameProjectedValue({ a: 1 }, { a: 1, b: undefined }))
+  assert.ok(!sameProjectedValue([1], { 0: 1, length: 1 }))
+  const provider = new Map()
+  assert.ok(sameProjectedValue(provider, provider) && !sameProjectedValue(new Map(), new Map()), 'a non-plain value only if it is the same one')
+  const vars = { mateuHostContent: [{ type: 'text', text: 'Running' }], mateuDirty: false }
+  const before = vars.mateuHostContent
+  const changed = changedOnly(vars)
+  changed.mateuHostContent = [{ type: 'text', text: 'Running' }]
+  changed.mateuDirty = false
+  assert.equal(vars.mateuHostContent, before, 'the same content keeps the same object')
+  changed.mateuHostContent = [{ type: 'text', text: 'Completed' }]
+  assert.equal(vars.mateuHostContent[0].text, 'Completed')
+  assert.equal(changed.mateuDirty, false, 'reads go through')
+})
+
+test('stagedVariables: set twice on the way, assigned once at the commit — and only if it changed', () => {
+  const sections = [{ title: 'Process' }]
+  const target = { mateuFormSections: sections, mateuHostContent: [] }
+  const writes = []
+  const watched = new Proxy(target, { set: (t, k, v) => { writes.push(k); t[k] = v; return true } })
+  const { vars, commit } = stagedVariables(watched)
+  vars.mateuFormSections = [{ title: 'Summary' }] // the summary's…
+  assert.deepEqual(vars.mateuFormSections, [{ title: 'Summary' }], 'reads give back what was set')
+  vars.mateuFormSections = [{ title: 'Process' }] // …then the final one, the same as on screen
+  vars.mateuHostContent = [{ type: 'text', text: 'Running' }]
+  assert.deepEqual(writes, [], 'nothing reaches the variables before the commit')
+  assert.deepEqual([...commit()], ['mateuHostContent'], 'the commit names what it assigned')
+  assert.deepEqual(writes, ['mateuHostContent'], 'only what changed is assigned')
+  assert.equal(target.mateuFormSections, sections)
+})
+
+test('sameRowsSameProvider: unchanged rows keep their data provider, changed ones get a new one', () => {
+  let made = 0
+  const provider = sameRowsSameProvider((rows) => ({ n: ++made, rows }), 2)
+  const a = provider([{ id: 1, status: 'Running' }])
+  assert.equal(provider([{ id: 1, status: 'Running' }]), a, 'same rows → the same provider: the table has nothing to repaint')
+  const b = provider([{ id: 1, status: 'Completed' }])
+  assert.notEqual(b, a)
+  provider([{ id: 2 }]); provider([{ id: 3 }])
+  assert.notEqual(provider([{ id: 1, status: 'Running' }]), a, 'only the last few are kept')
+})
+
+test('changedOnly: the action chain projects through it (a poll with the same data repaints nothing)', () => {
+  const chain = webApp('flows/main/pages/main-start-page-chains/runMateuAction.js')
+  assert.match(chain, /const changed = bridge\.changedOnly\(\$application\.variables\)/)
+  assert.match(chain, /const staged = bridge\.stagedVariables\(\$application\.variables\)[\s\S]*?const vars = staged\.vars;[\s\S]*?vars\.mateuDirty = false;\s*const committed = staged\.commit\(\);[\s\S]*?committed\.has\('mateuHostContent'\)/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /\n {4}changedOnly,\n/)
+})
 
 test('collection header: the first toolbar button is primary, the rest secondary', () => {
   assert.deepEqual(listHeaderVarsOf(null), { mateuListPrimary: { label: '', display: 'off' }, mateuListPrimaryId: '', mateuListSecondary: [] })

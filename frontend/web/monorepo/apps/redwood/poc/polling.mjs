@@ -6,6 +6,13 @@
 // One GENERATION per screen: navigating starts a new one and everything scheduled for the previous one
 // is discarded when it falls due (like the web's callbackToken) — a floor panel that is no longer seen
 // stops asking.
+//
+// A trigger's CONDITION (`state.status.type != 'SUCCESS'`: poll while the process runs) is read
+// when each round falls due, against the state its screen has THEN — as the web renderer reads it
+// with the component's state. Before, it was not read at all: a finished process kept polling.
+
+import { evaluateExpression } from './rules.mjs'
+import { HOST_ID } from './core/tree.mjs'
 
 let runner = null
 /** Who runs the scheduled action (the shell: the same path as the Elements). */
@@ -14,6 +21,27 @@ export function setPollingRunner(fn) { runner = typeof fn === 'function' ? fn : 
 let generation = 0
 let screenTree = null
 const timers = new Set()
+
+// the registry after the last reduction (make-amd's after-reduce hook)
+let latestRegistry = null
+export function notePollingRegistry(reg) { latestRegistry = reg || null }
+
+// the context a trigger was scheduled from, as it is NOW: the reduced one of the same ServerSide (the
+// host first), or the scheduled one when the registry does not have it
+const currentPollingCtxOf = (ctx) => {
+  const contexts = (latestRegistry && latestRegistry.contexts) || {}
+  const type = ctx && ctx.tree && ctx.tree.serverSideType
+  const host = contexts[HOST_ID]
+  if (host && host.tree && host.tree.serverSideType === type) return host
+  return Object.values(contexts).find((c) => c && c.tree && c.tree.serverSideType === type) || ctx
+}
+
+/** Whether a round of `trigger` runs: no condition, or its condition holds on the state `ctx` has now. */
+export function pollingConditionHolds(trigger, ctx) {
+  if (!trigger.condition) return true
+  const now = currentPollingCtxOf(ctx) || {}
+  return !!evaluateExpression(trigger.condition, { state: now.state || {}, data: now.data || {} })
+}
 
 const triggersOf = (ctx) => (ctx && ctx.tree && ctx.tree.triggers) || []
 
@@ -33,9 +61,11 @@ export function onSuccessTriggers(ctx, actionId) {
 const pendingByTrigger = new Map()
 const triggerKey = (t) => t.type + ':' + t.actionId + ':' + (t.calledActionId || '')
 
-const schedule = (trigger, gen, timer = setTimeout, clear = clearTimeout) => {
+const schedule = (trigger, ctx, gen, timer = setTimeout, clear = clearTimeout) => {
   const fire = () => {
     if (gen !== generation || !runner) return
+    // the condition no longer holds (the process finished): no round, so no success and no next one
+    if (!pollingConditionHolds(trigger, ctx)) return
     runner(trigger.actionId, {}, { background: !!trigger.background, polling: true })
   }
   if (!(trigger.timeoutMillis > 0)) { fire(); return }
@@ -61,7 +91,7 @@ export function startPolling(hostCtx, timer = setTimeout) {
   timers.clear()
   pendingByTrigger.clear()
   screenTree = hostCtx && hostCtx.tree
-  for (const t of timedOnLoadTriggers(hostCtx)) schedule(t, generation, timer)
+  for (const t of timedOnLoadTriggers(hostCtx)) schedule(t, hostCtx, generation, timer)
   return generation
 }
 
@@ -72,7 +102,7 @@ export function actionSucceeded(ctx, actionId, timer = setTimeout) {
   // ServerSide's island or a response of the previous screen reschedule nothing
   if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
   const next = onSuccessTriggers(ctx, actionId)
-  for (const t of next) schedule(t, generation, timer)
+  for (const t of next) schedule(t, ctx, generation, timer)
   return next.length
 }
 
@@ -91,7 +121,7 @@ export function actionFailed(ctx, actionId, timer = setTimeout) {
   if (!ctx || !ctx.tree) return 0
   if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
   const next = onErrorTriggers(ctx, actionId)
-  for (const t of next) schedule(t, generation, timer)
+  for (const t of next) schedule(t, ctx, generation, timer)
   return next.length
 }
 

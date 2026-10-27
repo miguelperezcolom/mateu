@@ -30,7 +30,7 @@ import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
-import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers } from './polling.mjs'
+import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers, notePollingRegistry } from './polling.mjs'
 import { onLoadTriggers, mediatorOf } from './reduceContexts.mjs'
 import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions, isFunctionKeyShortcut } from './keys.mjs'
 import { hoverLinesOf } from './hover.mjs'
@@ -1331,9 +1331,41 @@ test('polling: dos éxitos seguidos del mismo trigger dejan UNA vuelta pendiente
   setPollingRunner(null)
 })
 
+test('polling: la condición del trigger se lee al vencer cada vuelta, con el estado de ESE momento', () => {
+  const pending = []
+  const timer = (fn, ms) => { const h = { fn, ms }; pending.push(h); return h }
+  const ran = []
+  setPollingRunner((actionId) => ran.push(actionId))
+  const triggers = [
+    { type: 'OnLoad', actionId: 'refresh', timeoutMillis: 2000, condition: "state.status.type != 'SUCCESS'" },
+    { type: 'OnSuccess', actionId: 'refresh', calledActionId: 'refresh', timeoutMillis: 2000, condition: "state.status.type != 'SUCCESS'" },
+  ]
+  const process = (type) => ({ tree: { serverSideType: 'ProcessView', triggers }, state: { status: { type } } })
+  // a process already finished when it is opened: no round at all
+  notePollingRegistry({ contexts: { __root__: process('SUCCESS') } })
+  startPolling(process('SUCCESS'), timer)
+  pending.shift().fn()
+  assert.deepEqual(ran, [], 'un proceso terminado no se refresca')
+  // a running one refreshes…
+  notePollingRegistry({ contexts: { __root__: process('WARNING') } })
+  startPolling(process('WARNING'), timer)
+  pending.shift().fn()
+  assert.deepEqual(ran, ['refresh'])
+  actionSucceeded(process('WARNING'), 'refresh', timer)
+  // …until the answer of a round says it finished: the next round reads THAT state and stops
+  notePollingRegistry({ contexts: { __root__: process('SUCCESS') } })
+  pending.shift().fn()
+  assert.deepEqual(ran, ['refresh'], 'el bucle se para cuando la condición deja de cumplirse')
+  notePollingRegistry(null)
+  setPollingRunner(null)
+})
+
 test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxito (y de cada fallo: OnError)', () => {
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.startPolling\(reg\.contexts\[bridge\.HOST_ID\]\)/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setPollingRunner\(runPageAction\)/)
+  // the crud's route flip (row → detail, back → listing) is another screen too
+  assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /applyInc\(await bridge\.loadRoute\(base, flipRoute[\s\S]*?bridge\.startPolling\(reg\.contexts\[bridge\.HOST_ID\]\)[\s\S]*?bridge\.onLoadTriggers\(reloaded\)/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /setAfterReduceHook\(\(reg\) => \{[\s\S]*?notePollingRegistry\(reg\)/)
   assert.match(webApp('resources/js/mateu-bridge.js'), /if \(inc\) \(isErrorAnswer\(inc\) \? actionFailed : actionSucceeded\)\(source, actionId\)/)
 })
 
