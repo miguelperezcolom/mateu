@@ -13,7 +13,7 @@ import {
   overlayVarsOf, EMPTY_OVERLAY,
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, refusedFieldsOf } from './actionPlan.mjs'
-import { validationErrorsOf } from './core/rowEditor.mjs'
+import { validationErrorsOf, isSseAction } from './core/rowEditor.mjs'
 import { sameRowsSameProvider } from './core/content.mjs'
 import { evaluateExpression } from './rules.mjs'
 import {
@@ -104,6 +104,19 @@ test('followUps: a RunAction the server answers with runs its action after the a
   const chain = webApp('flows/main/pages/main-start-page-chains/runMateuAction.js')
   assert.match(chain, /allEvents\.push\.apply\(allEvents, bridge\.followUpsOf\(reg\.effects\)\)/)
   assert.match(chain, /for \(const triggerActionId of bridge\.followUpActionsOf\(hostNow, busEvent\)\)/)
+})
+
+test('isSseAction: the wrapper\'s sse actions, and a crud toolbar button whose tree declares it sse (a LongTask)', () => {
+  assert.ok(isSseAction({ sseActionIds: ['escanear'] }, 'escanear'))
+  const crud = { sseActionIds: [], tree: { actions: [
+    { id: 'action-on-row-askTheAgent', sse: true, bubble: true }, { id: 'action-on-row-approve', sse: false },
+  ] } }
+  assert.ok(isSseAction(crud, 'action-on-row-askTheAgent'), 'a @ListToolbarButton @Action(sse = true) goes through /sse')
+  assert.ok(!isSseAction(crud, 'action-on-row-approve'))
+  assert.ok(!isSseAction(null, 'x'))
+  for (const chain of ['runMateuAction.js', 'runMateuIslandAction.js', 'runMateuNestedAction.js']) {
+    assert.match(webApp('flows/main/pages/main-start-page-chains/' + chain), /const isSse = bridge\.isSseAction\(/)
+  }
 })
 
 test('collection header: the first toolbar button is primary, the rest secondary', () => {

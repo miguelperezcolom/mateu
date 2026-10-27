@@ -21,6 +21,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   action (a RunAction, or the refresh after a save in its drawer) went back to page 1 with only the
   host state, dropping the search text, the filter chips and the sort; it now re-runs the listing's
   own query — same text, chips, sort and page.
+- **Redwood: a crud toolbar button declared `@Action(sse = true)` goes through `/sse`.** Only the
+  page wrapper's actions were noted as SSE when the route loaded; a `@ListToolbarButton` comes in
+  the crud's tree, so it went out as a plain sync and its `LongTask` never showed its progress dialog.
 
 ## [3.0-beta.19] — 2026-10-27
 

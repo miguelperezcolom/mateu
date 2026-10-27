@@ -347,6 +347,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     followUpsOf,
     followUpActionsOf,
     followUpStateOf,
+    isSseAction,
     // the shell's FLOWS: a menu RuleLink running a declared flow client-side (shellFlows.mjs)
     isMenuRuleId,
     menuRulesOf,

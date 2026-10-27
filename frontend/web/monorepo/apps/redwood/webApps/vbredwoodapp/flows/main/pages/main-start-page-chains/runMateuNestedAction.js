@@ -74,7 +74,7 @@ define([
       const outbound = nestedContext.outbound || {};
       const previousRoute = nestedContext.state ? nestedContext.state._route : null;
       const componentState = Object.assign({}, seed, nestedContext.state);
-      const isSse = (nestedContext.sseActionIds || []).indexOf(actionId) >= 0;
+      const isSse = bridge.isSseAction(nestedContext, actionId);
       if (isSse) {
         const increments = await bridge.runMateuActionSse(
           base, nestedContext, outbound.route || '',

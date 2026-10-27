@@ -678,6 +678,16 @@ export function declaredActionOf(ctx, actionId) {
     || null
 }
 
+/** Whether a host action goes through the /sse endpoint (Action.sse: a LongTask's progress dialog). The
+ *  wrapper's actions are noted when the route loads (sseActionIds); a crud's own toolbar buttons
+ *  (@ListToolbarButton) only come in its tree — they went out as a plain sync, and their LongTask
+ *  never showed its dialog. */
+export function isSseAction(ctx, actionId) {
+  if (((ctx && ctx.sseActionIds) || []).indexOf(actionId) >= 0) return true
+  const declared = declaredActionOf(ctx, actionId)
+  return !!(declared && declared.sse)
+}
+
 /**
  * The TRANSPORT context of a host action: which ServerSide it goes to.
  *

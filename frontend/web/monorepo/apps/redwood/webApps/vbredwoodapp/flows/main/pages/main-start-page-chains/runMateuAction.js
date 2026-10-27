@@ -154,7 +154,7 @@ define([
       // the HOST's actions advertised Action.sse(true) (e.g. opFirma → tablet) go through the
       // /sse endpoint: ALL the stream's increments are applied and the events/toasts of each
       // one are ACCUMULATED (each reduce replaces effects)
-      const isSse = ((host && host.sseActionIds) || []).indexOf(id) >= 0;
+      const isSse = bridge.isSseAction(host, id);
       let reg = before;
       const allEvents = [];
       const allToasts = [];

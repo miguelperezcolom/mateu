@@ -9971,6 +9971,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       || null
   }
 
+  /** Whether a host action goes through the /sse endpoint (Action.sse: a LongTask's progress dialog). The
+   *  wrapper's actions are noted when the route loads (sseActionIds); a crud's own toolbar buttons
+   *  (@ListToolbarButton) only come in its tree — they went out as a plain sync, and their LongTask
+   *  never showed its dialog. */
+  function isSseAction(ctx, actionId) {
+    if (((ctx && ctx.sseActionIds) || []).indexOf(actionId) >= 0) return true
+    const declared = declaredActionOf(ctx, actionId)
+    return !!(declared && declared.sse)
+  }
+
   /**
    * The TRANSPORT context of a host action: which ServerSide it goes to.
    *
@@ -25634,6 +25644,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     followUpsOf,
     followUpActionsOf,
     followUpStateOf,
+    isSseAction,
     // the shell's FLOWS: a menu RuleLink running a declared flow client-side (shellFlows.mjs)
     isMenuRuleId,
     menuRulesOf,
