@@ -21,10 +21,11 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: swapi
-          image: miguelperezcolom/swapi-service:2026.10.12
+          image: miguelperezcolom/swapi-service:2026.10.27
           env:
             - { name: SERVER_PORT, value: "8120" }
-            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
+            # exit on OOM so Kubernetes restarts it, rather than a half-alive JVM that answers nothing
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError" }
             - name: WRITE_KEY
               valueFrom:
                 secretKeyRef: { name: swapi-write-key, key: WRITE_KEY }
