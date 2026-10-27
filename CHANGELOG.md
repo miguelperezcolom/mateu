@@ -11,6 +11,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.20] — 2026-10-27
+
+On Redwood, a crud refreshes its listing after an action as the server asks — keeping its query — and a crud toolbar button can show a LongTask's progress dialog.
+
 ### Fixed
 
 - **Redwood: a `RunAction` the server answers with runs.** A crud that refreshes its listing after an
