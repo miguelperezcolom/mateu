@@ -10,6 +10,16 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt
     # the service is an API: its root sends people to the interactive API docs
     nginx.ingress.kubernetes.io/app-root: /swagger-ui/index.html
+    # A public, writable API on one replica: nginx caps it before the JVM sees the load. nginx sees
+    # every client as the Hetzner LB (no proxy protocol yet), so these are global caps, not per-client
+    # quotas — see swapi-service's deploy/cluster/README.md.
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    nginx.ingress.kubernetes.io/proxy-body-size: "64k"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "5"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "15"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "15"
 spec:
   ingressClassName: nginx
   tls:
