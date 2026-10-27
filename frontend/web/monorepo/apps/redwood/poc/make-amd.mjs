@@ -77,6 +77,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   setColumnPrefsReader(() => readColumnPrefs(listingScope()));
   setAfterReduceHook((reg) => {
     setRulesContexts(reg);
+    // the periodic refresh reads its triggers' conditions against the latest state (polling.mjs)
+    notePollingRegistry(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
     setShortcutContext(reg.contexts[HOST_ID]);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
@@ -605,6 +607,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     hostContentBesideHeader,
     pageWidthOf,
     pageLayoutOf,
+    changedOnly,
+    stagedVariables,
     outboundActionOf,
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,

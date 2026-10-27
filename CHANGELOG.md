@@ -11,6 +11,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.19] — 2026-10-27
+
+A Redwood page that polls its status refreshes when it should, and only repaints what changed.
+
+### Fixed
+
+- **Redwood: a periodic refresh reads its trigger's condition.** An `OnLoad`/`OnSuccess` poll with
+  a condition (`state.status.type != 'SUCCESS'`: poll while a process runs) now stops once the
+  condition no longer holds, as on Vaadin; it kept polling a finished process.
+- **Redwood: a screen a crud opens in place arms its own polling.** A record opened from its listing
+  (and the listing again, coming back) goes through the crud's route flip, which never started or
+  stopped the periodic refresh: a running process opened from the list never refreshed, and back on
+  the list the record's `refresh` went on going out to the crud («refresh not supported by …»).
+- **Redwood: an answer that changes nothing repaints nothing.** After every action the page
+  variables were all assigned again — some twice on the way — and every table got a new data
+  provider, so a status poll re-stamped the whole page every round (~700 DOM nodes, focus and
+  scroll lost). Now the page is assigned once, only what differs, and unchanged rows keep their
+  provider.
+
 ## [3.0-beta.18] — 2026-10-27
 
 A server-sent navigation now navigates on Redwood too.

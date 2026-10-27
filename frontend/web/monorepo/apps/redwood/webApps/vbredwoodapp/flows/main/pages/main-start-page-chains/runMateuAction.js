@@ -281,6 +281,9 @@ define([
           appState,
           componentState: reg.contexts[bridge.HOST_ID].state,
         }));
+        // another screen: arm its periodic refresh and forget the previous one's, as onMateuNavigate
+        // does (else back on the listing the detail's `refresh` went on going out, to the crud)
+        bridge.startPolling(reg.contexts[bridge.HOST_ID]);
         // what just arrived may ask for its OnLoad load (the listing asks for `search`; without
         // this you come back from the detail to an empty table, with its columns and no rows)
         const reloaded = reg.contexts[bridge.HOST_ID];
@@ -373,8 +376,9 @@ define([
       const pickerNow = bridge.searchPickerOf(reg);
       const overlayVars = bridge.overlayVarsOf(reg, pickerNow);
       // a crud drawer's Spectra arrows walk the listing rows on screen (tree.mjs withListingPeers)
-      $application.variables.mateuDrawer = bridge.withListingPeers(overlayVars.drawer, $application.variables.mateuListingRows);
-      $application.variables.mateuDialog = overlayVars.dialog;
+      const changed = bridge.changedOnly($application.variables); // only what changed: a poll repaints nothing
+      changed.mateuDrawer = bridge.withListingPeers(overlayVars.drawer, $application.variables.mateuListingRows);
+      changed.mateuDialog = overlayVars.dialog;
       const esModal = overlayVars.modal;
       // a listing in a Drawer is drawn inside the drawer (pickerNow.inDrawer), not in the selector's dialog
       $application.variables.mateuDrawerOpen = overlayVars.drawerOpen;
@@ -404,8 +408,8 @@ define([
 
       const hostAfter = reg.contexts[bridge.HOST_ID];
       const listingSummary = bridge.listingOf(hostAfter);
-      $application.variables.mateuListing = listingSummary;
-      $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
+      changed.mateuListing = listingSummary;
+      changed.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
       // foldout REMOUNT: the bindings inside oj-sp-foldout-panel do not re-bind
       // the application variables (CSP evaluator gotcha) — null → tick → new projection
@@ -440,7 +444,8 @@ define([
         bridge.applyFoldoutFoldsSoon(foldoutProjection); // same page: unfolded panels stay unfolded
       }
       // ── the page projection (poc/pageProjection.mjs, tested): what to assign from the registry ──
-      const vars = $application.variables;
+      const staged = bridge.stagedVariables($application.variables); // assigned once, what changed (commit below)
+      const vars = staged.vars;
       const assign = (values) => { for (const key of Object.keys(values)) vars[key] = values[key]; };
       const wizardProjection = bridge.wizardOf(hostAfter);
       vars.mateuWizard = wizardProjection;
@@ -481,7 +486,7 @@ define([
           appState,
           componentState: islandAfter.initialData || {},
         });
-        vars.mateuRegistry = reg;
+        $application.variables.mateuRegistry = reg;
       }
       vars.mateuIslandId = islandAfter ? islandAfter.id : '';
       vars.mateuIslandSeed = islandSeed;
@@ -499,7 +504,7 @@ define([
           appState,
           componentState: nestedInfo.initialData || {},
         });
-        vars.mateuRegistry = reg;
+        $application.variables.mateuRegistry = reg;
       }
       vars.mateuNestedId = nestedInfo ? nestedInfo.id : '';
       vars.mateuNestedSeed = nestedSeed;
@@ -542,7 +547,7 @@ define([
       // the @Subresources in view: the already loaded ones keep their table, the new ones are loaded
       if (hostBlocks2) {
         reg = await bridge.loadSubresources(base, reg, hostBlocks2, { appState });
-        vars.mateuRegistry = reg;
+        $application.variables.mateuRegistry = reg;
         hostBlocks2 = bridge.withSubresources(hostBlocks2, reg.contexts);
       }
       // the blocks WIN when they are rich (EntityHeader/Meter/Ledger, tabs, tables…): the
@@ -562,14 +567,6 @@ define([
       let hostContent2 = (!gopOn2 && hostBlocksRicos2 ? bridge.withFormActions(hostBlocks2, summary.actions, { tree: hostAfter.tree }) : null) || [];
       vars.mateuHostContent = hostContent2;
       bridge.mountElementsSoon(bridge.elementAtomsOf(vars.mateuHostContent));
-      // the oj-tab-bar parses its <ul> on initialization and the for-each's <li>s arrive
-      // later: without a refresh it keeps the unstyled list (same trap as the
-      // navigator's oj-navigation-list)
-      for (const barId of bridge.tabBarIdsOf(vars.mateuHostContent)) {
-        try {
-          await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
-        } catch (ignored) { /* not mounted yet */ }
-      }
       if (hostBlocksRicos2) {
         assign(bridge.noGenericFormVars());
         vars.mateuHostText = '';
@@ -628,6 +625,14 @@ define([
         band: pageHeader.showBand || pageHeader.showListBand,
       }).vars);
       vars.mateuDirty = false;
+      const committed = staged.commit();
+      // the oj-tab-bar parses its <ul> on initialization and the for-each's <li>s arrive later: without
+      // a refresh it keeps the unstyled list (the navigator's trap); after the commit, which paints them
+      for (const barId of committed.has('mateuHostContent') ? bridge.tabBarIdsOf($application.variables.mateuHostContent) : []) {
+        try {
+          await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
+        } catch (ignored) { /* not mounted yet */ }
+      }
 
       // ROW EDITOR (oj-dialog): open while the container has `_show_detail[campo]`
       // and the row's form has arrived at `<campo>-container`. Its lookups are loaded when it

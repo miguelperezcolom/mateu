@@ -4754,7 +4754,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Factory of JET data providers, injected by the app (in Node there is none: the atom
    *  travels with the rows and without a provider, which is what the tests check). */
   let dataProviderFactory = null
-  function setDataProviderFactory(factory) { dataProviderFactory = factory }
+  function setDataProviderFactory(factory) { dataProviderFactory = typeof factory === 'function' ? sameRowsSameProvider(factory) : factory }
+
+  /** The same rows get the same provider back: a table re-projected with unchanged rows (a status poll)
+   *  keeps its provider, so the page has nothing to repaint — a new one re-stamped the whole table. The
+   *  last few providers are kept, by their rows' content. */
+  function sameRowsSameProvider(factory, keep = 32) {
+    const byRows = new Map()
+    return (rows, ...rest) => {
+      let key
+      try { key = JSON.stringify([rows, rest]) } catch (e) { return factory(rows, ...rest) }
+      if (byRows.has(key)) return byRows.get(key)
+      const provider = factory(rows, ...rest)
+      byRows.set(key, provider)
+      if (byRows.size > keep) byRows.delete(byRows.keys().next().value)
+      return provider
+    }
+  }
 
   /** Factory of JET converters (the oj-input-number of an amount): JET 18 no longer accepts the
    *  converter as JSON, it wants an IntlNumberConverter instance. In Node the
@@ -12384,6 +12400,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // One GENERATION per screen: navigating starts a new one and everything scheduled for the previous one
   // is discarded when it falls due (like the web's callbackToken) — a floor panel that is no longer seen
   // stops asking.
+  //
+  // A trigger's CONDITION (`state.status.type != 'SUCCESS'`: poll while the process runs) is read
+  // when each round falls due, against the state its screen has THEN — as the web renderer reads it
+  // with the component's state. Before, it was not read at all: a finished process kept polling.
+
+
 
   let runner = null
   /** Who runs the scheduled action (the shell: the same path as the Elements). */
@@ -12392,6 +12414,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let generation = 0
   let screenTree = null
   const timers = new Set()
+
+  // the registry after the last reduction (make-amd's after-reduce hook)
+  let latestRegistry = null
+  function notePollingRegistry(reg) { latestRegistry = reg || null }
+
+  // the context a trigger was scheduled from, as it is NOW: the reduced one of the same ServerSide (the
+  // host first), or the scheduled one when the registry does not have it
+  const currentPollingCtxOf = (ctx) => {
+    const contexts = (latestRegistry && latestRegistry.contexts) || {}
+    const type = ctx && ctx.tree && ctx.tree.serverSideType
+    const host = contexts[HOST_ID]
+    if (host && host.tree && host.tree.serverSideType === type) return host
+    return Object.values(contexts).find((c) => c && c.tree && c.tree.serverSideType === type) || ctx
+  }
+
+  /** Whether a round of `trigger` runs: no condition, or its condition holds on the state `ctx` has now. */
+  function pollingConditionHolds(trigger, ctx) {
+    if (!trigger.condition) return true
+    const now = currentPollingCtxOf(ctx) || {}
+    return !!evaluateExpression(trigger.condition, { state: now.state || {}, data: now.data || {} })
+  }
 
   const triggersOf = (ctx) => (ctx && ctx.tree && ctx.tree.triggers) || []
 
@@ -12411,9 +12454,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const pendingByTrigger = new Map()
   const triggerKey = (t) => t.type + ':' + t.actionId + ':' + (t.calledActionId || '')
 
-  const schedule = (trigger, gen, timer = setTimeout, clear = clearTimeout) => {
+  const schedule = (trigger, ctx, gen, timer = setTimeout, clear = clearTimeout) => {
     const fire = () => {
       if (gen !== generation || !runner) return
+      // the condition no longer holds (the process finished): no round, so no success and no next one
+      if (!pollingConditionHolds(trigger, ctx)) return
       runner(trigger.actionId, {}, { background: !!trigger.background, polling: true })
     }
     if (!(trigger.timeoutMillis > 0)) { fire(); return }
@@ -12439,7 +12484,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     timers.clear()
     pendingByTrigger.clear()
     screenTree = hostCtx && hostCtx.tree
-    for (const t of timedOnLoadTriggers(hostCtx)) schedule(t, generation, timer)
+    for (const t of timedOnLoadTriggers(hostCtx)) schedule(t, hostCtx, generation, timer)
     return generation
   }
 
@@ -12450,7 +12495,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // ServerSide's island or a response of the previous screen reschedule nothing
     if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
     const next = onSuccessTriggers(ctx, actionId)
-    for (const t of next) schedule(t, generation, timer)
+    for (const t of next) schedule(t, ctx, generation, timer)
     return next.length
   }
 
@@ -12469,7 +12514,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!ctx || !ctx.tree) return 0
     if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
     const next = onErrorTriggers(ctx, actionId)
-    for (const t of next) schedule(t, generation, timer)
+    for (const t of next) schedule(t, ctx, generation, timer)
     return next.length
   }
 
@@ -22262,6 +22307,75 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // that do the I/O (loads, component refreshes, toasts) and assign what these return. Every function
   // takes plain values and returns the values to assign — no VB, no DOM.
 
+  // ── assigning only what changed ──────────────────────────────────────────────────────────────
+  //
+  // The chains assign every page variable after every answer, and VB repaints whatever is assigned a new
+  // object — even with the same content. A status poll (the process page's `refresh`, every 2 s) re-stamped
+  // the whole page each round, ~700 DOM nodes, with nothing changed: it flickered and lost the scroll and
+  // the focus. The web renderer only re-renders what changed; here a value equal to the one there is not
+  // assigned at all.
+
+  const isPlain = (v) => {
+    if (v === null || typeof v !== 'object') return false
+    if (Array.isArray(v)) return true
+    const proto = Object.getPrototypeOf(v)
+    return proto === Object.prototype || proto === null
+  }
+
+  /** Whether `b`, a projected value, is the same data as `a`, what the variable holds: primitives by value,
+   *  arrays and plain objects deeply; anything else (a data provider, a converter, a function) only if it is
+   *  the same one. A key only `a` has, set to false (Spectra's header writes `disabled: false` into the
+   *  actions it is given), or a key set to undefined, is no difference. */
+  function sameProjectedValue(a, b) {
+    if (a === b) return true
+    if (typeof a === 'number' && typeof b === 'number') return Number.isNaN(a) && Number.isNaN(b)
+    if (!isPlain(a) || !isPlain(b)) return false
+    if (Array.isArray(a) !== Array.isArray(b)) return false
+    if (Array.isArray(a)) {
+      if (a.length !== b.length) return false
+      for (let i = 0; i < a.length; i++) if (!sameProjectedValue(a[i], b[i])) return false
+      return true
+    }
+    const has = Object.prototype.hasOwnProperty
+    for (const k of Object.keys(a)) {
+      if (has.call(b, k) ? !sameProjectedValue(a[k], b[k]) : (a[k] !== false && a[k] !== undefined)) return false
+    }
+    for (const k of Object.keys(b)) if (!has.call(a, k) && b[k] !== undefined) return false
+    return true
+  }
+
+  /** `target` (the VB variables) for a projection: an assignment of a value equal to the one there
+   *  is skipped, so nothing bound to it repaints. Reads go straight through. */
+  function changedOnly(target) {
+    return new Proxy(target, {
+      set(t, key, value) {
+        if (!sameProjectedValue(t[key], value)) t[key] = value
+        return true
+      },
+    })
+  }
+
+  /** The projection of a whole page, assigned ONCE: the chain sets a variable more than once on its way (the
+   *  form's sections from the summary, then none when rich blocks paint the body) and each pass repainted.
+   *  `vars` keeps what is set and reads it back; `commit()` assigns to `target` what differs from it, and
+   *  returns the names it assigned. */
+  function stagedVariables(target) {
+    const staged = new Map()
+    const vars = new Proxy(target, {
+      get: (t, key) => (staged.has(key) ? staged.get(key) : t[key]),
+      set: (t, key, value) => { staged.set(key, value); return true },
+    })
+    const commit = () => {
+      const assigned = new Set()
+      for (const [key, value] of staged) {
+        if (!sameProjectedValue(target[key], value)) { target[key] = value; assigned.add(key) }
+      }
+      staged.clear()
+      return assigned
+    }
+    return { vars, commit }
+  }
+
   /** The generic form steps aside (an archetype, rich content or the not-found page paints the body). */
   const noGenericFormVars = () => ({ mateuFormMetadata: null, mateuFormFieldsList: [], mateuFormSections: [], mateuFormActions: [] })
 
@@ -25220,6 +25334,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   setColumnPrefsReader(() => readColumnPrefs(listingScope()));
   setAfterReduceHook((reg) => {
     setRulesContexts(reg);
+    // the periodic refresh reads its triggers' conditions against the latest state (polling.mjs)
+    notePollingRegistry(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
     setShortcutContext(reg.contexts[HOST_ID]);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
@@ -25748,6 +25864,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     hostContentBesideHeader,
     pageWidthOf,
     pageLayoutOf,
+    changedOnly,
+    stagedVariables,
     outboundActionOf,
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,

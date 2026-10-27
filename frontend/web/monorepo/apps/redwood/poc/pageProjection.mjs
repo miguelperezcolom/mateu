@@ -16,6 +16,75 @@ import { withoutOverlays } from './shellFlows.mjs'
 // that do the I/O (loads, component refreshes, toasts) and assign what these return. Every function
 // takes plain values and returns the values to assign — no VB, no DOM.
 
+// ── assigning only what changed ──────────────────────────────────────────────────────────────
+//
+// The chains assign every page variable after every answer, and VB repaints whatever is assigned a new
+// object — even with the same content. A status poll (the process page's `refresh`, every 2 s) re-stamped
+// the whole page each round, ~700 DOM nodes, with nothing changed: it flickered and lost the scroll and
+// the focus. The web renderer only re-renders what changed; here a value equal to the one there is not
+// assigned at all.
+
+const isPlain = (v) => {
+  if (v === null || typeof v !== 'object') return false
+  if (Array.isArray(v)) return true
+  const proto = Object.getPrototypeOf(v)
+  return proto === Object.prototype || proto === null
+}
+
+/** Whether `b`, a projected value, is the same data as `a`, what the variable holds: primitives by value,
+ *  arrays and plain objects deeply; anything else (a data provider, a converter, a function) only if it is
+ *  the same one. A key only `a` has, set to false (Spectra's header writes `disabled: false` into the
+ *  actions it is given), or a key set to undefined, is no difference. */
+export function sameProjectedValue(a, b) {
+  if (a === b) return true
+  if (typeof a === 'number' && typeof b === 'number') return Number.isNaN(a) && Number.isNaN(b)
+  if (!isPlain(a) || !isPlain(b)) return false
+  if (Array.isArray(a) !== Array.isArray(b)) return false
+  if (Array.isArray(a)) {
+    if (a.length !== b.length) return false
+    for (let i = 0; i < a.length; i++) if (!sameProjectedValue(a[i], b[i])) return false
+    return true
+  }
+  const has = Object.prototype.hasOwnProperty
+  for (const k of Object.keys(a)) {
+    if (has.call(b, k) ? !sameProjectedValue(a[k], b[k]) : (a[k] !== false && a[k] !== undefined)) return false
+  }
+  for (const k of Object.keys(b)) if (!has.call(a, k) && b[k] !== undefined) return false
+  return true
+}
+
+/** `target` (the VB variables) for a projection: an assignment of a value equal to the one there
+ *  is skipped, so nothing bound to it repaints. Reads go straight through. */
+export function changedOnly(target) {
+  return new Proxy(target, {
+    set(t, key, value) {
+      if (!sameProjectedValue(t[key], value)) t[key] = value
+      return true
+    },
+  })
+}
+
+/** The projection of a whole page, assigned ONCE: the chain sets a variable more than once on its way (the
+ *  form's sections from the summary, then none when rich blocks paint the body) and each pass repainted.
+ *  `vars` keeps what is set and reads it back; `commit()` assigns to `target` what differs from it, and
+ *  returns the names it assigned. */
+export function stagedVariables(target) {
+  const staged = new Map()
+  const vars = new Proxy(target, {
+    get: (t, key) => (staged.has(key) ? staged.get(key) : t[key]),
+    set: (t, key, value) => { staged.set(key, value); return true },
+  })
+  const commit = () => {
+    const assigned = new Set()
+    for (const [key, value] of staged) {
+      if (!sameProjectedValue(target[key], value)) { target[key] = value; assigned.add(key) }
+    }
+    staged.clear()
+    return assigned
+  }
+  return { vars, commit }
+}
+
 /** The generic form steps aside (an archetype, rich content or the not-found page paints the body). */
 export const noGenericFormVars = () => ({ mateuFormMetadata: null, mateuFormFieldsList: [], mateuFormSections: [], mateuFormActions: [] })
 

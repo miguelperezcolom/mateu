@@ -267,7 +267,23 @@ export const NOTICE_CLASSES = {
 /** Factory of JET data providers, injected by the app (in Node there is none: the atom
  *  travels with the rows and without a provider, which is what the tests check). */
 export let dataProviderFactory = null
-export function setDataProviderFactory(factory) { dataProviderFactory = factory }
+export function setDataProviderFactory(factory) { dataProviderFactory = typeof factory === 'function' ? sameRowsSameProvider(factory) : factory }
+
+/** The same rows get the same provider back: a table re-projected with unchanged rows (a status poll)
+ *  keeps its provider, so the page has nothing to repaint — a new one re-stamped the whole table. The
+ *  last few providers are kept, by their rows' content. */
+export function sameRowsSameProvider(factory, keep = 32) {
+  const byRows = new Map()
+  return (rows, ...rest) => {
+    let key
+    try { key = JSON.stringify([rows, rest]) } catch (e) { return factory(rows, ...rest) }
+    if (byRows.has(key)) return byRows.get(key)
+    const provider = factory(rows, ...rest)
+    byRows.set(key, provider)
+    if (byRows.size > keep) byRows.delete(byRows.keys().next().value)
+    return provider
+  }
+}
 
 /** Factory of JET converters (the oj-input-number of an amount): JET 18 no longer accepts the
  *  converter as JSON, it wants an IntlNumberConverter instance. In Node the
