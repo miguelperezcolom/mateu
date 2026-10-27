@@ -11,6 +11,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.18] — 2026-10-27
+
+A server-sent navigation now navigates on Redwood too.
+
+### Fixed
+
+- **Redwood: a `navigation-requested` `DispatchEvent` from the server navigates**, as it does on
+  Vaadin. It went to the event bus, where nothing listens for it, and the page stayed where it was —
+  e.g. EventConductor forms' «Back to list» and «Complete» on a task page (#905).
+- **Redwood: other server-sent `DispatchEvent`s reach the bus with their `payload`** as the detail;
+  subscribers got `null`.
+
 ## [3.0-beta.17] — 2026-10-26
 
 Composed page templates read the same header pieces as a normal page, and the docs gain a
