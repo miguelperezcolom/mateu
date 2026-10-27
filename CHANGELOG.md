@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+
+- **Redwood: a `RunAction` the server answers with runs.** A crud that refreshes its listing after an
+  action (`UICommand.runAction("search")`, `CrudActionResult.withActionToRun`) got its `search`
+  collected and never run, so the listing stayed as it was; now it runs after the answer, after the
+  bus events' triggers, as on Vaadin.
+
 ## [3.0-beta.19] — 2026-10-27
 
 A Redwood page that polls its status refreshes when it should, and only repaints what changed.

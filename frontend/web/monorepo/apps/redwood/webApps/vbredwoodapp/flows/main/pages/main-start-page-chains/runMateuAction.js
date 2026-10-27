@@ -173,7 +173,7 @@ define([
         refusedFields = bridge.refusedFieldsOf(inc, reg) || refusedFields;
         bridge.applyDomEffects(reg.effects, reg);
         if (touchesHost(inc)) hostRepainted = true;
-        allEvents.push.apply(allEvents, reg.effects.events || []);
+        allEvents.push.apply(allEvents, bridge.followUpsOf(reg.effects)); // its bus events and RunActions
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
       // OWNER FIRST, then the app's ACTION catalogue: a flow the page declares — or, when the page
@@ -299,10 +299,10 @@ define([
 
       const effects = reg.effects;
 
-      // bus events (CloseModal/DispatchEvent) → subscribed OnCustomEvent triggers
+      // bus events (CloseModal/DispatchEvent) → subscribed OnCustomEvent triggers; a RunAction → its action
       for (const busEvent of allEvents) {
         const hostNow = reg.contexts[bridge.HOST_ID];
-        for (const triggerActionId of bridge.eventTriggersOf(hostNow, busEvent.name)) {
+        for (const triggerActionId of bridge.followUpActionsOf(hostNow, busEvent)) {
           const listing = bridge.listingOf(hostNow);
           const refresh = await bridge.runMateuAction(
             base, hostNow, route, triggerActionId,

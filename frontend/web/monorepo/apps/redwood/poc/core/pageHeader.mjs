@@ -455,6 +455,21 @@ export function eventTriggersOf(ctx, eventName) {
     .map((t) => t.actionId)
 }
 
+/** What an answer asks to run after it, in order: its bus events (for the OnCustomEvent triggers
+ *  subscribed to them) and its RunAction commands — the server's «run `search` now», with which a crud
+ *  refreshes its listing after an action (UICommand.runAction / CrudActionResult.withActionToRun).
+ *  The RunActions were collected and never run: the listing stayed as it was. */
+export function followUpsOf(effects) {
+  return [...((effects && effects.events) || []),
+    ...((effects && effects.runActions) || []).filter((r) => r && r.actionId).map((r) => ({ runAction: r.actionId }))]
+}
+
+/** The actions one follow-up runs on `ctx`: the RunAction's own, or the triggers subscribed to the event. */
+export function followUpActionsOf(ctx, followUp) {
+  if (followUp && followUp.runAction) return [followUp.runAction]
+  return eventTriggersOf(ctx, followUp && followUp.name)
+}
+
 /** The host's @AutoSave/AutoSaveTrigger trigger (search-as-you-type, autosave):
  *  {actionId, debounceMillis} or null. The renderer honors it by re-launching the action
  *  debounced on every keystroke (raw-value of the host's inputs). */

@@ -344,6 +344,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     ROW_VALIDATING_VERBS,
     overlayOf,
     eventTriggersOf,
+    followUpsOf,
+    followUpActionsOf,
     // the shell's FLOWS: a menu RuleLink running a declared flow client-side (shellFlows.mjs)
     isMenuRuleId,
     menuRulesOf,
