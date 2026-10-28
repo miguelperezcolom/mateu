@@ -981,3 +981,8 @@ test('the collapsed subheader takes no line: no border width either, only its co
   assert.match(rule, /height: 0;/)
   assert.match(rule, /border-bottom-width: 0;/)
 })
+
+test('a page with the sections index stays as wide as the window: the clipped drawer boxes do not grow to their content', () => {
+  const css = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'css', 'app.css'), 'utf8')
+  assert.match(css, /\.oj-drawer-layout-middle-section:has\(\.mateu-has-toc\) \{ overflow: clip; min-width: 0; \}/)
+})
