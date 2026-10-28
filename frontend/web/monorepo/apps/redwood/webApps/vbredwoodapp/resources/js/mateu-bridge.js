@@ -3776,6 +3776,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return (n.children || []).some((c) => holdsMoreThanAWelcome(c, false))
   }
 
+  /** A page-relative URL made absolute against the page ('' for none; unchanged without a document). */
+  function absoluteUrlOf(url) {
+    if (!url) return ''
+    try {
+      return typeof document !== 'undefined' && document.baseURI ? new URL(url, document.baseURI).href : url
+    } catch (e) {
+      return url
+    }
+  }
+
   function welcomeOf(ctx) {
     const hero = ctx && ctx.tree ? findByType(ctx.tree, 'HeroSection') : null
     if (!hero) return null
@@ -3847,9 +3857,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // template's spSecondaryAction says WHICH by its id (`cta<n>`), which `secondaryById` resolves.
       secondaryCtas: ctas.slice(1).map((c, i) => ({ id: 'cta' + (i + 1), label: c.label })),
       secondaryById: Object.fromEntries(ctas.slice(1).map((c, i) => ['cta' + (i + 1), { actionId: c.actionId || '', route: c.route || '' }])),
-      // HeroSection.image (Welcome.heroImage()): the banner's own picture, full bleed like the Vaadin
-      // hero's background — instead of the rotating Oracle gallery illustration, which it ignored
-      image: md.image || '',
+      // HeroSection.image (Welcome.heroImage()): the banner's texture, in place of the gallery pair.
+      // Absolute: Spectra puts it in a CSS url() of its own stylesheet, served from Oracle's CDN, so a
+      // "/images/x.png" resolved there and never loaded
+      image: absoluteUrlOf(md.image),
       tiles,
     }
   }

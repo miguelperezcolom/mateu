@@ -1264,6 +1264,9 @@ oj-action-card.mateu-listing-card {
 .mateu-subheader.mateu-subheader-empty {
   height: 0;
   opacity: 0;
+  /* width too: a transparent 1px border still took a line under the global header, page background
+     between it and a welcome banner */
+  border-bottom-width: 0;
   border-bottom-color: transparent;
   visibility: hidden;
   transition: height 200ms ease, opacity 150ms ease, border-bottom-color 200ms ease, visibility 0s linear 200ms;
