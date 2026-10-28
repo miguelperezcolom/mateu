@@ -11,6 +11,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+
+- **Redwood: a Welcome's `heroImage()` is drawn again.** Since the welcome became Spectra's
+  `oj-sp-welcome-page`, the image went to the banner's `illustration-background` at full stretch,
+  which Spectra never draws: the hero was a blank band, white text on white. It is now the banner's
+  `illustration-foreground`, in place of the gallery illustration, over the tone — on the right of
+  the band, as Vaadin draws it. An image with the proportions of Spectra's welcome illustrations
+  (1280×456) sits as they do.
+
 ## [3.0-beta.20] — 2026-10-27
 
 On Redwood, a crud refreshes its listing after an action as the server asks — keeping its query — and a crud toolbar button can show a LongTask's progress dialog.
