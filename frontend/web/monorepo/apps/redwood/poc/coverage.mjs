@@ -44,7 +44,7 @@ export const REDWOOD_COVERAGE = {
   DashboardLayout: { status: 'full', note: 'oj-flex columns, each panel its colSpan' },
   DashboardPanel: { status: 'full', note: 'the Dashboard archetype: oj-sp-dashboard-panel (panelTitle/panelSubtitle) on oj-sp-dashboard-grid inside oj-sp-dashboard-landing-page; elsewhere an oj-panel tile (title, subtitle, content)' },
   Scoreboard: { status: 'full', note: 'KPI band = oj-sp-scoreboard' },
-  HeroSection: { status: 'full', note: 'the Welcome archetype: oj-sp-welcome-page (every CTA, heroImage full bleed); in the content, a hero band (title, subtitle, background image) over its children' },
+  HeroSection: { status: 'full', note: 'the Welcome archetype: oj-sp-welcome-page (every CTA, heroImage as its illustration); in the content, a hero band (title, subtitle, background image) over its children' },
   // ── fields and input ──
   FormField: { status: 'full', note: 'oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, oj-sp-input-currency/-email/-url, capture fields' },
   CustomField: { status: 'layout', note: 'its component in place' },

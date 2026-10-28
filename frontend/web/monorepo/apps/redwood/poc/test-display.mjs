@@ -711,7 +711,11 @@ test('the Welcome is oj-sp-welcome-page: EVERY CTA travels (secondaryActions) an
   assert.ok(start > 0, 'oj-sp-welcome-page')
   const tag = html.slice(start, html.indexOf('>', start))
   assert.match(tag, /secondary-actions="\[\[ \$application\.variables\.mateuWelcome\.secondaryCtas \]\]"/)
-  assert.match(tag, /display-options\.image-stretch=/)
+  // the image is Spectra's illustration-foreground (as an illustration-background alone it drew
+  // nothing: a blank hero), in place of the gallery pair, where Spectra puts an illustration
+  assert.match(tag, /illustration-foreground="\[\[ \$application\.variables\.mateuWelcome\.image \|\| \$application\.variables\.mateuWelcomeIllu \]\]"/)
+  assert.match(tag, /illustration-background="\[\[ \$application\.variables\.mateuWelcome\.image \? '' : \$application\.variables\.mateuWelcomeIlluBg \]\]"/)
+  assert.match(tag, /display-options\.image-stretch="none"/)
   // HeroSection.overline → Spectra's own overline-text (the line above the page title)
   assert.match(tag, /overline-text="\[\[ \$application\.variables\.mateuWelcome\.overline \]\]"/)
   assert.ok(html.indexOf('</oj-sp-welcome-page>') > start, 'the tiles are its main slot')
