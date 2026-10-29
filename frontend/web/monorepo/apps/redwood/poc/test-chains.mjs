@@ -120,10 +120,13 @@ test('isSseAction: the wrapper\'s sse actions, and a crud toolbar button whose t
 })
 
 test('collection header: the first toolbar button is primary, the rest secondary', () => {
-  assert.deepEqual(listHeaderVarsOf(null), { mateuListPrimary: { label: '', display: 'off' }, mateuListPrimaryId: '', mateuListSecondary: [] })
+  assert.deepEqual(listHeaderVarsOf(null), { mateuListPrimary: { label: '', display: 'off' }, mateuListPrimaryId: '', mateuListPrimaryRoute: '', mateuListSecondary: [] })
   const v = listHeaderVarsOf({ toolbar: [{ actionId: 'new', label: 'New' }, { actionId: 'exp', label: 'Export' }] })
   assert.deepEqual(v.mateuListPrimary, { label: 'New' })
   assert.equal(v.mateuListPrimaryId, 'new')
+  assert.equal(v.mateuListPrimaryRoute, '')
+  // a RouteLink primary ("New character" → people/new) carries its route: listPrimary navigates
+  assert.equal(listHeaderVarsOf({ toolbar: [{ actionId: 'newCharacter', label: 'New character', route: 'people/new' }] }).mateuListPrimaryRoute, 'people/new')
   assert.deepEqual(v.mateuListSecondary, [{ id: 'exp', value: 'exp', label: 'Export' }])
 })
 
@@ -661,4 +664,21 @@ test('a Dialog that shows more than lines is painted from its content (EntityHea
   const html = webApp('flows/main/pages/main-start-page.html')
   const modal = html.slice(html.indexOf('<oj-dialog id="mateuModal"'), html.indexOf('</oj-dialog>', html.indexOf('<oj-dialog id="mateuModal"')))
   assert.match(modal, /mateuDialog\.hasRichContent[\s\S]*mateuDialog\.content[\s\S]*<!-- @atoms host/)
+})
+
+test('page toolbar: a RouteLink button carries its resolved route (it navigates) and its label is interpolated', () => {
+  const host = {
+    state: { id: 26, name: 'Luke' },
+    tree: { type: 'Form', metadata: { type: 'Form', toolbar: [
+      { type: 'Button', actionId: 'backToList', label: 'Back to ${state.name}', route: 'people' },
+      { type: 'Button', actionId: 'edit', label: 'Edit', buttonStyle: 'primary', route: 'people/${state.id}/edit' },
+      { type: 'Button', actionId: 'gone', label: 'Gone', route: 'x/${state.missing}' },
+      { type: 'Button', actionId: 'save', label: 'Save' },
+    ] }, children: [] },
+  }
+  const [back, edit, gone, save] = pageToolbarOf(host)
+  assert.deepEqual([back.label, back.route], ['Back to Luke', 'people'])
+  assert.deepEqual([edit.route, edit.disabled], ['people/26/edit', false])
+  assert.deepEqual([gone.route, gone.disabled], [undefined, true])
+  assert.equal(save.route, undefined)
 })
