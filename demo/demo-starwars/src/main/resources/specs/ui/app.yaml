@@ -5,6 +5,8 @@ type: AppShell
 title: Star Wars
 subtitle: A Mateu app authored entirely in YAML, over a Star Wars API that searches, filters and pages
 variant: MENU_ON_TOP
+# "Open on mobile": a header button with the QR that adds this UI to the Mateu mobile app
+mobileQr: true
 menu:
   - type: RouteLink
     label: People
