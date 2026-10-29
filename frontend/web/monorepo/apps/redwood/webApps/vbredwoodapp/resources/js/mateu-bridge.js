@@ -6949,12 +6949,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // own) brings its buttons — the header's actions list them
       .flatMap((b) => (b && !b.actionId && Array.isArray(b.children || b.buttons) ? (b.children || b.buttons) : [b]))
       .filter((b) => b && b.actionId)
-      .map((b) => ({
-        actionId: b.actionId,
-        label: b.label || b.actionId,
-        chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
-        disabled: !!b.disabled,
-      }))
+      .map((b) => {
+        // a Button whose actionable is a RouteLink (a YAML record's "Edit" → people/${state.id}/edit,
+        // "Back to People" → people) NAVIGATES: its actionId is only the label's echo, with nothing
+        // behind it on the server (strict mode answered 403). An unresolved route disables it.
+        const state = ctx.state || {}
+        const route = b.route ? buttonRouteOf(b.route, state) : null
+        return {
+          actionId: b.actionId,
+          // a label may name the record ("Back to ${state.name}")
+          label: interpolate(b.label || b.actionId, state),
+          chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+          disabled: !!b.disabled || (!!b.route && route == null),
+          ...(route ? { route } : {}),
+        }
+      })
   }
 
   /**
@@ -22716,6 +22725,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       showListInline: !!listing && !showListBand,
       primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
       primaryId: primaryBtn ? primaryBtn.actionId : '',
+      // a primary / back that NAVIGATES (RouteLink button): headerPrimary / headerGoToParent go there
+      primaryRoute: primaryBtn && primaryBtn.route ? primaryBtn.route : '',
+      backRoute: backBtn && backBtn.route ? backBtn.route : '',
       secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
         .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
       goToParent: !!backBtn || !!parentCrumbNav,

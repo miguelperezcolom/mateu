@@ -343,6 +343,9 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     showListInline: !!listing && !showListBand,
     primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
     primaryId: primaryBtn ? primaryBtn.actionId : '',
+    // a primary / back that NAVIGATES (RouteLink button): headerPrimary / headerGoToParent go there
+    primaryRoute: primaryBtn && primaryBtn.route ? primaryBtn.route : '',
+    backRoute: backBtn && backBtn.route ? backBtn.route : '',
     secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
       .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
     goToParent: !!backBtn || !!parentCrumbNav,

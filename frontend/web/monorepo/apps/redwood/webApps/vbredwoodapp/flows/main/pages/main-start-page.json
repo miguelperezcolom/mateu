@@ -794,9 +794,10 @@
     "headerPrimary": {
       "chains": [
         {
-          "chain": "runMateuAction",
+          "chain": "dispatchHostBlockAction",
           "parameters": {
-            "actionId": "{{ $application.variables.mateuPageHeader.primaryId }}"
+            "actionId": "{{ $application.variables.mateuPageHeader.primaryId }}",
+            "route": "{{ $application.variables.mateuPageHeader.primaryRoute }}"
           }
         }
       ]
@@ -814,9 +815,10 @@
     "headerGoToParent": {
       "chains": [
         {
-          "chain": "runMateuAction",
+          "chain": "dispatchHostBlockAction",
           "parameters": {
-            "actionId": "{{ $application.variables.mateuPageHeader.backId }}"
+            "actionId": "{{ $application.variables.mateuPageHeader.backId }}",
+            "route": "{{ $application.variables.mateuPageHeader.backRoute }}"
           }
         }
       ]
