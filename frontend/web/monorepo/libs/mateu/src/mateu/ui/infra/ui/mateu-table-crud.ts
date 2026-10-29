@@ -753,10 +753,13 @@ export class MateuTableCrud extends LitElement {
      */
     private _fetchRowsFromRest = (metadata: Crud, callback: (() => void) | undefined) => {
         // The visible columns, plus whatever the rowRoute needs to identify the record — an id
-        // column nobody wants to see is still the thing a detail route is addressed by.
+        // column nobody wants to see is still the thing a detail route is addressed by — and the
+        // fields a column reads BESIDE its own (a primary cell's caption and leading picture, a
+        // tooltip): not columns, so a row mapped to the columns alone dropped them.
         const columnIds = [
             ...new Set([
                 ...this.cols.map(c => c.id).filter(Boolean),
+                ...this.cols.flatMap(c => [c.captionPath, c.leadingPath, c.tooltipPath]).filter((f): f is string => !!f),
                 ...rowRouteFields(metadata.rowRoute),
             ]),
         ]

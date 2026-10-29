@@ -10,7 +10,7 @@ import {
   setRestSourceCatalogue, resolveRestSource, setSampleMode, isSampleMode, isSampled, viaProxy, sampleOf,
   fetchRestJson, filterRestRows, sortRestRows, restListingPage, restAnswerOf, loadRestOptions,
   adoptAppSources, adoptManifestSources, interpolateRestUrl, interpolateRest, mapItemsToOptions, restPageOf,
-  loadContextSelectorOptions, adoptReferencedSources, clearReferencedSources,
+  loadContextSelectorOptions, adoptReferencedSources, clearReferencedSources, restColumnIdsOf,
 } from './restSources.mjs'
 import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
@@ -760,6 +760,14 @@ test('rest action: a failure says which HTTP status; a proxied one too; bulk wit
   assert.deepEqual(bulkFail.messages, [{ variant: 'error', text: 'Request failed (HTTP 500)' }])
   assert.equal(restAnswer(null, 'go'), null)
   assert.equal(restAnswer(ctxWith(null), 'other', {}), null, 'an ordinary action is the server\'s')
+})
+
+test('a REST row keeps the fields a column reads beside its own (caption, leading picture, tooltip) and the rowRoute ones', () => {
+  const md = { rowRoute: 'people/${row.id}', columns: [
+    { metadata: { id: 'name', stereotype: 'primary', leadingPath: 'image', captionPath: 'homeworldName' } },
+    { id: 'gender', tooltipPath: 'genderHelp' },
+  ] }
+  assert.deepEqual(restColumnIdsOf(md), ['name', 'gender', 'homeworldName', 'image', 'genderHelp', 'id'])
 })
 
 test('options mapping: primitives are their own value and label; a half mapping falls back to the other half', () => {
