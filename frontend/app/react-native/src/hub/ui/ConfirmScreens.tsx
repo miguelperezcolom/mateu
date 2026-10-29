@@ -4,7 +4,7 @@ import { ActivityIndicator, Icon } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
-import { fetchManifest, versionGate, type UiManifest } from '../manifest';
+import { fetchManifest, resolveMount, versionGate, type UiManifest } from '../manifest';
 import type { HubEntry } from '../uiStore';
 import { HubBar, HubCard, Notice, PrimaryButton, UiIcon, hubStyles } from './common';
 
@@ -14,8 +14,10 @@ import { HubBar, HubCard, Notice, PrimaryButton, UiIcon, hubStyles } from './com
  * shown under it, never instead of it.
  */
 export function ConfirmAddScreen({
-  baseUrl,
-  existing,
+  baseUrl: givenBaseUrl,
+  route: givenRoute,
+  probe,
+  findExisting,
   allowInsecure,
   appVersion,
   onAdd,
@@ -23,28 +25,49 @@ export function ConfirmAddScreen({
   onCancel,
 }: {
   baseUrl: string;
-  existing?: HubEntry;
+  route?: string;
+  /** A PAGE url (a browser's "QR code for this page", a pasted address): find the UI it belongs to. */
+  probe?: boolean;
+  findExisting: (baseUrl: string) => HubEntry | undefined;
   allowInsecure: boolean;
   appVersion: string;
-  onAdd: (manifest: UiManifest) => void;
-  onOpenExisting: (entry: HubEntry) => void;
+  onAdd: (manifest: UiManifest, baseUrl: string, route?: string) => void;
+  onOpenExisting: (entry: HubEntry, route?: string) => void;
   onCancel: () => void;
 }) {
   const [state, setState] = useState<
     { phase: 'loading' } | { phase: 'ready'; manifest: UiManifest; missing: boolean } | { phase: 'error'; reason: string }
   >({ phase: 'loading' });
+  // where the UI really lives: the given base, or for a page url the mount resolveMount found
+  const [target, setTarget] = useState<{ baseUrl: string; route?: string; resolved: boolean }>({
+    baseUrl: givenBaseUrl,
+    route: givenRoute,
+    resolved: !probe,
+  });
+  const baseUrl = target.baseUrl;
+  const existing = target.resolved ? findExisting(baseUrl) : undefined;
   const domain = domainOf(baseUrl);
   const insecure = baseUrl.startsWith('http:');
 
   const load = useCallback(async () => {
     setState({ phase: 'loading' });
-    const r = await fetchManifest(baseUrl, undefined, { allowInsecure });
+    let r;
+    if (probe) {
+      const found = await resolveMount(givenBaseUrl, undefined, { allowInsecure });
+      setTarget({ baseUrl: found.baseUrl, route: found.route ?? givenRoute, resolved: true });
+      if (findExisting(found.baseUrl)) return;
+      r = found.fetched;
+    } else {
+      r = await fetchManifest(givenBaseUrl, undefined, { allowInsecure });
+    }
     setState(r.ok ? { phase: 'ready', manifest: r.manifest, missing: 'missing' in r } : { phase: 'error', reason: r.reason });
-  }, [baseUrl, allowInsecure]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [givenBaseUrl, givenRoute, probe, allowInsecure]);
 
   useEffect(() => {
-    if (!existing) void load();
-  }, [load, existing]);
+    if (probe || !findExisting(givenBaseUrl)) void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [load]);
 
   return (
     <View style={hubStyles.screen}>
@@ -68,7 +91,7 @@ export function ConfirmAddScreen({
         {existing ? (
           <>
             <Notice tone="info" text={`"${existing.name}" is already in your list.`} />
-            <PrimaryButton label={`Open ${existing.name}`} onPress={() => onOpenExisting(existing)} />
+            <PrimaryButton label={`Open ${existing.name}`} onPress={() => onOpenExisting(existing, target.route)} />
           </>
         ) : state.phase === 'loading' ? (
           <View style={styles.loading}>
@@ -81,7 +104,7 @@ export function ConfirmAddScreen({
             <PrimaryButton label="Try again" onPress={() => void load()} />
           </>
         ) : (
-          <ManifestCard manifest={state.manifest} missing={state.missing} appVersion={appVersion} onAdd={onAdd} />
+          <ManifestCard manifest={state.manifest} missing={state.missing} appVersion={appVersion} onAdd={(m) => onAdd(m, baseUrl, target.route)} />
         )}
         <Text style={[hubStyles.text, styles.fine]}>
           Only add UIs from organisations you trust. Adding one stores its address on this phone; you sign in to it, if it needs it, when you open it.

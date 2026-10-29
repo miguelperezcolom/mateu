@@ -168,6 +168,17 @@ The QR is drawn in the browser by a small dependency-free encoder that ships wit
 third-party code, no network call): the Vaadin and Redwood renderers both have it, loaded only when
 the dialog opens.
 
+### Without "Open on mobile": the browser's own QR, or a page address
+
+The app also adds a UI from the plain address of **any of its pages**: the QR a browser makes with
+*Create QR code for this page* (Chrome, Edge), a link scanned with the app's own scanner, or an
+address pasted in *Type an address*. Such an address does not say where the UI is mounted, so the
+app asks for the manifest from the full path upwards (`/crm/orders/7`, `/crm/orders`, `/crm`, `/`) and
+the first that answers a Mateu manifest, or a static bundle, is the UI. The rest of the path is the
+screen it opens on. The confirmation shows the domain it found, as for any other add. No server
+change is needed. In the app's **web build** the manifest (`/mateu/v3/manifest`, and a static
+site's `manifest.json`) must allow cross-origin reads; the native app needs no CORS.
+
 ## Security
 
 - **No secrets in a QR**, nor in the "export my UIs" QR: only URLs. Tokens never leave the phone's
