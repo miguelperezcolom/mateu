@@ -1,7 +1,8 @@
 import React from 'react';
 import { FlatList, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Icon, List } from 'react-native-paper';
 import { Text } from '../../ui/Text';
-import { buttonA11y, headingA11y, modalA11y } from '../../a11y/a11y';
+import { headingA11y, modalA11y } from '../../a11y/a11y';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import type { HubEntry } from '../uiStore';
@@ -29,9 +30,10 @@ export function Switcher({
         <View />
       </TouchableOpacity>
       <View style={styles.sheet} {...modalA11y('Switch UI')}>
+        <View style={styles.handle} />
         <View style={styles.head}>
           <Text style={styles.title} {...headingA11y(2)}>Switch UI</Text>
-          <SecondaryButton label="My UIs" a11yLabel="Back to my UIs" onPress={onHome} />
+          <SecondaryButton label="My UIs" icon="view-list-outline" a11yLabel="Back to my UIs" onPress={onHome} />
         </View>
         <FlatList
           data={entries}
@@ -39,17 +41,25 @@ export function Switcher({
           renderItem={({ item }) => {
             const selected = item.id === activeId;
             return (
-              <TouchableOpacity
-                {...buttonA11y({ label: `${item.name}, ${domainOf(item.baseUrl)}`, selected })}
+              <List.Item
+                title={item.name}
+                description={domainOf(item.baseUrl)}
+                titleNumberOfLines={1}
+                descriptionNumberOfLines={1}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.name}, ${domainOf(item.baseUrl)}`}
+                accessibilityState={{ selected }}
                 style={[styles.row, selected && styles.rowSelected]}
+                titleStyle={styles.name}
+                descriptionStyle={styles.domain}
                 onPress={() => onPick(item)}
-              >
-                <UiIcon name={item.name} icon={item.icon} color={item.themeColor} size={36} />
-                <View style={styles.rowText}>
-                  <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
-                  <Text style={styles.domain} numberOfLines={1}>{domainOf(item.baseUrl)}</Text>
-                </View>
-              </TouchableOpacity>
+                left={() => (
+                  <View style={styles.avatar}>
+                    <UiIcon name={item.name} icon={item.icon} color={item.themeColor} size={36} />
+                  </View>
+                )}
+                right={() => (selected ? <View style={styles.avatar}><Icon source="check" size={22} color={theme.onPrimaryContainer} /></View> : null)}
+              />
             );
           }}
         />
@@ -60,12 +70,13 @@ export function Switcher({
 
 const styles = themed(() => StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '70%', backgroundColor: theme.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingBottom: 24 },
+  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '70%', backgroundColor: theme.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingBottom: 24 },
+  handle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 12 },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
-  title: { fontSize: 17, fontWeight: '700', color: theme.ink },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10, minHeight: 56 },
-  rowSelected: { backgroundColor: theme.infoBg },
-  rowText: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '600', color: theme.ink },
-  domain: { fontSize: 13, color: theme.muted },
+  title: { fontSize: 22, fontWeight: '400', color: theme.ink },
+  row: { paddingHorizontal: 16, minHeight: 56, marginHorizontal: 8, borderRadius: 28 },
+  avatar: { justifyContent: 'center' },
+  rowSelected: { backgroundColor: theme.primaryContainer },
+  name: { fontSize: 16, color: theme.ink },
+  domain: { fontSize: 14, color: theme.muted },
 }));

@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { Text } from '../../ui/Text';
 import QRCode from 'react-native-qrcode-svg';
-import { announce, headingA11y } from '../../a11y/a11y';
+import { announce } from '../../a11y/a11y';
 import { theme, themed } from '../../theme';
 import { domainOf, exportLink } from '../links';
-import { PrimaryButton, SecondaryButton, hubStyles } from './common';
+import { HubBar, HubCard, PrimaryButton, hubStyles } from './common';
 
 /**
  * "Export my UIs": a QR (and the share sheet) with the base URLs ONLY — never names, tokens or
@@ -37,11 +37,7 @@ export function ExportScreen({ baseUrls, onClose }: { baseUrls: string[]; onClos
 
   return (
     <View style={hubStyles.screen}>
-      <View style={hubStyles.header}>
-        <SecondaryButton label="Close" onPress={onClose} />
-        <Text style={hubStyles.headerTitle} {...headingA11y(1)}>Export my UIs</Text>
-        <View style={styles.spacer} />
-      </View>
+      <HubBar title="Export my UIs" onNavigate={onClose} navigateIcon="close" navigateLabel="Close" />
       <ScrollView contentContainerStyle={[hubStyles.body, styles.center]}>
         <Text style={hubStyles.text}>Scan this with the Mateu app on another phone to copy your list. It contains addresses only — no sign-ins.</Text>
         <View
@@ -57,20 +53,19 @@ export function ExportScreen({ baseUrls, onClose }: { baseUrls: string[]; onClos
             <QRCode value={link} size={240} ecl="L" onError={() => setTooBig(true)} />
           )}
         </View>
-        <PrimaryButton label="Share" onPress={() => void share()} style={styles.wide} hint="Shares the link with your list of addresses" />
+        <PrimaryButton label="Share" icon="share-variant" onPress={() => void share()} style={styles.wide} hint="Shares the link with your list of addresses" />
         {!!shared && <Text style={hubStyles.text}>{shared}</Text>}
-        <View style={[hubStyles.card, styles.wide]}>
+        <HubCard style={styles.wide}>
           {baseUrls.map((u) => (
             <Text key={u} style={styles.domain}>{domainOf(u)}</Text>
           ))}
-        </View>
+        </HubCard>
       </ScrollView>
     </View>
   );
 }
 
 const styles = themed(() => StyleSheet.create({
-  spacer: { width: 60 },
   center: { alignItems: 'center' },
   qr: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: theme.radiusMd, minHeight: 272, minWidth: 272, alignItems: 'center', justifyContent: 'center' },
   wide: { alignSelf: 'stretch' },

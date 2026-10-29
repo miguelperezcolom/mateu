@@ -1,11 +1,12 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useRef, useState } from 'react';
 import { Linking, Platform, StyleSheet, View } from 'react-native';
-import { Text, TextInput } from '../../ui/Text';
+import { Appbar, HelperText, TextInput } from 'react-native-paper';
+import { Text } from '../../ui/Text';
 import { announce, fieldA11y, headingA11y } from '../../a11y/a11y';
 import { theme, themed } from '../../theme';
 import { normalizeBaseUrl, parseHubLink, type HubLink, type ParseOptions } from '../links';
-import { PrimaryButton, SecondaryButton, hubStyles } from './common';
+import { HubBar, PrimaryButton, SecondaryButton, hubStyles } from './common';
 
 interface Props {
   initialMode: 'scan' | 'type';
@@ -20,15 +21,13 @@ export function AddScreen({ initialMode, linkOptions, onCancel, onLink }: Props)
   const [mode, setMode] = useState(initialMode);
   return (
     <View style={hubStyles.screen}>
-      <View style={hubStyles.header}>
-        <SecondaryButton label="Cancel" onPress={onCancel} />
-        <Text style={hubStyles.headerTitle} {...headingA11y(1)}>Add a UI</Text>
-        <SecondaryButton
-          label={mode === 'scan' ? 'Type' : 'Scan'}
-          a11yLabel={mode === 'scan' ? 'Type an address instead' : 'Scan a QR code instead'}
+      <HubBar title="Add a UI" onNavigate={onCancel} navigateIcon="close" navigateLabel="Cancel">
+        <Appbar.Action
+          icon={mode === 'scan' ? 'keyboard-outline' : 'qrcode-scan'}
+          accessibilityLabel={mode === 'scan' ? 'Type an address instead' : 'Scan a QR code instead'}
           onPress={() => setMode((m) => (m === 'scan' ? 'type' : 'scan'))}
         />
-      </View>
+      </HubBar>
       {mode === 'scan' ? (
         <Scanner linkOptions={linkOptions} onLink={onLink} onType={() => setMode('type')} />
       ) : (
@@ -62,9 +61,10 @@ function TypeAddress({ linkOptions, onLink }: { linkOptions: ParseOptions; onLin
   };
   return (
     <View style={hubStyles.body}>
-      <Text style={hubStyles.label} nativeID="addressLabel">Address of the UI</Text>
       <TextInput
         {...fieldA11y({ label: 'Address of the UI', required: true, error: error || undefined })}
+        mode="outlined"
+        label="Address of the UI"
         testID="hub-address"
         value={value}
         onChangeText={(t) => {
@@ -72,7 +72,6 @@ function TypeAddress({ linkOptions, onLink }: { linkOptions: ParseOptions; onLin
           if (error) setError('');
         }}
         placeholder="https://apps.example.com/crm"
-        placeholderTextColor={theme.faint}
         autoCapitalize="none"
         autoCorrect={false}
         autoComplete="off"
@@ -80,14 +79,13 @@ function TypeAddress({ linkOptions, onLink }: { linkOptions: ParseOptions; onLin
         inputMode="url"
         returnKeyType="go"
         onSubmitEditing={submit}
-        style={[hubStyles.input, !!error && { borderColor: theme.danger }]}
+        error={!!error}
+        left={<TextInput.Icon icon="web" />}
         autoFocus
       />
-      {!!error && (
-        <Text style={hubStyles.error} accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      )}
+      <HelperText type="error" visible={!!error} accessibilityLiveRegion="polite">
+        {error}
+      </HelperText>
       <Text style={[hubStyles.text, styles.left]}>
         You will see the server's name and domain before anything is added. Only secure (https) addresses are accepted.
       </Text>
@@ -119,11 +117,11 @@ function Scanner({ linkOptions, onLink, onType }: { linkOptions: ParseOptions; o
             : 'Camera access is off for Mateu. Turn it on in Settings, or type the address instead.'}
         </Text>
         {permission.canAskAgain ? (
-          <PrimaryButton label="Allow camera" onPress={() => void requestPermission()} style={styles.wide} />
+          <PrimaryButton label="Allow camera" icon="camera" onPress={() => void requestPermission()} style={styles.wide} />
         ) : (
           Platform.OS !== 'web' && <PrimaryButton label="Open Settings" onPress={() => void Linking.openSettings()} style={styles.wide} />
         )}
-        <SecondaryButton label="Type the address instead" onPress={onType} />
+        <SecondaryButton label="Type the address instead" icon="keyboard-outline" onPress={onType} />
       </View>
     );
   }
@@ -161,7 +159,7 @@ const styles = themed(() => StyleSheet.create({
   left: { textAlign: 'left', maxWidth: undefined },
   wide: { alignSelf: 'stretch', maxWidth: 340, marginTop: theme.spacing.sm },
   scanner: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  frame: { width: 240, height: 240, borderWidth: 3, borderColor: '#FFFFFF', borderRadius: 16 },
-  scanHint: { position: 'absolute', bottom: 40, left: 24, right: 24, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 8, padding: 12 },
+  frame: { width: 240, height: 240, borderWidth: 3, borderColor: '#FFFFFF', borderRadius: 24 },
+  scanHint: { position: 'absolute', bottom: 40, left: 24, right: 24, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 24, paddingVertical: 12, paddingHorizontal: 16 },
   scanHintText: { color: '#FFFFFF', fontSize: 15, textAlign: 'center' },
 }));

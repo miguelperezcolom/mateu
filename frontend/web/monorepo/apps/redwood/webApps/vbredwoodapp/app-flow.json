@@ -651,6 +651,11 @@
       "type": "string",
       "defaultValue": ""
     },
+    "mateuListPrimaryRoute": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "the route of a primary that navigates (a RouteLink button) \u2014 listPrimary goes there"
+    },
     "mateuListSecondary": {
       "type": "any",
       "defaultValue": [],
