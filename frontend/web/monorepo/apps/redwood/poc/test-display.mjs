@@ -22,6 +22,7 @@ import {
   summarizeHost, pageSubtitleOf, listingHeaderBlocksOf, buttonRouteOf, fileBytesOf, fileMimeOf,
 } from './reduceContexts.mjs'
 import { attachmentDownloadOf } from './files.mjs'
+import { absoluteUrlOf } from './core/overviews.mjs'
 import { bannerNotificationOf } from './notify.mjs'
 import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
@@ -705,13 +706,28 @@ test('the Welcome is oj-sp-welcome-page: EVERY CTA travels (secondaryActions) an
   assert.deepEqual(w.secondaryById.cta2, { actionId: 'help', route: '' })
   assert.deepEqual(w.secondaryById.cta3, { actionId: 'products', route: 'products' })
   assert.equal(w.image, 'https://x/hero.jpg')
+  // a page-relative image is made absolute: Spectra resolves it inside its CDN stylesheet
+  assert.equal(absoluteUrlOf(''), '')
+  const hadDocument = 'document' in globalThis, document = globalThis.document
+  globalThis.document = { baseURI: 'http://shell.example:8800/console/' }
+  try {
+    assert.equal(absoluteUrlOf('/images/texture.png'), 'http://shell.example:8800/images/texture.png')
+    assert.equal(absoluteUrlOf('https://x/hero.jpg'), 'https://x/hero.jpg')
+  } finally {
+    if (hadDocument) globalThis.document = document
+    else delete globalThis.document
+  }
   // the page paints Spectra's template (not the bare banner + our own tile row) and binds the image
   const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
   const start = html.indexOf('<oj-sp-welcome-page id="mateuWelcomeBanner"')
   assert.ok(start > 0, 'oj-sp-welcome-page')
   const tag = html.slice(start, html.indexOf('>', start))
   assert.match(tag, /secondary-actions="\[\[ \$application\.variables\.mateuWelcome\.secondaryCtas \]\]"/)
-  assert.match(tag, /display-options\.image-stretch=/)
+  // the image is the banner's texture, as on redwood.oracle.com: illustration-background with NO
+  // foreground (an empty string still counts as one: nothing was drawn) and no stretch
+  assert.match(tag, /illustration-background="\[\[ \$application\.variables\.mateuWelcome\.image \|\| \$application\.variables\.mateuWelcomeIlluBg \]\]"/)
+  assert.match(tag, /illustration-foreground="\[\[ \$application\.variables\.mateuWelcome\.image \? undefined : \$application\.variables\.mateuWelcomeIllu \]\]"/)
+  assert.match(tag, /display-options\.image-stretch="none"/)
   // HeroSection.overline → Spectra's own overline-text (the line above the page title)
   assert.match(tag, /overline-text="\[\[ \$application\.variables\.mateuWelcome\.overline \]\]"/)
   assert.ok(html.indexOf('</oj-sp-welcome-page>') > start, 'the tiles are its main slot')
@@ -956,3 +972,17 @@ test('FileList → oj-sp-attachment-chip fed locally; Timeline events → oj-sp-
 })
 
 console.log(`\n${passed} display tests OK`)
+
+test('the collapsed subheader takes no line: no border width either, only its colour was cleared', () => {
+  const css = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'css', 'app.css'), 'utf8')
+  const start = css.indexOf('.mateu-subheader.mateu-subheader-empty {')
+  assert.ok(start > 0)
+  const rule = css.slice(start, css.indexOf('}', start))
+  assert.match(rule, /height: 0;/)
+  assert.match(rule, /border-bottom-width: 0;/)
+})
+
+test('a page with the sections index stays as wide as the window: the clipped drawer boxes do not grow to their content', () => {
+  const css = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'css', 'app.css'), 'utf8')
+  assert.match(css, /\.oj-drawer-layout-middle-section:has\(\.mateu-has-toc\) \{ overflow: clip; min-width: 0; \}/)
+})

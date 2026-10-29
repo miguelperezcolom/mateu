@@ -10171,7 +10171,10 @@
      oj-sp-header-welcome-banner API: title, description, illustration/tone, CTAs) and its main slot,
      which brings the template's own top margin and responsive side padding, holding the tiles.
      Every CTA travels: the first is primaryAction, the rest secondaryActions (two outlined buttons,
-     then Spectra's overflow menu); a HeroSection.image replaces the gallery illustration, full bleed. -->
+     then Spectra's overflow menu); a HeroSection.image replaces the gallery illustration pair as
+     the banner's texture — illustration-background with NO illustration-foreground (an empty one
+     still counts as one) and no stretch, as redwood.oracle.com's own welcome banner: Spectra draws
+     it in the band's right half, from the top centre, clipped to the band. -->
 <oj-bind-if test="[[ !!$application.variables.mateuWelcome ]]">
   <oj-sp-welcome-page id="mateuWelcomeBanner"
     data-node-bound
@@ -10179,8 +10182,8 @@
     :data-node-buttons="[[ $application.variables.mateuWelcome.ctaNodeIds || null ]]"
     themed-image="none"
     illustration-background="[[ $application.variables.mateuWelcome.image || $application.variables.mateuWelcomeIlluBg ]]"
-    illustration-foreground="[[ $application.variables.mateuWelcome.image ? '' : $application.variables.mateuWelcomeIllu ]]"
-    display-options.image-stretch="[[ $application.variables.mateuWelcome.image ? 'full' : 'none' ]]"
+    illustration-foreground="[[ $application.variables.mateuWelcome.image ? undefined : $application.variables.mateuWelcomeIllu ]]"
+    display-options.image-stretch="none"
     background-color="[[ $application.variables.mateuWelcomeTheme ]]"
     overline-text="[[ $application.variables.mateuWelcome.overline ]]"
     page-title="[[ $application.variables.mateuWelcome.title ]]"

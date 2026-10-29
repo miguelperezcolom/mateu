@@ -11,6 +11,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+
+- **Redwood: a Welcome's `heroImage()` is drawn again.** Since the welcome became Spectra's
+  `oj-sp-welcome-page`, the image went to the banner with an empty `illustration-foreground` (which
+  Spectra counts as one) and full stretch, so nothing was drawn: a blank band, white text on white.
+  It is now the banner's texture, as on redwood.oracle.com — `illustration-background`, no
+  foreground, no stretch — drawn in the band's right half and clipped to it, and made absolute
+  (Spectra resolves it inside its CDN stylesheet). A texture shaped like Oracle's (about 864×250,
+  the shapes on the right) fills the slot.
+- **Redwood: no line under the global header.** The collapsed subheader kept a 1px transparent
+  border, a line of page background above a welcome banner.
+
 ## [3.0-beta.20] — 2026-10-27
 
 On Redwood, a crud refreshes its listing after an action as the server asks — keeping its query — and a crud toolbar button can show a LongTask's progress dialog.

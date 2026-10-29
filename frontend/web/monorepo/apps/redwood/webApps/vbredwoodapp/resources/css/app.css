@@ -1264,6 +1264,9 @@ oj-action-card.mateu-listing-card {
 .mateu-subheader.mateu-subheader-empty {
   height: 0;
   opacity: 0;
+  /* width too: a transparent 1px border still took a line under the global header, page background
+     between it and a welcome banner */
+  border-bottom-width: 0;
   border-bottom-color: transparent;
   visibility: hidden;
   transition: height 200ms ease, opacity 150ms ease, border-bottom-color 200ms ease, visibility 0s linear 200ms;
@@ -1952,7 +1955,9 @@ oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-
    does): a sticky inside them never sticks. Same remedy as the record page's pinned header: clip
    (no scroll container) while a page carries the index. */
 .oj-drawer-layout-main-content:has(.mateu-has-toc),
-.oj-drawer-layout-middle-section:has(.mateu-has-toc) { overflow: clip; }
+.oj-drawer-layout-middle-section:has(.mateu-has-toc) { overflow: clip; min-width: 0; }
+/* min-width 0: clip, unlike auto, is no scroll container, so these flex items grew to their content's
+   min-content (a wide table inside a section) and the page, centred in the wider box, went right */
 
 /* FOLDED foldout panel (FoldoutPanel.open = false, poc/foldouts.mjs): the component's own panel
    reduced to a strip that shows its title vertically. Its container keeps the layout's click /
