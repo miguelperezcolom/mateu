@@ -1,7 +1,7 @@
 import { applyColumnPrefs } from '../prefs.mjs'
 import { walkWithinSurface } from './tree.mjs'
 import { dragMimeOf } from './atoms.mjs'
-import { columnPrefsReader, islandContentOf } from './content.mjs'
+import { buttonRouteOf, columnPrefsReader, islandContentOf } from './content.mjs'
 import { optionsOf } from './rowEditor.mjs'
 import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
 import { chromeText, chromeLanguage, moneyText } from '../i18n.mjs'
@@ -316,12 +316,19 @@ export function listingBaseOf(ctx, opts = {}) {
       .map((c) => [c.id, c.sortingProperty || c.id])),
     total: page.totalElements == null ? null : page.totalElements,
     isEmpty: (page.content || []).length === 0,
-    toolbar: (md.toolbar || []).map((b) => ({
-      actionId: b.actionId,
-      label: b.label,
-      chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
-      disabled: !!b.disabled,
-    })),
+    // a toolbar Button whose actionable is a RouteLink ("New character" → people/new) NAVIGATES, like
+    // a content button (content.mjs buttonOf) and the web: its actionId is only the label's echo and
+    // the server has nothing behind it (strict mode answers 403). An unresolved route disables it.
+    toolbar: (md.toolbar || []).map((b) => {
+      const route = b.route ? buttonRouteOf(b.route, ctx.state || {}) : null
+      return {
+        actionId: b.actionId,
+        label: b.label,
+        chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+        disabled: !!b.disabled || (!!b.route && route == null),
+        ...(route ? { route } : {}),
+      }
+    }),
     // QUICK selector of the listing: option filters (e.g. an enum in Filters, like
     // the View of the bookings listing) → oj-sp-filter-chip chips next to the smart search;
     // the filters travel as select FormFields in the metadata (sometimes in the mediator,
