@@ -18319,10 +18319,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** What a REST row carries: the columns, plus what the rowRoute needs to address the record. */
+  /** What a REST row carries: the columns, the fields a column reads beside its own (a primary
+   *  cell's caption and leading picture, a tooltip — not columns, so they were dropped), and what the
+   *  rowRoute needs to address the record. */
   function restColumnIdsOf(md) {
-    const ids = (md.columns || []).map((c) => (c && c.metadata ? c.metadata.id || c.id : c && c.id)).filter(Boolean)
-    for (const id of rowRouteFieldsOf(md.rowRoute)) if (ids.indexOf(id) < 0) ids.push(id)
+    const metas = (md.columns || []).map((c) => (c && c.metadata ? { ...c.metadata, id: c.metadata.id || c.id } : c)).filter(Boolean)
+    const ids = metas.map((c) => c.id).filter(Boolean)
+    const add = (id) => { if (id && ids.indexOf(id) < 0) ids.push(id) }
+    for (const c of metas) { add(c.captionPath); add(c.leadingPath); add(c.tooltipPath) }
+    for (const id of rowRouteFieldsOf(md.rowRoute)) add(id)
     return ids
   }
 

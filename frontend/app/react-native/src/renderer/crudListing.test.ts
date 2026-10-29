@@ -139,3 +139,16 @@ test('a list row: first column headlines, statuses and true booleans become chip
   });
   assert.deepEqual(listRowModel({ id: '1', name: 'N', certified: false, status: null, price: 1 }, cols, text).chips, []);
 });
+
+test('a list row: a primary first column leads with its picture and its caption', () => {
+  const cols = [
+    { fieldId: 'name', label: 'Name', dataType: 'string', stereotype: 'primary', valueLabels: null, tones: null, leadingPath: 'image', captionPath: 'homeworldName' },
+    { fieldId: 'gender', label: 'Gender', dataType: 'string', stereotype: '', valueLabels: null, tones: null },
+  ];
+  const text = (v: unknown) => (v == null ? '' : String(v));
+  assert.deepEqual(listRowModel({ name: 'Luke', gender: 'male', homeworldName: 'Tatooine', image: 'https://img.example/luke.png' }, cols, text), {
+    headline: 'Luke', supporting: 'Tatooine · male', chips: [], leading: 'https://img.example/luke.png',
+  });
+  // only an http(s) / data:image url is a picture
+  assert.equal(listRowModel({ name: 'X', image: 'javascript:alert(1)' }, cols, text).leading, undefined);
+});

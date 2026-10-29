@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Modal, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, FlatList, Image, Modal, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Text, TextInput } from '../ui/Text';
 import { buttonActionId, effectiveListingLayout, rowCheckboxLabel } from '../core/uxRules';
 import { splitCreateAction } from '../core/phoneLayout';
@@ -148,7 +148,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     | undefined;
   // Resolve a catalogue `ref` so the url, itemsPath and proxy flag come from the resolved source.
   const rowsResolved = rowsSource ? (controller.session.sources.resolve(rowsSource as Record<string, unknown>) as typeof rowsSource) : undefined;
-  const columnIds = columns.map((c) => c.metadata?.id ?? c.id ?? c.fieldId).filter(Boolean) as string[];
+  // the columns, plus the fields a column reads beside its own (a primary cell's caption and
+  // leading picture, a tooltip): not columns, so a row mapped to the columns alone dropped them
+  const columnIds = [...new Set([
+    ...columns.map((c) => c.metadata?.id ?? c.id ?? c.fieldId),
+    ...columns.flatMap((c) => ['captionPath', 'leadingPath', 'tooltipPath'].map((k) => (c.metadata as Record<string, unknown> | undefined)?.[k])),
+  ].filter((f): f is string => typeof f === 'string' && !!f))];
   const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
   const rowsUrl = rowsResolved ? restResolve(rowsResolved.url) : '';
   const [restRows, setRestRows] = useState<Record<string, unknown>[]>([]);
@@ -617,6 +622,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     return (
                       <TouchableRipple {...rowA11y(item)} style={[styles.listRow, rowsSelectionEnabled && styles.listRowSelectable]} onPress={() => handleRowPress(item)}>
                         <View style={styles.listRowInner}>
+                          {!!model.leading && (
+                            <Image source={{ uri: model.leading }} style={styles.listLeading} accessibilityIgnoresInvertColors importantForAccessibility="no" accessibilityElementsHidden />
+                          )}
                           <View style={styles.listRowText}>
                             <PaperText variant="titleMedium" style={styles.listHeadline} numberOfLines={1}>{model.headline}</PaperText>
                             {!!model.supporting && (
@@ -1093,6 +1101,7 @@ const styles = themed(() => StyleSheet.create({
   listRow: { flex: 1, paddingLeft: 16, paddingRight: 4, paddingVertical: 8, minHeight: 72, justifyContent: 'center' },
   listRowSelectable: { paddingLeft: 4 },
   listRowInner: { flexDirection: 'row', alignItems: 'center' },
+  listLeading: { width: 40, height: 40, borderRadius: 20, marginRight: 16, backgroundColor: theme.divider },
   listRowText: { flex: 1, minWidth: 0 },
   listHeadline: { color: theme.ink },
   listSecondary: { color: theme.muted },
