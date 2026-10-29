@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { recordTiming } from '../core/timing';
 import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from '../ui/Text';
 import { toastLifetime } from '../core/toastLifetime';
@@ -194,35 +195,67 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
 
   // bumped by "Try again" on the connection-failure screen to repeat the boot load
   const [attempt, setAttempt] = useState(0);
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     // A server speaking another wire major: say so once, visibly, instead of rendering oddly.
     api.onWireMismatch = (message) => session.notify('Version mismatch', message, 'warning', { duration: 12000 });
     setLoading(true);
     setError(null);
+    // The backend returns a UIIncrementDto: pick the App fragment (or the first one).
+    const rootOf = (result: unknown): unknown => {
+      const res = result as Record<string, unknown>;
+      const fragments = (res['fragments'] as any[]) ?? [];
+      const frag =
+        fragments.find((f) => f?.component?.metadata?.type === 'App') ??
+        fragments.find((f) => f?.component?.children?.[0]?.metadata?.type === 'App') ??
+        fragments[0];
+      const comp = frag?.component ?? null;
+      // Unwrap a ServerSide whose child is the App shell.
+      const child = (comp?.children as any[])?.[0];
+      return child?.metadata?.type === 'App' ? child : comp;
+    };
+    // The shell this UI answered last time, at once (a UI without sign-in): the fresh one replaces it.
+    const snapshots = api.local ? null : session.snapshots;
+    const snapshotKey = snapshots ? snapshots.keyOf(`shell:${initialRoute}`, '_empty', '') : '';
+    let fromSnapshot = false;
+    const started = Date.now();
+    let alive = true;
+    if (snapshots) {
+      void snapshots.get(snapshotKey).then((snapshot) => {
+        if (!alive || !snapshot || !loadingRef.current) return;
+        fromSnapshot = true;
+        setRootComponent(rootOf(snapshot));
+        setLoading(false);
+        recordTiming('shell', Date.now() - started, 'snapshot');
+      });
+    }
+    loadingRef.current = true;
     api
       .initialLoad(initialRoute, appState)
       .then((result) => {
+        if (!alive) return;
+        recordTiming('shell', Date.now() - started, 'network');
         // Nothing to render: show WHY (the server's message) on the retry screen, not a blank one.
         const failure = bootFailureOf(result);
         if (failure) {
-          setError(failure);
+          if (!fromSnapshot) setError(failure);
           return;
         }
-        // The backend returns a UIIncrementDto: pick the App fragment (or the first one).
-        const res = result as Record<string, unknown>;
-        const fragments = (res['fragments'] as any[]) ?? [];
-        const frag =
-          fragments.find((f) => f?.component?.metadata?.type === 'App') ??
-          fragments.find((f) => f?.component?.children?.[0]?.metadata?.type === 'App') ??
-          fragments[0];
-        const comp = frag?.component ?? null;
-        // Unwrap a ServerSide whose child is the App shell.
-        const child = (comp?.children as any[])?.[0];
-        setRootComponent(child?.metadata?.type === 'App' ? child : comp);
+        setRootComponent(rootOf(result));
+        if (snapshots) void snapshots.put(snapshotKey, result);
       })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
+      .catch((e: Error) => {
+        // a shell already on screen from the snapshot stays (an offline copy)
+        if (alive && !fromSnapshot) setError(e.message);
+      })
+      .finally(() => {
+        loadingRef.current = false;
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attempt]);
 

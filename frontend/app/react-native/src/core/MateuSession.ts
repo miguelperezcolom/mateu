@@ -1,3 +1,4 @@
+import type { ScreenSnapshots } from './screenSnapshots';
 import { MateuApiClient } from '../api/MateuApiClient.ts';
 import type { TokenProvider } from './auth.ts';
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
@@ -138,6 +139,8 @@ export class MateuSession {
 
   /** The app shell's chat settings: its menu (menuContext), the MCP and upload endpoints. */
   chatApp: { menu?: unknown; mcpUrl?: string | null; uploadUrl?: string | null } = {};
+  /** The last screens of this UI (a hub UI without sign-in): a load shows its copy at once. */
+  snapshots: ScreenSnapshots | null = null;
 
   /** Event handlers answer whether they TOOK the event (false: filtered out); nothing = took it. */
   private subscriptions: { owner: unknown; eventName: string; handler: (payload: unknown) => boolean | void }[] = [];

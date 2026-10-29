@@ -82,6 +82,14 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             SelectBox, OutlinedInput/Trigger) in src/ui/controls.tsx; phone rules
                             (< 600dp: FormRow = 1 column, RAIL wizard → compact rail above the form,
                             crud `new` → extended FAB) in src/core/phoneLayout.ts
+                            FAST START (2026-10-29): a UI opened before opens from what the device kept —
+                            the cached manifest (refreshed in the background), a static bundle on disk
+                            with its ETag (hub/bundleCache.ts, revalidated with If-None-Match) and the
+                            last screens (core/screenSnapshots.ts: fragments only, never commands or
+                            messages; a snapshot PAINTS, its OnLoads do not fire; none for a UI that
+                            signs in). `[Mateu timing]` logs each step (core/timing.ts). EAS packs the
+                            repo minus .easignore — metro watches libs/mateu/src, so .easignore must
+                            keep it (a missing folder fails "Bundle JavaScript", not locally)
   intellij-plugin/        ← Desktop — IntelliJ IDEA plugin (tool windows, editor tabs, docking)
                             (the JavaFX and Compose renderers were REMOVED 2026-07-10)
 

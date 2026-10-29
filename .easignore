@@ -8,7 +8,17 @@
 /design/
 /doc/
 /e2e/
-/frontend/web/
+# …but the shared web library's SOURCES stay: metro.config.js watches them and the native
+# renderer imports its platform-neutral part (src/shared/mateuLib.ts). A negation cannot reach
+# inside an excluded folder, so each level is opened just enough.
+/frontend/web/*
+!/frontend/web/monorepo/
+/frontend/web/monorepo/*
+!/frontend/web/monorepo/libs/
+/frontend/web/monorepo/libs/*
+!/frontend/web/monorepo/libs/mateu/
+/frontend/web/monorepo/libs/mateu/*
+!/frontend/web/monorepo/libs/mateu/src/
 /frontend/app/intellij-plugin/
 
 # never ship dependency trees or local envs (EAS installs from package-lock.json)

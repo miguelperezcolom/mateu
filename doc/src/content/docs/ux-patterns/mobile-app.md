@@ -179,6 +179,28 @@ screen it opens on. The confirmation shows the domain it found, as for any other
 change is needed. In the app's **web build** the manifest (`/mateu/v3/manifest`, and a static
 site's `manifest.json`) must allow cross-origin reads; the native app needs no CORS.
 
+## Opening fast
+
+A UI the app has opened before opens at once, even on a slow network. The fresh content follows
+moments later:
+
+- **Manifest.** The app opens the UI with the copy it kept and refreshes it in the background. The
+  next open sees the new name, icon and version gate. Only a UI never opened before waits for its
+  manifest.
+- **Static bundle.** A static UI's `manifest.json`, often around 1 MB, is kept on the device with its
+  `ETag`. It answers at once and is revalidated in the background with `If-None-Match`: a `304`
+  costs a few bytes, and a new build replaces the copy for the next open. Serve that file
+  **compressed**; with gzip, 1 MB of JSON is about 140 KB.
+- **Last screens.** The app keeps the last 20 screens of each UI, 256 KB at most each, and shows
+  one immediately when you open it again. The server's answer then replaces it. Only what is drawn
+  is kept, never commands or messages, so nothing runs or pops up twice; a listing's search runs
+  once, with the fresh answer. **A UI that signs in keeps no screens**: what a signed-in screen
+  shows is not left on the device. Removing a UI from the list deletes all of this.
+- **Icons** are kept on disk (`expo-image`).
+
+Each step logs its duration as `[Mateu timing] <step>: <n> ms (cache | snapshot | network)`. They are
+also kept in `globalThis.__mateuTimings`, to measure on a real phone.
+
 ## Security
 
 - **No secrets in a QR**, nor in the "export my UIs" QR: only URLs. Tokens never leave the phone's
