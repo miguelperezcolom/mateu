@@ -143,6 +143,10 @@ export interface ColDef {
   editable: boolean;
   /** A status column's badge tone per raw value (GridColumn.tones): such a cell is a chip. */
   tones?: Record<string, string> | null;
+  /** A primary column's picture (GridColumn.leadingPath): the row field holding its url. */
+  leadingPath?: string;
+  /** A primary column's secondary line (GridColumn.captionPath): the row field to read. */
+  captionPath?: string;
 }
 
 /** The columns the listing renders as cells (the row-action columns become the row's menu). */
@@ -171,6 +175,8 @@ export function columnDefsOf(
         cellAction: cellActionOf(cm),
         editable: cm['editable'] === true,
         tones: (cm['tones'] as Record<string, string> | null | undefined) ?? null,
+        leadingPath: (cm['leadingPath'] as string) || undefined,
+        captionPath: (cm['captionPath'] as string) || undefined,
       };
     })
     .filter((c) => !ACTION_COLUMN_TYPES.has(c.dataType));
@@ -204,6 +210,8 @@ export interface ListRowModel {
   supporting: string;
   /** Status columns (tone chips) and TRUE boolean columns (their label, a neutral chip). */
   chips: { label: string; tone: string }[];
+  /** The first column's picture (its leadingPath), when it names an http(s) or data:image url. */
+  leading?: string;
 }
 
 /**
@@ -214,12 +222,17 @@ export interface ListRowModel {
  */
 export function listRowModel(
   row: Dict,
-  cols: Pick<ColDef, 'fieldId' | 'label' | 'dataType' | 'stereotype' | 'valueLabels' | 'tones'>[],
+  cols: Pick<ColDef, 'fieldId' | 'label' | 'dataType' | 'stereotype' | 'valueLabels' | 'tones' | 'leadingPath' | 'captionPath'>[],
   text: (value: unknown, col: (typeof cols)[number]) => string,
 ): ListRowModel {
   const [first, ...rest] = cols;
   const headline = first ? text(row[first.fieldId], first) : '';
   const supporting: string[] = [];
+  // a primary first column: its caption leads the supporting text, its picture leads the row
+  const caption = first?.captionPath ? row[first.captionPath] : undefined;
+  if (caption != null && String(caption) !== '') supporting.push(String(caption));
+  const picture = first?.leadingPath ? row[first.leadingPath] : undefined;
+  const leading = typeof picture === 'string' && /^(https?:\/\/|data:image\/)/i.test(picture) ? picture : undefined;
   const chips: { label: string; tone: string }[] = [];
   for (const col of rest) {
     const value = row[col.fieldId];
@@ -234,5 +247,5 @@ export function listRowModel(
       if (t) supporting.push(t);
     }
   }
-  return { headline, supporting: supporting.join(' · '), chips };
+  return leading ? { headline, supporting: supporting.join(' · '), chips, leading } : { headline, supporting: supporting.join(' · '), chips };
 }
