@@ -61,6 +61,9 @@ columns:
     id: name
     label: Name
     identifier: true
+    # a primary cell: the record's picture (swapi's generated `image`) beside its name
+    stereotype: primary
+    leadingPath: image
   - type: GridColumn
     id: classification
     label: Classification

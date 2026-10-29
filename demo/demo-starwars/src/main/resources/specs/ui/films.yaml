@@ -47,6 +47,9 @@ columns:
     id: title
     label: Title
     identifier: true
+    # a primary cell: the record's picture (swapi's generated `image`) beside its name
+    stereotype: primary
+    leadingPath: image
   - type: GridColumn
     id: director
     label: Director
