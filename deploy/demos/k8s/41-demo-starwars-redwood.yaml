@@ -25,7 +25,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: web
-          image: miguelperezcolom/demo-starwars-redwood:2026.10.29g
+          image: miguelperezcolom/demo-starwars-redwood:2026.10.29h
           ports:
             - { name: http, containerPort: 8080 }
           readinessProbe:
