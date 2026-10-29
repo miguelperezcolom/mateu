@@ -33,6 +33,11 @@ spec:
             # Public demo, no credentials: any origin may call it (the mobile app's web build, embeds).
             # Applies only to /mateu/** paths (CorsPolicy).
             - { name: MATEU_CORS_ALLOWED_ORIGINS, value: "*" }
+            # The swapi write key, for the proxy sources (create/update/delete): the SERVER adds the
+            # X-Api-Key header, the browser never sees it. Same Secret the swapi Deployment reads.
+            - name: MATEU_SECRET_SWAPI_WRITE_KEY
+              valueFrom:
+                secretKeyRef: { name: swapi-write-key, key: WRITE_KEY }
           ports:
             - { name: http, containerPort: 8600 }
           securityContext:
