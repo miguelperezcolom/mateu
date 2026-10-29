@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Alert, Image, Platform, StyleSheet, TouchableOpacity, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Alert, Image, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Appbar, Button, Icon, Surface } from 'react-native-paper';
 import { Text } from '../../ui/Text';
-import { buttonA11y } from '../../a11y/a11y';
 import { theme, themed } from '../../theme';
 
 /** A yes/no question: native Alert on iOS/Android, window.confirm on web (same as the dirty guard). */
@@ -42,7 +42,7 @@ export function inkOn(hex: string | undefined): string {
  *  label already names the UI, so the image is hidden from screen readers. */
 export function UiIcon({ name, icon, color, size = 44 }: { name: string; icon?: string; color?: string; size?: number }) {
   const [failed, setFailed] = useState(false);
-  const box = { width: size, height: size, borderRadius: size * 0.22 };
+  const box = { width: size, height: size, borderRadius: size / 2 };
   if (icon && !failed) {
     return (
       <Image
@@ -62,78 +62,110 @@ export function UiIcon({ name, icon, color, size = 44 }: { name: string; icon?: 
   );
 }
 
-export function PrimaryButton({ label, onPress, disabled, style, hint }: { label: string; onPress: () => void; disabled?: boolean; style?: StyleProp<ViewStyle>; hint?: string }) {
+/** Material 3 filled button: the one main action of a screen. */
+export function PrimaryButton({ label, onPress, disabled, style, hint, icon }: { label: string; onPress: () => void; disabled?: boolean; style?: StyleProp<ViewStyle>; hint?: string; icon?: string }) {
   return (
-    <TouchableOpacity
-      {...buttonA11y({ label, disabled, hint })}
-      disabled={disabled}
+    <Button
+      mode="contained"
+      icon={icon}
       onPress={onPress}
-      style={[styles.primary, disabled && styles.primaryDisabled, style]}
+      disabled={disabled}
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      accessibilityState={{ disabled: !!disabled }}
+      style={[styles.button, style]}
+      contentStyle={styles.buttonContent}
+      labelStyle={styles.buttonLabel}
     >
-      <Text style={styles.primaryText}>{label}</Text>
-    </TouchableOpacity>
+      {label}
+    </Button>
   );
 }
 
-export function SecondaryButton({ label, onPress, style, danger, a11yLabel }: { label: string; onPress: () => void; style?: StyleProp<ViewStyle>; danger?: boolean; a11yLabel?: string }) {
+/** Material 3 text button: the alternatives next to the main action. */
+export function SecondaryButton({ label, onPress, style, danger, a11yLabel, icon }: { label: string; onPress: () => void; style?: StyleProp<ViewStyle>; danger?: boolean; a11yLabel?: string; icon?: string }) {
   return (
-    <TouchableOpacity {...buttonA11y({ label: a11yLabel ?? label })} onPress={onPress} style={[styles.secondary, style]} hitSlop={theme.hitSlop}>
-      <Text style={[styles.secondaryText, danger && { color: theme.danger }]}>{label}</Text>
-    </TouchableOpacity>
+    <Button
+      mode="text"
+      icon={icon}
+      onPress={onPress}
+      accessibilityLabel={a11yLabel ?? label}
+      textColor={danger ? theme.danger : undefined}
+      style={[styles.button, style]}
+      contentStyle={styles.buttonContent}
+      labelStyle={styles.buttonLabel}
+    >
+      {label}
+    </Button>
+  );
+}
+
+/**
+ * The Material top app bar of every hub screen: a navigation icon (back arrow or close) on the
+ * left, the title, and icon actions on the right. The safe area is already applied by App.tsx.
+ */
+export function HubBar({
+  title,
+  onNavigate,
+  navigateLabel = 'Back',
+  navigateIcon = 'arrow-left',
+  children,
+}: {
+  title: string;
+  onNavigate?: () => void;
+  navigateLabel?: string;
+  navigateIcon?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <Appbar.Header statusBarHeight={0} elevated style={hubStyles.bar}>
+      {onNavigate && <Appbar.Action icon={navigateIcon} onPress={onNavigate} accessibilityLabel={navigateLabel} />}
+      <Appbar.Content title={title} titleStyle={hubStyles.barTitle} />
+      {children}
+    </Appbar.Header>
+  );
+}
+
+/** A tonal notice (info or warning) with its icon, like a Material banner without actions. */
+export function Notice({ text, tone = 'info', alert }: { text: string; tone?: 'info' | 'warning'; alert?: boolean }) {
+  const warning = tone === 'warning';
+  return (
+    <View style={[styles.notice, { backgroundColor: warning ? theme.warningBg : theme.infoBg }]} accessibilityRole={alert ? 'alert' : undefined}>
+      <Icon source={warning ? 'alert-outline' : 'information-outline'} size={20} color={warning ? theme.warning : theme.info} />
+      <Text style={[styles.noticeText, { color: warning ? theme.warning : theme.info }]}>{text}</Text>
+    </View>
+  );
+}
+
+/** A Material card surface. */
+export function HubCard({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  return (
+    <Surface elevation={1} style={[hubStyles.card, style]}>
+      {children}
+    </Surface>
   );
 }
 
 export const hubStyles = themed(() => StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.md,
-    minHeight: 56,
-    backgroundColor: theme.white,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.border,
-  },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: theme.ink },
-  headerActions: { flexDirection: 'row', gap: 4 },
+  screen: { flex: 1, backgroundColor: theme.surface },
+  bar: { backgroundColor: theme.surface },
+  barTitle: { fontSize: 22, fontWeight: '400', color: theme.ink },
   body: { padding: theme.spacing.md, gap: theme.spacing.md },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg, gap: theme.spacing.sm },
   title: { fontSize: 18, fontWeight: '700', color: theme.ink, textAlign: 'center' },
   text: { fontSize: 15, color: theme.muted, textAlign: 'center', maxWidth: 340 },
   label: { fontSize: 14, fontWeight: '600', color: theme.ink },
-  input: {
-    minHeight: theme.minTouch,
-    borderWidth: 1,
-    borderColor: theme.border,
-    borderRadius: theme.radiusSm,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: theme.ink,
-    backgroundColor: theme.white,
-  },
   error: { color: theme.danger, fontSize: 14 },
-  card: { backgroundColor: theme.white, borderRadius: theme.radiusMd, padding: theme.spacing.md, gap: theme.spacing.sm },
-  warning: { backgroundColor: theme.warningBg, borderRadius: theme.radiusSm, padding: 12 },
-  warningText: { color: theme.warning, fontSize: 14 },
-  note: { backgroundColor: theme.infoBg, borderRadius: theme.radiusSm, padding: 12 },
-  noteText: { color: theme.info, fontSize: 14 },
+  card: { backgroundColor: theme.surface, borderRadius: 12, padding: theme.spacing.md, gap: theme.spacing.sm },
 }));
 
 const styles = themed(() => StyleSheet.create({
   iconImage: { backgroundColor: theme.divider },
   initials: { alignItems: 'center', justifyContent: 'center' },
   initialsText: { color: theme.onFill, fontWeight: '700' },
-  primary: {
-    backgroundColor: theme.primary,
-    minHeight: theme.minTouch,
-    paddingHorizontal: 20,
-    borderRadius: theme.radiusSm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryDisabled: { backgroundColor: theme.disabled },
-  primaryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 16 },
-  secondary: { minHeight: theme.minTouch, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-  secondaryText: { color: theme.primary, fontWeight: '600', fontSize: 15 },
+  button: { borderRadius: 20 },
+  buttonContent: { minHeight: theme.minTouch, paddingHorizontal: 8 },
+  buttonLabel: { fontSize: 15, letterSpacing: 0.1 },
+  notice: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', borderRadius: 12, padding: 12 },
+  noticeText: { flex: 1, fontSize: 14 },
 }));

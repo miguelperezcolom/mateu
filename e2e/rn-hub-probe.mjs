@@ -72,6 +72,14 @@ page.on('dialog', (d) => d.accept())
 const shot = async (name) => {
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/${name}.png` })
 }
+const barShows = async (name, timeout = 20000) => {
+    try {
+        await page.getByTestId('hub-switch').filter({ visible: true, hasText: name }).first().waitFor({ timeout })
+        return true
+    } catch {
+        return false
+    }
+}
 const visible = (text) => page.getByText(text, { exact: false }).filter({ visible: true }).first()
 const waitText = async (text, timeout = 20000) => {
     try {
@@ -101,7 +109,11 @@ try {
     await a11y('home')
 
     // ── add by typing ────────────────────────────────────────────────────────
-    await page.getByRole('button', { name: 'Type an address' }).first().click()
+    // Material: the "+" FAB opens "Scan a QR code" / "Type an address"
+    await page.getByRole('button', { name: 'Add a UI' }).first().click()
+    await sleep(400)
+    await shot('01b-fab-open')
+    await page.getByRole('button', { name: 'Type an address' }).filter({ visible: true }).first().click()
     const input = page.getByLabel(/Address of the UI/).first()
     await input.fill('ftp://nope')
     await page.getByRole('button', { name: 'Continue' }).click()
@@ -117,10 +129,10 @@ try {
     await page.getByRole('button', { name: 'Add', exact: true }).click()
 
     // ── open: the real renderer against the backend ─────────────────────────
-    check('the UI opens with its bar', await waitText('‹ My UIs'))
+    check('the UI opens with its bar', await barShows('Acme CRM') && await page.getByTestId('hub-home').filter({ visible: true }).count() > 0)
     await sleep(6000)
     const rendered = await page.evaluate(() => document.body.innerText)
-    check('the backend content rendered inside the session', !/Can't reach|Could not|Something went wrong/i.test(rendered) && rendered.replace('‹ My UIs', '').replace('Acme CRM ⇅', '').trim().length > 5,
+    check('the backend content rendered inside the session', !/Can't reach|Could not|Something went wrong/i.test(rendered) && rendered.replace('Acme CRM', '').trim().length > 5,
         rendered.replace(/\s+/g, ' ').slice(0, 120))
     await shot('04-ui-open')
     await a11y('open UI')
@@ -135,7 +147,7 @@ try {
     check('a deep link goes to the confirm screen', await waitText('Add this UI?') && await waitText(`localhost:${UIS[1].port}`))
     check('the deep-link manifest name is shown', await waitText('People Desk'))
     await page.getByRole('button', { name: 'Add', exact: true }).click()
-    check('the deep-linked UI opens', await waitText('People Desk ⇅'))
+    check('the deep-linked UI opens', await barShows('People Desk'))
     await sleep(4000)
     await shot('06-second-ui')
 
@@ -149,7 +161,7 @@ try {
     await shot('07-switcher')
     await a11y('switcher')
     await page.getByRole('button', { name: /^Acme CRM,/ }).filter({ visible: true }).first().click()
-    check('switching opens the other UI', await waitText('Acme CRM ⇅'))
+    check('switching opens the other UI', await barShows('Acme CRM'))
     await sleep(3000)
     // type into this UI, go to the other one and come back: the session stays mounted, so the
     // half-typed value is still there (each UI keeps its own state)
@@ -157,11 +169,11 @@ try {
     await page.getByTestId('hub-switch').filter({ visible: true }).first().click()
     await sleep(600)
     await page.getByRole('button', { name: /^People Desk,/ }).filter({ visible: true }).first().click()
-    await waitText('People Desk ⇅')
+    await barShows('People Desk')
     await page.getByTestId('hub-switch').filter({ visible: true }).first().click()
     await sleep(600)
     await page.getByRole('button', { name: /^Acme CRM,/ }).filter({ visible: true }).first().click()
-    await waitText('Acme CRM ⇅')
+    await barShows('Acme CRM')
     await sleep(500)
     const kept = await page.locator('input').filter({ visible: true }).first().inputValue().catch(() => '')
     check('the UI kept its state across the switch (no reload)', kept === 'Ada Lovelace', `field value "${kept}"`)

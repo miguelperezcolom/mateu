@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Icon } from 'react-native-paper';
 import { Text } from '../../ui/Text';
-import { headingA11y } from '../../a11y/a11y';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import { fetchManifest, versionGate, type UiManifest } from '../manifest';
 import type { HubEntry } from '../uiStore';
-import { PrimaryButton, SecondaryButton, UiIcon, hubStyles } from './common';
+import { HubBar, HubCard, Notice, PrimaryButton, UiIcon, hubStyles } from './common';
 
 /**
  * Confirm before adding (design/mobile-app-hub.md, Security): a QR can come from anyone, so the
@@ -48,43 +48,36 @@ export function ConfirmAddScreen({
 
   return (
     <View style={hubStyles.screen}>
-      <View style={hubStyles.header}>
-        <SecondaryButton label="Cancel" onPress={onCancel} />
-        <Text style={hubStyles.headerTitle} {...headingA11y(1)}>Add this UI?</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HubBar title="Add this UI?" onNavigate={onCancel} navigateIcon="close" navigateLabel="Cancel" />
       <ScrollView contentContainerStyle={hubStyles.body}>
-        <View style={hubStyles.card}>
-          <Text style={styles.caption}>Server</Text>
+        <HubCard>
+          <View style={styles.serverHead}>
+            <Icon source={insecure ? 'lock-open-alert-outline' : 'lock-outline'} size={18} color={insecure ? theme.warning : theme.success} />
+            <Text style={styles.caption}>Server</Text>
+          </View>
           <Text style={styles.domain} accessibilityLabel={`Server domain: ${domain}`} testID="hub-confirm-domain">
             {domain}
           </Text>
           <Text style={styles.baseUrl} selectable>{baseUrl}</Text>
-        </View>
+        </HubCard>
 
         {insecure && (
-          <View style={hubStyles.warning}>
-            <Text style={hubStyles.warningText}>Not secure (http): allowed only because this is a development build.</Text>
-          </View>
+          <Notice tone="warning" text={`Not secure (http): allowed only because this is a development build.`} />
         )}
 
         {existing ? (
           <>
-            <View style={hubStyles.note}>
-              <Text style={hubStyles.noteText}>"{existing.name}" is already in your list.</Text>
-            </View>
+            <Notice tone="info" text={`"${existing.name}" is already in your list.`} />
             <PrimaryButton label={`Open ${existing.name}`} onPress={() => onOpenExisting(existing)} />
           </>
         ) : state.phase === 'loading' ? (
           <View style={styles.loading}>
-            <ActivityIndicator color={theme.primary} />
+            <ActivityIndicator />
             <Text style={hubStyles.text}>Contacting {domain}…</Text>
           </View>
         ) : state.phase === 'error' ? (
           <>
-            <View style={hubStyles.warning} accessibilityRole="alert">
-              <Text style={hubStyles.warningText}>{state.reason}</Text>
-            </View>
+            <Notice tone="warning" alert text={state.reason} />
             <PrimaryButton label="Try again" onPress={() => void load()} />
           </>
         ) : (
@@ -103,29 +96,23 @@ function ManifestCard({ manifest, missing, appVersion, onAdd }: { manifest: UiMa
   const issuer = manifest.auth ? domainOf(manifest.auth.issuer) : null;
   return (
     <>
-      <View style={[hubStyles.card, styles.appRow]}>
+      <HubCard style={styles.appRow}>
         <UiIcon name={manifest.name} icon={manifest.icon} color={manifest.themeColor} size={56} />
         <View style={styles.appText}>
           <Text style={styles.caption}>Says it is</Text>
           <Text style={styles.appName} testID="hub-confirm-name">{manifest.name}</Text>
         </View>
-      </View>
+      </HubCard>
       {missing && (
-        <View style={hubStyles.note}>
-          <Text style={hubStyles.noteText}>This server does not describe itself (no Mateu manifest). It is named after its domain.</Text>
-        </View>
+        <Notice tone="info" text={`This server does not describe itself (no Mateu manifest). It is named after its domain.`} />
       )}
       {issuer && (
-        <View style={hubStyles.note}>
-          <Text style={hubStyles.noteText}>You will sign in with {issuer}.</Text>
-        </View>
+        <Notice tone="info" text={`You will sign in with ${issuer}.`} />
       )}
       {!gate.ok && (
-        <View style={hubStyles.warning}>
-          <Text style={hubStyles.warningText}>{gate.reason} You can add it now and open it after updating Mateu.</Text>
-        </View>
+        <Notice tone="warning" text={`${gate.reason} You can add it now and open it after updating Mateu.`} />
       )}
-      <PrimaryButton label="Add" onPress={() => onAdd(manifest)} hint={`Adds ${manifest.name} to your list`} />
+      <PrimaryButton label="Add" icon="plus" onPress={() => onAdd(manifest)} hint={`Adds ${manifest.name} to your list`} />
     </>
   );
 }
@@ -147,25 +134,19 @@ export function ConfirmImportScreen({
   const fresh = baseUrls.filter((u) => !known(u));
   return (
     <View style={hubStyles.screen}>
-      <View style={hubStyles.header}>
-        <SecondaryButton label="Cancel" onPress={onCancel} />
-        <Text style={hubStyles.headerTitle} {...headingA11y(1)}>Import UIs</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HubBar title="Import UIs" onNavigate={onCancel} navigateIcon="close" navigateLabel="Cancel" />
       <ScrollView contentContainerStyle={hubStyles.body}>
         <Text style={[hubStyles.text, styles.fine]}>This code lists {baseUrls.length} server{baseUrls.length === 1 ? '' : 's'}. Only their addresses are imported — no sign-ins.</Text>
-        <View style={hubStyles.card}>
+        <HubCard>
           {baseUrls.map((u) => (
             <View key={u} style={styles.importRow}>
               <Text style={styles.importDomain}>{domainOf(u)}</Text>
               <Text style={styles.importState}>{known(u) ? 'already added' : 'new'}</Text>
             </View>
           ))}
-        </View>
+        </HubCard>
         {rejected > 0 && (
-          <View style={hubStyles.warning}>
-            <Text style={hubStyles.warningText}>{rejected} address{rejected === 1 ? ' was' : 'es were'} skipped (not secure or invalid).</Text>
-          </View>
+          <Notice tone="warning" text={`${rejected} address${rejected === 1 ? ' was' : 'es were'} skipped (not secure or invalid).`} />
         )}
         <PrimaryButton
           label={fresh.length ? `Add ${fresh.length} UI${fresh.length === 1 ? '' : 's'}` : 'Nothing new to add'}
@@ -178,9 +159,9 @@ export function ConfirmImportScreen({
 }
 
 const styles = themed(() => StyleSheet.create({
-  headerSpacer: { width: 60 },
-  caption: { fontSize: 12, color: theme.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  domain: { fontSize: 26, fontWeight: '700', color: theme.ink },
+  serverHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  caption: { fontSize: 12, color: theme.muted, letterSpacing: 0.5 },
+  domain: { fontSize: 24, fontWeight: '500', color: theme.ink },
   baseUrl: { fontSize: 13, color: theme.muted },
   loading: { alignItems: 'center', gap: 8, padding: theme.spacing.md },
   appRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
