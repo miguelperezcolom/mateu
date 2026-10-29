@@ -146,6 +146,12 @@ test('sample mode: a sampled source is never proxied; one without a sample still
 test('direct leg: the url is encoded by position, a JSON body escaped, a non-2xx throws', async () => {
   reset()
   assert.equal(interpolateRestUrl('/people/${state.id}?q=${state.q}', { state: { id: 'a/b', q: 'x y&z' } }), '/people/a%2Fb?q=x%20y%26z')
+  // EXPRESSIONS are evaluated like libs/mateu's interpolateUrl (read as a path they came out empty,
+  // so a listing's page, search, sort and filters never reached its source)
+  const listing = 'https://api.example.com/people?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId ?? \'\'}${state.sort?.[0]?.direction === \'descending\' ? \',desc\' : \'\'}&search=${encodeURIComponent(state.searchText ?? \'\')}'
+  assert.equal(interpolateRestUrl(listing, { state: {} }), 'https://api.example.com/people?page=0&size=20&sort=&search=')
+  assert.equal(interpolateRestUrl(listing, { state: { page: 2, size: 10, searchText: 'sky', sort: [{ fieldId: 'name', direction: 'descending' }] } }),
+    'https://api.example.com/people?page=2&size=10&sort=name%2Cdesc&search=sky')
   assert.throws(() => interpolateRestUrl('/people/${state.id}', { state: { id: '..' } }))
   assert.throws(() => interpolateRestUrl('${state.host}/x', { state: { host: 'http://evil' } }))
   assert.equal(interpolateRestUrl('${appState.base}/x', { appState: { base: 'https://a.b' } }), 'https://a.b/x')

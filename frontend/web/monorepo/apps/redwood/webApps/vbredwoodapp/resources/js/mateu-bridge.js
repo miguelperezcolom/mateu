@@ -6949,12 +6949,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // own) brings its buttons — the header's actions list them
       .flatMap((b) => (b && !b.actionId && Array.isArray(b.children || b.buttons) ? (b.children || b.buttons) : [b]))
       .filter((b) => b && b.actionId)
-      .map((b) => ({
-        actionId: b.actionId,
-        label: b.label || b.actionId,
-        chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
-        disabled: !!b.disabled,
-      }))
+      .map((b) => {
+        // a Button whose actionable is a RouteLink (a YAML record's "Edit" → people/${state.id}/edit,
+        // "Back to People" → people) NAVIGATES: its actionId is only the label's echo, with nothing
+        // behind it on the server (strict mode answered 403). An unresolved route disables it.
+        const state = ctx.state || {}
+        const route = b.route ? buttonRouteOf(b.route, state) : null
+        return {
+          actionId: b.actionId,
+          // a label may name the record ("Back to ${state.name}")
+          label: interpolate(b.label || b.actionId, state),
+          chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+          disabled: !!b.disabled || (!!b.route && route == null),
+          ...(route ? { route } : {}),
+        }
+      })
   }
 
   /**
@@ -7487,12 +7496,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         .map((c) => [c.id, c.sortingProperty || c.id])),
       total: page.totalElements == null ? null : page.totalElements,
       isEmpty: (page.content || []).length === 0,
-      toolbar: (md.toolbar || []).map((b) => ({
-        actionId: b.actionId,
-        label: b.label,
-        chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
-        disabled: !!b.disabled,
-      })),
+      // a toolbar Button whose actionable is a RouteLink ("New character" → people/new) NAVIGATES, like
+      // a content button (content.mjs buttonOf) and the web: its actionId is only the label's echo and
+      // the server has nothing behind it (strict mode answers 403). An unresolved route disables it.
+      toolbar: (md.toolbar || []).map((b) => {
+        const route = b.route ? buttonRouteOf(b.route, ctx.state || {}) : null
+        return {
+          actionId: b.actionId,
+          label: b.label,
+          chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+          disabled: !!b.disabled || (!!b.route && route == null),
+          ...(route ? { route } : {}),
+        }
+      }),
       // QUICK selector of the listing: option filters (e.g. an enum in Filters, like
       // the View of the bookings listing) → oj-sp-filter-chip chips next to the smart search;
       // the filters travel as select FormFields in the metadata (sometimes in the mediator,
@@ -15140,6 +15156,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return tokens
   }
 
+  // The pure global functions an expression may CALL by name — the subset of libs/mateu's GLOBALS
+  // that a REST url template needs (`${encodeURIComponent(state.searchText ?? '')}`). Values only: no
+  // constructor, nothing that reaches Function.
+  const RULE_GLOBAL_FUNCTIONS = {
+    encodeURIComponent, decodeURIComponent, encodeURI, decodeURI,
+    parseInt, parseFloat, isNaN, isFinite,
+    String: (v) => String(v), Number: (v) => Number(v), Boolean: (v) => Boolean(v),
+  }
+
   /** Evaluates a rule expression against `scope` ({ state, data, appState, appData, component }).
    *  Never throws: what it does not understand yields undefined. */
   function evaluateExpression(expr, scope = {}) {
@@ -15260,7 +15285,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (tok.v === 'null') return null
         if (tok.v === 'undefined') return undefined
         // only the scope's OWN names: `constructor`, `toString`… must not reach Object.prototype
-        return Object.prototype.hasOwnProperty.call(scope, tok.v) ? scope[tok.v] : undefined
+        if (Object.prototype.hasOwnProperty.call(scope, tok.v)) return scope[tok.v]
+        // a call of an allowed global function (encodeURIComponent(…))
+        if (Object.prototype.hasOwnProperty.call(RULE_GLOBAL_FUNCTIONS, tok.v) && take('(')) {
+          return RULE_GLOBAL_FUNCTIONS[tok.v](...args())
+        }
+        return undefined
       }
       throw new SyntaxError('unexpected ' + tok.v)
     }
@@ -17913,6 +17943,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
   let restCatalogue = []
@@ -18091,8 +18122,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const REST_EXPRESSION = /\$\{([^}]*)\}/g
 
-  /** The value an expression names in the scope ({state, data, row, appState, appData}). */
+  // a plain dotted path (`state.page`, `row['a-b']`): read directly
+  const REST_PLAIN_PATH = /^\s*[A-Za-z_$][\w$]*(\s*(\.\s*[A-Za-z_$][\w$]*|\[\s*['"][^'"\]]+['"]\s*\]))*\s*$/
+
+  /**
+   * The value an expression names in the scope ({state, data, row, appState, appData}). A plain path is
+   * read directly; anything else (`state.page ?? 0`, `state.sort?.[0]?.fieldId`, a ternary,
+   * `encodeURIComponent(…)`) is EVALUATED, like libs/mateu's interpolateUrl — read as a path it came
+   * out empty, so a listing's page, size, search and filters never reached its source.
+   */
   function restScopeValue(expr, scope) {
+    if (!REST_PLAIN_PATH.test(String(expr))) return evaluateExpression(expr, scope || {})
     const path = String(expr).trim().replace(/\[\s*['"]([^'"\]]+)['"]\s*\]/g, '.$1')
     const parts = path.split('.').filter((p) => p !== '')
     if (!parts.length) return undefined
@@ -22478,6 +22518,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
       mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
+      // a primary that NAVIGATES (a RouteLink button): listPrimary goes there instead of running the id
+      mateuListPrimaryRoute: primaryToolbar && primaryToolbar.route ? primaryToolbar.route : '',
       mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
     }
   }
@@ -22688,6 +22730,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       showListInline: !!listing && !showListBand,
       primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
       primaryId: primaryBtn ? primaryBtn.actionId : '',
+      // a primary / back that NAVIGATES (RouteLink button): headerPrimary / headerGoToParent go there
+      primaryRoute: primaryBtn && primaryBtn.route ? primaryBtn.route : '',
+      backRoute: backBtn && backBtn.route ? backBtn.route : '',
       secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
         .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
       goToParent: !!backBtn || !!parentCrumbNav,
