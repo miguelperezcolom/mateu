@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchManifest, parseManifest, resolveIcon, versionGate } from './manifest.ts';
+import { fetchManifest, parseManifest, resolveIcon, resolveMount, versionGate } from './manifest.ts';
 
 const BASE = 'https://acme.com/crm';
 
@@ -149,4 +149,50 @@ test('a manifest cannot point the app at another host through `bundle`', () => {
     assert.equal(parseManifest({ name: 'X', bundle }, STATIC, true).bundle, undefined, String(bundle));
   }
   assert.equal(parseManifest({ name: 'X' }, STATIC, true).bundle, undefined); // a server: no bundle
+});
+
+// ── a PAGE url (a browser's "QR code for this page"): the mount is found by asking upwards ──
+
+test('resolveMount: a page url finds the UI it belongs to and keeps the screen as the route', async () => {
+  const asked: string[] = [];
+  const server = (mount: string) => async (url: string) => {
+    asked.push(url);
+    const isManifest = url === `${mount}/mateu/v3/manifest`;
+    // any other path: the SPA fallback answers the index page (200, not JSON)
+    return isManifest
+      ? { ok: true, status: 200, json: async () => ({ name: 'Star Wars' }) }
+      : { ok: true, status: 200, json: async () => JSON.parse('<html>'), text: async () => '<html>' };
+  };
+  const root = await resolveMount('https://starwars.example.com/people/1', server('https://starwars.example.com'));
+  assert.equal(root.baseUrl, 'https://starwars.example.com');
+  assert.equal(root.route, 'people/1');
+  assert.deepEqual(root.fetched, { ok: true, manifest: { name: 'Star Wars' } });
+  assert.equal(asked[0], 'https://starwars.example.com/people/1/mateu/v3/manifest');
+
+  const mounted = await resolveMount('https://acme.com/crm/orders', server('https://acme.com/crm'));
+  assert.equal(mounted.baseUrl, 'https://acme.com/crm');
+  assert.equal(mounted.route, 'orders');
+
+  const bare = await resolveMount('https://acme.com/crm', server('https://acme.com/crm'));
+  assert.deepEqual([bare.baseUrl, bare.route], ['https://acme.com/crm', undefined]);
+});
+
+test('resolveMount: nothing answers → the url itself; a failed deep try does not stop the walk', async () => {
+  const none = await resolveMount('https://example.com/a/b', respond(404, null));
+  assert.equal(none.baseUrl, 'https://example.com/a/b');
+  assert.equal(none.fetched.ok && 'missing' in none.fetched, true);
+  let tries = 0;
+  const down = await resolveMount('https://down.example.com/a/b/c', async () => {
+    tries++;
+    throw new TypeError('Network request failed');
+  });
+  assert.equal(tries, 4);
+  assert.equal(down.fetched.ok, false);
+  // the web build: the deep path is the static host's index page WITHOUT CORS (a fetch TypeError),
+  // the root answers the manifest
+  const corsy = await resolveMount('https://rw.example.com/films', async (url: string) => {
+    if (url !== 'https://rw.example.com/mateu/v3/manifest') throw new TypeError('Failed to fetch');
+    return { ok: true, status: 200, json: async () => ({ name: 'Star Wars' }) };
+  });
+  assert.deepEqual([corsy.baseUrl, corsy.route], ['https://rw.example.com', 'films']);
 });

@@ -33,7 +33,7 @@ export interface ParseOptions {
 }
 
 export type HubLink =
-  | { kind: 'add'; baseUrl: string; route?: string }
+  | { kind: 'add'; baseUrl: string; route?: string; probe?: boolean }
   | { kind: 'import'; baseUrls: string[]; rejected: number }
   | { kind: 'invalid'; reason: string };
 
