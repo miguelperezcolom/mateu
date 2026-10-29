@@ -139,7 +139,7 @@ sources:
         X-Api-Key: ${secret.SWAPI_WRITE_KEY}
       body: >-
         {"name":"${state.name}","height":"${state.height}","mass":"${state.mass}",
-        "hairColor":"${state.hairColor}","eyeColor":"${state.eyeColor}",
+        "hairColor":"${state.hairColor}","skinColor":"${state.skinColor}","eyeColor":"${state.eyeColor}",
         "birthYear":"${state.birthYear}","gender":"${state.gender}",
         "homeworldId":"${state.homeworldId}"}
 

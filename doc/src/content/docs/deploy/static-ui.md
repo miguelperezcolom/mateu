@@ -191,6 +191,28 @@ mateu-bundle: the bundle is declared static (staticOnly) but 1 thing(s) still ne
 Without `staticOnly` the bundle is a **hybrid**: whatever it cannot answer falls through to the
 backend at `baseUrl`. That is a legitimate deployment too.
 
+### Reads static, writes through a backend (an API key the browser must not see)
+
+The usual reason for a hybrid is an API whose **writes need a key**. A key in a static file is not a
+secret, so the write sources are `proxy: true` with `${secret.X}` in their headers. Only a server can
+resolve them, from a `SecretsProvider` or the env var `MATEU_SECRET_X`. Everything else stays
+static: the pages, and the reads, which go from the browser straight to the API.
+
+Serve the bundle with the backend at the **same origin**. That way `baseUrl` stays `""` and no CORS
+is involved. Route `/mateu/**` to a Mateu backend that has the same `specs/ui` and holds the secret,
+and everything else to the files. The UI manifest the mobile app reads (`/mateu/v3/manifest`) is a
+**file** of the bundle, so exempt it from the route to the backend. With nginx:
+
+```nginx
+location = /mateu/v3/manifest { default_type application/json; try_files $uri =404; }
+location /mateu/ { proxy_pass http://my-mateu-backend:8080; }
+location / { try_files $uri $uri/ /index.html; }
+```
+
+The public Star Wars demo is built this way (`starwars-rw.ec1.mateu.io`, `deploy/demos/` in the
+repository). It is a Redwood bundle whose create, edit and delete go through the
+`demo/demo-starwars` backend, which holds the swapi write key.
+
 ## Hosting
 
 - **Any static host.** Serve the folder with an **SPA fallback** — every path that is not a file gets

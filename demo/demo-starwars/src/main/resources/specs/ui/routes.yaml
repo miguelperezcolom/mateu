@@ -6,6 +6,8 @@ type: Routes
 routes:
   - route: ""          # the mount root → the app shell
     definition: app.yaml
+  - route: welcome     # the home page (app.yaml homeRoute)
+    definition: welcome.yaml
   - route: people
     definition: people.yaml
 

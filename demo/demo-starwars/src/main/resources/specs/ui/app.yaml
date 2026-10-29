@@ -3,9 +3,20 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: AppShell
 title: Star Wars
+# Mateu's mark: the header logo and favicon, and (through the UI manifest) the icon in the Mateu app
+logo: /images/mateu.png
+favicon: /images/mateu.png
 subtitle: A Mateu app authored entirely in YAML, over a Star Wars API that searches, filters and pages
 variant: MENU_ON_TOP
+# the welcome page is the home (the menu would otherwise make its first entry the home)
+homeRoute: welcome
+# "Open on mobile": a header button with the QR that adds this UI to the Mateu mobile app
+mobileQr: true
 menu:
+  - type: RouteLink
+    label: Home
+    route: welcome
+    icon: vaadin:home
   - type: RouteLink
     label: People
     route: people
