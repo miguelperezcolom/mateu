@@ -99,7 +99,8 @@ describe('the demo-starwars mount', () => {
     const g = buildMountGraph(files)
 
     it('maps every route, with no broken link', () => {
-        expect(g.screens.filter((s) => s.kind === 'page')).toHaveLength(24)
+        // 6 resources × 4 screens + the welcome page
+        expect(g.screens.filter((s) => s.kind === 'page')).toHaveLength(25)
         expect(g.unresolved).toEqual([])
     })
     it('lays each resource out as a row, the rows packed to a screen-like board', () => {
