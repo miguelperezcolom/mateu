@@ -7,7 +7,8 @@ import { fromExpoDevLink, parseHubLink, type HubLink, type ParseOptions } from '
 import type { UiManifest } from './manifest';
 import { allowInsecure, appVersion, extraLinkHosts, metaStore, uiStore } from './storage';
 import { ScreenSnapshots } from '../core/screenSnapshots';
-import { bundleKey, fileBundleStore } from './bundleCache';
+import { bundleKey } from './bundleCache';
+import { fileBundleStore } from './bundleFileStore';
 import { DEMO_BASE_URL, type HubEntry } from './uiStore';
 import { AddScreen } from './ui/AddScreen';
 import { confirmDialog } from './ui/common';

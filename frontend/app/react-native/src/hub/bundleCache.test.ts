@@ -1,8 +1,7 @@
-import { mock, test } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-mock.module('react-native', { namedExports: { Platform: { OS: 'ios' } } });
-const { cachedStaticBundle } = await import('./bundleCache.ts');
+import { cachedStaticBundle } from './bundleCache.ts';
 type Store = Parameters<typeof cachedStaticBundle>[2] extends infer D ? NonNullable<D extends { store?: infer S } ? S : never> : never;
 
 const BASE = 'https://rw.example.com';
