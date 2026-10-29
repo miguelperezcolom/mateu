@@ -187,3 +187,45 @@ export async function fetchManifest(
     if (timer) clearTimeout(timer);
   }
 }
+
+/** At most this many path segments are tried as the mount of a page url (a deep link is shorter). */
+const MAX_MOUNT_PROBES = 6;
+
+export interface ResolvedMount {
+  baseUrl: string;
+  /** The rest of the page's path below the mount: the screen the page was showing. */
+  route?: string;
+  fetched: ManifestFetch;
+}
+
+/**
+ * The UI a PAGE url belongs to — what a browser's own "QR code for this page" carries
+ * (`https://crm.acme.com/app/orders/7`): its mount is not said anywhere, so the manifest is asked
+ * from the full path upwards (`/app/orders/7`, `/app/orders`, `/app`, `/`) and the first that
+ * answers a Mateu manifest (or a static bundle) is the UI; the rest of the path is the route to open.
+ * A failed try does not stop the walk: in the app's web build a deep path answers the static host's
+ * index page with no CORS header, which reads as a network failure while the mount above answers.
+ * Nothing found → the url itself, answered as its own fetch was.
+ */
+export async function resolveMount(
+  pageUrl: string,
+  fetchImpl: FetchLike = fetch as unknown as FetchLike,
+  options: { allowInsecure?: boolean; timeoutMs?: number } = {},
+): Promise<ResolvedMount> {
+  const m = /^(https?:\/\/[^/?#]+)(\/[^?#]*)?/i.exec(pageUrl);
+  if (!m) return { baseUrl: pageUrl, fetched: await fetchManifest(pageUrl, fetchImpl, options) };
+  const origin = m[1];
+  const segments = (m[2] ?? '').split('/').filter(Boolean);
+  let first: ManifestFetch | undefined;
+  const from = Math.min(segments.length, MAX_MOUNT_PROBES);
+  for (let i = from; i >= 0; i--) {
+    const baseUrl = origin + (i ? `/${segments.slice(0, i).join('/')}` : '');
+    const fetched = await fetchManifest(baseUrl, fetchImpl, options);
+    first ??= fetched;
+    if (fetched.ok && !('missing' in fetched)) {
+      const route = segments.slice(i).join('/');
+      return route ? { baseUrl, route, fetched } : { baseUrl, fetched };
+    }
+  }
+  return { baseUrl: pageUrl, fetched: first! };
+}

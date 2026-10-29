@@ -57,7 +57,8 @@ function TypeAddress({ linkOptions, onLink }: { linkOptions: ParseOptions; onLin
       return;
     }
     setError('');
-    onLink({ kind: 'add', baseUrl: n.baseUrl });
+    // a typed address may be a PAGE of the UI (copied from the browser): its mount is looked up
+    onLink(n.baseUrl.split('/').length > 3 ? { kind: 'add', baseUrl: n.baseUrl, probe: true } : { kind: 'add', baseUrl: n.baseUrl });
   };
   return (
     <View style={hubStyles.body}>
@@ -134,7 +135,13 @@ function Scanner({ linkOptions, onLink, onType }: { linkOptions: ParseOptions; o
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
         onBarcodeScanned={({ data }) => {
           if (handled.current || data === lastBad.current) return;
-          const link = parseHubLink(data, linkOptions);
+          let link = parseHubLink(data, linkOptions);
+          // not a Mateu link but a web address: the browser's own "QR code for this page" — the UI
+          // that page belongs to is looked up (and confirmed) like any other
+          if (link.kind === 'invalid' && /^https?:\/\//i.test(data.trim())) {
+            const page = normalizeBaseUrl(data, linkOptions);
+            if (page.ok) link = { kind: 'add', baseUrl: page.baseUrl, probe: true };
+          }
           if (link.kind === 'invalid') {
             // the same unrelated code stays in view: say it once, keep scanning
             lastBad.current = data;

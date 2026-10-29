@@ -18,7 +18,7 @@ import { UiSession } from './ui/UiSession';
 type Screen =
   | { name: 'home' }
   | { name: 'add'; mode: 'scan' | 'type' }
-  | { name: 'confirm'; baseUrl: string; route?: string }
+  | { name: 'confirm'; baseUrl: string; route?: string; probe?: boolean }
   | { name: 'import'; baseUrls: string[]; rejected: number }
   | { name: 'export' }
   | { name: 'ui' };
@@ -94,7 +94,7 @@ export function HubApp() {
       const existing = uiStore.findByBaseUrl(link.baseUrl);
       // already trusted: a link just opens it (at its route); a new one always goes through confirm
       if (existing && source === 'link') open(existing, link.route);
-      else setScreen({ name: 'confirm', baseUrl: link.baseUrl, route: link.route });
+      else setScreen({ name: 'confirm', baseUrl: link.baseUrl, route: link.route, probe: link.probe });
     },
     [open],
   );
@@ -191,11 +191,13 @@ export function HubApp() {
         return (
           <ConfirmAddScreen
             baseUrl={screen.baseUrl}
-            existing={uiStore.findByBaseUrl(screen.baseUrl)}
+            route={screen.route}
+            probe={screen.probe}
+            findExisting={(u) => uiStore.findByBaseUrl(u)}
             allowInsecure={allowInsecure}
             appVersion={appVersion()}
-            onAdd={(m) => void addConfirmed(screen.baseUrl, m, screen.route)}
-            onOpenExisting={(e) => open(e, screen.route)}
+            onAdd={(m, baseUrl, route) => void addConfirmed(baseUrl, m, route)}
+            onOpenExisting={(e, route) => open(e, route)}
             onCancel={goHome}
           />
         );
