@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Appbar } from 'react-native-paper';
 import { Text } from '../../ui/Text';
-import { buttonA11y, headingA11y } from '../../a11y/a11y';
+import { headingA11y } from '../../a11y/a11y';
 import { MateuAppProvider } from '../../context/AppContext';
 import { OidcTokenProvider } from '../../core/oidc';
 import type { MateuSession } from '../../core/MateuSession';
@@ -153,12 +154,13 @@ export function UiSession({
 
   const name = manifest?.name ?? entry.name;
   const color = manifest?.themeColor ?? entry.themeColor;
+  const ink = color ? inkOn(color) : theme.ink;
 
   let body: React.ReactNode;
   if (phase.name === 'manifest' || (phase.name === 'ready' && !sessionId)) {
     body = (
       <View style={hubStyles.centered}>
-        <ActivityIndicator size="large" color={theme.primary} />
+        <ActivityIndicator size="large" />
         <Text style={hubStyles.text}>Opening {name}…</Text>
       </View>
     );
@@ -167,7 +169,7 @@ export function UiSession({
       <View style={hubStyles.centered} accessibilityRole="alert">
         <Text style={hubStyles.title} {...headingA11y(2)}>Can't open {name}</Text>
         <Text style={hubStyles.text}>{phase.reason}</Text>
-        <PrimaryButton label="Try again" onPress={() => setAttempt((a) => a + 1)} style={styles.wide} />
+        <PrimaryButton label="Try again" icon="refresh" onPress={() => setAttempt((a) => a + 1)} style={styles.wide} />
       </View>
     );
   } else if (phase.name === 'update') {
@@ -187,7 +189,7 @@ export function UiSession({
         <Text style={hubStyles.text}>
           You sign in with {manifest?.auth ? domainOf(manifest.auth.issuer) : 'your organisation'}. Mateu never sees your password.
         </Text>
-        <PrimaryButton label="Sign in" onPress={() => void signIn()} style={styles.wide} />
+        <PrimaryButton label="Sign in" icon="login" onPress={() => void signIn()} style={styles.wide} />
         {!!phase.error && (
           <Text style={hubStyles.error} accessibilityLiveRegion="polite">
             {phase.error}
@@ -205,35 +207,27 @@ export function UiSession({
 
   return (
     <View style={[styles.session, !visible && styles.hidden]} accessibilityElementsHidden={!visible} importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}>
-      <View style={[styles.bar, { backgroundColor: color ?? theme.ink }]}>
-        <TouchableOpacity {...buttonA11y({ label: 'My UIs' })} onPress={onHome} style={styles.barButton} testID="hub-home">
-          <Text style={[styles.barText, { color: inkOn(color ?? theme.ink) }]}>‹ My UIs</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          {...buttonA11y({ label: `${name}. Switch UI`, hint: 'Shows your other UIs' })}
+      <Appbar.Header statusBarHeight={0} style={{ backgroundColor: color ?? theme.surface }}>
+        <Appbar.BackAction onPress={onHome} accessibilityLabel="My UIs" color={ink} testID="hub-home" />
+        <Appbar.Content
+          title={name}
+          titleStyle={[styles.barName, { color: ink }]}
           onPress={onSwitch}
-          onLongPress={onSwitch}
-          style={styles.barTitle}
+          accessibilityRole="button"
+          accessibilityLabel={`${name}. Switch UI`}
+          accessibilityHint="Shows your other UIs"
           testID="hub-switch"
-        >
-          <Text style={[styles.barName, { color: inkOn(color ?? theme.ink) }]} numberOfLines={1}>
-            {name} ⇅
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.barButton} />
-      </View>
+        />
+        <Appbar.Action icon="swap-horizontal" onPress={onSwitch} color={ink} accessibilityLabel="Switch UI" />
+      </Appbar.Header>
       {body}
     </View>
   );
 }
 
 const styles = themed(() => StyleSheet.create({
-  session: { ...StyleSheet.absoluteFill, backgroundColor: '#FFFFFF' },
+  session: { ...StyleSheet.absoluteFill, backgroundColor: theme.background },
   hidden: { display: 'none' },
-  bar: { flexDirection: 'row', alignItems: 'center', minHeight: theme.minTouch, paddingHorizontal: 4 },
-  barButton: { minWidth: 88, minHeight: theme.minTouch, justifyContent: 'center', paddingHorizontal: 8 },
-  barText: { fontSize: 15, fontWeight: '600' },
-  barTitle: { flex: 1, minHeight: theme.minTouch, alignItems: 'center', justifyContent: 'center' },
-  barName: { fontSize: 15, fontWeight: '700' },
+  barName: { fontSize: 22, fontWeight: '400' },
   wide: { alignSelf: 'stretch', maxWidth: 340, marginTop: theme.spacing.sm },
 }));
