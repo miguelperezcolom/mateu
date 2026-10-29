@@ -120,10 +120,13 @@ test('isSseAction: the wrapper\'s sse actions, and a crud toolbar button whose t
 })
 
 test('collection header: the first toolbar button is primary, the rest secondary', () => {
-  assert.deepEqual(listHeaderVarsOf(null), { mateuListPrimary: { label: '', display: 'off' }, mateuListPrimaryId: '', mateuListSecondary: [] })
+  assert.deepEqual(listHeaderVarsOf(null), { mateuListPrimary: { label: '', display: 'off' }, mateuListPrimaryId: '', mateuListPrimaryRoute: '', mateuListSecondary: [] })
   const v = listHeaderVarsOf({ toolbar: [{ actionId: 'new', label: 'New' }, { actionId: 'exp', label: 'Export' }] })
   assert.deepEqual(v.mateuListPrimary, { label: 'New' })
   assert.equal(v.mateuListPrimaryId, 'new')
+  assert.equal(v.mateuListPrimaryRoute, '')
+  // a RouteLink primary ("New character" → people/new) carries its route: listPrimary navigates
+  assert.equal(listHeaderVarsOf({ toolbar: [{ actionId: 'newCharacter', label: 'New character', route: 'people/new' }] }).mateuListPrimaryRoute, 'people/new')
   assert.deepEqual(v.mateuListSecondary, [{ id: 'exp', value: 'exp', label: 'Export' }])
 })
 

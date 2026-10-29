@@ -131,6 +131,8 @@ export function listHeaderVarsOf(listingSummary) {
   return {
     mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
     mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
+    // a primary that NAVIGATES (a RouteLink button): listPrimary goes there instead of running the id
+    mateuListPrimaryRoute: primaryToolbar && primaryToolbar.route ? primaryToolbar.route : '',
     mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
   }
 }

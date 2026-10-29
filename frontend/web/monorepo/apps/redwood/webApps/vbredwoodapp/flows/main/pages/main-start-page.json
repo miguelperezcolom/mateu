@@ -580,9 +580,10 @@
     "listPrimary": {
       "chains": [
         {
-          "chain": "runMateuAction",
+          "chain": "dispatchHostBlockAction",
           "parameters": {
-            "actionId": "{{ $application.variables.mateuListPrimaryId }}"
+            "actionId": "{{ $application.variables.mateuListPrimaryId }}",
+            "route": "{{ $application.variables.mateuListPrimaryRoute }}"
           }
         }
       ]

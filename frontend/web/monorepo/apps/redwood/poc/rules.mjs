@@ -100,6 +100,15 @@ function tokenize(src) {
   return tokens
 }
 
+// The pure global functions an expression may CALL by name — the subset of libs/mateu's GLOBALS
+// that a REST url template needs (`${encodeURIComponent(state.searchText ?? '')}`). Values only: no
+// constructor, nothing that reaches Function.
+const RULE_GLOBAL_FUNCTIONS = {
+  encodeURIComponent, decodeURIComponent, encodeURI, decodeURI,
+  parseInt, parseFloat, isNaN, isFinite,
+  String: (v) => String(v), Number: (v) => Number(v), Boolean: (v) => Boolean(v),
+}
+
 /** Evaluates a rule expression against `scope` ({ state, data, appState, appData, component }).
  *  Never throws: what it does not understand yields undefined. */
 export function evaluateExpression(expr, scope = {}) {
@@ -220,7 +229,12 @@ export function evaluateExpression(expr, scope = {}) {
       if (tok.v === 'null') return null
       if (tok.v === 'undefined') return undefined
       // only the scope's OWN names: `constructor`, `toString`… must not reach Object.prototype
-      return Object.prototype.hasOwnProperty.call(scope, tok.v) ? scope[tok.v] : undefined
+      if (Object.prototype.hasOwnProperty.call(scope, tok.v)) return scope[tok.v]
+      // a call of an allowed global function (encodeURIComponent(…))
+      if (Object.prototype.hasOwnProperty.call(RULE_GLOBAL_FUNCTIONS, tok.v) && take('(')) {
+        return RULE_GLOBAL_FUNCTIONS[tok.v](...args())
+      }
+      return undefined
     }
     throw new SyntaxError('unexpected ' + tok.v)
   }
