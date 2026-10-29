@@ -432,7 +432,7 @@ renderers, and its children still render.
 | `Gantt` | ✅ | oj-gantt: a row per task, progress fill, task click → onTaskSelectionActionId |
 | `Grid` | ✅ | oj-table (list display): tree rows with disclosure, client-side paging by its size |
 | `Heatmap` | ✅ | JET has none: a calendar heatmap (a column per week), 4 levels + legend, values on hover |
-| `HeroSection` | ✅ | the Welcome archetype: oj-sp-welcome-page (every CTA, heroImage full bleed); in the content, a hero band (title, subtitle, background image) over its children |
+| `HeroSection` | ✅ | the Welcome archetype: oj-sp-welcome-page (every CTA, heroImage as its texture); in the content, a hero band (title, subtitle, background image) over its children |
 | `HorizontalLayout` | ✅ | oj-flex row |
 | `Icon` | ✅ | the Redwood icon font (oj-ux-ico-*), an emoji as text |
 | `Image` | ✅ | JET has no image component: an <img>; relative sources are served by the backend |
