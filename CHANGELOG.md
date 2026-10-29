@@ -11,6 +11,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.21] — 2026-10-29
+
+On Redwood, a Welcome's hero image is drawn again, as the banner's texture (as on redwood.oracle.com).
+
 ### Fixed
 
 - **Redwood: a Welcome's `heroImage()` is drawn again.** Since the welcome became Spectra's
