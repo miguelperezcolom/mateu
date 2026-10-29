@@ -89,7 +89,9 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             messages; a snapshot PAINTS, its OnLoads do not fire; none for a UI that
                             signs in). `[Mateu timing]` logs each step (core/timing.ts). EAS packs the
                             repo minus .easignore — metro watches libs/mateu/src, so .easignore must
-                            keep it (a missing folder fails "Bundle JavaScript", not locally)
+                            keep it (a missing folder fails "Bundle JavaScript", not locally); its
+                            patterns take NO trailing `/` (eas-cli matches bare folder paths); check
+                            with `CI=1 npx eas-cli build:inspect --stage archive --output <dir>`
   intellij-plugin/        ← Desktop — IntelliJ IDEA plugin (tool windows, editor tabs, docking)
                             (the JavaFX and Compose renderers were REMOVED 2026-07-10)
 
