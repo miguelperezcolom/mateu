@@ -29,6 +29,7 @@ import { findFirst } from './core/listing.mjs'
 import { collectFields } from './core/tree.mjs'
 import { pageHeaderNodeOf, RECORD_SWITCHER_OPTIONS } from './core/pageHeader.mjs'
 import { declaredActionOf, LOOKUP_LOADED } from './core/rowEditor.mjs'
+import { evaluateExpression } from './rules.mjs'
 
 // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
@@ -208,8 +209,17 @@ export function restPageOf(json, source, columnIds) {
 
 const REST_EXPRESSION = /\$\{([^}]*)\}/g
 
-/** The value an expression names in the scope ({state, data, row, appState, appData}). */
+// a plain dotted path (`state.page`, `row['a-b']`): read directly
+const REST_PLAIN_PATH = /^\s*[A-Za-z_$][\w$]*(\s*(\.\s*[A-Za-z_$][\w$]*|\[\s*['"][^'"\]]+['"]\s*\]))*\s*$/
+
+/**
+ * The value an expression names in the scope ({state, data, row, appState, appData}). A plain path is
+ * read directly; anything else (`state.page ?? 0`, `state.sort?.[0]?.fieldId`, a ternary,
+ * `encodeURIComponent(…)`) is EVALUATED, like libs/mateu's interpolateUrl — read as a path it came
+ * out empty, so a listing's page, size, search and filters never reached its source.
+ */
 function restScopeValue(expr, scope) {
+  if (!REST_PLAIN_PATH.test(String(expr))) return evaluateExpression(expr, scope || {})
   const path = String(expr).trim().replace(/\[\s*['"]([^'"\]]+)['"]\s*\]/g, '.$1')
   const parts = path.split('.').filter((p) => p !== '')
   if (!parts.length) return undefined

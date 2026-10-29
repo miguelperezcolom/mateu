@@ -32,9 +32,10 @@ define([
       if (!match) {
         return;
       }
+      // a RouteLink button navigates (bridge.blockClickOf), any other runs its action
       await Actions.callChain(context, {
-        chain: 'runMateuAction',
-        params: { actionId: match.actionId },
+        chain: 'dispatchHostBlockAction',
+        params: { actionId: match.actionId, route: match.route || '' },
       });
     }
   }

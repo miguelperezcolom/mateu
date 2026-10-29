@@ -285,9 +285,12 @@ export function layoutBoard(graph: MountGraph, aspect = 1.6): Record<string, Boa
     const start = graph.start !== undefined && ids.has(graph.start) ? graph.start : undefined
     if (start !== undefined) placed.add(start)
 
-    // One band per screen the start leads to: the screens reached through it, breadth first.
+    // One band per screen the start leads to: the screens reached through it, breadth first. A band
+    // does not take a screen the start ALSO leads to — a welcome page linking every section would
+    // swallow them all into one tall band; each keeps its own.
     const bands: Band[] = []
-    const reach = { next, ids, placed }
+    const reserved = new Set(start === undefined ? [] : next.get(start) ?? [])
+    const reach = { next, ids, placed, reserved }
     for (const to of start === undefined ? [] : next.get(start) ?? []) {
         if (!placed.has(to) && ids.has(to)) bands.push(growBand(to, reach))
     }
@@ -312,10 +315,10 @@ export function layoutBoard(graph: MountGraph, aspect = 1.6): Record<string, Boa
 }
 
 type Band = { cells: { id: string; col: number; row: number }[]; cols: number; rows: number }
-type Reach = { next: Map<string, string[]>; ids: Set<string>; placed: Set<string> }
+type Reach = { next: Map<string, string[]>; ids: Set<string>; placed: Set<string>; reserved?: Set<string> }
 
 /** A band grown from `root`: breadth first, a column per step, each screen on its parent's row or the first free one below. */
-function growBand(root: string, { next, ids, placed }: Reach): Band {
+function growBand(root: string, { next, ids, placed, reserved }: Reach): Band {
     const cells: Band['cells'] = []
     const nextFree: number[] = []
     const queue = [{ id: root, col: 0, parentRow: 0 }]
@@ -326,7 +329,7 @@ function growBand(root: string, { next, ids, placed }: Reach): Band {
         nextFree[col] = row + 1
         cells.push({ id, col, row })
         for (const to of next.get(id) ?? []) {
-            if (placed.has(to) || !ids.has(to)) continue
+            if (placed.has(to) || !ids.has(to) || reserved?.has(to)) continue
             placed.add(to)
             queue.push({ id: to, col: col + 1, parentRow: row })
         }

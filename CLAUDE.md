@@ -583,7 +583,14 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   `demo-vb` (:9005). The element-by-element reviews (file:line, the gap backlog) are `design/redwood-templates/*.md`;
   `ux-patterns/redwood-page-templates.md` groups the templates as Redwood does (overview/detail/transactional).
 - **Redwood (VB).** Every wire type renders (`poc/coverage.mjs`; only Workflow/FormEditor are read-only);
-  an unknown type shows an "Unsupported component" placeholder. Core split into `poc/core/*.mjs` (page
+  an unknown type shows an "Unsupported component" placeholder.
+  Two contracts every Redwood projection must keep (both broke the static Star Wars site, 2026-10-29):
+  a Button carrying a `route` (a RouteLink actionable — YAML toolbars) NAVIGATES wherever it is
+  projected — content (`buttonOf`), listing toolbar (`listingOf`) and page header (`pageToolbarOf`) —
+  through `dispatchHostBlockAction` (`blockClickOf`); its `actionId` is only the label's echo and the
+  server answers 403. And a REST source url's `${…}` is an EXPRESSION (`state.page ?? 0`,
+  `encodeURIComponent(…)`), evaluated by `evaluateExpression` like libs/mateu's `interpolateUrl` —
+  read as a path it came out empty, so search/filters/paging silently did nothing. Core split into `poc/core/*.mjs` (page
   logic in `pageProjection.mjs`/`actionPlan.mjs`); chrome text in `poc/i18n.mjs` bound via the VB
   `appBundle`; `RICH_ATOM_FLAGS` must list any new atom flag or a page with fields hides it behind the
   generic form. Jar layout: `static/_redwood` + `mateu-build-info.json` (source hash checked by
