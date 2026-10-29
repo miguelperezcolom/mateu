@@ -8,6 +8,7 @@ import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';
 import type { StaticBundle } from '../core/staticBundle';
+import type { ScreenSnapshots } from '../core/screenSnapshots';
 
 export interface MateuConfig {
   baseUrl: string;
@@ -19,6 +20,8 @@ export interface MateuConfig {
   onSession?: (session: MateuSession) => void;
   /** The base URL serves a static bundle (no Mateu server): the app runs from it. */
   bundle?: StaticBundle | null;
+  /** The last screens of this UI, shown at once on the next open (only for a UI without sign-in). */
+  snapshots?: ScreenSnapshots | null;
 }
 
 interface AppContextValue {
@@ -46,6 +49,7 @@ export function MateuAppProvider({ config, children }: Props) {
   if (!ref.current) {
     ref.current = new MateuSession(config.baseUrl, config.sessionId ?? randomUuid(), config.appState ?? {}, config.auth);
     if (config.bundle) ref.current.openStaticBundle(config.bundle);
+    if (config.snapshots) ref.current.snapshots = config.snapshots;
     config.onSession?.(ref.current);
   }
   const session = ref.current;

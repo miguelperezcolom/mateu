@@ -178,7 +178,10 @@ export class StaticBundle {
 }
 
 export type BundleFetch =
-  | { ok: true; bundle: StaticBundle }
+  /** `text`/`etag`: what a cache keeps to revalidate it later (If-None-Match). */
+  | { ok: true; bundle: StaticBundle; text?: string; etag?: string }
+  /** Revalidation: the cached copy (its ETag was sent) is still the current one (HTTP 304). */
+  | { ok: false; reason: string; notModified: true }
   /** The address answered, but not with a bundle manifest (a server, an ordinary site). */
   | { ok: false; reason: string; notABundle: true }
   | { ok: false; reason: string; offline?: boolean };
@@ -187,13 +190,24 @@ type FetchLike = (url: string, init?: { headers?: Record<string, string>; signal
   ok: boolean;
   status: number;
   text(): Promise<string>;
+  headers?: { get(name: string): string | null };
 }>;
+
+/** A bundle from manifest text already at hand (a cached copy); null when it is not one. */
+export function bundleFromText(text: string, baseUrl: string, locales?: () => string[]): StaticBundle | null {
+  try {
+    const raw: unknown = JSON.parse(text);
+    return isBundleManifest(raw) ? new StaticBundle(raw, baseUrl, locales) : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Fetches and checks a bundle manifest. Never throws. */
 export async function fetchStaticBundle(
   baseUrl: string,
   path: string = BUNDLE_MANIFEST,
-  options: { fetchImpl?: FetchLike; timeoutMs?: number; locales?: () => string[] } = {},
+  options: { fetchImpl?: FetchLike; timeoutMs?: number; locales?: () => string[]; ifNoneMatch?: string } = {},
 ): Promise<BundleFetch> {
   const safe = bundlePath(path);
   if (!safe) return { ok: false, reason: 'The UI names an invalid bundle.', notABundle: true };
@@ -201,7 +215,10 @@ export async function fetchStaticBundle(
   const controller = typeof AbortController !== 'undefined' ? new AbortController() : undefined;
   const timer = controller ? setTimeout(() => controller.abort(), options.timeoutMs ?? 15_000) : undefined;
   try {
-    const res = await fetchImpl(bundleUrl(baseUrl, safe), { headers: { Accept: 'application/json' }, signal: controller?.signal });
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (options.ifNoneMatch) headers['If-None-Match'] = options.ifNoneMatch;
+    const res = await fetchImpl(bundleUrl(baseUrl, safe), { headers, signal: controller?.signal });
+    if (res.status === 304 && options.ifNoneMatch) return { ok: false, reason: 'Not modified.', notModified: true };
     if (!res.ok) return { ok: false, reason: `No static UI at this address (HTTP ${res.status}).`, notABundle: true };
     const text = await res.text();
     if (text.length > MAX_BUNDLE_BYTES) return { ok: false, reason: 'The UI is too large to open.', notABundle: true };
@@ -212,7 +229,8 @@ export async function fetchStaticBundle(
       return { ok: false, reason: 'The server is not a Mateu app.', notABundle: true };
     }
     if (!isBundleManifest(raw)) return { ok: false, reason: 'The server is not a Mateu app.', notABundle: true };
-    return { ok: true, bundle: new StaticBundle(raw, baseUrl, options.locales) };
+    const etag = res.headers?.get?.('etag') ?? undefined;
+    return { ok: true, bundle: new StaticBundle(raw, baseUrl, options.locales), text, ...(etag ? { etag } : {}) };
   } catch {
     return { ok: false, reason: "Can't reach the server. Check the address and your connection.", offline: true };
   } finally {

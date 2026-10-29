@@ -7,11 +7,14 @@ import { MateuAppProvider } from '../../context/AppContext';
 import { OidcTokenProvider } from '../../core/oidc';
 import type { MateuSession } from '../../core/MateuSession';
 import { SessionContent } from '../../shell/SessionContent';
-import { fetchStaticBundle, type StaticBundle } from '../../core/staticBundle';
+import { type StaticBundle } from '../../core/staticBundle';
+import { ScreenSnapshots } from '../../core/screenSnapshots';
+import { timed } from '../../core/timing';
+import { cachedStaticBundle } from '../bundleCache';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import { fetchManifest, versionGate, type ManifestFetch, type UiManifest } from '../manifest';
-import { allowInsecure, appVersion, secretStore, uiStore } from '../storage';
+import { allowInsecure, appVersion, metaStore, secretStore, uiStore } from '../storage';
 import { uiSecretKeys, type HubEntry } from '../uiStore';
 import { uiSessionId } from '../uiSession';
 import { PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
@@ -57,7 +60,9 @@ async function staticBundleOf(
 ): Promise<Found<{ bundle: StaticBundle | null }>> {
   if (!manifest.bundle) return { ok: true, bundle: null };
   if (fetched.ok && 'bundle' in fetched && fetched.bundle) return { ok: true, bundle: fetched.bundle };
-  return fetchStaticBundle(baseUrl, manifest.bundle);
+  // the device's copy at once (revalidated in the background), else downloaded and kept
+  const found = await cachedStaticBundle(baseUrl, manifest.bundle);
+  return found.ok ? { ok: true, bundle: found.bundle } : { ok: false, reason: found.reason };
 }
 
 export function UiSession({
@@ -92,7 +97,17 @@ export function UiSession({
     void (async () => {
       setPhase({ name: 'manifest' });
       void uiStore.touch(entry.id);
-      const fetched = await fetchManifest(entry.baseUrl, undefined, { allowInsecure });
+      const fetchFresh = () => timed('manifest', () => fetchManifest(entry.baseUrl, undefined, { allowInsecure }), () => 'network');
+      // A UI opened before opens with the manifest it was left with, AT ONCE, and refreshes it in the
+      // background (the list's name/icon, and the gate and sign-in settings for the next open): the
+      // round trip — up to its 10 s timeout on a bad network — no longer stands before the screen.
+      let fetched: ManifestFetch;
+      if (entry.manifest) {
+        fetched = { ok: false, reason: 'cached' };
+        void fetchFresh().then((fresh) => (fresh.ok ? manifestOf(fresh, entry) : undefined)).catch(() => undefined);
+      } else {
+        fetched = await fetchFresh();
+      }
       const m = await manifestOf(fetched, entry);
       if (!m.ok) {
         if (alive) setPhase({ name: 'error', reason: m.reason });
@@ -152,6 +167,13 @@ export function UiSession({
     [onHome, onSwitch, entry.name, provider],
   );
 
+  // the last screens, shown at once on the next open — never for a UI that signs in: what a
+  // signed-in screen shows is not left on the device
+  const snapshots = useMemo(
+    () => (manifest?.auth ? null : new ScreenSnapshots(metaStore, entry.id)),
+    [entry.id, manifest?.auth],
+  );
+
   const name = manifest?.name ?? entry.name;
   const color = manifest?.themeColor ?? entry.themeColor;
   const ink = color ? inkOn(color) : theme.ink;
@@ -199,7 +221,7 @@ export function UiSession({
     );
   } else {
     body = (
-      <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle }}>
+      <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots }}>
         <SessionContent initialRoute={route} visible={visible} />
       </MateuAppProvider>
     );

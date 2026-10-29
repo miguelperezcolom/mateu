@@ -1,17 +1,29 @@
 # EAS Build packs the whole monorepo (archiving starts at the git root); only the React
 # Native renderer under frontend/app/react-native is needed for the mobile build, so keep
-# the archive small by excluding everything else. Same syntax as .gitignore.
+# the archive small by excluding everything else. Same syntax as .gitignore, BUT no trailing `/`:
+# eas-cli matches each folder by its path WITHOUT one (`backend`), and a dir-only pattern
+# (`backend/`) never matches that — none of these exclusions applied, nor the re-inclusions below.
 
-/apidocs/
-/backend/
-/demo/
-/design/
-/doc/
-/e2e/
-/frontend/web/
-/frontend/app/intellij-plugin/
+/apidocs
+/backend
+/demo
+/design
+/doc
+/e2e
+# …but the shared web library's SOURCES stay: metro.config.js watches them and the native
+# renderer imports its platform-neutral part (src/shared/mateuLib.ts). A negation cannot reach
+# inside an excluded folder, so each level is opened just enough.
+/frontend/web/*
+!/frontend/web/monorepo
+/frontend/web/monorepo/*
+!/frontend/web/monorepo/libs
+/frontend/web/monorepo/libs/*
+!/frontend/web/monorepo/libs/mateu
+/frontend/web/monorepo/libs/mateu/*
+!/frontend/web/monorepo/libs/mateu/src
+/frontend/app/intellij-plugin
 
 # never ship dependency trees or local envs (EAS installs from package-lock.json)
-node_modules/
-.dev/
+node_modules
+.dev
 .DS_Store

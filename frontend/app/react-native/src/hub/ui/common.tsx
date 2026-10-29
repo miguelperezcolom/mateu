@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Alert, Image, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Alert, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Image } from 'expo-image';
 import { Appbar, Button, Icon, Surface } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { theme, themed } from '../../theme';
@@ -45,9 +46,11 @@ export function UiIcon({ name, icon, color, size = 44 }: { name: string; icon?: 
   const box = { width: size, height: size, borderRadius: size / 2 };
   if (icon && !failed) {
     return (
+      // expo-image keeps it on disk: the list does not download every icon again on each launch
       <Image
         source={{ uri: icon }}
         style={[box, styles.iconImage]}
+        cachePolicy="memory-disk"
         onError={() => setFailed(true)}
         accessibilityElementsHidden
         importantForAccessibility="no"

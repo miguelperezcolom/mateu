@@ -5,7 +5,10 @@ import { announce } from '../a11y/a11y';
 import { theme, themed } from '../theme';
 import { fromExpoDevLink, parseHubLink, type HubLink, type ParseOptions } from './links';
 import type { UiManifest } from './manifest';
-import { allowInsecure, appVersion, extraLinkHosts, uiStore } from './storage';
+import { allowInsecure, appVersion, extraLinkHosts, metaStore, uiStore } from './storage';
+import { ScreenSnapshots } from '../core/screenSnapshots';
+import { bundleKey } from './bundleCache';
+import { fileBundleStore } from './bundleFileStore';
 import { DEMO_BASE_URL, type HubEntry } from './uiStore';
 import { AddScreen } from './ui/AddScreen';
 import { confirmDialog } from './ui/common';
@@ -153,6 +156,9 @@ export function HubApp() {
     setSessions((s) => s.filter((x) => x.id !== entry.id));
     if (activeId === entry.id) setActiveId(undefined);
     await uiStore.remove(entry.id);
+    // what the app kept of it to open it fast goes with it
+    void new ScreenSnapshots(metaStore, entry.id).clear();
+    if (entry.manifest?.bundle) void fileBundleStore.remove(bundleKey(entry.baseUrl, entry.manifest.bundle));
     announce(`${entry.name} removed`);
   };
 

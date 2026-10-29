@@ -1,3 +1,4 @@
+import { recordTiming, timed } from './timing.ts';
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
 import { applyClientRules } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
@@ -170,32 +171,83 @@ export class MateuViewController {
 
   async initialLoad(route: string): Promise<void> {
     this.publish({ ...this.view, loading: true, error: null });
+    const snapshotKey = this.snapshotKeyOf(route ?? '', '_empty', '');
+    let fromSnapshot = false;
     try {
-      const increment = await this.session.api.initialLoad(route, this.session.appState);
+      // the screen this load answered last time, at once — the fresh answer replaces it
+      const snapshot = snapshotKey ? await this.session.snapshots!.get(snapshotKey) : null;
+      if (snapshot) {
+        this.currentRoute = route ?? '';
+        this.applySnapshot(snapshot);
+        fromSnapshot = true;
+        recordTiming('first screen', Date.now() - this.loadStarted, 'snapshot');
+      }
+      const increment = await timed(`load ${route || '/'}`, () => this.session.api.initialLoad(route, this.session.appState));
       this.currentRoute = route ?? '';
       this.freshScreen = true;
       this.applyIncrement(increment as Json);
+      if (!fromSnapshot) recordTiming('first screen', Date.now() - this.loadStarted, 'network');
+      if (snapshotKey) void this.session.snapshots!.put(snapshotKey, increment);
     } catch (e) {
-      this.publish({ ...this.view, loading: false, error: errorText(e) });
+      // a snapshot on screen stays there when the network fails (as an offline copy)
+      if (!fromSnapshot) this.publish({ ...this.view, loading: false, error: errorText(e) });
+      else if (this.view.loading) this.publish({ ...this.view, loading: false });
     }
   }
 
   async navigate(route: string, consumedRoute: string, serverSideType: string): Promise<void> {
     this.publish({ ...this.view, loading: true, error: null });
-    try {
-      const increment = await this.session.api.navigate(route, consumedRoute, serverSideType, this.session.appState);
+    const snapshotKey = this.snapshotKeyOf(route ?? '', consumedRoute ?? '', serverSideType ?? '');
+    let fromSnapshot = false;
+    const enter = () => {
       this.currentRoute = route ?? '';
       this.currentConsumedRoute = consumedRoute ?? '';
       this.currentServerSideType = serverSideType ?? '';
       this.navigationServerSideType = serverSideType ?? '';
       this.currentComponentState = {};
       this.actionBanners = []; // action banners don't survive page navigations
+    };
+    try {
+      const snapshot = snapshotKey ? await this.session.snapshots!.get(snapshotKey) : null;
+      if (snapshot) {
+        enter();
+        this.applySnapshot(snapshot);
+        fromSnapshot = true;
+      }
+      const increment = await timed(`load ${route || '/'}`, () =>
+        this.session.api.navigate(route, consumedRoute, serverSideType, this.session.appState));
+      enter();
       this.freshScreen = true;
       this.applyIncrement(increment as Json);
       if (this.view.loading) this.publish({ ...this.view, loading: false });
+      if (snapshotKey) void this.session.snapshots!.put(snapshotKey, increment);
     } catch (e) {
-      this.publish({ ...this.view, loading: false, error: errorText(e) });
+      if (!fromSnapshot) this.publish({ ...this.view, loading: false, error: errorText(e) });
+      else if (this.view.loading) this.publish({ ...this.view, loading: false });
     }
+  }
+
+  private applyingSnapshot = false;
+
+  /** Paints a snapshot: no OnLoad trigger, no polling — the fresh answer that follows does that. */
+  private applySnapshot(snapshot: Json): void {
+    this.applyingSnapshot = true;
+    try {
+      this.applyIncrement(snapshot);
+    } finally {
+      this.applyingSnapshot = false;
+    }
+  }
+
+  /** When this controller was created: the clock of its first screen. */
+  private readonly loadStarted = Date.now();
+
+  /** A load's snapshot key — none for a static bundle (answered on the device anyway) or a UI that
+   *  signs in (the host passes no snapshots then). */
+  private snapshotKeyOf(route: string, consumedRoute: string, serverSideType: string): string | null {
+    const snapshots = this.session.snapshots;
+    if (!snapshots || this.session.api.local) return null;
+    return snapshots.keyOf(route, consumedRoute, serverSideType);
   }
 
   async runAction(actionId: string, parameters?: Json, silent = false): Promise<void> {
@@ -755,6 +807,8 @@ export class MateuViewController {
           version: this.view.version + 1,
         });
         const triggers = asArray(component['triggers']);
+        // a snapshot only PAINTS: its OnLoads (a listing's search…) run with the fresh answer
+        if (this.applyingSnapshot) return;
         const fresh = this.freshScreen;
         this.freshScreen = false;
         // timed OnLoad/OnSuccess: armed on a NEW screen only — a same-screen re-render (what a
