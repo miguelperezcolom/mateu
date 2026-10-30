@@ -1577,7 +1577,9 @@ export function islandContentOf(ctx, opts = {}) {
     }
     // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
     // of emptyStateOf — painted there, not twice)
-    if (t === 'EmptyState' && !(ctx.kind === 'host' && pageEmptyStateNode(ctx.tree) === node)) {
+    // the page's own empty state is painted full-page, not here — but one inside a page template's
+    // slot (ctx.templateSlot: a collection detail's noSelection) is that slot's content
+    if (t === 'EmptyState' && !(ctx.kind === 'host' && !ctx.templateSlot && pageEmptyStateNode(ctx.tree) === node)) {
       atom(emptyStateAtomOf(m, interp), container)
       return
     }

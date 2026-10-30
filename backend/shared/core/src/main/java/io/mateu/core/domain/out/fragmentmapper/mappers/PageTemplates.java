@@ -4,6 +4,7 @@ import io.mateu.dtos.PageTemplateDto;
 import io.mateu.dtos.TemplateImageDto;
 import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.CollectionDetailPage;
 import io.mateu.uidl.data.DashboardLandingPage;
 import io.mateu.uidl.data.DashboardLayout;
 import io.mateu.uidl.data.GeneralOverviewPage;
@@ -37,6 +38,7 @@ public final class PageTemplates {
   static final String WELCOME = "WelcomePage";
   static final String DASHBOARD = "DashboardLandingPage";
   static final String GENERAL_OVERVIEW = "GeneralOverviewPage";
+  static final String COLLECTION_DETAIL = "CollectionDetailPage";
 
   private PageTemplates() {}
 
@@ -53,6 +55,9 @@ public final class PageTemplates {
     }
     if (form.template() instanceof GeneralOverviewPage overview) {
       return List.of(generalOverview(overview, form.content()));
+    }
+    if (form.template() instanceof CollectionDetailPage collection) {
+      return List.of(collectionDetail(collection, form.content()));
     }
     return form.content();
   }
@@ -79,6 +84,9 @@ public final class PageTemplates {
     }
     if (template instanceof GeneralOverviewPage) {
       return new PageTemplateDto(GENERAL_OVERVIEW, null, null);
+    }
+    if (template instanceof CollectionDetailPage) {
+      return new PageTemplateDto(COLLECTION_DETAIL, null, null);
     }
     return null;
   }
@@ -192,6 +200,30 @@ public final class PageTemplates {
         .wrap(true)
         .spacing(true)
         .content(columns)
+        .build();
+  }
+
+  /**
+   * Collection detail: the collection ({@code list}) beside the selected item's detail (the form's
+   * content) — or, when the page has no content, the {@code noSelection} slot.
+   */
+  private static Component collectionDetail(CollectionDetailPage template, List<Component> detail) {
+    return HorizontalLayout.builder()
+        .id("collection-detail")
+        .wrap(true)
+        .spacing(true)
+        .content(
+            List.of(
+                slot("collection-detail-list", template.list(), "flex: 0 0 24rem; max-width: 100%"),
+                detail.isEmpty()
+                    ? slot(
+                        "collection-detail-no-selection",
+                        template.noSelection(),
+                        "flex: 1 1 24rem; min-width: min(24rem, 100%)")
+                    : slot(
+                        "collection-detail-detail",
+                        detail,
+                        "flex: 1 1 24rem; min-width: min(24rem, 100%)")))
         .build();
   }
 

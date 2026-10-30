@@ -388,6 +388,16 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   kpis = contextual info, toolbar) is the form's. Redwood: `templatedGeneralOverviewOf` (overviews.mjs,
   exported by make-amd) feeds `mateuGop` BEFORE the entity-page shape rule (`generalOverviewPageOf`);
   a section block becomes `isSpSectionHeader` + its items (the gop markup has no spSection branch).
+- **`CollectionDetailPage`** (`oj-sp-collection-detail-page`, slots `list`/`noSelection`, content =
+  `detailTemplate`): selection is the URL — a page WITH content has a selection (`collection-detail-detail`),
+  one without shows `collection-detail-no-selection` (decided at definition time, same in every renderer).
+  Redwood `templatedCollectionDetailOf` → `mateuCd` (header actions = the form toolbar, primary first, via
+  `headerSecondary`). A `Listing` in the `list` slot: the listing machinery is PAGE-level, so its body is
+  the 4th make-html partial `poc/templates/listing-body.html` (`@listing-body page|cd`, SAME ids — the
+  listing page `oj-bind-if`s on `!mateuCd`); `pageHeaderOf` gets `listing: null` under a cd (no list band).
+  GOTCHAS: `PartialExpander` never walked `Form.template` (not a Component) — `ComponentRecords` now walks
+  `FormTemplate` record values; an EmptyState inside a template slot was swallowed as the PAGE's
+  full-page empty state (`content.mjs` honours `ctx.templateSlot`; `mateuHostEmpty` skips under mateuCd).
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

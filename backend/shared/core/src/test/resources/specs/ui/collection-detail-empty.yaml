@@ -1,0 +1,10 @@
+# Fixture for PageTemplateSyncTest: the same collection with NO selection — no content, so the
+# template's noSelection slot takes the detail's place.
+type: Form
+title: Species
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Text, text: The collection}
+  noSelection:
+    - {type: Text, text: Pick one}

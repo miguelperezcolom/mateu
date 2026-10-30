@@ -626,7 +626,7 @@ function templatedItemOverviewOf(ctx, atomsOfNodes) {
  */
 export function templatedGeneralOverviewOf(ctx) {
   if (!declaresTemplate(ctx, 'GeneralOverviewPage')) return null
-  const blocksOf = (node) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_gop',
+  const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gop',
     metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
     .map((b) => (b.spSection
       ? { isPlain: true, blockClass: 'oj-flex-item oj-sm-12',
@@ -636,6 +636,39 @@ export function templatedGeneralOverviewOf(ctx) {
     on: true,
     main: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-main')) },
     info: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-info')) },
+  }
+}
+
+/**
+ * A page that DECLARES the Collection detail page template (`template: CollectionDetailPage`) → the
+ * oj-sp-collection-detail-page projection (mateuCd, as collectionDetailPageOf shapes it): the `list`
+ * slot is the collection, the detail (the form's content) or the `noSelection` slot read by id. A page
+ * with a detail HAS a selection (its record's id), one without shows noSelection.
+ */
+export function templatedCollectionDetailOf(ctx) {
+  if (!declaresTemplate(ctx, 'CollectionDetailPage')) return null
+  const FULL = 'oj-flex-item oj-sm-12'
+  const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_cd',
+    metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
+    .map((b) => (b.spSection
+      ? { isPlain: true, blockClass: FULL,
+        items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) }
+      : { ...b, blockClass: FULL }))
+  const detailNode = nodeById(ctx.tree, 'collection-detail-detail')
+  const state = (ctx && ctx.state) || {}
+  const form = templateFormOf(ctx)
+  return {
+    title: interpolate(String((form && form.metadata && form.metadata.title) || ''), state),
+    collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list')),
+    selectedItems: detailNode ? [{ id: String(state.id != null ? state.id : 'selected') }] : [],
+    detail: detailNode ? blocksOf(detailNode) : [],
+    noSelection: detailNode ? [] : blocksOf(nodeById(ctx.tree, 'collection-detail-no-selection')),
+    // the template's header has no primary action: every toolbar button is one of its actions (the
+    // primary first), resolved by headerSecondary against the page toolbar
+    actions: ((form && form.metadata && form.metadata.toolbar) || [])
+      .filter((b) => b && !/^(back|backToList|cancel-view)$/.test(b.actionId || ''))
+      .sort((a, b) => (b.buttonStyle === 'primary') - (a.buttonStyle === 'primary'))
+      .map((b) => ({ id: b.actionId || b.label, label: interpolate(String(b.label || b.actionId || ''), state) })),
   }
 }
 

@@ -4,6 +4,7 @@ import {
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
   pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf, contextualInfoOf, factActionsJsonOf,
   drawerOverlayOf, dialogOverlayOf, dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf,
+  templatedCollectionDetailOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 import { chromeText } from './i18n.mjs'
@@ -173,7 +174,8 @@ export function archetypeVarsOf(host) {
   // Spectra page templates with slots (core/spPages.mjs): DataManagement / GanttPage →
   // oj-sp-data-management-page, CollectionDetail → oj-sp-collection-detail-page
   const dm = welcome || overview || item || dashboard || todo ? null : dataManagementPageOf(host)
-  const cd = welcome || overview || item || dashboard || todo || dm ? null : collectionDetailPageOf(host, { title: pageTitleOf(host) })
+  const cd = welcome || overview || item || dashboard || todo || dm ? null
+    : (templatedCollectionDetailOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) }))
   const vars = {
     mateuDashboard: dashboard,
     mateuTodo: todo,
@@ -239,7 +241,7 @@ export function hostContentPlanOf(host, { islandRawBlocks, title, activeTabs, wi
   const todo = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard ? todoListOf(host) : null
   // …and the Spectra slot templates (data management / gantt page, collection detail)
   const spPage = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo
-    ? (dataManagementPageOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
+    ? (dataManagementPageOf(host) || templatedCollectionDetailOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
   const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo && !spPage
   const hostEntity = (!wizard && (noOtherBranch || foldout)) ? entityHeaderOf(host) : null
   const opts = { title, dropEntityHeader: !!hostEntity }

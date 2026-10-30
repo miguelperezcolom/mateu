@@ -138,6 +138,36 @@ trigger itself, no annotation needed). The detail pane can be any component tree
 needs its own actions or lifecycle (the *inline editing* variation), return an embedded routed view
 — an island with its own server-side component — instead of a plain card.
 
+
+### In YAML
+
+A YAML page fills the template with `template: {type: CollectionDetailPage}` on its `type: Form` —
+see [Page templates](/define/yaml/pages/#page-templates--template). Selection lives in the URL: the
+collection's page (`species`) has no content, so the template shows its `noSelection` slot; the
+item's page (`species/:id`, with `data:` fetching the record) is the SAME list beside the item's
+detail (the form's content). Put the list in a partial so both pages share it; a `Listing` in the
+`list` slot is painted by Redwood inside the template's collection, with its own search box.
+
+```yaml
+# species.yaml (route species)
+type: Form
+title: Species
+template:
+  type: CollectionDetailPage
+  list: [{type: Partial, ref: species-list}]     # a Listing with rowRoute: species/${row.id}
+  noSelection:
+    - {type: EmptyState, title: Pick a species}
+---
+# species-record.yaml (route species/:id, data: the species)
+type: Form
+title: Species
+template:
+  type: CollectionDetailPage
+  list: [{type: Partial, ref: species-list}]
+content:
+  - {type: Text, container: h2, text: "${state.name}"}
+```
+
 ## Redwood parameter and slot reference
 
 What the Redwood `collection-detail-page` template (and its `collection-detail-stacker`) exposes,

@@ -182,6 +182,40 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aCollectionDetailPageShowsTheDetailOrNoSelection() throws Exception {
+    var page = render("collection-detail-page");
+    assertThat(page.path("metadata").path("template").path("type").asText())
+        .isEqualTo("CollectionDetailPage");
+    var list = byId(page, "collection-detail-list");
+    assertThat(list.path("children").path(0).path("metadata").path("text").asText())
+        .isEqualTo("The collection");
+    var detail = byId(page, "collection-detail-detail");
+    assertThat(detail.path("children").path(0).path("metadata").path("fieldId").asText())
+        .isEqualTo("classification");
+    assertThat(byId(page, "collection-detail-no-selection")).isNull();
+
+    // no content = no selection: the noSelection slot takes the detail's place
+    var empty = render("collection-detail-empty");
+    assertThat(byId(empty, "collection-detail-detail")).isNull();
+    assertThat(
+            byId(empty, "collection-detail-no-selection")
+                .path("children")
+                .path(0)
+                .path("metadata")
+                .path("text")
+                .asText())
+        .isEqualTo("Pick one");
+  }
+
+  @Test
+  void aPartialInATemplateSlotIsExpanded() throws Exception {
+    var list = byId(render("collection-detail-partial"), "collection-detail-list");
+    assertThat(list.path("children")).hasSize(2);
+    assertThat(list.path("children").path(1).path("metadata").path("text").asText())
+        .isEqualTo("Prices include VAT.");
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

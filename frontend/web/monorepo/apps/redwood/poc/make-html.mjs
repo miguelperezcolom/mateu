@@ -29,6 +29,31 @@ const fieldsPartial = readFileSync(join(here, 'templates', 'fields-extra.html'),
 // FIRST: it brings its own @atoms and @fields-extra markers, which the next passes fill.
 const drawerBodyPartial = readFileSync(join(here, 'templates', 'drawer-body.html'), 'utf8').replace(/\n$/, '')
 
+// The LISTING's body (search results: cards / table / paging) in a FOURTH partial: the listing page
+// paints it, and so does a YAML CollectionDetailPage in its collection slot — never both (the listing
+// page stands aside while a collection detail is on), so the copies keep the SAME ids (the chains
+// address #mateuTable). Between `<!-- @listing-body <where> -->` and `<!-- @end-listing-body -->`,
+// expanded first like the drawer body (it brings its own @atoms markers).
+const listingBodyPartial = readFileSync(join(here, 'templates', 'listing-body.html'), 'utf8').replace(/\n$/, '')
+
+/** Expands the @listing-body markers (the partial is unindented: it takes the marker's indentation). */
+export const expandListingBodies = (html) => {
+  const lines = html.split('\n')
+  const out = []
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^(\s*)<!-- @listing-body (\w+) -->/)
+    if (!m) { out.push(lines[i]); continue }
+    out.push(lines[i])
+    let j = i + 1
+    while (j < lines.length && !/<!-- @end-listing-body -->/.test(lines[j])) j++
+    if (j === lines.length) throw new Error(`@listing-body sin @end-listing-body (línea ${i + 1})`)
+    out.push(...reindent(listingBodyPartial, m[1]))
+    out.push(lines[j])
+    i = j
+  }
+  return out.join('\n')
+}
+
 /** A copy's literal ids suffixed with its template (`id="x"` → `id="x-general"`): the three copies
  *  live in ONE page, where an id must be unique. Bound ids (`:id=`) and `data-*-id` are left alone. */
 export const uniqueIds = (html, copy) => html.replace(/(^|\s)id="([^"]+)"/g, (all, lead, id) => `${lead}id="${id}-${copy}"`)
@@ -81,7 +106,7 @@ export const expandFields = (html) => {
 }
 
 export const expand = (html) => {
-  const lines = expandDrawerBodies(html).split('\n')
+  const lines = expandDrawerBodies(expandListingBodies(html)).split('\n')
   const out = []
   let count = 0
   for (let i = 0; i < lines.length; i++) {

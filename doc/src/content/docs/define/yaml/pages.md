@@ -193,6 +193,7 @@ filled with the record's data (`${state.x}`) — is the **page**.
 |---|---|---|---|
 | `GeneralOverviewPage` | `oj-sp-general-overview-page` | — | `info` (the complementary side panel); the form's `content` is `main`. The header — title, `recordSwitcher`, `kpis` (contextual info), timestamp, toolbar — is the form's |
 | `ItemOverviewPage` | `oj-sp-item-overview-page` + `oj-sp-item-overview` | `avatar {src, initials}` (round) or `photo {src}` (4:3) | `body`, `footer` (the overview panel); the form's `content` is `main` |
+| `CollectionDetailPage` | `oj-sp-collection-detail-page` | — | `list` (the collection — typically a `Listing` with a `rowRoute`, often a partial shared by two pages), `noSelection`; the form's `content` is the selected item's detail (`detailTemplate`): a page with content has a selection, one without shows `noSelection` |
 | `DashboardLandingPage` | `oj-sp-dashboard-landing-page` | — | `kpi` (the scoreboard's `MetricCard`s); the form's `content` is the main area (one `DashboardPanel` per chart or list) |
 | `WelcomePage` | `oj-sp-welcome-page` | `backgroundColor` (Spectra's `dark-ocean` … `dark-sienna`, or the bare tone; `auto`/none = default) | the form's `content` is the default slot (the tiles under the banner) |
 

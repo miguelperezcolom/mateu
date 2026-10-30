@@ -13,6 +13,8 @@ import itemOverviewPhoto from '@infra/expander/__fixtures__/item-overview-photo.
 import welcomePage from '@infra/expander/__fixtures__/welcome-page.golden.json'
 import dashboardPage from '@infra/expander/__fixtures__/dashboard-page.golden.json'
 import generalOverviewPage from '@infra/expander/__fixtures__/general-overview-page.golden.json'
+import collectionDetailPage from '@infra/expander/__fixtures__/collection-detail-page.golden.json'
+import collectionDetailEmpty from '@infra/expander/__fixtures__/collection-detail-empty.golden.json'
 
 const TEST_RESOURCES = resolve(__dirname, '../../../../../../../../../../backend/shared/core/src/test/resources')
 const authored = (path: string): FluentNode => parse(readFileSync(resolve(TEST_RESOURCES, path), 'utf-8'))
@@ -23,7 +25,7 @@ const withoutGeneratedIds = (node: any): any => {
     if (!node || typeof node !== 'object') return node
     const out: any = {}
     for (const [k, v] of Object.entries(node)) {
-        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && node.metadata?.type !== 'FormField') continue
+        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && node.metadata?.type !== 'FormField') continue
         out[k] = withoutGeneratedIds(v)
     }
     return out
@@ -66,6 +68,15 @@ describe('client-side expander — a page template, against the Java golden', ()
         const wire = expandComponent(authored('specs/ui/general-overview-page.yaml')) as any
         expectSubset(withoutGeneratedIds(wire), goldenComponent(generalOverviewPage))
         expect(wire.children[0].children.map((c: any) => c.id)).toEqual(['general-overview-main', 'general-overview-info'])
+    })
+
+    it('the collection detail page: the list beside the detail, or noSelection without content', () => {
+        const wire = expandComponent(authored('specs/ui/collection-detail-page.yaml')) as any
+        expectSubset(withoutGeneratedIds(wire), goldenComponent(collectionDetailPage))
+        expect(wire.children[0].children.map((c: any) => c.id)).toEqual(['collection-detail-list', 'collection-detail-detail'])
+        const empty = expandComponent(authored('specs/ui/collection-detail-empty.yaml')) as any
+        expectSubset(withoutGeneratedIds(empty), goldenComponent(collectionDetailEmpty))
+        expect(empty.children[0].children.map((c: any) => c.id)).toEqual(['collection-detail-list', 'collection-detail-no-selection'])
     })
 
     it('a page without a template stays free', () => {

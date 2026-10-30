@@ -23,7 +23,7 @@ import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
 import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest } from './pageProjection.mjs'
-import { templatedGeneralOverviewOf } from './core/overviews.mjs'
+import { templatedGeneralOverviewOf, templatedCollectionDetailOf } from './core/overviews.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
 import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
@@ -1439,7 +1439,7 @@ test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante
     assert.equal(cell.title, '')
   }
   const page = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 5, 'las plantillas cellClip (listado, selector, listado en un drawer × 3 plantillas Spectra)')
+  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 6, 'las plantillas cellClip (listado ×2 — la página y el collection detail —, selector, listado en un drawer × 3 plantillas Spectra)')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
 })
 
@@ -2449,6 +2449,23 @@ test('a page that DECLARES the General overview page template → oj-sp-general-
   assert.deepEqual(fieldsOf(gop.info), ['population'])
   // any other page: not claimed (the entity-page shape rule serves it)
   assert.equal(templatedGeneralOverviewOf({ state: {}, data: {}, tree: { type: 'ClientSide', metadata: { type: 'Form' }, children: [] } }), null)
+})
+
+test('a page that DECLARES the Collection detail page template → mateuCd: the list, the detail (a selection) or noSelection', () => {
+  const read = (name) => JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/' + name + '.golden.json'), 'utf-8')).fragments[0].component
+  const selected = templatedCollectionDetailOf({ state: { id: '7' }, data: {}, tree: read('collection-detail-page') })
+  assert.deepEqual(selected.selectedItems, [{ id: '7' }])
+  assert.deepEqual(selected.detail.flatMap((b) => b.items).map((a) => a.fieldId), ['classification'])
+  assert.deepEqual(selected.noSelection, [])
+  const none = templatedCollectionDetailOf({ state: {}, data: {}, tree: read('collection-detail-empty') })
+  assert.deepEqual(none.selectedItems, [])
+  assert.deepEqual(none.noSelection.flatMap((b) => b.items).map((a) => a.text), ['Pick one'])
+  // a full-page empty state never steals a collection detail's noSelection, and the listing page stands
+  // aside while a collection detail paints the listing in its collection slot
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.match(html, /!\$application\.variables\.mateuCd && !!\$application\.variables\.mateuHostEmpty/)
+  assert.match(html, /!!\$application\.variables\.mateuListing && !\$application\.variables\.mateuCd/)
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {

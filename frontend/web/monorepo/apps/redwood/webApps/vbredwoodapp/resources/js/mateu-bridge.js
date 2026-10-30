@@ -4265,7 +4265,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function templatedGeneralOverviewOf(ctx) {
     if (!declaresTemplate(ctx, 'GeneralOverviewPage')) return null
-    const blocksOf = (node) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_gop',
+    const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gop',
       metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
       .map((b) => (b.spSection
         ? { isPlain: true, blockClass: 'oj-flex-item oj-sm-12',
@@ -4275,6 +4275,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       on: true,
       main: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-main')) },
       info: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-info')) },
+    }
+  }
+
+  /**
+   * A page that DECLARES the Collection detail page template (`template: CollectionDetailPage`) → the
+   * oj-sp-collection-detail-page projection (mateuCd, as collectionDetailPageOf shapes it): the `list`
+   * slot is the collection, the detail (the form's content) or the `noSelection` slot read by id. A page
+   * with a detail HAS a selection (its record's id), one without shows noSelection.
+   */
+  function templatedCollectionDetailOf(ctx) {
+    if (!declaresTemplate(ctx, 'CollectionDetailPage')) return null
+    const FULL = 'oj-flex-item oj-sm-12'
+    const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_cd',
+      metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
+      .map((b) => (b.spSection
+        ? { isPlain: true, blockClass: FULL,
+          items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) }
+        : { ...b, blockClass: FULL }))
+    const detailNode = nodeById(ctx.tree, 'collection-detail-detail')
+    const state = (ctx && ctx.state) || {}
+    const form = templateFormOf(ctx)
+    return {
+      title: interpolate(String((form && form.metadata && form.metadata.title) || ''), state),
+      collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list')),
+      selectedItems: detailNode ? [{ id: String(state.id != null ? state.id : 'selected') }] : [],
+      detail: detailNode ? blocksOf(detailNode) : [],
+      noSelection: detailNode ? [] : blocksOf(nodeById(ctx.tree, 'collection-detail-no-selection')),
+      // the template's header has no primary action: every toolbar button is one of its actions (the
+      // primary first), resolved by headerSecondary against the page toolbar
+      actions: ((form && form.metadata && form.metadata.toolbar) || [])
+        .filter((b) => b && !/^(back|backToList|cancel-view)$/.test(b.actionId || ''))
+        .sort((a, b) => (b.buttonStyle === 'primary') - (a.buttonStyle === 'primary'))
+        .map((b) => ({ id: b.actionId || b.label, label: interpolate(String(b.label || b.actionId || ''), state) })),
     }
   }
 
@@ -6181,7 +6214,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
       // of emptyStateOf — painted there, not twice)
-      if (t === 'EmptyState' && !(ctx.kind === 'host' && pageEmptyStateNode(ctx.tree) === node)) {
+      // the page's own empty state is painted full-page, not here — but one inside a page template's
+      // slot (ctx.templateSlot: a collection detail's noSelection) is that slot's content
+      if (t === 'EmptyState' && !(ctx.kind === 'host' && !ctx.templateSlot && pageEmptyStateNode(ctx.tree) === node)) {
         atom(emptyStateAtomOf(m, interp), container)
         return
       }
@@ -22711,7 +22746,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // Spectra page templates with slots (core/spPages.mjs): DataManagement / GanttPage →
     // oj-sp-data-management-page, CollectionDetail → oj-sp-collection-detail-page
     const dm = welcome || overview || item || dashboard || todo ? null : dataManagementPageOf(host)
-    const cd = welcome || overview || item || dashboard || todo || dm ? null : collectionDetailPageOf(host, { title: pageTitleOf(host) })
+    const cd = welcome || overview || item || dashboard || todo || dm ? null
+      : (templatedCollectionDetailOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) }))
     const vars = {
       mateuDashboard: dashboard,
       mateuTodo: todo,
@@ -22777,7 +22813,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const todo = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard ? todoListOf(host) : null
     // …and the Spectra slot templates (data management / gantt page, collection detail)
     const spPage = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo
-      ? (dataManagementPageOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
+      ? (dataManagementPageOf(host) || templatedCollectionDetailOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
     const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo && !spPage
     const hostEntity = (!wizard && (noOtherBranch || foldout)) ? entityHeaderOf(host) : null
     const opts = { title, dropEntityHeader: !!hostEntity }

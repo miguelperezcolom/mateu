@@ -558,7 +558,8 @@ define([
       // is NOT just another action: it is the RDS header's goToParent affordance (Redwood has no
       // breadcrumbs: without a back button, the parent of the automatic trail)
       const pageHeader = bridge.pageHeaderOf({
-        host, hostEntity, summary, hostToolbar, showHeader, pageWidth: pw, gopOn, iopOn, listing: listingSummary,
+        // a YAML collection detail paints its listing inside the template: no listing header band
+        host, hostEntity, summary, hostToolbar, showHeader, pageWidth: pw, gopOn, iopOn, listing: archetypes.cd ? null : listingSummary,
       });
       vars.mateuPageHeader = pageHeader.header;
       vars.mateuPageHeaderTranslations = pageHeader.translations;

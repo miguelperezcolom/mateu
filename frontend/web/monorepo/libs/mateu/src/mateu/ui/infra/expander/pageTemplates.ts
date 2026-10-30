@@ -28,6 +28,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (t.type === 'WelcomePage') return { type: 'WelcomePage', avatar: null, photo: null }
     if (t.type === 'DashboardLandingPage') return { type: 'DashboardLandingPage', avatar: null, photo: null }
     if (t.type === 'GeneralOverviewPage') return { type: 'GeneralOverviewPage', avatar: null, photo: null }
+    if (t.type === 'CollectionDetailPage') return { type: 'CollectionDetailPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -49,6 +50,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (t.type === 'WelcomePage') return welcome(t, nodes(content), form)
     if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
     if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
+    if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]
     return content
 }
 
@@ -134,4 +136,17 @@ function generalOverview(t: Node, main: FluentNode[]): FluentNode {
     const columns: FluentNode[] = [slot('general-overview-main', main, 'flex: 2 1 32rem; min-width: min(32rem, 100%)')]
     if (info.length) columns.push(slot('general-overview-info', info, 'flex: 1 1 16rem; min-width: min(16rem, 100%)'))
     return { type: 'HorizontalLayout', id: 'general-overview', wrap: true, spacing: true, content: columns } as unknown as FluentNode
+}
+
+/** Collection detail: the collection (`list`) beside the selected item's detail (the content) — or,
+ *  with no content, the `noSelection` slot (PageTemplates.collectionDetail). */
+function collectionDetail(t: Node, detail: FluentNode[]): FluentNode {
+    const side = 'flex: 1 1 24rem; min-width: min(24rem, 100%)'
+    return {
+        type: 'HorizontalLayout', id: 'collection-detail', wrap: true, spacing: true,
+        content: [
+            slot('collection-detail-list', nodes(t.list), 'flex: 0 0 24rem; max-width: 100%'),
+            detail.length ? slot('collection-detail-detail', detail, side) : slot('collection-detail-no-selection', nodes(t.noSelection), side),
+        ],
+    } as unknown as FluentNode
 }

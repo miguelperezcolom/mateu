@@ -1,0 +1,17 @@
+# The species collection of the Collection detail pages (species.yaml, species-record.yaml): a compact
+# searchable listing whose rows open the species beside it (rowRoute) — a partial, so both pages
+# share one list.
+type: Listing
+pageSize: 12
+rowRoute: species/${row.id}
+searchable: true
+rowsSource:
+  ref: swapi-species
+columns:
+  - type: GridColumn
+    id: name
+    label: Species
+    identifier: true
+    stereotype: primary
+    leadingPath: image
+    captionPath: classification
