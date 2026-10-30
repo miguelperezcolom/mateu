@@ -6,7 +6,7 @@ Mateu defines business UIs agnostically: one model, authored as YAML (by hand or
 ```xml
 <properties>
   <!-- latest release: https://repo1.maven.org/maven2/io/mateu/mvc-core/maven-metadata.xml -->
-  <mateu.version>3.0-beta.12</mateu.version>
+  <mateu.version>3.0-beta.24</mateu.version>
 </properties>
 
 <dependency>
