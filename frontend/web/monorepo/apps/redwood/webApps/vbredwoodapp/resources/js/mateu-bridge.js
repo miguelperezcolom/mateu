@@ -12035,11 +12035,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const headKids = (head && head.children) || []
     const titleNode = headKids.find((c) => typeOf(c) === 'Text')
     const close = headKids.find((c) => typeOf(c) === 'Button')
-    const isHeader = typeOf(head) === 'HorizontalLayout' && !!titleNode && !!close
+    // a header is the title row; its ✕ (the panel's toggle action) is optional — a YAML
+    // DataManagementPage's panel has no server action to toggle with
+    const isHeader = typeOf(head) === 'HorizontalLayout' && !!titleNode && headKids.length <= 2
     return {
       on: true,
       title: isHeader ? String(titleNode.metadata.text || '') : '',
-      closeActionId: isHeader ? String(close.metadata.actionId || '') : '',
+      closeActionId: isHeader && close ? String(close.metadata.actionId || '') : '',
       blocks: blocksOfNodes(ctx, isHeader ? kids.slice(1) : kids, id),
     }
   }

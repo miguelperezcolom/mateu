@@ -1,0 +1,46 @@
+# The fleet: the vehicles to review and manage, filling Redwood's DATA MANAGEMENT page template
+# (Spectra oj-sp-data-management-page): the data view (a listing of the vehicles) with a summary panel
+# docked beside it and a notes panel under it. The panels are DockedPanels; a YAML page has no server
+# to toggle them, so they show while `open`. The form's toolbar sits over the data.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Fleet
+toolbar:
+  - type: Button
+    label: New vehicle
+    buttonStyle: primary
+    actionable:
+      type: RouteLink
+      route: vehicles/new
+template:
+  type: DataManagementPage
+  end:
+    id: fleet-summary
+    title: Fleet at a glance
+    open: true
+    size: 20rem
+    content:
+      type: VerticalLayout
+      content:
+        - {type: MetricCard, title: Vehicles, value: "39"}
+        - {type: MetricCard, title: Passenger seats, value: "1405"}
+        - {type: Text, text: "Most common: repulsorcraft (7), airspeeders (5), walkers (4)."}
+  bottom:
+    id: fleet-notes
+    title: About this data
+    open: true
+    size: 8rem
+    content: {type: Text, text: "The Star Wars API re-seeds its 39 vehicles every time it starts: create, edit and delete freely."}
+content:
+  - type: Listing
+    pageSize: 15
+    rowRoute: vehicles/${row.id}
+    searchable: true
+    rowsSource:
+      ref: swapi-vehicles
+    columns:
+      - {type: GridColumn, id: name, label: Name, identifier: true, stereotype: primary, leadingPath: image}
+      - {type: GridColumn, id: model, label: Model}
+      - {type: GridColumn, id: vehicleClass, label: Class}
+      - {type: GridColumn, id: crew, label: Crew}
+      - {type: GridColumn, id: passengers, label: Passengers}

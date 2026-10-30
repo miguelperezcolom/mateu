@@ -19,6 +19,7 @@ import foldoutPage from '@infra/expander/__fixtures__/foldout-page.golden.json'
 import multimediaPage from '@infra/expander/__fixtures__/multimedia-page.golden.json'
 import createEditPage from '@infra/expander/__fixtures__/create-edit-page.golden.json'
 import guidedProcessPage from '@infra/expander/__fixtures__/guided-process-page.golden.json'
+import dataManagementPage from '@infra/expander/__fixtures__/data-management-page.golden.json'
 
 const TEST_RESOURCES = resolve(__dirname, '../../../../../../../../../../backend/shared/core/src/test/resources')
 const authored = (path: string): FluentNode => parse(readFileSync(resolve(TEST_RESOURCES, path), 'utf-8'))
@@ -29,7 +30,7 @@ const withoutGeneratedIds = (node: any): any => {
     if (!node || typeof node !== 'object') return node
     const out: any = {}
     for (const [k, v] of Object.entries(node)) {
-        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && !v.startsWith('foldout') && v !== 'multimedia-banner' && v !== 'advanced-create-edit' && v !== 'guided-process' && node.metadata?.type !== 'FormField') continue
+        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && !v.startsWith('foldout') && v !== 'multimedia-banner' && v !== 'advanced-create-edit' && v !== 'guided-process' && !v.startsWith('data-management') && v !== 'summary' && v !== 'notes' && node.metadata?.type !== 'FormField') continue
         out[k] = withoutGeneratedIds(v)
     }
     return out
@@ -109,6 +110,13 @@ describe('client-side expander — a page template, against the Java golden', ()
         const wire = expandComponent(authored('specs/ui/guided-process-page.yaml')) as any
         expectSubset(withoutGeneratedIds(wire), goldenComponent(guidedProcessPage))
         expect(wire.children[0].children.map((c: any) => c.metadata.label)).toEqual(['Identity', 'Specifications'])
+    })
+
+    it('the data management page: the archetype shape with docked panels', () => {
+        const wire = expandComponent(authored('specs/ui/data-management-page.yaml')) as any
+        expectSubset(withoutGeneratedIds(wire), goldenComponent(dataManagementPage))
+        expect(wire.metadata.noHeader).toBe(true)
+        expect(wire.children[0].id).toBe('data-management')
     })
 
     it('a page without a template stays free', () => {

@@ -425,6 +425,11 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   DRAFT, not the registry). The two chains share `templateOwnsHeader`/`templateHostContentOf` (and
   runMateuAction now also feeds `templatedGeneralOverviewOf` and the cd listing rule) — keep template
   decisions in the bridge: `onMateuNavigate` is line-ratcheted (< 600, test-chains).
+- **`DataManagementPage`** (fields `end`/`bottom`: `DockedPanel`, shown while `open`): laid out as the
+  DataManagement archetype's ids (`data-management` / `-title` / `-toolbar` = the form's buttons /
+  `-body` ResponsiveGrid with the end panel); owns the header. Redwood's `dataManagementPageOf` reads it
+  by shape (a panel header no longer needs a ✕ action); a `Listing` in the view paints in the dm main
+  slot (`@listing-body dm`, + search box; listing page and list band stand aside under mateuDm too).
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

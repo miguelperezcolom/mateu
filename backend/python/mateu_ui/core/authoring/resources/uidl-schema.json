@@ -2880,6 +2880,23 @@
         }
       }
     },
+    "DataManagementPage" : {
+      "description" : "Redwood's Data management page template (Spectra oj-sp-data-management-page): a data set to review and manage — a table, a grid, a Gantt — with panels docked beside it (end, the template's innerEnd) and below it (bottom, its innerBottom), each a DockedPanel shown when open.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "DataManagementPage"
+        },
+        "end" : {
+          "$ref" : "#/$defs/DockedPanel"
+        },
+        "bottom" : {
+          "$ref" : "#/$defs/DockedPanel"
+        }
+      }
+    },
     "DataStep" : {
       "type" : "object",
       "properties" : {
@@ -3093,6 +3110,26 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "DockedPanel" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "content" : {
+          "$ref" : "#/$defs/Component"
+        },
+        "size" : {
+          "type" : "string"
+        },
+        "open" : {
+          "type" : "boolean"
         }
       }
     },
@@ -4449,6 +4486,8 @@
         "$ref" : "#/$defs/CollectionDetailPage"
       }, {
         "$ref" : "#/$defs/DashboardLandingPage"
+      }, {
+        "$ref" : "#/$defs/DataManagementPage"
       }, {
         "$ref" : "#/$defs/FoldoutPage"
       }, {

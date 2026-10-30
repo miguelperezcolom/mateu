@@ -10,6 +10,8 @@ routes:
     definition: welcome.yaml
   - route: dashboard   # the saga in numbers (a Dashboard landing page)
     definition: dashboard.yaml
+  - route: fleet       # the vehicles managed (a Data management page)
+    definition: fleet.yaml
   - route: people
     definition: people.yaml
 

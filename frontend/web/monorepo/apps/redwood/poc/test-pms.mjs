@@ -1441,7 +1441,7 @@ test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante
     assert.equal(cell.title, '')
   }
   const page = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 6, 'las plantillas cellClip (listado ×2 — la página y el collection detail —, selector, listado en un drawer × 3 plantillas Spectra)')
+  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 7, 'las plantillas cellClip (listado ×3 — la página, el collection detail y el data management —, selector, listado en un drawer × 3 plantillas Spectra)')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
 })
 
@@ -2509,6 +2509,15 @@ test('a page that DECLARES the Guided process template → oj-sp-guided-process 
   assert.equal(gp.steps[0].items.find((a) => a.fieldId === 'name').value, 'Ebon Hawk')
   assert.deepEqual(gp.primaryAction, { label: 'Register' })
   assert.deepEqual([gp.primaryId, gp.cancelId, gp.cancelRoute], ['create', 'cancel-new', 'starships'])
+})
+
+test('a YAML DataManagementPage → oj-sp-data-management-page: its docked panels by their title rows (no ✕ action to toggle them)', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/data-management-page.golden.json'), 'utf-8'))
+  const dm = archetypeVarsOfForTest({ state: {}, data: {}, tree: golden.fragments[0].component }).dm
+  assert.equal(dm.title, 'Vehicles')
+  assert.deepEqual([dm.end.on, dm.end.title, dm.end.closeActionId], [true, 'Fleet summary', ''])
+  assert.deepEqual([dm.bottom.on, dm.bottom.title], [true, 'Notes'])
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {

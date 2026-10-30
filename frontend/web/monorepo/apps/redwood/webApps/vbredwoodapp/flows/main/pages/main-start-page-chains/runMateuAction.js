@@ -600,7 +600,7 @@ define([
       // is NOT just another action: it is the RDS header's goToParent affordance
       const pageHeader = bridge.pageHeaderOf({
         host: hostAfter, hostEntity: hostEntity2, summary, hostToolbar: hostToolbarA,
-        showHeader: showHeaderA, pageWidth: pwAfter, gopOn: gopOn2, listing: archetypes.cd ? null : listingSummary,
+        showHeader: showHeaderA, pageWidth: pwAfter, gopOn: gopOn2, listing: (archetypes.cd || archetypes.dm) ? null : listingSummary,
       });
       vars.mateuPageHeader = pageHeader.header;
       vars.mateuPageHeaderTranslations = pageHeader.translations;

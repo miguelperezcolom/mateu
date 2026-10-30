@@ -8,6 +8,8 @@ import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CollectionDetailPage;
 import io.mateu.uidl.data.DashboardLandingPage;
 import io.mateu.uidl.data.DashboardLayout;
+import io.mateu.uidl.data.DataManagementPage;
+import io.mateu.uidl.data.DockedPanel;
 import io.mateu.uidl.data.FoldoutLayout;
 import io.mateu.uidl.data.FoldoutPage;
 import io.mateu.uidl.data.FoldoutPanel;
@@ -29,6 +31,8 @@ import io.mateu.uidl.data.Slotted;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.TemplateImage;
+import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.TextSize;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.data.WelcomePage;
 import io.mateu.uidl.fluent.Component;
@@ -57,6 +61,7 @@ public final class PageTemplates {
   static final String MULTIMEDIA = "MultimediaContentPage";
   static final String ADVANCED_CREATE_EDIT = "AdvancedCreateEditPage";
   static final String GUIDED_PROCESS = "GuidedProcessPage";
+  static final String DATA_MANAGEMENT = "DataManagementPage";
 
   private PageTemplates() {}
 
@@ -89,6 +94,9 @@ public final class PageTemplates {
     if (form.template() instanceof GuidedProcessPage process) {
       return List.of(guidedProcess(process));
     }
+    if (form.template() instanceof DataManagementPage dataManagement) {
+      return List.of(dataManagement(dataManagement, form));
+    }
     return form.content();
   }
 
@@ -98,7 +106,8 @@ public final class PageTemplates {
    */
   static boolean ownsHeader(Form form) {
     return form.template() instanceof WelcomePage
-        || form.template() instanceof MultimediaContentPage;
+        || form.template() instanceof MultimediaContentPage
+        || form.template() instanceof DataManagementPage;
   }
 
   /** The template's own values, for the wire; {@code null} for a free page. */
@@ -130,6 +139,9 @@ public final class PageTemplates {
     }
     if (template instanceof GuidedProcessPage) {
       return new PageTemplateDto(GUIDED_PROCESS, null, null);
+    }
+    if (template instanceof DataManagementPage) {
+      return new PageTemplateDto(DATA_MANAGEMENT, null, null);
     }
     return null;
   }
@@ -344,6 +356,99 @@ public final class PageTemplates {
               .build());
     }
     return TabLayout.builder().id("guided-process").tabs(tabs).build();
+  }
+
+  /**
+   * Data management: the shape the {@code DataManagement} archetype composes (Redwood reads it into
+   * Spectra's template) — the title, the toolbar (the form's buttons), the data view (the form's
+   * content, with an open {@code end} panel reflowing beside it) and an open {@code bottom} panel
+   * under it. A YAML page has no server to toggle a panel: one is shown when it is {@code open}.
+   */
+  private static Component dataManagement(DataManagementPage template, Form form) {
+    List<Component> page = new ArrayList<>();
+    if (form.title() != null && !form.title().isBlank()) {
+      page.add(
+          Text.builder()
+              .id("data-management-title")
+              .text(form.title())
+              .size(TextSize.xl)
+              .noMargins(true)
+              .style("font-weight: 600;")
+              .build());
+    }
+    List<Component> buttons = new ArrayList<>();
+    for (var trigger : form.toolbar()) {
+      if (trigger instanceof Component component) buttons.add(component);
+    }
+    page.add(
+        HorizontalLayout.builder()
+            .id("data-management-toolbar")
+            .spacing(true)
+            .style("align-items: center;")
+            .content(buttons)
+            .build());
+    Component view = region(form.content());
+    DockedPanel end = template.end();
+    if (end != null && end.open()) {
+      view =
+          new ResponsiveGrid(
+              "data-management-body",
+              List.of(GridTrack.fill(), GridTrack.fixed(end.size() != null ? end.size() : "22rem")),
+              null,
+              List.of(
+                  view,
+                  docked(
+                      end,
+                      "border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));"
+                          + " padding-left: var(--lumo-space-m, 1rem);")),
+              null,
+              "48rem",
+              null);
+    }
+    page.add(view);
+    DockedPanel bottom = template.bottom();
+    if (bottom != null && bottom.open()) {
+      page.add(
+          docked(
+              bottom,
+              "border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));"
+                  + " padding-top: var(--lumo-space-s, .5rem); max-height: "
+                  + (bottom.size() != null ? bottom.size() : "16rem")
+                  + "; overflow: auto;"));
+    }
+    return VerticalLayout.builder()
+        .id("data-management")
+        .fullWidth(true)
+        .spacing(true)
+        .horizontalAlignment(HorizontalAlignment.STRETCH)
+        .content(page)
+        .build();
+  }
+
+  /** A docked panel: its title over its content (no close button — nothing to toggle it with). */
+  private static Component docked(DockedPanel panel, String style) {
+    List<Component> body = new ArrayList<>();
+    body.add(
+        HorizontalLayout.builder()
+            .style("align-items: center; width: 100%;")
+            .content(
+                List.of(
+                    Text.builder()
+                        .text(panel.title())
+                        .size(TextSize.m)
+                        .noMargins(true)
+                        .style("font-weight: 600; flex: 1;")
+                        .build()))
+            .build());
+    if (panel.content() != null) {
+      body.add(panel.content());
+    }
+    return VerticalLayout.builder()
+        .id(panel.id())
+        .cssClasses("mateu-docked-panel")
+        .style(style)
+        .content(body)
+        .build();
   }
 
   /** The avatar (a round image, else the initials) or the 4:3 photo. */

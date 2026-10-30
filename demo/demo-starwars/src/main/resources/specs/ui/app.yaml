@@ -42,6 +42,10 @@ menu:
     route: vehicles
     icon: vaadin:car
   - type: RouteLink
+    label: Fleet
+    route: fleet
+    icon: vaadin:truck
+  - type: RouteLink
     label: Starships
     route: starships
     icon: vaadin:rocket

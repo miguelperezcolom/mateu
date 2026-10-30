@@ -268,6 +268,21 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aDataManagementPageIsTheArchetypesShape() throws Exception {
+    var page = render("data-management-page");
+    assertThat(page.path("metadata").path("noHeader").asBoolean()).isTrue();
+    var root = byId(page, "data-management");
+    assertThat(root).isNotNull();
+    assertThat(byId(page, "data-management-title").path("metadata").path("text").asText())
+        .isEqualTo("Vehicles");
+    assertThat(byId(page, "data-management-toolbar").path("children")).hasSize(1);
+    assertThat(byId(page, "data-management-body").path("metadata").path("type").asText())
+        .isEqualTo("ResponsiveGrid");
+    assertThat(byId(page, "summary")).isNotNull();
+    assertThat(byId(page, "notes")).isNotNull();
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

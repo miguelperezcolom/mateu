@@ -1,0 +1,21 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Data management template — the data view
+# with an end panel beside it and a bottom panel under it.
+type: Form
+title: Vehicles
+toolbar:
+  - {type: Button, label: New vehicle, buttonStyle: primary, actionable: {type: RouteLink, route: vehicles/new}}
+template:
+  type: DataManagementPage
+  end:
+    id: summary
+    title: Fleet summary
+    open: true
+    content: {type: Text, text: 39 vehicles}
+  bottom:
+    id: notes
+    title: Notes
+    open: true
+    content: {type: Text, text: Seed data}
+content:
+  - {type: Text, text: The data view}

@@ -33,6 +33,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (t.type === 'MultimediaContentPage') return { type: 'MultimediaContentPage', avatar: null, photo: null }
     if (t.type === 'AdvancedCreateEditPage') return { type: 'AdvancedCreateEditPage', avatar: null, photo: null }
     if (t.type === 'GuidedProcessPage') return { type: 'GuidedProcessPage', avatar: null, photo: null }
+    if (t.type === 'DataManagementPage') return { type: 'DataManagementPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -42,7 +43,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
  */
 export function ownsHeader(template: unknown): boolean {
     const t = template as Node | undefined
-    return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage')
+    return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage' || t.type === 'DataManagementPage')
 }
 
 /** The page's content: the template laid out, or the authored content of a free page. `form` is the
@@ -59,6 +60,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (t.type === 'FoldoutPage') return [foldout(t, nodes(content))]
     if (t.type === 'AdvancedCreateEditPage') return advancedCreateEdit(t, nodes(content))
     if (t.type === 'GuidedProcessPage') return [guidedProcess(t)]
+    if (t.type === 'DataManagementPage') return [dataManagement(t, nodes(content), form)]
     return content
 }
 
@@ -196,4 +198,38 @@ function guidedProcess(t: Node): FluentNode {
             content: { type: 'VerticalLayout', content: nodes(step.content), fullWidth: true, horizontalAlignment: 'STRETCH', spacing: true },
         })),
     } as unknown as FluentNode
+}
+
+const docked = (panel: Node, style: string): FluentNode => ({
+    type: 'VerticalLayout', ...(panel.id != null ? { id: panel.id } : {}), cssClasses: 'mateu-docked-panel', style,
+    content: [
+        { type: 'HorizontalLayout', style: 'align-items: center; width: 100%;',
+            content: [{ type: 'Text', text: panel.title, size: 'm', noMargins: true, style: 'font-weight: 600; flex: 1;' }] },
+        ...nodes(panel.content),
+    ],
+}) as unknown as FluentNode
+
+/** Data management: the DataManagement archetype's shape — title, toolbar (the form's buttons), the
+ *  data view (with an open `end` panel beside it) and an open `bottom` panel (PageTemplates.dataManagement). */
+function dataManagement(t: Node, main: FluentNode[], form: Node): FluentNode {
+    const page: FluentNode[] = []
+    if (filled(form.title)) {
+        page.push({ type: 'Text', id: 'data-management-title', text: form.title, size: 'xl', noMargins: true, style: 'font-weight: 600;' } as unknown as FluentNode)
+    }
+    page.push({ type: 'HorizontalLayout', id: 'data-management-toolbar', spacing: true, style: 'align-items: center;', content: nodes(form.toolbar) } as unknown as FluentNode)
+    let view: FluentNode = { type: 'VerticalLayout', content: main, fullWidth: true, horizontalAlignment: 'STRETCH', spacing: true } as unknown as FluentNode
+    const end = t.end as Node | undefined
+    if (end && end.open) {
+        view = {
+            type: 'ResponsiveGrid', id: 'data-management-body', gridTemplateColumns: '1fr ' + (end.size ?? '22rem'), stackBelow: '48rem',
+            content: [view, docked(end, 'border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); padding-left: var(--lumo-space-m, 1rem);')],
+        } as unknown as FluentNode
+    }
+    page.push(view)
+    const bottom = t.bottom as Node | undefined
+    if (bottom && bottom.open) {
+        page.push(docked(bottom, 'border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); padding-top: var(--lumo-space-s, .5rem); max-height: '
+            + (bottom.size ?? '16rem') + '; overflow: auto;'))
+    }
+    return { type: 'VerticalLayout', id: 'data-management', fullWidth: true, spacing: true, horizontalAlignment: 'STRETCH', content: page } as unknown as FluentNode
 }
