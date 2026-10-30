@@ -23,6 +23,7 @@ import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
 import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest } from './pageProjection.mjs'
+import { templatedGeneralOverviewOf } from './core/overviews.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
 import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
@@ -2435,6 +2436,19 @@ test('a page that DECLARES the Welcome page template (YAML template: WelcomePage
   assert.equal(vars.welcome.title, 'Star Wars')
   assert.equal(vars.welcome.overline, 'A Mateu demo')
   assert.equal(vars.welcome.tiles.length, 1)
+})
+
+test('a page that DECLARES the General overview page template → oj-sp-general-overview-page, its main and info slots by id', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/general-overview-page.golden.json'), 'utf-8'))
+  const host = { state: { name: 'Tatooine', climate: 'arid' }, data: {}, tree: golden.fragments[0].component }
+  const gop = templatedGeneralOverviewOf(host)
+  assert.equal(gop.on, true)
+  const fieldsOf = (slot) => slot.blocks.flatMap((b) => b.items || []).map((a) => a.fieldId).filter(Boolean)
+  assert.deepEqual(fieldsOf(gop.main), ['diameter'])
+  assert.deepEqual(fieldsOf(gop.info), ['population'])
+  // any other page: not claimed (the entity-page shape rule serves it)
+  assert.equal(templatedGeneralOverviewOf({ state: {}, data: {}, tree: { type: 'ClientSide', metadata: { type: 'Form' }, children: [] } }), null)
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {

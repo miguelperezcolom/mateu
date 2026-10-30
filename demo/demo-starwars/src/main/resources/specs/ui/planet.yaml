@@ -1,12 +1,26 @@
-# READ-ONLY view of one record (route planets/:id). Header: < back + Edit; fields read-only.
-# No Java — the buttons NAVIGATE via their RouteLink actionable.
+# READ-ONLY view of one planet (route planets/:id). It fills Redwood's GENERAL OVERVIEW PAGE template
+# (Spectra oj-sp-general-overview-page): the header is the form's own — title, the planet SWITCHER
+# (jump to another planet without leaving the page), the contextual facts (kpis), back + Edit —, the
+# form's content is the template's main slot (sections of label/value fields) and its `info` slot the
+# complementary panel beside it. No Java — the buttons and the switcher NAVIGATE.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
-# Redwood's Item overview page template (Spectra oj-sp-item-overview-page): the record's image
-# and key facts in its overview panel, the rest in tabs in its main slot. The page only FILLS the
-# template — the look (sizes, surfaces, spacing) is the template's, in every renderer.
 title: ${state.name}
 subtitle: Planet
+kpis:
+  - {label: Climate, value: "${state.climate}"}
+  - {label: Terrain, value: "${state.terrain}"}
+  - {label: Population, value: "${state.population}"}
+recordSwitcher:
+  label: Planet
+  value: ${state.id}
+  searchable: true
+  optionsSource:
+    url: https://swapi.mateu.io/api/planets?size=100&sort=name
+    itemsPath: content
+    valuePath: id
+    labelPath: name
+  route: planets/${state._record}
 toolbar:
 - type: Button
   actionId: backToList
@@ -21,36 +35,43 @@ toolbar:
     type: RouteLink
     route: planets/${state.id}/edit
 template:
-  type: ItemOverviewPage
-  photo: {src: "${state.image}"}
-  body:
-    - {type: FormField, id: climate, label: Climate, readOnly: true, propertyRow: true}
-    - {type: FormField, id: terrain, label: Terrain, readOnly: true, propertyRow: true}
-    - {type: FormField, id: population, label: Population, dataType: number, readOnly: true, propertyRow: true}
-# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
-content:
-  - type: TabLayout
-    tabs:
-      - type: Tab
-        label: Details
+  type: GeneralOverviewPage
+  info:
+    - type: Card
+      cssClasses: mateu-section
+      title: {type: Text, container: h3, text: At a glance}
+      content:
+        type: VerticalLayout
         content:
-          type: VerticalLayout
-          horizontalAlignment: STRETCH   # the sections fill the main slot
+          - {type: Image, src: "${state.image}", style: "width: 100%; aspect-ratio: 1; object-fit: cover"}
+          - type: FormLayout
+            maxColumns: 1
+            content:
+              - {type: FormField, id: population, label: Population, dataType: number, readOnly: true}
+              - {type: FormField, id: climate, label: Climate, readOnly: true}
+# the template's main slot: sections of label/value fields, three to a row
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Physical characteristics}
+        content:
+          type: FormLayout
+          maxColumns: 3
           content:
-            - type: Card
-              cssClasses: mateu-section
-              title: {type: Text, container: h3, text: Physical}
-              content:
-                type: FormLayout
-                content:
-                  - {type: FormField, id: diameter, label: Diameter (km), dataType: integer, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: gravity, label: Gravity, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: surfaceWater, label: Surface water (%), dataType: number, readOnly: true, propertyRow: true}
-            - type: Card
-              cssClasses: mateu-section
-              title: {type: Text, container: h3, text: Orbit}
-              content:
-                type: FormLayout
-                content:
-                  - {type: FormField, id: rotationPeriod, label: Rotation period (h), dataType: integer, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: orbitalPeriod, label: Orbital period (d), dataType: integer, readOnly: true, propertyRow: true}
+            - {type: FormField, id: diameter, label: Diameter (km), dataType: integer, readOnly: true}
+            - {type: FormField, id: gravity, label: Gravity, readOnly: true}
+            - {type: FormField, id: surfaceWater, label: Surface water (%), dataType: number, readOnly: true}
+            - {type: FormField, id: terrain, label: Terrain, readOnly: true}
+            - {type: FormField, id: climate, label: Climate, readOnly: true}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Orbit}
+        content:
+          type: FormLayout
+          maxColumns: 3
+          content:
+            - {type: FormField, id: rotationPeriod, label: Rotation period (h), dataType: integer, readOnly: true}
+            - {type: FormField, id: orbitalPeriod, label: Orbital period (d), dataType: integer, readOnly: true}

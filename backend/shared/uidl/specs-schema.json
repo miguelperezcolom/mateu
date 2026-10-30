@@ -4654,6 +4654,8 @@
       "oneOf" : [ {
         "$ref" : "#/$defs/DashboardLandingPage"
       }, {
+        "$ref" : "#/$defs/GeneralOverviewPage"
+      }, {
         "$ref" : "#/$defs/ItemOverviewPage"
       }, {
         "$ref" : "#/$defs/WelcomePage"
@@ -4840,6 +4842,23 @@
         },
         "color" : {
           "type" : "string"
+        }
+      }
+    },
+    "GeneralOverviewPage" : {
+      "description" : "Redwood's General overview page template (Spectra oj-sp-general-overview-page): one business object's information in the main area with a complementary panel beside it.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "GeneralOverviewPage"
+        },
+        "info" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
         }
       }
     },

@@ -618,6 +618,27 @@ function templatedItemOverviewOf(ctx, atomsOfNodes) {
   }
 }
 
+/**
+ * A page that DECLARES the General overview page template (`template: GeneralOverviewPage`) → the
+ * oj-sp-general-overview-page projection (mateuGop): its `main` and `info` slots read by id, each
+ * as full-width blocks; a titled section keeps Spectra's own header (oj-sp-section) with its body
+ * below. null for any other page (the shape rule, generalOverviewPageOf, still serves the rest).
+ */
+export function templatedGeneralOverviewOf(ctx) {
+  if (!declaresTemplate(ctx, 'GeneralOverviewPage')) return null
+  const blocksOf = (node) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_gop',
+    metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
+    .map((b) => (b.spSection
+      ? { isPlain: true, blockClass: 'oj-flex-item oj-sm-12',
+        items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) }
+      : { ...b, blockClass: 'oj-flex-item oj-sm-12' }))
+  return {
+    on: true,
+    main: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-main')) },
+    info: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-info')) },
+  }
+}
+
 /** ITEM OVERVIEW archetype: key-data panel + tabs. */
 export function itemOverviewOf(ctx) {
   // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts

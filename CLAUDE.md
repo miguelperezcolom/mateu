@@ -383,6 +383,11 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   id `dashboard-kpi` (the slot's MetricCards; other slot components follow it) over a `DashboardLayout`
   id `dashboard-panels` (the form's content). The header stays the form's. Redwood: `dashboardOf` claims
   a declared one by marker (`declaresTemplate(ctx, type)`, overviews.mjs — the helper every template uses).
+- **`GeneralOverviewPage`** (`oj-sp-general-overview-page`, slot `info`): `general-overview` row →
+  `general-overview-main` (the content) + `general-overview-info`. The header (title, recordSwitcher,
+  kpis = contextual info, toolbar) is the form's. Redwood: `templatedGeneralOverviewOf` (overviews.mjs,
+  exported by make-amd) feeds `mateuGop` BEFORE the entity-page shape rule (`generalOverviewPageOf`);
+  a section block becomes `isSpSectionHeader` + its items (the gop markup has no spSection branch).
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

@@ -167,6 +167,21 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aGeneralOverviewPageIsTheMainSlotBesideTheInfoPanel() throws Exception {
+    var page = render("general-overview-page");
+    var metadata = page.path("metadata");
+    assertThat(metadata.path("template").path("type").asText()).isEqualTo("GeneralOverviewPage");
+    assertThat(metadata.path("kpis").path(0).path("title").asText()).isEqualTo("Climate");
+    assertThat(page.path("children").path(0).path("id").asText()).isEqualTo("general-overview");
+    var main = byId(page, "general-overview-main");
+    assertThat(main.path("children").path(0).path("metadata").path("fieldId").asText())
+        .isEqualTo("diameter");
+    var info = byId(page, "general-overview-info");
+    assertThat(info.path("children").path(0).path("metadata").path("fieldId").asText())
+        .isEqualTo("population");
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

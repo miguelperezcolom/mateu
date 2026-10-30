@@ -27,6 +27,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (t.type === 'ItemOverviewPage') return { type: 'ItemOverviewPage', avatar: image(t.avatar), photo: image(t.photo) }
     if (t.type === 'WelcomePage') return { type: 'WelcomePage', avatar: null, photo: null }
     if (t.type === 'DashboardLandingPage') return { type: 'DashboardLandingPage', avatar: null, photo: null }
+    if (t.type === 'GeneralOverviewPage') return { type: 'GeneralOverviewPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -47,6 +48,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content))]
     if (t.type === 'WelcomePage') return welcome(t, nodes(content), form)
     if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
+    if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
     return content
 }
 
@@ -124,4 +126,12 @@ function dashboard(t: Node, main: FluentNode[]): FluentNode[] {
     page.push(...others)
     page.push({ type: 'DashboardLayout', id: 'dashboard-panels', items: main } as unknown as FluentNode)
     return page
+}
+
+/** General overview: the main slot beside the complementary `info` panel (PageTemplates.generalOverview). */
+function generalOverview(t: Node, main: FluentNode[]): FluentNode {
+    const info = nodes(t.info)
+    const columns: FluentNode[] = [slot('general-overview-main', main, 'flex: 2 1 32rem; min-width: min(32rem, 100%)')]
+    if (info.length) columns.push(slot('general-overview-info', info, 'flex: 1 1 16rem; min-width: min(16rem, 100%)'))
+    return { type: 'HorizontalLayout', id: 'general-overview', wrap: true, spacing: true, content: columns } as unknown as FluentNode
 }

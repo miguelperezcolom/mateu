@@ -604,6 +604,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     noGenericFormVars,
     hostContentPlanOf,
     generalOverviewPageOf,
+    templatedGeneralOverviewOf,
     pageHeaderOf,
     // the page header's record/context switcher (RecordSwitcherSupplier): a pick → its action
     switcherPickOf,

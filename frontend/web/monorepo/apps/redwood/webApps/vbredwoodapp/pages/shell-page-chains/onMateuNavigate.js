@@ -448,7 +448,8 @@ define([
       };
       // native GENERAL OVERVIEW: entity page with TWO column blocks (the wide one
       // first) → the oj-sp-general-overview-page template (main/info slots, integrated header)
-      const gop = bridge.generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn: iopOn });
+      // a page DECLARING the template is claimed by its marker; the rest by the entity-page shape
+      const gop = bridge.templatedGeneralOverviewOf(host) || bridge.generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn: iopOn });
       vars.mateuGop = gop;
       const gopOn = gop.on;
       // the generic form is suppressed: its buttons (the form's @Button) go with the blocks

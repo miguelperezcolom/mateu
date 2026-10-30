@@ -6,6 +6,7 @@ import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.DashboardLandingPage;
 import io.mateu.uidl.data.DashboardLayout;
+import io.mateu.uidl.data.GeneralOverviewPage;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
@@ -35,6 +36,7 @@ public final class PageTemplates {
   static final String ITEM_OVERVIEW = "ItemOverviewPage";
   static final String WELCOME = "WelcomePage";
   static final String DASHBOARD = "DashboardLandingPage";
+  static final String GENERAL_OVERVIEW = "GeneralOverviewPage";
 
   private PageTemplates() {}
 
@@ -48,6 +50,9 @@ public final class PageTemplates {
     }
     if (form.template() instanceof DashboardLandingPage dashboard) {
       return dashboard(dashboard, form.content());
+    }
+    if (form.template() instanceof GeneralOverviewPage overview) {
+      return List.of(generalOverview(overview, form.content()));
     }
     return form.content();
   }
@@ -71,6 +76,9 @@ public final class PageTemplates {
     }
     if (template instanceof DashboardLandingPage) {
       return new PageTemplateDto(DASHBOARD, null, null);
+    }
+    if (template instanceof GeneralOverviewPage) {
+      return new PageTemplateDto(GENERAL_OVERVIEW, null, null);
     }
     return null;
   }
@@ -161,6 +169,30 @@ public final class PageTemplates {
     page.addAll(others);
     page.add(DashboardLayout.builder().id("dashboard-panels").items(main).build());
     return page;
+  }
+
+  /**
+   * General overview: the main slot (the form's content) and the complementary {@code info} panel
+   * beside it, wrapping under it on a narrow screen — Mateu's own drawing for the renderers without
+   * the template; Redwood reads the two slots by id and paints Spectra's.
+   */
+  private static Component generalOverview(GeneralOverviewPage template, List<Component> main) {
+    List<Component> columns = new ArrayList<>();
+    columns.add(
+        slot("general-overview-main", main, "flex: 2 1 32rem; min-width: min(32rem, 100%)"));
+    if (!template.info().isEmpty()) {
+      columns.add(
+          slot(
+              "general-overview-info",
+              template.info(),
+              "flex: 1 1 16rem; min-width: min(16rem, 100%)"));
+    }
+    return HorizontalLayout.builder()
+        .id("general-overview")
+        .wrap(true)
+        .spacing(true)
+        .content(columns)
+        .build();
   }
 
   /** The avatar (a round image, else the initials) or the 4:3 photo. */

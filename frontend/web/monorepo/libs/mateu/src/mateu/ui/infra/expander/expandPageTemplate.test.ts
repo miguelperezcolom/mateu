@@ -12,6 +12,7 @@ import itemOverview from '@infra/expander/__fixtures__/item-overview-page.golden
 import itemOverviewPhoto from '@infra/expander/__fixtures__/item-overview-photo.golden.json'
 import welcomePage from '@infra/expander/__fixtures__/welcome-page.golden.json'
 import dashboardPage from '@infra/expander/__fixtures__/dashboard-page.golden.json'
+import generalOverviewPage from '@infra/expander/__fixtures__/general-overview-page.golden.json'
 
 const TEST_RESOURCES = resolve(__dirname, '../../../../../../../../../../backend/shared/core/src/test/resources')
 const authored = (path: string): FluentNode => parse(readFileSync(resolve(TEST_RESOURCES, path), 'utf-8'))
@@ -22,7 +23,7 @@ const withoutGeneratedIds = (node: any): any => {
     if (!node || typeof node !== 'object') return node
     const out: any = {}
     for (const [k, v] of Object.entries(node)) {
-        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && node.metadata?.type !== 'FormField') continue
+        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && node.metadata?.type !== 'FormField') continue
         out[k] = withoutGeneratedIds(v)
     }
     return out
@@ -59,6 +60,12 @@ describe('client-side expander — a page template, against the Java golden', ()
         expect(wire.children.map((c: any) => c.id)).toEqual(['dashboard-kpi', 'dashboard-panels'])
         expect(wire.children[0].children).toHaveLength(2)
         expect(wire.children[1].children).toHaveLength(2)
+    })
+
+    it('the general overview page: the main slot beside the info panel', () => {
+        const wire = expandComponent(authored('specs/ui/general-overview-page.yaml')) as any
+        expectSubset(withoutGeneratedIds(wire), goldenComponent(generalOverviewPage))
+        expect(wire.children[0].children.map((c: any) => c.id)).toEqual(['general-overview-main', 'general-overview-info'])
     })
 
     it('a page without a template stays free', () => {
