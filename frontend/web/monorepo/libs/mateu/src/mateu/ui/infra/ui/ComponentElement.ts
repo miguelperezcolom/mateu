@@ -339,9 +339,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
      *
      * A form field reads its value out of `state` (see neutralFieldRenderer: `state[fieldId]`),
      * and typing into one writes it there through the `value-changed` listener — locally, in this
-     * element. But the parent re-binds `.state` on every one of its own renders — renderComponent
-     * does `.state="${{...initialData, ...state}}"`, the same shape as the `.data` re-bind the
-     * block above defends against — and the parent's copy predates the typing.
+     * element. But the parent re-binds `.state` whenever its own state changes — renderComponent
+     * does `.state="${{...initialData, ...state}}"` (guarded: an unchanged parent binds nothing),
+     * the same shape as the `.data` re-bind the block above defends against — and the parent's
+     * copy predates the typing.
      *
      * That is visible on every save. Saving is two round-trips: the `save` action answers first
      * with no view and no field values, which re-renders the parent and re-binds our `.state` with
