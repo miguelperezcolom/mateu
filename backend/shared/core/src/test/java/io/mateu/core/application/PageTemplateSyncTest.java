@@ -124,6 +124,32 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aWelcomePageIsTheBannerOverTheTiles() throws Exception {
+    var page = render("welcome-page");
+    var metadata = page.path("metadata");
+    assertThat(metadata.path("template").path("type").asText()).isEqualTo("WelcomePage");
+    // the banner draws the header: the form carries none, nor a toolbar of its own
+    assertThat(metadata.path("noHeader").asBoolean()).isTrue();
+    assertThat(metadata.path("toolbar")).isEmpty();
+    var hero = byId(page, "welcome");
+    assertThat(hero).isNotNull();
+    var heroMetadata = hero.path("metadata");
+    assertThat(heroMetadata.path("type").asText()).isEqualTo("HeroSection");
+    assertThat(heroMetadata.path("title").asText()).isEqualTo("Star Wars");
+    assertThat(heroMetadata.path("subtitle").asText()).isEqualTo("Every screen is YAML.");
+    assertThat(heroMetadata.path("overline").asText()).isEqualTo("A Mateu demo");
+    // Spectra's dark-<tone> names the hero's tone
+    assertThat(heroMetadata.path("tone").asText()).isEqualTo("slate");
+    // the calls to action, in order, inside the banner
+    assertThat(hero.path("children")).hasSize(2);
+    assertThat(hero.path("children").path(0).path("metadata").path("label").asText())
+        .isEqualTo("Browse the characters");
+    // the tiles follow the banner
+    assertThat(page.path("children").path(1).path("metadata").path("type").asText())
+        .isEqualTo("DashboardLayout");
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

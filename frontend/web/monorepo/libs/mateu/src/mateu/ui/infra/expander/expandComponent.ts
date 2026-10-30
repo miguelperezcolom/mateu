@@ -26,7 +26,7 @@
 // would be a fourth copy of what the three backends already hold.
 
 import { expandFormHeader } from './pageHeader.ts'
-import { contentOf as templateContentOf, templateMetadataOf } from './pageTemplates.ts'
+import { contentOf as templateContentOf, ownsHeader as templateOwnsHeader, templateMetadataOf } from './pageTemplates.ts'
 import type Component from '@mateu/shared/apiClients/dtos/Component'
 import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import type { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
@@ -153,7 +153,7 @@ export function expandComponent(authored: FluentNode): Component {
     const { type, content: authoredContent, children, ...fields } = (node.type === 'Button' ? expandButton(node) : node) as FluentNode
     // a page filling a design-system page template: its slots laid out like the server does
     // (PageTemplates), the template's own values kept on the Form metadata
-    const content = type === 'Form' && fields.template ? templateContentOf(fields.template, authoredContent) : authoredContent
+    const content = type === 'Form' && fields.template ? templateContentOf(fields.template, authoredContent, fields as Record<string, unknown>) : authoredContent
 
     const envelope: Record<string, unknown> = {}
     const metadata: Record<string, unknown> = { type }
@@ -179,6 +179,11 @@ export function expandComponent(authored: FluentNode): Component {
             const template = templateMetadataOf(metadata.template)
             if (template) metadata.template = template
             else delete metadata.template
+            // a template that draws the header (a welcome banner): no header, no toolbar of the form's
+            if (template && templateOwnsHeader(fields.template)) {
+                metadata.noHeader = true
+                metadata.toolbar = []
+            }
         }
     }
     if (type === 'HeroSection' && metadata.tone === 'auto') {

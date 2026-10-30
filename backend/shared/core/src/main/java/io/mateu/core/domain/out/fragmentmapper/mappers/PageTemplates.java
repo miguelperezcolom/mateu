@@ -4,11 +4,13 @@ import io.mateu.dtos.PageTemplateDto;
 import io.mateu.dtos.TemplateImageDto;
 import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.ItemOverviewPage;
 import io.mateu.uidl.data.TemplateImage;
 import io.mateu.uidl.data.VerticalLayout;
+import io.mateu.uidl.data.WelcomePage;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormTemplate;
@@ -27,6 +29,7 @@ import java.util.List;
 public final class PageTemplates {
 
   static final String ITEM_OVERVIEW = "ItemOverviewPage";
+  static final String WELCOME = "WelcomePage";
 
   private PageTemplates() {}
 
@@ -35,7 +38,18 @@ public final class PageTemplates {
     if (form.template() instanceof ItemOverviewPage itemOverview) {
       return List.of(itemOverview(itemOverview, form.content()));
     }
+    if (form.template() instanceof WelcomePage welcome) {
+      return welcome(welcome, form);
+    }
     return form.content();
+  }
+
+  /**
+   * Whether the template draws the page's header itself (its title, subtitle and actions live in
+   * the template's banner): the form then carries no header and no toolbar of its own.
+   */
+  static boolean ownsHeader(Form form) {
+    return form.template() instanceof WelcomePage;
   }
 
   /** The template's own values, for the wire; {@code null} for a free page. */
@@ -43,6 +57,9 @@ public final class PageTemplates {
     if (template instanceof ItemOverviewPage itemOverview) {
       return new PageTemplateDto(
           ITEM_OVERVIEW, imageDto(itemOverview.avatar()), imageDto(itemOverview.photo()));
+    }
+    if (template instanceof WelcomePage) {
+      return new PageTemplateDto(WELCOME, null, null);
     }
     return null;
   }
@@ -85,6 +102,32 @@ public final class PageTemplates {
                     .style("flex: 1 1 24rem; min-width: min(24rem, 100%)")
                     .build()))
         .build();
+  }
+
+  /**
+   * Welcome page: the banner (the form's title, subtitle and overline, its toolbar as the calls to
+   * action) over the tiles — the same composition the {@code Welcome} archetype draws (a centred
+   * {@link HeroSection}), so every renderer paints it and Redwood takes it for Spectra's template.
+   */
+  private static List<Component> welcome(WelcomePage template, Form form) {
+    List<Component> ctas = new ArrayList<>();
+    for (var trigger : form.toolbar()) {
+      if (trigger instanceof Component component) ctas.add(component);
+    }
+    List<Component> page = new ArrayList<>();
+    page.add(
+        HeroSection.builder()
+            .id("welcome")
+            .title(form.title())
+            .subtitle(form.subtitle())
+            .overline(form.overline())
+            .tone(template.toneOrNull())
+            .centered(true)
+            .content(ctas)
+            .style("width: 100%; box-sizing: border-box; margin-bottom: 1rem")
+            .build());
+    page.addAll(form.content());
+    return page;
   }
 
   /** The avatar (a round image, else the initials) or the 4:3 photo. */

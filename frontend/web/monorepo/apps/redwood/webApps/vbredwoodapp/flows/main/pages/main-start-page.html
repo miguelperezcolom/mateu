@@ -10215,7 +10215,7 @@
     data-node-bound
     :data-node-id="[[ $application.variables.mateuWelcome.nodeId || null ]]"
     :data-node-buttons="[[ $application.variables.mateuWelcome.ctaNodeIds || null ]]"
-    themed-image="none"
+    themed-image="[[ $application.variables.mateuWelcome.image ? 'none' : $application.variables.mateuWelcomeThemedImage ]]"
     illustration-background="[[ $application.variables.mateuWelcome.image || $application.variables.mateuWelcomeIlluBg ]]"
     illustration-foreground="[[ $application.variables.mateuWelcome.image ? undefined : $application.variables.mateuWelcomeIllu ]]"
     display-options.image-stretch="none"

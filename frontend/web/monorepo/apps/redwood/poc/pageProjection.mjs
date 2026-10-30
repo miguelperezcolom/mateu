@@ -196,6 +196,7 @@ export function archetypeVarsOf(host) {
     vars.mateuWelcomeTheme = look.theme
     vars.mateuWelcomeIlluBg = look.illuBg
     vars.mateuWelcomeIllu = look.illu
+    vars.mateuWelcomeThemedImage = look.themedImage || 'none'
   }
   // spPage: a page template that brings its own header and owns the page (the chains suppress the VB
   // header and the generic form for it, like the dashboard/todo branches)

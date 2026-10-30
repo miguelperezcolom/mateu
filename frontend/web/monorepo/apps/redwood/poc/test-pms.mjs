@@ -2425,6 +2425,18 @@ test('a page that DECLARES the Item overview page template (YAML template: ItemO
   assert.equal(itemOverviewPageHeaderOf(wrapped, wrappedIo).itemTitle, 'Luke')
 })
 
+test('a page that DECLARES the Welcome page template (YAML template: WelcomePage) → Spectra\'s welcome page, claimed by its marker', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/welcome-page.golden.json'), 'utf-8'))
+  const host = { state: {}, data: {}, tree: golden.fragments[0].component }
+  // the root is the Form (not a bare layout), which the shape rule alone would not accept
+  const vars = archetypeVarsOfForTest(host)
+  assert.ok(vars.welcome)
+  assert.equal(vars.welcome.title, 'Star Wars')
+  assert.equal(vars.welcome.overline, 'A Mateu demo')
+  assert.equal(vars.welcome.tiles.length, 1)
+})
+
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {
   // the body is Spectra's read-only form layout: property rows (nested ones too) are drawn stacked
   const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),

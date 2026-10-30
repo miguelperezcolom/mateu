@@ -10,6 +10,7 @@ import { expandComponent, type FluentNode } from '@infra/expander/expandComponen
 import { expectSubset } from '@infra/expander/__fixtures__/structuralSubset'
 import itemOverview from '@infra/expander/__fixtures__/item-overview-page.golden.json'
 import itemOverviewPhoto from '@infra/expander/__fixtures__/item-overview-photo.golden.json'
+import welcomePage from '@infra/expander/__fixtures__/welcome-page.golden.json'
 
 const TEST_RESOURCES = resolve(__dirname, '../../../../../../../../../../backend/shared/core/src/test/resources')
 const authored = (path: string): FluentNode => parse(readFileSync(resolve(TEST_RESOURCES, path), 'utf-8'))
@@ -20,7 +21,7 @@ const withoutGeneratedIds = (node: any): any => {
     if (!node || typeof node !== 'object') return node
     const out: any = {}
     for (const [k, v] of Object.entries(node)) {
-        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && node.metadata?.type !== 'FormField') continue
+        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && v !== 'welcome' && node.metadata?.type !== 'FormField') continue
         out[k] = withoutGeneratedIds(v)
     }
     return out
@@ -38,6 +39,16 @@ describe('client-side expander — a page template, against the Java golden', ()
         const wire = expandComponent(authored('specs/ui/item-overview-photo.yaml')) as any
         expectSubset(withoutGeneratedIds(wire), goldenComponent(itemOverviewPhoto))
         expect(JSON.stringify(wire)).not.toContain('item-overview-footer')
+    })
+
+    it('the welcome page: the banner (title, subtitle, overline, calls to action) over the tiles', () => {
+        const wire = expandComponent(authored('specs/ui/welcome-page.yaml')) as any
+        expectSubset(withoutGeneratedIds(wire), goldenComponent(welcomePage))
+        expect(wire.metadata.noHeader).toBe(true)
+        expect(wire.metadata.toolbar).toEqual([])
+        expect(wire.children[0].id).toBe('welcome')
+        expect(wire.children[0].metadata.tone).toBe('slate')
+        expect(wire.children[0].children.map((b: any) => b.metadata.label)).toEqual(['Browse the characters', 'Explore the planets'])
     })
 
     it('a page without a template stays free', () => {

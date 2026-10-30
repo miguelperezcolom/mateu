@@ -96,6 +96,9 @@ export function welcomeToneLookOf(key, tone) {
     theme,
     illuBg: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png') : '',
     illu: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png') : '',
+    // the guide makes the banner's image panel REQUIRED: a tone with no gallery pair takes Spectra's
+    // own themed image instead of none
+    themedImage: pair ? 'none' : 'pebbles',
   }
 }
 
@@ -120,6 +123,7 @@ export function welcomeLookOf(key, tone = null) {
     theme,
     illuBg: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png'),
     illu: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png'),
+    themedImage: 'none',
   }
 }
 
@@ -152,7 +156,10 @@ export function welcomeOf(ctx) {
   if (!hero) return null
   // the welcome page is a hero over its tiles and nothing else: a page that merely CONTAINS a hero
   // (among cards, charts, notices…) is not one — taken for it, everything but the tiles vanished
-  if (holdsMoreThanAWelcome(ctx.tree, true)) return null
+  // a page that DECLARES the template (YAML `template: WelcomePage`) is claimed by its marker; any
+  // other page only when its shape is a welcome's
+  const declared = ((pageTemplateOf(ctx) || {}).type) === 'WelcomePage'
+  if (!declared && holdsMoreThanAWelcome(ctx.tree, true)) return null
   const md = hero.metadata
   const ctas = actionsOf(hero)
   const panels = findAllByType(ctx.tree, 'DashboardPanel')

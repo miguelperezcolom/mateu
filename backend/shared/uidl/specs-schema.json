@@ -4636,6 +4636,8 @@
       "description" : "One of the FormTemplate implementations.",
       "oneOf" : [ {
         "$ref" : "#/$defs/ItemOverviewPage"
+      }, {
+        "$ref" : "#/$defs/WelcomePage"
       } ]
     },
     "FullWidth" : {
@@ -9401,6 +9403,20 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "WelcomePage" : {
+      "description" : "Redwood's Welcome page template (Spectra oj-sp-welcome-page): a welcome banner over the page's tiles.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "WelcomePage"
+        },
+        "backgroundColor" : {
+          "type" : "string"
         }
       }
     },

@@ -192,11 +192,34 @@ filled with the record's data (`${state.x}`) — is the **page**.
 | `template.type` | Redwood template | Fields | Slots |
 |---|---|---|---|
 | `ItemOverviewPage` | `oj-sp-item-overview-page` + `oj-sp-item-overview` | `avatar {src, initials}` (round) or `photo {src}` (4:3) | `body`, `footer` (the overview panel); the form's `content` is `main` |
+| `WelcomePage` | `oj-sp-welcome-page` | `backgroundColor` (Spectra's `dark-ocean` … `dark-sienna`, or the bare tone; `auto`/none = default) | the form's `content` is the default slot (the tiles under the banner) |
 
 The rest of the template comes from the `type: Form` that carries it: its `title`/`subtitle` are
 the item's (`itemTitle`/`itemSubtitle`), its first header badge the item's badge, its `peerNav` the
 previous/next item, its back button the parent link, its primary toolbar button the panel's **edit**
 action when it edits (otherwise it joins the panel's other actions, like the rest of the toolbar).
+
+A `WelcomePage` draws the page's header itself: the form's `title` is the banner's title, its
+`subtitle` the description, its `overline` the line above the title and its `toolbar` the calls to
+action (a `primary` one first) — the form shows no header or toolbar of its own.
+
+```yaml
+type: Form
+title: Star Wars
+overline: A Mateu demo
+subtitle: Characters, planets and starships of the saga.
+toolbar:
+  - {type: Button, label: Browse the characters, buttonStyle: primary, actionable: {type: RouteLink, route: people}}
+template:
+  type: WelcomePage
+  backgroundColor: dark-slate
+content:                     # the tiles under the banner
+  - type: DashboardLayout
+    items:
+      - {type: DashboardPanel, title: Characters, content: {type: Text, text: Who is who.}}
+```
+
+An item overview:
 
 ```yaml
 type: Form

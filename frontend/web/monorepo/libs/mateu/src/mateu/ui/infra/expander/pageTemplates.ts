@@ -23,15 +23,54 @@ const image = (value: unknown): Node | null => {
 /** The template's own values, for the Form metadata; undefined for a free page or an unknown template. */
 export function templateMetadataOf(template: unknown): Node | undefined {
     const t = template as Node | undefined
-    if (!t || t.type !== 'ItemOverviewPage') return undefined
-    return { type: 'ItemOverviewPage', avatar: image(t.avatar), photo: image(t.photo) }
+    if (!t) return undefined
+    if (t.type === 'ItemOverviewPage') return { type: 'ItemOverviewPage', avatar: image(t.avatar), photo: image(t.photo) }
+    if (t.type === 'WelcomePage') return { type: 'WelcomePage', avatar: null, photo: null }
+    return undefined
 }
 
-/** The page's content: the template laid out, or the authored content of a free page. */
-export function contentOf(template: unknown, content: unknown): unknown {
+/**
+ * Whether the template draws the page's header itself (its title, subtitle and actions live in the
+ * template's banner): the Form then carries no header and no toolbar of its own (PageTemplates.ownsHeader).
+ */
+export function ownsHeader(template: unknown): boolean {
     const t = template as Node | undefined
-    if (!t || t.type !== 'ItemOverviewPage') return content
-    return [itemOverview(t, nodes(content))]
+    return !!t && t.type === 'WelcomePage'
+}
+
+/** The page's content: the template laid out, or the authored content of a free page. `form` is the
+ *  authored Form (its title, subtitle, overline, toolbar), which some templates draw. */
+export function contentOf(template: unknown, content: unknown, form: Node = {}): unknown {
+    const t = template as Node | undefined
+    if (!t) return content
+    if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content))]
+    if (t.type === 'WelcomePage') return welcome(t, nodes(content), form)
+    return content
+}
+
+const TONES = ['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna']
+
+/** Spectra's `dark-<tone>` (or the bare tone) → the hero's tone; auto/unknown → none (WelcomePage.toneOrNull). */
+function toneOf(backgroundColor: unknown): string | undefined {
+    if (!filled(backgroundColor)) return undefined
+    const tone = backgroundColor.trim().replace(/^dark-/, '').toLowerCase()
+    return TONES.includes(tone) ? tone : undefined
+}
+
+/** Welcome page: the banner (the form's title/subtitle/overline, its toolbar as the calls to action)
+ *  over the tiles — the Welcome archetype's centred HeroSection. */
+function welcome(t: Node, tiles: FluentNode[], form: Node): FluentNode[] {
+    const tone = toneOf(t.backgroundColor)
+    const hero: Node = {
+        type: 'HeroSection', id: 'welcome', centered: true,
+        style: 'width: 100%; box-sizing: border-box; margin-bottom: 1rem',
+        content: nodes(form.toolbar),
+    }
+    if (form.title !== undefined) hero.title = form.title
+    if (form.subtitle !== undefined) hero.subtitle = form.subtitle
+    if (form.overline !== undefined) hero.overline = form.overline
+    if (tone) hero.tone = tone
+    return [hero as unknown as FluentNode, ...tiles]
 }
 
 const slot = (id: string, content: FluentNode[], style?: string): FluentNode =>

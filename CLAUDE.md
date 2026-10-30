@@ -372,6 +372,13 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   read-only form layout); a titled `mateu-section` Card in the main slot keeps its `oj-sp-section`
   header (`itemOverviewOf`'s atomsOfNodes; a section's title is not repeated as a text atom,
   content.mjs). A section's title must be a HEADING (`Text container: h3`) — `sectionHeadOf` reads it.
+- **`WelcomePage`** (`oj-sp-welcome-page`, field `backgroundColor` = Spectra's `dark-<tone>` or the
+  bare HeroTone): the template OWNS the header (`PageTemplates.ownsHeader` / expander `ownsHeader` →
+  `noHeader` + empty toolbar): the form's title/subtitle/overline/toolbar become a centred
+  `HeroSection` id `welcome` (the Welcome archetype's shape) over the content (the tiles). Redwood
+  claims a DECLARED welcome by its marker (`welcomeOf`: `pageTemplateOf` — the shape rule alone
+  rejects a Form root). The guide makes the banner image REQUIRED: a tone without a gallery pair
+  (slate/lilac/rose/pebble) gets `themedImage: pebbles` (`welcomeToneLookOf` → `mateuWelcomeThemedImage`).
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

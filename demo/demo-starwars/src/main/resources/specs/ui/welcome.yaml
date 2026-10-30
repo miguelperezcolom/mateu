@@ -1,28 +1,27 @@
-# The home page: a welcome hero with its calls to action over one tile per collection. A hero over
-# its tiles and nothing else is what the Redwood renderer paints with Spectra's welcome template
-# (oj-sp-welcome-page); the web renderer draws the same hero and grid. Every link is a RouteLink:
-# no server action behind any of it, so it works in the static bundle too.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
-type: VerticalLayout
+# The home page fills Redwood's WELCOME PAGE template (Spectra oj-sp-welcome-page): the banner is
+# the page's own title, description (subtitle), overline and calls to action (toolbar, the primary
+# first); the template's `backgroundColor` is Spectra's; the content is its default slot — one tile
+# per collection. Every link is a RouteLink: no server action behind any of it, so it works in the
+# static bundle too.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Star Wars
+overline: A Mateu demo
+subtitle: >-
+  Characters, planets, films, species, vehicles and starships of the saga — searched, filtered,
+  paged and edited. Every screen is YAML, rendered by Mateu over a public Star Wars API.
+toolbar:
+  - type: Button
+    label: Browse the characters
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: people}
+  - type: Button
+    label: Explore the planets
+    actionable: {type: RouteLink, route: planets}
+template:
+  type: WelcomePage
+  backgroundColor: dark-slate
 content:
-  - type: HeroSection
-    id: welcome
-    overline: A Mateu demo
-    title: Star Wars
-    subtitle: >-
-      Characters, planets, films, species, vehicles and starships of the saga — searched, filtered,
-      paged and edited. Every screen is YAML, rendered by Mateu over a public Star Wars API.
-    centered: true
-    tone: slate
-    style: 'width: 100%; box-sizing: border-box; margin-bottom: 1rem;'
-    content:
-      - type: Button
-        label: Browse the characters
-        buttonStyle: primary
-        actionable: {type: RouteLink, route: people}
-      - type: Button
-        label: Explore the planets
-        actionable: {type: RouteLink, route: planets}
   - type: DashboardLayout
     columns: 3
     items:
