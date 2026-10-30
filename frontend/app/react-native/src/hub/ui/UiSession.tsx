@@ -79,6 +79,8 @@ export function UiSession({
   onSwitch: () => void;
 }) {
   const [phase, setPhase] = useState<Phase>({ name: 'manifest' });
+  // the UI's own top bar hosts the hub's actions (session.hub.claimBar): then the hub shows no bar of its own
+  const [barClaimed, setBarClaimed] = useState(false);
   const [manifest, setManifest] = useState<UiManifest | undefined>(entry.manifest);
   const [sessionId, setSessionId] = useState<string | null>(null);
   /** A static UI (no server): the bundle it runs from. */
@@ -156,7 +158,7 @@ export function UiSession({
 
   const onSession = useCallback(
     (session: MateuSession) => {
-      session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name };
+      session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed };
       if (provider) {
         session.signOut = async () => {
           await provider.logout();
@@ -229,6 +231,8 @@ export function UiSession({
 
   return (
     <View style={[styles.session, !visible && styles.hidden]} accessibilityElementsHidden={!visible} importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}>
+      {/* the hub's bar — unless the UI's own top bar hosts its actions (an app shell with a menu) */}
+      {!(barClaimed && phase.name === 'ready' && !!sessionId) && (
       <Appbar.Header statusBarHeight={0} style={{ backgroundColor: color ?? theme.surface }}>
         <Appbar.BackAction onPress={onHome} accessibilityLabel="My UIs" color={ink} testID="hub-home" />
         <Appbar.Content
@@ -242,6 +246,7 @@ export function UiSession({
         />
         <Appbar.Action icon="swap-horizontal" onPress={onSwitch} color={ink} accessibilityLabel="Switch UI" />
       </Appbar.Header>
+      )}
       {body}
     </View>
   );

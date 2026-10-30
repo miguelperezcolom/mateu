@@ -100,6 +100,17 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             vector exists; upscaled with blur+threshold for clean edges)
                             HUB LIST: each row's actions (move up/down, remove) open in a bottom sheet from its ⋮ button
                             or a long press (HomeScreen EntrySheet); the top bar's pencil still shows them on every row
+                            ONE BAR (2026-10-30): an app shell with a drawer claims the hub's bar
+                            (session.hub.claimBar) — its own top bar hosts the hub's ⇄ switch and, with a screen pushed,
+                            the back arrow in place of the menu (ContentScreen hostBack); tabs/no-menu keep the hub bar
+                            + the screen's own back bar. LISTINGS on RN (2026-10-30, all found on the Star Wars demo):
+                            a row fetches its rowRoute's fields (rowRouteFields — without `id` a tap did nothing and a
+                            bulk delete had no id); a toolbar/FAB button with a `route` NAVIGATES (useButtonPress);
+                            restAction `forEachSelectedRow` (proxy → one __restfetch__ with _forEachSelectedRow, direct →
+                            one call per row); fetchViaProxy THROWS on transport errors and appData._restfetchError
+                            (it answered {} → "Deleted" shown for a failed delete); a Form paints its `toolbar` (back
+                            ids skipped) and interpolates title/subtitle; a static bundle answers LOADS but posts
+                            ACTIONS to the host (hybrid sites have a server; 404/405/no answer → "This UI has no server")
   intellij-plugin/        ← Desktop — IntelliJ IDEA plugin (tool windows, editor tabs, docking)
                             (the JavaFX and Compose renderers were REMOVED 2026-07-10)
 

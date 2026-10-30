@@ -341,13 +341,18 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Markdown':
       return <RichText value={(metadata['markdown'] as string) ?? ''} kind="markdown" />;
     case 'Image': {
-      const src = (metadata['src'] as string) ?? '';
-      return src ? (
+      // src/alt may be templates over the page state (a YAML record page shows `${state.image}`)
+      const src = interpolate((metadata['src'] as string) ?? '', { state });
+      const alt = metadata['alt'] == null ? undefined : interpolate(String(metadata['alt']), { state });
+      // the two shapes a page template asks for: a round avatar, a 4:3 photo
+      const css = String(component['style'] ?? '');
+      const shape = /border-radius:\s*50%/.test(css) ? styles.imageRound : /aspect-ratio:\s*4\s*\/\s*3/.test(css) ? styles.imagePhoto : styles.image;
+      return src && !src.includes('${') ? (
         <Image
           source={{ uri: src }}
-          style={styles.image}
-          resizeMode="contain"
-          {...imageA11y(metadata['alt'] as string | undefined)}
+          style={shape}
+          resizeMode={shape === styles.image ? 'contain' : 'cover'}
+          {...imageA11y(alt)}
         />
       ) : null;
     }
@@ -476,5 +481,7 @@ const styles = themed(() => StyleSheet.create({
   separator: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border, width: '100%', marginVertical: 8 },
   unknown: { fontSize: 12, color: theme.faint, fontStyle: 'italic' },
   image: { width: '100%', height: 200, borderRadius: theme.radiusSm, backgroundColor: theme.background },
+  imageRound: { width: 112, height: 112, borderRadius: 56, alignSelf: 'center', backgroundColor: theme.background },
+  imagePhoto: { width: '100%', aspectRatio: 4 / 3, borderRadius: theme.radiusSm, backgroundColor: theme.background },
   wireButton: { alignSelf: 'flex-start' },
 }));

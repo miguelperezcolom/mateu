@@ -59,6 +59,14 @@ export function rowRouteOf(template: string, row: Dict): string | undefined {
   return route.replace(/^\/+/, '');
 }
 
+/** The row fields a `rowRoute` needs beyond the visible columns (`people/${row.id}` → `id`): a row
+ *  fetched from a source carries only the columns, and nobody declares an id column — without them
+ *  the route never resolved and a tap on the row did nothing (the web's rowRouteFields). */
+export function rowRouteFields(template: unknown): string[] {
+  if (typeof template !== 'string' || !template) return [];
+  return [...new Set([...template.matchAll(/\$\{\s*row\.([A-Za-z0-9_]+)/g)].map((m) => m[1]))];
+}
+
 /** What pressing this row does, or undefined (group marker, `viewable: false`, unresolved route). */
 export type RowPress =
   | { kind: 'route'; route: string }

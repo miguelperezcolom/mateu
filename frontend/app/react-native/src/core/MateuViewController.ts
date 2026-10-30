@@ -397,13 +397,39 @@ export class MateuViewController {
       // SAMPLE mode: a sampled source is neither fetched nor proxied — a read answers with a copy of
       // the sample, a write succeeds with null (nothing persisted, nothing to merge).
       const sampled = this.session.sources.sampledResponse(source, str(target['method']) || 'GET');
+      const kind = actionId === '__restdata__' ? 'data' : 'action';
       if (sampled !== undefined) {
         json = sampled;
+      } else if (rest['forEachSelectedRow']) {
+        // Bulk: the call once per checked row (crud_selected_items), as on the web. A PROXY source
+        // loops server-side (one __restfetch__ with _forEachSelectedRow — the secret stays there);
+        // a direct one loops here, each call resolved against the state with the row merged in.
+        const rows = (this.currentComponentState['crud_selected_items'] as Json[] | undefined) ?? [];
+        if (!rows.length) {
+          this.session.notify(null, 'You first need to select some rows', 'warning');
+          return;
+        }
+        if (this.session.sources.viaProxy(source)) {
+          json = await this.fetchViaProxy(kind, actionId ?? '', { _forEachSelectedRow: true });
+        } else {
+          for (const row of rows) {
+            const rowCtx = { ...ctx, state: { ...ctx.state, ...row } };
+            const url = this.session.sources.absolute(interpolateUrl(str(target['url']), rowCtx));
+            const method = (str(target['method']) || 'GET').toUpperCase();
+            const headers: Record<string, string> = {};
+            for (const [k, v] of Object.entries((target['headers'] as Json) ?? {})) headers[k] = interpolate(str(v), rowCtx);
+            Object.assign(headers, await externalAuthHeaders({ url, method }));
+            const init: RequestInit = { method, headers };
+            if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = interpolate(str(target['body']), rowCtx);
+            const res = await fetch(url, init);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          }
+          json = null;
+        }
       } else if (this.session.sources.viaProxy(source)) {
         // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via
         // the reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
         // @RestData source; any other id is a @RestAction method — hence the source kind.
-        const kind = actionId === '__restdata__' ? 'data' : 'action';
         json = await this.fetchViaProxy(kind, actionId ?? '');
       } else {
         const url = this.session.sources.absolute(interpolateUrl(str(target['url']), ctx));
@@ -441,7 +467,7 @@ export class MateuViewController {
       if (successRoute && !successRoute.includes('${')) this.handleCommand({ type: 'NavigateTo', data: successRoute });
     } catch (e) {
       if (this.silentErrors) devLog('[Mateu] rest action failed:', errorText(e));
-      else this.session.notify(null, 'Request failed', 'error');
+      else this.session.notify(null, `Request failed: ${errorText(e)}`, 'error');
     }
   }
 
@@ -449,25 +475,29 @@ export class MateuViewController {
    * Proxy-mode external fetch: route a DECLARED REST source through the Mateu server via the
    * reserved __restfetch__ action (the server resolves the source, injects ${secret.X} and fetches
    * server-side — no CORS, secrets off the client). Returns the raw JSON the server fetched
-   * (appData._restfetch), or {} on failure. Shared by the options/rows/action/data proxy paths.
+   * (appData._restfetch); a failure THROWS — the transport's, or the endpoint's the server reports
+   * in appData._restfetchError (the web's handleProxyResult). It used to answer {} instead, so a
+   * write that failed still showed its success message ("Deleted" while nothing was deleted).
+   * Shared by the options/rows/action/data proxy paths (all of which catch).
    */
-  async fetchViaProxy(sourceKind: string, sourceId: string): Promise<unknown> {
-    try {
-      const increment = (await this.session.api.runAction({
-        route: this.currentRoute,
-        consumedRoute: this.currentConsumedRoute,
-        actionId: '__restfetch__',
-        serverSideType: this.currentServerSideType || null,
-        initiatorComponentId: this.currentComponentId,
-        componentState: this.currentComponentState,
-        appState: this.session.appState,
-        parameters: { _sourceKind: sourceKind, _sourceId: sourceId },
-      })) as Json;
-      return (increment?.['appData'] as Json)?.['_restfetch'] ?? {};
-    } catch (e) {
-      devLog('[Mateu] proxy rest fetch failed:', errorText(e));
-      return {};
+  async fetchViaProxy(sourceKind: string, sourceId: string, extra: Json = {}): Promise<unknown> {
+    const increment = (await this.session.api.runAction({
+      route: this.currentRoute,
+      consumedRoute: this.currentConsumedRoute,
+      actionId: '__restfetch__',
+      serverSideType: this.currentServerSideType || null,
+      initiatorComponentId: this.currentComponentId,
+      componentState: this.currentComponentState,
+      appState: this.session.appState,
+      parameters: { _sourceKind: sourceKind, _sourceId: sourceId, ...extra },
+    })) as Json;
+    const appData = (increment?.['appData'] as Json) ?? {};
+    const failure = appData['_restfetchError'] as Json | undefined;
+    if (failure) {
+      const status = typeof failure['status'] === 'number' && failure['status'] > 0 ? ` (HTTP ${failure['status']})` : '';
+      throw new Error(`The request failed${status}`);
     }
+    return appData['_restfetch'] ?? {};
   }
 
   // ── field state ─────────────────────────────────────────────────────────────────────

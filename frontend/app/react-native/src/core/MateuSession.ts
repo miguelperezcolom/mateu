@@ -118,7 +118,9 @@ export class MateuSession {
   signOut?: () => Promise<void>;
 
   /** Host hook (hub sessions): the shell offers "My UIs" / "Switch UI" entries when set. */
-  hub?: { goHome: () => void; openSwitcher: () => void; uiName: string };
+  /** The Mateu hub app around this UI. `claimBar(true)`: the app's own top bar hosts the hub's
+   *  actions (switch UI), so the hub hides its bar — one bar, not two stacked. */
+  hub?: { goHome: () => void; openSwitcher: () => void; uiName: string; claimBar?: (claimed: boolean) => void };
 
   // ── the assistant chat (App.sseUrl / the Chat component): what the shell lets it do ──
 
