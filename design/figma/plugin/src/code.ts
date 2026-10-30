@@ -3,7 +3,8 @@
  * from ../contract.json, the single source of truth of the design-to-code pipeline:
  *
  *   contract.json ──► this plugin ──► Figma library ──► designer composes screens
- *                └──► modux figma importer ◄── Figma REST API (reads the composed screens)
+ *                ├──► ../to-yaml (specs/ui YAML) ◄── Figma REST API (reads the composed screens)
+ *                └──► modux figma importer      ◄── Figma REST API
  *
  * Every contract entry becomes a Figma COMPONENT (or a COMPONENT SET when it declares variant
  * axes), named exactly `Mateu/<Category>/<Name>` with variant properties named exactly like the
@@ -250,8 +251,10 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       f.primaryAxisAlignItems = 'CENTER';
       f.strokeWeight = 1;
       f.dashPattern = [4, 4];
-      f.appendChild(textNode(item.label ?? 'contenido', { size: LUMO.sizeXs, color: LUMO.secondary }));
-      f.name = 'slot';
+      // A named slot is the frame `slot:<name>` the YAML converter (design/figma/to-yaml) fills
+      // from; its placeholder caption is a `#`-named layer, which is never read back as content.
+      f.appendChild(textNode(item.label ?? item.name ?? 'contenido', { size: LUMO.sizeXs, color: LUMO.secondary, name: '#placeholder' }));
+      f.name = item.name ? `slot:${item.name}` : 'slot';
       return f;
     }
     case 'tile': {
@@ -359,7 +362,7 @@ function buildComponent(entry: Entry, variants: Record<string, string>): Compone
   comp.counterAxisSizingMode = 'AUTO';
   const ctx = { variants };
   for (const item of entry.sketch ?? []) comp.appendChild(renderItem(item, ctx));
-  // non-visual config: a subtle `#config` text layer the modux importer parses (key=value; …)
+  // non-visual config: a subtle `#config` text layer the importers (../to-yaml, modux) parse (key=value; …)
   const props = Object.keys(entry.props ?? {});
   if (props.length > 0) {
     const cfg = textNode(props.map((p: string) => `${p}=`).join('; '), { size: 9, color: '#b0b0b0', name: '#config' });
