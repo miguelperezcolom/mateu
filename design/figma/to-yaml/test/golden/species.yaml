@@ -1,0 +1,23 @@
+# Generated from the Figma frame "species" (node 506:22) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Species
+subtitle: The peoples of the galaxy
+toolbar:
+  - type: Button
+    buttonStyle: primary
+    label: New species
+    actionable:
+      type: RouteLink
+      route: species/new
+template:
+  type: CollectionDetailPage
+  list:
+    - type: Partial
+      ref: species-list
+  noSelection:
+    - type: EmptyState
+      icon: 🧬
+      title: Pick a species
+      description: Choose one in the list to see its detail.

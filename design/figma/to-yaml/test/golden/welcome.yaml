@@ -1,0 +1,52 @@
+# Generated from the Figma frame "welcome" (node 202:9) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Star Wars
+subtitle: Characters, planets and starships of the saga, searched and edited.
+overline: A Mateu demo
+toolbar:
+  - type: Button
+    buttonStyle: primary
+    label: Browse the characters
+    actionable:
+      type: RouteLink
+      route: people
+  - type: Button
+    label: Explore the planets
+    actionable:
+      type: RouteLink
+      route: planets
+template:
+  type: WelcomePage
+  backgroundColor: dark-slate
+content:
+  - type: DashboardLayout
+    columns: 3
+    items:
+      - type: DashboardPanel
+        title: Characters
+        subtitle: 82 people of the saga
+        content:
+          type: VerticalLayout
+          content:
+            - type: Text
+              text: "Who is who: homeworld, species, films."
+            - type: Button
+              label: Open characters
+              actionable:
+                type: RouteLink
+                route: people
+      - type: DashboardPanel
+        title: Planets
+        subtitle: 60 worlds
+        content:
+          type: VerticalLayout
+          content:
+            - type: Text
+              text: Climate, terrain, population.
+            - type: Button
+              label: Open planets
+              actionable:
+                type: RouteLink
+                route: planets

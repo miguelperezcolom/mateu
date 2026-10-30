@@ -1,0 +1,91 @@
+# Generated from the Figma frame "person" (node 366:76) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: "${state.name}"
+subtitle: Character
+toolbar:
+  - type: Button
+    buttonStyle: tertiary
+    actionId: backToList
+    label: Back to People
+    actionable:
+      type: RouteLink
+      route: people
+  - type: Button
+    buttonStyle: primary
+    label: Edit
+    actionable:
+      type: RouteLink
+      route: "people/${state.id}/edit"
+template:
+  type: ItemOverviewPage
+  body:
+    - type: FormField
+      id: gender
+      dataType: string
+      propertyRow: true
+      readOnly: true
+      label: Gender
+    - type: FormField
+      id: birthYear
+      dataType: string
+      propertyRow: true
+      readOnly: true
+      label: Birth year
+    - type: FormField
+      id: homeworldName
+      dataType: string
+      propertyRow: true
+      readOnly: true
+      label: Homeworld
+  avatar:
+    src: "${state.image}"
+content:
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Details
+        content:
+          type: VerticalLayout
+          content:
+            - type: Card
+              cssClasses: mateu-section
+              content:
+                type: FormLayout
+                content:
+                  - type: FormField
+                    id: height
+                    dataType: integer
+                    label: Height (cm)
+                    propertyRow: true
+                    readOnly: true
+                  - type: FormField
+                    id: mass
+                    dataType: number
+                    label: Mass (kg)
+                    propertyRow: true
+                    readOnly: true
+              title:
+                type: Text
+                container: h3
+                text: Physique
+            - type: Card
+              cssClasses: mateu-section
+              content:
+                type: FormLayout
+                content:
+                  - type: FormField
+                    id: hairColor
+                    dataType: string
+                    readOnly: true
+                    label: Hair
+                  - type: FormField
+                    id: eyeColor
+                    dataType: string
+                    readOnly: true
+                    label: Eyes
+              title:
+                type: Text
+                container: h3
+                text: Appearance

@@ -1,0 +1,3062 @@
+{
+ "name": "Star Wars — Mateu screens",
+ "lastModified": "2026-10-30T10:00:00Z",
+ "version": "1234567890",
+ "role": "owner",
+ "editorType": "figma",
+ "schemaVersion": 0,
+ "document": {
+  "id": "0:0",
+  "name": "Document",
+  "type": "DOCUMENT",
+  "children": [
+   {
+    "id": "0:1",
+    "name": "Screens",
+    "type": "CANVAS",
+    "backgroundColor": {
+     "r": 0.96,
+     "g": 0.96,
+     "b": 0.96,
+     "a": 1
+    },
+    "children": [
+     {
+      "id": "202:9",
+      "name": "welcome",
+      "type": "INSTANCE",
+      "componentId": "190:94",
+      "children": [
+       {
+        "id": "204:11",
+        "name": "body",
+        "type": "FRAME",
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "192:96",
+          "name": "Overline",
+          "type": "TEXT",
+          "characters": "A Mateu demo",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          }
+         },
+         {
+          "id": "194:1",
+          "name": "Title",
+          "type": "TEXT",
+          "characters": "Star Wars",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          }
+         },
+         {
+          "id": "196:3",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "characters": "Characters, planets and starships of the saga, searched and edited.",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          }
+         },
+         {
+          "id": "198:5",
+          "name": "slot:toolbar",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "108:12",
+            "name": "Button",
+            "type": "INSTANCE",
+            "componentId": "102:6",
+            "children": [
+             {
+              "id": "104:8",
+              "name": "Label",
+              "type": "TEXT",
+              "characters": "Browse the characters",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "106:10",
+              "name": "#config",
+              "type": "TEXT",
+              "characters": "actionId=; route=people",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 9
+              }
+             }
+            ],
+            "componentProperties": {
+             "style": {
+              "type": "VARIANT",
+              "value": "primary"
+             },
+             "size": {
+              "type": "VARIANT",
+              "value": "m"
+             }
+            }
+           },
+           {
+            "id": "118:22",
+            "name": "Button",
+            "type": "INSTANCE",
+            "componentId": "112:16",
+            "children": [
+             {
+              "id": "114:18",
+              "name": "Label",
+              "type": "TEXT",
+              "characters": "Explore the planets",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "116:20",
+              "name": "#config",
+              "type": "TEXT",
+              "characters": "actionId=; route=planets",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 9
+              }
+             }
+            ],
+            "componentProperties": {
+             "style": {
+              "type": "VARIANT",
+              "value": "secondary"
+             },
+             "size": {
+              "type": "VARIANT",
+              "value": "m"
+             }
+            }
+           }
+          ]
+         },
+         {
+          "id": "200:7",
+          "name": "slot:content",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "186:90",
+            "name": "DashboardLayout",
+            "type": "INSTANCE",
+            "componentId": "180:84",
+            "children": [
+             {
+              "id": "182:86",
+              "name": "#config",
+              "type": "TEXT",
+              "characters": "columns=3",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 9
+              }
+             },
+             {
+              "id": "184:88",
+              "name": "slot:items",
+              "type": "FRAME",
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "148:52",
+                "name": "DashboardPanel",
+                "type": "INSTANCE",
+                "componentId": "138:42",
+                "children": [
+                 {
+                  "id": "150:54",
+                  "name": "body",
+                  "type": "FRAME",
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "140:44",
+                    "name": "Title",
+                    "type": "TEXT",
+                    "characters": "Characters",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    }
+                   },
+                   {
+                    "id": "142:46",
+                    "name": "Subtitle",
+                    "type": "TEXT",
+                    "characters": "82 people of the saga",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    }
+                   },
+                   {
+                    "id": "144:48",
+                    "name": "#config",
+                    "type": "TEXT",
+                    "characters": "colSpan=; rowSpan=",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 9
+                    }
+                   },
+                   {
+                    "id": "146:50",
+                    "name": "slot:content",
+                    "type": "FRAME",
+                    "layoutMode": "VERTICAL",
+                    "children": [
+                     {
+                      "id": "128:32",
+                      "name": "Text",
+                      "type": "INSTANCE",
+                      "componentId": "122:26",
+                      "children": [
+                       {
+                        "id": "124:28",
+                        "name": "Text",
+                        "type": "TEXT",
+                        "characters": "Who is who: homeworld, species, films.",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "126:30",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "noMargins=; container=",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       }
+                      ],
+                      "componentProperties": {
+                       "size": {
+                        "type": "VARIANT",
+                        "value": "m"
+                       }
+                      }
+                     },
+                     {
+                      "id": "136:40",
+                      "name": "Button",
+                      "type": "INSTANCE",
+                      "componentId": "112:16",
+                      "children": [
+                       {
+                        "id": "132:36",
+                        "name": "Label",
+                        "type": "TEXT",
+                        "characters": "Open characters",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "134:38",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "actionId=; route=people",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       }
+                      ],
+                      "componentProperties": {
+                       "style": {
+                        "type": "VARIANT",
+                        "value": "secondary"
+                       },
+                       "size": {
+                        "type": "VARIANT",
+                        "value": "m"
+                       }
+                      }
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               },
+               {
+                "id": "176:80",
+                "name": "DashboardPanel",
+                "type": "INSTANCE",
+                "componentId": "138:42",
+                "children": [
+                 {
+                  "id": "178:82",
+                  "name": "body",
+                  "type": "FRAME",
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "168:72",
+                    "name": "Title",
+                    "type": "TEXT",
+                    "characters": "Planets",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    }
+                   },
+                   {
+                    "id": "170:74",
+                    "name": "Subtitle",
+                    "type": "TEXT",
+                    "characters": "60 worlds",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    }
+                   },
+                   {
+                    "id": "172:76",
+                    "name": "#config",
+                    "type": "TEXT",
+                    "characters": "colSpan=; rowSpan=",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 9
+                    }
+                   },
+                   {
+                    "id": "174:78",
+                    "name": "slot:content",
+                    "type": "FRAME",
+                    "layoutMode": "VERTICAL",
+                    "children": [
+                     {
+                      "id": "158:62",
+                      "name": "Text",
+                      "type": "INSTANCE",
+                      "componentId": "122:26",
+                      "children": [
+                       {
+                        "id": "154:58",
+                        "name": "Text",
+                        "type": "TEXT",
+                        "characters": "Climate, terrain, population.",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "156:60",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "noMargins=; container=",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       }
+                      ],
+                      "componentProperties": {
+                       "size": {
+                        "type": "VARIANT",
+                        "value": "m"
+                       }
+                      }
+                     },
+                     {
+                      "id": "166:70",
+                      "name": "Button",
+                      "type": "INSTANCE",
+                      "componentId": "112:16",
+                      "children": [
+                       {
+                        "id": "162:66",
+                        "name": "Label",
+                        "type": "TEXT",
+                        "characters": "Open planets",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "164:68",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "actionId=; route=planets",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       }
+                      ],
+                      "componentProperties": {
+                       "style": {
+                        "type": "VARIANT",
+                        "value": "secondary"
+                       },
+                       "size": {
+                        "type": "VARIANT",
+                        "value": "m"
+                       }
+                      }
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ],
+      "componentProperties": {
+       "backgroundColor": {
+        "type": "VARIANT",
+        "value": "dark-slate"
+       }
+      }
+     },
+     {
+      "id": "366:76",
+      "name": "person",
+      "type": "FRAME",
+      "layoutMode": "NONE",
+      "children": [
+       {
+        "id": "216:23",
+        "name": "ItemOverviewPage",
+        "type": "INSTANCE",
+        "componentId": "206:13",
+        "children": [
+         {
+          "id": "218:25",
+          "name": "body",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "208:15",
+            "name": "Overline",
+            "type": "TEXT",
+            "characters": "Overline",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "210:17",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "${state.name}",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "212:19",
+            "name": "Subtitle",
+            "type": "TEXT",
+            "characters": "Character",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "214:21",
+            "name": "#config",
+            "type": "TEXT",
+            "characters": "avatar.src=${state.image}; avatar.initials=; photo.src=",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 9
+            }
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "id": "238:45",
+        "name": "slot:toolbar",
+        "type": "FRAME",
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "228:35",
+          "name": "Button",
+          "type": "INSTANCE",
+          "componentId": "222:29",
+          "children": [
+           {
+            "id": "224:31",
+            "name": "Label",
+            "type": "TEXT",
+            "characters": "Back to People",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "226:33",
+            "name": "#config",
+            "type": "TEXT",
+            "characters": "actionId=backToList; route=people",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 9
+            }
+           }
+          ],
+          "componentProperties": {
+           "style": {
+            "type": "VARIANT",
+            "value": "tertiary"
+           },
+           "size": {
+            "type": "VARIANT",
+            "value": "m"
+           }
+          }
+         },
+         {
+          "id": "236:43",
+          "name": "Button",
+          "type": "INSTANCE",
+          "componentId": "102:6",
+          "children": [
+           {
+            "id": "232:39",
+            "name": "Label",
+            "type": "TEXT",
+            "characters": "Edit",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "234:41",
+            "name": "#config",
+            "type": "TEXT",
+            "characters": "actionId=; route=people/${state.id}/edit",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 9
+            }
+           }
+          ],
+          "componentProperties": {
+           "style": {
+            "type": "VARIANT",
+            "value": "primary"
+           },
+           "size": {
+            "type": "VARIANT",
+            "value": "m"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "id": "272:79",
+        "name": "slot:body",
+        "type": "FRAME",
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "248:55",
+          "name": "PropertyRow",
+          "type": "INSTANCE",
+          "componentId": "240:47",
+          "children": [
+           {
+            "id": "250:57",
+            "name": "body",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "242:49",
+              "name": "Label",
+              "type": "TEXT",
+              "characters": "Gender",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "244:51",
+              "name": "Value",
+              "type": "TEXT",
+              "characters": "Luke Skywalker",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "246:53",
+              "name": "#config",
+              "type": "TEXT",
+              "characters": "fieldId=gender; required=; readOnly=",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 9
+              }
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "258:65",
+          "name": "PropertyRow",
+          "type": "INSTANCE",
+          "componentId": "240:47",
+          "children": [
+           {
+            "id": "260:67",
+            "name": "body",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "252:59",
+              "name": "Label",
+              "type": "TEXT",
+              "characters": "Birth year",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "254:61",
+              "name": "Value",
+              "type": "TEXT",
+              "characters": "Luke Skywalker",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "256:63",
+              "name": "#config",
+              "type": "TEXT",
+              "characters": "fieldId=birthYear; required=; readOnly=",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 9
+              }
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "268:75",
+          "name": "PropertyRow",
+          "type": "INSTANCE",
+          "componentId": "240:47",
+          "children": [
+           {
+            "id": "270:77",
+            "name": "body",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "262:69",
+              "name": "Label",
+              "type": "TEXT",
+              "characters": "Homeworld",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "264:71",
+              "name": "Value",
+              "type": "TEXT",
+              "characters": "Luke Skywalker",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "266:73",
+              "name": "#config",
+              "type": "TEXT",
+              "characters": "fieldId=homeworldName; required=; readOnly=",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 9
+              }
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "id": "360:70",
+        "name": "Tabs",
+        "type": "INSTANCE",
+        "componentId": "352:62",
+        "children": [
+         {
+          "id": "362:72",
+          "name": "body",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "354:64",
+            "name": "Tab1",
+            "type": "TEXT",
+            "characters": "Tab1",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "356:66",
+            "name": "Tab2",
+            "type": "TEXT",
+            "characters": "Tab2",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "358:68",
+            "name": "slot:tabs",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "348:58",
+              "name": "Tab",
+              "type": "INSTANCE",
+              "componentId": "340:50",
+              "children": [
+               {
+                "id": "350:60",
+                "name": "body",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "342:52",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "characters": "Details",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "344:54",
+                  "name": "#config",
+                  "type": "TEXT",
+                  "characters": "shortcut=; badge=; active=",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 9
+                  }
+                 },
+                 {
+                  "id": "346:56",
+                  "name": "slot:content",
+                  "type": "FRAME",
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "300:10",
+                    "name": "Section",
+                    "type": "INSTANCE",
+                    "componentId": "292:2",
+                    "children": [
+                     {
+                      "id": "302:12",
+                      "name": "body",
+                      "type": "FRAME",
+                      "layoutMode": "VERTICAL",
+                      "children": [
+                       {
+                        "id": "294:4",
+                        "name": "Title",
+                        "type": "TEXT",
+                        "characters": "Physique",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "296:6",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "zone=; columns=",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       },
+                       {
+                        "id": "298:8",
+                        "name": "slot:content",
+                        "type": "FRAME",
+                        "layoutMode": "VERTICAL",
+                        "children": [
+                         {
+                          "id": "280:87",
+                          "name": "Integer",
+                          "type": "INSTANCE",
+                          "componentId": "274:81",
+                          "children": [
+                           {
+                            "id": "276:83",
+                            "name": "Label",
+                            "type": "TEXT",
+                            "characters": "Height (cm)",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 13
+                            }
+                           },
+                           {
+                            "id": "278:85",
+                            "name": "#config",
+                            "type": "TEXT",
+                            "characters": "fieldId=height; required=; readOnly=",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 9
+                            }
+                           }
+                          ]
+                         },
+                         {
+                          "id": "288:95",
+                          "name": "Number",
+                          "type": "INSTANCE",
+                          "componentId": "282:89",
+                          "children": [
+                           {
+                            "id": "284:91",
+                            "name": "Label",
+                            "type": "TEXT",
+                            "characters": "Mass (kg)",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 13
+                            }
+                           },
+                           {
+                            "id": "286:93",
+                            "name": "#config",
+                            "type": "TEXT",
+                            "characters": "fieldId=mass; required=; readOnly=",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 9
+                            }
+                           }
+                          ]
+                         }
+                        ]
+                       }
+                      ]
+                     }
+                    ],
+                    "componentProperties": {
+                     "propertyList": {
+                      "type": "VARIANT",
+                      "value": "true"
+                     },
+                     "frameless": {
+                      "type": "VARIANT",
+                      "value": "false"
+                     },
+                     "sticky": {
+                      "type": "VARIANT",
+                      "value": "false"
+                     }
+                    }
+                   },
+                   {
+                    "id": "336:46",
+                    "name": "Section",
+                    "type": "INSTANCE",
+                    "componentId": "328:38",
+                    "children": [
+                     {
+                      "id": "338:48",
+                      "name": "body",
+                      "type": "FRAME",
+                      "layoutMode": "VERTICAL",
+                      "children": [
+                       {
+                        "id": "330:40",
+                        "name": "Title",
+                        "type": "TEXT",
+                        "characters": "Appearance",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "332:42",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "zone=; columns=",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       },
+                       {
+                        "id": "334:44",
+                        "name": "slot:content",
+                        "type": "FRAME",
+                        "layoutMode": "VERTICAL",
+                        "children": [
+                         {
+                          "id": "312:22",
+                          "name": "TextField",
+                          "type": "INSTANCE",
+                          "componentId": "304:14",
+                          "children": [
+                           {
+                            "id": "314:24",
+                            "name": "body",
+                            "type": "FRAME",
+                            "layoutMode": "VERTICAL",
+                            "children": [
+                             {
+                              "id": "306:16",
+                              "name": "Label",
+                              "type": "TEXT",
+                              "characters": "Hair",
+                              "style": {
+                               "fontFamily": "Inter",
+                               "fontSize": 13
+                              }
+                             },
+                             {
+                              "id": "308:18",
+                              "name": "Value",
+                              "type": "TEXT",
+                              "characters": "Value",
+                              "style": {
+                               "fontFamily": "Inter",
+                               "fontSize": 13
+                              }
+                             },
+                             {
+                              "id": "310:20",
+                              "name": "#config",
+                              "type": "TEXT",
+                              "characters": "fieldId=hairColor; required=; readOnly=true",
+                              "style": {
+                               "fontFamily": "Inter",
+                               "fontSize": 9
+                              }
+                             }
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "id": "322:32",
+                          "name": "TextField",
+                          "type": "INSTANCE",
+                          "componentId": "304:14",
+                          "children": [
+                           {
+                            "id": "324:34",
+                            "name": "body",
+                            "type": "FRAME",
+                            "layoutMode": "VERTICAL",
+                            "children": [
+                             {
+                              "id": "316:26",
+                              "name": "Label",
+                              "type": "TEXT",
+                              "characters": "Eyes",
+                              "style": {
+                               "fontFamily": "Inter",
+                               "fontSize": 13
+                              }
+                             },
+                             {
+                              "id": "318:28",
+                              "name": "Value",
+                              "type": "TEXT",
+                              "characters": "Value",
+                              "style": {
+                               "fontFamily": "Inter",
+                               "fontSize": 13
+                              }
+                             },
+                             {
+                              "id": "320:30",
+                              "name": "#config",
+                              "type": "TEXT",
+                              "characters": "fieldId=eyeColor; required=; readOnly=true",
+                              "style": {
+                               "fontFamily": "Inter",
+                               "fontSize": 9
+                              }
+                             }
+                            ]
+                           }
+                          ]
+                         }
+                        ]
+                       }
+                      ]
+                     }
+                    ],
+                    "componentProperties": {
+                     "propertyList": {
+                      "type": "VARIANT",
+                      "value": "false"
+                     },
+                     "frameless": {
+                      "type": "VARIANT",
+                      "value": "false"
+                     },
+                     "sticky": {
+                      "type": "VARIANT",
+                      "value": "false"
+                     }
+                    }
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "id": "364:74",
+        "name": "decoration",
+        "type": "RECTANGLE"
+       }
+      ]
+     },
+     {
+      "id": "436:49",
+      "name": "dashboard",
+      "type": "INSTANCE",
+      "componentId": "424:37",
+      "children": [
+       {
+        "id": "438:51",
+        "name": "body",
+        "type": "FRAME",
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "426:39",
+          "name": "Overline",
+          "type": "TEXT",
+          "characters": "Overline",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          }
+         },
+         {
+          "id": "428:41",
+          "name": "Title",
+          "type": "TEXT",
+          "characters": "The galaxy at a glance",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          }
+         },
+         {
+          "id": "430:43",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "characters": "The saga in numbers",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          }
+         },
+         {
+          "id": "432:45",
+          "name": "slot:kpi",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "378:88",
+            "name": "MetricCard",
+            "type": "INSTANCE",
+            "componentId": "368:78",
+            "children": [
+             {
+              "id": "380:90",
+              "name": "body",
+              "type": "FRAME",
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "370:80",
+                "name": "Title",
+                "type": "TEXT",
+                "characters": "Characters",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "372:82",
+                "name": "Value",
+                "type": "TEXT",
+                "characters": "82",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "374:84",
+                "name": "Trend",
+                "type": "TEXT",
+                "characters": "Trend",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "376:86",
+                "name": "#config",
+                "type": "TEXT",
+                "characters": "actionId=",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 9
+                }
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "390:3",
+            "name": "MetricCard",
+            "type": "INSTANCE",
+            "componentId": "368:78",
+            "children": [
+             {
+              "id": "392:5",
+              "name": "body",
+              "type": "FRAME",
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "382:92",
+                "name": "Title",
+                "type": "TEXT",
+                "characters": "Planets",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "384:94",
+                "name": "Value",
+                "type": "TEXT",
+                "characters": "60",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "386:96",
+                "name": "Trend",
+                "type": "TEXT",
+                "characters": "Trend",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "388:1",
+                "name": "#config",
+                "type": "TEXT",
+                "characters": "actionId=",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 9
+                }
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "402:15",
+            "name": "MetricCard",
+            "type": "INSTANCE",
+            "componentId": "368:78",
+            "children": [
+             {
+              "id": "404:17",
+              "name": "body",
+              "type": "FRAME",
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "394:7",
+                "name": "Title",
+                "type": "TEXT",
+                "characters": "Starships",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "396:9",
+                "name": "Value",
+                "type": "TEXT",
+                "characters": "36",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "398:11",
+                "name": "Trend",
+                "type": "TEXT",
+                "characters": "Trend",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "400:13",
+                "name": "#config",
+                "type": "TEXT",
+                "characters": "actionId=",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 9
+                }
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "id": "434:47",
+          "name": "slot:content",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "420:33",
+            "name": "DashboardPanel",
+            "type": "INSTANCE",
+            "componentId": "138:42",
+            "children": [
+             {
+              "id": "422:35",
+              "name": "body",
+              "type": "FRAME",
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "412:25",
+                "name": "Title",
+                "type": "TEXT",
+                "characters": "Characters per film",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "414:27",
+                "name": "Subtitle",
+                "type": "TEXT",
+                "characters": "Subtitle",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "416:29",
+                "name": "#config",
+                "type": "TEXT",
+                "characters": "colSpan=2; rowSpan=",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 9
+                }
+               },
+               {
+                "id": "418:31",
+                "name": "slot:content",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "410:23",
+                  "name": "Chart",
+                  "type": "INSTANCE",
+                  "componentId": "408:21",
+                  "children": [],
+                  "componentProperties": {
+                   "chartType": {
+                    "type": "VARIANT",
+                    "value": "bar"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "506:22",
+      "name": "species",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "502:18",
+        "name": "CollectionDetailPage",
+        "type": "INSTANCE",
+        "componentId": "488:4",
+        "children": [
+         {
+          "id": "504:20",
+          "name": "body",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "490:6",
+            "name": "Overline",
+            "type": "TEXT",
+            "characters": "Overline",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "492:8",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "Species",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "494:10",
+            "name": "Subtitle",
+            "type": "TEXT",
+            "characters": "The peoples of the galaxy",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "496:12",
+            "name": "slot:toolbar",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "470:83",
+              "name": "Button",
+              "type": "INSTANCE",
+              "componentId": "102:6",
+              "children": [
+               {
+                "id": "466:79",
+                "name": "Label",
+                "type": "TEXT",
+                "characters": "New species",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "468:81",
+                "name": "#config",
+                "type": "TEXT",
+                "characters": "actionId=; route=species/new",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 9
+                }
+               }
+              ],
+              "componentProperties": {
+               "style": {
+                "type": "VARIANT",
+                "value": "primary"
+               },
+               "size": {
+                "type": "VARIANT",
+                "value": "m"
+               }
+              }
+             }
+            ]
+           },
+           {
+            "id": "498:14",
+            "name": "slot:list",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "462:75",
+              "name": "partial:species-list",
+              "type": "FRAME",
+              "layoutMode": "VERTICAL",
+              "children": [
+               {
+                "id": "458:71",
+                "name": "Listing",
+                "type": "INSTANCE",
+                "componentId": "450:63",
+                "children": [
+                 {
+                  "id": "460:73",
+                  "name": "body",
+                  "type": "FRAME",
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "452:65",
+                    "name": "Title",
+                    "type": "TEXT",
+                    "characters": "Title",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 13
+                    }
+                   },
+                   {
+                    "id": "454:67",
+                    "name": "#config",
+                    "type": "TEXT",
+                    "characters": "aggregateId=; rowRoute=species/${row.id}; rowsSource.ref=swapi-species; searchable=true; pageSize=12",
+                    "style": {
+                     "fontFamily": "Inter",
+                     "fontSize": 9
+                    }
+                   },
+                   {
+                    "id": "456:69",
+                    "name": "slot:columns",
+                    "type": "FRAME",
+                    "layoutMode": "VERTICAL",
+                    "children": [
+                     {
+                      "id": "446:59",
+                      "name": "GridColumn",
+                      "type": "INSTANCE",
+                      "componentId": "440:53",
+                      "children": [
+                       {
+                        "id": "442:55",
+                        "name": "Label",
+                        "type": "TEXT",
+                        "characters": "Species",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "444:57",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "columnId=name; dataType=; stereotype=primary; identifier=true; width=",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       }
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ],
+                "componentProperties": {
+                 "gridLayout": {
+                  "type": "VARIANT",
+                  "value": "table"
+                 }
+                }
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "500:16",
+            "name": "slot:noSelection",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "484:0",
+              "name": "EmptyState",
+              "type": "INSTANCE",
+              "componentId": "472:85",
+              "children": [
+               {
+                "id": "486:2",
+                "name": "body",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "474:87",
+                  "name": "Icon",
+                  "type": "TEXT",
+                  "characters": "🧬",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "476:89",
+                  "name": "Title",
+                  "type": "TEXT",
+                  "characters": "Pick a species",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "478:91",
+                  "name": "Description",
+                  "type": "TEXT",
+                  "characters": "Choose one in the list to see its detail.",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "480:93",
+                  "name": "Action",
+                  "type": "TEXT",
+                  "characters": "Action",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "482:95",
+                  "name": "#config",
+                  "type": "TEXT",
+                  "characters": "actionId=",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 9
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "618:37",
+      "name": "starship-new",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "590:9",
+        "name": "GuidedProcessPage",
+        "type": "INSTANCE",
+        "componentId": "580:96",
+        "children": [
+         {
+          "id": "592:11",
+          "name": "body",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "582:1",
+            "name": "Overline",
+            "type": "TEXT",
+            "characters": "Overline",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "584:3",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "Register a starship",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "586:5",
+            "name": "Subtitle",
+            "type": "TEXT",
+            "characters": "Two steps to add a ship",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "588:7",
+            "name": "slot:steps",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "546:62",
+              "name": "GuidedProcessStep",
+              "type": "INSTANCE",
+              "componentId": "536:52",
+              "children": [
+               {
+                "id": "548:64",
+                "name": "body",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "538:54",
+                  "name": "Title",
+                  "type": "TEXT",
+                  "characters": "Identity",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "540:56",
+                  "name": "Description",
+                  "type": "TEXT",
+                  "characters": "What the ship is called",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "542:58",
+                  "name": "#config",
+                  "type": "TEXT",
+                  "characters": "id=identity",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 9
+                  }
+                 },
+                 {
+                  "id": "544:60",
+                  "name": "slot:content",
+                  "type": "FRAME",
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "534:50",
+                    "name": "FormLayout",
+                    "type": "INSTANCE",
+                    "componentId": "528:44",
+                    "children": [
+                     {
+                      "id": "530:46",
+                      "name": "#config",
+                      "type": "TEXT",
+                      "characters": "maxColumns=2; labelsAside=",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 9
+                      }
+                     },
+                     {
+                      "id": "532:48",
+                      "name": "slot:content",
+                      "type": "FRAME",
+                      "layoutMode": "VERTICAL",
+                      "children": [
+                       {
+                        "id": "514:30",
+                        "name": "TextField",
+                        "type": "INSTANCE",
+                        "componentId": "304:14",
+                        "children": [
+                         {
+                          "id": "516:32",
+                          "name": "body",
+                          "type": "FRAME",
+                          "layoutMode": "VERTICAL",
+                          "children": [
+                           {
+                            "id": "508:24",
+                            "name": "Label",
+                            "type": "TEXT",
+                            "characters": "Name",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 13
+                            }
+                           },
+                           {
+                            "id": "510:26",
+                            "name": "Value",
+                            "type": "TEXT",
+                            "characters": "Value",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 13
+                            }
+                           },
+                           {
+                            "id": "512:28",
+                            "name": "#config",
+                            "type": "TEXT",
+                            "characters": "fieldId=name; required=true; readOnly=",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 9
+                            }
+                           }
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "id": "524:40",
+                        "name": "TextField",
+                        "type": "INSTANCE",
+                        "componentId": "304:14",
+                        "children": [
+                         {
+                          "id": "526:42",
+                          "name": "body",
+                          "type": "FRAME",
+                          "layoutMode": "VERTICAL",
+                          "children": [
+                           {
+                            "id": "518:34",
+                            "name": "Label",
+                            "type": "TEXT",
+                            "characters": "Model",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 13
+                            }
+                           },
+                           {
+                            "id": "520:36",
+                            "name": "Value",
+                            "type": "TEXT",
+                            "characters": "Value",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 13
+                            }
+                           },
+                           {
+                            "id": "522:38",
+                            "name": "#config",
+                            "type": "TEXT",
+                            "characters": "fieldId=model; required=; readOnly=",
+                            "style": {
+                             "fontFamily": "Inter",
+                             "fontSize": 9
+                            }
+                           }
+                          ]
+                         }
+                        ]
+                       }
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             {
+              "id": "576:92",
+              "name": "GuidedProcessStep",
+              "type": "INSTANCE",
+              "componentId": "536:52",
+              "children": [
+               {
+                "id": "578:94",
+                "name": "body",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "568:84",
+                  "name": "Title",
+                  "type": "TEXT",
+                  "characters": "Specifications",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "570:86",
+                  "name": "Description",
+                  "type": "TEXT",
+                  "characters": "How it flies",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "572:88",
+                  "name": "#config",
+                  "type": "TEXT",
+                  "characters": "id=specifications",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 9
+                  }
+                 },
+                 {
+                  "id": "574:90",
+                  "name": "slot:content",
+                  "type": "FRAME",
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "566:82",
+                    "name": "FormLayout",
+                    "type": "INSTANCE",
+                    "componentId": "528:44",
+                    "children": [
+                     {
+                      "id": "562:78",
+                      "name": "#config",
+                      "type": "TEXT",
+                      "characters": "maxColumns=2; labelsAside=",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 9
+                      }
+                     },
+                     {
+                      "id": "564:80",
+                      "name": "slot:content",
+                      "type": "FRAME",
+                      "layoutMode": "VERTICAL",
+                      "children": [
+                       {
+                        "id": "554:70",
+                        "name": "Number",
+                        "type": "INSTANCE",
+                        "componentId": "282:89",
+                        "children": [
+                         {
+                          "id": "550:66",
+                          "name": "Label",
+                          "type": "TEXT",
+                          "characters": "Length (m)",
+                          "style": {
+                           "fontFamily": "Inter",
+                           "fontSize": 13
+                          }
+                         },
+                         {
+                          "id": "552:68",
+                          "name": "#config",
+                          "type": "TEXT",
+                          "characters": "fieldId=length; required=; readOnly=",
+                          "style": {
+                           "fontFamily": "Inter",
+                           "fontSize": 9
+                          }
+                         }
+                        ]
+                       },
+                       {
+                        "id": "560:76",
+                        "name": "Integer",
+                        "type": "INSTANCE",
+                        "componentId": "274:81",
+                        "children": [
+                         {
+                          "id": "556:72",
+                          "name": "Label",
+                          "type": "TEXT",
+                          "characters": "MGLT",
+                          "style": {
+                           "fontFamily": "Inter",
+                           "fontSize": 13
+                          }
+                         },
+                         {
+                          "id": "558:74",
+                          "name": "#config",
+                          "type": "TEXT",
+                          "characters": "fieldId=mglt; required=; readOnly=",
+                          "style": {
+                           "fontFamily": "Inter",
+                           "fontSize": 9
+                          }
+                         }
+                        ]
+                       }
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "id": "616:35",
+        "name": "slot:toolbar",
+        "type": "FRAME",
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "614:33",
+          "name": "Toolbar",
+          "type": "INSTANCE",
+          "componentId": "610:29",
+          "children": [
+           {
+            "id": "612:31",
+            "name": "slot:content",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "600:19",
+              "name": "Button",
+              "type": "INSTANCE",
+              "componentId": "222:29",
+              "children": [
+               {
+                "id": "596:15",
+                "name": "Label",
+                "type": "TEXT",
+                "characters": "Cancel",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "598:17",
+                "name": "#config",
+                "type": "TEXT",
+                "characters": "actionId=cancel-new; route=starships",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 9
+                }
+               }
+              ],
+              "componentProperties": {
+               "style": {
+                "type": "VARIANT",
+                "value": "tertiary"
+               },
+               "size": {
+                "type": "VARIANT",
+                "value": "m"
+               }
+              }
+             },
+             {
+              "id": "608:27",
+              "name": "Button",
+              "type": "INSTANCE",
+              "componentId": "102:6",
+              "children": [
+               {
+                "id": "604:23",
+                "name": "Label",
+                "type": "TEXT",
+                "characters": "Register",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "606:25",
+                "name": "#config",
+                "type": "TEXT",
+                "characters": "actionId=create; route=",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 9
+                }
+               }
+              ],
+              "componentProperties": {
+               "style": {
+                "type": "VARIANT",
+                "value": "primary"
+               },
+               "size": {
+                "type": "VARIANT",
+                "value": "m"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "696:18",
+      "name": "Fleet",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "692:14",
+        "name": "DataManagementPage",
+        "type": "INSTANCE",
+        "componentId": "680:2",
+        "children": [
+         {
+          "id": "694:16",
+          "name": "body",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "682:4",
+            "name": "Overline",
+            "type": "TEXT",
+            "characters": "Overline",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "684:6",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "Fleet",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "686:8",
+            "name": "Subtitle",
+            "type": "TEXT",
+            "characters": "Subtitle",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "688:10",
+            "name": "slot:end",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "652:71",
+              "name": "DockedPanel",
+              "type": "INSTANCE",
+              "componentId": "644:63",
+              "children": [
+               {
+                "id": "654:73",
+                "name": "body",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "646:65",
+                  "name": "Title",
+                  "type": "TEXT",
+                  "characters": "Fleet at a glance",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "648:67",
+                  "name": "#config",
+                  "type": "TEXT",
+                  "characters": "id=fleet-summary; size=20rem; open=true",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 9
+                  }
+                 },
+                 {
+                  "id": "650:69",
+                  "name": "slot:content",
+                  "type": "FRAME",
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "628:47",
+                    "name": "MetricCard",
+                    "type": "INSTANCE",
+                    "componentId": "368:78",
+                    "children": [
+                     {
+                      "id": "630:49",
+                      "name": "body",
+                      "type": "FRAME",
+                      "layoutMode": "VERTICAL",
+                      "children": [
+                       {
+                        "id": "620:39",
+                        "name": "Title",
+                        "type": "TEXT",
+                        "characters": "Vehicles",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "622:41",
+                        "name": "Value",
+                        "type": "TEXT",
+                        "characters": "39",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "624:43",
+                        "name": "Trend",
+                        "type": "TEXT",
+                        "characters": "Trend",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "626:45",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "actionId=",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       }
+                      ]
+                     }
+                    ]
+                   },
+                   {
+                    "id": "640:59",
+                    "name": "MetricCard",
+                    "type": "INSTANCE",
+                    "componentId": "368:78",
+                    "children": [
+                     {
+                      "id": "642:61",
+                      "name": "body",
+                      "type": "FRAME",
+                      "layoutMode": "VERTICAL",
+                      "children": [
+                       {
+                        "id": "632:51",
+                        "name": "Title",
+                        "type": "TEXT",
+                        "characters": "Passenger seats",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "634:53",
+                        "name": "Value",
+                        "type": "TEXT",
+                        "characters": "1405",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "636:55",
+                        "name": "Trend",
+                        "type": "TEXT",
+                        "characters": "Trend",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 13
+                        }
+                       },
+                       {
+                        "id": "638:57",
+                        "name": "#config",
+                        "type": "TEXT",
+                        "characters": "actionId=",
+                        "style": {
+                         "fontFamily": "Inter",
+                         "fontSize": 9
+                        }
+                       }
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           },
+           {
+            "id": "690:12",
+            "name": "slot:content",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "676:95",
+              "name": "Listing",
+              "type": "INSTANCE",
+              "componentId": "450:63",
+              "children": [
+               {
+                "id": "678:0",
+                "name": "body",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "children": [
+                 {
+                  "id": "670:89",
+                  "name": "Title",
+                  "type": "TEXT",
+                  "characters": "Title",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 13
+                  }
+                 },
+                 {
+                  "id": "672:91",
+                  "name": "#config",
+                  "type": "TEXT",
+                  "characters": "aggregateId=; rowRoute=vehicles/${row.id}; rowsSource.ref=swapi-vehicles; searchable=true; pageSize=",
+                  "style": {
+                   "fontFamily": "Inter",
+                   "fontSize": 9
+                  }
+                 },
+                 {
+                  "id": "674:93",
+                  "name": "slot:columns",
+                  "type": "FRAME",
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                   {
+                    "id": "660:79",
+                    "name": "GridColumn",
+                    "type": "INSTANCE",
+                    "componentId": "440:53",
+                    "children": [
+                     {
+                      "id": "656:75",
+                      "name": "Label",
+                      "type": "TEXT",
+                      "characters": "Name",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 13
+                      }
+                     },
+                     {
+                      "id": "658:77",
+                      "name": "#config",
+                      "type": "TEXT",
+                      "characters": "columnId=name; dataType=; stereotype=; identifier=; width=",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 9
+                      }
+                     }
+                    ]
+                   },
+                   {
+                    "id": "666:85",
+                    "name": "GridColumn",
+                    "type": "INSTANCE",
+                    "componentId": "440:53",
+                    "children": [
+                     {
+                      "id": "662:81",
+                      "name": "Label",
+                      "type": "TEXT",
+                      "characters": "Model",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 13
+                      }
+                     },
+                     {
+                      "id": "664:83",
+                      "name": "#config",
+                      "type": "TEXT",
+                      "characters": "columnId=model; dataType=; stereotype=; identifier=; width=",
+                      "style": {
+                       "fontFamily": "Inter",
+                       "fontSize": 9
+                      }
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               }
+              ],
+              "componentProperties": {
+               "gridLayout": {
+                "type": "VARIANT",
+                "value": "table"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "770:92",
+      "name": "About this demo",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "714:36",
+        "name": "Header",
+        "type": "INSTANCE",
+        "componentId": "706:28",
+        "children": [
+         {
+          "id": "716:38",
+          "name": "body",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "708:30",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "About",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "710:32",
+            "name": "Subtitle",
+            "type": "TEXT",
+            "characters": "How this demo is made",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "712:34",
+            "name": "slot:toolbar",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "704:26",
+              "name": "Button",
+              "type": "INSTANCE",
+              "componentId": "112:16",
+              "children": [
+               {
+                "id": "700:22",
+                "name": "Label",
+                "type": "TEXT",
+                "characters": "Home",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 13
+                }
+               },
+               {
+                "id": "702:24",
+                "name": "#config",
+                "type": "TEXT",
+                "characters": "actionId=; route=welcome",
+                "style": {
+                 "fontFamily": "Inter",
+                 "fontSize": 9
+                }
+               }
+              ],
+              "componentProperties": {
+               "style": {
+                "type": "VARIANT",
+                "value": "secondary"
+               },
+               "size": {
+                "type": "VARIANT",
+                "value": "m"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "id": "728:50",
+        "name": "Banner",
+        "type": "INSTANCE",
+        "componentId": "720:42",
+        "children": [
+         {
+          "id": "730:52",
+          "name": "body",
+          "type": "FRAME",
+          "layoutMode": "VERTICAL",
+          "children": [
+           {
+            "id": "722:44",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "Demo data",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "724:46",
+            "name": "Description",
+            "type": "TEXT",
+            "characters": "The API re-seeds itself at every start.",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 13
+            }
+           },
+           {
+            "id": "726:48",
+            "name": "#config",
+            "type": "TEXT",
+            "characters": "closeable=",
+            "style": {
+             "fontFamily": "Inter",
+             "fontSize": 9
+            }
+           }
+          ]
+         }
+        ],
+        "componentProperties": {
+         "theme": {
+          "type": "VARIANT",
+          "value": "warning"
+         }
+        }
+       },
+       {
+        "id": "736:58",
+        "name": "intro",
+        "type": "FRAME",
+        "layoutMode": "VERTICAL",
+        "children": [
+         {
+          "id": "732:54",
+          "name": "Heading",
+          "type": "TEXT",
+          "characters": "Made with Mateu",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 18
+          }
+         },
+         {
+          "id": "734:56",
+          "name": "Body",
+          "type": "TEXT",
+          "characters": "Every screen is YAML.",
+          "style": {
+           "fontFamily": "Inter",
+           "fontSize": 13
+          }
+         }
+        ]
+       },
+       {
+        "id": "764:86",
+        "name": "links",
+        "type": "FRAME",
+        "layoutMode": "HORIZONTAL",
+        "children": [
+         {
+          "id": "748:70",
+          "name": "Notice",
+          "type": "INSTANCE",
+          "componentId": "740:62",
+          "children": [
+           {
+            "id": "750:72",
+            "name": "body",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "742:64",
+              "name": "Text",
+              "type": "TEXT",
+              "characters": "Read the docs",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "744:66",
+              "name": "Action",
+              "type": "TEXT",
+              "characters": "Action",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "746:68",
+              "name": "#config",
+              "type": "TEXT",
+              "characters": "fullWidth=; actionId=docs",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 9
+              }
+             }
+            ]
+           }
+          ],
+          "componentProperties": {
+           "theme": {
+            "type": "VARIANT",
+            "value": "info"
+           },
+           "slim": {
+            "type": "VARIANT",
+            "value": "false"
+           }
+          }
+         },
+         {
+          "id": "760:82",
+          "name": "BulletedList",
+          "type": "INSTANCE",
+          "componentId": "752:74",
+          "children": [
+           {
+            "id": "762:84",
+            "name": "body",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+             {
+              "id": "754:76",
+              "name": "Item1",
+              "type": "TEXT",
+              "characters": "Vaadin",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "756:78",
+              "name": "Item2",
+              "type": "TEXT",
+              "characters": "Redwood",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             },
+             {
+              "id": "758:80",
+              "name": "Item3",
+              "type": "TEXT",
+              "characters": "React Native",
+              "style": {
+               "fontFamily": "Inter",
+               "fontSize": 13
+              }
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "id": "766:88",
+        "name": "a hidden note",
+        "type": "TEXT",
+        "characters": "not content",
+        "style": {
+         "fontFamily": "Inter",
+         "fontSize": 13
+        },
+        "visible": false
+       },
+       {
+        "id": "768:90",
+        "name": "#comment",
+        "type": "TEXT",
+        "characters": "designer notes are never content",
+        "style": {
+         "fontFamily": "Inter",
+         "fontSize": 13
+        }
+       }
+      ]
+     },
+     {
+      "id": "774:96",
+      "name": "_scratch",
+      "type": "FRAME",
+      "layoutMode": "VERTICAL",
+      "children": [
+       {
+        "id": "772:94",
+        "name": "x",
+        "type": "TEXT",
+        "characters": "work in progress",
+        "style": {
+         "fontFamily": "Inter",
+         "fontSize": 13
+        }
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "0:2",
+    "name": "Mateu · Field",
+    "type": "CANVAS",
+    "children": [
+     {
+      "id": "9:1",
+      "name": "Mateu/Field/TextField",
+      "type": "COMPONENT",
+      "children": []
+     }
+    ]
+   }
+  ]
+ },
+ "components": {
+  "102:6": {
+   "key": "3cf7f1b4ccbc29a3cfc8e9b1",
+   "name": "style=primary, size=m",
+   "description": "",
+   "remote": true,
+   "componentSetId": "100:4"
+  },
+  "112:16": {
+   "key": "e3ab54d1e9a204e4d5608bce",
+   "name": "style=secondary, size=m",
+   "description": "",
+   "remote": true,
+   "componentSetId": "100:4"
+  },
+  "122:26": {
+   "key": "da02859e218a5f655430138b",
+   "name": "size=m",
+   "description": "",
+   "remote": true,
+   "componentSetId": "120:24"
+  },
+  "138:42": {
+   "key": "2e6c35785a4a994aaa4dd2b0",
+   "name": "Mateu/Layout/DashboardPanel",
+   "description": "",
+   "remote": true
+  },
+  "180:84": {
+   "key": "0b8f42ea1f36d7cff90d02da",
+   "name": "Mateu/Layout/DashboardLayout",
+   "description": "",
+   "remote": true
+  },
+  "190:94": {
+   "key": "bbc925476b43062a43de2fc7",
+   "name": "backgroundColor=dark-slate",
+   "description": "",
+   "remote": true,
+   "componentSetId": "188:92"
+  },
+  "206:13": {
+   "key": "68d7e12aedb1bb09a55a0e1f",
+   "name": "Mateu/Page Templates/ItemOverviewPage",
+   "description": "",
+   "remote": true
+  },
+  "222:29": {
+   "key": "d3fdf0cea3a08856a66e3c38",
+   "name": "style=tertiary, size=m",
+   "description": "",
+   "remote": true,
+   "componentSetId": "100:4"
+  },
+  "240:47": {
+   "key": "c004b1d090ecf2865a3a983c",
+   "name": "Mateu/Field/PropertyRow",
+   "description": "",
+   "remote": true
+  },
+  "274:81": {
+   "key": "35a33e3d97ef15476281c273",
+   "name": "Mateu/Field/Integer",
+   "description": "",
+   "remote": true
+  },
+  "282:89": {
+   "key": "6594f38f637bc9808590f701",
+   "name": "Mateu/Field/Number",
+   "description": "",
+   "remote": true
+  },
+  "292:2": {
+   "key": "fee14ce2b706f6206de2ca86",
+   "name": "propertyList=true, frameless=false, sticky=false",
+   "description": "",
+   "remote": true,
+   "componentSetId": "290:0"
+  },
+  "304:14": {
+   "key": "d09368ce837ecbc705ccf42a",
+   "name": "Mateu/Field/TextField",
+   "description": "",
+   "remote": true
+  },
+  "328:38": {
+   "key": "c56d8d83604c5acb25dd83c4",
+   "name": "propertyList=false, frameless=false, sticky=false",
+   "description": "",
+   "remote": true,
+   "componentSetId": "290:0"
+  },
+  "340:50": {
+   "key": "dc0b42a33b27a1a71b45886d",
+   "name": "Mateu/Layout/Tab",
+   "description": "",
+   "remote": true
+  },
+  "352:62": {
+   "key": "98da8f3fae825041eb6933ed",
+   "name": "Mateu/Layout/Tabs",
+   "description": "",
+   "remote": true
+  },
+  "368:78": {
+   "key": "12e4034ba73a87c0d0f31e50",
+   "name": "Mateu/Display/MetricCard",
+   "description": "",
+   "remote": true
+  },
+  "408:21": {
+   "key": "70b6d4a1db6f823bba43695c",
+   "name": "chartType=bar",
+   "description": "",
+   "remote": true,
+   "componentSetId": "406:19"
+  },
+  "424:37": {
+   "key": "e15248aebae98bcb69f1b444",
+   "name": "Mateu/Page Templates/DashboardLandingPage",
+   "description": "",
+   "remote": true
+  },
+  "440:53": {
+   "key": "58ede7fe06a94d7e00fd793c",
+   "name": "Mateu/Crud/GridColumn",
+   "description": "",
+   "remote": true
+  },
+  "450:63": {
+   "key": "f9ece444ee37edb70784efb5",
+   "name": "gridLayout=table",
+   "description": "",
+   "remote": true,
+   "componentSetId": "448:61"
+  },
+  "472:85": {
+   "key": "411a923f8c582a0bde935a12",
+   "name": "Mateu/Display/EmptyState",
+   "description": "",
+   "remote": true
+  },
+  "488:4": {
+   "key": "9f2167aa2a4da1cfdd28e78f",
+   "name": "Mateu/Page Templates/CollectionDetailPage",
+   "description": "",
+   "remote": true
+  },
+  "528:44": {
+   "key": "4595969d55be619d78c84618",
+   "name": "Mateu/Layout/FormLayout",
+   "description": "",
+   "remote": true
+  },
+  "536:52": {
+   "key": "4765933dd3b9e72f81af8469",
+   "name": "Mateu/Page Templates/GuidedProcessStep",
+   "description": "",
+   "remote": true
+  },
+  "580:96": {
+   "key": "eb1daa0904a87b9c6c14e111",
+   "name": "Mateu/Page Templates/GuidedProcessPage",
+   "description": "",
+   "remote": true
+  },
+  "610:29": {
+   "key": "c051a65aa2f3db48d1dc7ae1",
+   "name": "Mateu/Actions/Toolbar",
+   "description": "",
+   "remote": true
+  },
+  "644:63": {
+   "key": "250eee52876843d510ed0be8",
+   "name": "Mateu/Page Templates/DockedPanel",
+   "description": "",
+   "remote": true
+  },
+  "680:2": {
+   "key": "61fe89ec3dbfbf809002d46b",
+   "name": "Mateu/Page Templates/DataManagementPage",
+   "description": "",
+   "remote": true
+  },
+  "706:28": {
+   "key": "e3ef38d67c1a37e14541096b",
+   "name": "Mateu/Page/Header",
+   "description": "",
+   "remote": true
+  },
+  "720:42": {
+   "key": "746a660df6c0ee09a0e3922f",
+   "name": "theme=warning",
+   "description": "",
+   "remote": true,
+   "componentSetId": "718:40"
+  },
+  "740:62": {
+   "key": "df3b38ea3779e4f84e967dbc",
+   "name": "theme=info, slim=false",
+   "description": "",
+   "remote": true,
+   "componentSetId": "738:60"
+  },
+  "752:74": {
+   "key": "5ce605a8f29efb728f48f5e4",
+   "name": "Mateu/Display/BulletedList",
+   "description": "",
+   "remote": true
+  }
+ },
+ "componentSets": {
+  "100:4": {
+   "key": "84de94fcbec201c990ae80e5",
+   "name": "Mateu/Actions/Button",
+   "description": "",
+   "remote": true
+  },
+  "120:24": {
+   "key": "a36b3c8628eed9852a1fe7d2",
+   "name": "Mateu/Display/Text",
+   "description": "",
+   "remote": true
+  },
+  "188:92": {
+   "key": "9a109d18912fad26abb5a584",
+   "name": "Mateu/Page Templates/WelcomePage",
+   "description": "",
+   "remote": true
+  },
+  "290:0": {
+   "key": "8e7d23e802ba59e87fb87117",
+   "name": "Mateu/Layout/Section",
+   "description": "",
+   "remote": true
+  },
+  "406:19": {
+   "key": "3c1f5f13146157b490df8259",
+   "name": "Mateu/Display/Chart",
+   "description": "",
+   "remote": true
+  },
+  "448:61": {
+   "key": "7c3e91993ed19821c28fe670",
+   "name": "Mateu/Crud/Listing",
+   "description": "",
+   "remote": true
+  },
+  "718:40": {
+   "key": "a839f0b7aa872c22388b951c",
+   "name": "Mateu/Display/Banner",
+   "description": "",
+   "remote": true
+  },
+  "738:60": {
+   "key": "f06d134a58607bd266561f8c",
+   "name": "Mateu/Display/Notice",
+   "description": "",
+   "remote": true
+  }
+ },
+ "styles": {}
+}

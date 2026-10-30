@@ -1,0 +1,52 @@
+# Generated from the Figma frame "starship-new" (node 618:37) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Register a starship
+subtitle: Two steps to add a ship
+toolbar:
+  - type: Button
+    buttonStyle: tertiary
+    actionId: cancel-new
+    label: Cancel
+    actionable:
+      type: RouteLink
+      route: starships
+  - type: Button
+    buttonStyle: primary
+    actionId: create
+    label: Register
+template:
+  type: GuidedProcessPage
+  steps:
+    - id: identity
+      title: Identity
+      description: What the ship is called
+      content:
+        - type: FormLayout
+          maxColumns: 2
+          content:
+            - type: FormField
+              id: name
+              dataType: string
+              required: true
+              label: Name
+            - type: FormField
+              id: model
+              dataType: string
+              label: Model
+    - id: specifications
+      title: Specifications
+      description: How it flies
+      content:
+        - type: FormLayout
+          maxColumns: 2
+          content:
+            - type: FormField
+              id: length
+              dataType: number
+              label: Length (m)
+            - type: FormField
+              id: mglt
+              dataType: integer
+              label: MGLT
