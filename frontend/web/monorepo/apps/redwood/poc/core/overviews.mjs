@@ -526,8 +526,93 @@ function parentOfNode(node, target) {
   return null
 }
 
+/** A node by its id anywhere in a wire tree — children and a Card's `metadata.content` included. */
+function nodeById(node, id) {
+  if (!node || typeof node !== 'object') return null
+  if (node.id === id) return node
+  const content = node.metadata && node.metadata.content
+  const nested = (node.children || []).concat(Array.isArray(content) ? content : content ? [content] : [])
+  for (const child of nested) {
+    const found = nodeById(child, id)
+    if (found) return found
+  }
+  return null
+}
+
+/** The page template a page DECLARES it fills (a YAML `template:`, FormDto.template), or null. */
+export function pageTemplateOf(ctx) {
+  // a served YAML page arrives wrapped in its server-side component (SeededYamlPage)
+  let node = ctx && ctx.tree
+  while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
+  const md = node && node.metadata
+  return md && md.type === 'Form' && md.template && md.template.type ? md.template : null
+}
+
+/** The Form of a page that fills a template (unwrapped like pageTemplateOf). */
+function templateFormOf(ctx) {
+  let node = ctx && ctx.tree
+  while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
+  return node
+}
+
+/** The tabs of a tab bar, as the item overview paints them (only the OUTER bar's tabs: those of a
+ *  nested bar are content of their tab, not siblings in the list). */
+function itemTabsOf(tabLayout, atomsOfNodes) {
+  return (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
+    id: 'itab-' + i,
+    ...(editorNodeIds && tab.id ? { nodeId: String(tab.id) } : {}),
+    label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
+    texts: collectTexts(tab),
+    items: atomsOfNodes(tab.children || []),
+  }))
+}
+
+/** The tab shown on entry — the one the wire marks active (@Tab(open)), else the first — and the
+ *  SAME one selected in the bar (the content once showed the first tab while the bar had none). */
+function selectedTabOf(tabLayout, tabs) {
+  const active = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
+    .findIndex((tab) => tab.metadata.active)
+  return tabs.length ? tabs[Math.max(0, active)].id : ''
+}
+
+/**
+ * A page that DECLARES Redwood's Item overview page template (`template: ItemOverviewPage`): no
+ * guessing from the layout — the server (and the browser expander) laid each slot out in a
+ * container named after it, so the panel's body/footer and the main slot are read by id. A main
+ * slot that is one tab bar becomes the template's tabs; anything else is painted as it is.
+ */
+function templatedItemOverviewOf(ctx, atomsOfNodes) {
+  const template = pageTemplateOf(ctx)
+  if (!template || template.type !== 'ItemOverviewPage') return null
+  const slot = (id) => nodeById(ctx.tree, id)
+  const body = slot('item-overview-body')
+  const footer = slot('item-overview-footer')
+  const main = slot('item-overview-main')
+  const mainNodes = (main && main.children) || []
+  const tabLayout = mainNodes.length === 1 && mainNodes[0].metadata && mainNodes[0].metadata.type === 'TabLayout'
+    ? mainNodes[0] : null
+  const tabs = tabLayout ? itemTabsOf(tabLayout, atomsOfNodes) : []
+  return {
+    key: { title: '', texts: [], items: atomsOfNodes(((body && body.children) || []).concat((footer && footer.children) || [])) },
+    tabs,
+    selectedTab: tabLayout ? selectedTabOf(tabLayout, tabs) : '',
+    // a main slot that is not one tab bar, as atoms
+    mainItems: tabLayout ? [] : atomsOfNodes(mainNodes),
+    template,
+    // the Form whose title/subtitle/badges are the item's (oj-sp-item-overview's header)
+    form: (templateFormOf(ctx) || {}).metadata || {},
+    keyNodeId: '',
+    tabsNodeId: '',
+  }
+}
+
 /** ITEM OVERVIEW archetype: key-data panel + tabs. */
 export function itemOverviewOf(ctx) {
+  // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
+  const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
+    metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
+  const templated = templatedItemOverviewOf(ctx, atomsOfNodes)
+  if (templated) return templated
   const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
   if (!tabLayout) return null
   // the key panel is the tab bar's SIBLING (the archetype lays them side by side). Any card
@@ -542,28 +627,12 @@ export function itemOverviewOf(ctx) {
   // without its fields (there is no key card to paint) and the tabs reduced to their labels
   // (only loose texts are taken from their content). It happened to a process detail.
   if (!keyCard) return null
-  // only the tabs of the OUTER bar: those of a nested bar are content of their
-  // tab (their texts go in its texts), not siblings in the list
-  // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
-  const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
-    metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
-  const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
-    id: 'itab-' + i,
-    ...(editorNodeIds && tab.id ? { nodeId: String(tab.id) } : {}),
-    label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
-    texts: collectTexts(tab),
-    items: atomsOfNodes(tab.children || []),
-  }))
+  const tabs = itemTabsOf(tabLayout, atomsOfNodes)
   const keyContent = keyCard ? ((keyCard.metadata && keyCard.metadata.content) || []) : []
-  // the tab shown on entry — the one the wire marks active (@Tab(open)), else the first — and the
-  // SAME one selected in the bar: the content showed the first tab while the bar had none selected
-  const active = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
-    .findIndex((tab) => tab.metadata.active)
-  const selected = tabs.length ? Math.max(0, active) : -1
   return {
     key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
     tabs,
-    selectedTab: selected >= 0 ? tabs[selected].id : '',
+    selectedTab: selectedTabOf(tabLayout, tabs),
     // editor mode: the key panel is its Card's node, the tab bar its TabLayout's (bound by the page)
     keyNodeId: editorNodeIds && keyCard && keyCard.id ? String(keyCard.id) : '',
     tabsNodeId: editorNodeIds && tabLayout.id ? String(tabLayout.id) : '',

@@ -38,8 +38,10 @@ export const pageTemplates = (): { name: string, spec: DefinitionSpec }[] =>
 // expandFilter):
 //  - toolbar/buttons: FormMapper.mapToButtonDto / CrudlMapper — a ButtonDto, not ClientSide-wrapped;
 //  - columns: CrudlMapper → GridColumnMapper (ClientSide-wrapped, walked below like any child);
-//  - filters: CrudlMapper → FieldMapper — a FormFieldDto, not ClientSide-wrapped.
-const DATA_KEYS = new Set(['toolbar', 'buttons', 'filters'])
+//  - filters: CrudlMapper → FieldMapper — a FormFieldDto, not ClientSide-wrapped;
+//  - template: FormMapper → PageTemplateDto `{type, avatar, photo}` — the page template's own values
+//    (its slots were laid out as children; pageTemplates.ts).
+const DATA_KEYS = new Set(['toolbar', 'buttons', 'filters', 'template'])
 
 const isWire = (v: unknown): v is { type: string, metadata?: Record<string, unknown>, children?: unknown[] } =>
     !!v && typeof v === 'object' && ['ClientSide', 'ServerSide'].includes((v as { type?: unknown }).type as string)

@@ -52,7 +52,12 @@ public record Form(
     /** Banners under the header — the twin of {@code @Banner} / {@code BannerSupplier}. */
     @Experimental("YAML page header (3.0 beta)") @Singular("banner") List<PageBanner> banners,
     /** Page floating action buttons — the twin of {@code @Fab} methods on a page. */
-    @Experimental("YAML page header (3.0 beta)") @Singular("fab") List<PageFab> fabs)
+    @Experimental("YAML page header (3.0 beta)") @Singular("fab") List<PageFab> fabs,
+    /**
+     * The page template this page fills (e.g. {@code ItemOverviewPage}); null = a free page, its
+     * content laid out as authored.
+     */
+    @Experimental("page templates (3.0 beta)") FormTemplate template)
     implements Component, ContentSupplier, PageMainContent {
 
   public Form {
@@ -65,5 +70,53 @@ public record Form(
     kpis = kpis != null ? kpis : Collections.emptyList();
     banners = banners != null ? banners : Collections.emptyList();
     fabs = fabs != null ? fabs : Collections.emptyList();
+  }
+
+  /** The constructor before {@code template} existed (kept for binary compatibility). */
+  public Form(
+      String id,
+      String title,
+      String subtitle,
+      boolean noHeader,
+      Component avatar,
+      List<Component> content,
+      List<Component> header,
+      List<Component> footer,
+      List<UserTrigger> toolbar,
+      List<UserTrigger> buttons,
+      String style,
+      String cssClasses,
+      String overline,
+      String titlePlaceholder,
+      String timestamp,
+      List<Chip> badges,
+      List<Fact> kpis,
+      PeerNav peerNav,
+      RecordSwitcher recordSwitcher,
+      List<PageBanner> banners,
+      List<PageFab> fabs) {
+    this(
+        id,
+        title,
+        subtitle,
+        noHeader,
+        avatar,
+        content,
+        header,
+        footer,
+        toolbar,
+        buttons,
+        style,
+        cssClasses,
+        overline,
+        titlePlaceholder,
+        timestamp,
+        badges,
+        kpis,
+        peerNav,
+        recordSwitcher,
+        banners,
+        fabs,
+        null);
   }
 }

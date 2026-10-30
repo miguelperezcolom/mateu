@@ -104,11 +104,12 @@ public class FormMapper {
             .switcher(PageMapper.mapSwitcher(form.recordSwitcher()))
             .banners(form.banners().stream().map(PageMapper::mapToBannerDto).toList())
             .fabs(form.fabs().isEmpty() ? null : mapFabs(form.fabs()))
+            .template(PageTemplates.dtoOf(form.template()))
             .build();
     return new ClientSideComponentDto(
         formMetadataDto,
         form.id(),
-        form.content().stream()
+        PageTemplates.contentOf(form).stream()
             .map(
                 component ->
                     mapComponentToDto(

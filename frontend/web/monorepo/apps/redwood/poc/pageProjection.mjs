@@ -187,7 +187,8 @@ export function archetypeVarsOf(host) {
     mateuOverviewOptions: overview ? overview.switcherOptions : [],
     mateuItemOv: item,
     // the ATOMS of the selected tab (not only its texts): the first, or the one marked open
-    mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : [],
+    // (a template page whose main slot is not one tab bar: that slot's atoms)
+    mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : ((item && item.mainItems) || []),
   }
   if (welcome) {
     const look = welcomeLookOf(welcomeKeyOf(host), welcome.tone)
@@ -348,6 +349,11 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     backRoute: backBtn && backBtn.route ? backBtn.route : '',
     secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
       .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
+    // oj-sp-item-overview has no primary action of its own: its EDIT action (spEdit) is the page's
+    // primary when that primary edits; any other primary joins its secondary actions
+    itemEdit: primaryBtn && isEditButton(primaryBtn) ? (primaryBtn.disabled ? 'disabled' : 'on') : 'off',
+    itemSecondary: hostToolbar.filter((b) => b !== backBtn && !(b === primaryBtn && isEditButton(b)))
+      .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
     goToParent: !!backBtn || !!parentCrumbNav,
     backId: backBtn ? backBtn.actionId : (parentCrumbNav ? '__goToParent' : ''),
     parentRoute: !backBtn && parentCrumbNav ? parentCrumbNav.route : '',
@@ -357,6 +363,11 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
   // the goToParent's label is "Parent page" by default; the back button names it
   const translations = backBtn ? { goToParent: backBtn.label } : (parentCrumbNav ? { goToParent: parentCrumbNav.text } : {})
   return { header, translations, showBand, showListBand }
+}
+
+/** A toolbar button that EDITS the record (its id, label or route says so). */
+function isEditButton(b) {
+  return /(^|[^a-z])edit/i.test([b.actionId, b.label, b.route].filter(Boolean).join(' '))
 }
 
 /** The page toolbar is painted ONCE: when the header paints it, the form's button row drops the

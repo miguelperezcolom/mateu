@@ -70,9 +70,12 @@ final class YamlUidlMapperFactory {
     // failed
     // to parse and the action was dropped.
     mapper.addMixIn(io.mateu.uidl.fluent.Step.class, PolymorphicMixin.class);
+    // a page's `template:` — one record per design-system page template, by its `type`
+    mapper.addMixIn(io.mateu.uidl.fluent.FormTemplate.class, PolymorphicMixin.class);
 
     mapper.registerSubtypes(
         new NamedType(AppShell.class, "AppShell"),
+        new NamedType(io.mateu.uidl.data.ItemOverviewPage.class, "ItemOverviewPage"),
         new NamedType(AccordionLayout.class, "AccordionLayout"),
         new NamedType(AccordionPanel.class, "AccordionPanel"),
         new NamedType(Anchor.class, "Anchor"),

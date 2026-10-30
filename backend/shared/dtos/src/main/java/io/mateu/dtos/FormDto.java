@@ -51,7 +51,9 @@ public record FormDto(
     /**
      * The page's floating action buttons — as on {@link PageDto#fabs()}; {@code null} when none.
      */
-    List<FabDto> fabs)
+    List<FabDto> fabs,
+    /** The page template the page fills ({@code null} = a free page). */
+    PageTemplateDto template)
     implements ComponentMetadataDto {
 
   public FormDto {
