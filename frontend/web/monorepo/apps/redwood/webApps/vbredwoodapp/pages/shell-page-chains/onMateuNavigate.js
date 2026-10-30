@@ -448,11 +448,14 @@ define([
       };
       // native GENERAL OVERVIEW: entity page with TWO column blocks (the wide one
       // first) → the oj-sp-general-overview-page template (main/info slots, integrated header)
-      const gop = bridge.generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn: iopOn });
+      // a page DECLARING the template is claimed by its marker; the rest by the entity-page shape
+      const gop = bridge.templatedGeneralOverviewOf(host) || bridge.generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn: iopOn });
       vars.mateuGop = gop;
       const gopOn = gop.on;
       // the generic form is suppressed: its buttons (the form's @Button) go with the blocks
-      let hostContent = $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? bridge.withFormActions(hostBlocks, summary.actions, { tree: host.tree }) : null) || [];
+      // a multimedia content page's actions are its banner's calls to action: no form action row
+      let hostContent = $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos
+        ? bridge.templateHostContentOf(archetypes, hostBlocks, summary.actions, host.tree) : null) || [];
       // the content's web components (a process graph) are created by the bridge in their
       // hole: VB cannot write a tag whose name arrives in the data
       bridge.mountElementsSoon(bridge.elementAtomsOf($application.variables.mateuHostContent));
@@ -499,6 +502,7 @@ define([
       // a foldout with page actions (a crud's @FoldoutDetail view: Edit, Cancel…)
       // keeps the vb header, which is where those actions go
       const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
+        || bridge.templateOwnsHeader(archetypes)
         || overviewProjection || listingSummary
         || (foldoutNow && !hostEntity && !hostToolbar.length));
       // the not-found page brings its own heading (the oj-sp-empty-state): no vb header
@@ -557,7 +561,8 @@ define([
       // is NOT just another action: it is the RDS header's goToParent affordance (Redwood has no
       // breadcrumbs: without a back button, the parent of the automatic trail)
       const pageHeader = bridge.pageHeaderOf({
-        host, hostEntity, summary, hostToolbar, showHeader, pageWidth: pw, gopOn, iopOn, listing: listingSummary,
+        // a YAML collection detail paints its listing inside the template: no listing header band
+        host, hostEntity, summary, hostToolbar, showHeader, pageWidth: pw, gopOn, iopOn, listing: (archetypes.cd || archetypes.dm || archetypes.vars.mateuHs) ? null : listingSummary,
       });
       vars.mateuPageHeader = pageHeader.header;
       vars.mateuPageHeaderTranslations = pageHeader.translations;

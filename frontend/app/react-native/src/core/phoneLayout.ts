@@ -82,3 +82,11 @@ export function compactRail(rail: unknown): CompactRail | null {
     progress: (current + 1) / list.length,
   };
 }
+
+/** A row item that says where it wraps — a `min-width: min(…)` (zone columns) or a fixed basis
+ *  (`flex: 0 0 22rem`, the item overview template's panel): it keeps a phone-sized minimum, so on a
+ *  phone the row stacks and on a tablet the items stay side by side. */
+export function declaresWrapPoint(style: string | null | undefined): boolean {
+  const s = style ?? '';
+  return /min-width:\s*min\(/.test(s) || /flex:\s*0\s+0\s+\d/.test(s);
+}

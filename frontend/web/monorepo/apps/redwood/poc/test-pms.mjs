@@ -22,7 +22,10 @@ import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TI
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
-import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest } from './pageProjection.mjs'
+import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest, templateOwnsHeader as templateOwnsHeaderForTest } from './pageProjection.mjs'
+import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf } from './core/overviews.mjs'
+import { tocOf } from './toc.mjs'
+import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
 import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
@@ -1438,7 +1441,7 @@ test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante
     assert.equal(cell.title, '')
   }
   const page = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 5, 'las plantillas cellClip (listado, selector, listado en un drawer × 3 plantillas Spectra)')
+  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 8, 'las plantillas cellClip (listado ×4 — la página, el collection detail, el data management y el hero search —, selector, listado en un drawer × 3 plantillas Spectra)')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
 })
 
@@ -2423,6 +2426,107 @@ test('a page that DECLARES the Item overview page template (YAML template: ItemO
   const wrappedIo = itemOverviewOf(wrapped)
   assert.deepEqual(wrappedIo.tabs.map((t) => t.label), ['Physique', 'Appearance'])
   assert.equal(itemOverviewPageHeaderOf(wrapped, wrappedIo).itemTitle, 'Luke')
+})
+
+test('a page that DECLARES the Welcome page template (YAML template: WelcomePage) → Spectra\'s welcome page, claimed by its marker', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/welcome-page.golden.json'), 'utf-8'))
+  const host = { state: {}, data: {}, tree: golden.fragments[0].component }
+  // the root is the Form (not a bare layout), which the shape rule alone would not accept
+  const vars = archetypeVarsOfForTest(host)
+  assert.ok(vars.welcome)
+  assert.equal(vars.welcome.title, 'Star Wars')
+  assert.equal(vars.welcome.overline, 'A Mateu demo')
+  assert.equal(vars.welcome.tiles.length, 1)
+})
+
+test('a page that DECLARES the General overview page template → oj-sp-general-overview-page, its main and info slots by id', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/general-overview-page.golden.json'), 'utf-8'))
+  const host = { state: { name: 'Tatooine', climate: 'arid' }, data: {}, tree: golden.fragments[0].component }
+  const gop = templatedGeneralOverviewOf(host)
+  assert.equal(gop.on, true)
+  const fieldsOf = (slot) => slot.blocks.flatMap((b) => b.items || []).map((a) => a.fieldId).filter(Boolean)
+  assert.deepEqual(fieldsOf(gop.main), ['diameter'])
+  assert.deepEqual(fieldsOf(gop.info), ['population'])
+  // any other page: not claimed (the entity-page shape rule serves it)
+  assert.equal(templatedGeneralOverviewOf({ state: {}, data: {}, tree: { type: 'ClientSide', metadata: { type: 'Form' }, children: [] } }), null)
+})
+
+test('a page that DECLARES the Collection detail page template → mateuCd: the list, the detail (a selection) or noSelection', () => {
+  const read = (name) => JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/' + name + '.golden.json'), 'utf-8')).fragments[0].component
+  const selected = templatedCollectionDetailOf({ state: { id: '7' }, data: {}, tree: read('collection-detail-page') })
+  assert.deepEqual(selected.selectedItems, [{ id: '7' }])
+  assert.deepEqual(selected.detail.flatMap((b) => b.items).map((a) => a.fieldId), ['classification'])
+  assert.deepEqual(selected.noSelection, [])
+  const none = templatedCollectionDetailOf({ state: {}, data: {}, tree: read('collection-detail-empty') })
+  assert.deepEqual(none.selectedItems, [])
+  assert.deepEqual(none.noSelection.flatMap((b) => b.items).map((a) => a.text), ['Pick one'])
+  // a full-page empty state never steals a collection detail's noSelection, and the listing page stands
+  // aside while a collection detail paints the listing in its collection slot
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.match(html, /!\$application\.variables\.mateuCd && !!\$application\.variables\.mateuHostEmpty/)
+  assert.match(html, /!!\$application\.variables\.mateuListing && !\$application\.variables\.mateuCd/)
+})
+
+test('a YAML foldout page: its panel summaries and avatar interpolate the record (${state.x})', () => {
+  const summary = foldoutSummaryOf({ type: 'ClientSide', metadata: { type: 'Text', text: 'Crew ${state.crew}' }, children: [] }, { crew: '6' })
+  assert.deepEqual(summary, { hasSummary: true, summary: 'Crew 6' })
+})
+
+test('a page that DECLARES the Multimedia content page → a welcome banner (interpolated) + the anchor navigator, forced on', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/multimedia-page.golden.json'), 'utf-8'))
+  const host = { state: {}, data: {}, tree: golden.fragments[0].component }
+  const mmc = templatedMultimediaOf(host)
+  assert.equal(mmc.title, 'A New Hope')
+  assert.equal(mmc.overline, 'Episode IV')
+  assert.equal(mmc.theme, 'dark-plum')
+  assert.equal(mmc.ctas.length, 1)
+  // one section is enough: the template HAS the navigator (the auto rule needs several)
+  assert.equal(tocOf(host).on, true)
+})
+
+test('a page that DECLARES the Advanced create and edit template shows the anchor navigator (forced) unless it has a detail slot', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/create-edit-page.golden.json'), 'utf-8'))
+  // with a detail (the "main aside" grid): the two exclude each other
+  assert.equal(tocOf({ state: {}, data: {}, tree: golden.fragments[0].component }).on, false)
+  // without one: the navigator, whatever the number of sections
+  const section = { type: 'ClientSide', cssClasses: 'mateu-section', children: [],
+    metadata: { type: 'Card', title: { type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Identity' } } } }
+  const bare = { type: 'ClientSide', metadata: { type: 'Form', template: { type: 'AdvancedCreateEditPage' } }, children: [section] }
+  assert.equal(tocOf({ state: {}, data: {}, tree: bare }).on, true)
+})
+
+test('a page that DECLARES the Guided process template → oj-sp-guided-process steps (one per tab of the one form), primary and cancel', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/guided-process-page.golden.json'), 'utf-8'))
+  // the state (with what was typed) is what the steps' fields show
+  const gp = templatedGuidedProcessOf({ state: { name: 'Ebon Hawk' }, data: {}, tree: golden.fragments[0].component })
+  assert.deepEqual(gp.steps.map((s) => [s.id, s.title]), [['step-1', 'Identity'], ['step-2', 'Specifications']])
+  assert.equal(gp.steps[0].items.find((a) => a.fieldId === 'name').value, 'Ebon Hawk')
+  assert.deepEqual(gp.primaryAction, { label: 'Register' })
+  assert.deepEqual([gp.primaryId, gp.cancelId, gp.cancelRoute], ['create', 'cancel-new', 'starships'])
+})
+
+test('a YAML DataManagementPage → oj-sp-data-management-page: its docked panels by their title rows (no ✕ action to toggle them)', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/data-management-page.golden.json'), 'utf-8'))
+  const dm = archetypeVarsOfForTest({ state: {}, data: {}, tree: golden.fragments[0].component }).dm
+  assert.equal(dm.title, 'Vehicles')
+  assert.deepEqual([dm.end.on, dm.end.title, dm.end.closeActionId], [true, 'Fleet summary', ''])
+  assert.deepEqual([dm.bottom.on, dm.bottom.title], [true, 'Notes'])
+})
+
+test('a page that DECLARES the Hero search template → oj-sp-hero-search-page: its hero texts, the landing (collection off) first', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/hero-search-page.golden.json'), 'utf-8'))
+  const host = { state: {}, data: {}, tree: golden.fragments[0].component }
+  assert.deepEqual(templatedHeroSearchOf(host), { title: 'Search the galaxy', description: 'Find any character of the saga', collection: 'off' })
+  // the template draws the header: the VB header stands aside
+  assert.equal(templateOwnsHeaderForTest(archetypeVarsOfForTest(host)), true)
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {

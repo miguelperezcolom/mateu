@@ -1,10 +1,8 @@
-# READ-ONLY view of one record (route starships/:id). Header: < back + Edit; fields read-only.
-# No Java — the buttons NAVIGATE via their RouteLink actionable.
+# READ-ONLY view of one starship (route starships/:id). It fills Redwood's FOLDOUT LAYOUT template
+# (Spectra oj-sp-foldout-layout): the ship's overview always in view, its information in panels that
+# fold out beside it — each folded panel shows its summary. No Java — the buttons NAVIGATE.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
-# Redwood's Item overview page template (Spectra oj-sp-item-overview-page): the record's image
-# and key facts in its overview panel, the rest in tabs in its main slot. The page only FILLS the
-# template — the look (sizes, surfaces, spacing) is the template's, in every renderer.
 title: ${state.name}
 subtitle: Starship
 toolbar:
@@ -21,40 +19,37 @@ toolbar:
     type: RouteLink
     route: starships/${state.id}/edit
 template:
-  type: ItemOverviewPage
-  photo: {src: "${state.image}"}
-  body:
-    - {type: FormField, id: model, label: Model, readOnly: true, propertyRow: true}
-    - {type: FormField, id: manufacturer, label: Manufacturer, readOnly: true, propertyRow: true}
-    - {type: FormField, id: starshipClass, label: Class, readOnly: true, propertyRow: true}
-# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
+  type: FoldoutPage
+  overview:
+    - {type: Avatar, name: "${state.name}", image: "${state.image}"}
+    - {type: Text, text: "${state.starshipClass}"}
+    - type: FormLayout
+      maxColumns: 1
+      content:
+        - {type: FormField, id: model, label: Model, readOnly: true}
+        - {type: FormField, id: manufacturer, label: Manufacturer, readOnly: true}
+        - {type: FormField, id: costInCredits, label: Cost (credits), dataType: number, readOnly: true}
+# the template's panels, in order: the first starts unfolded, the others show their summary
 content:
-  - type: TabLayout
-    tabs:
-      - type: Tab
-        label: Details
-        content:
-          type: VerticalLayout
-          horizontalAlignment: STRETCH   # the sections fill the main slot
-          content:
-            - type: Card
-              cssClasses: mateu-section
-              title: {type: Text, container: h3, text: Specifications}
-              content:
-                type: FormLayout
-                content:
-                  - {type: FormField, id: length, label: Length (m), dataType: number, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: maxAtmospheringSpeed, label: Max speed, dataType: integer, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: hyperdriveRating, label: Hyperdrive rating, dataType: number, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: mglt, label: MGLT, dataType: integer, readOnly: true, propertyRow: true}
-            - type: Card
-              cssClasses: mateu-section
-              title: {type: Text, container: h3, text: "Crew & cargo"}
-              content:
-                type: FormLayout
-                content:
-                  - {type: FormField, id: crew, label: Crew, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: passengers, label: Passengers, dataType: integer, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: cargoCapacity, label: Cargo capacity, dataType: number, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: consumables, label: Consumables, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: costInCredits, label: Cost (credits), dataType: number, readOnly: true, propertyRow: true}
+  - type: FoldoutPanel
+    title: Specifications
+    open: true
+    content:
+      type: FormLayout
+      maxColumns: 1
+      content:
+        - {type: FormField, id: length, label: Length (m), dataType: number, readOnly: true}
+        - {type: FormField, id: maxAtmospheringSpeed, label: Max speed, dataType: integer, readOnly: true}
+        - {type: FormField, id: hyperdriveRating, label: Hyperdrive rating, dataType: number, readOnly: true}
+        - {type: FormField, id: mglt, label: MGLT, dataType: integer, readOnly: true}
+  - type: FoldoutPanel
+    title: Crew & cargo
+    summary: {type: Text, text: "Crew ${state.crew} · ${state.passengers} passengers"}
+    content:
+      type: FormLayout
+      maxColumns: 1
+      content:
+        - {type: FormField, id: crew, label: Crew, readOnly: true}
+        - {type: FormField, id: passengers, label: Passengers, dataType: integer, readOnly: true}
+        - {type: FormField, id: cargoCapacity, label: Cargo capacity, dataType: number, readOnly: true}
+        - {type: FormField, id: consumables, label: Consumables, readOnly: true}

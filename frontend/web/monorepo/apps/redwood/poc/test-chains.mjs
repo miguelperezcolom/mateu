@@ -239,6 +239,13 @@ test('page header: a page that CANCELS beside a primary action is a create/edit 
   assert.equal(headerFor([{ actionId: 'save', label: 'Save' }]).createEdit, false)
 })
 
+test('app-flow: a page variable the projection may set to null is never typed object (VB refuses the assign and the whole navigation chain fails)', () => {
+  const flow = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../webApps/vbredwoodapp/app-flow.json'), 'utf-8'))
+  const vars = archetypeVarsOf({ state: {}, data: {}, tree: { type: 'ClientSide', metadata: { type: 'Form', title: 'x' }, children: [] } }).vars
+  const nullTyped = Object.entries(vars).filter(([k, v]) => v === null && flow.variables[k] && flow.variables[k].type === 'object').map(([k]) => k)
+  assert.deepEqual(nullTyped, [])
+})
+
 test('page layout: width anatomy, bleeding header and the band overlap', () => {
   assert.equal(pageWidthOf({ host: { pageWidth: 'fullWidth' } }), 'fullWidth')
   assert.equal(pageWidthOf({ host: { pageWidth: 'fullWidth' }, drawerNav: true }), 'edgeToEdge')

@@ -1,0 +1,9 @@
+# Fixture for PageTemplateSyncTest: a Partial inside a template slot is expanded like anywhere else
+# (the server resolves partials before the wire; the template's record of slots is walked too).
+type: Form
+title: Species
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Text, text: The collection}
+    - {type: Partial, ref: legal-notice}

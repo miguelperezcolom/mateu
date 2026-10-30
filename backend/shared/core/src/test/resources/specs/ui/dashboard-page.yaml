@@ -1,0 +1,18 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Dashboard landing page template — the
+# scoreboard's metrics in the `kpi` slot, the form's content as the panels.
+type: Form
+title: The galaxy at a glance
+subtitle: Star Wars in numbers
+template:
+  type: DashboardLandingPage
+  kpi:
+    - {type: MetricCard, title: Characters, value: "82"}
+    - {type: MetricCard, title: Planets, value: "60"}
+content:
+  - type: DashboardPanel
+    title: Starships by class
+    content: {type: Text, text: A chart}
+  - type: DashboardPanel
+    title: Planets by climate
+    content: {type: Text, text: Another chart}

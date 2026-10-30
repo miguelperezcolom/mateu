@@ -219,6 +219,30 @@ public Component component(HttpRequest request) {
 }
 ```
 
+### In YAML
+
+A YAML page fills the template with `template: {type: DashboardLandingPage}` on its `type: Form`:
+the scoreboard's `MetricCard`s in its `kpi` slot, the form's `content` as the panels — see
+[Page templates](/define/yaml/pages/#page-templates--template). The page header (title, subtitle,
+timestamp, toolbar) is the form's own.
+
+```yaml
+type: Form
+title: The galaxy at a glance
+template:
+  type: DashboardLandingPage
+  kpi:
+    - {type: MetricCard, title: Characters, value: "82"}
+    - {type: MetricCard, title: Planets, value: "60"}
+content:
+  - type: DashboardPanel
+    title: Characters per film
+    content:
+      type: Chart
+      chartType: bar
+      chartData: {labels: [I, II, III], datasets: [{label: Characters, data: [34, 40, 34]}]}
+```
+
 ### Checklist for KPIs
 
 A number on a dashboard is only useful if the reader knows what it measures and over which period. Before shipping a dashboard, check that:

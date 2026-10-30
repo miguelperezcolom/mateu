@@ -1,0 +1,22 @@
+# Search the galaxy: Redwood's HERO SEARCH page template (Spectra oj-sp-hero-search-page) — a
+# search-first landing page: a hero with the page's title and description over the search and its
+# results, a searchable listing of the characters (a result opens the character).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Search the galaxy
+subtitle: Type a name, a homeworld or an eye colour — every character of the saga answers
+template:
+  type: HeroSearchPage
+  backgroundColor: dark-pine
+content:
+  - type: Listing
+    pageSize: 12
+    rowRoute: people/${row.id}
+    searchable: true
+    gridLayout: cards
+    rowsSource:
+      ref: swapi-people
+    columns:
+      - {type: GridColumn, id: name, label: Name, identifier: true, stereotype: primary, leadingPath: image}
+      - {type: GridColumn, id: homeworldName, label: Homeworld}
+      - {type: GridColumn, id: eyeColor, label: Eyes}

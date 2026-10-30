@@ -658,6 +658,23 @@
         }
       }
     },
+    "AdvancedCreateEditPage" : {
+      "description" : "Redwood's Advanced create and edit page template (Spectra oj-sp-advanced-create-edit): a transactional page that creates or edits an object with many attributes, grouped in sections.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "AdvancedCreateEditPage"
+        },
+        "detail" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        }
+      }
+    },
     "Anchor" : {
       "description" : "A hyperlink with text that opens a URL, optionally in another window (target).",
       "type" : "object",
@@ -2125,6 +2142,29 @@
         }
       }
     },
+    "CollectionDetailPage" : {
+      "description" : "Redwood's Collection detail page template (Spectra oj-sp-collection-detail-page): a collection beside the detail of the item selected in it.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "CollectionDetailPage"
+        },
+        "list" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        },
+        "noSelection" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        }
+      }
+    },
     "ColumnAlignment" : {
       "type" : "string",
       "enum" : [ "start", "center", "end" ]
@@ -2960,6 +3000,23 @@
         }
       }
     },
+    "DashboardLandingPage" : {
+      "description" : "Redwood's Dashboard landing page template (Spectra oj-sp-dashboard-landing-page): a scoreboard of key metrics over the page's panels.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "DashboardLandingPage"
+        },
+        "kpi" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        }
+      }
+    },
     "DashboardLayout" : {
       "description" : "A responsive grid of dashboard tiles (Scoreboard, DashboardPanel, MetricCard or any other component). columns fixes the number of grid columns; 0 (the default) lets the renderer pick a responsive column count.",
       "type" : "object",
@@ -3088,6 +3145,23 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "DataManagementPage" : {
+      "description" : "Redwood's Data management page template (Spectra oj-sp-data-management-page): a data set to review and manage — a table, a grid, a Gantt — with panels docked beside it (end, the template's innerEnd) and below it (bottom, its innerBottom), each a DockedPanel shown when open.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "DataManagementPage"
+        },
+        "end" : {
+          "$ref" : "#/$defs/DockedPanel"
+        },
+        "bottom" : {
+          "$ref" : "#/$defs/DockedPanel"
         }
       }
     },
@@ -3304,6 +3378,26 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "DockedPanel" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "content" : {
+          "$ref" : "#/$defs/Component"
+        },
+        "size" : {
+          "type" : "string"
+        },
+        "open" : {
+          "type" : "boolean"
         }
       }
     },
@@ -4010,6 +4104,26 @@
       "type" : "string",
       "enum" : [ "vertical", "horizontal" ]
     },
+    "FoldoutPage" : {
+      "description" : "Redwood's Foldout layout page template (Spectra oj-sp-foldout-layout, as a page): an always-visible overview of a business object beside two or more panels of associated information that fold out.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "FoldoutPage"
+        },
+        "overview" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        },
+        "orientation" : {
+          "$ref" : "#/$defs/FoldoutOrientation"
+        }
+      }
+    },
     "FoldoutPanel" : {
       "description" : "One lateral panel of a FoldoutLayout: a category of information associated to the record shown in the overview.",
       "type" : "object",
@@ -4635,7 +4749,27 @@
     "FormTemplate" : {
       "description" : "One of the FormTemplate implementations.",
       "oneOf" : [ {
+        "$ref" : "#/$defs/AdvancedCreateEditPage"
+      }, {
+        "$ref" : "#/$defs/CollectionDetailPage"
+      }, {
+        "$ref" : "#/$defs/DashboardLandingPage"
+      }, {
+        "$ref" : "#/$defs/DataManagementPage"
+      }, {
+        "$ref" : "#/$defs/FoldoutPage"
+      }, {
+        "$ref" : "#/$defs/GeneralOverviewPage"
+      }, {
+        "$ref" : "#/$defs/GuidedProcessPage"
+      }, {
+        "$ref" : "#/$defs/HeroSearchPage"
+      }, {
         "$ref" : "#/$defs/ItemOverviewPage"
+      }, {
+        "$ref" : "#/$defs/MultimediaContentPage"
+      }, {
+        "$ref" : "#/$defs/WelcomePage"
       } ]
     },
     "FullWidth" : {
@@ -4819,6 +4953,23 @@
         },
         "color" : {
           "type" : "string"
+        }
+      }
+    },
+    "GeneralOverviewPage" : {
+      "description" : "Redwood's General overview page template (Spectra oj-sp-general-overview-page): one business object's information in the main area with a complementary panel beside it.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "GeneralOverviewPage"
+        },
+        "info" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
         }
       }
     },
@@ -5088,6 +5239,43 @@
       "type" : "string",
       "enum" : [ "alternative", "sequential", "simultaneous" ]
     },
+    "GuidedProcessPage" : {
+      "description" : "Redwood's Guided process page template (Spectra oj-sp-guided-process): a process broken into GuidedProcessSteps the user goes through one at a time.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "GuidedProcessPage"
+        },
+        "steps" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/GuidedProcessStep"
+          }
+        }
+      }
+    },
+    "GuidedProcessStep" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        }
+      }
+    },
     "HeaderValue" : {
       "type" : "object",
       "properties" : {
@@ -5153,6 +5341,20 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "HeroSearchPage" : {
+      "description" : "Redwood's Hero search page template (Spectra oj-sp-hero-search-page): a search-first landing page — a hero with the page's title and description over the search and its results.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "HeroSearchPage"
+        },
+        "backgroundColor" : {
+          "type" : "string"
         }
       }
     },
@@ -6595,6 +6797,20 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "MultimediaContentPage" : {
+      "description" : "Redwood's Multimedia content page template (Spectra oj-sp-multimedia-content-page): a welcome-style banner over content in sections with media, and a vertical anchor navigator to move between the sections.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MultimediaContentPage"
+        },
+        "backgroundColor" : {
+          "type" : "string"
         }
       }
     },
@@ -9401,6 +9617,20 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "WelcomePage" : {
+      "description" : "Redwood's Welcome page template (Spectra oj-sp-welcome-page): a welcome banner over the page's tiles.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "WelcomePage"
+        },
+        "backgroundColor" : {
+          "type" : "string"
         }
       }
     },

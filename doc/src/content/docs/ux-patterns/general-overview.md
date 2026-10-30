@@ -167,6 +167,36 @@ This archetype's switcher is a field in the page body. For a record or context s
 ¹ When the overview contains an `EntityHeader`; painted with Spectra's `oj-sp-general-overview-page`.
 ² The template's own `displayOptions.promoteInfoSlot`.
 
+
+### In YAML
+
+A YAML page fills the template with `template: {type: GeneralOverviewPage}` on its `type: Form`:
+the complementary panel in its `info` slot, the form's `content` as the `main` slot — see
+[Page templates](/define/yaml/pages/#page-templates--template). The header is the form's: its
+`recordSwitcher` (with an `optionsSource` and a `route` it jumps between records with no Java),
+its `kpis` as the contextual info, its toolbar as the actions. Sections in the main slot (a `Card`
+with `cssClasses: mateu-section` and a heading title) get Spectra's own section header.
+
+```yaml
+type: Form
+title: ${state.name}
+recordSwitcher:
+  value: ${state.id}
+  optionsSource: {url: "https://swapi.mateu.io/api/planets?size=100", itemsPath: content, valuePath: id, labelPath: name}
+  route: planets/${state._record}
+kpis:
+  - {label: Climate, value: "${state.climate}"}
+template:
+  type: GeneralOverviewPage
+  info:
+    - {type: FormField, id: population, label: Population, readOnly: true}
+content:
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Physical characteristics}
+    content: {type: FormField, id: diameter, label: Diameter, readOnly: true}
+```
+
 ## Redwood parameter and slot reference
 
 What the Redwood `general-overview-page` template exposes, and what Mateu gives you for it. The

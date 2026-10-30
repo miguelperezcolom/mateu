@@ -1,0 +1,347 @@
+{
+  "commands" : [ {
+    "targetComponentId" : null,
+    "type" : "SetWindowTitle",
+    "data" : "Vehicles"
+  } ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Vehicles",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "noHeader" : true,
+        "badges" : [ ],
+        "banners" : [ ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : null,
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : null,
+        "fabs" : null,
+        "template" : {
+          "type" : "DataManagementPage",
+          "avatar" : null,
+          "photo" : null
+        }
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "VerticalLayout",
+          "spacing" : true,
+          "padding" : false,
+          "margin" : false,
+          "spacingVariant" : null,
+          "horizontalAlignment" : "STRETCH",
+          "justification" : null,
+          "wrap" : false,
+          "flexGrows" : null,
+          "fullWidth" : true,
+          "style" : null
+        },
+        "id" : "data-management",
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "Vehicles",
+            "size" : "xl",
+            "noMargins" : true
+          },
+          "id" : "data-management-title",
+          "children" : [ ],
+          "style" : "font-weight: 600;",
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "HorizontalLayout",
+            "spacing" : true,
+            "padding" : false,
+            "margin" : false,
+            "spacingVariant" : null,
+            "verticalAlignment" : null,
+            "justification" : null,
+            "wrap" : false,
+            "flexGrows" : null,
+            "fullWidth" : false,
+            "style" : null
+          },
+          "id" : "data-management-toolbar",
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Button",
+              "label" : "New vehicle",
+              "iconOnLeft" : null,
+              "iconOnRight" : null,
+              "image" : null,
+              "color" : "normal",
+              "variant" : null,
+              "buttonStyle" : "primary",
+              "size" : null,
+              "autofocus" : false,
+              "disabled" : false,
+              "actionId" : "newVehicle",
+              "parameters" : null,
+              "shortcut" : null,
+              "separatorBefore" : false,
+              "children" : null,
+              "route" : "vehicles/new",
+              "rowsSelectedRequired" : false
+            },
+            "id" : "3927a574-749b-49ce-9fc1-e3eeb97d9aff",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : "align-items: center;",
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "ResponsiveGrid",
+            "gridTemplateColumns" : "1fr 22rem",
+            "gap" : null,
+            "colSpans" : null,
+            "stackBelow" : "48rem",
+            "gridTemplateAreas" : null,
+            "stickyAreas" : null,
+            "reorderable" : false
+          },
+          "id" : "data-management-body",
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "VerticalLayout",
+              "spacing" : true,
+              "padding" : false,
+              "margin" : false,
+              "spacingVariant" : null,
+              "horizontalAlignment" : "STRETCH",
+              "justification" : null,
+              "wrap" : false,
+              "flexGrows" : null,
+              "fullWidth" : true,
+              "style" : null
+            },
+            "id" : null,
+            "children" : [ {
+              "type" : "ClientSide",
+              "metadata" : {
+                "type" : "Text",
+                "container" : "div",
+                "attributes" : { },
+                "text" : "The data view",
+                "size" : null,
+                "noMargins" : false
+              },
+              "id" : "9935988b-c701-4d35-b510-1affc6761ac8",
+              "children" : [ ],
+              "style" : null,
+              "cssClasses" : null,
+              "slot" : null,
+              "sizing" : null
+            } ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          }, {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "VerticalLayout",
+              "spacing" : false,
+              "padding" : false,
+              "margin" : false,
+              "spacingVariant" : null,
+              "horizontalAlignment" : null,
+              "justification" : null,
+              "wrap" : false,
+              "flexGrows" : null,
+              "fullWidth" : false,
+              "style" : null
+            },
+            "id" : "summary",
+            "children" : [ {
+              "type" : "ClientSide",
+              "metadata" : {
+                "type" : "HorizontalLayout",
+                "spacing" : false,
+                "padding" : false,
+                "margin" : false,
+                "spacingVariant" : null,
+                "verticalAlignment" : null,
+                "justification" : null,
+                "wrap" : false,
+                "flexGrows" : null,
+                "fullWidth" : false,
+                "style" : null
+              },
+              "id" : null,
+              "children" : [ {
+                "type" : "ClientSide",
+                "metadata" : {
+                  "type" : "Text",
+                  "container" : "div",
+                  "attributes" : { },
+                  "text" : "Fleet summary",
+                  "size" : "m",
+                  "noMargins" : true
+                },
+                "id" : "ea9b2173-b969-4a59-921b-1dc60d533090",
+                "children" : [ ],
+                "style" : "font-weight: 600; flex: 1;",
+                "cssClasses" : null,
+                "slot" : null,
+                "sizing" : null
+              } ],
+              "style" : "align-items: center; width: 100%;",
+              "cssClasses" : null,
+              "slot" : null,
+              "sizing" : null
+            }, {
+              "type" : "ClientSide",
+              "metadata" : {
+                "type" : "Text",
+                "container" : "div",
+                "attributes" : { },
+                "text" : "39 vehicles",
+                "size" : null,
+                "noMargins" : false
+              },
+              "id" : "787d147d-89d3-4d4c-bcea-d12848f98f32",
+              "children" : [ ],
+              "style" : null,
+              "cssClasses" : null,
+              "slot" : null,
+              "sizing" : null
+            } ],
+            "style" : "border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); padding-left: var(--lumo-space-m, 1rem);",
+            "cssClasses" : "mateu-docked-panel",
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "VerticalLayout",
+            "spacing" : false,
+            "padding" : false,
+            "margin" : false,
+            "spacingVariant" : null,
+            "horizontalAlignment" : null,
+            "justification" : null,
+            "wrap" : false,
+            "flexGrows" : null,
+            "fullWidth" : false,
+            "style" : null
+          },
+          "id" : "notes",
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "HorizontalLayout",
+              "spacing" : false,
+              "padding" : false,
+              "margin" : false,
+              "spacingVariant" : null,
+              "verticalAlignment" : null,
+              "justification" : null,
+              "wrap" : false,
+              "flexGrows" : null,
+              "fullWidth" : false,
+              "style" : null
+            },
+            "id" : null,
+            "children" : [ {
+              "type" : "ClientSide",
+              "metadata" : {
+                "type" : "Text",
+                "container" : "div",
+                "attributes" : { },
+                "text" : "Notes",
+                "size" : "m",
+                "noMargins" : true
+              },
+              "id" : "c92a2a22-9f0b-42f7-8d64-b9ad9500ff5f",
+              "children" : [ ],
+              "style" : "font-weight: 600; flex: 1;",
+              "cssClasses" : null,
+              "slot" : null,
+              "sizing" : null
+            } ],
+            "style" : "align-items: center; width: 100%;",
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          }, {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Seed data",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "fdfca9ad-b255-4283-8237-4f9da38a6337",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : "border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); padding-top: var(--lumo-space-s, .5rem); max-height: 16rem; overflow: auto;",
+          "cssClasses" : "mateu-docked-panel",
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

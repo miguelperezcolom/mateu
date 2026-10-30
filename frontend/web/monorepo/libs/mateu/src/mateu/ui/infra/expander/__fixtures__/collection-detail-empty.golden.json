@@ -1,0 +1,153 @@
+{
+  "commands" : [ {
+    "targetComponentId" : null,
+    "type" : "SetWindowTitle",
+    "data" : "Species"
+  } ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Species",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "noHeader" : false,
+        "badges" : [ ],
+        "banners" : [ ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : null,
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : null,
+        "fabs" : null,
+        "template" : {
+          "type" : "CollectionDetailPage",
+          "avatar" : null,
+          "photo" : null
+        }
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "HorizontalLayout",
+          "spacing" : true,
+          "padding" : false,
+          "margin" : false,
+          "spacingVariant" : null,
+          "verticalAlignment" : null,
+          "justification" : null,
+          "wrap" : true,
+          "flexGrows" : null,
+          "fullWidth" : false,
+          "style" : null
+        },
+        "id" : "collection-detail",
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "VerticalLayout",
+            "spacing" : false,
+            "padding" : false,
+            "margin" : false,
+            "spacingVariant" : null,
+            "horizontalAlignment" : null,
+            "justification" : null,
+            "wrap" : false,
+            "flexGrows" : null,
+            "fullWidth" : false,
+            "style" : null
+          },
+          "id" : "collection-detail-list",
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "The collection",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "24f4f2ce-1e75-47d5-b80b-a3ca12d5e2e8",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : "flex: 0 0 24rem; max-width: 100%",
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "VerticalLayout",
+            "spacing" : false,
+            "padding" : false,
+            "margin" : false,
+            "spacingVariant" : null,
+            "horizontalAlignment" : null,
+            "justification" : null,
+            "wrap" : false,
+            "flexGrows" : null,
+            "fullWidth" : false,
+            "style" : null
+          },
+          "id" : "collection-detail-no-selection",
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Pick one",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "6c2954d1-881a-447f-b62f-855ee9638d39",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : "flex: 1 1 24rem; min-width: min(24rem, 100%)",
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

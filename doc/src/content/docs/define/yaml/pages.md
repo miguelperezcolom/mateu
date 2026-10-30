@@ -191,12 +191,44 @@ filled with the record's data (`${state.x}`) — is the **page**.
 
 | `template.type` | Redwood template | Fields | Slots |
 |---|---|---|---|
+| `FoldoutPage` | `oj-sp-foldout-layout` (as a page) | `orientation` (`vertical`/`horizontal`) | `overview` (always in view); the form's `content` is the panels — `FoldoutPanel`s with `title`, `summary` (what the folded strip shows), `open` |
+| `GeneralOverviewPage` | `oj-sp-general-overview-page` | — | `info` (the complementary side panel); the form's `content` is `main`. The header — title, `recordSwitcher`, `kpis` (contextual info), timestamp, toolbar — is the form's |
+| `GuidedProcessPage` | `oj-sp-guided-process` | `steps` (`GuidedProcessStep`: `id`, `title`, `description`, `content`) | — (the steps hold the content). The form's title/subtitle are the process's; its toolbar's primary is the process's primary action, its cancel the way out. All steps are ONE form: moving between them keeps what was typed, no round trip |
+| `HeroSearchPage` | `oj-sp-hero-search-page` | `backgroundColor` (other renderers' hero) | the form's `content` is the results (a searchable `Listing`); the form's title and subtitle are the hero's. On Redwood the page opens as the landing hero and turns into the collection view on the first search |
 | `ItemOverviewPage` | `oj-sp-item-overview-page` + `oj-sp-item-overview` | `avatar {src, initials}` (round) or `photo {src}` (4:3) | `body`, `footer` (the overview panel); the form's `content` is `main` |
+| `AdvancedCreateEditPage` | the advanced create/edit page as Redwood composes it (`oj-sp-header-create-edit` + `oj-sp-section`s + the vertical anchor navigator) | — | `detail` (contextual data beside the form; it excludes the anchor navigator); the form's `content` is `main` (the sections). The header is the form's: a toolbar with a cancel (`actionId: cancel-new`/`cancel-edit`/`cancel`) and the primary action |
+| `CollectionDetailPage` | `oj-sp-collection-detail-page` | — | `list` (the collection — typically a `Listing` with a `rowRoute`, often a partial shared by two pages), `noSelection`; the form's `content` is the selected item's detail (`detailTemplate`): a page with content has a selection, one without shows `noSelection` |
+| `DataManagementPage` | `oj-sp-data-management-page` | `end`, `bottom` (`DockedPanel`: `id`, `title`, `content`, `size`, `open` — shown while open; a YAML page has no server to toggle them) | the form's `content` is the data view (a `Listing`, a grid…); its toolbar sits over the data; its title heads the page |
+| `DashboardLandingPage` | `oj-sp-dashboard-landing-page` | — | `kpi` (the scoreboard's `MetricCard`s); the form's `content` is the main area (one `DashboardPanel` per chart or list) |
+| `MultimediaContentPage` | composed: `oj-sp-header-welcome-banner` + sections + the vertical anchor navigator (Spectra ships no `oj-sp-multimedia-content-page` in 2604) | `backgroundColor` (as `WelcomePage`) | the form's `content` is the sections (`Card` + `mateu-section`); the banner is the form's title/subtitle/overline/toolbar |
+| `WelcomePage` | `oj-sp-welcome-page` | `backgroundColor` (Spectra's `dark-ocean` … `dark-sienna`, or the bare tone; `auto`/none = default) | the form's `content` is the default slot (the tiles under the banner) |
 
 The rest of the template comes from the `type: Form` that carries it: its `title`/`subtitle` are
 the item's (`itemTitle`/`itemSubtitle`), its first header badge the item's badge, its `peerNav` the
 previous/next item, its back button the parent link, its primary toolbar button the panel's **edit**
 action when it edits (otherwise it joins the panel's other actions, like the rest of the toolbar).
+
+A `WelcomePage` draws the page's header itself: the form's `title` is the banner's title, its
+`subtitle` the description, its `overline` the line above the title and its `toolbar` the calls to
+action (a `primary` one first) — the form shows no header or toolbar of its own.
+
+```yaml
+type: Form
+title: Star Wars
+overline: A Mateu demo
+subtitle: Characters, planets and starships of the saga.
+toolbar:
+  - {type: Button, label: Browse the characters, buttonStyle: primary, actionable: {type: RouteLink, route: people}}
+template:
+  type: WelcomePage
+  backgroundColor: dark-slate
+content:                     # the tiles under the banner
+  - type: DashboardLayout
+    items:
+      - {type: DashboardPanel, title: Characters, content: {type: Text, text: Who is who.}}
+```
+
+An item overview:
 
 ```yaml
 type: Form

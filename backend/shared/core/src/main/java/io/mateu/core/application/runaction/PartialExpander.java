@@ -3,6 +3,7 @@ package io.mateu.core.application.runaction;
 import io.mateu.uidl.data.Partial;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.FormTemplate;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -107,26 +108,34 @@ public final class PartialExpander {
 
   /** The same component with its children expanded — identical instance when nothing changed. */
   private static Component rewrite(Component component, HttpRequest request, Deque<String> chain) {
-    return ComponentRecords.rewrite(
-        component,
-        value -> {
-          if (value instanceof Component child) {
-            var expanded = single(child, request, chain);
-            return expanded == child ? value : expanded;
-          }
-          if (!ComponentRecords.isComponentList(value)) {
-            // Options, grid columns, flex grows — plenty of lists on a component hold no
-            // components.
-            return value;
-          }
-          var changed = false;
-          var rewritten = new ArrayList<Component>();
-          for (var child : ComponentRecords.componentsOf(value)) {
-            var expanded = inList(child, request, chain);
-            changed |= expanded.size() != 1 || expanded.get(0) != child;
-            rewritten.addAll(expanded);
-          }
-          return changed ? List.copyOf(rewritten) : value;
-        });
+    return ComponentRecords.rewrite(component, value -> rewriteValue(value, request, chain));
+  }
+
+  /**
+   * One record-component value with its partials expanded (same reference when nothing changed).
+   */
+  private static Object rewriteValue(Object value, HttpRequest request, Deque<String> chain) {
+    if (value instanceof Component child) {
+      var expanded = single(child, request, chain);
+      return expanded == child ? value : expanded;
+    }
+    if (value instanceof FormTemplate template) {
+      // a page template's slots (Form.template) are component lists too: a partial in a slot
+      // splices
+      return ComponentRecords.rewriteRecord(template, v -> rewriteValue(v, request, chain));
+    }
+    if (!ComponentRecords.isComponentList(value)) {
+      // Options, grid columns, flex grows — plenty of lists on a component hold no
+      // components.
+      return value;
+    }
+    var changed = false;
+    var rewritten = new ArrayList<Component>();
+    for (var child : ComponentRecords.componentsOf(value)) {
+      var expanded = inList(child, request, chain);
+      changed |= expanded.size() != 1 || expanded.get(0) != child;
+      rewritten.addAll(expanded);
+    }
+    return changed ? List.copyOf(rewritten) : value;
   }
 }

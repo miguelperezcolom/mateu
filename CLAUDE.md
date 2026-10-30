@@ -92,6 +92,25 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             keep it (a missing folder fails "Bundle JavaScript", not locally); its
                             patterns take NO trailing `/` (eas-cli matches bare folder paths); check
                             with `CI=1 npx eas-cli build:inspect --stage archive --output <dir>`
+                            ICONS (2026-10-30): Android draws the ADAPTIVE icon (app.json android.adaptiveIcon:
+                            foreground over backgroundColor, cropped to a circle/squircle — keep the mark in the
+                            inner ~2/3), not `icon` — the Expo template's white foreground on #ffffff showed a blank
+                            white circle. Mateu's face: assets/icon.png (iOS), adaptive-icon.png + monochrome-icon.png
+                            (Android 13 themed icons), splash.png; derived from doc/public/favicon.png (235px — no
+                            vector exists; upscaled with blur+threshold for clean edges)
+                            HUB LIST: each row's actions (move up/down, remove) open in a bottom sheet from its ⋮ button
+                            or a long press (HomeScreen EntrySheet); the top bar's pencil still shows them on every row
+                            ONE BAR (2026-10-30): an app shell with a drawer claims the hub's bar
+                            (session.hub.claimBar) — its own top bar hosts the hub's ⇄ switch and, with a screen pushed,
+                            the back arrow in place of the menu (ContentScreen hostBack); tabs/no-menu keep the hub bar
+                            + the screen's own back bar. LISTINGS on RN (2026-10-30, all found on the Star Wars demo):
+                            a row fetches its rowRoute's fields (rowRouteFields — without `id` a tap did nothing and a
+                            bulk delete had no id); a toolbar/FAB button with a `route` NAVIGATES (useButtonPress);
+                            restAction `forEachSelectedRow` (proxy → one __restfetch__ with _forEachSelectedRow, direct →
+                            one call per row); fetchViaProxy THROWS on transport errors and appData._restfetchError
+                            (it answered {} → "Deleted" shown for a failed delete); a Form paints its `toolbar` (back
+                            ids skipped) and interpolates title/subtitle; a static bundle answers LOADS but posts
+                            ACTIONS to the host (hybrid sites have a server; 404/405/no answer → "This UI has no server")
   intellij-plugin/        ← Desktop — IntelliJ IDEA plugin (tool windows, editor tabs, docking)
                             (the JavaFX and Compose renderers were REMOVED 2026-07-10)
 
@@ -372,6 +391,73 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   read-only form layout); a titled `mateu-section` Card in the main slot keeps its `oj-sp-section`
   header (`itemOverviewOf`'s atomsOfNodes; a section's title is not repeated as a text atom,
   content.mjs). A section's title must be a HEADING (`Text container: h3`) — `sectionHeadOf` reads it.
+- **`WelcomePage`** (`oj-sp-welcome-page`, field `backgroundColor` = Spectra's `dark-<tone>` or the
+  bare HeroTone): the template OWNS the header (`PageTemplates.ownsHeader` / expander `ownsHeader` →
+  `noHeader` + empty toolbar): the form's title/subtitle/overline/toolbar become a centred
+  `HeroSection` id `welcome` (the Welcome archetype's shape) over the content (the tiles). Redwood
+  claims a DECLARED welcome by its marker (`welcomeOf`: `pageTemplateOf` — the shape rule alone
+  rejects a Form root). The guide makes the banner image REQUIRED: a tone without a gallery pair
+  (slate/lilac/rose/pebble) gets `themedImage: pebbles` (`welcomeToneLookOf` → `mateuWelcomeThemedImage`).
+- **`DashboardLandingPage`** (`oj-sp-dashboard-landing-page`, slot `kpi`): laid out as a `Scoreboard`
+  id `dashboard-kpi` (the slot's MetricCards; other slot components follow it) over a `DashboardLayout`
+  id `dashboard-panels` (the form's content). The header stays the form's. Redwood: `dashboardOf` claims
+  a declared one by marker (`declaresTemplate(ctx, type)`, overviews.mjs — the helper every template uses).
+- **`GeneralOverviewPage`** (`oj-sp-general-overview-page`, slot `info`): `general-overview` row →
+  `general-overview-main` (the content) + `general-overview-info`. The header (title, recordSwitcher,
+  kpis = contextual info, toolbar) is the form's. Redwood: `templatedGeneralOverviewOf` (overviews.mjs,
+  exported by make-amd) feeds `mateuGop` BEFORE the entity-page shape rule (`generalOverviewPageOf`);
+  a section block becomes `isSpSectionHeader` + its items (the gop markup has no spSection branch).
+- **`CollectionDetailPage`** (`oj-sp-collection-detail-page`, slots `list`/`noSelection`, content =
+  `detailTemplate`): selection is the URL — a page WITH content has a selection (`collection-detail-detail`),
+  one without shows `collection-detail-no-selection` (decided at definition time, same in every renderer).
+  Redwood `templatedCollectionDetailOf` → `mateuCd` (header actions = the form toolbar, primary first, via
+  `headerSecondary`). A `Listing` in the `list` slot: the listing machinery is PAGE-level, so its body is
+  the 4th make-html partial `poc/templates/listing-body.html` (`@listing-body page|cd`, SAME ids — the
+  listing page `oj-bind-if`s on `!mateuCd`); `pageHeaderOf` gets `listing: null` under a cd (no list band).
+  GOTCHAS: `PartialExpander` never walked `Form.template` (not a Component) — `ComponentRecords` now walks
+  `FormTemplate` record values; an EmptyState inside a template slot was swallowed as the PAGE's
+  full-page empty state (`content.mjs` honours `ctx.templateSlot`; `mateuHostEmpty` skips under mateuCd).
+- **`FoldoutPage`** (named so because `FoldoutLayout` is the component; slot `overview`, field
+  `orientation`, content = the `FoldoutPanel`s): laid out as one `FoldoutLayout` id `foldout` (no
+  `headerTitle`: the header is the form's). Redwood's `foldoutOf` already finds it by shape; the foldout
+  title and panel summaries now interpolate `${state.x}`, and a lone `Avatar` atom interpolates its
+  name/image and paints `lg` (groups stay `xs`).
+- **`MultimediaContentPage`** (field `backgroundColor`): Spectra 2604 has NO `oj-sp-multimedia-content-page`
+  (CDN 404) → composed: the server lays it out like the welcome (`PageTemplates.banner`, HeroSection id
+  `multimedia-banner`, owns the header) over the sections; Redwood paints `mateuMmc`
+  (`templatedMultimediaOf`: welcomeOf on the banner hero, texts interpolated, welcome look) with
+  `oj-sp-header-welcome-banner` ABOVE the content container, skips that hero in content.mjs, suppresses
+  the VB header and the form action row, and `tocOf` forces the anchor navigator on.
+- **`AdvancedCreateEditPage`** (slot `detail`): no `detail` → the content as is; with one → the
+  `@Aside` shape (`ResponsiveGrid` id `advanced-create-edit`, `"main aside"`, `Slotted` regions — the
+  expander now treats `ResponsiveGrid` as a container). The header is the form's toolbar (cancel id +
+  primary → `oj-sp-header-create-edit`); `tocOf` forces the anchor navigator on (the aside still
+  excludes it). GOTCHA paid here: an app-flow variable the projection may set to NULL must be typed
+  `any`, never `object` — VB refuses the assign and the WHOLE navigation chain fails (every page lost its
+  header); pinned by a test-chains guard over `archetypeVarsOf`.
+- **`GuidedProcessPage`** (`steps: [GuidedProcessStep {id, title, description, content}]`): the server
+  lays the steps out as ONE `TabLayout` id `guided-process` (one form → moving between steps keeps the
+  state, no round trip; NOT `Tab.routeKey` — that makes Vaadin tabs rewrite the URL). Redwood
+  `templatedGuidedProcessOf` → `mateuGp` → `oj-sp-guided-process` (steps `{id: step-N, title}`,
+  `current-step` two-way on `mateuGpCurrent`; Spectra moves on its own); `onGuidedStepChanged`
+  re-projects the steps from host state + `$page.variables.mateuDraft` (typed values live in the
+  DRAFT, not the registry). The two chains share `templateOwnsHeader`/`templateHostContentOf` (and
+  runMateuAction now also feeds `templatedGeneralOverviewOf` and the cd listing rule) — keep template
+  decisions in the bridge: `onMateuNavigate` is line-ratcheted (< 600, test-chains).
+- **`DataManagementPage`** (fields `end`/`bottom`: `DockedPanel`, shown while `open`): laid out as the
+  DataManagement archetype's ids (`data-management` / `-title` / `-toolbar` = the form's buttons /
+  `-body` ResponsiveGrid with the end panel); owns the header. Redwood's `dataManagementPageOf` reads it
+  by shape (a panel header no longer needs a ✕ action); a `Listing` in the view paints in the dm main
+  slot (`@listing-body dm`, + search box; listing page and list band stand aside under mateuDm too).
+- **`HeroSearchPage`** (field `backgroundColor`): server = the welcome-style banner (HeroSection id
+  `hero-search`, owns the header) over the results; Redwood paints Spectra's `oj-sp-hero-search-page`
+  (`mateuHs`: title/description, `collection` off → the first search via `heroSearchSubmitted` turns
+  it on), its `searchTemplate` slot = an input-search, its default slot = `@listing-body hs` (the 4th
+  copy; the listing page/list band stand aside). New oj-sp components need an import in
+  main-start-page.json `imports.components` (make-embedded fails otherwise).
+- The visual editor's tests read `demo/demo-starwars/src/main/resources/specs/ui` as a fixture
+  (`mountGraph.test.ts` counts its pages, `yamlPreserve.test.ts` rewrites every file): a new Star Wars
+  page or folder moves them.
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

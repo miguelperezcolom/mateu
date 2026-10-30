@@ -1,0 +1,13 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Collection detail page template WITH a
+# selection — the collection in its `list` slot, the form's content as the selected item's detail.
+type: Form
+title: Species
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Text, text: The collection}
+  noSelection:
+    - {type: Text, text: Pick one}
+content:
+  - {type: FormField, id: classification, label: Classification, readOnly: true}

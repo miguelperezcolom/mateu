@@ -1,57 +1,57 @@
-# READ-ONLY view of one record (route species/:id). Header: < back + Edit; fields read-only.
-# No Java — the buttons NAVIGATE via their RouteLink actionable.
+# One species, SELECTED in Redwood's COLLECTION DETAIL PAGE template (route species/:id): the same
+# collection as species.yaml (the species-list partial) beside this species' detail — the form's
+# content, the template's detailTemplate. The page header is the collection's; the detail starts with
+# the species' own name, picture and actions. No Java — the buttons NAVIGATE via their RouteLink.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
-# Redwood's Item overview page template (Spectra oj-sp-item-overview-page): the record's image
-# and key facts in its overview panel, the rest in tabs in its main slot. The page only FILLS the
-# template — the look (sizes, surfaces, spacing) is the template's, in every renderer.
-title: ${state.name}
-subtitle: Species
+title: Species
+subtitle: The peoples of the galaxy
 toolbar:
-- type: Button
-  actionId: backToList
-  label: Back
-  actionable:
-    type: RouteLink
-    route: species
-- type: Button
-  label: Edit
-  buttonStyle: primary
-  actionable:
-    type: RouteLink
-    route: species/${state.id}/edit
+  - type: Button
+    label: New species
+    actionable:
+      type: RouteLink
+      route: species/new
+  - type: Button
+    label: Edit ${state.name}
+    buttonStyle: primary
+    actionable:
+      type: RouteLink
+      route: species/${state.id}/edit
 template:
-  type: ItemOverviewPage
-  avatar: {src: "${state.image}"}
-  body:
-    - {type: FormField, id: classification, label: Classification, readOnly: true, propertyRow: true}
-    - {type: FormField, id: designation, label: Designation, readOnly: true, propertyRow: true}
-    - {type: FormField, id: language, label: Language, readOnly: true, propertyRow: true}
-    - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true, propertyRow: true}
-# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
+  type: CollectionDetailPage
+  list:
+    - {type: Partial, ref: species-list}
+# the selected species' detail
 content:
-  - type: TabLayout
-    tabs:
-      - type: Tab
-        label: Details
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - {type: Text, container: h2, text: "${state.name}"}
+      - {type: Text, text: "${state.classification} · ${state.designation} · speaks ${state.language}"}
+      - {type: Avatar, name: "${state.name}", image: "${state.image}"}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Origin}
         content:
-          type: VerticalLayout
-          horizontalAlignment: STRETCH   # the sections fill the main slot
+          type: FormLayout
           content:
-            - type: Card
-              cssClasses: mateu-section
-              title: {type: Text, container: h3, text: Physiology}
-              content:
-                type: FormLayout
-                content:
-                  - {type: FormField, id: averageHeight, label: Average height (cm), dataType: integer, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: averageLifespan, label: Average lifespan (y), dataType: integer, readOnly: true, propertyRow: true}
-            - type: Card
-              cssClasses: mateu-section
-              title: {type: Text, container: h3, text: Appearance}
-              content:
-                type: FormLayout
-                content:
-                  - {type: FormField, id: skinColors, label: Skin colours, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: hairColors, label: Hair colours, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: eyeColors, label: Eye colours, readOnly: true, propertyRow: true}
+            - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true, propertyRow: true}
+            - {type: FormField, id: language, label: Language, readOnly: true, propertyRow: true}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Physiology}
+        content:
+          type: FormLayout
+          content:
+            - {type: FormField, id: averageHeight, label: Average height (cm), dataType: integer, readOnly: true, propertyRow: true}
+            - {type: FormField, id: averageLifespan, label: Average lifespan (y), dataType: integer, readOnly: true, propertyRow: true}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Appearance}
+        content:
+          type: FormLayout
+          content:
+            - {type: FormField, id: skinColors, label: Skin colours, readOnly: true, propertyRow: true}
+            - {type: FormField, id: hairColors, label: Hair colours, readOnly: true, propertyRow: true}
+            - {type: FormField, id: eyeColors, label: Eye colours, readOnly: true, propertyRow: true}

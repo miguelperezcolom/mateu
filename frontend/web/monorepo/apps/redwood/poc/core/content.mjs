@@ -1302,7 +1302,8 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Avatar') {
-      atom({ isAvatar: true, avatars: [avatarOf(m)], overflow: '' }, container)
+      // its name/image may be templates (${state.image}); a lone avatar is the record's picture: large
+      atom({ isAvatar: true, avatars: [avatarOf({ ...m, name: interp(m.name || ''), image: interp(m.image || '') })], overflow: '', size: 'lg' }, container)
       return
     }
     if (t === 'AvatarGroup') {
@@ -1569,6 +1570,8 @@ export function islandContentOf(ctx, opts = {}) {
       atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
       return
     }
+    // a Multimedia content page's banner / a Hero search page's hero are the template's own header
+    if (t === 'HeroSection' && (node.id === 'multimedia-banner' || node.id === 'hero-search')) return
     if (t === 'HeroSection') {
       // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
       atom(heroAtomOf(m, interp), container)
@@ -1577,7 +1580,9 @@ export function islandContentOf(ctx, opts = {}) {
     }
     // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
     // of emptyStateOf — painted there, not twice)
-    if (t === 'EmptyState' && !(ctx.kind === 'host' && pageEmptyStateNode(ctx.tree) === node)) {
+    // the page's own empty state is painted full-page, not here — but one inside a page template's
+    // slot (ctx.templateSlot: a collection detail's noSelection) is that slot's content
+    if (t === 'EmptyState' && !(ctx.kind === 'host' && !ctx.templateSlot && pageEmptyStateNode(ctx.tree) === node)) {
       atom(emptyStateAtomOf(m, interp), container)
       return
     }

@@ -96,6 +96,9 @@ export function welcomeToneLookOf(key, tone) {
     theme,
     illuBg: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png') : '',
     illu: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png') : '',
+    // the guide makes the banner's image panel REQUIRED: a tone with no gallery pair takes Spectra's
+    // own themed image instead of none
+    themedImage: pair ? 'none' : 'pebbles',
   }
 }
 
@@ -120,6 +123,7 @@ export function welcomeLookOf(key, tone = null) {
     theme,
     illuBg: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png'),
     illu: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png'),
+    themedImage: 'none',
   }
 }
 
@@ -152,7 +156,9 @@ export function welcomeOf(ctx) {
   if (!hero) return null
   // the welcome page is a hero over its tiles and nothing else: a page that merely CONTAINS a hero
   // (among cards, charts, notices…) is not one — taken for it, everything but the tiles vanished
-  if (holdsMoreThanAWelcome(ctx.tree, true)) return null
+  // a page that DECLARES the template (YAML `template: WelcomePage`) is claimed by its marker; any
+  // other page only when its shape is a welcome's
+  if (!declaresTemplate(ctx, 'WelcomePage') && holdsMoreThanAWelcome(ctx.tree, true)) return null
   const md = hero.metadata
   const ctas = actionsOf(hero)
   const panels = findAllByType(ctx.tree, 'DashboardPanel')
@@ -278,7 +284,7 @@ export function dashboardOf(ctx) {
   const panels = findAllByType(tree, 'DashboardPanel')
   const boards = findAllByType(tree, 'Scoreboard')
   if (!panels.length && !boards.length) return null
-  if (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true)) return null
+  if (!declaresTemplate(ctx, 'DashboardLandingPage') && (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true))) return null
   // a dashboard declaring header pieces (@Subtitle, @KPI…) comes inside a Page: its title is the
   // landing page's header (mateuPageHeader), not a block of the content
   const page = pageHeaderNodeOf(tree)
@@ -540,6 +546,12 @@ function nodeById(node, id) {
 }
 
 /** The page template a page DECLARES it fills (a YAML `template:`, FormDto.template), or null. */
+/** Whether the page DECLARES this page template (YAML `template: <type>`): such a page is claimed by
+ *  its marker, never guessed from its shape — a Form root alone fails the shape rules. */
+export function declaresTemplate(ctx, type) {
+  return ((pageTemplateOf(ctx) || {}).type) === type
+}
+
 export function pageTemplateOf(ctx) {
   // a served YAML page arrives wrapped in its server-side component (SeededYamlPage)
   let node = ctx && ctx.tree
@@ -604,6 +616,132 @@ function templatedItemOverviewOf(ctx, atomsOfNodes) {
     keyNodeId: '',
     tabsNodeId: '',
   }
+}
+
+/**
+ * A page that DECLARES the General overview page template (`template: GeneralOverviewPage`) → the
+ * oj-sp-general-overview-page projection (mateuGop): its `main` and `info` slots read by id, each
+ * as full-width blocks; a titled section keeps Spectra's own header (oj-sp-section) with its body
+ * below. null for any other page (the shape rule, generalOverviewPageOf, still serves the rest).
+ */
+export function templatedGeneralOverviewOf(ctx) {
+  if (!declaresTemplate(ctx, 'GeneralOverviewPage')) return null
+  const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gop',
+    metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
+    .map((b) => (b.spSection
+      ? { isPlain: true, blockClass: 'oj-flex-item oj-sm-12',
+        items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) }
+      : { ...b, blockClass: 'oj-flex-item oj-sm-12' }))
+  return {
+    on: true,
+    main: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-main')) },
+    info: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-info')) },
+  }
+}
+
+/**
+ * A page that DECLARES the Collection detail page template (`template: CollectionDetailPage`) → the
+ * oj-sp-collection-detail-page projection (mateuCd, as collectionDetailPageOf shapes it): the `list`
+ * slot is the collection, the detail (the form's content) or the `noSelection` slot read by id. A page
+ * with a detail HAS a selection (its record's id), one without shows noSelection.
+ */
+export function templatedCollectionDetailOf(ctx) {
+  if (!declaresTemplate(ctx, 'CollectionDetailPage')) return null
+  const FULL = 'oj-flex-item oj-sm-12'
+  const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_cd',
+    metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
+    .map((b) => (b.spSection
+      ? { isPlain: true, blockClass: FULL,
+        items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) }
+      : { ...b, blockClass: FULL }))
+  const detailNode = nodeById(ctx.tree, 'collection-detail-detail')
+  const state = (ctx && ctx.state) || {}
+  const form = templateFormOf(ctx)
+  return {
+    title: interpolate(String((form && form.metadata && form.metadata.title) || ''), state),
+    collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list')),
+    selectedItems: detailNode ? [{ id: String(state.id != null ? state.id : 'selected') }] : [],
+    detail: detailNode ? blocksOf(detailNode) : [],
+    noSelection: detailNode ? [] : blocksOf(nodeById(ctx.tree, 'collection-detail-no-selection')),
+    // the template's header has no primary action: every toolbar button is one of its actions (the
+    // primary first), resolved by headerSecondary against the page toolbar
+    actions: ((form && form.metadata && form.metadata.toolbar) || [])
+      .filter((b) => b && !/^(back|backToList|cancel-view)$/.test(b.actionId || ''))
+      .sort((a, b) => (b.buttonStyle === 'primary') - (a.buttonStyle === 'primary'))
+      .map((b) => ({ id: b.actionId || b.label, label: interpolate(String(b.label || b.actionId || ''), state) })),
+  }
+}
+
+/**
+ * A page that DECLARES the Multimedia content page template → its banner (mateuMmc): Spectra ships no
+ * oj-sp-multimedia-content-page in this pack, so the page is composed from its pieces —
+ * oj-sp-header-welcome-banner (the same banner API as the welcome page) over the sections, with the
+ * vertical anchor navigator (toc.mjs forces it on). The banner reads like a welcome's (welcomeOf on the
+ * banner hero alone) and takes the welcome look (tone, illustration or themed image).
+ */
+export function templatedMultimediaOf(ctx) {
+  if (!declaresTemplate(ctx, 'MultimediaContentPage')) return null
+  const hero = nodeById(ctx.tree, 'multimedia-banner')
+  const banner = hero ? welcomeOf({ ...ctx, tree: hero }) : null
+  if (!banner) return null
+  const look = welcomeLookOf(welcomeKeyOf(ctx), banner.tone)
+  // the banner shows ONE record: its texts are templates over the page state
+  const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
+  return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
+    theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
+}
+
+/**
+ * A page that DECLARES the Guided process template → oj-sp-guided-process (mateuGp): its steps are the
+ * `guided-process` tab bar's tabs (one per step of the ONE form, so moving between them keeps what was
+ * typed), each with its atoms; the template moves between steps on its own (currentStep writes back).
+ * The form's toolbar gives the process its primary action and its cancel.
+ */
+export function templatedGuidedProcessOf(ctx) {
+  if (!declaresTemplate(ctx, 'GuidedProcessPage')) return null
+  const bar = nodeById(ctx.tree, 'guided-process')
+  if (!bar) return null
+  const state = (ctx && ctx.state) || {}
+  const atomsOf = (nodes) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gp',
+    metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
+    ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+    : b.items || []))
+  const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
+    id: 'step-' + (i + 1),
+    title: interpolate(String(tab.metadata.label || ''), state),
+    items: atomsOf(tab.children || []),
+  }))
+  const form = templateFormOf(ctx)
+  const md = (form && form.metadata) || {}
+  const toolbar = md.toolbar || []
+  const primary = toolbar.find((b) => b && b.buttonStyle === 'primary')
+  const cancel = toolbar.find((b) => b && /^cancel(-(edit|new|create))?$/.test(b.actionId || ''))
+  return {
+    title: interpolate(String(md.title || ''), state),
+    subtitle: interpolate(String(md.subtitle || ''), state),
+    // Spectra's step objects: { id, title } (the atoms ride along for our own stamp)
+    steps,
+    primaryAction: primary ? { label: interpolate(String(primary.label || ''), state) } : null,
+    primaryId: primary ? (primary.actionId || '') : '',
+    primaryRoute: primary ? (primary.route || '') : '',
+    cancelId: cancel ? (cancel.actionId || '') : '',
+    cancelRoute: cancel ? (cancel.route || '') : '',
+  }
+}
+
+/**
+ * A page that DECLARES the Hero search template → oj-sp-hero-search-page (mateuHs): its title and
+ * description are the hero's (the form's title and subtitle, interpolated); its search box and its
+ * results — the page's listing — are painted by the template's slots (the hero node itself is not
+ * painted as content).
+ */
+export function templatedHeroSearchOf(ctx) {
+  if (!declaresTemplate(ctx, 'HeroSearchPage')) return null
+  const hero = nodeById(ctx.tree, 'hero-search')
+  const md = (hero && hero.metadata) || {}
+  const state = (ctx && ctx.state) || {}
+  // collection: Spectra's collectionView — 'off' (the landing hero) until the first search
+  return { title: interpolate(String(md.title || ''), state), description: interpolate(String(md.subtitle || ''), state), collection: 'off' }
 }
 
 /** ITEM OVERVIEW archetype: key-data panel + tabs. */

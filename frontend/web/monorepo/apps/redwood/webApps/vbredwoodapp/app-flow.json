@@ -828,6 +828,28 @@
       "defaultValue": "pebbles",
       "description": "imagen tem\u00e1tica del hero de la welcome (va con el tono)"
     },
+    "mateuHs": {
+      "type": "any",
+      "description": "A YAML HeroSearchPage (overviews.templatedHeroSearchOf): the hero's title and description; the listing fills oj-sp-hero-search-page's slots"
+    },
+    "mateuGp": {
+      "type": "any",
+      "description": "A YAML GuidedProcessPage (overviews.templatedGuidedProcessOf): its steps with their atoms, primary and cancel"
+    },
+    "mateuGpCurrent": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "The guided process's current step id (oj-sp-guided-process currentStep, written back by the template)"
+    },
+    "mateuMmc": {
+      "type": "any",
+      "description": "A YAML MultimediaContentPage's banner (overviews.templatedMultimediaOf): welcome-style texts, CTAs and look, painted with oj-sp-header-welcome-banner"
+    },
+    "mateuWelcomeThemedImage": {
+      "type": "string",
+      "defaultValue": "none",
+      "description": "The welcome banner's themedImage: 'pebbles' when its tone has no gallery illustration (the image panel is required), else 'none' (welcomeLookOf)"
+    },
     "mateuWelcomeIllu": {
       "type": "string",
       "defaultValue": "https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-fg-01.png",

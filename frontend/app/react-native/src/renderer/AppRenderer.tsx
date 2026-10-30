@@ -112,7 +112,7 @@ const screenOf = (c: MateuViewController): ChatScreenSnapshot => ({
   component: c.rendered.component,
 });
 
-function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl, bottomInset = 0, onPopToRoot }: { route: string; consumedRoute: string; serverSideType: string; baseUrl?: string; bottomInset?: number; onPopToRoot?: (popToRoot: () => void) => void }) {
+function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl, bottomInset = 0, onPopToRoot, hostBack }: { route: string; consumedRoute: string; serverSideType: string; baseUrl?: string; bottomInset?: number; onPopToRoot?: (popToRoot: () => void) => void; hostBack?: (back: (() => void) | null) => void }) {
   const { session: appSession } = useAppContext();
   // a navigation naming another backend (a federated entry, the assistant's navigation-requested)
   // runs against it — with the user's credentials only when the app's own backend named it (its
@@ -169,9 +169,17 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
     return () => sub.remove();
   }, [stack.length, pop]);
 
+  // A shell with a top bar hosts the way back IN that bar (its menu button becomes a back arrow):
+  // one bar, not a second one stacked under it. Without a bar (tabs, no menu) the screen draws its own.
+  React.useEffect(() => {
+    if (!hostBack) return;
+    hostBack(stack.length > 0 ? () => void pop() : null);
+  }, [hostBack, stack.length, pop]);
+  React.useEffect(() => () => hostBack?.(null), [hostBack]);
+
   return (
     <View style={[styles.stackHost, { paddingBottom: bottomInset }]}>
-      {stack.length > 0 && (
+      {stack.length > 0 && !hostBack && (
         <View style={styles.backBar}>
           <IconButton icon="arrow-left" accessibilityLabel="Back" onPress={() => void pop()} iconColor={theme.ink} />
           {!!top.label && <PaperText variant="titleMedium" numberOfLines={1} style={styles.backTitle}>{top.label}</PaperText>}
@@ -935,6 +943,15 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // floating over an open drawer), and the screen keeps a band free at its bottom for them so they
   // never cover the content's last controls (RN-13).
   const drawerShell = variant !== 'TABS' && menuItems.length > 0;
+  // the drawer shell's top bar is THE bar: it hosts the way back from a pushed screen and, inside
+  // the Mateu hub, the hub's "switch UI" — so the hub hides its own (session.hub.claimBar)
+  const [headerBack, setHeaderBack] = useState<(() => void) | null>(null);
+  const hostBack = React.useCallback((back: (() => void) | null) => setHeaderBack(() => back), []);
+  React.useEffect(() => {
+    if (!drawerShell) return;
+    session.hub?.claimBar?.(true);
+    return () => session.hub?.claimBar?.(false);
+  }, [drawerShell, session]);
   const connectAiFab = !drawerShell && appMeta.agentPush === true;
   const bottomInset = fabInset((appMeta.fabs?.length ?? 0) + (appMeta.sseUrl ? 1 : 0) + (connectAiFab ? 1 : 0));
   const withOverlays = (screen: React.ReactNode) => (
@@ -952,6 +969,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       serverSideType={currentNav.serverSideType}
       baseUrl={currentNav.baseUrl}
       bottomInset={bottomInset}
+      hostBack={drawerShell ? hostBack : undefined}
     />,
   );
 
@@ -1015,14 +1033,21 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
             // status bar, so it adds no inset of its own (it used to: a band of empty space)
             header: ({ navigation }) => (
               <Appbar.Header statusBarHeight={0} style={styles.appBar}>
-                <Appbar.Action icon="menu" accessibilityLabel="Open menu" onPress={() => (navigation as { toggleDrawer: () => void }).toggleDrawer()} />
-                <Appbar.Content title={appMeta.title ?? 'Mateu'} titleStyle={styles.appBarTitle} />
+                {headerBack ? (
+                  <Appbar.BackAction accessibilityLabel="Back" onPress={headerBack} />
+                ) : (
+                  <Appbar.Action icon="menu" accessibilityLabel="Open menu" onPress={() => (navigation as { toggleDrawer: () => void }).toggleDrawer()} />
+                )}
+                <Appbar.Content title={appMeta.title ?? session.hub?.uiName ?? 'Mateu'} titleStyle={styles.appBarTitle} />
                 {appMeta.themeToggle && (
                   <Appbar.Action
                     icon={dark ? 'white-balance-sunny' : 'weather-night'}
                     accessibilityLabel={dark ? 'Switch to light theme' : 'Switch to dark theme'}
                     onPress={() => setSchemeOverride(dark ? 'light' : 'dark')}
                   />
+                )}
+                {session.hub && (
+                  <Appbar.Action icon="swap-horizontal" accessibilityLabel="Switch UI" testID="hub-switch" onPress={session.hub.openSwitcher} />
                 )}
               </Appbar.Header>
             ),

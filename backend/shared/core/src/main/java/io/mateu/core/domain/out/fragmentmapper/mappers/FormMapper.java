@@ -21,6 +21,7 @@ import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
 
 public class FormMapper {
 
@@ -36,7 +37,7 @@ public class FormMapper {
         FormDto.builder()
             .title(form.title())
             .subtitle(form.subtitle())
-            .noHeader(form.noHeader())
+            .noHeader(form.noHeader() || PageTemplates.ownsHeader(form))
             .avatar(
                 form.avatar() != null
                     ? mapComponentToDto(
@@ -79,7 +80,10 @@ public class FormMapper {
                                     httpRequest))
                         .toList()
                     : null)
-            .toolbar(form.toolbar().stream().map(FormMapper::mapToButtonDto).toList())
+            .toolbar(
+                PageTemplates.ownsHeader(form)
+                    ? List.of()
+                    : form.toolbar().stream().map(FormMapper::mapToButtonDto).toList())
             .buttons(form.buttons().stream().map(FormMapper::mapToButtonDto).toList())
             // the page-header elements a reflected page gets from its annotations, authored as
             // data: same wire fields as PageDto's, so every renderer's header reads them alike

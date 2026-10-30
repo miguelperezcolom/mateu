@@ -170,6 +170,28 @@ modeless variant of the Redwood slots. For an *overlay* panel, return a `Drawer`
 | View switcher (grid ⇄ Gantt) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Docked end / bottom panels | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
+
+## In YAML
+
+A YAML page fills the template with `template: {type: DataManagementPage}` on its `type: Form`: the
+form's `content` is the data view (typically a `Listing`), its toolbar's buttons sit over the data,
+and the template's `end` and `bottom` are `DockedPanel`s docked beside and under it — see
+[Page templates](/define/yaml/pages/#page-templates--template). With no server behind the page a
+panel cannot be toggled by an action: it is shown while `open`. On Redwood a `Listing` in the data
+view is painted inside the template (with its own search box).
+
+```yaml
+type: Form
+title: Fleet
+toolbar:
+  - {type: Button, label: New vehicle, buttonStyle: primary, actionable: {type: RouteLink, route: vehicles/new}}
+template:
+  type: DataManagementPage
+  end: {id: fleet-summary, title: Fleet at a glance, open: true, content: {type: MetricCard, title: Vehicles, value: "39"}}
+content:
+  - {type: Listing, rowRoute: "vehicles/${row.id}", rowsSource: {ref: swapi-vehicles}, columns: [{type: GridColumn, id: name, label: Name}]}
+```
+
 ## Known gaps
 
 - The transactional header is opt-in (a `cancel` + one primary `@Toolbar` method); no undo/redo,
