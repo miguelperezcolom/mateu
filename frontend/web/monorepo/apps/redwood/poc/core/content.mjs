@@ -961,7 +961,10 @@ export function islandContentOf(ctx, opts = {}) {
       plain = null
       // a fluent Card's title is a COMPONENT (a Text): its texts, as in cardOf
       const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
-      if (title) card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
+      // a section's heading IS that title (oj-sp-section draws it): not twice
+      if (title && !(card.sectionTitle && String(title).trim() === card.sectionTitle)) {
+        card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
+      }
       for (const child of node.children || []) visit(child, card)
       const cardInner = m.content
       if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))

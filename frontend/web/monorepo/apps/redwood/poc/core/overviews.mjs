@@ -610,7 +610,11 @@ function templatedItemOverviewOf(ctx, atomsOfNodes) {
 export function itemOverviewOf(ctx) {
   // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
   const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
-    metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
+    metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
+    // a titled @Section keeps Spectra's own section header (oj-sp-section: title, accent marker,
+    // affordances) with its body below — flattened to its items it was a bold line among the fields
+    ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+    : b.items || []))
   const templated = templatedItemOverviewOf(ctx, atomsOfNodes)
   if (templated) return templated
   const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null

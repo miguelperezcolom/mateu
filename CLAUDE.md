@@ -363,6 +363,15 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   2026-10-30 also removed what we forced on that template: `display-mode="light"` (Spectra's default
   / the app's `appMode` decide) and app.css' surface on `.oj-sp-item-overview-page-overview-section`
   (Spectra paints the panel as its card). Only OUR main-slot div keeps its gutters.
+  Compared against the guide's examples (`design/redwood/Redwood-completo.pdf` pp. 95–100, the
+  reference for every template — not the bare component): the template OWNS the page — `iopOn`
+  (onMateuNavigate) follows `itemProjection` (it followed the reverted `iop`, always null, so the page
+  sat in the shell's content card at fixed width) → edge to edge + `mateuPageHostClass: 'mateu-iop-host'`
+  (app.css: the container drops its card surface); the tab bar is `layout="condense"`; the `body`'s
+  property rows are drawn STACKED (`stackedPropertyRows` → atom `stacked`: label above value, Spectra's
+  read-only form layout); a titled `mateu-section` Card in the main slot keeps its `oj-sp-section`
+  header (`itemOverviewOf`'s atomsOfNodes; a section's title is not repeated as a text atom,
+  content.mjs). A section's title must be a HEADING (`Text container: h3`) — `sectionHeadOf` reads it.
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

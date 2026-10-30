@@ -27,21 +27,30 @@ template:
     - {type: FormField, id: climate, label: Climate, readOnly: true, propertyRow: true}
     - {type: FormField, id: terrain, label: Terrain, readOnly: true, propertyRow: true}
     - {type: FormField, id: population, label: Population, dataType: number, readOnly: true, propertyRow: true}
+# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
 content:
   - type: TabLayout
     tabs:
       - type: Tab
-        label: Physical
+        label: Details
         content:
-          type: FormLayout
+          type: VerticalLayout
+          horizontalAlignment: STRETCH   # the sections fill the main slot
           content:
-            - {type: FormField, id: diameter, label: Diameter (km), dataType: integer, readOnly: true, propertyRow: true}
-            - {type: FormField, id: gravity, label: Gravity, readOnly: true, propertyRow: true}
-            - {type: FormField, id: surfaceWater, label: Surface water (%), dataType: number, readOnly: true, propertyRow: true}
-      - type: Tab
-        label: Orbit
-        content:
-          type: FormLayout
-          content:
-            - {type: FormField, id: rotationPeriod, label: Rotation period (h), dataType: integer, readOnly: true, propertyRow: true}
-            - {type: FormField, id: orbitalPeriod, label: Orbital period (d), dataType: integer, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Physical}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: diameter, label: Diameter (km), dataType: integer, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: gravity, label: Gravity, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: surfaceWater, label: Surface water (%), dataType: number, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Orbit}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: rotationPeriod, label: Rotation period (h), dataType: integer, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: orbitalPeriod, label: Orbital period (d), dataType: integer, readOnly: true, propertyRow: true}

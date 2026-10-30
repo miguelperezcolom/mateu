@@ -169,6 +169,15 @@ const HEADING_ENTITIES = { amp: '&', nbsp: ' ', lt: '<', gt: '>', quot: '"', apo
 /** The few named entities a rich-text heading carries, decoded in ONE pass (so `&amp;lt;` stays `&lt;`). */
 const decodeHeadingEntities = (text) => text.replace(/&(amp|nbsp|lt|gt|quot|apos|#39);/g, (_, name) => HEADING_ENTITIES[name])
 
+/** Property rows drawn stacked (label above the value), nested ones too. */
+function stackedPropertyRows(items) {
+  return (items || []).map((i) => {
+    if (!i || typeof i !== 'object') return i
+    if (i.isPropertyRow) return { ...i, stacked: true }
+    return Array.isArray(i.items) ? { ...i, items: stackedPropertyRows(i.items) } : i
+  })
+}
+
 /**
  * A page that DECLARES the Item overview page template: every value of oj-sp-item-overview is the
  * page's own, named as Spectra names it — itemTitle/itemSubtitle the form's title/subtitle, the badge
@@ -195,7 +204,9 @@ function templatedItemOverviewHeaderOf(ctx, item) {
     avatar,
     // Spectra shows the avatar when there is one, else the photo
     photo: avatar ? null : image(item.template.photo),
-    keyItems: item.key.items,
+    // the body slot is a read-only FORM LAYOUT in Spectra (label above the value), so the panel's
+    // property rows are drawn stacked there (deep: a row can sit inside a layout atom)
+    keyItems: stackedPropertyRows(item.key.items),
   }
 }
 

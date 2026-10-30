@@ -27,15 +27,24 @@ template:
     - {type: FormField, id: episodeId, label: Episode, dataType: integer, readOnly: true, propertyRow: true}
     - {type: FormField, id: director, label: Director, readOnly: true, propertyRow: true}
     - {type: FormField, id: releaseDate, label: Released, dataType: date, readOnly: true, propertyRow: true}
+# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
 content:
   - type: TabLayout
     tabs:
       - type: Tab
-        label: Opening crawl
-        content: {type: Text, text: "${state.openingCrawl}", style: "white-space: pre-line"}
-      - type: Tab
-        label: Production
+        label: Details
         content:
-          type: FormLayout
+          type: VerticalLayout
+          horizontalAlignment: STRETCH   # the sections fill the main slot
           content:
-            - {type: FormField, id: producer, label: Producer, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Opening crawl}
+              content: {type: Text, text: "${state.openingCrawl}", style: "white-space: pre-line"}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Production}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: producer, label: Producer, readOnly: true, propertyRow: true}
