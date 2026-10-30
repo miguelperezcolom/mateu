@@ -3797,8 +3797,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // (among cards, charts, notices…) is not one — taken for it, everything but the tiles vanished
     // a page that DECLARES the template (YAML `template: WelcomePage`) is claimed by its marker; any
     // other page only when its shape is a welcome's
-    const declared = ((pageTemplateOf(ctx) || {}).type) === 'WelcomePage'
-    if (!declared && holdsMoreThanAWelcome(ctx.tree, true)) return null
+    if (!declaresTemplate(ctx, 'WelcomePage') && holdsMoreThanAWelcome(ctx.tree, true)) return null
     const md = hero.metadata
     const ctas = actionsOf(hero)
     const panels = findAllByType(ctx.tree, 'DashboardPanel')
@@ -3924,7 +3923,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const panels = findAllByType(tree, 'DashboardPanel')
     const boards = findAllByType(tree, 'Scoreboard')
     if (!panels.length && !boards.length) return null
-    if (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true)) return null
+    if (!declaresTemplate(ctx, 'DashboardLandingPage') && (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true))) return null
     // a dashboard declaring header pieces (@Subtitle, @KPI…) comes inside a Page: its title is the
     // landing page's header (mateuPageHeader), not a block of the content
     const page = pageHeaderNodeOf(tree)
@@ -4186,6 +4185,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** The page template a page DECLARES it fills (a YAML `template:`, FormDto.template), or null. */
+  /** Whether the page DECLARES this page template (YAML `template: <type>`): such a page is claimed by
+   *  its marker, never guessed from its shape — a Form root alone fails the shape rules. */
+  function declaresTemplate(ctx, type) {
+    return ((pageTemplateOf(ctx) || {}).type) === type
+  }
+
   function pageTemplateOf(ctx) {
     // a served YAML page arrives wrapped in its server-side component (SeededYamlPage)
     let node = ctx && ctx.tree

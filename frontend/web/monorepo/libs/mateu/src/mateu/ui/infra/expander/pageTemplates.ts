@@ -26,6 +26,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (!t) return undefined
     if (t.type === 'ItemOverviewPage') return { type: 'ItemOverviewPage', avatar: image(t.avatar), photo: image(t.photo) }
     if (t.type === 'WelcomePage') return { type: 'WelcomePage', avatar: null, photo: null }
+    if (t.type === 'DashboardLandingPage') return { type: 'DashboardLandingPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -45,6 +46,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (!t) return content
     if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content))]
     if (t.type === 'WelcomePage') return welcome(t, nodes(content), form)
+    if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
     return content
 }
 
@@ -109,4 +111,17 @@ function itemOverview(t: Node, main: FluentNode[]): FluentNode {
             slot('item-overview-main', main, 'flex: 1 1 24rem; min-width: min(24rem, 100%)'),
         ],
     } as unknown as FluentNode
+}
+
+/** Dashboard landing page: the `kpi` slot's metrics as one Scoreboard band over the panels on the
+ *  dashboard grid — the Dashboard archetype's shape; a non-metric component in the slot follows the band. */
+function dashboard(t: Node, main: FluentNode[]): FluentNode[] {
+    const kpi = nodes(t.kpi)
+    const metrics = kpi.filter((c) => (c as Node).type === 'MetricCard')
+    const others = kpi.filter((c) => (c as Node).type !== 'MetricCard')
+    const page: FluentNode[] = []
+    if (metrics.length) page.push({ type: 'Scoreboard', id: 'dashboard-kpi', metrics } as unknown as FluentNode)
+    page.push(...others)
+    page.push({ type: 'DashboardLayout', id: 'dashboard-panels', items: main } as unknown as FluentNode)
+    return page
 }

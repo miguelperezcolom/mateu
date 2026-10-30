@@ -1,0 +1,183 @@
+{
+  "commands" : [ {
+    "targetComponentId" : null,
+    "type" : "SetWindowTitle",
+    "data" : "The galaxy at a glance"
+  } ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "The galaxy at a glance",
+        "readOnly" : false,
+        "subtitle" : "Star Wars in numbers",
+        "status" : null,
+        "noHeader" : false,
+        "badges" : [ ],
+        "banners" : [ ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : null,
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : null,
+        "fabs" : null,
+        "template" : {
+          "type" : "DashboardLandingPage",
+          "avatar" : null,
+          "photo" : null
+        }
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "Scoreboard"
+        },
+        "id" : "dashboard-kpi",
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "MetricCard",
+            "title" : "Characters",
+            "value" : "82",
+            "unit" : null,
+            "trend" : null,
+            "trendLabel" : null,
+            "icon" : null,
+            "description" : null,
+            "actionId" : null,
+            "timeframe" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "MetricCard",
+            "title" : "Planets",
+            "value" : "60",
+            "unit" : null,
+            "trend" : null,
+            "trendLabel" : null,
+            "icon" : null,
+            "description" : null,
+            "actionId" : null,
+            "timeframe" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      }, {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "DashboardLayout",
+          "columns" : 0
+        },
+        "id" : "dashboard-panels",
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "DashboardPanel",
+            "title" : "Starships by class",
+            "subtitle" : null,
+            "colSpan" : 0,
+            "rowSpan" : 0
+          },
+          "id" : null,
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "A chart",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "6c7f6013-c069-4ae2-bd18-9f3947b46623",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "DashboardPanel",
+            "title" : "Planets by climate",
+            "subtitle" : null,
+            "colSpan" : 0,
+            "rowSpan" : 0
+          },
+          "id" : null,
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Another chart",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "827625f1-4795-4a87-93fa-9e058039bf7e",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

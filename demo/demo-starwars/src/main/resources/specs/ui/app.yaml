@@ -18,6 +18,10 @@ menu:
     route: welcome
     icon: vaadin:home
   - type: RouteLink
+    label: At a glance
+    route: dashboard
+    icon: vaadin:dashboard
+  - type: RouteLink
     label: People
     route: people
     icon: vaadin:user

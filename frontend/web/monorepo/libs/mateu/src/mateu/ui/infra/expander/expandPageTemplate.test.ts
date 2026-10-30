@@ -11,6 +11,7 @@ import { expectSubset } from '@infra/expander/__fixtures__/structuralSubset'
 import itemOverview from '@infra/expander/__fixtures__/item-overview-page.golden.json'
 import itemOverviewPhoto from '@infra/expander/__fixtures__/item-overview-photo.golden.json'
 import welcomePage from '@infra/expander/__fixtures__/welcome-page.golden.json'
+import dashboardPage from '@infra/expander/__fixtures__/dashboard-page.golden.json'
 
 const TEST_RESOURCES = resolve(__dirname, '../../../../../../../../../../backend/shared/core/src/test/resources')
 const authored = (path: string): FluentNode => parse(readFileSync(resolve(TEST_RESOURCES, path), 'utf-8'))
@@ -21,7 +22,7 @@ const withoutGeneratedIds = (node: any): any => {
     if (!node || typeof node !== 'object') return node
     const out: any = {}
     for (const [k, v] of Object.entries(node)) {
-        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && v !== 'welcome' && node.metadata?.type !== 'FormField') continue
+        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && node.metadata?.type !== 'FormField') continue
         out[k] = withoutGeneratedIds(v)
     }
     return out
@@ -49,6 +50,15 @@ describe('client-side expander — a page template, against the Java golden', ()
         expect(wire.children[0].id).toBe('welcome')
         expect(wire.children[0].metadata.tone).toBe('slate')
         expect(wire.children[0].children.map((b: any) => b.metadata.label)).toEqual(['Browse the characters', 'Explore the planets'])
+    })
+
+    it('the dashboard landing page: the kpi slot as a scoreboard over the panels', () => {
+        const wire = expandComponent(authored('specs/ui/dashboard-page.yaml')) as any
+        expectSubset(withoutGeneratedIds(wire), goldenComponent(dashboardPage))
+        expect(wire.metadata.template.type).toBe('DashboardLandingPage')
+        expect(wire.children.map((c: any) => c.id)).toEqual(['dashboard-kpi', 'dashboard-panels'])
+        expect(wire.children[0].children).toHaveLength(2)
+        expect(wire.children[1].children).toHaveLength(2)
     })
 
     it('a page without a template stays free', () => {

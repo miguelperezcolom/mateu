@@ -1,0 +1,56 @@
+# "The galaxy at a glance" fills Redwood's DASHBOARD LANDING PAGE template (Spectra
+# oj-sp-dashboard-landing-page): the scoreboard's metrics in its `kpi` slot, one panel per chart in
+# the form's content. The figures are the API's seed data (swapi-service re-seeds them at every
+# start), counted once — a chart carries its data; it does not read a REST source.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: The galaxy at a glance
+subtitle: The saga in numbers — what the Star Wars API holds
+template:
+  type: DashboardLandingPage
+  kpi:
+    - {type: MetricCard, title: Characters, value: "82", description: across the six films}
+    - {type: MetricCard, title: Planets, value: "60", description: "32 of them temperate"}
+    - {type: MetricCard, title: Species, value: "37"}
+    - {type: MetricCard, title: Vehicles, value: "39"}
+    - {type: MetricCard, title: Starships, value: "36"}
+content:
+  - type: DashboardPanel
+    title: Characters per film
+    subtitle: How many characters each episode features
+    content:
+      type: Chart
+      chartType: bar
+      chartData:
+        labels: [Episode I, Episode II, Episode III, Episode IV, Episode V, Episode VI]
+        datasets:
+          - {label: Characters, data: [34, 40, 34, 18, 16, 20]}
+  - type: DashboardPanel
+    title: Starships per film
+    subtitle: Ships that take part in each episode
+    content:
+      type: Chart
+      chartType: bar
+      chartData:
+        labels: [Episode I, Episode II, Episode III, Episode IV, Episode V, Episode VI]
+        datasets:
+          - {label: Starships, data: [5, 9, 12, 8, 9, 12]}
+  - type: DashboardPanel
+    title: Planets by climate
+    subtitle: A planet with several climates counts once for each
+    content:
+      type: Chart
+      chartType: doughnut
+      chartData:
+        labels: [Temperate, Arid, Tropical, Hot, Frigid, Windy, Unknown]
+        datasets:
+          - {label: Planets, data: [32, 9, 5, 4, 2, 2, 12]}
+  - type: DashboardPanel
+    title: Characters by gender
+    content:
+      type: Chart
+      chartType: pie
+      chartData:
+        labels: [Male, Female, Other]
+        datasets:
+          - {label: Characters, data: [60, 17, 5]}

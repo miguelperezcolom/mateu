@@ -8,6 +8,8 @@ routes:
     definition: app.yaml
   - route: welcome     # the home page (app.yaml homeRoute)
     definition: welcome.yaml
+  - route: dashboard   # the saga in numbers (a Dashboard landing page)
+    definition: dashboard.yaml
   - route: people
     definition: people.yaml
 

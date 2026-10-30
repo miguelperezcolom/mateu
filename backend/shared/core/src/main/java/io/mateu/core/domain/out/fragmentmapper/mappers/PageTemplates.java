@@ -4,10 +4,14 @@ import io.mateu.dtos.PageTemplateDto;
 import io.mateu.dtos.TemplateImageDto;
 import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.DashboardLandingPage;
+import io.mateu.uidl.data.DashboardLayout;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.ItemOverviewPage;
+import io.mateu.uidl.data.MetricCard;
+import io.mateu.uidl.data.Scoreboard;
 import io.mateu.uidl.data.TemplateImage;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.data.WelcomePage;
@@ -30,6 +34,7 @@ public final class PageTemplates {
 
   static final String ITEM_OVERVIEW = "ItemOverviewPage";
   static final String WELCOME = "WelcomePage";
+  static final String DASHBOARD = "DashboardLandingPage";
 
   private PageTemplates() {}
 
@@ -40,6 +45,9 @@ public final class PageTemplates {
     }
     if (form.template() instanceof WelcomePage welcome) {
       return welcome(welcome, form);
+    }
+    if (form.template() instanceof DashboardLandingPage dashboard) {
+      return dashboard(dashboard, form.content());
     }
     return form.content();
   }
@@ -60,6 +68,9 @@ public final class PageTemplates {
     }
     if (template instanceof WelcomePage) {
       return new PageTemplateDto(WELCOME, null, null);
+    }
+    if (template instanceof DashboardLandingPage) {
+      return new PageTemplateDto(DASHBOARD, null, null);
     }
     return null;
   }
@@ -127,6 +138,28 @@ public final class PageTemplates {
             .style("width: 100%; box-sizing: border-box; margin-bottom: 1rem")
             .build());
     page.addAll(form.content());
+    return page;
+  }
+
+  /**
+   * Dashboard landing page: the {@code kpi} slot's metrics as one {@link Scoreboard} band, over the
+   * panels on the dashboard grid — the shape the {@code Dashboard} archetype composes (Redwood
+   * paints it with Spectra's template). A non-metric component in the slot follows the band as it
+   * is.
+   */
+  private static List<Component> dashboard(DashboardLandingPage template, List<Component> main) {
+    List<Component> page = new ArrayList<>();
+    List<MetricCard> metrics = new ArrayList<>();
+    List<Component> others = new ArrayList<>();
+    for (Component c : template.kpi()) {
+      if (c instanceof MetricCard metric) metrics.add(metric);
+      else others.add(c);
+    }
+    if (!metrics.isEmpty()) {
+      page.add(Scoreboard.builder().id("dashboard-kpi").metrics(List.copyOf(metrics)).build());
+    }
+    page.addAll(others);
+    page.add(DashboardLayout.builder().id("dashboard-panels").items(main).build());
     return page;
   }
 

@@ -379,6 +379,10 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   claims a DECLARED welcome by its marker (`welcomeOf`: `pageTemplateOf` — the shape rule alone
   rejects a Form root). The guide makes the banner image REQUIRED: a tone without a gallery pair
   (slate/lilac/rose/pebble) gets `themedImage: pebbles` (`welcomeToneLookOf` → `mateuWelcomeThemedImage`).
+- **`DashboardLandingPage`** (`oj-sp-dashboard-landing-page`, slot `kpi`): laid out as a `Scoreboard`
+  id `dashboard-kpi` (the slot's MetricCards; other slot components follow it) over a `DashboardLayout`
+  id `dashboard-panels` (the form's content). The header stays the form's. Redwood: `dashboardOf` claims
+  a declared one by marker (`declaresTemplate(ctx, type)`, overviews.mjs — the helper every template uses).
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

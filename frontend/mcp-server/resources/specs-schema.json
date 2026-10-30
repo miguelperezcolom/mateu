@@ -2960,6 +2960,23 @@
         }
       }
     },
+    "DashboardLandingPage" : {
+      "description" : "Redwood's Dashboard landing page template (Spectra oj-sp-dashboard-landing-page): a scoreboard of key metrics over the page's panels.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "DashboardLandingPage"
+        },
+        "kpi" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        }
+      }
+    },
     "DashboardLayout" : {
       "description" : "A responsive grid of dashboard tiles (Scoreboard, DashboardPanel, MetricCard or any other component). columns fixes the number of grid columns; 0 (the default) lets the renderer pick a responsive column count.",
       "type" : "object",
@@ -4635,6 +4652,8 @@
     "FormTemplate" : {
       "description" : "One of the FormTemplate implementations.",
       "oneOf" : [ {
+        "$ref" : "#/$defs/DashboardLandingPage"
+      }, {
         "$ref" : "#/$defs/ItemOverviewPage"
       }, {
         "$ref" : "#/$defs/WelcomePage"

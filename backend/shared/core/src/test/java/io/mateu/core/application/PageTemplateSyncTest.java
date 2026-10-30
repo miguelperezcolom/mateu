@@ -150,6 +150,23 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aDashboardLandingPageIsTheScoreboardOverThePanels() throws Exception {
+    var page = render("dashboard-page");
+    var metadata = page.path("metadata");
+    assertThat(metadata.path("template").path("type").asText()).isEqualTo("DashboardLandingPage");
+    // the page header stays the form's
+    assertThat(metadata.path("title").asText()).isEqualTo("The galaxy at a glance");
+    assertThat(metadata.path("noHeader").asBoolean()).isFalse();
+    var kpi = byId(page, "dashboard-kpi");
+    assertThat(kpi).isNotNull();
+    assertThat(kpi.path("metadata").path("type").asText()).isEqualTo("Scoreboard");
+    assertThat(kpi.path("children")).hasSize(2);
+    var panels = byId(page, "dashboard-panels");
+    assertThat(panels.path("metadata").path("type").asText()).isEqualTo("DashboardLayout");
+    assertThat(panels.path("children")).hasSize(2);
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(
