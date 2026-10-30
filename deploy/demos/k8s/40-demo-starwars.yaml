@@ -23,7 +23,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-starwars:3.0-beta.23
+          image: miguelperezcolom/demo-starwars:3.0-beta.25
           env:
             - { name: SERVER_PORT, value: "8600" }
             - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
