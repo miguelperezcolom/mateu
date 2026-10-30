@@ -1,71 +1,59 @@
-# CREATE form (starships/new) — the edit form minus the id, pointing at the POST source. Nothing
-# about it is a special "create mode": it is a form whose action happens to be a create.
+# Register a starship. It fills Redwood's GUIDED PROCESS template (Spectra oj-sp-guided-process): the
+# ship's attributes in STEPS the user goes through one at a time — all of them one form, so moving
+# between steps keeps what was typed, with no round trip. The process's primary action (Register) and
+# its cancel are the form's toolbar; Register runs the create on the last step.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
-title: New starship
+title: Register a starship
+subtitle: Three steps to add a ship to the fleet
 toolbar:
 - type: Button
-  actionId: backToList
-  label: Back
+  actionId: cancel-new
+  label: Cancel
   actionable:
     type: RouteLink
     route: starships
-content:
-- type: FormLayout
-  content:
-  - type: FormField
-    autofocus: true
-    id: name
-    label: Name
-    required: true
-  - type: FormField
-    id: model
-    label: Model
-  - type: FormField
-    id: manufacturer
-    label: Manufacturer
-  - type: FormField
-    id: starshipClass
-    label: Class
-  - type: FormField
-    id: crew
-    label: Crew
-  - type: FormField
-    id: passengers
-    label: Passengers
-    dataType: integer
-  - type: FormField
-    id: costInCredits
-    label: Cost (credits)
-    dataType: number
-  - type: FormField
-    id: length
-    label: Length (m)
-    dataType: number
-  - type: FormField
-    id: cargoCapacity
-    label: Cargo capacity
-    dataType: number
-  - type: FormField
-    id: consumables
-    label: Consumables
-  - type: FormField
-    id: hyperdriveRating
-    label: Hyperdrive rating
-    dataType: number
-  - type: FormField
-    id: mglt
-    label: MGLT
-    dataType: integer
-  - type: FormField
-    id: maxAtmospheringSpeed
-    label: Max speed
-    dataType: integer
-buttons:
 - type: Button
-  label: Create
+  label: Register
   actionId: create
   buttonStyle: primary
+template:
+  type: GuidedProcessPage
+  steps:
+    - id: identity
+      title: Identity
+      description: What the ship is called and who builds it
+      content:
+        - type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: name, label: Name, required: true, autofocus: true}
+            - {type: FormField, id: model, label: Model}
+            - {type: FormField, id: manufacturer, label: Manufacturer}
+            - {type: FormField, id: starshipClass, label: Class}
+    - id: specifications
+      title: Specifications
+      description: How it flies
+      content:
+        - type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: length, label: Length (m), dataType: number}
+            - {type: FormField, id: maxAtmospheringSpeed, label: Max speed, dataType: integer}
+            - {type: FormField, id: hyperdriveRating, label: Hyperdrive rating, dataType: number}
+            - {type: FormField, id: mglt, label: MGLT, dataType: integer}
+    - id: crew
+      title: Crew and cargo
+      description: Who travels and what it carries
+      content:
+        - type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: crew, label: Crew}
+            - {type: FormField, id: passengers, label: Passengers, dataType: integer}
+            - {type: FormField, id: cargoCapacity, label: Cargo capacity, dataType: number}
+            - {type: FormField, id: consumables, label: Consumables}
+            - {type: FormField, id: costInCredits, label: Cost (credits), dataType: number}
 actions:
 - id: create
   validationRequired: true

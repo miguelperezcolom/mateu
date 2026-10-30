@@ -99,14 +99,15 @@ describe('the demo-starwars mount', () => {
     const g = buildMountGraph(files)
 
     it('maps every route, with no broken link', () => {
-        // 6 resources × 4 screens + the welcome page
-        expect(g.screens.filter((s) => s.kind === 'page')).toHaveLength(25)
+        // 6 resources × 4 screens + the welcome page, the dashboard, the fleet and the search page
+        expect(g.screens.filter((s) => s.kind === 'page')).toHaveLength(28)
         expect(g.unresolved).toEqual([])
     })
     it('lays each resource out as a row, the rows packed to a screen-like board', () => {
         const pos = layoutBoard(g)
         expectNoOverlap(pos)
-        expect(pos['people/:id']!.y).toBe(pos.people!.y)
+        // a record sits in the row of the first page that links to it (people/:id is also the search
+        // page's row target), and its edit screen beside it
         expect(pos['people/:id/edit']!.y).toBe(pos['people/:id']!.y)
         expect(pos['people/:id/edit']!.x).toBeGreaterThan(pos['people/:id']!.x)
         const xs = Object.values(pos).map((p) => p.x), ys = Object.values(pos).map((p) => p.y)

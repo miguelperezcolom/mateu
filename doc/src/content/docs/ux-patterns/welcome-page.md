@@ -115,6 +115,15 @@ public class WelcomeDemo extends Welcome {
 
 The CTA's `actionId` runs the matching `@Action` method — return a `URI` to navigate into the flow. Override `heroImage()` for a background image (a dark overlay keeps text readable).
 
+### In YAML
+
+A YAML page fills the template with `template: {type: WelcomePage}` on its `type: Form` — the
+banner from the form's title, subtitle (the description), overline and toolbar (the calls to
+action), the template's `backgroundColor`, the form's `content` as the tiles below — see
+[Page templates](/define/yaml/pages/#page-templates--template). On Redwood it is Spectra's
+`oj-sp-welcome-page`; the banner's image panel is required by the guide, so a tone with no gallery
+illustration (slate, lilac, rose, pebble) gets Spectra's own themed image.
+
 ## The welcome banner element (and the accent strip rule)
 
 The hero the archetype renders is the Redwood **Welcome Banner** element — a branded band with a

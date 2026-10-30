@@ -2923,7 +2923,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         .filter((t) => t != null && String(t).trim())
         .map((t) => ({ isBadge: true, label: String(t), badgeClass: STATUS_BADGE.NONE, blockClass: 'oj-flex-item oj-sm-12' })))
     return {
-      headerTitle: md.headerTitle || '',
+      headerTitle: interpolate(String(md.headerTitle || ''), (ctx && ctx.state) || {}),
       // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
       // the panels; 'horizontal' = the overview runs across the top, the panels below it
       orientation: md.orientation === 'horizontal' ? 'horizontal' : 'vertical',
@@ -2957,7 +2957,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         blocks: blocksOf(bySlot['panel-' + i]),
         // FoldoutPanel.summary (child slotted summary-N): oj-sp-foldout-panel's own `summary` slot,
         // the compact line under the panel title
-        ...foldoutSummaryOf(bySlot['summary-' + i]),
+        ...foldoutSummaryOf(bySlot['summary-' + i], (ctx && ctx.state) || {}),
       })),
     }
   }
@@ -2999,7 +2999,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** A foldout panel's summary (the `summary-N` child): `hasSummary` + its texts as one line. */
-  function foldoutSummaryOf(slotNode) {
+  function foldoutSummaryOf(slotNode, state = {}) {
     const parts = []
     const walk = (n) => {
       if (!n || typeof n !== 'object') return
@@ -3013,7 +3013,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (m.content) walk(m.content)
     }
     walk(slotNode)
-    const text = parts.map((t) => t.trim()).filter(Boolean).join(' · ')
+    const text = parts.map((t) => interpolate(t, state).trim()).filter(Boolean).join(' · ')
     return { hasSummary: !!text, summary: text }
   }
 
@@ -3735,6 +3735,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       theme,
       illuBg: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png') : '',
       illu: pair ? oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png') : '',
+      // the guide makes the banner's image panel REQUIRED: a tone with no gallery pair takes Spectra's
+      // own themed image instead of none
+      themedImage: pair ? 'none' : 'pebbles',
     }
   }
 
@@ -3759,6 +3762,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       theme,
       illuBg: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png'),
       illu: oracleCdnUrl(WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png'),
+      themedImage: 'none',
     }
   }
 
@@ -3791,7 +3795,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!hero) return null
     // the welcome page is a hero over its tiles and nothing else: a page that merely CONTAINS a hero
     // (among cards, charts, notices…) is not one — taken for it, everything but the tiles vanished
-    if (holdsMoreThanAWelcome(ctx.tree, true)) return null
+    // a page that DECLARES the template (YAML `template: WelcomePage`) is claimed by its marker; any
+    // other page only when its shape is a welcome's
+    if (!declaresTemplate(ctx, 'WelcomePage') && holdsMoreThanAWelcome(ctx.tree, true)) return null
     const md = hero.metadata
     const ctas = actionsOf(hero)
     const panels = findAllByType(ctx.tree, 'DashboardPanel')
@@ -3917,7 +3923,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const panels = findAllByType(tree, 'DashboardPanel')
     const boards = findAllByType(tree, 'Scoreboard')
     if (!panels.length && !boards.length) return null
-    if (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true)) return null
+    if (!declaresTemplate(ctx, 'DashboardLandingPage') && (findByType(tree, 'HeroSection') || holdsMoreThanADashboard(tree, true))) return null
     // a dashboard declaring header pieces (@Subtitle, @KPI…) comes inside a Page: its title is the
     // landing page's header (mateuPageHeader), not a block of the content
     const page = pageHeaderNodeOf(tree)
@@ -4179,6 +4185,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** The page template a page DECLARES it fills (a YAML `template:`, FormDto.template), or null. */
+  /** Whether the page DECLARES this page template (YAML `template: <type>`): such a page is claimed by
+   *  its marker, never guessed from its shape — a Form root alone fails the shape rules. */
+  function declaresTemplate(ctx, type) {
+    return ((pageTemplateOf(ctx) || {}).type) === type
+  }
+
   function pageTemplateOf(ctx) {
     // a served YAML page arrives wrapped in its server-side component (SeededYamlPage)
     let node = ctx && ctx.tree
@@ -4243,6 +4255,132 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       keyNodeId: '',
       tabsNodeId: '',
     }
+  }
+
+  /**
+   * A page that DECLARES the General overview page template (`template: GeneralOverviewPage`) → the
+   * oj-sp-general-overview-page projection (mateuGop): its `main` and `info` slots read by id, each
+   * as full-width blocks; a titled section keeps Spectra's own header (oj-sp-section) with its body
+   * below. null for any other page (the shape rule, generalOverviewPageOf, still serves the rest).
+   */
+  function templatedGeneralOverviewOf(ctx) {
+    if (!declaresTemplate(ctx, 'GeneralOverviewPage')) return null
+    const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gop',
+      metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
+      .map((b) => (b.spSection
+        ? { isPlain: true, blockClass: 'oj-flex-item oj-sm-12',
+          items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) }
+        : { ...b, blockClass: 'oj-flex-item oj-sm-12' }))
+    return {
+      on: true,
+      main: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-main')) },
+      info: { title: '', blocks: blocksOf(nodeById(ctx.tree, 'general-overview-info')) },
+    }
+  }
+
+  /**
+   * A page that DECLARES the Collection detail page template (`template: CollectionDetailPage`) → the
+   * oj-sp-collection-detail-page projection (mateuCd, as collectionDetailPageOf shapes it): the `list`
+   * slot is the collection, the detail (the form's content) or the `noSelection` slot read by id. A page
+   * with a detail HAS a selection (its record's id), one without shows noSelection.
+   */
+  function templatedCollectionDetailOf(ctx) {
+    if (!declaresTemplate(ctx, 'CollectionDetailPage')) return null
+    const FULL = 'oj-flex-item oj-sm-12'
+    const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_cd',
+      metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
+      .map((b) => (b.spSection
+        ? { isPlain: true, blockClass: FULL,
+          items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) }
+        : { ...b, blockClass: FULL }))
+    const detailNode = nodeById(ctx.tree, 'collection-detail-detail')
+    const state = (ctx && ctx.state) || {}
+    const form = templateFormOf(ctx)
+    return {
+      title: interpolate(String((form && form.metadata && form.metadata.title) || ''), state),
+      collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list')),
+      selectedItems: detailNode ? [{ id: String(state.id != null ? state.id : 'selected') }] : [],
+      detail: detailNode ? blocksOf(detailNode) : [],
+      noSelection: detailNode ? [] : blocksOf(nodeById(ctx.tree, 'collection-detail-no-selection')),
+      // the template's header has no primary action: every toolbar button is one of its actions (the
+      // primary first), resolved by headerSecondary against the page toolbar
+      actions: ((form && form.metadata && form.metadata.toolbar) || [])
+        .filter((b) => b && !/^(back|backToList|cancel-view)$/.test(b.actionId || ''))
+        .sort((a, b) => (b.buttonStyle === 'primary') - (a.buttonStyle === 'primary'))
+        .map((b) => ({ id: b.actionId || b.label, label: interpolate(String(b.label || b.actionId || ''), state) })),
+    }
+  }
+
+  /**
+   * A page that DECLARES the Multimedia content page template → its banner (mateuMmc): Spectra ships no
+   * oj-sp-multimedia-content-page in this pack, so the page is composed from its pieces —
+   * oj-sp-header-welcome-banner (the same banner API as the welcome page) over the sections, with the
+   * vertical anchor navigator (toc.mjs forces it on). The banner reads like a welcome's (welcomeOf on the
+   * banner hero alone) and takes the welcome look (tone, illustration or themed image).
+   */
+  function templatedMultimediaOf(ctx) {
+    if (!declaresTemplate(ctx, 'MultimediaContentPage')) return null
+    const hero = nodeById(ctx.tree, 'multimedia-banner')
+    const banner = hero ? welcomeOf({ ...ctx, tree: hero }) : null
+    if (!banner) return null
+    const look = welcomeLookOf(welcomeKeyOf(ctx), banner.tone)
+    // the banner shows ONE record: its texts are templates over the page state
+    const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
+    return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
+      theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
+  }
+
+  /**
+   * A page that DECLARES the Guided process template → oj-sp-guided-process (mateuGp): its steps are the
+   * `guided-process` tab bar's tabs (one per step of the ONE form, so moving between them keeps what was
+   * typed), each with its atoms; the template moves between steps on its own (currentStep writes back).
+   * The form's toolbar gives the process its primary action and its cancel.
+   */
+  function templatedGuidedProcessOf(ctx) {
+    if (!declaresTemplate(ctx, 'GuidedProcessPage')) return null
+    const bar = nodeById(ctx.tree, 'guided-process')
+    if (!bar) return null
+    const state = (ctx && ctx.state) || {}
+    const atomsOf = (nodes) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gp',
+      metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
+      ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+      : b.items || []))
+    const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
+      id: 'step-' + (i + 1),
+      title: interpolate(String(tab.metadata.label || ''), state),
+      items: atomsOf(tab.children || []),
+    }))
+    const form = templateFormOf(ctx)
+    const md = (form && form.metadata) || {}
+    const toolbar = md.toolbar || []
+    const primary = toolbar.find((b) => b && b.buttonStyle === 'primary')
+    const cancel = toolbar.find((b) => b && /^cancel(-(edit|new|create))?$/.test(b.actionId || ''))
+    return {
+      title: interpolate(String(md.title || ''), state),
+      subtitle: interpolate(String(md.subtitle || ''), state),
+      // Spectra's step objects: { id, title } (the atoms ride along for our own stamp)
+      steps,
+      primaryAction: primary ? { label: interpolate(String(primary.label || ''), state) } : null,
+      primaryId: primary ? (primary.actionId || '') : '',
+      primaryRoute: primary ? (primary.route || '') : '',
+      cancelId: cancel ? (cancel.actionId || '') : '',
+      cancelRoute: cancel ? (cancel.route || '') : '',
+    }
+  }
+
+  /**
+   * A page that DECLARES the Hero search template → oj-sp-hero-search-page (mateuHs): its title and
+   * description are the hero's (the form's title and subtitle, interpolated); its search box and its
+   * results — the page's listing — are painted by the template's slots (the hero node itself is not
+   * painted as content).
+   */
+  function templatedHeroSearchOf(ctx) {
+    if (!declaresTemplate(ctx, 'HeroSearchPage')) return null
+    const hero = nodeById(ctx.tree, 'hero-search')
+    const md = (hero && hero.metadata) || {}
+    const state = (ctx && ctx.state) || {}
+    // collection: Spectra's collectionView — 'off' (the landing hero) until the first search
+    return { title: interpolate(String(md.title || ''), state), description: interpolate(String(md.subtitle || ''), state), collection: 'off' }
   }
 
   /** ITEM OVERVIEW archetype: key-data panel + tabs. */
@@ -5873,7 +6011,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Avatar') {
-        atom({ isAvatar: true, avatars: [avatarOf(m)], overflow: '' }, container)
+        // its name/image may be templates (${state.image}); a lone avatar is the record's picture: large
+        atom({ isAvatar: true, avatars: [avatarOf({ ...m, name: interp(m.name || ''), image: interp(m.image || '') })], overflow: '', size: 'lg' }, container)
         return
       }
       if (t === 'AvatarGroup') {
@@ -6140,6 +6279,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
         return
       }
+      // a Multimedia content page's banner / a Hero search page's hero are the template's own header
+      if (t === 'HeroSection' && (node.id === 'multimedia-banner' || node.id === 'hero-search')) return
       if (t === 'HeroSection') {
         // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
         atom(heroAtomOf(m, interp), container)
@@ -6148,7 +6289,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
       // of emptyStateOf — painted there, not twice)
-      if (t === 'EmptyState' && !(ctx.kind === 'host' && pageEmptyStateNode(ctx.tree) === node)) {
+      // the page's own empty state is painted full-page, not here — but one inside a page template's
+      // slot (ctx.templateSlot: a collection detail's noSelection) is that slot's content
+      if (t === 'EmptyState' && !(ctx.kind === 'host' && !ctx.templateSlot && pageEmptyStateNode(ctx.tree) === node)) {
         atom(emptyStateAtomOf(m, interp), container)
         return
       }
@@ -11907,11 +12050,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const headKids = (head && head.children) || []
     const titleNode = headKids.find((c) => typeOf(c) === 'Text')
     const close = headKids.find((c) => typeOf(c) === 'Button')
-    const isHeader = typeOf(head) === 'HorizontalLayout' && !!titleNode && !!close
+    // a header is the title row; its ✕ (the panel's toggle action) is optional — a YAML
+    // DataManagementPage's panel has no server action to toggle with
+    const isHeader = typeOf(head) === 'HorizontalLayout' && !!titleNode && headKids.length <= 2
     return {
       on: true,
       title: isHeader ? String(titleNode.metadata.text || '') : '',
-      closeActionId: isHeader ? String(close.metadata.actionId || '') : '',
+      closeActionId: isHeader && close ? String(close.metadata.actionId || '') : '',
       blocks: blocksOfNodes(ctx, isHeader ? kids.slice(1) : kids, id),
     }
   }
@@ -17728,7 +17873,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     walk(tree, true)
     const page = findByType(tree, 'Page')
-    const declared = page && page.metadata ? page.metadata.toc : null
+    // the Multimedia content page template HAS the vertical anchor navigator: always on
+    // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
+    const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
+      ? true : (page && page.metadata ? page.metadata.toc : null)
     const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
     // tri-state: declared true forces it, declared false suppresses it, absent = auto
     const wanted = typeof declared === 'boolean' ? declared : auto
@@ -22668,6 +22816,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * is the same on every visit and while one stays on it.
    */
   function archetypeVarsOf(host) {
+    const gp = templatedGuidedProcessOf(host)
     const welcome = welcomeOf(host)
     const overview = generalOverviewOf(host)
     const item = itemOverviewOf(host)
@@ -22678,7 +22827,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // Spectra page templates with slots (core/spPages.mjs): DataManagement / GanttPage →
     // oj-sp-data-management-page, CollectionDetail → oj-sp-collection-detail-page
     const dm = welcome || overview || item || dashboard || todo ? null : dataManagementPageOf(host)
-    const cd = welcome || overview || item || dashboard || todo || dm ? null : collectionDetailPageOf(host, { title: pageTitleOf(host) })
+    const cd = welcome || overview || item || dashboard || todo || dm ? null
+      : (templatedCollectionDetailOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) }))
     const vars = {
       mateuDashboard: dashboard,
       mateuTodo: todo,
@@ -22691,6 +22841,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuOverview: overview,
       mateuOverviewOptions: overview ? overview.switcherOptions : [],
       mateuItemOv: item,
+      // the Multimedia content page's banner (oj-sp-header-welcome-banner over the host content)
+      mateuMmc: templatedMultimediaOf(host),
+      // a YAML Hero search page (oj-sp-hero-search-page: its hero, the listing in its slots)
+      mateuHs: templatedHeroSearchOf(host),
+      // a YAML Guided process (oj-sp-guided-process) and its first step
+      mateuGp: gp,
+      mateuGpCurrent: gp && gp.steps.length ? gp.steps[0].id : '',
       // the ATOMS of the selected tab (not only its texts): the first, or the one marked open
       // (a template page whose main slot is not one tab bar: that slot's atoms)
       mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : ((item && item.mainItems) || []),
@@ -22701,10 +22858,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       vars.mateuWelcomeTheme = look.theme
       vars.mateuWelcomeIlluBg = look.illuBg
       vars.mateuWelcomeIllu = look.illu
+      vars.mateuWelcomeThemedImage = look.themedImage || 'none'
     }
     // spPage: a page template that brings its own header and owns the page (the chains suppress the VB
     // header and the generic form for it, like the dashboard/todo branches)
     return { vars, welcome, overview, item, dashboard, todo, dm, cd, spPage: !!(dm || cd || item) }
+  }
+
+  /** Whether a YAML page template paints the page header itself (a multimedia content page's banner,
+   *  a guided process, a hero search): the VB header stands aside, as for the composed archetypes. */
+  function templateOwnsHeader(archetypes) {
+    const v = (archetypes && archetypes.vars) || {}
+    return !!(v.mateuMmc || v.mateuGp || v.mateuHs)
+  }
+
+  /**
+   * The host content to paint for a page, given its archetypes: none for a guided process (it paints
+   * its steps itself), the bare blocks for a multimedia content page (its actions are the banner's calls
+   * to action: no form action row), else the blocks with the form's action row (withFormActions).
+   * Shared by onMateuNavigate and runMateuAction, so a re-render after an action paints the same.
+   */
+  function templateHostContentOf(archetypes, hostBlocks, actions, tree) {
+    const v = (archetypes && archetypes.vars) || {}
+    if (v.mateuGp) return []
+    if (v.mateuMmc) return hostBlocks || []
+    return withFormActions(hostBlocks, actions, { tree }) || []
   }
 
   /** The Page node's title ('' without one). */
@@ -22743,7 +22921,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const todo = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard ? todoListOf(host) : null
     // …and the Spectra slot templates (data management / gantt page, collection detail)
     const spPage = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo
-      ? (dataManagementPageOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
+      ? (dataManagementPageOf(host) || templatedCollectionDetailOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
     const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo && !spPage
     const hostEntity = (!wizard && (noOtherBranch || foldout)) ? entityHeaderOf(host) : null
     const opts = { title, dropEntityHeader: !!hostEntity }
@@ -26094,6 +26272,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     noGenericFormVars,
     hostContentPlanOf,
     generalOverviewPageOf,
+    templatedGeneralOverviewOf,
+    templatedGuidedProcessOf,
+    templateOwnsHeader,
+    templateHostContentOf,
     pageHeaderOf,
     // the page header's record/context switcher (RecordSwitcherSupplier): a pick → its action
     switcherPickOf,

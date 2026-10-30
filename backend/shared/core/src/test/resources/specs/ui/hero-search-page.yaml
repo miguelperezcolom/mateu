@@ -1,0 +1,10 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Hero search template — the hero from the
+# form's title and subtitle, the content as the results.
+type: Form
+title: Search the galaxy
+subtitle: Find any character of the saga
+template:
+  type: HeroSearchPage
+content:
+  - {type: Text, text: The results}

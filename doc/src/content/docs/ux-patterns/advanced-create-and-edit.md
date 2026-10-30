@@ -178,6 +178,31 @@ edit route, with the create-edit header (five or more titled sections bring the 
 their own). Use a plain `@UI` form
 (as above) when the transaction isn't a single-entity persist.
 
+
+### In YAML
+
+A YAML page fills the template with `template: {type: AdvancedCreateEditPage}` on its `type: Form`
+— see [Page templates](/define/yaml/pages/#page-templates--template). The header is the form's: its
+title and subtitle, and a toolbar with a cancel button (`actionId: cancel-new`, `cancel-edit` or
+`cancel`) and the primary action, which Redwood paints as `oj-sp-header-create-edit`. The content is
+the main slot, its sections (`Card` + `cssClasses: mateu-section`) with the vertical anchor navigator
+beside them; a `detail` slot puts contextual data beside the form instead (the two exclude each other).
+
+```yaml
+type: Form
+title: New character
+toolbar:
+  - {type: Button, actionId: cancel-new, label: Cancel, actionable: {type: RouteLink, route: people}}
+  - {type: Button, actionId: create, label: Create, buttonStyle: primary}
+template:
+  type: AdvancedCreateEditPage
+content:
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Identity}
+    content: {type: FormField, id: name, label: Name, required: true}
+```
+
 ## Redwood parameter and slot reference
 
 What the Redwood `advanced-create-edit` template and its reusable `header-create-edit` expose, and

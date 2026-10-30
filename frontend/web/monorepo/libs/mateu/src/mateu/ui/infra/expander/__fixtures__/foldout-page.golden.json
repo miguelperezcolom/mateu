@@ -1,0 +1,156 @@
+{
+  "commands" : [ {
+    "targetComponentId" : null,
+    "type" : "SetWindowTitle",
+    "data" : "Millennium Falcon"
+  } ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Millennium Falcon",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "noHeader" : false,
+        "badges" : [ ],
+        "banners" : [ ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : null,
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : null,
+        "fabs" : null,
+        "template" : {
+          "type" : "FoldoutPage",
+          "avatar" : null,
+          "photo" : null
+        }
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "FoldoutLayout",
+          "panels" : [ {
+            "title" : "Specifications",
+            "subtitle" : null,
+            "icon" : null,
+            "open" : true,
+            "width" : null
+          }, {
+            "title" : "Crew",
+            "subtitle" : null,
+            "icon" : null,
+            "open" : false,
+            "width" : null
+          } ],
+          "headerTitle" : null,
+          "badges" : [ ],
+          "orientation" : "vertical",
+          "navigation" : null,
+          "overviewEditActionId" : null
+        },
+        "id" : "foldout",
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "VerticalLayout",
+            "spacing" : false,
+            "padding" : false,
+            "margin" : false,
+            "spacingVariant" : null,
+            "horizontalAlignment" : null,
+            "justification" : null,
+            "wrap" : false,
+            "flexGrows" : null,
+            "fullWidth" : false,
+            "style" : null
+          },
+          "id" : "foldout-overview",
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Light freighter",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "c5c68c4f-1a9e-416b-b93c-b58a999ff1a0",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : "width: 100%",
+          "cssClasses" : null,
+          "slot" : "overview",
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "34.37 m",
+            "size" : null,
+            "noMargins" : false
+          },
+          "id" : "5e4069f8-f888-4aac-a198-94294314aec8",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : "panel-0",
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "4",
+            "size" : null,
+            "noMargins" : false
+          },
+          "id" : "058ba773-db9b-4698-bba3-afc81da98684",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : "panel-1",
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

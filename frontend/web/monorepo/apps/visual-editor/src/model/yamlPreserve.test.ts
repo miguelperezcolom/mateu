@@ -10,7 +10,8 @@ const SPECS = resolve(__dirname, '../../../../../../../demo/demo-starwars/src/ma
 
 describe('writePreserving — an edit keeps the author\'s comments and formatting', () => {
     it('writes every demo spec back byte-identical when nothing changed', () => {
-        for (const f of readdirSync(SPECS)) {
+        // the files only (specs/ui also holds folders, e.g. partials/)
+        for (const f of readdirSync(SPECS).filter((n) => n.endsWith('.yaml'))) {
             const text = readFileSync(resolve(SPECS, f), 'utf-8')
             expect(writePreserving(text, parse(text)), f).toBe(text)
         }

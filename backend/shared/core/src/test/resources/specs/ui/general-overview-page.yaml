@@ -1,0 +1,14 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's General overview page template — the
+# side panel in the `info` slot, the form's content as the main slot, the header the form's own.
+type: Form
+title: ${state.name}
+subtitle: Planet
+kpis:
+  - {label: Climate, value: "${state.climate}"}
+template:
+  type: GeneralOverviewPage
+  info:
+    - {type: FormField, id: population, label: Population, readOnly: true}
+content:
+  - {type: FormField, id: diameter, label: Diameter, readOnly: true}

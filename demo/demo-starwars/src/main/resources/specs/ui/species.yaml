@@ -1,13 +1,11 @@
-# Species carry a reference to their homeworld, so the table shows the planet's NAME straight from
-# the row — the same payoff as People's Homeworld column.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
-type: Listing
+# Species fill Redwood's COLLECTION DETAIL PAGE template (Spectra oj-sp-collection-detail-page): the
+# collection on one side, the selected species' detail on the other. This page is the collection with
+# NOTHING selected — it has no content, so the template shows its noSelection slot; species/:id
+# (species-record.yaml) is the same list with a species selected. A row opens it (rowRoute).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
 title: Species
-pageSize: 20
-# A row is the entrance to the record: its own URL, shareable and surviving a reload.
-rowRoute: species/${row.id}
-# Check rows and Delete them in the listing (bulk), instead of one at a time from the edit form.
-rowsSelectionEnabled: true
+subtitle: The peoples of the galaxy
 toolbar:
   - type: Button
     label: New species
@@ -15,84 +13,12 @@ toolbar:
     actionable:
       type: RouteLink
       route: species/new
-  - type: Button
-    label: Delete selected
-    color: error
-    actionId: delete-selected
-searchable: true
-filters:
-  - type: FormField
-    id: name
-    label: Name
-  - type: FormField
-    id: classification
-    label: Classification
-    stereotype: multiSelect
-    options:
-      - value: mammal
-        label: Mammal
-      - value: mammals
-        label: Mammals
-      - value: amphibian
-        label: Amphibian
-      - value: reptile
-        label: Reptile
-      - value: reptilian
-        label: Reptilian
-      - value: insectoid
-        label: Insectoid
-      - value: gastropod
-        label: Gastropod
-      - value: artificial
-        label: Artificial
-      - value: sentient
-        label: Sentient
-      - value: unknown
-        label: Unknown
-  - type: FormField
-    id: averageLifespan
-    label: Lifespan (years)
-    dataType: integer
-    stereotype: numberRange
-rowsSource:
-  ref: swapi-species
-columns:
-  - type: GridColumn
-    id: name
-    label: Name
-    identifier: true
-    # a primary cell: the record's picture (swapi's generated `image`) beside its name
-    stereotype: primary
-    leadingPath: image
-  - type: GridColumn
-    id: classification
-    label: Classification
-  - type: GridColumn
-    id: designation
-    label: Designation
-  - type: GridColumn
-    id: homeworldName
-    label: Homeworld
-  - type: GridColumn
-    id: language
-    label: Language
-  - type: GridColumn
-    id: averageHeight
-    label: Height (cm)
-  - type: GridColumn
-    id: averageLifespan
-    label: Lifespan (years)
-# Delete acts on the CHECKED rows: forEachSelectedRow runs the per-id delete once per selection
-# (server-side, since it carries a secret), then successRoute reloads the listing.
-actions:
-  - id: delete-selected
-    rowsSelectedRequired: true
-    confirmationRequired: true
-    confirmationTexts:
-      message: This deletes the selected records. They come back on the next restart of the API.
-    restAction:
-      forEachSelectedRow: true
-      source:
-        ref: swapi-species-delete
-      successMessage: Deleted
-      successRoute: species
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Partial, ref: species-list}
+  noSelection:
+    - type: EmptyState
+      icon: "🧬"
+      title: Pick a species
+      description: Choose one in the list to see its physiology, its appearance and where it comes from.

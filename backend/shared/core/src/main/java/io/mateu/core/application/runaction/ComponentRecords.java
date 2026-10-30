@@ -1,6 +1,7 @@
 package io.mateu.core.application.runaction;
 
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.FormTemplate;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
@@ -49,8 +50,10 @@ public final class ComponentRecords {
           var types = new Class<?>[all.length];
           for (var i = 0; i < all.length; i++) {
             types[i] = all[i].getType();
+            // a page template (Form.template) is a record of slots: walked like a component
             if (Component.class.isAssignableFrom(types[i])
-                || Collection.class.isAssignableFrom(types[i])) {
+                || Collection.class.isAssignableFrom(types[i])
+                || FormTemplate.class.isAssignableFrom(types[i])) {
               walkable.add(i);
             }
           }
@@ -81,6 +84,14 @@ public final class ComponentRecords {
    * instance when every one of them came back unchanged.
    */
   public static Component rewrite(Component component, ValueRewriter rewriter) {
+    return (Component) rewriteRecord(component, rewriter);
+  }
+
+  /**
+   * Any record (a component, or a page template's record of slots) with its walkable values passed
+   * through {@code rewriter} — the identical instance when nothing changed.
+   */
+  public static Object rewriteRecord(Object component, ValueRewriter rewriter) {
     if (component == null || !component.getClass().isRecord()) {
       return component;
     }
@@ -117,7 +128,7 @@ public final class ComponentRecords {
       return component;
     }
     try {
-      return (Component) shape.canonical().newInstance(values);
+      return shape.canonical().newInstance(values);
     } catch (Exception e) {
       log.error("Could not rebuild {}", component.getClass(), e);
       return component;
@@ -137,7 +148,7 @@ public final class ComponentRecords {
     return new ArrayList<>((Collection<Component>) value);
   }
 
-  private static Object[] read(Component component, RecordComponent[] all) {
+  private static Object[] read(Object component, RecordComponent[] all) {
     var values = new Object[all.length];
     for (var i = 0; i < all.length; i++) {
       try {

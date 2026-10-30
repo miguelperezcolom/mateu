@@ -405,6 +405,34 @@ in the repository):
 - the demos (`/booking` in the Redwood showcase, `/end-of-day` in the PMS demo) do not exercise drafts,
   skipping or early completion.
 
+
+## In YAML — the Guided process template
+
+A YAML page (no Java) fills Redwood's Guided process template with `template: {type:
+GuidedProcessPage}` on its `type: Form`: the template's `steps` (each `id`, `title`, `description` and
+its `content`), the form's title and subtitle as the process's, its toolbar's primary button as the
+process's primary action and its cancel button as the way out — see
+[Page templates](/define/yaml/pages/#page-templates--template). All the steps belong to ONE form:
+moving between them keeps what was typed and needs no round trip (on Redwood, Spectra's
+`oj-sp-guided-process` moves on its own; other renderers show one tab per step). The primary action
+(e.g. a `restAction` create) runs with every step's fields. Branching and server-side step
+validation are the Java `Wizard`'s.
+
+```yaml
+type: Form
+title: Register a starship
+toolbar:
+  - {type: Button, actionId: cancel-new, label: Cancel, actionable: {type: RouteLink, route: starships}}
+  - {type: Button, actionId: create, label: Register, buttonStyle: primary}
+template:
+  type: GuidedProcessPage
+  steps:
+    - {id: identity, title: Identity, content: [{type: FormField, id: name, label: Name, required: true}]}
+    - {id: specs, title: Specifications, content: [{type: FormField, id: length, label: Length, dataType: number}]}
+actions:
+  - {id: create, validationRequired: true, restAction: {source: {ref: swapi-starship-create}}}
+```
+
 ## Redwood parameter and slot reference
 
 What the Redwood `guided-process` template exposes, and what Mateu gives you for it. The gaps here

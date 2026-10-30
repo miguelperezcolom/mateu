@@ -5823,8 +5823,10 @@ test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las de
   // the template exists in the listing table (and in the picker, and in a drawer's listing), and
   // app.css cuts with an ellipsis
   const html = webApp('flows/main/pages/main-start-page.html')
-  // (the drawer's listing once per Spectra drawer template: general / create-edit / bottom)
-  assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 5)
+  // (the drawer's listing once per Spectra drawer template: general / create-edit / bottom; the listing
+  // body four times — the listing page, a YAML collection detail's collection slot, a data
+  // management's main slot and a hero search's results, poc/templates/listing-body.html)
+  assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 8)
   assert.match(webApp('resources/css/app.css'), /\.mateu-cell-clip \{[\s\S]*text-overflow: ellipsis;[\s\S]*white-space: nowrap;/)
 })
 

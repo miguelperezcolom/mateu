@@ -187,6 +187,27 @@ show it as a one-line digest. Redwood draws the summary's texts as one line unde
 | Overview + fold-out panels, orientation, navigation header | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Folded-panel `summary` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
+
+### In YAML
+
+A YAML page fills the template with `template: {type: FoldoutPage}` on its `type: Form`: the
+always-visible `overview` slot, and the form's `content` as the panels (`FoldoutPanel`s; a
+`summary` shows on the folded strip, `${state.x}` interpolated) — see
+[Page templates](/define/yaml/pages/#page-templates--template). The page header is the form's.
+
+```yaml
+type: Form
+title: ${state.name}
+template:
+  type: FoldoutPage
+  overview:
+    - {type: Avatar, name: "${state.name}", image: "${state.image}"}
+    - {type: FormField, id: model, label: Model, readOnly: true}
+content:
+  - {type: FoldoutPanel, title: Specifications, open: true, content: {type: FormField, id: length, label: Length, readOnly: true}}
+  - {type: FoldoutPanel, title: Crew & cargo, summary: {type: Text, text: "Crew ${state.crew}"}, content: {type: FormField, id: crew, label: Crew, readOnly: true}}
+```
+
 ## Redwood parameter and slot reference
 
 What the Redwood `foldout-layout` and `foldout-panel` components expose, and what Mateu gives you

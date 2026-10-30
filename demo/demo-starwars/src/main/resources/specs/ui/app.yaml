@@ -18,6 +18,14 @@ menu:
     route: welcome
     icon: vaadin:home
   - type: RouteLink
+    label: At a glance
+    route: dashboard
+    icon: vaadin:dashboard
+  - type: RouteLink
+    label: Search
+    route: search
+    icon: vaadin:search
+  - type: RouteLink
     label: People
     route: people
     icon: vaadin:user
@@ -37,6 +45,10 @@ menu:
     label: Vehicles
     route: vehicles
     icon: vaadin:car
+  - type: RouteLink
+    label: Fleet
+    route: fleet
+    icon: vaadin:truck
   - type: RouteLink
     label: Starships
     route: starships

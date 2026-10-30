@@ -1,0 +1,175 @@
+{
+  "commands" : [ {
+    "targetComponentId" : null,
+    "type" : "SetWindowTitle",
+    "data" : "Star Wars"
+  } ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Star Wars",
+        "readOnly" : false,
+        "subtitle" : "Every screen is YAML.",
+        "status" : null,
+        "noHeader" : true,
+        "badges" : [ ],
+        "banners" : [ ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : "A Mateu demo",
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : null,
+        "fabs" : null,
+        "template" : {
+          "type" : "WelcomePage",
+          "avatar" : null,
+          "photo" : null
+        }
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "HeroSection",
+          "title" : "Star Wars",
+          "subtitle" : "Every screen is YAML.",
+          "image" : null,
+          "height" : null,
+          "centered" : true,
+          "tone" : "slate",
+          "overline" : "A Mateu demo"
+        },
+        "id" : "welcome",
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Button",
+            "label" : "Browse the characters",
+            "iconOnLeft" : null,
+            "iconOnRight" : null,
+            "image" : null,
+            "color" : "normal",
+            "variant" : null,
+            "buttonStyle" : "primary",
+            "size" : null,
+            "autofocus" : false,
+            "disabled" : false,
+            "actionId" : "browseTheCharacters",
+            "parameters" : null,
+            "shortcut" : null,
+            "separatorBefore" : false,
+            "children" : null,
+            "route" : "people",
+            "rowsSelectedRequired" : false
+          },
+          "id" : "5edce667-461f-4666-821d-b5c5a6989783",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Button",
+            "label" : "Explore the planets",
+            "iconOnLeft" : null,
+            "iconOnRight" : null,
+            "image" : null,
+            "color" : "normal",
+            "variant" : null,
+            "buttonStyle" : null,
+            "size" : null,
+            "autofocus" : false,
+            "disabled" : false,
+            "actionId" : "exploreThePlanets",
+            "parameters" : null,
+            "shortcut" : null,
+            "separatorBefore" : false,
+            "children" : null,
+            "route" : "planets",
+            "rowsSelectedRequired" : false
+          },
+          "id" : "ec0f21ee-9a07-4027-b9a2-ba46374526b7",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : "width: 100%; box-sizing: border-box; margin-bottom: 1rem",
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      }, {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "DashboardLayout",
+          "columns" : 3
+        },
+        "id" : null,
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "DashboardPanel",
+            "title" : "Characters",
+            "subtitle" : null,
+            "colSpan" : 0,
+            "rowSpan" : 0
+          },
+          "id" : null,
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Who is who.",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "c34a1095-0512-4078-8310-3429f7583f42",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

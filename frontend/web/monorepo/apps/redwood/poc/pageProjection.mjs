@@ -4,6 +4,7 @@ import {
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
   pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf, contextualInfoOf, factActionsJsonOf,
   drawerOverlayOf, dialogOverlayOf, dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf,
+  templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf, withFormActions,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 import { chromeText } from './i18n.mjs'
@@ -163,6 +164,7 @@ export function wizardVarsOf(host, wizardProjection, summaryActions, { keepStep 
  * is the same on every visit and while one stays on it.
  */
 export function archetypeVarsOf(host) {
+  const gp = templatedGuidedProcessOf(host)
   const welcome = welcomeOf(host)
   const overview = generalOverviewOf(host)
   const item = itemOverviewOf(host)
@@ -173,7 +175,8 @@ export function archetypeVarsOf(host) {
   // Spectra page templates with slots (core/spPages.mjs): DataManagement / GanttPage →
   // oj-sp-data-management-page, CollectionDetail → oj-sp-collection-detail-page
   const dm = welcome || overview || item || dashboard || todo ? null : dataManagementPageOf(host)
-  const cd = welcome || overview || item || dashboard || todo || dm ? null : collectionDetailPageOf(host, { title: pageTitleOf(host) })
+  const cd = welcome || overview || item || dashboard || todo || dm ? null
+    : (templatedCollectionDetailOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) }))
   const vars = {
     mateuDashboard: dashboard,
     mateuTodo: todo,
@@ -186,6 +189,13 @@ export function archetypeVarsOf(host) {
     mateuOverview: overview,
     mateuOverviewOptions: overview ? overview.switcherOptions : [],
     mateuItemOv: item,
+    // the Multimedia content page's banner (oj-sp-header-welcome-banner over the host content)
+    mateuMmc: templatedMultimediaOf(host),
+    // a YAML Hero search page (oj-sp-hero-search-page: its hero, the listing in its slots)
+    mateuHs: templatedHeroSearchOf(host),
+    // a YAML Guided process (oj-sp-guided-process) and its first step
+    mateuGp: gp,
+    mateuGpCurrent: gp && gp.steps.length ? gp.steps[0].id : '',
     // the ATOMS of the selected tab (not only its texts): the first, or the one marked open
     // (a template page whose main slot is not one tab bar: that slot's atoms)
     mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : ((item && item.mainItems) || []),
@@ -196,10 +206,31 @@ export function archetypeVarsOf(host) {
     vars.mateuWelcomeTheme = look.theme
     vars.mateuWelcomeIlluBg = look.illuBg
     vars.mateuWelcomeIllu = look.illu
+    vars.mateuWelcomeThemedImage = look.themedImage || 'none'
   }
   // spPage: a page template that brings its own header and owns the page (the chains suppress the VB
   // header and the generic form for it, like the dashboard/todo branches)
   return { vars, welcome, overview, item, dashboard, todo, dm, cd, spPage: !!(dm || cd || item) }
+}
+
+/** Whether a YAML page template paints the page header itself (a multimedia content page's banner,
+ *  a guided process, a hero search): the VB header stands aside, as for the composed archetypes. */
+export function templateOwnsHeader(archetypes) {
+  const v = (archetypes && archetypes.vars) || {}
+  return !!(v.mateuMmc || v.mateuGp || v.mateuHs)
+}
+
+/**
+ * The host content to paint for a page, given its archetypes: none for a guided process (it paints
+ * its steps itself), the bare blocks for a multimedia content page (its actions are the banner's calls
+ * to action: no form action row), else the blocks with the form's action row (withFormActions).
+ * Shared by onMateuNavigate and runMateuAction, so a re-render after an action paints the same.
+ */
+export function templateHostContentOf(archetypes, hostBlocks, actions, tree) {
+  const v = (archetypes && archetypes.vars) || {}
+  if (v.mateuGp) return []
+  if (v.mateuMmc) return hostBlocks || []
+  return withFormActions(hostBlocks, actions, { tree }) || []
 }
 
 /** The Page node's title ('' without one). */
@@ -238,7 +269,7 @@ export function hostContentPlanOf(host, { islandRawBlocks, title, activeTabs, wi
   const todo = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard ? todoListOf(host) : null
   // …and the Spectra slot templates (data management / gantt page, collection detail)
   const spPage = !wizard && !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo
-    ? (dataManagementPageOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
+    ? (dataManagementPageOf(host) || templatedCollectionDetailOf(host) || collectionDetailPageOf(host, { title: pageTitleOf(host) })) : null
   const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout && !dashboard && !todo && !spPage
   const hostEntity = (!wizard && (noOtherBranch || foldout)) ? entityHeaderOf(host) : null
   const opts = { title, dropEntityHeader: !!hostEntity }

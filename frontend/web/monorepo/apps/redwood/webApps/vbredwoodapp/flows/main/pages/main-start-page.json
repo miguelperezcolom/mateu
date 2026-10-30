@@ -422,6 +422,16 @@
         }
       ]
     },
+    "heroSearchAction": {
+      "chains": [
+        {
+          "parameters": {
+            "searchText": "{{ $event.detail.value }}"
+          },
+          "chain": "heroSearchSubmitted"
+        }
+      ]
+    },
     "mateuSearchAction": {
       "chains": [
         {
@@ -512,6 +522,60 @@
           "parameters": {
             "ctaId": "{{ $event.detail.actionId }}",
             "ctas": "{{ $application.variables.mateuWelcome.secondaryById }}"
+          }
+        }
+      ]
+    },
+    "gpStepChanged": {
+      "chains": [
+        {
+          "chain": "onGuidedStepChanged",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "gpPrimary": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuGp.primaryId }}",
+            "route": "{{ $application.variables.mateuGp.primaryRoute }}"
+          }
+        }
+      ]
+    },
+    "gpCancel": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuGp.cancelId }}",
+            "route": "{{ $application.variables.mateuGp.cancelRoute }}"
+          }
+        }
+      ]
+    },
+    "mmcPrimary": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuMmc.primaryCtaId }}",
+            "route": "{{ $application.variables.mateuMmc.primaryCtaRoute }}"
+          }
+        }
+      ]
+    },
+    "mmcSecondary": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "ctaId": "{{ $event.detail.actionId }}",
+            "ctas": "{{ $application.variables.mateuMmc.secondaryById }}"
           }
         }
       ]
@@ -1572,6 +1636,9 @@
       },
       "oj-sp-header-welcome-banner": {
         "path": "oj-sp/header-welcome-banner/loader"
+      },
+      "oj-sp-hero-search-page": {
+        "path": "oj-sp/hero-search-page/loader"
       },
       "oj-sp-welcome-page": {
         "path": "oj-sp/welcome-page/loader"

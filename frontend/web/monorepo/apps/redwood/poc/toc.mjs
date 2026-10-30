@@ -11,7 +11,7 @@
 // (mateuToc); `installToc(doc, win)` wires the DOM once per document — the entries are stamped by VB
 // from the variable, the sections are found in the DOM by the `data-mateu-section` marker both
 // painters set (the content's section cards, the generic form's .mateu-form-section), in order.
-import { isSectionNode, sectionHeadOf, findByType } from './reduceContexts.mjs'
+import { isSectionNode, sectionHeadOf, findByType, declaresTemplate } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
 
 export const TOC_AUTO_MIN_SECTIONS = 5
@@ -68,7 +68,10 @@ export function tocOf(host) {
   }
   walk(tree, true)
   const page = findByType(tree, 'Page')
-  const declared = page && page.metadata ? page.metadata.toc : null
+  // the Multimedia content page template HAS the vertical anchor navigator: always on
+  // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
+  const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
+    ? true : (page && page.metadata ? page.metadata.toc : null)
   const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
   // tri-state: declared true forces it, declared false suppresses it, absent = auto
   const wanted = typeof declared === 'boolean' ? declared : auto
