@@ -248,6 +248,18 @@ test('page layout: width anatomy, bleeding header and the band overlap', () => {
   assert.equal(fixed.mateuBandBoxMargin, '0 auto')
   const banded = pageLayoutOf({ host: { pageWidth: 'fullWidth' }, bleedingHeader: true, band: true }).vars
   assert.deepEqual([banded.mateuPagePadding, banded.mateuPageMargin, banded.mateuBandBoxMargin], ['0', '-40px auto', '0'])
+  // the item overview template owns the page: edge to edge, and the content container drops its card
+  const iop = pageLayoutOf({ host: {}, iopOn: true, bleedingHeader: true, band: false }).vars
+  assert.deepEqual([iop.mateuShellPageLayout, iop.mateuPageMaxWidth, iop.mateuPageHostClass], ['edgeToEdge', 'none', 'mateu-iop-host'])
+  assert.equal(fixed.mateuPageHostClass, '')
+})
+
+test('onMateuNavigate: the item overview template (mateuItemOv) is what turns iopOn on — not the reverted mateuIop', () => {
+  const chain = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../webApps/vbredwoodapp/pages/shell-page-chains/onMateuNavigate.js'), 'utf-8')
+  assert.match(chain, /const iopOn = !!itemProjection;/)
+  const page = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../webApps/vbredwoodapp/flows/main/pages/main-start-page.html'), 'utf-8')
+  assert.match(page, /\$application\.variables\.mateuPageHostClass/)
+  assert.match(page, /<oj-tab-bar id="mateuItemTabs" edge="top" layout="condense"/)
 })
 
 test('@Compact: a compact page or listing takes the Redwood high-density class', () => {

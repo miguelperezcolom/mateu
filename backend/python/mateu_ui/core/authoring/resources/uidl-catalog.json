@@ -1171,6 +1171,9 @@
     }, {
       "name" : "fabs",
       "type" : "list of PageFab"
+    }, {
+      "name" : "template",
+      "type" : "FormTemplate"
     } ]
   }, {
     "type" : "FormEditor",
@@ -2729,6 +2732,7 @@
   } ],
   "families" : {
     "Actionable" : [ "ContentLink", "FieldLink", "Menu", "MenuSeparator", "MethodLink", "RemoteMenu", "RouteLink", "RuleLink" ],
+    "FormTemplate" : [ "ItemOverviewPage" ],
     "Step" : [ "CloseOverlay", "Emit", "MarkClean", "MarkDirty", "Navigate", "RunAction" ],
     "Trigger" : [ "AutoSaveTrigger", "OnCustomEventTrigger", "OnErrorTrigger", "OnLoadTrigger", "OnSuccessTrigger", "OnValueChangeTrigger" ],
     "UserTrigger" : [ "Button", "ButtonGroup" ]

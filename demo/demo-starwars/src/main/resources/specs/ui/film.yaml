@@ -2,6 +2,9 @@
 # No Java — the buttons NAVIGATE via their RouteLink actionable.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+# Redwood's Item overview page template (Spectra oj-sp-item-overview-page): the record's image
+# and key facts in its overview panel, the rest in tabs in its main slot. The page only FILLS the
+# template — the look (sizes, surfaces, spacing) is the template's, in every renderer.
 title: ${state.title}
 subtitle: Film
 toolbar:
@@ -17,33 +20,31 @@ toolbar:
   actionable:
     type: RouteLink
     route: films/${state.id}/edit
+template:
+  type: ItemOverviewPage
+  photo: {src: "${state.image}"}
+  body:
+    - {type: FormField, id: episodeId, label: Episode, dataType: integer, readOnly: true, propertyRow: true}
+    - {type: FormField, id: director, label: Director, readOnly: true, propertyRow: true}
+    - {type: FormField, id: releaseDate, label: Released, dataType: date, readOnly: true, propertyRow: true}
+# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
 content:
-- type: FormLayout
-  content:
-  - type: FormField
-    id: title
-    label: Title
-    required: true
-    readOnly: true
-  - type: FormField
-    id: episodeId
-    label: Episode
-    dataType: integer
-    readOnly: true
-  - type: FormField
-    id: director
-    label: Director
-    readOnly: true
-  - type: FormField
-    id: producer
-    label: Producer
-    readOnly: true
-  - type: FormField
-    id: releaseDate
-    label: Released
-    dataType: date
-    readOnly: true
-  - type: FormField
-    id: openingCrawl
-    label: Opening crawl
-    readOnly: true
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Details
+        content:
+          type: VerticalLayout
+          horizontalAlignment: STRETCH   # the sections fill the main slot
+          content:
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Opening crawl}
+              content: {type: Text, text: "${state.openingCrawl}", style: "white-space: pre-line"}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Production}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: producer, label: Producer, readOnly: true, propertyRow: true}

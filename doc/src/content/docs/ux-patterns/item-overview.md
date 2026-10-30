@@ -128,6 +128,45 @@ An item overview can also be the content of a CRUD's record page, under the CRUD
 toolbar: the record class implements `DetailContentSupplier` and returns it — see
 [The record page](/java-user-manual/build/customizing-crud-and-listings/#the-record-page).
 
+### In YAML
+
+A YAML page fills the template with `template: {type: ItemOverviewPage}` on its `type: Form`: the
+panel's `avatar` or `photo` and its `body`/`footer` slots, the form's `content` as the `main` slot —
+see [Page templates](/define/yaml/pages/#page-templates--template).
+
+```yaml
+type: Form
+title: ${state.name}
+subtitle: Character
+template:
+  type: ItemOverviewPage
+  avatar: {src: "${state.image}"}
+  body:
+    - {type: FormField, id: gender, label: Gender, readOnly: true, propertyRow: true}
+content:
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Details
+        content:
+          type: VerticalLayout
+          horizontalAlignment: STRETCH
+          content:
+            - type: Card
+              cssClasses: mateu-section          # a section: Redwood draws Spectra's oj-sp-section
+              title: {type: Text, container: h3, text: Physique}   # the heading names the section
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: height, label: Height, readOnly: true, propertyRow: true}
+```
+
+Redwood's own examples (the candidate profile, the product overview) fill the main slot with
+**sections**, under a compact tab bar: so does the example above. On Redwood the template owns the
+whole page — the header band, the overview panel and the main area sit on the page background, with
+no content card around them — and the panel's `body` is drawn like Spectra's read-only form layout,
+the label above the value (a `propertyRow` there is drawn that way).
+
 ## Redwood parameter and slot reference
 
 What the Redwood `item-overview-page` template and its `item-overview` key-info pattern expose, and
@@ -150,22 +189,25 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 | Redwood prop / slot | Mateu | |
 |---|---|---|
 | `itemTitle` / `itemSubtitle` | the `EntityHeader`'s title/subtitle, else the panel's title or leading heading, else the page title | ✅ |
-| `photo {src}` | `EntityHeader` image / any component in the panel | ✅ |
+| `photo {src}` / `avatar {src, initials}` | YAML `template.photo` / `template.avatar`; in Java an `EntityHeader` image / any component in the panel | ✅ |
 | `badge {text, style: strong \| subtle, position: leading \| trailing}` | `@BadgeInHeader` / `EntityHeader` badges; no `position` control | 🟡 |
 | `isFavorite` + `spExpand` | — | — |
-| `displayOptions {edit, share, favorite}` | — no built-in affordance bar; declare your own buttons | — |
-| **Slots** `body` / `footer` | the panel's component tree is the `body`; no footer area | 🟡 |
-| `spEdit` / `spShare` | your own `@Action` methods behind declared buttons | 🟡 |
+| `displayOptions {edit, share, favorite}` | `edit`: the page's primary toolbar button when it edits (Redwood); `share`/`favorite` — | 🟡 |
+| **Slots** `body` / `footer` | YAML `template.body` / `template.footer`; in Java the panel's component tree is the `body`, no footer area | ✅ |
+| `spEdit` / `spShare` | `spEdit` runs the page's primary (edit) button; `spShare` — | 🟡 |
 
 ## Known gaps
 
 The element-by-element review, with code references, is in
 [item-overview review](https://github.com/miguelperezcolom/mateu/blob/master/design/redwood-templates/item-overview.md). In short:
 
-- Redwood paints the page with Spectra's `oj-sp-item-overview-page` + `oj-sp-item-overview` (the
-  2026-07-27 attempt was reverted because the overview column floated with no surface in light mode;
-  the renderer now gives that column Redwood's panel surface). The tabs stay an `oj-tab-bar` in the
+- Redwood paints the page with Spectra's `oj-sp-item-overview-page` + `oj-sp-item-overview`, with
+  nothing of Mateu's over the template (since 2026-10-30: the panel surface the renderer used to
+  force is gone — Spectra draws the panel as its own card — and so is the forced `light` display
+  mode, which is now Spectra's default or the app's `appMode`). The tabs stay an `oj-tab-bar` in the
   `main` slot.
+- The page owns the page on Redwood (2026-10-30): edge to edge on the page background, compact
+  tabs, sections with Spectra's header, a stacked body — what the guide's examples show.
 - On Redwood the key-info panel ignores `panelWidth()` and does not collapse into a strip on small
   screens (it stacks above the tabs).
 - No previous/next, search, edit/share/favourite or footer area on the archetype.

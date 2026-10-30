@@ -4166,6 +4166,9 @@
             "$ref" : "#/$defs/PageFab"
           }
         },
+        "template" : {
+          "$ref" : "#/$defs/FormTemplate"
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
@@ -4628,6 +4631,12 @@
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
+    },
+    "FormTemplate" : {
+      "description" : "One of the FormTemplate implementations.",
+      "oneOf" : [ {
+        "$ref" : "#/$defs/ItemOverviewPage"
+      } ]
     },
     "FullWidth" : {
       "description" : "Wraps a component so it stretches across the full width of its container.",
@@ -5370,6 +5379,35 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "ItemOverviewPage" : {
+      "description" : "Redwood's Item overview page template (Spectra oj-sp-item-overview-page): the item's overview panel beside the page's main area.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "ItemOverviewPage"
+        },
+        "avatar" : {
+          "$ref" : "#/$defs/TemplateImage"
+        },
+        "photo" : {
+          "$ref" : "#/$defs/TemplateImage"
+        },
+        "body" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        },
+        "footer" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
         }
       }
     },
@@ -8918,6 +8956,17 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "TemplateImage" : {
+      "type" : "object",
+      "properties" : {
+        "src" : {
+          "type" : "string"
+        },
+        "initials" : {
+          "type" : "string"
         }
       }
     },

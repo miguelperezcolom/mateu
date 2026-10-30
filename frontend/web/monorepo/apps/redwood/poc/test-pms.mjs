@@ -22,7 +22,7 @@ import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TI
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
-import { hostContentPlanOf } from './pageProjection.mjs'
+import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest } from './pageProjection.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
 import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
@@ -2378,6 +2378,81 @@ test('ItemOverview → oj-sp-item-overview-page: the key panel in oj-sp-item-ove
   const page = sectionOf(html, '<oj-sp-item-overview-page id="mateuItemOvPage"', '</oj-sp-item-overview-page>')
   assert.match(page, /<oj-sp-item-overview slot="overview"[\s\S]*<div slot="body"/)
   assert.match(page, /<div slot="main"[\s\S]*<oj-tab-bar id="mateuItemTabs"/)
-  assert.match(webApp('resources/css/app.css'), /\.mateu-iop \.oj-sp-item-overview-page-overview-section \{\s*background-color/, 'the overview column gets a surface (the 2026-07-27 revert)')
+  // the template's look is Spectra's: no rule over its internals, no display mode forced on it
+  assert.doesNotMatch(webApp('resources/css/app.css'), /\.oj-sp-item-overview-page-/, 'no override of the template\'s own surfaces')
+  assert.doesNotMatch(page.split('\n')[0], /display-mode=/, 'the display mode is Spectra\'s default (or the app\'s appMode)')
+  // its edit action is the page's primary when that primary edits
+  assert.match(page, /edit: \$application\.variables\.mateuPageHeader\.itemEdit/)
+  assert.match(page, /on-sp-edit="\[\[ \$listeners\.headerPrimary \]\]"/)
 })
 console.log(`\n${pass} tests PMS OK`)
+
+test('a page that DECLARES the Item overview page template (YAML template: ItemOverviewPage) → Spectra\'s, from the slots by id', () => {
+  // the Java golden (PageTemplateSyncTest) of the same YAML the browser expander reads
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/item-overview-page.golden.json'), 'utf-8'))
+  const host = { state: { name: 'Luke', image: 'https://img/luke.png' }, data: {}, tree: golden.fragments[0].component }
+  const io = itemOverviewOf(host)
+  // the panel's body + footer slots, as atoms; the media is the template's, never an atom
+  assert.deepEqual(io.key.items.map((a) => a.fieldId || a.text), ['gender', 'homeworld', 'Last seen on Tatooine'])
+  // a main slot that is one tab bar → the template's tabs
+  assert.deepEqual(io.tabs.map((t) => t.label), ['Physique', 'Appearance'])
+  assert.equal(io.selectedTab, 'itab-0')
+  const header = itemOverviewPageHeaderOf(host, io)
+  assert.equal(header.itemTitle, 'Luke')
+  assert.equal(header.itemSubtitle, 'Character')
+  assert.deepEqual(header.badge, { text: 'Jedi', status: 'success', style: 'subtle', position: 'trailing' })
+  assert.deepEqual(header.avatar, { src: 'https://img/luke.png', initials: 'LS' })
+  assert.equal(header.photo, null)
+  // the page is a Spectra page template: it brings its own header
+  const vars = archetypeVarsOfForTest(host)
+  assert.equal(vars.spPage, true)
+
+  // a photo, and a main slot that is not a tab bar: no tabs, its atoms as they are
+  const photoGolden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/item-overview-photo.golden.json'), 'utf-8'))
+  const photoHost = { state: { name: 'X-wing', picture: 'https://img/x.png' }, data: {}, tree: photoGolden.fragments[0].component }
+  const photoIo = itemOverviewOf(photoHost)
+  assert.deepEqual(photoIo.tabs, [])
+  assert.deepEqual(photoIo.mainItems.map((a) => a.text), ['Main area'])
+  assert.deepEqual(itemOverviewPageHeaderOf(photoHost, photoIo).photo, { src: 'https://img/x.png' })
+  assert.deepEqual(archetypeVarsOfForTest(photoHost).vars.mateuItemTabTexts.map((a) => a.text), ['Main area'])
+
+  // served, a YAML page arrives wrapped in its server-side component (SeededYamlPage)
+  const wrapped = { ...host, tree: { type: 'ServerSide', id: 'page', serverSideType: 'io.mateu.SeededYamlPage', children: [golden.fragments[0].component] } }
+  const wrappedIo = itemOverviewOf(wrapped)
+  assert.deepEqual(wrappedIo.tabs.map((t) => t.label), ['Physique', 'Appearance'])
+  assert.equal(itemOverviewPageHeaderOf(wrapped, wrappedIo).itemTitle, 'Luke')
+})
+
+test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {
+  // the body is Spectra's read-only form layout: property rows (nested ones too) are drawn stacked
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/item-overview-page.golden.json'), 'utf-8'))
+  const host = { state: { name: 'Luke' }, data: {}, tree: golden.fragments[0].component }
+  const io = itemOverviewOf(host)
+  const rows = { ...io, key: { ...io.key, items: [
+    { isPropertyRow: true, label: 'Gender', value: 'male' },
+    { isRow: true, items: [{ isPropertyRow: true, label: 'Height', value: '172' }] },
+    { isText: true, text: 'note' },
+  ] } }
+  const keyItems = itemOverviewPageHeaderOf(host, rows).keyItems
+  assert.equal(keyItems[0].stacked, true)
+  assert.equal(keyItems[1].items[0].stacked, true)
+  assert.equal(keyItems[2].stacked, undefined)
+
+  // a titled section (a Card marked mateu-section, its title a heading) in the main slot keeps its
+  // oj-sp-section header, and its title is not repeated as a text
+  const section = { type: 'ClientSide', id: 's1', cssClasses: 'mateu-section', children: [],
+    metadata: { type: 'Card', title: { type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Physique' } },
+      content: { type: 'ClientSide', metadata: { type: 'Text', text: 'Tall' } } } }
+  const tree = JSON.parse(JSON.stringify(golden.fragments[0].component))
+  const main = (function find(n) { if (!n || typeof n !== 'object') return null; if (n.id === 'item-overview-main') return n
+    for (const c of n.children || []) { const r = find(c); if (r) return r } return null })(tree)
+  main.children = [section]
+  const sectioned = itemOverviewOf({ ...host, tree })
+  const header = sectioned.mainItems.find((a) => a.isSpSectionHeader)
+  assert.equal(header && header.sectionTitle, 'Physique')
+  assert.equal(sectioned.mainItems.filter((a) => a.text === 'Physique').length, 0)
+  assert.ok(sectioned.mainItems.some((a) => a.text === 'Tall'))
+})

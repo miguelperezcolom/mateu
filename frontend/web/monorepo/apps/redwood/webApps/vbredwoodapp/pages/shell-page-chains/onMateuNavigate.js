@@ -433,10 +433,12 @@ define([
       // the Page's toolbar actions (computed here because the entity-page templates
       // relocate them: iop → goToParent/secondaryActions of the panel)
       const hostToolbar = bridge.pageToolbarOf(host);
-      // native ITEM OVERVIEW: its template was REVERTED (DESIGN-NOTES 2026-07-27), nothing paints
-      // mateuIop — claiming the page left it BLANK; the host content paints it in its columns
+      // the legacy mateuIop projection stays off (its template was reverted, DESIGN-NOTES 2026-07-27);
+      // the ITEM OVERVIEW page is oj-sp-item-overview-page fed by mateuItemOv (archetypeVarsOf).
+      // iopOn says the template OWNS the page: edge to edge (its header band and zones sit on the
+      // page itself, as in Redwood's examples), no VB header, no general overview, no generic form
       const iop = null;
-      const iopOn = !!iop;
+      const iopOn = !!itemProjection;
       $application.variables.mateuIop = iop || {
         on: false,
         overview: { title: '', subtitle: '', badge: null, facts: [], blocks: [] },

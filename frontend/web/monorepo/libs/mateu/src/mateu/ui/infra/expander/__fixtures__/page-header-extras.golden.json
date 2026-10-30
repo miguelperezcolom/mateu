@@ -1,5 +1,9 @@
 {
-  "commands" : [ ],
+  "commands" : [ {
+    "targetComponentId" : null,
+    "type" : "SetWindowTitle",
+    "data" : "Page header extras"
+  } ],
   "messages" : [ ],
   "fragments" : [ {
     "targetComponentId" : null,
@@ -114,7 +118,8 @@
           "icon" : "vaadin:envelope",
           "actionId" : "email",
           "buttonStyle" : "primary"
-        } ]
+        } ],
+        "template" : null
       },
       "id" : null,
       "children" : [ {

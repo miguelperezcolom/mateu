@@ -120,3 +120,13 @@ prev/next (plan item 3).
 3. **Header metadata on composed archetypes** (shared with Dashboard/Welcome/Foldout): carry
    `PeerNavigationSupplier` in `withPageBars` → `previous-item`/`next-item`.
 4. Item affordances (`ItemOverviewDisplay(edit, share, favorite)`) only on demand.
+
+## 7ter. Compared with the guide's examples (2026-10-30)
+
+The YAML template (`template: ItemOverviewPage`) drew Spectra's components inside the shell's content
+card, at fixed width, with stretched tabs and bare values — "little to do with" the guide's candidate
+profile / product overview (`design/redwood/Redwood-completo.pdf` pp. 95–100). Fixed: the template owns
+the page (edge to edge, no content card — `iopOn` followed the reverted `iop`), compact tab bar, the
+body stacked (label above value), sections in the main slot with `oj-sp-section` headers. Still open:
+prev/next (no peer navigation on a YAML page), share/favourite, the small-screen collapse.
+

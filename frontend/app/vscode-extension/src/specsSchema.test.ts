@@ -142,7 +142,7 @@ describe('the staged schema is a type dispatch (yaml-language-server cost)', () 
     // branch at every level on every keystroke (5 s for a 4 KB page in the 2026-10 walkthrough). The
     // extension stages the same families as `type` dispatches — same files accepted, same files refused.
     it('rewrites every polymorphic family and keeps the rest of the schema', () => {
-        expect(dispatchedFamilyNames(schema)).toEqual(['Actionable', 'Component', 'Step', 'Trigger', 'UserTrigger'])
+        expect(dispatchedFamilyNames(schema)).toEqual(['Actionable', 'Component', 'FormTemplate', 'Step', 'Trigger', 'UserTrigger'])
         const component = staged.$defs.Component
         expect(component.oneOf).toBeUndefined()
         expect(component.properties.type.enum.length).toBe(schema.$defs.Component.oneOf.length)

@@ -2578,6 +2578,9 @@
         "switcher" : {
           "$ref" : "#/$defs/RecordSwitcherDto"
         },
+        "template" : {
+          "$ref" : "#/$defs/PageTemplateDto"
+        },
         "timestamp" : {
           "type" : "string"
         },
@@ -4432,6 +4435,20 @@
       },
       "required" : [ "type" ]
     },
+    "PageTemplateDto" : {
+      "type" : "object",
+      "properties" : {
+        "avatar" : {
+          "$ref" : "#/$defs/TemplateImageDto"
+        },
+        "photo" : {
+          "$ref" : "#/$defs/TemplateImageDto"
+        },
+        "type" : {
+          "type" : "string"
+        }
+      }
+    },
     "PairDto" : {
       "type" : "object",
       "properties" : {
@@ -5648,6 +5665,17 @@
         }
       },
       "required" : [ "type" ]
+    },
+    "TemplateImageDto" : {
+      "type" : "object",
+      "properties" : {
+        "initials" : {
+          "type" : "string"
+        },
+        "src" : {
+          "type" : "string"
+        }
+      }
     },
     "TestimonialDto" : {
       "type" : "object",

@@ -197,23 +197,24 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.todolist` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-dtos` | `io.mateu.dtos` | 277 | 247 | 0 | 30 | 0 |
+| `mateu-dtos` | `io.mateu.dtos` | 279 | 249 | 0 | 30 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 7 | 5 | 1 | 0 | 1 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 174 | 163 | 7 | 4 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 315 | 263 | 46 | 6 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 317 | 263 | 48 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.fluent` | 35 | 31 | 1 | 3 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.interfaces` | 109 | 92 | 8 | 2 | 7 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **991** | **829** | **62** | **45** | **55** |
+| **Total** | | **996** | **831** | **65** | **45** | **55** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl`: `LiveHeaderValues`
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `DragRows`, `MobileApp`, `RowStatus`, `Tooltip`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeaderValue`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `NotFound`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeaderValue`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `NotFound`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WizardDisplay`
+- `io.mateu.uidl.fluent`: `FormTemplate`
 - `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 
 **Experimental members** of otherwise stable types:
@@ -254,7 +255,7 @@ same concepts.
 - `io.mateu.uidl.data.RouteLink`: `presentation`
 - `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`, `updateHeaderValue`
 - `io.mateu.uidl.fluent.AppShell`: `accessKeys`, `contextSelectors`, `globalSearch`, `headerActions`, `headerValues`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`, `notifications`, `shortcuts`
-- `io.mateu.uidl.fluent.Form`: `badges`, `banners`, `fabs`, `kpis`, `overline`, `peerNav`, `recordSwitcher`, `timestamp`, `titlePlaceholder`
+- `io.mateu.uidl.fluent.Form`: `badges`, `banners`, `fabs`, `kpis`, `overline`, `peerNav`, `recordSwitcher`, `template`, `timestamp`, `titlePlaceholder`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`
 

@@ -1,0 +1,10 @@
+# Fixture for PageTemplateSyncTest: the Item overview page template with a 4:3 photo and no footer.
+type: Form
+title: ${state.name}
+template:
+  type: ItemOverviewPage
+  photo: {src: "${state.picture}"}
+  body:
+    - {type: Text, text: A starship}
+content:
+  - {type: Text, text: Main area}

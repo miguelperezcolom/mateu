@@ -2,6 +2,9 @@
 # No Java — the buttons NAVIGATE via their RouteLink actionable.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+# Redwood's Item overview page template (Spectra oj-sp-item-overview-page): the record's image
+# and key facts in its overview panel, the rest in tabs in its main slot. The page only FILLS the
+# template — the look (sizes, surfaces, spacing) is the template's, in every renderer.
 title: ${state.name}
 subtitle: Species
 toolbar:
@@ -17,49 +20,38 @@ toolbar:
   actionable:
     type: RouteLink
     route: species/${state.id}/edit
+template:
+  type: ItemOverviewPage
+  avatar: {src: "${state.image}"}
+  body:
+    - {type: FormField, id: classification, label: Classification, readOnly: true, propertyRow: true}
+    - {type: FormField, id: designation, label: Designation, readOnly: true, propertyRow: true}
+    - {type: FormField, id: language, label: Language, readOnly: true, propertyRow: true}
+    - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true, propertyRow: true}
+# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
 content:
-- type: FormLayout
-  content:
-  - type: FormField
-    id: name
-    label: Name
-    required: true
-    readOnly: true
-  - type: FormField
-    id: classification
-    label: Classification
-    readOnly: true
-  - type: FormField
-    id: designation
-    label: Designation
-    readOnly: true
-  - type: FormField
-    id: language
-    label: Language
-    readOnly: true
-  - type: FormField
-    id: averageHeight
-    label: Average height (cm)
-    dataType: integer
-    readOnly: true
-  - type: FormField
-    id: averageLifespan
-    label: Average lifespan (y)
-    dataType: integer
-    readOnly: true
-  - type: FormField
-    id: skinColors
-    label: Skin colours
-    readOnly: true
-  - type: FormField
-    id: hairColors
-    label: Hair colours
-    readOnly: true
-  - type: FormField
-    id: eyeColors
-    label: Eye colours
-    readOnly: true
-  - type: FormField
-    id: homeworldName
-    label: Homeworld
-    readOnly: true
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Details
+        content:
+          type: VerticalLayout
+          horizontalAlignment: STRETCH   # the sections fill the main slot
+          content:
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Physiology}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: averageHeight, label: Average height (cm), dataType: integer, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: averageLifespan, label: Average lifespan (y), dataType: integer, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Appearance}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: skinColors, label: Skin colours, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: hairColors, label: Hair colours, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: eyeColors, label: Eye colours, readOnly: true, propertyRow: true}

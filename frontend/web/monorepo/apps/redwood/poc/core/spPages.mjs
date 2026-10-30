@@ -1,6 +1,6 @@
-import { islandContentOf, hostContentOf } from './content.mjs'
+import { islandContentOf, hostContentOf, interpolate } from './content.mjs'
 import { findByType, findFirst } from './listing.mjs'
-import { entityHeaderOf } from './pageHeader.mjs'
+import { entityHeaderOf, badgeStatusOf } from './pageHeader.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes painted with
 // Spectra's PAGE TEMPLATES whose regions are SLOTS the composed wire maps onto — the Data management
 // page (DataManagement / GanttPage: inner end & bottom drawers), the Collection detail page
@@ -169,6 +169,47 @@ const HEADING_ENTITIES = { amp: '&', nbsp: ' ', lt: '<', gt: '>', quot: '"', apo
 /** The few named entities a rich-text heading carries, decoded in ONE pass (so `&amp;lt;` stays `&lt;`). */
 const decodeHeadingEntities = (text) => text.replace(/&(amp|nbsp|lt|gt|quot|apos|#39);/g, (_, name) => HEADING_ENTITIES[name])
 
+/** Property rows drawn stacked (label above the value), nested ones too. */
+function stackedPropertyRows(items) {
+  return (items || []).map((i) => {
+    if (!i || typeof i !== 'object') return i
+    if (i.isPropertyRow) return { ...i, stacked: true }
+    return Array.isArray(i.items) ? { ...i, items: stackedPropertyRows(i.items) } : i
+  })
+}
+
+/**
+ * A page that DECLARES the Item overview page template: every value of oj-sp-item-overview is the
+ * page's own, named as Spectra names it — itemTitle/itemSubtitle the form's title/subtitle, the badge
+ * its first header badge, avatar/photo the template's — interpolated against the page state. The
+ * look (sizes, surfaces, the avatar's shape) is the component's, never ours.
+ */
+function templatedItemOverviewHeaderOf(ctx, item) {
+  const md = item.form || {}
+  const state = (ctx && ctx.state) || {}
+  const text = (t) => (t == null ? '' : interpolate(String(t), state))
+  const image = (img) => {
+    if (!img) return null
+    const src = text(img.src)
+    const initials = text(img.initials)
+    return src || initials ? { ...(src ? { src } : {}), ...(initials ? { initials } : {}) } : null
+  }
+  const first = (md.badges || []).map((b) => ({ text: text(b && (b.text != null ? b.text : b.label)), color: b && b.color }))
+    .find((b) => b.text)
+  const avatar = image(item.template.avatar)
+  return {
+    itemTitle: text(md.title),
+    itemSubtitle: text(md.subtitle),
+    badge: first ? { text: first.text, status: badgeStatusOf(first.color), style: 'subtle', position: 'trailing' } : null,
+    avatar,
+    // Spectra shows the avatar when there is one, else the photo
+    photo: avatar ? null : image(item.template.photo),
+    // the body slot is a read-only FORM LAYOUT in Spectra (label above the value), so the panel's
+    // property rows are drawn stacked there (deep: a row can sit inside a layout atom)
+    keyItems: stackedPropertyRows(item.key.items),
+  }
+}
+
 /**
  * ItemOverview → oj-sp-item-overview-page: its OVERVIEW slot is oj-sp-item-overview — the item's
  * TITLE over the key panel's atoms as its body — and its MAIN slot the tab bar with the chosen tab's
@@ -182,6 +223,7 @@ const decodeHeadingEntities = (text) => text.replace(/&(amp|nbsp|lt|gt|quot|apos
  * EntityHeader on the page) gives the subtitle and badge.
  */
 export function itemOverviewPageHeaderOf(ctx, item) {
+  if (item && item.template) return templatedItemOverviewHeaderOf(ctx, item)
   const entity = ctx ? entityHeaderOf(ctx) : null
   const badge = entity && (entity.badges || [])[0]
   const key = (item && item.key) || { title: '', items: [] }

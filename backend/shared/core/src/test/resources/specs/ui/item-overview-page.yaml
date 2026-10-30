@@ -1,0 +1,29 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Item overview page template — the panel's
+# avatar and its body/footer slots in `template:`, the page's content as the template's main slot.
+type: Form
+title: ${state.name}
+subtitle: Character
+badges:
+  - {label: Jedi, color: success}
+toolbar:
+  - type: Button
+    label: Edit
+    actionId: edit
+template:
+  type: ItemOverviewPage
+  avatar: {src: "${state.image}", initials: LS}
+  body:
+    - {type: FormField, id: gender, label: Gender, readOnly: true}
+    - {type: FormField, id: homeworld, label: Homeworld, readOnly: true}
+  footer:
+    - {type: Text, text: Last seen on Tatooine}
+content:
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Physique
+        content: {type: FormField, id: height, label: Height, readOnly: true}
+      - type: Tab
+        label: Appearance
+        content: {type: FormField, id: eyeColor, label: Eyes, readOnly: true}
