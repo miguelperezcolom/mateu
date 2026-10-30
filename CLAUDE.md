@@ -92,6 +92,14 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             keep it (a missing folder fails "Bundle JavaScript", not locally); its
                             patterns take NO trailing `/` (eas-cli matches bare folder paths); check
                             with `CI=1 npx eas-cli build:inspect --stage archive --output <dir>`
+                            ICONS (2026-10-30): Android draws the ADAPTIVE icon (app.json android.adaptiveIcon:
+                            foreground over backgroundColor, cropped to a circle/squircle — keep the mark in the
+                            inner ~2/3), not `icon` — the Expo template's white foreground on #ffffff showed a blank
+                            white circle. Mateu's face: assets/icon.png (iOS), adaptive-icon.png + monochrome-icon.png
+                            (Android 13 themed icons), splash.png; derived from doc/public/favicon.png (235px — no
+                            vector exists; upscaled with blur+threshold for clean edges)
+                            HUB LIST: each row's actions (move up/down, remove) open in a bottom sheet from its ⋮ button
+                            or a long press (HomeScreen EntrySheet); the top bar's pencil still shows them on every row
   intellij-plugin/        ← Desktop — IntelliJ IDEA plugin (tool windows, editor tabs, docking)
                             (the JavaFX and Compose renderers were REMOVED 2026-07-10)
 

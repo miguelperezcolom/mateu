@@ -20,7 +20,7 @@ accounts.
 | an "account" = issuer + user + icon | a "UI" = name + base URL + icon (from the server's manifest) |
 | local list, no Google account | local list, no "Mateu" account |
 | add by QR or by typing the key | add by QR or by typing the URL |
-| remove, reorder, search | the same, plus selecting which UI is open |
+| remove, reorder, search | the same — a row's **⋮** button or a **long press** opens its actions (move up/down, remove), and the pencil in the top bar shows them on every row — plus selecting which UI is open |
 | "Transfer accounts" (export QR) | "Export my UIs" QR: the list of URLs only, never sessions or tokens |
 
 **The key difference:** an authenticator QR carries a *secret*; ours carries **none** — only the
