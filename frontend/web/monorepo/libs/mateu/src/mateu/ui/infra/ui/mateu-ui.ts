@@ -23,6 +23,7 @@ import { installPrintSupport } from '@infra/ui/documents.ts'
 import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
 import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
 import { routeQueryOf } from '@infra/ui/routeQuery.ts'
+import { announceUrlChange } from '@infra/ui/urlChanges.ts'
 import { startTabSessionClaim } from '@infra/http/tabSession.ts'
 
 // A duplicated tab copied this tab's sessionStorage, its UI session id included: find out FIRST
@@ -112,6 +113,7 @@ export class MateuUi extends LitElement {
                 if (next) {
                     window.history.pushState({},"", next);
                     this._lastUrl = window.location.href
+                    announceUrlChange()
                 }
             }
         }
@@ -171,6 +173,7 @@ export class MateuUi extends LitElement {
                 this.navigationKey = nanoid()
             }
             this.loadUrl(w)
+            announceUrlChange()
         };
 
         if (this.top == 'true') {
