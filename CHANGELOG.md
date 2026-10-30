@@ -11,6 +11,47 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.22] — 2026-10-29
+
+Redwood listings over a REST source search, filter and page again; RouteLink buttons navigate; the
+mobile app goes Material 3, adds a UI from any page address and opens a UI it knows at once.
+
+### Fixed
+
+- **Redwood: a REST source url evaluates its expressions.** Each `${…}` of a `rowsSource` url is an
+  expression (`state.page ?? 0`, `state.sort?.[0]?.fieldId`, `encodeURIComponent(…)`), as the web
+  renderer evaluates it; Redwood read it as a dotted path, so it came out empty and the listing's
+  search, filters, sort and pager did nothing. The evaluator gained the pure global functions a url
+  needs (`encodeURIComponent` and friends, `parseInt`, `String`/`Number`/`Boolean`).
+- **Redwood: a Button whose actionable is a RouteLink navigates** in a listing toolbar and in a record
+  page header (primary, back, secondary). It ran its `actionId` — only the label's echo — and strict
+  mode answered 403 "You're not allowed to do this". Header labels are interpolated
+  (`Back to ${state.name}`).
+- **Listings over a REST source keep the fields a column reads beside its own** — a primary cell's
+  `leadingPath` (picture) and `captionPath`, a `tooltipPath` — on the web, Redwood and React Native;
+  a row mapped to the column ids alone dropped them. React Native's list row draws the picture and
+  the caption.
+- **Visual editor:** on the mount board, a welcome page no longer swallows the sections the shell also
+  leads to into its own band.
+
+### Mobile app
+
+- **Material 3 hub** (React Native Paper): top app bars, the list with round avatars, a "+" FAB that
+  opens a bottom sheet (Scan a QR code / Type an address), the open UI's bar in its colour.
+- **Add a UI from the address of any of its pages** — a browser's own "QR code for this page", a
+  pasted page url: the app asks for the manifest from the full path upwards and opens the screen.
+- **Opening fast:** a UI opened before opens with its cached manifest (refreshed in the background),
+  a static bundle kept on disk and revalidated with its ETag, and its last screens painted while the
+  fresh ones load — never for a UI that signs in. Icons cached on disk. `[Mateu timing]` logs.
+- **EAS build:** `.easignore` patterns take no trailing `/` (eas-cli matches bare folder paths); the
+  shared library sources the bundler watches are kept.
+
+### Docs and demos
+
+- Static UI: reads static, writes through a same-origin backend that holds the API key.
+- Mobile app: adding from a page address; opening fast. Figma: generating and publishing the library.
+- Public Star Wars demos: starwars.ec1.mateu.io (Vaadin) and starwars-rw.ec1.mateu.io (static Redwood).
+
 ## [3.0-beta.21] — 2026-10-29
 
 On Redwood, a Welcome's hero image is drawn again, as the banner's texture (as on redwood.oracle.com).
