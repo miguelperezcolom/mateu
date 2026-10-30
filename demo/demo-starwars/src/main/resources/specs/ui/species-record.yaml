@@ -28,21 +28,30 @@ template:
     - {type: FormField, id: designation, label: Designation, readOnly: true, propertyRow: true}
     - {type: FormField, id: language, label: Language, readOnly: true, propertyRow: true}
     - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true, propertyRow: true}
+# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
 content:
   - type: TabLayout
     tabs:
       - type: Tab
-        label: Physiology
+        label: Details
         content:
-          type: FormLayout
+          type: VerticalLayout
+          horizontalAlignment: STRETCH   # the sections fill the main slot
           content:
-            - {type: FormField, id: averageHeight, label: Average height (cm), dataType: integer, readOnly: true, propertyRow: true}
-            - {type: FormField, id: averageLifespan, label: Average lifespan (y), dataType: integer, readOnly: true, propertyRow: true}
-      - type: Tab
-        label: Appearance
-        content:
-          type: FormLayout
-          content:
-            - {type: FormField, id: skinColors, label: Skin colours, readOnly: true, propertyRow: true}
-            - {type: FormField, id: hairColors, label: Hair colours, readOnly: true, propertyRow: true}
-            - {type: FormField, id: eyeColors, label: Eye colours, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Physiology}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: averageHeight, label: Average height (cm), dataType: integer, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: averageLifespan, label: Average lifespan (y), dataType: integer, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Appearance}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: skinColors, label: Skin colours, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: hairColors, label: Hair colours, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: eyeColors, label: Eye colours, readOnly: true, propertyRow: true}

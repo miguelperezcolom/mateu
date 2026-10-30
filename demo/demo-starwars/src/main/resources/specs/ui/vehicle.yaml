@@ -27,23 +27,32 @@ template:
     - {type: FormField, id: model, label: Model, readOnly: true, propertyRow: true}
     - {type: FormField, id: manufacturer, label: Manufacturer, readOnly: true, propertyRow: true}
     - {type: FormField, id: vehicleClass, label: Class, readOnly: true, propertyRow: true}
+# the main slot: Redwood's examples put the record's details in SECTIONS (oj-sp-section)
 content:
   - type: TabLayout
     tabs:
       - type: Tab
-        label: Specifications
+        label: Details
         content:
-          type: FormLayout
+          type: VerticalLayout
+          horizontalAlignment: STRETCH   # the sections fill the main slot
           content:
-            - {type: FormField, id: length, label: Length (m), dataType: number, readOnly: true, propertyRow: true}
-            - {type: FormField, id: maxAtmospheringSpeed, label: Max speed, dataType: integer, readOnly: true, propertyRow: true}
-            - {type: FormField, id: crew, label: Crew, readOnly: true, propertyRow: true}
-            - {type: FormField, id: passengers, label: Passengers, dataType: integer, readOnly: true, propertyRow: true}
-      - type: Tab
-        label: Logistics
-        content:
-          type: FormLayout
-          content:
-            - {type: FormField, id: cargoCapacity, label: Cargo capacity, dataType: number, readOnly: true, propertyRow: true}
-            - {type: FormField, id: consumables, label: Consumables, readOnly: true, propertyRow: true}
-            - {type: FormField, id: costInCredits, label: Cost (credits), dataType: number, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Specifications}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: length, label: Length (m), dataType: number, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: maxAtmospheringSpeed, label: Max speed, dataType: integer, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: crew, label: Crew, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: passengers, label: Passengers, dataType: integer, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Logistics}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: cargoCapacity, label: Cargo capacity, dataType: number, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: consumables, label: Consumables, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: costInCredits, label: Cost (credits), dataType: number, readOnly: true, propertyRow: true}

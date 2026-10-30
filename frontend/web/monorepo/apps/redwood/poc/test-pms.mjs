@@ -2424,3 +2424,35 @@ test('a page that DECLARES the Item overview page template (YAML template: ItemO
   assert.deepEqual(wrappedIo.tabs.map((t) => t.label), ['Physique', 'Appearance'])
   assert.equal(itemOverviewPageHeaderOf(wrapped, wrappedIo).itemTitle, 'Luke')
 })
+
+test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {
+  // the body is Spectra's read-only form layout: property rows (nested ones too) are drawn stacked
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/item-overview-page.golden.json'), 'utf-8'))
+  const host = { state: { name: 'Luke' }, data: {}, tree: golden.fragments[0].component }
+  const io = itemOverviewOf(host)
+  const rows = { ...io, key: { ...io.key, items: [
+    { isPropertyRow: true, label: 'Gender', value: 'male' },
+    { isRow: true, items: [{ isPropertyRow: true, label: 'Height', value: '172' }] },
+    { isText: true, text: 'note' },
+  ] } }
+  const keyItems = itemOverviewPageHeaderOf(host, rows).keyItems
+  assert.equal(keyItems[0].stacked, true)
+  assert.equal(keyItems[1].items[0].stacked, true)
+  assert.equal(keyItems[2].stacked, undefined)
+
+  // a titled section (a Card marked mateu-section, its title a heading) in the main slot keeps its
+  // oj-sp-section header, and its title is not repeated as a text
+  const section = { type: 'ClientSide', id: 's1', cssClasses: 'mateu-section', children: [],
+    metadata: { type: 'Card', title: { type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Physique' } },
+      content: { type: 'ClientSide', metadata: { type: 'Text', text: 'Tall' } } } }
+  const tree = JSON.parse(JSON.stringify(golden.fragments[0].component))
+  const main = (function find(n) { if (!n || typeof n !== 'object') return null; if (n.id === 'item-overview-main') return n
+    for (const c of n.children || []) { const r = find(c); if (r) return r } return null })(tree)
+  main.children = [section]
+  const sectioned = itemOverviewOf({ ...host, tree })
+  const header = sectioned.mainItems.find((a) => a.isSpSectionHeader)
+  assert.equal(header && header.sectionTitle, 'Physique')
+  assert.equal(sectioned.mainItems.filter((a) => a.text === 'Physique').length, 0)
+  assert.ok(sectioned.mainItems.some((a) => a.text === 'Tall'))
+})

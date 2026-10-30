@@ -139,7 +139,7 @@
     </div>
   </div>
 </oj-bind-if>
-<div :class="[[ 'oj-sp-public-primary-content-container ' + $application.variables.mateuPageDensityClass + ' ' + $application.variables.mateuToc.cls ]]"
+<div :class="[[ 'oj-sp-public-primary-content-container ' + $application.variables.mateuPageDensityClass + ' ' + $application.variables.mateuPageHostClass + ' ' + $application.variables.mateuToc.cls ]]"
   :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
   :style.margin="[[ $application.variables.mateuPageMargin ]]"
   :style.padding="[[ $application.variables.mateuPagePadding ]]">
@@ -1423,7 +1423,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -3775,7 +3782,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -5597,7 +5611,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -7452,7 +7473,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -9274,7 +9302,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -11157,7 +11192,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -13033,7 +13075,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -14861,7 +14910,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -16700,7 +16756,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -18557,7 +18620,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -20390,7 +20460,14 @@
                           <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                         </div>
                       </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                        <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                        <div class="oj-sm-margin-3x-bottom">
+                          <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                          <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                        </div>
+                      </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                         <div class="oj-flex oj-sm-margin-1x-bottom">
                           <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                           <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -22241,7 +22318,14 @@
                           <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                         </div>
                       </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                        <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                        <div class="oj-sm-margin-3x-bottom">
+                          <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                          <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                        </div>
+                      </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                         <div class="oj-flex oj-sm-margin-1x-bottom">
                           <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                           <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -24075,7 +24159,14 @@
                                 <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                               </div>
                             </oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                            <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                              <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                              <div class="oj-sm-margin-3x-bottom">
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                              </div>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                               <div class="oj-flex oj-sm-margin-1x-bottom">
                                 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                                 <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -25913,7 +26004,14 @@
                                 <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                               </div>
                             </oj-bind-if>
-                            <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                            <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                              <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                              <div class="oj-sm-margin-3x-bottom">
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                              </div>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                               <div class="oj-flex oj-sm-margin-1x-bottom">
                                 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                                 <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -27758,7 +27856,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -29585,7 +29690,14 @@
                           <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                         </div>
                       </oj-bind-if>
-                      <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                        <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                        <div class="oj-sm-margin-3x-bottom">
+                          <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                          <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                        </div>
+                      </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                         <div class="oj-flex oj-sm-margin-1x-bottom">
                           <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                           <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -31412,7 +31524,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -33260,7 +33379,14 @@
                   <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                 </div>
               </oj-bind-if>
-              <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+              <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                <div class="oj-sm-margin-3x-bottom">
+                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                </div>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                 <div class="oj-flex oj-sm-margin-1x-bottom">
                   <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                   <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -34148,7 +34274,7 @@
            tabs that do not fit go to an overflow menu instead of being clipped out of reach -->
       <!-- a template page whose main slot is not one tab bar has no bar: its atoms come as they are -->
       <oj-bind-if test="[[ $application.variables.mateuItemOv.tabs.length > 0 ]]">
-        <oj-tab-bar id="mateuItemTabs" edge="top" overflow="popup" selection="[[ $application.variables.mateuItemOv.selectedTab ]]"
+        <oj-tab-bar id="mateuItemTabs" edge="top" layout="condense" overflow="popup" selection="[[ $application.variables.mateuItemOv.selectedTab ]]"
                     on-selection-changed="[[ $listeners.itemTabChanged ]]"
                     data-node-bound :data-node-id="[[ $application.variables.mateuItemOv.tabsNodeId || null ]]">
           <ul>
@@ -35098,7 +35224,14 @@
                   <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                 </div>
               </oj-bind-if>
-              <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+              <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                <div class="oj-sm-margin-3x-bottom">
+                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                </div>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                 <div class="oj-flex oj-sm-margin-1x-bottom">
                   <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                   <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -36949,7 +37082,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -39122,7 +39262,14 @@
                             <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                           </div>
                         </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                        <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                          <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                          <div class="oj-sm-margin-3x-bottom">
+                            <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                            <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                          </div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                           <div class="oj-flex oj-sm-margin-1x-bottom">
                             <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                             <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -41306,7 +41453,14 @@
                             <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                           </div>
                         </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                        <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                          <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                          <div class="oj-sm-margin-3x-bottom">
+                            <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                            <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                          </div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                           <div class="oj-flex oj-sm-margin-1x-bottom">
                             <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                             <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -43476,7 +43630,14 @@
                             <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                           </div>
                         </oj-bind-if>
-                        <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                        <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                          <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                          <div class="oj-sm-margin-3x-bottom">
+                            <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                            <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                          </div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                           <div class="oj-flex oj-sm-margin-1x-bottom">
                             <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                             <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -45614,7 +45775,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -47434,7 +47602,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -49968,7 +50143,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -51788,7 +51970,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -53682,7 +53871,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -55504,7 +55700,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -57340,7 +57543,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -59162,7 +59372,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -61041,7 +61258,14 @@
                       <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                     </div>
                   </oj-bind-if>
-                  <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                  <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                    <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                    <div class="oj-sm-margin-3x-bottom">
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                      <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                    </div>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                     <div class="oj-flex oj-sm-margin-1x-bottom">
                       <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -62863,7 +63087,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
@@ -64685,7 +64916,14 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
-                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
+                      <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
+                      <div class="oj-sm-margin-3x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>

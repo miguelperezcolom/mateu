@@ -572,6 +572,11 @@
       "type": "string",
       "defaultValue": "1408px"
     },
+    "mateuPageHostClass": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "'mateu-iop-host' while a page template owns the page (pageProjection.pageLayoutOf): the content container drops its card surface"
+    },
     "mateuPageDensityClass": {
       "type": "string",
       "defaultValue": "",

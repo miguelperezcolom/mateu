@@ -4249,7 +4249,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function itemOverviewOf(ctx) {
     // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
     const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
-      metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
+      metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
+      // a titled @Section keeps Spectra's own section header (oj-sp-section: title, accent marker,
+      // affordances) with its body below — flattened to its items it was a bold line among the fields
+      ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+      : b.items || []))
     const templated = templatedItemOverviewOf(ctx, atomsOfNodes)
     if (templated) return templated
     const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
@@ -5528,7 +5532,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         plain = null
         // a fluent Card's title is a COMPONENT (a Text): its texts, as in cardOf
         const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
-        if (title) card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
+        // a section's heading IS that title (oj-sp-section draws it): not twice
+        if (title && !(card.sectionTitle && String(title).trim() === card.sectionTitle)) {
+          card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
+        }
         for (const child of node.children || []) visit(child, card)
         const cardInner = m.content
         if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))
@@ -12038,6 +12045,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The few named entities a rich-text heading carries, decoded in ONE pass (so `&amp;lt;` stays `&lt;`). */
   const decodeHeadingEntities = (text) => text.replace(/&(amp|nbsp|lt|gt|quot|apos|#39);/g, (_, name) => HEADING_ENTITIES[name])
 
+  /** Property rows drawn stacked (label above the value), nested ones too. */
+  function stackedPropertyRows(items) {
+    return (items || []).map((i) => {
+      if (!i || typeof i !== 'object') return i
+      if (i.isPropertyRow) return { ...i, stacked: true }
+      return Array.isArray(i.items) ? { ...i, items: stackedPropertyRows(i.items) } : i
+    })
+  }
+
   /**
    * A page that DECLARES the Item overview page template: every value of oj-sp-item-overview is the
    * page's own, named as Spectra names it — itemTitle/itemSubtitle the form's title/subtitle, the badge
@@ -12064,7 +12080,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       avatar,
       // Spectra shows the avatar when there is one, else the photo
       photo: avatar ? null : image(item.template.photo),
-      keyItems: item.key.items,
+      // the body slot is a read-only FORM LAYOUT in Spectra (label above the value), so the panel's
+      // property rows are drawn stacked there (deep: a row can sit inside a layout atom)
+      keyItems: stackedPropertyRows(item.key.items),
     }
   }
 
@@ -22944,6 +22962,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // Redwood's own tokens — the small control height, the 1x form-layout spacing); PRECOMPUTED,
       // the VB expression evaluator has no ternaries
       mateuPageDensityClass: pageDensityOf(host) === 'compact' ? 'mateu-density-compact' : '',
+      // the item overview template OWNS the page: its header band and zones sit on the page itself, as
+      // in Redwood's examples — the content container's card surface would frame it (app.css)
+      mateuPageHostClass: iopOn ? 'mateu-iop-host' : '',
     }
     if (band) {
       out.mateuBandBoxMargin = pageStyle.margin
