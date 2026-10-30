@@ -1,6 +1,6 @@
 {
-  "$comment": "Mateu <-> Figma design contract. SINGLE SOURCE OF TRUTH for the design-to-code pipeline: the Figma plugin (design/figma/plugin) BUILDS the component library from this file, and modux's Figma importer maps instances found in a Figma file BACK through it to UiComponentNodeEntity trees (kind + params) that the generators emit as Java/C#/Python. Conventions: component names are 'Mateu/<Category>/<Name>'; 'variants' become Figma VARIANT axes (visual), 'props' become Figma component properties (TEXT/BOOLEAN, non-visual config like actionId), 'texts' name the text layers whose content is a designer override that maps to the given param. 'sketch' is the compact draw spec the plugin renders (primitives: title, label, value, text, chip, fieldbox, hr, dot, bullets, bar, stepper, row, table, imagebox, button, tile).",
-  "version": 1,
+  "$comment": "Mateu <-> Figma design contract. SINGLE SOURCE OF TRUTH for the design-to-code pipeline: the Figma plugin (design/figma/plugin) BUILDS the component library from this file; design/figma/to-yaml reads a Figma file (REST JSON) BACK through it and writes specs/ui YAML; modux's Figma importer maps instances to its own model for Java/C#/Python. Conventions: component names are 'Mateu/<Category>/<Name>'; 'variants' become Figma VARIANT axes (visual), 'props' are non-visual config written in the '#config' text layer (key=value; ...), 'texts' name the text layers whose content is a designer override that maps to the given param. 'yaml' is the YAML mapping (see yamlConventions.yaml); 'yamlNotDrawn' lists the YAML component types with no Figma counterpart, and why. 'sketch' is the compact draw spec the plugin renders (primitives: title, label, value, text, chip, fieldbox, hr, dot, bullets, bar, stepper, row, col, table, imagebox, button, tile, listrow, slot — a slot with a name is drawn as the frame 'slot:<name>').",
+  "version": 2,
   "namePrefix": "Mateu/",
   "lumo": {
     "primary": "#1a73e8",
@@ -52,7 +52,8 @@
       "python": "str field",
       "props": {
         "fieldId": "TEXT",
-        "required": "BOOLEAN"
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label",
@@ -67,7 +68,16 @@
           "t": "fieldbox",
           "text": "Value"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "string"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/TextArea",
@@ -80,7 +90,9 @@
       "csharp": "[Multiline] string",
       "python": "Annotated[str, Multiline()]",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -94,7 +106,17 @@
           "t": "fieldbox",
           "h": 64
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "string",
+          "stereotype": "textarea"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/Number",
@@ -106,7 +128,9 @@
       "csharp": "double/decimal property",
       "python": "float field",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -120,7 +144,16 @@
           "t": "fieldbox",
           "text": "0,00"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "number"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/Integer",
@@ -132,7 +165,9 @@
       "csharp": "int/long property",
       "python": "int field",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -146,7 +181,16 @@
           "t": "fieldbox",
           "text": "0"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "integer"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/Checkbox",
@@ -164,7 +208,9 @@
       "csharp": "bool property",
       "python": "bool field",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -183,7 +229,16 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "bool"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/Date",
@@ -202,7 +257,9 @@
       "csharp": "DateOnly/DateTime property",
       "python": "date/datetime field",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -217,7 +274,13 @@
           "text": "15/07/2026",
           "icon": "📅"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/Select",
@@ -239,7 +302,9 @@
       "csharp": "enum property / [Lookup]",
       "python": "Enum field / Lookup()",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label",
@@ -255,7 +320,16 @@
           "text": "Value",
           "icon": "▾"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "string"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/RadioGroup",
@@ -267,7 +341,9 @@
       "csharp": "[UseRadioButtons] enum",
       "python": "Annotated[Enum, UseRadioButtons()]",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -297,7 +373,17 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "string",
+          "stereotype": "radio"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/PlainText",
@@ -315,7 +401,9 @@
       "csharp": "[PlainText] property",
       "python": "Annotated[str, PlainText()]",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label",
@@ -330,7 +418,18 @@
           "t": "value",
           "text": "Value"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "stereotype": "plainText",
+          "readOnly": true
+        },
+        "params": {
+          "fieldId": "id",
+          "value": null
+        }
+      }
     },
     {
       "name": "Mateu/Field/PropertyRow",
@@ -342,7 +441,9 @@
       "csharp": "[Section(PropertyList=true)] fields",
       "python": "Section(property_list=True) fields",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label",
@@ -366,7 +467,19 @@
         {
           "t": "hr"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "string",
+          "propertyRow": true,
+          "readOnly": true
+        },
+        "params": {
+          "fieldId": "id",
+          "value": null
+        }
+      }
     },
     {
       "name": "Mateu/Field/Slider",
@@ -378,7 +491,9 @@
       "csharp": "numeric + slider stereotype",
       "python": "Stereotype('slider')",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -393,7 +508,17 @@
           "value": 0.6,
           "knob": true
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "integer",
+          "stereotype": "slider"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/Stars",
@@ -405,7 +530,9 @@
       "csharp": "Stereotype stars",
       "python": "Stereotype('stars')",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -420,7 +547,17 @@
           "text": "★★★★☆",
           "color": "#c98a1e"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "integer",
+          "stereotype": "stars"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/BadgeChip",
@@ -432,7 +569,9 @@
       "csharp": "badge stereotype",
       "python": "Stereotype('badge')",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -443,7 +582,17 @@
           "text": "Label",
           "theme": "success"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "bool",
+          "stereotype": "badge"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/Image",
@@ -463,7 +612,9 @@
       "csharp": "[UploadableImage]…",
       "python": "UploadableImage()…",
       "props": {
-        "fieldId": "TEXT"
+        "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN"
       },
       "texts": {
         "Label": "label"
@@ -476,7 +627,16 @@
         {
           "t": "imagebox"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "string"
+        },
+        "params": {
+          "fieldId": "id"
+        }
+      }
     },
     {
       "name": "Mateu/Field/Grid",
@@ -489,6 +649,8 @@
       "python": "list[Row] field",
       "props": {
         "fieldId": "TEXT",
+        "required": "BOOLEAN",
+        "readOnly": "BOOLEAN",
         "onRowSelected": "TEXT"
       },
       "texts": {
@@ -503,8 +665,62 @@
           "t": "table",
           "cols": 3,
           "rows": 3
+        },
+        {
+          "t": "slot",
+          "name": "columns",
+          "h": 40,
+          "label": "GridColumn instances"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FormField",
+        "set": {
+          "dataType": "array",
+          "stereotype": "grid"
+        },
+        "params": {
+          "fieldId": "id",
+          "onRowSelected": "onItemSelectionActionId"
+        },
+        "slots": {
+          "columns": {
+            "path": "columns",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Field/CustomField",
+      "kind": "field",
+      "props": {
+        "colspan": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40
+        }
+      ],
+      "yaml": {
+        "type": "CustomField",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "HorizontalLayout"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Layout/Section",
@@ -541,9 +757,43 @@
         },
         {
           "t": "slot",
+          "name": "content",
           "h": 120
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Card",
+        "set": {
+          "cssClasses": "mateu-section"
+        },
+        "params": {
+          "title": {
+            "path": "title",
+            "component": {
+              "type": "Text",
+              "container": "h3"
+            },
+            "key": "text"
+          },
+          "propertyList": {
+            "path": null,
+            "whenTrue": {
+              "propertyRow": true,
+              "readOnly": true
+            }
+          },
+          "frameless": null,
+          "sticky": null,
+          "zone": null,
+          "columns": null
+        },
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "FormLayout"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Layout/ZonesRow",
@@ -570,8 +820,28 @@
               "h": 140
             }
           ]
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 80
         }
-      ]
+      ],
+      "yaml": {
+        "type": "HorizontalLayout",
+        "set": {
+          "wrap": true
+        },
+        "params": {
+          "widths": null
+        },
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Layout/Tabs",
@@ -606,9 +876,24 @@
         },
         {
           "t": "slot",
-          "h": 100
+          "name": "tabs",
+          "h": 80,
+          "label": "Tab instances"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "TabLayout",
+        "params": {
+          "tab1": null,
+          "tab2": null
+        },
+        "slots": {
+          "tabs": {
+            "path": "tabs",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Layout/Accordion",
@@ -640,9 +925,23 @@
         },
         {
           "t": "slot",
-          "h": 80
+          "name": "panels",
+          "h": 80,
+          "label": "AccordionPanel instances"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "AccordionLayout",
+        "params": {
+          "label": null
+        },
+        "slots": {
+          "panels": {
+            "path": "panels",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Layout/Card",
@@ -661,9 +960,29 @@
         },
         {
           "t": "slot",
-          "h": 100
+          "name": "content",
+          "h": 80
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Card",
+        "params": {
+          "title": {
+            "path": "title",
+            "component": {
+              "type": "Text",
+              "container": "h3"
+            },
+            "key": "text"
+          }
+        },
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Layout/Separator",
@@ -676,7 +995,10 @@
           "t": "hr",
           "w": 320
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Separator"
+      }
     },
     {
       "name": "Mateu/Layout/SplitView",
@@ -700,8 +1022,36 @@
               "h": 160
             }
           ]
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "master",
+              "h": 100,
+              "w": 180
+            },
+            {
+              "t": "slot",
+              "name": "detail",
+              "h": 100,
+              "w": 180
+            }
+          ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "SplitLayout",
+        "slots": {
+          "master": {
+            "path": "master"
+          },
+          "detail": {
+            "path": "detail"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Layout/ContentLayout",
@@ -740,10 +1090,818 @@
           ]
         },
         {
-          "t": "slot",
-          "h": 44
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "main",
+              "h": 100,
+              "w": 240
+            },
+            {
+              "t": "slot",
+              "name": "aside",
+              "h": 100,
+              "w": 120
+            }
+          ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "ContentLayout",
+        "slots": {
+          "main": {
+            "path": "main",
+            "many": true
+          },
+          "aside": {
+            "path": "aside",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/VerticalLayout",
+      "kind": "verticalLayout",
+      "variants": {
+        "horizontalAlignment": [
+          "START",
+          "CENTER",
+          "END",
+          "STRETCH"
+        ]
+      },
+      "props": {
+        "spacing": "BOOLEAN",
+        "padding": "BOOLEAN"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 80
+        }
+      ],
+      "yaml": {
+        "type": "VerticalLayout",
+        "defaults": {
+          "horizontalAlignment": "START"
+        },
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/HorizontalLayout",
+      "kind": "horizontalLayout",
+      "variants": {
+        "justification": [
+          "START",
+          "CENTER",
+          "END",
+          "BETWEEN"
+        ]
+      },
+      "props": {
+        "spacing": "BOOLEAN",
+        "wrap": "BOOLEAN"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 50
+        }
+      ],
+      "yaml": {
+        "type": "HorizontalLayout",
+        "defaults": {
+          "justification": "START"
+        },
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/FormLayout",
+      "kind": "formLayout",
+      "props": {
+        "maxColumns": "TEXT",
+        "labelsAside": "BOOLEAN"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 100,
+          "label": "FormField instances"
+        }
+      ],
+      "yaml": {
+        "type": "FormLayout",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/FormRow",
+      "kind": "formRow",
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40
+        }
+      ],
+      "yaml": {
+        "type": "FormRow",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/FormItem",
+      "kind": "formItem",
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40
+        }
+      ],
+      "yaml": {
+        "type": "FormItem",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/FormSection",
+      "kind": "formSection",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "spread": true,
+          "items": [
+            {
+              "t": "title",
+              "text": "Title"
+            },
+            {
+              "t": "slot",
+              "name": "toolbar",
+              "h": 32,
+              "w": 160,
+              "label": "Button instances"
+            }
+          ]
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 80
+        }
+      ],
+      "yaml": {
+        "type": "FormSection",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          },
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/FormSubSection",
+      "kind": "formSubSection",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 13
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 60
+        }
+      ],
+      "yaml": {
+        "type": "FormSubSection",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/Tab",
+      "kind": "tab",
+      "props": {
+        "shortcut": "TEXT",
+        "badge": "TEXT",
+        "active": "BOOLEAN"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "text",
+          "text": "Label",
+          "bold": true
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 80
+        }
+      ],
+      "yaml": {
+        "type": "Tab",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/AccordionPanel",
+      "kind": "accordionPanel",
+      "props": {
+        "active": "BOOLEAN"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "Label",
+              "bold": true
+            },
+            {
+              "t": "text",
+              "text": "▾"
+            }
+          ],
+          "spread": true
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 60
+        }
+      ],
+      "yaml": {
+        "type": "AccordionPanel",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/ResponsiveGrid",
+      "kind": "responsiveGrid",
+      "props": {
+        "gap": "TEXT",
+        "gridTemplateAreas": "TEXT"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 100
+        }
+      ],
+      "yaml": {
+        "type": "ResponsiveGrid",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/Slotted",
+      "kind": "slotted",
+      "props": {
+        "slot": "TEXT"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "slot"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40
+        }
+      ],
+      "yaml": {
+        "type": "Slotted",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/BoardLayout",
+      "kind": "boardLayout",
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "rows",
+          "h": 80,
+          "label": "BoardLayoutRow instances"
+        }
+      ],
+      "yaml": {
+        "type": "BoardLayout",
+        "slots": {
+          "rows": {
+            "path": "rows",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/BoardLayoutRow",
+      "kind": "boardLayoutRow",
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 50
+        }
+      ],
+      "yaml": {
+        "type": "BoardLayoutRow",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/BoardLayoutItem",
+      "kind": "boardLayoutItem",
+      "props": {
+        "boardCols": "TEXT"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 50
+        }
+      ],
+      "yaml": {
+        "type": "BoardLayoutItem",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/CarouselLayout",
+      "kind": "carouselLayout",
+      "props": {
+        "auto": "BOOLEAN",
+        "loop": "BOOLEAN",
+        "dots": "BOOLEAN"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "‹"
+            },
+            {
+              "t": "slot",
+              "name": "content",
+              "h": 80,
+              "w": 300
+            },
+            {
+              "t": "text",
+              "text": "›"
+            }
+          ]
+        },
+        {
+          "t": "dot",
+          "size": 8
+        }
+      ],
+      "yaml": {
+        "type": "CarouselLayout",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/MasterDetailLayout",
+      "kind": "masterDetailLayout",
+      "variants": {
+        "orientation": [
+          "horizontal",
+          "vertical"
+        ]
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "master",
+              "h": 100,
+              "w": 160
+            },
+            {
+              "t": "slot",
+              "name": "detail",
+              "h": 100,
+              "w": 220
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "MasterDetailLayout",
+        "defaults": {
+          "orientation": "horizontal"
+        },
+        "slots": {
+          "master": {
+            "path": "master"
+          },
+          "detail": {
+            "path": "detail"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/DashboardLayout",
+      "kind": "dashboardLayout",
+      "props": {
+        "columns": "TEXT"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "items",
+          "h": 100,
+          "label": "DashboardPanel instances"
+        }
+      ],
+      "yaml": {
+        "type": "DashboardLayout",
+        "slots": {
+          "items": {
+            "path": "items",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/DashboardPanel",
+      "kind": "dashboardPanel",
+      "props": {
+        "colSpan": "TEXT",
+        "rowSpan": "TEXT"
+      },
+      "texts": {
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 80
+        }
+      ],
+      "card": true,
+      "yaml": {
+        "type": "DashboardPanel",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/FoldoutLayout",
+      "kind": "foldoutLayout",
+      "variants": {
+        "orientation": [
+          "vertical",
+          "horizontal"
+        ]
+      },
+      "texts": {
+        "Title": "headerTitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "overview",
+              "h": 100,
+              "w": 160
+            },
+            {
+              "t": "slot",
+              "name": "panels",
+              "h": 100,
+              "w": 220,
+              "label": "FoldoutPanel instances"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "FoldoutLayout",
+        "defaults": {
+          "orientation": "vertical"
+        },
+        "slots": {
+          "overview": {
+            "path": "overview",
+            "wrap": "VerticalLayout"
+          },
+          "panels": {
+            "path": "panels",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/FoldoutPanel",
+      "kind": "foldoutPanel",
+      "props": {
+        "open": "BOOLEAN",
+        "width": "TEXT",
+        "icon": "TEXT"
+      },
+      "texts": {
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 80
+        },
+        {
+          "t": "slot",
+          "name": "summary",
+          "h": 30
+        }
+      ],
+      "card": true,
+      "yaml": {
+        "type": "FoldoutPanel",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          },
+          "summary": {
+            "path": "summary",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/Container",
+      "kind": "container",
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 60
+        }
+      ],
+      "yaml": {
+        "type": "Container",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/Div",
+      "kind": "div",
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "children",
+          "h": 60
+        }
+      ],
+      "yaml": {
+        "type": "Div",
+        "slots": {
+          "children": {
+            "path": "children",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/FullWidth",
+      "kind": "fullWidth",
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 60,
+          "w": 420
+        }
+      ],
+      "yaml": {
+        "type": "FullWidth",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/Scroller",
+      "kind": "scroller",
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 80
+        }
+      ],
+      "yaml": {
+        "type": "Scroller",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Layout/Details",
+      "kind": "details",
+      "props": {
+        "opened": "BOOLEAN"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "summary",
+          "h": 30
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 60
+        }
+      ],
+      "yaml": {
+        "type": "Details",
+        "slots": {
+          "summary": {
+            "path": "summary",
+            "wrap": "HorizontalLayout"
+          },
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Display/Text",
@@ -761,7 +1919,8 @@
       "csharp": "new Text{Size}",
       "python": "fluent.Text(size=…)",
       "props": {
-        "noMargins": "BOOLEAN"
+        "noMargins": "BOOLEAN",
+        "container": "TEXT"
       },
       "texts": {
         "Text": "text"
@@ -772,7 +1931,13 @@
           "text": "Text",
           "sizeFromVariant": "size"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Text",
+        "defaults": {
+          "size": "m"
+        }
+      }
     },
     {
       "name": "Mateu/Display/BulletedList",
@@ -794,7 +1959,16 @@
             "Item3"
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "BulletedList",
+        "params": {
+          "item": {
+            "path": "items",
+            "list": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Display/Notice",
@@ -847,8 +2021,22 @@
               "themeBadge": true
             }
           ]
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Notice",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Display/StatusList",
@@ -876,7 +2064,11 @@
           "desc": "Complemento",
           "chip": "En curso"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "StatusList",
+        "items": "items"
+      }
     },
     {
       "name": "Mateu/Display/EntityHeader",
@@ -942,7 +2134,17 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "EntityHeader",
+        "params": {
+          "badges[0]": {
+            "path": "badges",
+            "list": true,
+            "key": "label"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Display/KPI",
@@ -965,7 +2167,14 @@
           "size": 22,
           "color": "primary"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "KPI",
+        "params": {
+          "label": "title",
+          "value": "text"
+        }
+      }
     },
     {
       "name": "Mateu/Display/MetricCard",
@@ -998,7 +2207,10 @@
           "size": 11
         }
       ],
-      "card": true
+      "card": true,
+      "yaml": {
+        "type": "MetricCard"
+      }
     },
     {
       "name": "Mateu/Display/Scoreboard",
@@ -1027,8 +2239,23 @@
               "h": 70
             }
           ]
+        },
+        {
+          "t": "slot",
+          "name": "metrics",
+          "h": 60,
+          "label": "MetricCard instances"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Scoreboard",
+        "slots": {
+          "metrics": {
+            "path": "metrics",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Display/TaskProgress",
@@ -1064,7 +2291,10 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "TaskProgress"
+      }
     },
     {
       "name": "Mateu/Display/Meter",
@@ -1089,7 +2319,10 @@
           "t": "label",
           "text": "Caption"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Meter"
+      }
     },
     {
       "name": "Mateu/Display/ProgressBar",
@@ -1109,7 +2342,10 @@
           "t": "label",
           "text": "Text"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "ProgressBar"
+      }
     },
     {
       "name": "Mateu/Display/ProgressSteps",
@@ -1132,7 +2368,17 @@
           ],
           "current": 1
         }
-      ]
+      ],
+      "yaml": {
+        "type": "ProgressSteps",
+        "params": {
+          "step": {
+            "path": "steps",
+            "list": true,
+            "key": "title"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Display/Banner",
@@ -1173,7 +2419,23 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "record": true,
+        "schema": "PageBanner",
+        "into": "page.banners",
+        "params": {
+          "theme": {
+            "path": "theme",
+            "values": {
+              "info": "INFO",
+              "success": "SUCCESS",
+              "warning": "WARNING",
+              "danger": "DANGER"
+            }
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Display/CalloutCard",
@@ -1218,7 +2480,10 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "CalloutCard"
+      }
     },
     {
       "name": "Mateu/Display/EmptyState",
@@ -1260,7 +2525,10 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "EmptyState"
+      }
     },
     {
       "name": "Mateu/Display/Skeleton",
@@ -1294,7 +2562,10 @@
           "color": "#eeeeee",
           "w": 200
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Skeleton"
+      }
     },
     {
       "name": "Mateu/Display/Timeline",
@@ -1319,7 +2590,11 @@
           "title": "Evento anterior",
           "desc": "ayer"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Timeline",
+        "items": "items"
+      }
     },
     {
       "name": "Mateu/Display/Kanban",
@@ -1351,7 +2626,10 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Kanban"
+      }
     },
     {
       "name": "Mateu/Display/Gantt",
@@ -1366,7 +2644,10 @@
           "rows": 3,
           "gantt": true
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Gantt"
+      }
     },
     {
       "name": "Mateu/Display/PlanningBoard",
@@ -1388,7 +2669,10 @@
           "rows": 4,
           "gantt": true
         }
-      ]
+      ],
+      "yaml": {
+        "type": "PlanningBoard"
+      }
     },
     {
       "name": "Mateu/Display/MatrixGrid",
@@ -1413,7 +2697,10 @@
           "cols": 7,
           "rows": 4
         }
-      ]
+      ],
+      "yaml": {
+        "type": "MatrixGrid"
+      }
     },
     {
       "name": "Mateu/Display/ActionPanel",
@@ -1432,7 +2719,10 @@
           "t": "button",
           "text": "Label"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "ActionPanel"
+      }
     },
     {
       "name": "Mateu/Display/DropZone",
@@ -1465,8 +2755,22 @@
               "text": "Subtitle"
             }
           ]
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40
         }
-      ]
+      ],
+      "yaml": {
+        "type": "DropZone",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Display/Map",
@@ -1485,7 +2789,10 @@
           "h": 140,
           "label": "🗺"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Map"
+      }
     },
     {
       "name": "Mateu/Display/Calendar",
@@ -1499,7 +2806,10 @@
           "cols": 7,
           "rows": 5
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Calendar"
+      }
     },
     {
       "name": "Mateu/Display/Stat",
@@ -1533,7 +2843,10 @@
           ]
         }
       ],
-      "card": true
+      "card": true,
+      "yaml": {
+        "type": "Stat"
+      }
     },
     {
       "name": "Mateu/Display/TrendChart",
@@ -1554,7 +2867,10 @@
           "h": 80,
           "label": "📈"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "TrendChart"
+      }
     },
     {
       "name": "Mateu/Display/Heatmap",
@@ -1569,7 +2885,10 @@
           "rows": 4,
           "heat": true
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Heatmap"
+      }
     },
     {
       "name": "Mateu/Display/Funnel",
@@ -1590,7 +2909,10 @@
           "t": "bar",
           "value": 0.4
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Funnel"
+      }
     },
     {
       "name": "Mateu/Display/OrgChart",
@@ -1604,7 +2926,10 @@
           "h": 110,
           "label": "🌳"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "OrgChart"
+      }
     },
     {
       "name": "Mateu/Display/FeatureGrid",
@@ -1633,7 +2958,10 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FeatureGrid"
+      }
     },
     {
       "name": "Mateu/Display/Testimonials",
@@ -1656,7 +2984,11 @@
           "text": "Author"
         }
       ],
-      "card": true
+      "card": true,
+      "yaml": {
+        "type": "Testimonials",
+        "items": "items"
+      }
     },
     {
       "name": "Mateu/Display/Faq",
@@ -1688,7 +3020,11 @@
           "t": "label",
           "text": "Answer"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Faq",
+        "items": "items"
+      }
     },
     {
       "name": "Mateu/Display/CommentThread",
@@ -1709,7 +3045,10 @@
           "title": "Otra persona",
           "desc": "Una respuesta…"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "CommentThread"
+      }
     },
     {
       "name": "Mateu/Display/FileList",
@@ -1730,7 +3069,10 @@
           "title": "foto.jpg",
           "desc": "300 KB"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "FileList"
+      }
     },
     {
       "name": "Mateu/Display/Checklist",
@@ -1754,7 +3096,10 @@
             "○ Pendiente"
           ]
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Checklist"
+      }
     },
     {
       "name": "Mateu/Display/ComparisonCard",
@@ -1788,7 +3133,10 @@
           ]
         }
       ],
-      "card": true
+      "card": true,
+      "yaml": {
+        "type": "ComparisonCard"
+      }
     },
     {
       "name": "Mateu/Display/HeroSection",
@@ -1824,8 +3172,850 @@
               "h": 40
             }
           ]
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40
         }
-      ]
+      ],
+      "yaml": {
+        "type": "HeroSection",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Display/Avatar",
+      "kind": "avatar",
+      "props": {
+        "image": "TEXT",
+        "abbreviation": "TEXT"
+      },
+      "texts": {
+        "Name": "name"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "dot",
+              "size": 36,
+              "text": "AB",
+              "color": "primary"
+            },
+            {
+              "t": "text",
+              "text": "Name"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Avatar"
+      }
+    },
+    {
+      "name": "Mateu/Display/AvatarGroup",
+      "kind": "avatarGroup",
+      "props": {
+        "maxItemsVisible": "TEXT"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "avatars",
+          "h": 40,
+          "w": 200,
+          "label": "Avatar instances"
+        }
+      ],
+      "yaml": {
+        "type": "AvatarGroup",
+        "slots": {
+          "avatars": {
+            "path": "avatars",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Display/Badge",
+      "kind": "badge",
+      "variants": {
+        "color": [
+          "normal",
+          "success",
+          "error",
+          "warning",
+          "contrast"
+        ]
+      },
+      "props": {
+        "pill": "BOOLEAN",
+        "small": "BOOLEAN"
+      },
+      "texts": {
+        "Text": "text"
+      },
+      "sketch": [
+        {
+          "t": "chip",
+          "text": "Text"
+        }
+      ],
+      "yaml": {
+        "type": "Badge",
+        "defaults": {
+          "color": "normal"
+        }
+      }
+    },
+    {
+      "name": "Mateu/Display/Icon",
+      "kind": "icon",
+      "props": {
+        "icon": "TEXT"
+      },
+      "sketch": [
+        {
+          "t": "text",
+          "text": "★",
+          "size": 20
+        }
+      ],
+      "yaml": {
+        "type": "Icon"
+      }
+    },
+    {
+      "name": "Mateu/Display/Image",
+      "kind": "image",
+      "props": {
+        "src": "TEXT",
+        "alt": "TEXT"
+      },
+      "sketch": [
+        {
+          "t": "imagebox"
+        }
+      ],
+      "yaml": {
+        "type": "Image"
+      }
+    },
+    {
+      "name": "Mateu/Display/Markdown",
+      "kind": "markdown",
+      "texts": {
+        "Markdown": "markdown"
+      },
+      "sketch": [
+        {
+          "t": "text",
+          "text": "Markdown"
+        },
+        {
+          "t": "text",
+          "text": "…"
+        }
+      ],
+      "yaml": {
+        "type": "Markdown"
+      }
+    },
+    {
+      "name": "Mateu/Display/Chart",
+      "kind": "chart",
+      "variants": {
+        "chartType": [
+          "bar",
+          "line",
+          "pie",
+          "doughnut"
+        ]
+      },
+      "sketch": [
+        {
+          "t": "table",
+          "cols": 5,
+          "rows": 3,
+          "heat": true
+        }
+      ],
+      "yaml": {
+        "type": "Chart"
+      }
+    },
+    {
+      "name": "Mateu/Display/Breadcrumbs",
+      "kind": "breadcrumbs",
+      "texts": {
+        "Current": "currentItemText"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "Home",
+              "color": "primary"
+            },
+            {
+              "t": "text",
+              "text": "/"
+            },
+            {
+              "t": "text",
+              "text": "Current"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Breadcrumbs"
+      }
+    },
+    {
+      "name": "Mateu/Display/Anchor",
+      "kind": "anchor",
+      "props": {
+        "url": "TEXT",
+        "target": "TEXT"
+      },
+      "texts": {
+        "Link text": "text"
+      },
+      "sketch": [
+        {
+          "t": "text",
+          "text": "Link text",
+          "color": "primary",
+          "underline": true
+        }
+      ],
+      "yaml": {
+        "type": "Anchor"
+      }
+    },
+    {
+      "name": "Mateu/Display/Notification",
+      "kind": "notification",
+      "texts": {
+        "Title": "title",
+        "Text": "text"
+      },
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 13
+        },
+        {
+          "t": "text",
+          "text": "Text"
+        }
+      ],
+      "card": true,
+      "yaml": {
+        "type": "Notification"
+      }
+    },
+    {
+      "name": "Mateu/Display/NotFound",
+      "kind": "notFound",
+      "props": {
+        "backRoute": "TEXT"
+      },
+      "texts": {
+        "Title": "title",
+        "Message": "message",
+        "Back": "backLabel"
+      },
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "text",
+          "text": "Message"
+        },
+        {
+          "t": "button",
+          "text": "Back",
+          "secondary": true
+        }
+      ],
+      "yaml": {
+        "type": "NotFound"
+      }
+    },
+    {
+      "name": "Mateu/Display/OfferCard",
+      "kind": "offerCard",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Tag": "tag",
+        "Title": "title",
+        "Subtitle": "subtitle",
+        "PriceLabel": "priceLabel",
+        "Action": "actionLabel"
+      },
+      "sketch": [
+        {
+          "t": "imagebox",
+          "w": 220,
+          "h": 80
+        },
+        {
+          "t": "label",
+          "text": "Tag"
+        },
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "text",
+          "text": "Subtitle"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "PriceLabel",
+              "bold": true
+            },
+            {
+              "t": "button",
+              "text": "Action"
+            }
+          ]
+        }
+      ],
+      "card": true,
+      "yaml": {
+        "type": "OfferCard"
+      }
+    },
+    {
+      "name": "Mateu/Display/PricingTable",
+      "kind": "pricingTable",
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "Basic 9"
+            },
+            {
+              "t": "tile",
+              "text": "Pro 29"
+            },
+            {
+              "t": "tile",
+              "text": "Team 99"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "PricingTable"
+      }
+    },
+    {
+      "name": "Mateu/Display/Ledger",
+      "kind": "ledger",
+      "props": {
+        "currency": "TEXT"
+      },
+      "texts": {
+        "TotalLabel": "totalLabel"
+      },
+      "sketch": [
+        {
+          "t": "table",
+          "cols": 2,
+          "rows": 4
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "TotalLabel",
+              "bold": true
+            },
+            {
+              "t": "text",
+              "text": "0.00"
+            }
+          ],
+          "spread": true
+        }
+      ],
+      "yaml": {
+        "type": "Ledger"
+      }
+    },
+    {
+      "name": "Mateu/Display/ProcessMonitor",
+      "kind": "processMonitor",
+      "sketch": [
+        {
+          "t": "listrow",
+          "title": "Process",
+          "desc": "ok · warnings · errors",
+          "chip": "status"
+        }
+      ],
+      "yaml": {
+        "type": "ProcessMonitor"
+      }
+    },
+    {
+      "name": "Mateu/Display/RecordMerge",
+      "kind": "recordMerge",
+      "props": {
+        "mergeActionId": "TEXT",
+        "differencesOnly": "BOOLEAN"
+      },
+      "texts": {
+        "Title": "title",
+        "MergeLabel": "mergeLabel"
+      },
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "table",
+          "cols": 3,
+          "rows": 4
+        },
+        {
+          "t": "button",
+          "text": "MergeLabel"
+        }
+      ],
+      "yaml": {
+        "type": "RecordMerge"
+      }
+    },
+    {
+      "name": "Mateu/Display/ResourceGrid",
+      "kind": "resourceGrid",
+      "props": {
+        "actionId": "TEXT",
+        "columns": "TEXT"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "101"
+            },
+            {
+              "t": "tile",
+              "text": "102"
+            },
+            {
+              "t": "tile",
+              "text": "103"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "ResourceGrid"
+      }
+    },
+    {
+      "name": "Mateu/Display/TaskQueue",
+      "kind": "taskQueue",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Group (2)"
+        },
+        {
+          "t": "listrow",
+          "title": "Item",
+          "desc": "Caption",
+          "chip": "badge"
+        },
+        {
+          "t": "listrow",
+          "title": "Item",
+          "desc": "Caption"
+        }
+      ],
+      "yaml": {
+        "type": "TaskQueue"
+      }
+    },
+    {
+      "name": "Mateu/Display/Bpmn",
+      "kind": "bpmn",
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "dot",
+              "size": 20,
+              "hollow": true
+            },
+            {
+              "t": "hr",
+              "w": 40
+            },
+            {
+              "t": "tile",
+              "text": "Task"
+            },
+            {
+              "t": "hr",
+              "w": 40
+            },
+            {
+              "t": "dot",
+              "size": 20
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Bpmn"
+      }
+    },
+    {
+      "name": "Mateu/Display/Workflow",
+      "kind": "workflow",
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "Start"
+            },
+            {
+              "t": "text",
+              "text": "→"
+            },
+            {
+              "t": "tile",
+              "text": "Step"
+            },
+            {
+              "t": "text",
+              "text": "→"
+            },
+            {
+              "t": "tile",
+              "text": "End"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Workflow"
+      }
+    },
+    {
+      "name": "Mateu/Display/FormEditor",
+      "kind": "formEditor",
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "h": 100,
+              "w": 100,
+              "label": "palette"
+            },
+            {
+              "t": "slot",
+              "h": 100,
+              "w": 260,
+              "label": "form"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "FormEditor"
+      }
+    },
+    {
+      "name": "Mateu/Display/MessageList",
+      "kind": "messageList",
+      "sketch": [
+        {
+          "t": "listrow",
+          "icon": "👤",
+          "title": "User",
+          "desc": "Message"
+        },
+        {
+          "t": "listrow",
+          "icon": "👤",
+          "title": "User",
+          "desc": "Message"
+        }
+      ],
+      "yaml": {
+        "type": "MessageList"
+      }
+    },
+    {
+      "name": "Mateu/Display/MessageInput",
+      "kind": "messageInput",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "fieldbox",
+              "text": "Message",
+              "w": 260
+            },
+            {
+              "t": "button",
+              "text": "➤"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "MessageInput"
+      }
+    },
+    {
+      "name": "Mateu/Display/Chat",
+      "kind": "chat",
+      "props": {
+        "sseUrl": "TEXT"
+      },
+      "sketch": [
+        {
+          "t": "listrow",
+          "icon": "🤖",
+          "title": "Assistant",
+          "desc": "Message"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "fieldbox",
+              "text": "Ask…",
+              "w": 260
+            },
+            {
+              "t": "button",
+              "text": "➤"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Chat"
+      }
+    },
+    {
+      "name": "Mateu/Display/AddOnPicker",
+      "kind": "addOnPicker",
+      "props": {
+        "actionId": "TEXT",
+        "currency": "TEXT"
+      },
+      "texts": {
+        "TotalLabel": "totalLabel"
+      },
+      "sketch": [
+        {
+          "t": "listrow",
+          "icon": "➕",
+          "title": "Add-on",
+          "desc": "Description",
+          "chip": "price"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "TotalLabel",
+              "bold": true
+            },
+            {
+              "t": "text",
+              "text": "0.00"
+            }
+          ],
+          "spread": true
+        }
+      ],
+      "yaml": {
+        "type": "AddOnPicker"
+      }
+    },
+    {
+      "name": "Mateu/Display/PaymentPicker",
+      "kind": "paymentPicker",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "ContextLabel": "contextLabel",
+        "ContextValue": "contextValue",
+        "ConfirmLabel": "confirmLabel"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "Card"
+            },
+            {
+              "t": "tile",
+              "text": "Cash"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "label",
+              "text": "ContextLabel"
+            },
+            {
+              "t": "text",
+              "text": "ContextValue",
+              "bold": true
+            }
+          ],
+          "spread": true
+        },
+        {
+          "t": "button",
+          "text": "ConfirmLabel"
+        }
+      ],
+      "yaml": {
+        "type": "PaymentPicker"
+      }
+    },
+    {
+      "name": "Mateu/Display/CookieConsent",
+      "kind": "cookieConsent",
+      "props": {
+        "learnMoreLink": "TEXT"
+      },
+      "texts": {
+        "Message": "message",
+        "Dismiss": "dismiss"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "Message"
+            },
+            {
+              "t": "button",
+              "text": "Dismiss"
+            }
+          ],
+          "spread": true
+        }
+      ],
+      "yaml": {
+        "type": "CookieConsent"
+      }
+    },
+    {
+      "name": "Mateu/Display/VirtualList",
+      "kind": "virtualList",
+      "sketch": [
+        {
+          "t": "listrow",
+          "title": "Row"
+        },
+        {
+          "t": "listrow",
+          "title": "Row"
+        },
+        {
+          "t": "listrow",
+          "title": "Row"
+        }
+      ],
+      "yaml": {
+        "type": "VirtualList"
+      }
+    },
+    {
+      "name": "Mateu/Display/Grid",
+      "kind": "grid",
+      "props": {
+        "compact": "BOOLEAN",
+        "rowStripes": "BOOLEAN"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "table",
+          "cols": 4,
+          "rows": 4
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40,
+          "label": "GridColumn instances"
+        }
+      ],
+      "yaml": {
+        "type": "Grid",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Crud/Listing",
@@ -1843,7 +4033,11 @@
       "csharp": "Crud<T> / Listing<F,R>",
       "python": "Crud / Listing",
       "props": {
-        "aggregateId": "TEXT"
+        "aggregateId": "TEXT",
+        "rowRoute": "TEXT",
+        "rowsSource.ref": "TEXT",
+        "searchable": "BOOLEAN",
+        "pageSize": "TEXT"
       },
       "texts": {
         "Title": "title"
@@ -1861,8 +4055,26 @@
           "t": "table",
           "cols": 4,
           "rows": 4
+        },
+        {
+          "t": "slot",
+          "name": "columns",
+          "h": 40,
+          "label": "GridColumn instances"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Listing",
+        "params": {
+          "aggregateId": null
+        },
+        "slots": {
+          "columns": {
+            "path": "columns",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Crud/FilterBar",
@@ -1889,7 +4101,72 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": null,
+      "yamlNote": "Part of a Listing in YAML: set `searchable` / `filters` on the Listing."
+    },
+    {
+      "name": "Mateu/Crud/GridColumn",
+      "kind": "gridColumn",
+      "props": {
+        "columnId": "TEXT",
+        "dataType": "TEXT",
+        "stereotype": "TEXT",
+        "identifier": "BOOLEAN",
+        "width": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "hr",
+          "w": 120
+        },
+        {
+          "t": "text",
+          "text": "value"
+        }
+      ],
+      "yaml": {
+        "type": "GridColumn",
+        "params": {
+          "columnId": "id"
+        }
+      }
+    },
+    {
+      "name": "Mateu/Crud/GridGroupColumn",
+      "kind": "gridGroupColumn",
+      "texts": {
+        "Label": "label"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "slot",
+          "name": "columns",
+          "h": 40,
+          "label": "GridColumn instances"
+        }
+      ],
+      "yaml": {
+        "type": "GridGroupColumn",
+        "slots": {
+          "columns": {
+            "path": "columns",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Actions/Button",
@@ -1909,7 +4186,8 @@
       "csharp": "[Button] method",
       "python": "@button method",
       "props": {
-        "actionId": "TEXT"
+        "actionId": "TEXT",
+        "route": "TEXT"
       },
       "texts": {
         "Label": "label"
@@ -1920,7 +4198,33 @@
           "text": "Label",
           "styleFromVariant": "style"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "Button",
+        "params": {
+          "style": {
+            "path": "buttonStyle",
+            "values": {
+              "primary": "primary",
+              "secondary": null,
+              "tertiary": "tertiary"
+            }
+          },
+          "size": {
+            "path": "size",
+            "values": {
+              "m": null,
+              "small": "small"
+            }
+          },
+          "route": {
+            "path": "actionable.route",
+            "set": {
+              "actionable.type": "RouteLink"
+            }
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Actions/Toolbar",
@@ -1944,8 +4248,23 @@
               "secondary": true
             }
           ]
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 40,
+          "label": "Button instances"
         }
-      ]
+      ],
+      "yaml": {
+        "type": "HorizontalLayout",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Actions/Fab",
@@ -1954,7 +4273,8 @@
       "csharp": "[Fab]",
       "python": "fab()",
       "props": {
-        "actionId": "TEXT"
+        "actionId": "TEXT",
+        "label": "TEXT"
       },
       "texts": {
         "Icon": "icon"
@@ -1966,7 +4286,101 @@
           "size": 40,
           "color": "primary"
         }
-      ]
+      ],
+      "yaml": {
+        "record": true,
+        "schema": "PageFab",
+        "into": "page.fabs"
+      }
+    },
+    {
+      "name": "Mateu/Actions/ButtonGroup",
+      "kind": "buttonGroup",
+      "texts": {
+        "Label": "label"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "button",
+              "text": "Label"
+            },
+            {
+              "t": "text",
+              "text": "▾"
+            }
+          ]
+        },
+        {
+          "t": "slot",
+          "name": "buttons",
+          "h": 40,
+          "label": "Button instances (the menu)"
+        }
+      ],
+      "yaml": {
+        "type": "ButtonGroup",
+        "slots": {
+          "buttons": {
+            "path": "buttons",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Actions/MenuBar",
+      "kind": "menuBar",
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "Menu 1"
+            },
+            {
+              "t": "text",
+              "text": "Menu 2"
+            },
+            {
+              "t": "text",
+              "text": "Menu 3"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "MenuBar"
+      }
+    },
+    {
+      "name": "Mateu/Actions/ContextMenu",
+      "kind": "contextMenu",
+      "props": {
+        "activateOnLeftClick": "BOOLEAN"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "wrapped",
+          "h": 50,
+          "label": "what the menu opens on"
+        }
+      ],
+      "yaml": {
+        "type": "ContextMenu",
+        "slots": {
+          "wrapped": {
+            "path": "wrapped",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Page/Header",
@@ -1991,8 +4405,26 @@
         },
         {
           "t": "hr"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 40,
+          "label": "Button instances"
         }
-      ]
+      ],
+      "yaml": {
+        "record": true,
+        "schema": "Form",
+        "into": "page",
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Page/Wizard",
@@ -2049,7 +4481,9 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/GuidedProcessPage."
     },
     {
       "name": "Mateu/Shell/App",
@@ -2117,7 +4551,13 @@
           "t": "slot",
           "h": 200
         }
-      ]
+      ],
+      "yaml": {
+        "type": "AppShell",
+        "params": {
+          "menu": null
+        }
+      }
     },
     {
       "name": "Mateu/Shell/AppContextPicker",
@@ -2144,13 +4584,19 @@
             }
           ]
         }
-      ]
+      ],
+      "yaml": null,
+      "yamlNote": "Declared on the app shell (AppShell.contextSelectors), not drawn on a page."
     },
     {
       "name": "Mateu/Page Templates/Smart Search",
       "kind": "smartSearchPage",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "SmartSearchPage<F,R>",
       "csharp": "SmartSearchPage<TFilters,TRow>",
@@ -2161,17 +4607,37 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "label", "text": "Subtitle" },
-        { "t": "fieldbox", "text": "🔍 Search…" },
-        { "t": "table", "cols": 4, "rows": 4 }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "fieldbox",
+          "text": "🔍 Search…"
+        },
+        {
+          "t": "table",
+          "cols": 4,
+          "rows": 4
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype (SmartSearchPage). In YAML: a free page with a searchable Listing."
     },
     {
       "name": "Mateu/Page Templates/To-do List",
       "kind": "todoList",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "TodoList<Row>",
       "csharp": "TodoList<TRow>",
@@ -2181,23 +4647,54 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "label", "text": "TODAY (2)" },
-        { "t": "row", "items": [
-          { "t": "chip", "text": "Approve expenses — overdue" },
-          { "t": "chip", "text": "high" }
-        ] },
-        { "t": "label", "text": "THIS WEEK (1)" },
-        { "t": "row", "items": [
-          { "t": "chip", "text": "Review candidate — in 3 days" }
-        ] }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "TODAY (2)"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "chip",
+              "text": "Approve expenses — overdue"
+            },
+            {
+              "t": "chip",
+              "text": "high"
+            }
+          ]
+        },
+        {
+          "t": "label",
+          "text": "THIS WEEK (1)"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "chip",
+              "text": "Review candidate — in 3 days"
+            }
+          ]
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype (TodoList). In YAML: a free page with a TaskQueue."
     },
     {
       "name": "Mateu/Page Templates/Calendar",
       "kind": "calendarPage",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "CalendarPage",
       "csharp": "CalendarPage",
@@ -2207,22 +4704,57 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "row", "items": [
-          { "t": "button", "text": "‹", "secondary": true },
-          { "t": "button", "text": "Today", "secondary": true },
-          { "t": "button", "text": "›", "secondary": true },
-          { "t": "button", "text": "+ Create" }
-        ] },
-        { "t": "label", "text": "July 2026" },
-        { "t": "table", "cols": 7, "rows": 5 }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "button",
+              "text": "‹",
+              "secondary": true
+            },
+            {
+              "t": "button",
+              "text": "Today",
+              "secondary": true
+            },
+            {
+              "t": "button",
+              "text": "›",
+              "secondary": true
+            },
+            {
+              "t": "button",
+              "text": "+ Create"
+            }
+          ]
+        },
+        {
+          "t": "label",
+          "text": "July 2026"
+        },
+        {
+          "t": "table",
+          "cols": 7,
+          "rows": 5
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype (CalendarPage). In YAML: a free page with a Calendar."
     },
     {
       "name": "Mateu/Page Templates/Dashboard",
       "kind": "dashboard",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "Dashboard",
       "csharp": "Dashboard",
@@ -2232,20 +4764,44 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "row", "items": [
-          { "t": "tile", "text": "Revenue 1.2M€" },
-          { "t": "tile", "text": "Orders 3,421" },
-          { "t": "tile", "text": "Returns 87" }
-        ] },
-        { "t": "imagebox" }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "Revenue 1.2M€"
+            },
+            {
+              "t": "tile",
+              "text": "Orders 3,421"
+            },
+            {
+              "t": "tile",
+              "text": "Returns 87"
+            }
+          ]
+        },
+        {
+          "t": "imagebox"
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/DashboardLandingPage."
     },
     {
       "name": "Mateu/Page Templates/Welcome",
       "kind": "welcome",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "Welcome",
       "csharp": "Welcome",
@@ -2256,24 +4812,59 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 28 },
-        { "t": "label", "text": "Subtitle" },
-        { "t": "row", "items": [
-          { "t": "button", "text": "Get started" },
-          { "t": "button", "text": "Learn more", "secondary": true }
-        ] },
-        { "t": "row", "items": [
-          { "t": "tile", "text": "Step 1" },
-          { "t": "tile", "text": "Step 2" },
-          { "t": "tile", "text": "Step 3" }
-        ] }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 28
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "button",
+              "text": "Get started"
+            },
+            {
+              "t": "button",
+              "text": "Learn more",
+              "secondary": true
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "Step 1"
+            },
+            {
+              "t": "tile",
+              "text": "Step 2"
+            },
+            {
+              "t": "tile",
+              "text": "Step 3"
+            }
+          ]
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/WelcomePage."
     },
     {
       "name": "Mateu/Page Templates/Hero Search",
       "kind": "heroSearch",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "HeroSearch<F,R>",
       "csharp": "HeroSearch<T>",
@@ -2284,21 +4875,49 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 28 },
-        { "t": "label", "text": "Subtitle" },
-        { "t": "fieldbox", "text": "🔍 Search…" },
-        { "t": "row", "items": [
-          { "t": "tile", "text": "Result" },
-          { "t": "tile", "text": "Result" },
-          { "t": "tile", "text": "Result" }
-        ] }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 28
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "fieldbox",
+          "text": "🔍 Search…"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "Result"
+            },
+            {
+              "t": "tile",
+              "text": "Result"
+            },
+            {
+              "t": "tile",
+              "text": "Result"
+            }
+          ]
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/HeroSearchPage."
     },
     {
       "name": "Mateu/Page Templates/Collection Detail",
       "kind": "collectionDetail",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "CollectionDetail<Row>",
       "csharp": "CollectionDetail<TRow>",
@@ -2308,19 +4927,41 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "fieldbox", "text": "🔍 Search" },
-        { "t": "row", "items": [
-          { "t": "table", "cols": 1, "rows": 4 },
-          { "t": "imagebox" }
-        ] }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "fieldbox",
+          "text": "🔍 Search"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "table",
+              "cols": 1,
+              "rows": 4
+            },
+            {
+              "t": "imagebox"
+            }
+          ]
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/CollectionDetailPage."
     },
     {
       "name": "Mateu/Page Templates/General Overview",
       "kind": "generalOverview",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "GeneralOverview<Row>",
       "csharp": "GeneralOverview<TRow>",
@@ -2330,23 +4971,55 @@
       },
       "container": true,
       "sketch": [
-        { "t": "fieldbox", "text": "Record ▾", "w": 200 },
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "row", "items": [
-          { "t": "chip", "text": "Status" },
-          { "t": "chip", "text": "Fact" }
-        ] },
-        { "t": "row", "items": [
-          { "t": "tile", "text": "Card" },
-          { "t": "tile", "text": "Card" }
-        ] }
-      ]
+        {
+          "t": "fieldbox",
+          "text": "Record ▾",
+          "w": 200
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "chip",
+              "text": "Status"
+            },
+            {
+              "t": "chip",
+              "text": "Fact"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "Card"
+            },
+            {
+              "t": "tile",
+              "text": "Card"
+            }
+          ]
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/GeneralOverviewPage."
     },
     {
       "name": "Mateu/Page Templates/Item Overview",
       "kind": "itemOverview",
       "variants": {
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "ItemOverview",
       "csharp": "ItemOverview",
@@ -2356,19 +5029,41 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "row", "items": [
-          { "t": "imagebox" },
-          { "t": "table", "cols": 3, "rows": 3 }
-        ] }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "imagebox"
+            },
+            {
+              "t": "table",
+              "cols": 3,
+              "rows": 3
+            }
+          ]
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/ItemOverviewPage."
     },
     {
       "name": "Mateu/Page Templates/Foldout",
       "kind": "foldout",
       "variants": {
-        "orientation": ["vertical", "horizontal"],
-        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+        "orientation": [
+          "vertical",
+          "horizontal"
+        ],
+        "pageWidth": [
+          "fixed",
+          "fullWidth",
+          "edgeToEdge"
+        ]
       },
       "java": "Foldout",
       "csharp": "Foldout",
@@ -2378,23 +5073,52 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "row", "items": [
-          { "t": "chip", "text": "Badge" },
-          { "t": "chip", "text": "Badge" }
-        ] },
-        { "t": "row", "items": [
-          { "t": "tile", "text": "Overview" },
-          { "t": "tile", "text": "Panel" },
-          { "t": "tile", "text": "Panel" }
-        ] }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "chip",
+              "text": "Badge"
+            },
+            {
+              "t": "chip",
+              "text": "Badge"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "tile",
+              "text": "Overview"
+            },
+            {
+              "t": "tile",
+              "text": "Panel"
+            },
+            {
+              "t": "tile",
+              "text": "Panel"
+            }
+          ]
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/FoldoutPage."
     },
     {
       "name": "Mateu/Page Templates/Gantt Page",
       "kind": "ganttPage",
       "variants": {
-        "pageWidth": ["edgeToEdge"]
+        "pageWidth": [
+          "edgeToEdge"
+        ]
       },
       "java": "GanttPage",
       "csharp": "GanttPage",
@@ -2404,16 +5128,33 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "table", "cols": 6, "rows": 3, "gantt": true },
-        { "t": "slot", "h": 90, "label": "detail" }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "table",
+          "cols": 6,
+          "rows": 3,
+          "gantt": true
+        },
+        {
+          "t": "slot",
+          "h": 90,
+          "label": "detail"
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype (GanttPage). In YAML: a free page with a Gantt."
     },
     {
       "name": "Mateu/Page Templates/Data Management",
       "kind": "dataManagement",
       "variants": {
-        "pageWidth": ["fullWidth"]
+        "pageWidth": [
+          "fullWidth"
+        ]
       },
       "java": "DataManagement",
       "csharp": "DataManagement",
@@ -2423,13 +5164,33 @@
       },
       "container": true,
       "sketch": [
-        { "t": "title", "text": "Title", "size": 20 },
-        { "t": "row", "items": [
-          { "t": "button", "text": "Grid" },
-          { "t": "button", "text": "Gantt", "secondary": true }
-        ] },
-        { "t": "table", "cols": 5, "rows": 4 }
-      ]
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "button",
+              "text": "Grid"
+            },
+            {
+              "t": "button",
+              "text": "Gantt",
+              "secondary": true
+            }
+          ]
+        },
+        {
+          "t": "table",
+          "cols": 5,
+          "rows": 4
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/DataManagementPage."
     },
     {
       "name": "Mateu/Page Templates/Guided Process Drawer",
@@ -2442,25 +5203,1003 @@
       },
       "container": true,
       "sketch": [
-        { "t": "row", "spread": true, "items": [
-          { "t": "title", "text": "Title", "size": 16 },
-          { "t": "text", "text": "2 | 4", "color": "secondary" }
-        ] },
-        { "t": "hr" },
-        { "t": "stepper", "steps": ["Paso 1", "Paso 2", "Paso 3"], "current": 1 },
-        { "t": "slot", "h": 120 },
-        { "t": "row", "right": true, "items": [
-          { "t": "button", "text": "Back", "secondary": true },
-          { "t": "button", "text": "Continue" }
-        ] }
-      ]
+        {
+          "t": "row",
+          "spread": true,
+          "items": [
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 16
+            },
+            {
+              "t": "text",
+              "text": "2 | 4",
+              "color": "secondary"
+            }
+          ]
+        },
+        {
+          "t": "hr"
+        },
+        {
+          "t": "stepper",
+          "steps": [
+            "Paso 1",
+            "Paso 2",
+            "Paso 3"
+          ],
+          "current": 1
+        },
+        {
+          "t": "slot",
+          "h": 120
+        },
+        {
+          "t": "row",
+          "right": true,
+          "items": [
+            {
+              "t": "button",
+              "text": "Back",
+              "secondary": true
+            },
+            {
+              "t": "button",
+              "text": "Continue"
+            }
+          ]
+        }
+      ],
+      "yaml": null,
+      "yamlNote": "A Java composition (Drawer + EmbeddedView of a wizard); no YAML equivalent."
+    },
+    {
+      "name": "Mateu/Page Templates/ItemOverviewPage",
+      "kind": "pageTemplate",
+      "props": {
+        "avatar.src": "TEXT",
+        "avatar.initials": "TEXT",
+        "photo.src": "TEXT"
+      },
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Overline"
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 36,
+          "w": 300,
+          "label": "Button instances (the primary first)"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "col",
+              "items": [
+                {
+                  "t": "slot",
+                  "name": "body",
+                  "h": 120,
+                  "w": 200
+                },
+                {
+                  "t": "slot",
+                  "name": "footer",
+                  "h": 40,
+                  "w": 200
+                }
+              ]
+            },
+            {
+              "t": "slot",
+              "name": "content",
+              "h": 170,
+              "w": 380,
+              "label": "main"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "ItemOverviewPage"
+        },
+        "params": {
+          "avatar.src": "template.avatar.src",
+          "avatar.initials": "template.avatar.initials",
+          "photo.src": "template.photo.src"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "body": {
+            "path": "template.body",
+            "many": true
+          },
+          "footer": {
+            "path": "template.footer",
+            "many": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/WelcomePage",
+      "kind": "pageTemplate",
+      "variants": {
+        "backgroundColor": [
+          "auto",
+          "dark-ocean",
+          "dark-pine",
+          "dark-lilac",
+          "dark-teal",
+          "dark-rose",
+          "dark-pebble",
+          "dark-slate",
+          "dark-plum",
+          "dark-sienna"
+        ]
+      },
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "col",
+          "items": [
+            {
+              "t": "label",
+              "text": "Overline"
+            },
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 20
+            },
+            {
+              "t": "label",
+              "text": "Subtitle"
+            },
+            {
+              "t": "slot",
+              "name": "toolbar",
+              "h": 36,
+              "w": 300,
+              "label": "Button instances (the primary first)"
+            }
+          ],
+          "tint": "#eef1f4",
+          "pad": 24,
+          "center": true
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 120,
+          "w": 600,
+          "label": "tiles"
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "WelcomePage"
+        },
+        "params": {
+          "backgroundColor": "template.backgroundColor"
+        },
+        "defaults": {
+          "backgroundColor": "auto"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/HeroSearchPage",
+      "kind": "pageTemplate",
+      "variants": {
+        "backgroundColor": [
+          "auto",
+          "dark-ocean",
+          "dark-pine",
+          "dark-lilac",
+          "dark-teal",
+          "dark-rose",
+          "dark-pebble",
+          "dark-slate",
+          "dark-plum",
+          "dark-sienna"
+        ]
+      },
+      "texts": {
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "col",
+          "items": [
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 20
+            },
+            {
+              "t": "label",
+              "text": "Subtitle"
+            },
+            {
+              "t": "label",
+              "text": "(the search box is the results listing's)"
+            }
+          ],
+          "tint": "#eef1f4",
+          "pad": 24,
+          "center": true
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 160,
+          "w": 600,
+          "label": "results (a searchable Listing)"
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "HeroSearchPage"
+        },
+        "params": {
+          "backgroundColor": "template.backgroundColor"
+        },
+        "defaults": {
+          "backgroundColor": "auto"
+        },
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/DashboardLandingPage",
+      "kind": "pageTemplate",
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Overline"
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 36,
+          "w": 300,
+          "label": "Button instances (the primary first)"
+        },
+        {
+          "t": "slot",
+          "name": "kpi",
+          "h": 60,
+          "w": 600,
+          "label": "MetricCard instances"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 160,
+          "w": 600,
+          "label": "DashboardPanel instances"
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "DashboardLandingPage"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "kpi": {
+            "path": "template.kpi",
+            "many": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/GeneralOverviewPage",
+      "kind": "pageTemplate",
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Overline"
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 36,
+          "w": 300,
+          "label": "Button instances (the primary first)"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "content",
+              "h": 180,
+              "w": 420,
+              "label": "main"
+            },
+            {
+              "t": "slot",
+              "name": "info",
+              "h": 180,
+              "w": 170
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "GeneralOverviewPage"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "info": {
+            "path": "template.info",
+            "many": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/CollectionDetailPage",
+      "kind": "pageTemplate",
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Overline"
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 36,
+          "w": 300,
+          "label": "Button instances (the primary first)"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "list",
+              "h": 200,
+              "w": 200
+            },
+            {
+              "t": "col",
+              "items": [
+                {
+                  "t": "slot",
+                  "name": "content",
+                  "h": 120,
+                  "w": 380,
+                  "label": "detail (the selected item)"
+                },
+                {
+                  "t": "slot",
+                  "name": "noSelection",
+                  "h": 70,
+                  "w": 380
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "CollectionDetailPage"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "list": {
+            "path": "template.list",
+            "many": true
+          },
+          "noSelection": {
+            "path": "template.noSelection",
+            "many": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/FoldoutPage",
+      "kind": "pageTemplate",
+      "variants": {
+        "orientation": [
+          "vertical",
+          "horizontal"
+        ]
+      },
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Overline"
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 36,
+          "w": 300,
+          "label": "Button instances (the primary first)"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "overview",
+              "h": 180,
+              "w": 200
+            },
+            {
+              "t": "slot",
+              "name": "content",
+              "h": 180,
+              "w": 380,
+              "label": "FoldoutPanel instances"
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "FoldoutPage"
+        },
+        "params": {
+          "orientation": "template.orientation"
+        },
+        "defaults": {
+          "orientation": "vertical"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "overview": {
+            "path": "template.overview",
+            "many": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/MultimediaContentPage",
+      "kind": "pageTemplate",
+      "variants": {
+        "backgroundColor": [
+          "auto",
+          "dark-ocean",
+          "dark-pine",
+          "dark-lilac",
+          "dark-teal",
+          "dark-rose",
+          "dark-pebble",
+          "dark-slate",
+          "dark-plum",
+          "dark-sienna"
+        ]
+      },
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "col",
+          "items": [
+            {
+              "t": "label",
+              "text": "Overline"
+            },
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 20
+            },
+            {
+              "t": "label",
+              "text": "Subtitle"
+            },
+            {
+              "t": "slot",
+              "name": "toolbar",
+              "h": 36,
+              "w": 300,
+              "label": "Button instances (the primary first)"
+            }
+          ],
+          "tint": "#eef1f4",
+          "pad": 24,
+          "center": true
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 160,
+          "w": 600,
+          "label": "sections (Section instances)"
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "MultimediaContentPage"
+        },
+        "params": {
+          "backgroundColor": "template.backgroundColor"
+        },
+        "defaults": {
+          "backgroundColor": "auto"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/AdvancedCreateEditPage",
+      "kind": "pageTemplate",
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Overline"
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 36,
+          "w": 300,
+          "label": "Button instances (the primary first)"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "content",
+              "h": 200,
+              "w": 400,
+              "label": "main (Section instances)"
+            },
+            {
+              "t": "slot",
+              "name": "detail",
+              "h": 200,
+              "w": 180
+            }
+          ]
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "AdvancedCreateEditPage"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "detail": {
+            "path": "template.detail",
+            "many": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/GuidedProcessPage",
+      "kind": "pageTemplate",
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Overline"
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 36,
+          "w": 300,
+          "label": "Button instances (the primary first)"
+        },
+        {
+          "t": "stepper",
+          "steps": [
+            "Step 1",
+            "Step 2",
+            "Step 3"
+          ],
+          "current": 0
+        },
+        {
+          "t": "slot",
+          "name": "steps",
+          "h": 160,
+          "w": 600,
+          "label": "GuidedProcessStep instances"
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "GuidedProcessPage"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "steps": {
+            "path": "template.steps",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/DataManagementPage",
+      "kind": "pageTemplate",
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Overline"
+        },
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "slot",
+          "name": "toolbar",
+          "h": 36,
+          "w": 300,
+          "label": "Button instances (the primary first)"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "name": "content",
+              "h": 180,
+              "w": 420,
+              "label": "the data view"
+            },
+            {
+              "t": "slot",
+              "name": "end",
+              "h": 180,
+              "w": 170,
+              "label": "a DockedPanel instance"
+            }
+          ]
+        },
+        {
+          "t": "slot",
+          "name": "bottom",
+          "h": 60,
+          "w": 600,
+          "label": "a DockedPanel instance"
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "DataManagementPage"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "end": {
+            "path": "template.end"
+          },
+          "bottom": {
+            "path": "template.bottom"
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/GuidedProcessStep",
+      "kind": "templatePart",
+      "props": {
+        "id": "TEXT"
+      },
+      "texts": {
+        "Title": "title",
+        "Description": "description"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "label",
+          "text": "Description"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 100
+        }
+      ],
+      "yaml": {
+        "record": true,
+        "schema": "GuidedProcessStep",
+        "slots": {
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/DockedPanel",
+      "kind": "templatePart",
+      "props": {
+        "id": "TEXT",
+        "size": "TEXT",
+        "open": "BOOLEAN"
+      },
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 100
+        }
+      ],
+      "card": true,
+      "yaml": {
+        "record": true,
+        "schema": "DockedPanel",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
     },
     {
       "name": "Mateu/Overlay/Drawer",
       "kind": "drawer",
       "variants": {
-        "position": ["end", "start", "bottom"],
-        "size": ["s", "m", "l", "xl"]
+        "position": [
+          "end",
+          "start",
+          "bottom"
+        ],
+        "size": [
+          "s",
+          "m",
+          "l",
+          "xl"
+        ]
       },
       "java": "Drawer (General / Bottom Drawer)",
       "csharp": "Drawer { Position, Size, Maximizable, Collapsible, PeerNav }",
@@ -2476,21 +6215,265 @@
       },
       "container": true,
       "sketch": [
-        { "t": "row", "spread": true, "items": [
-          { "t": "col", "items": [
-            { "t": "title", "text": "Title", "size": 16 },
-            { "t": "label", "text": "Subtitle" }
-          ] },
-          { "t": "row", "items": [
-            { "t": "text", "text": "‹", "color": "secondary" },
-            { "t": "text", "text": "›", "color": "secondary" },
-            { "t": "text", "text": "⤢", "color": "secondary" },
-            { "t": "text", "text": "✕", "color": "secondary" }
-          ] }
-        ] },
-        { "t": "hr" },
-        { "t": "slot", "h": 200, "label": "content" }
-      ]
+        {
+          "t": "row",
+          "spread": true,
+          "items": [
+            {
+              "t": "col",
+              "items": [
+                {
+                  "t": "title",
+                  "text": "Title",
+                  "size": 16
+                },
+                {
+                  "t": "label",
+                  "text": "Subtitle"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "items": [
+                {
+                  "t": "text",
+                  "text": "‹",
+                  "color": "secondary"
+                },
+                {
+                  "t": "text",
+                  "text": "›",
+                  "color": "secondary"
+                },
+                {
+                  "t": "text",
+                  "text": "⤢",
+                  "color": "secondary"
+                },
+                {
+                  "t": "text",
+                  "text": "✕",
+                  "color": "secondary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "hr"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 120
+        }
+      ],
+      "yaml": {
+        "type": "Drawer",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Overlay/Dialog",
+      "kind": "dialog",
+      "props": {
+        "width": "TEXT",
+        "modeless": "BOOLEAN",
+        "draggable": "BOOLEAN"
+      },
+      "texts": {
+        "Title": "headerTitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "title",
+              "text": "Title"
+            },
+            {
+              "t": "text",
+              "text": "✕"
+            }
+          ],
+          "spread": true
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 100
+        },
+        {
+          "t": "slot",
+          "name": "footer",
+          "h": 40
+        }
+      ],
+      "card": true,
+      "yaml": {
+        "type": "Dialog",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          },
+          "footer": {
+            "path": "footer",
+            "wrap": "HorizontalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Overlay/ConfirmDialog",
+      "kind": "confirmDialog",
+      "props": {
+        "confirmActionId": "TEXT",
+        "canCancel": "BOOLEAN"
+      },
+      "texts": {
+        "Header": "header",
+        "Confirm": "confirmText"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Header"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 60
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "button",
+              "text": "Cancel",
+              "secondary": true
+            },
+            {
+              "t": "button",
+              "text": "Confirm"
+            }
+          ],
+          "right": true
+        }
+      ],
+      "card": true,
+      "yaml": {
+        "type": "ConfirmDialog",
+        "slots": {
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Overlay/Popover",
+      "kind": "popover",
+      "variants": {
+        "trigger": [
+          "click",
+          "hover"
+        ]
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "wrapped",
+          "h": 40,
+          "label": "trigger"
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 60,
+          "label": "popover"
+        }
+      ],
+      "yaml": {
+        "type": "Popover",
+        "slots": {
+          "wrapped": {
+            "path": "wrapped",
+            "wrap": "VerticalLayout"
+          },
+          "content": {
+            "path": "content",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Overlay/Tooltip",
+      "kind": "tooltip",
+      "texts": {
+        "Text": "text"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "slot",
+          "name": "wrapped",
+          "h": 40,
+          "label": "target"
+        },
+        {
+          "t": "text",
+          "text": "Text",
+          "size": 11,
+          "color": "secondary"
+        }
+      ],
+      "yaml": {
+        "type": "Tooltip",
+        "slots": {
+          "wrapped": {
+            "path": "wrapped",
+            "wrap": "VerticalLayout"
+          }
+        }
+      }
     }
-  ]
+  ],
+  "yamlNotDrawn": {
+    "AppData": "Data, not a visual: a route's appData / a response.",
+    "AppState": "State, not a visual.",
+    "Data": "Data, not a visual.",
+    "State": "State, not a visual.",
+    "ComponentRef": "A reference to a named component of a `type: Components` file — written by hand.",
+    "CustomComponent": "An app-registered component: no Mateu look to draw.",
+    "Element": "A raw custom element (`name` + attributes): no Mateu look to draw.",
+    "EmbeddedView": "Embeds a server-side view — a code concept.",
+    "FutureComponent": "Wire plumbing for asynchronous components.",
+    "MicroFrontend": "An island of another Mateu app — composition, not a look.",
+    "Directory": "Built from a menu (`menu: [Actionable]`), not drawn.",
+    "Partial": "Drawn by convention: a frame named `partial:<ref>` (see yamlConventions)."
+  },
+  "yamlConventions": {
+    "page": "Every top-level frame of a page (Figma pages whose name starts with \"Mateu ·\" are the library and skipped; frames whose name starts with \"_\" are skipped) becomes one specs/ui file, named after the frame (slugified). A frame that is (or holds) an instance of a Mateu/Page Templates/<FormTemplate> component becomes a `type: Form` with that `template:`; any other frame is a FREE page (`type: Form`, its children = `content`). A top-level instance of Mateu/Shell/App becomes a `type: AppShell` file.",
+    "slots": "A slot is a frame named `slot:<name>`; its children fill it. Inside an instance (Figma slots, or a detached copy) or as a SIBLING of the page-template instance in the screen frame — siblings that are not slots go to `content`. The page toolbar is the `slot:toolbar` (Button instances, the primary first).",
+    "texts": "An entry's `texts` name the text layers read back; a layer whose content is still its own name (an unedited placeholder) is not read.",
+    "config": "The `#config` text layer holds `key=value; key2=value2` for the entry's `props`; empty values are not read.",
+    "variants": "An instance's VARIANT properties map to the params of the same name; a boolean `false` and a value listed in `yaml.defaults` are omitted.",
+    "hidden": "Hidden layers and layers whose name starts with \"#\" are never content.",
+    "frames": "A plain frame (not an instance) inside a page or slot is a layout: HorizontalLayout when its auto-layout is horizontal, else VerticalLayout — or the layout its name says (FormLayout, HorizontalLayout, VerticalLayout). A plain text layer is a Text (h2 from 24px, h3 from 18px).",
+    "partial": "A frame named `partial:<ref>` is a `{type: Partial, ref}` and its children are written once to partials/<ref>.yaml.",
+    "yaml": "Each entry's `yaml` says what it becomes: `type` (or `record` + `schema`: an object without a type, checked against that schema definition), `set` (constants at dotted paths), `params` (param -> dotted path, or {path, values, set, component+key, list+key, whenTrue}; null = drawn but not read), `items` (where `item.*` params collect, grouped by the layer's trailing number), `defaults` (values omitted), `slots` (slot -> {path, many | wrap, flatten}) and `into` (merged into the page, or appended to one of its lists). `yaml: null` = no YAML counterpart (see `yamlNote`)."
+  }
 }

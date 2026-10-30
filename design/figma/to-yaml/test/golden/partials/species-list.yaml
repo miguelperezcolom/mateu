@@ -1,0 +1,15 @@
+# Generated from the Figma frame "partial:species-list" (node 462:75) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+type: Listing
+gridLayout: table
+rowRoute: "species/${row.id}"
+searchable: true
+pageSize: 12
+columns:
+  - type: GridColumn
+    id: name
+    stereotype: primary
+    identifier: true
+    label: Species
+rowsSource:
+  ref: swapi-species

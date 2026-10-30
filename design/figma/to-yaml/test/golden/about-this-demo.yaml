@@ -1,0 +1,35 @@
+# Generated from the Figma frame "About this demo" (node 770:92) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: About
+subtitle: How this demo is made
+toolbar:
+  - type: Button
+    label: Home
+    actionable:
+      type: RouteLink
+      route: welcome
+banners:
+  - theme: WARNING
+    title: Demo data
+    description: The API re-seeds itself at every start.
+content:
+  - type: VerticalLayout
+    content:
+      - type: Text
+        container: h3
+        text: Made with Mateu
+      - type: Text
+        text: Every screen is YAML.
+  - type: HorizontalLayout
+    content:
+      - type: Notice
+        theme: info
+        actionId: docs
+        text: Read the docs
+      - type: BulletedList
+        items:
+          - Vaadin
+          - Redwood
+          - React Native

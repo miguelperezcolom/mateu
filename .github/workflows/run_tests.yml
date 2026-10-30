@@ -221,6 +221,15 @@ jobs:
           npm run typecheck
           npm test
 
+      # Figma → specs/ui YAML: the contract's YAML mappings against the generated uidl schema (every
+      # authorable component has an entry, no mapping names a key the schema lacks) and the fixture
+      # against its golden. The golden is loaded by the real validator + loader in backend-tests
+      # (FigmaYamlGoldenTest). No dependencies to install.
+      - name: Figma to YAML — contract and golden
+        run: |
+          cd design/figma/to-yaml
+          npm test
+
   # The IntelliJ plugin's suite (settings/auth, New | Mateu skeletons validated against the specs
   # schema, wire-type parity, headless rendering of every component type, the YAML binding
   # annotator) only ran on a developer's machine. setup-gradle only WRITES its cache on master, where

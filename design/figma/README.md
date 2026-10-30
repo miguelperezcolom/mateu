@@ -2,6 +2,7 @@
 
 ```
 contract.json ──► plugin (this repo) ──► Figma library ──► designer composes screens
+      ├────────► to-yaml (this repo)  ◄── Figma REST API ──► specs/ui YAML
       └────────► modux figma importer ◄── Figma REST API (reads the composed screens)
                         └──► modux model (pages[].content) ──► Java / C# / Python
 ```
@@ -19,6 +20,20 @@ contract.json ──► plugin (this repo) ──► Figma library ──► des
   (`Title` → `title`, `Text` → `text`…).
 - `sketch` — the compact draw spec the plugin renders (visual only, never read back).
 - `java` / `csharp` / `python` — the construct each component maps to, for the generators.
+- `yaml` — what the component becomes in a specs/ui file (`to-yaml/`): its YAML `type` (or a
+  `record` checked against a `schema` definition), constants (`set`), how each param is written
+  (`params`: a dotted path, or `{path, values, set, component+key, list+key, whenTrue}`; `null` =
+  drawn but not read), repeated rows (`items`), omitted values (`defaults`), the **slots** it reads
+  (`slots`: `slot:<name>` frame → `{path, many | wrap, flatten}`) and `into` for page-level pieces
+  (a header, a banner, a FAB). `yaml: null` + `yamlNote` = no YAML counterpart (a Java archetype).
+
+Contract-level keys: `yamlConventions` (the reading rules, below) and `yamlNotDrawn` (the YAML
+component types with nothing to draw — data/state carriers, raw elements — and why). The tests in
+`to-yaml/test/contract.test.mjs` hold the contract to the GENERATED authoring schema
+(`backend/shared/uidl/uidl-schema.json`): every authorable component has an entry or a
+`yamlNotDrawn` reason, every `FormTemplate` has its `Mateu/Page Templates/<type>` entry, every key a
+mapping writes exists in the schema (and every variant value is in the target enum), and the slots
+a mapping reads are exactly the ones the sketch draws.
 
 ## Generating the library
 
@@ -41,6 +56,32 @@ Re-running the plugin **replaces** the generated pages — do it whenever `contr
   Mateu parameters.
 - Nesting: put field instances INSIDE a `Mateu/Layout/Section` instance's content area (or a
   ZonesRow column) exactly like the generated code will nest them.
+- **Slots** are frames named `slot:<name>` (the plugin draws them, dashed, with a `#placeholder`
+  caption). Fill them in place, or — an ordinary instance takes no new layers — put a frame named
+  the same NEXT TO the page-template instance in the screen frame; other siblings are `content`.
+  The page toolbar is `slot:toolbar` (Button instances, the primary first).
+- A screen with a `Mateu/Page Templates/<FormTemplate>` instance is a templated page; one without
+  is a free page (a `Mateu/Page/Header` instance gives its title/subtitle/toolbar).
+- A frame named `partial:<ref>` is written once to `partials/<ref>.yaml` and referenced.
+- Frames starting with `_`, hidden layers and layers starting with `#` are never content; a text
+  layer still showing its own name (an unedited placeholder) is not read.
+
+## Reading back as YAML (`to-yaml/`)
+
+```bash
+curl -H "X-Figma-Token: $FIGMA_TOKEN" https://api.figma.com/v1/files/<key> > design.json
+node design/figma/to-yaml/bin/figma-to-yaml.mjs design.json --out <app>/src/main/resources/specs/ui [--clean]
+```
+
+One `type: Form` per screen (with `template:` when it holds a page template), `partials/<ref>.yaml`
+per partial frame, `type: AppShell` for a top-level `Mateu/Shell/App` instance. Every key is
+resolved against `uidl-schema.json` and every value typed by it; what it cannot place is a warning,
+never output. No dependencies (Node 20+). Tests: `cd to-yaml && npm test` — the contract checks
+above plus the hand-made fixture `test/fixtures/starwars.figma.json` (a `GET /v1/files/:key`
+payload of seven Star Wars screens, built following the plugin's naming) against `test/golden/`
+(`npm run golden` regenerates it after a deliberate change). The golden files are also loaded by
+the real authoring validator and YAML loader in `backend/shared/core`
+(`FigmaYamlGoldenTest`), so the converter's output is pinned as a file Mateu actually reads.
 
 ## Reading back (modux)
 
@@ -63,14 +104,14 @@ Linux client.
    cd design/figma/plugin
    npm ci
    npm run typecheck && npm test   # 2 tests: every contract sketch primitive is drawable
-   npm run build                   # → dist/code.js (~76 kB)
+   npm run build                   # → dist/code.js (~157 kB)
    ```
 2. In Figma Desktop create an EMPTY design file (e.g. "Mateu UI Kit").
 3. *Main menu → Plugins → Development → Import plugin from manifest…* →
    `design/figma/plugin/manifest.json`.
 4. *Plugins → Development → Mateu Library Generator*. Expect one page per category
    (`Mateu · Field`, `Mateu · Layout`, `Mateu · Display`, `Mateu · Page Templates`…) and the toast
-   `Mateu library generated: 84 components ✔`. If it fails, the error is in
+   `Mateu library generated: 160 components ✔`. If it fails, the error is in
    *Plugins → Development → Show/Hide console*.
 5. Review every page. Things to look at on this first real run: text overflowing its sketch, variant
    sets laid out badly (the set uses horizontal wrap auto-layout), missing fonts, components whose

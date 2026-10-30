@@ -1,0 +1,17 @@
+{
+  "name": "mateu-figma-to-yaml",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reads a Figma file (REST JSON, GET /v1/files/:key) designed with the Mateu library and writes specs/ui YAML, mapping every Mateu/* instance back through ../contract.json.",
+  "bin": {
+    "figma-to-yaml": "bin/figma-to-yaml.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "golden": "node bin/figma-to-yaml.mjs test/fixtures/starwars.figma.json --out test/golden --clean"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

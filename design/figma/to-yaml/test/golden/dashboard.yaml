@@ -1,0 +1,27 @@
+# Generated from the Figma frame "dashboard" (node 436:49) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: The galaxy at a glance
+subtitle: The saga in numbers
+template:
+  type: DashboardLandingPage
+  kpi:
+    - type: MetricCard
+      title: Characters
+      value: "82"
+    - type: MetricCard
+      title: Planets
+      value: "60"
+    - type: MetricCard
+      title: Starships
+      value: "36"
+content:
+  - type: DashboardPanel
+    colSpan: 2
+    title: Characters per film
+    content:
+      type: VerticalLayout
+      content:
+        - type: Chart
+          chartType: bar

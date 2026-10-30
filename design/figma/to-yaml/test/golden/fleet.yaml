@@ -1,0 +1,35 @@
+# Generated from the Figma frame "Fleet" (node 696:18) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Fleet
+template:
+  type: DataManagementPage
+  end:
+    id: fleet-summary
+    size: 20rem
+    open: true
+    title: Fleet at a glance
+    content:
+      type: VerticalLayout
+      content:
+        - type: MetricCard
+          title: Vehicles
+          value: "39"
+        - type: MetricCard
+          title: Passenger seats
+          value: "1405"
+content:
+  - type: Listing
+    gridLayout: table
+    rowRoute: "vehicles/${row.id}"
+    searchable: true
+    columns:
+      - type: GridColumn
+        id: name
+        label: Name
+      - type: GridColumn
+        id: model
+        label: Model
+    rowsSource:
+      ref: swapi-vehicles
