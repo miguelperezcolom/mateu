@@ -660,6 +660,17 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   `chromeTexts.lint.test.ts` fails on new hard-coded UI strings). `MateuRendererApp` is gone. CI runs
   ESLint, `test:coverage` with ratcheted thresholds in libs/mateu and apps/vaadin, and the eager-bundle
   budget (`apps/vaadin/scripts/check-bundle-budget.mjs` vs `bundle-budget.json`).
+  **Re-render identity (2026-10-30, the Vaadin "flash of the previous page")**: Lit sets an OBJECT
+  property binding on EVERY render (no `!==` check for objects), so a parent re-rendering for its own
+  reasons must hand children the same thing or nothing: `renderComponent` guards `.state`/`.data`
+  (`lit/directives/guard`) — a fresh copy wiped what a record page had loaded itself and repainted it
+  blank while the next route loaded — and `renderClientSideComponent` reuses its resolved copy
+  (`resolvedComponent`) — a new `.component` each render made `mateu-app` treat the SAME shell as a new
+  App, reset `selectedRoute` to its stale `homeRoute` and reload the previous record in the content
+  area. Pinned by `rerenderIdentity.test.ts`; frame-capture recipe: a rAF loop recording the deep
+  text of `[role=main]` per frame + XHR marks; to try a rebuilt bundle against a running app, serve
+  `/assets/**` from `apps/vaadin/dist/assets` with `page.route` in a context with `serviceWorkers: 'block'`
+  (requests a service worker answers never reach `page.route`).
 - **Redwood create/edit pages = Spectra's (2026-10-23).** Rule: in Redwood, Spectra (oj-sp) and VB rule — use their
   component/template and contract before drawing our own. A page whose toolbar CANCELS (`cancel`/`cancel-edit`/
   `cancel-new`/`cancel-create`, not `cancel-view`) beside a primary action gets `oj-sp-header-create-edit`

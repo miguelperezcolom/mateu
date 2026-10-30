@@ -5,6 +5,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { isNodeIdStamping, stampNodeId } from "@infra/ui/renderers/nodeIdStamp.ts";
+import { guard } from "lit/directives/guard.js";
 
 interface RoutedContainer extends LitElement {
     route: string
@@ -30,6 +31,10 @@ export const serverSideStyle = (style?: string): string | undefined => {
     return centred && !sized ? `width: 100%; box-sizing: border-box; ${style}` : style
 }
 
+// An empty state/data map stands for every other one: callers pass a fresh `{}` when there is none.
+const EMPTY = {}
+const orEmpty = (map: object | undefined) => map && Object.keys(map).length > 0 ? map : EMPTY
+
 export const renderComponent = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered?: boolean | undefined): TemplateResult => {
     if (!component) {
         return html``;
@@ -41,6 +46,13 @@ export const renderComponent = (container: LitElement, component: Component, bas
     }
     const route = (container as RoutedContainer).route
     const consumedRoute = (container as RoutedContainer).consumedRoute
+    // `.state` / `.data` are bound again only when what they are made of changed. Lit sets an object
+    // property on EVERY render, so a parent re-rendering for a reason of its own — a content mateu-ux
+    // does when its route changes, while the next screen is still on its way — handed the child a
+    // copy of its seed and dropped everything it had loaded itself (a record page's REST data): the
+    // outgoing screen repainted with its fields blank for the length of the request, the previous
+    // page "as configured" flashing before the next one.
+    const seed = component.initialData as Record<string, unknown> | undefined
     return html`
         <mateu-component id="${component.id}"
                          .component="${component}"
@@ -50,8 +62,8 @@ export const renderComponent = (container: LitElement, component: Component, bas
                          slot="${component.slot??nothing}"
                          style="${serverSideStyle(component.style)}"
                          class="${component.cssClasses}"
-                         .state="${{...(component.initialData as Record<string, unknown> ?? {}), ...state}}"
-                         .data="${{...data}}"
+                         .state="${guard([component, seed, orEmpty(state)], () => ({...(seed ?? {}), ...state}))}"
+                         .data="${guard([component, orEmpty(data)], () => ({...data}))}"
                          .appState="${appState}"
                          .appData="${appData}"
         >

@@ -158,6 +158,32 @@ export const updateMedata = (component: ClientSideComponent, data: ComponentData
     return copy
 }
 
+// The resolved copy handed out for a component, reused while its style and metadata resolve the same.
+const resolvedCopies = new WeakMap<ClientSideComponent, ClientSideComponent>()
+
+/**
+ * The component a renderer gets: the rules' `<id>.hidden` style and `<id>.disabled` metadata
+ * applied. The SAME object on every render while they resolve the same — an element bound with
+ * `.component` (mateu-app) treats a new object as a new component from the server: a copy per render
+ * made the app shell drop the menu entry the user had picked and reload its home in the content
+ * area, which painted the previous screen for a moment on the way to the next one.
+ */
+export const resolvedComponent = (component: ClientSideComponent, data: ComponentData): ClientSideComponent => {
+    const style = updateStyle(component, data)
+    const metadata = updateMedata(component, data)
+    const last = resolvedCopies.get(component)
+    // every other member too: the component is written in place at times (renderComponentInSlot
+    // sets its slot, a fragment replaces its children)
+    if (last && last.style === style && last.metadata === metadata
+        && Object.keys(component).every(key => key === 'style' || key === 'metadata'
+            || (last as unknown as Record<string, unknown>)[key] === (component as unknown as Record<string, unknown>)[key])) {
+        return last
+    }
+    const copy = { ...component, style, metadata } as ClientSideComponent
+    resolvedCopies.set(component, copy)
+    return copy
+}
+
 // Everything a per-type renderer might need. Each renderer in the dispatch table below picks the
 // arguments it actually uses; the table replaces what used to be a ~60-branch if/else chain.
 type RenderContext = {
@@ -349,7 +375,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
     }
 
     const type = component.metadata.type
-    const resolved = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data) }
+    const resolved = resolvedComponent(component, data)
 
     const renderer = (RENDERERS as Partial<Record<string, (c: RenderContext) => TemplateResult>>)[type]
     if (renderer) {

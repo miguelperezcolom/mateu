@@ -1,3 +1,4 @@
+import { URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
 import { hasSelection, requiresSelection, SELECTION_CHANGED_EVENT } from "@infra/ui/selectionGate";
 import { byLine } from './listingLines'
 import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
@@ -484,7 +485,11 @@ export class MateuTableCrud extends LitElement {
         })
         this.resizeObserver.observe(this)
         this.addEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
+        window.addEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
     }
+
+    // the URL moved under this listing: updated() compares it with the one it applied
+    urlChangedListener = () => this.requestUpdate()
 
     // the grid writes the selection into the shared state in place — re-render the toolbar so
     // selection-gated actions (needsSelection) enable and disable with it
@@ -496,6 +501,7 @@ export class MateuTableCrud extends LitElement {
         window.removeEventListener('resize', this.windowResizeListener)
         this.resizeObserver?.disconnect()
         this.removeEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
+        window.removeEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
     }
 
     /**
@@ -898,7 +904,13 @@ export class MateuTableCrud extends LitElement {
         if (this.data?.[this.id] != undefined) this.endLoading()
         else if (this.loadingSince == undefined && this._initializedForKey != undefined
             && !this.awaitingRows && listingSearchesOnLoad(this)) this.beginLoading()
-        if (_changedProperties.has("component")) {
+        // Not only when the component changed: the same listing reached again with another query
+        // can come back as the very same component object (an unchanged parent binds nothing new).
+        const loc = (globalThis as { window?: { location?: Location } }).window?.location
+        const queryMoved = !!loc && this._appliedUrl !== undefined
+            && loc.pathname + loc.search !== this._appliedUrl
+            && loc.pathname === this._appliedUrl.split('?')[0]
+        if (_changedProperties.has("component") || queryMoved) {
             const initKey = MateuTableCrud._initKeyOf(this.component)
             const metadata = this.component?.metadata as Crud
             const location = (globalThis as { window?: { location?: Location } }).window?.location
@@ -916,7 +928,10 @@ export class MateuTableCrud extends LitElement {
                 && location.pathname === this._appliedUrl.split('?')[0]
             if (urlChanged) {
                 const cleared: Record<string, any> = { ...this.state }
-                this._filterIds(metadata).forEach(id => { delete cleared[id] })
+                // undefined, not deleted: the component around merges this state over its own
+                // (`{...state, ..._searchState}`), and only a key that is there overwrites a stale
+                // filter it still holds — JSON drops it on the way out
+                this._filterIds(metadata).forEach(id => { cleared[id] = undefined })
                 this.state = cleared
             }
             if (initKey !== this._initializedForKey || urlChanged) {
