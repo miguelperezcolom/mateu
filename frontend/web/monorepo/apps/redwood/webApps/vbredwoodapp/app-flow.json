@@ -828,6 +828,10 @@
       "defaultValue": "pebbles",
       "description": "imagen tem\u00e1tica del hero de la welcome (va con el tono)"
     },
+    "mateuHs": {
+      "type": "any",
+      "description": "A YAML HeroSearchPage (overviews.templatedHeroSearchOf): the hero's title and description; the listing fills oj-sp-hero-search-page's slots"
+    },
     "mateuGp": {
       "type": "any",
       "description": "A YAML GuidedProcessPage (overviews.templatedGuidedProcessOf): its steps with their atoms, primary and cancel"

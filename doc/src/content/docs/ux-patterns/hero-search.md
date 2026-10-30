@@ -62,6 +62,25 @@ HeroSection.builder()
         .build()
 ```
 
+
+## In YAML
+
+A YAML page fills the template with `template: {type: HeroSearchPage}` on its `type: Form`: the
+form's title and subtitle head the hero, and its `content` is the results — a searchable `Listing` —
+see [Page templates](/define/yaml/pages/#page-templates--template). On Redwood it is Spectra's
+`oj-sp-hero-search-page`: the page opens as the landing hero with its search box, and the first
+search turns it into the collection view (the results under a compact header).
+
+```yaml
+type: Form
+title: Search the galaxy
+subtitle: Every character of the saga answers
+template:
+  type: HeroSearchPage
+content:
+  - {type: Listing, searchable: true, gridLayout: cards, rowRoute: "people/${row.id}", rowsSource: {ref: swapi-people}, columns: [{type: GridColumn, id: name, label: Name}]}
+```
+
 ## Redwood parameter and slot reference
 
 What the Redwood `hero-search-page` template exposes, and what Mateu gives you for it. The canonical

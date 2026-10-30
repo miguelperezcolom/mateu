@@ -422,6 +422,16 @@
         }
       ]
     },
+    "heroSearchAction": {
+      "chains": [
+        {
+          "parameters": {
+            "searchText": "{{ $event.detail.value }}"
+          },
+          "chain": "heroSearchSubmitted"
+        }
+      ]
+    },
     "mateuSearchAction": {
       "chains": [
         {
@@ -1626,6 +1636,9 @@
       },
       "oj-sp-header-welcome-banner": {
         "path": "oj-sp/header-welcome-banner/loader"
+      },
+      "oj-sp-hero-search-page": {
+        "path": "oj-sp/hero-search-page/loader"
       },
       "oj-sp-welcome-page": {
         "path": "oj-sp/welcome-page/loader"

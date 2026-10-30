@@ -34,6 +34,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (t.type === 'AdvancedCreateEditPage') return { type: 'AdvancedCreateEditPage', avatar: null, photo: null }
     if (t.type === 'GuidedProcessPage') return { type: 'GuidedProcessPage', avatar: null, photo: null }
     if (t.type === 'DataManagementPage') return { type: 'DataManagementPage', avatar: null, photo: null }
+    if (t.type === 'HeroSearchPage') return { type: 'HeroSearchPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -43,7 +44,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
  */
 export function ownsHeader(template: unknown): boolean {
     const t = template as Node | undefined
-    return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage' || t.type === 'DataManagementPage')
+    return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage' || t.type === 'DataManagementPage' || t.type === 'HeroSearchPage')
 }
 
 /** The page's content: the template laid out, or the authored content of a free page. `form` is the
@@ -54,6 +55,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content))]
     if (t.type === 'WelcomePage') return banner('welcome', t, nodes(content), form)
     if (t.type === 'MultimediaContentPage') return banner('multimedia-banner', t, nodes(content), form)
+    if (t.type === 'HeroSearchPage') return banner('hero-search', t, nodes(content), form)
     if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
     if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
     if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]

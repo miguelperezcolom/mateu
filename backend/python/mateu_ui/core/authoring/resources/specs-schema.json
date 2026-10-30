@@ -4763,6 +4763,8 @@
       }, {
         "$ref" : "#/$defs/GuidedProcessPage"
       }, {
+        "$ref" : "#/$defs/HeroSearchPage"
+      }, {
         "$ref" : "#/$defs/ItemOverviewPage"
       }, {
         "$ref" : "#/$defs/MultimediaContentPage"
@@ -5339,6 +5341,20 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "HeroSearchPage" : {
+      "description" : "Redwood's Hero search page template (Spectra oj-sp-hero-search-page): a search-first landing page — a hero with the page's title and description over the search and its results.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "HeroSearchPage"
+        },
+        "backgroundColor" : {
+          "type" : "string"
         }
       }
     },

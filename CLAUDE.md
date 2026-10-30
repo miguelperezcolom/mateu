@@ -430,6 +430,12 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   `-body` ResponsiveGrid with the end panel); owns the header. Redwood's `dataManagementPageOf` reads it
   by shape (a panel header no longer needs a ✕ action); a `Listing` in the view paints in the dm main
   slot (`@listing-body dm`, + search box; listing page and list band stand aside under mateuDm too).
+- **`HeroSearchPage`** (field `backgroundColor`): server = the welcome-style banner (HeroSection id
+  `hero-search`, owns the header) over the results; Redwood paints Spectra's `oj-sp-hero-search-page`
+  (`mateuHs`: title/description, `collection` off → the first search via `heroSearchSubmitted` turns
+  it on), its `searchTemplate` slot = an input-search, its default slot = `@listing-body hs` (the 4th
+  copy; the listing page/list band stand aside). New oj-sp components need an import in
+  main-start-page.json `imports.components` (make-embedded fails otherwise).
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

@@ -12,6 +12,8 @@ routes:
     definition: dashboard.yaml
   - route: fleet       # the vehicles managed (a Data management page)
     definition: fleet.yaml
+  - route: search      # search the galaxy (a Hero search page)
+    definition: search.yaml
   - route: people
     definition: people.yaml
 
