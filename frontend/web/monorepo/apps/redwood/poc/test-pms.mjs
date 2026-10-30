@@ -23,7 +23,7 @@ import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
 import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest } from './pageProjection.mjs'
-import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf } from './core/overviews.mjs'
+import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf } from './core/overviews.mjs'
 import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
@@ -2498,6 +2498,17 @@ test('a page that DECLARES the Advanced create and edit template shows the ancho
     metadata: { type: 'Card', title: { type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Identity' } } } }
   const bare = { type: 'ClientSide', metadata: { type: 'Form', template: { type: 'AdvancedCreateEditPage' } }, children: [section] }
   assert.equal(tocOf({ state: {}, data: {}, tree: bare }).on, true)
+})
+
+test('a page that DECLARES the Guided process template → oj-sp-guided-process steps (one per tab of the one form), primary and cancel', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/guided-process-page.golden.json'), 'utf-8'))
+  // the state (with what was typed) is what the steps' fields show
+  const gp = templatedGuidedProcessOf({ state: { name: 'Ebon Hawk' }, data: {}, tree: golden.fragments[0].component })
+  assert.deepEqual(gp.steps.map((s) => [s.id, s.title]), [['step-1', 'Identity'], ['step-2', 'Specifications']])
+  assert.equal(gp.steps[0].items.find((a) => a.fieldId === 'name').value, 'Ebon Hawk')
+  assert.deepEqual(gp.primaryAction, { label: 'Register' })
+  assert.deepEqual([gp.primaryId, gp.cancelId, gp.cancelRoute], ['create', 'cancel-new', 'starships'])
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {

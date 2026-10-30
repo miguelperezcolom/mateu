@@ -1,0 +1,20 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Guided process template — its steps, laid
+# out as one tab per step of the one form.
+type: Form
+title: Register a starship
+toolbar:
+  - {type: Button, actionId: cancel-new, label: Cancel, actionable: {type: RouteLink, route: starships}}
+  - {type: Button, actionId: create, label: Register, buttonStyle: primary}
+template:
+  type: GuidedProcessPage
+  steps:
+    - id: identity
+      title: Identity
+      description: What the ship is called
+      content:
+        - {type: FormField, id: name, label: Name}
+    - id: specs
+      title: Specifications
+      content:
+        - {type: FormField, id: length, label: Length, dataType: number}

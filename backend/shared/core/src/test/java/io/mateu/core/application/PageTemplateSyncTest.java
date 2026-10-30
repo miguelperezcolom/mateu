@@ -255,6 +255,19 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aGuidedProcessPageIsOneTabPerStep() throws Exception {
+    var page = render("guided-process-page");
+    assertThat(page.path("metadata").path("template").path("type").asText())
+        .isEqualTo("GuidedProcessPage");
+    var tabs = byId(page, "guided-process");
+    assertThat(tabs.path("metadata").path("type").asText()).isEqualTo("TabLayout");
+    assertThat(tabs.path("children")).hasSize(2);
+    assertThat(tabs.path("children").path(0).path("metadata").path("label").asText())
+        .isEqualTo("Identity");
+    assertThat(tabs.path("children").path(0).path("metadata").path("active").asBoolean()).isTrue();
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

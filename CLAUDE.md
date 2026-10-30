@@ -416,6 +416,15 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   excludes it). GOTCHA paid here: an app-flow variable the projection may set to NULL must be typed
   `any`, never `object` — VB refuses the assign and the WHOLE navigation chain fails (every page lost its
   header); pinned by a test-chains guard over `archetypeVarsOf`.
+- **`GuidedProcessPage`** (`steps: [GuidedProcessStep {id, title, description, content}]`): the server
+  lays the steps out as ONE `TabLayout` id `guided-process` (one form → moving between steps keeps the
+  state, no round trip; NOT `Tab.routeKey` — that makes Vaadin tabs rewrite the URL). Redwood
+  `templatedGuidedProcessOf` → `mateuGp` → `oj-sp-guided-process` (steps `{id: step-N, title}`,
+  `current-step` two-way on `mateuGpCurrent`; Spectra moves on its own); `onGuidedStepChanged`
+  re-projects the steps from host state + `$page.variables.mateuDraft` (typed values live in the
+  DRAFT, not the registry). The two chains share `templateOwnsHeader`/`templateHostContentOf` (and
+  runMateuAction now also feeds `templatedGeneralOverviewOf` and the cd listing rule) — keep template
+  decisions in the bridge: `onMateuNavigate` is line-ratcheted (< 600, test-chains).
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

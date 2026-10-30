@@ -455,7 +455,7 @@ define([
       // the generic form is suppressed: its buttons (the form's @Button) go with the blocks
       // a multimedia content page's actions are its banner's calls to action: no form action row
       let hostContent = $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos
-        ? (archetypes.vars.mateuMmc ? hostBlocks : bridge.withFormActions(hostBlocks, summary.actions, { tree: host.tree })) : null) || [];
+        ? bridge.templateHostContentOf(archetypes, hostBlocks, summary.actions, host.tree) : null) || [];
       // the content's web components (a process graph) are created by the bridge in their
       // hole: VB cannot write a tag whose name arrives in the data
       bridge.mountElementsSoon(bridge.elementAtomsOf($application.variables.mateuHostContent));
@@ -502,7 +502,7 @@ define([
       // a foldout with page actions (a crud's @FoldoutDetail view: Edit, Cancel…)
       // keeps the vb header, which is where those actions go
       const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
-        || archetypes.vars.mateuMmc
+        || bridge.templateOwnsHeader(archetypes)
         || overviewProjection || listingSummary
         || (foldoutNow && !hostEntity && !hostToolbar.length));
       // the not-found page brings its own heading (the oj-sp-empty-state): no vb header

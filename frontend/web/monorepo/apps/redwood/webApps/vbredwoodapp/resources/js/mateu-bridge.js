@@ -4330,6 +4330,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
   }
 
+  /**
+   * A page that DECLARES the Guided process template → oj-sp-guided-process (mateuGp): its steps are the
+   * `guided-process` tab bar's tabs (one per step of the ONE form, so moving between them keeps what was
+   * typed), each with its atoms; the template moves between steps on its own (currentStep writes back).
+   * The form's toolbar gives the process its primary action and its cancel.
+   */
+  function templatedGuidedProcessOf(ctx) {
+    if (!declaresTemplate(ctx, 'GuidedProcessPage')) return null
+    const bar = nodeById(ctx.tree, 'guided-process')
+    if (!bar) return null
+    const state = (ctx && ctx.state) || {}
+    const atomsOf = (nodes) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gp',
+      metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
+      ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+      : b.items || []))
+    const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
+      id: 'step-' + (i + 1),
+      title: interpolate(String(tab.metadata.label || ''), state),
+      items: atomsOf(tab.children || []),
+    }))
+    const form = templateFormOf(ctx)
+    const md = (form && form.metadata) || {}
+    const toolbar = md.toolbar || []
+    const primary = toolbar.find((b) => b && b.buttonStyle === 'primary')
+    const cancel = toolbar.find((b) => b && /^cancel(-(edit|new|create))?$/.test(b.actionId || ''))
+    return {
+      title: interpolate(String(md.title || ''), state),
+      subtitle: interpolate(String(md.subtitle || ''), state),
+      // Spectra's step objects: { id, title } (the atoms ride along for our own stamp)
+      steps,
+      primaryAction: primary ? { label: interpolate(String(primary.label || ''), state) } : null,
+      primaryId: primary ? (primary.actionId || '') : '',
+      primaryRoute: primary ? (primary.route || '') : '',
+      cancelId: cancel ? (cancel.actionId || '') : '',
+      cancelRoute: cancel ? (cancel.route || '') : '',
+    }
+  }
+
   /** ITEM OVERVIEW archetype: key-data panel + tabs. */
   function itemOverviewOf(ctx) {
     // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
@@ -22761,6 +22799,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * is the same on every visit and while one stays on it.
    */
   function archetypeVarsOf(host) {
+    const gp = templatedGuidedProcessOf(host)
     const welcome = welcomeOf(host)
     const overview = generalOverviewOf(host)
     const item = itemOverviewOf(host)
@@ -22787,6 +22826,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuItemOv: item,
       // the Multimedia content page's banner (oj-sp-header-welcome-banner over the host content)
       mateuMmc: templatedMultimediaOf(host),
+      // a YAML Guided process (oj-sp-guided-process) and its first step
+      mateuGp: gp,
+      mateuGpCurrent: gp && gp.steps.length ? gp.steps[0].id : '',
       // the ATOMS of the selected tab (not only its texts): the first, or the one marked open
       // (a template page whose main slot is not one tab bar: that slot's atoms)
       mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : ((item && item.mainItems) || []),
@@ -22802,6 +22844,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // spPage: a page template that brings its own header and owns the page (the chains suppress the VB
     // header and the generic form for it, like the dashboard/todo branches)
     return { vars, welcome, overview, item, dashboard, todo, dm, cd, spPage: !!(dm || cd || item) }
+  }
+
+  /** Whether a YAML page template paints the page header itself (a multimedia content page's banner,
+   *  a guided process): the VB header stands aside, as for the composed archetypes. */
+  function templateOwnsHeader(archetypes) {
+    const v = (archetypes && archetypes.vars) || {}
+    return !!(v.mateuMmc || v.mateuGp)
+  }
+
+  /**
+   * The host content to paint for a page, given its archetypes: none for a guided process (it paints
+   * its steps itself), the bare blocks for a multimedia content page (its actions are the banner's calls
+   * to action: no form action row), else the blocks with the form's action row (withFormActions).
+   * Shared by onMateuNavigate and runMateuAction, so a re-render after an action paints the same.
+   */
+  function templateHostContentOf(archetypes, hostBlocks, actions, tree) {
+    const v = (archetypes && archetypes.vars) || {}
+    if (v.mateuGp) return []
+    if (v.mateuMmc) return hostBlocks || []
+    return withFormActions(hostBlocks, actions, { tree }) || []
   }
 
   /** The Page node's title ('' without one). */
@@ -26192,6 +26254,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     hostContentPlanOf,
     generalOverviewPageOf,
     templatedGeneralOverviewOf,
+    templatedGuidedProcessOf,
+    templateOwnsHeader,
+    templateHostContentOf,
     pageHeaderOf,
     // the page header's record/context switcher (RecordSwitcherSupplier): a pick → its action
     switcherPickOf,

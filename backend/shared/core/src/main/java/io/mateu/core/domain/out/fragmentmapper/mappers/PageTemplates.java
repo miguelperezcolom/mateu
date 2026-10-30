@@ -13,6 +13,8 @@ import io.mateu.uidl.data.FoldoutPage;
 import io.mateu.uidl.data.FoldoutPanel;
 import io.mateu.uidl.data.GeneralOverviewPage;
 import io.mateu.uidl.data.GridTrack;
+import io.mateu.uidl.data.GuidedProcessPage;
+import io.mateu.uidl.data.GuidedProcessStep;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HeroTone;
 import io.mateu.uidl.data.HorizontalAlignment;
@@ -24,6 +26,8 @@ import io.mateu.uidl.data.MultimediaContentPage;
 import io.mateu.uidl.data.ResponsiveGrid;
 import io.mateu.uidl.data.Scoreboard;
 import io.mateu.uidl.data.Slotted;
+import io.mateu.uidl.data.Tab;
+import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.TemplateImage;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.data.WelcomePage;
@@ -52,6 +56,7 @@ public final class PageTemplates {
   static final String FOLDOUT = "FoldoutPage";
   static final String MULTIMEDIA = "MultimediaContentPage";
   static final String ADVANCED_CREATE_EDIT = "AdvancedCreateEditPage";
+  static final String GUIDED_PROCESS = "GuidedProcessPage";
 
   private PageTemplates() {}
 
@@ -80,6 +85,9 @@ public final class PageTemplates {
     }
     if (form.template() instanceof AdvancedCreateEditPage createEdit) {
       return advancedCreateEdit(createEdit, form.content());
+    }
+    if (form.template() instanceof GuidedProcessPage process) {
+      return List.of(guidedProcess(process));
     }
     return form.content();
   }
@@ -119,6 +127,9 @@ public final class PageTemplates {
     }
     if (template instanceof AdvancedCreateEditPage) {
       return new PageTemplateDto(ADVANCED_CREATE_EDIT, null, null);
+    }
+    if (template instanceof GuidedProcessPage) {
+      return new PageTemplateDto(GUIDED_PROCESS, null, null);
     }
     return null;
   }
@@ -315,6 +326,24 @@ public final class PageTemplates {
         .horizontalAlignment(HorizontalAlignment.STRETCH)
         .spacing(true)
         .build();
+  }
+
+  /**
+   * Guided process: one tab per step, in order — Mateu's drawing for the renderers without the
+   * template (the steps of one form, moved between without a round trip); Redwood reads the tabs as
+   * the template's steps.
+   */
+  private static Component guidedProcess(GuidedProcessPage template) {
+    List<Tab> tabs = new ArrayList<>();
+    for (GuidedProcessStep step : template.steps()) {
+      tabs.add(
+          Tab.builder()
+              .label(step.title())
+              .active(tabs.isEmpty())
+              .content(region(step.content()))
+              .build());
+    }
+    return TabLayout.builder().id("guided-process").tabs(tabs).build();
   }
 
   /** The avatar (a round image, else the initials) or the 4:3 photo. */

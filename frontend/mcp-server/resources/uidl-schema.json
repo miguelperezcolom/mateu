@@ -4454,6 +4454,8 @@
       }, {
         "$ref" : "#/$defs/GeneralOverviewPage"
       }, {
+        "$ref" : "#/$defs/GuidedProcessPage"
+      }, {
         "$ref" : "#/$defs/ItemOverviewPage"
       }, {
         "$ref" : "#/$defs/MultimediaContentPage"
@@ -4927,6 +4929,43 @@
     "GroupRelationship" : {
       "type" : "string",
       "enum" : [ "alternative", "sequential", "simultaneous" ]
+    },
+    "GuidedProcessPage" : {
+      "description" : "Redwood's Guided process page template (Spectra oj-sp-guided-process): a process broken into GuidedProcessSteps the user goes through one at a time.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "GuidedProcessPage"
+        },
+        "steps" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/GuidedProcessStep"
+          }
+        }
+      }
+    },
+    "GuidedProcessStep" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        }
+      }
     },
     "HeaderValue" : {
       "type" : "object",

@@ -557,12 +557,12 @@ define([
       const hostToolbarA = bridge.pageToolbarOf(hostAfter);
       // native GENERAL OVERVIEW: entity page with TWO column blocks → the
       // oj-sp-general-overview-page template (main/info slots, integrated header)
-      const gop2 = bridge.generalOverviewPageOf(hostEntity2, hostBlocks2);
+      const gop2 = bridge.templatedGeneralOverviewOf(hostAfter) || bridge.generalOverviewPageOf(hostEntity2, hostBlocks2);
       vars.mateuGop = gop2;
       const gopOn2 = gop2.on;
       // the generic form is suppressed: its buttons (the form's @Button) go with the blocks
       // kept here too: the header's pass below works on the projection, not on the variable's proxies
-      let hostContent2 = (!gopOn2 && hostBlocksRicos2 ? bridge.withFormActions(hostBlocks2, summary.actions, { tree: hostAfter.tree }) : null) || [];
+      let hostContent2 = (!gopOn2 && hostBlocksRicos2 ? bridge.templateHostContentOf(archetypes, hostBlocks2, summary.actions, hostAfter.tree) : null) || [];
       vars.mateuHostContent = hostContent2;
       bridge.mountElementsSoon(bridge.elementAtomsOf(vars.mateuHostContent));
       if (hostBlocksRicos2) {
@@ -592,7 +592,7 @@ define([
       // templates that already integrate their own (guided process / general overview / welcome /
       // the listing's smart-filter-search) suppress it
       const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
-        || overviewProjection || listingSummary
+        || overviewProjection || listingSummary || bridge.templateOwnsHeader(archetypes)
         || (foldoutNow && !hostEntity2 && !hostToolbarA.length));
       const showHeaderA = !integratedHeader && !notFoundAfter;
       const pwAfter = bridge.pageWidthOf({ host: hostAfter, drawerNav: vars.mateuMenuDrawerMode });
@@ -600,7 +600,7 @@ define([
       // is NOT just another action: it is the RDS header's goToParent affordance
       const pageHeader = bridge.pageHeaderOf({
         host: hostAfter, hostEntity: hostEntity2, summary, hostToolbar: hostToolbarA,
-        showHeader: showHeaderA, pageWidth: pwAfter, gopOn: gopOn2, listing: listingSummary,
+        showHeader: showHeaderA, pageWidth: pwAfter, gopOn: gopOn2, listing: archetypes.cd ? null : listingSummary,
       });
       vars.mateuPageHeader = pageHeader.header;
       vars.mateuPageHeaderTranslations = pageHeader.translations;

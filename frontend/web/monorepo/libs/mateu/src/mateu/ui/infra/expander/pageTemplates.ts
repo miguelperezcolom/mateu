@@ -32,6 +32,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (t.type === 'FoldoutPage') return { type: 'FoldoutPage', avatar: null, photo: null }
     if (t.type === 'MultimediaContentPage') return { type: 'MultimediaContentPage', avatar: null, photo: null }
     if (t.type === 'AdvancedCreateEditPage') return { type: 'AdvancedCreateEditPage', avatar: null, photo: null }
+    if (t.type === 'GuidedProcessPage') return { type: 'GuidedProcessPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -57,6 +58,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]
     if (t.type === 'FoldoutPage') return [foldout(t, nodes(content))]
     if (t.type === 'AdvancedCreateEditPage') return advancedCreateEdit(t, nodes(content))
+    if (t.type === 'GuidedProcessPage') return [guidedProcess(t)]
     return content
 }
 
@@ -181,4 +183,17 @@ function advancedCreateEdit(t: Node, main: FluentNode[]): FluentNode[] {
         gridTemplateAreas: '"main aside"', stickyAreas: [], reorderable: false,
         content: [region('main', main), region('aside', detail)],
     } as unknown as FluentNode]
+}
+
+/** Guided process: one tab per step of the one form, the first active (PageTemplates.guidedProcess);
+ *  Redwood reads the tabs as the template's steps. */
+function guidedProcess(t: Node): FluentNode {
+    const steps = (Array.isArray(t.steps) ? t.steps : []) as Node[]
+    return {
+        type: 'TabLayout', id: 'guided-process',
+        tabs: steps.map((step, i) => ({
+            type: 'Tab', label: step.title, active: i === 0,
+            content: { type: 'VerticalLayout', content: nodes(step.content), fullWidth: true, horizontalAlignment: 'STRETCH', spacing: true },
+        })),
+    } as unknown as FluentNode
 }

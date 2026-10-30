@@ -691,6 +691,44 @@ export function templatedMultimediaOf(ctx) {
     theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
 }
 
+/**
+ * A page that DECLARES the Guided process template → oj-sp-guided-process (mateuGp): its steps are the
+ * `guided-process` tab bar's tabs (one per step of the ONE form, so moving between them keeps what was
+ * typed), each with its atoms; the template moves between steps on its own (currentStep writes back).
+ * The form's toolbar gives the process its primary action and its cancel.
+ */
+export function templatedGuidedProcessOf(ctx) {
+  if (!declaresTemplate(ctx, 'GuidedProcessPage')) return null
+  const bar = nodeById(ctx.tree, 'guided-process')
+  if (!bar) return null
+  const state = (ctx && ctx.state) || {}
+  const atomsOf = (nodes) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gp',
+    metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
+    ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
+    : b.items || []))
+  const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
+    id: 'step-' + (i + 1),
+    title: interpolate(String(tab.metadata.label || ''), state),
+    items: atomsOf(tab.children || []),
+  }))
+  const form = templateFormOf(ctx)
+  const md = (form && form.metadata) || {}
+  const toolbar = md.toolbar || []
+  const primary = toolbar.find((b) => b && b.buttonStyle === 'primary')
+  const cancel = toolbar.find((b) => b && /^cancel(-(edit|new|create))?$/.test(b.actionId || ''))
+  return {
+    title: interpolate(String(md.title || ''), state),
+    subtitle: interpolate(String(md.subtitle || ''), state),
+    // Spectra's step objects: { id, title } (the atoms ride along for our own stamp)
+    steps,
+    primaryAction: primary ? { label: interpolate(String(primary.label || ''), state) } : null,
+    primaryId: primary ? (primary.actionId || '') : '',
+    primaryRoute: primary ? (primary.route || '') : '',
+    cancelId: cancel ? (cancel.actionId || '') : '',
+    cancelRoute: cancel ? (cancel.route || '') : '',
+  }
+}
+
 /** ITEM OVERVIEW archetype: key-data panel + tabs. */
 export function itemOverviewOf(ctx) {
   // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts

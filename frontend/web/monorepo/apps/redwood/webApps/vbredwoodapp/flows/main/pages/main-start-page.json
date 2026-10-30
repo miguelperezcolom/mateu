@@ -516,6 +516,38 @@
         }
       ]
     },
+    "gpStepChanged": {
+      "chains": [
+        {
+          "chain": "onGuidedStepChanged",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "gpPrimary": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuGp.primaryId }}",
+            "route": "{{ $application.variables.mateuGp.primaryRoute }}"
+          }
+        }
+      ]
+    },
+    "gpCancel": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuGp.cancelId }}",
+            "route": "{{ $application.variables.mateuGp.cancelRoute }}"
+          }
+        }
+      ]
+    },
     "mmcPrimary": {
       "chains": [
         {

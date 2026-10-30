@@ -828,6 +828,15 @@
       "defaultValue": "pebbles",
       "description": "imagen tem\u00e1tica del hero de la welcome (va con el tono)"
     },
+    "mateuGp": {
+      "type": "any",
+      "description": "A YAML GuidedProcessPage (overviews.templatedGuidedProcessOf): its steps with their atoms, primary and cancel"
+    },
+    "mateuGpCurrent": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "The guided process's current step id (oj-sp-guided-process currentStep, written back by the template)"
+    },
     "mateuMmc": {
       "type": "any",
       "description": "A YAML MultimediaContentPage's banner (overviews.templatedMultimediaOf): welcome-style texts, CTAs and look, painted with oj-sp-header-welcome-banner"
