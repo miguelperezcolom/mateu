@@ -457,6 +457,9 @@ export function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, b
     // Redwood's own tokens — the small control height, the 1x form-layout spacing); PRECOMPUTED,
     // the VB expression evaluator has no ternaries
     mateuPageDensityClass: pageDensityOf(host) === 'compact' ? 'mateu-density-compact' : '',
+    // the item overview template OWNS the page: its header band and zones sit on the page itself, as
+    // in Redwood's examples — the content container's card surface would frame it (app.css)
+    mateuPageHostClass: iopOn ? 'mateu-iop-host' : '',
   }
   if (band) {
     out.mateuBandBoxMargin = pageStyle.margin

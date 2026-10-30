@@ -146,8 +146,26 @@ template:
 content:
   - type: TabLayout
     tabs:
-      - {type: Tab, label: Physique, content: {type: FormField, id: height, label: Height, readOnly: true, propertyRow: true}}
+      - type: Tab
+        label: Details
+        content:
+          type: VerticalLayout
+          horizontalAlignment: STRETCH
+          content:
+            - type: Card
+              cssClasses: mateu-section          # a section: Redwood draws Spectra's oj-sp-section
+              title: {type: Text, container: h3, text: Physique}   # the heading names the section
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: height, label: Height, readOnly: true, propertyRow: true}
 ```
+
+Redwood's own examples (the candidate profile, the product overview) fill the main slot with
+**sections**, under a compact tab bar: so does the example above. On Redwood the template owns the
+whole page — the header band, the overview panel and the main area sit on the page background, with
+no content card around them — and the panel's `body` is drawn like Spectra's read-only form layout,
+the label above the value (a `propertyRow` there is drawn that way).
 
 ## Redwood parameter and slot reference
 
@@ -188,6 +206,8 @@ The element-by-element review, with code references, is in
   force is gone — Spectra draws the panel as its own card — and so is the forced `light` display
   mode, which is now Spectra's default or the app's `appMode`). The tabs stay an `oj-tab-bar` in the
   `main` slot.
+- The page owns the page on Redwood (2026-10-30): edge to edge on the page background, compact
+  tabs, sections with Spectra's header, a stacked body — what the guide's examples show.
 - On Redwood the key-info panel ignores `panelWidth()` and does not collapse into a strip on small
   screens (it stacks above the tabs).
 - No previous/next, search, edit/share/favourite or footer area on the archetype.
