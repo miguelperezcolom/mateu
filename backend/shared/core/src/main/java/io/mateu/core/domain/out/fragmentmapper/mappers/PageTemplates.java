@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import io.mateu.dtos.PageTemplateDto;
 import io.mateu.dtos.TemplateImageDto;
+import io.mateu.uidl.data.AdvancedCreateEditPage;
 import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CollectionDetailPage;
@@ -11,14 +12,18 @@ import io.mateu.uidl.data.FoldoutLayout;
 import io.mateu.uidl.data.FoldoutPage;
 import io.mateu.uidl.data.FoldoutPanel;
 import io.mateu.uidl.data.GeneralOverviewPage;
+import io.mateu.uidl.data.GridTrack;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HeroTone;
+import io.mateu.uidl.data.HorizontalAlignment;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.ItemOverviewPage;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.data.MultimediaContentPage;
+import io.mateu.uidl.data.ResponsiveGrid;
 import io.mateu.uidl.data.Scoreboard;
+import io.mateu.uidl.data.Slotted;
 import io.mateu.uidl.data.TemplateImage;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.data.WelcomePage;
@@ -46,6 +51,7 @@ public final class PageTemplates {
   static final String COLLECTION_DETAIL = "CollectionDetailPage";
   static final String FOLDOUT = "FoldoutPage";
   static final String MULTIMEDIA = "MultimediaContentPage";
+  static final String ADVANCED_CREATE_EDIT = "AdvancedCreateEditPage";
 
   private PageTemplates() {}
 
@@ -71,6 +77,9 @@ public final class PageTemplates {
     }
     if (form.template() instanceof FoldoutPage foldout) {
       return List.of(foldout(foldout, form));
+    }
+    if (form.template() instanceof AdvancedCreateEditPage createEdit) {
+      return advancedCreateEdit(createEdit, form.content());
     }
     return form.content();
   }
@@ -107,6 +116,9 @@ public final class PageTemplates {
     }
     if (template instanceof MultimediaContentPage) {
       return new PageTemplateDto(MULTIMEDIA, null, null);
+    }
+    if (template instanceof AdvancedCreateEditPage) {
+      return new PageTemplateDto(ADVANCED_CREATE_EDIT, null, null);
     }
     return null;
   }
@@ -269,6 +281,39 @@ public final class PageTemplates {
         .overview(slot("foldout-overview", template.overview(), "width: 100%"))
         .panels(panels)
         .orientation(template.orientation())
+        .build();
+  }
+
+  /**
+   * Advanced create and edit: the main slot (the form's content, its sections) — and, with a {@code
+   * detail}, the detail beside it, laid out like an {@code @Aside}: the {@code "main aside"} named
+   * slots of one responsive grid, the aside fixed-width, stacking below 48rem.
+   */
+  private static List<Component> advancedCreateEdit(
+      AdvancedCreateEditPage template, List<Component> main) {
+    if (template.detail().isEmpty()) {
+      return main;
+    }
+    return List.of(
+        new ResponsiveGrid(
+            "advanced-create-edit",
+            List.of(GridTrack.fill(), GridTrack.fixed("22rem")),
+            null,
+            List.of(
+                new Slotted("main", region(main)), new Slotted("aside", region(template.detail()))),
+            null,
+            "48rem",
+            "\"main aside\"",
+            List.of(),
+            null));
+  }
+
+  private static Component region(List<Component> content) {
+    return VerticalLayout.builder()
+        .content(content)
+        .fullWidth(true)
+        .horizontalAlignment(HorizontalAlignment.STRETCH)
+        .spacing(true)
         .build();
   }
 

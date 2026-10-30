@@ -1,0 +1,14 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Advanced create and edit template with a
+# detail slot — main and detail as the named slots of one responsive grid.
+type: Form
+title: New character
+toolbar:
+  - {type: Button, actionId: cancel-new, label: Cancel, actionable: {type: RouteLink, route: people}}
+  - {type: Button, actionId: create, label: Create, buttonStyle: primary}
+template:
+  type: AdvancedCreateEditPage
+  detail:
+    - {type: Text, text: Tips}
+content:
+  - {type: FormField, id: name, label: Name}

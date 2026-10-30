@@ -2488,6 +2488,18 @@ test('a page that DECLARES the Multimedia content page → a welcome banner (int
   assert.equal(tocOf(host).on, true)
 })
 
+test('a page that DECLARES the Advanced create and edit template shows the anchor navigator (forced) unless it has a detail slot', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/create-edit-page.golden.json'), 'utf-8'))
+  // with a detail (the "main aside" grid): the two exclude each other
+  assert.equal(tocOf({ state: {}, data: {}, tree: golden.fragments[0].component }).on, false)
+  // without one: the navigator, whatever the number of sections
+  const section = { type: 'ClientSide', cssClasses: 'mateu-section', children: [],
+    metadata: { type: 'Card', title: { type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Identity' } } } }
+  const bare = { type: 'ClientSide', metadata: { type: 'Form', template: { type: 'AdvancedCreateEditPage' } }, children: [section] }
+  assert.equal(tocOf({ state: {}, data: {}, tree: bare }).on, true)
+})
+
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {
   // the body is Spectra's read-only form layout: property rows (nested ones too) are drawn stacked
   const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),

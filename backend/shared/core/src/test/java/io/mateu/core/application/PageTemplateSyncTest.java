@@ -242,6 +242,19 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void anAdvancedCreateEditPageLaysTheDetailAsideTheMainSlot() throws Exception {
+    var page = render("create-edit-page");
+    assertThat(page.path("metadata").path("template").path("type").asText())
+        .isEqualTo("AdvancedCreateEditPage");
+    // the header is the form's: cancel + the primary action
+    assertThat(page.path("metadata").path("toolbar")).hasSize(2);
+    var grid = byId(page, "advanced-create-edit");
+    assertThat(grid.path("metadata").path("type").asText()).isEqualTo("ResponsiveGrid");
+    assertThat(grid.path("metadata").path("gridTemplateAreas").asText())
+        .isEqualTo("\"main aside\"");
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

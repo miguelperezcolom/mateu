@@ -658,6 +658,23 @@
         }
       }
     },
+    "AdvancedCreateEditPage" : {
+      "description" : "Redwood's Advanced create and edit page template (Spectra oj-sp-advanced-create-edit): a transactional page that creates or edits an object with many attributes, grouped in sections.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "AdvancedCreateEditPage"
+        },
+        "detail" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        }
+      }
+    },
     "Anchor" : {
       "description" : "A hyperlink with text that opens a URL, optionally in another window (target).",
       "type" : "object",
@@ -4695,6 +4712,8 @@
     "FormTemplate" : {
       "description" : "One of the FormTemplate implementations.",
       "oneOf" : [ {
+        "$ref" : "#/$defs/AdvancedCreateEditPage"
+      }, {
         "$ref" : "#/$defs/CollectionDetailPage"
       }, {
         "$ref" : "#/$defs/DashboardLandingPage"

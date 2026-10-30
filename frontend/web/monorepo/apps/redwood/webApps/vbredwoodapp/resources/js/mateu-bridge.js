@@ -17819,7 +17819,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     walk(tree, true)
     const page = findByType(tree, 'Page')
     // the Multimedia content page template HAS the vertical anchor navigator: always on
-    const declared = declaresTemplate(host, 'MultimediaContentPage') ? true : (page && page.metadata ? page.metadata.toc : null)
+    // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
+    const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
+      ? true : (page && page.metadata ? page.metadata.toc : null)
     const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
     // tri-state: declared true forces it, declared false suppresses it, absent = auto
     const wanted = typeof declared === 'boolean' ? declared : auto

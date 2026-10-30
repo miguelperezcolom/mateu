@@ -31,6 +31,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (t.type === 'CollectionDetailPage') return { type: 'CollectionDetailPage', avatar: null, photo: null }
     if (t.type === 'FoldoutPage') return { type: 'FoldoutPage', avatar: null, photo: null }
     if (t.type === 'MultimediaContentPage') return { type: 'MultimediaContentPage', avatar: null, photo: null }
+    if (t.type === 'AdvancedCreateEditPage') return { type: 'AdvancedCreateEditPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -55,6 +56,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
     if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]
     if (t.type === 'FoldoutPage') return [foldout(t, nodes(content))]
+    if (t.type === 'AdvancedCreateEditPage') return advancedCreateEdit(t, nodes(content))
     return content
 }
 
@@ -165,4 +167,18 @@ function foldout(t: Node, content: FluentNode[]): FluentNode {
     const node: Node = { type: 'FoldoutLayout', id: 'foldout', overview: slot('foldout-overview', nodes(t.overview), 'width: 100%'), panels }
     if (t.orientation !== undefined) node.orientation = t.orientation
     return node as unknown as FluentNode
+}
+
+/** Advanced create and edit: the main slot (the content) — and, with a `detail`, the detail beside it
+ *  as an @Aside's named slots `"main aside"` of one responsive grid (PageTemplates.advancedCreateEdit). */
+function advancedCreateEdit(t: Node, main: FluentNode[]): FluentNode[] {
+    const detail = nodes(t.detail)
+    if (!detail.length) return main
+    const region = (slotName: string, content: FluentNode[]) =>
+        ({ type: 'VerticalLayout', slot: slotName, content, fullWidth: true, horizontalAlignment: 'STRETCH', spacing: true }) as unknown as FluentNode
+    return [{
+        type: 'ResponsiveGrid', id: 'advanced-create-edit', gridTemplateColumns: '1fr 22rem', stackBelow: '48rem',
+        gridTemplateAreas: '"main aside"', stickyAreas: [], reorderable: false,
+        content: [region('main', main), region('aside', detail)],
+    } as unknown as FluentNode]
 }

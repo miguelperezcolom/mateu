@@ -409,6 +409,13 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   (`templatedMultimediaOf`: welcomeOf on the banner hero, texts interpolated, welcome look) with
   `oj-sp-header-welcome-banner` ABOVE the content container, skips that hero in content.mjs, suppresses
   the VB header and the form action row, and `tocOf` forces the anchor navigator on.
+- **`AdvancedCreateEditPage`** (slot `detail`): no `detail` → the content as is; with one → the
+  `@Aside` shape (`ResponsiveGrid` id `advanced-create-edit`, `"main aside"`, `Slotted` regions — the
+  expander now treats `ResponsiveGrid` as a container). The header is the form's toolbar (cancel id +
+  primary → `oj-sp-header-create-edit`); `tocOf` forces the anchor navigator on (the aside still
+  excludes it). GOTCHA paid here: an app-flow variable the projection may set to NULL must be typed
+  `any`, never `object` — VB refuses the assign and the WHOLE navigation chain fails (every page lost its
+  header); pinned by a test-chains guard over `archetypeVarsOf`.
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

@@ -829,8 +829,7 @@
       "description": "imagen tem\u00e1tica del hero de la welcome (va con el tono)"
     },
     "mateuMmc": {
-      "type": "object",
-      "defaultValue": null,
+      "type": "any",
       "description": "A YAML MultimediaContentPage's banner (overviews.templatedMultimediaOf): welcome-style texts, CTAs and look, painted with oj-sp-header-welcome-banner"
     },
     "mateuWelcomeThemedImage": {

@@ -82,6 +82,9 @@ const CONTAINER_TYPES = new Set([
     // like the server's CustomComponentMapper — its `name`/`props` stay in metadata. The rendering is
     // per-renderer (registerCustomComponent), but the expansion is the ordinary container mapping.
     'CustomComponent',
+    // the responsive grid an Advanced create and edit page template lays its main/detail slots on
+    // (ResponsiveGridMapper: its content as children, each carrying the named area it fills as `slot`)
+    'ResponsiveGrid',
 ])
 
 // Component-valued metadata keys: the server's mapper EXPANDS each of them in place (one component,
