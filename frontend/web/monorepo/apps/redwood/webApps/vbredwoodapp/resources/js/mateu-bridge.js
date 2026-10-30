@@ -2923,7 +2923,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         .filter((t) => t != null && String(t).trim())
         .map((t) => ({ isBadge: true, label: String(t), badgeClass: STATUS_BADGE.NONE, blockClass: 'oj-flex-item oj-sm-12' })))
     return {
-      headerTitle: md.headerTitle || '',
+      headerTitle: interpolate(String(md.headerTitle || ''), (ctx && ctx.state) || {}),
       // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
       // the panels; 'horizontal' = the overview runs across the top, the panels below it
       orientation: md.orientation === 'horizontal' ? 'horizontal' : 'vertical',
@@ -2957,7 +2957,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         blocks: blocksOf(bySlot['panel-' + i]),
         // FoldoutPanel.summary (child slotted summary-N): oj-sp-foldout-panel's own `summary` slot,
         // the compact line under the panel title
-        ...foldoutSummaryOf(bySlot['summary-' + i]),
+        ...foldoutSummaryOf(bySlot['summary-' + i], (ctx && ctx.state) || {}),
       })),
     }
   }
@@ -2999,7 +2999,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** A foldout panel's summary (the `summary-N` child): `hasSummary` + its texts as one line. */
-  function foldoutSummaryOf(slotNode) {
+  function foldoutSummaryOf(slotNode, state = {}) {
     const parts = []
     const walk = (n) => {
       if (!n || typeof n !== 'object') return
@@ -3013,7 +3013,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (m.content) walk(m.content)
     }
     walk(slotNode)
-    const text = parts.map((t) => t.trim()).filter(Boolean).join(' · ')
+    const text = parts.map((t) => interpolate(t, state).trim()).filter(Boolean).join(' · ')
     return { hasSummary: !!text, summary: text }
   }
 
@@ -5939,7 +5939,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Avatar') {
-        atom({ isAvatar: true, avatars: [avatarOf(m)], overflow: '' }, container)
+        // its name/image may be templates (${state.image}); a lone avatar is the record's picture: large
+        atom({ isAvatar: true, avatars: [avatarOf({ ...m, name: interp(m.name || ''), image: interp(m.image || '') })], overflow: '', size: 'lg' }, container)
         return
       }
       if (t === 'AvatarGroup') {

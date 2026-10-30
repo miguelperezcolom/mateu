@@ -1302,7 +1302,8 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Avatar') {
-      atom({ isAvatar: true, avatars: [avatarOf(m)], overflow: '' }, container)
+      // its name/image may be templates (${state.image}); a lone avatar is the record's picture: large
+      atom({ isAvatar: true, avatars: [avatarOf({ ...m, name: interp(m.name || ''), image: interp(m.image || '') })], overflow: '', size: 'lg' }, container)
       return
     }
     if (t === 'AvatarGroup') {

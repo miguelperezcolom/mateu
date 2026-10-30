@@ -15,6 +15,7 @@ import dashboardPage from '@infra/expander/__fixtures__/dashboard-page.golden.js
 import generalOverviewPage from '@infra/expander/__fixtures__/general-overview-page.golden.json'
 import collectionDetailPage from '@infra/expander/__fixtures__/collection-detail-page.golden.json'
 import collectionDetailEmpty from '@infra/expander/__fixtures__/collection-detail-empty.golden.json'
+import foldoutPage from '@infra/expander/__fixtures__/foldout-page.golden.json'
 
 const TEST_RESOURCES = resolve(__dirname, '../../../../../../../../../../backend/shared/core/src/test/resources')
 const authored = (path: string): FluentNode => parse(readFileSync(resolve(TEST_RESOURCES, path), 'utf-8'))
@@ -25,7 +26,7 @@ const withoutGeneratedIds = (node: any): any => {
     if (!node || typeof node !== 'object') return node
     const out: any = {}
     for (const [k, v] of Object.entries(node)) {
-        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && node.metadata?.type !== 'FormField') continue
+        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && !v.startsWith('foldout') && node.metadata?.type !== 'FormField') continue
         out[k] = withoutGeneratedIds(v)
     }
     return out
@@ -77,6 +78,13 @@ describe('client-side expander — a page template, against the Java golden', ()
         const empty = expandComponent(authored('specs/ui/collection-detail-empty.yaml')) as any
         expectSubset(withoutGeneratedIds(empty), goldenComponent(collectionDetailEmpty))
         expect(empty.children[0].children.map((c: any) => c.id)).toEqual(['collection-detail-list', 'collection-detail-no-selection'])
+    })
+
+    it('the foldout page: one FoldoutLayout with the overview slot and the panels', () => {
+        const wire = expandComponent(authored('specs/ui/foldout-page.yaml')) as any
+        expectSubset(withoutGeneratedIds(wire), goldenComponent(foldoutPage))
+        expect(wire.children[0].metadata.type).toBe('FoldoutLayout')
+        expect(wire.children[0].metadata.panels.map((p: any) => p.title)).toEqual(['Specifications', 'Crew'])
     })
 
     it('a page without a template stays free', () => {

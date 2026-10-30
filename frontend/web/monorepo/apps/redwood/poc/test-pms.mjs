@@ -24,6 +24,7 @@ import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
 import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest } from './pageProjection.mjs'
 import { templatedGeneralOverviewOf, templatedCollectionDetailOf } from './core/overviews.mjs'
+import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
 import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
@@ -2466,6 +2467,11 @@ test('a page that DECLARES the Collection detail page template → mateuCd: the 
   const html = webApp('flows/main/pages/main-start-page.html')
   assert.match(html, /!\$application\.variables\.mateuCd && !!\$application\.variables\.mateuHostEmpty/)
   assert.match(html, /!!\$application\.variables\.mateuListing && !\$application\.variables\.mateuCd/)
+})
+
+test('a YAML foldout page: its panel summaries and avatar interpolate the record (${state.x})', () => {
+  const summary = foldoutSummaryOf({ type: 'ClientSide', metadata: { type: 'Text', text: 'Crew ${state.crew}' }, children: [] }, { crew: '6' })
+  assert.deepEqual(summary, { hasSummary: true, summary: 'Crew 6' })
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {

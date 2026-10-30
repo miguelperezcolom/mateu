@@ -216,6 +216,18 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aFoldoutPageIsOneFoldoutLayout() throws Exception {
+    var page = render("foldout-page");
+    var foldout = byId(page, "foldout");
+    assertThat(foldout.path("metadata").path("type").asText()).isEqualTo("FoldoutLayout");
+    // the header is the page's: the title is not repeated over the overview
+    assertThat(foldout.path("metadata").path("headerTitle").isNull()).isTrue();
+    assertThat(foldout.path("metadata").path("panels")).hasSize(2);
+    assertThat(foldout.path("metadata").path("panels").path(0).path("title").asText())
+        .isEqualTo("Specifications");
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

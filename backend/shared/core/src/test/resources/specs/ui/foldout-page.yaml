@@ -1,0 +1,17 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Foldout layout template — the overview slot,
+# the form's FoldoutPanels as the panels.
+type: Form
+title: Millennium Falcon
+template:
+  type: FoldoutPage
+  overview:
+    - {type: Text, text: Light freighter}
+content:
+  - type: FoldoutPanel
+    title: Specifications
+    open: true
+    content: {type: Text, text: 34.37 m}
+  - type: FoldoutPanel
+    title: Crew
+    content: {type: Text, text: "4"}

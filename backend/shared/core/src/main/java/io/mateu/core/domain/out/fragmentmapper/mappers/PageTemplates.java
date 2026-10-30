@@ -7,6 +7,9 @@ import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CollectionDetailPage;
 import io.mateu.uidl.data.DashboardLandingPage;
 import io.mateu.uidl.data.DashboardLayout;
+import io.mateu.uidl.data.FoldoutLayout;
+import io.mateu.uidl.data.FoldoutPage;
+import io.mateu.uidl.data.FoldoutPanel;
 import io.mateu.uidl.data.GeneralOverviewPage;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HorizontalLayout;
@@ -39,6 +42,7 @@ public final class PageTemplates {
   static final String DASHBOARD = "DashboardLandingPage";
   static final String GENERAL_OVERVIEW = "GeneralOverviewPage";
   static final String COLLECTION_DETAIL = "CollectionDetailPage";
+  static final String FOLDOUT = "FoldoutPage";
 
   private PageTemplates() {}
 
@@ -58,6 +62,9 @@ public final class PageTemplates {
     }
     if (form.template() instanceof CollectionDetailPage collection) {
       return List.of(collectionDetail(collection, form.content()));
+    }
+    if (form.template() instanceof FoldoutPage foldout) {
+      return List.of(foldout(foldout, form));
     }
     return form.content();
   }
@@ -87,6 +94,9 @@ public final class PageTemplates {
     }
     if (template instanceof CollectionDetailPage) {
       return new PageTemplateDto(COLLECTION_DETAIL, null, null);
+    }
+    if (template instanceof FoldoutPage) {
+      return new PageTemplateDto(FOLDOUT, null, null);
     }
     return null;
   }
@@ -224,6 +234,30 @@ public final class PageTemplates {
                         "collection-detail-detail",
                         detail,
                         "flex: 1 1 24rem; min-width: min(24rem, 100%)")))
+        .build();
+  }
+
+  /**
+   * Foldout: one {@link FoldoutLayout} — the {@code overview} slot as its always-visible overview,
+   * the form's {@link FoldoutPanel}s as its panels (any other content component becomes an untitled
+   * panel). The page header stays the form's (its title is not repeated over the overview). Every
+   * renderer already draws the layout.
+   */
+  private static Component foldout(FoldoutPage template, Form form) {
+    List<FoldoutPanel> panels = new ArrayList<>();
+    for (Component c : form.content()) {
+      if (c instanceof FoldoutPanel panel) {
+        panels.add(panel);
+      } else {
+        panels.add(
+            FoldoutPanel.builder().id("panel" + panels.size()).open(true).content(c).build());
+      }
+    }
+    return FoldoutLayout.builder()
+        .id("foldout")
+        .overview(slot("foldout-overview", template.overview(), "width: 100%"))
+        .panels(panels)
+        .orientation(template.orientation())
         .build();
   }
 

@@ -80,6 +80,7 @@ final class YamlUidlMapperFactory {
         new NamedType(io.mateu.uidl.data.DashboardLandingPage.class, "DashboardLandingPage"),
         new NamedType(io.mateu.uidl.data.GeneralOverviewPage.class, "GeneralOverviewPage"),
         new NamedType(io.mateu.uidl.data.CollectionDetailPage.class, "CollectionDetailPage"),
+        new NamedType(io.mateu.uidl.data.FoldoutPage.class, "FoldoutPage"),
         new NamedType(AccordionLayout.class, "AccordionLayout"),
         new NamedType(AccordionPanel.class, "AccordionPanel"),
         new NamedType(Anchor.class, "Anchor"),

@@ -3782,6 +3782,26 @@
       "type" : "string",
       "enum" : [ "vertical", "horizontal" ]
     },
+    "FoldoutPage" : {
+      "description" : "Redwood's Foldout layout page template (Spectra oj-sp-foldout-layout, as a page): an always-visible overview of a business object beside two or more panels of associated information that fold out.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "FoldoutPage"
+        },
+        "overview" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        },
+        "orientation" : {
+          "$ref" : "#/$defs/FoldoutOrientation"
+        }
+      }
+    },
     "FoldoutPanel" : {
       "description" : "One lateral panel of a FoldoutLayout: a category of information associated to the record shown in the overview.",
       "type" : "object",
@@ -4410,6 +4430,8 @@
         "$ref" : "#/$defs/CollectionDetailPage"
       }, {
         "$ref" : "#/$defs/DashboardLandingPage"
+      }, {
+        "$ref" : "#/$defs/FoldoutPage"
       }, {
         "$ref" : "#/$defs/GeneralOverviewPage"
       }, {

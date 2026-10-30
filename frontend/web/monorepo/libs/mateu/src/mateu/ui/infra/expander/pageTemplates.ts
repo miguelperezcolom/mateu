@@ -29,6 +29,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (t.type === 'DashboardLandingPage') return { type: 'DashboardLandingPage', avatar: null, photo: null }
     if (t.type === 'GeneralOverviewPage') return { type: 'GeneralOverviewPage', avatar: null, photo: null }
     if (t.type === 'CollectionDetailPage') return { type: 'CollectionDetailPage', avatar: null, photo: null }
+    if (t.type === 'FoldoutPage') return { type: 'FoldoutPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -51,6 +52,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
     if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
     if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]
+    if (t.type === 'FoldoutPage') return [foldout(t, nodes(content))]
     return content
 }
 
@@ -149,4 +151,15 @@ function collectionDetail(t: Node, detail: FluentNode[]): FluentNode {
             detail.length ? slot('collection-detail-detail', detail, side) : slot('collection-detail-no-selection', nodes(t.noSelection), side),
         ],
     } as unknown as FluentNode
+}
+
+/** Foldout: one FoldoutLayout — the `overview` slot, the form's FoldoutPanels as its panels (any other
+ *  content component becomes an untitled open panel); the page header stays the form's
+ *  (PageTemplates.foldout). The expander then lays the layout out as FoldoutLayoutMapper does. */
+function foldout(t: Node, content: FluentNode[]): FluentNode {
+    const panels = content.map((c, i) => ((c as Node).type === 'FoldoutPanel'
+        ? c : { type: 'FoldoutPanel', id: 'panel' + i, open: true, content: c } as unknown as FluentNode))
+    const node: Node = { type: 'FoldoutLayout', id: 'foldout', overview: slot('foldout-overview', nodes(t.overview), 'width: 100%'), panels }
+    if (t.orientation !== undefined) node.orientation = t.orientation
+    return node as unknown as FluentNode
 }

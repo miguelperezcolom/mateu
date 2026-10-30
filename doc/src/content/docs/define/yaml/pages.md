@@ -191,6 +191,7 @@ filled with the record's data (`${state.x}`) — is the **page**.
 
 | `template.type` | Redwood template | Fields | Slots |
 |---|---|---|---|
+| `FoldoutPage` | `oj-sp-foldout-layout` (as a page) | `orientation` (`vertical`/`horizontal`) | `overview` (always in view); the form's `content` is the panels — `FoldoutPanel`s with `title`, `summary` (what the folded strip shows), `open` |
 | `GeneralOverviewPage` | `oj-sp-general-overview-page` | — | `info` (the complementary side panel); the form's `content` is `main`. The header — title, `recordSwitcher`, `kpis` (contextual info), timestamp, toolbar — is the form's |
 | `ItemOverviewPage` | `oj-sp-item-overview-page` + `oj-sp-item-overview` | `avatar {src, initials}` (round) or `photo {src}` (4:3) | `body`, `footer` (the overview panel); the form's `content` is `main` |
 | `CollectionDetailPage` | `oj-sp-collection-detail-page` | — | `list` (the collection — typically a `Listing` with a `rowRoute`, often a partial shared by two pages), `noSelection`; the form's `content` is the selected item's detail (`detailTemplate`): a page with content has a selection, one without shows `noSelection` |
