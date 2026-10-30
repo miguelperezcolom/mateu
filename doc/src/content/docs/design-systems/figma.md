@@ -138,7 +138,9 @@ content:
     tabs:
       - type: Tab
         label: Details
-        content: …
+        content:
+          type: Text
+          text: "${state.name} was born on ${state.birth_year}"
 ```
 
 The converter never invents a name: every key it writes is checked against the generated authoring
