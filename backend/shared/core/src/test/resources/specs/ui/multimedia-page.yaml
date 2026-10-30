@@ -1,0 +1,17 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills Redwood's Multimedia content page template — the
+# banner from the form's header, the content as its sections.
+type: Form
+title: A New Hope
+overline: Episode IV
+subtitle: Released in 1977
+toolbar:
+  - {type: Button, label: Edit, buttonStyle: primary, actionable: {type: RouteLink, route: films/1/edit}}
+template:
+  type: MultimediaContentPage
+  backgroundColor: dark-plum
+content:
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Opening crawl}
+    content: {type: Text, text: It is a period of civil war.}

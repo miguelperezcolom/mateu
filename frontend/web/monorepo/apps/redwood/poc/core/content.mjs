@@ -1570,6 +1570,8 @@ export function islandContentOf(ctx, opts = {}) {
       atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
       return
     }
+    // a Multimedia content page's banner is the template's header (oj-sp-header-welcome-banner)
+    if (t === 'HeroSection' && node.id === 'multimedia-banner') return
     if (t === 'HeroSection') {
       // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
       atom(heroAtomOf(m, interp), container)

@@ -12,10 +12,12 @@ import io.mateu.uidl.data.FoldoutPage;
 import io.mateu.uidl.data.FoldoutPanel;
 import io.mateu.uidl.data.GeneralOverviewPage;
 import io.mateu.uidl.data.HeroSection;
+import io.mateu.uidl.data.HeroTone;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.ItemOverviewPage;
 import io.mateu.uidl.data.MetricCard;
+import io.mateu.uidl.data.MultimediaContentPage;
 import io.mateu.uidl.data.Scoreboard;
 import io.mateu.uidl.data.TemplateImage;
 import io.mateu.uidl.data.VerticalLayout;
@@ -43,6 +45,7 @@ public final class PageTemplates {
   static final String GENERAL_OVERVIEW = "GeneralOverviewPage";
   static final String COLLECTION_DETAIL = "CollectionDetailPage";
   static final String FOLDOUT = "FoldoutPage";
+  static final String MULTIMEDIA = "MultimediaContentPage";
 
   private PageTemplates() {}
 
@@ -52,7 +55,10 @@ public final class PageTemplates {
       return List.of(itemOverview(itemOverview, form.content()));
     }
     if (form.template() instanceof WelcomePage welcome) {
-      return welcome(welcome, form);
+      return banner("welcome", welcome.toneOrNull(), form);
+    }
+    if (form.template() instanceof MultimediaContentPage multimedia) {
+      return banner("multimedia-banner", multimedia.toneOrNull(), form);
     }
     if (form.template() instanceof DashboardLandingPage dashboard) {
       return dashboard(dashboard, form.content());
@@ -74,7 +80,8 @@ public final class PageTemplates {
    * the template's banner): the form then carries no header and no toolbar of its own.
    */
   static boolean ownsHeader(Form form) {
-    return form.template() instanceof WelcomePage;
+    return form.template() instanceof WelcomePage
+        || form.template() instanceof MultimediaContentPage;
   }
 
   /** The template's own values, for the wire; {@code null} for a free page. */
@@ -97,6 +104,9 @@ public final class PageTemplates {
     }
     if (template instanceof FoldoutPage) {
       return new PageTemplateDto(FOLDOUT, null, null);
+    }
+    if (template instanceof MultimediaContentPage) {
+      return new PageTemplateDto(MULTIMEDIA, null, null);
     }
     return null;
   }
@@ -142,11 +152,12 @@ public final class PageTemplates {
   }
 
   /**
-   * Welcome page: the banner (the form's title, subtitle and overline, its toolbar as the calls to
-   * action) over the tiles — the same composition the {@code Welcome} archetype draws (a centred
-   * {@link HeroSection}), so every renderer paints it and Redwood takes it for Spectra's template.
+   * A welcome-style banner (the form's title, subtitle and overline, its toolbar as the calls to
+   * action) over the form's content — the Welcome archetype's centred {@link HeroSection}: the
+   * welcome page (the content is its tiles) and the multimedia content page (its sections). Every
+   * renderer paints it; Redwood takes it for Spectra's banner.
    */
-  private static List<Component> welcome(WelcomePage template, Form form) {
+  private static List<Component> banner(String id, HeroTone tone, Form form) {
     List<Component> ctas = new ArrayList<>();
     for (var trigger : form.toolbar()) {
       if (trigger instanceof Component component) ctas.add(component);
@@ -154,11 +165,11 @@ public final class PageTemplates {
     List<Component> page = new ArrayList<>();
     page.add(
         HeroSection.builder()
-            .id("welcome")
+            .id(id)
             .title(form.title())
             .subtitle(form.subtitle())
             .overline(form.overline())
-            .tone(template.toneOrNull())
+            .tone(tone)
             .centered(true)
             .content(ctas)
             .style("width: 100%; box-sizing: border-box; margin-bottom: 1rem")

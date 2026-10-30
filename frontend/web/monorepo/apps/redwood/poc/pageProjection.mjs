@@ -4,7 +4,7 @@ import {
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
   pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf, contextualInfoOf, factActionsJsonOf,
   drawerOverlayOf, dialogOverlayOf, dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf,
-  templatedCollectionDetailOf,
+  templatedCollectionDetailOf, templatedMultimediaOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 import { chromeText } from './i18n.mjs'
@@ -188,6 +188,8 @@ export function archetypeVarsOf(host) {
     mateuOverview: overview,
     mateuOverviewOptions: overview ? overview.switcherOptions : [],
     mateuItemOv: item,
+    // the Multimedia content page's banner (oj-sp-header-welcome-banner over the host content)
+    mateuMmc: templatedMultimediaOf(host),
     // the ATOMS of the selected tab (not only its texts): the first, or the one marked open
     // (a template page whose main slot is not one tab bar: that slot's atoms)
     mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : ((item && item.mainItems) || []),

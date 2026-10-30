@@ -4311,6 +4311,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * A page that DECLARES the Multimedia content page template → its banner (mateuMmc): Spectra ships no
+   * oj-sp-multimedia-content-page in this pack, so the page is composed from its pieces —
+   * oj-sp-header-welcome-banner (the same banner API as the welcome page) over the sections, with the
+   * vertical anchor navigator (toc.mjs forces it on). The banner reads like a welcome's (welcomeOf on the
+   * banner hero alone) and takes the welcome look (tone, illustration or themed image).
+   */
+  function templatedMultimediaOf(ctx) {
+    if (!declaresTemplate(ctx, 'MultimediaContentPage')) return null
+    const hero = nodeById(ctx.tree, 'multimedia-banner')
+    const banner = hero ? welcomeOf({ ...ctx, tree: hero }) : null
+    if (!banner) return null
+    const look = welcomeLookOf(welcomeKeyOf(ctx), banner.tone)
+    // the banner shows ONE record: its texts are templates over the page state
+    const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
+    return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
+      theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
+  }
+
   /** ITEM OVERVIEW archetype: key-data panel + tabs. */
   function itemOverviewOf(ctx) {
     // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
@@ -6207,6 +6226,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
         return
       }
+      // a Multimedia content page's banner is the template's header (oj-sp-header-welcome-banner)
+      if (t === 'HeroSection' && node.id === 'multimedia-banner') return
       if (t === 'HeroSection') {
         // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
         atom(heroAtomOf(m, interp), container)
@@ -17797,7 +17818,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     walk(tree, true)
     const page = findByType(tree, 'Page')
-    const declared = page && page.metadata ? page.metadata.toc : null
+    // the Multimedia content page template HAS the vertical anchor navigator: always on
+    const declared = declaresTemplate(host, 'MultimediaContentPage') ? true : (page && page.metadata ? page.metadata.toc : null)
     const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
     // tri-state: declared true forces it, declared false suppresses it, absent = auto
     const wanted = typeof declared === 'boolean' ? declared : auto
@@ -22761,6 +22783,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuOverview: overview,
       mateuOverviewOptions: overview ? overview.switcherOptions : [],
       mateuItemOv: item,
+      // the Multimedia content page's banner (oj-sp-header-welcome-banner over the host content)
+      mateuMmc: templatedMultimediaOf(host),
       // the ATOMS of the selected tab (not only its texts): the first, or the one marked open
       // (a template page whose main slot is not one tab bar: that slot's atoms)
       mateuItemTabTexts: item && item.tabs.length ? (item.tabs.find((t) => t.id === item.selectedTab) || item.tabs[0]).items : ((item && item.mainItems) || []),

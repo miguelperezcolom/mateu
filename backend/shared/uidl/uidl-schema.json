@@ -4437,6 +4437,8 @@
       }, {
         "$ref" : "#/$defs/ItemOverviewPage"
       }, {
+        "$ref" : "#/$defs/MultimediaContentPage"
+      }, {
         "$ref" : "#/$defs/WelcomePage"
       } ]
     },
@@ -6414,6 +6416,20 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "MultimediaContentPage" : {
+      "description" : "Redwood's Multimedia content page template (Spectra oj-sp-multimedia-content-page): a welcome-style banner over content in sections with media, and a vertical anchor navigator to move between the sections.",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MultimediaContentPage"
+        },
+        "backgroundColor" : {
+          "type" : "string"
         }
       }
     },

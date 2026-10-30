@@ -2732,7 +2732,7 @@
   } ],
   "families" : {
     "Actionable" : [ "ContentLink", "FieldLink", "Menu", "MenuSeparator", "MethodLink", "RemoteMenu", "RouteLink", "RuleLink" ],
-    "FormTemplate" : [ "CollectionDetailPage", "DashboardLandingPage", "FoldoutPage", "GeneralOverviewPage", "ItemOverviewPage", "WelcomePage" ],
+    "FormTemplate" : [ "CollectionDetailPage", "DashboardLandingPage", "FoldoutPage", "GeneralOverviewPage", "ItemOverviewPage", "MultimediaContentPage", "WelcomePage" ],
     "Step" : [ "CloseOverlay", "Emit", "MarkClean", "MarkDirty", "Navigate", "RunAction" ],
     "Trigger" : [ "AutoSaveTrigger", "OnCustomEventTrigger", "OnErrorTrigger", "OnLoadTrigger", "OnSuccessTrigger", "OnValueChangeTrigger" ],
     "UserTrigger" : [ "Button", "ButtonGroup" ]

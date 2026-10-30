@@ -139,6 +139,28 @@
     </div>
   </div>
 </oj-bind-if>
+<!-- MULTIMEDIA CONTENT page (YAML template: MultimediaContentPage): Spectra ships no
+     oj-sp-multimedia-content-page in this pack, so it is composed from its pieces — this banner
+     (oj-sp-header-welcome-banner, the welcome page's banner API) over the host content's sections (ABOVE the content container, so it spans the page and the index sits beside the sections only),
+     with the vertical anchor navigator (toc.mjs forces it on) -->
+<oj-bind-if test="[[ !!$application.variables.mateuMmc ]]">
+  <div class="mateu-mmc-banner" :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
+    :style.margin="[[ $application.variables.mateuPageMargin ]]">
+  <oj-sp-header-welcome-banner id="mateuMmcBanner"
+    themed-image="[[ $application.variables.mateuMmc.themedImage ]]"
+    illustration-background="[[ $application.variables.mateuMmc.illuBg ]]"
+    illustration-foreground="[[ $application.variables.mateuMmc.illu || undefined ]]"
+    display-options.image-stretch="none"
+    background-color="[[ $application.variables.mateuMmc.theme ]]"
+    overline-text="[[ $application.variables.mateuMmc.overline ]]"
+    page-title="[[ $application.variables.mateuMmc.title ]]"
+    description-text="[[ $application.variables.mateuMmc.subtitle ]]"
+    primary-action="[[ $application.variables.mateuMmc.ctas.length ? $application.variables.mateuMmc.primaryCta : null ]]"
+    secondary-actions="[[ $application.variables.mateuMmc.secondaryCtas ]]"
+    on-sp-primary-action="[[ $listeners.mmcPrimary ]]"
+    on-sp-secondary-action="[[ $listeners.mmcSecondary ]]"></oj-sp-header-welcome-banner>
+  </div>
+</oj-bind-if>
 <div :class="[[ 'oj-sp-public-primary-content-container ' + $application.variables.mateuPageDensityClass + ' ' + $application.variables.mateuPageHostClass + ' ' + $application.variables.mateuToc.cls ]]"
   :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
   :style.margin="[[ $application.variables.mateuPageMargin ]]"

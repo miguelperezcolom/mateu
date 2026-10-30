@@ -516,6 +516,28 @@
         }
       ]
     },
+    "mmcPrimary": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuMmc.primaryCtaId }}",
+            "route": "{{ $application.variables.mateuMmc.primaryCtaRoute }}"
+          }
+        }
+      ]
+    },
+    "mmcSecondary": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "ctaId": "{{ $event.detail.actionId }}",
+            "ctas": "{{ $application.variables.mateuMmc.secondaryById }}"
+          }
+        }
+      ]
+    },
     "pageSwitched": {
       "chains": [
         {

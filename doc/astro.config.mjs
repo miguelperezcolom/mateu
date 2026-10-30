@@ -222,6 +222,7 @@ export default defineConfig({
 										{ slug: 'ux-patterns/split-view' },
 										{ slug: 'ux-patterns/tree-crud', label: 'Tree CRUD' },
 										{ slug: 'ux-patterns/item-overview' },
+										{ slug: 'ux-patterns/multimedia-content' },
 										{ slug: 'ux-patterns/general-overview' },
 										{ slug: 'ux-patterns/foldout' },
 										{ slug: 'ux-patterns/waterfall-detail' },

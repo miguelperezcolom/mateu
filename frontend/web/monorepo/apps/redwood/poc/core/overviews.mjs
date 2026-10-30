@@ -672,6 +672,25 @@ export function templatedCollectionDetailOf(ctx) {
   }
 }
 
+/**
+ * A page that DECLARES the Multimedia content page template → its banner (mateuMmc): Spectra ships no
+ * oj-sp-multimedia-content-page in this pack, so the page is composed from its pieces —
+ * oj-sp-header-welcome-banner (the same banner API as the welcome page) over the sections, with the
+ * vertical anchor navigator (toc.mjs forces it on). The banner reads like a welcome's (welcomeOf on the
+ * banner hero alone) and takes the welcome look (tone, illustration or themed image).
+ */
+export function templatedMultimediaOf(ctx) {
+  if (!declaresTemplate(ctx, 'MultimediaContentPage')) return null
+  const hero = nodeById(ctx.tree, 'multimedia-banner')
+  const banner = hero ? welcomeOf({ ...ctx, tree: hero }) : null
+  if (!banner) return null
+  const look = welcomeLookOf(welcomeKeyOf(ctx), banner.tone)
+  // the banner shows ONE record: its texts are templates over the page state
+  const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
+  return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
+    theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
+}
+
 /** ITEM OVERVIEW archetype: key-data panel + tabs. */
 export function itemOverviewOf(ctx) {
   // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts

@@ -16,6 +16,7 @@ import generalOverviewPage from '@infra/expander/__fixtures__/general-overview-p
 import collectionDetailPage from '@infra/expander/__fixtures__/collection-detail-page.golden.json'
 import collectionDetailEmpty from '@infra/expander/__fixtures__/collection-detail-empty.golden.json'
 import foldoutPage from '@infra/expander/__fixtures__/foldout-page.golden.json'
+import multimediaPage from '@infra/expander/__fixtures__/multimedia-page.golden.json'
 
 const TEST_RESOURCES = resolve(__dirname, '../../../../../../../../../../backend/shared/core/src/test/resources')
 const authored = (path: string): FluentNode => parse(readFileSync(resolve(TEST_RESOURCES, path), 'utf-8'))
@@ -26,7 +27,7 @@ const withoutGeneratedIds = (node: any): any => {
     if (!node || typeof node !== 'object') return node
     const out: any = {}
     for (const [k, v] of Object.entries(node)) {
-        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && !v.startsWith('foldout') && node.metadata?.type !== 'FormField') continue
+        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && !v.startsWith('foldout') && v !== 'multimedia-banner' && node.metadata?.type !== 'FormField') continue
         out[k] = withoutGeneratedIds(v)
     }
     return out
@@ -85,6 +86,14 @@ describe('client-side expander — a page template, against the Java golden', ()
         expectSubset(withoutGeneratedIds(wire), goldenComponent(foldoutPage))
         expect(wire.children[0].metadata.type).toBe('FoldoutLayout')
         expect(wire.children[0].metadata.panels.map((p: any) => p.title)).toEqual(['Specifications', 'Crew'])
+    })
+
+    it('the multimedia content page: the banner over the sections', () => {
+        const wire = expandComponent(authored('specs/ui/multimedia-page.yaml')) as any
+        expectSubset(withoutGeneratedIds(wire), goldenComponent(multimediaPage))
+        expect(wire.metadata.noHeader).toBe(true)
+        expect(wire.children[0].id).toBe('multimedia-banner')
+        expect(wire.children[0].metadata.tone).toBe('plum')
     })
 
     it('a page without a template stays free', () => {

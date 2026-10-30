@@ -403,6 +403,12 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   `headerTitle`: the header is the form's). Redwood's `foldoutOf` already finds it by shape; the foldout
   title and panel summaries now interpolate `${state.x}`, and a lone `Avatar` atom interpolates its
   name/image and paints `lg` (groups stay `xs`).
+- **`MultimediaContentPage`** (field `backgroundColor`): Spectra 2604 has NO `oj-sp-multimedia-content-page`
+  (CDN 404) → composed: the server lays it out like the welcome (`PageTemplates.banner`, HeroSection id
+  `multimedia-banner`, owns the header) over the sections; Redwood paints `mateuMmc`
+  (`templatedMultimediaOf`: welcomeOf on the banner hero, texts interpolated, welcome look) with
+  `oj-sp-header-welcome-banner` ABOVE the content container, skips that hero in content.mjs, suppresses
+  the VB header and the form action row, and `tocOf` forces the anchor navigator on.
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).

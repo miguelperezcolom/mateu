@@ -196,6 +196,7 @@ filled with the record's data (`${state.x}`) — is the **page**.
 | `ItemOverviewPage` | `oj-sp-item-overview-page` + `oj-sp-item-overview` | `avatar {src, initials}` (round) or `photo {src}` (4:3) | `body`, `footer` (the overview panel); the form's `content` is `main` |
 | `CollectionDetailPage` | `oj-sp-collection-detail-page` | — | `list` (the collection — typically a `Listing` with a `rowRoute`, often a partial shared by two pages), `noSelection`; the form's `content` is the selected item's detail (`detailTemplate`): a page with content has a selection, one without shows `noSelection` |
 | `DashboardLandingPage` | `oj-sp-dashboard-landing-page` | — | `kpi` (the scoreboard's `MetricCard`s); the form's `content` is the main area (one `DashboardPanel` per chart or list) |
+| `MultimediaContentPage` | composed: `oj-sp-header-welcome-banner` + sections + the vertical anchor navigator (Spectra ships no `oj-sp-multimedia-content-page` in 2604) | `backgroundColor` (as `WelcomePage`) | the form's `content` is the sections (`Card` + `mateu-section`); the banner is the form's title/subtitle/overline/toolbar |
 | `WelcomePage` | `oj-sp-welcome-page` | `backgroundColor` (Spectra's `dark-ocean` … `dark-sienna`, or the bare tone; `auto`/none = default) | the form's `content` is the default slot (the tiles under the banner) |
 
 The rest of the template comes from the `type: Form` that carries it: its `title`/`subtitle` are

@@ -228,6 +228,20 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aMultimediaContentPageIsTheBannerOverTheSections() throws Exception {
+    var page = render("multimedia-page");
+    var metadata = page.path("metadata");
+    assertThat(metadata.path("template").path("type").asText()).isEqualTo("MultimediaContentPage");
+    assertThat(metadata.path("noHeader").asBoolean()).isTrue();
+    var banner = byId(page, "multimedia-banner");
+    assertThat(banner.path("metadata").path("type").asText()).isEqualTo("HeroSection");
+    assertThat(banner.path("metadata").path("overline").asText()).isEqualTo("Episode IV");
+    assertThat(banner.path("metadata").path("tone").asText()).isEqualTo("plum");
+    assertThat(page.path("children").path(1).path("metadata").path("type").asText())
+        .isEqualTo("Card");
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

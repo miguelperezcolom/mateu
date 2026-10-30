@@ -30,6 +30,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
     if (t.type === 'GeneralOverviewPage') return { type: 'GeneralOverviewPage', avatar: null, photo: null }
     if (t.type === 'CollectionDetailPage') return { type: 'CollectionDetailPage', avatar: null, photo: null }
     if (t.type === 'FoldoutPage') return { type: 'FoldoutPage', avatar: null, photo: null }
+    if (t.type === 'MultimediaContentPage') return { type: 'MultimediaContentPage', avatar: null, photo: null }
     return undefined
 }
 
@@ -39,7 +40,7 @@ export function templateMetadataOf(template: unknown): Node | undefined {
  */
 export function ownsHeader(template: unknown): boolean {
     const t = template as Node | undefined
-    return !!t && t.type === 'WelcomePage'
+    return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage')
 }
 
 /** The page's content: the template laid out, or the authored content of a free page. `form` is the
@@ -48,7 +49,8 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     const t = template as Node | undefined
     if (!t) return content
     if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content))]
-    if (t.type === 'WelcomePage') return welcome(t, nodes(content), form)
+    if (t.type === 'WelcomePage') return banner('welcome', t, nodes(content), form)
+    if (t.type === 'MultimediaContentPage') return banner('multimedia-banner', t, nodes(content), form)
     if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
     if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
     if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]
@@ -65,12 +67,13 @@ function toneOf(backgroundColor: unknown): string | undefined {
     return TONES.includes(tone) ? tone : undefined
 }
 
-/** Welcome page: the banner (the form's title/subtitle/overline, its toolbar as the calls to action)
- *  over the tiles — the Welcome archetype's centred HeroSection. */
-function welcome(t: Node, tiles: FluentNode[], form: Node): FluentNode[] {
+/** A welcome-style banner (the form's title/subtitle/overline, its toolbar as the calls to action)
+ *  over the content — the Welcome archetype's centred HeroSection (PageTemplates.banner): the welcome
+ *  page's tiles, the multimedia content page's sections. */
+function banner(id: string, t: Node, tiles: FluentNode[], form: Node): FluentNode[] {
     const tone = toneOf(t.backgroundColor)
     const hero: Node = {
-        type: 'HeroSection', id: 'welcome', centered: true,
+        type: 'HeroSection', id, centered: true,
         style: 'width: 100%; box-sizing: border-box; margin-bottom: 1rem',
         content: nodes(form.toolbar),
     }

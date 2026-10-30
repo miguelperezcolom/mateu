@@ -23,7 +23,8 @@ import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
 import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest } from './pageProjection.mjs'
-import { templatedGeneralOverviewOf, templatedCollectionDetailOf } from './core/overviews.mjs'
+import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf } from './core/overviews.mjs'
+import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
@@ -2472,6 +2473,19 @@ test('a page that DECLARES the Collection detail page template → mateuCd: the 
 test('a YAML foldout page: its panel summaries and avatar interpolate the record (${state.x})', () => {
   const summary = foldoutSummaryOf({ type: 'ClientSide', metadata: { type: 'Text', text: 'Crew ${state.crew}' }, children: [] }, { crew: '6' })
   assert.deepEqual(summary, { hasSummary: true, summary: 'Crew 6' })
+})
+
+test('a page that DECLARES the Multimedia content page → a welcome banner (interpolated) + the anchor navigator, forced on', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/multimedia-page.golden.json'), 'utf-8'))
+  const host = { state: {}, data: {}, tree: golden.fragments[0].component }
+  const mmc = templatedMultimediaOf(host)
+  assert.equal(mmc.title, 'A New Hope')
+  assert.equal(mmc.overline, 'Episode IV')
+  assert.equal(mmc.theme, 'dark-plum')
+  assert.equal(mmc.ctas.length, 1)
+  // one section is enough: the template HAS the navigator (the auto rule needs several)
+  assert.equal(tocOf(host).on, true)
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {
