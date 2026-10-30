@@ -22,6 +22,10 @@ menu:
     route: dashboard
     icon: vaadin:dashboard
   - type: RouteLink
+    label: Search
+    route: search
+    icon: vaadin:search
+  - type: RouteLink
     label: People
     route: people
     icon: vaadin:user

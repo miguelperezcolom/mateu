@@ -436,7 +436,7 @@ test('@RestAction runs against the endpoint in the client and merges the result 
     assert.equal(c.currentComponentState['city'], 'Palma');
     assert.equal(notes.at(-1)!.text, 'Found Palma');
     await c.runAction('bad');
-    assert.equal(notes.at(-1)!.text, 'Request failed');
+    assert.equal(notes.at(-1)!.text, 'Request failed: HTTP 500');
     assert.equal(calls.filter((x) => x.kind === 'action').length, 0, 'no Mateu round trip');
   } finally {
     globalThis.fetch = realFetch;
@@ -465,12 +465,55 @@ test('a @RestAction successRoute navigates after a 2xx (the web rule); without o
   }
 });
 
-test('proxied sources go through the reserved __restfetch__ action; a failure answers {}', async () => {
-  const { c, calls } = harness([{ appData: { _restfetch: { rows: [1] } } }, new Error('down')]);
+test('proxied sources go through the reserved __restfetch__ action; a failure THROWS (never a silent {})', async () => {
+  const { c, calls } = harness([
+    { appData: { _restfetch: { rows: [1] } } },
+    new Error('down'),
+    { appData: { _restfetchError: { status: 404 } } },
+  ]);
   assert.deepEqual(await c.fetchViaProxy('options', 'country'), { rows: [1] });
   assert.deepEqual(calls[0].parameters, { _sourceKind: 'options', _sourceId: 'country' });
   assert.equal(calls[0].actionId, '__restfetch__');
-  assert.deepEqual(await c.fetchViaProxy('rows', 'x'), {});
+  await assert.rejects(c.fetchViaProxy('rows', 'x'), /down/);
+  // the endpoint's own failure, reported by the server
+  await assert.rejects(c.fetchViaProxy('action', 'delete'), /HTTP 404/);
+});
+
+test('a write whose proxied call fails says so — not its success message', async () => {
+  const { c, notes } = harness([fragment(ssc({
+    actions: [{ id: 'remove', restAction: { source: { url: 'https://api.x/p/1', method: 'DELETE', proxy: true }, successMessage: 'Deleted' } }],
+  })), { appData: { _restfetchError: { status: 500 } } }]);
+  await c.initialLoad('/orders');
+  await c.runAction('remove');
+  assert.notEqual(notes.at(-1)!.text, 'Deleted');
+  assert.match(notes.at(-1)!.text, /Request failed.*HTTP 500/);
+});
+
+test('forEachSelectedRow: a proxied source loops on the server (one call), a direct one per checked row', async () => {
+  const realFetch = globalThis.fetch;
+  const seen: string[] = [];
+  globalThis.fetch = (async (url: string) => { seen.push(String(url)); return { ok: true, status: 204, json: async () => null }; }) as any;
+  try {
+    const { c, calls, notes } = harness([fragment(ssc({
+      actions: [
+        { id: 'delete-proxied', restAction: { forEachSelectedRow: true, source: { url: 'https://api.x/p/${state.id}', method: 'DELETE', proxy: true }, successMessage: 'Deleted' } },
+        { id: 'delete-direct', restAction: { forEachSelectedRow: true, source: { url: 'https://api.x/p/${state.id}', method: 'DELETE' }, successMessage: 'Deleted' } },
+      ],
+    })), { appData: { _restfetch: null } }]);
+    await c.initialLoad('/orders');
+    await c.runAction('delete-direct');
+    assert.equal(notes.at(-1)!.text, 'You first need to select some rows');
+    c.currentComponentState['crud_selected_items'] = [{ id: 1, name: 'Luke' }, { id: 2, name: 'Leia' }];
+    await c.runAction('delete-direct');
+    assert.deepEqual(seen, ['https://api.x/p/1', 'https://api.x/p/2']);
+    assert.equal(notes.at(-1)!.text, 'Deleted');
+    await c.runAction('delete-proxied');
+    const proxied = calls.filter((x) => x.actionId === '__restfetch__');
+    assert.equal(proxied.length, 1);
+    assert.deepEqual(proxied[0].parameters, { _sourceKind: 'action', _sourceId: 'delete-proxied', _forEachSelectedRow: true });
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 });
 
 test('mountServerSide (embedded island) renders the node with its initialData', () => {

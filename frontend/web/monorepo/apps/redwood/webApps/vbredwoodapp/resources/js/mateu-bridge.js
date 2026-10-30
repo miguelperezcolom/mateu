@@ -4368,6 +4368,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * A page that DECLARES the Hero search template → oj-sp-hero-search-page (mateuHs): its title and
+   * description are the hero's (the form's title and subtitle, interpolated); its search box and its
+   * results — the page's listing — are painted by the template's slots (the hero node itself is not
+   * painted as content).
+   */
+  function templatedHeroSearchOf(ctx) {
+    if (!declaresTemplate(ctx, 'HeroSearchPage')) return null
+    const hero = nodeById(ctx.tree, 'hero-search')
+    const md = (hero && hero.metadata) || {}
+    const state = (ctx && ctx.state) || {}
+    // collection: Spectra's collectionView — 'off' (the landing hero) until the first search
+    return { title: interpolate(String(md.title || ''), state), description: interpolate(String(md.subtitle || ''), state), collection: 'off' }
+  }
+
   /** ITEM OVERVIEW archetype: key-data panel + tabs. */
   function itemOverviewOf(ctx) {
     // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
@@ -6264,8 +6279,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
         return
       }
-      // a Multimedia content page's banner is the template's header (oj-sp-header-welcome-banner)
-      if (t === 'HeroSection' && node.id === 'multimedia-banner') return
+      // a Multimedia content page's banner / a Hero search page's hero are the template's own header
+      if (t === 'HeroSection' && (node.id === 'multimedia-banner' || node.id === 'hero-search')) return
       if (t === 'HeroSection') {
         // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
         atom(heroAtomOf(m, interp), container)
@@ -22828,6 +22843,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuItemOv: item,
       // the Multimedia content page's banner (oj-sp-header-welcome-banner over the host content)
       mateuMmc: templatedMultimediaOf(host),
+      // a YAML Hero search page (oj-sp-hero-search-page: its hero, the listing in its slots)
+      mateuHs: templatedHeroSearchOf(host),
       // a YAML Guided process (oj-sp-guided-process) and its first step
       mateuGp: gp,
       mateuGpCurrent: gp && gp.steps.length ? gp.steps[0].id : '',
@@ -22849,10 +22866,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** Whether a YAML page template paints the page header itself (a multimedia content page's banner,
-   *  a guided process): the VB header stands aside, as for the composed archetypes. */
+   *  a guided process, a hero search): the VB header stands aside, as for the composed archetypes. */
   function templateOwnsHeader(archetypes) {
     const v = (archetypes && archetypes.vars) || {}
-    return !!(v.mateuMmc || v.mateuGp)
+    return !!(v.mateuMmc || v.mateuGp || v.mateuHs)
   }
 
   /**

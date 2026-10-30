@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from '../ui/Text';
+import { interpolate } from '../core/expressions';
 import { ComponentRenderer } from './ComponentRenderer';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -26,14 +27,19 @@ interface Props {
 export function FormRenderer({ component, metadata, state }: Props) {
   const controller = useViewController();
 
-  const title = (metadata['title'] as string) ?? '';
-  const subtitle = (metadata['subtitle'] as string) ?? '';
+  // a YAML page's header texts are templates over its state (`title: ${state.name}`)
+  const title = interpolate((metadata['title'] as string) ?? '', { state });
+  const subtitle = interpolate((metadata['subtitle'] as string) ?? '', { state });
   const readOnly = Boolean(metadata['readOnly']);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
   // Header buttons. A form expanded on the device (a static bundle's raw definition) also carries
   // its declared action DEFINITIONS here (`actions:` — id + restAction/steps, no label): those are
   // what its buttons run, not buttons of their own, so an entry with no label is not painted.
-  const actions = ((metadata['actions'] as ButtonDto[]) ?? []).filter((a) => !!a?.label);
+  const declared = ((metadata['actions'] as ButtonDto[]) ?? []).filter((a) => !!a?.label);
+  // …and its page toolbar (a YAML Form's `toolbar:` — Edit, Delete…): navigation as much as action,
+  // so shown on a read-only record too. The way back is the screen's own back arrow, not a button.
+  const toolbar = ((metadata['toolbar'] as ButtonDto[]) ?? []).filter((b) => !!b?.label && !isBackButton(b));
+  const actions = [...toolbar, ...declared];
   const children = (component['children'] as unknown[]) ?? [];
 
   const handleAction = (actionId: string) => void controller.runAction(actionId);
@@ -45,13 +51,13 @@ export function FormRenderer({ component, metadata, state }: Props) {
 
   return (
     <View style={styles.root}>
-      {(title || subtitle || (actions.length > 0 && !readOnly)) && (
+      {(title || subtitle || toolbar.length > 0 || (declared.length > 0 && !readOnly)) && (
         <View style={styles.header}>
           {!!title && <PaperText variant="headlineSmall" style={styles.title} accessibilityRole="header">{title}</PaperText>}
           {!!subtitle && <PaperText variant="bodyMedium" style={styles.subtitle}>{subtitle}</PaperText>}
-          {!readOnly && actions.length > 0 && (
+          {(toolbar.length > 0 || (!readOnly && declared.length > 0)) && (
             <View style={styles.actionBar}>
-              {actions.map((a, i) => {
+              {(readOnly ? toolbar : actions).map((a, i) => {
                 const id = a.actionId ?? a.id ?? '';
                 // Only a button the server marks primary looks primary: a row of equally loud
                 // buttons has no hierarchy (Refactoring UI, "not every button is primary").
@@ -109,3 +115,10 @@ const styles = themed(() => StyleSheet.create({
   btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
   btnDefaultText: { color: theme.ink, fontSize: 14 },
 }));
+
+/** A toolbar button that is the way BACK (the web draws it as the header's chevron): a pushed
+ *  screen has its own back arrow, so it is not painted as one more button. */
+function isBackButton(b: ButtonDto): boolean {
+  const id = String(b.actionId ?? b.id ?? '');
+  return id === 'back' || id === 'backToList' || id === 'cancel-view';
+}

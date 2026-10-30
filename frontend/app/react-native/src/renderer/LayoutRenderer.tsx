@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { ProgressBar, Text as PaperText } from 'react-native-paper';
 import { rowJustification } from '../core/uxRules';
-import { compactRail, formRowColumns, isPhoneWidth, wizardRailIndex } from '../core/phoneLayout';
+import { compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, wizardRailIndex } from '../core/phoneLayout';
 import { theme, themed } from '../theme';
 
 interface Props {
@@ -59,12 +59,14 @@ export function LayoutRenderer({ component, state, onStateChange, renderComponen
 
   // Zone columns arrive with the backend's responsive wrap point in their style
   // (min-width: min(20rem, …)); honoring it makes zoned sections stack on phone widths
-  // exactly like the web renderers.
+  // exactly like the web renderers. Same for any column that declares a wrap point or a fixed
+  // width (`flex: 0 0 22rem`) — the item overview template's panel beside its main area: on a phone
+  // the panel stacks above, on a tablet they stay side by side.
   const itemStyle = (child: unknown) => {
     if (direction !== 'row') return undefined;
     if (justify) return undefined;
     const style = ((child as Record<string, unknown>)['style'] as string) ?? '';
-    return style.includes('min-width: min(20rem') ? [styles.rowItem, styles.zoneColumn] : styles.rowItem;
+    return declaresWrapPoint(style) ? [styles.rowItem, styles.zoneColumn] : styles.rowItem;
   };
 
   return (

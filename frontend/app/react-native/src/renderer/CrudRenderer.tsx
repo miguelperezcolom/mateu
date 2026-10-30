@@ -30,7 +30,8 @@ import { cellTooltipText } from './hoverDetails';
 import { ComponentRenderer } from './ComponentRenderer';
 import { showsPreSearch } from './patternGaps';
 import { cellText } from './cellText';
-import { rowOpenLabel, rowOpenOf, rowPressOf } from '../core/rowOpen';
+import { useButtonPress } from './useButtonPress';
+import { rowOpenLabel, rowOpenOf, rowPressOf, rowRouteFields } from '../core/rowOpen';
 import {
   activeFilterCount,
   allRowsSelected,
@@ -153,6 +154,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const columnIds = [...new Set([
     ...columns.map((c) => c.metadata?.id ?? c.id ?? c.fieldId),
     ...columns.flatMap((c) => ['captionPath', 'leadingPath', 'tooltipPath'].map((k) => (c.metadata as Record<string, unknown> | undefined)?.[k])),
+    // …and the fields the rowRoute needs (its record id): also what a bulk action on the selected
+    // rows reads (`${state.id}` per row)
+    ...rowRouteFields(metadata['rowRoute']),
   ].filter((f): f is string => typeof f === 'string' && !!f))];
   const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
   const rowsUrl = rowsResolved ? restResolve(rowsResolved.url) : '';
@@ -266,11 +270,18 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // primary — e.g. "Check-in").
   const rowOpen = rowOpenOf(metadata['rowRoute'], columns.map((c) => (c.metadata ?? {}) as Record<string, unknown>));
   const firstRowAction = (row: Record<string, unknown>): string => firstRowActionOf(columns, row);
+  // A toolbar button carrying a `route` (a RouteLink actionable — a YAML "New character") NAVIGATES
+  // (useButtonPress, like a form's buttons): its actionId is only the label's echo, which no server
+  // claims — and a static UI has no server at all
+  const buttonPress = useButtonPress();
+  const pressButton = (btn: ButtonDto) =>
+    buttonPress(btn as Record<string, unknown>, { state }, () => void controller.runAction(buttonActionId(btn)), btn.label ?? '').onPress();
   const handleRowPress = (row: Record<string, unknown>) => {
     if (rowOpen) {
       const press = rowPressOf(rowOpen, row);
       if (press?.kind === 'route') {
-        controller.session.openView({ label: press.route, route: press.route, consumedRoute: '', serverSideType: '' });
+        // no label: a route is no title (the screen shows its own)
+        controller.session.openView({ label: '', route: press.route, consumedRoute: '', serverSideType: '' });
       } else if (press) {
         void controller.runAction(press.actionId, press.parameters);
       }
@@ -436,7 +447,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     buttonStyle={btn.buttonStyle}
                     color={btn.color}
                     disabled={!!btn.disabled}
-                    onPress={() => void controller.runAction(id)}
+                    onPress={() => pressButton(btn)}
                   />
                 );
               })}
@@ -794,7 +805,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           accessibilityLabel={createButton.label || 'New'}
           disabled={!!createButton.disabled}
           style={[styles.createFab, { bottom: (totalElements > pageSize && pageSize > 0 ? paginationHeight : 0) + 16 }]}
-          onPress={() => void controller.runAction(buttonActionId(createButton))}
+          onPress={() => pressButton(createButton)}
         />
       )}
 

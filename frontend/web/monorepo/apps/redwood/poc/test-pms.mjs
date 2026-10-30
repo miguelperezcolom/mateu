@@ -22,8 +22,8 @@ import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TI
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
-import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest } from './pageProjection.mjs'
-import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf } from './core/overviews.mjs'
+import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest, templateOwnsHeader as templateOwnsHeaderForTest } from './pageProjection.mjs'
+import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf } from './core/overviews.mjs'
 import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
@@ -1441,7 +1441,7 @@ test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante
     assert.equal(cell.title, '')
   }
   const page = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 7, 'las plantillas cellClip (listado ×3 — la página, el collection detail y el data management —, selector, listado en un drawer × 3 plantillas Spectra)')
+  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 8, 'las plantillas cellClip (listado ×4 — la página, el collection detail, el data management y el hero search —, selector, listado en un drawer × 3 plantillas Spectra)')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
 })
 
@@ -2518,6 +2518,15 @@ test('a YAML DataManagementPage → oj-sp-data-management-page: its docked panel
   assert.equal(dm.title, 'Vehicles')
   assert.deepEqual([dm.end.on, dm.end.title, dm.end.closeActionId], [true, 'Fleet summary', ''])
   assert.deepEqual([dm.bottom.on, dm.bottom.title], [true, 'Notes'])
+})
+
+test('a page that DECLARES the Hero search template → oj-sp-hero-search-page: its hero texts, the landing (collection off) first', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/hero-search-page.golden.json'), 'utf-8'))
+  const host = { state: {}, data: {}, tree: golden.fragments[0].component }
+  assert.deepEqual(templatedHeroSearchOf(host), { title: 'Search the galaxy', description: 'Find any character of the saga', collection: 'off' })
+  // the template draws the header: the VB header stands aside
+  assert.equal(templateOwnsHeaderForTest(archetypeVarsOfForTest(host)), true)
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {

@@ -251,6 +251,7 @@ Object.assign(SAMPLES, {
 export const NO_THUMBNAIL: Readonly<Record<string, string>> = {
     AutoSaveTrigger: 'a trigger, nothing on screen',
     ItemOverviewPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
+    HeroSearchPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
     DataManagementPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
     GuidedProcessPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
     AdvancedCreateEditPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',

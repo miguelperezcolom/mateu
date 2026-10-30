@@ -283,6 +283,17 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aHeroSearchPageIsTheHeroOverTheResults() throws Exception {
+    var page = render("hero-search-page");
+    assertThat(page.path("metadata").path("noHeader").asBoolean()).isTrue();
+    var hero = byId(page, "hero-search");
+    assertThat(hero.path("metadata").path("type").asText()).isEqualTo("HeroSection");
+    assertThat(hero.path("metadata").path("title").asText()).isEqualTo("Search the galaxy");
+    assertThat(page.path("children").path(1).path("metadata").path("text").asText())
+        .isEqualTo("The results");
+  }
+
+  @Test
   void aPageWithoutATemplateIsFree() throws Exception {
     var page = render("page-header-extras");
     assertThat(

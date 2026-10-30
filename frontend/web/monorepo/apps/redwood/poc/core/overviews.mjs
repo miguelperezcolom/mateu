@@ -729,6 +729,21 @@ export function templatedGuidedProcessOf(ctx) {
   }
 }
 
+/**
+ * A page that DECLARES the Hero search template → oj-sp-hero-search-page (mateuHs): its title and
+ * description are the hero's (the form's title and subtitle, interpolated); its search box and its
+ * results — the page's listing — are painted by the template's slots (the hero node itself is not
+ * painted as content).
+ */
+export function templatedHeroSearchOf(ctx) {
+  if (!declaresTemplate(ctx, 'HeroSearchPage')) return null
+  const hero = nodeById(ctx.tree, 'hero-search')
+  const md = (hero && hero.metadata) || {}
+  const state = (ctx && ctx.state) || {}
+  // collection: Spectra's collectionView — 'off' (the landing hero) until the first search
+  return { title: interpolate(String(md.title || ''), state), description: interpolate(String(md.subtitle || ''), state), collection: 'off' }
+}
+
 /** ITEM OVERVIEW archetype: key-data panel + tabs. */
 export function itemOverviewOf(ctx) {
   // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts

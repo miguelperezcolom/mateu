@@ -1,0 +1,92 @@
+{
+  "commands" : [ {
+    "targetComponentId" : null,
+    "type" : "SetWindowTitle",
+    "data" : "Search the galaxy"
+  } ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Search the galaxy",
+        "readOnly" : false,
+        "subtitle" : "Find any character of the saga",
+        "status" : null,
+        "noHeader" : true,
+        "badges" : [ ],
+        "banners" : [ ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : null,
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : null,
+        "fabs" : null,
+        "template" : {
+          "type" : "HeroSearchPage",
+          "avatar" : null,
+          "photo" : null
+        }
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "HeroSection",
+          "title" : "Search the galaxy",
+          "subtitle" : "Find any character of the saga",
+          "image" : null,
+          "height" : null,
+          "centered" : true,
+          "tone" : null,
+          "overline" : null
+        },
+        "id" : "hero-search",
+        "children" : [ ],
+        "style" : "width: 100%; box-sizing: border-box; margin-bottom: 1rem",
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      }, {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "Text",
+          "container" : "div",
+          "attributes" : { },
+          "text" : "The results",
+          "size" : null,
+          "noMargins" : false
+        },
+        "id" : "284e41e5-13d8-4160-b833-4338f478245d",
+        "children" : [ ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

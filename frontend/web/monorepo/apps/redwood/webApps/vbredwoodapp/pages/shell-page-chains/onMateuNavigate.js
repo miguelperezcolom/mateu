@@ -562,7 +562,7 @@ define([
       // breadcrumbs: without a back button, the parent of the automatic trail)
       const pageHeader = bridge.pageHeaderOf({
         // a YAML collection detail paints its listing inside the template: no listing header band
-        host, hostEntity, summary, hostToolbar, showHeader, pageWidth: pw, gopOn, iopOn, listing: (archetypes.cd || archetypes.dm) ? null : listingSummary,
+        host, hostEntity, summary, hostToolbar, showHeader, pageWidth: pw, gopOn, iopOn, listing: (archetypes.cd || archetypes.dm || archetypes.vars.mateuHs) ? null : listingSummary,
       });
       vars.mateuPageHeader = pageHeader.header;
       vars.mateuPageHeaderTranslations = pageHeader.translations;

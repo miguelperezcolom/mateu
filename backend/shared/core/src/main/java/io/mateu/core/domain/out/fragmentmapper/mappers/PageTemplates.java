@@ -17,6 +17,7 @@ import io.mateu.uidl.data.GeneralOverviewPage;
 import io.mateu.uidl.data.GridTrack;
 import io.mateu.uidl.data.GuidedProcessPage;
 import io.mateu.uidl.data.GuidedProcessStep;
+import io.mateu.uidl.data.HeroSearchPage;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HeroTone;
 import io.mateu.uidl.data.HorizontalAlignment;
@@ -62,6 +63,7 @@ public final class PageTemplates {
   static final String ADVANCED_CREATE_EDIT = "AdvancedCreateEditPage";
   static final String GUIDED_PROCESS = "GuidedProcessPage";
   static final String DATA_MANAGEMENT = "DataManagementPage";
+  static final String HERO_SEARCH = "HeroSearchPage";
 
   private PageTemplates() {}
 
@@ -75,6 +77,10 @@ public final class PageTemplates {
     }
     if (form.template() instanceof MultimediaContentPage multimedia) {
       return banner("multimedia-banner", multimedia.toneOrNull(), form);
+    }
+    if (form.template() instanceof HeroSearchPage heroSearch) {
+      // the HeroSearch archetype's shape: the centred hero over the results (the content)
+      return banner("hero-search", heroSearch.toneOrNull(), form);
     }
     if (form.template() instanceof DashboardLandingPage dashboard) {
       return dashboard(dashboard, form.content());
@@ -107,7 +113,8 @@ public final class PageTemplates {
   static boolean ownsHeader(Form form) {
     return form.template() instanceof WelcomePage
         || form.template() instanceof MultimediaContentPage
-        || form.template() instanceof DataManagementPage;
+        || form.template() instanceof DataManagementPage
+        || form.template() instanceof HeroSearchPage;
   }
 
   /** The template's own values, for the wire; {@code null} for a free page. */
@@ -142,6 +149,9 @@ public final class PageTemplates {
     }
     if (template instanceof DataManagementPage) {
       return new PageTemplateDto(DATA_MANAGEMENT, null, null);
+    }
+    if (template instanceof HeroSearchPage) {
+      return new PageTemplateDto(HERO_SEARCH, null, null);
     }
     return null;
   }

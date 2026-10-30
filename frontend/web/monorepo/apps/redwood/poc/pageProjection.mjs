@@ -4,7 +4,7 @@ import {
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
   pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf, contextualInfoOf, factActionsJsonOf,
   drawerOverlayOf, dialogOverlayOf, dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf,
-  templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, withFormActions,
+  templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf, withFormActions,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 import { chromeText } from './i18n.mjs'
@@ -191,6 +191,8 @@ export function archetypeVarsOf(host) {
     mateuItemOv: item,
     // the Multimedia content page's banner (oj-sp-header-welcome-banner over the host content)
     mateuMmc: templatedMultimediaOf(host),
+    // a YAML Hero search page (oj-sp-hero-search-page: its hero, the listing in its slots)
+    mateuHs: templatedHeroSearchOf(host),
     // a YAML Guided process (oj-sp-guided-process) and its first step
     mateuGp: gp,
     mateuGpCurrent: gp && gp.steps.length ? gp.steps[0].id : '',
@@ -212,10 +214,10 @@ export function archetypeVarsOf(host) {
 }
 
 /** Whether a YAML page template paints the page header itself (a multimedia content page's banner,
- *  a guided process): the VB header stands aside, as for the composed archetypes. */
+ *  a guided process, a hero search): the VB header stands aside, as for the composed archetypes. */
 export function templateOwnsHeader(archetypes) {
   const v = (archetypes && archetypes.vars) || {}
-  return !!(v.mateuMmc || v.mateuGp)
+  return !!(v.mateuMmc || v.mateuGp || v.mateuHs)
 }
 
 /**
