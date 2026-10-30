@@ -1,17 +1,19 @@
-# Item overview: key information on the left, the rest of the record in tabs on the right.
-type: HorizontalLayout
+# Item overview: fills Redwood's Item overview page template — the item's overview panel (its image,
+# key facts) beside the main area (the rest of the record, in tabs). Only the template's fields and
+# slots are given; its look is the template's.
+type: Form
 pageType: detail
 __PAGE_WIDTH__
+title: __TITLE__
+subtitle: Product
+template:
+  type: ItemOverviewPage
+  avatar: {initials: EC}
+  body:
+    - {type: FormField, id: sku, label: SKU, dataType: string, readOnly: true, propertyRow: true}
+    - {type: FormField, id: price, label: Price, dataType: money, readOnly: true, propertyRow: true}
+    - {type: FormField, id: stock, label: Stock, dataType: integer, readOnly: true, propertyRow: true}
 content:
-  - type: Card
-    style: "flex: 0 0 22rem; position: sticky; top: 0;"
-    title: {type: Text, text: __TITLE__}
-    content:
-      type: FormLayout
-      content:
-        - {type: FormField, id: sku, label: SKU, dataType: string, readOnly: true, propertyRow: true}
-        - {type: FormField, id: price, label: Price, dataType: money, readOnly: true, propertyRow: true}
-        - {type: FormField, id: stock, label: Stock, dataType: integer, readOnly: true, propertyRow: true}
   - type: TabLayout
     tabs:
       - {type: Tab, label: Details, active: true, content: {type: Text, text: Details go here}}

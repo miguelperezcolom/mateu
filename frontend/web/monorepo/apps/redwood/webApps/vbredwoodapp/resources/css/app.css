@@ -2097,12 +2097,8 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
 .mateu-cd-page .mateu-cd-detail {
   padding-top: 1rem;
 }
-/* ITEM OVERVIEW (oj-sp-item-overview-page): in light mode the overview column paints no surface of
-   its own and the panel hung loose over the canvas — give the column Redwood's panel surface */
-.mateu-iop .oj-sp-item-overview-page-overview-section {
-  background-color: var(--oj-core-bg-color-content, #fff);
-  border-inline-end: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
-}
+/* ITEM OVERVIEW (oj-sp-item-overview-page): the template's own surfaces are left alone (Spectra paints
+   the overview panel as its card); only OUR content in the main slot gets its gutters */
 .mateu-iop .mateu-iop-main {
   padding: 0 1.5rem 1.5rem;
 }

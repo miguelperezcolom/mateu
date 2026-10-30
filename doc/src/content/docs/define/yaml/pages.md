@@ -178,6 +178,61 @@ content: [...]
   line), the overline above the title and the title placeholder (dimmed, only while the title
   resolves empty).
 
+## Page templates — `template:`
+
+A page either **fills a template** or is **free**. A free page (no `template:`) lays its `content`
+out as written. A page with a `template:` fills one of the design system's page templates — the
+Redwood templates, as Oracle's Spectra ships them — and gives only what that template asks for:
+its fields and its slots, **named as the template names them**. The template decides the look
+(colours, surfaces, spacing, the shape and size of an image); the page never styles it.
+
+In atomic-design terms the template is the **template** level, and your YAML page — the template
+filled with the record's data (`${state.x}`) — is the **page**.
+
+| `template.type` | Redwood template | Fields | Slots |
+|---|---|---|---|
+| `ItemOverviewPage` | `oj-sp-item-overview-page` + `oj-sp-item-overview` | `avatar {src, initials}` (round) or `photo {src}` (4:3) | `body`, `footer` (the overview panel); the form's `content` is `main` |
+
+The rest of the template comes from the `type: Form` that carries it: its `title`/`subtitle` are
+the item's (`itemTitle`/`itemSubtitle`), its first header badge the item's badge, its `peerNav` the
+previous/next item, its back button the parent link, its primary toolbar button the panel's **edit**
+action when it edits (otherwise it joins the panel's other actions, like the rest of the toolbar).
+
+```yaml
+type: Form
+title: ${state.name}
+subtitle: Character
+toolbar:
+  - {type: Button, actionId: backToList, label: Back to People, actionable: {type: RouteLink, route: people}}
+  - {type: Button, label: Edit, buttonStyle: primary, actionable: {type: RouteLink, route: "people/${state.id}/edit"}}
+template:
+  type: ItemOverviewPage
+  avatar: {src: "${state.image}"}
+  body:
+    - {type: FormField, id: gender, label: Gender, readOnly: true, propertyRow: true}
+    - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true, propertyRow: true}
+content:                     # the template's main slot
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Physique
+        content: {type: FormField, id: height, label: Height (cm), readOnly: true, propertyRow: true}
+```
+
+- **Redwood** paints the template itself (`oj-sp-item-overview-page`), with nothing of ours on top
+  of it. A `main` slot that is one tab bar becomes the template's tabs; anything else is shown as it
+  is.
+- **Every other renderer** (Vaadin, React Native, IntelliJ) gets the template laid out as ordinary
+  components — Mateu's own drawing of it: the overview panel pinned on the left, the main slot on
+  the right, wrapping under it on a narrow screen. Each slot travels in a container named after it
+  (`item-overview-body`, `item-overview-footer`, `item-overview-main`) and the template's own values
+  on the form (`template: {type, avatar, photo}`).
+- It works served by the **Java** backend, pre-rendered into a static bundle and expanded in the
+  browser from a `specsOnly` bundle. The .NET and Python YAML builders do not read `template:` yet.
+- `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The IDEs' **Item
+  Overview** page template writes it. More templates follow the same shape.
+- Demo: the record pages of `demo/demo-starwars` (`person.yaml`, `planet.yaml`, `film.yaml`…).
+
 ## Available types
 
 All component types from the [`io.mateu.uidl.data`](/java-ui-definition/supported-components/) package are supported.

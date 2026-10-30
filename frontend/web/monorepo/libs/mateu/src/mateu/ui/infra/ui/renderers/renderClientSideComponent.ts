@@ -265,7 +265,7 @@ export const RENDERERS: Record<SwitchRenderedType, (c: RenderContext) => Templat
     [ComponentMetadataType.Details]: full(renderDetails),
     [ComponentMetadataType.Dialog]: ({ component, baseUrl, state, data, appState, appData }) => renderDialog(component, baseUrl, state, data, appState, appData),
     [ComponentMetadataType.Drawer]: ({ component, baseUrl, state, data, appState, appData }) => renderDrawer(component, baseUrl, state, data, appState, appData),
-    [ComponentMetadataType.Image]: ({ component }) => renderImage(component),
+    [ComponentMetadataType.Image]: ({ component, state, data }) => renderImage(component, state, data),
     [ComponentMetadataType.Map]: ({ component }) => renderMap(component),
     [ComponentMetadataType.Markdown]: ({ component }) => renderMarkdown(component),
     [ComponentMetadataType.MicroFrontend]: ({ component }) => renderMicroFrontend(component),

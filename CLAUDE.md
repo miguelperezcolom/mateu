@@ -335,6 +335,38 @@ ported to .NET/Python.
   overrides) and the IDEs; the server warns at startup when the classpath serves another renderer.
   Docs `define/yaml/project-settings.md`.
 
+### Page templates in YAML — `template:` on a `type: Form` (2026-10-30)
+
+Owner rule: a page FILLS a design-system page template or is FREE (no `template:`, its `content` as
+written) — free is the exception. A template's fields and slots are the TEMPLATE's, named as Spectra
+names them (read them off the component's metadata in the Oracle CDN loader, never invent them), and
+its look (colours, surfaces, spacing, image shape/size) is never overridden — not by the page, not by
+the renderer. In atomic-design terms: Spectra page template = template level, the filled YAML = page.
+
+- **Model**: `Form.template` (`io.mateu.uidl.fluent.FormTemplate`, polymorphic by `type` — mixin +
+  NamedType in `YamlUidlMapperFactory`; the YAML type IS the record's simple name, the schema
+  generator's rule). First template: `ItemOverviewPage` (`oj-sp-item-overview-page` +
+  `oj-sp-item-overview`): `avatar {src, initials}` | `photo {src}` (`TemplateImage`), slots `body`/
+  `footer`; the Form's title/subtitle/first badge/peerNav/toolbar are the item's, its `content` is the
+  `main` slot. `Form` kept its previous canonical constructor (japicmp).
+- **Wire**: `PageTemplates` (core fragmentmapper, used by `FormMapper`) LAYS THE SLOTS OUT as ordinary
+  components, each in a container whose id names it (`item-overview` row → `item-overview-panel` Card
+  → `item-overview-media` / `-body` / `-footer`, beside `item-overview-main`), so Vaadin/RN/IntelliJ
+  draw Mateu's own version with no change; the template's values ride `FormDto.template` (`PageTemplateDto
+  {type, avatar, photo}`). The browser expander (`expander/pageTemplates.ts`) does the same for a
+  `specsOnly` bundle — Java goldens `PageTemplateSyncTest` → `expandPageTemplate.test.ts`.
+- **Redwood** claims it BY THE MARKER, never by shape (`core/overviews.mjs` `pageTemplateOf`, which
+  unwraps the `SeededYamlPage` ServerSide wrapper of a served YAML page — missing that was a silent
+  "generic page"): slots read by id; one TabLayout in `main` → the template's tabs, else `mainItems`.
+  `oj-sp-item-overview` gets `avatar`/`photo`, and its EDIT action (`displayOptions.edit` + `spEdit`)
+  is the page's primary when it edits (`isEditButton`), else the primary joins `secondaryActions`.
+  2026-10-30 also removed what we forced on that template: `display-mode="light"` (Spectra's default
+  / the app's `appMode` decide) and app.css' surface on `.oj-sp-item-overview-page-overview-section`
+  (Spectra paints the panel as its card). Only OUR main-slot div keeps its gutters.
+- Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
+  `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
+  writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).
+
 ### Response shaping: what a source can and cannot normalise (2026-09-08)
 
 A `RestDataSource` gives **selection, not transformation**: `itemsPath`, `totalPath`, `fields`

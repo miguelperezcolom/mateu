@@ -1,0 +1,231 @@
+{
+  "commands" : [ {
+    "targetComponentId" : null,
+    "type" : "SetWindowTitle",
+    "data" : "Item overview photo"
+  } ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "${state.name}",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "noHeader" : false,
+        "badges" : [ ],
+        "banners" : [ ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : null,
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : null,
+        "fabs" : null,
+        "template" : {
+          "type" : "ItemOverviewPage",
+          "avatar" : null,
+          "photo" : {
+            "src" : "${state.picture}",
+            "initials" : null
+          }
+        }
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "HorizontalLayout",
+          "spacing" : true,
+          "padding" : false,
+          "margin" : false,
+          "spacingVariant" : null,
+          "verticalAlignment" : null,
+          "justification" : null,
+          "wrap" : true,
+          "flexGrows" : null,
+          "fullWidth" : false,
+          "style" : null
+        },
+        "id" : "item-overview",
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Card",
+            "media" : null,
+            "headerPrefix" : null,
+            "header" : null,
+            "title" : null,
+            "subtitle" : null,
+            "headerSuffix" : null,
+            "content" : {
+              "type" : "ClientSide",
+              "metadata" : {
+                "type" : "VerticalLayout",
+                "spacing" : false,
+                "padding" : false,
+                "margin" : false,
+                "spacingVariant" : null,
+                "horizontalAlignment" : null,
+                "justification" : null,
+                "wrap" : false,
+                "flexGrows" : null,
+                "fullWidth" : false,
+                "style" : null
+              },
+              "id" : "item-overview-panel-content",
+              "children" : [ {
+                "type" : "ClientSide",
+                "metadata" : {
+                  "type" : "VerticalLayout",
+                  "spacing" : false,
+                  "padding" : false,
+                  "margin" : false,
+                  "spacingVariant" : null,
+                  "horizontalAlignment" : null,
+                  "justification" : null,
+                  "wrap" : false,
+                  "flexGrows" : null,
+                  "fullWidth" : false,
+                  "style" : null
+                },
+                "id" : "item-overview-media",
+                "children" : [ {
+                  "type" : "ClientSide",
+                  "metadata" : {
+                    "type" : "Image",
+                    "src" : "${state.picture}",
+                    "alt" : null
+                  },
+                  "id" : "image-51140e41",
+                  "children" : [ ],
+                  "style" : "width: 100%; aspect-ratio: 4 / 3; object-fit: cover",
+                  "cssClasses" : null,
+                  "slot" : null,
+                  "sizing" : null
+                } ],
+                "style" : "width: 100%; align-items: center",
+                "cssClasses" : null,
+                "slot" : null,
+                "sizing" : null
+              }, {
+                "type" : "ClientSide",
+                "metadata" : {
+                  "type" : "VerticalLayout",
+                  "spacing" : false,
+                  "padding" : false,
+                  "margin" : false,
+                  "spacingVariant" : null,
+                  "horizontalAlignment" : null,
+                  "justification" : null,
+                  "wrap" : false,
+                  "flexGrows" : null,
+                  "fullWidth" : false,
+                  "style" : null
+                },
+                "id" : "item-overview-body",
+                "children" : [ {
+                  "type" : "ClientSide",
+                  "metadata" : {
+                    "type" : "Text",
+                    "container" : "div",
+                    "attributes" : { },
+                    "text" : "A starship",
+                    "size" : null,
+                    "noMargins" : false
+                  },
+                  "id" : "cc28fa00-9fa4-4a43-b0d3-ffb96b4307d3",
+                  "children" : [ ],
+                  "style" : null,
+                  "cssClasses" : null,
+                  "slot" : null,
+                  "sizing" : null
+                } ],
+                "style" : "width: 100%",
+                "cssClasses" : null,
+                "slot" : null,
+                "sizing" : null
+              } ],
+              "style" : "width: 100%",
+              "cssClasses" : null,
+              "slot" : null,
+              "sizing" : null
+            },
+            "footer" : null,
+            "variants" : null
+          },
+          "id" : "item-overview-panel",
+          "children" : [ ],
+          "style" : "flex: 0 0 22rem; max-width: 100%; position: sticky; top: 0; align-self: flex-start",
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "VerticalLayout",
+            "spacing" : false,
+            "padding" : false,
+            "margin" : false,
+            "spacingVariant" : null,
+            "horizontalAlignment" : null,
+            "justification" : null,
+            "wrap" : false,
+            "flexGrows" : null,
+            "fullWidth" : false,
+            "style" : null
+          },
+          "id" : "item-overview-main",
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Main area",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "fd5e3af9-1aaa-4289-9760-fbfe507dbe95",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : "flex: 1 1 24rem; min-width: min(24rem, 100%)",
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}
