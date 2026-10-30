@@ -4907,7 +4907,7 @@
         }
       ],
       "yaml": null,
-      "yamlNote": "A Java archetype (HeroSearch). In YAML: a free page with a HeroSection over a Listing."
+      "yamlNote": "A Java archetype. In YAML, use Mateu/Page Templates/HeroSearchPage."
     },
     {
       "name": "Mateu/Page Templates/Collection Detail",
@@ -5427,6 +5427,77 @@
             "many": true,
             "flatten": true
           },
+          "content": {
+            "path": "content",
+            "many": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Mateu/Page Templates/HeroSearchPage",
+      "kind": "pageTemplate",
+      "variants": {
+        "backgroundColor": [
+          "auto",
+          "dark-ocean",
+          "dark-pine",
+          "dark-lilac",
+          "dark-teal",
+          "dark-rose",
+          "dark-pebble",
+          "dark-slate",
+          "dark-plum",
+          "dark-sienna"
+        ]
+      },
+      "texts": {
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "col",
+          "items": [
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 20
+            },
+            {
+              "t": "label",
+              "text": "Subtitle"
+            },
+            {
+              "t": "label",
+              "text": "(the search box is the results listing's)"
+            }
+          ],
+          "tint": "#eef1f4",
+          "pad": 24,
+          "center": true
+        },
+        {
+          "t": "slot",
+          "name": "content",
+          "h": 160,
+          "w": 600,
+          "label": "results (a searchable Listing)"
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "HeroSearchPage"
+        },
+        "params": {
+          "backgroundColor": "template.backgroundColor"
+        },
+        "defaults": {
+          "backgroundColor": "auto"
+        },
+        "slots": {
           "content": {
             "path": "content",
             "many": true
