@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cellActionOf, isDisplayColumn, rowOpenLabel, rowOpenOf, rowPressOf, rowRouteOf } from './rowOpen.ts';
+import { cellActionOf, isDisplayColumn, rowOpenLabel, rowOpenOf, rowPressOf, rowRouteFields, rowRouteOf } from './rowOpen.ts';
 
 test('U1 a listing is navigable by its rowRoute (wins) or a view column; otherwise not', () => {
   assert.deepEqual(rowOpenOf('people/${row.id}', [{ actionId: 'view' }]), { kind: 'route', template: 'people/${row.id}' });
@@ -35,4 +35,11 @@ test('U1 pressing a row: route resolved against the row, or the view action with
 test('U1 a pressable row is named after what it opens', () => {
   assert.equal(rowOpenLabel('Ada'), 'Open Ada');
   assert.equal(rowOpenLabel(''), 'Open');
+});
+
+test('the fields a rowRoute needs are fetched with the row: without them a tap on it did nothing', () => {
+  assert.deepEqual(rowRouteFields('people/${row.id}'), ['id']);
+  assert.deepEqual(rowRouteFields('orders/${row.customer.id}/${ row.number }/${row.number}'), ['customer', 'number']);
+  assert.deepEqual(rowRouteFields(undefined), []);
+  assert.deepEqual(rowRouteFields('people'), []);
 });

@@ -228,8 +228,22 @@ export class MateuApiClient {
   }
 
   async runAction(params: RunActionParams): Promise<unknown> {
-    // a static bundle: answered here, from the bundle — there is no server to POST to
-    if (this.local) return this.local.answer(params);
+    // a static bundle answers the LOADS. An ACTION goes on to the server: a hybrid deployment (the
+    // bundle + its /mateu/** proxied to a backend, e.g. a secret-carrying write) has one, as the web
+    // and Redwood renderers assume; a purely static host answers 404/405 → "no server".
+    if (this.local) {
+      if (!params.actionId) return this.local.answer(params);
+      try {
+        return await this.postAction(params);
+      } catch (e) {
+        if (e instanceof StaleScreenError || !isNoServer(e)) throw e;
+        return this.local.answer(params); // throws "This UI has no server: …"
+      }
+    }
+    return this.postAction(params);
+  }
+
+  private async postAction(params: RunActionParams): Promise<unknown> {
     const routeStripped = params.route.startsWith('/') ? params.route.slice(1) : params.route;
     const urlSegment = routeStripped === '' ? '_no_route' : routeStripped;
     const bodyRoute = routeStripped === '' ? '' : '/' + routeStripped;
@@ -366,4 +380,10 @@ export class MateuApiClient {
       parameters: {},
     });
   }
+}
+
+/** A host with no Mateu server behind it: nothing listens at /mateu (404/405), or nothing answers. */
+function isNoServer(e: unknown): boolean {
+  const text = e instanceof Error ? e.message : String(e);
+  return /^HTTP (404|405|501)\b/.test(text) || e instanceof TypeError;
 }

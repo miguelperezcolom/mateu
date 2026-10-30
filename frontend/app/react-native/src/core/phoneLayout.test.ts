@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compactRail, formRowColumns, isPhoneWidth, splitCreateAction, wizardRailIndex } from './phoneLayout.ts';
+import { compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, splitCreateAction, wizardRailIndex } from './phoneLayout.ts';
 
 test('a form row is ONE column on a phone, the declared columns from a tablet up', () => {
   // iPhone 15 (393pt), a small Android (360dp), a phone in landscape still < 600
@@ -76,4 +76,12 @@ test('on a phone the rail collapses to "Step N of M · Title" above the form', (
   assert.deepEqual(compactRail(rail([{ title: 'A', status: 'done' }, { title: 'B', status: 'done' }])), { text: 'Result', progress: 1 });
   assert.equal(compactRail(form), null);
   assert.equal(compactRail(rail([])), null);
+});
+
+test('a row item that declares where it wraps stacks on a phone: zone columns, the item overview panel', () => {
+  assert.equal(declaresWrapPoint('flex: 1 1 calc(64% - 1rem); min-width: min(20rem, 100%);'), true);
+  assert.equal(declaresWrapPoint('flex: 0 0 22rem; max-width: 100%; position: sticky'), true);
+  assert.equal(declaresWrapPoint('flex: 1 1 24rem; min-width: min(24rem, 100%)'), true);
+  assert.equal(declaresWrapPoint('flex: 1'), false);
+  assert.equal(declaresWrapPoint(undefined), false);
 });

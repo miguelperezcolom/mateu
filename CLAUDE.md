@@ -92,6 +92,25 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             keep it (a missing folder fails "Bundle JavaScript", not locally); its
                             patterns take NO trailing `/` (eas-cli matches bare folder paths); check
                             with `CI=1 npx eas-cli build:inspect --stage archive --output <dir>`
+                            ICONS (2026-10-30): Android draws the ADAPTIVE icon (app.json android.adaptiveIcon:
+                            foreground over backgroundColor, cropped to a circle/squircle — keep the mark in the
+                            inner ~2/3), not `icon` — the Expo template's white foreground on #ffffff showed a blank
+                            white circle. Mateu's face: assets/icon.png (iOS), adaptive-icon.png + monochrome-icon.png
+                            (Android 13 themed icons), splash.png; derived from doc/public/favicon.png (235px — no
+                            vector exists; upscaled with blur+threshold for clean edges)
+                            HUB LIST: each row's actions (move up/down, remove) open in a bottom sheet from its ⋮ button
+                            or a long press (HomeScreen EntrySheet); the top bar's pencil still shows them on every row
+                            ONE BAR (2026-10-30): an app shell with a drawer claims the hub's bar
+                            (session.hub.claimBar) — its own top bar hosts the hub's ⇄ switch and, with a screen pushed,
+                            the back arrow in place of the menu (ContentScreen hostBack); tabs/no-menu keep the hub bar
+                            + the screen's own back bar. LISTINGS on RN (2026-10-30, all found on the Star Wars demo):
+                            a row fetches its rowRoute's fields (rowRouteFields — without `id` a tap did nothing and a
+                            bulk delete had no id); a toolbar/FAB button with a `route` NAVIGATES (useButtonPress);
+                            restAction `forEachSelectedRow` (proxy → one __restfetch__ with _forEachSelectedRow, direct →
+                            one call per row); fetchViaProxy THROWS on transport errors and appData._restfetchError
+                            (it answered {} → "Deleted" shown for a failed delete); a Form paints its `toolbar` (back
+                            ids skipped) and interpolates title/subtitle; a static bundle answers LOADS but posts
+                            ACTIONS to the host (hybrid sites have a server; 404/405/no answer → "This UI has no server")
   intellij-plugin/        ← Desktop — IntelliJ IDEA plugin (tool windows, editor tabs, docking)
                             (the JavaFX and Compose renderers were REMOVED 2026-07-10)
 

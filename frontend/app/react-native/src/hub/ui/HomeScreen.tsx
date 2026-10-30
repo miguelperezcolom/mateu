@@ -21,11 +21,14 @@ interface Props {
 
 /**
  * "My UIs", laid out like an authenticator app in Material 3: a top app bar (export / edit actions), the list of UIs, and a "+" FAB that offers "Scan a QR code" / "Type an address".
+ * Each row's actions (remove, reorder) are one tap away — its "⋮" button or a long press open them in a bottom sheet — besides the
+ * edit mode, which shows them on every row at once.
  */
 export function HomeScreen({ entries, openIds, onOpen, onAdd, onAddDemo, onRemove, onMove, onExport }: Props) {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [actionsFor, setActionsFor] = useState<HubEntry | null>(null);
   const shown = useMemo(() => searchEntries(entries, query), [entries, query]);
 
   return (
@@ -82,12 +85,27 @@ export function HomeScreen({ entries, openIds, onOpen, onAdd, onAddDemo, onRemov
                 onOpen={() => onOpen(item)}
                 onRemove={() => onRemove(item)}
                 onMove={(d) => onMove(item, d)}
+                onMore={() => setActionsFor(item)}
               />
             )}
           />
           {!editing && (
             <FAB icon="plus" style={styles.fab} onPress={() => setFabOpen(true)} accessibilityLabel="Add a UI" />
           )}
+          <EntrySheet
+            entry={actionsFor}
+            // reordering a filtered list would move it among rows the user cannot see
+            canMoveUp={!query && !!actionsFor && entries.indexOf(actionsFor) > 0}
+            canMoveDown={!query && !!actionsFor && entries.indexOf(actionsFor) < entries.length - 1}
+            onClose={() => setActionsFor(null)}
+            onPick={(action) => {
+              const entry = actionsFor;
+              setActionsFor(null);
+              if (!entry) return;
+              if (action === 'remove') onRemove(entry);
+              else onMove(entry, action === 'up' ? -1 : 1);
+            }}
+          />
           <AddSheet
             visible={fabOpen}
             onClose={() => setFabOpen(false)}
@@ -135,6 +153,71 @@ function AddSheet({ visible, onClose, onPick }: { visible: boolean; onClose: () 
   );
 }
 
+/** One UI's actions, as a Material bottom sheet: remove it, or move it up/down the list. */
+function EntrySheet({
+  entry,
+  canMoveUp,
+  canMoveDown,
+  onClose,
+  onPick,
+}: {
+  entry: HubEntry | null;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onClose: () => void;
+  onPick: (action: 'remove' | 'up' | 'down') => void;
+}) {
+  return (
+    <Modal visible={!!entry} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" accessibilityRole="button">
+        <View />
+      </TouchableOpacity>
+      {entry && (
+        <View style={styles.sheet} {...modalA11y(entry.name)}>
+          <View style={styles.handle} />
+          <View style={styles.sheetHeader}>
+            <UiIcon name={entry.name} icon={entry.icon} color={entry.themeColor} size={40} />
+            <View style={styles.rowText}>
+              <Text style={styles.sheetEntryName} numberOfLines={1} {...headingA11y(2)}>{entry.name}</Text>
+              <Text style={styles.rowDomain} numberOfLines={1}>{domainOf(entry.baseUrl)}</Text>
+            </View>
+          </View>
+          {canMoveUp && (
+            <List.Item
+              title="Move up"
+              accessibilityRole="button"
+              accessibilityLabel={`Move ${entry.name} up`}
+              onPress={() => onPick('up')}
+              left={(p) => <List.Icon {...p} icon="arrow-up" />}
+              style={styles.sheetItem}
+            />
+          )}
+          {canMoveDown && (
+            <List.Item
+              title="Move down"
+              accessibilityRole="button"
+              accessibilityLabel={`Move ${entry.name} down`}
+              onPress={() => onPick('down')}
+              left={(p) => <List.Icon {...p} icon="arrow-down" />}
+              style={styles.sheetItem}
+            />
+          )}
+          <List.Item
+            title="Remove"
+            description="Takes it off your list and signs you out of it on this phone"
+            titleStyle={{ color: theme.danger }}
+            accessibilityRole="button"
+            accessibilityLabel={`Remove ${entry.name}`}
+            onPress={() => onPick('remove')}
+            left={(p) => <List.Icon {...p} icon="delete-outline" color={theme.danger} />}
+            style={styles.sheetItem}
+          />
+        </View>
+      )}
+    </Modal>
+  );
+}
+
 function EntryRow({
   entry,
   running,
@@ -144,6 +227,7 @@ function EntryRow({
   onOpen,
   onRemove,
   onMove,
+  onMore,
 }: {
   entry: HubEntry;
   running: boolean;
@@ -153,6 +237,7 @@ function EntryRow({
   onOpen: () => void;
   onRemove: () => void;
   onMove: (delta: number) => void;
+  onMore: () => void;
 }) {
   const domain = domainOf(entry.baseUrl);
   // The row is one control ("Acme CRM, crm.acme.com, open"); in edit mode the reorder/remove buttons
@@ -163,6 +248,9 @@ function EntryRow({
       <TouchableRipple
         style={styles.rowMain}
         onPress={onOpen}
+        // a long press opens the row's actions, as in an authenticator app
+        onLongPress={editing ? undefined : onMore}
+        delayLongPress={400}
         accessibilityRole="button"
         accessibilityLabel={`${entry.name}, ${domain}${running ? ', open' : ''}`}
         accessibilityHint="Opens this UI"
@@ -186,9 +274,12 @@ function EntryRow({
             <Text style={styles.rowName} numberOfLines={1}>{entry.name}</Text>
             <Text style={styles.rowDomain} numberOfLines={1}>{running ? `${domain} · open` : domain}</Text>
           </View>
-          {!editing && <Icon source="chevron-right" size={24} color={theme.muted} />}
         </View>
       </TouchableRipple>
+      {!editing && (
+        // its own control beside the row (never a button inside the row's button)
+        <IconButton icon="dots-vertical" iconColor={theme.muted} onPress={onMore} accessibilityLabel={`More options for ${entry.name}`} />
+      )}
       {editing && (
         <View style={styles.editActions}>
           <IconButton icon="arrow-up" disabled={first} onPress={() => onMove(-1)} accessibilityLabel={`Move ${entry.name} up`} />
@@ -219,6 +310,8 @@ const styles = themed(() => StyleSheet.create({
   handle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 12 },
   sheetTitle: { fontSize: 22, color: theme.ink, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8 },
   sheetItem: { paddingHorizontal: 12 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8, gap: 16 },
+  sheetEntryName: { fontSize: 18, color: theme.ink },
   emptyIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.primaryContainer, marginBottom: theme.spacing.sm },
   emptyButton: { marginTop: theme.spacing.md, alignSelf: 'stretch', maxWidth: 340 },
 }));
