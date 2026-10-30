@@ -436,6 +436,9 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   it on), its `searchTemplate` slot = an input-search, its default slot = `@listing-body hs` (the 4th
   copy; the listing page/list band stand aside). New oj-sp components need an import in
   main-start-page.json `imports.components` (make-embedded fails otherwise).
+- The visual editor's tests read `demo/demo-starwars/src/main/resources/specs/ui` as a fixture
+  (`mountGraph.test.ts` counts its pages, `yamlPreserve.test.ts` rewrites every file): a new Star Wars
+  page or folder moves them.
 - Not in the .NET/Python YAML builders yet. Docs `define/yaml/pages.md#page-templates--template`,
   `ux-patterns/item-overview.md`; demo: Star Wars record pages; the IDEs' Item Overview page template
   writes `template:`. Also: libs' `Image` now interpolates `src`/`alt` (`${state.image}`).
