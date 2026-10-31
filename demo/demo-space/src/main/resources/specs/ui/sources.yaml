@@ -112,7 +112,7 @@ sources:
       url: http://localhost:8122/api/astronauts/${state.id}
 
   - name: space-astronaut-update
-    description: Replace an astronaut (the portrait is kept)
+    description: Replace an astronaut (a new portrait URL brings its thumbnail and large sizes)
     source:
       url: http://localhost:8122/api/astronauts/${state.id}
       method: PUT
@@ -125,7 +125,8 @@ sources:
         "birthDate":"${state.birthDate}","deathDate":"${state.deathDate}","birthPlace":"${state.birthPlace}",
         "selectionGroup":"${state.selectionGroup}","selectionYear":"${state.selectionYear}","status":"${state.status}",
         "timeInSpaceDays":"${state.timeInSpaceDays}","evaHours":"${state.evaHours}","summary":"${state.summary}",
-        "bio":"${state.bio}"}
+        "bio":"${state.bio}","image":"${state.image}","imageTitle":"${state.imageTitle}",
+        "imageCredit":"${state.imageCredit}"}
 
   - name: space-astronaut-delete
     description: Delete an astronaut

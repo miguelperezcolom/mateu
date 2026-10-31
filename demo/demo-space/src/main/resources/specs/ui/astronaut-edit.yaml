@@ -1,4 +1,6 @@
-# Edit an astronaut: text, a select, dates, integer and decimal numbers, a radio and rich text.
+# Edit an astronaut: text, a select, dates, integer and decimal numbers, a radio, rich text and the
+# portrait — a URL with its preview (the NASA Image Library's ~medium rendition; space-service derives
+# the thumbnail and large sizes), its title and its credit. Photos are linked, never uploaded.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
 title: Edit ${state.name}
@@ -32,6 +34,19 @@ content:
       - {type: FormField, id: evaHours, label: Spacewalks (hours), dataType: number}
       - {type: FormField, id: summary, label: Summary, colspan: 2}
       - {type: FormField, id: bio, label: Biography, stereotype: richText, colspan: 2}
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Portrait}
+    content:
+      type: FormLayout
+      maxColumns: 2
+      content:
+        # the preview and the URL apart: a FormField with stereotype image only displays it, full size,
+        # and offers no input to change it
+        - {type: Image, src: "${state.image}", alt: "${state.name}", style: "max-width: 220px; border-radius: 8px;"}
+        - {type: FormField, id: image, label: Photo URL (NASA Image Library ~medium), colspan: 2}
+        - {type: FormField, id: imageTitle, label: Photo title}
+        - {type: FormField, id: imageCredit, label: Photo credit, placeholder: "NASA"}
 actions:
   - id: save
     validationRequired: true
