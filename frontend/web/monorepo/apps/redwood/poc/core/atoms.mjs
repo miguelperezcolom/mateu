@@ -442,6 +442,8 @@ export const RICH_ATOM_FLAGS = [
   'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
   'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
   'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
+  // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
+  'isNestedListing',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])

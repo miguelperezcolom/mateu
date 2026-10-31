@@ -48,7 +48,13 @@ export class MateuMoneyField extends LitElement {
     @property()
     helperText?: string
 
-    private static readonly EMPTY = { value: 0, currency: 'EUR', locale: 'es-ES' } as Amount
+    /** The currency an EMPTY amount starts in (the field's declared `currency`); EUR when unset. */
+    @property()
+    defaultCurrency?: string
+
+    private get empty(): Amount {
+        return { value: 0, currency: this.defaultCurrency || 'EUR', locale: 'es-ES' } as Amount
+    }
 
     private commit = (amount: Amount) => {
         this.value = amount
@@ -61,13 +67,13 @@ export class MateuMoneyField extends LitElement {
     }
 
     currencyChanged = (e: CustomEvent) => {
-        const current = this.value ?? MateuMoneyField.EMPTY
+        const current = this.value ?? this.empty
         if (!e.detail.value || e.detail.value === current.currency) return
         this.commit({ ...current, currency: e.detail.value })
     }
 
     valueChanged = (e: CustomEvent) => {
-        const current = this.value ?? MateuMoneyField.EMPTY
+        const current = this.value ?? this.empty
         // An EMPTIED amount used to be dropped here, because '' is falsy: the field showed nothing
         // while the state kept the previous figure, so what the user saw and what would be saved
         // disagreed silently — and clearing an amount is exactly what someone does when it turns
@@ -76,6 +82,15 @@ export class MateuMoneyField extends LitElement {
         const amount = numericCommitValue(e.detail.value, false) ?? 0
         if (amount === current.value) return
         this.commit({ ...current, value: amount })
+    }
+
+    /** Euro and US Dollar, plus the amount's or the declared currency when it is another one. */
+    private currencies(): { label: string, value: string }[] {
+        const items = [{ label: 'Euro', value: 'EUR' }, { label: 'US Dollar', value: 'USD' }]
+        for (const code of [this.value?.currency, this.defaultCurrency]) {
+            if (code && !items.some((i) => i.value === code)) items.push({ label: code, value: code })
+        }
+        return items
     }
 
     render() {
@@ -93,18 +108,9 @@ export class MateuMoneyField extends LitElement {
             ><div slot="prefix"><vaadin-select
                     item-label-path="label"
                     item-value-path="value"
-                    .items="${[
-                        {
-                            label: 'Euro',
-                            value: 'EUR'
-                        },
-                        {
-                            label: 'US Dollar',
-                            value: 'USD'
-                        }
-                    ]}"
+                    .items="${this.currencies()}"
                     @value-changed="${this.currencyChanged}"
-                    .value="${this.value?.currency}"
+                    .value="${this.value?.currency ?? this.empty.currency}"
                     style="max-width: 100px;"
                     theme="small"
             ></vaadin-select></div></vaadin-number-field>

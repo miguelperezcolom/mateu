@@ -447,6 +447,17 @@ describe('listings fed by an external endpoint', () => {
         expect(el.data.crud.page.content[0]).toMatchObject({ id: 'Z9', customer: 'Zoe', _rowNumber: 'Z9' })
     })
 
+    it('a tree keeps each row\'s children (not a column) and draws them under their parent', async () => {
+        registerExternalJsonMock(() => [
+            { id: 'A1', customer: 'Ana', children: [{ id: 'A1.1', customer: 'Child', children: [] }] },
+        ])
+        const { el, root } = await mount(external({ gridLayout: 'tree', filters: [] }), undefined)
+        await settle()
+        await el.updateComplete
+        expect(el.data.crud.page.content[0].children).toEqual([{ id: 'A1.1', customer: 'Child', children: [] }])
+        expect(root.textContent).toContain('Child')
+    })
+
     it('rows fetched here survive the parent pushing down empty data', async () => {
         registerExternalJsonMock(() => remote)
         const { el } = await mount(external(), undefined)

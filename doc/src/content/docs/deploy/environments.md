@@ -30,6 +30,23 @@ Two spellings, the same thing:
 `sources:` maps a source **name** from the catalogue to what this environment changes about it.
 Naming a source the catalogue does not declare logs a warning.
 
+An environment has no "every source" wildcard, so a base url shared by many entries is written once
+as a YAML **anchor** and reused by **alias** — or by a merge key when the entry adds something:
+
+```yaml
+# specs/ui/environments/public.yaml
+api: &api {baseUrl: "https://museum-api.example.com"}
+sources:
+  museum-artworks: *api
+  museum-loans: *api
+  museum-search:
+    <<: *api
+    proxy: true
+```
+
+Anchors, aliases and merge keys are resolved in every specs file, on every backend. (The Java server
+used to read `*api` as the string `"api"`: the entry was counted as re-pointed and changed nothing.)
+
 ## What can be overridden
 
 | Key | Effect |

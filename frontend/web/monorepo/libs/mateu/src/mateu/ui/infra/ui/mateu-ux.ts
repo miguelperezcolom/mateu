@@ -25,6 +25,7 @@ import {applyPreloaded} from "@infra/ui/preloadedIncrement.ts";
 import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
+import {withoutResolvedMicroFrontends} from "@infra/resolvedMicroFrontends.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
@@ -138,6 +139,12 @@ export class MateuUx extends ConnectedElement {
      * can reply state-only when the structure is unchanged (phase b). Undefined = full structure.
      */
     private currentStructureHash: string | undefined
+
+    /**
+     * The cached structure this ux painted as a prediction for the load in flight (as stored, JSON),
+     * until the authoritative fragment lands: an identical one only brings state and data.
+     */
+    private seededStructure: string | undefined
 
     /**
      * The component the page chrome below was last stamped from, so a view that re-reads itself
@@ -480,6 +487,7 @@ export class MateuUx extends ConnectedElement {
                         // request still carries knownStructureHash and the server can reply state-only.
                         const cached = getCachedStructure(cacheKey)
                         this.currentStructureHash = cached?.hash
+                        this.seededStructure = cached ? JSON.stringify(cached.component) : undefined
                         if (cached) {
                             this.fragment = {
                                 targetComponentId: this.id,
@@ -595,6 +603,28 @@ export class MateuUx extends ConnectedElement {
             }
             // The structure on screen may never have been stamped — a cache seed followed by a
             // state-only reply reaches this return without a full structure ever arriving.
+            this.stampPageChrome()
+            return
+        }
+        const seeded = this.seededStructure
+        this.seededStructure = undefined
+        if (seeded && fragment.component && fragment.action !== UIFragmentAction.Add
+            && this.fragment?.component && seeded === JSON.stringify(withoutResolvedMicroFrontends(fragment.component))) {
+            // The authoritative answer IS the predicted structure (a static or YAML page, which
+            // carries no structureHash, so the server could not say so by replying state-only):
+            // keep the components on screen and take only its state and data. Replacing them
+            // re-mounted the page — it flickered and ran its OnLoad (its record fetch) twice.
+            this.fragment = {
+                ...this.fragment,
+                state: { ...(this.fragment.state ?? {}), ...(fragment.state ?? {}) },
+                data: { ...(this.fragment.data ?? {}), ...(fragment.data ?? {}) },
+            }
+            this.lastAuthoritativeKey = this.structureCacheKey()
+            if (this.pendingRouteFocus && this.hasRenderedContent) {
+                this.focusNewContent()
+            }
+            this.pendingRouteFocus = false
+            this.hasRenderedContent = true
             this.stampPageChrome()
             return
         }

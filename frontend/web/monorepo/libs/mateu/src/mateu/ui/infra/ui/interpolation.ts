@@ -105,6 +105,22 @@ const parseTemplate = (text: string): Segment[] => {
 
 const evalExpr = (expr: string, ctx: InterpolationContext): unknown => evaluate(expr, ctx)
 
+/** A money value: what a `dataType: money` field holds (`{value, currency, locale}`). */
+export const isMoney = (v: unknown): v is { value: unknown, currency: unknown } =>
+    !!v && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v
+
+/**
+ * A substituted value as text: null/undefined → nothing, a MONEY value → its amount (its currency
+ * is `${state.price.currency}`), anything else as a template literal converts it. A money value
+ * used to land as "[object Object]" — and in a proxied write body as a Java map's toString. The
+ * server's TemplateInterpolator, the .NET and Python ports and the Redwood core say the same.
+ */
+export const templateText = (v: unknown): string => {
+    if (v === null || v === undefined) return ''
+    if (isMoney(v)) return templateText(v.value)
+    return String(v)
+}
+
 /**
  * Evaluates the `${…}` expressions of a text that is SHOWN and concatenates them with its
  * literal parts. A null/undefined value renders as nothing: an untagged template literal turned
@@ -124,7 +140,7 @@ const renderDisplayTemplate = (text: string, ctx: InterpolationContext, value: (
         // the bundle store from the manifest's catalogue. One that still arrives has no catalogue
         // behind it: show the key, never a blank or the raw expression.
         const i18nKey = I18N_KEY.exec(seg.expr)
-        out += value(i18nKey ? i18nKey[1] : String(evalExpr(seg.expr, ctx) ?? ''))
+        out += value(i18nKey ? i18nKey[1] : templateText(evalExpr(seg.expr, ctx)))
     }
     return out
 }
@@ -394,6 +410,38 @@ export const evaluateTemplate = (
 export const urlEncode = (value: string): string =>
     encodeURIComponent(value).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase())
 
+const ENCODE_CALL = 'encodeURIComponent'
+
+/**
+ * The argument of an expression that is exactly ONE `encodeURIComponent(…)` call, else undefined
+ * (`encodeURIComponent(a) + encodeURIComponent(b)` is not one). Twin of the server's
+ * `TemplateInterpolator.encodeCallArgument`.
+ */
+export const encodeCallArgument = (expr: string): string | undefined => {
+    const e = expr.trim()
+    if (!e.startsWith(ENCODE_CALL)) return undefined
+    const rest = e.substring(ENCODE_CALL.length).trim()
+    if (!rest.startsWith('(') || !rest.endsWith(')')) return undefined
+    let depth = 0
+    let quote = ''
+    for (let i = 0; i < rest.length; i++) {
+        const c = rest[i]
+        if (quote) {
+            if (c === '\\') i++
+            else if (c === quote) quote = ''
+            continue
+        }
+        if (c === "'" || c === '"' || c === '`') quote = c
+        else if (c === '(') depth++
+        else if (c === ')') {
+            depth--
+            // the call closes before the end: something follows it
+            if (depth === 0 && i !== rest.length - 1) return undefined
+        }
+    }
+    return depth === 0 ? rest.substring(1, rest.length - 1) : undefined
+}
+
 /**
  * Interpolates a URL template, encoding every substituted value by where it lands — the browser
  * twin of the server's `TemplateInterpolator.interpolateUrl`, so a DIRECT call and a PROXIED one
@@ -408,6 +456,10 @@ export const urlEncode = (value: string): string =>
  *
  * Without it an id of `1/../../admin?x=` turned `/people/${state.id}` into a request for `/admin`.
  * Throws when a value is refused — the fetch fails instead of going somewhere it should not.
+ *
+ * An expression that is exactly one `encodeURIComponent(x)` call — how a value had to be written
+ * before Mateu encoded it, and how existing sources still write it — means `${x}`: encoded ONCE,
+ * here. Encoding its result again sent `Painting%252CPhotograph` for `Painting,Photograph`.
  */
 export function interpolateUrl(
     text: string | undefined,
@@ -433,12 +485,14 @@ export function interpolateUrl(
             out += seg.lit
             return
         }
-        const value = String(evalExpr(seg.expr, ctx) ?? '')
+        const explicitlyEncoded = encodeCallArgument(seg.expr)
+        const valueExpr = explicitlyEncoded ?? seg.expr
+        const value = templateText(evalExpr(valueExpr, ctx))
         if (originOpen || index === 0) {
-            if (/^\s*state\b/.test(seg.expr)) {
+            if (/^\s*state\b/.test(valueExpr)) {
                 throw new Error('A client state value cannot choose the origin of a URL: ' + text)
             }
-            out += value
+            out += explicitlyEncoded !== undefined ? urlEncode(value) : value
         } else if (/[?#]/.test(literalSoFar)) {
             out += urlEncode(value)
         } else {

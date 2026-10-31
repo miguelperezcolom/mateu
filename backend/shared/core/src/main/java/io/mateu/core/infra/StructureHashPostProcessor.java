@@ -1,8 +1,11 @@
 package io.mateu.core.infra;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -15,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Template-ref / ETag for screen structure (phase b of the client structure cache).
@@ -85,22 +89,46 @@ public final class StructureHashPostProcessor {
   }
 
   private static String hashOf(ServerSideComponentDto component) {
-    // Normalize away the two per-request fields before hashing so the SAME structure always hashes
+    // Normalize away the per-request fields before hashing so the SAME structure always hashes
     // the same: the top-level component id is a fresh UUID on every request (an instance id, not
-    // structure), and the hash slot itself must not feed back into the hash. Nested/structural ids
-    // (field ids, etc.) are kept — they ARE part of the structure. The client never computes this
-    // hash, only echoes the server's, so nulling id here is symmetric across request and response.
+    // structure), and so is the id of every nested component that names none (a YAML page's texts,
+    // cards…) — those are dropped too, or the hash changed on every request and the client never
+    // got the state-only answer: it re-mounted the page it had painted from its cache, which
+    // flickered and ran the page's OnLoad (its record fetch) twice. The hash slot itself must not
+    // feed back into the hash. Nested ids that are NOT UUIDs (field ids, etc.) are kept — they ARE
+    // part of the structure. The client never computes this hash, only echoes the server's, so
+    // this is symmetric across request and response.
     //
     // The canonical JSON is digested AS IT IS WRITTEN — the same bytes, so the same hash, as
-    // serializing to a byte[] first, without holding a copy of the whole structure per request.
+    // serializing to a byte[] first.
     try {
       var digest = MessageDigest.getInstance("SHA-256");
+      JsonNode tree = CANONICAL.valueToTree(component.withId(null).withStructureHash(null));
+      withoutInstanceIds(tree);
       try (var out = new DigestOutputStream(OutputStream.nullOutputStream(), digest)) {
-        CANONICAL.writeValue(out, component.withId(null).withStructureHash(null));
+        CANONICAL.writeValue(out, tree);
       }
       return HexFormat.of().formatHex(digest.digest());
     } catch (IOException | NoSuchAlgorithmException e) {
       throw new IllegalStateException("Cannot compute structure hash", e);
+    }
+  }
+
+  /** An id that is a random instance id (a UUID), not one the structure names. */
+  private static final Pattern INSTANCE_ID =
+      Pattern.compile(
+          "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+
+  /** Drops every UUID-valued {@code id} from the tree, in place. */
+  static void withoutInstanceIds(JsonNode node) {
+    if (node instanceof ObjectNode object) {
+      var id = object.get("id");
+      if (id != null && id.isTextual() && INSTANCE_ID.matcher(id.asText()).matches()) {
+        object.putNull("id");
+      }
+      object.forEach(StructureHashPostProcessor::withoutInstanceIds);
+    } else if (node instanceof ArrayNode array) {
+      array.forEach(StructureHashPostProcessor::withoutInstanceIds);
     }
   }
 }

@@ -3,7 +3,6 @@ package io.mateu.core.application.runaction;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.mateu.uidl.data.FieldTypeCatalog;
 import io.mateu.uidl.data.FieldTypeEntry;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -45,7 +44,7 @@ public class FieldTypeRegistry implements io.mateu.core.infra.dev.SpecsCache {
   static final String CONVENTIONAL_TYPES = "specs/ui/types.yaml";
 
   private final ObjectMapper yaml =
-      new ObjectMapper(new YAMLFactory())
+      new ObjectMapper(SpecsYaml.factory())
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   private volatile FieldTypeCatalog catalog;

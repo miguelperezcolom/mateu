@@ -279,6 +279,27 @@ describe('the structure cache', () => {
         expect(call()[15]).toMatchObject({ knownStructureHash: 'h1' })
     })
 
+    it('an answer with the very structure painted from the cache keeps it on screen and takes only its state', async () => {
+        // a static/YAML page carries no structureHash, so the server cannot answer state-only: the
+        // identical structure replaced the predicted one, re-mounting the page — it flickered and
+        // ran its OnLoad (its record fetch) twice
+        const first = await mount({ route: '/yaml' })
+        first.applyFragment(fragment(view('Museum')))
+        document.body.innerHTML = ''
+
+        const again = await mount({ route: '/yaml' })
+        await settle(again)
+        const painted = again.fragment!.component
+        again.applyFragment(fragment(view('Museum'), { name: 'SMK' }))
+        expect(again.fragment!.component).toBe(painted)
+        expect(again.fragment!.state).toMatchObject({ name: 'SMK' })
+
+        // a different structure still replaces it
+        again.applyFragment(fragment(view('Other')))
+        await settle(again)
+        expect(text(again)).toContain('Other')
+    })
+
     it('a @StaticView revisit is answered from the session cache without asking the server', async () => {
         const first = await mount({ route: '/static' })
         first.applyFragment(fragment(view('Static screen', { staticView: true }), { s: 1 }))

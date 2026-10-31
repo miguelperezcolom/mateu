@@ -49,12 +49,13 @@ define([
      */
     async run(context, params) {
       const { $application } = context;
-      const seq = ++navigationSeq;
+      const seq = ++navigationSeq; let toTop = null; // to the top once the old screen hides or the new one lands
       try {
-        return await this.navigate(context, params || {}, () => {
-          $application.variables.mateuNavigating = true;
-          bridge.scrollToTopOnNavigate(params || {}); // another screen starts at its top
+        const result = await this.navigate(context, params || {}, () => {
+          $application.variables.mateuNavigating = true; toTop = bridge.scrollToTopWhenReplaced(params || {});
         });
+        if (toTop && seq === navigationSeq) toTop();
+        return result;
       } catch (e) {
         // a response that arrived when we had already navigated to another screen: dies silently
         // (the transport discarded it: it is neither painted nor raises an error band)

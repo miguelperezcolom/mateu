@@ -1669,7 +1669,7 @@
         "path": "oj-sp/section/loader"
       },
       "oj-tab-bar": {
-        "path": "ojs/ojtabbar"
+        "path": "ojs/ojnavigationlist"
       },
       "oj-sp-smart-filter-search": {
         "path": "oj-sp/smart-filter-search/loader"

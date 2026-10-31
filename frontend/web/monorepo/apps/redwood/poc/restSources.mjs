@@ -25,7 +25,7 @@
 // do not know the rows came from elsewhere. Field options load in `loadRestOptions` (from
 // loadLookups). Pure except the default fetch, which every function takes as an argument.
 
-import { findFirst } from './core/listing.mjs'
+import { findFirst, pageListingNodeOf, nestedListingNodesOf, nestedListingKeyOf, NESTED_LISTING_ACTION } from './core/listing.mjs'
 import { collectFields } from './core/tree.mjs'
 import { pageHeaderNodeOf, RECORD_SWITCHER_OPTIONS } from './core/pageHeader.mjs'
 import { declaredActionOf, LOOKUP_LOADED } from './core/rowEditor.mjs'
@@ -186,20 +186,30 @@ export function mapItemsToOptions(json, itemsPath, valuePath, labelPath) {
 }
 
 /** A response as listing rows keyed by column id; `pathOf` maps a column to the path it reads. */
-export function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id) {
+export function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id, childrenId) {
   const arr = getByPath(json, itemsPath)
   if (!Array.isArray(arr)) return []
-  return arr.map((item) => {
+  // A tree's rows nest their next level under `childrenId` (not a column): carried through,
+  // projected the same way level after level — without it a tree kept only its roots.
+  const shape = (items) => items.map((item) => {
     const row = {}
     for (const id of columnIds) row[id] = getByPath(item, pathOf(id))
+    if (childrenId) {
+      const kids = getByPath(item, pathOf(childrenId))
+      if (Array.isArray(kids)) row[childrenId] = shape(kids)
+    }
     return row
   })
+  return shape(arr)
 }
 
+/** The field a tree listing (`gridLayout: tree`) nests each row's next level under. */
+export const TREE_CHILDREN = 'children'
+
 /** Rows + total of an already fetched response (shared by the direct and the proxied legs). */
-export function restPageOf(json, source, columnIds) {
+export function restPageOf(json, source, columnIds, childrenId) {
   const resolved = resolveRestSource(source) || {}
-  const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+  const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id), childrenId)
   const raw = getByPath(json, totalPathOf(source))
   const total = typeof raw === 'number' ? raw : Number(raw)
   return { rows, total: raw != null && Number.isFinite(total) ? total : null }
@@ -228,7 +238,47 @@ function restScopeValue(expr, scope) {
   return value
 }
 
-const restText = (v) => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v))
+/** A money value: what a `dataType: money` field holds (`{value, currency, locale}`). */
+const isMoney = (v) => v != null && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v
+
+/** A value as the text that lands in a template: a MONEY value as its amount (its currency is
+ *  `${state.price.currency}`), any other object as JSON — like the server's TemplateInterpolator. */
+const restText = (v) => (v == null ? '' : isMoney(v) ? restText(v.value) : typeof v === 'object' ? JSON.stringify(v) : String(v))
+
+/** A value as JavaScript's String() converts it — what `encodeURIComponent(v)` encodes (an array
+ *  as `a,b`) — but a money value as its amount. */
+const jsText = (v) => (v == null ? '' : isMoney(v) ? jsText(v.value) : String(v))
+
+const ENCODE_CALL = 'encodeURIComponent'
+
+/**
+ * The argument of an expression that is exactly ONE `encodeURIComponent(…)` call, else null
+ * (`encodeURIComponent(a) + encodeURIComponent(b)` is not one) — libs/mateu's encodeCallArgument
+ * and the server's TemplateInterpolator.encodeCallArgument.
+ */
+export function encodeCallArgument(expr) {
+  const e = String(expr).trim()
+  if (e.indexOf(ENCODE_CALL) !== 0) return null
+  const rest = e.substring(ENCODE_CALL.length).trim()
+  if (rest[0] !== '(' || rest[rest.length - 1] !== ')') return null
+  let depth = 0
+  let quote = ''
+  for (let i = 0; i < rest.length; i++) {
+    const c = rest[i]
+    if (quote) {
+      if (c === '\\') i++
+      else if (c === quote) quote = ''
+      continue
+    }
+    if (c === "'" || c === '"' || c === '`') quote = c
+    else if (c === '(') depth++
+    else if (c === ')') {
+      depth--
+      if (depth === 0 && i !== rest.length - 1) return null
+    }
+  }
+  return depth === 0 ? rest.substring(1, rest.length - 1) : null
+}
 
 /** Interpolates a header or a body; `escape` maps each value (the JSON escaping of a JSON body). */
 export function interpolateRest(text, scope, escape = (s) => s) {
@@ -241,6 +291,8 @@ export function interpolateRest(text, scope, escape = (s) => s) {
  * .interpolateUrl, so the direct and the proxied legs reach the same url: raw in the origin (and a
  * `${state…}` there is refused: the client state must not choose the host), a path segment in the
  * path (a dot segment refused), a query component after a literal `?`/`#`. Throws when refused.
+ * An expression that is exactly one `encodeURIComponent(x)` call means `${x}`: encoded ONCE, here
+ * (it used to be encoded again — `Painting%252CPhotograph`, `Sample%2520Return`).
  */
 export function interpolateRestUrl(text, scope) {
   if (text == null || String(text).indexOf('${') < 0) return text
@@ -261,10 +313,13 @@ export function interpolateRestUrl(text, scope) {
     }
     literal += lit
     out += lit
-    const value = restText(restScopeValue(m[1], scope))
+    const explicitlyEncoded = encodeCallArgument(m[1])
+    const valueExpr = explicitlyEncoded != null ? explicitlyEncoded : m[1]
+    const raw = restScopeValue(valueExpr, scope)
+    const value = explicitlyEncoded != null ? jsText(raw) : restText(raw)
     if (originOpen || (first && lit === '')) {
-      if (/^\s*state\b/.test(m[1])) throw new Error('A client state value cannot choose the origin of a URL: ' + src)
-      out += value
+      if (/^\s*state\b/.test(valueExpr)) throw new Error('A client state value cannot choose the origin of a URL: ' + src)
+      out += explicitlyEncoded != null ? encodeURIComponent(value) : value
     } else if (/[?#]/.test(literal)) {
       out += encodeURIComponent(value)
     } else {
@@ -433,9 +488,25 @@ export function sortRestRows(rows, sort) {
 
 // ── the listing ───────────────────────────────────────────────────────────────────────────────
 
+/**
+ * The rows of a listing NESTED in a templated page's content (its `__nestedlisting__:<key>` OnLoad):
+ * its source fetched like a page listing's first page (the record's state interpolated), answered as
+ * a data-only increment that keeps them under the listing's own key — never `crud`, the page listing's.
+ */
+export function nestedListingAnswerOf(ctx, actionId, opts = {}) {
+  const key = String(actionId).slice(NESTED_LISTING_ACTION.length)
+  const node = nestedListingNodesOf(ctx && ctx.tree).find((n) => nestedListingKeyOf(n) === key)
+  if (!node) return Promise.resolve(restIncrement([]))
+  return restRowsIncrement(ctx, node, { ...((ctx && ctx.state) || {}), page: 0 }, opts).then((inc) => ({
+    ...inc,
+    fragments: (inc.fragments || []).map((f) => ({ ...f, data: { [key]: (f.data && f.data.crud) || { page: { content: [] } } } })),
+  }))
+}
+
 /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
 export function restListingOf(ctx) {
-  const node = ctx && ctx.tree ? findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud') : null
+  // the PAGE's listing: one nested in a templated page's content is answered by nestedListingAnswerOf
+  const node = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
   return node && node.metadata && node.metadata.rowsSource ? node : null
 }
 
@@ -496,6 +567,7 @@ export async function restRowsIncrement(ctx, node, componentState, opts = {}) {
   const columnIds = restColumnIdsOf(md)
   const sampled = isSampled(src)
   const serverPaged = totalPathOf(src) != null && !sampled
+  const childrenId = md.gridLayout === 'tree' ? TREE_CHILDREN : undefined
   let fetched = []
   let total = null
   try {
@@ -503,10 +575,10 @@ export async function restRowsIncrement(ctx, node, componentState, opts = {}) {
       const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'crud' }, true)
       const appData = (inc && inc.appData) || {}
       if (appData._restfetchError) throw new Error('proxied rows failed')
-      ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds))
+      ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds, childrenId))
     } else {
       const json = await fetchRestJson(src, { state: componentState || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
-      ;({ rows: fetched, total } = restPageOf(json, src, columnIds))
+      ;({ rows: fetched, total } = restPageOf(json, src, columnIds, childrenId))
     }
   } catch (e) {
     try { console.warn('mateu: external rows fetch failed', e) } catch (ignored) { /* no console */ }
@@ -715,6 +787,7 @@ export function restAnswerOf(ctx, actionId, componentState, opts = {}) {
   if (!ctx || !actionId) return null
   const rest = restActionOf(ctx, actionId)
   if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
+  if (String(actionId).indexOf(NESTED_LISTING_ACTION) === 0) return nestedListingAnswerOf(ctx, actionId, opts)
   if (actionId === 'search') {
     const node = restListingOf(ctx)
     if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)

@@ -2136,3 +2136,24 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
 .mateu-iop .mateu-iop-main {
   padding: 0 1.5rem 1.5rem;
 }
+
+/* A Listing nested in a templated page's content (nestedListingAtomOf): picture cards with the
+   picture on top, cropped to one height so the row of cards lines up. */
+.mateu-nested-card {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+}
+.mateu-nested-card-img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+.mateu-nested-cell-img {
+  display: block;
+  max-height: 48px;
+  max-width: 72px;
+  object-fit: cover;
+  border-radius: 4px;
+}

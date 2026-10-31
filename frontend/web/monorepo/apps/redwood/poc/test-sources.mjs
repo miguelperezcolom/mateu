@@ -142,6 +142,25 @@ test('sample mode: a sampled source is never proxied; one without a sample still
   assert.equal(viaProxy({ ref: 'secret' }), true)
 })
 
+// ── an explicit encodeURIComponent, a money value ──
+test('url: an explicit encodeURIComponent is encoded ONCE (it used to send %252C / %2520)', () => {
+  reset()
+  assert.equal(interpolateRestUrl('https://api.example.com/art?type=${encodeURIComponent(state.type)}', { state: { type: ['Painting', 'Photograph'] } }),
+    'https://api.example.com/art?type=Painting%2CPhotograph')
+  assert.equal(interpolateRestUrl("https://api.example.com/m?search=${encodeURIComponent(state.q ?? '')}", { state: { q: 'Sample Return' } }),
+    'https://api.example.com/m?search=Sample%20Return')
+  assert.equal(interpolateRestUrl('/x/${encodeURIComponent(state.v)}', { state: { v: 'a/b' } }), '/x/a%2Fb')
+  assert.throws(() => interpolateRestUrl('/x/${encodeURIComponent(state.v)}', { state: { v: '..' } }))
+  assert.throws(() => interpolateRestUrl('${encodeURIComponent(state.base)}/x', { state: { base: 'http://evil' } }))
+})
+
+test('a money value lands as its amount (url and body); its currency is reachable', () => {
+  reset()
+  const price = { value: 12500000, currency: 'EUR', locale: 'es-ES' }
+  assert.equal(interpolateRestUrl('/x?min=${state.price}&cur=${state.price.currency}', { state: { price } }), '/x?min=12500000&cur=EUR')
+  assert.equal(interpolateRest('{"v":"${state.price}"}', { state: { price } }, jsonEscape), '{"v":"12500000"}')
+})
+
 // ── the direct leg ──
 test('direct leg: the url is encoded by position, a JSON body escaped, a non-2xx throws', async () => {
   reset()
@@ -211,6 +230,35 @@ test('sampled listing: search answers from the sample, in memory, even with a to
   const listing = listingOf(reg.contexts[HOST_ID])
   assert.equal(listing.rows.length, 2)
   assert.equal(listing.rows[0].status.badgeClass.indexOf('oj-badge') >= 0, true)
+})
+
+test('tree listing over a rowsSource: the children survive the projection and draw indented under their parent', async () => {
+  reset()
+  const tree = [
+    { id: 1, customer: 'Voyager', status: 'OPEN', total: 1, extra: 'x', children: [
+      { id: 2, customer: 'RTG', status: 'OPEN', total: 2, children: [{ id: 3, customer: 'Thermocouple', status: 'OPEN', total: 3, children: [] }] },
+    ] },
+    { id: 4, customer: 'Juno', status: 'OPEN', total: 4, children: [] },
+  ]
+  const ctx = listingCtx({ url: '/api/tree' }, { gridLayout: 'tree', pageSize: 50, filters: [] })
+  ctx.tree.children[0].metadata.columns = [col('customer'), col('id', { identifier: true })]
+  const inc = await restAnswerOf(ctx, 'search', { page: 0 }, { fetchImpl: stubFetch(tree) })
+  const content = inc.fragments[0].data.crud.page.content
+  assert.equal(content.length, 2, 'the roots are the page')
+  assert.deepEqual(content[0].children.map((r) => r.customer), ['RTG'], 'a tree keeps its children')
+  assert.equal(content[0].children[0].children[0].customer, 'Thermocouple')
+  assert.equal(content[0].extra, undefined, 'still projected onto the columns')
+  const reg = reduceContexts({ contexts: { [HOST_ID]: ctx }, stack: [] }, inc)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.deepEqual(listing.rows.map((r) => r.customer), ['Voyager', 'RTG', 'Thermocouple', 'Juno'], 'parent before children')
+  assert.deepEqual(listing.rows.map((r) => r._treeDepth), [0, 1, 2, 0])
+  assert.equal(listing.columns[0].field, 'customer__treeCell')
+  assert.equal(listing.rows[2].customer__treeCell, '\u00a0'.repeat(8) + 'Thermocouple')
+  assert.equal(new Set(listing.rows.map((r) => String(r._rowNumber))).size, 4, 'every row has its own key')
+  // a plain listing over the same source drops them, as before
+  const flat = listingCtx({ url: '/api/tree' }, { pageSize: 50, filters: [] })
+  const flatInc = await restAnswerOf(flat, 'search', { page: 0 }, { fetchImpl: stubFetch(tree) })
+  assert.equal(flatInc.fragments[0].data.crud.page.content[0].children, undefined)
 })
 
 test('direct listing over a server-paged source: the url carries the page, the total is trusted', async () => {

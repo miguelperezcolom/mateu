@@ -132,12 +132,10 @@ internal sealed partial class SyncHandler
     public string? ResolveSecret(string key) =>
         secrets?.Invoke(key) ?? Environment.GetEnvironmentVariable(UrlTemplate.SecretEnvName(key));
 
-    private static string ValueOf(string expr, Dictionary<string, object?> state, Func<string, string?> secrets)
-    {
-        if (expr.StartsWith("state.")) return StateString(GetState(state, expr[6..])) ?? "";
-        if (expr.StartsWith("secret.")) return secrets(expr[7..]) ?? "";
-        return "";
-    }
+    /// <summary>A placeholder's text: <c>state.x</c>, <c>state.x.y</c>, <c>secret.X</c>, <c>a ?? b</c>,
+    /// <c>encodeURIComponent(x)</c>; a money value lands as its amount (<see cref="UrlTemplate.ValueOf"/>).</summary>
+    private static string ValueOf(string expr, Dictionary<string, object?> state, Func<string, string?> secrets) =>
+        UrlTemplate.ValueOf(expr, state, secrets);
 
     /// <summary>Interpolate ${state.x}/${secret.X} placeholders (unknown → empty); <paramref name="escape"/>
     /// applies to each VALUE, never to the template's own punctuation.</summary>

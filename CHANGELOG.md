@@ -13,6 +13,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **A source url no longer encodes an explicit `encodeURIComponent(…)` twice.** Since Mateu encodes
+  every value where it lands in a url, `search=${encodeURIComponent(state.searchText)}` sent
+  `Sample%2520Return` and a multi-select `Painting%252CPhotograph`, so every search with a space and
+  every multi-valued filter matched nothing (demo-starwars wraps every value this way, so its live
+  filters were broken). An expression that is exactly one `encodeURIComponent(x)` call now means
+  `${x}`: encoded once, a list joined with commas as JavaScript does. The same in Vaadin, Redwood and
+  the Java, .NET and Python proxies, which now also resolve a fallback (`${state.page ?? 0}`) and a
+  nested path.
+- **A money value interpolates as its amount.** A `dataType: money` value is `{value, currency,
+  locale}`; `${state.v}` landed as `[object Object]` in the browser and as `{value=12500000,
+  currency=EUR, …}` on the proxy, so a proxied write answered 400. `${state.v}` is now the amount and
+  `${state.v.currency}` the currency, on every leg. Vaadin's money input also starts an empty amount
+  in the field's declared `currency` attribute (EUR when none), as Redwood already did.
+- **A `Navigate` step resolves its placeholders.** `route: launch-sites/${state._markerId}` navigated
+  to the literal text; the route is now interpolated (encoded like a url) against the page's state
+  with the action's parameters on top, so a map marker can open its record. Vaadin and Redwood.
+- **YAML anchors and aliases are resolved in specs files.** Jackson's YAML parser read `*api` as the
+  string `"api"`, so `museum-artworks: *api` in an environment re-pointed nothing while the log still
+  counted it. The Java specs loader now resolves aliases and merge keys (`<<: *base`), as Python's
+  does; .NET resolved aliases but not merge keys, and now does both.
 - **Vaadin: `${state.x}` in a banner, a MetricCard, an EntityHeader, an Anchor and an Avatar's image.**
   The components that draw their texts straight from their metadata never interpolated them: a YAML
   record page (`title: ${state.name}` on a route with `data:`) showed the raw template in the Welcome /
@@ -32,6 +52,51 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the image, full size, with no input. It is now the URL input with a contained preview that follows
   the value; read-only it stays the image. Redwood offered a file upload for it (that is
   `uploadableImage`): now the same URL input and preview.
+- **A tree listing over a REST source keeps its children.** A `gridLayout: tree` Listing whose
+  `rowsSource` is a REST source projected each fetched row onto its declared columns, so `children`
+  (not a column) was dropped and only the roots showed; the workaround, a `children` column, painted
+  `[object Object]`. The row projection now carries the tree's `children` through, level by level
+  (read through the source's `fields` map, so `fields: {children: subComponents}` points it at
+  another response field), on the direct and the proxied leg. Vaadin draws the hierarchy in its tree
+  grid; Redwood, which drew the roots as a flat table, now draws every level flattened under its
+  parent with the first column indented (always expanded — no expand/collapse toggle yet).
+- **A `Partial` inside a wizard step renders.** The partials of a `GuidedProcessPage` step were never
+  expanded: the steps are records of slots, not components, so the expander stepped over them and
+  the step drew nothing (`No mapper renders io.mateu.uidl.data.Partial`). A template's list of parts
+  is now walked like the template itself.
+- **Redwood: a `Listing` inside a templated page stays where it is.** On a page that declares a
+  `template:` (general overview, multimedia content, welcome, collection detail…) the first `Listing`
+  anywhere was taken for the page's own listing and hoisted out of its slot: a general overview was
+  drawn twice (the listing on top — its search box and its band, a second header — the page below it;
+  a foldout page the same), a multimedia page's gallery went to the top with
+  a search bar — and, the listing owning the page, its sections fell back to the generic form, so the
+  section's `Image` was not drawn and a read-only `html` field showed its raw markup —, and a welcome's
+  featured cards and a collection detail's nested listing were not drawn at all. Such a listing is now
+  content of its slot: it loads its first page from its `rowsSource` on opening (the record's state
+  interpolated) and is drawn in place, as picture cards (`gridLayout: cards`) or a table, a row with a
+  `rowRoute` opening its record. Only a hero search's results, a data management page's table and a
+  collection detail's list slot remain the page's listing.
+- **Redwood: a section's first heading is kept.** A `Text` with `container: h2` opening a section was
+  taken for the section's title and dropped; only a heading that IS the title is now left out.
+- **Redwood: a `dateRange` form field is drawn**, as two date inputs (from, to) whose edits keep the
+  field's `{from, to}` value. It was not drawn at all.
+- **Redwood: an `Image` honours its `style` and `cssClasses`** (a `max-width: 220px` portrait was drawn
+  as wide as its column).
+- **Redwood: no more `ojtabbar.js` 404 on every page.** The page imported `oj-tab-bar` from
+  `ojs/ojtabbar`, which JET does not ship; it lives in `ojs/ojnavigationlist`.
+- **A page opened again is loaded once, not twice.** A route drawn from the client structure cache
+  (any return visit) was replaced by the server's identical structure as soon as it answered: the
+  structure hash counted the random ids of the nested components that name none (a YAML page's
+  texts, cards…), so it changed on every request and the server never answered state-only. The page
+  re-mounted — it flickered — and ran its OnLoad, its record fetch, a second time. The hash leaves
+  those instance ids out; and the web shells keep the predicted structure when the answer is the same
+  one (a static bundle has no hash at all), taking only its state and data.
+- **Vaadin: no search box a listing cannot search.** A listing over a source that takes no text and
+  with no filters still drew the search bar — a box without an input that took no typing (the works
+  and loans of an exhibition's foldout panels). It draws none.
+- **Redwood: the page does not jump to its top before the next one opens.** Following a link halfway
+  down a page scrolled it to the top at the click, and only then did the new screen arrive. It goes
+  to the top when the old screen is hidden or the new one is in place, whichever comes first.
 - **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
   it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
   `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"

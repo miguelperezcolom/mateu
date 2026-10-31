@@ -961,7 +961,12 @@ export class MateuComponent extends ComponentElement {
         // from its fluent steps. Every v0 verb is one existing command, so we run them with the
         // command applier we already have — no server round-trip. Applied on THIS component (the
         // one that fired the action); a null targetComponentId means "the firing component".
-        if (runDeclaredFlow(action, this.applyFlowCommand)) {
+        // Its placeholders (a Navigate route `missions/${state._markerId}`) read this component's
+        // state and data, with the action's parameters on top of the state.
+        if (runDeclaredFlow(action, this.applyFlowCommand, {
+            state: this.state, data: this.data, parameters: detail.parameters,
+            appState: this.appState, appData: this.appData,
+        })) {
             return
         }
 

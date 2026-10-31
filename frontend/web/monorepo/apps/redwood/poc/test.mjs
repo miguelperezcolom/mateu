@@ -5365,8 +5365,14 @@ import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
     assert.equal(pageFlowOf(reg, 'save'), null, 'the page owns it: its server action')
     assert.equal(pageFlowOf(reg, 'refreshCustomers'), null, 'a REST entry is not a flow')
     assert.equal(pageFlowOf(reg, 'nobody'), null)
+    // a Navigate route reads the state and the action's parameters: a map marker opens its record
+    const markerReg = { ...reg, contexts: { ...reg.contexts, [HOST_ID]: { declaredActions: [
+      { id: 'openSite', commands: [{ type: 'NavigateTo', data: 'launch-sites/${state._markerId}' }] },
+    ] } } }
+    assert.equal(pageFlowOf(markerReg, 'openSite', { state: { _markerId: 'KSC 39A' } })[0].data, 'launch-sites/KSC%2039A')
+    assert.equal(pageFlowOf(markerReg, 'openSite')[0].data, 'launch-sites/${state._markerId}', 'no scope: as written')
     const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'runMateuAction.js'), 'utf8')
-    assert.match(chain, /const clientFlow = preset \? null : bridge\.pageFlowOf\(before, id\);/)
+    assert.match(chain, /const clientFlow = preset \? null : bridge\.pageFlowOf\(before, id, \{ state: \{ \.\.\.\(componentState \|\| \{\}\), \.\.\.\(parameters \|\| \{\}\) \}, appState \}\);/)
     const amd = readFileSync(join(here, 'make-amd.mjs'), 'utf8')
     assert.match(amd, /pageFlowOf,/)
   })
@@ -6830,6 +6836,17 @@ test('Text.style: filtered like an Element\'s HTML style; a weight / size beats 
   assert.deepEqual(t.style, { color: '#c00', fontWeight: '700' })
   assert.equal(t.cls, 'oj-typography-heading-md oj-typography-bold')
 })
+test('a listing in a slot of a page template is not the page listing: one header, the template one', () => {
+  // /museums/1 (GeneralOverviewPage) and /exhibitions/1 (FoldoutPage) drew the listing page too —
+  // its header with the search box and its band — above the template's own header and band
+  const crud = { type: 'ClientSide', id: 'deps', metadata: { type: 'Crud', columns: [{ metadata: { id: 'name', label: 'Name' } }] }, children: [] }
+  const page = (template) => ({ tree: { type: 'ServerSide', children: [{ type: 'ClientSide', id: 'p',
+    metadata: { type: 'Form', title: 'The Met', ...(template ? { template: { type: template } } : {}) }, children: [crud] }] }, data: {}, state: {} })
+  for (const owning of ['GeneralOverviewPage', 'FoldoutPage', 'ItemOverviewPage']) assert.equal(listingOf(page(owning)), null, owning)
+  // a page with no template keeps the old rule
+  assert.ok(listingOf(page(null)))
+})
+
 test('HorizontalLayout: inline pieces make a row; any other child keeps the stacked projection', () => {
   const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
   const project = (hl) => hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [hl])] } }, null, {}).flatMap((b) => b.items)
