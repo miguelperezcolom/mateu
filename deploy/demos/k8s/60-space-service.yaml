@@ -24,7 +24,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/space-service:2026.10.31-2
+          image: miguelperezcolom/space-service:4635ee9
           env:
             - { name: SERVER_PORT, value: "8122" }
             - name: WRITE_KEY
