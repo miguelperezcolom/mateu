@@ -1,28 +1,28 @@
 
-import{T as e,_ as t,c as n,o as r,s as i,v as a,x as o}from"./vendor-lit.js";import{T as s}from"./mateu-vaadin.js";var c=(e,t)=>{let n=[];for(let r of e.sections??[]){let e=!!r.title,i=e&&t.has(r.id);if(e&&n.push({kind:`section`,id:r.id,title:r.title,collapsed:i}),!i)for(let t of r.rows??[])n.push({kind:`row`,row:t,sectionId:r.id,indented:e})}return n},l=e=>new Set((e.sections??[]).filter(e=>e.title&&e.collapsed).map(e=>e.id)),u=e=>{let t=e.columns??[];if(!t.some(e=>e.group))return[];let n=[];for(let e of t){let t=e.group??``,r=n[n.length-1];r&&r.label===t?r.span++:n.push({label:t,span:1})}return n},d=new Set([`info`,`success`,`warning`,`danger`,`neutral`]),f=(e,t)=>e&&d.has(e)?e:t&&d.has(t)?t:``,p=class extends t{constructor(...e){super(...e),this.collapsed=new Set}willUpdate(e){e.has(`grid`)&&this.grid&&!this.seenGrid&&(this.collapsed=l(this.grid)),e.has(`grid`)&&(this.seenGrid=this.grid,this.editing=void 0)}toggle(e){let t=new Set(this.collapsed);t.has(e)?t.delete(e):t.add(e),this.collapsed=t}dispatch(e,t,n,r){let i=this.grid?.columns?.[n];this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{_rowId:t,_columnId:i?.id,_value:r}},bubbles:!0,composed:!0}))}commit(e,t,n){if(!this.editing)return;this.editing=void 0;let r=e.cells?.[t]?.value??``;n.value!==r&&this.grid?.editActionId&&this.dispatch(this.grid.editActionId,e.id,t,n.value)}renderCell(e,t){let n=this.grid,r=e.cells?.[t]??{},i=n.columns?.[t],s=f(r.tone,i?.tone),c=!!(e.editable&&n.editActionId),l=`${e.label??``}, ${i?.label??``}: ${r.value??``}`;if(this.editing&&this.editing.rowId===e.id&&this.editing.columnIndex===t)return o`<td class="cell ${s} editing"><input aria-label="${l}" .value="${r.value??``}"
+import{O as e,a as t,b as n,i as r,r as i,w as a,x as o}from"./vendor-lit.js";import{T as s}from"./mateu-vaadin.js";var c=(e,t)=>{let n=[];for(let r of e.sections??[]){let e=!!r.title,i=e&&t.has(r.id);if(e&&n.push({kind:`section`,id:r.id,title:r.title,collapsed:i}),!i)for(let t of r.rows??[])n.push({kind:`row`,row:t,sectionId:r.id,indented:e})}return n},l=e=>new Set((e.sections??[]).filter(e=>e.title&&e.collapsed).map(e=>e.id)),u=e=>{let t=e.columns??[];if(!t.some(e=>e.group))return[];let n=[];for(let e of t){let t=e.group??``,r=n[n.length-1];r&&r.label===t?r.span++:n.push({label:t,span:1})}return n},d=new Set([`info`,`success`,`warning`,`danger`,`neutral`]),f=(e,t)=>e&&d.has(e)?e:t&&d.has(t)?t:``,p=class extends n{constructor(...e){super(...e),this.collapsed=new Set}willUpdate(e){e.has(`grid`)&&this.grid&&!this.seenGrid&&(this.collapsed=l(this.grid)),e.has(`grid`)&&(this.seenGrid=this.grid,this.editing=void 0)}toggle(e){let t=new Set(this.collapsed);t.has(e)?t.delete(e):t.add(e),this.collapsed=t}dispatch(e,t,n,r){let i=this.grid?.columns?.[n];this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{_rowId:t,_columnId:i?.id,_value:r}},bubbles:!0,composed:!0}))}commit(e,t,n){if(!this.editing)return;this.editing=void 0;let r=e.cells?.[t]?.value??``;n.value!==r&&this.grid?.editActionId&&this.dispatch(this.grid.editActionId,e.id,t,n.value)}renderCell(e,t){let n=this.grid,r=e.cells?.[t]??{},i=n.columns?.[t],s=f(r.tone,i?.tone),c=!!(e.editable&&n.editActionId),l=`${e.label??``}, ${i?.label??``}: ${r.value??``}`;if(this.editing&&this.editing.rowId===e.id&&this.editing.columnIndex===t)return a`<td class="cell ${s} editing"><input aria-label="${l}" .value="${r.value??``}"
                 @keydown="${n=>{n.key===`Enter`&&this.commit(e,t,n.target),n.key===`Escape`&&(this.editing=void 0)}}"
-                @blur="${n=>this.commit(e,t,n.target)}" /></td>`;let u=()=>{this.editing={rowId:e.id,columnIndex:t}};return r.link&&n.cellActionId?o`<td class="cell ${s}"><button class="link" type="button" aria-label="${l}"
-                @click="${()=>this.dispatch(n.cellActionId,e.id,t,r.value??``)}">${r.value}</button></td>`:o`<td class="cell ${s} ${c?`editable`:``}" tabindex="${c?`0`:a}"
-            aria-label="${c?l:a}"
-            @dblclick="${c?u:a}"
-            @keydown="${c?e=>{(e.key===`Enter`||e.key===`F2`)&&(e.preventDefault(),u())}:a}">${r.value}</td>`}updated(){this.renderRoot.querySelector(`td.editing input`)?.focus()}render(){let e=this.grid;if(!e)return a;let t=e.columns??[],n=u(e);return o`
+                @blur="${n=>this.commit(e,t,n.target)}" /></td>`;let u=()=>{this.editing={rowId:e.id,columnIndex:t}};return r.link&&n.cellActionId?a`<td class="cell ${s}"><button class="link" type="button" aria-label="${l}"
+                @click="${()=>this.dispatch(n.cellActionId,e.id,t,r.value??``)}">${r.value}</button></td>`:a`<td class="cell ${s} ${c?`editable`:``}" tabindex="${c?`0`:o}"
+            aria-label="${c?l:o}"
+            @dblclick="${c?u:o}"
+            @keydown="${c?e=>{(e.key===`Enter`||e.key===`F2`)&&(e.preventDefault(),u())}:o}">${r.value}</td>`}updated(){this.renderRoot.querySelector(`td.editing input`)?.focus()}render(){let e=this.grid;if(!e)return o;let t=e.columns??[],n=u(e);return a`
             <div class="scroller">
                 <table>
                     <thead>
-                        ${n.length?o`<tr>
+                        ${n.length?a`<tr>
                             <th class="corner" rowspan="2">${e.rowHeaderLabel??``}</th>
-                            ${n.map(e=>o`<th class="group" colspan="${e.span}">${e.label}</th>`)}
-                        </tr>`:a}
+                            ${n.map(e=>a`<th class="group" colspan="${e.span}">${e.label}</th>`)}
+                        </tr>`:o}
                         <tr>
-                            ${n.length?a:o`<th class="corner">${e.rowHeaderLabel??``}</th>`}
-                            ${t.map(e=>o`<th class="col ${f(null,e.tone)}" scope="col">${e.label??e.id}</th>`)}
+                            ${n.length?o:a`<th class="corner">${e.rowHeaderLabel??``}</th>`}
+                            ${t.map(e=>a`<th class="col ${f(null,e.tone)}" scope="col">${e.label??e.id}</th>`)}
                         </tr>
                     </thead>
                     <tbody>
-                        ${c(e,this.collapsed).map(e=>e.kind===`section`?o`<tr class="section"><th scope="rowgroup" class="rowhead">
+                        ${c(e,this.collapsed).map(e=>e.kind===`section`?a`<tr class="section"><th scope="rowgroup" class="rowhead">
                                     <button type="button" class="toggle" aria-expanded="${e.collapsed?`false`:`true`}"
                                             @click="${()=>this.toggle(e.id)}"><span class="chevron" aria-hidden="true">${e.collapsed?`▸`:`▾`}</span>${e.title}</button>
-                                </th>${t.map(()=>o`<td class="cell section-cell"></td>`)}</tr>`:o`<tr class="${e.row.emphasis?`emphasis`:``}">
+                                </th>${t.map(()=>a`<td class="cell section-cell"></td>`)}</tr>`:a`<tr class="${e.row.emphasis?`emphasis`:``}">
                                     <th scope="row" class="rowhead ${e.indented?`indented`:``}">${e.row.label}</th>
                                     ${t.map((t,n)=>this.renderCell(e.row,n))}
                                 </tr>`)}
@@ -54,4 +54,4 @@ import{T as e,_ as t,c as n,o as r,s as i,v as a,x as o}from"./vendor-lit.js";im
         .warning { background-color: rgba(220, 140, 0, 0.16); }
         .danger { background-color: rgba(200, 40, 30, 0.10); color: #b3261e; }
         .neutral { background-color: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
-    `}};s([i({attribute:!1})],p.prototype,`grid`,void 0),s([r()],p.prototype,`collapsed`,void 0),s([r()],p.prototype,`editing`,void 0),p=s([n(`mateu-matrix-grid`)],p);export{p as MateuMatrixGrid,u as columnGroupsOf,l as initiallyCollapsed,c as matrixLinesOf,f as toneOf};
+    `}};s([r({attribute:!1})],p.prototype,`grid`,void 0),s([i()],p.prototype,`collapsed`,void 0),s([i()],p.prototype,`editing`,void 0),p=s([t(`mateu-matrix-grid`)],p);export{p as MateuMatrixGrid,u as columnGroupsOf,l as initiallyCollapsed,c as matrixLinesOf,f as toneOf};
