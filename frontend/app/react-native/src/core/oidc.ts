@@ -1,4 +1,5 @@
 import * as AuthSession from 'expo-auth-session';
+import { appScheme } from './appScheme.ts';
 import * as WebBrowser from 'expo-web-browser';
 import type { TokenProvider } from './auth.ts';
 import { isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
@@ -10,12 +11,12 @@ WebBrowser.maybeCompleteAuthSession();
 
 const TOKENS_KEY = 'mateu.oidc.tokens';
 
-/** The app's deep-link scheme (app.json `expo.scheme`) — the redirect target registered at the IdP:
- *  `mateu://auth` on devices, `<origin>/auth` on web. */
+/** The hub's deep-link scheme (app.json `expo.scheme`) — the redirect target registered at the IdP:
+ *  `mateu://auth` on devices, `<origin>/auth` on web. A fixed build has its own (MATEU_APP_SCHEME). */
 export const OIDC_REDIRECT_SCHEME = 'mateu';
 
 export function oidcRedirectUri(): string {
-  return AuthSession.makeRedirectUri({ scheme: OIDC_REDIRECT_SCHEME, path: 'auth' });
+  return AuthSession.makeRedirectUri({ scheme: appScheme() || OIDC_REDIRECT_SCHEME, path: 'auth' });
 }
 
 /**

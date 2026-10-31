@@ -130,6 +130,20 @@ test('collection header: the first toolbar button is primary, the rest secondary
   assert.deepEqual(v.mateuListSecondary, [{ id: 'exp', value: 'exp', label: 'Export' }])
 })
 
+test('collection header: an action that needs rows is disabled until a row is checked; an inert one stays disabled', async () => {
+  const { listSecondaryForSelection } = await import('./pageProjection.mjs')
+  const summary = { selectionRequired: ['delete'], toolbar: [
+    { actionId: 'new', label: 'New' }, { actionId: 'delete', label: 'Delete' },
+    { actionId: 'bulk', label: 'Bulk', rowsSelectedRequired: true }, { actionId: 'off', label: 'Off', disabled: true }, { actionId: 'exp', label: 'Export' }] }
+  const none = listHeaderVarsOf(summary).mateuListSecondary
+  assert.deepEqual(none.map((a) => [a.id, a.display || 'on']), [['delete', 'disabled'], ['bulk', 'disabled'], ['off', 'disabled'], ['exp', 'on']])
+  const one = listSecondaryForSelection(none, { all: false, keys: [3], except: [] })
+  assert.deepEqual(one.map((a) => [a.id, a.display || 'on']), [['delete', 'on'], ['bulk', 'on'], ['off', 'disabled'], ['exp', 'on']])
+  const all = listSecondaryForSelection(one, { all: true, keys: [], except: [] })
+  assert.equal(all[0].display, undefined)
+  assert.equal(listSecondaryForSelection(all, { all: false, keys: [], except: [] })[0].display, 'disabled')
+})
+
 test('wizard footer: forward button and step — an action keeps the step, a navigation enters by the overview', () => {
   assert.deepEqual(wizardVarsOf(null, null, []), { mateuWizardForwardId: '', mateuWizardPrimary: { label: '', disabled: true }, mateuWizardShownStep: '' })
   const actions = [{ actionId: 'back', label: 'Back' }, { actionId: 'next', label: 'Next' }]

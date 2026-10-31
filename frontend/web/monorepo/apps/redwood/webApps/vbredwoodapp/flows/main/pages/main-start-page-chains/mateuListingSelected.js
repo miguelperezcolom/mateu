@@ -25,6 +25,9 @@ define([
 
       const value = (event && event.detail && event.detail.value) || {};
       $application.variables.mateuListingSelection = bridge.selectionOfKeySet(value.row);
+      // an action that needs rows (Delete…) comes on with the first checked row, off with the last
+      $application.variables.mateuListSecondary = bridge.listSecondaryForSelection(
+        $application.variables.mateuListSecondary, $application.variables.mateuListingSelection);
     }
   }
 

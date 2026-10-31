@@ -2881,7 +2881,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Each slot also projects its RICH blocks (same pipeline as the host: StatusList
    *  cards, buttons, inputs, notices…) — the markup paints blocks and keeps texts only
    *  as the legacy form for tests/fixtures. */
-  function foldoutOf(ctx) {
+  function foldoutOf(ctx, { parent = null } = {}) {
     // the PAGE foldout: one placed in a tab (or in a console panel) is content of that
     // tab — visit() paints it there, with its collapsible panels — and does not take over the screen
     const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
@@ -2923,6 +2923,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .concat((md.badges || []).map((b) => (b && typeof b === 'object' ? b.text || b.label : b))
         .filter((t) => t != null && String(t).trim())
         .map((t) => ({ isBadge: true, label: String(t), badgeClass: STATUS_BADGE.NONE, blockClass: 'oj-flex-item oj-sm-12' })))
+    const declared = declaresTemplate(ctx, 'FoldoutPage')
+    const owns = declared || (!!page && !findByType(ctx.tree, 'EntityHeader'))
+    // the page's subtitle (a booking's «Total … · Pagado …») heads the overview when the band is gone
+    const subtitle = owns && !declared ? pageSubtitleOf(ctx) : ''
     return {
       headerTitle: interpolate(String(md.headerTitle || ''), (ctx && ctx.state) || {}),
       // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
@@ -2931,18 +2935,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       overviewOnTop: md.orientation === 'horizontal',
       // the navigation header, the overview's Edit and the badges: what may change between two
       // records of the same foldout (re-bound in place, like the panels' content)
-      header: declaresTemplate(ctx, 'FoldoutPage') ? foldoutPageHeaderOf(foldoutHeaderOf(md), templateFormOf(ctx), state) : foldoutHeaderOf(md),
-      // a declared FoldoutPage owns the page header (Toolkit 26C: the layout's own header and the
-      // overview panel carry the navigation and the actions — there is no page header above it)
-      ownsHeader: declaresTemplate(ctx, 'FoldoutPage'),
+      header: foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }),
+      // the foldout owns the page header (Toolkit 26C: the layout's own header and the overview panel
+      // carry the navigation and the actions — there is no page header above it): a declared
+      // FoldoutPage, and any page whose foldout is the page, unless an EntityHeader's facts need the band
+      ownsHeader: owns,
       badges: pageBadges,
       overview: {
         texts: collectTexts(bySlot['overview']),
         // a PLAIN block that carries them as atoms: the overview template only paints isCard/isPlain
         // blocks and isBadge is an atom of their items — a standalone isBadge block was not shown
-        blocks: (pageBadges.length
-          ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items: pageBadges }]
-          : []).concat(blocksOf(bySlot['overview'])),
+        blocks: overviewHeadBlocks(pageBadges, subtitle).concat(blocksOf(bySlot['overview'])),
       },
       panels: (md.panels || []).map((panel, i) => ({
         title: panel.title || '',
@@ -3003,6 +3006,60 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // it to dispatchHostBlockAction (ctaId/ctas), so a YAML page with no action behind it still works
       ctas: {},
     }
+  }
+
+  /** The block that heads the overview: the page badges and, when the foldout owns the page, its
+   *  subtitle — a PLAIN block carrying them as atoms (the overview template only paints isCard/isPlain
+   *  blocks). None when there is neither. */
+  function overviewHeadBlocks(badges, subtitle) {
+    const items = badges.concat(subtitle ? [{ isText: true, text: subtitle, cls: 'oj-typography-body-sm oj-text-color-secondary' }] : [])
+    return items.length ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items }] : []
+  }
+
+  /** The foldout's header: the wire's (foldoutHeaderOf), plus the page's toolbar when the foldout owns
+   *  the page — a declared FoldoutPage's form toolbar, else the page toolbar (and the trail's parent). */
+  function foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }) {
+    const header = foldoutHeaderOf(md)
+    if (!owns) return header
+    if (declared) return foldoutPageHeaderOf(header, templateFormOf(ctx), (ctx && ctx.state) || {})
+    return foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+  }
+
+  /** Where a page foldout's go-to-parent leads: its back button, else the trail's parent; null with neither. */
+  function foldoutParentOf(back, parent) {
+    if (back) return { label: back.label, actionId: back.actionId, target: { actionId: back.actionId, route: back.route || '' } }
+    if (parent && parent.route) return { label: parent.label, actionId: 'parent', target: { actionId: '', route: parent.route } }
+    return null
+  }
+
+  /**
+   * A page foldout's header from the PAGE toolbar (pageToolbarOf: {actionId, label, chroming, route,
+   * disabled}): the back button — else the trail's parent (`parent`: {label, route}) — becomes the
+   * layout's go-to-parent; the other buttons the overview panel's actions, the primary first (an
+   * «Edit» as the pencil). The wire's own navigation (FoldoutLayout.navigation) keeps priority.
+   */
+  function foldoutToolbarHeaderOf(header, toolbar, parent = null) {
+    const buttons = (toolbar || []).filter((b) => b && b.actionId)
+    const back = buttons.find(isBackButton)
+    const rest = buttons.filter((b) => b !== back)
+      .sort((a, b) => (b.chroming === 'callToAction') - (a.chroming === 'callToAction'))
+    const ctas = { ...(header.ctas || {}) }
+    const out = { ...header, ctas }
+    const up = header.goToParent ? null : foldoutParentOf(back, parent)
+    if (up) {
+      ctas.parent = up.target
+      Object.assign(out, { hasNavigation: true, goToParent: true, parentActionId: up.actionId,
+        parentLabel: up.label || chromeText('goBack') })
+    }
+    if (rest.length) {
+      out.overviewActions = (header.overviewActions || []).concat(rest.map((b, i) => {
+        const id = 'toolbar-' + i
+        ctas[id] = { actionId: b.actionId, route: b.route || '' }
+        return { id, label: b.label, display: b.disabled ? 'disabled' : 'on',
+          ...(i === 0 && b.chroming === 'callToAction' && /^edit\b/i.test(b.label || '') ? { icon: 'oj-ux-ico-edit' } : {}) }
+      }))
+    }
+    return out
   }
 
   const FOLDOUT_BACK_IDS = /^(back|backToList|cancel-view|cancel)$/
@@ -7402,6 +7459,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!level || !level.title) return summary
     const own = (summary && summary.title) || ''
     return { ...summary, title: level.title, levelSubtitle: own && own !== level.title ? own : '' }
+  }
+
+  /** The trail's parent of the screen at `route` ({label, route}), or null: a page foldout's go-to-parent
+   *  when its toolbar has no back button (archetypes foldoutOf). */
+  function parentCrumbOf(reg, route) {
+    return parentCrumb(summarizeHost(reg, route).trail) || null
   }
 
   function summarizeHost(reg, route) {
@@ -22868,18 +22931,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { mateuRegistry: next, mateuDrawerOpen: false, mateuDrawer: vars.drawer, mateuDialog: vars.dialog }
   }
 
-  function listHeaderVarsOf(listingSummary) {
+  function listHeaderVarsOf(listingSummary, selection = null) {
     const toolbar = listingSummary ? listingSummary.toolbar : []
+    const required = (listingSummary && listingSummary.selectionRequired) || []
     const primaryToolbar = toolbar.length ? toolbar[0] : null
     // a DISABLED button (CrudDisplay New/Delete: Toggle.disabled) is shown but inert: oj-sp's
-    // display 'disabled'
+    // display 'disabled'. An action that needs rows (Delete, a @ListToolbarButton…) is ALSO disabled
+    // while nothing is checked — as Spectra's collection actions are — and comes on with the first
+    // checked row (listSecondaryForSelection, from the selection chain)
     return {
       mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
       mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
       // a primary that NAVIGATES (a RouteLink button): listPrimary goes there instead of running the id
       mateuListPrimaryRoute: primaryToolbar && primaryToolbar.route ? primaryToolbar.route : '',
-      mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
+      mateuListSecondary: listSecondaryForSelection(toolbar.slice(1).map((b) => ({
+        id: b.actionId, value: b.actionId, label: b.label,
+        ...(b.disabled ? { inert: true } : {}),
+        ...((b.rowsSelectedRequired || required.indexOf(b.actionId) >= 0) ? { needsSelection: true } : {}),
+      })), selection),
     }
+  }
+
+  /** Whether a listing selection (selectionOfKeySet) holds at least one row. */
+  function hasSelectedRows(selection) {
+    return !!selection && (selection.all || (selection.keys || []).length > 0)
+  }
+
+  /** The listing header's secondary actions with their `display` for a selection: an inert one is
+   *  always disabled, one that needs rows is disabled until a row is checked. */
+  function listSecondaryForSelection(items, selection) {
+    const any = hasSelectedRows(selection)
+    return (items || []).map((item) => {
+      const { display, ...rest } = item
+      return (item.inert || (item.needsSelection && !any)) ? { ...rest, display: 'disabled' } : rest
+    })
   }
 
   /**
@@ -26019,6 +26104,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     dynFormMetadataOf,
     actionsOf,
     summarizeHost,
+    parentCrumbOf,
     withinAppLevels,
     findByType,
     // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
@@ -26357,6 +26443,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the page projection and the outbound action plan the two big page chains share
     // (poc/pageProjection.mjs, poc/actionPlan.mjs)
     listHeaderVarsOf,
+    listSecondaryForSelection,
     wizardVarsOf,
     archetypeVarsOf,
     islandVarsOf,

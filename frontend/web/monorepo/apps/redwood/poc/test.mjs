@@ -9,7 +9,7 @@ import { ORACLE_CDN, oracleCdnBase, oracleCdnUrl } from './oracleCdn.mjs'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { foldoutHeaderOf, foldoutIconClassOf, foldoutPageHeaderOf } from './core/archetypes.mjs'
+import { foldoutHeaderOf, foldoutIconClassOf, foldoutPageHeaderOf, foldoutToolbarHeaderOf } from './core/archetypes.mjs'
 import { styledTextOf } from './core/content.mjs'
 import { styleObjectOf } from './richtext.mjs'
 import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
@@ -6763,6 +6763,25 @@ test('FoldoutPage (YAML): the form toolbar becomes the layout header — back = 
   assert.equal(foldoutPageHeaderOf(foldoutHeaderOf({}), form, {}).ctas['toolbar-0'].route, '')
   // no toolbar: the header stays as the wire said
   assert.deepEqual(foldoutPageHeaderOf(foldoutHeaderOf({}), { metadata: {} }).overviewActions, [])
+})
+test('page foldout (Java): the page toolbar becomes the layout header — back or the trail parent = go-to-parent, the rest = overview actions', () => {
+  const toolbar = [
+    { actionId: 'cancel-view', label: 'Back to list' },
+    { actionId: 'confirmBooking', label: 'Confirm booking', chroming: 'outlined' },
+    { actionId: 'edit', label: 'Edit', chroming: 'callToAction' },
+    { actionId: 'verRecorrido', label: 'Ver recorrido', chroming: 'outlined', disabled: true },
+  ]
+  const h = foldoutToolbarHeaderOf(foldoutHeaderOf({}), toolbar, { label: 'Bookings', route: 'bookings' })
+  assert.deepEqual([h.goToParent, h.parentLabel, h.parentActionId], [true, 'Back to list', 'cancel-view'])
+  assert.deepEqual(h.ctas.parent, { actionId: 'cancel-view', route: '' })
+  assert.deepEqual(h.overviewActions.map((a) => [a.label, a.icon || '', a.display]),
+    [['Edit', 'oj-ux-ico-edit', 'on'], ['Confirm booking', '', 'on'], ['Ver recorrido', '', 'disabled']])
+  // no back button: the trail's parent, by its route
+  const t = foldoutToolbarHeaderOf(foldoutHeaderOf({}), [{ actionId: 'iniciarCheckin', label: 'Completar check-in', chroming: 'callToAction' }], { label: 'Reservas', route: 'reservas' })
+  assert.deepEqual([t.goToParent, t.parentLabel, t.ctas.parent.route], [true, 'Reservas', 'reservas'])
+  // the wire's own navigation keeps priority
+  const w = foldoutToolbarHeaderOf(foldoutHeaderOf({ navigation: { parentActionId: 'up', parentLabel: 'Up' } }), toolbar, null)
+  assert.deepEqual([w.parentActionId, w.parentLabel, w.ctas.parent], ['up', 'Up', undefined])
 })
 test('Foldout page: the layout binds the header, the overview can take the overview slot, the actions reach the host', () => {
   const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')

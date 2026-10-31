@@ -240,6 +240,32 @@ the one-to-one case.
   matching, precedence and definition lookup; **neither has a bundle exporter**. Both accept
   `viewModel` and `view_model`. User docs: `doc/.../concepts/routes-and-mounts.md`.
 
+### Hub or fixed builds + the desktop hub (2026-10-31)
+
+Every installable is one of two variants. `hub` = the generic Mateu app (the user's own list of UIs,
+added by QR / address / `mateu://add|import` / `https://mateu.io/add`); `fixed` = bound to ONE UI, no
+hub, claiming NONE of the hub's links (a branded app must never answer for every Mateu UI a QR points at).
+- **React Native**: `MATEU_VARIANT=hub|fixed` read by `app.config.ts` through `src/core/buildVariant.ts`
+  (pure, tested): fixed needs `MATEU_FIXED_URL` (+`MATEU_FIXED_ROUTE`) or `MATEU_REGISTRY_URL`+`MATEU_APP_ID`,
+  drops associatedDomains/intentFilters, own scheme `MATEU_APP_SCHEME` (never `mateu`) for the OIDC
+  redirect (`oidc.ts` reads `expoConfig.scheme`), keeps the camera (photo fields). `App.tsx` `Boot` →
+  `bootModeOf` (direct > fixed > registry > hub); a fixed URL takes its sign-in from the UI manifest.
+  `app.config.ts` imports the `.ts` file → needs Node with type stripping: eas.json pins Node 24.
+- **Desktop (IntelliJ plugin, `io.mateu.ijp.hub`)**: `-Dmateu.variant=hub` (baked by `buildInstaller`)
+  + standalone → `MateuProjectService` shows `HubPanel` ("My UIs") until an entry is opened;
+  `openHubEntry` re-fetches the manifest, writes the project's MateuSettings (baseUrl, route, OIDC from
+  the manifest) and reboots; `MateuAuthService.forgetSession()` on every switch (the in-memory token
+  belonged to the previous backend). Ports of the app's parser/manifest: `HubLinks`/`HubManifest`;
+  list `HubStore` (app-level `mateu-hub.xml`, metadata only); `HubFlow.propose` (link → manifest; a
+  non-link address = a PAGE → `resolveMount`); QR via ZXing core (`HubQr`: screens/clipboard/file —
+  macOS needs Screen Recording); `mateu://` arrives through the platform's `com.intellij.protocolHandler`
+  EP (`MateuProtocolHandler`; macOS forwards OpenURI events of the app's CFBundleURLTypes). Desktop
+  refuses static UIs and ignores `minAppVersion`.
+- **Parity**: `conformance/client/hub-links.json` generated from the app's `links.ts`
+  (`HUB_LINKS_WRITE=true node --test src/hub/links.conformance.test.ts`), run by `HubLinksConformanceTest`.
+  GOTCHA: in a Swing subclass Kotlin's `accessibleContext` is the protected FIELD (null), not the getter —
+  use `getAccessibleContext()` (it NPE'd PhoneLinkDialog's QrPanel).
+- Docs: `deploy/mobile-app-stores.md#hub-or-fixed-mateu_variant`, `ux-patterns/mobile-app.md#the-desktop-app`.
 ### Micro frontends resolved in the server + `@ContentSlot` (2026-10-31, `@Experimental`)
 
 Spec `docs/specs/microfrontend-server-resolution.md`. `MicroFrontend.resolve` (`CLIENT` default =
@@ -482,7 +508,12 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   owns the page header (Toolkit 26C draws none above the layout): `foldoutPageHeaderOf` turns the form's
   toolbar into the layout's own controls — back → go-to-parent (labelled like the button), the rest → the
   overview panel's actions (an «Edit» primary as the pencil), each a RouteLink resolved through
-  `header.ctas` (dispatchHostBlockAction ctaId/ctas); the chains read `foldoutNow.ownsHeader`. The foldout
+  `header.ctas` (dispatchHostBlockAction ctaId/ctas); the chains read `foldoutNow.ownsHeader`. Since
+  2026-10-31 ANY page-level foldout does the same (`foldoutToolbarHeaderOf` over `pageToolbarOf`: back,
+  else the trail's parent via `parentCrumbOf` → go-to-parent; the rest → the overview panel's actions,
+  which Spectra folds into its «…» menu; the page subtitle heads the overview) unless an EntityHeader
+  needs the band; the wire's FoldoutLayout.navigation keeps priority. Pinned panels follow one another
+  (app.css `justify-content: flex-start` — Spectra's space-between left a gap). The foldout
   title and panel summaries now interpolate `${state.x}`, and a lone `Avatar` atom interpolates its
   name/image and paints `lg` (groups stay `xs`).
 - **`MultimediaContentPage`** (field `backgroundColor`): Spectra 2604 has NO `oj-sp-multimedia-content-page`

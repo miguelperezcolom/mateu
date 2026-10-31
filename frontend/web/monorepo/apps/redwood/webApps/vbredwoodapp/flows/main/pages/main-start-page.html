@@ -6534,7 +6534,7 @@
           <template>
             <!-- EXPLICIT width from the wire (FoldoutPanel.width): fixes the panel at that size
                  (flex + min/max) — growing here confuses the foldout's responsive engine
-                 (it paginates); the row's leftover is shared out by the CSS space-between -->
+                 (it paginates); the row's leftover stays at its end (app.css: flex-start, not Spectra's space-between) -->
             <oj-sp-foldout-panel panel-title="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).headerLabel || $current.data.title ]]"
               :class="[[ {'mateu-fixed-panel': !!$current.data.width, 'mateu-foldout-panel-has-icon': !!$current.data.iconClass} ]]"
               :style.flex="[[ $current.data.width ? '0 0 ' + $current.data.width : null ]]"

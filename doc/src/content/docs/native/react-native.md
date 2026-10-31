@@ -23,6 +23,11 @@ Three ways, from quickest to production:
 | Any build pointing at a fixed backend | `EXPO_PUBLIC_MATEU_REGISTRY_URL` + `EXPO_PUBLIC_MATEU_APP_ID` → the [app registry](#2-the-app-registry) |
 | Store installables | the same two values, set in the EAS environment of the build profile (see [store builds](#4-store-builds)) |
 
+A store installable is one of two **build variants** (`MATEU_VARIANT`): `hub`, the generic Mateu app
+whose users add UIs themselves, or `fixed`, bound to one UI — a base URL (`MATEU_FIXED_URL`) or the
+registry pair above — with no hub and none of its links. See
+[Hub or fixed](/deploy/mobile-app-stores/#hub-or-fixed-mateu_variant).
+
 ```bash
 cd frontend/app/react-native
 npm ci
