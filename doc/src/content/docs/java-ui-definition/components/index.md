@@ -78,5 +78,6 @@ Each page covers what the component does, its properties, and a working code exa
 |---|---|
 | [Map](map/) | Embedded map |
 | [MicroFrontend](micro-frontend/) | Remote micro-frontend embed |
+| [ContentSlot](content-slot/) | Managed content resolved in the server, with fallback |
 | [Element](element/) | Raw HTML element |
 | [TreeGrid](tree-grid/) | Hierarchical tree grid |

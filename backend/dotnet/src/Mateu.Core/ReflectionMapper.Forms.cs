@@ -416,6 +416,18 @@ internal sealed partial class ReflectionMapper
     private ClientSideComponentDto MapField(PropertyInfo p, object instance, bool readOnly = false)
     {
         var fieldId = Naming.CamelCase(p.Name);
+        // [ContentSlot]: a hole for managed content — the property's value is irrelevant, the slot
+        // is resolved by the server against the content remote (Java: the @ContentSlot branch of
+        // ReflectionFormFieldMapper; see MicroFrontendServerResolver)
+        if (p.Find<ContentSlotAttribute>() is { } slot)
+            return ComponentMapper.Map(new ContentSlot(slot.Key)
+            {
+                Fallback = string.IsNullOrWhiteSpace(slot.Fallback) ? null : slot.Fallback,
+                TimeoutMs = slot.TimeoutMs > 0 ? slot.TimeoutMs : null,
+                Description = string.IsNullOrWhiteSpace(slot.Description) ? null : slot.Description,
+                DegradeToClient = slot.DegradeToClient,
+                Style = "width: 100%;",
+            });
         if (GridRowType(p) is { } rowType) return MapGridField(p, rowType, instance, readOnly);
         // [Text]: the value shown as a text block bound to the state (Java: the @Text branch of
         // ReflectionFormFieldMapper).

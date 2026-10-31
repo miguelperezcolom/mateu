@@ -110,12 +110,13 @@
     </dependency>
 
     <!-- the two-step contract (indexer writes ui-registrations, this AP reads it) is tested end
-         to end with both processors under a real javac -->
+         to end with both processors under a real javac; and every framework AP runs the indexer's
+         ContentSlotProcessor (listed in their META-INF/services): a single-module app is compiled
+         with its framework AP only, and its @ContentSlot keys must still be checked and indexed -->
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mateu-annotation-processor-indexer</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>

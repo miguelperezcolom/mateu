@@ -290,12 +290,8 @@ internal static class ComponentMapper
                     new TabMetadataDto(tab.Label) { Active = i == TabActiveIndex(tl.Tabs) }, null, [Map(tab.Content)], null, null, null))),
 
         // Federation — a remote Mateu UI mounted as an island inside this page.
-        MicroFrontend mf => Dto(mf, new MicroFrontendMetadataDto(mf.BaseUrl, mf.Route)
-        {
-            Style = mf.Style,
-            CssClasses = mf.CssClasses,
-            AppState = mf.AppState,
-        }),
+        MicroFrontend mf => Dto(mf, MicroFrontends.MicroFrontendMapping.Metadata(mf)),
+        ContentSlot slot => MicroFrontends.MicroFrontendMapping.Slot(slot),
 
         // Popover: both halves travel in the metadata; the id falls back to Java's "fieldId".
         Popover po => new ClientSideComponentDto(

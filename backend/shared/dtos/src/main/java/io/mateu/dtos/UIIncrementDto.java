@@ -20,6 +20,8 @@ import lombok.With;
  *     but a page served with no app shell never receives that — so each response also carries the
  *     entries it references, and a by-ref call resolves wherever the page is mounted. Null (absent
  *     on the wire) when nothing in the response names a source.
+ * @param fragmentCache Whether the hosts that embed this answer (a micro frontend they resolve in
+ *     their server) may cache it, declared by the view that answered. Null (absent) = they may not.
  */
 @Builder
 @With
@@ -32,7 +34,8 @@ public record UIIncrementDto(
     Object appData,
     Object appState,
     String wireVersion,
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<RestSourceEntryDto> restSources) {
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<RestSourceEntryDto> restSources,
+    @JsonInclude(JsonInclude.Include.NON_NULL) FragmentCacheDto fragmentCache) {
 
   /**
    * Current wire protocol version. Bumped only on a breaking (major) change to the wire; additions
@@ -50,6 +53,30 @@ public record UIIncrementDto(
         restSources == null || restSources.isEmpty()
             ? null
             : Collections.unmodifiableList(restSources);
+  }
+
+  /** The increment without a fragment cache policy (the shape before {@code fragmentCache}). */
+  public UIIncrementDto(
+      List<UICommandDto> commands,
+      List<MessageDto> messages,
+      List<UIFragmentDto> fragments,
+      List<BannerDto> banners,
+      boolean appendBanners,
+      Object appData,
+      Object appState,
+      String wireVersion,
+      List<RestSourceEntryDto> restSources) {
+    this(
+        commands,
+        messages,
+        fragments,
+        banners,
+        appendBanners,
+        appData,
+        appState,
+        wireVersion,
+        restSources,
+        null);
   }
 
   /** The increment without referenced REST sources (the shape before {@code restSources}). */
@@ -71,6 +98,7 @@ public record UIIncrementDto(
         appData,
         appState,
         wireVersion,
+        null,
         null);
   }
 

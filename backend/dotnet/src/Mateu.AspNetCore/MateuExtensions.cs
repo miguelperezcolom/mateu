@@ -95,9 +95,47 @@ public static class MateuExtensions
                 // registers as a service writes its format (Java: the ListingExporter beans); CSV
                 // falls back to the built-in writer.
                 Exporters = new Mateu.Core.Export.MateuExporters(sp.GetServices<IListingExporter>()),
+                // Server-side micro frontend resolution (Resolve.Server, content slots): every
+                // collaborator is the app's service when it registers one, Mateu's own otherwise.
+                RequestHeader = name => accessor.HttpContext is { } ctx
+                                        && ctx.Request.Headers.TryGetValue(name, out var value)
+                    ? value.ToString()
+                    : null,
+                RequestTraceIdentifier = () => accessor.HttpContext?.TraceIdentifier,
+                RequestSelfBaseUrl = () => accessor.HttpContext is { } ctx ? LocalOrigin(ctx) : null,
+                MicroFrontendResolver = MicroFrontendResolverOf(sp, options),
+                ContentSlotsDescriptorEnabled = options.ContentSlotsDescriptorEnabled,
             };
         });
         return services;
+    }
+
+    /// <summary>The client the server-side micro frontend resolution calls remotes with (each call
+    /// has its own deadline; this is only the outer bound).</summary>
+    private static readonly HttpClient MicroFrontendHttp = new() { Timeout = TimeSpan.FromSeconds(30) };
+
+    private static Mateu.Core.MicroFrontends.MicroFrontendServerResolver MicroFrontendResolverOf(
+        IServiceProvider sp, MateuOptions options) => new(
+        sp.GetService<IRemoteRegistry>()
+            ?? new Mateu.Core.MicroFrontends.DefaultRemoteRegistry(sp.GetServices<IRemoteCatalogSupplier>(), options.Remotes),
+        MicroFrontendHttp,
+        sp.GetService<IFragmentCacheStore>() ?? new Mateu.Core.MicroFrontends.InMemoryFragmentCacheStore(),
+        new Mateu.Core.MicroFrontends.RemoteIdentityStrategies(sp.GetServices<IRemoteIdentityStrategy>()),
+        sp.GetService<ICorrelationIdProvider>() ?? new Mateu.Core.MicroFrontends.DefaultCorrelationIdProvider(),
+        sp.GetServices<IMicroFrontendResolutionListener>().ToList(),
+        Mateu.Core.MicroFrontends.MicroFrontendSettings.Of(options.DefaultTimeoutMs, options.MaxBudgetMs,
+            options.ContentRemoteId, options.ContentRoute, options.SelfBaseUrl));
+
+    /// <summary>The origin of the local socket the request arrived on — never a request header.</summary>
+    private static string? LocalOrigin(HttpContext ctx)
+    {
+        var address = ctx.Connection.LocalIpAddress;
+        if (address is null || ctx.Connection.LocalPort <= 0) return null;
+        if (address.IsIPv4MappedToIPv6) address = address.MapToIPv4();
+        var host = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
+            ? "[" + address + "]"
+            : address.ToString();
+        return (ctx.Request.IsHttps ? "https" : "http") + "://" + host + ":" + ctx.Connection.LocalPort;
     }
 
     /// <summary>Maps the Mateu endpoints at <paramref name="baseUrl"/> (the mount; "" = the root).

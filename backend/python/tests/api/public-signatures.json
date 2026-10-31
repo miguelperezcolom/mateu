@@ -625,6 +625,47 @@
     "style": []
    }
   },
+  "ContentSlot": {
+   "class": [
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "fallback",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timeout_ms",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "degrade_to_client",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "CorrelationIdProvider": {
+   "class": [],
+   "members": {
+    "correlation_id": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "Creatable": {
    "class": [],
    "members": {
@@ -1354,6 +1395,95 @@
     "style": []
    }
   },
+  "FragmentCachePolicy": {
+   "class": [
+    [
+     "max_age_seconds",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "vary_by",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "by_key": [
+     [
+      "key",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "max_age_seconds",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "none": [],
+    "per_user": [
+     [
+      "max_age_seconds",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "shared": [
+     [
+      "max_age_seconds",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "FragmentCachePolicySupplier": {
+   "class": [],
+   "members": {
+    "fragment_cache_policy": [
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "FragmentCacheStore": {
+   "class": [],
+   "members": {
+    "get": [
+     [
+      "key",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "put": [
+     [
+      "key",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "ttl_seconds",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "GanttPage": {
    "class": [],
    "members": {
@@ -2062,6 +2192,62 @@
     "WARNING"
    ]
   },
+  "MicroFrontendResolutionEvent": {
+   "class": [
+    [
+     "remote_id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "slot_key",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "duration_millis",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "outcome",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "degraded_to",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "correlation_id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "error",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "MicroFrontendResolutionListener": {
+   "class": [],
+   "members": {
+    "on_resolution": [
+     [
+      "event",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "Min": {
    "class": [
     [
@@ -2506,8 +2692,84 @@
     "switcher": []
    }
   },
+  "RemoteCatalogSupplier": {
+   "class": [],
+   "members": {
+    "remotes": []
+   }
+  },
+  "RemoteDescriptor": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "base_url",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "timeout_ms",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "identity",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "RemoteIdentityStrategy": {
+   "class": [],
+   "members": {
+    "headers": [
+     [
+      "remote",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "name": []
+   }
+  },
+  "RemoteRegistry": {
+   "class": [],
+   "members": {
+    "by_id": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "for_url": [
+     [
+      "url",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "Required": {
    "class": []
+  },
+  "ResolutionOutcome": {
+   "enum": [
+    "EMBEDDED",
+    "EMPTY",
+    "ERROR",
+    "FROM_CACHE",
+    "TIMEOUT"
+   ]
   },
   "RestDataSource": {
    "class": [
@@ -3609,6 +3871,20 @@
    "function": [
     [
      "arg",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "cacheable_fragment": {
+   "function": [
+    [
+     "max_age_seconds",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "vary_by",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -5429,6 +5705,45 @@
     ],
     [
      "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ContentSlot": {
+   "class": [
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "fallback",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timeout_ms",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "degrade_to_client",
      "POSITIONAL_OR_KEYWORD",
      true
     ],
@@ -7508,8 +7823,36 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "resolve",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "timeout_ms",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "server_side_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "consumed_route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
-   ]
+   ],
+   "members": {
+    "resolved_by_server": []
+   }
   },
   "Notice": {
    "class": [
@@ -8394,6 +8737,12 @@
      "POSITIONAL_OR_KEYWORD",
      true
     ]
+   ]
+  },
+  "Resolve": {
+   "enum": [
+    "CLIENT",
+    "SERVER"
    ]
   },
   "ResourceGrid": {

@@ -25,6 +25,7 @@
     <module>demo-starwars-4-app</module>
     <module>demo-starwars-5-federation</module>
     <module>demo-eventconductor</module>
+    <module>demo-microfrontends</module>
     <module>demo-starwars-6-static-bundle</module>
     <module>demo-vaadin-webflux</module>
     <module>demo-vaadin-mvc</module>

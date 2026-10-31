@@ -240,6 +240,61 @@ the one-to-one case.
   matching, precedence and definition lookup; **neither has a bundle exporter**. Both accept
   `viewModel` and `view_model`. User docs: `doc/.../concepts/routes-and-mounts.md`.
 
+### Micro frontends resolved in the server + `@ContentSlot` (2026-10-31, `@Experimental`)
+
+Spec `docs/specs/microfrontend-server-resolution.md`. `MicroFrontend.resolve` (`CLIENT` default =
+unchanged wire JSON | `SERVER`) + `timeoutMs`: the HOST asks the remote while building the view and
+embeds the answer in `MicroFrontendDto.resolved` (NON_NULL); the renderer paints it instead of
+loading (web `mateu-ux.preloaded` → `preloadedIncrement.ts`; Redwood `microFrontendOf.resolved` →
+`loadSubresource`/header `startRemoteWidget`; RN `resolvedPreviewOf` → `MateuViewHost.preview`;
+IntelliJ `AppContext.enter`) and everything after the first paint still goes to the island's
+`baseUrl` — the host never proxies. Server-only data rides `MicroFrontendDto.server`
+(`ServerResolutionDto`, `@JsonIgnore`).
+- **Where**: `RunActionUseCase.handle` → `.concatMap(resolveMicroFrontends)` (order kept for SSE
+  streams), skipped unless the mappers set the request attribute `MicroFrontendMapper.PENDING`.
+  Core `application/microfrontends/` (`MicroFrontendServerResolver` = parallel calls, budget = max
+  timeout capped by `mateu.microfrontends.max-budget-ms` (2000; default per call 500), deadline →
+  CANCEL + degrade to client; not under a registered remote → configuration error, nothing asked);
+  collaborators built by `infra/remote/MicroFrontendResolution.fromContainer()` — each the app's bean
+  if any: `RemoteRegistry` (default `DefaultRemoteRegistry`: `RemoteCatalogSupplier` beans +
+  `mateu.remotes=a,b` / `mateu.remotes.<id>.base-url|timeout-ms|identity`; a PATH base url is called at
+  `mateu.self-base-url`/the local socket), `RemoteIdentityStrategy` (`forward-authorization` default,
+  `none`, app strategies by name — token exchange is the app's), `CorrelationIdProvider`
+  (`X-Mateu-Correlation-Id`), `FragmentCacheStore` (in-memory LRU), `MicroFrontendResolutionListener`;
+  logger `io.mateu.microfrontends`, one line per fragment. All uidl types in `io.mateu.uidl.remote`.
+- **What is embedded**: the remote's fragments + restSources only (commands, messages, banners,
+  appState/appData stripped). Client caches (`routeStructureCache`, `staticViewCache`, RN snapshots)
+  strip `resolved` (`withoutResolvedMicroFrontends`) — never persisted/replayed.
+- **Cache, the remote decides**: `UIIncrementDto.fragmentCache {maxAgeSeconds, varyBy none|shared|user|key,
+  key, notModified}` stamped on LOAD answers by `FragmentCachePolicies` from `@CacheableFragment` /
+  `FragmentCachePolicySupplier`. `key` = opaque per-audience key: the host memoises caller→key and
+  sends the keys it holds in `X-Mateu-Fragment-Keys`; the remote answers `notModified` (no fragments).
+- **`@ContentSlot(key, fallback, timeoutMs, description, degradeToClient)`** (field; fluent/YAML
+  `ContentSlot`): a SERVER micro frontend against remote `mateu.content-slots.remote` (content) at
+  `mateu.content-slots.route` (`/content-slots/{key}`); empty (204 / no component) / error / timeout →
+  fallback Text or removed, never degraded to the browser unless asked. Keys `application.screen.name`
+  validated + unique per module by the INDEXER AP (`ContentSlotIndex`, compile errors), which writes
+  `META-INF/mateu/content-slots.json`; reserved action `__content_slots__` (off unless
+  `mateu.content-slots.descriptor.enabled=true`) merges every module's and lists cross-module `duplicates`.
+- Tests: `MicroFrontendServerResolutionSyncTest` (real `HttpServer` remotes: fast/slow/broken/empty/
+  cache), `MicroFrontendServerResolverTest`, `ContentSlotDescriptorsTest`, indexer
+  `ContentSlotIndexCompileTest`, vitest `mateu-ux.preloaded.test.ts`/`resolvedMicroFrontends.test.ts`,
+  Redwood `test.mjs` (MicroFrontend resuelto…), RN `resolvedMicroFrontends.test.ts`, IntelliJ
+  `MicroFrontendResolvedRenderTest`. `MateuHttpClient.sendWithHeaders` (a NEW name: overloading `send`
+  made `send(base, rq, null)` ambiguous for every implementer). Demo `demo/demo-microfrontends` (:8623).
+  Docs `java-ui-definition/components/{micro-frontend,content-slot}.md` (content-slot carries the exact
+  content-service contract).
+- **Ports**: .NET `Mateu.Core/MicroFrontends/*` + `SyncHandler.MicroFrontends.cs` (options `o.Remotes`,
+  `DefaultTimeoutMs`, `MaxBudgetMs`, `ContentRemoteId`, `ContentRoute`, `SelfBaseUrl`,
+  `ContentSlotsDescriptorEnabled`; DI interfaces `IRemoteRegistry`/`IRemoteIdentityStrategy`/…; new
+  `IncomingRequest` view of the request; tests `MicroFrontendServerResolution*Tests`, real Kestrel
+  remotes) and Python `mateu_ui/core/microfrontends.py` + `uidl/remote.py` (same names as `add_mateu`
+  kwargs; stdlib asyncio HTTP client — httpx is dev-only; resolution on its own loop in
+  `SyncHandler.handle`; tests `test_microfrontend_server_resolution*.py`). Both keep `resolved` as RAW
+  JSON (not re-typed: a newer remote's fields survive) and check slot keys at REGISTRATION (no AP:
+  bad/duplicate key = startup failure). Neither ports the YAML ContentSlot builder nor the
+  `mateu.remotes.*` properties (Python: no env twin).
+
 ### Writing from YAML — `actions:` on a definition (2026-09-07)
 
 A definition-only page (a route with `definition:` and no `viewModel:`) can now **write**. The whole

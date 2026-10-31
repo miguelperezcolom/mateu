@@ -729,12 +729,23 @@ fun renderMicroFrontend(ctx: AppContext, metadata: JsonNode): JComponent {
     island.silentErrors = true
     val slot = island.newSlot()
     island.contentPane = slot
-    island.navigate(
-        metadata.text("route").ifBlank { "/" },
-        metadata.text("consumedRoute"),
-        metadata.text("serverSideType").ifBlank { null },
-        metadata.text("actionId"),
-    )
+    val resolved = metadata.path("resolved")
+    if (resolved.isObject) {
+        // the host resolved it (resolve = SERVER): painted without asking the remote
+        island.enter(
+            metadata.text("route").ifBlank { "/" },
+            metadata.text("consumedRoute"),
+            metadata.text("serverSideType").ifBlank { null },
+            resolved,
+        )
+    } else {
+        island.navigate(
+            metadata.text("route").ifBlank { "/" },
+            metadata.text("consumedRoute"),
+            metadata.text("serverSideType").ifBlank { null },
+            metadata.text("actionId"),
+        )
+    }
     return slot.accessibleName("Embedded app")
 }
 

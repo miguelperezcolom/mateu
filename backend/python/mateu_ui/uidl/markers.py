@@ -359,3 +359,25 @@ class Rule:
     def disable(field_name: str, expression: str = "true") -> "Rule":
         """Disable ``field_name`` while ``expression`` is truthy."""
         return Rule("true", "SetDataValue", field_name, "disabled", None, expression)
+
+
+@dataclass(frozen=True)
+class ContentSlot:
+    """A hole for managed content (help texts, notices, editorial blocks) filled by the content
+    service (EXPERIMENTAL): the field — whose value is irrelevant — renders as a micro frontend the
+    HOST resolves while it builds the view, against the registered content remote, at the route
+    the key names; the developer never writes the url. It never blocks the screen: an empty slot or
+    a content service that is down, slow or failing paints ``fallback`` (nothing when blank), and,
+    unlike a plain micro frontend, it does not degrade to the renderer asking unless
+    ``degrade_to_client``. ``key`` is ``application.screen.name`` (lower case letters, digits and
+    dashes, dot-separated, at least three segments), unique in the application — checked when the
+    view is registered. The Python analogue of Java's ``@ContentSlot``; the fluent twin is
+    ``mateu_ui.uidl.components.ContentSlot``."""
+
+    key: str
+    fallback: str = ""
+    #: How long the host waits for the content; 0 = the content remote's default.
+    timeout_ms: int = 0
+    #: Optional description for the content editors (the backoffice).
+    description: str = ""
+    degrade_to_client: bool = False

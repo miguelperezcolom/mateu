@@ -43,7 +43,11 @@ final class WidgetComponentDispatcher {
       return mapMapToDto(map);
     }
     if (component instanceof MicroFrontend microFrontend) {
-      return mapMicroFrontendToDto(microFrontend);
+      return mapMicroFrontendToDto(microFrontend, httpRequest);
+    }
+    if (component instanceof io.mateu.uidl.data.ContentSlot contentSlot) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.MicroFrontendMapper
+          .mapContentSlotToDto(contentSlot, httpRequest);
     }
     if (component instanceof Grid grid) {
       return mapGridToDto(grid, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);

@@ -55,6 +55,42 @@ public sealed class MateuOptions
     /// <c>mateu.pwa.enabled</c>.</summary>
     public bool? Pwa { get; set; }
 
+    /// <summary>The remotes the server may resolve micro frontends against (<c>MicroFrontend.Resolve =
+    /// Resolve.Server</c>, content slots), merged over the <see cref="IRemoteCatalogSupplier"/> services
+    /// (a configured remote wins on the same id). Ignored when the app registers its own
+    /// <see cref="IRemoteRegistry"/> service. Only urls under a registered remote are ever requested.
+    /// EXPERIMENTAL. Java: <c>mateu.remotes</c>.</summary>
+    public List<RemoteDescriptor> Remotes { get; set; } = [];
+
+    /// <summary>The time budget of a server-resolved fragment whose micro frontend and remote name
+    /// none, in ms (default 500). EXPERIMENTAL. Java: <c>mateu.microfrontends.default-timeout-ms</c>.</summary>
+    public int DefaultTimeoutMs { get; set; } = 500;
+
+    /// <summary>The most a response waits for its server-resolved fragments, in ms (default 2000): the
+    /// budget is the largest of their timeouts, capped by this. EXPERIMENTAL. Java:
+    /// <c>mateu.microfrontends.max-budget-ms</c>.</summary>
+    public int MaxBudgetMs { get; set; } = 2000;
+
+    /// <summary>The id of the registered remote content slots are resolved against (default
+    /// <c>content</c>). EXPERIMENTAL. Java: <c>mateu.content-slots.remote</c>.</summary>
+    public string ContentRemoteId { get; set; } = "content";
+
+    /// <summary>The route of a content slot on the content remote; <c>{key}</c> is replaced by the
+    /// slot's key (default <c>/content-slots/{key}</c>). EXPERIMENTAL. Java: <c>mateu.content-slots.route</c>.</summary>
+    public string ContentRoute { get; set; } = "/content-slots/{key}";
+
+    /// <summary>This server's own base url (an origin, e.g. <c>https://app.example.com</c>), where a
+    /// remote registered as a PATH on this server (<c>/_content-hub</c>) is called. Null (the
+    /// default): the local socket the request arrived on — never a request header. EXPERIMENTAL.
+    /// Java: <c>mateu.self-base-url</c>.</summary>
+    public string? SelfBaseUrl { get; set; }
+
+    /// <summary>Serve the reserved action <c>__content_slots__</c>, which answers the application's
+    /// content slot descriptor for the content service. Off by default (it describes the
+    /// application's screens; refused with 403). EXPERIMENTAL. Java:
+    /// <c>mateu.content-slots.descriptor.enabled</c>.</summary>
+    public bool ContentSlotsDescriptorEnabled { get; set; }
+
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
     public HttpClient? HttpClient { get; set; }
 

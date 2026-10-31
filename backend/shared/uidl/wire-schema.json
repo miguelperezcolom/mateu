@@ -2849,6 +2849,23 @@
       },
       "required" : [ "type" ]
     },
+    "FragmentCacheDto" : {
+      "type" : "object",
+      "properties" : {
+        "key" : {
+          "type" : "string"
+        },
+        "maxAgeSeconds" : {
+          "type" : "integer"
+        },
+        "notModified" : {
+          "type" : "boolean"
+        },
+        "varyBy" : {
+          "type" : "string"
+        }
+      }
+    },
     "FullWidthDto" : {
       "type" : "object",
       "properties" : {
@@ -3963,6 +3980,9 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "resolved" : {
+          "$ref" : "#/$defs/UIIncrementDto"
         },
         "route" : {
           "type" : "string"
@@ -5913,6 +5933,9 @@
           "items" : {
             "$ref" : "#/$defs/UICommandDto"
           }
+        },
+        "fragmentCache" : {
+          "$ref" : "#/$defs/FragmentCacheDto"
         },
         "fragments" : {
           "type" : "array",

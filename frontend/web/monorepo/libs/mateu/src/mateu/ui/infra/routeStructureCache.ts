@@ -1,3 +1,4 @@
+import { withoutResolvedMicroFrontends } from './resolvedMicroFrontends'
 // Client-side cache of screen STRUCTURE (the `component` tree of a route-load fragment) so a
 // declared/static screen can paint its real layout INSTANTLY on a return visit instead of a
 // generic skeleton. Phase (a) of the structure-cache work: this is a PREDICTION, never a
@@ -108,7 +109,8 @@ export const getCachedStructure = (key: string): CachedStructure | undefined => 
 export const putCachedStructure = (key: string, component: Component, hash?: string): void => {
     if (!enabled) return
     const store = readAll()
-    store[key] = { v: CACHE_VERSION, t: Date.now(), component, hash }
+    // a remote's answer the host embedded is per request (often per user): never persisted
+    store[key] = { v: CACHE_VERSION, t: Date.now(), component: withoutResolvedMicroFrontends(component), hash }
     const keys = Object.keys(store)
     if (keys.length > MAX_ENTRIES) {
         const oldest = keys.sort((a, b) => store[a].t - store[b].t).slice(0, keys.length - MAX_ENTRIES)

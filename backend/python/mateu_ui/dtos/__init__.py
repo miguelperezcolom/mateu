@@ -207,6 +207,7 @@ from .envelope import (  # noqa: F401
     UICommand,
     UIFragment,
     UIIncrement,
+    FragmentCache,
 )
 
 

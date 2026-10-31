@@ -16,4 +16,22 @@ public interface MateuHttpClient {
       String baseUrl, RunActionRqDto request, String authorizationHeader) {
     return send(baseUrl, request);
   }
+
+  /**
+   * Sends the request with these headers (identity, correlation id) — what the host uses to resolve
+   * a micro frontend on the user's behalf. Implementations that cannot send arbitrary headers fall
+   * back to propagating only {@code Authorization}.
+   */
+  default CompletableFuture<UIIncrementDto> sendWithHeaders(
+      String baseUrl, RunActionRqDto request, java.util.Map<String, String> headers) {
+    String authorization = null;
+    if (headers != null) {
+      for (var entry : headers.entrySet()) {
+        if ("authorization".equalsIgnoreCase(entry.getKey())) {
+          authorization = entry.getValue();
+        }
+      }
+    }
+    return send(baseUrl, request, authorization);
+  }
 }

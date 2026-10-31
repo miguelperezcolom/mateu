@@ -86,7 +86,13 @@ internal sealed class MateuRegistry
             _byName[type.FullName!] = type;
         }
         SuppliedRoutes = supplied;
+        // the [ContentSlot] keys are contracts with the content service: a malformed or repeated one
+        // fails HERE, when the views are registered (the port's analogue of Java's compile error)
+        ContentSlots = MicroFrontends.ContentSlotDescriptors.Of(asms);
     }
+
+    /// <summary>The application's content slots ([ContentSlot] properties), keys checked.</summary>
+    internal IReadOnlyList<MicroFrontends.ContentSlotDescriptors.Slot> ContentSlots { get; }
 
     /// <summary>Registers a component adapter (one per adapted type; a later registration for the
     /// same type replaces the earlier). The adapted type becomes resolvable by name, so an island of
