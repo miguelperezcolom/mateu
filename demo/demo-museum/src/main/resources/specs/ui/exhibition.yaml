@@ -33,9 +33,7 @@ content:
       pageSize: 12
       gridLayout: cards
       rowRoute: artworks/${row.id}
-      rowsSource:
-        url: http://localhost:8121/api/artworks?exhibitionId=${state.id}&size=100&sort=title
-        itemsPath: content
+      rowsSource: {ref: museum-exhibition-artworks}
       columns:
         - {type: GridColumn, id: imageSmall, label: Image, stereotype: image}
         - {type: GridColumn, id: title, label: Title, identifier: true}
@@ -47,9 +45,7 @@ content:
       type: Listing
       pageSize: 10
       rowRoute: loans/${row.id}
-      rowsSource:
-        url: http://localhost:8121/api/loans?exhibitionId=${state.id}&size=50
-        itemsPath: content
+      rowsSource: {ref: museum-exhibition-loans}
       columns:
         - {type: GridColumn, id: artworkTitle, label: Work, identifier: true, stereotype: primary, leadingPath: artworkImage, captionPath: fromMuseumName}
         - {type: GridColumn, id: status, label: Status, dataType: status}

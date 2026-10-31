@@ -54,9 +54,7 @@ content:
     title: Departments
     pageSize: 20
     style: "width: 100%;"
-    rowsSource:
-      url: http://localhost:8121/api/departments?museumId=${state.id}&size=50&sort=name
-      itemsPath: content
+    rowsSource: {ref: museum-museum-departments}
     columns:
       - {type: GridColumn, id: name, label: Department, identifier: true}
       - {type: GridColumn, id: head, label: Head}

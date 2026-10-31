@@ -368,3 +368,32 @@ sources:
       headers:
         X-Api-Key: ${secret.MUSEUM_WRITE_KEY}
 
+  # ── the lists inside record pages (a record's works, loans, launches…): named here, not inline,
+  #    so an environment re-points them too (environments re-point named sources only) ──
+  - name: museum-exhibition-artworks
+    description: The list in exhibition.yaml
+    source:
+      url: >-
+        http://localhost:8121/api/artworks?exhibitionId=${state.id}&size=100&sort=title
+      itemsPath: content
+
+  - name: museum-exhibition-loans
+    description: The list in exhibition.yaml
+    source:
+      url: >-
+        http://localhost:8121/api/loans?exhibitionId=${state.id}&size=50
+      itemsPath: content
+
+  - name: museum-artist-artworks
+    description: The list in artist.yaml
+    source:
+      url: >-
+        http://localhost:8121/api/artworks?artistId=${state.id}&size=24&sort=beginYear
+      itemsPath: content
+
+  - name: museum-museum-departments
+    description: The list in museum.yaml
+    source:
+      url: >-
+        http://localhost:8121/api/departments?museumId=${state.id}&size=50&sort=name
+      itemsPath: content

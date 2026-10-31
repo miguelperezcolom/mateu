@@ -23,9 +23,7 @@ content:
         pageSize: 6
         rowRoute: artworks/${row.id}
         gridLayout: cards
-        rowsSource:
-          url: http://localhost:8121/api/artworks?artistId=${state.id}&size=24&sort=beginYear
-          itemsPath: content
+        rowsSource: {ref: museum-artist-artworks}
         columns:
           - {type: GridColumn, id: imageSmall, label: Image, stereotype: image}
           - {type: GridColumn, id: title, label: Title, identifier: true}
