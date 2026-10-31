@@ -9,14 +9,14 @@ React Native renderer. Without a registry in `app.json` (`expo.extra.mateuRegist
 
 | What | Where it goes |
 |---|---|
-| Apple Developer Program membership (99 $/year), App Store Connect app record for `io.mateu.app` | — |
+| ✅ Apple Developer Program membership (team `2V77LVXCM8`). **TODO**: App Store Connect app record for `io.mateu.app` | — |
 | Google Play developer account (25 $ once), Play Console app for `io.mateu.app` | — |
-| **Apple Team ID** | `well-known/apple-app-site-association` (`TODO_APPLE_TEAM_ID`), served at `https://mateu.io/.well-known/apple-app-site-association` (`Content-Type: application/json`, no redirect) |
-| **Android signing SHA-256** (Play App Signing key, plus the EAS upload key for internal APKs) | `well-known/assetlinks.json`, served at `https://mateu.io/.well-known/assetlinks.json` |
+| ✅ **Apple Team ID** `2V77LVXCM8` | `well-known/apple-app-site-association`, published from `doc/public/.well-known/` at `https://mateu.io/.well-known/apple-app-site-association` (`Content-Type: application/json` via `doc/public/_headers`, no redirect) |
+| 🟡 **Android signing SHA-256**: the GitHub APK key is in (`61:A6:…:07:02`, keystore in the owner's `~/.mateu-secrets/android`). **TODO**: the Play App Signing key once the Play app exists (+ the EAS upload key for internal APKs) | `well-known/assetlinks.json` AND `doc/public/.well-known/assetlinks.json` (the published one: real fingerprints only, never a TODO) |
 | `https://mateu.io/add` landing page (store badges + the QR again, for phones without the app) | mateu.io site |
 | App Store id for the "Update the app" button | `src/hub/ui/UiSession.tsx` → `STORE_URL` (`idTODO_APP_STORE_ID`) |
-| `https://demo.mateu.io/counter` must be up, public, with no login (it is the preinstalled "Try a demo" entry the reviewer uses) | demo deployment |
-| Privacy policy URL (required by both stores even for "no data collected") | store listings |
+| ✅ `https://demo.mateu.io/counter` is up, public, with no login (checked 2026-10-31; it is the preinstalled "Try a demo" entry the reviewer uses) | demo deployment |
+| ✅ Privacy policy: **https://mateu.io/privacy** (`doc/src/pages/privacy.astro` — keep it in step with §5) | store listings |
 | Bundle id: `io.mateu.app` on iOS and Android (decided 2026-10-12; it cannot change after the first store release) | `app.json` |
 | EAS: `eas login` as `miguelperezcolom` (the `owner` in app.json); project id already set | — |
 
@@ -115,6 +115,10 @@ sign-in tokens and a random session id (Keychain / Android Keystore via expo-sec
 "Export my UIs" QR carries addresses only.
 
 ## 6. Store listing basics
+
+Ready-to-paste texts (name, subtitle, promotional text, keywords, short + full description, what's new;
+English and Spanish, within each store's limits): `store/listing.md`.
+
 
 - Name: **Mateu**. Subtitle (iOS): "Your business apps, native". Category: Business / Productivity.
 - Screenshots: run `e2e/rn-hub-probe.mjs` with `SHOTS=<dir>` for the flows on a phone viewport (web

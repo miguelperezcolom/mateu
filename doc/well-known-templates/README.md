@@ -1,16 +1,21 @@
-# Universal link / App Link templates (NOT published)
+# Universal link / App Link templates
 
 These two files make `https://mateu.io/add?...` open the Mateu mobile app when it is installed
-(iOS universal links, Android App Links). They are **templates**: they cannot be filled without the
-owner's store accounts, so they live here, outside `public/`, and are not deployed. A half-filled
-association file would be worse than none — the OS caches it.
+(iOS universal links, Android App Links). The PUBLISHED copies are `doc/public/.well-known/` (served
+with `Content-Type: application/json` by the rules in `doc/public/_headers`); these templates keep the
+placeholders still to fill. The published files carry only real values — a half-filled association
+file is worse than none, the OS caches it.
+
+Status (2026-10-31): the AASA file carries the Team ID `2V77LVXCM8`; `assetlinks.json` carries the
+key the GitHub-released APK is signed with. Still to add once the Play app exists: the **Play App
+Signing** key (Play Console → App integrity), to BOTH copies of `assetlinks.json`.
 
 | File | Fill in | Where it comes from |
 |---|---|---|
 | `apple-app-site-association` | `TODO_TEAM_ID` (and the bundle id, if `io.mateu.app` changes) | Apple Developer account → Membership → Team ID |
 | `assetlinks.json` | `TODO_SHA256` (and the package, if `io.mateu.app` changes) | Play Console → App integrity → App signing key certificate (SHA-256); add the upload key too for internal builds |
 
-Once filled, the owner moves them to `doc/public/.well-known/` so they are served at:
+They are served at:
 
 - `https://mateu.io/.well-known/apple-app-site-association` — **no file extension**, served with
   `Content-Type: application/json`;
