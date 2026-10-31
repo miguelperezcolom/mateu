@@ -1,0 +1,11 @@
+<application>
+  <!-- Mateu desktop app: IntelliJ's own update checks are off. The platform is never updated in
+       place (-Dide.no.platform.update), and the only third-party plugin, Mateu, is updated by the app
+       itself (io.mateu.ijp.update) — a Marketplace update of it would race the staged one. -->
+  <component name="UpdatesConfigurable">
+    <option name="CHECK_NEEDED" value="false" />
+    <option name="PLUGINS_AUTO_UPDATE" value="false" />
+    <option name="PLUGINS_CHECK_NEEDED" value="false" />
+    <option name="SHOW_WHATS_NEW_EDITOR" value="false" />
+  </component>
+</application>

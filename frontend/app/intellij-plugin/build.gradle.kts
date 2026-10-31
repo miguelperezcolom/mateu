@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 plugins {
     kotlin("jvm") version "2.4.21"
     id("org.jetbrains.intellij.platform") version "2.19.0"
@@ -274,23 +276,33 @@ tasks.runIde {
     // Forward the mateu.* connection properties from the gradle invocation to the IDE JVM —
     // `./gradlew runIde -Dmateu.baseUrl=…` sets them on the GRADLE process, not on the IDE,
     // so without this hop the plugin silently falls back to the bundled defaults.
-    listOf("mateu.baseUrl", "mateu.route", "mateu.config", "mateu.focused",
+    listOf("mateu.baseUrl", "mateu.route", "mateu.config", "mateu.focused", "mateu.variant",
            "mateu.registryUrl", "mateu.appId").forEach { key ->
         (System.getProperty(key) ?: (findProperty(key) as String?))?.let { systemProperty(key, it) }
     }
     args(workspace.absolutePath)
 }
 
-// ── Installer: a self-contained "plugin + IntelliJ" distribution ──────────────────────────────
+// ── Installer: the "Mateu desktop" app = IntelliJ IDEA Community + the Mateu plugin ────────────
 // ./gradlew buildInstaller [-Pinstaller.platform=linux|windows|macos] [-Pinstaller.arch=aarch64|intel]
-//                          [-Pmateu.registryUrl=… -Pmateu.appId=…]   (baked into the launcher VM options)
+//                          [-Pmateu.variant=hub|fixed] [-Pmateu.productName=…]
+//                          [-Pmateu.baseUrl=… | -Pmateu.registryUrl=… -Pmateu.appId=…]   (fixed)
+//                          [-Pmateu.updateUrl=…|none] [-Pinstaller.ideArchive=<local IDE archive>]
 //
-// linux/windows → build/installer/mateu-desktop-<version>-<platform>.tar.gz|.zip: IntelliJ IDEA
-// Community with the Mateu plugin preinstalled, PORTABLE config/system dirs, a bundled workspace and
-// a `mateu` launcher that opens it directly.
-// macos → build/installer/Mateu.app (+ .zip): the Community .app rebranded "Mateu" (name + icon),
-// plugin preinstalled, a launcher wrapper that opens the bundled workspace on double-click, re-signed
-// ad-hoc. Unsigned → first launch needs right-click ▸ Open (or clear the quarantine xattr).
+// Variants: `hub` (the default) = the app keeps a list of UIs the user adds (and owns mateu:// links);
+// `fixed` = bound to ONE UI — a base URL or app-registry coordinates, required — and claims no links.
+// Without -Pmateu.variant, passing a base URL or registry coordinates means `fixed`.
+//
+// linux   → build/installer/<slug>-desktop-<version>-linux.tar.gz: portable (config/system/log in
+//           data/), `mateu.sh` launcher, `install.sh` (per-user install + menu entry + mateu://).
+// windows → …-windows.zip (portable, `mateu.bat`) and, with makensis on the PATH, …-windows-setup.exe
+//           (per-user NSIS installer: %LOCALAPPDATA%\Programs\<product>, shortcuts, mateu://).
+// macos   → build/installer/<product>.app (+ …-macos-<arch>.zip and .dmg): the Community .app rebranded,
+//           plugin preinstalled by its launcher wrapper, re-signed (ad-hoc, or Developer ID + notarized).
+//
+// Every launcher applies a staged plugin update before the IDE starts (installer/apply-update.sh|.cmd,
+// staged by io.mateu.ijp.update) — the app updates itself; IntelliJ's own updates are switched off.
+//
 // Coverage ratchet (`koverVerify`, run in CI after the tests): line coverage of the plugin's own
 // code may only stay or grow. Measured 69.3% (2026-10-18, 459 tests; 65.8% on 2026-10-17) —
 // raise the bound as suites grow, never lower it. The whole module counts: IDE glue that cannot run headless (dialogs, tool
@@ -305,15 +317,83 @@ kover {
     }
 }
 
+/** What a desktop build is: product name, variant, the UI a `fixed` build is bound to, the feed. */
+data class DesktopOptions(
+    val product: String,
+    val slug: String,
+    val variant: String,
+    val baseUrl: String?,
+    val registryUrl: String?,
+    val appId: String?,
+    val updateUrl: String?,
+) {
+    val hub: Boolean get() = variant == "hub"
+}
+
+fun desktopOptions(): DesktopOptions {
+    fun prop(key: String) = (findProperty(key) as String?)?.trim()?.ifBlank { null }
+    val product = prop("mateu.productName") ?: "Mateu"
+    val slug = product.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').ifBlank { "mateu" }
+    val baseUrl = prop("mateu.baseUrl")
+    val registryUrl = prop("mateu.registryUrl")
+    val appId = prop("mateu.appId")
+    val boundToOneUi = baseUrl != null || (registryUrl != null && appId != null)
+    val variant = prop("mateu.variant") ?: if (boundToOneUi) "fixed" else "hub"
+    require(variant == "hub" || variant == "fixed") { "mateu.variant must be hub or fixed (got '$variant')" }
+    require(variant != "fixed" || boundToOneUi) {
+        "a fixed build is bound to one UI: pass -Pmateu.baseUrl=… or -Pmateu.registryUrl=… -Pmateu.appId=…"
+    }
+    // `findProperty` keeps an explicitly EMPTY -Pmateu.updateUrl= (= updates off) apart from absent
+    val updateUrl = (findProperty("mateu.updateUrl") as String?)?.trim()
+    return DesktopOptions(product, slug, variant, baseUrl, registryUrl, appId, updateUrl)
+}
+
+/** The VM options every desktop build bakes in (the launcher's `.vmoptions`). */
+fun desktopVmOptions(o: DesktopOptions, installerKey: String): List<String> = listOfNotNull(
+    "-Djb.consents.confirmation.enabled=false",
+    "-Didea.trust.all.projects=true",
+    "-Dmateu.productName=${o.product}",
+    // The desktop app IS the standalone shell — focused mode on (OFF by default in the plugin, so the
+    // Marketplace plugin doesn't rewire a developer's IDE).
+    "-Dmateu.focused=true",
+    "-Dmateu.variant=${o.variant}",
+    o.baseUrl?.takeIf { !o.hub }?.let { "-Dmateu.baseUrl=$it" },
+    o.registryUrl?.let { "-Dmateu.registryUrl=$it" },
+    o.appId?.let { "-Dmateu.appId=$it" },
+    o.updateUrl?.let { "-Dmateu.updateUrl=$it" },
+    // What the updater compares the feed with (and which installer of the feed fits this app).
+    "-Dmateu.desktop.platform=$installerKey",
+    "-Dmateu.desktop.ideVersion=$ideVersion",
+    // Never offer to update to IntelliJ IDEA: the platform's ExternalUpdateManager reads this property
+    // (any value = "updates managed by <value>") and switches its own platform update off. The value is
+    // the name the Settings page shows.
+    "-Dide.no.platform.update=${o.product}",
+)
+
+/** Release asset names, shared by the installers and the update feed (keys = installerKey). */
+fun installerFileName(slug: String, version: String, key: String): String = when (key) {
+    "macos-aarch64", "macos-intel" -> "$slug-desktop-$version-$key.dmg"
+    "linux" -> "$slug-desktop-$version-linux.tar.gz"
+    "windows" -> "$slug-desktop-$version-windows-setup.exe"
+    else -> error("unknown installer key $key")
+}
+
+val installerSources = layout.projectDirectory.dir("installer")
+
 tasks.register("buildInstaller") {
     group = "distribution"
-    description = "Builds a portable IntelliJ IDEA Community + Mateu plugin bundle"
+    description = "Builds the Mateu desktop app (IntelliJ IDEA Community + the Mateu plugin) for one OS"
     dependsOn(tasks.buildPlugin)
     doLast {
         val platform = (findProperty("installer.platform") as String?) ?: "linux"
         require(platform in setOf("linux", "windows", "macos")) {
             "installer.platform must be linux, windows or macos"
         }
+        val o = desktopOptions()
+        val version = project.version.toString()
+        val src = installerSources.asFile
+        fun template(path: String, vararg values: Pair<String, String>): String =
+            values.fold(File(src, path).readText()) { text, (k, v) -> text.replace("@$k@", v) }
         fun run(vararg cmd: String, dir: File) {
             val p = ProcessBuilder(*cmd).directory(dir).redirectErrorStream(true).start()
             val out = p.inputStream.readBytes().decodeToString()
@@ -325,26 +405,39 @@ tasks.register("buildInstaller") {
             check(p.waitFor() == 0) { "command failed: ${cmd.joinToString(" ")}\n$out" }
             return out
         }
+        fun onPath(tool: String): Boolean =
+            System.getenv("PATH").orEmpty().split(File.pathSeparator).any { File(it, tool).canExecute() }
+        val installerDir = layout.buildDirectory.dir("installer").get().asFile
+        val downloads = File(installerDir, "downloads").apply { mkdirs() }
+        // The IDE archive: -Pinstaller.ideArchive=<file> (a CI cache, an offline build), else downloaded
+        // once into build/installer/downloads/ and reused.
+        fun ideArchive(name: String): File {
+            (findProperty("installer.ideArchive") as String?)?.let { return File(it).also { f -> check(f.isFile) { "missing $f" } } }
+            val file = File(downloads, name)
+            if (!file.exists()) {
+                logger.lifecycle("Downloading https://download.jetbrains.com/idea/$name …")
+                run("curl", "-fL", "-o", file.absolutePath, "https://download.jetbrains.com/idea/$name", dir = downloads)
+            }
+            return file
+        }
+        val pluginZip = tasks.buildPlugin.get().outputs.files.singleFile
+        logger.lifecycle("Desktop app: ${o.product} — ${o.variant} variant, plugin $version, IntelliJ $ideVersion")
 
-        // ── macOS: build "Mateu.app" from the Community .dmg (Mateu-branded, plugin preinstalled) ──
+        // ── macOS: build "<product>.app" from the Community .dmg (branded, plugin preinstalled) ──
         if (platform == "macos") {
             val arch = (findProperty("installer.arch") as String?) ?: "aarch64"
-            val dmgName = if (arch == "intel") "ideaIC-$ideVersion.dmg" else "ideaIC-$ideVersion-aarch64.dmg"
-            val installerDir = layout.buildDirectory.dir("installer").get().asFile
-            val downloads = File(installerDir, "downloads").apply { mkdirs() }
-            val dmg = File(downloads, dmgName)
-            if (!dmg.exists()) {
-                logger.lifecycle("Downloading https://download.jetbrains.com/idea/$dmgName …")
-                run("curl", "-fL", "-o", dmg.absolutePath, "https://download.jetbrains.com/idea/$dmgName", dir = downloads)
-            }
+            require(arch == "aarch64" || arch == "intel") { "installer.arch must be aarch64 or intel" }
+            val key = "macos-$arch"
+            val dmg = ideArchive(if (arch == "intel") "ideaIC-$ideVersion.dmg" else "ideaIC-$ideVersion-aarch64.dmg")
             val work = File(installerDir, "work/macos").apply { deleteRecursively(); mkdirs() }
             val mnt = File(work, "mnt").apply { mkdirs() }
-            val app = File(work, "Mateu.app")
+            val appName = "${o.product}.app"
+            val app = File(work, appName)
             logger.lifecycle("Mounting the IDE image…")
             run("hdiutil", "attach", dmg.absolutePath, "-nobrowse", "-readonly", "-mountpoint", mnt.absolutePath, dir = work)
             try {
                 val srcApp = mnt.listFiles()!!.first { it.name.endsWith(".app") }
-                logger.lifecycle("Copying ${srcApp.name} → Mateu.app…")
+                logger.lifecycle("Copying ${srcApp.name} → $appName…")
                 run("cp", "-R", srcApp.absolutePath, app.absolutePath, dir = work)
             } finally {
                 run("hdiutil", "detach", mnt.absolutePath, "-quiet", dir = work)
@@ -360,77 +453,72 @@ tasks.register("buildInstaller") {
                 if (!updated) run("/usr/libexec/PlistBuddy", "-c", "Add :$key string $value", plist.absolutePath, dir = work)
             }
 
-            // Branding: app name + icon.
-            plistSet("CFBundleName", "Mateu")
-            plistSet("CFBundleDisplayName", "Mateu")
+            // Branding: app name + icon, and an identity of its own — sharing IntelliJ's bundle id would
+            // make macOS treat both apps as one (Launch Services, URL schemes).
+            plistSet("CFBundleName", o.product)
+            plistSet("CFBundleDisplayName", o.product)
+            val bundleId = (findProperty("mateu.bundleId") as String?)
+                ?: if (o.slug == "mateu") "io.mateu.desktop" else "io.mateu.desktop.${o.slug}"
+            plistSet("CFBundleIdentifier", bundleId)
             val icns = layout.projectDirectory.file("branding/mateu.icns").asFile
             check(icns.exists()) { "missing branding/mateu.icns — build it first" }
             icns.copyTo(File(contents, "Resources/mateu.icns"), overwrite = true)
             plistSet("CFBundleIconFile", "mateu.icns")
+            // The hub claims mateu:// links (macOS hands the OpenURL event to the IDE, which routes it
+            // to the plugin's protocol handler). A fixed app must not: it would steal the hub's links.
+            if (o.hub) {
+                val pb = "/usr/libexec/PlistBuddy"
+                val hasTypes = runCatching { capture(pb, "-c", "Print :CFBundleURLTypes", plist.absolutePath, dir = work) }.isSuccess
+                if (!hasTypes) run(pb, "-c", "Add :CFBundleURLTypes array", plist.absolutePath, dir = work)
+                val count = capture(pb, "-c", "Print :CFBundleURLTypes", plist.absolutePath, dir = work)
+                    .lines().count { it.trim() == "Dict {" }
+                run(pb, "-c", "Add :CFBundleURLTypes:$count dict", plist.absolutePath, dir = work)
+                run(pb, "-c", "Add :CFBundleURLTypes:$count:CFBundleURLName string Mateu UI link", plist.absolutePath, dir = work)
+                run(pb, "-c", "Add :CFBundleURLTypes:$count:CFBundleURLSchemes array", plist.absolutePath, dir = work)
+                run(pb, "-c", "Add :CFBundleURLTypes:$count:CFBundleURLSchemes:0 string mateu", plist.absolutePath, dir = work)
+            }
 
             // Stage the plugin INSIDE the bundle (not Contents/plugins — that dir only loads the
             // manifest-declared bundled plugins, so an added folder there is ignored). The launcher
-            // wrapper copies it to the custom plugins dir (idea.plugins.path) on first run, where it
-            // loads as a custom plugin.
+            // wrapper copies it to the custom plugins dir (idea.plugins.path), where it loads as a
+            // custom plugin — on first run, and again when a reinstalled app brings another version.
             logger.lifecycle("Staging the Mateu plugin…")
-            val pluginZip = tasks.buildPlugin.get().outputs.files.singleFile
-            val pluginStage = File(contents, "Resources/mateu-plugin").apply { deleteRecursively(); mkdirs() }
+            val resources = File(contents, "Resources")
+            val pluginStage = File(resources, "mateu-plugin").apply { deleteRecursively(); mkdirs() }
             run("unzip", "-q", "-o", pluginZip.absolutePath, "-d", pluginStage.absolutePath, dir = work)
+            File(resources, "mateu-plugin-version.txt").writeText(version + "\n")
+            File(src, "apply-update.sh").copyTo(File(resources, "apply-update.sh"), overwrite = true)
+            File(src, "updates.xml").copyTo(File(resources, "updates.xml"), overwrite = true)
 
-            // Portable data dirs, skip first-boot prompts, product name, error balloon off.
+            // Data dirs per product, skip first-boot prompts, error balloon off.
             File(contents, "bin/idea.properties").appendText(
-                "\n# ── Mateu ──\n" +
-                    "idea.config.path=\${user.home}/Library/Application Support/Mateu/config\n" +
-                    "idea.system.path=\${user.home}/Library/Caches/Mateu/system\n" +
-                    "idea.plugins.path=\${user.home}/Library/Application Support/Mateu/plugins\n" +
-                    "idea.log.path=\${user.home}/Library/Logs/Mateu\n" +
+                "\n# ── ${o.product} ──\n" +
+                    "idea.config.path=\${user.home}/Library/Application Support/${o.product}/config\n" +
+                    "idea.system.path=\${user.home}/Library/Caches/${o.product}/system\n" +
+                    "idea.plugins.path=\${user.home}/Library/Application Support/${o.product}/plugins\n" +
+                    "idea.log.path=\${user.home}/Library/Logs/${o.product}\n" +
                     "idea.fatal.error.notification=disabled\n",
             )
-            val registryProps = listOfNotNull(
-                (findProperty("mateu.registryUrl") as String?)?.let { "-Dmateu.registryUrl=$it" },
-                (findProperty("mateu.appId") as String?)?.let { "-Dmateu.appId=$it" },
-            )
-            File(contents, "bin/idea.vmoptions").appendText(
-                (listOf(
-                    "-Djb.consents.confirmation.enabled=false",
-                    "-Didea.trust.all.projects=true",
-                    "-Dmateu.productName=Mateu",
-                    // The desktop app IS the standalone shell — turn focused mode on here (it is OFF by
-                    // default so the Marketplace plugin doesn't rewire a developer's IDE).
-                    "-Dmateu.focused=true",
-                ) + registryProps).joinToString("\n", prefix = "\n", postfix = "\n"),
-            )
+            File(contents, "bin/idea.vmoptions").appendText(desktopVmOptions(o, key).joinToString("\n", prefix = "\n", postfix = "\n"))
 
             // Bundled workspace + launcher wrapper: double-clicking the app opens Mateu directly
             // (the plugin boots per-project) instead of the Welcome / "open project" screen.
-            val workspace = File(contents, "Resources/workspace").apply { mkdirs() }
-            File(workspace, "README.txt").writeText("Mateu — opened automatically by the app.\n")
+            val workspace = File(resources, "workspace").apply { mkdirs() }
+            File(workspace, "README.txt").writeText("${o.product} — opened automatically by the app.\n")
             val macos = File(contents, "MacOS")
             val execName = capture("/usr/libexec/PlistBuddy", "-c", "Print :CFBundleExecutable", plist.absolutePath, dir = work).trim()
             run("mv", File(macos, execName).absolutePath, File(macos, "$execName-original").absolutePath, dir = work)
-            val d = "${'$'}"
-            val wrapper = File(macos, execName)
-            wrapper.writeText(
-                "#!/bin/sh\n" +
-                    "HERE=\"${d}(cd \"${d}(dirname \"${d}0\")\" && pwd)\"\n" +
-                    "SUPPORT=\"${d}HOME/Library/Application Support/Mateu\"\n" +
-                    // Pre-create the config dir so the first run skips the IDE "Import Settings" dialog.
-                    "[ -d \"${d}SUPPORT/config\" ] || mkdir -p \"${d}SUPPORT/config/options\"\n" +
-                    // Install the staged Mateu plugin into the custom plugins dir on first run.
-                    "if [ ! -d \"${d}SUPPORT/plugins/mateu-intellij-plugin\" ]; then\n" +
-                    "  mkdir -p \"${d}SUPPORT/plugins\"\n" +
-                    "  cp -R \"${d}HERE/../Resources/mateu-plugin/\"* \"${d}SUPPORT/plugins/\"\n" +
-                    "fi\n" +
-                    "exec \"${d}HERE/$execName-original\" \"${d}HERE/../Resources/workspace\" \"${d}@\"\n",
-            )
-            wrapper.setExecutable(true)
+            File(macos, execName).apply {
+                writeText(template("macos/launcher.sh", "PRODUCT" to o.product, "EXEC" to execName))
+                setExecutable(true)
+            }
 
             // Modifying the bundle invalidates the original signature — re-sign. With a Developer ID
             // (-Pmacos.sign.identity="Developer ID Application: Name (TEAMID)") sign with the hardened
             // runtime + a secure timestamp (both required for notarization); otherwise ad-hoc, which
             // at least launches locally (first launch needs right-click ▸ Open).
-            val signId = findProperty("macos.sign.identity") as String?
-            val notaryProfile = findProperty("macos.notarize.profile") as String?
+            val signId = (findProperty("macos.sign.identity") as String?)?.ifBlank { null }
+            val notaryProfile = (findProperty("macos.notarize.profile") as String?)?.ifBlank { null }
             if (signId != null) {
                 logger.lifecycle("Signing with Developer ID (hardened runtime)…")
                 run("codesign", "--force", "--deep", "--options", "runtime", "--timestamp", "--sign", signId, app.absolutePath, dir = work)
@@ -439,16 +527,16 @@ tasks.register("buildInstaller") {
                 run("codesign", "--force", "--deep", "--sign", "-", app.absolutePath, dir = work)
             }
 
-            // Double-click .dmg: Mateu.app beside a drag-to-/Applications shortcut. Move (not copy) the
+            // Double-click .dmg: the .app beside a drag-to-/Applications shortcut. Move (not copy) the
             // work .app into the staging dir — same filesystem, so it's free.
             logger.lifecycle("Creating .dmg…")
             val dmgStage = File(work, "dmg").apply { deleteRecursively(); mkdirs() }
-            val stagedApp = File(dmgStage, "Mateu.app")
+            val stagedApp = File(dmgStage, appName)
             run("mv", app.absolutePath, stagedApp.absolutePath, dir = work)
             run("ln", "-s", "/Applications", File(dmgStage, "Applications").absolutePath, dir = work)
-            val dmgOut = File(installerDir, "mateu-desktop-${project.version}-macos.dmg")
+            val dmgOut = File(installerDir, installerFileName(o.slug, version, key))
             dmgOut.delete()
-            run("hdiutil", "create", "-volname", "Mateu", "-srcfolder", dmgStage.absolutePath, "-ov", "-format", "UDZO", dmgOut.absolutePath, dir = work)
+            run("hdiutil", "create", "-volname", o.product, "-srcfolder", dmgStage.absolutePath, "-ov", "-format", "UDZO", dmgOut.absolutePath, dir = work)
 
             // Notarize the .dmg and staple the ticket onto both the .dmg and the .app, so Gatekeeper
             // passes offline (normal double-click, no right-click). Needs a Developer ID signature and
@@ -458,7 +546,7 @@ tasks.register("buildInstaller") {
             when {
                 notarized -> {
                     logger.lifecycle("Notarizing (submitting to Apple — can take a few minutes)…")
-                    run("xcrun", "notarytool", "submit", dmgOut.absolutePath, "--keychain-profile", notaryProfile, "--wait", dir = work)
+                    run("xcrun", "notarytool", "submit", dmgOut.absolutePath, "--keychain-profile", notaryProfile!!, "--wait", dir = work)
                     logger.lifecycle("Stapling the notarization ticket…")
                     run("xcrun", "stapler", "staple", dmgOut.absolutePath, dir = work)
                     run("xcrun", "stapler", "staple", stagedApp.absolutePath, dir = work)
@@ -468,10 +556,10 @@ tasks.register("buildInstaller") {
             }
 
             // Ship the .app and a zip of it — from the staged (possibly stapled) copy.
-            val out = File(installerDir, "Mateu.app")
+            val out = File(installerDir, appName)
             out.deleteRecursively()
             run("cp", "-R", stagedApp.absolutePath, out.absolutePath, dir = work)
-            val zip = File(installerDir, "mateu-desktop-${project.version}-macos.zip")
+            val zip = File(installerDir, "${o.slug}-desktop-$version-$key.zip")
             zip.delete()
             run("ditto", "-c", "-k", "--keepParent", out.absolutePath, zip.absolutePath, dir = work)
 
@@ -483,23 +571,16 @@ tasks.register("buildInstaller") {
             return@doLast
         }
 
-        val installerDir = layout.buildDirectory.dir("installer").get().asFile
-        val downloads = File(installerDir, "downloads").apply { mkdirs() }
-        val archiveName = if (platform == "linux") "ideaIC-$ideVersion.tar.gz" else "ideaIC-$ideVersion.win.zip"
-        val archive = File(downloads, archiveName)
-        if (!archive.exists()) {
-            logger.lifecycle("Downloading https://download.jetbrains.com/idea/$archiveName …")
-            run("curl", "-fL", "-o", archive.absolutePath, "https://download.jetbrains.com/idea/$archiveName", dir = downloads)
-        }
-
+        val linux = platform == "linux"
+        val archive = ideArchive(if (linux) "ideaIC-$ideVersion.tar.gz" else "ideaIC-$ideVersion.win.zip")
         val work = File(installerDir, "work/$platform")
         work.deleteRecursively()
         work.mkdirs()
-        val bundleName = "mateu-desktop-${project.version}"
+        val bundleName = "${o.slug}-desktop-$version"
         val root = File(work, bundleName)
 
         logger.lifecycle("Unpacking the IDE…")
-        if (platform == "linux") {
+        if (linux) {
             run("tar", "-xzf", archive.absolutePath, dir = work)
             val ideDir = work.listFiles()!!.single { it.isDirectory }
             check(ideDir.renameTo(root)) { "could not rename ${ideDir.name}" }
@@ -512,7 +593,6 @@ tasks.register("buildInstaller") {
         // bundled `plugins` dir — a folder added there is ignored (only manifest-declared bundled
         // plugins load), so a third-party plugin must live on idea.plugins.path to load.
         logger.lifecycle("Installing the Mateu plugin…")
-        val pluginZip = tasks.buildPlugin.get().outputs.files.singleFile
         val pluginsDir = File(root, "data/plugins").apply { mkdirs() } // unzip -d won't create nested parents
         run("unzip", "-q", "-o", pluginZip.absolutePath, "-d", pluginsDir.absolutePath, dir = root)
 
@@ -520,7 +600,7 @@ tasks.register("buildInstaller") {
         File(root, "bin/idea.properties").appendText(
             """
 
-            # ── Mateu portable bundle ──
+            # ── ${o.product} portable bundle ──
             idea.config.path=${'$'}{idea.home.path}/data/config
             idea.system.path=${'$'}{idea.home.path}/data/system
             idea.plugins.path=${'$'}{idea.home.path}/data/plugins
@@ -528,44 +608,108 @@ tasks.register("buildInstaller") {
             idea.fatal.error.notification=disabled
             """.trimIndent() + "\n",
         )
+        // IntelliJ's own update checks off from the first run (the app updates itself).
+        File(root, "data/config/options").mkdirs()
+        File(src, "updates.xml").copyTo(File(root, "data/config/options/updates.xml"), overwrite = true)
 
-        // Skip first-boot prompts; optionally bake the app-registry coordinates into the VM options.
-        val vmOptionsFile = File(root, if (platform == "linux") "bin/idea64.vmoptions" else "bin/idea64.exe.vmoptions")
-        val registryProps = listOfNotNull(
-            (findProperty("mateu.registryUrl") as String?)?.let { "-Dmateu.registryUrl=$it" },
-            (findProperty("mateu.appId") as String?)?.let { "-Dmateu.appId=$it" },
-        )
-        vmOptionsFile.appendText(
-            // The desktop app IS the standalone shell — focused mode on (OFF by default in the plugin).
-            (listOf("-Djb.consents.confirmation.enabled=false", "-Didea.trust.all.projects=true", "-Dmateu.focused=true") + registryProps)
-                .joinToString("\n", prefix = "\n", postfix = "\n"),
-        )
+        // Skip first-boot prompts, focused mode, variant, updater coordinates.
+        val key = if (linux) "linux" else "windows"
+        File(root, if (linux) "bin/idea64.vmoptions" else "bin/idea64.exe.vmoptions")
+            .appendText(desktopVmOptions(o, key).joinToString("\n", prefix = "\n", postfix = "\n"))
 
         // Bundled workspace the launcher opens (the plugin boots per-project, so a project must open).
         File(root, "workspace").mkdirs()
-        File(root, "workspace/README.txt").writeText("Mateu desktop workspace — opened automatically by the launcher.\n")
+        File(root, "workspace/README.txt").writeText("${o.product} desktop workspace — opened automatically by the launcher.\n")
 
-        if (platform == "linux") {
-            File(root, "mateu.sh").apply {
-                writeText("#!/bin/sh\nDIR=\"$(cd \"$(dirname \"$0\")\" && pwd)\"\nexec \"\$DIR/bin/idea.sh\" \"\$DIR/workspace\" \"\$@\"\n")
-                setExecutable(true)
-            }
+        if (linux) {
+            fun script(name: String, text: String) = File(root, name).apply { writeText(text); setExecutable(true) }
+            script("apply-update.sh", File(src, "apply-update.sh").readText())
+            script("mateu.sh", File(src, "linux/mateu.sh").readText())
+            val values = arrayOf("PRODUCT" to o.product, "SLUG" to o.slug, "HUB" to o.hub.toString())
+            script("install.sh", template("linux/install.sh", *values))
+            File(root, "${o.slug}.desktop").writeText(
+                template("linux/mateu.desktop", *values)
+                    .replace("@MIME@\n", if (o.hub) "MimeType=x-scheme-handler/mateu;\n" else ""),
+            )
+            layout.projectDirectory.file("branding/mateu-1024.png").asFile.copyTo(File(root, "${o.slug}.png"), overwrite = true)
         } else {
-            File(root, "mateu.bat").writeText("@echo off\r\nstart \"\" \"%~dp0bin\\idea64.exe\" \"%~dp0workspace\"\r\n")
+            // cmd.exe wants CRLF
+            fun crlf(name: String, from: String) = File(root, name).writeText(File(src, from).readText().replace("\r\n", "\n").replace("\n", "\r\n"))
+            crlf("apply-update.cmd", "apply-update.cmd")
+            crlf("mateu.bat", "windows/mateu.bat")
+            layout.projectDirectory.file("branding/mateu.ico").asFile.copyTo(File(root, "${o.slug}.ico"), overwrite = true)
         }
 
         logger.lifecycle("Packing the bundle…")
-        val out = File(
-            installerDir,
-            "$bundleName-$platform." + if (platform == "linux") "tar.gz" else "zip",
-        )
+        val out = File(installerDir, "$bundleName-$platform." + if (linux) "tar.gz" else "zip")
         out.delete()
-        if (platform == "linux") {
+        if (linux) {
             run("tar", "-czf", out.absolutePath, bundleName, dir = work)
         } else {
             run("zip", "-qr", out.absolutePath, bundleName, dir = work)
         }
         logger.lifecycle("Installer ready: $out (${out.length() / (1024 * 1024)} MB)")
+
+        if (!linux) {
+            val setup = File(installerDir, installerFileName(o.slug, version, "windows"))
+            if (!onPath("makensis")) {
+                logger.lifecycle("makensis not found — only the portable zip was built. For the setup .exe install NSIS " +
+                    "(`sudo apt-get install nsis`, `brew install makensis`, or nsis.sourceforge.io) and run again.")
+                return@doLast
+            }
+            // What an upgrade replaces: every top-level entry of the bundle but data/ and the workspace,
+            // plus the plugin, staged updates and caches under data/ (data/config is the user's).
+            val clean = File(work, "clean.nsh")
+            clean.writeText(
+                (root.listFiles()!!.sortedBy { it.name }.filter { it.name != "data" && it.name != "workspace" }.map {
+                    if (it.isDirectory) "RMDir /r \"\$INSTDIR\\${it.name}\"" else "Delete \"\$INSTDIR\\${it.name}\""
+                } + listOf("plugins", "mateu-update", "system").map { "RMDir /r \"\$INSTDIR\\data\\$it\"" })
+                    .joinToString("\n", postfix = "\n"),
+            )
+            logger.lifecycle("Building the NSIS installer (this compresses ~1 GB, give it a few minutes)…")
+            setup.delete()
+            run(
+                "makensis", "-V2",
+                "-DPRODUCT=${o.product}", "-DSLUG=${o.slug}", "-DVERSION=$version",
+                "-DSRC_DIR=${root.absolutePath}", "-DOUT_FILE=${setup.absolutePath}",
+                "-DHUB=${o.hub}", "-DCLEAN_NSH=${clean.absolutePath}",
+                File(src, "windows/mateu.nsi").absolutePath,
+                dir = work,
+            )
+            logger.lifecycle("Installer ready: $setup (${setup.length() / (1024 * 1024)} MB)")
+        }
+    }
+}
+
+// The update feed of a release (`mateu-desktop-update.json`, see io.mateu.ijp.update.UpdateFeed):
+// ./gradlew desktopUpdateFeed -Pfeed.downloadBase=https://github.com/<owner>/<repo>/releases/download/<tag>
+//                             [-Pfeed.notes=…]
+// The plugin zip's sha256 is computed here, from the zip `buildPlugin` just built — publish THAT zip.
+tasks.register("desktopUpdateFeed") {
+    group = "distribution"
+    description = "Writes build/installer/mateu-desktop-update.json for a release of the desktop app"
+    dependsOn(tasks.buildPlugin)
+    doLast {
+        val base = (findProperty("feed.downloadBase") as String?)?.trimEnd('/')
+            ?: error("pass -Pfeed.downloadBase=<the release's download URL>")
+        val o = desktopOptions()
+        val version = project.version.toString()
+        val zip = tasks.buildPlugin.get().outputs.files.singleFile
+        val sha = MessageDigest.getInstance("SHA-256").digest(zip.readBytes()).joinToString("") { "%02x".format(it) }
+        val keys = listOf("macos-aarch64", "macos-intel", "linux", "windows")
+        val feed = mapOf(
+            "version" to version,
+            "plugin" to mapOf("url" to "$base/${zip.name}", "sha256" to sha),
+            "platform" to mapOf(
+                "ideVersion" to ideVersion,
+                "installers" to keys.associateWith { "$base/${installerFileName(o.slug, version, it)}" },
+            ),
+            "notes" to ((findProperty("feed.notes") as String?) ?: "${o.product} $version"),
+        )
+        val out = layout.buildDirectory.file("installer/mateu-desktop-update.json").get().asFile
+        out.parentFile.mkdirs()
+        out.writeText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(feed)) + "\n")
+        logger.lifecycle("Update feed: $out (plugin ${zip.name}, sha256 $sha)")
     }
 }
 
