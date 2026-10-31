@@ -37,7 +37,10 @@
       "android": {
         "track": "internal"
       },
-      "ios": {}
+      "ios": {
+        "ascAppId": "6829227403",
+        "appleTeamId": "2V77LVXCM8"
+      }
     }
   }
 }
