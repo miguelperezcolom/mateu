@@ -1,0 +1,44 @@
+# The astronauts as picture CARDS (`gridLayout: cards`): each card's picture is the official NASA
+# portrait (the `image` column), its title the name. The server searches, filters (status, nationality,
+# selection-year range, time-in-space range, birth-date range) and pages; a card opens the astronaut.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Astronauts
+subtitle: The 77 people who flew the crewed missions of the dataset
+pageSize: 12
+gridLayout: cards
+rowRoute: astronauts/${row.id}
+searchable: true
+filters:
+  - type: FormField
+    id: status
+    label: Status
+    stereotype: multiSelect
+    options:
+      - {value: ACTIVE, label: Active}
+      - {value: RETIRED, label: Retired}
+      - {value: DECEASED, label: Deceased}
+  - type: FormField
+    id: nationality
+    label: Nationality
+    stereotype: select
+    options:
+      - {value: United States, label: United States}
+      - {value: Canada, label: Canada}
+      - {value: Japan, label: Japan}
+      - {value: Soviet Union, label: Soviet Union}
+      - {value: Spain, label: Spain}
+      - {value: Switzerland, label: Switzerland}
+      - {value: India, label: India}
+      - {value: Israel, label: Israel}
+  - {type: FormField, id: selectionYear, label: Selected, dataType: integer, stereotype: numberRange}
+  - {type: FormField, id: timeInSpaceDays, label: Days in space, dataType: number, stereotype: numberRange}
+  - {type: FormField, id: birthDate, label: Born, stereotype: dateRange}
+rowsSource: {ref: space-astronauts}
+columns:
+  - {type: GridColumn, id: image, label: Portrait, stereotype: image}
+  - {type: GridColumn, id: name, label: Name, identifier: true}
+  - {type: GridColumn, id: selectionGroup, label: Group}
+  - {type: GridColumn, id: nationality, label: Nationality}
+  - {type: GridColumn, id: flights, label: Flights, dataType: integer}
+  - {type: GridColumn, id: timeInSpaceDays, label: Days in space, dataType: number}

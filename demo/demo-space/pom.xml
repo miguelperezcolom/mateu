@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.mateu.demo</groupId>
+    <artifactId>demo-space</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>demo-space</name>
+    <description>A 100%-YAML Mateu app over a space-exploration API (space-service: NASA missions,
+        astronauts, spacecraft, launch sites, launches, celestial bodies, tasks and budget), built to
+        exercise as much of Mateu as YAML can express — every page template, listings, master-detail,
+        forms with every field type, a wizard, a board, a calendar, a map, charts, trees and search —
+        on the Vaadin and the Redwood renderers. The only Java is the Spring Boot main.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
+             -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
+        <mateu.version>3.0-beta.25</mateu.version>
+    </properties>
+
+    <dependencies>
+        <!-- Mateu MVC runtime -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- The renderer is a dependency: the same YAML is served by the Vaadin renderer (default)
+             or by the Redwood one (-Predwood). Activating `redwood` deactivates `vaadin`, because
+             `vaadin` is only active by default. -->
+        <profile>
+            <id>vaadin</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>io.mateu</groupId>
+                    <artifactId>mateu-vaadin</artifactId>
+                    <version>${mateu.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>redwood</id>
+            <dependencies>
+                <dependency>
+                    <groupId>io.mateu</groupId>
+                    <artifactId>mateu-redwood</artifactId>
+                    <version>${mateu.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+</project>

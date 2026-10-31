@@ -1,0 +1,49 @@
+# Edit an astronaut: text, a select, dates, integer and decimal numbers, a radio and rich text.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Edit ${state.name}
+subtitle: Astronaut
+avatar: {type: Avatar, name: "${state.name}", image: "${state.thumbnail}"}
+toolbar:
+  - {type: Button, actionId: backToList, label: "Back to ${state.name}", actionable: {type: RouteLink, route: "astronauts/${state.id}"}}
+  - {type: Button, label: Delete, actionId: delete}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: FormField, id: name, label: Name, required: true}
+      - {type: FormField, id: nationality, label: Nationality}
+      - type: FormField
+        id: status
+        label: Status
+        stereotype: radio
+        options:
+          - {value: ACTIVE, label: Active}
+          - {value: RETIRED, label: Retired}
+          - {value: DECEASED, label: Deceased}
+      - {type: FormField, id: gender, label: Gender, stereotype: select, options: [{value: male, label: Male}, {value: female, label: Female}]}
+      - {type: FormField, id: birthDate, label: Born, dataType: date}
+      - {type: FormField, id: deathDate, label: Died, dataType: date}
+      - {type: FormField, id: birthPlace, label: Birthplace}
+      - {type: FormField, id: selectionGroup, label: Astronaut group}
+      - {type: FormField, id: selectionYear, label: Selection year, dataType: integer, min: 1959, max: 2030}
+      - {type: FormField, id: timeInSpaceDays, label: Days in space, dataType: number}
+      - {type: FormField, id: evaHours, label: Spacewalks (hours), dataType: number}
+      - {type: FormField, id: summary, label: Summary, colspan: 2}
+      - {type: FormField, id: bio, label: Biography, stereotype: richText, colspan: 2}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: space-astronaut-update}
+      successMessage: Saved
+      successRoute: astronauts/${state.id}
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: Delete this astronaut? Someone still on a mission's crew cannot be deleted (409).
+    restAction:
+      source: {ref: space-astronaut-delete}
+      successMessage: Deleted
+      successRoute: astronauts

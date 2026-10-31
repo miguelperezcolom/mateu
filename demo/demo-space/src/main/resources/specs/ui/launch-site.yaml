@@ -1,0 +1,63 @@
+# One launch site, read-only (route launch-sites/:id). It fills Redwood's GENERAL OVERVIEW PAGE
+# template: the header is the form's — title, the site SWITCHER (jump to another site without going
+# back), contextual facts (kpis), back + Edit —, the content is the main slot (property sections and
+# the launches that left from here) and `info` the complementary panel with the photograph.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: Launch site · ${state.region}
+kpis:
+  - {label: Country, value: "${state.country}"}
+  - {label: Operator, value: "${state.operator}"}
+  - {label: Launches, value: "${state.launchCount}"}
+recordSwitcher:
+  label: Launch site
+  value: ${state.id}
+  searchable: true
+  optionsSource: {ref: space-site-options}
+  route: launch-sites/${state._record}
+toolbar:
+  - {type: Button, actionId: backToList, label: Back, actionable: {type: RouteLink, route: launch-sites}}
+  - {type: Button, label: Edit, buttonStyle: primary, actionable: {type: RouteLink, route: "launch-sites/${state.id}/edit"}}
+template:
+  type: GeneralOverviewPage
+  info:
+    - type: Card
+      cssClasses: mateu-section
+      title: {type: Text, container: h3, text: Photograph}
+      content:
+        type: VerticalLayout
+        content:
+          - {type: Image, src: "${state.image}", style: "width: 100%; aspect-ratio: 4/3; object-fit: cover"}
+          - {type: Text, text: "${state.imageTitle} — ${state.imageCredit}", size: xs}
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Location}
+        content:
+          type: FormLayout
+          maxColumns: 3
+          content:
+            - {type: FormField, id: latitude, label: Latitude, dataType: number, readOnly: true}
+            - {type: FormField, id: longitude, label: Longitude, dataType: number, readOnly: true}
+            - {type: FormField, id: active, label: In use, dataType: bool, readOnly: true}
+            - {type: FormField, id: description, label: About, readOnly: true, colspan: 2}
+            - {type: FormField, id: wikidataUrl, label: Wikidata, stereotype: link, readOnly: true}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Launches from here}
+        content:
+          type: Listing
+          pageSize: 10
+          rowRoute: missions/${row.missionId}
+          rowsSource:
+            url: http://localhost:8122/api/launches?siteId=${state.id}&size=${state.size ?? 10}&page=${state.page ?? 0}
+            itemsPath: content
+          columns:
+            - {type: GridColumn, id: missionName, label: Mission, identifier: true}
+            - {type: GridColumn, id: launchDate, label: Date, dataType: date}
+            - {type: GridColumn, id: vehicle, label: Vehicle}
+            - {type: GridColumn, id: outcome, label: Outcome}

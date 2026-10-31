@@ -1,0 +1,119 @@
+# Edit a mission. It fills Redwood's ADVANCED CREATE AND EDIT page template: the header is the form's
+# — its title, Cancel and the primary action (Save) —, the content is the template's main slot, the
+# attributes grouped in SECTIONS with the vertical anchor navigator, and the `detail` slot holds the
+# mission's photograph beside them. Between them the sections use EVERY field type: text, textarea,
+# rich text, select (inline and from a REST source), radio, multi-select, date, date range, money,
+# number, boolean (toggle), image and link.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Edit ${state.name}
+subtitle: Mission
+timestamp: ${state.launchDate}
+toolbar:
+  - type: Button
+    actionId: cancel-edit
+    label: Cancel
+    actionable: {type: RouteLink, route: "missions/${state.id}"}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+template:
+  type: AdvancedCreateEditPage
+  detail:
+    - type: Card
+      cssClasses: mateu-section
+      title: {type: Text, container: h3, text: Photograph}
+      content:
+        type: VerticalLayout
+        content:
+          - {type: Image, src: "${state.image}", style: "width: 100%; max-width: 20rem; border-radius: 8px"}
+          - {type: Text, text: "${state.imageCredit}", size: s}
+          - {type: FormField, id: sourceUrl, label: Source, stereotype: link, readOnly: true}
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Identity}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: name, label: Name, required: true}
+            - {type: FormField, id: program, label: Program}
+            - {type: FormField, id: agency, label: Agency}
+            - type: FormField
+              id: type
+              label: Type
+              stereotype: select
+              options:
+                - {value: CREWED, label: Crewed}
+                - {value: LUNAR_FLYBY, label: Lunar flyby}
+                - {value: FLYBY, label: Flyby}
+                - {value: ORBITER, label: Orbiter}
+                - {value: LANDER, label: Lander}
+                - {value: ROVER, label: Rover}
+                - {value: HELICOPTER, label: Helicopter}
+                - {value: PROBE, label: Probe}
+                - {value: TELESCOPE, label: Telescope}
+                - {value: SAMPLE_RETURN, label: Sample return}
+                - {value: IMPACTOR, label: Impactor}
+            - type: FormField
+              id: status
+              label: Status
+              stereotype: radio
+              options:
+                - {value: PLANNED, label: Planned}
+                - {value: ACTIVE, label: Active}
+                - {value: COMPLETED, label: Completed}
+                - {value: PARTIAL_SUCCESS, label: Partial success}
+                - {value: FAILED, label: Failed}
+            - {type: FormField, id: featured, label: Featured on the home page, dataType: bool, stereotype: toggle}
+            - {type: FormField, id: summary, label: Summary, stereotype: textarea, colspan: 2}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Where and with what}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            # references as combos: the choices come from REST sources (id → name)
+            - {type: FormField, id: destinationId, label: Destination, stereotype: select, optionsSource: {ref: space-body-options}}
+            - {type: FormField, id: launchSiteId, label: Launch site, stereotype: select, optionsSource: {ref: space-site-options}}
+            - {type: FormField, id: spacecraftId, label: Spacecraft, stereotype: select, optionsSource: {ref: space-spacecraft-options}}
+            # a to-many reference: a multi-select of astronauts, written as a list of ids
+            - {type: Partial, ref: crew-field}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Schedule and money}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: launchDate, label: Launch date, dataType: date}
+            - {type: FormField, id: endDate, label: End of mission, dataType: date}
+            - {type: FormField, id: launchWindow, label: Launch window, dataType: dateRange, stereotype: dateRange}
+            - {type: FormField, id: cost, label: Cost, dataType: money}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Objectives}
+        content:
+          type: FormLayout
+          maxColumns: 1
+          content:
+            - {type: FormField, id: objectives, label: Objectives, stereotype: richText}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Sources}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: wikidataUrl, label: Facts (Wikidata), stereotype: link, readOnly: true}
+            - {type: FormField, id: image, label: Picture URL}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: space-mission-update}
+      successMessage: Saved
+      successRoute: missions/${state.id}

@@ -1,0 +1,40 @@
+# The launch sites on a MAP: one marker per pad, green when it launched a mission of the dataset in
+# the last ten years. The map fits its markers. A Map carries its markers — it does not read a REST
+# source — so they are a snapshot of /api/launch-sites (scripts/snapshot.py). A marker click cannot
+# open its site from YAML (the action gets the marker id, and a YAML step has no way to read it), so
+# the sites are also listed under the map, where a row opens its page.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Launch sites
+subtitle: Where the missions left from — Florida, California, Kazakhstan and French Guiana
+content:
+  - type: Map
+    style: "height: 28rem; width: 100%"
+    # >>> generated: markers (scripts/snapshot.py — do not edit by hand)
+    markers:
+      - {"id": "3", "latitude": 28.50669, "longitude": -80.55419, "label": "Cape Canaveral Launch Complex 19", "description": "2 launch(es) in the dataset · United States", "color": "#8a8f98"}
+      - {"id": "6", "latitude": 28.47056, "longitude": -80.54, "label": "Cape Canaveral Launch Complex 36", "description": "1 launch(es) in the dataset · United States", "color": "#8a8f98"}
+      - {"id": "1", "latitude": 28.4394, "longitude": -80.5733, "label": "Cape Canaveral Launch Complex 5", "description": "1 launch(es) in the dataset · United States", "color": "#8a8f98"}
+      - {"id": "2", "latitude": 28.49115, "longitude": -80.54691, "label": "Cape Canaveral Space Launch Complex 14", "description": "1 launch(es) in the dataset · United States", "color": "#8a8f98"}
+      - {"id": "10", "latitude": 28.44715, "longitude": -80.56494, "label": "Cape Canaveral Space Launch Complex 17A", "description": "1 launch(es) in the dataset · United States", "color": "#8a8f98"}
+      - {"id": "8", "latitude": 28.44578, "longitude": -80.56567, "label": "Cape Canaveral Space Launch Complex 17B", "description": "4 launch(es) in the dataset · United States", "color": "#8a8f98"}
+      - {"id": "12", "latitude": 28.53122, "longitude": -80.56445, "label": "Cape Canaveral Space Launch Complex 37B", "description": "1 launch(es) in the dataset · United States", "color": "#2e9e5b"}
+      - {"id": "9", "latitude": 28.56194, "longitude": -80.57722, "label": "Cape Canaveral Space Launch Complex 40", "description": "2 launch(es) in the dataset · United States", "color": "#2e9e5b"}
+      - {"id": "7", "latitude": 28.58344, "longitude": -80.58289, "label": "Cape Canaveral Space Launch Complex 41", "description": "10 launch(es) in the dataset · United States", "color": "#2e9e5b"}
+      - {"id": "14", "latitude": 5.2406, "longitude": -52.7708, "label": "ELA-3", "description": "1 launch(es) in the dataset · France", "color": "#2e9e5b"}
+      - {"id": "15", "latitude": 45.92028, "longitude": 63.34222, "label": "Gagarin's Start", "description": "1 launch(es) in the dataset · Kazakhstan", "color": "#8a8f98"}
+      - {"id": "4", "latitude": 28.60839, "longitude": -80.60433, "label": "Kennedy Space Center Launch Complex 39A", "description": "15 launch(es) in the dataset · United States", "color": "#2e9e5b"}
+      - {"id": "5", "latitude": 28.62718, "longitude": -80.6209, "label": "Kennedy Space Center Launch Complex 39B", "description": "8 launch(es) in the dataset · United States", "color": "#2e9e5b"}
+      - {"id": "11", "latitude": 34.64021, "longitude": -120.58957, "label": "Vandenberg Space Launch Complex 3 East", "description": "1 launch(es) in the dataset · United States", "color": "#2e9e5b"}
+      - {"id": "13", "latitude": 34.63202, "longitude": -120.61067, "label": "Vandenberg Space Launch Complex 4 East", "description": "1 launch(es) in the dataset · United States", "color": "#2e9e5b"}
+    # <<< generated: markers
+  - type: Listing
+    pageSize: 15
+    rowRoute: launch-sites/${row.id}
+    rowsSource: {ref: space-launch-sites}
+    columns:
+      - {type: GridColumn, id: name, label: Site, identifier: true, stereotype: primary, leadingPath: thumbnail, captionPath: region}
+      - {type: GridColumn, id: country, label: Country}
+      - {type: GridColumn, id: launchCount, label: Launches, dataType: integer}
+      - {type: GridColumn, id: latitude, label: Latitude, dataType: number}
+      - {type: GridColumn, id: longitude, label: Longitude, dataType: number}

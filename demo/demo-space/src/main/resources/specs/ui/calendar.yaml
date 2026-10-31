@@ -1,0 +1,367 @@
+# The launch CALENDAR: every launch on its day, coloured by outcome (green success, red failure),
+# with its UTC time where Wikidata knows it, one tab per memorable month (July 1969, the Voyagers'
+# summer of 1977, July 2020, April 2026), each switching between month, week, day and list views in
+# place. A Calendar carries its events — it does not read a REST
+# source — so they are a snapshot of /api/launches written by scripts/snapshot.py; an event opens its
+# mission. The live, server-filtered list is the Launches page.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Launch calendar
+subtitle: Fifty launches, 1961–2026 — green went well, red did not
+toolbar:
+  - {type: Button, label: All launches, actionable: {type: RouteLink, route: launches}}
+content:
+  # A YAML Calendar shows one period: it has no ‹ › of its own (that toolbar is the Java CalendarPage
+  # archetype's), so the months worth a look are tabs, each the same events anchored on another month.
+  # >>> generated: calendars (scripts/snapshot.py — do not edit by hand)
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: "July 1969 · Apollo 11"
+        content:
+          type: Calendar
+          month: "1969-07-01"
+          view: month
+          views: [month, week, day, list]
+          days: [{"date": "1969-07-20", "label": "Moon landing", "tone": "success"}, {"date": "1986-01-28", "label": "Challenger", "tone": "error"}, {"date": "2021-02-18", "label": "Perseverance lands", "tone": "success"}]
+          events:
+            - {"id": "launch-1", "title": "Freedom 7 · Mercury-Redstone Launch Vehicle", "date": "1961-05-05", "color": "#2e9e5b", "actionId": "open-mission-1"}
+            - {"id": "launch-2", "title": "Friendship 7 · SM-65D Atlas", "date": "1962-02-20", "color": "#2e9e5b", "actionId": "open-mission-2"}
+            - {"id": "launch-3", "title": "Gemini 4 · Titan II GLV", "date": "1965-06-03", "color": "#2e9e5b", "actionId": "open-mission-3"}
+            - {"id": "launch-4", "title": "Gemini 8 · Titan II GLV", "date": "1966-03-16", "color": "#2e9e5b", "actionId": "open-mission-4"}
+            - {"id": "launch-5", "title": "Apollo 8 · Saturn V", "date": "1968-12-21", "color": "#2e9e5b", "actionId": "open-mission-5"}
+            - {"id": "launch-6", "title": "Apollo 11 · Saturn V", "date": "1969-07-16", "startTime": "13:32", "color": "#2e9e5b", "actionId": "open-mission-6"}
+            - {"id": "launch-7", "title": "Apollo 13 · Saturn V", "date": "1970-04-11", "startTime": "19:13", "color": "#2e9e5b", "actionId": "open-mission-7"}
+            - {"id": "launch-8", "title": "Apollo 15 · Saturn V", "date": "1971-07-26", "color": "#2e9e5b", "actionId": "open-mission-8"}
+            - {"id": "launch-9", "title": "Apollo 17 · Saturn V", "date": "1972-12-07", "color": "#2e9e5b", "actionId": "open-mission-9"}
+            - {"id": "launch-10", "title": "Pioneer 10 · Atlas SLV-3C Centaur-D", "date": "1973-03-03", "startTime": "01:49", "color": "#2e9e5b", "actionId": "open-mission-26"}
+            - {"id": "launch-11", "title": "Skylab 2 · Saturn IB", "date": "1973-05-25", "color": "#2e9e5b", "actionId": "open-mission-10"}
+            - {"id": "launch-12", "title": "Viking 1 · Titan IIIE", "date": "1975-08-20", "startTime": "21:22", "color": "#2e9e5b", "actionId": "open-mission-27"}
+            - {"id": "launch-13", "title": "Voyager 2 · Titan IIIE", "date": "1977-08-20", "startTime": "14:29", "color": "#2e9e5b", "actionId": "open-mission-29"}
+            - {"id": "launch-14", "title": "Voyager 1 · Titan IIIE", "date": "1977-09-05", "startTime": "12:56", "color": "#2e9e5b", "actionId": "open-mission-28"}
+            - {"id": "launch-15", "title": "STS-1 · Space Shuttle", "date": "1981-04-12", "color": "#2e9e5b", "actionId": "open-mission-11"}
+            - {"id": "launch-16", "title": "STS-7 · Space Shuttle", "date": "1983-06-18", "color": "#2e9e5b", "actionId": "open-mission-12"}
+            - {"id": "launch-17", "title": "STS-41-B · Space Shuttle", "date": "1984-02-03", "color": "#2e9e5b", "actionId": "open-mission-13"}
+            - {"id": "launch-18", "title": "STS-51-L · Space Shuttle", "date": "1986-01-28", "startTime": "16:38", "color": "#d93025", "actionId": "open-mission-14"}
+            - {"id": "launch-19", "title": "Galileo · Space Shuttle", "date": "1989-10-18", "startTime": "16:53", "color": "#2e9e5b", "actionId": "open-mission-30"}
+            - {"id": "launch-20", "title": "STS-31 · Space Shuttle", "date": "1990-04-24", "startTime": "12:33", "color": "#2e9e5b", "actionId": "open-mission-15"}
+            - {"id": "launch-21", "title": "STS-61 · Space Shuttle", "date": "1993-12-02", "color": "#2e9e5b", "actionId": "open-mission-16"}
+            - {"id": "launch-22", "title": "Mars Pathfinder · Delta II", "date": "1996-12-04", "startTime": "06:58", "color": "#2e9e5b", "actionId": "open-mission-31"}
+            - {"id": "launch-23", "title": "Cassini–Huygens · Titan IV", "date": "1997-10-15", "startTime": "08:43", "color": "#2e9e5b", "actionId": "open-mission-32"}
+            - {"id": "launch-24", "title": "STS-95 · Space Shuttle", "date": "1998-10-29", "color": "#2e9e5b", "actionId": "open-mission-17"}
+            - {"id": "launch-25", "title": "Expedition 1 · Soyuz-U", "date": "2000-10-31", "startTime": "07:52", "color": "#2e9e5b", "actionId": "open-mission-20"}
+            - {"id": "launch-26", "title": "STS-107 · Space Shuttle", "date": "2003-01-16", "color": "#2e9e5b", "actionId": "open-mission-18"}
+            - {"id": "launch-27", "title": "Spirit · Delta II", "date": "2003-06-10", "startTime": "17:58", "color": "#2e9e5b", "actionId": "open-mission-33"}
+            - {"id": "launch-28", "title": "Opportunity · Delta II", "date": "2003-07-08", "startTime": "03:18", "color": "#2e9e5b", "actionId": "open-mission-34"}
+            - {"id": "launch-29", "title": "MESSENGER · Delta II", "date": "2004-08-03", "startTime": "06:15", "color": "#2e9e5b", "actionId": "open-mission-54"}
+            - {"id": "launch-30", "title": "New Horizons · Atlas V 551", "date": "2006-01-19", "startTime": "19:00", "color": "#2e9e5b", "actionId": "open-mission-35"}
+            - {"id": "launch-31", "title": "Kepler · Delta II", "date": "2009-03-07", "startTime": "03:49", "color": "#2e9e5b", "actionId": "open-mission-36"}
+            - {"id": "launch-32", "title": "Lunar Reconnaissance Orbiter · Atlas V 401", "date": "2009-06-18", "startTime": "21:32", "color": "#2e9e5b", "actionId": "open-mission-51"}
+            - {"id": "launch-33", "title": "STS-135 · Space Shuttle", "date": "2011-07-08", "color": "#2e9e5b", "actionId": "open-mission-19"}
+            - {"id": "launch-34", "title": "Juno · Atlas V 551", "date": "2011-08-05", "startTime": "16:25", "color": "#2e9e5b", "actionId": "open-mission-38"}
+            - {"id": "launch-35", "title": "Mars Science Laboratory · Atlas V 541", "date": "2011-11-26", "startTime": "15:02", "color": "#2e9e5b", "actionId": "open-mission-37"}
+            - {"id": "launch-36", "title": "OSIRIS-REx · Atlas V 411", "date": "2016-09-08", "startTime": "23:05", "color": "#2e9e5b", "actionId": "open-mission-39"}
+            - {"id": "launch-37", "title": "TESS · Falcon 9 Full Thrust", "date": "2018-04-18", "startTime": "22:51", "color": "#2e9e5b", "actionId": "open-mission-42"}
+            - {"id": "launch-38", "title": "InSight · Atlas V 401", "date": "2018-05-05", "startTime": "11:05", "color": "#2e9e5b", "actionId": "open-mission-40"}
+            - {"id": "launch-39", "title": "Parker Solar Probe · Delta IV Heavy", "date": "2018-08-12", "startTime": "07:31", "color": "#2e9e5b", "actionId": "open-mission-41"}
+            - {"id": "launch-40", "title": "Crew Dragon Demo-2 · Falcon 9 Block 5", "date": "2020-05-30", "startTime": "19:22", "color": "#2e9e5b", "actionId": "open-mission-21"}
+            - {"id": "launch-41", "title": "Mars 2020 · Atlas V 541", "date": "2020-07-30", "startTime": "11:50", "color": "#2e9e5b", "actionId": "open-mission-43"}
+            - {"id": "launch-42", "title": "Crew-1 · Falcon 9 Block 5", "date": "2020-11-16", "startTime": "00:27", "color": "#2e9e5b", "actionId": "open-mission-22"}
+            - {"id": "launch-43", "title": "Lucy · Atlas V 401", "date": "2021-10-16", "startTime": "09:34", "color": "#2e9e5b", "actionId": "open-mission-46"}
+            - {"id": "launch-44", "title": "DART · Falcon 9 Block 5", "date": "2021-11-24", "startTime": "06:21", "color": "#2e9e5b", "actionId": "open-mission-45"}
+            - {"id": "launch-45", "title": "James Webb Space Telescope · Ariane 5 ECA", "date": "2021-12-25", "startTime": "12:20", "color": "#2e9e5b", "actionId": "open-mission-50"}
+            - {"id": "launch-46", "title": "Artemis I · Space Launch System Block 1", "date": "2022-11-16", "startTime": "06:47", "color": "#2e9e5b", "actionId": "open-mission-23"}
+            - {"id": "launch-47", "title": "Psyche · Falcon Heavy", "date": "2023-10-13", "startTime": "14:19", "color": "#2e9e5b", "actionId": "open-mission-47"}
+            - {"id": "launch-48", "title": "Europa Clipper · Falcon Heavy", "date": "2024-10-14", "startTime": "16:06", "color": "#2e9e5b", "actionId": "open-mission-48"}
+            - {"id": "launch-49", "title": "Artemis II · Space Launch System Block 1", "date": "2026-04-01", "startTime": "22:35", "color": "#2e9e5b", "actionId": "open-mission-24"}
+            - {"id": "launch-50", "title": "Nancy Grace Roman Space Telescope · Falcon Heavy", "date": "2026-08-30", "startTime": "11:25", "color": "#2e9e5b", "actionId": "open-mission-53"}
+      - type: Tab
+        label: "Summer 1977 · the Voyagers"
+        content:
+          type: Calendar
+          month: "1977-08-01"
+          view: month
+          views: [month, week, day, list]
+          days: [{"date": "1969-07-20", "label": "Moon landing", "tone": "success"}, {"date": "1986-01-28", "label": "Challenger", "tone": "error"}, {"date": "2021-02-18", "label": "Perseverance lands", "tone": "success"}]
+          events:
+            - {"id": "launch-1", "title": "Freedom 7 · Mercury-Redstone Launch Vehicle", "date": "1961-05-05", "color": "#2e9e5b", "actionId": "open-mission-1"}
+            - {"id": "launch-2", "title": "Friendship 7 · SM-65D Atlas", "date": "1962-02-20", "color": "#2e9e5b", "actionId": "open-mission-2"}
+            - {"id": "launch-3", "title": "Gemini 4 · Titan II GLV", "date": "1965-06-03", "color": "#2e9e5b", "actionId": "open-mission-3"}
+            - {"id": "launch-4", "title": "Gemini 8 · Titan II GLV", "date": "1966-03-16", "color": "#2e9e5b", "actionId": "open-mission-4"}
+            - {"id": "launch-5", "title": "Apollo 8 · Saturn V", "date": "1968-12-21", "color": "#2e9e5b", "actionId": "open-mission-5"}
+            - {"id": "launch-6", "title": "Apollo 11 · Saturn V", "date": "1969-07-16", "startTime": "13:32", "color": "#2e9e5b", "actionId": "open-mission-6"}
+            - {"id": "launch-7", "title": "Apollo 13 · Saturn V", "date": "1970-04-11", "startTime": "19:13", "color": "#2e9e5b", "actionId": "open-mission-7"}
+            - {"id": "launch-8", "title": "Apollo 15 · Saturn V", "date": "1971-07-26", "color": "#2e9e5b", "actionId": "open-mission-8"}
+            - {"id": "launch-9", "title": "Apollo 17 · Saturn V", "date": "1972-12-07", "color": "#2e9e5b", "actionId": "open-mission-9"}
+            - {"id": "launch-10", "title": "Pioneer 10 · Atlas SLV-3C Centaur-D", "date": "1973-03-03", "startTime": "01:49", "color": "#2e9e5b", "actionId": "open-mission-26"}
+            - {"id": "launch-11", "title": "Skylab 2 · Saturn IB", "date": "1973-05-25", "color": "#2e9e5b", "actionId": "open-mission-10"}
+            - {"id": "launch-12", "title": "Viking 1 · Titan IIIE", "date": "1975-08-20", "startTime": "21:22", "color": "#2e9e5b", "actionId": "open-mission-27"}
+            - {"id": "launch-13", "title": "Voyager 2 · Titan IIIE", "date": "1977-08-20", "startTime": "14:29", "color": "#2e9e5b", "actionId": "open-mission-29"}
+            - {"id": "launch-14", "title": "Voyager 1 · Titan IIIE", "date": "1977-09-05", "startTime": "12:56", "color": "#2e9e5b", "actionId": "open-mission-28"}
+            - {"id": "launch-15", "title": "STS-1 · Space Shuttle", "date": "1981-04-12", "color": "#2e9e5b", "actionId": "open-mission-11"}
+            - {"id": "launch-16", "title": "STS-7 · Space Shuttle", "date": "1983-06-18", "color": "#2e9e5b", "actionId": "open-mission-12"}
+            - {"id": "launch-17", "title": "STS-41-B · Space Shuttle", "date": "1984-02-03", "color": "#2e9e5b", "actionId": "open-mission-13"}
+            - {"id": "launch-18", "title": "STS-51-L · Space Shuttle", "date": "1986-01-28", "startTime": "16:38", "color": "#d93025", "actionId": "open-mission-14"}
+            - {"id": "launch-19", "title": "Galileo · Space Shuttle", "date": "1989-10-18", "startTime": "16:53", "color": "#2e9e5b", "actionId": "open-mission-30"}
+            - {"id": "launch-20", "title": "STS-31 · Space Shuttle", "date": "1990-04-24", "startTime": "12:33", "color": "#2e9e5b", "actionId": "open-mission-15"}
+            - {"id": "launch-21", "title": "STS-61 · Space Shuttle", "date": "1993-12-02", "color": "#2e9e5b", "actionId": "open-mission-16"}
+            - {"id": "launch-22", "title": "Mars Pathfinder · Delta II", "date": "1996-12-04", "startTime": "06:58", "color": "#2e9e5b", "actionId": "open-mission-31"}
+            - {"id": "launch-23", "title": "Cassini–Huygens · Titan IV", "date": "1997-10-15", "startTime": "08:43", "color": "#2e9e5b", "actionId": "open-mission-32"}
+            - {"id": "launch-24", "title": "STS-95 · Space Shuttle", "date": "1998-10-29", "color": "#2e9e5b", "actionId": "open-mission-17"}
+            - {"id": "launch-25", "title": "Expedition 1 · Soyuz-U", "date": "2000-10-31", "startTime": "07:52", "color": "#2e9e5b", "actionId": "open-mission-20"}
+            - {"id": "launch-26", "title": "STS-107 · Space Shuttle", "date": "2003-01-16", "color": "#2e9e5b", "actionId": "open-mission-18"}
+            - {"id": "launch-27", "title": "Spirit · Delta II", "date": "2003-06-10", "startTime": "17:58", "color": "#2e9e5b", "actionId": "open-mission-33"}
+            - {"id": "launch-28", "title": "Opportunity · Delta II", "date": "2003-07-08", "startTime": "03:18", "color": "#2e9e5b", "actionId": "open-mission-34"}
+            - {"id": "launch-29", "title": "MESSENGER · Delta II", "date": "2004-08-03", "startTime": "06:15", "color": "#2e9e5b", "actionId": "open-mission-54"}
+            - {"id": "launch-30", "title": "New Horizons · Atlas V 551", "date": "2006-01-19", "startTime": "19:00", "color": "#2e9e5b", "actionId": "open-mission-35"}
+            - {"id": "launch-31", "title": "Kepler · Delta II", "date": "2009-03-07", "startTime": "03:49", "color": "#2e9e5b", "actionId": "open-mission-36"}
+            - {"id": "launch-32", "title": "Lunar Reconnaissance Orbiter · Atlas V 401", "date": "2009-06-18", "startTime": "21:32", "color": "#2e9e5b", "actionId": "open-mission-51"}
+            - {"id": "launch-33", "title": "STS-135 · Space Shuttle", "date": "2011-07-08", "color": "#2e9e5b", "actionId": "open-mission-19"}
+            - {"id": "launch-34", "title": "Juno · Atlas V 551", "date": "2011-08-05", "startTime": "16:25", "color": "#2e9e5b", "actionId": "open-mission-38"}
+            - {"id": "launch-35", "title": "Mars Science Laboratory · Atlas V 541", "date": "2011-11-26", "startTime": "15:02", "color": "#2e9e5b", "actionId": "open-mission-37"}
+            - {"id": "launch-36", "title": "OSIRIS-REx · Atlas V 411", "date": "2016-09-08", "startTime": "23:05", "color": "#2e9e5b", "actionId": "open-mission-39"}
+            - {"id": "launch-37", "title": "TESS · Falcon 9 Full Thrust", "date": "2018-04-18", "startTime": "22:51", "color": "#2e9e5b", "actionId": "open-mission-42"}
+            - {"id": "launch-38", "title": "InSight · Atlas V 401", "date": "2018-05-05", "startTime": "11:05", "color": "#2e9e5b", "actionId": "open-mission-40"}
+            - {"id": "launch-39", "title": "Parker Solar Probe · Delta IV Heavy", "date": "2018-08-12", "startTime": "07:31", "color": "#2e9e5b", "actionId": "open-mission-41"}
+            - {"id": "launch-40", "title": "Crew Dragon Demo-2 · Falcon 9 Block 5", "date": "2020-05-30", "startTime": "19:22", "color": "#2e9e5b", "actionId": "open-mission-21"}
+            - {"id": "launch-41", "title": "Mars 2020 · Atlas V 541", "date": "2020-07-30", "startTime": "11:50", "color": "#2e9e5b", "actionId": "open-mission-43"}
+            - {"id": "launch-42", "title": "Crew-1 · Falcon 9 Block 5", "date": "2020-11-16", "startTime": "00:27", "color": "#2e9e5b", "actionId": "open-mission-22"}
+            - {"id": "launch-43", "title": "Lucy · Atlas V 401", "date": "2021-10-16", "startTime": "09:34", "color": "#2e9e5b", "actionId": "open-mission-46"}
+            - {"id": "launch-44", "title": "DART · Falcon 9 Block 5", "date": "2021-11-24", "startTime": "06:21", "color": "#2e9e5b", "actionId": "open-mission-45"}
+            - {"id": "launch-45", "title": "James Webb Space Telescope · Ariane 5 ECA", "date": "2021-12-25", "startTime": "12:20", "color": "#2e9e5b", "actionId": "open-mission-50"}
+            - {"id": "launch-46", "title": "Artemis I · Space Launch System Block 1", "date": "2022-11-16", "startTime": "06:47", "color": "#2e9e5b", "actionId": "open-mission-23"}
+            - {"id": "launch-47", "title": "Psyche · Falcon Heavy", "date": "2023-10-13", "startTime": "14:19", "color": "#2e9e5b", "actionId": "open-mission-47"}
+            - {"id": "launch-48", "title": "Europa Clipper · Falcon Heavy", "date": "2024-10-14", "startTime": "16:06", "color": "#2e9e5b", "actionId": "open-mission-48"}
+            - {"id": "launch-49", "title": "Artemis II · Space Launch System Block 1", "date": "2026-04-01", "startTime": "22:35", "color": "#2e9e5b", "actionId": "open-mission-24"}
+            - {"id": "launch-50", "title": "Nancy Grace Roman Space Telescope · Falcon Heavy", "date": "2026-08-30", "startTime": "11:25", "color": "#2e9e5b", "actionId": "open-mission-53"}
+      - type: Tab
+        label: "January 1986 · Challenger"
+        content:
+          type: Calendar
+          month: "1986-01-01"
+          view: month
+          views: [month, week, day, list]
+          days: [{"date": "1969-07-20", "label": "Moon landing", "tone": "success"}, {"date": "1986-01-28", "label": "Challenger", "tone": "error"}, {"date": "2021-02-18", "label": "Perseverance lands", "tone": "success"}]
+          events:
+            - {"id": "launch-1", "title": "Freedom 7 · Mercury-Redstone Launch Vehicle", "date": "1961-05-05", "color": "#2e9e5b", "actionId": "open-mission-1"}
+            - {"id": "launch-2", "title": "Friendship 7 · SM-65D Atlas", "date": "1962-02-20", "color": "#2e9e5b", "actionId": "open-mission-2"}
+            - {"id": "launch-3", "title": "Gemini 4 · Titan II GLV", "date": "1965-06-03", "color": "#2e9e5b", "actionId": "open-mission-3"}
+            - {"id": "launch-4", "title": "Gemini 8 · Titan II GLV", "date": "1966-03-16", "color": "#2e9e5b", "actionId": "open-mission-4"}
+            - {"id": "launch-5", "title": "Apollo 8 · Saturn V", "date": "1968-12-21", "color": "#2e9e5b", "actionId": "open-mission-5"}
+            - {"id": "launch-6", "title": "Apollo 11 · Saturn V", "date": "1969-07-16", "startTime": "13:32", "color": "#2e9e5b", "actionId": "open-mission-6"}
+            - {"id": "launch-7", "title": "Apollo 13 · Saturn V", "date": "1970-04-11", "startTime": "19:13", "color": "#2e9e5b", "actionId": "open-mission-7"}
+            - {"id": "launch-8", "title": "Apollo 15 · Saturn V", "date": "1971-07-26", "color": "#2e9e5b", "actionId": "open-mission-8"}
+            - {"id": "launch-9", "title": "Apollo 17 · Saturn V", "date": "1972-12-07", "color": "#2e9e5b", "actionId": "open-mission-9"}
+            - {"id": "launch-10", "title": "Pioneer 10 · Atlas SLV-3C Centaur-D", "date": "1973-03-03", "startTime": "01:49", "color": "#2e9e5b", "actionId": "open-mission-26"}
+            - {"id": "launch-11", "title": "Skylab 2 · Saturn IB", "date": "1973-05-25", "color": "#2e9e5b", "actionId": "open-mission-10"}
+            - {"id": "launch-12", "title": "Viking 1 · Titan IIIE", "date": "1975-08-20", "startTime": "21:22", "color": "#2e9e5b", "actionId": "open-mission-27"}
+            - {"id": "launch-13", "title": "Voyager 2 · Titan IIIE", "date": "1977-08-20", "startTime": "14:29", "color": "#2e9e5b", "actionId": "open-mission-29"}
+            - {"id": "launch-14", "title": "Voyager 1 · Titan IIIE", "date": "1977-09-05", "startTime": "12:56", "color": "#2e9e5b", "actionId": "open-mission-28"}
+            - {"id": "launch-15", "title": "STS-1 · Space Shuttle", "date": "1981-04-12", "color": "#2e9e5b", "actionId": "open-mission-11"}
+            - {"id": "launch-16", "title": "STS-7 · Space Shuttle", "date": "1983-06-18", "color": "#2e9e5b", "actionId": "open-mission-12"}
+            - {"id": "launch-17", "title": "STS-41-B · Space Shuttle", "date": "1984-02-03", "color": "#2e9e5b", "actionId": "open-mission-13"}
+            - {"id": "launch-18", "title": "STS-51-L · Space Shuttle", "date": "1986-01-28", "startTime": "16:38", "color": "#d93025", "actionId": "open-mission-14"}
+            - {"id": "launch-19", "title": "Galileo · Space Shuttle", "date": "1989-10-18", "startTime": "16:53", "color": "#2e9e5b", "actionId": "open-mission-30"}
+            - {"id": "launch-20", "title": "STS-31 · Space Shuttle", "date": "1990-04-24", "startTime": "12:33", "color": "#2e9e5b", "actionId": "open-mission-15"}
+            - {"id": "launch-21", "title": "STS-61 · Space Shuttle", "date": "1993-12-02", "color": "#2e9e5b", "actionId": "open-mission-16"}
+            - {"id": "launch-22", "title": "Mars Pathfinder · Delta II", "date": "1996-12-04", "startTime": "06:58", "color": "#2e9e5b", "actionId": "open-mission-31"}
+            - {"id": "launch-23", "title": "Cassini–Huygens · Titan IV", "date": "1997-10-15", "startTime": "08:43", "color": "#2e9e5b", "actionId": "open-mission-32"}
+            - {"id": "launch-24", "title": "STS-95 · Space Shuttle", "date": "1998-10-29", "color": "#2e9e5b", "actionId": "open-mission-17"}
+            - {"id": "launch-25", "title": "Expedition 1 · Soyuz-U", "date": "2000-10-31", "startTime": "07:52", "color": "#2e9e5b", "actionId": "open-mission-20"}
+            - {"id": "launch-26", "title": "STS-107 · Space Shuttle", "date": "2003-01-16", "color": "#2e9e5b", "actionId": "open-mission-18"}
+            - {"id": "launch-27", "title": "Spirit · Delta II", "date": "2003-06-10", "startTime": "17:58", "color": "#2e9e5b", "actionId": "open-mission-33"}
+            - {"id": "launch-28", "title": "Opportunity · Delta II", "date": "2003-07-08", "startTime": "03:18", "color": "#2e9e5b", "actionId": "open-mission-34"}
+            - {"id": "launch-29", "title": "MESSENGER · Delta II", "date": "2004-08-03", "startTime": "06:15", "color": "#2e9e5b", "actionId": "open-mission-54"}
+            - {"id": "launch-30", "title": "New Horizons · Atlas V 551", "date": "2006-01-19", "startTime": "19:00", "color": "#2e9e5b", "actionId": "open-mission-35"}
+            - {"id": "launch-31", "title": "Kepler · Delta II", "date": "2009-03-07", "startTime": "03:49", "color": "#2e9e5b", "actionId": "open-mission-36"}
+            - {"id": "launch-32", "title": "Lunar Reconnaissance Orbiter · Atlas V 401", "date": "2009-06-18", "startTime": "21:32", "color": "#2e9e5b", "actionId": "open-mission-51"}
+            - {"id": "launch-33", "title": "STS-135 · Space Shuttle", "date": "2011-07-08", "color": "#2e9e5b", "actionId": "open-mission-19"}
+            - {"id": "launch-34", "title": "Juno · Atlas V 551", "date": "2011-08-05", "startTime": "16:25", "color": "#2e9e5b", "actionId": "open-mission-38"}
+            - {"id": "launch-35", "title": "Mars Science Laboratory · Atlas V 541", "date": "2011-11-26", "startTime": "15:02", "color": "#2e9e5b", "actionId": "open-mission-37"}
+            - {"id": "launch-36", "title": "OSIRIS-REx · Atlas V 411", "date": "2016-09-08", "startTime": "23:05", "color": "#2e9e5b", "actionId": "open-mission-39"}
+            - {"id": "launch-37", "title": "TESS · Falcon 9 Full Thrust", "date": "2018-04-18", "startTime": "22:51", "color": "#2e9e5b", "actionId": "open-mission-42"}
+            - {"id": "launch-38", "title": "InSight · Atlas V 401", "date": "2018-05-05", "startTime": "11:05", "color": "#2e9e5b", "actionId": "open-mission-40"}
+            - {"id": "launch-39", "title": "Parker Solar Probe · Delta IV Heavy", "date": "2018-08-12", "startTime": "07:31", "color": "#2e9e5b", "actionId": "open-mission-41"}
+            - {"id": "launch-40", "title": "Crew Dragon Demo-2 · Falcon 9 Block 5", "date": "2020-05-30", "startTime": "19:22", "color": "#2e9e5b", "actionId": "open-mission-21"}
+            - {"id": "launch-41", "title": "Mars 2020 · Atlas V 541", "date": "2020-07-30", "startTime": "11:50", "color": "#2e9e5b", "actionId": "open-mission-43"}
+            - {"id": "launch-42", "title": "Crew-1 · Falcon 9 Block 5", "date": "2020-11-16", "startTime": "00:27", "color": "#2e9e5b", "actionId": "open-mission-22"}
+            - {"id": "launch-43", "title": "Lucy · Atlas V 401", "date": "2021-10-16", "startTime": "09:34", "color": "#2e9e5b", "actionId": "open-mission-46"}
+            - {"id": "launch-44", "title": "DART · Falcon 9 Block 5", "date": "2021-11-24", "startTime": "06:21", "color": "#2e9e5b", "actionId": "open-mission-45"}
+            - {"id": "launch-45", "title": "James Webb Space Telescope · Ariane 5 ECA", "date": "2021-12-25", "startTime": "12:20", "color": "#2e9e5b", "actionId": "open-mission-50"}
+            - {"id": "launch-46", "title": "Artemis I · Space Launch System Block 1", "date": "2022-11-16", "startTime": "06:47", "color": "#2e9e5b", "actionId": "open-mission-23"}
+            - {"id": "launch-47", "title": "Psyche · Falcon Heavy", "date": "2023-10-13", "startTime": "14:19", "color": "#2e9e5b", "actionId": "open-mission-47"}
+            - {"id": "launch-48", "title": "Europa Clipper · Falcon Heavy", "date": "2024-10-14", "startTime": "16:06", "color": "#2e9e5b", "actionId": "open-mission-48"}
+            - {"id": "launch-49", "title": "Artemis II · Space Launch System Block 1", "date": "2026-04-01", "startTime": "22:35", "color": "#2e9e5b", "actionId": "open-mission-24"}
+            - {"id": "launch-50", "title": "Nancy Grace Roman Space Telescope · Falcon Heavy", "date": "2026-08-30", "startTime": "11:25", "color": "#2e9e5b", "actionId": "open-mission-53"}
+      - type: Tab
+        label: "July 2020 · Mars 2020"
+        content:
+          type: Calendar
+          month: "2020-07-01"
+          view: month
+          views: [month, week, day, list]
+          days: [{"date": "1969-07-20", "label": "Moon landing", "tone": "success"}, {"date": "1986-01-28", "label": "Challenger", "tone": "error"}, {"date": "2021-02-18", "label": "Perseverance lands", "tone": "success"}]
+          events:
+            - {"id": "launch-1", "title": "Freedom 7 · Mercury-Redstone Launch Vehicle", "date": "1961-05-05", "color": "#2e9e5b", "actionId": "open-mission-1"}
+            - {"id": "launch-2", "title": "Friendship 7 · SM-65D Atlas", "date": "1962-02-20", "color": "#2e9e5b", "actionId": "open-mission-2"}
+            - {"id": "launch-3", "title": "Gemini 4 · Titan II GLV", "date": "1965-06-03", "color": "#2e9e5b", "actionId": "open-mission-3"}
+            - {"id": "launch-4", "title": "Gemini 8 · Titan II GLV", "date": "1966-03-16", "color": "#2e9e5b", "actionId": "open-mission-4"}
+            - {"id": "launch-5", "title": "Apollo 8 · Saturn V", "date": "1968-12-21", "color": "#2e9e5b", "actionId": "open-mission-5"}
+            - {"id": "launch-6", "title": "Apollo 11 · Saturn V", "date": "1969-07-16", "startTime": "13:32", "color": "#2e9e5b", "actionId": "open-mission-6"}
+            - {"id": "launch-7", "title": "Apollo 13 · Saturn V", "date": "1970-04-11", "startTime": "19:13", "color": "#2e9e5b", "actionId": "open-mission-7"}
+            - {"id": "launch-8", "title": "Apollo 15 · Saturn V", "date": "1971-07-26", "color": "#2e9e5b", "actionId": "open-mission-8"}
+            - {"id": "launch-9", "title": "Apollo 17 · Saturn V", "date": "1972-12-07", "color": "#2e9e5b", "actionId": "open-mission-9"}
+            - {"id": "launch-10", "title": "Pioneer 10 · Atlas SLV-3C Centaur-D", "date": "1973-03-03", "startTime": "01:49", "color": "#2e9e5b", "actionId": "open-mission-26"}
+            - {"id": "launch-11", "title": "Skylab 2 · Saturn IB", "date": "1973-05-25", "color": "#2e9e5b", "actionId": "open-mission-10"}
+            - {"id": "launch-12", "title": "Viking 1 · Titan IIIE", "date": "1975-08-20", "startTime": "21:22", "color": "#2e9e5b", "actionId": "open-mission-27"}
+            - {"id": "launch-13", "title": "Voyager 2 · Titan IIIE", "date": "1977-08-20", "startTime": "14:29", "color": "#2e9e5b", "actionId": "open-mission-29"}
+            - {"id": "launch-14", "title": "Voyager 1 · Titan IIIE", "date": "1977-09-05", "startTime": "12:56", "color": "#2e9e5b", "actionId": "open-mission-28"}
+            - {"id": "launch-15", "title": "STS-1 · Space Shuttle", "date": "1981-04-12", "color": "#2e9e5b", "actionId": "open-mission-11"}
+            - {"id": "launch-16", "title": "STS-7 · Space Shuttle", "date": "1983-06-18", "color": "#2e9e5b", "actionId": "open-mission-12"}
+            - {"id": "launch-17", "title": "STS-41-B · Space Shuttle", "date": "1984-02-03", "color": "#2e9e5b", "actionId": "open-mission-13"}
+            - {"id": "launch-18", "title": "STS-51-L · Space Shuttle", "date": "1986-01-28", "startTime": "16:38", "color": "#d93025", "actionId": "open-mission-14"}
+            - {"id": "launch-19", "title": "Galileo · Space Shuttle", "date": "1989-10-18", "startTime": "16:53", "color": "#2e9e5b", "actionId": "open-mission-30"}
+            - {"id": "launch-20", "title": "STS-31 · Space Shuttle", "date": "1990-04-24", "startTime": "12:33", "color": "#2e9e5b", "actionId": "open-mission-15"}
+            - {"id": "launch-21", "title": "STS-61 · Space Shuttle", "date": "1993-12-02", "color": "#2e9e5b", "actionId": "open-mission-16"}
+            - {"id": "launch-22", "title": "Mars Pathfinder · Delta II", "date": "1996-12-04", "startTime": "06:58", "color": "#2e9e5b", "actionId": "open-mission-31"}
+            - {"id": "launch-23", "title": "Cassini–Huygens · Titan IV", "date": "1997-10-15", "startTime": "08:43", "color": "#2e9e5b", "actionId": "open-mission-32"}
+            - {"id": "launch-24", "title": "STS-95 · Space Shuttle", "date": "1998-10-29", "color": "#2e9e5b", "actionId": "open-mission-17"}
+            - {"id": "launch-25", "title": "Expedition 1 · Soyuz-U", "date": "2000-10-31", "startTime": "07:52", "color": "#2e9e5b", "actionId": "open-mission-20"}
+            - {"id": "launch-26", "title": "STS-107 · Space Shuttle", "date": "2003-01-16", "color": "#2e9e5b", "actionId": "open-mission-18"}
+            - {"id": "launch-27", "title": "Spirit · Delta II", "date": "2003-06-10", "startTime": "17:58", "color": "#2e9e5b", "actionId": "open-mission-33"}
+            - {"id": "launch-28", "title": "Opportunity · Delta II", "date": "2003-07-08", "startTime": "03:18", "color": "#2e9e5b", "actionId": "open-mission-34"}
+            - {"id": "launch-29", "title": "MESSENGER · Delta II", "date": "2004-08-03", "startTime": "06:15", "color": "#2e9e5b", "actionId": "open-mission-54"}
+            - {"id": "launch-30", "title": "New Horizons · Atlas V 551", "date": "2006-01-19", "startTime": "19:00", "color": "#2e9e5b", "actionId": "open-mission-35"}
+            - {"id": "launch-31", "title": "Kepler · Delta II", "date": "2009-03-07", "startTime": "03:49", "color": "#2e9e5b", "actionId": "open-mission-36"}
+            - {"id": "launch-32", "title": "Lunar Reconnaissance Orbiter · Atlas V 401", "date": "2009-06-18", "startTime": "21:32", "color": "#2e9e5b", "actionId": "open-mission-51"}
+            - {"id": "launch-33", "title": "STS-135 · Space Shuttle", "date": "2011-07-08", "color": "#2e9e5b", "actionId": "open-mission-19"}
+            - {"id": "launch-34", "title": "Juno · Atlas V 551", "date": "2011-08-05", "startTime": "16:25", "color": "#2e9e5b", "actionId": "open-mission-38"}
+            - {"id": "launch-35", "title": "Mars Science Laboratory · Atlas V 541", "date": "2011-11-26", "startTime": "15:02", "color": "#2e9e5b", "actionId": "open-mission-37"}
+            - {"id": "launch-36", "title": "OSIRIS-REx · Atlas V 411", "date": "2016-09-08", "startTime": "23:05", "color": "#2e9e5b", "actionId": "open-mission-39"}
+            - {"id": "launch-37", "title": "TESS · Falcon 9 Full Thrust", "date": "2018-04-18", "startTime": "22:51", "color": "#2e9e5b", "actionId": "open-mission-42"}
+            - {"id": "launch-38", "title": "InSight · Atlas V 401", "date": "2018-05-05", "startTime": "11:05", "color": "#2e9e5b", "actionId": "open-mission-40"}
+            - {"id": "launch-39", "title": "Parker Solar Probe · Delta IV Heavy", "date": "2018-08-12", "startTime": "07:31", "color": "#2e9e5b", "actionId": "open-mission-41"}
+            - {"id": "launch-40", "title": "Crew Dragon Demo-2 · Falcon 9 Block 5", "date": "2020-05-30", "startTime": "19:22", "color": "#2e9e5b", "actionId": "open-mission-21"}
+            - {"id": "launch-41", "title": "Mars 2020 · Atlas V 541", "date": "2020-07-30", "startTime": "11:50", "color": "#2e9e5b", "actionId": "open-mission-43"}
+            - {"id": "launch-42", "title": "Crew-1 · Falcon 9 Block 5", "date": "2020-11-16", "startTime": "00:27", "color": "#2e9e5b", "actionId": "open-mission-22"}
+            - {"id": "launch-43", "title": "Lucy · Atlas V 401", "date": "2021-10-16", "startTime": "09:34", "color": "#2e9e5b", "actionId": "open-mission-46"}
+            - {"id": "launch-44", "title": "DART · Falcon 9 Block 5", "date": "2021-11-24", "startTime": "06:21", "color": "#2e9e5b", "actionId": "open-mission-45"}
+            - {"id": "launch-45", "title": "James Webb Space Telescope · Ariane 5 ECA", "date": "2021-12-25", "startTime": "12:20", "color": "#2e9e5b", "actionId": "open-mission-50"}
+            - {"id": "launch-46", "title": "Artemis I · Space Launch System Block 1", "date": "2022-11-16", "startTime": "06:47", "color": "#2e9e5b", "actionId": "open-mission-23"}
+            - {"id": "launch-47", "title": "Psyche · Falcon Heavy", "date": "2023-10-13", "startTime": "14:19", "color": "#2e9e5b", "actionId": "open-mission-47"}
+            - {"id": "launch-48", "title": "Europa Clipper · Falcon Heavy", "date": "2024-10-14", "startTime": "16:06", "color": "#2e9e5b", "actionId": "open-mission-48"}
+            - {"id": "launch-49", "title": "Artemis II · Space Launch System Block 1", "date": "2026-04-01", "startTime": "22:35", "color": "#2e9e5b", "actionId": "open-mission-24"}
+            - {"id": "launch-50", "title": "Nancy Grace Roman Space Telescope · Falcon Heavy", "date": "2026-08-30", "startTime": "11:25", "color": "#2e9e5b", "actionId": "open-mission-53"}
+      - type: Tab
+        label: "April 2026 · Artemis II"
+        content:
+          type: Calendar
+          month: "2026-04-01"
+          view: month
+          views: [month, week, day, list]
+          days: [{"date": "1969-07-20", "label": "Moon landing", "tone": "success"}, {"date": "1986-01-28", "label": "Challenger", "tone": "error"}, {"date": "2021-02-18", "label": "Perseverance lands", "tone": "success"}]
+          events:
+            - {"id": "launch-1", "title": "Freedom 7 · Mercury-Redstone Launch Vehicle", "date": "1961-05-05", "color": "#2e9e5b", "actionId": "open-mission-1"}
+            - {"id": "launch-2", "title": "Friendship 7 · SM-65D Atlas", "date": "1962-02-20", "color": "#2e9e5b", "actionId": "open-mission-2"}
+            - {"id": "launch-3", "title": "Gemini 4 · Titan II GLV", "date": "1965-06-03", "color": "#2e9e5b", "actionId": "open-mission-3"}
+            - {"id": "launch-4", "title": "Gemini 8 · Titan II GLV", "date": "1966-03-16", "color": "#2e9e5b", "actionId": "open-mission-4"}
+            - {"id": "launch-5", "title": "Apollo 8 · Saturn V", "date": "1968-12-21", "color": "#2e9e5b", "actionId": "open-mission-5"}
+            - {"id": "launch-6", "title": "Apollo 11 · Saturn V", "date": "1969-07-16", "startTime": "13:32", "color": "#2e9e5b", "actionId": "open-mission-6"}
+            - {"id": "launch-7", "title": "Apollo 13 · Saturn V", "date": "1970-04-11", "startTime": "19:13", "color": "#2e9e5b", "actionId": "open-mission-7"}
+            - {"id": "launch-8", "title": "Apollo 15 · Saturn V", "date": "1971-07-26", "color": "#2e9e5b", "actionId": "open-mission-8"}
+            - {"id": "launch-9", "title": "Apollo 17 · Saturn V", "date": "1972-12-07", "color": "#2e9e5b", "actionId": "open-mission-9"}
+            - {"id": "launch-10", "title": "Pioneer 10 · Atlas SLV-3C Centaur-D", "date": "1973-03-03", "startTime": "01:49", "color": "#2e9e5b", "actionId": "open-mission-26"}
+            - {"id": "launch-11", "title": "Skylab 2 · Saturn IB", "date": "1973-05-25", "color": "#2e9e5b", "actionId": "open-mission-10"}
+            - {"id": "launch-12", "title": "Viking 1 · Titan IIIE", "date": "1975-08-20", "startTime": "21:22", "color": "#2e9e5b", "actionId": "open-mission-27"}
+            - {"id": "launch-13", "title": "Voyager 2 · Titan IIIE", "date": "1977-08-20", "startTime": "14:29", "color": "#2e9e5b", "actionId": "open-mission-29"}
+            - {"id": "launch-14", "title": "Voyager 1 · Titan IIIE", "date": "1977-09-05", "startTime": "12:56", "color": "#2e9e5b", "actionId": "open-mission-28"}
+            - {"id": "launch-15", "title": "STS-1 · Space Shuttle", "date": "1981-04-12", "color": "#2e9e5b", "actionId": "open-mission-11"}
+            - {"id": "launch-16", "title": "STS-7 · Space Shuttle", "date": "1983-06-18", "color": "#2e9e5b", "actionId": "open-mission-12"}
+            - {"id": "launch-17", "title": "STS-41-B · Space Shuttle", "date": "1984-02-03", "color": "#2e9e5b", "actionId": "open-mission-13"}
+            - {"id": "launch-18", "title": "STS-51-L · Space Shuttle", "date": "1986-01-28", "startTime": "16:38", "color": "#d93025", "actionId": "open-mission-14"}
+            - {"id": "launch-19", "title": "Galileo · Space Shuttle", "date": "1989-10-18", "startTime": "16:53", "color": "#2e9e5b", "actionId": "open-mission-30"}
+            - {"id": "launch-20", "title": "STS-31 · Space Shuttle", "date": "1990-04-24", "startTime": "12:33", "color": "#2e9e5b", "actionId": "open-mission-15"}
+            - {"id": "launch-21", "title": "STS-61 · Space Shuttle", "date": "1993-12-02", "color": "#2e9e5b", "actionId": "open-mission-16"}
+            - {"id": "launch-22", "title": "Mars Pathfinder · Delta II", "date": "1996-12-04", "startTime": "06:58", "color": "#2e9e5b", "actionId": "open-mission-31"}
+            - {"id": "launch-23", "title": "Cassini–Huygens · Titan IV", "date": "1997-10-15", "startTime": "08:43", "color": "#2e9e5b", "actionId": "open-mission-32"}
+            - {"id": "launch-24", "title": "STS-95 · Space Shuttle", "date": "1998-10-29", "color": "#2e9e5b", "actionId": "open-mission-17"}
+            - {"id": "launch-25", "title": "Expedition 1 · Soyuz-U", "date": "2000-10-31", "startTime": "07:52", "color": "#2e9e5b", "actionId": "open-mission-20"}
+            - {"id": "launch-26", "title": "STS-107 · Space Shuttle", "date": "2003-01-16", "color": "#2e9e5b", "actionId": "open-mission-18"}
+            - {"id": "launch-27", "title": "Spirit · Delta II", "date": "2003-06-10", "startTime": "17:58", "color": "#2e9e5b", "actionId": "open-mission-33"}
+            - {"id": "launch-28", "title": "Opportunity · Delta II", "date": "2003-07-08", "startTime": "03:18", "color": "#2e9e5b", "actionId": "open-mission-34"}
+            - {"id": "launch-29", "title": "MESSENGER · Delta II", "date": "2004-08-03", "startTime": "06:15", "color": "#2e9e5b", "actionId": "open-mission-54"}
+            - {"id": "launch-30", "title": "New Horizons · Atlas V 551", "date": "2006-01-19", "startTime": "19:00", "color": "#2e9e5b", "actionId": "open-mission-35"}
+            - {"id": "launch-31", "title": "Kepler · Delta II", "date": "2009-03-07", "startTime": "03:49", "color": "#2e9e5b", "actionId": "open-mission-36"}
+            - {"id": "launch-32", "title": "Lunar Reconnaissance Orbiter · Atlas V 401", "date": "2009-06-18", "startTime": "21:32", "color": "#2e9e5b", "actionId": "open-mission-51"}
+            - {"id": "launch-33", "title": "STS-135 · Space Shuttle", "date": "2011-07-08", "color": "#2e9e5b", "actionId": "open-mission-19"}
+            - {"id": "launch-34", "title": "Juno · Atlas V 551", "date": "2011-08-05", "startTime": "16:25", "color": "#2e9e5b", "actionId": "open-mission-38"}
+            - {"id": "launch-35", "title": "Mars Science Laboratory · Atlas V 541", "date": "2011-11-26", "startTime": "15:02", "color": "#2e9e5b", "actionId": "open-mission-37"}
+            - {"id": "launch-36", "title": "OSIRIS-REx · Atlas V 411", "date": "2016-09-08", "startTime": "23:05", "color": "#2e9e5b", "actionId": "open-mission-39"}
+            - {"id": "launch-37", "title": "TESS · Falcon 9 Full Thrust", "date": "2018-04-18", "startTime": "22:51", "color": "#2e9e5b", "actionId": "open-mission-42"}
+            - {"id": "launch-38", "title": "InSight · Atlas V 401", "date": "2018-05-05", "startTime": "11:05", "color": "#2e9e5b", "actionId": "open-mission-40"}
+            - {"id": "launch-39", "title": "Parker Solar Probe · Delta IV Heavy", "date": "2018-08-12", "startTime": "07:31", "color": "#2e9e5b", "actionId": "open-mission-41"}
+            - {"id": "launch-40", "title": "Crew Dragon Demo-2 · Falcon 9 Block 5", "date": "2020-05-30", "startTime": "19:22", "color": "#2e9e5b", "actionId": "open-mission-21"}
+            - {"id": "launch-41", "title": "Mars 2020 · Atlas V 541", "date": "2020-07-30", "startTime": "11:50", "color": "#2e9e5b", "actionId": "open-mission-43"}
+            - {"id": "launch-42", "title": "Crew-1 · Falcon 9 Block 5", "date": "2020-11-16", "startTime": "00:27", "color": "#2e9e5b", "actionId": "open-mission-22"}
+            - {"id": "launch-43", "title": "Lucy · Atlas V 401", "date": "2021-10-16", "startTime": "09:34", "color": "#2e9e5b", "actionId": "open-mission-46"}
+            - {"id": "launch-44", "title": "DART · Falcon 9 Block 5", "date": "2021-11-24", "startTime": "06:21", "color": "#2e9e5b", "actionId": "open-mission-45"}
+            - {"id": "launch-45", "title": "James Webb Space Telescope · Ariane 5 ECA", "date": "2021-12-25", "startTime": "12:20", "color": "#2e9e5b", "actionId": "open-mission-50"}
+            - {"id": "launch-46", "title": "Artemis I · Space Launch System Block 1", "date": "2022-11-16", "startTime": "06:47", "color": "#2e9e5b", "actionId": "open-mission-23"}
+            - {"id": "launch-47", "title": "Psyche · Falcon Heavy", "date": "2023-10-13", "startTime": "14:19", "color": "#2e9e5b", "actionId": "open-mission-47"}
+            - {"id": "launch-48", "title": "Europa Clipper · Falcon Heavy", "date": "2024-10-14", "startTime": "16:06", "color": "#2e9e5b", "actionId": "open-mission-48"}
+            - {"id": "launch-49", "title": "Artemis II · Space Launch System Block 1", "date": "2026-04-01", "startTime": "22:35", "color": "#2e9e5b", "actionId": "open-mission-24"}
+            - {"id": "launch-50", "title": "Nancy Grace Roman Space Telescope · Falcon Heavy", "date": "2026-08-30", "startTime": "11:25", "color": "#2e9e5b", "actionId": "open-mission-53"}
+  # <<< generated: calendars
+actions:
+  # >>> generated: actions (scripts/snapshot.py — do not edit by hand)
+  - {"id": "open-mission-1", "steps": [{"type": "Navigate", "route": "missions/1"}]}
+  - {"id": "open-mission-2", "steps": [{"type": "Navigate", "route": "missions/2"}]}
+  - {"id": "open-mission-3", "steps": [{"type": "Navigate", "route": "missions/3"}]}
+  - {"id": "open-mission-4", "steps": [{"type": "Navigate", "route": "missions/4"}]}
+  - {"id": "open-mission-5", "steps": [{"type": "Navigate", "route": "missions/5"}]}
+  - {"id": "open-mission-6", "steps": [{"type": "Navigate", "route": "missions/6"}]}
+  - {"id": "open-mission-7", "steps": [{"type": "Navigate", "route": "missions/7"}]}
+  - {"id": "open-mission-8", "steps": [{"type": "Navigate", "route": "missions/8"}]}
+  - {"id": "open-mission-9", "steps": [{"type": "Navigate", "route": "missions/9"}]}
+  - {"id": "open-mission-10", "steps": [{"type": "Navigate", "route": "missions/10"}]}
+  - {"id": "open-mission-11", "steps": [{"type": "Navigate", "route": "missions/11"}]}
+  - {"id": "open-mission-12", "steps": [{"type": "Navigate", "route": "missions/12"}]}
+  - {"id": "open-mission-13", "steps": [{"type": "Navigate", "route": "missions/13"}]}
+  - {"id": "open-mission-14", "steps": [{"type": "Navigate", "route": "missions/14"}]}
+  - {"id": "open-mission-15", "steps": [{"type": "Navigate", "route": "missions/15"}]}
+  - {"id": "open-mission-16", "steps": [{"type": "Navigate", "route": "missions/16"}]}
+  - {"id": "open-mission-17", "steps": [{"type": "Navigate", "route": "missions/17"}]}
+  - {"id": "open-mission-18", "steps": [{"type": "Navigate", "route": "missions/18"}]}
+  - {"id": "open-mission-19", "steps": [{"type": "Navigate", "route": "missions/19"}]}
+  - {"id": "open-mission-20", "steps": [{"type": "Navigate", "route": "missions/20"}]}
+  - {"id": "open-mission-21", "steps": [{"type": "Navigate", "route": "missions/21"}]}
+  - {"id": "open-mission-22", "steps": [{"type": "Navigate", "route": "missions/22"}]}
+  - {"id": "open-mission-23", "steps": [{"type": "Navigate", "route": "missions/23"}]}
+  - {"id": "open-mission-24", "steps": [{"type": "Navigate", "route": "missions/24"}]}
+  - {"id": "open-mission-26", "steps": [{"type": "Navigate", "route": "missions/26"}]}
+  - {"id": "open-mission-27", "steps": [{"type": "Navigate", "route": "missions/27"}]}
+  - {"id": "open-mission-28", "steps": [{"type": "Navigate", "route": "missions/28"}]}
+  - {"id": "open-mission-29", "steps": [{"type": "Navigate", "route": "missions/29"}]}
+  - {"id": "open-mission-30", "steps": [{"type": "Navigate", "route": "missions/30"}]}
+  - {"id": "open-mission-31", "steps": [{"type": "Navigate", "route": "missions/31"}]}
+  - {"id": "open-mission-32", "steps": [{"type": "Navigate", "route": "missions/32"}]}
+  - {"id": "open-mission-33", "steps": [{"type": "Navigate", "route": "missions/33"}]}
+  - {"id": "open-mission-34", "steps": [{"type": "Navigate", "route": "missions/34"}]}
+  - {"id": "open-mission-35", "steps": [{"type": "Navigate", "route": "missions/35"}]}
+  - {"id": "open-mission-36", "steps": [{"type": "Navigate", "route": "missions/36"}]}
+  - {"id": "open-mission-37", "steps": [{"type": "Navigate", "route": "missions/37"}]}
+  - {"id": "open-mission-38", "steps": [{"type": "Navigate", "route": "missions/38"}]}
+  - {"id": "open-mission-39", "steps": [{"type": "Navigate", "route": "missions/39"}]}
+  - {"id": "open-mission-40", "steps": [{"type": "Navigate", "route": "missions/40"}]}
+  - {"id": "open-mission-41", "steps": [{"type": "Navigate", "route": "missions/41"}]}
+  - {"id": "open-mission-42", "steps": [{"type": "Navigate", "route": "missions/42"}]}
+  - {"id": "open-mission-43", "steps": [{"type": "Navigate", "route": "missions/43"}]}
+  - {"id": "open-mission-45", "steps": [{"type": "Navigate", "route": "missions/45"}]}
+  - {"id": "open-mission-46", "steps": [{"type": "Navigate", "route": "missions/46"}]}
+  - {"id": "open-mission-47", "steps": [{"type": "Navigate", "route": "missions/47"}]}
+  - {"id": "open-mission-48", "steps": [{"type": "Navigate", "route": "missions/48"}]}
+  - {"id": "open-mission-50", "steps": [{"type": "Navigate", "route": "missions/50"}]}
+  - {"id": "open-mission-51", "steps": [{"type": "Navigate", "route": "missions/51"}]}
+  - {"id": "open-mission-53", "steps": [{"type": "Navigate", "route": "missions/53"}]}
+  - {"id": "open-mission-54", "steps": [{"type": "Navigate", "route": "missions/54"}]}
+  # <<< generated: actions

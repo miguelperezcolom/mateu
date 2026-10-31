@@ -1,0 +1,56 @@
+# The budget: two charts over the years and the programs (a snapshot, see scripts/snapshot.py) above
+# the budget lines themselves — a listing the SERVER filters by program, category and fiscal-year
+# range. The yearly totals follow Wikidata; the split by program is SYNTHETIC, and each line says so.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Budget
+subtitle: Millions of US dollars per program and fiscal year — totals from Wikidata, split synthetic
+banners:
+  - {theme: INFO, title: Synthetic split, description: "NASA's yearly totals come from Wikidata (2011, 2021 and 2023; the years between are interpolated). How each year is split between programs is generated, not real."}
+content:
+  - type: DashboardLayout
+    columns: 3
+    items:
+      # >>> generated: charts (scripts/snapshot.py — do not edit by hand)
+      - {"type": "DashboardPanel", "title": "Budget per year", "subtitle": "Millions of USD (totals: Wikidata, interpolated)", "content": {"type": "Chart", "chartType": "bar", "chartData": {"labels": ["2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"], "datasets": [{"label": "Budget (M USD)", "data": [18275.4, 18342.6, 18994.5, 19633.7, 19730.0, 19869.0, 20802.8, 21366.9, 21763.7, 22115.8, 22796.3, 23632.5, 24630.5, 25079.6, 25300.8]}]}}, "colSpan": 2}
+      - {"type": "DashboardPanel", "title": "By program, FY2025", "subtitle": "Millions of USD (synthetic split)", "content": {"type": "Chart", "chartType": "doughnut", "chartData": {"labels": ["Science", "Exploration", "Space Operations", "Safety, Security and Mission Services", "Space Technology", "Aeronautics", "Construction and Environmental Compliance", "STEM Engagement", "Inspector General"], "datasets": [{"label": "Budget (M USD)", "data": [7442.5, 6435.8, 5051.9, 3458.1, 1284.9, 913.4, 532.8, 133.1, 48.3]}]}}}
+      # <<< generated: charts
+  - type: Listing
+    title: Budget lines
+    pageSize: 15
+    searchable: false
+    filters:
+      - type: FormField
+        id: program
+        label: Program
+        stereotype: select
+        options:
+          - {value: Science, label: Science}
+          - {value: Exploration, label: Exploration}
+          - {value: Space Operations, label: Space Operations}
+          - {value: Space Technology, label: Space Technology}
+          - {value: Aeronautics, label: Aeronautics}
+          - {value: STEM Engagement, label: STEM Engagement}
+          - {value: "Safety, Security and Mission Services", label: "Safety, Security and Mission Services"}
+          - {value: Construction and Environmental Compliance, label: Construction and Environmental Compliance}
+          - {value: Inspector General, label: Inspector General}
+      - type: FormField
+        id: category
+        label: Category
+        stereotype: multiSelect
+        options:
+          - {value: SCIENCE, label: Science}
+          - {value: EXPLORATION, label: Exploration}
+          - {value: OPERATIONS, label: Operations}
+          - {value: TECHNOLOGY, label: Technology}
+          - {value: AERONAUTICS, label: Aeronautics}
+          - {value: EDUCATION, label: Education}
+          - {value: SUPPORT, label: Support}
+      - {type: FormField, id: fiscalYear, label: Fiscal year, dataType: integer, stereotype: numberRange}
+    rowsSource: {ref: space-budgets}
+    columns:
+      - {type: GridColumn, id: fiscalYear, label: FY, dataType: integer}
+      - {type: GridColumn, id: program, label: Program, identifier: true}
+      - {type: GridColumn, id: category, label: Category}
+      - {type: GridColumn, id: amountMillionsUsd, label: M USD, dataType: number}
+      - {type: GridColumn, id: basis, label: Basis}

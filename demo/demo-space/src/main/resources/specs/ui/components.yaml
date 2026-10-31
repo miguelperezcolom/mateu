@@ -1,0 +1,18 @@
+# Every spacecraft's breakdown as one TREE (`gridLayout: tree`): spacecraft → subsystem →
+# instrument, each row's `children` the next level, as /api/spacecraft/tree serves it. The search
+# runs on the server and keeps the branches that lead to a match (try "camera" or "RTG").
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Component tree
+subtitle: Spacecraft, their subsystems and their instruments
+gridLayout: tree
+pageSize: 200
+searchable: true
+rowsSource: {ref: space-spacecraft-tree}
+columns:
+  - {type: GridColumn, id: name, label: Component, identifier: true}
+  - {type: GridColumn, id: kind, label: Kind}
+  - {type: GridColumn, id: description, label: Spacecraft type}
+  # WORKAROUND: a listing keeps only the declared columns of a fetched row, so the tree's
+  # `children` must be declared to survive; it cannot be hidden, so it shows last — see the README.
+  - {type: GridColumn, id: children, label: ""}

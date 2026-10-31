@@ -1,0 +1,81 @@
+# Create a mission in one page — the ADVANCED CREATE AND EDIT template again, as a create: nothing
+# about it is a special "create mode", it is a form whose action happens to be a create. For the
+# step-by-step way to the same record see the wizard, plan.yaml.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: New mission
+titlePlaceholder: New mission…
+subtitle: Add a mission to the dataset
+toolbar:
+  - type: Button
+    actionId: cancel-new
+    label: Cancel
+    actionable: {type: RouteLink, route: missions}
+  - {type: Button, label: Create, actionId: create, buttonStyle: primary}
+template:
+  type: AdvancedCreateEditPage
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Identity}
+        content:
+          type: FormLayout
+          maxColumns: 3
+          content:
+            - {type: FormField, id: name, label: Name, required: true, autofocus: true}
+            - {type: FormField, id: program, label: Program}
+            - {type: FormField, id: agency, label: Agency, initialValue: NASA}
+            - type: FormField
+              id: type
+              label: Type
+              stereotype: select
+              options:
+                - {value: CREWED, label: Crewed}
+                - {value: ORBITER, label: Orbiter}
+                - {value: LANDER, label: Lander}
+                - {value: ROVER, label: Rover}
+                - {value: PROBE, label: Probe}
+                - {value: TELESCOPE, label: Telescope}
+                - {value: SAMPLE_RETURN, label: Sample return}
+            - type: FormField
+              id: status
+              label: Status
+              stereotype: select
+              initialValue: PLANNED
+              options:
+                - {value: PLANNED, label: Planned}
+                - {value: ACTIVE, label: Active}
+                - {value: COMPLETED, label: Completed}
+            - {type: FormField, id: destinationId, label: Destination, stereotype: select, optionsSource: {ref: space-body-options}}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Schedule and money}
+        content:
+          type: FormLayout
+          maxColumns: 3
+          content:
+            - {type: FormField, id: launchDate, label: Launch date, dataType: date}
+            - {type: FormField, id: launchWindow, label: Launch window, dataType: dateRange, stereotype: dateRange}
+            - {type: FormField, id: cost, label: Cost, dataType: money}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Objectives}
+        content:
+          type: FormLayout
+          maxColumns: 1
+          content:
+            - {type: FormField, id: summary, label: Summary, stereotype: textarea}
+            - {type: FormField, id: objectives, label: Objectives, stereotype: richText}
+actions:
+  - id: create
+    validationRequired: true
+    restAction:
+      source: {ref: space-mission-create}
+      successMessage: Created
+      # the response is the created mission, id included: merged into the state, it lets the
+      # client land on the new mission's own page
+      resultPath: ""
+      successRoute: missions/${state.id}

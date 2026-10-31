@@ -1,0 +1,100 @@
+# The missions in time: a GANTT of how long each one lasted (green: still active) and a TIMELINE of
+# the milestones — the featured missions and the ones that were lost. Both carry their data, so they
+# are a snapshot of /api/missions (scripts/snapshot.py); a milestone opens its mission.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Mission timeline
+subtitle: How long each mission lasted, and the moments that mattered
+content:
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Durations
+        content:
+          type: Gantt
+          # >>> generated: gantt (scripts/snapshot.py — do not edit by hand)
+          tasks:
+            - {"id": "m3", "title": "Gemini 4", "start": "1965-06-03", "end": "1965-06-07", "progress": 100, "color": "#1676f3"}
+            - {"id": "m4", "title": "Gemini 8", "start": "1966-03-16", "end": "1966-03-17", "progress": 100, "color": "#1676f3"}
+            - {"id": "m5", "title": "Apollo 8", "start": "1968-12-21", "end": "1968-12-27", "progress": 100, "color": "#1676f3"}
+            - {"id": "m6", "title": "Apollo 11", "start": "1969-07-16", "end": "1969-07-24", "progress": 100, "color": "#1676f3"}
+            - {"id": "m7", "title": "Apollo 13", "start": "1970-04-11", "end": "1970-04-17", "progress": 100, "color": "#d93025"}
+            - {"id": "m8", "title": "Apollo 15", "start": "1971-07-26", "end": "1971-08-07", "progress": 100, "color": "#1676f3"}
+            - {"id": "m9", "title": "Apollo 17", "start": "1972-12-07", "end": "1972-12-19", "progress": 100, "color": "#1676f3"}
+            - {"id": "m26", "title": "Pioneer 10", "start": "1973-03-03", "end": "2003-01-23", "progress": 100, "color": "#1676f3"}
+            - {"id": "m10", "title": "Skylab 2", "start": "1973-05-25", "end": "1973-06-22", "progress": 100, "color": "#1676f3"}
+            - {"id": "m27", "title": "Viking 1", "start": "1975-08-20", "end": "1982-11-13", "progress": 100, "color": "#1676f3"}
+            - {"id": "m29", "title": "Voyager 2", "start": "1977-08-20", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m28", "title": "Voyager 1", "start": "1977-09-05", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m11", "title": "STS-1", "start": "1981-04-12", "end": "1981-04-14", "progress": 100, "color": "#1676f3"}
+            - {"id": "m12", "title": "STS-7", "start": "1983-06-18", "end": "1983-06-24", "progress": 100, "color": "#1676f3"}
+            - {"id": "m13", "title": "STS-41-B", "start": "1984-02-03", "end": "1984-02-11", "progress": 100, "color": "#1676f3"}
+            - {"id": "m30", "title": "Galileo", "start": "1989-10-18", "end": "2003-09-21", "progress": 100, "color": "#1676f3"}
+            - {"id": "m15", "title": "STS-31", "start": "1990-04-24", "end": "1990-04-29", "progress": 100, "color": "#1676f3"}
+            - {"id": "m49", "title": "Hubble Space Telescope", "start": "1990-04-24", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m16", "title": "STS-61", "start": "1993-12-02", "end": "1993-12-13", "progress": 100, "color": "#1676f3"}
+            - {"id": "m31", "title": "Mars Pathfinder", "start": "1996-12-04", "end": "1997-09-27", "progress": 100, "color": "#1676f3"}
+            - {"id": "m32", "title": "Cassini–Huygens", "start": "1997-10-15", "end": "2017-09-15", "progress": 100, "color": "#1676f3"}
+            - {"id": "m17", "title": "STS-95", "start": "1998-10-29", "end": "1998-11-07", "progress": 100, "color": "#1676f3"}
+            - {"id": "m20", "title": "Expedition 1", "start": "2000-10-31", "end": "2001-03-19", "progress": 100, "color": "#1676f3"}
+            - {"id": "m33", "title": "Spirit", "start": "2003-06-10", "end": "2010-03-22", "progress": 100, "color": "#1676f3"}
+            - {"id": "m34", "title": "Opportunity", "start": "2003-07-08", "end": "2018-06-10", "progress": 100, "color": "#1676f3"}
+            - {"id": "m54", "title": "MESSENGER", "start": "2004-08-03", "end": "2015-04-30", "progress": 100, "color": "#1676f3"}
+            - {"id": "m35", "title": "New Horizons", "start": "2006-01-19", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m36", "title": "Kepler", "start": "2009-03-07", "end": "2018-10-30", "progress": 100, "color": "#1676f3"}
+            - {"id": "m51", "title": "Lunar Reconnaissance Orbiter", "start": "2009-06-18", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m19", "title": "STS-135", "start": "2011-07-08", "end": "2011-07-21", "progress": 100, "color": "#1676f3"}
+            - {"id": "m38", "title": "Juno", "start": "2011-08-05", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m37", "title": "Mars Science Laboratory", "start": "2011-11-26", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m39", "title": "OSIRIS-REx", "start": "2016-09-08", "end": "2023-09-24", "progress": 100, "color": "#1676f3"}
+            - {"id": "m42", "title": "TESS", "start": "2018-04-18", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m40", "title": "InSight", "start": "2018-05-05", "end": "2022-12-15", "progress": 100, "color": "#1676f3"}
+            - {"id": "m41", "title": "Parker Solar Probe", "start": "2018-08-12", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m21", "title": "Crew Dragon Demo-2", "start": "2020-05-30", "end": "2020-08-02", "progress": 100, "color": "#1676f3"}
+            - {"id": "m43", "title": "Mars 2020", "start": "2020-07-30", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m44", "title": "Ingenuity", "start": "2020-07-30", "end": "2024-01-18", "progress": 100, "color": "#1676f3"}
+            - {"id": "m22", "title": "Crew-1", "start": "2020-11-16", "end": "2021-05-02", "progress": 100, "color": "#1676f3"}
+            - {"id": "m46", "title": "Lucy", "start": "2021-10-16", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m45", "title": "DART", "start": "2021-11-24", "end": "2022-09-26", "progress": 100, "color": "#1676f3"}
+            - {"id": "m50", "title": "James Webb Space Telescope", "start": "2021-12-25", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m47", "title": "Psyche", "start": "2023-10-13", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m48", "title": "Europa Clipper", "start": "2024-10-14", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+            - {"id": "m24", "title": "Artemis II", "start": "2026-04-01", "end": "2026-04-11", "progress": 100, "color": "#1676f3"}
+            - {"id": "m53", "title": "Nancy Grace Roman Space Telescope", "start": "2026-08-30", "end": "2026-10-31", "progress": 60, "color": "#2e9e5b"}
+          # <<< generated: gantt
+      - type: Tab
+        label: Milestones
+        content:
+          type: Timeline
+          # >>> generated: items (scripts/snapshot.py — do not edit by hand)
+          items:
+            - {"id": "t6", "title": "Apollo 11", "description": "first Moon landing and fifth crewed flight of the United States Apollo program", "timestamp": "1969-07-16", "color": "#1676f3", "actionId": "open-mission-6"}
+            - {"id": "t7", "title": "Apollo 13", "description": "failed Moon landing and seventh crewed flight of the United States Apollo program", "timestamp": "1970-04-11", "color": "#d93025", "actionId": "open-mission-7"}
+            - {"id": "t28", "title": "Voyager 1", "description": "space probe launched by NASA to study the outer Solar System, furthest spacecraft from Earth", "timestamp": "1977-09-05", "color": "#1676f3", "actionId": "open-mission-28"}
+            - {"id": "t14", "title": "STS-51-L", "description": "twenty-fifth flight of the American Space Shuttle program", "timestamp": "1986-01-28", "color": "#d93025", "actionId": "open-mission-14"}
+            - {"id": "t49", "title": "Hubble Space Telescope", "description": "NASA and ESA space telescope (launched 1990)", "timestamp": "1990-04-24", "color": "#1676f3", "actionId": "open-mission-49"}
+            - {"id": "t32", "title": "Cassini–Huygens", "description": "NASA space mission sent to the Saturn system", "timestamp": "1997-10-15", "color": "#1676f3", "actionId": "open-mission-32"}
+            - {"id": "t18", "title": "STS-107", "description": "final flight of Space Shuttle Columbia", "timestamp": "2003-01-16", "color": "#d93025", "actionId": "open-mission-18"}
+            - {"id": "t35", "title": "New Horizons", "description": "NASA probe that visited Pluto and Kuiper belt object 486958 Arrokoth", "timestamp": "2006-01-19", "color": "#1676f3", "actionId": "open-mission-35"}
+            - {"id": "t37", "title": "Mars Science Laboratory", "description": "Mars mission by NASA, with rover named \"Curiosity\"", "timestamp": "2011-11-26", "color": "#1676f3", "actionId": "open-mission-37"}
+            - {"id": "t21", "title": "Crew Dragon Demo-2", "description": "crewed demonstration flight operated by SpaceX on behalf of NASA", "timestamp": "2020-05-30", "color": "#1676f3", "actionId": "open-mission-21"}
+            - {"id": "t43", "title": "Mars 2020", "description": "Mars mission by NASA, with rover named \"Perseverance\" and helicopter named \"Ingenuity\"", "timestamp": "2020-07-30", "color": "#1676f3", "actionId": "open-mission-43"}
+            - {"id": "t50", "title": "James Webb Space Telescope", "description": "NASA/ESA/CSA space infrared telescope launched in 2021", "timestamp": "2021-12-25", "color": "#1676f3", "actionId": "open-mission-50"}
+            - {"id": "t24", "title": "Artemis II", "description": "NASA's first crewed mission aboard the Orion spacecraft using the Space Launch System", "timestamp": "2026-04-01", "color": "#1676f3", "actionId": "open-mission-24"}
+          # <<< generated: items
+actions:
+  # >>> generated: actions (scripts/snapshot.py — do not edit by hand)
+  - {"id": "open-mission-6", "steps": [{"type": "Navigate", "route": "missions/6"}]}
+  - {"id": "open-mission-7", "steps": [{"type": "Navigate", "route": "missions/7"}]}
+  - {"id": "open-mission-28", "steps": [{"type": "Navigate", "route": "missions/28"}]}
+  - {"id": "open-mission-14", "steps": [{"type": "Navigate", "route": "missions/14"}]}
+  - {"id": "open-mission-49", "steps": [{"type": "Navigate", "route": "missions/49"}]}
+  - {"id": "open-mission-32", "steps": [{"type": "Navigate", "route": "missions/32"}]}
+  - {"id": "open-mission-18", "steps": [{"type": "Navigate", "route": "missions/18"}]}
+  - {"id": "open-mission-35", "steps": [{"type": "Navigate", "route": "missions/35"}]}
+  - {"id": "open-mission-37", "steps": [{"type": "Navigate", "route": "missions/37"}]}
+  - {"id": "open-mission-21", "steps": [{"type": "Navigate", "route": "missions/21"}]}
+  - {"id": "open-mission-43", "steps": [{"type": "Navigate", "route": "missions/43"}]}
+  - {"id": "open-mission-50", "steps": [{"type": "Navigate", "route": "missions/50"}]}
+  - {"id": "open-mission-24", "steps": [{"type": "Navigate", "route": "missions/24"}]}
+  # <<< generated: actions

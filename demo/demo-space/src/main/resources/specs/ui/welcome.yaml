@@ -1,0 +1,86 @@
+# The home page fills Redwood's WELCOME PAGE template: the banner is the page's own title, overline,
+# description (subtitle) and calls to action (toolbar, the primary first); the content is its default
+# slot — the featured missions as picture cards (a listing over the API), then one tile per area.
+# Every link is a RouteLink: no server action behind any of it.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Space Exploration
+overline: A Mateu demo
+subtitle: >-
+  Sixty-five years of NASA missions, the people who flew them, the spacecraft and the launches —
+  searched, filtered, charted, mapped and edited. Every screen is YAML; every photograph is NASA's.
+toolbar:
+  - type: Button
+    label: Browse the missions
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: missions}
+  - type: Button
+    label: Plan a mission
+    actionable: {type: RouteLink, route: plan}
+template:
+  type: WelcomePage
+  backgroundColor: dark-ocean
+content:
+  - type: Listing
+    title: Featured missions
+    pageSize: 10
+    gridLayout: cards
+    rowRoute: missions/${row.id}
+    rowsSource: {ref: space-featured-missions}
+    columns:
+      # a card's picture is its first `image` column, its title the identifier column
+      - {type: GridColumn, id: image, label: Photograph, stereotype: image}
+      - {type: GridColumn, id: name, label: Mission, identifier: true}
+      - {type: GridColumn, id: program, label: Program}
+      - {type: GridColumn, id: launchDate, label: Launched}
+  - type: DashboardLayout
+    columns: 3
+    items:
+      - type: DashboardPanel
+        title: Missions
+        subtitle: 54 missions, 1961–2026
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "Mercury to Artemis, Voyager to Europa Clipper: status, destination, crew, cost and a photo gallery."}
+            - {type: Button, label: Open missions, actionable: {type: RouteLink, route: missions}}
+      - type: DashboardPanel
+        title: Astronauts
+        subtitle: 77 people who flew them
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "Official portraits, astronaut groups, time in space and the flights each one made."}
+            - {type: Button, label: Open astronauts, actionable: {type: RouteLink, route: astronauts}}
+      - type: DashboardPanel
+        title: Launches
+        subtitle: A calendar, a map of the pads
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "When, on what and from where each mission left the ground."}
+            - {type: Button, label: Open the calendar, actionable: {type: RouteLink, route: calendar}}
+      - type: DashboardPanel
+        title: Spacecraft
+        subtitle: 43 vehicles, down to their instruments
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "Capsules, rovers and telescopes, with a tree of subsystems and instruments."}
+            - {type: Button, label: Open spacecraft, actionable: {type: RouteLink, route: spacecraft}}
+      - type: DashboardPanel
+        title: Solar system
+        subtitle: 31 bodies, as a tree
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "The Sun, its planets and their moons, dwarf planets and the asteroids we visited."}
+            - {type: Button, label: Open the solar system, actionable: {type: RouteLink, route: solar-system}}
+      - type: DashboardPanel
+        title: Mission work
+        subtitle: A board of tasks (synthetic)
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "What is left before Artemis III, Dragonfly and Roman fly — backlog to done."}
+            - {type: Button, label: Open the board, actionable: {type: RouteLink, route: board}}
