@@ -273,8 +273,10 @@ IntelliJ `AppContext.enter`) and everything after the first paint still goes to 
   `ContentSlot`): a SERVER micro frontend against remote `mateu.content-slots.remote` (content) at
   `mateu.content-slots.route` (`/content-slots/{key}`); empty (204 / no component) / error / timeout →
   fallback Text or removed, never degraded to the browser unless asked. Keys `application.screen.name`
-  validated + unique per module by the INDEXER AP (`ContentSlotIndex`, compile errors), which writes
-  `META-INF/mateu/content-slots.json`; reserved action `__content_slots__` (off unless
+  validated + unique per module at compile time by `ContentSlotProcessor` (own module
+  `mateu-annotation-processor-slots`, NO services file: the indexer's and every framework AP's services
+  name it — making the indexer a compile dependency of the framework APs instead made the INDEXER run in
+  every app), which writes `META-INF/mateu/content-slots.json`; reserved action `__content_slots__` (off unless
   `mateu.content-slots.descriptor.enabled=true`) merges every module's and lists cross-module `duplicates`.
 - Tests: `MicroFrontendServerResolutionSyncTest` (real `HttpServer` remotes: fast/slow/broken/empty/
   cache), `MicroFrontendServerResolverTest`, `ContentSlotDescriptorsTest`, indexer

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>mateu-shared-parent</artifactId>
+    <groupId>io.mateu</groupId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>mateu-annotation-processor-slots</artifactId>
+
+  <name>Mateu content slots processor</name>
+  <description>Checks @ContentSlot keys and writes META-INF/mateu/content-slots.json; run by the indexer and every framework annotation processor, which name it in their META-INF/services (this jar ships none, so it never runs by merely being on a processor path)</description>
+
+  <properties>
+    <!-- BUNDLE floors (jacoco:check, mvn verify), as the indexer's. Ratchet. -->
+    <jacoco.min.bundle.coverage>97%</jacoco.min.bundle.coverage>
+    <jacoco.min.bundle.branch.coverage>94%</jacoco.min.bundle.branch.coverage>
+    <!-- default for surefire's @{argLine}; jacoco:prepare-agent overrides it with its agent -->
+    <argLine></argLine>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>mateu-uidl</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-web</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.27.7</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.24.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- @{argLine} first: it carries JaCoCo's agent (jacoco:prepare-agent). Overwriting it
+               silently recorded NOTHING, so the coverage floor below was never checked. -->
+          <argLine>
+            @{argLine}
+            -Dnet.bytebuddy.experimental=true
+            --add-opens java.compiler/javax.annotation.processing=ALL-UNNAMED
+            --add-opens java.compiler/javax.lang.model.element=ALL-UNNAMED
+            --add-opens java.compiler/javax.tools=ALL-UNNAMED
+          </argLine>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

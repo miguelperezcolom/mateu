@@ -161,4 +161,25 @@ public class ContentSlotIndexCompileTest {
     assertThat(ContentSlotIndex.quote("a\"b\\c\nd\re\tf\u0001g"))
         .isEqualTo("\"a\\\"b\\\\c\\nd\\re\\tf\\u0001g\"");
   }
+
+  @Test
+  public void theDescriptorCarriesTheProcessorsOwnVersion() {
+    assertThat(ContentSlotProcessor.versionFrom(null)).isNull();
+    assertThat(ContentSlotProcessor.versionFrom(stream("version= \n"))).isNull();
+    assertThat(ContentSlotProcessor.versionFrom(stream("version=3.0-beta.26\n")))
+        .isEqualTo("3.0-beta.26");
+    assertThat(
+            ContentSlotProcessor.versionFrom(
+                new java.io.InputStream() {
+                  @Override
+                  public int read() throws java.io.IOException {
+                    throw new java.io.IOException("broken");
+                  }
+                }))
+        .isNull();
+  }
+
+  private static java.io.InputStream stream(String text) {
+    return new java.io.ByteArrayInputStream(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+  }
 }

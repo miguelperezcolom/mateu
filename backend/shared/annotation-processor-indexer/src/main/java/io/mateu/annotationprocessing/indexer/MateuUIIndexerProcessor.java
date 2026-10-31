@@ -1,6 +1,5 @@
 package io.mateu.annotationprocessing.indexer;
 
-import com.google.auto.service.AutoService;
 import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.KeycloakSecured;
 import io.mateu.uidl.annotations.Link;
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
-import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -29,7 +27,6 @@ import javax.tools.StandardLocation;
  * META-INF/mateu/ui-registrations so that framework-specific APs can read them from the classpath
  * of dependent modules without needing the sources.
  */
-@AutoService(Processor.class)
 @SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI", "io.mateu.uidl.annotations.App"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuUIIndexerProcessor extends AbstractProcessor {

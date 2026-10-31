@@ -22,18 +22,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>com.google.auto.service</groupId>
-      <artifactId>auto-service</artifactId>
-      <version>1.1.1</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
@@ -45,6 +33,14 @@
           <artifactId>spring-web</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- @ContentSlot keys are checked wherever @UI classes are indexed: this jar's services file
+         names ContentSlotProcessor (src/main/resources, merged by AutoService) -->
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>mateu-annotation-processor-slots</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -84,19 +80,6 @@
             --add-opens java.compiler/javax.lang.model.element=ALL-UNNAMED
             --add-opens java.compiler/javax.tools=ALL-UNNAMED
           </argLine>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <annotationProcessorPaths>
-            <path>
-              <groupId>com.google.auto.service</groupId>
-              <artifactId>auto-service</artifactId>
-              <version>1.1.1</version>
-            </path>
-          </annotationProcessorPaths>
         </configuration>
       </plugin>
     </plugins>

@@ -16,6 +16,7 @@
   <modules>
     <module>uidl</module>
     <module>dtos</module>
+    <module>annotation-processor-slots</module>
     <module>annotation-processor-core</module>
     <module>annotation-processor-indexer</module>
     <module>core</module>
