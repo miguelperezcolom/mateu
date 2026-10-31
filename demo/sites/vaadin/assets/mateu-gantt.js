@@ -1,5 +1,5 @@
 
-import{S as e,T as t,a as n,k as r,o as i,p as a,x as o}from"./vendor-lit.js";import{E as s,T as c,g as l,h as u,v as d}from"./mateu-vaadin.js";var f=864e5;function p(e){let t=/^(\d{4})-(\d{2})-(\d{2})/.exec(e??``);if(!t)return null;let n=new Date(Number(t[1]),Number(t[2])-1,Number(t[3])).getTime();return isNaN(n)?null:n}function m(e){let t=(e??[]).flatMap(e=>{let t=p(e?.start),n=p(e?.end);return t==null||n==null?[]:[{task:e,start:t,end:Math.max(t,n)}]});if(!t.length)return null;let n=Math.min(...t.map(e=>e.start))-f,r=Math.max(...t.map(e=>e.end))+2*f,i=r-n;return{min:n,max:r,span:i,bars:t.map(e=>({...e,leftPct:(e.start-n)/i*100,widthPct:(e.end+f-e.start)/i*100}))}}var h=class extends o{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=r`
+import{O as e,a as t,b as n,f as r,i,w as a,x as o}from"./vendor-lit.js";import{E as s,T as c,g as l,h as u,v as d}from"./mateu-vaadin.js";var f=864e5;function p(e){let t=/^(\d{4})-(\d{2})-(\d{2})/.exec(e??``);if(!t)return null;let n=new Date(Number(t[1]),Number(t[2])-1,Number(t[3])).getTime();return isNaN(n)?null:n}function m(e){let t=(e??[]).flatMap(e=>{let t=p(e?.start),n=p(e?.end);return t==null||n==null?[]:[{task:e,start:t,end:Math.max(t,n)}]});if(!t.length)return null;let n=Math.min(...t.map(e=>e.start))-f,r=Math.max(...t.map(e=>e.end))+2*f,i=r-n;return{min:n,max:r,span:i,bars:t.map(e=>({...e,leftPct:(e.start-n)/i*100,widthPct:(e.end+f-e.start)/i*100}))}}var h=class extends n{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=e`
         :host {
             display: block;
             width: 100%;
@@ -75,27 +75,27 @@ import{S as e,T as t,a as n,k as r,o as i,p as a,x as o}from"./vendor-lit.js";im
         }
     
         ${d}
-    `}months(e,t){let n=[],r=new Date(e);for(r.setDate(1);r.getTime()<=t;){let i=Math.max(r.getTime(),e),a=new Date(r.getFullYear(),r.getMonth()+1,1),o=Math.min(a.getTime(),t);n.push({label:r.toLocaleDateString(void 0,{month:`short`,year:`2-digit`}),from:i,to:o}),r.setMonth(r.getMonth()+1)}return n}render(){let n=m(this.tasks);if(!n)return t``;let r=n.span,i=e=>(e-n.min)/r*100,o=Date.now();return t`
+    `}months(e,t){let n=[],r=new Date(e);for(r.setDate(1);r.getTime()<=t;){let i=Math.max(r.getTime(),e),a=new Date(r.getFullYear(),r.getMonth()+1,1),o=Math.min(a.getTime(),t);n.push({label:r.toLocaleDateString(void 0,{month:`short`,year:`2-digit`}),from:i,to:o}),r.setMonth(r.getMonth()+1)}return n}render(){let e=m(this.tasks);if(!e)return a``;let t=e.span,n=n=>(n-e.min)/t*100,i=Date.now();return a`
             <div class="frame">
                 <div class="head">${s(`task`)}</div>
                 <div class="head months">
-                    ${this.months(n.min,n.max).map(e=>t`
-                        <div class="month" style="width: ${(e.to-e.from)/r*100}%;">${e.label}</div>
+                    ${this.months(e.min,e.max).map(e=>a`
+                        <div class="month" style="width: ${(e.to-e.from)/t*100}%;">${e.label}</div>
                     `)}
                 </div>
-                ${n.bars.map(({task:r,leftPct:s,widthPct:c})=>t`
-                        <div class="label" title="${r.title}">${r.title}</div>
+                ${e.bars.map(({task:t,leftPct:s,widthPct:c})=>a`
+                        <div class="label" title="${t.title}">${t.title}</div>
                         <div class="lane">
-                            ${o>=n.min&&o<=n.max?t`<div class="today" style="left: ${i(o)}%;"></div>`:e}
-                            <div role="${this.onTaskSelectionActionId?`button`:`img`}" tabindex=${a(l(!!this.onTaskSelectionActionId))}
-                                 aria-label="${r.title}, ${r.start} to ${r.end}${r.progress?`, ${r.progress}% complete`:``}"
+                            ${i>=e.min&&i<=e.max?a`<div class="today" style="left: ${n(i)}%;"></div>`:o}
+                            <div role="${this.onTaskSelectionActionId?`button`:`img`}" tabindex=${r(l(!!this.onTaskSelectionActionId))}
+                                 aria-label="${t.title}, ${t.start} to ${t.end}${t.progress?`, ${t.progress}% complete`:``}"
                                  class="bar ${this.onTaskSelectionActionId?`clickable`:``}"
-                                 title="${r.title} · ${r.start} → ${r.end}${r.progress?` · ${r.progress}%`:``}"
-                                 @click="${()=>this.selectTask(r)}" @keydown="${u(()=>this.selectTask(r))}"
-                                 style="left: ${s}%; width: ${c}%; ${r.color?`--mateu-gantt-fill: ${r.color};`:``}">
-                                <div class="fill" style="width: ${r.progress??0}%;"></div>
+                                 title="${t.title} · ${t.start} → ${t.end}${t.progress?` · ${t.progress}%`:``}"
+                                 @click="${()=>this.selectTask(t)}" @keydown="${u(()=>this.selectTask(t))}"
+                                 style="left: ${s}%; width: ${c}%; ${t.color?`--mateu-gantt-fill: ${t.color};`:``}">
+                                <div class="fill" style="width: ${t.progress??0}%;"></div>
                             </div>
                         </div>
                     `)}
             </div>
-        `}};c([n({type:Array})],h.prototype,`tasks`,void 0),c([n()],h.prototype,`onTaskSelectionActionId`,void 0),h=c([i(`mateu-gantt`)],h);export{h as MateuGantt};
+        `}};c([i({type:Array})],h.prototype,`tasks`,void 0),c([i()],h.prototype,`onTaskSelectionActionId`,void 0),h=c([t(`mateu-gantt`)],h);export{h as MateuGantt};

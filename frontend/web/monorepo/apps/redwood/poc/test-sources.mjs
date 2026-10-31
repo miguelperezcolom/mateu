@@ -232,6 +232,35 @@ test('sampled listing: search answers from the sample, in memory, even with a to
   assert.equal(listing.rows[0].status.badgeClass.indexOf('oj-badge') >= 0, true)
 })
 
+test('tree listing over a rowsSource: the children survive the projection and draw indented under their parent', async () => {
+  reset()
+  const tree = [
+    { id: 1, customer: 'Voyager', status: 'OPEN', total: 1, extra: 'x', children: [
+      { id: 2, customer: 'RTG', status: 'OPEN', total: 2, children: [{ id: 3, customer: 'Thermocouple', status: 'OPEN', total: 3, children: [] }] },
+    ] },
+    { id: 4, customer: 'Juno', status: 'OPEN', total: 4, children: [] },
+  ]
+  const ctx = listingCtx({ url: '/api/tree' }, { gridLayout: 'tree', pageSize: 50, filters: [] })
+  ctx.tree.children[0].metadata.columns = [col('customer'), col('id', { identifier: true })]
+  const inc = await restAnswerOf(ctx, 'search', { page: 0 }, { fetchImpl: stubFetch(tree) })
+  const content = inc.fragments[0].data.crud.page.content
+  assert.equal(content.length, 2, 'the roots are the page')
+  assert.deepEqual(content[0].children.map((r) => r.customer), ['RTG'], 'a tree keeps its children')
+  assert.equal(content[0].children[0].children[0].customer, 'Thermocouple')
+  assert.equal(content[0].extra, undefined, 'still projected onto the columns')
+  const reg = reduceContexts({ contexts: { [HOST_ID]: ctx }, stack: [] }, inc)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.deepEqual(listing.rows.map((r) => r.customer), ['Voyager', 'RTG', 'Thermocouple', 'Juno'], 'parent before children')
+  assert.deepEqual(listing.rows.map((r) => r._treeDepth), [0, 1, 2, 0])
+  assert.equal(listing.columns[0].field, 'customer__treeCell')
+  assert.equal(listing.rows[2].customer__treeCell, '\u00a0'.repeat(8) + 'Thermocouple')
+  assert.equal(new Set(listing.rows.map((r) => String(r._rowNumber))).size, 4, 'every row has its own key')
+  // a plain listing over the same source drops them, as before
+  const flat = listingCtx({ url: '/api/tree' }, { pageSize: 50, filters: [] })
+  const flatInc = await restAnswerOf(flat, 'search', { page: 0 }, { fetchImpl: stubFetch(tree) })
+  assert.equal(flatInc.fragments[0].data.crud.page.content[0].children, undefined)
+})
+
 test('direct listing over a server-paged source: the url carries the page, the total is trusted', async () => {
   reset()
   const ctx = listingCtx({ ref: 'orders' })

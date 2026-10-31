@@ -186,20 +186,30 @@ export function mapItemsToOptions(json, itemsPath, valuePath, labelPath) {
 }
 
 /** A response as listing rows keyed by column id; `pathOf` maps a column to the path it reads. */
-export function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id) {
+export function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id, childrenId) {
   const arr = getByPath(json, itemsPath)
   if (!Array.isArray(arr)) return []
-  return arr.map((item) => {
+  // A tree's rows nest their next level under `childrenId` (not a column): carried through,
+  // projected the same way level after level — without it a tree kept only its roots.
+  const shape = (items) => items.map((item) => {
     const row = {}
     for (const id of columnIds) row[id] = getByPath(item, pathOf(id))
+    if (childrenId) {
+      const kids = getByPath(item, pathOf(childrenId))
+      if (Array.isArray(kids)) row[childrenId] = shape(kids)
+    }
     return row
   })
+  return shape(arr)
 }
 
+/** The field a tree listing (`gridLayout: tree`) nests each row's next level under. */
+export const TREE_CHILDREN = 'children'
+
 /** Rows + total of an already fetched response (shared by the direct and the proxied legs). */
-export function restPageOf(json, source, columnIds) {
+export function restPageOf(json, source, columnIds, childrenId) {
   const resolved = resolveRestSource(source) || {}
-  const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+  const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id), childrenId)
   const raw = getByPath(json, totalPathOf(source))
   const total = typeof raw === 'number' ? raw : Number(raw)
   return { rows, total: raw != null && Number.isFinite(total) ? total : null }
@@ -541,6 +551,7 @@ export async function restRowsIncrement(ctx, node, componentState, opts = {}) {
   const columnIds = restColumnIdsOf(md)
   const sampled = isSampled(src)
   const serverPaged = totalPathOf(src) != null && !sampled
+  const childrenId = md.gridLayout === 'tree' ? TREE_CHILDREN : undefined
   let fetched = []
   let total = null
   try {
@@ -548,10 +559,10 @@ export async function restRowsIncrement(ctx, node, componentState, opts = {}) {
       const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'crud' }, true)
       const appData = (inc && inc.appData) || {}
       if (appData._restfetchError) throw new Error('proxied rows failed')
-      ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds))
+      ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds, childrenId))
     } else {
       const json = await fetchRestJson(src, { state: componentState || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
-      ;({ rows: fetched, total } = restPageOf(json, src, columnIds))
+      ;({ rows: fetched, total } = restPageOf(json, src, columnIds, childrenId))
     }
   } catch (e) {
     try { console.warn('mateu: external rows fetch failed', e) } catch (ignored) { /* no console */ }

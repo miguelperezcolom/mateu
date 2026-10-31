@@ -52,6 +52,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the image, full size, with no input. It is now the URL input with a contained preview that follows
   the value; read-only it stays the image. Redwood offered a file upload for it (that is
   `uploadableImage`): now the same URL input and preview.
+- **A tree listing over a REST source keeps its children.** A `gridLayout: tree` Listing whose
+  `rowsSource` is a REST source projected each fetched row onto its declared columns, so `children`
+  (not a column) was dropped and only the roots showed; the workaround, a `children` column, painted
+  `[object Object]`. The row projection now carries the tree's `children` through, level by level
+  (read through the source's `fields` map, so `fields: {children: subComponents}` points it at
+  another response field), on the direct and the proxied leg. Vaadin draws the hierarchy in its tree
+  grid; Redwood, which drew the roots as a flat table, now draws every level flattened under its
+  parent with the first column indented (always expanded — no expand/collapse toggle yet).
+- **A `Partial` inside a wizard step renders.** The partials of a `GuidedProcessPage` step were never
+  expanded: the steps are records of slots, not components, so the expander stepped over them and
+  the step drew nothing (`No mapper renders io.mateu.uidl.data.Partial`). A template's list of parts
+  is now walked like the template itself.
 - **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
   it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
   `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"

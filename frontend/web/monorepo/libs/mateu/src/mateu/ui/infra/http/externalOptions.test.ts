@@ -56,6 +56,21 @@ describe('mapItemsToRows', () => {
     it('returns [] when the path is not an array', () => {
         expect(mapItemsToRows({ nope: 1 }, 'x', ['a'])).toEqual([])
     })
+    it('keeps a tree row\'s children (not a column), projected level by level', () => {
+        const json = [{ name: 'Voyager', extra: 1, children: [{ name: 'RTG', extra: 2, children: [] }] }]
+        expect(mapItemsToRows(json, '', ['name'], (id) => id, 'children')).toEqual([
+            { name: 'Voyager', children: [{ name: 'RTG', children: [] }] },
+        ])
+        // without the tree flag the children stay out, as before
+        expect(mapItemsToRows(json, '', ['name'])).toEqual([{ name: 'Voyager' }])
+    })
+    it('reads a tree\'s children through the source\'s field map', () => {
+        const json = [{ name: 'Sun', moons: [{ name: 'Earth' }] }]
+        const pathOf = (id: string) => (id === 'children' ? 'moons' : id)
+        expect(mapItemsToRows(json, '', ['name'], pathOf, 'children')).toEqual([
+            { name: 'Sun', children: [{ name: 'Earth' }] },
+        ])
+    })
 })
 
 describe('fetchExternalRows', () => {
