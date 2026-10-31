@@ -248,7 +248,8 @@ internal sealed partial class ReflectionMapper
 
     /// <summary>An entry's path below its group and relative to the mount (Java's
     /// AppMenuDtoBuilder.relative): the mount in front is dropped, and a path already under the group
-    /// is kept as it is.</summary>
+    /// is kept as it is. Strictly under: a path equal to the group's is a child named like it, and goes
+    /// below it (<c>/users</c> in <c>/users</c> → <c>/users/users</c>).</summary>
     internal static string Relative(string appRoute, string prefix, string path)
     {
         var own = path;
@@ -258,7 +259,7 @@ internal sealed partial class ReflectionMapper
             else if (own[appRoute.Length] == '/') own = own[appRoute.Length..];
         }
         if (prefix.Length == 0 || prefix == "/") return Prepend("", own);
-        if (own == prefix || own.StartsWith(prefix + "/", StringComparison.Ordinal)) return own;
+        if (own.StartsWith(prefix + "/", StringComparison.Ordinal)) return own;
         return Prepend(prefix, own);
     }
 

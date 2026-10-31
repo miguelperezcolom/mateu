@@ -312,7 +312,8 @@ class AppMapperMixin(MixinBase):
     def _relative(cls, mount: str, prefix: str, path: str) -> str:
         """An entry's path below its group and relative to the mount (Java's
         AppMenuDtoBuilder.relative): the mount in front is dropped, and a path already under the
-        group is kept as it is."""
+        group is kept as it is. Strictly under: a path equal to the group's is a child named like it,
+        and goes below it ("/users" in "/users" → "/users/users")."""
         own = path
         if mount and mount != "/" and own.startswith(mount):
             if len(own) == len(mount):
@@ -321,7 +322,7 @@ class AppMapperMixin(MixinBase):
                 own = own[len(mount):]
         if not prefix or prefix == "/":
             return cls._prepend("", own)
-        if own == prefix or own.startswith(prefix + "/"):
+        if own.startswith(prefix + "/"):
             return own
         return cls._prepend(prefix, own)
 
