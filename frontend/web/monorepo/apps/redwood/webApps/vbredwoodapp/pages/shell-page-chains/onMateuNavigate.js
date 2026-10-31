@@ -588,9 +588,8 @@ define([
       }
       $application.variables.mateuDirty = false;
 
-      if (reg.effects && reg.effects.docTitle) {
-        bridge.setDocTitle(reg.effects.docTitle);
-      }
+      // EVERY navigation names the tab (a federated screen may send no SetWindowTitle: the previous page's stayed)
+      bridge.setDocTitle((reg.effects && reg.effects.docTitle) || summary.title || (reg.shell && reg.shell.title));
     }
   }
 
