@@ -33,4 +33,22 @@ describe('runDeclaredFlow', () => {
         expect(runDeclaredFlow({ commands: [] } as any, apply)).toBe(false)
         expect(apply).not.toHaveBeenCalled()
     })
+
+    it('a Navigate route reads the state and the action parameters (a map marker opens its record)', () => {
+        const apply = vi.fn()
+        runDeclaredFlow(
+            { commands: [{ targetComponentId: null, type: 'NavigateTo', data: 'launch-sites/${state._markerId}' }] } as any,
+            apply,
+            { state: { name: 'x' }, parameters: { _markerId: 'KSC 39A' } },
+        )
+        // encoded as a path segment, like a source url
+        expect(apply.mock.calls[0][0].data).toBe('launch-sites/KSC%2039A')
+    })
+
+    it('a Navigate route without placeholders, or without a context, is applied as written', () => {
+        const apply = vi.fn()
+        runDeclaredFlow({ commands: [{ targetComponentId: null, type: 'NavigateTo', data: '/orders' }] } as any, apply, { state: {} })
+        runDeclaredFlow({ commands: [{ targetComponentId: null, type: 'NavigateTo', data: 'x/${state.id}' }] } as any, apply)
+        expect(apply.mock.calls.map(c => c[0].data)).toEqual(['/orders', 'x/${state.id}'])
+    })
 })

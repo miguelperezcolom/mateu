@@ -5365,8 +5365,14 @@ import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
     assert.equal(pageFlowOf(reg, 'save'), null, 'the page owns it: its server action')
     assert.equal(pageFlowOf(reg, 'refreshCustomers'), null, 'a REST entry is not a flow')
     assert.equal(pageFlowOf(reg, 'nobody'), null)
+    // a Navigate route reads the state and the action's parameters: a map marker opens its record
+    const markerReg = { ...reg, contexts: { ...reg.contexts, [HOST_ID]: { declaredActions: [
+      { id: 'openSite', commands: [{ type: 'NavigateTo', data: 'launch-sites/${state._markerId}' }] },
+    ] } } }
+    assert.equal(pageFlowOf(markerReg, 'openSite', { state: { _markerId: 'KSC 39A' } })[0].data, 'launch-sites/KSC%2039A')
+    assert.equal(pageFlowOf(markerReg, 'openSite')[0].data, 'launch-sites/${state._markerId}', 'no scope: as written')
     const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'runMateuAction.js'), 'utf8')
-    assert.match(chain, /const clientFlow = preset \? null : bridge\.pageFlowOf\(before, id\);/)
+    assert.match(chain, /const clientFlow = preset \? null : bridge\.pageFlowOf\(before, id, \{ state: \{ \.\.\.\(componentState \|\| \{\}\), \.\.\.\(parameters \|\| \{\}\) \}, appState \}\);/)
     const amd = readFileSync(join(here, 'make-amd.mjs'), 'utf8')
     assert.match(amd, /pageFlowOf,/)
   })

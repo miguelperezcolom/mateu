@@ -228,7 +228,47 @@ function restScopeValue(expr, scope) {
   return value
 }
 
-const restText = (v) => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v))
+/** A money value: what a `dataType: money` field holds (`{value, currency, locale}`). */
+const isMoney = (v) => v != null && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v
+
+/** A value as the text that lands in a template: a MONEY value as its amount (its currency is
+ *  `${state.price.currency}`), any other object as JSON — like the server's TemplateInterpolator. */
+const restText = (v) => (v == null ? '' : isMoney(v) ? restText(v.value) : typeof v === 'object' ? JSON.stringify(v) : String(v))
+
+/** A value as JavaScript's String() converts it — what `encodeURIComponent(v)` encodes (an array
+ *  as `a,b`) — but a money value as its amount. */
+const jsText = (v) => (v == null ? '' : isMoney(v) ? jsText(v.value) : String(v))
+
+const ENCODE_CALL = 'encodeURIComponent'
+
+/**
+ * The argument of an expression that is exactly ONE `encodeURIComponent(…)` call, else null
+ * (`encodeURIComponent(a) + encodeURIComponent(b)` is not one) — libs/mateu's encodeCallArgument
+ * and the server's TemplateInterpolator.encodeCallArgument.
+ */
+export function encodeCallArgument(expr) {
+  const e = String(expr).trim()
+  if (e.indexOf(ENCODE_CALL) !== 0) return null
+  const rest = e.substring(ENCODE_CALL.length).trim()
+  if (rest[0] !== '(' || rest[rest.length - 1] !== ')') return null
+  let depth = 0
+  let quote = ''
+  for (let i = 0; i < rest.length; i++) {
+    const c = rest[i]
+    if (quote) {
+      if (c === '\\') i++
+      else if (c === quote) quote = ''
+      continue
+    }
+    if (c === "'" || c === '"' || c === '`') quote = c
+    else if (c === '(') depth++
+    else if (c === ')') {
+      depth--
+      if (depth === 0 && i !== rest.length - 1) return null
+    }
+  }
+  return depth === 0 ? rest.substring(1, rest.length - 1) : null
+}
 
 /** Interpolates a header or a body; `escape` maps each value (the JSON escaping of a JSON body). */
 export function interpolateRest(text, scope, escape = (s) => s) {
@@ -241,6 +281,8 @@ export function interpolateRest(text, scope, escape = (s) => s) {
  * .interpolateUrl, so the direct and the proxied legs reach the same url: raw in the origin (and a
  * `${state…}` there is refused: the client state must not choose the host), a path segment in the
  * path (a dot segment refused), a query component after a literal `?`/`#`. Throws when refused.
+ * An expression that is exactly one `encodeURIComponent(x)` call means `${x}`: encoded ONCE, here
+ * (it used to be encoded again — `Painting%252CPhotograph`, `Sample%2520Return`).
  */
 export function interpolateRestUrl(text, scope) {
   if (text == null || String(text).indexOf('${') < 0) return text
@@ -261,10 +303,13 @@ export function interpolateRestUrl(text, scope) {
     }
     literal += lit
     out += lit
-    const value = restText(restScopeValue(m[1], scope))
+    const explicitlyEncoded = encodeCallArgument(m[1])
+    const valueExpr = explicitlyEncoded != null ? explicitlyEncoded : m[1]
+    const raw = restScopeValue(valueExpr, scope)
+    const value = explicitlyEncoded != null ? jsText(raw) : restText(raw)
     if (originOpen || (first && lit === '')) {
-      if (/^\s*state\b/.test(m[1])) throw new Error('A client state value cannot choose the origin of a URL: ' + src)
-      out += value
+      if (/^\s*state\b/.test(valueExpr)) throw new Error('A client state value cannot choose the origin of a URL: ' + src)
+      out += explicitlyEncoded != null ? encodeURIComponent(value) : value
     } else if (/[?#]/.test(literal)) {
       out += encodeURIComponent(value)
     } else {

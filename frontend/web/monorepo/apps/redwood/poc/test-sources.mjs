@@ -142,6 +142,25 @@ test('sample mode: a sampled source is never proxied; one without a sample still
   assert.equal(viaProxy({ ref: 'secret' }), true)
 })
 
+// ── an explicit encodeURIComponent, a money value ──
+test('url: an explicit encodeURIComponent is encoded ONCE (it used to send %252C / %2520)', () => {
+  reset()
+  assert.equal(interpolateRestUrl('https://api.example.com/art?type=${encodeURIComponent(state.type)}', { state: { type: ['Painting', 'Photograph'] } }),
+    'https://api.example.com/art?type=Painting%2CPhotograph')
+  assert.equal(interpolateRestUrl("https://api.example.com/m?search=${encodeURIComponent(state.q ?? '')}", { state: { q: 'Sample Return' } }),
+    'https://api.example.com/m?search=Sample%20Return')
+  assert.equal(interpolateRestUrl('/x/${encodeURIComponent(state.v)}', { state: { v: 'a/b' } }), '/x/a%2Fb')
+  assert.throws(() => interpolateRestUrl('/x/${encodeURIComponent(state.v)}', { state: { v: '..' } }))
+  assert.throws(() => interpolateRestUrl('${encodeURIComponent(state.base)}/x', { state: { base: 'http://evil' } }))
+})
+
+test('a money value lands as its amount (url and body); its currency is reachable', () => {
+  reset()
+  const price = { value: 12500000, currency: 'EUR', locale: 'es-ES' }
+  assert.equal(interpolateRestUrl('/x?min=${state.price}&cur=${state.price.currency}', { state: { price } }), '/x?min=12500000&cur=EUR')
+  assert.equal(interpolateRest('{"v":"${state.price}"}', { state: { price } }, jsonEscape), '{"v":"12500000"}')
+})
+
 // ── the direct leg ──
 test('direct leg: the url is encoded by position, a JSON body escaped, a non-2xx throws', async () => {
   reset()

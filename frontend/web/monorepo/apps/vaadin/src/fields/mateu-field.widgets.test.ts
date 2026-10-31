@@ -261,6 +261,21 @@ describe('mateu-field: text-like widgets', () => {
         expect(img.getAttribute('alt')).toBe('Logo')
     })
 
+    it('an empty money field starts in its declared currency (EUR when none is declared)', async () => {
+        const declared = await mount({ dataType: 'money', attributes: [{ key: 'currency', value: 'usd' }] }, {})
+        const money = declared.root.querySelector('mateu-money-field') as any
+        await money.updateComplete
+        expect(money.defaultCurrency).toBe('USD')
+        expect((money.shadowRoot.querySelector('vaadin-select') as any).value).toBe('USD')
+        money.valueChanged(new CustomEvent('value-changed', { detail: { value: '12' } }))
+        expect(declared.changes.at(-1)).toEqual({ value: { value: 12, currency: 'USD', locale: 'es-ES' }, fieldId: 'f' })
+        document.body.innerHTML = ''
+        const plain = await mount({ dataType: 'money' }, {})
+        const euro = plain.root.querySelector('mateu-money-field') as any
+        await euro.updateComplete
+        expect((euro.shadowRoot.querySelector('vaadin-select') as any).value).toBe('EUR')
+    })
+
     it('a generic file upload takes its accept from the field attributes', async () => {
         const { root } = await mount({ stereotype: 'fileUpload', attributes: [{ key: 'accept', value: '.pdf' }] }, {})
         expect((root.querySelector('mateu-file-upload') as any).accept).toBe('.pdf')
