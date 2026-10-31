@@ -83,7 +83,15 @@ jobs:
           echo "MATEU_ANDROID_VERSION_CODE=$((100000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
       - name: Generate the native project
         if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
-        run: npx expo prebuild --platform android --clean --no-install
+        run: |
+          npx expo prebuild --platform android --clean --no-install
+          # the template's 2 GB heap / 512 MB metaspace runs Gradle's KSP out of Metaspace on the
+          # runner (16 GB): give Gradle and the Kotlin daemon room
+          sed -i '/^org.gradle.jvmargs=/d; /^kotlin.daemon.jvmargs=/d' android/gradle.properties
+          {
+            echo 'org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8'
+            echo 'kotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g'
+          } >> android/gradle.properties
       - name: Build the release APK
         if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
         working-directory: frontend/app/react-native/android
