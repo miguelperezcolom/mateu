@@ -9,12 +9,12 @@ React Native renderer. Without a registry in `app.json` (`expo.extra.mateuRegist
 
 | What | Where it goes |
 |---|---|
-| ✅ Apple Developer Program membership (team `2V77LVXCM8`). **TODO**: App Store Connect app record for `io.mateu.app` | — |
+| ✅ Apple Developer Program membership (team `2V77LVXCM8`), App ID `io.mateu.app` (Associated Domains), App Store Connect app record | — |
 | Google Play developer account (25 $ once), Play Console app for `io.mateu.app` | — |
 | ✅ **Apple Team ID** `2V77LVXCM8` | `well-known/apple-app-site-association`, published from `doc/public/.well-known/` at `https://mateu.io/.well-known/apple-app-site-association` (`Content-Type: application/json` via `doc/public/_headers`, no redirect) |
 | 🟡 **Android signing SHA-256**: the GitHub APK key is in (`61:A6:…:07:02`, keystore in the owner's `~/.mateu-secrets/android`). **TODO**: the Play App Signing key once the Play app exists (+ the EAS upload key for internal APKs) | `well-known/assetlinks.json` AND `doc/public/.well-known/assetlinks.json` (the published one: real fingerprints only, never a TODO) |
 | `https://mateu.io/add` landing page (store badges + the QR again, for phones without the app) | mateu.io site |
-| App Store id for the "Update the app" button | `src/hub/ui/UiSession.tsx` → `STORE_URL` (`idTODO_APP_STORE_ID`) |
+| ✅ App Store id `6829227403` (App Store Connect app record created, SKU `mateu-app`) | `src/hub/ui/UiSession.tsx` → `STORE_URL` |
 | ✅ `https://demo.mateu.io/counter` is up, public, with no login (checked 2026-10-31; it is the preinstalled "Try a demo" entry the reviewer uses) | demo deployment |
 | ✅ Privacy policy: **https://mateu.io/privacy** (`doc/src/pages/privacy.astro` — keep it in step with §5) | store listings |
 | Bundle id: `io.mateu.app` on iOS and Android (decided 2026-10-12; it cannot change after the first store release) | `app.json` |
