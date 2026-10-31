@@ -257,7 +257,7 @@ export function listingBaseOf(ctx, opts = {}) {
     rowRoute: md.rowRoute || '',
     searchable: !!md.searchable,
     pageSize: md.pageSize || 20,
-    emptyStateMessage: md.emptyStateMessage || 'No data.',
+    emptyStateMessage: md.emptyStateMessage || chromeText('noData'),
     columns: finishColumnSizing(columns, fitColumns),
     fitColumns,
     defaultSizedColumns: defaultSized,
