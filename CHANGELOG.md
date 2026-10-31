@@ -20,6 +20,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the group's index) and, since every route of the group starts with it, it was selected on all of
   them. Strictly under, now, in Java, .NET and Python; and the server compares an entry's path below
   its group when it marks it selected.
+- **Redwood: an empty single select is empty.** JET's `oj-select-one` paints its first option when the
+  value is null and it has no placeholder, and only the generic form's copy had one: in every other
+  form surface (host, drawer, dialog, wizard, island, listing…) an unset select looked filled in with
+  its first option while the form held nothing. Every copy now carries the placeholder (the atoms
+  template, expanded by `make-html.mjs`); a test pins it.
 
 ## [3.0-beta.22] — 2026-10-29
 
