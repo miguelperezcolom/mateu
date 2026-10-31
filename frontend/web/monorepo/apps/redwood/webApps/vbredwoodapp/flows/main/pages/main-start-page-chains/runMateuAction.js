@@ -593,7 +593,7 @@ define([
       // the listing's smart-filter-search) suppress it
       const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
         || overviewProjection || listingSummary || bridge.templateOwnsHeader(archetypes)
-        || (foldoutNow && !hostEntity2 && !hostToolbarA.length));
+        || (foldoutNow && (foldoutNow.ownsHeader || (!hostEntity2 && !hostToolbarA.length))));
       const showHeaderA = !integratedHeader && !notFoundAfter;
       const pwAfter = bridge.pageWidthOf({ host: hostAfter, drawerNav: vars.mateuMenuDrawerMode });
       // the Page's toolbar actions go to the HEADER (the band's primary/secondary); going back

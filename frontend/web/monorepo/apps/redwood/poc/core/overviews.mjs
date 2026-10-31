@@ -562,7 +562,7 @@ export function pageTemplateOf(ctx) {
 }
 
 /** The Form of a page that fills a template (unwrapped like pageTemplateOf). */
-function templateFormOf(ctx) {
+export function templateFormOf(ctx) {
   let node = ctx && ctx.tree
   while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
   return node

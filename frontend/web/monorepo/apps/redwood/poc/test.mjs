@@ -9,7 +9,7 @@ import { ORACLE_CDN, oracleCdnBase, oracleCdnUrl } from './oracleCdn.mjs'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { foldoutHeaderOf, foldoutIconClassOf } from './core/archetypes.mjs'
+import { foldoutHeaderOf, foldoutIconClassOf, foldoutPageHeaderOf } from './core/archetypes.mjs'
 import { styledTextOf } from './core/content.mjs'
 import { styleObjectOf } from './richtext.mjs'
 import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
@@ -6746,6 +6746,23 @@ test('Foldout header: no navigation → no controls; only a next id → no bidir
   assert.equal(foldoutIconClassOf('vaadin:user'), 'oj-ux-ico-contact')
   assert.equal(foldoutIconClassOf('oj-ux-ico-edit'), 'oj-ux-ico-edit')
   assert.equal(foldoutIconClassOf(null), '')
+})
+test('FoldoutPage (YAML): the form toolbar becomes the layout header — back = go-to-parent, the rest = overview actions, routes kept', () => {
+  const form = { metadata: { toolbar: [
+    { actionId: 'backToList', label: 'Starships', route: 'starships' },
+    { label: 'Share' },
+    { label: 'Edit', buttonStyle: 'primary', route: 'starships/${state.id}/edit' },
+  ] } }
+  const h = foldoutPageHeaderOf(foldoutHeaderOf({}), form, { id: 9 })
+  assert.deepEqual([h.hasNavigation, h.goToParent, h.parentLabel, h.parentActionId], [true, true, 'Starships', 'backToList'])
+  assert.deepEqual(h.ctas.parent, { actionId: 'backToList', route: 'starships' })
+  // the primary first, as the pencil; its route resolved against the state
+  assert.deepEqual(h.overviewActions.map((a) => [a.id, a.label, a.icon || '']), [['toolbar-0', 'Edit', 'oj-ux-ico-edit'], ['toolbar-1', 'Share', '']])
+  assert.deepEqual(h.ctas['toolbar-0'], { actionId: '', route: 'starships/9/edit' })
+  // a route with a hole is never navigated to
+  assert.equal(foldoutPageHeaderOf(foldoutHeaderOf({}), form, {}).ctas['toolbar-0'].route, '')
+  // no toolbar: the header stays as the wire said
+  assert.deepEqual(foldoutPageHeaderOf(foldoutHeaderOf({}), { metadata: {} }).overviewActions, [])
 })
 test('Foldout page: the layout binds the header, the overview can take the overview slot, the actions reach the host', () => {
   const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')

@@ -2858,6 +2858,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
   /** What the foldout's panels read (mateuFoldoutContent): its overview, panels and header. */
@@ -2930,7 +2931,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       overviewOnTop: md.orientation === 'horizontal',
       // the navigation header, the overview's Edit and the badges: what may change between two
       // records of the same foldout (re-bound in place, like the panels' content)
-      header: foldoutHeaderOf(md),
+      header: declaresTemplate(ctx, 'FoldoutPage') ? foldoutPageHeaderOf(foldoutHeaderOf(md), templateFormOf(ctx), state) : foldoutHeaderOf(md),
+      // a declared FoldoutPage owns the page header (Toolkit 26C: the layout's own header and the
+      // overview panel carry the navigation and the actions — there is no page header above it)
+      ownsHeader: declaresTemplate(ctx, 'FoldoutPage'),
       badges: pageBadges,
       overview: {
         texts: collectTexts(bySlot['overview']),
@@ -2995,7 +2999,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       previousActionId,
       nextActionId,
       overviewActions: editActionId ? [{ id: editActionId, label: chromeText('edit'), icon: 'oj-ux-ico-edit', display: 'on' }] : [],
+      // id → { actionId, route } of a control whose button NAVIGATES (a RouteLink): the listeners hand
+      // it to dispatchHostBlockAction (ctaId/ctas), so a YAML page with no action behind it still works
+      ctas: {},
     }
+  }
+
+  const FOLDOUT_BACK_IDS = /^(back|backToList|cancel-view|cancel)$/
+
+  /**
+   * A declared FoldoutPage (YAML `template: FoldoutPage`): the FORM's toolbar becomes the layout's own
+   * controls, as Toolkit 26C draws the template — its back button the go-to-parent link (labelled like
+   * the button), every other button an action of the overview panel's header (the primary one, an
+   * «Edit», as the pencil). A button with a route navigates there; one without runs its action id.
+   */
+  function foldoutPageHeaderOf(header, form, state = {}) {
+    const toolbar = ((form && form.metadata && form.metadata.toolbar) || []).filter((b) => b && typeof b === 'object')
+    const text = (t) => interpolate(String(t == null ? '' : t), state)
+    const target = (b) => ({ actionId: b.actionId || '', route: b.route ? (buttonRouteOf(b.route, state) || '') : '' })
+    const back = toolbar.find((b) => FOLDOUT_BACK_IDS.test(b.actionId || ''))
+    const rest = toolbar.filter((b) => b !== back)
+      .sort((a, b) => (b.buttonStyle === 'primary') - (a.buttonStyle === 'primary'))
+    const ctas = { ...(header.ctas || {}) }
+    const out = { ...header, ctas }
+    if (back) {
+      ctas.parent = target(back)
+      Object.assign(out, { hasNavigation: true, goToParent: true, parentLabel: text(back.label) || chromeText('goBack'),
+        parentActionId: back.actionId || 'parent' })
+    }
+    if (rest.length) {
+      out.overviewActions = rest.map((b, i) => {
+        const id = 'toolbar-' + i
+        ctas[id] = target(b)
+        const label = text(b.label)
+        return { id, label, display: 'on', ...(i === 0 && b.buttonStyle === 'primary' && /^edit\b/i.test(label) ? { icon: 'oj-ux-ico-edit' } : {}) }
+      })
+    }
+    return out
   }
 
   /** A foldout panel's summary (the `summary-N` child): `hasSummary` + its texts as one line. */

@@ -35,23 +35,26 @@ content:
         title: {type: Text, container: h3, text: Origin}
         content:
           type: FormLayout
+          maxColumns: 3   # Toolkit 26C: a read-only form in up to 3 columns (JET drops them as the width shrinks)
           content:
-            - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true, propertyRow: true}
-            - {type: FormField, id: language, label: Language, readOnly: true, propertyRow: true}
+            - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true}
+            - {type: FormField, id: language, label: Language, readOnly: true}
       - type: Card
         cssClasses: mateu-section
         title: {type: Text, container: h3, text: Physiology}
         content:
           type: FormLayout
+          maxColumns: 3   # Toolkit 26C: a read-only form in up to 3 columns (JET drops them as the width shrinks)
           content:
-            - {type: FormField, id: averageHeight, label: Average height (cm), dataType: integer, readOnly: true, propertyRow: true}
-            - {type: FormField, id: averageLifespan, label: Average lifespan (y), dataType: integer, readOnly: true, propertyRow: true}
+            - {type: FormField, id: averageHeight, label: Average height (cm), dataType: integer, readOnly: true}
+            - {type: FormField, id: averageLifespan, label: Average lifespan (y), dataType: integer, readOnly: true}
       - type: Card
         cssClasses: mateu-section
         title: {type: Text, container: h3, text: Appearance}
         content:
           type: FormLayout
+          maxColumns: 3   # Toolkit 26C: a read-only form in up to 3 columns (JET drops them as the width shrinks)
           content:
-            - {type: FormField, id: skinColors, label: Skin colours, readOnly: true, propertyRow: true}
-            - {type: FormField, id: hairColors, label: Hair colours, readOnly: true, propertyRow: true}
-            - {type: FormField, id: eyeColors, label: Eye colours, readOnly: true, propertyRow: true}
+            - {type: FormField, id: skinColors, label: Skin colours, readOnly: true}
+            - {type: FormField, id: hairColors, label: Hair colours, readOnly: true}
+            - {type: FormField, id: eyeColors, label: Eye colours, readOnly: true}

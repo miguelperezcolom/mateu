@@ -478,7 +478,11 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   full-page empty state (`content.mjs` honours `ctx.templateSlot`; `mateuHostEmpty` skips under mateuCd).
 - **`FoldoutPage`** (named so because `FoldoutLayout` is the component; slot `overview`, field
   `orientation`, content = the `FoldoutPanel`s): laid out as one `FoldoutLayout` id `foldout` (no
-  `headerTitle`: the header is the form's). Redwood's `foldoutOf` already finds it by shape; the foldout
+  `headerTitle`: the header is the form's). Redwood's `foldoutOf` already finds it by shape; a DECLARED one
+  owns the page header (Toolkit 26C draws none above the layout): `foldoutPageHeaderOf` turns the form's
+  toolbar into the layout's own controls — back → go-to-parent (labelled like the button), the rest → the
+  overview panel's actions (an «Edit» primary as the pencil), each a RouteLink resolved through
+  `header.ctas` (dispatchHostBlockAction ctaId/ctas); the chains read `foldoutNow.ownsHeader`. The foldout
   title and panel summaries now interpolate `${state.x}`, and a lone `Avatar` atom interpolates its
   name/image and paints `lg` (groups stay `xs`).
 - **`MultimediaContentPage`** (field `backgroundColor`): Spectra 2604 has NO `oj-sp-multimedia-content-page`
