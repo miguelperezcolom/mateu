@@ -14,7 +14,13 @@ import { applyVariant, type VariantEnv } from './src/core/buildVariant.ts';
  * or a white-label app bound to one UI (src/core/buildVariant.ts, docs ux-patterns/mobile-app.md).
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const base = applyVariant(config as ExpoConfig, process.env as VariantEnv);
+  const variant = applyVariant(config as ExpoConfig, process.env as VariantEnv);
+  // An APK built outside EAS (the GitHub release workflow, .github/workflows/mobile.yml) has no remote
+  // build number: the workflow passes one, and it must only grow for the APK to install as an update.
+  const versionCode = Number(process.env.MATEU_ANDROID_VERSION_CODE);
+  const base: ExpoConfig = Number.isInteger(versionCode) && versionCode > 0
+    ? { ...variant, android: { ...variant.android, versionCode } }
+    : variant;
   if (process.env.APP_VARIANT !== 'development') return base;
 
   const plugins = (base.plugins ?? []).map((p) =>

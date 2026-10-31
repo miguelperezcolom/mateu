@@ -260,6 +260,15 @@ the variables don't cover (icons, universal links on your own domain).
   saves you the export-compliance question on every upload.
 - `usesCleartextTraffic: false` keeps release builds on https.
 
+### Without the stores: an APK on GitHub
+
+The repository's own release workflow (`.github/workflows/mobile.yml`) shows how to skip EAS and its
+build queue for Android: `npx expo prebuild --platform android`, then `./gradlew assembleRelease` on a
+CI runner, signed with your key, and the APK attached to a GitHub release for people to sideload. Two
+rules: sign every APK with the SAME key (a different one will not install over the previous version),
+and let the `versionCode` only grow (`MATEU_ANDROID_VERSION_CODE`). There is no equivalent for iOS:
+an iPhone installs apps only from the App Store, TestFlight or an ad-hoc build for registered devices.
+
 ### Build profiles (`eas.json`)
 
 The project ships three profiles:
