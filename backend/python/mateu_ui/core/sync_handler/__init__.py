@@ -248,6 +248,62 @@ class SyncHandler(
         self.yaml_specs.action_catalog = self.action_catalog
         #: The live UI sessions an MCP caller may push UI to; None = live UI push is off.
         self.agent_push: AgentSessions | None = None
+        #: Whether the reserved __content_slots__ action answers the content slot descriptor.
+        self.content_slots_descriptor_enabled = False
+        #: Resolves the micro frontends declared resolve=SERVER and the content slots.
+        self.microfrontends: Any = None
+        self.configure_microfrontends()
+
+    def configure_microfrontends(
+        self,
+        remotes=None,
+        default_timeout_ms: int | None = None,
+        max_budget_ms: int | None = None,
+        content_remote_id: str | None = None,
+        content_route: str | None = None,
+        self_base_url: str | None = None,
+        content_slots_descriptor_enabled: bool | None = None,
+        remote_registry=None,
+        identity_strategies=None,
+        fragment_cache_store=None,
+        correlation_id_provider=None,
+        resolution_listeners=None,
+        http_client=None,
+    ):
+        """(Re)builds the server-side micro frontend resolver (``add_mateu`` calls it with its
+        options): what is passed wins over what the registry discovered among the sources, which
+        wins over Mateu's defaults (EXPERIMENTAL)."""
+        from .. import microfrontends as mfe
+
+        registry = self.registry
+        settings = mfe.MicroFrontendSettings.from_env(
+            default_timeout_ms=default_timeout_ms,
+            max_budget_ms=max_budget_ms,
+            content_remote_id=content_remote_id,
+            content_route=content_route,
+            self_base_url=self_base_url,
+        )
+        if content_slots_descriptor_enabled is None:
+            content_slots_descriptor_enabled = os.environ.get(
+                "MATEU_CONTENT_SLOTS_DESCRIPTOR_ENABLED", ""
+            ).strip().lower() in ("1", "true", "yes", "on")
+        self.content_slots_descriptor_enabled = bool(content_slots_descriptor_enabled)
+        mapper = self.mapper
+        self.microfrontends = mfe.MicroFrontendServerResolver(
+            registry=remote_registry
+            or getattr(registry, "remote_registry", None)
+            or mfe.DefaultRemoteRegistry(getattr(registry, "remote_suppliers", []), remotes or ()),
+            http=http_client,
+            cache=fragment_cache_store or getattr(registry, "fragment_cache_store", None),
+            identities=mfe.RemoteIdentityStrategies(
+                [*getattr(registry, "identity_strategies", []), *(identity_strategies or ())]
+            ),
+            correlation=correlation_id_provider or getattr(registry, "correlation_id_provider", None),
+            listeners=[*getattr(registry, "resolution_listeners", []), *(resolution_listeners or ())],
+            settings=settings,
+            callers=lambda request: mapper.identity_provider() if mapper.identity_provider else None,
+        )
+        return self.microfrontends
 
     def enable_agent_push(
         self,
@@ -269,7 +325,52 @@ class SyncHandler(
         return self.agent_push
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
-        return self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))
+        from .. import microfrontends as mfe
+        from ..request_context import current_request
+
+        if rq.action_id == mfe.CONTENT_SLOTS_ACTION:
+            return self._content_slots_response()
+        pending, token = mfe.begin_pending()
+        try:
+            increment = self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))
+        finally:
+            mfe.end_pending(token)
+        request = current_request()
+        # the REMOTE side: a view other hosts embed declares on its loads whether they may cache it
+        if rq.action_id in (None, "", "__load__"):
+            increment = mfe.stamp_fragment_cache(
+                increment, rq.action_id, request, *self._fragment_cache_candidates(rq)
+            )
+        # the HOST side: the micro frontends this server resolves (resolve=SERVER, content slots)
+        if pending[0] and self.microfrontends is not None:
+            increment = self.microfrontends.resolve_sync(increment, request)
+        return increment
+
+    def _fragment_cache_candidates(self, rq: RunActionRq) -> list:
+        """The routed view declaring a fragment cache policy, if any: its class for
+        ``@cacheable_fragment``, a fresh instance for a ``fragment_cache_policy`` method."""
+        cls = self.registry.resolve(rq.server_side_type, rq.route)
+        if cls is None:
+            return []
+        if callable(getattr(cls, "fragment_cache_policy", None)):
+            try:
+                return [cls()]
+            except Exception:  # noqa: BLE001 - a view that needs arguments: only its decorator
+                return [cls]
+        return [cls] if getattr(cls, "__mateu_cacheable_fragment__", None) is not None else []
+
+    def _content_slots_response(self) -> UIIncrement:
+        """The reserved ``__content_slots__`` action: every content slot of the application (what
+        the content service lists in its backoffice), served only when enabled."""
+        from .. import microfrontends as mfe
+
+        if not self.content_slots_descriptor_enabled:
+            raise MateuForbiddenException(
+                f"{mfe.CONTENT_SLOTS_ACTION} is served only with "
+                "add_mateu(content_slots_descriptor_enabled=True)"
+            )
+        slots = getattr(self.registry, "content_slots", {}).values()
+        return UIIncrement(app_data={mfe.CONTENT_SLOTS_KEY: mfe.content_slot_descriptor(slots)})
 
     def _with_referenced_rest_sources(self, increment: UIIncrement) -> UIIncrement:
         """The response with the catalogue entries its components name by ``ref``: a page served

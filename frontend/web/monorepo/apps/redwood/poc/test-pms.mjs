@@ -1632,7 +1632,9 @@ test('Item Overview y General Overview: el contenido de tarjetas y pestañas via
   ]) })
   assert.equal(io.key.title, 'Chair')
   assert.equal(io.key.items[0].html, '<ul><li>4D armrests</li></ul>')
-  assert.equal(io.tabs[0].items[0].html, '<h2>Size</h2>')
+  // one tab is no choice: no bar, its content is the main slot's
+  assert.deepEqual(io.tabs, [])
+  assert.equal(io.mainItems[0].html, '<h2>Size</h2>')
   const go = generalOverviewOf({ state: {}, data: {}, tree: node({ type: 'VerticalLayout' }, [
     node({ type: 'FormField', fieldId: 'record', dataType: 'string', options: [{ value: '1', label: 'One' }] }),
     node({ type: 'EntityHeader', title: 'One' }),

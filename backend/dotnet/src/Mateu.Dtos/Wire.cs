@@ -27,6 +27,12 @@ public record UIIncrementDto(
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<RestSourceEntryDto>? RestSources { get; init; }
 
+    /// <summary>A remote view's cache declaration for its load answer, read by a host that embeds it
+    /// (server-side micro frontend resolution). Omitted when the view declares none. (Mirrors
+    /// io.mateu.dtos.UIIncrementDto.fragmentCache.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public FragmentCacheDto? FragmentCache { get; init; }
+
     public static UIIncrementDto Of(
         IEnumerable<UICommandDto>? commands = null,
         IEnumerable<MessageDto>? messages = null,
@@ -34,6 +40,18 @@ public record UIIncrementDto(
         IEnumerable<object>? banners = null,
         bool appendBanners = false) =>
         new(commands?.ToList() ?? [], messages?.ToList() ?? [], fragments?.ToList() ?? [], banners?.ToList() ?? [], appendBanners, null, null);
+}
+
+/// <summary>The cache policy of a fragment (mirrors io.mateu.dtos.FragmentCacheDto): how long and by
+/// what (<c>none</c>|<c>shared</c>|<c>user</c>|<c>key</c>) a host may keep it; <see cref="NotModified"/>
+/// = "use the copy you hold for <see cref="Key"/>" (the fragments are left out).</summary>
+public record FragmentCacheDto(int MaxAgeSeconds, string VaryBy)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Key { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool NotModified { get; init; }
 }
 
 public record UICommandDto(string TargetComponentId, string Type, object? Data)

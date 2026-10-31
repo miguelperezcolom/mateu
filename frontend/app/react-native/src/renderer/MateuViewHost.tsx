@@ -35,7 +35,7 @@ interface Props {
   onStackNavigate?: (target: NavTarget, replaceTop: boolean) => void;
   /** An increment the shell already holds (the assistant's render-screen `__preview__` answer):
    *  its first component fragment is rendered here, against `route`. */
-  preview?: { increment: unknown; route: string; consumedRoute: string };
+  preview?: { increment: unknown; route: string; consumedRoute: string; serverSideType?: string };
   /** Errors shown as inline text instead of toasts (embedded islands). */
   silent?: boolean;
   /** Hands the live controller to the host (dirty checks on back navigation). */
@@ -70,6 +70,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
     } else if (preview) {
       controller.currentRoute = preview.route;
       controller.currentConsumedRoute = preview.consumedRoute;
+      if (preview.serverSideType) controller.currentServerSideType = preview.serverSideType;
       const fragment = firstComponentFragment(preview.increment);
       const increment = (preview.increment as Record<string, unknown> | null) ?? {};
       controller.applyIncrement({ ...increment, fragments: fragment ? [fragment] : [] });

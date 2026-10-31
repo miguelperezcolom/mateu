@@ -2858,6 +2858,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
   /** What the foldout's panels read (mateuFoldoutContent): its overview, panels and header. */
@@ -2930,7 +2931,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       overviewOnTop: md.orientation === 'horizontal',
       // the navigation header, the overview's Edit and the badges: what may change between two
       // records of the same foldout (re-bound in place, like the panels' content)
-      header: foldoutHeaderOf(md),
+      header: declaresTemplate(ctx, 'FoldoutPage') ? foldoutPageHeaderOf(foldoutHeaderOf(md), templateFormOf(ctx), state) : foldoutHeaderOf(md),
+      // a declared FoldoutPage owns the page header (Toolkit 26C: the layout's own header and the
+      // overview panel carry the navigation and the actions — there is no page header above it)
+      ownsHeader: declaresTemplate(ctx, 'FoldoutPage'),
       badges: pageBadges,
       overview: {
         texts: collectTexts(bySlot['overview']),
@@ -2995,7 +2999,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       previousActionId,
       nextActionId,
       overviewActions: editActionId ? [{ id: editActionId, label: chromeText('edit'), icon: 'oj-ux-ico-edit', display: 'on' }] : [],
+      // id → { actionId, route } of a control whose button NAVIGATES (a RouteLink): the listeners hand
+      // it to dispatchHostBlockAction (ctaId/ctas), so a YAML page with no action behind it still works
+      ctas: {},
     }
+  }
+
+  const FOLDOUT_BACK_IDS = /^(back|backToList|cancel-view|cancel)$/
+
+  /**
+   * A declared FoldoutPage (YAML `template: FoldoutPage`): the FORM's toolbar becomes the layout's own
+   * controls, as Toolkit 26C draws the template — its back button the go-to-parent link (labelled like
+   * the button), every other button an action of the overview panel's header (the primary one, an
+   * «Edit», as the pencil). A button with a route navigates there; one without runs its action id.
+   */
+  function foldoutPageHeaderOf(header, form, state = {}) {
+    const toolbar = ((form && form.metadata && form.metadata.toolbar) || []).filter((b) => b && typeof b === 'object')
+    const text = (t) => interpolate(String(t == null ? '' : t), state)
+    const target = (b) => ({ actionId: b.actionId || '', route: b.route ? (buttonRouteOf(b.route, state) || '') : '' })
+    const back = toolbar.find((b) => FOLDOUT_BACK_IDS.test(b.actionId || ''))
+    const rest = toolbar.filter((b) => b !== back)
+      .sort((a, b) => (b.buttonStyle === 'primary') - (a.buttonStyle === 'primary'))
+    const ctas = { ...(header.ctas || {}) }
+    const out = { ...header, ctas }
+    if (back) {
+      ctas.parent = target(back)
+      Object.assign(out, { hasNavigation: true, goToParent: true, parentLabel: text(back.label) || chromeText('goBack'),
+        parentActionId: back.actionId || 'parent' })
+    }
+    if (rest.length) {
+      out.overviewActions = rest.map((b, i) => {
+        const id = 'toolbar-' + i
+        ctas[id] = target(b)
+        const label = text(b.label)
+        return { id, label, display: 'on', ...(i === 0 && b.buttonStyle === 'primary' && /^edit\b/i.test(label) ? { icon: 'oj-ux-ico-edit' } : {}) }
+      })
+    }
+    return out
   }
 
   /** A foldout panel's summary (the `summary-N` child): `hasSummary` + its texts as one line. */
@@ -3644,6 +3684,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
   /** RENDER helper: every node of a type (without crossing island boundaries). */
@@ -4218,6 +4259,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
   }
 
+  /** A bar with ONE tab is no choice at all: its content is shown as the main slot's, with no bar
+   *  (Redwood's item overview examples put a record's details straight in sections). */
+  function withoutLoneTab(item) {
+    if (!item || !item.tabs || item.tabs.length !== 1) return item
+    return { ...item, mainItems: item.tabs[0].items, tabs: [], selectedTab: '', tabsNodeId: '' }
+  }
+
   /** The tab shown on entry — the one the wire marks active (@Tab(open)), else the first — and the
    *  SAME one selected in the bar (the content once showed the first tab while the bar had none). */
   function selectedTabOf(tabLayout, tabs) {
@@ -4242,19 +4290,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const mainNodes = (main && main.children) || []
     const tabLayout = mainNodes.length === 1 && mainNodes[0].metadata && mainNodes[0].metadata.type === 'TabLayout'
       ? mainNodes[0] : null
-    const tabs = tabLayout ? itemTabsOf(tabLayout, atomsOfNodes) : []
-    return {
+    // the main slot is read-only form content in Toolkit 26C too (label above the value, in the form
+    // layout's columns), like the panel's body
+    const tabs = (tabLayout ? itemTabsOf(tabLayout, atomsOfNodes) : []).map((t) => ({ ...t, items: stackedPropertyRows(t.items) }))
+    return withoutLoneTab({
       key: { title: '', texts: [], items: atomsOfNodes(((body && body.children) || []).concat((footer && footer.children) || [])) },
       tabs,
       selectedTab: tabLayout ? selectedTabOf(tabLayout, tabs) : '',
       // a main slot that is not one tab bar, as atoms
-      mainItems: tabLayout ? [] : atomsOfNodes(mainNodes),
+      mainItems: tabLayout ? [] : stackedPropertyRows(atomsOfNodes(mainNodes)),
       template,
       // the Form whose title/subtitle/badges are the item's (oj-sp-item-overview's header)
       form: (templateFormOf(ctx) || {}).metadata || {},
       keyNodeId: '',
       tabsNodeId: '',
-    }
+    })
   }
 
   /**
@@ -4291,8 +4341,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
       .map((b) => (b.spSection
         ? { isPlain: true, blockClass: FULL,
-          items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) }
-        : { ...b, blockClass: FULL }))
+          items: [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(stackedPropertyRows(b.sectionItems)) }
+        : { ...b, blockClass: FULL, ...(Array.isArray(b.items) ? { items: stackedPropertyRows(b.items) } : {}) }))
     const detailNode = nodeById(ctx.tree, 'collection-detail-detail')
     const state = (ctx && ctx.state) || {}
     const form = templateFormOf(ctx)
@@ -4410,14 +4460,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!keyCard) return null
     const tabs = itemTabsOf(tabLayout, atomsOfNodes)
     const keyContent = keyCard ? ((keyCard.metadata && keyCard.metadata.content) || []) : []
-    return {
+    return withoutLoneTab({
       key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
       tabs,
       selectedTab: selectedTabOf(tabLayout, tabs),
       // editor mode: the key panel is its Card's node, the tab bar its TabLayout's (bound by the page)
       keyNodeId: editorNodeIds && keyCard && keyCard.id ? String(keyCard.id) : '',
       tabsNodeId: editorNodeIds && tabLayout.id ? String(tabLayout.id) : '',
-    }
+    })
   }
 
   /** Gate 1.3: page banners (Page.metadata.banners) → items of the
@@ -11947,6 +11997,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       componentState: {},
       baseUrl: str(m.baseUrl).replace(/\/+$/, ''),
       appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
+      // the host resolved it (resolve = SERVER): the answer to its load is already here
+      resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
       surface: true,
       lazy: false,
     }
@@ -19961,7 +20013,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (sub.baseUrl) base = sub.baseUrl
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
     const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
-    let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
+    // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
+    // its actions and triggers still go to ITS baseUrl (outbound, below)
+    let next = reduceContexts(reg, sub.resolved || await loadRoute(base, sub.route, sub.id, {
       ...extra,
       consumedRoute: sub.consumedRoute,
       serverSideType: sub.serverSideType,
@@ -20539,6 +20593,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           consumedRoute: md.consumedRoute || '',
           serverSideType: md.serverSideType || undefined,
           appState: md.appState || null,
+          // the host resolved it (resolve = SERVER): the answer to its first load is already here
+          resolved: md.resolved && typeof md.resolved === 'object' ? md.resolved : null,
         })
         return
       }
@@ -20636,7 +20692,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     const load = (async () => {
       try {
-        apply(await request(''))
+        // resolved by the host: no request for the first paint; its triggers still go to the remote
+        apply(item.resolved || (await request('')))
         // a remote that answers with a mediator (chromeless App) brings the content in a 2nd hop
         const info = rt.ctx && mediatorOf(rt.ctx)
         if (info) {
@@ -23090,13 +23147,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /**
    * The page's width anatomy (RDS 1.6): the shell layout, the content box (max width, margins,
-   * padding) and the header band's box. With the persistent navigator drawer (or the item overview
-   * template) the page goes edge to edge. Pages whose header bleeds (welcome, overview, wizard,
+   * padding) and the header band's box. With the persistent navigator drawer the page goes edge to
+   * edge. The item overview template keeps the page's width (Toolkit 26C: centred, ~96px margins at
+   * ≥1536) — it only takes the content container's card surface away. Pages whose header bleeds (welcome, overview, wizard,
    * listing, any VB header) have no padding: each branch brings its gutter. With a header BAND the
    * content overlaps it by 40px (the band peeks out from behind its start).
    */
-  function pageWidthOf({ host, drawerNav, iopOn = false }) {
-    return (drawerNav || iopOn) ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed')
+  function pageWidthOf({ host, drawerNav }) {
+    return drawerNav ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed')
   }
   /** The marker the server stamps into a @Compact page's style (StyleConstants.COMPACT). */
   const COMPACT_STYLE_MARKER = '--mateu-compact:1'
@@ -23127,9 +23185,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, band }) {
-    const edge = drawerNav || iopOn
-    const pageStyle = edge ? pageStyleOf({ pageWidth: 'edgeToEdge' }) : pageStyleOf(host)
-    const pw = pageWidthOf({ host, drawerNav, iopOn })
+    const pageStyle = drawerNav ? pageStyleOf({ pageWidth: 'edgeToEdge' }) : pageStyleOf(host)
+    const pw = pageWidthOf({ host, drawerNav })
     const out = {
       mateuShellPageLayout: pw === 'fixed' ? 'fixedWidth' : pw,
       mateuPageMaxWidth: pageStyle.maxWidth,

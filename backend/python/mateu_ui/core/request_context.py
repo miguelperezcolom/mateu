@@ -40,6 +40,10 @@ class MateuRequest:
     #: The caller's network address as the framework reports it (FastAPI ``request.client.host``),
     #: or None when it cannot tell.
     client_address: str | None = None
+    #: This server's own origin as the adapter sees the local socket (``http://127.0.0.1:8000``),
+    #: or None — never read from a request header. A remote registered as a path on this server
+    #: is called there when no ``self_base_url`` is configured.
+    self_base_url: str | None = None
 
     def header(self, name: str) -> str | None:
         return self.headers.get(name.lower())

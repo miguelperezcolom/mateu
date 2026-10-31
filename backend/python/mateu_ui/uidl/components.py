@@ -1861,6 +1861,50 @@ class MicroFrontend(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: Who asks the remote for the first paint: the renderer (``Resolve.CLIENT``, the default — the
+    #: wire is exactly as before) or the host while it builds the view (``Resolve.SERVER``: the
+    #: base url must be under a registered remote; slow, failing or down → as CLIENT).
+    #: EXPERIMENTAL.
+    resolve: "Resolve | None" = None
+    #: How long the host waits for it when SERVER-resolved; None = the remote's default.
+    timeout_ms: int | None = None
+    #: The remote view's server-side type, consumed route and load action (None = the defaults).
+    server_side_type: str | None = None
+    consumed_route: str | None = None
+    action_id: str | None = None
+
+    def resolved_by_server(self) -> bool:
+        """Whether the host resolves it (``Resolve.SERVER``)."""
+        return self.resolve is Resolve.SERVER
+
+
+class Resolve(Enum):
+    """Where a :class:`MicroFrontend` is resolved for its first paint: ``CLIENT`` (the renderer
+    asks the remote — the default, and how it always was) or ``SERVER`` (the host asks while it
+    builds the view and embeds the answer; a remote that does not answer in time degrades to
+    CLIENT). The fragment still belongs to the remote: its actions go there. EXPERIMENTAL; the
+    Python analogue of ``io.mateu.uidl.data.Resolve``."""
+
+    CLIENT = "CLIENT"
+    SERVER = "SERVER"
+
+
+@dataclass(frozen=True)
+class ContentSlot(Component):
+    """A hole for managed content filled by the content service, resolved by the host while it
+    builds the view and replaced by its ``fallback`` (nothing when blank) when there is none.
+    ``key`` is ``application.screen.name``; ``timeout_ms`` None = the content remote's default;
+    ``degrade_to_client`` lets the renderer ask when the content does not arrive in time.
+    EXPERIMENTAL; the fluent twin of the ``ContentSlot`` field marker (Java's
+    ``io.mateu.uidl.data.ContentSlot``)."""
+
+    key: str = ""
+    fallback: str | None = None
+    timeout_ms: int | None = None
+    description: str | None = None
+    degrade_to_client: bool = False
+    style: str | None = None
+    css_classes: str | None = None
 
 
 class PopoverTrigger(Enum):
@@ -2171,6 +2215,8 @@ __all__ = [
     "EmbeddedView",
     "Dialog",
     "MicroFrontend",
+    "Resolve",
+    "ContentSlot",
     "Text",
     "Button",
     "MetricCard",

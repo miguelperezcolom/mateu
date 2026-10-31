@@ -43,6 +43,7 @@ Mateu.Uidl.BulletedListAttribute
 Mateu.Uidl.BusinessComponentAttribute
 Mateu.Uidl.Button
 Mateu.Uidl.ButtonAttribute
+Mateu.Uidl.CacheableFragmentAttribute
 Mateu.Uidl.Calendar
 Mateu.Uidl.CalendarDay
 Mateu.Uidl.CalendarEvent
@@ -75,6 +76,8 @@ Mateu.Uidl.ComponentRef
 Mateu.Uidl.ConfirmDialog
 Mateu.Uidl.ConfirmOnNavigationIfDirtyAttribute
 Mateu.Uidl.ContentLayout
+Mateu.Uidl.ContentSlot
+Mateu.Uidl.ContentSlotAttribute
 Mateu.Uidl.CrudDisplay
 Mateu.Uidl.Crud`1
 Mateu.Uidl.CsvParser
@@ -132,6 +135,8 @@ Mateu.Uidl.FoldoutPanel
 Mateu.Uidl.Form
 Mateu.Uidl.FormField
 Mateu.Uidl.FormLayoutAttribute
+Mateu.Uidl.FragmentCachePolicy
+Mateu.Uidl.FragmentVary
 Mateu.Uidl.Funnel
 Mateu.Uidl.FunnelStage
 Mateu.Uidl.Gantt
@@ -163,6 +168,7 @@ Mateu.Uidl.IComponent
 Mateu.Uidl.IComponentAdapter
 Mateu.Uidl.IComponentCatalogSupplier
 Mateu.Uidl.IComponentTreeSupplier
+Mateu.Uidl.ICorrelationIdProvider
 Mateu.Uidl.ICreatable`2
 Mateu.Uidl.ICrudAffordances
 Mateu.Uidl.ICrudExports
@@ -173,6 +179,8 @@ Mateu.Uidl.IDraftable
 Mateu.Uidl.IEditable`2
 Mateu.Uidl.IFieldTypeCatalogSupplier
 Mateu.Uidl.IFilterable`1
+Mateu.Uidl.IFragmentCachePolicySupplier
+Mateu.Uidl.IFragmentCacheStore
 Mateu.Uidl.IGanttPage
 Mateu.Uidl.IGlobalSearchSupplier
 Mateu.Uidl.IGroupActionVisibility
@@ -184,6 +192,7 @@ Mateu.Uidl.ILinkSupplier
 Mateu.Uidl.IListingExporter
 Mateu.Uidl.IListing`1
 Mateu.Uidl.ILookupLabelSupplier
+Mateu.Uidl.IMicroFrontendResolutionListener
 Mateu.Uidl.INavigable`2
 Mateu.Uidl.INotificationsSupplier
 Mateu.Uidl.IOptionsSupplier
@@ -191,6 +200,9 @@ Mateu.Uidl.IPageWidthSupplier
 Mateu.Uidl.IPeerNavigationSupplier
 Mateu.Uidl.IRecordSwitcherSupplier
 Mateu.Uidl.IRefreshOnChange
+Mateu.Uidl.IRemoteCatalogSupplier
+Mateu.Uidl.IRemoteIdentityStrategy
+Mateu.Uidl.IRemoteRegistry
 Mateu.Uidl.IRestSourceCatalogSupplier
 Mateu.Uidl.IRestSourceSupplier
 Mateu.Uidl.IRuleSupplier
@@ -207,6 +219,7 @@ Mateu.Uidl.Identity
 Mateu.Uidl.IdentityGatedAttribute
 Mateu.Uidl.Image
 Mateu.Uidl.ImportWizard`1
+Mateu.Uidl.IncomingRequest
 Mateu.Uidl.InlineAttribute
 Mateu.Uidl.InlineEditingAttribute
 Mateu.Uidl.ItemOverview
@@ -252,6 +265,8 @@ Mateu.Uidl.Meter
 Mateu.Uidl.MetricCard
 Mateu.Uidl.MetricTrend
 Mateu.Uidl.MicroFrontend
+Mateu.Uidl.MicroFrontendResolutionEvent
+Mateu.Uidl.MicroFrontendResolutionOutcome
 Mateu.Uidl.MobileAppAttribute
 Mateu.Uidl.MoneyAttribute
 Mateu.Uidl.MultilineAttribute
@@ -302,7 +317,9 @@ Mateu.Uidl.ReadOnlyAttribute
 Mateu.Uidl.ReadOnlyUnlessAttribute
 Mateu.Uidl.RecordMerge
 Mateu.Uidl.RecordSwitcher
+Mateu.Uidl.RemoteDescriptor
 Mateu.Uidl.RemoteMenuAttribute
+Mateu.Uidl.Resolve
 Mateu.Uidl.ResourceGrid
 Mateu.Uidl.ResourceItem
 Mateu.Uidl.ResponsiveGrid

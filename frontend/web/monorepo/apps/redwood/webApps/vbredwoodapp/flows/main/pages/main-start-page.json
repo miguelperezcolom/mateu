@@ -319,7 +319,9 @@
       "chains": [
         {
           "parameters": {
-            "actionId": "{{ $application.variables.mateuFoldoutContent.header.parentActionId }}"
+            "actionId": "{{ $application.variables.mateuFoldoutContent.header.parentActionId }}",
+            "ctaId": "parent",
+            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}"
           },
           "chain": "dispatchHostBlockAction"
         }
@@ -349,7 +351,9 @@
       "chains": [
         {
           "parameters": {
-            "actionId": "{{ $event.detail.actionId }}"
+            "actionId": "{{ $event.detail.actionId }}",
+            "ctaId": "{{ $event.detail.actionId }}",
+            "ctas": "{{ $application.variables.mateuFoldoutContent.header.ctas }}"
           },
           "chain": "dispatchHostBlockAction"
         }

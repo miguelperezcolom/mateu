@@ -20,6 +20,8 @@ import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCo
 import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {nanoid} from "nanoid";
+import type UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
+import {applyPreloaded} from "@infra/ui/preloadedIncrement.ts";
 import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
@@ -64,6 +66,18 @@ export class MateuUx extends ConnectedElement {
      * (and its route-flip reloads) instead of loading with an empty state. */
     @property()
     initialState: Record<string, unknown> | undefined
+    /**
+     * The answer to this ux's first load, already in hand: a micro frontend the HOST resolved
+     * (`resolve = SERVER`). Painted instead of asking the server, once; everything after it (its
+     * actions, its triggers, a navigation inside it) goes to this ux's baseUrl — the remote — as
+     * always.
+     */
+    @property({ attribute: false })
+    preloaded: UIIncrement | undefined
+
+    /** The {@link preloaded} answer already painted: it answers ONE load, never a later one. */
+    private consumedPreloaded: UIIncrement | undefined
+
     @property()
     appState: ComponentState = {}
     @property()
@@ -449,7 +463,14 @@ export class MateuUx extends ConnectedElement {
                 // below — exactly as a real server response would, so focus still follows the route.
                 const staticFull =
                     cacheKey !== this.lastAuthoritativeKey ? getStaticFragment(cacheKey) : undefined
-                if (staticFull) {
+                const preloaded =
+                    this.preloaded && this.preloaded !== this.consumedPreloaded ? this.preloaded : undefined
+                if (preloaded) {
+                    // resolved by the host: this IS the answer to the load, no request
+                    this.consumedPreloaded = preloaded
+                    const token = this.callbackToken
+                    queueMicrotask(() => applyPreloaded(preloaded, this, token))
+                } else if (staticFull) {
                     queueMicrotask(() => this.applyFragment(staticFull))
                 } else {
                     if (cacheKey !== this.lastAuthoritativeKey) {

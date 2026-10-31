@@ -714,18 +714,13 @@ public class AdapterParityITFoundation {
           throw new AssertionError("first dev event was not a hello: " + hello);
         }
         given().when().post("/mateu/dev/reload").then().statusCode(204);
-        String event;
-        do {
-          event = nextData(executor, it);
-        } while (event.contains("\"ping\""));
+        String event = nextEvent(executor, it);
         if (!event.contains("\"reload\"")) {
           throw new AssertionError("reload was not pushed to the stream: " + event);
         }
         // the IDE asks for a whole-app re-render with ?scope=app
         given().queryParam("scope", "app").when().post("/mateu/dev/reload").then().statusCode(204);
-        do {
-          event = nextData(executor, it);
-        } while (event.contains("\"ping\""));
+        event = nextEvent(executor, it);
         if (!event.contains("\"reload\"") || !event.contains("\"scope\":\"app\"")) {
           throw new AssertionError("an app-scoped reload was not pushed as such: " + event);
         }
@@ -823,10 +818,26 @@ public class AdapterParityITFoundation {
     }
   }
 
+  /**
+   * The next event that is not a ping, within 30 s: pings keep arriving, so a lost event used to
+   * keep this waiting until the CI job's timeout instead of failing.
+   */
+  private static String nextEvent(ExecutorService executor, Iterator<String> lines)
+      throws Exception {
+    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+    while (System.nanoTime() < deadline) {
+      var event = nextData(executor, lines);
+      if (!event.contains("\"ping\"")) {
+        return event;
+      }
+    }
+    throw new AssertionError("only pings for 30 s: the event was not pushed to the stream");
+  }
+
   private static String nextData(ExecutorService executor, Iterator<String> lines)
       throws Exception {
-    return executor
-        .submit(
+    var reading =
+        executor.submit(
             () -> {
               while (lines.hasNext()) {
                 var line = lines.next();
@@ -835,8 +846,14 @@ public class AdapterParityITFoundation {
                 }
               }
               throw new AssertionError("dev event stream ended");
-            })
-        .get(20, TimeUnit.SECONDS);
+            });
+    try {
+      return reading.get(20, TimeUnit.SECONDS);
+    } catch (java.util.concurrent.TimeoutException e) {
+      // stop the reader BEFORE the stream is closed: closing it under a blocked read never returns
+      executor.shutdownNow();
+      throw new AssertionError("no dev event within 20 s", e);
+    }
   }
 
   /** A deep link under a UI answers that UI's index page. */

@@ -5,6 +5,7 @@ import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
 import { useButtonPress } from './useButtonPress';
 import { islandSession } from '../core/MateuSession';
+import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
 import { RichText } from './FieldWidgets';
 import { ChartRenderer } from './ChartRenderer';
 import { FormFieldRenderer } from './FormFieldRenderer';
@@ -100,6 +101,9 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
         consumedRoute: (metadata['consumedRoute'] as string) ?? '',
         serverSideType: (metadata['serverSideType'] as string) ?? '',
       }}
+      // resolved by the host (resolve = SERVER): painted without asking; its actions still go to
+      // the island's own session — the remote
+      preview={resolvedPreviewOf(metadata)}
       silent
     />
   );

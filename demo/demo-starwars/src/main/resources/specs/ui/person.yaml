@@ -44,15 +44,17 @@ content:
               title: {type: Text, container: h3, text: Physique}
               content:
                 type: FormLayout
+                maxColumns: 3   # Toolkit 26C: a read-only form in up to 3 columns (JET drops them as the width shrinks)
                 content:
-                  - {type: FormField, id: height, label: Height (cm), dataType: integer, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: mass, label: Mass (kg), dataType: number, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: height, label: Height (cm), dataType: integer, readOnly: true}
+                  - {type: FormField, id: mass, label: Mass (kg), dataType: number, readOnly: true}
             - type: Card
               cssClasses: mateu-section
               title: {type: Text, container: h3, text: Appearance}
               content:
                 type: FormLayout
+                maxColumns: 3   # Toolkit 26C: a read-only form in up to 3 columns (JET drops them as the width shrinks)
                 content:
-                  - {type: FormField, id: hairColor, label: Hair, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: skinColor, label: Skin, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: eyeColor, label: Eyes, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: hairColor, label: Hair, readOnly: true}
+                  - {type: FormField, id: skinColor, label: Skin, readOnly: true}
+                  - {type: FormField, id: eyeColor, label: Eyes, readOnly: true}

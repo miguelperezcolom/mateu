@@ -94,6 +94,19 @@ public class ReflectionFormFieldMapper {
       instance = modelSupplier.model();
     }
     var fieldType = field.getType();
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.ContentSlot.class)) {
+      // a hole for managed content: the field's value is irrelevant, the slot is resolved by the
+      // server against the content remote (see MicroFrontendServerResolver)
+      var slot = MetaAnnotations.find(field, io.mateu.uidl.annotations.ContentSlot.class);
+      return io.mateu.uidl.data.ContentSlot.builder()
+          .key(slot.key())
+          .fallback(slot.fallback().isBlank() ? null : slot.fallback())
+          .timeoutMs(slot.timeoutMs() > 0 ? slot.timeoutMs() : null)
+          .description(slot.description().isBlank() ? null : slot.description())
+          .degradeToClient(slot.degradeToClient())
+          .style("width: 100%;")
+          .build();
+    }
     if (Callable.class.isAssignableFrom(field.getType())) {
       var value = getValue(field, instance);
       // A Callable is COMPUTED, never typed into: a basic result (a String, a number, a date…) is

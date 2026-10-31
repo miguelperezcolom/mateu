@@ -1,4 +1,5 @@
 import type { KeyValueStore } from './sessionId.ts';
+import { withoutResolvedMicroFrontends } from './resolvedMicroFrontends.ts';
 
 type Json = Record<string, unknown>;
 
@@ -87,7 +88,8 @@ export function snapshotOf(increment: unknown): Json | null {
   if (!increment || typeof increment !== 'object') return null;
   const fragments = (increment as Json)['fragments'];
   if (!Array.isArray(fragments) || fragments.length === 0) return null;
-  const out: Json = { fragments, commands: [], messages: [] };
+  // a remote's answer the host embedded (resolve = SERVER) is per request: not kept
+  const out: Json = { fragments: withoutResolvedMicroFrontends(fragments), commands: [], messages: [] };
   const appState = (increment as Json)['appState'];
   if (appState && typeof appState === 'object') out['appState'] = appState;
   return out;

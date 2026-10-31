@@ -33,6 +33,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
                   id="${microFrontendUxId(metadata)}"
                   serverSideType="${metadata.serverSideType}"
                   .appState="${metadata.appState}"
+                  .preloaded="${metadata.resolved}"
                   style="${component.style}" class="${component.cssClasses}"
                   slot="${component.slot??nothing}"
         ></mateu-ux>

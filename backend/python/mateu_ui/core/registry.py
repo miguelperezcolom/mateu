@@ -55,6 +55,19 @@ class MateuRegistry:
         #: The application's ListingExporter instances (one per format; Mateu ships no Excel / PDF
         #: engine — the built-in CSV writer fills in when none writes CSV).
         self.exporters: list = []
+        #: Server-side micro frontend resolution (EXPERIMENTAL): the RemoteCatalogSupplier /
+        #: RemoteIdentityStrategy / MicroFrontendResolutionListener subclasses found among the
+        #: sources (instantiated with no arguments), and a RemoteRegistry / FragmentCacheStore /
+        #: CorrelationIdProvider subclass replacing Mateu's own.
+        self.remote_suppliers: list = []
+        self.identity_strategies: list = []
+        self.resolution_listeners: list = []
+        self.remote_registry = None
+        self.fragment_cache_store = None
+        self.correlation_id_provider = None
+        #: The ContentSlot fields of the registered classes, by key (a malformed or repeated key
+        #: fails the registration — the port's twin of Java's compile error).
+        self.content_slots: dict = {}
         for src in sources:
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
@@ -71,6 +84,8 @@ class MateuRegistry:
         if cls not in self.classes:
             self.classes.append(cls)
         self._register_catalog_supplier(cls)
+        self._register_microfrontend_parts(cls)
+        self._register_content_slots(cls)
         if "__mateu_app__" in cls.__dict__:
             self.app_type = cls
             self._by_name[type_name(cls)] = cls
@@ -85,6 +100,64 @@ class MateuRegistry:
             self._by_route[normalize(route)] = cls
             self._by_name[type_name(cls)] = cls
         self._register_route_supplier(cls)
+
+    def _register_microfrontend_parts(self, cls: type) -> None:
+        from mateu_ui.uidl import remote
+
+        def concrete(base) -> bool:
+            return (
+                isinstance(cls, type)
+                and issubclass(cls, base)
+                and cls is not base
+                and not inspect.isabstract(cls)
+                and not cls.__module__.startswith("mateu_ui.")
+            )
+
+        def instance():
+            try:
+                return cls()
+            except Exception as e:  # noqa: BLE001 - a broken part is skipped, logged
+                _log.warning("%s could not be instantiated (%s)", cls.__name__, e)
+                return None
+
+        base: type
+        for base, bucket in (
+            (remote.RemoteCatalogSupplier, self.remote_suppliers),
+            (remote.RemoteIdentityStrategy, self.identity_strategies),
+            (remote.MicroFrontendResolutionListener, self.resolution_listeners),
+        ):
+            if concrete(base) and not any(type(each) is cls for each in bucket):
+                made = instance()
+                if made is not None:
+                    bucket.append(made)
+        for base, attribute in (
+            (remote.RemoteRegistry, "remote_registry"),
+            (remote.FragmentCacheStore, "fragment_cache_store"),
+            (remote.CorrelationIdProvider, "correlation_id_provider"),
+        ):
+            if concrete(base) and type(getattr(self, attribute)) is not cls:
+                made = instance()
+                if made is not None:
+                    setattr(self, attribute, made)
+
+    def _register_content_slots(self, cls: type) -> None:
+        """Records the ContentSlot fields ``cls`` (and its bases) declare; a malformed key or one
+        already used by another field raises ``ContentSlotKeyError``."""
+        from .microfrontends import ContentSlotKeyError, content_slots_of
+
+        if not isinstance(cls, type):
+            return
+        for klass in cls.__mro__:
+            if klass is object or klass.__module__ in ("builtins", "typing", "abc"):
+                continue
+            for slot in content_slots_of(klass):
+                previous = self.content_slots.get(slot.key)
+                if previous is not None and (previous.declared_in, previous.field) != (slot.declared_in, slot.field):
+                    raise ContentSlotKeyError(
+                        f"ContentSlot key '{slot.key}' of {slot.declared_in}.{slot.field} is already used by "
+                        f"{previous.declared_in}.{previous.field}: a key names one slot of the application"
+                    )
+                self.content_slots[slot.key] = slot
 
     def _register_route_supplier(self, cls: type) -> None:
         """A RouteEntrySupplier subclass contributes its routes to the code-authored half. A broken

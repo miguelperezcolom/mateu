@@ -112,7 +112,10 @@ public final class DevEndpoint {
   static Flux<String> events(Duration pingEvery, org.reactivestreams.Publisher<?> until) {
     var changes = DevSpecs.events().map(DevEndpoint::json);
     var pings = Flux.interval(pingEvery).map(i -> "{\"type\":\"ping\"}");
-    return Flux.concat(Flux.defer(() -> Flux.just(hello())), Flux.merge(changes, pings))
+    // hello LAST in the merge, so the stream is already listening to changes when the client reads
+    // it: concat(hello, changes) subscribed to the changes only after the hello was written, and a
+    // reload asked for right after it (what a client does as soon as it is connected) was lost
+    return Flux.merge(changes, pings, Flux.defer(() -> Flux.just(hello())))
         .takeUntilOther(until)
         .doOnSubscribe(subscription -> CONNECTIONS.incrementAndGet())
         .doFinally(signal -> CONNECTIONS.decrementAndGet());

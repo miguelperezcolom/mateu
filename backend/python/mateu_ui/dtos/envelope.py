@@ -143,6 +143,29 @@ class UIFragment(Wire):
     container_id: str | None = None
 
 
+class FragmentCache(Wire):
+    """What a remote allows the hosts that embed its answer to do with it (mirrors
+    ``io.mateu.dtos.FragmentCacheDto``): reuse it for ``max_age_seconds``, keyed by ``vary_by``
+    (``none`` | ``shared`` | ``user`` | ``key``, with the opaque ``key``). ``not_modified``: the host
+    said it holds ``key`` and the remote answers "use yours" — the response carries no fragments."""
+
+    max_age_seconds: int = 0
+    vary_by: str = "none"
+    key: str | None = None
+    not_modified: bool = False
+
+    @model_serializer(mode="wrap")
+    def _omit_defaults(self, handler):
+        data = handler(self)
+        for key in ("key",):
+            if key in data and data[key] is None:
+                del data[key]
+        for key in ("not_modified", "notModified"):
+            if key in data and not data[key]:
+                del data[key]
+        return data
+
+
 class UIIncrement(Wire):
     commands: list[UICommand] = Field(default_factory=list)
     messages: list[Message] = Field(default_factory=list)
@@ -159,12 +182,18 @@ class UIIncrement(Wire):
     # catalogue rides the app metadata, which a page served with no app shell never receives.
     # Omitted from the JSON when there are none (mirrors UIIncrementDto.restSources).
     rest_sources: "list[RestSourceEntryRecord] | None" = None
+    #: What a REMOTE allows the hosts that embed this answer to do with it (EXPERIMENTAL; mirrors
+    #: ``UIIncrementDto.fragmentCache``). Omitted when None.
+    fragment_cache: "FragmentCache | None" = None
 
     @model_serializer(mode="wrap")
     def _omit_absent_rest_sources(self, handler):
         data = handler(self)
         for key in ("rest_sources", "restSources"):
             if key in data and not data[key]:
+                del data[key]
+        for key in ("fragment_cache", "fragmentCache"):
+            if key in data and data[key] is None:
                 del data[key]
         return data
 

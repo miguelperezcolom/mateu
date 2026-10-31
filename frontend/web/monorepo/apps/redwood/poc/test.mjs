@@ -9,7 +9,7 @@ import { ORACLE_CDN, oracleCdnBase, oracleCdnUrl } from './oracleCdn.mjs'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { foldoutHeaderOf, foldoutIconClassOf } from './core/archetypes.mjs'
+import { foldoutHeaderOf, foldoutIconClassOf, foldoutPageHeaderOf } from './core/archetypes.mjs'
 import { styledTextOf } from './core/content.mjs'
 import { styleObjectOf } from './richtext.mjs'
 import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
@@ -6747,6 +6747,23 @@ test('Foldout header: no navigation → no controls; only a next id → no bidir
   assert.equal(foldoutIconClassOf('oj-ux-ico-edit'), 'oj-ux-ico-edit')
   assert.equal(foldoutIconClassOf(null), '')
 })
+test('FoldoutPage (YAML): the form toolbar becomes the layout header — back = go-to-parent, the rest = overview actions, routes kept', () => {
+  const form = { metadata: { toolbar: [
+    { actionId: 'backToList', label: 'Starships', route: 'starships' },
+    { label: 'Share' },
+    { label: 'Edit', buttonStyle: 'primary', route: 'starships/${state.id}/edit' },
+  ] } }
+  const h = foldoutPageHeaderOf(foldoutHeaderOf({}), form, { id: 9 })
+  assert.deepEqual([h.hasNavigation, h.goToParent, h.parentLabel, h.parentActionId], [true, true, 'Starships', 'backToList'])
+  assert.deepEqual(h.ctas.parent, { actionId: 'backToList', route: 'starships' })
+  // the primary first, as the pencil; its route resolved against the state
+  assert.deepEqual(h.overviewActions.map((a) => [a.id, a.label, a.icon || '']), [['toolbar-0', 'Edit', 'oj-ux-ico-edit'], ['toolbar-1', 'Share', '']])
+  assert.deepEqual(h.ctas['toolbar-0'], { actionId: '', route: 'starships/9/edit' })
+  // a route with a hole is never navigated to
+  assert.equal(foldoutPageHeaderOf(foldoutHeaderOf({}), form, {}).ctas['toolbar-0'].route, '')
+  // no toolbar: the header stays as the wire said
+  assert.deepEqual(foldoutPageHeaderOf(foldoutHeaderOf({}), { metadata: {} }).overviewActions, [])
+})
 test('Foldout page: the layout binds the header, the overview can take the overview slot, the actions reach the host', () => {
   const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
   const H = '$application.variables.mateuFoldoutContent.header'
@@ -6814,4 +6831,73 @@ test('HorizontalLayout: inline pieces make a row; any other child keeps the stac
   assert.match(atomsHtml, /<oj-bind-if test="\[\[ \$current\.data\.isRow \]\]">\s*(<!--[\s\S]*?-->\s*)?<div class="mateu-atom-row oj-sm-margin-1x-bottom" :style="\[\[ \$current\.data\.style \|\| \{\} \]\]">/)
   assert.match(atomsHtml, /rowButton \]\]">\s*<oj-button[\s\S]*?on-oj-action="\[\[ \$listeners\.\{\{blockAction\}\} \]\]"/)
   assert.match(atomsHtml, /\$current\.data\.isText && !\$current\.data\.isHeading \]\]">\s*<div class="oj-sm-margin-1x-bottom" :class="\[\[ \$current\.data\.cls \]\]" :style="\[\[ \$current\.data\.style \|\| \{\} \]\]">/)
+})
+
+// ── MicroFrontend resolved by the host (resolve = SERVER) ──────────────────────────────────────
+import { loadSubresource as mfeLoadSubresource, runSurfaceAction as mfeRunSurfaceAction } from './transport.mjs'
+import { microFrontendOf as mfeOf } from './core/display.mjs'
+
+const mfeAnswer = (id, text) => ({
+  fragments: [{
+    targetComponentId: id,
+    action: 'Replace',
+    component: { type: 'ServerSide', id: 'w', serverSideType: 'remote.Widget', children: [
+      { type: 'ClientSide', id: 't', children: [], metadata: { type: 'Text', text, container: 'p' } },
+    ], actions: [{ id: 'like' }] },
+    state: { likes: 1 },
+  }],
+})
+
+atest('MicroFrontend resuelto en el host: se pinta sin pedir nada, y sus acciones van a SU remoto', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  globalThis.fetch = async (url, init) => {
+    seen.push({ url: String(url), body: JSON.parse(init.body) })
+    return { ok: true, status: 200, json: async () => ({ fragments: [] }), text: async () => '{"fragments":[]}' }
+  }
+  try {
+    const m = { baseUrl: 'https://content.acme.com/hub', route: '/widget', serverSideType: 'remote.Widget' }
+    const sub = mfeOf({ ...m, resolved: mfeAnswer(mfeOf(m).id, 'hello from the remote') })
+    assert.ok(sub.resolved, 'the answer travels with the surface')
+    let reg = await mfeLoadSubresource('https://host', empty(), sub, { appState: {} })
+    assert.equal(seen.length, 0, 'no request for the first paint')
+    assert.equal(reg.contexts[sub.id].state.likes, 1)
+    assert.equal(reg.contexts[sub.id].outbound.baseUrl, 'https://content.acme.com/hub')
+    reg = await mfeRunSurfaceAction(reg, sub.id, 'like', {}, { appState: {} })
+    assert.equal(seen.length, 1)
+    assert.match(seen[0].url, /^https:\/\/content\.acme\.com\/hub\/mateu\/v3\/sync/)
+    assert.equal(seen[0].body.actionId, 'like')
+  } finally { globalThis.fetch = original }
+})
+
+atest('MicroFrontend sin resolver: lo pide a su remoto, como siempre', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  globalThis.fetch = async (url, init) => {
+    seen.push({ url: String(url), body: JSON.parse(init.body) })
+    return { ok: true, status: 200, json: async () => ({ fragments: [] }), text: async () => '{"fragments":[]}' }
+  }
+  try {
+    const sub = mfeOf({ baseUrl: 'https://content.acme.com/hub', route: '/widget' })
+    assert.equal(sub.resolved, null)
+    await mfeLoadSubresource('https://host', empty(), sub, { appState: {} })
+    assert.equal(seen.length, 1)
+    assert.match(seen[0].url, /^https:\/\/content\.acme\.com\/hub\//)
+  } finally { globalThis.fetch = original }
+})
+
+atest('widgets: un MicroFrontend de cabecera resuelto en el host no se pide; sus triggers sí van a su pod', async () => {
+  const calls = []
+  const call = async (base, body) => { calls.push({ base, body }); return { fragments: [] } }
+  const { items } = headerWidgetsOf(reduceContexts(empty(), fx('app-widgets')))
+  const item = { ...items[0], resolved: fx('widget-badge') }
+  const htmls = []
+  const timers = []
+  const rt = startRemoteWidget(item, (h) => htmls.push(h), { call, schedule: (fn, ms) => { timers.push(fn); return timers.length }, cancel: () => {} })
+  await rt.loaded
+  assert.equal(calls.length, 0, 'painted from the resolved answer')
+  assert.match(htmls[0], /Inbox \(16\)/)
+  await timers[0]()
+  assert.equal(calls[0].base, '/_inbox')
+  stopRemoteWidgets()
 })
