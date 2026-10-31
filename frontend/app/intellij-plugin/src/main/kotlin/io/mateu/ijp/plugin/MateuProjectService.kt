@@ -343,7 +343,19 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         showBlockingPanel("Update required", block.message) {
             add(JButton("Update now").apply {
                 addActionListener {
-                    // The IDE's own update flow: checks (and installs) plugin AND platform updates.
+                    if (io.mateu.ijp.update.MateuUpdater.isEnabled()) {
+                        // The desktop app updates itself (io.mateu.ijp.update): the IDE's own check is off
+                        // there, so CheckForUpdate would do nothing useful.
+                        io.mateu.ijp.update.MateuUpdater.checkNow { r ->
+                            when (r) {
+                                is io.mateu.ijp.update.UpdateResult.ReadyToRestart -> io.mateu.ijp.update.MateuUpdater.restart()
+                                is io.mateu.ijp.update.UpdateResult.ReinstallNeeded -> io.mateu.ijp.ui.SafeHtml.browse(r.installerUrl ?: block.downloadUrl)
+                                else -> block.downloadUrl?.let { io.mateu.ijp.ui.SafeHtml.browse(it) }
+                            }
+                        }
+                        return@addActionListener
+                    }
+                    // A developer's IDE: the IDE's own update flow (plugin AND platform updates).
                     // (Every ActionUtil.invokeAction/performAction overload is deprecated on the 2025.2
                     // baseline the plugin targets; keeping the simplest form until the since-build rises.)
                     val action = ActionManager.getInstance().getAction("CheckForUpdate")
