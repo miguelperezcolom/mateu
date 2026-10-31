@@ -5,11 +5,15 @@ title: Edit ${state.title}
 subtitle: Film
 toolbar:
 - type: Button
-  actionId: backToList
-  label: Back
+  actionId: cancel-edit
+  label: Cancel
   actionable:
     type: RouteLink
     route: films/${state.id}
+- type: Button
+  label: Save
+  actionId: save
+  buttonStyle: primary
 content:
 - type: FormLayout
   content:
@@ -35,11 +39,6 @@ content:
     id: openingCrawl
     label: Opening crawl
     stereotype: textarea
-buttons:
-- type: Button
-  label: Save
-  actionId: save
-  buttonStyle: primary
 actions:
 - id: save
   validationRequired: true

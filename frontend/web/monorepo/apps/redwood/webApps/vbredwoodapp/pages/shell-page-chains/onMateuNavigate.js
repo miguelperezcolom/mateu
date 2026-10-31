@@ -504,7 +504,7 @@ define([
       const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
         || bridge.templateOwnsHeader(archetypes)
         || overviewProjection || listingSummary
-        || (foldoutNow && !hostEntity && !hostToolbar.length));
+        || (foldoutNow && (foldoutNow.ownsHeader || (!hostEntity && !hostToolbar.length))));
       // the not-found page brings its own heading (the oj-sp-empty-state): no vb header
       const showHeader = !integratedHeader && !notFoundNow;
       // 1.3: page banners → the starter's oj-sp-messages-banner (shell).
