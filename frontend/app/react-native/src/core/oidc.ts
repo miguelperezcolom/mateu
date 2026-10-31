@@ -1,5 +1,5 @@
 import * as AuthSession from 'expo-auth-session';
-import Constants from 'expo-constants';
+import { appScheme } from './appScheme.ts';
 import * as WebBrowser from 'expo-web-browser';
 import type { TokenProvider } from './auth.ts';
 import { isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
@@ -16,8 +16,7 @@ const TOKENS_KEY = 'mateu.oidc.tokens';
 export const OIDC_REDIRECT_SCHEME = 'mateu';
 
 export function oidcRedirectUri(): string {
-  const scheme = Constants.expoConfig?.scheme;
-  return AuthSession.makeRedirectUri({ scheme: (Array.isArray(scheme) ? scheme[0] : scheme) || OIDC_REDIRECT_SCHEME, path: 'auth' });
+  return AuthSession.makeRedirectUri({ scheme: appScheme() || OIDC_REDIRECT_SCHEME, path: 'auth' });
 }
 
 /**
