@@ -236,6 +236,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     setRuleActionSink,
     valueChangeActionOf,
     committedValueOf,
+    rangeEditOf,
     triggerDownload,
     autoTrail,
     parentCrumb,

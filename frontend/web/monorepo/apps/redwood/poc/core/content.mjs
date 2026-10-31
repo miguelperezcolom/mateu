@@ -7,7 +7,7 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
-import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
+import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
@@ -976,7 +976,7 @@ export function islandContentOf(ctx, opts = {}) {
         // its affordances (@Section(addAction, editAction, viewMoreAction)) are the section's own
         // buttons — add as its primary action, edit, view more — and leave the body
         card.sectionActions = sectionAffordancesOf(node)
-        card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items), card.sectionActions)
+        card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items, interp(card.sectionTitle)), card.sectionActions)
       }
       plain = null
       return
@@ -1298,7 +1298,12 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Image') {
       // JET has no image component: an <img> capped at its container's width
       // a RELATIVE path is served by the backend (like an Element's module), not by the VB app
-      if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
+      // …with the component's own style (filtered like a Text's: presentation only) and cssClasses —
+      // without them a `max-width: 220px` portrait was drawn as wide as its column
+      if (m.src) {
+        atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || ''),
+          style: styleObjectOf(node.style || m.style), cls: String(node.cssClasses || m.cssClasses || '').trim() }, container)
+      }
       return
     }
     if (t === 'Avatar') {
@@ -1564,6 +1569,13 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
     if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
     if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
+    // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
+    // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
+    // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
+    if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
+      atom(nestedListingAtomOf(node, ctx), container)
+      return
+    }
     if (t === 'MicroFrontend') {
       // a surface of its own, loaded from its baseUrl like a @Subresource (withSubresources paints it)
       const sub = microFrontendOf(m)
@@ -2082,13 +2094,17 @@ export function wizardForwardOf(ctx) {
  * A section card's body for oj-sp-section, which draws the section's title itself: its atoms
  * without the leading heading — or, when the heading shares a title row with the section's buttons
  * (@Section(editAction…), an @Inline type's @Toolbar), that row without its heading.
+ * `title` (the section's, as drawn): only a heading that IS the title is dropped — a section whose
+ * title is its Card's own (`title:`) does not repeat it in its body, so its first heading is CONTENT
+ * (a `Text` with `container: h2` opening the section was taken for the title and lost).
  */
-export function sectionBodyOf(items) {
+export function sectionBodyOf(items, title) {
   const list = items || []
   const first = list[0]
-  if (first && first.isHeading) return list.slice(1)
-  if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading)) {
-    const rest = first.items.filter((i) => !(i && i.rowHeading))
+  const isTitle = (text) => title == null || String(text == null ? '' : text).trim() === String(title).trim()
+  if (first && first.isHeading && isTitle(first.text)) return list.slice(1)
+  if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading && isTitle(i.text))) {
+    const rest = first.items.filter((i) => !(i && i.rowHeading && isTitle(i.text)))
     return rest.length ? [{ ...first, items: rest }].concat(list.slice(1)) : list.slice(1)
   }
   return list

@@ -13,6 +13,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Redwood: a `Listing` inside a templated page stays where it is.** On a page that declares a
+  `template:` (general overview, multimedia content, welcome, collection detail…) the first `Listing`
+  anywhere was taken for the page's own listing and hoisted out of its slot: a general overview was
+  drawn twice (the listing on top, the page below it), a multimedia page's gallery went to the top with
+  a search bar — and, the listing owning the page, its sections fell back to the generic form, so the
+  section's `Image` was not drawn and a read-only `html` field showed its raw markup —, and a welcome's
+  featured cards and a collection detail's nested listing were not drawn at all. Such a listing is now
+  content of its slot: it loads its first page from its `rowsSource` on opening (the record's state
+  interpolated) and is drawn in place, as picture cards (`gridLayout: cards`) or a table, a row with a
+  `rowRoute` opening its record. Only a hero search's results, a data management page's table and a
+  collection detail's list slot remain the page's listing.
+- **Redwood: a section's first heading is kept.** A `Text` with `container: h2` opening a section was
+  taken for the section's title and dropped; only a heading that IS the title is now left out.
+- **Redwood: a `dateRange` form field is drawn**, as two date inputs (from, to) whose edits keep the
+  field's `{from, to}` value. It was not drawn at all.
+- **Redwood: an `Image` honours its `style` and `cssClasses`** (a `max-width: 220px` portrait was drawn
+  as wide as its column).
+- **Redwood: no more `ojtabbar.js` 404 on every page.** The page imported `oj-tab-bar` from
+  `ojs/ojtabbar`, which JET does not ship; it lives in `ojs/ojnavigationlist`.
 - **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
   it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
   `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"

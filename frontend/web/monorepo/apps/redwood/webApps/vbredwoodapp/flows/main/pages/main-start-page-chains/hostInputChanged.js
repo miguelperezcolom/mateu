@@ -37,6 +37,12 @@ define([
       // input of the merged ISLAND (fromNested, e.g. the document editor): its value
       // goes to the island's draft (runMateuIslandAction merges it into its componentState) and
       // does NOT relaunch the host's auto-save
+      // one END of a date range (`<field>#from|to`): the field's value is the whole {from, to}
+      const hostCtx = ($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID] || {};
+      const range = bridge.rangeEditOf(fieldId, fromNested ? $page.variables.mateuIslandDraft : $page.variables.mateuDraft,
+        hostCtx.state, detail.value);
+      const value = range ? range.value : detail.value;
+      if (range) fieldId = range.fieldId;
       if (fromNested) {
         // unsaved changes only where the island asks before it is left (Vaadin's rule, shellFlows.mjs)
         if (bridge.fieldEditLeavesUnsavedChanges($application.variables.mateuRegistry,
@@ -44,12 +50,12 @@ define([
           $application.variables.mateuDirty = true;
         }
         const islandDraft = Object.assign({}, $page.variables.mateuIslandDraft);
-        islandDraft[fieldId] = detail.value;
+        islandDraft[fieldId] = value;
         $page.variables.mateuIslandDraft = islandDraft;
         return;
       }
       const draft = Object.assign({}, $page.variables.mateuDraft);
-      draft[fieldId] = detail.value;
+      draft[fieldId] = value;
       $page.variables.mateuDraft = draft;
       // a form that asks before it is left (@ConfirmOnNavigationIfDirty, a crud's edit view) now
       // has unsaved changes: the menu, back, reload and its Cancel ask (Vaadin's rule, shellFlows.mjs)

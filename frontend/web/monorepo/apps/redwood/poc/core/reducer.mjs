@@ -1,5 +1,5 @@
 import { HOST_ID, collectFields } from './tree.mjs'
-import { findByType, findFirst } from './listing.mjs'
+import { findByType, findFirst, pageListingNodeOf, nestedListingTriggersOf } from './listing.mjs'
 import { applyOverlayEvent } from './rowEditor.mjs'
 import { literalText } from './content.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
@@ -12,11 +12,13 @@ export function onLoadTriggers(ctx) {
     .map((t) => t.actionId)
   // a listing reading its rows from a REST source (rowsSource) loads them on opening, as the web's
   // mateu-table-crud does — a YAML listing carries no OnLoad trigger of its own
-  if (ids.indexOf('search') < 0 && ctx && ctx.tree
-      && findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud' && !!n.metadata.rowsSource)) {
+  // (the PAGE's listing: one nested in a templated page's content is loaded on its own, below)
+  const own = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
+  if (ids.indexOf('search') < 0 && own && own.metadata && !!own.metadata.rowsSource) {
     ids.push('search')
   }
-  return ids
+  // the listings nested in a templated page's content: each loads its rows on opening, kept apart
+  return ids.concat(nestedListingTriggersOf(ctx))
 }
 
 /**

@@ -169,3 +169,20 @@
     </div>
   </oj-label-value>
 </oj-bind-if>
+<!-- a DATE RANGE (dataType dateRange: {from, to}) → two oj-input-date side by side, one per end: each
+     edits `<field>#from|to`, which the chains fold back into the field (rangeEditOf) -->
+<oj-bind-if test="[[ $current.data.isDateRange ]]">
+  <div class="oj-flex oj-sm-flex-wrap-nowrap mateu-date-range">
+    <oj-bind-for-each data="[[ $current.data.rangeParts ]]">
+      <template>
+        <oj-input-date class="oj-flex-item oj-sm-margin-2x-end"
+            label-hint="[[ $current.data.label ]]"
+            value="[[ $current.data.value ]]"
+            required="[[ $current.data.required ]]"
+            readonly="[[ $current.data.readonly ]]"
+            :data-field-id="[[ $current.data.fieldId ]]"
+            on-value-changed="[[ $listeners.{{change}} ]]"></oj-input-date>
+      </template>
+    </oj-bind-for-each>
+  </div>
+</oj-bind-if>
