@@ -118,6 +118,15 @@ test('A2: the three VB headers bind the switcher, and the pick runs through onPa
   assert.ok(JSON.parse(webApp('app-flow.json')).variables.mateuPageHeader.defaultValue.switcher)
 })
 
+test('every single select of the page has a placeholder: with none, an empty value shows the FIRST option as chosen', () => {
+  // JET's oj-select-one paints its first option when the value is null and no placeholder is set:
+  // the field looked filled in ("ver como" showed an employee picked) while the form held nothing.
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const selects = html.match(/<oj-select-one\b[\s\S]*?>/g) || []
+  assert.ok(selects.length > 0)
+  assert.deepEqual(selects.filter((tag) => !/\splaceholder=/.test(tag)), [])
+})
+
 // ── KPI timeframe on the welcome tiles ───────────────────────────────────────────────────
 
 test('a welcome KPI tile carries its timeframe under the value and in its accessible name', () => {
