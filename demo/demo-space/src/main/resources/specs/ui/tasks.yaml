@@ -1,0 +1,68 @@
+# Mission tasks as a LISTING, live from the API: the server filters by status, priority, phase,
+# mission (a select fed by a REST source) and due-date range, and the rows are GROUPED by status —
+# the same work the Task board shows as columns. A row opens its task to edit it. SYNTHETIC data.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Mission tasks
+subtitle: What is left before the next missions fly (synthetic)
+pageSize: 20
+groupBy: status
+rowRoute: tasks/${row.id}
+rowsSelectionEnabled: true
+toolbar:
+  - {type: Button, label: New task, buttonStyle: primary, actionable: {type: RouteLink, route: tasks/new}}
+  - {type: Button, label: Board, actionable: {type: RouteLink, route: board}}
+  - {type: Button, label: Delete selected, color: error, actionId: delete-selected}
+searchable: true
+filters:
+  - type: FormField
+    id: status
+    label: Status
+    stereotype: multiSelect
+    options:
+      - {value: BACKLOG, label: Backlog}
+      - {value: IN_PROGRESS, label: In progress}
+      - {value: TESTING, label: Testing}
+      - {value: DONE, label: Done}
+  - type: FormField
+    id: priority
+    label: Priority
+    stereotype: multiSelect
+    options:
+      - {value: CRITICAL, label: Critical}
+      - {value: HIGH, label: High}
+      - {value: MEDIUM, label: Medium}
+      - {value: LOW, label: Low}
+  - type: FormField
+    id: phase
+    label: Phase
+    stereotype: select
+    options:
+      - {value: DESIGN, label: Design}
+      - {value: BUILD, label: Build}
+      - {value: INTEGRATION, label: Integration}
+      - {value: TEST, label: Test}
+      - {value: LAUNCH_OPS, label: Launch operations}
+  - {type: FormField, id: missionId, label: Mission, stereotype: select, optionsSource: {ref: space-mission-options}}
+  - {type: FormField, id: dueDate, label: Due, stereotype: dateRange}
+rowsSource: {ref: space-tasks}
+columns:
+  - {type: GridColumn, id: title, label: Task, identifier: true}
+  - {type: GridColumn, id: missionName, label: Mission}
+  - {type: GridColumn, id: status, label: Status}
+  - {type: GridColumn, id: phase, label: Phase}
+  - {type: GridColumn, id: priority, label: Priority}
+  - {type: GridColumn, id: owner, label: Team}
+  - {type: GridColumn, id: dueDate, label: Due, dataType: date}
+  - {type: GridColumn, id: progress, label: Progress (%), dataType: integer}
+actions:
+  - id: delete-selected
+    rowsSelectedRequired: true
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the selected tasks. They come back on the next restart of the API.
+    restAction:
+      forEachSelectedRow: true
+      source: {ref: space-task-delete}
+      successMessage: Deleted
+      successRoute: tasks

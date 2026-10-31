@@ -1,0 +1,90 @@
+# All missions: the SMART FILTER AND SEARCH listing. The search bar, every filter, the sort and the
+# pager are answered by the SERVER over all the missions (sources.yaml › space-missions), not by the
+# browser over what it fetched. Filters of every kind: text, multi-select (status, type), a select
+# from a REST source (destination), yes/no, a date range and a number range.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Missions
+subtitle: From Freedom 7 to Europa Clipper — crewed flights, probes, rovers and telescopes
+pageSize: 15
+# a row is the entrance to the record: its own URL, shareable, surviving a reload
+rowRoute: missions/${row.id}
+# check rows and delete them in bulk (each delete is a proxied call carrying the write key)
+rowsSelectionEnabled: true
+toolbar:
+  - type: Button
+    label: Plan a mission
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: plan}
+  - type: Button
+    label: New mission
+    actionable: {type: RouteLink, route: missions/new}
+  - type: Button
+    label: Delete selected
+    color: error
+    actionId: delete-selected
+searchable: true
+filters:
+  - {type: FormField, id: name, label: Name}
+  - type: FormField
+    id: status
+    label: Status
+    stereotype: multiSelect
+    options:
+      - {value: PLANNED, label: Planned}
+      - {value: ACTIVE, label: Active}
+      - {value: COMPLETED, label: Completed}
+      - {value: PARTIAL_SUCCESS, label: Partial success}
+      - {value: FAILED, label: Failed}
+  - type: FormField
+    id: type
+    label: Type
+    stereotype: multiSelect
+    options:
+      - {value: CREWED, label: Crewed}
+      - {value: LUNAR_FLYBY, label: Lunar flyby}
+      - {value: FLYBY, label: Flyby}
+      - {value: ORBITER, label: Orbiter}
+      - {value: LANDER, label: Lander}
+      - {value: ROVER, label: Rover}
+      - {value: HELICOPTER, label: Helicopter}
+      - {value: PROBE, label: Probe}
+      - {value: TELESCOPE, label: Telescope}
+      - {value: SAMPLE_RETURN, label: Sample return}
+      - {value: IMPACTOR, label: Impactor}
+  - type: FormField
+    id: destinationId
+    label: Destination
+    stereotype: select
+    optionsSource: {ref: space-body-options}
+  - type: FormField
+    id: featured
+    label: Featured
+    stereotype: select
+    options:
+      - {value: "true", label: "Yes"}
+      - {value: "false", label: "No"}
+  - {type: FormField, id: launchDate, label: Launched, stereotype: dateRange}
+  - {type: FormField, id: costUsd, label: Cost (USD), dataType: number, stereotype: numberRange}
+rowsSource:
+  ref: space-missions
+columns:
+  - {type: GridColumn, id: name, label: Mission, identifier: true, stereotype: primary, leadingPath: thumbnail, captionPath: program}
+  - {type: GridColumn, id: status, label: Status}
+  - {type: GridColumn, id: type, label: Type}
+  - {type: GridColumn, id: launchDate, label: Launched, dataType: date}
+  - {type: GridColumn, id: destinationName, label: Destination}
+  - {type: GridColumn, id: spacecraftName, label: Spacecraft}
+  - {type: GridColumn, id: crewSize, label: Crew, dataType: integer}
+  - {type: GridColumn, id: costUsd, label: Cost (USD), dataType: number}
+actions:
+  - id: delete-selected
+    rowsSelectedRequired: true
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the selected missions. A mission with launches or tasks is refused (409); everything comes back on the next restart of the API.
+    restAction:
+      forEachSelectedRow: true
+      source: {ref: space-mission-delete}
+      successMessage: Deleted
+      successRoute: missions

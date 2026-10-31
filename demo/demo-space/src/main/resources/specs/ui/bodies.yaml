@@ -1,0 +1,19 @@
+# The celestial bodies fill Redwood's COLLECTION DETAIL PAGE template: the collection on one side, the
+# selected body's detail on the other. This page is the collection with NOTHING selected — it has no
+# content, so the template shows its noSelection slot; bodies/:id (body.yaml) is the same list with a
+# body selected. A row opens it.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Celestial bodies
+subtitle: The Sun, its planets and their moons, dwarf planets and the asteroids we visited
+toolbar:
+  - {type: Button, label: As a tree, actionable: {type: RouteLink, route: solar-system}}
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Partial, ref: body-list}
+  noSelection:
+    - type: EmptyState
+      icon: "🪐"
+      title: Pick a body
+      description: Choose one in the list to see its size, its orbit and the missions that went there.

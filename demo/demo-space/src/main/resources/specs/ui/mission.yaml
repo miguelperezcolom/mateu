@@ -1,0 +1,90 @@
+# One mission, read-only (route missions/:id). It fills Redwood's MULTIMEDIA CONTENT PAGE template: a
+# welcome-style banner (the mission's name, its program as the overline, a line of facts as the
+# description, Edit as the call to action) over SECTIONS rich in media — the photograph, a gallery,
+# the objectives as rich text — with the vertical anchor navigator to move between them.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+overline: ${state.program} · ${state.agency}
+subtitle: ${state.summary}
+toolbar:
+  - type: Button
+    label: Edit
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: "missions/${state.id}/edit"}
+  - type: Button
+    label: All missions
+    actionable: {type: RouteLink, route: missions}
+template:
+  type: MultimediaContentPage
+  backgroundColor: dark-ocean
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Photograph}
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Image, src: "${state.image}", style: "width: 100%; max-height: 28rem; object-fit: cover; border-radius: 8px"}
+            - {type: Text, text: "${state.imageTitle} — ${state.imageCredit}", size: s}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Overview}
+        content:
+          type: VerticalLayout
+          content:
+            - type: FormLayout
+              maxColumns: 3
+              content:
+                - {type: FormField, id: status, label: Status, readOnly: true}
+                - {type: FormField, id: type, label: Type, readOnly: true}
+                - {type: FormField, id: launchDate, label: Launched, dataType: date, readOnly: true}
+                - {type: FormField, id: endDate, label: Ended, dataType: date, readOnly: true}
+                - {type: FormField, id: destinationName, label: Destination, readOnly: true}
+                - {type: FormField, id: spacecraftName, label: Spacecraft, readOnly: true}
+                - {type: FormField, id: launchSiteName, label: Launch site, readOnly: true}
+                - {type: FormField, id: cost, label: Cost, dataType: money, readOnly: true}
+                - {type: FormField, id: featured, label: Featured, dataType: bool, readOnly: true}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Objectives}
+        content:
+          type: FormLayout
+          maxColumns: 1
+          content:
+            # rich text, read-only: the HTML the API stores, rendered (and sanitised)
+            - {type: FormField, id: objectives, label: "", stereotype: html, readOnly: true}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Crew}
+        content:
+          type: FormLayout
+          maxColumns: 1
+          content:
+            - {type: FormField, id: crewNames, label: Who flew it, stereotype: bulletedList, readOnly: true}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Gallery}
+        content:
+          # the gallery's photographs, as cards: a listing over the same record, reading its
+          # `gallery` array (itemsPath), so it shows as many as the mission has
+          type: Listing
+          pageSize: 6
+          gridLayout: cards
+          rowsSource: {ref: space-mission-gallery}
+          columns:
+            - {type: GridColumn, id: image, label: Photograph, stereotype: image}
+            - {type: GridColumn, id: imageTitle, label: Title, identifier: true}
+            - {type: GridColumn, id: imageCredit, label: Credit}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Sources}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: wikidataUrl, label: Facts (Wikidata), stereotype: link, readOnly: true}
+            - {type: FormField, id: sourceUrl, label: Photograph (NASA Image Library), stereotype: link, readOnly: true}

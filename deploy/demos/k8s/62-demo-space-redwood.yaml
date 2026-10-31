@@ -1,0 +1,78 @@
+# demo/demo-starwars on the REDWOOD renderer, as static files at space-rw.ec1.mateu.io: the bundle
+# (mvn package -Predwood-bundle) behind an unprivileged nginx. The browser reads swapi.mateu.io
+# directly; only /mateu/** (the writes, proxy sources holding the swapi key) goes to the demo-starwars
+# backend (40-demo-starwars.yaml). JET/Spectra/VB load from Oracle's CDN in the browser.
+# No DNS to add: the *.ec1 wildcard already points at the ingress; cert-manager issues the certificate.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-space-redwood
+  namespace: mateu-demos
+  labels: { app: demo-space-redwood }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-space-redwood }
+  template:
+    metadata:
+      labels: { app: demo-space-redwood }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: web
+          image: miguelperezcolom/demo-space-redwood:3.0-beta.28-3
+          ports:
+            - { name: http, containerPort: 8080 }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "16Mi", cpu: "10m" }
+            limits:   { memory: "64Mi", cpu: "250m" }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-space-redwood
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-space-redwood }
+  ports:
+    - { name: http, port: 8080, targetPort: 8080 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-space-redwood
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [space-rw.ec1.mateu.io]
+      secretName: demo-space-redwood-tls
+  rules:
+    - host: space-rw.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-space-redwood, port: { number: 8080 } }

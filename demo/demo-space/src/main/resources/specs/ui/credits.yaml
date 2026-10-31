@@ -1,0 +1,15 @@
+# Every photograph in the app and whom to credit — NASA's media guidelines ask for the credit. The
+# API answers a bare array (no envelope, no total), so this listing searches and pages it in the
+# browser; a row's source link opens the asset's page on images.nasa.gov.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Photo credits
+subtitle: NASA Image and Video Library assets — not copyrighted in the US; NASA asks for the credit and that its insignia not imply endorsement
+pageSize: 25
+searchable: true
+rowsSource: {ref: space-credits}
+columns:
+  - {type: GridColumn, id: name, label: Record, identifier: true, stereotype: primary, leadingPath: image, captionPath: collection}
+  - {type: GridColumn, id: title, label: Photograph}
+  - {type: GridColumn, id: credit, label: Credit}
+  - {type: GridColumn, id: sourceUrl, label: Source, stereotype: link}

@@ -1,0 +1,55 @@
+# Mission control: the missions as a dense working set, filling Redwood's DATA MANAGEMENT page template
+# — the data view (a compact listing of the active and planned missions, filtered by the server) with
+# a summary panel docked beside it and a notes panel under it. The panels are DockedPanels; a YAML
+# page has no server to toggle them, so they show while `open`. The form's toolbar sits over the data.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Mission control
+toolbar:
+  - {type: Button, label: Plan a mission, buttonStyle: primary, actionable: {type: RouteLink, route: plan}}
+  - {type: Button, label: Task board, actionable: {type: RouteLink, route: board}}
+template:
+  type: DataManagementPage
+  end:
+    id: control-summary
+    title: In flight
+    open: true
+    size: 20rem
+    content:
+      type: VerticalLayout
+      content:
+        - {type: MetricCard, title: Active missions, value: "15", description: "Voyager 1 is the oldest, launched 1977"}
+        - {type: MetricCard, title: Planned, value: "2", description: "Artemis III and Dragonfly"}
+        - {type: Text, text: "Status, destination and spacecraft come from the API; open a row to see the mission, Edit to change it."}
+  bottom:
+    id: control-notes
+    title: About this data
+    open: true
+    size: 7rem
+    content: {type: Text, text: "space-service re-seeds its 54 missions every time it starts: plan, edit and delete freely."}
+content:
+  - type: Listing
+    pageSize: 20
+    compact: true
+    rowStripes: true
+    rowRoute: missions/${row.id}
+    searchable: true
+    filters:
+      - type: FormField
+        id: status
+        label: Status
+        stereotype: multiSelect
+        options:
+          - {value: PLANNED, label: Planned}
+          - {value: ACTIVE, label: Active}
+          - {value: COMPLETED, label: Completed}
+          - {value: FAILED, label: Failed}
+    rowsSource: {ref: space-missions}
+    columns:
+      - {type: GridColumn, id: name, label: Mission, identifier: true}
+      - {type: GridColumn, id: status, label: Status}
+      - {type: GridColumn, id: program, label: Program}
+      - {type: GridColumn, id: destinationName, label: Destination}
+      - {type: GridColumn, id: spacecraftName, label: Spacecraft}
+      - {type: GridColumn, id: launchDate, label: Launched, dataType: date}
+      - {type: GridColumn, id: endDate, label: Ended, dataType: date}

@@ -1,0 +1,402 @@
+# The REST source catalogue: each endpoint of space-service named ONCE, referenced by the pages.
+#
+# Every url is authored against a local space-service, http://localhost:8122 (run it from its own
+# repository: `mvn spring-boot:run -Dspring-boot.run.arguments=--space.write-key=localdev`). To point
+# the whole app at another host there is ONE place to edit: environments/public.yaml, a Mateu
+# environment that rebases every source on its base url — run with MATEU_ENVIRONMENT=public. The
+# catalogue itself never changes between environments: an environment re-points an endpoint, it
+# does not change its contract (see doc: deploy/environments).
+#
+# Listing sources carry the conditions to the SERVER through `${state.…}` interpolation — free text,
+# each declared filter, range bounds, page, size and sort — and declare `totalPath: totalElements`,
+# which also tells the renderer the server already searched, filtered and paged. A multi-select
+# filter interpolates as one comma-joined value, which the API reads as an OR; a blank parameter is
+# ignored by the API, so an untouched filter costs nothing. Values are URL-encoded by Mateu where they
+# land (a query value as a query component) — so the templates do NOT wrap them in
+# encodeURIComponent, which would encode them twice ("Sample Return" → Sample%2520Return).
+#
+# Reads go straight from the browser (the API sends CORS *). WRITES are `proxy: true`: the Mateu
+# server makes the call and resolves ${secret.SPACE_WRITE_KEY} from MATEU_SECRET_SPACE_WRITE_KEY, so
+# the key never reaches a browser.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json
+sources:
+
+  # ── missions ─────────────────────────────────────────────────────────────────
+  - name: space-missions
+    description: Missions, searched, filtered, sorted and paged by the server
+    source:
+      url: >-
+        http://localhost:8122/api/missions?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${state.searchText
+        ?? ''}&name=${state.name ?? ''}&status=${state.status
+        ?? ''}&type=${state.type ?? ''}&program=${state.program
+        ?? ''}&featured=${state.featured ?? ''}&destinationId=${state.destinationId
+        ?? ''}&launchDate_from=${state.launchDate_from ?? ''}&launchDate_to=${state.launchDate_to
+        ?? ''}&costUsd_from=${state.costUsd_from ?? ''}&costUsd_to=${state.costUsd_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  # The featured missions, for the home page's cards.
+  - name: space-featured-missions
+    description: The missions the home page highlights
+    source:
+      url: http://localhost:8122/api/missions?featured=true&sort=launchDate&size=${state.size ?? 12}&page=${state.page ?? 0}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: space-mission
+    description: One mission by id
+    source:
+      url: http://localhost:8122/api/missions/${state.id}
+
+  - name: space-mission-create
+    description: Create a mission
+    source:
+      url: http://localhost:8122/api/missions
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+      body: >-
+        {"name":"${state.name}","program":"${state.program}","agency":"${state.agency}","type":"${state.type}",
+        "status":"${state.status}","launchDate":"${state.launchDate}","launchWindow":"${state.launchWindow}",
+        "destinationId":"${state.destinationId}","launchSiteId":"${state.launchSiteId}",
+        "spacecraftId":"${state.spacecraftId}","crewIds":"${state.crewIds}","cost":"${state.cost}",
+        "summary":"${state.summary}","objectives":"${state.objectives}","featured":"${state.featured}"}
+
+  - name: space-mission-update
+    description: Replace a mission (its photographs are kept)
+    source:
+      url: http://localhost:8122/api/missions/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+      body: >-
+        {"name":"${state.name}","program":"${state.program}","agency":"${state.agency}","type":"${state.type}",
+        "status":"${state.status}","launchDate":"${state.launchDate}","endDate":"${state.endDate}",
+        "launchWindow":"${state.launchWindow}","destinationId":"${state.destinationId}",
+        "launchSiteId":"${state.launchSiteId}","spacecraftId":"${state.spacecraftId}","crewIds":"${state.crewIds}",
+        "cost":"${state.cost}","summary":"${state.summary}","objectives":"${state.objectives}",
+        "featured":"${state.featured}","image":"${state.image}"}
+
+  - name: space-mission-delete
+    description: Delete a mission
+    source:
+      url: http://localhost:8122/api/missions/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+
+  # ── astronauts ───────────────────────────────────────────────────────────────
+  - name: space-astronauts
+    description: Astronauts, searched, filtered and paged by the server
+    source:
+      url: >-
+        http://localhost:8122/api/astronauts?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${state.searchText
+        ?? ''}&name=${state.name ?? ''}&status=${state.status
+        ?? ''}&nationality=${state.nationality ?? ''}&selectionYear_from=${state.selectionYear_from
+        ?? ''}&selectionYear_to=${state.selectionYear_to ?? ''}&timeInSpaceDays_from=${state.timeInSpaceDays_from
+        ?? ''}&timeInSpaceDays_to=${state.timeInSpaceDays_to ?? ''}&birthDate_from=${state.birthDate_from
+        ?? ''}&birthDate_to=${state.birthDate_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: space-astronaut
+    description: One astronaut by id
+    source:
+      url: http://localhost:8122/api/astronauts/${state.id}
+
+  - name: space-astronaut-update
+    description: Replace an astronaut (a new portrait URL brings its thumbnail and large sizes)
+    source:
+      url: http://localhost:8122/api/astronauts/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+      body: >-
+        {"name":"${state.name}","nationality":"${state.nationality}","gender":"${state.gender}",
+        "birthDate":"${state.birthDate}","deathDate":"${state.deathDate}","birthPlace":"${state.birthPlace}",
+        "selectionGroup":"${state.selectionGroup}","selectionYear":"${state.selectionYear}","status":"${state.status}",
+        "timeInSpaceDays":"${state.timeInSpaceDays}","evaHours":"${state.evaHours}","summary":"${state.summary}",
+        "bio":"${state.bio}","image":"${state.image}","imageTitle":"${state.imageTitle}",
+        "imageCredit":"${state.imageCredit}"}
+
+  - name: space-astronaut-delete
+    description: Delete an astronaut
+    source:
+      url: http://localhost:8122/api/astronauts/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+
+  # ── spacecraft and their components ──────────────────────────────────────────
+  # NOT `space-spacecraft` for the one record: a spacecraft is its own plural, and a duplicate name
+  # replaces the listing's entry silently.
+  - name: space-spacecraft-list
+    description: Spacecraft, searched, filtered and paged by the server
+    source:
+      url: >-
+        http://localhost:8122/api/spacecraft?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${state.searchText
+        ?? ''}&type=${state.type ?? ''}&powerSource=${state.powerSource
+        ?? ''}&massKg_from=${state.massKg_from ?? ''}&massKg_to=${state.massKg_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: space-spacecraft-one
+    description: One spacecraft by id
+    source:
+      url: http://localhost:8122/api/spacecraft/${state.id}
+
+  # A TREE: spacecraft → subsystem → instrument, each node's `children` the next level.
+  - name: space-spacecraft-tree
+    description: Every spacecraft with a breakdown, as a tree
+    source:
+      url: http://localhost:8122/api/spacecraft/tree?search=${state.searchText ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  # ── celestial bodies ─────────────────────────────────────────────────────────
+  - name: space-bodies
+    description: Celestial bodies, searched and paged by the server
+    source:
+      url: >-
+        http://localhost:8122/api/bodies?page=${state.page ?? 0}&size=${state.size ?? 40}&search=${state.searchText
+        ?? ''}&type=${state.type ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: space-body
+    description: One celestial body by id
+    source:
+      url: http://localhost:8122/api/bodies/${state.id}
+
+  # A TREE: the Sun → the planets → their moons.
+  - name: space-bodies-tree
+    description: The solar system as a tree
+    source:
+      url: http://localhost:8122/api/bodies/tree?search=${state.searchText ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  # ── launch sites and launches ────────────────────────────────────────────────
+  - name: space-launch-sites
+    description: Launch sites
+    source:
+      url: >-
+        http://localhost:8122/api/launch-sites?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${state.searchText
+        ?? ''}&country=${state.country ?? ''}&active=${state.active ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: space-launch-site
+    description: One launch site by id
+    source:
+      url: http://localhost:8122/api/launch-sites/${state.id}
+
+  - name: space-launch-site-update
+    description: Replace a launch site (its photograph is kept)
+    source:
+      url: http://localhost:8122/api/launch-sites/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+      body: >-
+        {"name":"${state.name}","country":"${state.country}","region":"${state.region}","operator":"${state.operator}",
+        "latitude":"${state.latitude}","longitude":"${state.longitude}","active":"${state.active}",
+        "description":"${state.description}"}
+
+  - name: space-launches
+    description: Launches, filtered by year range, outcome and vehicle, paged by the server
+    source:
+      url: >-
+        http://localhost:8122/api/launches?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${state.searchText
+        ?? ''}&outcome=${state.outcome ?? ''}&vehicle=${state.vehicle
+        ?? ''}&launchYear_from=${state.launchYear_from ?? ''}&launchYear_to=${state.launchYear_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  # ── mission tasks (the board's cards) ────────────────────────────────────────
+  - name: space-tasks
+    description: Mission tasks, filtered and paged by the server
+    source:
+      url: >-
+        http://localhost:8122/api/tasks?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${state.searchText
+        ?? ''}&status=${state.status ?? ''}&priority=${state.priority
+        ?? ''}&phase=${state.phase ?? ''}&missionId=${state.missionId
+        ?? ''}&dueDate_from=${state.dueDate_from ?? ''}&dueDate_to=${state.dueDate_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: space-task
+    description: One task by id
+    source:
+      url: http://localhost:8122/api/tasks/${state.id}
+
+  - name: space-task-create
+    description: Create a task
+    source:
+      url: http://localhost:8122/api/tasks
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+      body: >-
+        {"title":"${state.title}","missionId":"${state.missionId}","phase":"${state.phase}","status":"${state.status}",
+        "owner":"${state.owner}","priority":"${state.priority}","dueDate":"${state.dueDate}",
+        "estimateDays":"${state.estimateDays}","progress":"${state.progress}","description":"${state.description}"}
+
+  - name: space-task-update
+    description: Replace a task
+    source:
+      url: http://localhost:8122/api/tasks/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+      body: >-
+        {"title":"${state.title}","missionId":"${state.missionId}","phase":"${state.phase}","status":"${state.status}",
+        "owner":"${state.owner}","priority":"${state.priority}","dueDate":"${state.dueDate}",
+        "estimateDays":"${state.estimateDays}","progress":"${state.progress}","description":"${state.description}"}
+
+  - name: space-task-delete
+    description: Delete a task
+    source:
+      url: http://localhost:8122/api/tasks/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+
+  # ── budget ───────────────────────────────────────────────────────────────────
+  - name: space-budgets
+    description: Budget lines (millions of USD; the split by program is synthetic)
+    source:
+      url: >-
+        http://localhost:8122/api/budgets?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? 'fiscalYear'}${state.sort?.[0]?.direction === 'ascending' ? '' : ',desc'}&program=${state.program
+        ?? ''}&category=${state.category ?? ''}&fiscalYear_from=${state.fiscalYear_from
+        ?? ''}&fiscalYear_to=${state.fiscalYear_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  # ── search ───────────────────────────────────────────────────────────────────
+  # One search over every collection; each hit carries the route that opens it (`missions/6`).
+  - name: space-search
+    description: Search across missions, astronauts, spacecraft, bodies and launch sites
+    source:
+      url: >-
+        http://localhost:8122/api/search?search=${state.searchText ?? ''}&kind=${state.kind
+        ?? ''}&page=${state.page ?? 0}&size=${state.size ?? 12}
+      itemsPath: content
+    totalPath: totalElements
+
+  # The same endpoint for the shell's command palette, which reads each hit as label / description /
+  # route / category — the `fields` map says where those are.
+  - name: space-global-search
+    description: The command palette's entity search
+    source:
+      url: http://localhost:8122/api/search?search=${state.searchText ?? ''}&size=10
+      itemsPath: content
+    fields:
+      label: name
+      description: subtitle
+      category: kind
+
+  # The header's inbox: the tasks in progress, soonest first.
+  - name: space-inbox
+    description: Tasks in progress, as the notification inbox
+    source:
+      url: http://localhost:8122/api/tasks?status=IN_PROGRESS&sort=dueDate&size=8
+      itemsPath: content
+    fields:
+      text: missionName
+      when: dueDate
+
+  # ── options for the reference combos ─────────────────────────────────────────
+  # Fetched ONCE and mapped whole: `valuePath` is the id the record stores, `labelPath` what the
+  # user sees. A field references one with `optionsSource: {ref: …}`.
+  - name: space-body-options
+    description: Every celestial body as a choice (id → name)
+    source:
+      url: http://localhost:8122/api/bodies?size=200&sort=name
+      itemsPath: content
+      valuePath: id
+      labelPath: name
+
+  - name: space-site-options
+    description: Every launch site as a choice
+    source:
+      url: http://localhost:8122/api/launch-sites?size=200&sort=name
+      itemsPath: content
+      valuePath: id
+      labelPath: name
+
+  - name: space-spacecraft-options
+    description: Every spacecraft as a choice
+    source:
+      url: http://localhost:8122/api/spacecraft?size=200&sort=name
+      itemsPath: content
+      valuePath: id
+      labelPath: name
+
+  - name: space-mission-options
+    description: Every mission as a choice
+    source:
+      url: http://localhost:8122/api/missions?size=200&sort=name
+      itemsPath: content
+      valuePath: id
+      labelPath: name
+
+  - name: space-astronaut-options
+    description: Every astronaut as a choice
+    source:
+      url: http://localhost:8122/api/astronauts?size=200&sort=name
+      itemsPath: content
+      valuePath: id
+      labelPath: name
+
+  # ── credits ──────────────────────────────────────────────────────────────────
+  # A bare array (no envelope, no total): the listing searches and pages it in the browser.
+  - name: space-credits
+    description: Every photograph, with its credit and its source page
+    source:
+      url: http://localhost:8122/api/credits
+
+  # ── the lists inside record pages (a record's works, loans, launches…): named here, not inline,
+  #    so an environment re-points them too (environments re-point named sources only) ──
+  - name: space-site-launches
+    description: The list in launch-site.yaml
+    source:
+      url: >-
+        http://localhost:8122/api/launches?siteId=${state.id}&size=${state.size ?? 10}&page=${state.page ?? 0}
+      itemsPath: content
+
+  - name: space-mission-gallery
+    description: The list in mission.yaml
+    source:
+      url: >-
+        http://localhost:8122/api/missions/${state.id}
+      itemsPath: gallery
+
+  - name: space-spacecraft-components
+    description: A spacecraft's components, as a tree (spacecraft-record.yaml)
+    source:
+      url: >-
+        http://localhost:8122/api/spacecraft/${state.id}/components/tree
+      itemsPath: content

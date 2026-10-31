@@ -1,0 +1,53 @@
+# The route registry: each URL bound to a definition. No viewModel on any route — there is no Java
+# behind these screens. A record route names, with `data:`, the source that fetches the record; the
+# id comes from the path and the source interpolates it as ${state.id}. A `…/new` route comes BEFORE
+# its parameterised sibling, so `missions/new` is not read as an id.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - {route: "", definition: app.yaml}                 # the mount root → the app shell
+
+  # overview and search
+  - {route: welcome, definition: welcome.yaml}         # WelcomePage
+  - {route: dashboard, definition: dashboard.yaml}     # DashboardLandingPage: KPIs + charts
+  - {route: search, definition: search.yaml}           # HeroSearchPage over every collection
+  - {route: budget, definition: budget.yaml}           # charts + a listing
+  - {route: credits, definition: credits.yaml}         # every photograph and its credit
+
+  # missions
+  - {route: missions, definition: missions.yaml}                                   # smart filter & search
+  - {route: missions/new, definition: mission-new.yaml}                            # AdvancedCreateEditPage (create)
+  - {route: missions/:id, definition: mission.yaml, data: space-mission}           # MultimediaContentPage
+  - {route: missions/:id/edit, definition: mission-edit.yaml, data: space-mission} # AdvancedCreateEditPage (edit)
+  - {route: mission-control, definition: mission-control.yaml}                     # DataManagementPage
+  - {route: plan, definition: plan.yaml}                                           # GuidedProcessPage (wizard)
+  - {route: timeline, definition: timeline.yaml}                                   # Gantt + Timeline
+
+  # mission tasks
+  - {route: board, definition: board.yaml}                                         # Kanban
+  - {route: tasks, definition: tasks.yaml}                                         # listing, grouped
+  - {route: tasks/new, definition: task-new.yaml}
+  - {route: tasks/:id, definition: task-edit.yaml, data: space-task}
+
+  # launches
+  - {route: calendar, definition: calendar.yaml}                                   # Calendar
+  - {route: launches, definition: launches.yaml}                                   # master-detail listing
+  - {route: sites-map, definition: sites-map.yaml}                                 # Map
+  - {route: launch-sites, definition: launch-sites.yaml}
+  - {route: launch-sites/:id, definition: launch-site.yaml, data: space-launch-site}            # GeneralOverviewPage
+  - {route: launch-sites/:id/edit, definition: launch-site-edit.yaml, data: space-launch-site}
+
+  # astronauts
+  - {route: astronauts, definition: astronauts.yaml}
+  - {route: astronauts/:id, definition: astronaut.yaml, data: space-astronaut}                  # ItemOverviewPage
+  - {route: astronauts/:id/edit, definition: astronaut-edit.yaml, data: space-astronaut}
+
+  # hardware
+  - {route: spacecraft, definition: spacecraft.yaml}
+  - {route: spacecraft/:id, definition: spacecraft-record.yaml, data: space-spacecraft-one}      # FoldoutPage
+  - {route: components, definition: components.yaml}                                            # tree
+
+  # the solar system
+  - {route: bodies, definition: bodies.yaml}                                       # CollectionDetailPage, nothing selected
+  - {route: bodies/:id, definition: body.yaml, data: space-body}                   # CollectionDetailPage, one selected
+  - {route: solar-system, definition: solar-system.yaml}                           # tree

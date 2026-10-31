@@ -1,0 +1,35 @@
+# Search the whole dataset: Redwood's HERO SEARCH page template — a search-first landing page, the
+# page's title and description in the hero over the search and its results. One search box answers
+# from every collection at once (/api/search): missions, astronauts, spacecraft, bodies and launch
+# sites, each hit with the route that opens it, filterable by kind.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Search the space age
+subtitle: A mission, an astronaut, a spacecraft, a moon or a launch pad — type a name
+template:
+  type: HeroSearchPage
+  backgroundColor: dark-pine
+content:
+  - type: Listing
+    pageSize: 12
+    # each hit carries its own route (`missions/6`, `bodies/12`…), so one listing opens five kinds
+    rowRoute: ${row.route}
+    searchable: true
+    gridLayout: cards
+    filters:
+      - type: FormField
+        id: kind
+        label: Kind
+        stereotype: multiSelect
+        options:
+          - {value: MISSION, label: Missions}
+          - {value: ASTRONAUT, label: Astronauts}
+          - {value: SPACECRAFT, label: Spacecraft}
+          - {value: BODY, label: Celestial bodies}
+          - {value: LAUNCH_SITE, label: Launch sites}
+    rowsSource: {ref: space-search}
+    columns:
+      - {type: GridColumn, id: image, label: Picture, stereotype: image}
+      - {type: GridColumn, id: name, label: Name, identifier: true}
+      - {type: GridColumn, id: kind, label: Kind}
+      - {type: GridColumn, id: subtitle, label: About}

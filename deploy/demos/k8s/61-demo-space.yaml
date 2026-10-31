@@ -1,0 +1,83 @@
+# demo-space — the space reference app (demo/demo-space, 100% YAML) on the Vaadin renderer, reading
+# space-service at space-api.ec1.mateu.io (MATEU_ENVIRONMENT=public re-points its sources). The writes are proxy sources:
+# the key comes from the space-service-write-key secret, never reaches the browser.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-space
+  namespace: mateu-demos
+  labels: { app: demo-space }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-space }
+  template:
+    metadata:
+      labels: { app: demo-space }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/demo-space:3.0-beta.28-3
+          env:
+            - { name: SERVER_PORT, value: "8602" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
+            - { name: MATEU_ENVIRONMENT, value: public }
+            - { name: MATEU_CORS_ALLOWED_ORIGINS, value: "*" }
+            - name: MATEU_SECRET_SPACE_WRITE_KEY
+              valueFrom:
+                secretKeyRef: { name: space-service-write-key, key: WRITE_KEY }
+          ports:
+            - { name: http, containerPort: 8602 }
+          readinessProbe:
+            httpGet: { path: /, port: 8602 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "320Mi", cpu: "50m" }
+            limits:   { memory: "448Mi" }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-space
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-space }
+  ports:
+    - { name: http, port: 8602, targetPort: 8602 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-space
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [space.ec1.mateu.io]
+      secretName: demo-space-tls
+  rules:
+    - host: space.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-space, port: { number: 8602 } }
