@@ -298,7 +298,7 @@ define([
 
       // same remount as in runMateuAction: if we come from ANOTHER foldout, re-create the
       // subtree so the inner bindings do not keep the old blocks
-      const foldoutProjection = bridge.foldoutOf(host);
+      const foldoutProjection = bridge.foldoutOf(host, { parent: bridge.parentCrumbOf(reg, route) });
       if ($application.variables.mateuFoldout && foldoutProjection) {
         $application.variables.mateuFoldout = null;
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -499,8 +499,8 @@ define([
       // general rule: the page header is ALWAYS painted by a vb header; only the
       // templates that already integrate their own (guided process / general overview / welcome /
       // the listing's smart-filter-search) suppress it
-      // a foldout with page actions (a crud's @FoldoutDetail view: Edit, Cancel…)
-      // keeps the vb header, which is where those actions go
+      // a page foldout owns the header (its toolbar goes to the layout's own controls, archetypes
+      // foldoutToolbarHeaderOf) unless an EntityHeader's facts keep the vb header
       const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
         || bridge.templateOwnsHeader(archetypes)
         || overviewProjection || listingSummary
@@ -588,9 +588,8 @@ define([
       }
       $application.variables.mateuDirty = false;
 
-      if (reg.effects && reg.effects.docTitle) {
-        bridge.setDocTitle(reg.effects.docTitle);
-      }
+      // EVERY navigation names the tab (a federated screen may send no SetWindowTitle: the previous page's stayed)
+      bridge.setDocTitle((reg.effects && reg.effects.docTitle) || summary.title || (reg.shell && reg.shell.title));
     }
   }
 

@@ -1,4 +1,4 @@
-import { autoTrail } from '../breadcrumbs.mjs'
+import { autoTrail, parentCrumb } from '../breadcrumbs.mjs'
 import { HOST_ID, actionsOf, dynFormMetadataOf, fieldListOf, formSectionsOf } from './tree.mjs'
 import { buttonRouteOf, interpolate } from './content.mjs'
 import { findByType, listingOf, listingSearchStateOf } from './listing.mjs'
@@ -545,6 +545,12 @@ export function withinAppLevels(summary, levels) {
   if (!level || !level.title) return summary
   const own = (summary && summary.title) || ''
   return { ...summary, title: level.title, levelSubtitle: own && own !== level.title ? own : '' }
+}
+
+/** The trail's parent of the screen at `route` ({label, route}), or null: a page foldout's go-to-parent
+ *  when its toolbar has no back button (archetypes foldoutOf). */
+export function parentCrumbOf(reg, route) {
+  return parentCrumb(summarizeHost(reg, route).trail) || null
 }
 
 export function summarizeHost(reg, route) {

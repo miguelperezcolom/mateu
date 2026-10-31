@@ -20,7 +20,7 @@ const addresses: [string, ParseOptions?][] = [
   ['https://acme.com:8443'], ['localhost:8080', dev], ['http://acme.com'], ['http://localhost:8080/', dev],
   ['http://acme.com:80/x', dev], ['javascript:alert(1)'], ['data:text/html,<script>1</script>'], ['file:///etc/passwd'],
   ['mailto:a@b.com'], ['ftp://acme.com'], ['https://bank.com@evil.com'], ['https://user:pass@acme.com'],
-  ['https://аcme.com'], ['https://acme.com/‮moc.live'], ['https://acme .com'], ['https://acme.com/\u0000'],
+  ['https://аcme.com'], ['https://acme.com/\u202emoc.live'], ['https://acme .com'], ['https://acme.com/\u0000'],
   ['https://acme.com:99999'], ['https://acme.com:0'], ['https://'], ['https://-acme.com'], ['https://acme.com/../admin'],
   ['https://acme.com/./a'], ['https://acme.com\\@evil.com'], [''], ['   '], ['x'.repeat(3000)], ['https://[::1]:8080'],
   ['https://xn--80ak6aa92e.com'], ['https://acme.com.'], ['https://acme.com:8080/'], ['acme.com:443'],
@@ -70,7 +70,9 @@ function expectations() {
 
 test('the hub link corpus matches the reference parser', () => {
   const expected = expectations();
-  if (process.env.HUB_LINKS_WRITE === 'true') writeFileSync(CORPUS, `${JSON.stringify(expected, null, 2)}\n`);
+  // bidi controls (a test input) are written escaped: the file must not hide text from a reader either
+  const json = JSON.stringify(expected, null, 2).replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
+  if (process.env.HUB_LINKS_WRITE === 'true') writeFileSync(CORPUS, `${json}\n`);
   const corpus = JSON.parse(readFileSync(CORPUS, 'utf8'));
   assert.deepEqual(corpus, JSON.parse(JSON.stringify(expected)));
 });

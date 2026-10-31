@@ -126,6 +126,13 @@ body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
 oj-sp-foldout-panel.mateu-fixed-panel {
   overflow-x: hidden;
 }
+/* Panels pinned to their width do not fill the row, and Spectra's row spreads what is left with
+   `space-between` — a blank gap between the overview and the first panel (a front-office booking:
+   ~260px). The panels follow one another, as Toolkit 26C draws the foldout; what is left stays at
+   the end. (Letting them grow instead makes Spectra's responsive engine paginate.) */
+#mateuFoldoutEl .oj-sp-foldout-layout-children-container {
+  justify-content: flex-start;
+}
 oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-container,
 oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-container > div,
 oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-content,

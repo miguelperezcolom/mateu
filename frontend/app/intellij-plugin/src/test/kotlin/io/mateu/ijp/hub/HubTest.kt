@@ -30,7 +30,7 @@ class HubTest {
     fun `a manifest is validated field by field`() {
         val m = HubManifest.parse(
             json(
-                """{"name":"  Acme‮ CRM  ","shortName":"A very long short name indeed","icon":"/icon.png","themeColor":"#ABC",
+                """{"name":"  Acme\u202e CRM  ","shortName":"A very long short name indeed","icon":"/icon.png","themeColor":"#ABC",
                    "wireVersion":3,"auth":{"issuer":"https://id.acme.com/realms/x/","clientId":"crm","scopes":"openid profile"},"bundle":""}""",
             ),
             "https://acme.com/crm",

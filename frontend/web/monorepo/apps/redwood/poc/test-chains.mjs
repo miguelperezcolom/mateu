@@ -130,6 +130,20 @@ test('collection header: the first toolbar button is primary, the rest secondary
   assert.deepEqual(v.mateuListSecondary, [{ id: 'exp', value: 'exp', label: 'Export' }])
 })
 
+test('collection header: an action that needs rows is disabled until a row is checked; an inert one stays disabled', async () => {
+  const { listSecondaryForSelection } = await import('./pageProjection.mjs')
+  const summary = { selectionRequired: ['delete'], toolbar: [
+    { actionId: 'new', label: 'New' }, { actionId: 'delete', label: 'Delete' },
+    { actionId: 'bulk', label: 'Bulk', rowsSelectedRequired: true }, { actionId: 'off', label: 'Off', disabled: true }, { actionId: 'exp', label: 'Export' }] }
+  const none = listHeaderVarsOf(summary).mateuListSecondary
+  assert.deepEqual(none.map((a) => [a.id, a.display || 'on']), [['delete', 'disabled'], ['bulk', 'disabled'], ['off', 'disabled'], ['exp', 'on']])
+  const one = listSecondaryForSelection(none, { all: false, keys: [3], except: [] })
+  assert.deepEqual(one.map((a) => [a.id, a.display || 'on']), [['delete', 'on'], ['bulk', 'on'], ['off', 'disabled'], ['exp', 'on']])
+  const all = listSecondaryForSelection(one, { all: true, keys: [], except: [] })
+  assert.equal(all[0].display, undefined)
+  assert.equal(listSecondaryForSelection(all, { all: false, keys: [], except: [] })[0].display, 'disabled')
+})
+
 test('wizard footer: forward button and step — an action keeps the step, a navigation enters by the overview', () => {
   assert.deepEqual(wizardVarsOf(null, null, []), { mateuWizardForwardId: '', mateuWizardPrimary: { label: '', disabled: true }, mateuWizardShownStep: '' })
   const actions = [{ actionId: 'back', label: 'Back' }, { actionId: 'next', label: 'Next' }]
@@ -259,6 +273,21 @@ test('page layout: width anatomy, bleeding header and the band overlap', () => {
   const iop = pageLayoutOf({ host: {}, iopOn: true, bleedingHeader: true, band: false }).vars
   assert.deepEqual([iop.mateuShellPageLayout, iop.mateuPageMaxWidth, iop.mateuPageHostClass], ['fixedWidth', fixed.mateuPageMaxWidth, 'mateu-iop-host'])
   assert.equal(fixed.mateuPageHostClass, '')
+})
+
+test('an empty listing says so in the chrome language, not a hard-wired English «No data.»', async () => {
+  const { listingOf } = await import('./core/listing.mjs')
+  const { chromeText } = await import('./i18n.mjs')
+  const l = listingOf({ state: {}, data: {}, tree: { type: 'ClientSide', id: 'c', metadata: { type: 'Crud', columns: [] }, children: [] } })
+  assert.equal(l.emptyStateMessage, chromeText('noData'))
+  const own = listingOf({ state: {}, data: {}, tree: { type: 'ClientSide', id: 'c', metadata: { type: 'Crud', columns: [], emptyStateMessage: 'Nada' }, children: [] } })
+  assert.equal(own.emptyStateMessage, 'Nada')
+})
+
+test('onMateuNavigate: every navigation names the tab — a federated screen with no SetWindowTitle no longer keeps the previous title', () => {
+  const chain = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../webApps/vbredwoodapp/pages/shell-page-chains/onMateuNavigate.js'), 'utf-8')
+  assert.match(chain, /bridge\.setDocTitle\(\(reg\.effects && reg\.effects\.docTitle\) \|\| summary\.title \|\| \(reg\.shell && reg\.shell\.title\)\)/)
+  assert.doesNotMatch(chain, /if \(reg\.effects && reg\.effects\.docTitle\) \{/)
 })
 
 test('onMateuNavigate: the item overview template (mateuItemOv) is what turns iopOn on — not the reverted mateuIop', () => {
