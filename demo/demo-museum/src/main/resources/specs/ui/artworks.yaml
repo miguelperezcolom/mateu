@@ -1,0 +1,71 @@
+# The artworks: a listing whose search, filters (text, multi-select, select, yes/no, money and year
+# ranges), sort and pager are all answered by museum-service. A row opens the artwork's own URL.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+pageType: collection
+title: Artworks
+subtitle: Public-domain works of the Met, SMK and the Cleveland Museum of Art
+pageSize: 20
+wrapCellContent: true
+rowRoute: artworks/${row.id}
+rowsSelectionEnabled: true
+toolbar:
+  - type: Button
+    label: New artwork
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: artworks/new}
+  - type: Button
+    label: Delete selected
+    color: error
+    actionId: delete-selected
+searchable: true
+filtersLayout: inline
+filters:
+  - {type: FormField, id: title, label: Title}
+  - type: FormField
+    id: classification
+    label: Kind
+    stereotype: multiSelect
+    options:
+      - {value: Painting, label: Painting}
+      - {value: Sculpture, label: Sculpture}
+      - {value: Drawing, label: Drawing}
+      - {value: Print, label: Print}
+      - {value: Photograph, label: Photograph}
+      - {value: Arms and Armor, label: Arms and armour}
+      - {value: Ceramics, label: Ceramics}
+      - {value: Metalwork, label: Metalwork}
+      - {value: Textile, label: Textile}
+      - {value: Decorative arts, label: Decorative arts}
+      - {value: Furniture, label: Furniture}
+      - {value: Glass, label: Glass}
+  - {type: FormField, id: museumId, label: Museum, stereotype: select, optionsSource: {ref: museum-museum-options}}
+  - type: FormField
+    id: onView
+    label: On view
+    stereotype: select
+    options:
+      - {value: "true", label: On view}
+      - {value: "false", label: In storage}
+  - {type: FormField, id: estimatedValue, label: Estimated value (USD), dataType: number, stereotype: numberRange}
+  - {type: FormField, id: beginYear, label: Made (year), dataType: integer, stereotype: numberRange}
+rowsSource:
+  ref: museum-artworks
+columns:
+  - {type: GridColumn, id: title, label: Title, identifier: true, stereotype: primary, leadingPath: imageSmall, captionPath: artistDisplay, width: 19rem, flexGrow: 0}
+  - {type: GridColumn, id: museumName, label: Museum}
+  - {type: GridColumn, id: classification, label: Kind}
+  - {type: GridColumn, id: objectDate, label: Date}
+  - {type: GridColumn, id: onView, label: On view, dataType: bool}
+  - {type: GridColumn, id: estimatedValue, label: Estimated value, dataType: money, align: end}
+actions:
+  - id: delete-selected
+    rowsSelectedRequired: true
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the selected artworks (a work still on a loan or in an exhibition is refused). Everything comes back when museum-service restarts.
+    restAction:
+      forEachSelectedRow: true
+      source: {ref: museum-artwork-delete}
+      successMessage: Deleted
+      successRoute: artworks

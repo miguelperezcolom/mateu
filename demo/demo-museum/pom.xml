@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.mateu.demo</groupId>
+    <artifactId>demo-museum</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>demo-museum</name>
+    <description>Several art museums in one UI: a 100%-YAML Mateu app over museum-service (public-domain
+        artworks of the Met, SMK and the Cleveland Museum of Art, plus synthetic exhibitions, loans,
+        conservation tasks and visits). It exercises as much of Mateu as YAML can express — every page
+        template, listings, master-detail, forms with every field type, a guided process, a kanban, a
+        calendar, a map, charts, a tree — on the Vaadin and the Redwood renderers alike.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <!-- Latest Mateu release on Maven Central. -->
+        <mateu.version>3.0-beta.28</mateu.version>
+        <!-- Which renderer serves the UI: mateu-vaadin (default) or mateu-redwood.
+             mvn spring-boot:run -Dmateu.renderer=mateu-redwood -->
+        <mateu.renderer>mateu-vaadin</mateu.renderer>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+
+        <!-- The renderer: one jar serves the frontend. -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>${mateu.renderer}</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <!-- The same YAML as a static site on the Redwood renderer, as demo-starwars does:
+             mvn package -Predwood-bundle -> target/mateu-bundle/, served by nginx with /mateu/**
+             proxied to this app for the writes (deploy/demos/k8s). -->
+        <profile>
+            <id>redwood-bundle</id>
+            <dependencies>
+                <dependency>
+                    <groupId>io.mateu</groupId>
+                    <artifactId>mateu-redwood</artifactId>
+                    <version>${mateu.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.mateu</groupId>
+                        <artifactId>mateu-bundle-maven-plugin</artifactId>
+                        <version>${mateu.version}</version>
+                        <configuration>
+                            <renderer>redwood</renderer>
+                            <pageTitle>Museums</pageTitle>
+                            <skipParamRoutes>false</skipParamRoutes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>bundle</id>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

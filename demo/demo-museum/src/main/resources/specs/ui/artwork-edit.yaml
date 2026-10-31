@@ -1,0 +1,107 @@
+# Edit one artwork — the same record the read-only page fetched (route `data:`), with Save and Delete.
+# The image, its credit and the source link are the museum's: the API keeps them when an edit leaves
+# them blank, so this form shows the image but does not edit it.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Edit ${state.title}
+subtitle: ${state.museumName}
+timestamp: Image ${state.imageCredit}
+toolbar:
+  - type: Button
+    actionId: cancel-edit
+    label: Cancel
+    actionable: {type: RouteLink, route: "artworks/${state.id}"}
+  - {type: Button, label: Delete, actionId: delete, color: error}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+template:
+  type: AdvancedCreateEditPage
+  detail:
+    - {type: Image, src: "${state.imageSmall}", alt: "${state.title}", style: "width: 100%; border-radius: 8px;"}
+    - {type: Text, text: "${state.imageCredit}", size: s}
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Identification}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: title, label: Title, required: true, colspan: 2}
+            - {type: FormField, id: artistId, label: Artist, stereotype: select, optionsSource: {ref: museum-artist-options}}
+            - {type: FormField, id: artistDisplay, label: Attribution as shown}
+            - {type: FormField, id: objectDate, label: Date as shown}
+            - {type: FormField, id: beginYear, label: From year, dataType: integer}
+            - {type: FormField, id: endYear, label: To year, dataType: integer}
+            - {type: FormField, id: culture, label: Culture}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Where it is}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: museumId, label: Museum, stereotype: select, required: true, optionsSource: {ref: museum-museum-options}}
+            - {type: FormField, id: departmentId, label: Department, stereotype: select, optionsSource: {ref: museum-department-options}}
+            - {type: FormField, id: onView, label: On view, dataType: bool, stereotype: toggle}
+            - {type: FormField, id: gallery, label: Gallery}
+            - {type: FormField, id: highlight, label: A highlight of the collection, dataType: bool, stereotype: checkbox}
+            - {type: FormField, id: acquisitionYear, label: Acquired (year), dataType: integer}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: The object}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - type: FormField
+              id: classification
+              label: Kind
+              stereotype: select
+              options:
+                - {value: Painting, label: Painting}
+                - {value: Sculpture, label: Sculpture}
+                - {value: Drawing, label: Drawing}
+                - {value: Print, label: Print}
+                - {value: Photograph, label: Photograph}
+                - {value: Arms and Armor, label: Arms and armour}
+                - {value: Ceramics, label: Ceramics}
+                - {value: Metalwork, label: Metalwork}
+                - {value: Textile, label: Textile}
+                - {value: Decorative arts, label: Decorative arts}
+                - {value: Furniture, label: Furniture}
+                - {value: Glass, label: Glass}
+                - {value: Other, label: Other}
+            - {type: FormField, id: medium, label: Medium}
+            - {type: FormField, id: heightCm, label: Height (cm), dataType: number}
+            - {type: FormField, id: widthCm, label: Width (cm), dataType: number}
+            - {type: FormField, id: dimensions, label: Dimensions as shown, colspan: 2}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Value and description}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: estimatedValue, label: Estimated value (USD), dataType: number}
+            - {type: FormField, id: accessionNumber, label: Accession number}
+            - {type: FormField, id: description, label: Description, stereotype: richText, colspan: 2}
+            - {type: FormField, id: creditLine, label: Credit line, colspan: 2}
+            - {type: FormField, id: tags, label: Tags, stereotype: textarea, colspan: 2}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: museum-artwork-update}
+      successMessage: Saved
+      successRoute: artworks/${state.id}
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: Delete this artwork? A work still on a loan or in an exhibition is refused. Everything comes back when museum-service restarts.
+    restAction:
+      source: {ref: museum-artwork-delete}
+      successMessage: Deleted
+      successRoute: artworks

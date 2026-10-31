@@ -1,0 +1,61 @@
+# One museum — Redwood's GENERAL OVERVIEW page template: the header carries a record switcher (jump to
+# another museum with no Java: its options come from a REST source and a pick navigates), the
+# contextual facts (kpis) and the actions; the info slot is the complementary side panel; the content
+# is the main slot — property cards and the museum's departments.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: ${state.city}, ${state.country}
+recordSwitcher:
+  label: Museum
+  value: ${state.id}
+  searchable: true
+  optionsSource: {ref: museum-museum-options}
+  route: museums/${state._record}
+kpis:
+  - {label: Founded, value: "${state.founded}"}
+  - {label: Works here, value: "${state.artworkCount}"}
+  - {label: Departments, value: "${state.departmentCount}"}
+peerNav:
+  prevLabel: Previous museum
+  prevRoute: "${state.id > 1 ? 'museums/' + (Number(state.id) - 1) : ''}"
+  nextLabel: Next museum
+  nextRoute: "${state.id < 3 ? 'museums/' + (Number(state.id) + 1) : ''}"
+toolbar:
+  - type: Button
+    label: Its artworks
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: artworks}
+  - type: Button
+    label: On the map
+    actionable: {type: RouteLink, route: map}
+template:
+  type: GeneralOverviewPage
+  info:
+    - {type: Image, src: "${state.image}", alt: "${state.imageCredit}", style: "width: 100%; border-radius: 8px;"}
+    - {type: Text, text: "${state.imageCredit}", size: s}
+    - {type: FormField, id: website, label: Website, stereotype: link, readOnly: true}
+content:
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: About}
+    content: {type: Text, text: "${state.description}"}
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Location}
+    content:
+      type: FormLayout
+      content:
+        - {type: FormField, id: city, label: City, readOnly: true, propertyRow: true}
+        - {type: FormField, id: country, label: Country, readOnly: true, propertyRow: true}
+        - {type: FormField, id: latitude, label: Latitude, dataType: number, readOnly: true, propertyRow: true}
+        - {type: FormField, id: longitude, label: Longitude, dataType: number, readOnly: true, propertyRow: true}
+  - type: Listing
+    title: Departments
+    pageSize: 20
+    style: "width: 100%;"
+    rowsSource: {ref: museum-museum-departments}
+    columns:
+      - {type: GridColumn, id: name, label: Department, identifier: true}
+      - {type: GridColumn, id: head, label: Head}
+      - {type: GridColumn, id: artworkCount, label: Works, dataType: integer}

@@ -1,0 +1,65 @@
+# The gallery view of one artwork — Redwood's MULTIMEDIA CONTENT page template: a welcome-style banner
+# (the title, the artist as the overline, the date and museum as the description, calls to action)
+# over SECTIONS of media and text, with the vertical anchor navigator to move between them.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+# The banner's texts are static: on Vaadin the banner does not interpolate ${state…} (see the README),
+# so the work's own title and attribution head the first section instead.
+title: In the gallery
+overline: Public domain
+subtitle: The work at full size, with its story and where it comes from
+
+toolbar:
+  - type: Button
+    label: The record
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: "artworks/${state.id}"}
+  - type: Button
+    label: All the artworks
+    actionable: {type: RouteLink, route: artworks}
+template:
+  type: MultimediaContentPage
+  backgroundColor: dark-ocean
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: The work}
+        content:
+          type: VerticalLayout
+          horizontalAlignment: CENTER
+          content:
+            - {type: Text, text: "${state.title} — ${state.artistDisplay} · ${state.objectDate} · ${state.museumName}"}
+            - {type: Image, src: "${state.imageLarge}", alt: "${state.title}", style: "max-width: 100%; max-height: 75vh; object-fit: contain;"}
+            - {type: Text, text: "Image: ${state.imageCredit}", size: s}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Detail}
+        content:
+          type: CarouselLayout
+          nav: true
+          dots: true
+          content:
+            - {type: Image, src: "${state.imageSmall}", alt: "${state.title}, small", style: "height: 320px; object-fit: contain;"}
+            - {type: Image, src: "${state.imageLarge}", alt: "${state.title}, large", style: "height: 320px; object-fit: cover;"}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: About the work}
+        content:
+          type: VerticalLayout
+          content:
+            - {type: FormField, id: description, label: Description, stereotype: html, readOnly: true}
+            - {type: FormField, id: medium, label: Medium, readOnly: true, propertyRow: true}
+            - {type: FormField, id: dimensions, label: Dimensions, readOnly: true, propertyRow: true}
+            - {type: FormField, id: culture, label: Culture, readOnly: true, propertyRow: true}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Provenance}
+        content:
+          type: VerticalLayout
+          content:
+            - {type: FormField, id: creditLine, label: Credit line, readOnly: true, propertyRow: true}
+            - {type: FormField, id: accessionNumber, label: Accession number, readOnly: true, propertyRow: true}
+            - {type: FormField, id: sourceUrl, label: "The work on the museum's website", stereotype: link, readOnly: true}

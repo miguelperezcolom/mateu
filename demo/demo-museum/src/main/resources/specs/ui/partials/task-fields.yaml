@@ -1,0 +1,42 @@
+# The fields of a conservation task — shared by the create and the edit forms.
+# A list partial wraps its components in `content:` (a bare YAML list is not read).
+content:
+  - {type: FormField, id: title, label: Task, required: true, colspan: 2}
+  - {type: FormField, id: artworkId, label: Artwork, stereotype: select, required: true, optionsSource: {ref: museum-artwork-options}, colspan: 2}
+  - type: FormField
+    id: type
+    label: Type
+    stereotype: select
+    options:
+      - {value: Condition report, label: Condition report}
+      - {value: Surface cleaning, label: Surface cleaning}
+      - {value: Varnish removal, label: Varnish removal}
+      - {value: Inpainting, label: Inpainting}
+      - {value: Frame repair, label: Frame repair}
+      - {value: Consolidation, label: Consolidation}
+      - {value: Technical imaging, label: Technical imaging}
+      - {value: Rehousing, label: Rehousing}
+      - {value: Mount fabrication, label: Mount fabrication}
+      - {value: Pest inspection, label: Pest inspection}
+  - type: FormField
+    id: priority
+    label: Priority
+    stereotype: radio
+    options:
+      - {value: low, label: Low}
+      - {value: medium, label: Medium}
+      - {value: high, label: High}
+      - {value: urgent, label: Urgent}
+  - type: FormField
+    id: status
+    label: Status
+    stereotype: select
+    options:
+      - {value: backlog, label: Backlog}
+      - {value: in_progress, label: In progress}
+      - {value: review, label: Review}
+      - {value: done, label: Done}
+  - {type: FormField, id: assignee, label: Assignee}
+  - {type: FormField, id: dueDate, label: Due, dataType: date}
+  - {type: FormField, id: estimatedHours, label: Estimated hours, dataType: integer, stereotype: slider, sliderMin: 1, sliderMax: 80, initialValue: 8}
+  - {type: FormField, id: notes, label: Notes, stereotype: textarea, colspan: 2}
