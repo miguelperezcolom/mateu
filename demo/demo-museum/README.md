@@ -103,9 +103,9 @@ python3 scripts/snapshot.py            # museum-service on :8121
 | Editing an exhibition's works (M:N) | shown, not edited | a `multiSelect` (or `combobox`) does not read an `optionsSource`; only `select` does |
 | `money` inputs in forms that save | `number` inputs labelled USD; `money` in read-only views and columns | a money field's value is `{value, currency, locale}`, and a proxied write body can only interpolate flat `${state.x}` |
 | A `dateRange` *input* in a form | two `date` fields | the range stereotypes are filter widgets; their two values have no place in a write body |
-| Live dashboard MetricCards | header `kpis` are live; the cards are a snapshot | `MetricCard` does not interpolate `${state…}` (nor do `EntityHeader`, `Anchor` and the welcome/multimedia banner on Vaadin) |
-| A tree from a REST source, cleanly | works on Vaadin with a `children` column (it shows `[object Object]`); flat on Redwood | rows read from a source keep only the declared columns, so `children` must be one; Redwood's listing does not draw `gridLayout: tree` for a source |
-| The artist's works beside the artist on Redwood | drawn on Vaadin only | Redwood does not draw a `Listing` nested in the Collection detail page's detail |
+| Live dashboard MetricCards | header `kpis` are live; the cards are a snapshot | `MetricCard` did not interpolate `${state…}` on Vaadin before 3.0-beta.30 (#958) |
+| A tree from a REST source on Redwood | flat on Redwood (Vaadin draws the tree) | Redwood's listing does not draw `gridLayout: tree` for a source; rows keep their `children` since 3.0-beta.30 (#959) |
+| The artist's works beside the artist on Redwood | drawn since 3.0-beta.30 (#960) | a `Listing` nested in a templated page now stays in its slot and loads its rows |
 
 Renderer differences worth knowing: Redwood does not draw the dashboard's header `kpis` (its
 template takes the title and subtitle only), drops a `Text` with `container: h2` inside a section,

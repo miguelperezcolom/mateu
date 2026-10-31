@@ -13,6 +13,3 @@ columns:
   - {type: GridColumn, id: kind, label: Level}
   - {type: GridColumn, id: artworks, label: Works, dataType: integer}
   - {type: GridColumn, id: onView, label: On view, dataType: integer}
-  # Rows read from a REST source keep only the declared columns, so the tree's `children` has to be
-  # one of them or the hierarchy is dropped (see the README). It is the last column, hidden by width.
-  - {type: GridColumn, id: children, label: "", width: 0px, flexGrow: 0}
