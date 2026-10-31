@@ -2097,6 +2097,18 @@ oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
 .mateu-cd-page .mateu-cd-detail {
   padding-top: 1rem;
 }
+/* the detail's content sits at the template's OWN inset (Spectra pads its wrappers — a section's header
+   — by --oj-sp-template-padding-horizontal inside oj-sp-collection-detail-page): our texts, avatar and
+   fields take the same token, and a Spectra section header steps back out by it so Spectra's padding
+   (left alone) lands its title on that same line */
+.mateu-cd-page .mateu-cd-detail[slot="detailTemplate"],
+.mateu-cd-page .mateu-cd-detail {
+  padding-inline: var(--oj-sp-template-padding-horizontal, 1.5rem);
+  box-sizing: border-box;
+}
+.mateu-cd-page .mateu-cd-detail .mateu-sp-section-header {
+  margin-inline: calc(-1 * var(--oj-sp-template-padding-horizontal, 1.5rem));
+}
 /* ITEM OVERVIEW (oj-sp-item-overview-page): the template's own surfaces are left alone (Spectra paints
    the overview panel as its card); only OUR content in the main slot gets its gutters. The page's
    content container (the shell's card) steps aside: the template owns the page, on the page itself */

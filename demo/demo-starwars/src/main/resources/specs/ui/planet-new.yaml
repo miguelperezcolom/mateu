@@ -5,11 +5,15 @@ type: Form
 title: New planet
 toolbar:
 - type: Button
-  actionId: backToList
-  label: Back
+  actionId: cancel-new
+  label: Cancel
   actionable:
     type: RouteLink
     route: planets
+- type: Button
+  label: Create
+  actionId: create
+  buttonStyle: primary
 content:
 - type: FormLayout
   content:
@@ -47,11 +51,6 @@ content:
     id: surfaceWater
     label: Surface water (%)
     dataType: number
-buttons:
-- type: Button
-  label: Create
-  actionId: create
-  buttonStyle: primary
 actions:
 - id: create
   validationRequired: true

@@ -42,17 +42,19 @@ content:
               title: {type: Text, container: h3, text: Specifications}
               content:
                 type: FormLayout
+                maxColumns: 3   # Toolkit 26C: a read-only form in up to 3 columns (JET drops them as the width shrinks)
                 content:
-                  - {type: FormField, id: length, label: Length (m), dataType: number, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: maxAtmospheringSpeed, label: Max speed, dataType: integer, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: crew, label: Crew, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: passengers, label: Passengers, dataType: integer, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: length, label: Length (m), dataType: number, readOnly: true}
+                  - {type: FormField, id: maxAtmospheringSpeed, label: Max speed, dataType: integer, readOnly: true}
+                  - {type: FormField, id: crew, label: Crew, readOnly: true}
+                  - {type: FormField, id: passengers, label: Passengers, dataType: integer, readOnly: true}
             - type: Card
               cssClasses: mateu-section
               title: {type: Text, container: h3, text: Logistics}
               content:
                 type: FormLayout
+                maxColumns: 3   # Toolkit 26C: a read-only form in up to 3 columns (JET drops them as the width shrinks)
                 content:
-                  - {type: FormField, id: cargoCapacity, label: Cargo capacity, dataType: number, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: consumables, label: Consumables, readOnly: true, propertyRow: true}
-                  - {type: FormField, id: costInCredits, label: Cost (credits), dataType: number, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: cargoCapacity, label: Cargo capacity, dataType: number, readOnly: true}
+                  - {type: FormField, id: consumables, label: Consumables, readOnly: true}
+                  - {type: FormField, id: costInCredits, label: Cost (credits), dataType: number, readOnly: true}
