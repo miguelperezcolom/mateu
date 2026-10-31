@@ -13,6 +13,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **A source url no longer encodes an explicit `encodeURIComponent(…)` twice.** Since Mateu encodes
+  every value where it lands in a url, `search=${encodeURIComponent(state.searchText)}` sent
+  `Sample%2520Return` and a multi-select `Painting%252CPhotograph`, so every search with a space and
+  every multi-valued filter matched nothing (demo-starwars wraps every value this way, so its live
+  filters were broken). An expression that is exactly one `encodeURIComponent(x)` call now means
+  `${x}`: encoded once, a list joined with commas as JavaScript does. The same in Vaadin, Redwood and
+  the Java, .NET and Python proxies, which now also resolve a fallback (`${state.page ?? 0}`) and a
+  nested path.
+- **A money value interpolates as its amount.** A `dataType: money` value is `{value, currency,
+  locale}`; `${state.v}` landed as `[object Object]` in the browser and as `{value=12500000,
+  currency=EUR, …}` on the proxy, so a proxied write answered 400. `${state.v}` is now the amount and
+  `${state.v.currency}` the currency, on every leg. Vaadin's money input also starts an empty amount
+  in the field's declared `currency` attribute (EUR when none), as Redwood already did.
+- **A `Navigate` step resolves its placeholders.** `route: launch-sites/${state._markerId}` navigated
+  to the literal text; the route is now interpolated (encoded like a url) against the page's state
+  with the action's parameters on top, so a map marker can open its record. Vaadin and Redwood.
+- **YAML anchors and aliases are resolved in specs files.** Jackson's YAML parser read `*api` as the
+  string `"api"`, so `museum-artworks: *api` in an environment re-pointed nothing while the log still
+  counted it. The Java specs loader now resolves aliases and merge keys (`<<: *base`), as Python's
+  does; .NET resolved aliases but not merge keys, and now does both.
 - **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
   it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
   `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"

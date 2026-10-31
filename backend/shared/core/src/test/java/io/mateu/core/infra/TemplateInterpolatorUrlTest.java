@@ -78,4 +78,53 @@ class TemplateInterpolatorUrlTest {
     assertThat(url("https://h/x", Map.of())).isEqualTo("https://h/x");
     assertThat(url(null, Map.of())).isEmpty();
   }
+
+  @Test
+  void anExplicitEncodeURIComponentIsNotEncodedTwice() {
+    // the form demo-starwars' sources.yaml uses everywhere: encoded once, like `${state.x}`
+    assertThat(
+            url(
+                "https://api.example.com/art?type=${encodeURIComponent(state.type)}",
+                Map.of("type", "Painting,Photograph")))
+        .isEqualTo("https://api.example.com/art?type=Painting%2CPhotograph");
+    // a multi-select's list, as the browser's encodeURIComponent stringifies it
+    assertThat(
+            url(
+                "https://api.example.com/art?type=${encodeURIComponent(state.type)}",
+                Map.of("type", java.util.List.of("Painting", "Photograph"))))
+        .isEqualTo("https://api.example.com/art?type=Painting%2CPhotograph");
+    assertThat(
+            url(
+                "https://api.example.com/m?search=${encodeURIComponent(state.q ?? '')}",
+                Map.of("q", "Sample Return")))
+        .isEqualTo("https://api.example.com/m?search=Sample%20Return");
+    assertThat(
+            url("https://api.example.com/m?search=${encodeURIComponent(state.q ?? '')}", Map.of()))
+        .isEqualTo("https://api.example.com/m?search=");
+    // in the path too, and a dot segment is still refused through the call
+    assertThat(url("/people/${encodeURIComponent(state.id)}", Map.of("id", "a/b")))
+        .isEqualTo("/people/a%2Fb");
+    assertThatThrownBy(() -> url("/people/${encodeURIComponent(state.id)}", Map.of("id", "..")))
+        .isInstanceOf(IllegalArgumentException.class);
+    // two calls in one expression are not ONE call: that value is encoded where it lands
+    assertThat(
+            TemplateInterpolator.encodeCallArgument(
+                "encodeURIComponent(a) + encodeURIComponent(b)"))
+        .isNull();
+    assertThat(TemplateInterpolator.encodeCallArgument("encodeURIComponent(f(a, ')'))"))
+        .isEqualTo("f(a, ')')");
+  }
+
+  @Test
+  void aFallbackResolvesLikeTheBrowser() {
+    assertThat(url("/p?page=${state.page ?? 0}&size=${state.size ?? 20}", Map.of("page", 3)))
+        .isEqualTo("/p?page=3&size=20");
+  }
+
+  @Test
+  void aMoneyValueLandsAsItsAmount() {
+    var price = Map.<String, Object>of("value", 12500000, "currency", "EUR", "locale", "es-ES");
+    assertThat(url("/x?min=${state.price}&cur=${state.price.currency}", Map.of("price", price)))
+        .isEqualTo("/x?min=12500000&cur=EUR");
+  }
 }

@@ -162,7 +162,7 @@ internal sealed class ActionRegistry : ISpecsCache
 
     private static object? Root(string path)
     {
-        try { return Yaml.Deserialize<object?>(File.ReadAllText(path)); }
+        try { return Yaml.Read<object?>(File.ReadAllText(path)); }
         catch { return null; }
     }
 

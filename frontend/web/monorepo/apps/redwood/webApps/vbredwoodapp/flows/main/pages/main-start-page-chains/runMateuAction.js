@@ -179,7 +179,8 @@ define([
       // OWNER FIRST, then the app's ACTION catalogue: a flow the page declares — or, when the page
       // does not declare the id, the catalogue's — runs HERE with no server round trip, reduced
       // like any increment (NavigateTo / DispatchEvent / CloseModal / MarkAsClean …).
-      const clientFlow = preset ? null : bridge.pageFlowOf(before, id);
+      // its placeholders (a Navigate route `x/${state._markerId}`) read the state + the parameters
+      const clientFlow = preset ? null : bridge.pageFlowOf(before, id, { state: { ...(componentState || {}), ...(parameters || {}) }, appState });
       if (preset) {
         applyInc(preset);
       } else if (clientFlow) {

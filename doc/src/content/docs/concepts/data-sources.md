@@ -101,6 +101,45 @@ re-pointing a CDN deployment an edit instead of a rebuild.**
 A reference the catalogue does not carry is never resolved to something half-built: the fetch fails
 visibly rather than quietly calling an endpoint nobody declared.
 
+## Values in a url, a header or a body: `${…}`
+
+A source's `url`, `headers` and `body` take `${…}` placeholders — `${state.x}` (the screen's state),
+`${appState.x}`, `${secret.X}` (proxy only) — and every leg resolves them the same way: the browser
+(Vaadin and Redwood) on a direct call, the Mateu server (Java, .NET, Python) on a proxied one.
+
+**In a url, Mateu encodes each value where it lands — do not encode it yourself.** A value in the
+path is encoded as one segment (`/` → `%2F`; a `.` or `..` value is refused), a value after the `?`
+as one query component (`&`, `=`, a space… escaped), and a value in the origin is refused when it
+comes from the client state. So write the value plainly:
+
+```yaml
+url: https://api.example.com/missions?search=${state.searchText ?? ''}&status=${state.status ?? ''}
+```
+
+An expression that is exactly **one `encodeURIComponent(…)` call** — how a value had to be written
+before Mateu encoded it, and how older sources still write it — means the same thing: the value is
+encoded **once**, not twice. A multi-select's `["Painting", "Photograph"]` arrives as
+`Painting%2CPhotograph` either way (the list is joined with commas, as JavaScript does), and a search
+for `Sample Return` as `Sample%20Return`. A call that is only *part* of an expression
+(`${encodeURIComponent(a) + ',' + b}`) is not recognised: that result is encoded again where it
+lands.
+
+**On the proxied leg** the server is not a JavaScript engine. It resolves `state.x`, a nested
+`state.x.y`, `secret.X`, a literal (`'x'`, `0`, `true`), a fallback `a ?? b` and
+`encodeURIComponent(x)`; anything else (a ternary, `?.[0]`) resolves to empty. A source that needs
+more runs direct.
+
+**Money values.** A `dataType: money` field holds `{value, currency, locale}`. In a template it lands
+as its **amount** — `${state.budget}` → `12500000` — and its currency is `${state.budget.currency}`:
+
+```yaml
+body: '{"budget": ${state.budget}, "currency": "${state.budget.currency}"}'
+```
+
+(It used to land as `[object Object]` in the browser and as `{value=12500000, currency=EUR, …}` on
+the proxy, which the endpoint refused with a 400.) An empty money input starts in the field's
+declared `currency` attribute, and in EUR when it declares none.
+
 ## `fields`: reading a nested value under a flat name
 
 A listing reads each column by using the column id **directly as the dot path**, and a Java record

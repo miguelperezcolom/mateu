@@ -1,6 +1,7 @@
 import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
 import { urlOfRoute } from './mount.mjs'
+import { interpolateRestUrl } from './restSources.mjs'
 
 // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
 // code) travel on the wire App as `actions`, each with its steps LOWERED to `commands`. A menu leaf
@@ -48,16 +49,30 @@ export function shellFlowOf(shell, actionId) {
 }
 
 /**
+ * A flow's commands with their placeholders resolved against `scope` ({state, data, appState, …}).
+ * A `Navigate` route is a URL: interpolated like a source url (a value encoded as a path segment
+ * or a query component, a dot segment refused), so `route: missions/${state._markerId}` opens the
+ * clicked record — it used to navigate to the literal text. libs/mateu's resolveFlowCommand.
+ */
+export function resolveFlowCommands(commands, scope) {
+  if (!commands || !scope) return commands
+  return commands.map((c) => (c && c.type === 'NavigateTo' && typeof c.data === 'string' && c.data.indexOf('${') >= 0
+    ? { ...c, data: interpolateRestUrl(c.data, scope) }
+    : c))
+}
+
+/**
  * The flow a PAGE button runs client-side, OWNER FIRST: the host page's own action of that id (its
  * declared flow, or null — its server action), else the app's action catalogue entry. Null: the
- * action goes to the server as before.
+ * action goes to the server as before. With a `scope` the commands' placeholders are resolved
+ * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
  */
-export function pageFlowOf(reg, actionId) {
+export function pageFlowOf(reg, actionId, scope) {
   const host = reg && reg.contexts ? reg.contexts[HOST_ID] : null
   const own = [...((host && host.declaredActions) || []), ...((host && host.tree && host.tree.actions) || [])]
     .find((a) => a && a.id === actionId)
-  if (own) return flowCommandsOf(own)
-  return flowCommandsOf(catalogueActionOf(reg && reg.shell, actionId))
+  const commands = own ? flowCommandsOf(own) : flowCommandsOf(catalogueActionOf(reg && reg.shell, actionId))
+  return resolveFlowCommands(commands, scope)
 }
 
 /**

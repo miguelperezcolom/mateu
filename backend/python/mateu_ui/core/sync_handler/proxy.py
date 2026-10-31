@@ -13,7 +13,7 @@ import urllib.request
 from mateu_ui.dtos import UIIncrement
 
 from .. import sample_sources
-from ..url_template import interpolate_url, secret_env_name
+from ..url_template import interpolate_url, resolve_expression, secret_env_name, template_text
 from ._base import MixinBase
 from ._common import (
     log,
@@ -137,17 +137,9 @@ class ProxyHandlerMixin(MixinBase):
         return os.environ.get(secret_env_name(key))
 
     def _value_of(self, expr: str, state: dict) -> str:
-        """The string a ${state.x}/${secret.X} placeholder resolves to (unknown → empty)."""
-        if expr.startswith("state."):
-            v = state.get(expr[6:])
-            if v is None:
-                return ""
-            if isinstance(v, bool):
-                return "true" if v else "false"
-            return str(v)
-        if expr.startswith("secret."):
-            return self._resolve_secret(expr[7:]) or ""
-        return ""
+        """The string a ${state.x}/${state.x.y}/${secret.X} placeholder resolves to (unknown → empty;
+        a money value → its amount; ``a ?? b`` and ``encodeURIComponent(x)`` as in the browser)."""
+        return template_text(resolve_expression(expr, state, self._resolve_secret))
 
     def _interpolate(
         self, template: str | None, state: dict, escape: Callable[[str], str] | None = None

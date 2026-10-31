@@ -31,7 +31,8 @@ final class DefinitionInliner {
   private static final String COMPONENTS = "specs/ui/components.yaml";
 
   private final ClassLoader cl;
-  private final YAMLMapper mapper = new YAMLMapper();
+  private final YAMLMapper mapper =
+      new YAMLMapper(io.mateu.core.application.runaction.SpecsYaml.factory());
   private Map<String, JsonNode> components;
 
   DefinitionInliner(ClassLoader cl) {
