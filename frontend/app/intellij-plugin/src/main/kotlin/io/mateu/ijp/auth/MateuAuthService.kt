@@ -84,6 +84,12 @@ class MateuAuthService(private val project: Project) : TokenProvider {
     /** Store (or clear, with blank) the manual bearer token for the current backend. */
     fun setManualToken(token: String?) = MateuCredentials.set(MateuCredentials.Kind.TOKEN, backend, token)
 
+    /** The project now points at ANOTHER backend (the desktop hub switched UI): the in-memory access
+     *  token belongs to the previous one and must never reach the next. Stored tokens are per backend. */
+    fun forgetSession() {
+        accessToken = null
+    }
+
     fun signOut() {
         accessToken = null
         MateuCredentials.clear(backend)

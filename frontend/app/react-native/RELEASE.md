@@ -20,6 +20,16 @@ React Native renderer. Without a registry in `app.json` (`expo.extra.mateuRegist
 | Bundle id: `io.mateu.app` on iOS and Android (decided 2026-10-12; it cannot change after the first store release) | `app.json` |
 | EAS: `eas login` as `miguelperezcolom` (the `owner` in app.json); project id already set | — |
 
+## 0b. Android APK on GitHub (no EAS, no queue)
+
+Every framework release (`v3.0-beta.N`) also builds an Android APK on a GitHub runner and attaches it
+to the release as `mateu-app-<tag>-android.apk` (`.github/workflows/mobile.yml`: `expo prebuild` +
+`gradlew assembleRelease`, signed with the `ANDROID_KEYSTORE_*` secrets — without them no APK is
+attached, because a debug-signed one could never be updated). Pull requests that touch the app build
+it too, as a check (workflow artifact). Put the key's SHA-256 in `well-known/assetlinks.json` so
+`https://mateu.io/add` opens the sideloaded app. iOS has no equivalent: an iPhone installs only from
+the App Store, TestFlight or an ad-hoc build for registered devices.
+
 ## 1. Build
 
 ```bash

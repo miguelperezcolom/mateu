@@ -56,6 +56,9 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
              + properties in one view. Successor to the retired Swing split-preview. -->
         <fileEditorProvider implementation="io.mateu.ijp.visualeditor.MateuVisualEditorProvider"/>
         <postStartupActivity implementation="io.mateu.ijp.plugin.MateuFocusedModeActivity"/>
+        <!-- mateu://add?… / mateu://import?… opened on this machine reach the desktop HUB (io.mateu.ijp.hub);
+             the installer registers the scheme with the OS for the hub variant only. -->
+        <protocolHandler implementation="io.mateu.ijp.hub.MateuProtocolHandler"/>
         <projectConfigurable parentId="tools" id="io.mateu.settings" displayName="Mateu"
                              instance="io.mateu.ijp.plugin.MateuConfigurable"/>
         <notificationGroup id="Mateu" displayType="BALLOON"/>
@@ -115,6 +118,16 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
                 text="Mateu" description="Mateu application menu">
             <add-to-group group-id="MainToolbarLeft" anchor="last"/>
         </action>
+        <!-- The desktop hub (variant `hub` of the standalone app): back to "My UIs", share the open UI as a QR,
+             add a UI. Invisible everywhere else (developer IDEs, fixed builds). -->
+        <action id="io.mateu.HubSwitch" class="io.mateu.ijp.hub.HubSwitchAction"
+                text="My UIs" description="Back to the list of your UIs" icon="AllIcons.Actions.SwapPanels">
+            <add-to-group group-id="MainToolbarLeft" anchor="last"/>
+        </action>
+        <action id="io.mateu.HubShare" class="io.mateu.ijp.hub.HubShareAction"
+                text="Share This UI…" description="The QR code of the open UI, to open it on a phone"/>
+        <action id="io.mateu.HubAdd" class="io.mateu.ijp.hub.HubAddAction"
+                text="Add a UI…" description="Add a UI by its address, a Mateu link or its QR code"/>
         <!-- New | Mateu: one entry per specs/ui file kind (UI mount, routes, app shell, sources, field types, page). -->
         <group id="io.mateu.NewGroup" class="io.mateu.ijp.newfile.MateuNewFileGroup">
             <add-to-group group-id="NewGroup" anchor="last"/>
