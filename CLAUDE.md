@@ -442,8 +442,10 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   Compared against the guide's examples (`design/redwood/Redwood-completo.pdf` pp. 95–100, the
   reference for every template — not the bare component): the template OWNS the page — `iopOn`
   (onMateuNavigate) follows `itemProjection` (it followed the reverted `iop`, always null, so the page
-  sat in the shell's content card at fixed width) → edge to edge + `mateuPageHostClass: 'mateu-iop-host'`
-  (app.css: the container drops its card surface); the tab bar is `layout="condense"`; the `body`'s
+  sat in the shell's content card at fixed width) → `mateuPageHostClass: 'mateu-iop-host'` (app.css: the
+  container drops its card surface). It KEEPS the page width (Toolkit 26C: centred, ~96px margins at
+  ≥1536 — it was edge to edge until 2026-10-31, the owner flagged it); a main slot with ONE tab has no
+  tab bar (`withoutLoneTab`); the tab bar is `layout="condense"`; the `body`'s — and the main slot's —
   property rows are drawn STACKED (`stackedPropertyRows` → atom `stacked`: label above value, Spectra's
   read-only form layout); a titled `mateu-section` Card in the main slot keeps its `oj-sp-section`
   header (`itemOverviewOf`'s atomsOfNodes; a section's title is not repeated as a text atom,

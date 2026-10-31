@@ -5,11 +5,15 @@ title: Edit ${state.name}
 subtitle: Planet
 toolbar:
 - type: Button
-  actionId: backToList
-  label: Back
+  actionId: cancel-edit
+  label: Cancel
   actionable:
     type: RouteLink
     route: planets/${state.id}
+- type: Button
+  label: Save
+  actionId: save
+  buttonStyle: primary
 content:
 - type: FormLayout
   content:
@@ -46,11 +50,6 @@ content:
     id: surfaceWater
     label: Surface water (%)
     dataType: number
-buttons:
-- type: Button
-  label: Save
-  actionId: save
-  buttonStyle: primary
 actions:
 - id: save
   validationRequired: true
