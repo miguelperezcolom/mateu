@@ -1,0 +1,50 @@
+# The PUBLIC deployment of museum-service. sources.yaml points at http://localhost:8121; activating
+# this environment re-points EVERY source at the URL below — the one place to change it:
+#
+#   MATEU_ENVIRONMENT=public mvn spring-boot:run        (or -Dmateu.environment=public)
+#   mvn package -Predwood-bundle -Dmateu.bundle.environment=public   (a static bundle)
+#
+# An environment names each source it re-points (Mateu has no "every source" wildcard), so the base
+# is written once, as the YAML anchor &museum-api on the first entry, and every other entry aliases it.
+# Replace the placeholder host with the real one before using it.
+sources:
+  museum-museums: &museum-api {baseUrl: https://museum.example.org}
+  museum-departments: *museum-api
+  museum-artists: *museum-api
+  museum-artworks: *museum-api
+  museum-exhibitions: *museum-api
+  museum-loans: *museum-api
+  museum-conservation-tasks: *museum-api
+  museum-visits: *museum-api
+  museum-search: *museum-api
+  museum-collection-tree: *museum-api
+  museum-stats: *museum-api
+  museum-museum-options: *museum-api
+  museum-department-options: *museum-api
+  museum-artist-options: *museum-api
+  museum-artwork-options: *museum-api
+  museum-exhibition-options: *museum-api
+  museum-museum: *museum-api
+  museum-museum-create: *museum-api
+  museum-museum-update: *museum-api
+  museum-museum-delete: *museum-api
+  museum-artist: *museum-api
+  museum-artist-create: *museum-api
+  museum-artist-update: *museum-api
+  museum-artist-delete: *museum-api
+  museum-artwork: *museum-api
+  museum-artwork-create: *museum-api
+  museum-artwork-update: *museum-api
+  museum-artwork-delete: *museum-api
+  museum-exhibition: *museum-api
+  museum-exhibition-create: *museum-api
+  museum-exhibition-update: *museum-api
+  museum-exhibition-delete: *museum-api
+  museum-loan: *museum-api
+  museum-loan-create: *museum-api
+  museum-loan-update: *museum-api
+  museum-loan-delete: *museum-api
+  museum-task: *museum-api
+  museum-task-create: *museum-api
+  museum-task-update: *museum-api
+  museum-task-delete: *museum-api

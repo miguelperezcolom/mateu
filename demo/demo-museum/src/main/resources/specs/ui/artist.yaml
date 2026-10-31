@@ -1,0 +1,33 @@
+# One artist, beside the list (COLLECTION DETAIL with a selection). The detail is the form's content:
+# the artist's facts and a listing of their works, filtered by the artist's id through the source url.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Artists
+subtitle: One row per artist across the three museums
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Partial, ref: artists-list}
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      # (not an EntityHeader: it does not interpolate ${state…} on Vaadin — see the README)
+      - {type: Text, container: h2, text: "${state.name}"}
+      - {type: Text, text: "${state.nationality} · ${state.lifespan} · ${state.artworkCount} works here"}
+      - {type: Image, src: "${state.image}", alt: "A work by ${state.name}", style: "max-height: 260px; object-fit: contain; border-radius: 8px;"}
+      - {type: Text, text: "${state.imageCredit}", size: s}
+      - {type: Text, text: "${state.bio}"}
+      - type: Listing
+        title: Works
+        pageSize: 6
+        rowRoute: artworks/${row.id}
+        gridLayout: cards
+        rowsSource:
+          url: http://localhost:8121/api/artworks?artistId=${state.id}&size=24&sort=beginYear
+          itemsPath: content
+        columns:
+          - {type: GridColumn, id: imageSmall, label: Image, stereotype: image}
+          - {type: GridColumn, id: title, label: Title, identifier: true}
+          - {type: GridColumn, id: objectDate, label: Date}
+          - {type: GridColumn, id: museumName, label: Museum}

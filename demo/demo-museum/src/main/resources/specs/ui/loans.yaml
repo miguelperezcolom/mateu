@@ -1,0 +1,63 @@
+# The loans — Redwood's DATA MANAGEMENT page template: the data view (a listing of every loan, filtered
+# by status and destination on the server) with a summary panel docked at its end and a workflow note
+# docked at its bottom. A YAML page has no server to toggle the panels, so they show while `open`.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Loans
+subtitle: Works travelling between the museums
+toolbar:
+  - type: Button
+    label: Request a loan
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: loans/new}
+template:
+  type: DataManagementPage
+  end:
+    id: loans-summary
+    title: The workflow
+    open: true
+    size: 18rem
+    content:
+      type: VerticalLayout
+      content:
+        - type: Timeline
+          items:
+            - {id: requested, title: Requested, description: The borrower asks, icon: "vaadin:envelope", color: info}
+            - {id: approved, title: Approved, description: The lender agrees and insures, icon: "vaadin:check", color: success}
+            - {id: in_transit, title: In transit, description: Crated, with a courier, icon: "vaadin:truck", color: warning}
+            - {id: on_display, title: On display, description: Hanging in the show, icon: "vaadin:picture"}
+            - {id: returned, title: Returned, description: Back home, icon: "vaadin:home"}
+  bottom:
+    id: loans-notes
+    title: About this data
+    open: true
+    size: 6rem
+    content: {type: Text, text: "Loans are synthetic and deterministic; museum-service re-seeds them on every restart, so request, approve and cancel freely."}
+content:
+  - type: Listing
+    pageSize: 15
+    rowRoute: loans/${row.id}
+    searchable: true
+    filters:
+      - type: FormField
+        id: status
+        label: Status
+        stereotype: multiSelect
+        options:
+          - {value: requested, label: Requested}
+          - {value: approved, label: Approved}
+          - {value: in_transit, label: In transit}
+          - {value: on_display, label: On display}
+          - {value: returned, label: Returned}
+      - {type: FormField, id: toMuseumId, label: To museum, stereotype: select, optionsSource: {ref: museum-museum-options}}
+      - {type: FormField, id: startDate, label: Leaves, dataType: date, stereotype: dateRange}
+      - {type: FormField, id: insuranceValue, label: Insured for (USD), dataType: number, stereotype: numberRange}
+    rowsSource:
+      ref: museum-loans
+    columns:
+      - {type: GridColumn, id: artworkTitle, label: Work, identifier: true, stereotype: primary, leadingPath: artworkImage, captionPath: exhibitionTitle, width: 20rem, flexGrow: 0}
+      - {type: GridColumn, id: fromMuseumName, label: From}
+      - {type: GridColumn, id: toMuseumName, label: To}
+      - {type: GridColumn, id: status, label: Status, dataType: status}
+      - {type: GridColumn, id: startDate, label: Leaves, dataType: date}
+      - {type: GridColumn, id: insuranceValue, label: Insured for, dataType: money, align: end}

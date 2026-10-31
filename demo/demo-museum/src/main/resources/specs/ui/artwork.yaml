@@ -1,0 +1,80 @@
+# One artwork, read-only — Redwood's ITEM OVERVIEW page template: the work's photo and key facts in the
+# overview panel, the rest in tabs in the main slot. Header: back to the list, the gallery view, Edit.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.title}
+subtitle: ${state.artistDisplay} · ${state.objectDate}
+badges:
+  - {label: "${state.classification}", color: info}
+kpis:
+  - {label: Museum, value: "${state.museumName}"}
+  - {label: Gallery, value: "${state.gallery}"}
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to Artworks
+    actionable: {type: RouteLink, route: artworks}
+  - type: Button
+    label: Gallery view
+    actionable: {type: RouteLink, route: "artworks/${state.id}/gallery"}
+  - type: Button
+    label: Edit
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: "artworks/${state.id}/edit"}
+template:
+  type: ItemOverviewPage
+  photo: {src: "${state.imageLarge}"}
+  body:
+    - {type: FormField, id: artistDisplay, label: Artist, readOnly: true, propertyRow: true}
+    - {type: FormField, id: objectDate, label: Date, readOnly: true, propertyRow: true}
+    - {type: FormField, id: museumName, label: Museum, readOnly: true, propertyRow: true}
+    - {type: FormField, id: departmentName, label: Department, readOnly: true, propertyRow: true}
+  footer:
+    - {type: Text, text: "Image: ${state.imageCredit}", size: s}
+content:
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Details
+        content:
+          type: VerticalLayout
+          horizontalAlignment: STRETCH
+          content:
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: Object}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: classification, label: Kind, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: objectType, label: Museum's term, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: medium, label: Medium, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: culture, label: Culture, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: dimensions, label: Dimensions, readOnly: true, propertyRow: true}
+            - type: Card
+              cssClasses: mateu-section
+              title: {type: Text, container: h3, text: In the collection}
+              content:
+                type: FormLayout
+                content:
+                  - {type: FormField, id: accessionNumber, label: Accession number, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: acquisitionYear, label: Acquired, dataType: integer, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: onView, label: On view, dataType: bool, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: gallery, label: Gallery, readOnly: true, propertyRow: true}
+                  - {type: FormField, id: estimatedValue, label: Estimated value (synthetic), dataType: money, readOnly: true, propertyRow: true}
+      - type: Tab
+        label: About
+        content:
+          type: VerticalLayout
+          horizontalAlignment: STRETCH
+          content:
+            - {type: FormField, id: description, label: Description, stereotype: html, readOnly: true}
+            - {type: FormField, id: creditLine, label: Credit line, readOnly: true, propertyRow: true}
+            - {type: FormField, id: tags, label: Tags, readOnly: true, propertyRow: true}
+      - type: Tab
+        label: Source
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "${state.imageCredit}"}
+            - {type: FormField, id: sourceUrl, label: "The work on the museum's website", stereotype: link, readOnly: true}

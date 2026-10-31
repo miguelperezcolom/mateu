@@ -1,0 +1,64 @@
+# One exhibition — Redwood's FOLDOUT layout as a page: an overview that is always in view, and panels
+# that fold out beside it (the works, the loans it needs, the money), each with a summary on its
+# folded strip.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.title}
+subtitle: ${state.museumName} · ${state.startDate} → ${state.endDate}
+badges:
+  - {label: "${state.status}", color: success}
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to Exhibitions
+    actionable: {type: RouteLink, route: exhibitions}
+  - type: Button
+    label: Edit
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: "exhibitions/${state.id}/edit"}
+template:
+  type: FoldoutPage
+  overview:
+    - {type: Image, src: "${state.image}", alt: "${state.title}", style: "width: 100%; max-height: 260px; object-fit: cover; border-radius: 8px;"}
+    - {type: Text, text: "${state.description}"}
+    - {type: FormField, id: curator, label: Curator, readOnly: true, propertyRow: true}
+    - {type: FormField, id: status, label: Status, readOnly: true, propertyRow: true}
+content:
+  - type: FoldoutPanel
+    title: The works
+    open: true
+    summary: {type: Text, text: "${state.artworkCount} works"}
+    content:
+      type: Listing
+      pageSize: 12
+      gridLayout: cards
+      rowRoute: artworks/${row.id}
+      rowsSource:
+        url: http://localhost:8121/api/artworks?exhibitionId=${state.id}&size=100&sort=title
+        itemsPath: content
+      columns:
+        - {type: GridColumn, id: imageSmall, label: Image, stereotype: image}
+        - {type: GridColumn, id: title, label: Title, identifier: true}
+        - {type: GridColumn, id: artistDisplay, label: By}
+  - type: FoldoutPanel
+    title: Loans
+    summary: {type: Text, text: Works borrowed for the show}
+    content:
+      type: Listing
+      pageSize: 10
+      rowRoute: loans/${row.id}
+      rowsSource:
+        url: http://localhost:8121/api/loans?exhibitionId=${state.id}&size=50
+        itemsPath: content
+      columns:
+        - {type: GridColumn, id: artworkTitle, label: Work, identifier: true, stereotype: primary, leadingPath: artworkImage, captionPath: fromMuseumName}
+        - {type: GridColumn, id: status, label: Status, dataType: status}
+        - {type: GridColumn, id: insuranceValue, label: Insured for, dataType: money}
+  - type: FoldoutPanel
+    title: Budget and visitors
+    summary: {type: Text, text: "${state.visitors} visitors"}
+    content:
+      type: VerticalLayout
+      content:
+        - {type: MetricCard, title: Budget, value: "${state.budget}", unit: USD}
+        - {type: MetricCard, title: Visitors, value: "${state.visitors}", timeframe: So far}

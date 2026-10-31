@@ -1,0 +1,58 @@
+# One loan — a simple create-and-edit form whose status select walks the workflow, with the header's
+# badge, contextual facts (kpis) and a progress strip of where the loan is.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.artworkTitle}
+subtitle: ${state.fromMuseumName} → ${state.toMuseumName}
+overline: Loan ${state.id}
+badges:
+  - {label: "${state.status}", color: info}
+kpis:
+  - {label: Exhibition, value: "${state.exhibitionTitle}"}
+  - {label: Insured for, value: "${state.insuranceValue}"}
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to Loans
+    actionable: {type: RouteLink, route: loans}
+  - {type: Button, label: Delete, actionId: delete, color: error}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+content:
+  - type: HorizontalLayout
+    content:
+      - {type: Image, src: "${state.artworkImage}", alt: "${state.artworkTitle}", style: "width: 180px; border-radius: 8px;"}
+      - type: FormLayout
+        maxColumns: 2
+        content:
+          - type: FormField
+            id: status
+            label: Status
+            stereotype: select
+            required: true
+            options:
+              - {value: requested, label: Requested}
+              - {value: approved, label: Approved}
+              - {value: in_transit, label: In transit}
+              - {value: on_display, label: On display}
+              - {value: returned, label: Returned}
+          - {type: FormField, id: courier, label: Courier}
+          - {type: FormField, id: startDate, label: Leaves the lender, dataType: date}
+          - {type: FormField, id: endDate, label: Back home by, dataType: date}
+          - {type: FormField, id: insuranceValue, label: Insured for (USD), dataType: number}
+          - {type: FormField, id: exhibitionId, label: Exhibition, stereotype: select, optionsSource: {ref: museum-exhibition-options}}
+          - {type: FormField, id: notes, label: Conditions, stereotype: textarea, colspan: 2}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: museum-loan-update}
+      successMessage: Saved
+      successRoute: loans
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: Cancel and delete this loan?
+    restAction:
+      source: {ref: museum-loan-delete}
+      successMessage: Deleted
+      successRoute: loans

@@ -1,0 +1,10 @@
+# The artists of the Collection detail pages (artists.yaml, artist.yaml): a compact searchable listing
+# whose rows open the artist beside it — a partial, so both pages share one list.
+type: Listing
+pageSize: 12
+rowRoute: artists/${row.id}
+searchable: true
+rowsSource:
+  ref: museum-artists
+columns:
+  - {type: GridColumn, id: name, label: Artist, identifier: true, stereotype: primary, leadingPath: image, captionPath: lifespan}
