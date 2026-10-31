@@ -4,7 +4,8 @@
 > unlicensed), which reopened the question of what the demos are for. The answer: two **reference
 > apps** — a multi-museum collection and NASA space exploration — that use **all** of Mateu, authored
 > the same way in **every producer** (YAML, Java, C#, Python), rendered by **every renderer** (Vaadin,
-> Redwood, the app, desktop), and pinned by **one** test suite run across that whole matrix.
+> Redwood, the app, desktop), and pinned by **one** test suite run across that whole matrix — plus the
+> **Mateu Explorer**, which guarantees what no theme covers naturally.
 >
 > **Status:** living plan. Phases have checkboxes, branch and PR; update on every step (log at the
 > bottom). Related: `renderer-e2e-strategy.md` (agnostic selectors, drivers per renderer),
@@ -44,9 +45,23 @@ a committed script from open data. The service is the shared fixture of every ce
 Synthetic data (loans, tasks, budgets, visits, values) is generated deterministically by the seed
 script and labelled as such in each README.
 
-Features that fit neither theme naturally go into a small **lab** section of whichever app hosts them
-best (e.g. a file upload as "attach a conservation report", the AI chat as "ask the collection",
-access control as curator vs visitor) — and only the irreducible rest into lab pages.
+Features that fit a theme are used there, even if it takes a little invention (a file upload as
+"attach a conservation report", the AI chat as "ask the collection", access control as curator vs
+visitor). What fits neither goes to the Explorer.
+
+### The Mateu Explorer — the third reference app
+
+The themes show the features in context; the **Explorer** guarantees completeness. One page per
+inventory item (§3): a live example, its variants and states (empty, loading, error, read-only,
+disabled, validation), and — read from the inventory — which producers can express it and which
+renderers support it. A Storybook for Mateu, driven by the inventory rather than written by hand: the
+index and the skeleton of each page are generated from `inventory.json`, so a new feature appears in
+the Explorer, unfilled and flagged, the day it lands.
+
+It grows from what exists: `demo/explorer` (23 Java pages — shells, page widths, templates, wizard,
+dialog, tabs) and `demo/demo-redwood-showcase`. It is authored in YAML where the item is
+YAML-expressible and in Java where it is code-only; it is not ported to C# and Python (the themes are,
+§4) — the producers are compared on the two theme apps.
 
 ## 3. The inventory — what "every feature" means
 
@@ -86,8 +101,9 @@ Two apps × 4 producers × 4 renderers = 32 cells. Not all on every PR:
 2. **Functional UI (L2).** One Playwright suite per app (`e2e/tests/reference/<app>/`), agnostic
    selectors only (as `e2e/tests/renderer/smoke.spec.ts`). Projects per renderer and per producer
    (baseURL). The app and desktop get their drivers in phase 6; until then they run L1 only.
-3. **Coverage gate (L3).** Fails when an inventory item is used by no reference app (in the producer
-   that can express it), or a test-id / route the suite relies on disappears. Report-only first,
+3. **Coverage gate (L3).** Fails when an inventory item is used by no reference app — museum, space
+   or the Explorer — (in the producer that can express it), or a test-id / route the suite relies on
+   disappears. Report-only first,
    enforcing once phase 2 lands.
 
 Conventions all producers follow so one suite fits all: the same routes; the same labels and titles;
@@ -100,7 +116,7 @@ README); the same seeded data (the service is shared).
 
 - [ ] The inventory script and `inventory.json` (§3).
 - [ ] The coverage report: inventory × the two apps' specs → used / unused / not expressible.
-- [ ] Decide the lab items (§2) from the report.
+- [ ] From the report: which items the themes take, and which go to the Explorer (§2).
 
 Exit: a report that says, item by item, where it is used or why it is not.
 
@@ -116,10 +132,21 @@ Exit: a report that says, item by item, where it is used or why it is not.
 Exit: every YAML-expressible inventory item used by at least one app; both apps right in Vaadin and
 Redwood.
 
+### Phase 1b — the Explorer
+
+- [ ] The generator: `inventory.json` → the Explorer's index and one page skeleton per item, flagged
+      until filled.
+- [ ] Fill every item the themes do not use; then the variants and states of the rest.
+- [ ] Both renderers by hand; each page records what it found.
+
+Exit: the coverage report has no item unused by the three apps.
+
 ### Phase 2 — the functional suite
 
 - [ ] `e2e/tests/reference/museum/` and `…/space/`: one journey per feature group (listing,
       record, forms, wizard, board, calendar, map, charts, tree, multimedia, search, templates).
+- [ ] `e2e/tests/reference/explorer/`: one check per Explorer page (renders, its states), generated
+      alongside the page.
 - [ ] Projects YAML × Vaadin and YAML × Redwood in CI; the coverage gate enforcing.
 
 Exit: green on both web renderers, on every PR.
@@ -157,7 +184,7 @@ Exit: green on both web renderers, on every PR.
 ## 8. Risks
 
 - **The inventory is large** (≈400 items). Phase 0 will show how many are not natural in either
-  theme; the lab section must stay small or the apps stop being demos.
+  theme; those go to the Explorer, so the theme apps stay demos instead of becoming catalogues.
 - **Image hosting.** The museums' and NASA's URLs are official and stable, but external; a cache in
   the data service is the fallback if one changes.
 - **Matrix cost.** 32 cells with browsers are slow; hence the per-PR subset and L1 (no browser) as the
@@ -166,5 +193,6 @@ Exit: green on both web renderers, on every PR.
 
 ## Log
 
+- 2026-10-31 — The Explorer added as the third reference app (§2), growing `demo/explorer`.
 - 2026-10-31 — Plan written. Phase 1 started: both apps' first cut (data service + YAML demo) under
   way on `feat/demo-museum` and `feat/demo-space`.
