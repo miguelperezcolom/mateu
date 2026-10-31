@@ -10,15 +10,17 @@ namespace Mateu.Core.MicroFrontends;
 /// so a malformed or repeated one fails at startup (the port has no annotation processor: Java fails
 /// the compilation instead) — and the descriptor the content service reads through the reserved
 /// action <c>__content_slots__</c> (Java: ContentSlotIndex + ContentSlotDescriptors).</summary>
-internal static partial class ContentSlotDescriptors
+internal static class ContentSlotDescriptors
 {
     public const string Action = "__content_slots__";
     public const string AppDataKey = "_contentSlots";
 
     /// <summary><c>application.screen.name</c> (more segments allowed: the last is the name, the ones
     /// between the first and the last the screen): lower case letters and digits, dash-separated words.</summary>
-    [GeneratedRegex("^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*){2,}$")]
-    internal static partial Regex KeyPattern();
+    // a plain Regex, not [GeneratedRegex]: the generator emits code no test walks through
+    private static readonly Regex KeyRegex = new("^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*){2,}$", RegexOptions.Compiled);
+
+    internal static Regex KeyPattern() => KeyRegex;
 
     internal sealed record Slot(
         string Key, string DeclaredIn, string Field, string? Route, string Fallback, string Description,

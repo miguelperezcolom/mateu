@@ -127,15 +127,19 @@ public static class MateuExtensions
             options.ContentRemoteId, options.ContentRoute, options.SelfBaseUrl));
 
     /// <summary>The origin of the local socket the request arrived on — never a request header.</summary>
-    private static string? LocalOrigin(HttpContext ctx)
+    private static string? LocalOrigin(HttpContext ctx) =>
+        LocalOrigin(ctx.Connection.LocalIpAddress, ctx.Connection.LocalPort, ctx.Request.IsHttps);
+
+    /// <summary>The origin of a local socket (pure; unit-tested): an IPv6 host is bracketed, an
+    /// IPv4-mapped one is written as IPv4; no address or port, no origin.</summary>
+    internal static string? LocalOrigin(System.Net.IPAddress? address, int port, bool https)
     {
-        var address = ctx.Connection.LocalIpAddress;
-        if (address is null || ctx.Connection.LocalPort <= 0) return null;
+        if (address is null || port <= 0) return null;
         if (address.IsIPv4MappedToIPv6) address = address.MapToIPv4();
         var host = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
             ? "[" + address + "]"
             : address.ToString();
-        return (ctx.Request.IsHttps ? "https" : "http") + "://" + host + ":" + ctx.Connection.LocalPort;
+        return (https ? "https" : "http") + "://" + host + ":" + port;
     }
 
     /// <summary>Maps the Mateu endpoints at <paramref name="baseUrl"/> (the mount; "" = the root).

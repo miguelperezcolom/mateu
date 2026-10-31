@@ -235,15 +235,17 @@ internal sealed class RemoteIdentityStrategies
 /// <summary>The caller's sane <c>X-Mateu-Correlation-Id</c>, else the trace id of its
 /// <c>traceparent</c>, else this request's trace id (the one the error boundary logs), else a new
 /// id (Java: DefaultCorrelationIdProvider).</summary>
-internal sealed partial class DefaultCorrelationIdProvider : ICorrelationIdProvider
+internal sealed class DefaultCorrelationIdProvider : ICorrelationIdProvider
 {
     public const string Header = "X-Mateu-Correlation-Id";
 
-    [GeneratedRegex("^[A-Za-z0-9._:-]{1,128}$")]
-    private static partial Regex Safe();
+    // plain Regexes, not [GeneratedRegex]: the generator emits code no test walks through
+    private static readonly Regex SafeRegex = new("^[A-Za-z0-9._:-]{1,128}$", RegexOptions.Compiled);
+    private static readonly Regex TraceParentRegex = new("^[0-9a-f]{2}-([0-9a-f]{32})-[0-9a-f]{16}-[0-9a-f]{2}$", RegexOptions.Compiled);
 
-    [GeneratedRegex("^[0-9a-f]{2}-([0-9a-f]{32})-[0-9a-f]{16}-[0-9a-f]{2}$")]
-    private static partial Regex TraceParent();
+    private static Regex Safe() => SafeRegex;
+
+    private static Regex TraceParent() => TraceParentRegex;
 
     public string CorrelationId(IncomingRequest request)
     {

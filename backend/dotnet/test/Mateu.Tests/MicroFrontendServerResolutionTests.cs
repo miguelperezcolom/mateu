@@ -197,7 +197,7 @@ public sealed class MfeHosts : IAsyncLifetime
         Host = new HttpClient { BaseAddress = new Uri(Address(_host)) };
     }
 
-    public async Task<WebApplication> StartHost(Action<MateuOptions> configure)
+    public async Task<WebApplication> StartHost(Action<MateuOptions> configure, Action<WebApplication>? map = null)
     {
         return await Start(builder =>
         {
@@ -212,8 +212,15 @@ public sealed class MfeHosts : IAsyncLifetime
                 o.SelfBaseUrl = RemoteBase;
                 configure(o);
             }, typeof(MfeHosts).Assembly);
-        }, app => app.MapMateu());
+        }, app =>
+        {
+            map?.Invoke(app);
+            app.MapMateu();
+        });
     }
+
+    /// <summary>The remotes' answers, for a host that serves a remote path itself.</summary>
+    public Task AnswerAsRemote(HttpContext ctx) => Answer(ctx);
 
     private static async Task<WebApplication> Start(Action<WebApplicationBuilder> configure, Action<WebApplication> map)
     {
@@ -621,6 +628,40 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
             new[] { MicroFrontendResolutionOutcome.Timeout, MicroFrontendResolutionOutcome.Error },
             Events.Select(e => e.Outcome).OrderByDescending(o => o == MicroFrontendResolutionOutcome.Timeout));
         Assert.All(Events, e => Assert.Equal("fallback", e.DegradedTo));
+    }
+
+    [Fact]
+    public async Task A_remote_on_a_path_of_this_server_is_called_at_its_own_socket()
+    {
+        // no SelfBaseUrl: the content service is a PATH of this very server, reached through the
+        // local socket the request arrived on (never a request header)
+        var host = await _hosts.StartHost(o => o.SelfBaseUrl = null,
+            app => app.MapPost("/_content-hub/{**path}", _hosts.AnswerAsRemote));
+        try
+        {
+            using var http = new HttpClient { BaseAddress = new Uri(MfeHosts.Address(host)) };
+            var (increment, status) = await Post(http, "mfe-slot-page");
+            Assert.Equal(HttpStatusCode.OK, status);
+            var slot = Assert.Single(MicroFrontends(increment["fragments"]));
+            Assert.Equal(["slot front-office.home.destacado"], Texts(slot["resolved"]));
+            Assert.Contains("/_content-hub/mateu/v3/sync/content-slots/front-office.home.destacado",
+                Requests.Select(r => r["path"]));
+        }
+        finally
+        {
+            await host.StopAsync();
+            await host.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public void The_local_origin_is_written_from_the_socket()
+    {
+        Assert.Equal("http://127.0.0.1:8080", MateuExtensions.LocalOrigin(System.Net.IPAddress.Parse("127.0.0.1"), 8080, false));
+        Assert.Equal("https://[::1]:8443", MateuExtensions.LocalOrigin(System.Net.IPAddress.IPv6Loopback, 8443, true));
+        Assert.Equal("http://10.0.0.5:80", MateuExtensions.LocalOrigin(System.Net.IPAddress.Parse("10.0.0.5").MapToIPv6(), 80, false));
+        Assert.Null(MateuExtensions.LocalOrigin(null, 8080, false));
+        Assert.Null(MateuExtensions.LocalOrigin(System.Net.IPAddress.Loopback, 0, false));
     }
 
     [Fact]
