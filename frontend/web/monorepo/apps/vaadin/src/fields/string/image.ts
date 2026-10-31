@@ -3,19 +3,41 @@ import { html, nothing, TemplateResult } from 'lit'
 import type { FieldLabel, FieldValue } from '../fieldEvents'
 import type { MateuField } from '../mateu-field'
 
-/** Images: shown, or uploadable (the value is a data URI or a URL). */
+/** Images: a URL with its preview, or uploadable (the value is a data URI or a URL). */
 
+/**
+ * The image stereotype in an EDITABLE form: the URL input, and under it a contained preview that
+ * follows the value. It used to draw only the image, at full size, with nothing to change it — a
+ * read-only form or a view still shows just the image (renderReadOnlyField).
+ */
 export function renderImageField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
+    const url = typeof value === 'string' ? value.trim() : ''
     return html`
         <vaadin-custom-field
                 id="${host.field.fieldId}"
                 label="${label}"
                 .helperText="${host.helperText()}"
+                required="${host.field.required || nothing}"
                 data-colspan="${host.field.colspan}"
-        ><img
-                src="${value}" alt="${label ?? ''}"
-                style="${host.component?.style}" class="${host.component?.cssClasses}"></vaadin-custom-field>
+        >
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: var(--lumo-space-s); width: 100%;">
+                <vaadin-text-field
+                        class="mateu-image-url"
+                        accessible-name="${label ?? nothing}"
+                        placeholder="${host.field.placeholder ?? nothing}"
+                        .value="${value ?? ''}"
+                        @value-changed="${(e: CustomEvent) => { e.stopPropagation(); host.valueChanged(e) }}"
+                        ?autofocus="${host.field.wantsFocus}"
+                        style="width: 100%;"
+                ></vaadin-text-field>
+                ${url ? html`<img
+                        class="mateu-image-preview ${host.component?.cssClasses ?? ''}"
+                        src="${url}" alt="${label ?? ''}"
+                        style="max-width: min(100%, 320px); max-height: 240px; object-fit: contain; border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-m); ${host.component?.style ?? ''}">`
+                    : nothing}
+            </div>
+        </vaadin-custom-field>
     `
 }
 
