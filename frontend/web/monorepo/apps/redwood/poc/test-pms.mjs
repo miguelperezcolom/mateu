@@ -40,7 +40,7 @@ import { hoverLinesOf } from './hover.mjs'
 import { draggedIdsOf, dragTypeOfMime } from './dnd.mjs'
 import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
-import { listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf } from './core/listing.mjs'
+import { nestedListingAtomOf, nestedListingKeyOf, pageListingNodeOf, templateNestsListings, listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf } from './core/listing.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
@@ -2418,6 +2418,55 @@ test('ItemOverview → oj-sp-item-overview-page: the key panel in oj-sp-item-ove
   assert.match(page, /edit: \$application\.variables\.mateuPageHeader\.itemEdit/)
   assert.match(page, /on-sp-edit="\[\[ \$listeners\.headerPrimary \]\]"/)
 })
+
+test('a nested listing is drawn as picture cards or a table, its first page only', () => {
+  const works = { type: 'ClientSide', id: 'w', metadata: { type: 'Crud', title: 'Works of ${state.name}', gridLayout: 'cards', rowRoute: 'artworks/${row.id}',
+    rowsSource: { ref: 'works' }, columns: [{ metadata: { id: 'img', label: 'Image', stereotype: 'image' } }, { metadata: { id: 'title', label: 'Title', identifier: true } },
+      { metadata: { id: 'by', label: 'By' } }, { metadata: { id: 'ops', dataType: 'actionGroup' } }] }, children: [] }
+  const key = nestedListingKeyOf(works)
+  const pending = nestedListingAtomOf(works, { state: { name: 'SMK' }, data: {} })
+  assert.equal(pending.title, 'Works of SMK')
+  assert.equal(pending.loaded, false)
+  assert.equal(pending.isEmpty, false)
+  const rows = [{ id: 7, img: 'a.jpg', title: 'Harvesters', by: 'Bruegel' }, { id: 8, img: 'b.jpg', title: 'Untitled', by: null }]
+  const cards = nestedListingAtomOf(works, { state: {}, data: { [key]: { page: { content: rows } } } })
+  assert.ok(cards.asCards && !cards.asTable)
+  assert.equal(cards.cards.length, 2)
+  assert.equal(cards.cards[0].image, 'a.jpg')
+  assert.equal(cards.cards[0].title, 'Harvesters')
+  assert.deepEqual(cards.cards[0].lines, [{ label: 'By', value: 'Bruegel' }])
+  assert.deepEqual(cards.cards[1].lines, [])
+  assert.ok(cards.cards[0].route)
+  const loans = { ...works, id: 'l', metadata: { ...works.metadata, gridLayout: undefined, title: '', emptyStateMessage: 'No loans' } }
+  const lkey = nestedListingKeyOf(loans)
+  const table = nestedListingAtomOf(loans, { state: {}, data: { [lkey]: { page: { content: rows } } } })
+  assert.ok(table.asTable && !table.asCards)
+  assert.deepEqual(table.columns.map((c) => c.id), ['img', 'title', 'by'])
+  assert.equal(table.columns[0].template, 'cellNestedImage')
+  assert.equal(table.columns[1].template, 'cellNestedLink')
+  assert.ok(table.columns.every((c) => c.sortable === 'disabled'))
+  assert.ok(table.rows[0].__href.includes('artworks/7'))
+  const empty = nestedListingAtomOf(loans, { state: {}, data: { [lkey]: { page: { content: [] } } } })
+  assert.ok(empty.isEmpty)
+  assert.equal(empty.emptyText, 'No loans')
+})
+
+test('which listing is the page\'s own: none on a template that nests them, the list slot on a collection detail', () => {
+  const crud = (id) => ({ type: 'ClientSide', id, metadata: { type: 'Crud', columns: [] }, children: [] })
+  const page = (template, children) => ({ type: 'ServerSide', children: [{ type: 'ClientSide', id: 'p',
+    metadata: { type: 'Form', ...(template ? { template: { type: template } } : {}) }, children }] })
+  assert.equal(pageListingNodeOf(page(null, [])), null)
+  assert.equal(pageListingNodeOf(page(null, [crud('a')])).id, 'a')
+  assert.equal(pageListingNodeOf(page('GeneralOverviewPage', [crud('a')])), null)
+  assert.equal(pageListingNodeOf(page('HeroSearchPage', [crud('a')])).id, 'a')
+  const list = { type: 'ClientSide', id: 'collection-detail-list', metadata: { type: 'VerticalLayout' }, children: [crud('b')] }
+  assert.equal(pageListingNodeOf(page('CollectionDetailPage', [crud('a'), list])).id, 'b')
+  assert.equal(pageListingNodeOf(page('CollectionDetailPage', [crud('a')])), null)
+  assert.ok(templateNestsListings(page('FoldoutPage', [])))
+  assert.ok(!templateNestsListings(page('DataManagementPage', [])))
+  assert.ok(!templateNestsListings(page(null, [])))
+})
+
 console.log(`\n${pass} tests PMS OK`)
 
 test('a page that DECLARES the Item overview page template (YAML template: ItemOverviewPage) → Spectra\'s, from the slots by id', () => {
