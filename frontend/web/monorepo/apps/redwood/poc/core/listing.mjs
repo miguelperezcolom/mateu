@@ -1,7 +1,9 @@
 import { applyColumnPrefs } from '../prefs.mjs'
 import { walkWithinSurface } from './tree.mjs'
 import { dragMimeOf } from './atoms.mjs'
-import { buttonRouteOf, columnPrefsReader, islandContentOf } from './content.mjs'
+import { buttonRouteOf, columnPrefsReader, islandContentOf, interpolate, rowRouteOf, dataProviderFactory } from './content.mjs'
+import { stableHashOf } from './overviews.mjs'
+import { urlOfRoute } from '../mount.mjs'
 import { optionsOf } from './rowEditor.mjs'
 import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
 import { chromeText, chromeLanguage, moneyText } from '../i18n.mjs'
@@ -27,6 +29,139 @@ export function findFirst(tree, test) {
   let found = null
   walkWithinSurface(tree, (n) => { if (!found && test(n)) found = n })
   return found
+}
+
+// ── NESTED LISTINGS: a Listing inside a page template's content ─────────────────────────────────
+//
+// A page that DECLARES a template (YAML `template:`) lays its content out in the template's slots,
+// and a Listing among that content (a general overview's «launches from here», a multimedia page's
+// gallery section, a welcome's featured cards, a collection detail's works) is PART of that content,
+// as on Vaadin — not the page's own listing. Taken for the page listing it was hoisted out of its
+// slot: painted on top with its search bar (and the page painted again below it), or not at all.
+// Only the templates whose listing IS the page (a hero search's results, a data management page's
+// table, a collection detail's collection slot) keep the listing branch.
+
+/** The templates whose listing is the PAGE's own (the listing branch, or the slot holding it). */
+const PAGE_LISTING_TEMPLATES = { HeroSearchPage: true, DataManagementPage: true, CollectionDetailPage: true }
+
+/** The template a page DECLARES (`template:` on its Form, served wrapped in its ServerSide), or ''. */
+function declaredTemplateTypeOf(tree) {
+  let node = tree
+  while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
+  const md = node && node.metadata
+  return md && md.type === 'Form' && md.template && md.template.type ? String(md.template.type) : ''
+}
+
+/** Whether a page's template holds its listings as CONTENT (nested listings) rather than as the page. */
+export function templateNestsListings(tree) {
+  const type = declaredTemplateTypeOf(tree)
+  return !!type && !PAGE_LISTING_TEMPLATES[type]
+}
+
+/** Every Listing (Crud) of the surface, in document order (not crossing into another surface). */
+function cruds(tree) {
+  const out = []
+  walkWithinSurface(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud') out.push(n) })
+  return out
+}
+
+/** The PAGE's own listing — the one the listing branch paints: the first Listing of a page without a
+ *  template; the collection slot's on a collection detail; none on a template that nests them. */
+export function pageListingNodeOf(tree) {
+  const all = cruds(tree)
+  if (!all.length) return null
+  const type = declaredTemplateTypeOf(tree)
+  if (!type) return all[0]
+  if (!PAGE_LISTING_TEMPLATES[type]) return null
+  if (type === 'CollectionDetailPage') {
+    const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')
+    return (list && cruds(list)[0]) || null
+  }
+  return all[0]
+}
+
+/** The listings painted IN the content of a templated page (they read their rows from a source). */
+export function nestedListingNodesOf(tree) {
+  const own = pageListingNodeOf(tree)
+  const ownKey = own ? nestedListingKeyOf(own) : null
+  return cruds(tree).filter((n) => n !== own && n.metadata.rowsSource && (!ownKey || nestedListingKeyOf(n) !== ownKey))
+}
+
+/** A nested listing's key — where its rows are kept (ctx.data[key]) and the suffix of the action that
+ *  loads them. From what it IS (its source, columns, title), not its position: the slots are projected
+ *  from sub-trees, where the page's document order is not known. */
+export function nestedListingKeyOf(node) {
+  const md = (node && node.metadata) || {}
+  const columns = leafColumnsOf(md.columns || []).map((c) => (c && (c.metadata ? c.metadata.id || c.id : c.id)) || '')
+  return 'nestedListing-' + stableHashOf(JSON.stringify([md.rowsSource || null, columns, md.title || '', md.rowRoute || '']))
+}
+
+/** The OnLoad action that loads a nested listing's rows (answered in the browser, restSources.mjs). */
+export const NESTED_LISTING_ACTION = '__nestedlisting__:'
+
+/** The load actions of a context's nested listings. */
+export function nestedListingTriggersOf(ctx) {
+  const tree = ctx && ctx.tree
+  if (!tree) return []
+  return nestedListingNodesOf(tree).map((n) => NESTED_LISTING_ACTION + nestedListingKeyOf(n))
+}
+
+/**
+ * A nested listing as an ATOM of the content it sits in: its rows (ctx.data[key], once loaded) as
+ * picture cards (`gridLayout: cards`) or as a table; a row with a `rowRoute` opens it (a card is an
+ * action card that navigates, a table row's first column a link). Its first page only: no search
+ * bar, filters or pager — those belong to a page's own listing.
+ */
+export function nestedListingAtomOf(node, ctx) {
+  const md = (node && node.metadata) || {}
+  const key = nestedListingKeyOf(node)
+  const state = (ctx && ctx.state) || {}
+  const loaded = ctx && ctx.data ? ctx.data[key] : null
+  const page = (loaded && loaded.page) || {}
+  const columns = leafColumnsOf(md.columns || []).map((c) => ({ ...(c.metadata || c), id: (c.metadata && c.metadata.id) || c.id }))
+    .filter((c) => c.id && c.dataType !== 'actionGroup')
+  const rows = labelCellRows(page.content || [], columns)
+  const text = (v) => (v == null ? '' : typeof v === 'object' ? String(v.value ?? v.message ?? v.label ?? '') : String(v))
+  const imageCol = columns.find((c) => c.stereotype === 'image')
+  const titleCol = columns.find((c) => c.identifier && c !== imageCol) || columns.find((c) => c !== imageCol)
+  const cellOf = (row, c) => text(labelColumn(c) ? row[c.id + LABEL_CELL_SUFFIX] : row[c.id])
+  const asCards = md.gridLayout === 'cards' || !!md.showCards
+  const routeOf = (row) => rowRouteOf(md.rowRoute, row)
+  const cards = asCards ? rows.map((row, i) => ({
+    key: String(row._rowNumber != null ? row._rowNumber : i),
+    image: imageCol ? text(row[imageCol.id]) : '',
+    title: titleCol ? cellOf(row, titleCol) : '',
+    lines: columns.filter((c) => c !== imageCol && c !== titleCol)
+      .map((c) => ({ label: c.label || c.id, value: cellOf(row, c) }))
+      .filter((l) => l.value !== ''),
+    route: routeOf(row),
+  })) : []
+  const tableRows = asCards ? [] : rows.map((row, i) => {
+    const route = routeOf(row)
+    return { ...row, __key: String(row._rowNumber != null ? row._rowNumber : i), __href: route ? urlOfRoute(route.charAt(0) === '/' ? route : '/' + route) : '' }
+  })
+  const tableColumns = asCards ? [] : columns.map((c, i) => {
+    const field = labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id
+    // its first page only, as it came: no sorting (a header arrow that sorted nothing)
+    const def = { headerText: c.label || c.id, field, id: c.id, sortable: 'disabled' }
+    if (c.stereotype === 'image') def.template = 'cellNestedImage'
+    else if (md.rowRoute && c === titleCol) def.template = 'cellNestedLink'
+    return def
+  })
+  return {
+    isNestedListing: true,
+    nestedKey: key,
+    title: interpolate(String(md.title || ''), state),
+    asCards,
+    asTable: !asCards,
+    cards,
+    columns: tableColumns,
+    rows: tableRows,
+    adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
+    loaded: !!loaded,
+    isEmpty: !!loaded && rows.length === 0,
+    emptyText: md.emptyStateMessage || chromeText('noData'),
+  }
 }
 
 /** Projection of the LISTING (Crud component): columns + rows (from the data axis) + search.
@@ -115,7 +250,7 @@ export function listingSearchedOf(ctx) {
 
 /** The pre-search blocks while no search has answered yet; null otherwise (or when none). */
 export function listingPreSearchBlocksOf(ctx) {
-  const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+  const crudNode = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
   const pre = crudNode && crudNode.metadata && Array.isArray(crudNode.metadata.preSearch) ? crudNode.metadata.preSearch : []
   if (!pre.length || listingSearchedOf(ctx)) return null
   // kind island: as host content the first EmptyState is the page's own one, and skipped
@@ -158,7 +293,7 @@ export function listingHeaderBlocksOf(ctx) {
 }
 
 export function listingBaseOf(ctx, opts = {}) {
-  const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+  const crudNode = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
   if (!crudNode) return null
   // column groups flattened to their leaf columns (leafColumnsOf): from here on a listing only
   // ever sees plain columns
