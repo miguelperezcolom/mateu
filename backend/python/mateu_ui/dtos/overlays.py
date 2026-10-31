@@ -8,6 +8,8 @@ from typing import (
     TYPE_CHECKING,
 )
 
+from pydantic import PrivateAttr, model_serializer
+
 from .base import Wire
 
 if TYPE_CHECKING:
@@ -70,6 +72,22 @@ class MicroFrontendMetadata(Wire):
     server_side_type: str = ""
     app_state: Any | None = None
     action_id: str | None = None
+    #: The remote's answer to the load (its UIIncrement JSON), when the HOST resolved it while
+    #: building this response (``Resolve.SERVER``): the renderer paints it instead of asking the
+    #: remote, and everything after the first paint still goes to ``base_url``. Omitted when the
+    #: renderer has to ask — the shape every micro frontend had before (mirrors
+    #: ``MicroFrontendDto.resolved``).
+    resolved: Any | None = None
+    #: What the host needs to resolve it (a ``mateu_ui.core.microfrontends.ServerResolution``);
+    #: server side only, never serialised (mirrors ``MicroFrontendDto.server``).
+    _server: Any = PrivateAttr(default=None)
+
+    @model_serializer(mode="wrap")
+    def _omit_unresolved(self, handler):
+        data = handler(self)
+        if data.get("resolved", 0) is None:
+            del data["resolved"]
+        return data
 
 
 class DialogMetadata(Wire):

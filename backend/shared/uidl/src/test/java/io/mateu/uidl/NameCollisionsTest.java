@@ -42,6 +42,7 @@ class NameCollisionsTest {
           Map.entry("Breadcrumbs", "annotations data"),
           Map.entry("BulletedList", "annotations data"),
           Map.entry("Button", "annotations data"),
+          Map.entry("ContentSlot", "annotations data"),
           Map.entry("Details", "annotations data"),
           Map.entry("Filterable", "annotations interfaces"),
           Map.entry("FormLayout", "annotations data"),

@@ -345,6 +345,22 @@ class AppContext(val session: AppSession) {
         )
     }
 
+    /**
+     * Enters [route] with the answer to its load already in hand — a MicroFrontend its HOST resolved
+     * (`resolve = SERVER`): painted without asking; everything after it (actions, triggers) goes to
+     * this context's backend, the remote, as after [navigate].
+     */
+    fun enter(route: String?, consumedRoute: String?, serverSideType: String?, increment: JsonNode) {
+        if (contentPane == null) return
+        currentRoute = route ?: ""
+        currentConsumedRoute = consumedRoute ?: ""
+        currentServerSideType = serverSideType ?: ""
+        navigationServerSideType = serverSideType ?: ""
+        currentComponentState = HashMap()
+        freshScreen = true
+        applyIncrement(increment)
+    }
+
     /** Removes [loading] from [target] if it is still the only thing there (nothing replaced it). */
     private fun clearStaleLoading(target: JComponent, loading: JComponent) {
         if (target.componentCount == 1 && target.getComponent(0) === loading) {

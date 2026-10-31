@@ -11947,6 +11947,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       componentState: {},
       baseUrl: str(m.baseUrl).replace(/\/+$/, ''),
       appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
+      // the host resolved it (resolve = SERVER): the answer to its load is already here
+      resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
       surface: true,
       lazy: false,
     }
@@ -19961,7 +19963,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (sub.baseUrl) base = sub.baseUrl
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
     const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
-    let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
+    // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
+    // its actions and triggers still go to ITS baseUrl (outbound, below)
+    let next = reduceContexts(reg, sub.resolved || await loadRoute(base, sub.route, sub.id, {
       ...extra,
       consumedRoute: sub.consumedRoute,
       serverSideType: sub.serverSideType,
@@ -20539,6 +20543,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           consumedRoute: md.consumedRoute || '',
           serverSideType: md.serverSideType || undefined,
           appState: md.appState || null,
+          // the host resolved it (resolve = SERVER): the answer to its first load is already here
+          resolved: md.resolved && typeof md.resolved === 'object' ? md.resolved : null,
         })
         return
       }
@@ -20636,7 +20642,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     const load = (async () => {
       try {
-        apply(await request(''))
+        // resolved by the host: no request for the first paint; its triggers still go to the remote
+        apply(item.resolved || (await request('')))
         // a remote that answers with a mediator (chromeless App) brings the content in a 2nd hop
         const info = rt.ctx && mediatorOf(rt.ctx)
         if (info) {

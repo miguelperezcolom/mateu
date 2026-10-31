@@ -679,6 +679,25 @@
       "type" : "boolean"
     } ]
   }, {
+    "type" : "ContentSlot",
+    "description" : "A hole for managed content filled by the content service, resolved by the host while it builds the view and replaced by its fallback when there is none.",
+    "attributes" : [ {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "fallback",
+      "type" : "string"
+    }, {
+      "name" : "timeoutMs",
+      "type" : "integer"
+    }, {
+      "name" : "description",
+      "type" : "string"
+    }, {
+      "name" : "degradeToClient",
+      "type" : "boolean"
+    } ]
+  }, {
     "type" : "ContextMenu",
     "description" : "A menu that opens on right click (or left click) over a wrapped component.",
     "attributes" : [ {
@@ -2037,6 +2056,12 @@
     }, {
       "name" : "actionId",
       "type" : "string"
+    }, {
+      "name" : "resolve",
+      "type" : "CLIENT | SERVER"
+    }, {
+      "name" : "timeoutMs",
+      "type" : "integer"
     } ]
   }, {
     "type" : "NotFound",

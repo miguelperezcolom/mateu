@@ -23,6 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class DefaultMateuHttpClient implements MateuHttpClient {
 
+  /** Headers the JDK client sets itself and refuses from the caller. */
+  private static final java.util.Set<String> RESTRICTED_HEADERS =
+      java.util.Set.of("connection", "content-length", "expect", "host", "upgrade");
+
   private final HttpClient httpClient =
       HttpClient.newBuilder()
           .connectTimeout(Duration.ofSeconds(5))
@@ -49,6 +53,17 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
   @Override
   public CompletableFuture<UIIncrementDto> send(
       String baseUrl, RunActionRqDto requestDto, String authorizationHeader) {
+    return sendWithHeaders(
+        baseUrl,
+        requestDto,
+        authorizationHeader != null && !authorizationHeader.isBlank()
+            ? java.util.Map.of("Authorization", authorizationHeader)
+            : java.util.Map.of());
+  }
+
+  @Override
+  public CompletableFuture<UIIncrementDto> sendWithHeaders(
+      String baseUrl, RunActionRqDto requestDto, java.util.Map<String, String> headers) {
     try {
       String body = objectMapper.writeValueAsString(requestDto);
 
@@ -63,8 +78,15 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
               .uri(target)
               .timeout(requestTimeout())
               .header("Content-Type", "application/json");
-      if (authorizationHeader != null && !authorizationHeader.isBlank()) {
-        requestBuilder.header("Authorization", authorizationHeader);
+      if (headers != null) {
+        for (var header : headers.entrySet()) {
+          if (header.getKey() != null
+              && header.getValue() != null
+              && !header.getValue().isBlank()
+              && !RESTRICTED_HEADERS.contains(header.getKey().toLowerCase(java.util.Locale.ROOT))) {
+            requestBuilder.header(header.getKey(), header.getValue());
+          }
+        }
       }
       HttpRequest request = requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body)).build();
 
@@ -80,6 +102,10 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
                 log.debug("got {} from {}", status, target);
                 if (status < 200 || status >= 300) {
                   throw new RuntimeException("HTTP " + status + " from " + target);
+                }
+                if (status == 204 || response.body() == null || response.body().isBlank()) {
+                  // nothing to show (an empty content slot answers so): an increment with nothing
+                  return UIIncrementDto.builder().build();
                 }
                 try {
                   return objectMapper.readValue(response.body(), UIIncrementDto.class);

@@ -547,7 +547,9 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
   if (sub.baseUrl) base = sub.baseUrl
   if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
   const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
-  let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
+  // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
+  // its actions and triggers still go to ITS baseUrl (outbound, below)
+  let next = reduceContexts(reg, sub.resolved || await loadRoute(base, sub.route, sub.id, {
     ...extra,
     consumedRoute: sub.consumedRoute,
     serverSideType: sub.serverSideType,

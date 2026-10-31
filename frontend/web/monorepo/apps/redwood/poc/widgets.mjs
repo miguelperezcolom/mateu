@@ -145,6 +145,8 @@ export function headerWidgetsOf(reg) {
         consumedRoute: md.consumedRoute || '',
         serverSideType: md.serverSideType || undefined,
         appState: md.appState || null,
+        // the host resolved it (resolve = SERVER): the answer to its first load is already here
+        resolved: md.resolved && typeof md.resolved === 'object' ? md.resolved : null,
       })
       return
     }
@@ -242,7 +244,8 @@ export function startRemoteWidget(item, onHtml, deps = {}) {
 
   const load = (async () => {
     try {
-      apply(await request(''))
+      // resolved by the host: no request for the first paint; its triggers still go to the remote
+      apply(item.resolved || (await request('')))
       // a remote that answers with a mediator (chromeless App) brings the content in a 2nd hop
       const info = rt.ctx && mediatorOf(rt.ctx)
       if (info) {

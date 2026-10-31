@@ -44,7 +44,29 @@ public record MicroFrontendMetadataDto(string BaseUrl, string Route) : Component
     public string ServerSideType { get; init; } = "";
     public object? AppState { get; init; }
     public string? ActionId { get; init; }
+
+    /// <summary>The remote's answer, embedded by the host that resolved this micro frontend on the
+    /// server (only its fragments + REST sources): the renderer paints it at once, and sends what
+    /// happens after the first paint to the remote, as always. Omitted when not resolved — a client
+    /// micro frontend's JSON is unchanged. Kept as the remote's raw JSON so nothing a remote of
+    /// another port or a newer build sends is lost. (Mirrors io.mateu.dtos.MicroFrontendDto.resolved.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public System.Text.Json.Nodes.JsonObject? Resolved { get; init; }
+
+    /// <summary>Server-only: how the host resolves it (never serialized).</summary>
+    [JsonIgnore]
+    public ServerResolutionDto? Server { get; init; }
 }
+
+/// <summary>Server-only resolution info of a micro frontend / content slot (never on the wire):
+/// its timeout, the remote it names (a content slot), the slot key, the fallback component and
+/// whether a failure degrades it to client resolution. (Mirrors io.mateu.dtos.ServerResolutionDto.)</summary>
+public record ServerResolutionDto(
+    int? TimeoutMs,
+    string? RemoteId,
+    string? SlotKey,
+    ComponentDto? Fallback,
+    bool DegradeToClient);
 
 /// <summary>A modal dialog overlay (mirrors io.mateu.dtos.DialogDto).</summary>
 public record DialogMetadataDto(string? Id, string? HeaderTitle, ComponentDto? Content) : ComponentMetadataDto

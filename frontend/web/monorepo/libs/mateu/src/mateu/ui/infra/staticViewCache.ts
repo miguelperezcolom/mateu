@@ -1,3 +1,4 @@
+import { withoutResolvedMicroFrontends } from './resolvedMicroFrontends'
 // Session-scoped cache of the FULL response of a @StaticView screen (the last step of the client
 // structure cache). When the server marks a view static — its whole response never varies — the
 // client keeps the complete fragment (structure + state + data) here and, on a return visit within
@@ -30,7 +31,8 @@ export const getStaticFragment = (key: string): UIFragment | undefined => {
 export const putStaticFragment = (key: string, fragment: UIFragment): void => {
     if (!enabled) return
     store.delete(key)            // re-insert at the end so the Map's iteration order is LRU
-    store.set(key, fragment)
+    // a remote's answer the host embedded is per request: never replayed from the cache
+    store.set(key, withoutResolvedMicroFrontends(fragment))
     if (store.size > MAX_ENTRIES) {
         const oldest = store.keys().next().value
         if (oldest !== undefined) store.delete(oldest)

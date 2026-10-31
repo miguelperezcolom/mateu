@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.mateu.demo</groupId>
+    <artifactId>demo-microfrontends</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>demo-microfrontends</name>
+    <description>Micro frontends resolved in the server (resolve = SERVER) and @ContentSlot: one
+        app plays the host and its remotes — a fast one (embedded in the host's response), a slow one
+        (degrades to the browser asking it), one that is down, and a content service filling a slot.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
+             -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
+        <mateu.version>3.0-beta.12</mateu.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Mateu: the framework annotation processor (generates the MVC controllers from @UI),
+             the MVC runtime, and the Vaadin web-component renderer. -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-annotation-processor-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-vaadin</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>mateu-annotation-processor-mvc</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

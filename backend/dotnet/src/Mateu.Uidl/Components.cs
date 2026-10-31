@@ -1353,6 +1353,22 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
 {
     /// <summary>Extra app state seeded into the island's requests.</summary>
     public object? AppState { get; init; }
+
+    /// <summary>The remote view's type name (its serverSideType); null = resolved by the route.</summary>
+    public string? ServerSideType { get; init; }
+
+    /// <summary>The action the island's first request runs; null = the route load.</summary>
+    public string? ActionId { get; init; }
+
+    /// <summary>Where the island is resolved: <see cref="Mateu.Uidl.Resolve.Client"/> (the default,
+    /// the renderer asks the remote) or <see cref="Mateu.Uidl.Resolve.Server"/> (the host asks it
+    /// while building the response and embeds the answer, degrading to Client when the remote is
+    /// slow or failing). The base url must be under a registered remote. EXPERIMENTAL.</summary>
+    public Resolve Resolve { get; init; } = Resolve.Client;
+
+    /// <summary>The time budget of a server resolution, in ms (null = the remote's, else the
+    /// default). EXPERIMENTAL.</summary>
+    public int? TimeoutMs { get; init; }
 }
 
 // ── Popover ────────────────────────────────────────────────────────────────────

@@ -1114,6 +1114,8 @@ export function microFrontendOf(m) {
     componentState: {},
     baseUrl: str(m.baseUrl).replace(/\/+$/, ''),
     appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
+    // the host resolved it (resolve = SERVER): the answer to its load is already here
+    resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
     surface: true,
     lazy: false,
   }

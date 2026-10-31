@@ -46,7 +46,8 @@ final class AppMenuDtoBuilder {
                           : null)
                   .image(option.presentation() != null ? option.presentation().image() : null)
                   .path(path)
-                  .selected(isSelected(option, appRoute, route))
+                  .selected(
+                      isSelected(option, option.path() == null ? null : path, appRoute, route))
                   // a hidden entry still travels: the renderer needs to know where its routes
                   // live (deep links, reloads), and leaves it out of the menu it draws
                   .visible(!option.hidden())
@@ -209,13 +210,19 @@ final class AppMenuDtoBuilder {
    * /reports/sales} in a {@code /reports} group): each resolves ONCE, as {@code
    * MountPrefixedRoutes} does for a request route. Prepending blindly made {@code
    * /codeapp/codeapp/home}.
+   *
+   * <p>"Under its group" means strictly below it: an entry spelled exactly like its group ({@code
+   * /users} in a {@code /users} group — a {@code @Menu} field named like the menu that holds it) is
+   * a child that happens to share the name, and goes to {@code /users/users}. Keeping it as {@code
+   * /users} gave it the group's own route: the leaf never reached its screen, and since every route
+   * of the group starts with it, it was shown selected on all of them.
    */
   static String relative(String appRoute, String prefix, String path) {
     var own = withinMount(appRoute, path);
     if (prefix == null || prefix.isEmpty() || "/".equals(prefix)) {
       return prepend("", own);
     }
-    if (own.equals(prefix) || own.startsWith(prefix + "/")) {
+    if (own.startsWith(prefix + "/")) {
       return own;
     }
     return prepend(prefix, own);
