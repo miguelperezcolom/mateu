@@ -1,10 +1,15 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "io.mateu.app",
-      "sha256_cert_fingerprints": ["TODO_SHA256"]
+      "sha256_cert_fingerprints": [
+        "61:A6:25:82:B6:38:1C:68:34:59:46:30:6C:49:A4:6C:AA:7E:FE:6C:F1:71:35:D6:96:C8:83:15:74:57:07:02",
+        "TODO_SHA256"
+      ]
     }
   }
 ]
