@@ -2467,6 +2467,22 @@ test('which listing is the page\'s own: none on a template that nests them, the 
   assert.ok(!templateNestsListings(page(null, [])))
 })
 
+
+test('a Listing in a foldout panel is drawn there with the rows it loaded (an exhibition\'s works, its loans)', () => {
+  const works = { type: 'ClientSide', id: 'w', metadata: { type: 'Crud', rowsSource: { ref: 'works' }, gridLayout: 'cards',
+    columns: [{ metadata: { id: 'title', label: 'Title', identifier: true } }] }, children: [] }
+  const key = nestedListingKeyOf(works)
+  const tree = { type: 'ServerSide', children: [{ type: 'ClientSide', id: 'p', metadata: { type: 'Form', template: { type: 'FoldoutPage' } }, children: [
+    { type: 'ClientSide', id: 'f', metadata: { type: 'FoldoutLayout', panels: [{ title: 'The works' }] }, children: [
+      { type: 'ClientSide', id: 'o', slot: 'overview', metadata: { type: 'VerticalLayout' }, children: [] },
+      { type: 'ClientSide', id: 'p0', slot: 'panel-0', metadata: { type: 'VerticalLayout' }, children: [works] }] }] }] }
+  const foldout = foldoutOf({ tree, state: {}, data: { [key]: { page: { content: [{ id: 1, title: 'Harvesters' }] } } } })
+  const atoms = foldout.panels[0].blocks.flatMap((b) => b.items || [b])
+  const listing = atoms.find((a) => a.isNestedListing)
+  assert.ok(listing, 'the panel draws the listing')
+  assert.deepEqual(listing.cards.map((c) => c.title), ['Harvesters'])
+})
+
 console.log(`\n${pass} tests PMS OK`)
 
 test('a page that DECLARES the Item overview page template (YAML template: ItemOverviewPage) → Spectra\'s, from the slots by id', () => {

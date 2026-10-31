@@ -13,6 +13,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Redwood: a `Listing` in a foldout panel is drawn, with its rows.** On a `FoldoutPage` (an exhibition's
+  works and loans) the listing's rows were loaded but the panel drew nothing: a panel's content was read
+  without the page around it, so the listing was not known to sit in a templated page's slot. A foldout
+  panel is such a slot now.
+
 - **A source url no longer encodes an explicit `encodeURIComponent(…)` twice.** Since Mateu encodes
   every value where it lands in a url, `search=${encodeURIComponent(state.searchText)}` sent
   `Sample%2520Return` and a multi-select `Painting%252CPhotograph`, so every search with a space and

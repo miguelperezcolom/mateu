@@ -2894,7 +2894,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const child of children) bySlot[child.slot || ''] = child
     const blocksOf = (slotNode) => {
       const blocks = slotNode
-        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound })
+        // templateSlot: a panel is a slot of the page, so a Listing in it (an exhibition's works, its
+        // loans) is drawn there with the rows it loads — read alone, the panel's subtree did not say
+        // it sits in a templated page and the listing was dropped
+        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound, templateSlot: true })
         : null
       // same visual contract as hostContentOf: column blocks with their colClass,
       // the rest full-row
