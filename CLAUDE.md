@@ -468,8 +468,10 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   Compared against the guide's examples (`design/redwood/Redwood-completo.pdf` pp. 95–100, the
   reference for every template — not the bare component): the template OWNS the page — `iopOn`
   (onMateuNavigate) follows `itemProjection` (it followed the reverted `iop`, always null, so the page
-  sat in the shell's content card at fixed width) → edge to edge + `mateuPageHostClass: 'mateu-iop-host'`
-  (app.css: the container drops its card surface); the tab bar is `layout="condense"`; the `body`'s
+  sat in the shell's content card at fixed width) → `mateuPageHostClass: 'mateu-iop-host'` (app.css: the
+  container drops its card surface). It KEEPS the page width (Toolkit 26C: centred, ~96px margins at
+  ≥1536 — it was edge to edge until 2026-10-31, the owner flagged it); a main slot with ONE tab has no
+  tab bar (`withoutLoneTab`); the tab bar is `layout="condense"`; the `body`'s — and the main slot's —
   property rows are drawn STACKED (`stackedPropertyRows` → atom `stacked`: label above value, Spectra's
   read-only form layout); a titled `mateu-section` Card in the main slot keeps its `oj-sp-section`
   header (`itemOverviewOf`'s atomsOfNodes; a section's title is not repeated as a text atom,
@@ -502,7 +504,11 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   full-page empty state (`content.mjs` honours `ctx.templateSlot`; `mateuHostEmpty` skips under mateuCd).
 - **`FoldoutPage`** (named so because `FoldoutLayout` is the component; slot `overview`, field
   `orientation`, content = the `FoldoutPanel`s): laid out as one `FoldoutLayout` id `foldout` (no
-  `headerTitle`: the header is the form's). Redwood's `foldoutOf` already finds it by shape; the foldout
+  `headerTitle`: the header is the form's). Redwood's `foldoutOf` already finds it by shape; a DECLARED one
+  owns the page header (Toolkit 26C draws none above the layout): `foldoutPageHeaderOf` turns the form's
+  toolbar into the layout's own controls — back → go-to-parent (labelled like the button), the rest → the
+  overview panel's actions (an «Edit» primary as the pencil), each a RouteLink resolved through
+  `header.ctas` (dispatchHostBlockAction ctaId/ctas); the chains read `foldoutNow.ownsHeader`. The foldout
   title and panel summaries now interpolate `${state.x}`, and a lone `Avatar` atom interpolates its
   name/image and paints `lg` (groups stay `xs`).
 - **`MultimediaContentPage`** (field `backgroundColor`): Spectra 2604 has NO `oj-sp-multimedia-content-page`

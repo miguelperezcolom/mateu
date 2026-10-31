@@ -255,9 +255,9 @@ test('page layout: width anatomy, bleeding header and the band overlap', () => {
   assert.equal(fixed.mateuBandBoxMargin, '0 auto')
   const banded = pageLayoutOf({ host: { pageWidth: 'fullWidth' }, bleedingHeader: true, band: true }).vars
   assert.deepEqual([banded.mateuPagePadding, banded.mateuPageMargin, banded.mateuBandBoxMargin], ['0', '-40px auto', '0'])
-  // the item overview template owns the page: edge to edge, and the content container drops its card
+  // the item overview template keeps the page's width (Toolkit 26C) and the content container drops its card
   const iop = pageLayoutOf({ host: {}, iopOn: true, bleedingHeader: true, band: false }).vars
-  assert.deepEqual([iop.mateuShellPageLayout, iop.mateuPageMaxWidth, iop.mateuPageHostClass], ['edgeToEdge', 'none', 'mateu-iop-host'])
+  assert.deepEqual([iop.mateuShellPageLayout, iop.mateuPageMaxWidth, iop.mateuPageHostClass], ['fixedWidth', fixed.mateuPageMaxWidth, 'mateu-iop-host'])
   assert.equal(fixed.mateuPageHostClass, '')
 })
 

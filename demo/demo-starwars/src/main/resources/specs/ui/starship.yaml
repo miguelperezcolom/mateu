@@ -8,7 +8,7 @@ subtitle: Starship
 toolbar:
 - type: Button
   actionId: backToList
-  label: Back
+  label: Starships        # the foldout's go-to-parent link names the parent
   actionable:
     type: RouteLink
     route: starships

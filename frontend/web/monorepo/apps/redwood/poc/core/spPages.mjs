@@ -172,7 +172,7 @@ const HEADING_ENTITIES = { amp: '&', nbsp: ' ', lt: '<', gt: '>', quot: '"', apo
 const decodeHeadingEntities = (text) => text.replace(/&(amp|nbsp|lt|gt|quot|apos|#39);/g, (_, name) => HEADING_ENTITIES[name])
 
 /** Property rows drawn stacked (label above the value), nested ones too. */
-function stackedPropertyRows(items) {
+export function stackedPropertyRows(items) {
   return (items || []).map((i) => {
     if (!i || typeof i !== 'object') return i
     if (i.isPropertyRow) return { ...i, stacked: true }

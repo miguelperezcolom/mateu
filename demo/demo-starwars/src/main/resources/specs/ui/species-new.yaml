@@ -5,11 +5,15 @@ type: Form
 title: New species
 toolbar:
 - type: Button
-  actionId: backToList
-  label: Back
+  actionId: cancel-new
+  label: Cancel
   actionable:
     type: RouteLink
     route: species
+- type: Button
+  label: Create
+  actionId: create
+  buttonStyle: primary
 content:
 - type: FormLayout
   content:
@@ -51,11 +55,6 @@ content:
   - type: FormField
     id: eyeColors
     label: Eye colours
-buttons:
-- type: Button
-  label: Create
-  actionId: create
-  buttonStyle: primary
 actions:
 - id: create
   validationRequired: true

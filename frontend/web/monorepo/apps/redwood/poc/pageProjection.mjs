@@ -438,13 +438,14 @@ export function hostContentBesideHeader(blocks, header, hostToolbar) {
 
 /**
  * The page's width anatomy (RDS 1.6): the shell layout, the content box (max width, margins,
- * padding) and the header band's box. With the persistent navigator drawer (or the item overview
- * template) the page goes edge to edge. Pages whose header bleeds (welcome, overview, wizard,
+ * padding) and the header band's box. With the persistent navigator drawer the page goes edge to
+ * edge. The item overview template keeps the page's width (Toolkit 26C: centred, ~96px margins at
+ * ≥1536) — it only takes the content container's card surface away. Pages whose header bleeds (welcome, overview, wizard,
  * listing, any VB header) have no padding: each branch brings its gutter. With a header BAND the
  * content overlaps it by 40px (the band peeks out from behind its start).
  */
-export function pageWidthOf({ host, drawerNav, iopOn = false }) {
-  return (drawerNav || iopOn) ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed')
+export function pageWidthOf({ host, drawerNav }) {
+  return drawerNav ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed')
 }
 /** The marker the server stamps into a @Compact page's style (StyleConstants.COMPACT). */
 export const COMPACT_STYLE_MARKER = '--mateu-compact:1'
@@ -475,9 +476,8 @@ export function pageDensityOf(host) {
 }
 
 export function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, band }) {
-  const edge = drawerNav || iopOn
-  const pageStyle = edge ? pageStyleOf({ pageWidth: 'edgeToEdge' }) : pageStyleOf(host)
-  const pw = pageWidthOf({ host, drawerNav, iopOn })
+  const pageStyle = drawerNav ? pageStyleOf({ pageWidth: 'edgeToEdge' }) : pageStyleOf(host)
+  const pw = pageWidthOf({ host, drawerNav })
   const out = {
     mateuShellPageLayout: pw === 'fixed' ? 'fixedWidth' : pw,
     mateuPageMaxWidth: pageStyle.maxWidth,
