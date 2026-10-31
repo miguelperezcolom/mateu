@@ -201,6 +201,9 @@ Mateu.Uidl.Button property System.String Label { get;init; }
 Mateu.Uidl.Button property System.String Route { get;init; }
 Mateu.Uidl.ButtonAttribute ctor(System.String = null)
 Mateu.Uidl.ButtonAttribute property System.String Label { get; }
+Mateu.Uidl.CacheableFragmentAttribute ctor(System.Int32)
+Mateu.Uidl.CacheableFragmentAttribute property System.Int32 MaxAgeSeconds { get; }
+Mateu.Uidl.CacheableFragmentAttribute property System.String VaryBy { get;set; }
 Mateu.Uidl.Calendar ctor()
 Mateu.Uidl.Calendar property Mateu.Uidl.CalendarView? View { get;init; }
 Mateu.Uidl.Calendar property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CalendarDay> Days { get;init; }
@@ -378,6 +381,18 @@ Mateu.Uidl.ContentLayout property System.Collections.Generic.IReadOnlyList<Mateu
 Mateu.Uidl.ContentLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Main { get;init; }
 Mateu.Uidl.ContentLayout property System.String AsidePosition { get;init; }
 Mateu.Uidl.ContentLayout property System.String AsideWidth { get;init; }
+Mateu.Uidl.ContentSlot ctor(System.String)
+Mateu.Uidl.ContentSlot property System.Boolean DegradeToClient { get;init; }
+Mateu.Uidl.ContentSlot property System.Int32? TimeoutMs { get;init; }
+Mateu.Uidl.ContentSlot property System.String Description { get;init; }
+Mateu.Uidl.ContentSlot property System.String Fallback { get;init; }
+Mateu.Uidl.ContentSlot property System.String Key { get;init; }
+Mateu.Uidl.ContentSlotAttribute ctor()
+Mateu.Uidl.ContentSlotAttribute property System.Boolean DegradeToClient { get;set; }
+Mateu.Uidl.ContentSlotAttribute property System.Int32 TimeoutMs { get;set; }
+Mateu.Uidl.ContentSlotAttribute property System.String Description { get;set; }
+Mateu.Uidl.ContentSlotAttribute property System.String Fallback { get;set; }
+Mateu.Uidl.ContentSlotAttribute property System.String Key { get;set; }
 Mateu.Uidl.Crud<T> abstract method System.Collections.Generic.IEnumerable<T> Fetch(System.String)
 Mateu.Uidl.Crud<T> ctor()
 Mateu.Uidl.Crud<T> property Mateu.Uidl.CrudDisplay Display { get; }
@@ -715,6 +730,18 @@ Mateu.Uidl.FormField property System.String Stereotype { get;init; }
 Mateu.Uidl.FormLayoutAttribute ctor()
 Mateu.Uidl.FormLayoutAttribute property Mateu.Uidl.LabelsAsideMode LabelsAside { get;set; }
 Mateu.Uidl.FormLayoutAttribute property System.Int32 Columns { get;set; }
+Mateu.Uidl.FragmentCachePolicy ctor(System.Int32, System.String, System.String = null)
+Mateu.Uidl.FragmentCachePolicy property System.Int32 MaxAgeSeconds { get;init; }
+Mateu.Uidl.FragmentCachePolicy property System.String Key { get;init; }
+Mateu.Uidl.FragmentCachePolicy property System.String VaryBy { get;init; }
+Mateu.Uidl.FragmentCachePolicy static method Mateu.Uidl.FragmentCachePolicy ByKey(System.String, System.Int32)
+Mateu.Uidl.FragmentCachePolicy static method Mateu.Uidl.FragmentCachePolicy NotCached()
+Mateu.Uidl.FragmentCachePolicy static method Mateu.Uidl.FragmentCachePolicy PerUser(System.Int32)
+Mateu.Uidl.FragmentCachePolicy static method Mateu.Uidl.FragmentCachePolicy SharedFor(System.Int32)
+Mateu.Uidl.FragmentVary const field System.String Key
+Mateu.Uidl.FragmentVary const field System.String None
+Mateu.Uidl.FragmentVary const field System.String Shared
+Mateu.Uidl.FragmentVary const field System.String User
 Mateu.Uidl.Funnel ctor()
 Mateu.Uidl.Funnel property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FunnelStage> Stages { get;init; }
 Mateu.Uidl.FunnelStage ctor()
@@ -849,6 +876,7 @@ Mateu.Uidl.IComponentAdapter property System.Type Type { get; }
 Mateu.Uidl.IComponentCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ComponentEntry> BusinessComponents()
 Mateu.Uidl.IComponentTreeSupplier abstract method Mateu.Uidl.IComponent Component()
 Mateu.Uidl.IComponentTreeSupplier property System.String Style { get; }
+Mateu.Uidl.ICorrelationIdProvider abstract method System.String CorrelationId(Mateu.Uidl.IncomingRequest)
 Mateu.Uidl.ICreatable<TForm,TId> abstract method TForm CreationForm()
 Mateu.Uidl.ICreatable<TForm,TId> abstract method TId Create(TForm)
 Mateu.Uidl.ICrudAffordances abstract method System.String NextIdAfter(System.String)
@@ -866,6 +894,9 @@ Mateu.Uidl.IDraftable virtual method System.Object CloseDraft()
 Mateu.Uidl.IEditable<TEditor,TId> abstract method TEditor Edit(TId)
 Mateu.Uidl.IEditable<TEditor,TId> abstract method TId Save(TEditor)
 Mateu.Uidl.IFieldTypeCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FieldTypeEntry> FieldTypes()
+Mateu.Uidl.IFragmentCachePolicySupplier abstract method Mateu.Uidl.FragmentCachePolicy CachePolicy(Mateu.Uidl.IncomingRequest)
+Mateu.Uidl.IFragmentCacheStore abstract method System.String Get(System.String)
+Mateu.Uidl.IFragmentCacheStore abstract method System.Void Put(System.String, System.String, System.TimeSpan)
 Mateu.Uidl.IGanttPage abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GanttTask> GanttTasks()
 Mateu.Uidl.IGanttPage abstract method System.Object SelectGanttTask(System.String)
 Mateu.Uidl.IGlobalSearchSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GlobalSearchResult> GlobalSearch(System.String)
@@ -881,6 +912,7 @@ Mateu.Uidl.IListing<TRow> abstract method Mateu.Uidl.ListingData<TRow> Search(Ma
 Mateu.Uidl.IListingExporter abstract method Mateu.Uidl.ExportedFile Export(Mateu.Uidl.ListingExport)
 Mateu.Uidl.IListingExporter property Mateu.Uidl.ExportFormat Format { get; }
 Mateu.Uidl.ILookupLabelSupplier abstract method System.String Label(System.String, System.Object)
+Mateu.Uidl.IMicroFrontendResolutionListener abstract method System.Void OnResolution(Mateu.Uidl.MicroFrontendResolutionEvent)
 Mateu.Uidl.INavigable<TDetail,TId> abstract method TDetail View(TId)
 Mateu.Uidl.INotificationsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppNotification> Notifications()
 Mateu.Uidl.INotificationsSupplier abstract method System.Void MarkNotificationsRead(System.Collections.Generic.IReadOnlyList<System.String>)
@@ -893,6 +925,13 @@ Mateu.Uidl.IRecordSwitcherSupplier const field System.String ActionId
 Mateu.Uidl.IRecordSwitcherSupplier const field System.String ValueParameter
 Mateu.Uidl.IRefreshOnChange property System.Int32 RefreshDebounceMillis { get; }
 Mateu.Uidl.IRefreshOnChange property System.String RefreshActionId { get; }
+Mateu.Uidl.IRemoteCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RemoteDescriptor> Remotes()
+Mateu.Uidl.IRemoteIdentityStrategy abstract method System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Headers(Mateu.Uidl.RemoteDescriptor, Mateu.Uidl.IncomingRequest)
+Mateu.Uidl.IRemoteIdentityStrategy const field System.String ForwardAuthorizationName
+Mateu.Uidl.IRemoteIdentityStrategy const field System.String NoneName
+Mateu.Uidl.IRemoteIdentityStrategy property System.String Name { get; }
+Mateu.Uidl.IRemoteRegistry abstract method Mateu.Uidl.RemoteDescriptor ById(System.String)
+Mateu.Uidl.IRemoteRegistry abstract method Mateu.Uidl.RemoteDescriptor ForUrl(System.String)
 Mateu.Uidl.IRestSourceCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RestSourceEntry> RestSources()
 Mateu.Uidl.IRestSourceSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.DeclaredRestSource> DeclaredRestSources()
 Mateu.Uidl.IRuleSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Rule> Rules()
@@ -936,6 +975,11 @@ Mateu.Uidl.ImportWizard<Row> property System.String WizardTitle { get; }
 Mateu.Uidl.ImportWizard<Row> virtual method Mateu.Uidl.Message Complete()
 Mateu.Uidl.ImportWizard<Row> virtual method System.String StepTitle(System.Int32)
 Mateu.Uidl.ImportWizard<Row> virtual method System.Void OnNext(System.Int32, System.Int32)
+Mateu.Uidl.IncomingRequest ctor(System.Func<System.String,System.String> = null, System.String = null, Mateu.Uidl.Identity = null, System.String = null)
+Mateu.Uidl.IncomingRequest method System.String Header(System.String)
+Mateu.Uidl.IncomingRequest property Mateu.Uidl.Identity Identity { get; }
+Mateu.Uidl.IncomingRequest property System.String TraceIdentifier { get; }
+Mateu.Uidl.IncomingRequest property System.String UserName { get; }
 Mateu.Uidl.InlineAttribute ctor()
 Mateu.Uidl.InlineEditingAttribute ctor()
 Mateu.Uidl.ItemOverview ctor()
@@ -1151,9 +1195,27 @@ Mateu.Uidl.MetricTrend enum Down
 Mateu.Uidl.MetricTrend enum Neutral
 Mateu.Uidl.MetricTrend enum Up
 Mateu.Uidl.MicroFrontend ctor(System.String, System.String = "")
+Mateu.Uidl.MicroFrontend property Mateu.Uidl.Resolve Resolve { get;init; }
+Mateu.Uidl.MicroFrontend property System.Int32? TimeoutMs { get;init; }
 Mateu.Uidl.MicroFrontend property System.Object AppState { get;init; }
+Mateu.Uidl.MicroFrontend property System.String ActionId { get;init; }
 Mateu.Uidl.MicroFrontend property System.String BaseUrl { get;init; }
 Mateu.Uidl.MicroFrontend property System.String Route { get;init; }
+Mateu.Uidl.MicroFrontend property System.String ServerSideType { get;init; }
+Mateu.Uidl.MicroFrontendResolutionEvent ctor(System.String, System.String, System.String, System.Int64, Mateu.Uidl.MicroFrontendResolutionOutcome, System.String, System.String, System.String)
+Mateu.Uidl.MicroFrontendResolutionEvent property Mateu.Uidl.MicroFrontendResolutionOutcome Outcome { get;init; }
+Mateu.Uidl.MicroFrontendResolutionEvent property System.Int64 DurationMillis { get;init; }
+Mateu.Uidl.MicroFrontendResolutionEvent property System.String CorrelationId { get;init; }
+Mateu.Uidl.MicroFrontendResolutionEvent property System.String DegradedTo { get;init; }
+Mateu.Uidl.MicroFrontendResolutionEvent property System.String Error { get;init; }
+Mateu.Uidl.MicroFrontendResolutionEvent property System.String RemoteId { get;init; }
+Mateu.Uidl.MicroFrontendResolutionEvent property System.String SlotKey { get;init; }
+Mateu.Uidl.MicroFrontendResolutionEvent property System.String Url { get;init; }
+Mateu.Uidl.MicroFrontendResolutionOutcome enum Embedded
+Mateu.Uidl.MicroFrontendResolutionOutcome enum Empty
+Mateu.Uidl.MicroFrontendResolutionOutcome enum Error
+Mateu.Uidl.MicroFrontendResolutionOutcome enum FromCache
+Mateu.Uidl.MicroFrontendResolutionOutcome enum Timeout
 Mateu.Uidl.MobileAppAttribute ctor()
 Mateu.Uidl.MobileAppAttribute property System.String Icon { get;set; }
 Mateu.Uidl.MobileAppAttribute property System.String MinAppVersion { get;set; }
@@ -1391,11 +1453,18 @@ Mateu.Uidl.RecordSwitcher property System.String ActionId { get;init; }
 Mateu.Uidl.RecordSwitcher property System.String Label { get;init; }
 Mateu.Uidl.RecordSwitcher property System.String Route { get;init; }
 Mateu.Uidl.RecordSwitcher property System.String Value { get;init; }
+Mateu.Uidl.RemoteDescriptor ctor(System.String, System.String, System.Int32? = null, System.String = null)
+Mateu.Uidl.RemoteDescriptor property System.Int32? TimeoutMs { get;init; }
+Mateu.Uidl.RemoteDescriptor property System.String BaseUrl { get;init; }
+Mateu.Uidl.RemoteDescriptor property System.String Id { get;init; }
+Mateu.Uidl.RemoteDescriptor property System.String Identity { get;init; }
 Mateu.Uidl.RemoteMenuAttribute ctor(System.String, System.String)
 Mateu.Uidl.RemoteMenuAttribute property System.Boolean Explode { get;set; }
 Mateu.Uidl.RemoteMenuAttribute property System.String BaseUrl { get; }
 Mateu.Uidl.RemoteMenuAttribute property System.String Label { get; }
 Mateu.Uidl.RemoteMenuAttribute property System.String Route { get;set; }
+Mateu.Uidl.Resolve enum Client
+Mateu.Uidl.Resolve enum Server
 Mateu.Uidl.ResourceGrid ctor()
 Mateu.Uidl.ResourceGrid property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ResourceItem> Items { get;init; }
 Mateu.Uidl.ResourceGrid property System.Int32 Columns { get;init; }

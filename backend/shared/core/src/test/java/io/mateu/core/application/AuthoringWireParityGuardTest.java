@@ -79,6 +79,15 @@ class AuthoringWireParityGuardTest {
               // author declares `columns`, the wire carries the rendered template.
               "ResponsiveGridDto.gridTemplateColumns",
 
+              // ---- MicroFrontendDto (authoring record: MicroFrontend) ----
+              // DERIVED: the remote's answer the HOST embedded (resolve = SERVER), fetched while
+              // building the response — never authored.
+              "MicroFrontendDto.resolved",
+              // DERIVED: what the host needs to resolve it (timeout, slot key, fallback), built
+              // from the authored resolve/timeoutMs or a ContentSlot; @JsonIgnore'd, never on the
+              // wire.
+              "MicroFrontendDto.server",
+
               // ---- PageDto (authoring record: PageView) ----
               // DERIVED: whether the title is DATA (a record's own toString) the renderer must
               // show as text — decided by the server from where the title came from, never

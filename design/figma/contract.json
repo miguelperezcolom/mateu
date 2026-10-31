@@ -6462,6 +6462,7 @@
     "EmbeddedView": "Embeds a server-side view — a code concept.",
     "FutureComponent": "Wire plumbing for asynchronous components.",
     "MicroFrontend": "An island of another Mateu app — composition, not a look.",
+    "ContentSlot": "Content a content service answers at runtime (server-resolved micro frontend) — composition, not a look.",
     "Directory": "Built from a menu (`menu: [Actionable]`), not drawn.",
     "Partial": "Drawn by convention: a frame named `partial:<ref>` (see yamlConventions)."
   },

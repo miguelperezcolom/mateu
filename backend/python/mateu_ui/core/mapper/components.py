@@ -1039,11 +1039,28 @@ class ComponentMapperMixin(MixinBase):
             return self._fluent_client(AnchorMetadata(text=c.text, url=c.url, target=c.target), c)
         # Federation — a remote Mateu UI mounted as an island inside this page.
         if isinstance(c, fluent.MicroFrontend):
+            extra = {
+                name: value
+                for name, value in (
+                    ("server_side_type", c.server_side_type),
+                    ("consumed_route", c.consumed_route),
+                    ("action_id", c.action_id),
+                )
+                if value is not None
+            }
             meta = MicroFrontendMetadata(
                 base_url=c.base_url, route=c.route, style=c.style,
-                css_classes=c.css_classes, app_state=c.app_state,
+                css_classes=c.css_classes, app_state=c.app_state, **extra,
             )
+            if c.resolved_by_server():
+                # resolved by the host while it builds the response (mateu_ui.core.microfrontends)
+                from ..microfrontends import ServerResolution, mark_pending
+
+                meta._server = ServerResolution(timeout_ms=c.timeout_ms, degrade_to_client=True)
+                mark_pending()
             return self._fluent_client(meta, c)
+        if isinstance(c, fluent.ContentSlot):
+            return self.map_content_slot(c)
         # A routed model view (e.g. a Wizard) embedded as an INDEPENDENT server-side component:
         # it maps to a ServerSideComponent carrying the view's OWN serverSideType + actions, so its
         # actions (a wizard's step navigation) route back to itself instead of bubbling to the host
@@ -1309,6 +1326,31 @@ class ComponentMapperMixin(MixinBase):
             value_path=source.value_path if source.url else None,
             label_path=source.label_path if source.url else None,
             proxy=bool(source.proxy),
+        )
+
+    def map_content_slot(self, slot) -> ClientSideComponent:
+        """A content slot: a micro frontend the server resolves against the content remote, at the
+        route its key names (both filled in by the resolver), painting its fallback — or nothing —
+        when there is no content (Java's ``MicroFrontendMapper.mapContentSlotToDto``)."""
+        from ..microfrontends import ServerResolution, mark_pending, slot_component_id
+
+        id_ = slot_component_id(slot.key)
+        fallback = None
+        if slot.fallback is not None and slot.fallback.strip():
+            fallback = ClientSideComponent(
+                metadata=TextMetadata(text=slot.fallback, container="div"),
+                id=id_, children=[], style=slot.style, css_classes=slot.css_classes,
+            )
+        meta = MicroFrontendMetadata(base_url="", style=slot.style, css_classes=slot.css_classes)
+        meta._server = ServerResolution(
+            timeout_ms=slot.timeout_ms if slot.timeout_ms and slot.timeout_ms > 0 else None,
+            slot_key=slot.key,
+            fallback=fallback,
+            degrade_to_client=bool(slot.degrade_to_client),
+        )
+        mark_pending()
+        return ClientSideComponent(
+            metadata=meta, id=id_, children=[], style=slot.style, css_classes=slot.css_classes,
         )
 
     def _fluent_client(self, meta, c, children=None) -> ClientSideComponent:

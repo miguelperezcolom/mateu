@@ -143,6 +143,27 @@ public class RunActionUseCase {
     if (RESTFETCH_ACTION.equals(command.actionId())) {
       return guarded(command, () -> handleRestFetch(command));
     }
+    if (CONTENT_SLOTS_ACTION.equals(command.actionId())) {
+      if (!io.mateu.core.infra.MateuSettings.isTrue(CONTENT_SLOTS_ENABLED)) {
+        return Flux.error(
+            new io.mateu.core.application.security.MateuForbiddenException(
+                CONTENT_SLOTS_ACTION + " is served only with " + CONTENT_SLOTS_ENABLED + "=true"));
+      }
+      return guarded(
+          command,
+          () ->
+              Flux.just(
+                  UIIncrementDto.builder()
+                      .appData(
+                          java.util.Map.of(
+                              CONTENT_SLOTS_KEY,
+                              io.mateu.core.application.microfrontends.ContentSlotDescriptors.load(
+                                  Thread.currentThread().getContextClassLoader() != null
+                                      ? Thread.currentThread().getContextClassLoader()
+                                      : RunActionUseCase.class.getClassLoader(),
+                                  io.mateu.core.infra.WireMapper.shared())))
+                      .build()));
+    }
     if (APP_SOURCE_ACTION.equals(command.actionId())) {
       return guarded(command, () -> handleAppSource(command));
     }
@@ -156,8 +177,23 @@ public class RunActionUseCase {
                             command.consumedRoute(),
                             command.route(),
                             command.httpRequest())
-                        .run(instance, command)))
-        .flatMap(result -> mapToUiIncrement(result, command))
+                        .run(instance, command)
+                        .flatMap(
+                            result ->
+                                mapToUiIncrement(result, command)
+                                    // a view other hosts embed says whether they may cache it
+                                    .map(
+                                        increment ->
+                                            io.mateu.core.application.microfrontends
+                                                .FragmentCachePolicies.stamp(
+                                                increment,
+                                                command.actionId(),
+                                                command.httpRequest(),
+                                                result,
+                                                instance)))))
+        // the micro frontends this server resolves (resolve = SERVER, content slots), in order:
+        // a stream's increments must not overtake each other while one waits for its remotes
+        .concatMap(increment -> resolveMicroFrontends(increment, command))
         .doOnError(
             e -> {
               var notFound = missingOnLoad(e, command);
@@ -290,6 +326,17 @@ public class RunActionUseCase {
   // so it needs no new endpoint on any adapter. The contract itself is computed by
   // ModelViewContractExtractor over the mapped component. Key in appData:
   public static final String CONTRACT_ACTION = "__contract__";
+
+  /**
+   * Reserved action answering the application's content slot descriptor (every module's {@code
+   * META-INF/mateu/content-slots.json}, merged) in {@code appData._contentSlots} — for the content
+   * service to register the slots. Off unless {@value #CONTENT_SLOTS_ENABLED}{@code =true}: it
+   * describes the application's screens.
+   */
+  public static final String CONTENT_SLOTS_ACTION = "__content_slots__";
+
+  public static final String CONTENT_SLOTS_KEY = "_contentSlots";
+  public static final String CONTENT_SLOTS_ENABLED = "mateu.content-slots.descriptor.enabled";
   public static final String CONTRACT_KEY = "_contract";
 
   private Flux<UIIncrementDto> handleContract(RunActionCommand command) {
@@ -459,6 +506,24 @@ public class RunActionUseCase {
     return SecretResolver.secretEnvName(key);
   }
 
+  /** Built the first time a response carries a micro frontend to resolve. */
+  private volatile io.mateu.core.application.microfrontends.MicroFrontendServerResolver
+      microFrontendResolver;
+
+  private Mono<UIIncrementDto> resolveMicroFrontends(
+      UIIncrementDto increment, RunActionCommand command) {
+    if (!io.mateu.core.application.microfrontends.MicroFrontendServerResolver.pending(
+        command.httpRequest())) {
+      return Mono.just(increment);
+    }
+    var resolver = microFrontendResolver;
+    if (resolver == null) {
+      resolver = io.mateu.core.infra.remote.MicroFrontendResolution.fromContainer();
+      microFrontendResolver = resolver;
+    }
+    return resolver.resolve(increment, command.httpRequest());
+  }
+
   /** A {@code ${secret.X}} value (see {@link SecretResolver#resolve(String)}). */
   String resolveSecret(String key) {
     return SecretResolver.resolve(key);
@@ -555,9 +620,13 @@ public class RunActionUseCase {
       return mono.flatMap(i -> routeIfNeeded(command, i));
     }
     if (instance instanceof RouteHandler handlesRoute) {
+      io.mateu.core.application.microfrontends.FragmentCachePolicies.rememberRouteOwner(
+          command.httpRequest(), instance);
       return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));
     }
     if (instance instanceof ReactiveRouteHandler handlesRoute) {
+      io.mateu.core.application.microfrontends.FragmentCachePolicies.rememberRouteOwner(
+          command.httpRequest(), instance);
       return handlesRoute.handleRoute(command.route(), command.httpRequest());
     }
     return Mono.just(instance);

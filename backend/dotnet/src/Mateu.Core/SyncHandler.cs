@@ -77,7 +77,13 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             rq = GuardYamlAccess(rq);
             return await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false);
         }
-        return Handle(rq, requestBaseUrl);
+        var pending = MicroFrontends.MicroFrontendPending.Begin();
+        var increment = HandleUnresolved(rq, requestBaseUrl);
+        // the micro frontends this server resolves (Resolve.Server, content slots), awaited end to
+        // end: a response without any costs nothing (the mapper marks the ones that carry some)
+        return pending.Value
+            ? await ResolveMicroFrontendsAsync(increment, cancellationToken).ConfigureAwait(false)
+            : increment;
     }
 
     /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
@@ -89,8 +95,17 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     private static RunActionRqDto LoadActionNormalised(RunActionRqDto rq) =>
         rq.ActionId == "__load__" ? rq with { ActionId = "" } : rq;
 
-    public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null) =>
-        WithReferencedRestSources(HandleCore(rq, requestBaseUrl));
+    public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
+    {
+        var pending = MicroFrontends.MicroFrontendPending.Begin();
+        var increment = HandleUnresolved(rq, requestBaseUrl);
+        return pending.Value
+            ? ResolveMicroFrontendsAsync(increment, CancellationToken.None).GetAwaiter().GetResult()
+            : increment;
+    }
+
+    private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl) =>
+        StampFragmentCache(WithReferencedRestSources(HandleCore(rq, requestBaseUrl)), LoadActionNormalised(rq));
 
     private UIIncrementDto HandleCore(RunActionRqDto rq, string? requestBaseUrl)
     {
@@ -135,6 +150,12 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // and answer the report on appData._validation; renders nothing (mirrors Java's __validate__).
         if (rq.ActionId == ValidateAction)
             return ValidateResponse(rq);
+
+        // 0c-slots. The application's content slot descriptor, for the content service to register
+        // the slots: off unless ContentSlotsDescriptorEnabled, it describes the application's screens
+        // (mirrors Java's __content_slots__ reserved action).
+        if (rq.ActionId == MicroFrontends.ContentSlotDescriptors.Action)
+            return ContentSlotsResponse();
 
         // 0c''. Live UI push: the UI session's pairing actions — app-level, independent of the view
         // (mirrors Java's agentpush runners; the channel itself is streamed by the SSE endpoint).

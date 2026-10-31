@@ -141,6 +141,7 @@ final class YamlUidlMapperFactory {
         new NamedType(MessageInput.class, "MessageInput"),
         new NamedType(MessageList.class, "MessageList"),
         new NamedType(MicroFrontend.class, "MicroFrontend"),
+        new NamedType(io.mateu.uidl.data.ContentSlot.class, "ContentSlot"),
         new NamedType(Notification.class, "Notification"),
         new NamedType(Popover.class, "Popover"),
         new NamedType(ProgressBar.class, "ProgressBar"),

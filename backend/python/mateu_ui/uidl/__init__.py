@@ -37,6 +37,7 @@ from .markers import (  # noqa: F401
     AggregateFunction,
     BulletedList,
     Colspan,
+    ContentSlot,
     Help,
     SliderMin,
     SliderMax,
@@ -70,6 +71,20 @@ from .markers import (  # noqa: F401
     TreeSelect,
     UseRadioButtons,
     Version,
+)
+from .remote import (  # noqa: F401
+    CorrelationIdProvider,
+    FragmentCachePolicy,
+    FragmentCachePolicySupplier,
+    FragmentCacheStore,
+    MicroFrontendResolutionEvent,
+    MicroFrontendResolutionListener,
+    RemoteCatalogSupplier,
+    RemoteDescriptor,
+    RemoteIdentityStrategy,
+    RemoteRegistry,
+    ResolutionOutcome,
+    cacheable_fragment,
 )
 from .security import (  # noqa: F401
     Access,
@@ -381,4 +396,9 @@ __all__ = [
     # E2 patterns (EXPERIMENTAL): app shortcuts, live header values, idle-session warning
     "app_shortcut", "AppShortcutEntry", "HeaderValue", "HeaderValuesSupplier", "KeepAliveHandler",
     "LiveHeaderValues",
+    # Server-resolved micro frontends + content slots (EXPERIMENTAL)
+    "ContentSlot", "cacheable_fragment", "CorrelationIdProvider", "FragmentCachePolicy",
+    "FragmentCachePolicySupplier", "FragmentCacheStore", "MicroFrontendResolutionEvent",
+    "MicroFrontendResolutionListener", "RemoteCatalogSupplier", "RemoteDescriptor",
+    "RemoteIdentityStrategy", "RemoteRegistry", "ResolutionOutcome",
 ]

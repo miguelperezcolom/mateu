@@ -143,6 +143,19 @@ def _user_name(user: Any) -> str | None:
     return None
 
 
+def _local_origin(request: Request) -> str | None:
+    """This server's origin as the ASGI server reports the LOCAL socket (``scope["server"]``) —
+    never the Host header a client controls."""
+    server = request.scope.get("server")
+    if not server or not server[0]:
+        return None
+    host, port = server[0], server[1]
+    scheme = "https" if request.scope.get("scheme") == "https" else "http"
+    if ":" in str(host):
+        host = f"[{host}]"
+    return f"{scheme}://{host}" + (f":{port}" if port else "")
+
+
 def add_mateu(
     app: FastAPI,
     *sources: ModuleType | type,
@@ -165,6 +178,18 @@ def add_mateu(
     mcp_push_max_anonymous_sessions_per_address: int | None = None,
     build_id: str | None = None,
     oracle_cdn_url: str | None = None,
+    remotes: Sequence[Any] | None = None,
+    default_timeout_ms: int | None = None,
+    max_budget_ms: int | None = None,
+    content_remote_id: str | None = None,
+    content_route: str | None = None,
+    self_base_url: str | None = None,
+    content_slots_descriptor_enabled: bool | None = None,
+    remote_registry: Any | None = None,
+    identity_strategies: Sequence[Any] | None = None,
+    fragment_cache_store: Any | None = None,
+    correlation_id_provider: Any | None = None,
+    resolution_listeners: Sequence[Any] | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -218,6 +243,18 @@ def add_mateu(
       never bundles Oracle's files; it only re-points the URLs of the page it serves (only with
       ``ui``). Default: the ``MATEU_ORACLE_CDN_URL`` env var; blank = off; a value that is not an
       absolute http(s) URL, or carries a quote, ``<``, ``>`` or whitespace, is ignored with a warning.
+    - Server-resolved micro frontends and content slots (EXPERIMENTAL; see
+      ``mateu_ui.core.microfrontends``): ``remotes`` — the ``RemoteDescriptor``s the host may call
+      on the user's behalf (on top of the ``RemoteCatalogSupplier`` subclasses among the sources;
+      same id = this one wins); ``default_timeout_ms`` (500, ``MATEU_MICROFRONTENDS_DEFAULT_TIMEOUT_MS``)
+      for a fragment naming no timeout whose remote names none either; ``max_budget_ms`` (2000,
+      ``MATEU_MICROFRONTENDS_MAX_BUDGET_MS``), the most a view ever waits; ``content_remote_id``
+      (``content``, ``MATEU_CONTENT_SLOTS_REMOTE``) and ``content_route`` (``/content-slots/{key}``,
+      ``MATEU_CONTENT_SLOTS_ROUTE``) for content slots; ``self_base_url`` (``MATEU_SELF_BASE_URL``)
+      — this server's origin, for a remote registered as a path on it; ``content_slots_descriptor_enabled``
+      (``MATEU_CONTENT_SLOTS_DESCRIPTOR_ENABLED``, off) serves the reserved ``__content_slots__``
+      action. ``remote_registry``, ``identity_strategies``, ``fragment_cache_store``,
+      ``correlation_id_provider`` and ``resolution_listeners`` replace / add to Mateu's own.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -236,6 +273,20 @@ def add_mateu(
         secrets_provider=secrets_provider,
         proxy_timeout_seconds=proxy_timeout_seconds,
         environment=environment,
+    )
+    handler.configure_microfrontends(
+        remotes=remotes,
+        default_timeout_ms=default_timeout_ms,
+        max_budget_ms=max_budget_ms,
+        content_remote_id=content_remote_id,
+        content_route=content_route,
+        self_base_url=self_base_url,
+        content_slots_descriptor_enabled=content_slots_descriptor_enabled,
+        remote_registry=remote_registry,
+        identity_strategies=identity_strategies,
+        fragment_cache_store=fragment_cache_store,
+        correlation_id_provider=correlation_id_provider,
+        resolution_listeners=resolution_listeners,
     )
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
@@ -304,6 +355,7 @@ def add_mateu(
             correlation_id=new_correlation_id(),
             principal=authenticated_principal(request),
             client_address=request.client.host if request.client is not None else None,
+            self_base_url=_local_origin(request),
         )
 
     def run_bound(mateu_request: MateuRequest, fn: Callable[[], Any]) -> Any:

@@ -32,6 +32,7 @@ from mateu_ui.uidl import components as fluent
 from mateu_ui.uidl import Colspan, DetailForm, Help, Hidden, Inline, Max, Min, Pattern, Size, SliderMax, SliderMin
 from mateu_ui.uidl.rest_sources import RestSourceSupplier
 from mateu_ui.uidl import Text as TextMarker
+from mateu_ui.uidl import ContentSlot as ContentSlotMarker
 from mateu_ui.uidl import (
     BulletedList,
     FileUpload,
@@ -268,6 +269,20 @@ class FieldMapperMixin(MixinBase):
 
     def map_field(self, f, instance, read_only: bool = False) -> ClientSideComponent:
         field_id = camel_case(f.name)
+        slot = f.marker(ContentSlotMarker)
+        if slot is not None:
+            # a hole for managed content: the field's value is irrelevant, the slot is resolved by
+            # the server against the content remote (mateu_ui.core.microfrontends)
+            from mateu_ui.uidl import components as _fluent
+
+            return self.map_content_slot(_fluent.ContentSlot(
+                key=slot.key,
+                fallback=slot.fallback if slot.fallback and slot.fallback.strip() else None,
+                timeout_ms=slot.timeout_ms if slot.timeout_ms and slot.timeout_ms > 0 else None,
+                description=slot.description or None,
+                degrade_to_client=slot.degrade_to_client,
+                style="width: 100%;",
+            ))
         row_type = self.grid_row_type(f)
         if row_type is not None:
             return self.map_grid_field(f, row_type, instance, read_only)

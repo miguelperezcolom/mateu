@@ -69,6 +69,7 @@ version (latest release).
 | Module | Port | What it shows |
 |---|---|---|
 | `demo-admin-panel` | 8595 | Kitchen sink: most archetypes, components and UX patterns (dashboards, gantt, foldout, wizards, inline CRUD, drawers…). |
+| `demo-microfrontends` | 8623 | Micro frontends resolved in the server (`resolve = SERVER`): a fast remote embedded in the host's response, a slow and a down one degraded to the browser, and `@ContentSlot`s filled by a content service or their fallback. |
 | `demo-front-office` | 8594 | Hotel front-office UX (check-in queue + wizard, folio/payment, `@AppContext` Staff/Cliente audiences). |
 | `demo-front-office-evolution` | 8596 | The same front office, evolved (foldout reservation overview, operations panels). |
 | `demo-app-definition` | 8099 | A mount defined entirely in YAML (`type: UI` + app block + routes). |

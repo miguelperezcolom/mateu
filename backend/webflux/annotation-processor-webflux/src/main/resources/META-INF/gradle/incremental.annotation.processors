@@ -1,3 +1,4 @@
 io.mateu.annotationprocessing.MateuUIAnnotationProcessor,aggregating
 io.mateu.annotationprocessing.MateuIndexedUIProcessor,aggregating
 io.mateu.annotationprocessing.MateuLintAnnotationProcessor,aggregating
+io.mateu.annotationprocessing.indexer.ContentSlotProcessor,aggregating
