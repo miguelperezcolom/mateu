@@ -81,10 +81,7 @@ export function foldoutOf(ctx, { parent = null } = {}) {
     overviewOnTop: md.orientation === 'horizontal',
     // the navigation header, the overview's Edit and the badges: what may change between two
     // records of the same foldout (re-bound in place, like the panels' content)
-    header: owns
-      ? (declared ? foldoutPageHeaderOf(foldoutHeaderOf(md), templateFormOf(ctx), state)
-        : foldoutToolbarHeaderOf(foldoutHeaderOf(md), pageToolbarOf(ctx), parent))
-      : foldoutHeaderOf(md),
+    header: foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }),
     // the foldout owns the page header (Toolkit 26C: the layout's own header and the overview panel
     // carry the navigation and the actions — there is no page header above it): a declared
     // FoldoutPage, and any page whose foldout is the page, unless an EntityHeader's facts need the band
@@ -94,10 +91,7 @@ export function foldoutOf(ctx, { parent = null } = {}) {
       texts: collectTexts(bySlot['overview']),
       // a PLAIN block that carries them as atoms: the overview template only paints isCard/isPlain
       // blocks and isBadge is an atom of their items — a standalone isBadge block was not shown
-      blocks: (pageBadges.length || subtitle
-        ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items: pageBadges.concat(subtitle
-          ? [{ isText: true, text: subtitle, cls: 'oj-typography-body-sm oj-text-color-secondary' }] : []) }]
-        : []).concat(blocksOf(bySlot['overview'])),
+      blocks: overviewHeadBlocks(pageBadges, subtitle).concat(blocksOf(bySlot['overview'])),
     },
     panels: (md.panels || []).map((panel, i) => ({
       title: panel.title || '',
@@ -160,6 +154,30 @@ export function foldoutHeaderOf(md) {
   }
 }
 
+/** The block that heads the overview: the page badges and, when the foldout owns the page, its
+ *  subtitle — a PLAIN block carrying them as atoms (the overview template only paints isCard/isPlain
+ *  blocks). None when there is neither. */
+function overviewHeadBlocks(badges, subtitle) {
+  const items = badges.concat(subtitle ? [{ isText: true, text: subtitle, cls: 'oj-typography-body-sm oj-text-color-secondary' }] : [])
+  return items.length ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items }] : []
+}
+
+/** The foldout's header: the wire's (foldoutHeaderOf), plus the page's toolbar when the foldout owns
+ *  the page — a declared FoldoutPage's form toolbar, else the page toolbar (and the trail's parent). */
+function foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }) {
+  const header = foldoutHeaderOf(md)
+  if (!owns) return header
+  if (declared) return foldoutPageHeaderOf(header, templateFormOf(ctx), (ctx && ctx.state) || {})
+  return foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+}
+
+/** Where a page foldout's go-to-parent leads: its back button, else the trail's parent; null with neither. */
+function foldoutParentOf(back, parent) {
+  if (back) return { label: back.label, actionId: back.actionId, target: { actionId: back.actionId, route: back.route || '' } }
+  if (parent && parent.route) return { label: parent.label, actionId: 'parent', target: { actionId: '', route: parent.route } }
+  return null
+}
+
 /**
  * A page foldout's header from the PAGE toolbar (pageToolbarOf: {actionId, label, chroming, route,
  * disabled}): the back button — else the trail's parent (`parent`: {label, route}) — becomes the
@@ -173,10 +191,11 @@ export function foldoutToolbarHeaderOf(header, toolbar, parent = null) {
     .sort((a, b) => (b.chroming === 'callToAction') - (a.chroming === 'callToAction'))
   const ctas = { ...(header.ctas || {}) }
   const out = { ...header, ctas }
-  if (!header.goToParent && (back || (parent && parent.route))) {
-    ctas.parent = back ? { actionId: back.actionId, route: back.route || '' } : { actionId: '', route: parent.route }
-    Object.assign(out, { hasNavigation: true, goToParent: true, parentActionId: back ? back.actionId : 'parent',
-      parentLabel: (back ? back.label : parent.label) || chromeText('goBack') })
+  const up = header.goToParent ? null : foldoutParentOf(back, parent)
+  if (up) {
+    ctas.parent = up.target
+    Object.assign(out, { hasNavigation: true, goToParent: true, parentActionId: up.actionId,
+      parentLabel: up.label || chromeText('goBack') })
   }
   if (rest.length) {
     out.overviewActions = (header.overviewActions || []).concat(rest.map((b, i) => {
