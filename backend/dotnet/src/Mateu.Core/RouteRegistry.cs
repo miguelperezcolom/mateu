@@ -246,7 +246,7 @@ internal sealed class RouteRegistry : ISpecsCache
         {
             try
             {
-                if (Yaml.Deserialize<object?>(File.ReadAllText(file)) is not IDictionary<object, object> root)
+                if (Yaml.Read<object?>(File.ReadAllText(file)) is not IDictionary<object, object> root)
                     continue;
                 if (Str(root, "type") != "UI") continue;
                 var basePath = Normalize(Str(root, "basePath") ?? Str(root, "base_path"));
@@ -281,7 +281,7 @@ internal sealed class RouteRegistry : ISpecsCache
             if (!File.Exists(path)) continue;
             try
             {
-                if (Yaml.Deserialize<object?>(File.ReadAllText(path)) is not { } root) continue;
+                if (Yaml.Read<object?>(File.ReadAllText(path)) is not { } root) continue;
                 var nodes = root switch
                 {
                     IDictionary<object, object> map when map.TryGetValue("routes", out var r) => r as IEnumerable<object>,
@@ -341,7 +341,7 @@ internal sealed class RouteRegistry : ISpecsCache
     {
         try
         {
-            return Yaml.Deserialize<object?>(File.ReadAllText(file)) is IDictionary<object, object> map
+            return Yaml.Read<object?>(File.ReadAllText(file)) is IDictionary<object, object> map
                    && Str(map, "type") == "Routes";
         }
         catch (Exception)
@@ -355,7 +355,7 @@ internal sealed class RouteRegistry : ISpecsCache
         if (!File.Exists(path)) return [];
         try
         {
-            var root = Yaml.Deserialize<object?>(File.ReadAllText(path));
+            var root = Yaml.Read<object?>(File.ReadAllText(path));
             // Both shapes are accepted: a bare list of entries, or a `routes:` envelope.
             var nodes = root switch
             {

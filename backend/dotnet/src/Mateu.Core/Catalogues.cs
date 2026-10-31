@@ -114,7 +114,7 @@ internal sealed class RestSourceRegistry : ISpecsCache
         if (!File.Exists(path)) return RestSourceCatalog.Empty;
         try
         {
-            var root = Yaml.Deserialize<object?>(File.ReadAllText(path));
+            var root = Yaml.Read<object?>(File.ReadAllText(path));
             var nodes = root switch
             {
                 IDictionary<object, object> map when map.TryGetValue("sources", out var s) => s as IEnumerable<object>,
@@ -355,7 +355,7 @@ internal sealed class ComponentRegistry : ISpecsCache
         if (!File.Exists(path)) return ComponentCatalog.Empty;
         try
         {
-            var root = Yaml.Deserialize<object?>(File.ReadAllText(path));
+            var root = Yaml.Read<object?>(File.ReadAllText(path));
             var nodes = root switch
             {
                 IDictionary<object, object> map when map.TryGetValue("components", out var s) => s as IEnumerable<object>,

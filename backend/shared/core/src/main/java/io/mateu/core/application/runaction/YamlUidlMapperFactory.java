@@ -3,7 +3,6 @@ package io.mateu.core.application.runaction;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.AppShell;
@@ -26,7 +25,7 @@ final class YamlUidlMapperFactory {
   abstract static class PolymorphicMixin {}
 
   static ObjectMapper create() {
-    var mapper = new ObjectMapper(new YAMLFactory());
+    var mapper = new ObjectMapper(SpecsYaml.factory());
     mapper.registerModule(new JavaTimeModule());
     // A definition may carry authoring-only keys the model does not model — a `$schema` reference
     // (for editor IntelliSense) or a future field — so unknown properties are ignored rather than

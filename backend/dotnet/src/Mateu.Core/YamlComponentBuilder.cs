@@ -25,7 +25,7 @@ internal static class YamlComponentBuilder
     /// <summary>Raw YAML → nodes, for callers that splice before building (the partial registry).</summary>
     public static object? Deserialize(string yaml)
     {
-        try { return Yaml.Deserialize<object>(yaml); }
+        try { return Yaml.Read<object>(yaml); }
         catch (Exception e)
         {
             MateuLogging.For("Mateu.Yaml").LogWarning("Invalid YAML ignored: {Error}", e.Message);
@@ -59,7 +59,7 @@ internal static class YamlComponentBuilder
         object? root;
         try
         {
-            root = Yaml.Deserialize<object>(yaml);
+            root = Yaml.Read<object>(yaml);
         }
         catch (Exception e)
         {

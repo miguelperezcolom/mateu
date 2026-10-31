@@ -282,7 +282,7 @@ public final class MateuBundleExporter {
    * definition is logged and omitted, leaving that route pre-rendered/backend-served as before.
    */
   private static Map<String, JsonNode> collectDefinitions(ClassLoader cl, RouteTable authored) {
-    var mapper = new YAMLMapper();
+    var mapper = new YAMLMapper(io.mateu.core.application.runaction.SpecsYaml.factory());
     var types = new io.mateu.core.application.runaction.FieldTypeRegistry();
     var out = new java.util.LinkedHashMap<String, JsonNode>();
     var inliner = new DefinitionInliner(cl);

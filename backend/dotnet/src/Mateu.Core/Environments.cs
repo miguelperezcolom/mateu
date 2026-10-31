@@ -38,7 +38,7 @@ internal static class Environments
             try
             {
                 var relative = Path.GetRelativePath(dir, file).Replace('\\', '/');
-                if (Parse(Yaml.Deserialize<object?>(File.ReadAllText(file)), relative) is { } env) byName[env.Name] = env;
+                if (Parse(Yaml.Read<object?>(File.ReadAllText(file)), relative) is { } env) byName[env.Name] = env;
             }
             catch (Exception e)
             {
