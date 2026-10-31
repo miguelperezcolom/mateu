@@ -157,7 +157,27 @@ export function listingHeaderBlocksOf(ctx) {
   return blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12' }))
 }
 
+/**
+ * The page templates that own the whole page: a listing in one of their slots (a museum's
+ * departments, an exhibition's works in a foldout panel) is CONTENT of the slot, not the page's
+ * listing. Taken for the page's, it drew the listing page as well — its header with the search box
+ * and its band — above the template with its own header and band: two headers on one page. The
+ * collection and search templates are not here: their listing IS the page's.
+ */
+const TEMPLATES_OWNING_THE_PAGE = new Set(['GeneralOverviewPage', 'FoldoutPage', 'ItemOverviewPage',
+  'MultimediaContentPage', 'AdvancedCreateEditPage', 'WelcomePage', 'DashboardLandingPage', 'GuidedProcessPage'])
+
+/** The type of the page template the page declares (a YAML `template:`), unwrapped like
+ *  overviews.mjs pageTemplateOf, or ''. */
+function declaredTemplateTypeOf(ctx) {
+  let node = ctx && ctx.tree
+  while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
+  const md = node && node.metadata
+  return (md && md.type === 'Form' && md.template && md.template.type) || ''
+}
+
 export function listingBaseOf(ctx, opts = {}) {
+  if (TEMPLATES_OWNING_THE_PAGE.has(declaredTemplateTypeOf(ctx))) return null
   const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
   if (!crudNode) return null
   // column groups flattened to their leaf columns (leafColumnsOf): from here on a listing only

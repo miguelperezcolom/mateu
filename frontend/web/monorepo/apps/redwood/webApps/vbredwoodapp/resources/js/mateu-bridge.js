@@ -2892,7 +2892,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const child of children) bySlot[child.slot || ''] = child
     const blocksOf = (slotNode) => {
       const blocks = slotNode
-        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound })
+        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound,
+          slotListing: declaresTemplate(ctx, 'FoldoutPage') ? slotListingOf(ctx.tree) : null })
         : null
       // same visual contract as hostContentOf: column blocks with their colClass,
       // the rest full-row
@@ -4372,7 +4373,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function templatedGeneralOverviewOf(ctx) {
     if (!declaresTemplate(ctx, 'GeneralOverviewPage')) return null
-    const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gop',
+    const slotListing = slotListingOf(ctx.tree)
+    const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, slotListing, tree: { type: 'ClientSide', id: '_gop',
       metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
       .map((b) => (b.spSection
         ? { isPlain: true, blockClass: 'oj-flex-item oj-sm-12',
@@ -6386,6 +6388,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
         return
       }
+      // the listing in a page template's slot (an exhibition's works, a museum's departments): its table
+      if (t === 'Crud' && ctx.slotListing === node) {
+        atom(queryGridAtomOf(m, (((ctx.data || {}).crud || {}).page) || {}, node.id || 'slot-listing'), container)
+        return
+      }
       // a Multimedia content page's banner / a Hero search page's hero are the template's own header
       if (t === 'HeroSection' && (node.id === 'multimedia-banner' || node.id === 'hero-search')) return
       if (t === 'HeroSection') {
@@ -6728,30 +6735,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // a MicroFrontend's / an inline island's surface: its actions go back to IT (dispatchHostBlockAction → surface)
           return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
         }
-        const md = crud.metadata || {}
-        const wire = leafColumnsOf(md.columns)
-          // the per-row actions have no place in the query-only table
-          .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
-        const page = (((ctx.data || {}).crud || {}).page) || {}
-        const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
-        return [{
-          isGrid: true,
-          isSubresourceGrid: true,
-          fieldId: a.islandId,
-          label: md.title || '',
-          columns: wire.map((c) => (c.dataType === 'status'
-            ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-            : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
-          rows,
-          adp: dataProviderFactory ? dataProviderFactory(rows) : null,
-          isEmpty: rows.length === 0,
-          total: page.totalElements == null ? rows.length : page.totalElements,
-          rowEditable: false,
-          addActionId: '',
-          addLabel: '',
-        }]
+        return [queryGridAtomOf(crud.metadata || {}, (((ctx.data || {}).crud || {}).page) || {}, a.islandId)]
       }),
     }))
+  }
+
+  /** A listing drawn as a query-only table in the content: its columns and the page of rows loaded. */
+  function queryGridAtomOf(md, page, fieldId) {
+    const wire = leafColumnsOf(md.columns)
+      // the per-row actions have no place in the query-only table, nor an image (it has no image
+      // cell: the URL was printed as text, and pushed the readable columns out of a narrow panel)
+      .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button')
+        && c.stereotype !== 'image')
+    const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
+    return {
+      isGrid: true,
+      isSubresourceGrid: true,
+      fieldId,
+      label: md.title || '',
+      columns: wire.map((c) => (c.dataType === 'status'
+        ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+        : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
+      rows,
+      adp: dataProviderFactory ? dataProviderFactory(rows) : null,
+      isEmpty: rows.length === 0,
+      total: page.totalElements == null ? rows.length : page.totalElements,
+      rowEditable: false,
+      addActionId: '',
+      addLabel: '',
+    }
+  }
+
+  /**
+   * The listing of a page whose template owns it (listing.mjs TEMPLATES_OWNING_THE_PAGE) whose rows
+   * the page loads: the first one reading a REST source — the one onLoadTriggers searches for. A slot
+   * holding it draws it as its table (ctx.slotListing); it is not the page's listing page any more.
+   */
+  function slotListingOf(tree) {
+    return findFirst(tree, (n) => n && n.metadata && n.metadata.type === 'Crud' && !!n.metadata.rowsSource)
   }
 
   /** Merges the content of the NESTED island into the blocks of the parent island:
@@ -7669,7 +7690,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12' }))
   }
 
+  /**
+   * The page templates that own the whole page: a listing in one of their slots (a museum's
+   * departments, an exhibition's works in a foldout panel) is CONTENT of the slot, not the page's
+   * listing. Taken for the page's, it drew the listing page as well — its header with the search box
+   * and its band — above the template with its own header and band: two headers on one page. The
+   * collection and search templates are not here: their listing IS the page's.
+   */
+  const TEMPLATES_OWNING_THE_PAGE = new Set(['GeneralOverviewPage', 'FoldoutPage', 'ItemOverviewPage',
+    'MultimediaContentPage', 'AdvancedCreateEditPage', 'WelcomePage', 'DashboardLandingPage', 'GuidedProcessPage'])
+
+  /** The type of the page template the page declares (a YAML `template:`), unwrapped like
+   *  overviews.mjs pageTemplateOf, or ''. */
+  function declaredTemplateTypeOf(ctx) {
+    let node = ctx && ctx.tree
+    while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
+    const md = node && node.metadata
+    return (md && md.type === 'Form' && md.template && md.template.type) || ''
+  }
+
   function listingBaseOf(ctx, opts = {}) {
+    if (TEMPLATES_OWNING_THE_PAGE.has(declaredTemplateTypeOf(ctx))) return null
     const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
     if (!crudNode) return null
     // column groups flattened to their leaf columns (leafColumnsOf): from here on a listing only
@@ -19526,6 +19567,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return true
   }
 
+  /** How long the old screen stays on show once another starts loading (app.css mateu-stale-hide). */
+  const STALE_SCREEN_HIDE_MS = 500
+
+  /**
+   * scrollToTopOnNavigate, but not while the old screen is still on show: scrolled at once, the page
+   * the user clicked in jumped to its top and only then did the new one arrive. It scrolls when the
+   * old screen is hidden (after STALE_SCREEN_HIDE_MS) or when the new one is in place — the function
+   * returned, called once the navigation lands — whichever comes first, and only once.
+   */
+  function scrollToTopWhenReplaced(params = {}, win = typeof window !== 'undefined' ? window : null,
+      delay = STALE_SCREEN_HIDE_MS) {
+    let done = false
+    const scroll = () => {
+      if (done) return false
+      done = true
+      return scrollToTopOnNavigate(params, win)
+    }
+    const timer = win && typeof win.setTimeout === 'function' ? win.setTimeout(scroll, delay) : null
+    return () => {
+      if (timer != null && typeof win.clearTimeout === 'function') win.clearTimeout(timer)
+      return scroll()
+    }
+  }
+
 
 
   // Bridge transport — contract CONFIRMED against demo/demo-vb (see DESIGN-NOTES
@@ -26251,6 +26316,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     navigationLeavingMountOf,
     leftMountFor,
     scrollToTopOnNavigate,
+    scrollToTopWhenReplaced,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,

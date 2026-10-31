@@ -28,7 +28,7 @@ import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
@@ -2063,6 +2063,34 @@ atest('navigating to another screen starts it at its top — not on back/forward
   setEmbeddedHost({})
   try { assert.equal(scrollToTopOnNavigate({}, win), false) } finally { setEmbeddedHost(null) }
   assert.equal(calls.length, 1)
+})
+
+atest('the old screen does not jump to its top before the new one is there', async () => {
+  // «Open the Met» halfway down the welcome page: the page scrolled up at the click, and only then
+  // did the museum arrive. Now: when the new screen lands, or when the old one is hidden (0.5 s)
+  const calls = []
+  const timers = []
+  const win = {
+    scrollTo: (x, y) => calls.push([x, y]),
+    setTimeout: (fn, ms) => { timers.push({ fn, ms, cleared: false }); return timers.length - 1 },
+    clearTimeout: (id) => { timers[id].cleared = true },
+  }
+  const landed = scrollToTopWhenReplaced({ event: { detail: { route: '/museums/1' } } }, win)
+  assert.deepEqual(calls, [])
+  assert.equal(timers[0].ms, 500)
+  assert.equal(landed(), true)
+  assert.deepEqual(calls, [[0, 0]])
+  assert.equal(timers[0].cleared, true)
+  assert.equal(landed(), false)
+  // a slow load: the old screen hides at 0.5 s and the page goes up then, once
+  const slow = scrollToTopWhenReplaced({}, win)
+  timers[1].fn()
+  assert.equal(calls.length, 2)
+  assert.equal(slow(), false)
+  assert.equal(calls.length, 2)
+  // back/forward keeps the browser's position, as before
+  assert.equal(scrollToTopWhenReplaced({ fromUrl: true }, win)(), false)
+  assert.equal(calls.length, 2)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

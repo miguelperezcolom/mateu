@@ -1570,6 +1570,11 @@ export function islandContentOf(ctx, opts = {}) {
       atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
       return
     }
+    // the listing in a page template's slot (an exhibition's works, a museum's departments): its table
+    if (t === 'Crud' && ctx.slotListing === node) {
+      atom(queryGridAtomOf(m, (((ctx.data || {}).crud || {}).page) || {}, node.id || 'slot-listing'), container)
+      return
+    }
     // a Multimedia content page's banner / a Hero search page's hero are the template's own header
     if (t === 'HeroSection' && (node.id === 'multimedia-banner' || node.id === 'hero-search')) return
     if (t === 'HeroSection') {
@@ -1912,30 +1917,44 @@ export function withSubresources(blocks, contexts) {
         // a MicroFrontend's / an inline island's surface: its actions go back to IT (dispatchHostBlockAction → surface)
         return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
       }
-      const md = crud.metadata || {}
-      const wire = leafColumnsOf(md.columns)
-        // the per-row actions have no place in the query-only table
-        .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
-      const page = (((ctx.data || {}).crud || {}).page) || {}
-      const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
-      return [{
-        isGrid: true,
-        isSubresourceGrid: true,
-        fieldId: a.islandId,
-        label: md.title || '',
-        columns: wire.map((c) => (c.dataType === 'status'
-          ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-          : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
-        rows,
-        adp: dataProviderFactory ? dataProviderFactory(rows) : null,
-        isEmpty: rows.length === 0,
-        total: page.totalElements == null ? rows.length : page.totalElements,
-        rowEditable: false,
-        addActionId: '',
-        addLabel: '',
-      }]
+      return [queryGridAtomOf(crud.metadata || {}, (((ctx.data || {}).crud || {}).page) || {}, a.islandId)]
     }),
   }))
+}
+
+/** A listing drawn as a query-only table in the content: its columns and the page of rows loaded. */
+function queryGridAtomOf(md, page, fieldId) {
+  const wire = leafColumnsOf(md.columns)
+    // the per-row actions have no place in the query-only table, nor an image (it has no image
+    // cell: the URL was printed as text, and pushed the readable columns out of a narrow panel)
+    .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button')
+      && c.stereotype !== 'image')
+  const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
+  return {
+    isGrid: true,
+    isSubresourceGrid: true,
+    fieldId,
+    label: md.title || '',
+    columns: wire.map((c) => (c.dataType === 'status'
+      ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+      : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
+    rows,
+    adp: dataProviderFactory ? dataProviderFactory(rows) : null,
+    isEmpty: rows.length === 0,
+    total: page.totalElements == null ? rows.length : page.totalElements,
+    rowEditable: false,
+    addActionId: '',
+    addLabel: '',
+  }
+}
+
+/**
+ * The listing of a page whose template owns it (listing.mjs TEMPLATES_OWNING_THE_PAGE) whose rows
+ * the page loads: the first one reading a REST source — the one onLoadTriggers searches for. A slot
+ * holding it draws it as its table (ctx.slotListing); it is not the page's listing page any more.
+ */
+export function slotListingOf(tree) {
+  return findFirst(tree, (n) => n && n.metadata && n.metadata.type === 'Crud' && !!n.metadata.rowsSource)
 }
 
 /** Merges the content of the NESTED island into the blocks of the parent island:

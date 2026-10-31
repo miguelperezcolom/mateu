@@ -1,5 +1,5 @@
 import { collectTexts } from './tree.mjs'
-import { BADGE_CLASSES, interpolate, islandContentOf, buttonRouteOf } from './content.mjs'
+import { BADGE_CLASSES, interpolate, islandContentOf, buttonRouteOf, slotListingOf } from './content.mjs'
 import { declaresTemplate, templateFormOf } from './overviews.mjs'
 import { PANE_TYPES, findOutside, pageHeaderNodeOf, pageToolbarOf, pageSubtitleOf, isBackButton } from './pageHeader.mjs'
 import { STATUS_BADGE, findByType, findFirst } from './listing.mjs'
@@ -38,7 +38,8 @@ export function foldoutOf(ctx, { parent = null } = {}) {
   for (const child of children) bySlot[child.slot || ''] = child
   const blocksOf = (slotNode) => {
     const blocks = slotNode
-      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound })
+      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound,
+        slotListing: declaresTemplate(ctx, 'FoldoutPage') ? slotListingOf(ctx.tree) : null })
       : null
     // same visual contract as hostContentOf: column blocks with their colClass,
     // the rest full-row

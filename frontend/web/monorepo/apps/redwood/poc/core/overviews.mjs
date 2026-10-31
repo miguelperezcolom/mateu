@@ -1,5 +1,5 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
-import { interpolate, islandContentOf, hostContentOf, editorNodeIds } from './content.mjs'
+import { interpolate, islandContentOf, hostContentOf, editorNodeIds, slotListingOf } from './content.mjs'
 import { findByType, findFirst } from './listing.mjs'
 import { pageHeaderNodeOf, factProjectionOf, contextualInfoOf, factActionsJsonOf, badgeStatusOf } from './pageHeader.mjs'
 import { gridColClasses, metricAriaLabel, panelColClass } from './atoms.mjs'
@@ -636,7 +636,8 @@ function templatedItemOverviewOf(ctx, atomsOfNodes) {
  */
 export function templatedGeneralOverviewOf(ctx) {
   if (!declaresTemplate(ctx, 'GeneralOverviewPage')) return null
-  const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_gop',
+  const slotListing = slotListingOf(ctx.tree)
+  const blocksOf = (node) => (islandContentOf({ ...ctx, templateSlot: true, slotListing, tree: { type: 'ClientSide', id: '_gop',
     metadata: { type: 'VerticalLayout' }, children: (node && node.children) || [] } }) || [])
     .map((b) => (b.spSection
       ? { isPlain: true, blockClass: 'oj-flex-item oj-sm-12',

@@ -294,6 +294,33 @@ test('summarizeHost proyecta form y cae al caption del menú en un listado', () 
 
 // 14) Listing (Phase 4): the OnLoad trigger asks for 'search'; the response is a
 //     DATA-ONLY fragment merged into ctx.data without touching the tree; listingOf projects columns+rows.
+test('a listing in a slot of a page template is not the page listing: one header, the template one', () => {
+  // /museums/1 (GeneralOverviewPage) and /exhibitions/1 (FoldoutPage) drew the listing page too —
+  // its header with the search box and its band — above the template's own header and band
+  const crud = { type: 'ClientSide', id: 'deps', metadata: { type: 'Crud', columns: [{ metadata: { id: 'name', label: 'Name' } }] }, children: [] }
+  const page = (template) => ({ tree: { type: 'ServerSide', children: [{ type: 'ClientSide', id: 'p',
+    metadata: { type: 'Form', title: 'The Met', ...(template ? { template: { type: template } } : {}) }, children: [crud] }] }, data: {}, state: {} })
+  for (const owning of ['GeneralOverviewPage', 'FoldoutPage', 'ItemOverviewPage']) assert.equal(listingOf(page(owning)), null, owning)
+  // the collection's list IS the page's listing, and a page with no template keeps the old rule
+  assert.ok(listingOf(page('CollectionDetailPage')))
+  assert.ok(listingOf(page(null)))
+})
+
+test('the listing in a declared template slot is drawn there, as its table with the rows loaded', () => {
+  const crud = { type: 'ClientSide', id: 'deps', metadata: { type: 'Crud', rowsSource: { ref: 'deps' }, columns: [
+    { metadata: { id: 'thumb', label: 'Image', stereotype: 'image' } }, { metadata: { id: 'name', label: 'Department' } }] }, children: [] }
+  const slot = (node) => ({ type: 'ClientSide', id: 'main', metadata: { type: 'VerticalLayout' }, children: [node] })
+  const data = { crud: { page: { content: [{ name: 'Asian Art', thumb: 'x.jpg' }], totalElements: 1 } } }
+  const grids = (ctx) => (islandContentOf(ctx) || []).flatMap((b) => b.items).filter((a) => a && a.isGrid)
+  const [grid] = grids({ tree: slot(crud), state: {}, data, slotListing: crud })
+  assert.ok(grid, 'the slot draws the listing')
+  // no image cell in the query table: the readable columns only
+  assert.deepEqual(grid.columns.map((c) => c.headerText), ['Department'])
+  assert.equal(grid.rows.length, 1)
+  // another listing (whose rows the page did not load) is not drawn as a falsely empty table
+  assert.equal(grids({ tree: slot({ ...crud }), state: {}, data, slotListing: crud }).length, 0)
+})
+
 test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y filas', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = '' // simulates the arrival at the host

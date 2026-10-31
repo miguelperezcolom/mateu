@@ -13,6 +13,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **A page opened again is loaded once, not twice.** A route drawn from the client structure cache
+  (any return visit) was replaced by the server's identical structure as soon as it answered: the
+  structure hash counted the random ids of the nested components that name none (a YAML page's
+  texts, cards…), so it changed on every request and the server never answered state-only. The page
+  re-mounted — it flickered — and ran its OnLoad, its record fetch, a second time. The hash leaves
+  those instance ids out; and the web shells keep the predicted structure when the answer is the same
+  one (a static bundle has no hash at all), taking only its state and data.
+- **Vaadin: no search box a listing cannot search.** A listing over a source that takes no text and
+  with no filters still drew the search bar — a box without an input that took no typing (the works
+  and loans of an exhibition's foldout panels). It draws none.
+- **Redwood: one header on a page that declares its template.** A `GeneralOverviewPage` or
+  `FoldoutPage` (or any template that owns the page) with a listing in one of its slots was also
+  taken for a listing page: the listing's header — the search box — and its band were drawn above
+  the template with its own header and band. The listing is the slot's: it is drawn there, as its
+  table with the rows the page loaded.
+- **Redwood: the page does not jump to its top before the next one opens.** Following a link halfway
+  down a page scrolled it to the top at the click, and only then did the new screen arrive. It goes
+  to the top when the old screen is hidden or the new one is in place, whichever comes first.
 - **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
   it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
   `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"
