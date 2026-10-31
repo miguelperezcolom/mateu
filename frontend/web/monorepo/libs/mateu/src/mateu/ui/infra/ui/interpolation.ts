@@ -190,6 +190,30 @@ export function interpolate(
 }
 
 /**
+ * A copy of a component's metadata with the named text fields interpolated, for the renderers that
+ * draw their texts straight from the metadata (a hero's title, a MetricCard's value, an avatar's
+ * image URL…). Only string values carrying a `${` change; everything else is kept as it is, and the
+ * metadata itself is never mutated (it is the wire component, re-rendered on every state change).
+ */
+export const interpolateFields = <T extends object>(
+    metadata: T,
+    keys: readonly (keyof T)[],
+    state?: ComponentState,
+    data?: ComponentData,
+    extra?: InterpolationContext
+): T => {
+    let copy: T | undefined
+    for (const key of keys) {
+        const value = metadata[key]
+        if (typeof value === 'string' && value.includes('${')) {
+            copy ??= { ...metadata }
+            ;(copy as Record<keyof T, unknown>)[key] = interpolate(value, state, data, extra)
+        }
+    }
+    return copy ?? metadata
+}
+
+/**
  * Like {@link interpolate} but keeps the historical error behaviour of page
  * titles/subtitles/KPI texts: on a failing expression the error message is
  * returned (so the problem is visible in the rendered page). The result is

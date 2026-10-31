@@ -3461,8 +3461,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function metricOf(m, interp = (x) => x) {
     const trend = m.trend || ''
     const title = interp(m.title || '')
-    const value = String(m.value == null ? '' : m.value)
-    const unit = m.unit || ''
+    // the value interpolates like the texts around it (`value: ${state.visitors}` showed literally)
+    const value = m.value == null ? '' : String(interp(String(m.value)))
+    const unit = m.unit ? String(interp(m.unit)) : ''
     // the period the number covers ("Last 7 days"): under the value, and in the accessible text
     const timeframe = String(interp(m.timeframe || '') || '').trim()
     const trendLabel = m.trendLabel ? interp(m.trendLabel) : ''
@@ -5914,7 +5915,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           badges: (m.badges || []).map(badgeOf),
           // a fact naming an action: its icon button right after the value (factProjectionOf)
           facts: (m.facts || []).map((f) => factProjectionOf(f, interp(f.value))),
-          metricLabel: m.metricLabel || '',
+          metricLabel: interp(m.metricLabel || ''),
           metricValue: interp(m.metricValue || ''),
         }, container)
         return
@@ -6279,8 +6280,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Stat') {
         atom({
           isStat: true,
-          label: m.label || '',
-          value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
+          label: interp(m.label || ''),
+          value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
         }, container)
         // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
         if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
@@ -10098,7 +10099,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // template (see poc/templates/fields-extra.html).
   const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
   const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
-  const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
+  // `image` is an image BY ITS URL (typed in, previewed); `uploadableImage` is the one you upload
+  const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'url', signature: 'signature', camera: 'camera' }
 
   /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
   function extraWidgetOf(f, options, value) {
@@ -15090,7 +15092,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // component's event, so the field-change chains (hostInputChanged, mateuFieldEdited…)
   // treat it as one more.
   //
-  //   <mateu-capture-field mode="signature|camera|file|image" accept="…" readonly value="data:…">
+  //   <mateu-capture-field mode="signature|camera|file|image|url" accept="…" readonly value="data:…">
+  //
+  // `url` is the image stereotype (an image by its URL): editable, the URL input with a contained preview
+  // under it that follows what is typed; read-only, the image alone.
   //
   // The pure part (how a file is read, what text it shows) is exported and tested in Node; the DOM part
   // is defined once per document (defineCaptureField).
@@ -15200,6 +15205,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const actions = doc.createElement('div')
         actions.className = 'oj-sm-margin-2x-top'
 
+        if (mode === 'url' && !readonly) {
+          this.renderUrl(box, value)
+          this.appendChild(box)
+          return
+        }
         if (value && (mode !== 'file' || isImageValue(value))) {
           const img = doc.createElement('img')
           // the guard inline, where the value is assigned: only data:image, http(s) or a path with no
@@ -15245,6 +15255,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         this.appendChild(box)
         if (actions.childNodes.length) this.appendChild(actions)
+      }
+
+      /** The image stereotype, editable: its URL typed in, the preview following it (committed on change). */
+      renderUrl(box, value) {
+        const input = doc.createElement('input')
+        input.type = 'url'
+        input.className = 'oj-text-field-input mateu-capture-url'
+        input.value = value
+        const label = this.getAttribute('aria-label')
+        if (label) input.setAttribute('aria-label', label)
+        const img = doc.createElement('img')
+        img.alt = ''
+        img.className = 'mateu-capture-preview'
+        const show = (v) => {
+          // the same guard as the other modes: only data:image, http(s) or a scheme-less path
+          const src = safeImageSrc(v)
+          if (src) img.src = src; else img.removeAttribute('src')
+          img.hidden = !src
+        }
+        show(value)
+        input.addEventListener('input', () => show(input.value))
+        input.addEventListener('change', () => this.emit(input.value.trim()))
+        box.classList.add('mateu-capture-url-box')
+        box.appendChild(input)
+        box.appendChild(img)
       }
 
       renderPad(box, actions) {

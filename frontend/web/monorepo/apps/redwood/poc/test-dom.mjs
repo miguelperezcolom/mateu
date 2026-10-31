@@ -26,6 +26,7 @@ import { setRulesContext, setRulesContexts, applyRulesNow, installRules, setRule
 import { installCalendars, setCalendarActionSink } from './calendar.mjs'
 import { installToc, tocActiveIndex, tocSectionsOf } from './toc.mjs'
 import { defineCaptureField, defineColorField, captureTexts } from './inputs.mjs'
+import { CAPTURE_MODES } from './core/rowEditor.mjs'
 import { installRowTones, setListingTones, installStickyHeader, overflowTitleOf } from './tables.mjs'
 import { readTileOrder } from './prefs.mjs'
 import { chromeText } from './i18n.mjs'
@@ -929,6 +930,40 @@ test('capture: firmar y Aceptar emite el PNG; sin tinta no; Quitar vacía; sólo
   doc.body.appendChild(img)
   assert.equal(img.querySelector('img').src, undefined, 'javascript: no llega al src')
   void el
+})
+
+test('capture: el estereotipo image editable es la URL con una vista previa contenida que la sigue; en sólo lectura, la imagen', () => {
+  const { doc, win, fire } = makeDom()
+  defineCaptureField(win)
+  const field = doc.createElement('mateu-capture-field')
+  field.setAttribute('mode', 'url')
+  field.setAttribute('value', 'https://x.test/a.jpg')
+  const values = []
+  field.addEventListener('valueChanged', (e) => values.push(e.detail))
+  doc.body.appendChild(field)
+  const input = field.querySelector('input.mateu-capture-url')
+  assert.ok(input, 'editable: hay un input para cambiar la URL')
+  assert.equal(input.value, 'https://x.test/a.jpg')
+  assert.equal(field.querySelector('img.mateu-capture-preview').src, 'https://x.test/a.jpg')
+  assert.equal(field.querySelectorAll('oj-button').length, 0, 'no es el de subir fichero')
+  input.value = 'https://x.test/b.jpg'
+  fire(input, 'input')
+  assert.equal(field.querySelector('img.mateu-capture-preview').src, 'https://x.test/b.jpg', 'la vista previa sigue lo tecleado')
+  fire(input, 'change')
+  assert.equal(values.at(-1).value, 'https://x.test/b.jpg')
+  // read-only: only the image
+  const ro = doc.createElement('mateu-capture-field')
+  ro.setAttribute('mode', 'url')
+  ro.setAttribute('readonly', '')
+  ro.setAttribute('value', 'https://x.test/a.jpg')
+  doc.body.appendChild(ro)
+  assert.equal(ro.querySelector('input'), null)
+  assert.equal(ro.querySelector('img').src, 'https://x.test/a.jpg')
+})
+
+test('fieldWidgetOf: el estereotipo image se edita como URL (url), uploadableImage se sube (image)', () => {
+  assert.equal(CAPTURE_MODES.image, 'url')
+  assert.equal(CAPTURE_MODES.uploadableImage, 'image')
 })
 
 test('capture: un fichero que no es imagen se describe; la cámara sin getUserMedia cae al selector de fichero', async () => {

@@ -509,7 +509,8 @@ export function withSearchableIds(projection, fieldId, ids) {
 // template (see poc/templates/fields-extra.html).
 export const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
 export const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
-export const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
+// `image` is an image BY ITS URL (typed in, previewed); `uploadableImage` is the one you upload
+export const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'url', signature: 'signature', camera: 'camera' }
 
 /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
 export function extraWidgetOf(f, options, value) {

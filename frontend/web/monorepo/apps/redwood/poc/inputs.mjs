@@ -8,7 +8,10 @@ import { chromeText, chromeLanguage } from './i18n.mjs'
 // component's event, so the field-change chains (hostInputChanged, mateuFieldEdited…)
 // treat it as one more.
 //
-//   <mateu-capture-field mode="signature|camera|file|image" accept="…" readonly value="data:…">
+//   <mateu-capture-field mode="signature|camera|file|image|url" accept="…" readonly value="data:…">
+//
+// `url` is the image stereotype (an image by its URL): editable, the URL input with a contained preview
+// under it that follows what is typed; read-only, the image alone.
 //
 // The pure part (how a file is read, what text it shows) is exported and tested in Node; the DOM part
 // is defined once per document (defineCaptureField).
@@ -118,6 +121,11 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
       const actions = doc.createElement('div')
       actions.className = 'oj-sm-margin-2x-top'
 
+      if (mode === 'url' && !readonly) {
+        this.renderUrl(box, value)
+        this.appendChild(box)
+        return
+      }
       if (value && (mode !== 'file' || isImageValue(value))) {
         const img = doc.createElement('img')
         // the guard inline, where the value is assigned: only data:image, http(s) or a path with no
@@ -163,6 +171,31 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
       }
       this.appendChild(box)
       if (actions.childNodes.length) this.appendChild(actions)
+    }
+
+    /** The image stereotype, editable: its URL typed in, the preview following it (committed on change). */
+    renderUrl(box, value) {
+      const input = doc.createElement('input')
+      input.type = 'url'
+      input.className = 'oj-text-field-input mateu-capture-url'
+      input.value = value
+      const label = this.getAttribute('aria-label')
+      if (label) input.setAttribute('aria-label', label)
+      const img = doc.createElement('img')
+      img.alt = ''
+      img.className = 'mateu-capture-preview'
+      const show = (v) => {
+        // the same guard as the other modes: only data:image, http(s) or a scheme-less path
+        const src = safeImageSrc(v)
+        if (src) img.src = src; else img.removeAttribute('src')
+        img.hidden = !src
+      }
+      show(value)
+      input.addEventListener('input', () => show(input.value))
+      input.addEventListener('change', () => this.emit(input.value.trim()))
+      box.classList.add('mateu-capture-url-box')
+      box.appendChild(input)
+      box.appendChild(img)
     }
 
     renderPad(box, actions) {
