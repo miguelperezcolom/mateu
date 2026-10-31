@@ -79,7 +79,7 @@ jobs:
       - name: Install
         if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
         run: |
-          npm ci
+          npm ci --ignore-scripts
           echo "MATEU_ANDROID_VERSION_CODE=$((100000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
       - name: Generate the native project
         if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'

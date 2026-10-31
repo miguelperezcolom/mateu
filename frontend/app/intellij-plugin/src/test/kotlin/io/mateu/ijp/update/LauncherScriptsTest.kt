@@ -92,7 +92,7 @@ class LauncherScriptsTest {
         staged("new")
         // the pending dir cannot lose its entry → the second rename fails
         val pending = update.resolve("pending").toFile()
-        pending.setWritable(false)
+        check(pending.setWritable(false))
         try {
             val (code, out) = applyUpdate()
             assertEquals(0, code)
@@ -100,7 +100,7 @@ class LauncherScriptsTest {
             assertEquals("old", jar())
             assertFalse(Files.exists(update.resolve("previous")))
         } finally {
-            pending.setWritable(true)
+            check(pending.setWritable(true))
         }
     }
 
@@ -140,7 +140,7 @@ class LauncherScriptsTest {
             if [ ! -f "${'$'}HERE/restarted" ]; then touch "${'$'}HERE/restarted"; exit 88; fi
             exit 3
             """.trimIndent() + "\n",
-        ).toFile().setExecutable(true)
+        ).toFile().setExecutable(true).let(::check)
         val (code, _) = sh(root.resolve("mateu.sh").toFile(), "mateu://add?u=x")
         assertEquals(3, code)
         val log = Files.readAllLines(root.resolve("log"))
@@ -161,7 +161,7 @@ class LauncherScriptsTest {
         Files.copy(File(installer, "updates.xml").toPath(), res.resolve("updates.xml"))
         val wrapper = macos.resolve("idea")
         Files.writeString(wrapper, File(installer, "macos/launcher.sh").readText().replace("@PRODUCT@", "Mateu").replace("@EXEC@", "idea"))
-        write(macos.resolve("idea-original"), "#!/bin/sh\necho \"started ${'$'}*\"\n").toFile().setExecutable(true)
+        write(macos.resolve("idea-original"), "#!/bin/sh\necho \"started ${'$'}*\"\n").toFile().setExecutable(true).let(::check)
         val env = mapOf("MATEU_SUPPORT_DIR" to support.toString())
         fun supportJar() = Files.readString(support.resolve("plugins/mateu-intellij-plugin/lib/plugin.jar"))
 

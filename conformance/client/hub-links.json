@@ -146,7 +146,7 @@
       }
     },
     {
-      "input": "https://acme.com/‮moc.live",
+      "input": "https://acme.com/\u202emoc.live",
       "result": {
         "ok": false,
         "reason": "The address contains spaces or hidden characters."
