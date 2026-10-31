@@ -124,18 +124,40 @@ export function overlaysClosedVarsOf(reg) {
   return { mateuRegistry: next, mateuDrawerOpen: false, mateuDrawer: vars.drawer, mateuDialog: vars.dialog }
 }
 
-export function listHeaderVarsOf(listingSummary) {
+export function listHeaderVarsOf(listingSummary, selection = null) {
   const toolbar = listingSummary ? listingSummary.toolbar : []
+  const required = (listingSummary && listingSummary.selectionRequired) || []
   const primaryToolbar = toolbar.length ? toolbar[0] : null
   // a DISABLED button (CrudDisplay New/Delete: Toggle.disabled) is shown but inert: oj-sp's
-  // display 'disabled'
+  // display 'disabled'. An action that needs rows (Delete, a @ListToolbarButton…) is ALSO disabled
+  // while nothing is checked — as Spectra's collection actions are — and comes on with the first
+  // checked row (listSecondaryForSelection, from the selection chain)
   return {
     mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
     mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
     // a primary that NAVIGATES (a RouteLink button): listPrimary goes there instead of running the id
     mateuListPrimaryRoute: primaryToolbar && primaryToolbar.route ? primaryToolbar.route : '',
-    mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
+    mateuListSecondary: listSecondaryForSelection(toolbar.slice(1).map((b) => ({
+      id: b.actionId, value: b.actionId, label: b.label,
+      ...(b.disabled ? { inert: true } : {}),
+      ...((b.rowsSelectedRequired || required.indexOf(b.actionId) >= 0) ? { needsSelection: true } : {}),
+    })), selection),
   }
+}
+
+/** Whether a listing selection (selectionOfKeySet) holds at least one row. */
+export function hasSelectedRows(selection) {
+  return !!selection && (selection.all || (selection.keys || []).length > 0)
+}
+
+/** The listing header's secondary actions with their `display` for a selection: an inert one is
+ *  always disabled, one that needs rows is disabled until a row is checked. */
+export function listSecondaryForSelection(items, selection) {
+  const any = hasSelectedRows(selection)
+  return (items || []).map((item) => {
+    const { display, ...rest } = item
+    return (item.inert || (item.needsSelection && !any)) ? { ...rest, display: 'disabled' } : rest
+  })
 }
 
 /**

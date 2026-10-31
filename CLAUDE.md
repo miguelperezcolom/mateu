@@ -482,7 +482,12 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   owns the page header (Toolkit 26C draws none above the layout): `foldoutPageHeaderOf` turns the form's
   toolbar into the layout's own controls — back → go-to-parent (labelled like the button), the rest → the
   overview panel's actions (an «Edit» primary as the pencil), each a RouteLink resolved through
-  `header.ctas` (dispatchHostBlockAction ctaId/ctas); the chains read `foldoutNow.ownsHeader`. The foldout
+  `header.ctas` (dispatchHostBlockAction ctaId/ctas); the chains read `foldoutNow.ownsHeader`. Since
+  2026-10-31 ANY page-level foldout does the same (`foldoutToolbarHeaderOf` over `pageToolbarOf`: back,
+  else the trail's parent via `parentCrumbOf` → go-to-parent; the rest → the overview panel's actions,
+  which Spectra folds into its «…» menu; the page subtitle heads the overview) unless an EntityHeader
+  needs the band; the wire's FoldoutLayout.navigation keeps priority. Pinned panels follow one another
+  (app.css `justify-content: flex-start` — Spectra's space-between left a gap). The foldout
   title and panel summaries now interpolate `${state.x}`, and a lone `Avatar` atom interpolates its
   name/image and paints `lg` (groups stay `xs`).
 - **`MultimediaContentPage`** (field `backgroundColor`): Spectra 2604 has NO `oj-sp-multimedia-content-page`
