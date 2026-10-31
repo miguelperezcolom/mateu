@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=@PRODUCT@
+Comment=@PRODUCT@ desktop app
+Exec="@INSTALL_DIR@/mateu.sh" %u
+Icon=@INSTALL_DIR@/@SLUG@.png
+Terminal=false
+Categories=Office;
+StartupWMClass=jetbrains-idea-ce
+@MIME@

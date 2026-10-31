@@ -49,16 +49,25 @@ the boot gate in `plugin/MateuProjectService.kt`. Headless verification:
 ./gradlew buildInstaller -Pinstaller.platform=windows
 ./gradlew buildInstaller -Pinstaller.platform=macos   # → build/installer/Mateu.app (+ .zip, .dmg)
 ./gradlew buildInstaller -Pinstaller.platform=macos -Pinstaller.arch=intel
-./gradlew buildInstaller -Pmateu.registryUrl=https://registry.example.com -Pmateu.appId=demo-admin-panel
+./gradlew buildInstaller -Pmateu.registryUrl=https://registry.example.com -Pmateu.appId=demo-admin-panel  # a fixed app
+./gradlew buildInstaller -Pmateu.variant=fixed -Pmateu.baseUrl=https://admin.example.com -Pmateu.productName="Acme Admin"
+./gradlew desktopUpdateFeed -Pfeed.downloadBase=https://…/releases/download/v3.0-beta.N   # the release's update feed
 ```
 
-**linux / windows** → `build/installer/mateu-desktop-<version>-<platform>.tar.gz|.zip` (~1.2 GB):
+Variants: `hub` (default — a list of UIs, owns `mateu://` links) or `fixed` (one UI: a base URL or
+registry coordinates, required; no `mateu://`). The app updates its plugin itself
+(`io.mateu.ijp.update`: feed → download → sha256 → staged → swapped in by the launcher before the next
+start, `installer/apply-update.sh|.cmd`); IntelliJ's own update checks are off. User docs:
+`doc/src/content/docs/native/desktop-app.md`; CI: `.github/workflows/desktop.yml`.
+
+**linux / windows** → `build/installer/mateu-desktop-<version>-linux.tar.gz` (+ `install.sh`, a
+`.desktop` entry) | `…-windows.zip` and, with `makensis` on the PATH, `…-windows-setup.exe` (~1.2 GB):
 **IntelliJ IDEA Community with the Mateu plugin preinstalled**, fully **portable** (config/system/log
 live in `data/` inside the bundle — it never touches an existing IDE install), first-boot prompts
 pre-answered, and a `mateu.sh` / `mateu.bat` launcher that opens the bundled workspace directly.
 
-**macos** → `build/installer/Mateu.app` (+ `mateu-desktop-<version>-macos.zip` and a double-click
-`…-macos.dmg` with a drag-to-`/Applications` shortcut): the Community `.app`
+**macos** → `build/installer/Mateu.app` (+ `mateu-desktop-<version>-macos-<arch>.zip` and a double-click
+`…-macos-<arch>.dmg` with a drag-to-`/Applications` shortcut): the Community `.app`
 **rebranded "Mateu"** — app name (`CFBundleName`) + icon (`branding/mateu.icns`, the Mateu star on a
 brand-gradient squircle). The `.dmg` is mounted, the `.app` copied out and modified: the plugin is
 **staged** in `Contents/Resources/mateu-plugin` and a **launcher wrapper** (`Contents/MacOS/idea`)

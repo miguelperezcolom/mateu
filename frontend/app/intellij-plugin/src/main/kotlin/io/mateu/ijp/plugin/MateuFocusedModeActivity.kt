@@ -28,6 +28,8 @@ class MateuFocusedModeActivity : ProjectActivity {
         // Not a Mateu project (no backend configured, not the standalone distribution): stay out of
         // the way — no boot, no HTTP, no tool window popping open.
         if (!cfg.configured) return
+        // The desktop app keeps itself up to date (a no-op anywhere else; see io.mateu.ijp.update).
+        if (cfg.standalone) io.mateu.ijp.update.MateuUpdater.startBackgroundChecks()
         withContext(Dispatchers.EDT) {
             if (focused) {
                 // Explicit-save UX (app-shell only): Mateu authors edit and save WHEN THEY DECIDE
