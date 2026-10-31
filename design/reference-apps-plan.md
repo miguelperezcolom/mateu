@@ -122,8 +122,10 @@ Exit: a report that says, item by item, where it is used or why it is not.
 
 ### Phase 1 — the two apps in YAML (in progress, 2026-10-31)
 
-- [ ] `museum-service` + `demo-museum` (branch `feat/demo-museum`) — first cut being built.
-- [ ] `space-service` + `demo-space` (branch `feat/demo-space`) — first cut being built.
+- [x] `museum-service` + `demo-museum` (branch `feat/demo-museum`) — first cut; public at
+      museums.ec1.mateu.io / museums-rw.ec1.mateu.io (data: github.com/miguelperezcolom/museum-service).
+- [x] `space-service` + `demo-space` (branch `feat/demo-space`) — first cut; public at
+      space.ec1.mateu.io / space-rw.ec1.mateu.io (data: github.com/miguelperezcolom/space-service).
 - [ ] Close the YAML-expressible gaps of the phase-0 report, page by page.
 - [ ] Both renderers by hand; Mateu bugs found → their own PRs.
 - [ ] Publish the data services (`museum.mateu.io`, `space.mateu.io`) and the demos; retire or freeze
@@ -193,6 +195,7 @@ Exit: green on both web renderers, on every PR.
 
 ## Log
 
+- 2026-10-31 — Both theme apps' first cut public on the demos cluster; data services on GitHub.
 - 2026-10-31 — The Explorer added as the third reference app (§2), growing `demo/explorer`.
 - 2026-10-31 — Plan written. Phase 1 started: both apps' first cut (data service + YAML demo) under
   way on `feat/demo-museum` and `feat/demo-space`.
