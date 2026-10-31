@@ -66,8 +66,20 @@ public class AppMappingUtils {
   }
 
   public static boolean isSelected(Actionable actionable, String appRoute, String route) {
+    return isSelected(actionable, actionable.path(), appRoute, route);
+  }
+
+  /**
+   * As {@link #isSelected(Actionable, String, String)}, comparing {@code path} — the entry's path
+   * below its group, as the menu carries it — instead of the entry's own. An entry inside a group
+   * is authored relative to it ({@code /roles} in {@code /users}); compared as authored, an entry
+   * named like its group ({@code /users}) matched every route of the group and was selected on all
+   * of them, and the others matched none.
+   */
+  public static boolean isSelected(
+      Actionable actionable, String path, String appRoute, String route) {
     if (route != null && !route.isEmpty() && !appRoute.equals(route)) {
-      if (actionable.path() == null) {
+      if (path == null) {
         return false;
       }
       // The entry's path is relative to the app; a route that carries the app's own route (an
@@ -75,7 +87,6 @@ public class AppMappingUtils {
       // non-root app is ever selected.
       // …and an entry authored WITH the app's route (/e2-demo/page, a code-authored AppShell's
       // natural spelling) is the same entry as its mount-relative spelling
-      var path = actionable.path();
       if (appRoute != null
           && !appRoute.isEmpty()
           && !"/".equals(appRoute)
@@ -88,7 +99,7 @@ public class AppMappingUtils {
               && !appRoute.isEmpty()
               && !"/".equals(appRoute)
               && route.startsWith(appRoute + "/")
-              && matchesPath(actionable.path(), route.substring(appRoute.length())));
+              && matchesPath(path, route.substring(appRoute.length())));
     }
     return actionable.selected();
   }
