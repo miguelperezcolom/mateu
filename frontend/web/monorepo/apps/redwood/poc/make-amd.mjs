@@ -259,6 +259,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dynFormMetadataOf,
     actionsOf,
     summarizeHost,
+    parentCrumbOf,
     withinAppLevels,
     findByType,
     // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
@@ -597,6 +598,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // the page projection and the outbound action plan the two big page chains share
     // (poc/pageProjection.mjs, poc/actionPlan.mjs)
     listHeaderVarsOf,
+    listSecondaryForSelection,
     wizardVarsOf,
     archetypeVarsOf,
     islandVarsOf,
