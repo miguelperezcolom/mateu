@@ -277,6 +277,7 @@ export const NO_THUMBNAIL: Readonly<Record<string, string>> = {
     Directory: 'a menu entry, pictured by the app shell',
     AppShell: 'the whole app chrome; it needs a running app behind it',
     MicroFrontend: 'another app embedded at runtime',
+    ContentSlot: 'content another service answers at runtime (its fallback is plain text)',
     EmbeddedView: 'a server view embedded at runtime',
     ComponentRef: 'whatever the referenced component is',
     Partial: 'whatever the referenced partial holds',

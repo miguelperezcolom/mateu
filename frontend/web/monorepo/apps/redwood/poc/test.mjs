@@ -6842,7 +6842,7 @@ atest('MicroFrontend resuelto en el host: se pinta sin pedir nada, y sus accione
     const m = { baseUrl: 'https://content.acme.com/hub', route: '/widget', serverSideType: 'remote.Widget' }
     const sub = mfeOf({ ...m, resolved: mfeAnswer(mfeOf(m).id, 'hello from the remote') })
     assert.ok(sub.resolved, 'the answer travels with the surface')
-    let reg = await mfeLoadSubresource('http://host', empty(), sub, { appState: {} })
+    let reg = await mfeLoadSubresource('https://host', empty(), sub, { appState: {} })
     assert.equal(seen.length, 0, 'no request for the first paint')
     assert.equal(reg.contexts[sub.id].state.likes, 1)
     assert.equal(reg.contexts[sub.id].outbound.baseUrl, 'https://content.acme.com/hub')
@@ -6863,7 +6863,7 @@ atest('MicroFrontend sin resolver: lo pide a su remoto, como siempre', async () 
   try {
     const sub = mfeOf({ baseUrl: 'https://content.acme.com/hub', route: '/widget' })
     assert.equal(sub.resolved, null)
-    await mfeLoadSubresource('http://host', empty(), sub, { appState: {} })
+    await mfeLoadSubresource('https://host', empty(), sub, { appState: {} })
     assert.equal(seen.length, 1)
     assert.match(seen[0].url, /^https:\/\/content\.acme\.com\/hub\//)
   } finally { globalThis.fetch = original }

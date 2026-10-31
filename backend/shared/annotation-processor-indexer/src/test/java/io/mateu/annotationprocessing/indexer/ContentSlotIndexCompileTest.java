@@ -135,4 +135,30 @@ public class ContentSlotIndexCompileTest {
                     + " @io.mateu.uidl.annotations.ContentSlot(key = \"app.a.x\") String y; }"));
     assertThat(compiled.errors()).singleElement().asString().contains("already used by");
   }
+
+  @Test
+  public void aComposedAnnotationCarryingTheSlotIsNotASlotItself() throws Exception {
+    var compiled =
+        compile(
+            Map.of(
+                "com.acme.Promo",
+                "package com.acme; @io.mateu.uidl.annotations.ContentSlot(key = \"bad key\")"
+                    + " @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)"
+                    + " public @interface Promo {}"));
+    assertThat(compiled.errors()).isEmpty();
+    assertThat(compiled.descriptor()).isNull();
+  }
+
+  @Test
+  public void anEmptyIndexWithoutAVersionIsStillADescriptor() {
+    assertThat(new ContentSlotIndex().toJson(null))
+        .isEqualTo("{\n  \"version\": 1,\n  \"slots\": []\n}\n");
+    assertThat(new ContentSlotIndex().toJson("3.0")).contains("\"mateuVersion\": \"3.0\"");
+  }
+
+  @Test
+  public void textIsEscapedAsJson() {
+    assertThat(ContentSlotIndex.quote("a\"b\\c\nd\re\tf\u0001g"))
+        .isEqualTo("\"a\\\"b\\\\c\\nd\\re\\tf\\u0001g\"");
+  }
 }
