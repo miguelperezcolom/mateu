@@ -1,3 +1,4 @@
+import { pageListingNodeOf } from './listing.mjs'
 import { autoTrail, parentCrumb } from '../breadcrumbs.mjs'
 import { HOST_ID, actionsOf, dynFormMetadataOf, fieldListOf, formSectionsOf } from './tree.mjs'
 import { buttonRouteOf, interpolate } from './content.mjs'
@@ -518,7 +519,7 @@ export function menuOptionAt(options, route) {
 
 /** The title the host's Crud declares, if any. */
 export function crudTitleOf(host) {
-  const crud = host && host.tree ? findByType(host.tree, 'Crud') : null
+  const crud = host && host.tree ? pageListingNodeOf(host.tree) : null
   return crud && crud.metadata ? crud.metadata.title : ''
 }
 

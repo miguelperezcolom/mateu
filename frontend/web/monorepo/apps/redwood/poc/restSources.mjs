@@ -25,7 +25,7 @@
 // do not know the rows came from elsewhere. Field options load in `loadRestOptions` (from
 // loadLookups). Pure except the default fetch, which every function takes as an argument.
 
-import { findFirst } from './core/listing.mjs'
+import { findFirst, pageListingNodeOf, nestedListingNodesOf, nestedListingKeyOf, NESTED_LISTING_ACTION } from './core/listing.mjs'
 import { collectFields } from './core/tree.mjs'
 import { pageHeaderNodeOf, RECORD_SWITCHER_OPTIONS } from './core/pageHeader.mjs'
 import { declaredActionOf, LOOKUP_LOADED } from './core/rowEditor.mjs'
@@ -488,9 +488,25 @@ export function sortRestRows(rows, sort) {
 
 // ── the listing ───────────────────────────────────────────────────────────────────────────────
 
+/**
+ * The rows of a listing NESTED in a templated page's content (its `__nestedlisting__:<key>` OnLoad):
+ * its source fetched like a page listing's first page (the record's state interpolated), answered as
+ * a data-only increment that keeps them under the listing's own key — never `crud`, the page listing's.
+ */
+export function nestedListingAnswerOf(ctx, actionId, opts = {}) {
+  const key = String(actionId).slice(NESTED_LISTING_ACTION.length)
+  const node = nestedListingNodesOf(ctx && ctx.tree).find((n) => nestedListingKeyOf(n) === key)
+  if (!node) return Promise.resolve(restIncrement([]))
+  return restRowsIncrement(ctx, node, { ...((ctx && ctx.state) || {}), page: 0 }, opts).then((inc) => ({
+    ...inc,
+    fragments: (inc.fragments || []).map((f) => ({ ...f, data: { [key]: (f.data && f.data.crud) || { page: { content: [] } } } })),
+  }))
+}
+
 /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
 export function restListingOf(ctx) {
-  const node = ctx && ctx.tree ? findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud') : null
+  // the PAGE's listing: one nested in a templated page's content is answered by nestedListingAnswerOf
+  const node = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
   return node && node.metadata && node.metadata.rowsSource ? node : null
 }
 
@@ -771,6 +787,7 @@ export function restAnswerOf(ctx, actionId, componentState, opts = {}) {
   if (!ctx || !actionId) return null
   const rest = restActionOf(ctx, actionId)
   if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
+  if (String(actionId).indexOf(NESTED_LISTING_ACTION) === 0) return nestedListingAnswerOf(ctx, actionId, opts)
   if (actionId === 'search') {
     const node = restListingOf(ctx)
     if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)

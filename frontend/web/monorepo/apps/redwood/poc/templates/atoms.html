@@ -533,7 +533,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isImage ]]">
-                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                      <img class="mateu-atom-image" :class="[[ $current.data.cls || '' ]]" :style="[[ $current.data.style || {} ]]" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAvatar ]]">
                       <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
@@ -555,6 +555,71 @@
                           </template>
                         </oj-bind-for-each>
                       </oj-film-strip>
+                    </oj-bind-if>
+                    <!-- a LISTING nested in a templated page's content (a general overview's slot, a multimedia
+                         section, a welcome's featured cards, a collection detail's works): its first page,
+                         drawn where it sits — picture cards (an action card per row opening its rowRoute) or a
+                         table whose title column links to the row's route (listing.mjs nestedListingAtomOf) -->
+                    <oj-bind-if test="[[ $current.data.isNestedListing ]]">
+                      <div class="mateu-nested-listing oj-sm-margin-2x-bottom" :data-nested-listing="[[ $current.data.nestedKey ]]">
+                        <oj-bind-if test="[[ !!$current.data.title ]]">
+                          <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.isEmpty ]]">
+                          <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <div class="oj-flex mateu-nested-cards">
+                            <oj-bind-for-each data="[[ $current.data.cards ]]">
+                              <template>
+                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
+                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                    <oj-action-card class="mateu-nested-card" style="width:100%"
+                                      on-oj-action="[[ $listeners.{{blockAction}} ]]">
+                                      <oj-bind-if test="[[ !!$current.data.image ]]">
+                                        <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
+                                      </oj-bind-if>
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm"><span class="oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                    <div class="oj-panel mateu-nested-card">
+                                      <oj-bind-if test="[[ !!$current.data.image ]]">
+                                        <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
+                                      </oj-bind-if>
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm"><span class="oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                            <template slot="cellNestedLink">
+                              <a :href="[[ $current.row.__href ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
+                            </template>
+                            <template slot="cellNestedImage">
+                              <img class="mateu-nested-cell-img" :src="[[ $current.data ]]" alt="" />
+                            </template>
+                          </oj-table>
+                        </oj-bind-if>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">

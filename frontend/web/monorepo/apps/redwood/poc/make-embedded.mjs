@@ -86,8 +86,8 @@ const BUILT_IN = new Set(['oj-bind-if', 'oj-bind-for-each', 'oj-bind-text', 'oj-
 
 /** The modules that define the view's components: the pages' imports, plus the oj-c-* convention
  *  (oj-c-progress-bar → oj-c/progress-bar). Fails on a tag nothing defines. */
-// modules VB resolves and a bare JET does not: oj-tab-bar lives in ojs/ojnavigationlist (the
-// standalone page declares ojs/ojtabbar; the shell loads ojnavigationlist anyway, so it never shows)
+// modules a bare JET does not have: oj-tab-bar lives in ojs/ojnavigationlist (JET ships no
+// ojs/ojtabbar — requested from the CDN it answers 404; the page now imports ojnavigationlist itself)
 export const MODULE_ALIASES = { 'ojs/ojtabbar': 'ojs/ojnavigationlist' }
 
 export function componentModulesOf(html, imports) {

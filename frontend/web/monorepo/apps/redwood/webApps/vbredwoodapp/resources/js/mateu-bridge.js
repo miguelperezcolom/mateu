@@ -27,6 +27,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       loading: 'Loading',
       search: 'Search…',
       noData: 'No data',
+      rangeTo: 'To',
       new: 'New',
       confirm: 'Confirm',
       cancel: 'Cancel',
@@ -262,6 +263,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       loading: 'Cargando',
       search: 'Buscar…',
       noData: 'Sin datos',
+      rangeTo: 'Hasta',
       new: 'Nuevo',
       confirm: 'Confirmar',
       cancel: 'Cancelar',
@@ -3656,6 +3658,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
     'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
     'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
+    // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
+    'isNestedListing',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -3733,6 +3737,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
     return { wizard, title: title || wizard.title, subtitle: wizard.subtitle, content, sections, nav }
   }
+
 
 
 
@@ -3932,6 +3937,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         kpiActionId: mm ? (mm.actionId || '') : '',
       }
     })
+    // a LISTING the welcome declares among its pieces (featured records as picture cards): a full-width
+    // tile of its own, where it sits — before the tiles when it comes before them. It was taken for the
+    // page's listing and, the welcome owning the page, drawn nowhere.
+    if (declaresTemplate(ctx, 'WelcomePage')) {
+      // by POSITION (the VB registry is read through proxies: node identity is not reliable)
+      const nested = new Set(nestedListingNodesOf(ctx.tree).map(nestedListingKeyOf))
+      const before = []
+      const after = []
+      let tilesSeen = false
+      walkWithinSurface(ctx.tree, (n) => {
+        const type = n && n.metadata && n.metadata.type
+        if (type === 'DashboardLayout' || type === 'DashboardPanel') tilesSeen = true
+        if (type !== 'Crud' || !nested.has(nestedListingKeyOf(n))) return
+        const atom = nestedListingAtomOf(n, ctx)
+        ;(tilesSeen ? after : before).push({ title: atom.title, subtitle: '', colClass: 'oj-flex-item oj-sm-12', texts: [], textNodes: [],
+          items: [{ ...atom, title: '' }], isKpi: false, kpiTitle: '', kpiValue: '', kpiCaption: '', kpiTimeframe: '', kpiAriaLabel: '', kpiActionId: '' })
+      })
+      tiles.unshift(...before)
+      tiles.push(...after)
+    }
     // the charts are drawn in their tiles now (the full-width chart under the tiles is gone)
     const trend = null
     return {
@@ -4406,7 +4431,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const form = templateFormOf(ctx)
     return {
       title: interpolate(String((form && form.metadata && form.metadata.title) || ''), state),
-      collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list')),
+      // the collection slot's listing is the PAGE's (painted by the listing body), not a nested one
+      collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list'))
+        .map((b) => ({ ...b, items: (b.items || []).filter((a) => !(a && a.isNestedListing)) }))
+        .filter((b) => (b.items || []).length || b.isSpSectionHeader),
       selectedItems: detailNode ? [{ id: String(state.id != null ? state.id : 'selected') }] : [],
       detail: detailNode ? blocksOf(detailNode) : [],
       noSelection: detailNode ? [] : blocksOf(nodeById(ctx.tree, 'collection-detail-no-selection')),
@@ -5793,7 +5821,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // its affordances (@Section(addAction, editAction, viewMoreAction)) are the section's own
           // buttons — add as its primary action, edit, view more — and leave the body
           card.sectionActions = sectionAffordancesOf(node)
-          card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items), card.sectionActions)
+          card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items, interp(card.sectionTitle)), card.sectionActions)
         }
         plain = null
         return
@@ -6115,7 +6143,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Image') {
         // JET has no image component: an <img> capped at its container's width
         // a RELATIVE path is served by the backend (like an Element's module), not by the VB app
-        if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
+        // …with the component's own style (filtered like a Text's: presentation only) and cssClasses —
+        // without them a `max-width: 220px` portrait was drawn as wide as its column
+        if (m.src) {
+          atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || ''),
+            style: styleObjectOf(node.style || m.style), cls: String(node.cssClasses || m.cssClasses || '').trim() }, container)
+        }
         return
       }
       if (t === 'Avatar') {
@@ -6381,6 +6414,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
       if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
       if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
+      // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
+      // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
+      // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
+      if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
+        atom(nestedListingAtomOf(node, ctx), container)
+        return
+      }
       if (t === 'MicroFrontend') {
         // a surface of its own, loaded from its baseUrl like a @Subresource (withSubresources paints it)
         const sub = microFrontendOf(m)
@@ -6899,17 +6939,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * A section card's body for oj-sp-section, which draws the section's title itself: its atoms
    * without the leading heading — or, when the heading shares a title row with the section's buttons
    * (@Section(editAction…), an @Inline type's @Toolbar), that row without its heading.
+   * `title` (the section's, as drawn): only a heading that IS the title is dropped — a section whose
+   * title is its Card's own (`title:`) does not repeat it in its body, so its first heading is CONTENT
+   * (a `Text` with `container: h2` opening the section was taken for the title and lost).
    */
-  function sectionBodyOf(items) {
+  function sectionBodyOf(items, title) {
     const list = items || []
     const first = list[0]
-    if (first && first.isHeading) return list.slice(1)
-    if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading)) {
-      const rest = first.items.filter((i) => !(i && i.rowHeading))
+    const isTitle = (text) => title == null || String(text == null ? '' : text).trim() === String(title).trim()
+    if (first && first.isHeading && isTitle(first.text)) return list.slice(1)
+    if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading && isTitle(i.text))) {
+      const rest = first.items.filter((i) => !(i && i.rowHeading && isTitle(i.text)))
       return rest.length ? [{ ...first, items: rest }].concat(list.slice(1)) : list.slice(1)
     }
     return list
   }
+
 
 
 
@@ -7432,7 +7477,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The title the host's Crud declares, if any. */
   function crudTitleOf(host) {
-    const crud = host && host.tree ? findByType(host.tree, 'Crud') : null
+    const crud = host && host.tree ? pageListingNodeOf(host.tree) : null
     return crud && crud.metadata ? crud.metadata.title : ''
   }
 
@@ -7518,6 +7563,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
   /** RENDER helper: first node of the tree with the given metadata.type. */
@@ -7540,6 +7587,139 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let found = null
     walkWithinSurface(tree, (n) => { if (!found && test(n)) found = n })
     return found
+  }
+
+  // ── NESTED LISTINGS: a Listing inside a page template's content ─────────────────────────────────
+  //
+  // A page that DECLARES a template (YAML `template:`) lays its content out in the template's slots,
+  // and a Listing among that content (a general overview's «launches from here», a multimedia page's
+  // gallery section, a welcome's featured cards, a collection detail's works) is PART of that content,
+  // as on Vaadin — not the page's own listing. Taken for the page listing it was hoisted out of its
+  // slot: painted on top with its search bar (and the page painted again below it), or not at all.
+  // Only the templates whose listing IS the page (a hero search's results, a data management page's
+  // table, a collection detail's collection slot) keep the listing branch.
+
+  /** The templates whose listing is the PAGE's own (the listing branch, or the slot holding it). */
+  const PAGE_LISTING_TEMPLATES = { HeroSearchPage: true, DataManagementPage: true, CollectionDetailPage: true }
+
+  /** The template a page DECLARES (`template:` on its Form, served wrapped in its ServerSide), or ''. */
+  function declaredTemplateTypeOf(tree) {
+    let node = tree
+    while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
+    const md = node && node.metadata
+    return md && md.type === 'Form' && md.template && md.template.type ? String(md.template.type) : ''
+  }
+
+  /** Whether a page's template holds its listings as CONTENT (nested listings) rather than as the page. */
+  function templateNestsListings(tree) {
+    const type = declaredTemplateTypeOf(tree)
+    return !!type && !PAGE_LISTING_TEMPLATES[type]
+  }
+
+  /** Every Listing (Crud) of the surface, in document order (not crossing into another surface). */
+  function cruds(tree) {
+    const out = []
+    walkWithinSurface(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud') out.push(n) })
+    return out
+  }
+
+  /** The PAGE's own listing — the one the listing branch paints: the first Listing of a page without a
+   *  template; the collection slot's on a collection detail; none on a template that nests them. */
+  function pageListingNodeOf(tree) {
+    const all = cruds(tree)
+    if (!all.length) return null
+    const type = declaredTemplateTypeOf(tree)
+    if (!type) return all[0]
+    if (!PAGE_LISTING_TEMPLATES[type]) return null
+    if (type === 'CollectionDetailPage') {
+      const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')
+      return (list && cruds(list)[0]) || null
+    }
+    return all[0]
+  }
+
+  /** The listings painted IN the content of a templated page (they read their rows from a source). */
+  function nestedListingNodesOf(tree) {
+    const own = pageListingNodeOf(tree)
+    const ownKey = own ? nestedListingKeyOf(own) : null
+    return cruds(tree).filter((n) => n !== own && n.metadata.rowsSource && (!ownKey || nestedListingKeyOf(n) !== ownKey))
+  }
+
+  /** A nested listing's key — where its rows are kept (ctx.data[key]) and the suffix of the action that
+   *  loads them. From what it IS (its source, columns, title), not its position: the slots are projected
+   *  from sub-trees, where the page's document order is not known. */
+  function nestedListingKeyOf(node) {
+    const md = (node && node.metadata) || {}
+    const columns = leafColumnsOf(md.columns || []).map((c) => (c && (c.metadata ? c.metadata.id || c.id : c.id)) || '')
+    return 'nestedListing-' + stableHashOf(JSON.stringify([md.rowsSource || null, columns, md.title || '', md.rowRoute || '']))
+  }
+
+  /** The OnLoad action that loads a nested listing's rows (answered in the browser, restSources.mjs). */
+  const NESTED_LISTING_ACTION = '__nestedlisting__:'
+
+  /** The load actions of a context's nested listings. */
+  function nestedListingTriggersOf(ctx) {
+    const tree = ctx && ctx.tree
+    if (!tree) return []
+    return nestedListingNodesOf(tree).map((n) => NESTED_LISTING_ACTION + nestedListingKeyOf(n))
+  }
+
+  /**
+   * A nested listing as an ATOM of the content it sits in: its rows (ctx.data[key], once loaded) as
+   * picture cards (`gridLayout: cards`) or as a table; a row with a `rowRoute` opens it (a card is an
+   * action card that navigates, a table row's first column a link). Its first page only: no search
+   * bar, filters or pager — those belong to a page's own listing.
+   */
+  function nestedListingAtomOf(node, ctx) {
+    const md = (node && node.metadata) || {}
+    const key = nestedListingKeyOf(node)
+    const state = (ctx && ctx.state) || {}
+    const loaded = ctx && ctx.data ? ctx.data[key] : null
+    const page = (loaded && loaded.page) || {}
+    const columns = leafColumnsOf(md.columns || []).map((c) => ({ ...(c.metadata || c), id: (c.metadata && c.metadata.id) || c.id }))
+      .filter((c) => c.id && c.dataType !== 'actionGroup')
+    const rows = labelCellRows(page.content || [], columns)
+    const text = (v) => (v == null ? '' : typeof v === 'object' ? String(v.value ?? v.message ?? v.label ?? '') : String(v))
+    const imageCol = columns.find((c) => c.stereotype === 'image')
+    const titleCol = columns.find((c) => c.identifier && c !== imageCol) || columns.find((c) => c !== imageCol)
+    const cellOf = (row, c) => text(labelColumn(c) ? row[c.id + LABEL_CELL_SUFFIX] : row[c.id])
+    const asCards = md.gridLayout === 'cards' || !!md.showCards
+    const routeOf = (row) => rowRouteOf(md.rowRoute, row)
+    const cards = asCards ? rows.map((row, i) => ({
+      key: String(row._rowNumber != null ? row._rowNumber : i),
+      image: imageCol ? text(row[imageCol.id]) : '',
+      title: titleCol ? cellOf(row, titleCol) : '',
+      lines: columns.filter((c) => c !== imageCol && c !== titleCol)
+        .map((c) => ({ label: c.label || c.id, value: cellOf(row, c) }))
+        .filter((l) => l.value !== ''),
+      route: routeOf(row),
+    })) : []
+    const tableRows = asCards ? [] : rows.map((row, i) => {
+      const route = routeOf(row)
+      return { ...row, __key: String(row._rowNumber != null ? row._rowNumber : i), __href: route ? urlOfRoute(route.charAt(0) === '/' ? route : '/' + route) : '' }
+    })
+    const tableColumns = asCards ? [] : columns.map((c, i) => {
+      const field = labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id
+      // its first page only, as it came: no sorting (a header arrow that sorted nothing)
+      const def = { headerText: c.label || c.id, field, id: c.id, sortable: 'disabled' }
+      if (c.stereotype === 'image') def.template = 'cellNestedImage'
+      else if (md.rowRoute && c === titleCol) def.template = 'cellNestedLink'
+      return def
+    })
+    return {
+      isNestedListing: true,
+      nestedKey: key,
+      title: interpolate(String(md.title || ''), state),
+      asCards,
+      asTable: !asCards,
+      cards,
+      columns: tableColumns,
+      rows: tableRows,
+      adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
+      loaded: !!loaded,
+      isEmpty: !!loaded && rows.length === 0,
+      emptyText: md.emptyStateMessage || chromeText('noData'),
+    }
   }
 
   /** Projection of the LISTING (Crud component): columns + rows (from the data axis) + search.
@@ -7628,7 +7808,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The pre-search blocks while no search has answered yet; null otherwise (or when none). */
   function listingPreSearchBlocksOf(ctx) {
-    const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+    const crudNode = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
     const pre = crudNode && crudNode.metadata && Array.isArray(crudNode.metadata.preSearch) ? crudNode.metadata.preSearch : []
     if (!pre.length || listingSearchedOf(ctx)) return null
     // kind island: as host content the first EmptyState is the page's own one, and skipped
@@ -7671,7 +7851,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function listingBaseOf(ctx, opts = {}) {
-    const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+    const crudNode = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
     if (!crudNode) return null
     // column groups flattened to their leaf columns (leafColumnsOf): from here on a listing only
     // ever sees plain columns
@@ -9224,11 +9404,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .map((t) => t.actionId)
     // a listing reading its rows from a REST source (rowsSource) loads them on opening, as the web's
     // mateu-table-crud does — a YAML listing carries no OnLoad trigger of its own
-    if (ids.indexOf('search') < 0 && ctx && ctx.tree
-        && findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud' && !!n.metadata.rowsSource)) {
+    // (the PAGE's listing: one nested in a templated page's content is loaded on its own, below)
+    const own = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
+    if (ids.indexOf('search') < 0 && own && own.metadata && !!own.metadata.rowsSource) {
       ids.push('search')
     }
-    return ids
+    // the listings nested in a templated page's content: each loads its rows on opening, kept apart
+    return ids.concat(nestedListingTriggersOf(ctx))
   }
 
   /**
@@ -9932,6 +10114,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let value = raw == null || raw === '' ? null : raw
     // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
     if (widget.isMoney && value != null && typeof value === 'object') value = value.value
+    if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)), messagesCustom: [] }
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
     else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -10272,9 +10455,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return value
   }
 
+  /** A `dateRange` form field ({from, to} on the wire, as Vaadin's vcf-date-range-picker edits it). */
+  function isDateRangeField(md) {
+    return !!md && (md.dataType === 'dateRange' || md.stereotype === 'dateRange')
+  }
+
+  /** The ids a date range's two inputs edit (`<field>#from`, `<field>#to`): JET has no range picker, so
+   *  each end is its own oj-input-date and its edit is folded back into the field (rangeEditOf). */
+  const RANGE_PART = /^(.+)#(from|to)$/
+
+  /** A range's ends from its wire value: {from, to}, or Vaadin's "from;to" text. */
+  function dateRangeEndsOf(value) {
+    if (value && typeof value === 'object') return { from: value.from || null, to: value.to || null }
+    if (typeof value === 'string' && value.indexOf(';') >= 0) {
+      const [from, to] = value.split(';')
+      return { from: from || null, to: to || null }
+    }
+    return { from: null, to: null }
+  }
+
+  /**
+   * The edit of one END of a date range (its input's field id is `<field>#from|to`) as the field's new
+   * value — `{fieldId, value: {from, to}}`, the other end kept from the draft or else the state — or null
+   * when the id is not a range end (the edit is the field's own).
+   */
+  function rangeEditOf(fieldId, draft, state, value) {
+    const m = RANGE_PART.exec(String(fieldId || ''))
+    if (!m) return null
+    const id = m[1]
+    const current = draft && id in draft ? draft[id] : (state || {})[id]
+    return { fieldId: id, value: { ...dateRangeEndsOf(current), [m[2]]: value == null || value === '' ? null : value } }
+  }
+
   /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
   function isExtraLayoutField(md) {
-    return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+    return !!(isDateRangeField(md) || md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
       || md.stereotype === 'email' || md.stereotype === 'link'
       || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
       || (md.stereotype === 'richText' && !md.readOnly)
@@ -10289,10 +10504,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  server shows as a fact — and send it back. */
   const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
 
+  /** The date range widget's own flags: its two ends as parts, each with the id its edit carries. */
+  function dateRangeWidgetOf(f, value) {
+    const ends = dateRangeEndsOf(value)
+    const label = f.label || f.fieldId
+    // the first end carries the field's label, the second says it is the end of the range
+    const part = (end, key) => ({
+      fieldId: f.fieldId + '#' + end,
+      label: key ? chromeText(key) : label,
+      value: ends[end],
+      required: !!f.required,
+      readonly: !!f.readOnly,
+    })
+    return { isDateRange: true, rangeParts: [part('from', ''), part('to', 'rangeTo')] }
+  }
+
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
     if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
-    const extra = extraWidgetOf(f, optionsOf(f, data), value)
+    // a DATE RANGE: two oj-input-date (from, to), each editing its end (rangeEditOf) — the field was
+    // not drawn at all (its type is not a layout type)
+    const extra = isDateRangeField(f) ? dateRangeWidgetOf(f, value) : extraWidgetOf(f, optionsOf(f, data), value)
     if (extra) {
       const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
       return {
@@ -18875,9 +19107,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── the listing ───────────────────────────────────────────────────────────────────────────────
 
+  /**
+   * The rows of a listing NESTED in a templated page's content (its `__nestedlisting__:<key>` OnLoad):
+   * its source fetched like a page listing's first page (the record's state interpolated), answered as
+   * a data-only increment that keeps them under the listing's own key — never `crud`, the page listing's.
+   */
+  function nestedListingAnswerOf(ctx, actionId, opts = {}) {
+    const key = String(actionId).slice(NESTED_LISTING_ACTION.length)
+    const node = nestedListingNodesOf(ctx && ctx.tree).find((n) => nestedListingKeyOf(n) === key)
+    if (!node) return Promise.resolve(restIncrement([]))
+    return restRowsIncrement(ctx, node, { ...((ctx && ctx.state) || {}), page: 0 }, opts).then((inc) => ({
+      ...inc,
+      fragments: (inc.fragments || []).map((f) => ({ ...f, data: { [key]: (f.data && f.data.crud) || { page: { content: [] } } } })),
+    }))
+  }
+
   /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
   function restListingOf(ctx) {
-    const node = ctx && ctx.tree ? findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud') : null
+    // the PAGE's listing: one nested in a templated page's content is answered by nestedListingAnswerOf
+    const node = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
     return node && node.metadata && node.metadata.rowsSource ? node : null
   }
 
@@ -19158,6 +19406,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!ctx || !actionId) return null
     const rest = restActionOf(ctx, actionId)
     if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
+    if (String(actionId).indexOf(NESTED_LISTING_ACTION) === 0) return nestedListingAnswerOf(ctx, actionId, opts)
     if (actionId === 'search') {
       const node = restListingOf(ctx)
       if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)
@@ -26195,6 +26444,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     setRuleActionSink,
     valueChangeActionOf,
     committedValueOf,
+    rangeEditOf,
     triggerDownload,
     autoTrail,
     parentCrumb,
