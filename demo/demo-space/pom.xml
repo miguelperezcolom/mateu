@@ -25,7 +25,7 @@
         <java.version>21</java.version>
         <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
              -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
-        <mateu.version>3.0-beta.25</mateu.version>
+        <mateu.version>3.0-beta.28</mateu.version>
     </properties>
 
     <dependencies>
@@ -83,6 +83,41 @@
                     <version>${mateu.version}</version>
                 </dependency>
             </dependencies>
+        </profile>
+        <!-- The same YAML as a static site on the Redwood renderer, as demo-starwars does:
+             mvn package -Predwood-bundle -> target/mateu-bundle/, served by nginx with /mateu/**
+             proxied to this app for the writes (deploy/demos/k8s). -->
+        <profile>
+            <id>redwood-bundle</id>
+            <dependencies>
+                <dependency>
+                    <groupId>io.mateu</groupId>
+                    <artifactId>mateu-redwood</artifactId>
+                    <version>${mateu.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.mateu</groupId>
+                        <artifactId>mateu-bundle-maven-plugin</artifactId>
+                        <version>${mateu.version}</version>
+                        <configuration>
+                            <renderer>redwood</renderer>
+                            <pageTitle>Space</pageTitle>
+                            <skipParamRoutes>false</skipParamRoutes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>bundle</id>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 

@@ -376,3 +376,26 @@ sources:
     description: Every photograph, with its credit and its source page
     source:
       url: http://localhost:8122/api/credits
+
+  # ── the lists inside record pages (a record's works, loans, launches…): named here, not inline,
+  #    so an environment re-points them too (environments re-point named sources only) ──
+  - name: space-site-launches
+    description: The list in launch-site.yaml
+    source:
+      url: >-
+        http://localhost:8122/api/launches?siteId=${state.id}&size=${state.size ?? 10}&page=${state.page ?? 0}
+      itemsPath: content
+
+  - name: space-mission-gallery
+    description: The list in mission.yaml
+    source:
+      url: >-
+        http://localhost:8122/api/missions/${state.id}
+      itemsPath: gallery
+
+  - name: space-spacecraft-tree
+    description: The list in spacecraft-record.yaml
+    source:
+      url: >-
+        http://localhost:8122/api/spacecraft/${state.id}/components/tree
+      itemsPath: content

@@ -53,9 +53,7 @@ content:
           type: Listing
           pageSize: 10
           rowRoute: missions/${row.missionId}
-          rowsSource:
-            url: http://localhost:8122/api/launches?siteId=${state.id}&size=${state.size ?? 10}&page=${state.page ?? 0}
-            itemsPath: content
+          rowsSource: {ref: space-site-launches}
           columns:
             - {type: GridColumn, id: missionName, label: Mission, identifier: true}
             - {type: GridColumn, id: launchDate, label: Date, dataType: date}

@@ -74,9 +74,7 @@ content:
           type: Listing
           pageSize: 6
           gridLayout: cards
-          rowsSource:
-            url: http://localhost:8122/api/missions/${state.id}
-            itemsPath: gallery
+          rowsSource: {ref: space-mission-gallery}
           columns:
             - {type: GridColumn, id: image, label: Photograph, stereotype: image}
             - {type: GridColumn, id: imageTitle, label: Title, identifier: true}
