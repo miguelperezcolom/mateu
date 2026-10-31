@@ -78,6 +78,11 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
             showStatus("No Mateu backend configured for this project — Settings | Tools | Mateu.")
             return
         }
+        // The desktop hub: the user's list of UIs until they open one (io.mateu.ijp.hub).
+        if (cfg.hub && hubEntryId == null) {
+            showHub()
+            return
+        }
         if (cfg.registryUrl == null || cfg.appId == null) {
             boot(cfg.baseUrl, cfg.config, cfg.route)
             return
@@ -232,6 +237,97 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
             }
         }
         return null
+    }
+
+    // ── the desktop hub (variant `hub`): a list of UIs, one open at a time ───────────────────
+
+    /** The hub entry the session belongs to (null = the list is showing, or this is no hub). */
+    var hubEntryId: String? = null
+        private set
+
+    /** Back to "My UIs": the open UI's session, views and results close. */
+    fun showHub() {
+        session?.dispose()
+        session = null
+        project.putUserData(MATEU_SESSION, null)
+        hubEntryId = null
+        homeOpened = false
+        io.mateu.ijp.auth.MateuAuthService.getInstance(project).forgetSession()
+        closeViews()
+        MateuFrameTitle.set(project, loadMateuConfig(project).productName)
+        val store = io.mateu.ijp.hub.HubStore.getInstance()
+        store.seedOnce()
+        navigatorRoot.removeAll()
+        navigatorRoot.add(io.mateu.ijp.hub.HubPanel(project, store, ::openHubEntry), BorderLayout.CENTER)
+        navigatorRoot.revalidate()
+        navigatorRoot.repaint()
+    }
+
+    /**
+     * Opens a hub entry: its manifest is fetched again (name, icon and sign-in may have changed; a UI
+     * this build cannot render is refused), the project points at it — base URL, route and the sign-in
+     * its manifest declares (tokens stay per base URL in PasswordSafe) — and the session boots.
+     */
+    fun openHubEntry(entry: io.mateu.ijp.hub.HubEntry, route: String?) {
+        val store = io.mateu.ijp.hub.HubStore.getInstance()
+        showStatus("Opening ${entry.name}…")
+        ApplicationManager.getApplication().executeOnPooledThread {
+            val fetched = io.mateu.ijp.hub.HubManifest.fetch(entry.baseUrl, allowInsecure = io.mateu.ijp.hub.hubOptions().allowInsecure)
+            SwingUtilities.invokeLater {
+                val manifest = (fetched as? io.mateu.ijp.hub.HubManifest.Fetch.Ok)?.takeUnless { it.missing }?.manifest
+                val refusal = manifest?.let { io.mateu.ijp.hub.HubManifest.refusal(it) }
+                if (refusal != null) {
+                    showHub()
+                    showBootProblem("Can't open ${entry.name}", refusal, NotificationType.WARNING)
+                    return@invokeLater
+                }
+                // offline: the stored copy of the manifest still says how to sign in
+                val current = store.edit { list ->
+                    manifest?.let { list.refresh(entry.id, it) }
+                    list.touch(entry.id)
+                    list.get(entry.id)
+                } ?: entry
+                MateuSettings.getInstance(project).state.apply {
+                    baseUrl = current.baseUrl
+                    this.route = route ?: "/"
+                    registryUrl = ""
+                    appId = ""
+                    val auth = current.auth
+                    if (auth != null) {
+                        authMode = MateuSettings.AuthMode.OIDC
+                        oidcIssuer = auth.issuer
+                        oidcClientId = auth.clientId
+                        oidcScope = auth.scopes.joinToString(" ")
+                        oidcDeviceEndpoint = ""
+                        oidcTokenEndpoint = ""
+                    } else {
+                        authMode = MateuSettings.AuthMode.NONE
+                    }
+                }
+                hubEntryId = current.id
+                io.mateu.ijp.auth.MateuAuthService.getInstance(project).forgetSession()
+                session?.dispose()
+                session = null
+                project.putUserData(MATEU_SESSION, null)
+                homeOpened = false
+                closeViews()
+                ensureBooted()
+            }
+        }
+    }
+
+    /** A `mateu://` link the OS handed to the app: the add flow, then the UI opens. */
+    fun handleHubLink(link: String) {
+        if (!loadMateuConfig(project).hub) return
+        io.mateu.ijp.hub.HubAdd.fromLink(project, link, io.mateu.ijp.hub.HubStore.getInstance(), ::openHubEntry)
+    }
+
+    /** Closes the previous UI's screens: its editor tabs and its results panel tabs. */
+    private fun closeViews() {
+        val editors = com.intellij.openapi.fileEditor.FileEditorManager.getInstance(project)
+        editors.openFiles.forEach(editors::closeFile)
+        com.intellij.openapi.wm.ToolWindowManager.getInstance(project).getToolWindow("Mateu Results")
+            ?.contentManager?.removeAllContents(true)
     }
 
     // ── registry boot screens (shown inside the navigator panel) ────────────────────────────

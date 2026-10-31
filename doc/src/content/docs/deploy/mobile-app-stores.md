@@ -85,6 +85,14 @@ https://mateu.io/add?u=<urlencoded baseUrl>[&r=<route>]
 - On a phone with the app installed, the system camera opens the app directly (universal link on
   iOS, App Link on Android). Without the app, `mateu.io/add` shows the store badges.
 - The custom scheme `mateu://add?u=…` is accepted too, and so is typing the address in the app.
+- Several UIs at once — the app's **Export my UIs** code — repeat `u`
+  (`https://mateu.io/add?u=<a>&u=<b>`), or use the compact form `mateu://import?d=<payload>`, where
+  the payload is base64url (no padding) of the JSON `{"v":1,"u":["https://a…","https://b…"]}`. An
+  import is capped at 50 addresses; unusable ones are skipped and counted.
+
+Every app with a hub (the phone app and the [desktop app](/ux-patterns/mobile-app/#the-desktop-app))
+reads these links with the same rules: `conformance/client/hub-links.json` lists what each one
+accepts, refuses and why, and both are tested against it.
 
 The QR code carries **no secret**, only the URL. A photographed or forwarded code grants nothing: at
 worst it adds an entry to someone's list, and they still have to sign in.
@@ -169,6 +177,43 @@ pointed at your backend or your app registry. How to point it is covered in
 Pick your **bundle id** (iOS `bundleIdentifier`, Android `package`) before the first upload, for
 example `com.acme.crm`. It **can't change** after the first store release. Use the same id on both
 platforms unless you have a reason not to.
+
+### Hub or fixed: `MATEU_VARIANT`
+
+The project builds two kinds of app, chosen by an environment variable at build time:
+
+| `MATEU_VARIANT` | What the app is |
+|---|---|
+| `hub` (default) | The generic Mateu app: the user's own list of UIs, added by QR code, address or link. It answers `mateu://add`, `mateu://import` and `https://mateu.io/add`. |
+| `fixed` | Your app, bound to ONE UI. No list, no QR scanner, and it answers none of the hub's links, so it never opens somebody else's UI. |
+
+A fixed build needs its UI and takes its identity from the same variables:
+
+```bash
+MATEU_VARIANT=fixed \
+MATEU_FIXED_URL=https://crm.acme.com/crm \
+MATEU_FIXED_ROUTE=/orders \
+MATEU_APP_NAME="Acme CRM" \
+MATEU_BUNDLE_ID=com.acme.crm \
+MATEU_APP_SCHEME=acmecrm \
+eas build --profile production --platform all
+```
+
+- `MATEU_FIXED_URL` is the UI's base URL. Instead of it, `MATEU_REGISTRY_URL` + `MATEU_APP_ID` point
+  the app at an [app registry](/native/react-native/#2-the-app-registry), which lets you move the
+  backend without a new build. `MATEU_FIXED_ROUTE` (optional) is the screen it opens on.
+- The sign-in comes from the UI's [manifest](#1-the-ui-manifest), as in the hub.
+- `MATEU_APP_SCHEME` carries only the sign-in redirect (`acmecrm://auth`). It defaults to the bundle
+  id and can never be `mateu`.
+- The camera permission stays, because photo fields use it. Its text is rewritten to say so.
+- A wrong combination fails the build: an unknown variant, a fixed build with no UI, a URL that is
+  not http(s), an invalid bundle id or scheme.
+- EAS evaluates `app.config.ts` on your machine AND on its build server, so the variables must reach
+  both: set them in the profile's `env` in `eas.json` (or as EAS environment variables), not only in
+  your shell. The profiles pin Node 24, which `app.config.ts` needs to read the variant code.
+
+The rest of this section edits `app.json` by hand. That is still possible, and needed for anything
+the variables don't cover (icons, universal links on your own domain).
 
 ### `app.json`: what to change
 
