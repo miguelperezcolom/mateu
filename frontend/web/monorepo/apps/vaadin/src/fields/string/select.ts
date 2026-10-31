@@ -103,23 +103,53 @@ export const selectValueChanged = (host: MateuField, options: { value?: unknown 
 
 /** The options a multi-valued field's value picks, matched as strings (`[5, 11]` picks `{value: 5}`). */
 export const pickedOptionsOf = <T extends { value?: unknown }>(options: T[] | undefined, value: unknown): T[] => {
-    if (!Array.isArray(value) || value.length === 0 || !options) return []
+    if (!Array.isArray(value) || value.length === 0 || !options) return noneSelected as T[]
+    // the same picks for the same value and options, for the same reason as asSelectValues
+    const cached = pickedCache.get(value)
+    if (cached && cached.options === options) return cached.picked as T[]
     const picked = new Set(value.map(v => String(v)))
-    return options.filter(o => o.value != null && picked.has(String(o.value)))
+    const hits = options.filter(o => o.value != null && picked.has(String(o.value)))
+    pickedCache.set(value, { options, picked: hits })
+    return hits
 }
+const noneSelected: never[] = []
+const pickedCache = new WeakMap<unknown[], { options: unknown[], picked: unknown[] }>()
 
-/** A multi-valued control that speaks strings (vaadin-checkbox-group): the value as strings… */
-export const asSelectValues = (value: unknown): unknown =>
-    Array.isArray(value) ? value.map(v => asSelectValue(v)) : value
+/**
+ * A multi-valued control that speaks strings (vaadin-checkbox-group): the value as strings… The
+ * same array back when it already is (the usual case), and the same copy for the same value: a
+ * fresh array on every render made the group announce a value-changed, which re-rendered the
+ * field with another fresh array — a loop that froze the page.
+ */
+export const asSelectValues = (value: unknown): unknown => {
+    if (!Array.isArray(value) || value.every(v => v == null || typeof v === 'string' || typeof v === 'object')) return value
+    let copy = stringValues.get(value)
+    if (!copy) {
+        copy = value.map(v => asSelectValue(v))
+        stringValues.set(value, copy)
+    }
+    return copy
+}
+const stringValues = new WeakMap<unknown[], unknown[]>()
+
+/**
+ * What a multi-valued control picks, as the options' own values — the SAME array when no value
+ * changes: the field takes an identical array for "nothing changed", and a fresh copy of the value
+ * the control was just given read as an edit, re-rendered the field and made the control announce
+ * it again (a loop that froze the page).
+ */
+export const optionValuesOf = (options: { value?: unknown }[] | undefined, picked: unknown): unknown => {
+    if (!Array.isArray(picked)) return picked
+    const mapped = picked.map(v => optionValueOf(options, v))
+    return mapped.every((v, i) => v === picked[i]) ? picked : mapped
+}
 
 /** …and what it picks goes back as the options' own values. */
 export const selectValuesChanged = (host: MateuField, options: { value?: unknown }[] | undefined) =>
     (e: CustomEvent) => host.valueChanged(new CustomEvent('value-changed', {
         detail: {
             ...e.detail,
-            value: Array.isArray(e.detail?.value)
-                ? e.detail.value.map((v: unknown) => optionValueOf(options, v))
-                : e.detail?.value,
+            value: optionValuesOf(options, e.detail?.value),
         },
     }))
 

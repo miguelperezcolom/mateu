@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import './mateu-field'
 import type { MateuField } from './mateu-field'
-import { asSelectItems, optionValueOf, pickedOptionsOf } from './string/select'
+import { asSelectItems, asSelectValues, optionValueOf, optionValuesOf, pickedOptionsOf } from './string/select'
 
 /**
  * Fields fed by a REST source (`optionsSource`), rendered for real (jsdom + the Vaadin web
@@ -119,5 +119,33 @@ describe('the string-keyed helpers', () => {
         expect(optionValueOf(options, '')).toBe('')
         expect(pickedOptionsOf(options, ['1'])).toEqual([options[0]])
         expect(pickedOptionsOf(options, null)).toEqual([])
+    })
+})
+
+describe('a multi-valued control gets the same value on every render', () => {
+    // a fresh array each render made vaadin-checkbox-group announce value-changed, which
+    // re-rendered the field with another fresh array: the page froze
+    it('keeps an all-string value and caches the string copy of a numeric one', () => {
+        const strings = ['BOOKED']
+        expect(asSelectValues(strings)).toBe(strings)
+        const numbers = [5, 11]
+        expect(asSelectValues(numbers)).toEqual(['5', '11'])
+        expect(asSelectValues(numbers)).toBe(asSelectValues(numbers))
+    })
+
+    it('picks the same options array for the same value and options', () => {
+        const options = [{ value: 1, label: 'One' }, { value: 2, label: 'Two' }]
+        const value = [2]
+        expect(pickedOptionsOf(options, value)).toBe(pickedOptionsOf(options, value))
+        expect(pickedOptionsOf(options, [])).toBe(pickedOptionsOf(options, null))
+    })
+})
+
+describe('what a multi-valued control picks', () => {
+    it('comes back as the same array when no value changes, and as the options\' values otherwise', () => {
+        const options = [{ value: 5, label: 'Five' }, { value: 'A', label: 'A' }]
+        const strings = ['A']
+        expect(optionValuesOf(options, strings)).toBe(strings)
+        expect(optionValuesOf(options, ['5', 'A'])).toEqual([5, 'A'])
     })
 })
