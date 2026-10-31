@@ -11,6 +11,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+
+- **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
+  it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
+  `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"
+  once: equal to the group was taken for under it. Its screen was never reached (the route landed on
+  the group's index) and, since every route of the group starts with it, it was selected on all of
+  them. Strictly under, now, in Java, .NET and Python; and the server compares an entry's path below
+  its group when it marks it selected.
+
 ## [3.0-beta.22] — 2026-10-29
 
 Redwood listings over a REST source search, filter and page again; RouteLink buttons navigate; the

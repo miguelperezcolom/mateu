@@ -166,3 +166,33 @@ def test_absolute_and_mount_relative_entries_are_routed_once_under_the_mount():
     assert by_label["Reports"].route == "/mountedcodeapp/reports"
     assert by_label["Reports"].submenus[0].route == "/mountedcodeapp/reports/sales"
     assert by_label["Settings"].route == "/mountedcodeapp/settings"
+
+
+@ui("/groupnamedlikeitsleaf")
+@app("Users")
+class GroupNamedLikeItsLeafApp(AppSupplier):
+    """A group whose entry is named like it (a users CRUD in a "users" section): the entry is a child
+    that shares the name, and goes BELOW the group — it used to get the group's own path."""
+
+    def get_app(self) -> AppShell:
+        return AppShell(
+            title="Users",
+            menu=[
+                MenuItem(
+                    label="Usuarios",
+                    route="/users",
+                    server_side_type="",
+                    submenus=[
+                        MenuItem(label="Roles", route="/roles", server_side_type=""),
+                        MenuItem(label="Users", route="/users", server_side_type=""),
+                    ],
+                )
+            ],
+        )
+
+
+def test_an_entry_named_like_its_group_goes_below_it():
+    group = ReflectionMapper().map_app(GroupNamedLikeItsLeafApp).metadata.menu[0]
+    by_label = {m.label: m for m in group.submenus}
+    assert by_label["Users"].path == "/users/users"
+    assert by_label["Roles"].path == "/users/roles"

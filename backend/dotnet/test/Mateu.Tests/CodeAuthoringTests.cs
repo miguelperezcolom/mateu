@@ -150,6 +150,15 @@ public class CodeAuthoringTests
     }
 
     [Fact]
+    public void An_entry_named_like_its_group_goes_below_it()
+    {
+        // a users CRUD in a "users" section: a child that shares the name, not the group itself
+        Assert.Equal("/users/users", ReflectionMapper.Relative("", "/users", "/users"));
+        Assert.Equal("/users/roles", ReflectionMapper.Relative("", "/users", "/roles"));
+        Assert.Equal("/users/roles", ReflectionMapper.Relative("", "/users", "/users/roles"));
+    }
+
+    [Fact]
     public void A_code_composed_rule_leaf_carries_its_rules_instead_of_a_route()
     {
         var approve = App().Menu.First(m => m.Label == "Approve");
