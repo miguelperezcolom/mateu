@@ -1,11 +1,13 @@
 import { html, nothing, TemplateResult } from 'lit'
 import { ComboBox } from '@vaadin/combo-box'
 import { comboBoxRenderer } from '@vaadin/combo-box/lit'
+import { live } from 'lit/directives/live.js'
 import Option from '@mateu/shared/apiClients/dtos/componentmetadata/Option.ts'
 import type { FieldLabel, FieldValue } from '../fieldEvents'
 import type { MateuField } from '../mateu-field'
+import { asSelectItems, asSelectValue, selectValueChanged, sourcedOptions } from './select'
 
-/** The combobox stereotype, with inline or remote (searched) options. */
+/** The combobox stereotype, with inline, REST-sourced or remote (searched) options. */
 
 export function renderComboboxField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
@@ -57,6 +59,10 @@ export function renderComboboxField(host: MateuField, value: FieldValue, label: 
         ></vaadin-combo-box>
         `
     }
+    // inline options, or a REST source's (it used to be read by the select only). The value is
+    // bound `live`: set before a source's options land, the combo clears it (no item matches yet),
+    // and lit would not set the same value again once they do
+    const options = host.field.optionsSource ? sourcedOptions(host) : host.field.options
     return html`
         <vaadin-combo-box
                 placeholder="${host.field?.placeholder ?? nothing}"
@@ -64,10 +70,10 @@ export function renderComboboxField(host: MateuField, value: FieldValue, label: 
                 label="${label}"
                 item-label-path="label"
                 item-value-path="value"
-                .items="${host.field.options}"
+                .items="${asSelectItems(options)}"
                 .helperText="${host.helperText()}"
-                @value-changed="${host.valueChanged}"
-                .value="${value}"
+                @value-changed="${selectValueChanged(host, options)}"
+                .value="${live(asSelectValue(value))}"
                 ?autofocus="${host.field.wantsFocus}"
                 required="${host.field.required || nothing}"
                 data-colspan="${host.field.colspan}"

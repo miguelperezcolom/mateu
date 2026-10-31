@@ -206,6 +206,37 @@ moments later:
 Each step logs its duration as `[Mateu timing] <step>: <n> ms (cache | snapshot | network)`. They are
 also kept in `globalThis.__mateuTimings`, to measure on a real phone.
 
+## The desktop app
+
+The desktop Mateu app (IntelliJ IDEA Community with the Mateu plugin, built by `buildInstaller` —
+see [IDE tooling](/native/ide-tooling/)) has the same hub in its `hub` build: **My UIs**, with
+search, open, reorder, remove, **Share…** (the QR code of one UI, to open it on a phone) and
+**Export…** (one QR with the whole list). A `fixed` build is bound to one UI and has none of it,
+like the phone's.
+
+A UI is added by its address, by a Mateu link, or by its **QR code**. On a desktop the code is
+usually on the screen rather than in front of a camera, so *Add a UI* reads it:
+
+- **From the screen**: every monitor is captured and searched. On macOS this needs the *Screen
+  Recording* permission for Mateu; without it the capture is only the wallpaper and the dialog says so.
+- **From the clipboard**: an image copied with the system's screenshot shortcut, or a copied link.
+- **From an image file**.
+
+When several codes are found, the Mateu one wins. A page address (what a browser's own *QR code for
+this page* holds) is looked up like on the phone: the manifest is asked from the full path upwards.
+
+`mateu://` links open the desktop app too: the installer registers the scheme with the operating
+system for the hub build (macOS, the Windows registry, a Linux `.desktop` file), and the link goes
+through the same confirmation as a scanned code.
+
+The rules are the phone's — the same link grammar, refusals and sentences, checked by both against
+`conformance/client/hub-links.json` — with two differences: the desktop app opens only UIs served by
+a Mateu backend (a static bundle is refused, with a sentence saying so), and it does not read
+`minAppVersion`, which speaks of the phone app's versions. A different wire major is refused, as on
+the phone. Each UI keeps its own sign-in (OIDC device flow against the issuer its manifest names;
+tokens in the OS credential store, per base URL), and switching UI never carries one UI's token to
+another.
+
 ## Security
 
 - **No secrets in a QR**, nor in the "export my UIs" QR: only URLs. Tokens never leave the phone's

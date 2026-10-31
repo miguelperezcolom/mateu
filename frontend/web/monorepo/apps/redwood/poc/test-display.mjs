@@ -321,6 +321,16 @@ test('BPMN: shapes from the BPMN-DI, flows from their waypoints', () => {
   assert.match(atom.ariaLabel, /Order received/)
 })
 
+test('a MetricCard, a Stat and an EntityHeader metric interpolate ${state.x} (value and unit too)', () => {
+  const state = { budget: 1200, visitors: 37, label: 'Rating' }
+  const [band] = atomsOf(node({ type: 'MetricCard', title: 'Budget', value: '${state.budget}', unit: 'USD' }), state)
+  assert.equal(band.metrics[0].value, '1200')
+  const [stat] = atomsOf(node({ type: 'Stat', label: 'Visitors', value: '${state.visitors}' }), state)
+  assert.equal(stat.value, '37')
+  const [header] = atomsOf(node({ type: 'EntityHeader', title: 'X', metricLabel: '${state.label}', metricValue: '4' }), state)
+  assert.equal(header.metricLabel, 'Rating')
+})
+
 test('Popover rich content: structure as sanitised HTML', () => {
   const html = componentHtmlOf(node({ type: 'VerticalLayout' }, [
     node({ type: 'Text', text: 'Title', container: 'h3' }), node({ type: 'Text', text: 'Hi ${state.name}' }),

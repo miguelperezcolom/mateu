@@ -1,0 +1,140 @@
+# Builds the Mateu phone app for ANDROID as an APK on this runner — no EAS, no build queue — and
+# attaches it to the GitHub Release `v3.0-beta.N` as `mateu-app-<tag>-android.apk`, for anyone to
+# sideload (the stores keep getting their builds from EAS: frontend/app/react-native/RELEASE.md).
+# On a pull request that touches the app it builds the same APK and keeps it as a workflow artifact,
+# so the build is proven before a release needs it.
+#
+# iOS is not here on purpose: an iPhone installs only from the App Store, TestFlight or a
+# registered-device (ad-hoc) build — there is no sideloading an .ipa downloaded from GitHub.
+#
+# Signing (secrets). The APK must always be signed with the SAME key, or a new APK will not install
+# over the previous one:
+#   ANDROID_KEYSTORE_BASE64 (base64 of the .jks), ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS,
+#   ANDROID_KEY_PASSWORD
+# Without them a release is NOT given an APK (a debug-signed one could never be updated); a pull
+# request still builds, debug-signed, as a check. The key's SHA-256 belongs in
+# well-known/assetlinks.json too, so https://mateu.io/add links open the sideloaded app.
+#
+# The build number (versionCode) is 100000 + this workflow's run number: it only grows, which is
+# what an update needs. MATEU_VARIANT stays `hub` (the generic app; a fixed build is your own app).
+
+name: Mobile app (Android APK)
+
+on:
+  release:
+    types: [published]
+  pull_request:
+    paths:
+      - frontend/app/react-native/**
+      - frontend/web/monorepo/libs/mateu/src/**
+      - .github/workflows/mobile.yml
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to (re)build the APK for (e.g. v3.0-beta.27)
+        required: true
+
+permissions:
+  contents: write # gh release upload
+
+concurrency:
+  group: mobile-${{ github.event.release.tag_name || inputs.tag || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    if: github.event_name == 'pull_request' || startsWith(github.event.release.tag_name || inputs.tag, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      PUBLISH: ${{ github.event_name != 'pull_request' }}
+      HAS_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' }}
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        working-directory: frontend/app/react-native
+    steps:
+      - name: No signing key, no release APK
+        if: env.PUBLISH == 'true' && env.HAS_KEY != 'true'
+        working-directory: .
+        run: |
+          echo "::warning::ANDROID_KEYSTORE_* secrets are not set: no APK is attached to $TAG (a debug-signed APK could never be updated)."
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/app/react-native/package-lock.json
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
+        with:
+          java-version: 17
+          distribution: zulu
+      - name: Install
+        if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
+        run: |
+          npm ci --ignore-scripts
+          echo "MATEU_ANDROID_VERSION_CODE=$((100000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+      - name: Generate the native project
+        if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
+        run: |
+          npx expo prebuild --platform android --clean --no-install
+          # the template's 2 GB heap / 512 MB metaspace runs Gradle's KSP out of Metaspace on the
+          # runner (16 GB): give Gradle and the Kotlin daemon room
+          sed -i '/^org.gradle.jvmargs=/d; /^kotlin.daemon.jvmargs=/d' android/gradle.properties
+          # the generated file may not end in a newline: never glue a property onto its last line
+          {
+            echo
+            echo 'org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8'
+            echo 'kotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g'
+          } >> android/gradle.properties
+          tail -4 android/gradle.properties
+      - name: Build the release APK
+        if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
+        working-directory: frontend/app/react-native/android
+        run: ./gradlew assembleRelease --no-daemon --console=plain
+      - name: Sign it with the Mateu key
+        if: env.HAS_KEY == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          keystore="$RUNNER_TEMP/mateu.jks"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$keystore"
+          export ANDROID_KEY_PASSWORD="${ANDROID_KEY_PASSWORD:-$ANDROID_KEYSTORE_PASSWORD}"
+          apksigner="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)/apksigner"
+          in=android/app/build/outputs/apk/release/app-release.apk
+          "$apksigner" sign --ks "$keystore" --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
+            --ks-key-alias "$ANDROID_KEY_ALIAS" --key-pass env:ANDROID_KEY_PASSWORD \
+            --out "$RUNNER_TEMP/signed.apk" "$in"
+          "$apksigner" verify --print-certs "$RUNNER_TEMP/signed.apk" | grep -i "SHA-256" || true
+          mv "$RUNNER_TEMP/signed.apk" "$in"
+          rm -f "$keystore"
+      - name: Name it
+        if: env.PUBLISH != 'true' || env.HAS_KEY == 'true'
+        run: |
+          set -euo pipefail
+          name="mateu-app-${TAG:-pr-${{ github.event.pull_request.number }}}-android.apk"
+          mkdir -p "$RUNNER_TEMP/out"
+          cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/out/$name"
+          echo "APK=$RUNNER_TEMP/out/$name" >> "$GITHUB_ENV"
+          ls -l "$RUNNER_TEMP/out"
+      - name: Keep it (pull request)
+        if: env.PUBLISH != 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mateu-app-android-apk
+          path: ${{ env.APK }}
+          retention-days: 7
+      - name: Attach it to the release
+        if: env.PUBLISH == 'true' && env.HAS_KEY == 'true'
+        run: gh release upload "$TAG" "$APK" --clobber --repo "${{ github.repository }}"

@@ -1,4 +1,5 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
+import { applyVariant, type VariantEnv } from './src/core/buildVariant.ts';
 
 /**
  * Build-variant overrides on top of app.json (which holds the production-safe defaults).
@@ -8,9 +9,18 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  * usesCleartextTraffic, iOS local-networking ATS exception) and gets its own application id, so it
  * installs side by side with the store build. Preview and production builds stay https-only.
  * Local `expo start` (Expo Go / web) is unaffected: Expo Go has its own manifest.
+ *
+ * MATEU_VARIANT=hub (default) | fixed picks what the installable is — the hub of the user's own UIs,
+ * or a white-label app bound to one UI (src/core/buildVariant.ts, docs ux-patterns/mobile-app.md).
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const base = config as ExpoConfig;
+  const variant = applyVariant(config as ExpoConfig, process.env as VariantEnv);
+  // An APK built outside EAS (the GitHub release workflow, .github/workflows/mobile.yml) has no remote
+  // build number: the workflow passes one, and it must only grow for the APK to install as an update.
+  const versionCode = Number(process.env.MATEU_ANDROID_VERSION_CODE);
+  const base: ExpoConfig = Number.isInteger(versionCode) && versionCode > 0
+    ? { ...variant, android: { ...variant.android, versionCode } }
+    : variant;
   if (process.env.APP_VARIANT !== 'development') return base;
 
   const plugins = (base.plugins ?? []).map((p) =>

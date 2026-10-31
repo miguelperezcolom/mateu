@@ -1,5 +1,5 @@
 
-import{F as e,L as t,N as n,P as r,z as i}from"./vendor-vaadin.js";import{O as a,b as o,w as s}from"./vendor-lit.js";import{renderMarkdownToElement as c}from"./markdown-helpers.js";var l=a`
+import{F as e,L as t,N as n,P as r,z as i}from"./vendor-vaadin.js";import{T as a,k as o,x as s}from"./vendor-lit.js";import{renderMarkdownToElement as c}from"./markdown-helpers.js";var l=o`
   @layer vaadin.base {
     vaadin-markdown {
       line-height: 1.6;
@@ -182,7 +182,7 @@ import{F as e,L as t,N as n,P as r,z as i}from"./vendor-vaadin.js";import{O as a
       }
     }
   }
-`,u=class extends n(e(t(r(o)))){static get is(){return`vaadin-markdown`}static get styles(){return a`
+`,u=class extends n(e(t(r(s)))){static get is(){return`vaadin-markdown`}static get styles(){return o`
       :host {
         display: block;
       }
@@ -190,4 +190,4 @@ import{F as e,L as t,N as n,P as r,z as i}from"./vendor-vaadin.js";import{O as a
       :host([hidden]) {
         display: none !important;
       }
-    `}get slotStyles(){return[l]}static get properties(){return{content:{type:String,sync:!0},lineBreaks:{type:Boolean,value:!1,sync:!0}}}render(){return s`<slot></slot>`}updated(e){super.updated(e),(e.has(`content`)||e.has(`lineBreaks`))&&c(this,this.content,{lineBreaks:this.lineBreaks})}};i(u);
+    `}get slotStyles(){return[l]}static get properties(){return{content:{type:String,sync:!0},lineBreaks:{type:Boolean,value:!1,sync:!0}}}render(){return a`<slot></slot>`}updated(e){super.updated(e),(e.has(`content`)||e.has(`lineBreaks`))&&c(this,this.content,{lineBreaks:this.lineBreaks})}};i(u);

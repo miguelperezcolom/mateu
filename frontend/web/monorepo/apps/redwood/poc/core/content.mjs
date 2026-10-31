@@ -1155,7 +1155,7 @@ export function islandContentOf(ctx, opts = {}) {
         badges: (m.badges || []).map(badgeOf),
         // a fact naming an action: its icon button right after the value (factProjectionOf)
         facts: (m.facts || []).map((f) => factProjectionOf(f, interp(f.value))),
-        metricLabel: m.metricLabel || '',
+        metricLabel: interp(m.metricLabel || ''),
         metricValue: interp(m.metricValue || ''),
       }, container)
       return
@@ -1520,8 +1520,8 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Stat') {
       atom({
         isStat: true,
-        label: m.label || '',
-        value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
+        label: interp(m.label || ''),
+        value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
       }, container)
       // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
       if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)

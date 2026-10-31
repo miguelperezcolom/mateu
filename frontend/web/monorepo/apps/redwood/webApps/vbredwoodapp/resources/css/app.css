@@ -126,6 +126,13 @@ body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
 oj-sp-foldout-panel.mateu-fixed-panel {
   overflow-x: hidden;
 }
+/* Panels pinned to their width do not fill the row, and Spectra's row spreads what is left with
+   `space-between` — a blank gap between the overview and the first panel (a front-office booking:
+   ~260px). The panels follow one another, as Toolkit 26C draws the foldout; what is left stays at
+   the end. (Letting them grow instead makes Spectra's responsive engine paginate.) */
+#mateuFoldoutEl .oj-sp-foldout-layout-children-container {
+  justify-content: flex-start;
+}
 oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-container,
 oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-container > div,
 oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-content,
@@ -1372,6 +1379,16 @@ mateu-capture-field { display: block; }
   background: var(--oj-core-bg-color-content, #fff);
 }
 .mateu-capture-signature { max-height: 9rem; background: #fff; }
+/* the image stereotype, editable: its URL input over a contained preview */
+.mateu-capture-url-box { flex-direction: column; align-items: stretch; }
+.mateu-capture-url {
+  box-sizing: border-box; width: 100%; min-height: 2.75rem; padding: 0 0.75rem; font: inherit;
+  color: var(--oj-core-text-color-primary, #161513);
+  border: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.5)); border-radius: var(--oj-core-border-radius-md, 6px);
+  background: var(--oj-core-bg-color-content, #fff);
+}
+.mateu-capture-url-box .mateu-capture-preview { align-self: flex-start; max-width: min(100%, 20rem); max-height: 15rem; object-fit: contain; }
+.mateu-capture-url-box .mateu-capture-preview[hidden] { display: none; }
 .mateu-capture-pad {
   width: 100%; max-width: 35rem; height: 11.25rem; touch-action: none; cursor: crosshair;
   background: #fff; border: 1px dashed var(--oj-core-neutral-contrast, #6f6b66);

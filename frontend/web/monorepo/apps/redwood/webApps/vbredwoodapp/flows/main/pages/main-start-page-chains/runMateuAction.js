@@ -420,7 +420,7 @@ define([
       // as a truthy proxy (the bindings do see the null) — see onMateuNavigate.
       let foldoutNow = $application.variables.mateuFoldout;
       if (hostRepainted) {
-        const foldoutProjection = bridge.foldoutOf(hostAfter);
+        const foldoutProjection = bridge.foldoutOf(hostAfter, { parent: bridge.parentCrumbOf(reg, route) });
         foldoutNow = foldoutProjection;
         const foldoutBefore = $application.variables.mateuFoldout;
         if (bridge.sameFoldoutStructure(foldoutBefore, foldoutProjection)) {

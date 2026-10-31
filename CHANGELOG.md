@@ -33,6 +33,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   string `"api"`, so `museum-artworks: *api` in an environment re-pointed nothing while the log still
   counted it. The Java specs loader now resolves aliases and merge keys (`<<: *base`), as Python's
   does; .NET resolved aliases but not merge keys, and now does both.
+- **Vaadin: `${state.x}` in a banner, a MetricCard, an EntityHeader, an Anchor and an Avatar's image.**
+  The components that draw their texts straight from their metadata never interpolated them: a YAML
+  record page (`title: ${state.name}` on a route with `data:`) showed the raw template in the Welcome /
+  MultimediaContentPage banner (title, subtitle, overline), in a `MetricCard`, a `Stat`, an
+  `EntityHeader` left in the body and an `Anchor`, and an `Avatar` requested `image: ${state.thumbnail}`
+  literally (a 404). They interpolate now, like everything else (`interpolateFields`). Redwood already
+  did, except a MetricCard's and a Stat's value and an EntityHeader's metric label: those too.
+- **Vaadin: a select whose options have numeric values shows its value.** `vaadin-select` and
+  `vaadin-combo-box` match values as strings, so an option source giving ids (`{value: 25}`) never
+  matched the field's `25` and the control stayed blank. The control gets the values as strings and a
+  pick is written back as the option's own value (`25`, not `"25"`); the same for a checkbox group's
+  list of ids.
+- **Vaadin: a `combobox` and a `multiSelect` read their `optionsSource`.** Only `select` fetched a REST
+  source; a single or multi-valued combobox and a multi-select (checkbox group) listed nothing. The
+  fetch is shared by every stereotype that offers options (Redwood already loaded them for any field).
+- **An editable `image` field can be changed.** In an editable form the `image` stereotype drew only
+  the image, full size, with no input. It is now the URL input with a contained preview that follows
+  the value; read-only it stays the image. Redwood offered a file upload for it (that is
+  `uploadableImage`): now the same URL input and preview.
 - **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
   it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
   `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"
