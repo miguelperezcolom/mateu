@@ -261,6 +261,21 @@ test('page layout: width anatomy, bleeding header and the band overlap', () => {
   assert.equal(fixed.mateuPageHostClass, '')
 })
 
+test('an empty listing says so in the chrome language, not a hard-wired English «No data.»', async () => {
+  const { listingOf } = await import('./core/listing.mjs')
+  const { chromeText } = await import('./i18n.mjs')
+  const l = listingOf({ state: {}, data: {}, tree: { type: 'ClientSide', id: 'c', metadata: { type: 'Crud', columns: [] }, children: [] } })
+  assert.equal(l.emptyStateMessage, chromeText('noData'))
+  const own = listingOf({ state: {}, data: {}, tree: { type: 'ClientSide', id: 'c', metadata: { type: 'Crud', columns: [], emptyStateMessage: 'Nada' }, children: [] } })
+  assert.equal(own.emptyStateMessage, 'Nada')
+})
+
+test('onMateuNavigate: every navigation names the tab — a federated screen with no SetWindowTitle no longer keeps the previous title', () => {
+  const chain = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../webApps/vbredwoodapp/pages/shell-page-chains/onMateuNavigate.js'), 'utf-8')
+  assert.match(chain, /bridge\.setDocTitle\(\(reg\.effects && reg\.effects\.docTitle\) \|\| summary\.title \|\| \(reg\.shell && reg\.shell\.title\)\)/)
+  assert.doesNotMatch(chain, /if \(reg\.effects && reg\.effects\.docTitle\) \{/)
+})
+
 test('onMateuNavigate: the item overview template (mateuItemOv) is what turns iopOn on — not the reverted mateuIop', () => {
   const chain = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../webApps/vbredwoodapp/pages/shell-page-chains/onMateuNavigate.js'), 'utf-8')
   assert.match(chain, /const iopOn = !!itemProjection;/)
