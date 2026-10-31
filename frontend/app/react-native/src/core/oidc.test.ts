@@ -55,6 +55,9 @@ mock.module('expo-auth-session', {
     ResponseType: { Code: 'code' },
   },
 });
+// the build's scheme (app.json `expo.scheme`; a fixed build has its own) — mutable per test
+const expoConfig: { scheme?: string | string[] } = {};
+mock.module('expo-constants', { defaultExport: { expoConfig } });
 mock.module('expo-web-browser', {
   namedExports: { maybeCompleteAuthSession: () => { idp.completedAuthSession++; } },
 });
@@ -89,6 +92,14 @@ beforeEach(() => {
 test('the web popup is closed on import and the redirect target is the app scheme', () => {
   assert.equal(idp.completedAuthSession, 1);
   assert.equal(oidcRedirectUri(), 'mateu://auth');
+});
+
+test("a fixed build signs in on its own scheme, never the hub's", () => {
+  expoConfig.scheme = 'acmecrm';
+  assert.equal(oidcRedirectUri(), 'acmecrm://auth');
+  expoConfig.scheme = ['acmecrm', 'other'];
+  assert.equal(oidcRedirectUri(), 'acmecrm://auth');
+  delete expoConfig.scheme;
 });
 
 test('no stored session: not signed in, no token, and the IdP is never contacted', async () => {

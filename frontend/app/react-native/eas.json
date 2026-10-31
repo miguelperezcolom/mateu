@@ -13,7 +13,8 @@
       },
       "android": {
         "buildType": "apk"
-      }
+      },
+      "node": "24.11.1"
     },
     "preview": {
       "distribution": "internal",
@@ -21,12 +22,14 @@
       "environment": "preview",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "node": "24.11.1"
     },
     "production": {
       "channel": "production",
       "environment": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "node": "24.11.1"
     }
   },
   "submit": {
