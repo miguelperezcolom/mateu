@@ -207,3 +207,27 @@ export function scrollToTopOnNavigate({ fromUrl, liveState } = {}, win = typeof 
   return true
 }
 
+/** How long the old screen stays on show once another starts loading (app.css mateu-stale-hide). */
+export const STALE_SCREEN_HIDE_MS = 500
+
+/**
+ * scrollToTopOnNavigate, but not while the old screen is still on show: scrolled at once, the page
+ * the user clicked in jumped to its top and only then did the new one arrive. It scrolls when the
+ * old screen is hidden (after STALE_SCREEN_HIDE_MS) or when the new one is in place — the function
+ * returned, called once the navigation lands — whichever comes first, and only once.
+ */
+export function scrollToTopWhenReplaced(params = {}, win = typeof window !== 'undefined' ? window : null,
+    delay = STALE_SCREEN_HIDE_MS) {
+  let done = false
+  const scroll = () => {
+    if (done) return false
+    done = true
+    return scrollToTopOnNavigate(params, win)
+  }
+  const timer = win && typeof win.setTimeout === 'function' ? win.setTimeout(scroll, delay) : null
+  return () => {
+    if (timer != null && typeof win.clearTimeout === 'function') win.clearTimeout(timer)
+    return scroll()
+  }
+}
+

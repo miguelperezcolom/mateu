@@ -67,7 +67,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Redwood: a `Listing` inside a templated page stays where it is.** On a page that declares a
   `template:` (general overview, multimedia content, welcome, collection detail…) the first `Listing`
   anywhere was taken for the page's own listing and hoisted out of its slot: a general overview was
-  drawn twice (the listing on top, the page below it), a multimedia page's gallery went to the top with
+  drawn twice (the listing on top — its search box and its band, a second header — the page below it;
+  a foldout page the same), a multimedia page's gallery went to the top with
   a search bar — and, the listing owning the page, its sections fell back to the generic form, so the
   section's `Image` was not drawn and a read-only `html` field showed its raw markup —, and a welcome's
   featured cards and a collection detail's nested listing were not drawn at all. Such a listing is now
@@ -83,6 +84,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   as wide as its column).
 - **Redwood: no more `ojtabbar.js` 404 on every page.** The page imported `oj-tab-bar` from
   `ojs/ojtabbar`, which JET does not ship; it lives in `ojs/ojnavigationlist`.
+- **A page opened again is loaded once, not twice.** A route drawn from the client structure cache
+  (any return visit) was replaced by the server's identical structure as soon as it answered: the
+  structure hash counted the random ids of the nested components that name none (a YAML page's
+  texts, cards…), so it changed on every request and the server never answered state-only. The page
+  re-mounted — it flickered — and ran its OnLoad, its record fetch, a second time. The hash leaves
+  those instance ids out; and the web shells keep the predicted structure when the answer is the same
+  one (a static bundle has no hash at all), taking only its state and data.
+- **Vaadin: no search box a listing cannot search.** A listing over a source that takes no text and
+  with no filters still drew the search bar — a box without an input that took no typing (the works
+  and loans of an exhibition's foldout panels). It draws none.
+- **Redwood: the page does not jump to its top before the next one opens.** Following a link halfway
+  down a page scrolled it to the top at the click, and only then did the new screen arrive. It goes
+  to the top when the old screen is hidden or the new one is in place, whichever comes first.
 - **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
   it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
   `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"

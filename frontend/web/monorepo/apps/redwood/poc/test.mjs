@@ -6836,6 +6836,17 @@ test('Text.style: filtered like an Element\'s HTML style; a weight / size beats 
   assert.deepEqual(t.style, { color: '#c00', fontWeight: '700' })
   assert.equal(t.cls, 'oj-typography-heading-md oj-typography-bold')
 })
+test('a listing in a slot of a page template is not the page listing: one header, the template one', () => {
+  // /museums/1 (GeneralOverviewPage) and /exhibitions/1 (FoldoutPage) drew the listing page too —
+  // its header with the search box and its band — above the template's own header and band
+  const crud = { type: 'ClientSide', id: 'deps', metadata: { type: 'Crud', columns: [{ metadata: { id: 'name', label: 'Name' } }] }, children: [] }
+  const page = (template) => ({ tree: { type: 'ServerSide', children: [{ type: 'ClientSide', id: 'p',
+    metadata: { type: 'Form', title: 'The Met', ...(template ? { template: { type: template } } : {}) }, children: [crud] }] }, data: {}, state: {} })
+  for (const owning of ['GeneralOverviewPage', 'FoldoutPage', 'ItemOverviewPage']) assert.equal(listingOf(page(owning)), null, owning)
+  // a page with no template keeps the old rule
+  assert.ok(listingOf(page(null)))
+})
+
 test('HorizontalLayout: inline pieces make a row; any other child keeps the stacked projection', () => {
   const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
   const project = (hl) => hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [hl])] } }, null, {}).flatMap((b) => b.items)

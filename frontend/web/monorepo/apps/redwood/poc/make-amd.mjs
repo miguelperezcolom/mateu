@@ -442,6 +442,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     navigationLeavingMountOf,
     leftMountFor,
     scrollToTopOnNavigate,
+    scrollToTopWhenReplaced,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,

@@ -256,4 +256,20 @@ describe('mateu-filter-bar (smart search)', () => {
         await bar.updateComplete
         expect($(bar, '.panel')).toBeNull()
     })
+
+    it('draws no search box for a listing with nothing to search and no filters', async () => {
+        // a nested listing over a source that takes no text: a box nobody can type in is a trap
+        const bar = await mount({}, { searchable: false, filters: [] })
+        expect($(bar, '.smart-search')).toBeNull()
+        expect($(bar, 'input.free-text')).toBeNull()
+        bar.remove()
+    })
+
+    it('still draws the bar when only the free text is off but there are filters', async () => {
+        const bar = await mount({}, { searchable: false })
+        expect($(bar, '.smart-search')).not.toBeNull()
+        expect($(bar, 'input.free-text')).toBeNull()
+        bar.remove()
+    })
 })
+
