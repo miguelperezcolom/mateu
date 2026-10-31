@@ -9,10 +9,13 @@ import io.mateu.core.application.runaction.YamlUidlLoader;
 import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
+import io.mateu.uidl.data.GuidedProcessPage;
+import io.mateu.uidl.data.GuidedProcessStep;
 import io.mateu.uidl.data.Partial;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Form;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -117,6 +120,27 @@ class PartialExpansionTest {
     var inner = ((Container) expanded).content();
     assertThat(inner).isInstanceOf(VerticalLayout.class);
     assertThat(((VerticalLayout) inner).content()).hasSize(2);
+  }
+
+  @Test
+  void aPartialInsideAWizardStepIsExpanded() {
+    // A GuidedProcessPage's steps are records of slots, not components: the walk used to step over
+    // them, so the partial reached the mappers as-is ("No mapper renders Partial") and the step
+    // drew nothing.
+    var step =
+        GuidedProcessStep.builder()
+            .id("legal")
+            .title("Legal")
+            .contentItem(new Text("Read this"))
+            .contentItem(new Partial("legal-notice"))
+            .build();
+    var form = Form.builder().template(GuidedProcessPage.builder().step(step).build()).build();
+
+    var expanded = (Form) PartialExpander.expand(form, null);
+
+    assertThat(((GuidedProcessPage) expanded.template()).steps().get(0).content())
+        .extracting(c -> ((Text) c).text())
+        .containsExactly("Read this", "Prices include VAT.");
   }
 
   @Test

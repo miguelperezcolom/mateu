@@ -171,13 +171,17 @@ export function listingBaseOf(ctx, opts = {}) {
   const tableColumns = lines.extra.length ? lines.first : (md.columns || [])
   // what each cell PAINTS (labels, badges, clipped/abbreviated text), before group rows are
   // interleaved: the content a compact column is sized to (columnSizingOf)
-  const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
+  // TREE (gridLayout: tree): the rows nest under `children`; the table draws them flattened, each
+  // level indented under its parent (always expanded, like the shared neutral tree of the web lib)
+  const tree = md.gridLayout === 'tree'
+  const content = tree ? treeRowsOf(page.content || [], tableColumns) : (page.content || [])
+  const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(content, md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
   const footers = aggregateFootersOf(md, (ctx.data || {}).crud) || {}
   // the columns sized by the DEFAULT rule (they declare no width/flexGrow): id → their compact
   // width (fit) — finishColumnSizing lets them grow when no other column does
   const fitColumns = {}
   const defaultSized = []
-  const columns = tableColumns.map((col) => {
+  const columns = tableColumns.map((col, colIndex) => {
     const c = col.metadata || col
     const def = { headerText: c.label || c.id, field: c.id }
     // editable cell → editor template per type (always visible, commit per cell:
@@ -214,9 +218,13 @@ export function listingBaseOf(ctx, opts = {}) {
     // Abbreviated UUID: a text column whose values are UUIDs is painted "…-<last block>"
     // with the whole UUID in the tooltip. The row does NOT change: the cell reads a separate field,
     // precomputed in uuidCellRows (VB CSP: the template cannot trim the text).
-    if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
+    if (!def.template && uuidColumnIds(content, md.columns || []).indexOf(c.id) >= 0) {
       def.field = c.id + UUID_CELL_SUFFIX
       def.template = 'cellUuid'
+    }
+    // the tree column (the first one) reads its indented text (treeRowsOf)
+    if (tree && colIndex === 0 && !def.template && def.field === c.id) {
+      def.field = c.id + TREE_CELL_SUFFIX
     }
     const align = alignOf(c)
     if (align && !def.template) {
@@ -526,6 +534,41 @@ export function uuidCellRows(rows, columns) {
 }
 
 export const PRIMARY_CELL_SUFFIX = '__primary'
+
+/** The field the first column of a tree listing paints: its text indented by the row's depth. */
+export const TREE_CELL_SUFFIX = '__treeCell'
+const TREE_INDENT = '\u00a0\u00a0\u00a0\u00a0'
+
+/**
+ * A tree listing's rows (each nesting its next level under `children`) as the FLAT rows a table
+ * draws: depth first, each parent before its children, `_treeDepth` stamped and the first column's
+ * text indented by it in `<id>__treeCell` (VB CSP: the template cannot indent). A row keeps its
+ * `_rowNumber` — the table's key — unless it has none or another row has it already (REST children
+ * carry none; a server may number each level from 0): then it is keyed by its path, `<parent>/<i>`.
+ * The `children` themselves are dropped from the flat row: they are rows of their own now.
+ */
+export function treeRowsOf(rows, columns) {
+  const firstCol = (columns || []).map((c) => (c && c.metadata) || c).find(Boolean)
+  const first = firstCol && firstCol.id
+  const out = []
+  const seen = new Set()
+  const walk = (items, depth, parentKey) => (items || []).forEach((row, i) => {
+    if (!row || typeof row !== 'object') return
+    const { children, ...rest } = row
+    let key = rest._rowNumber
+    if (key == null || seen.has(String(key))) key = parentKey == null ? '_row:' + i : parentKey + '/' + i
+    seen.add(String(key))
+    const flat = { ...rest, _rowNumber: key, _treeDepth: depth }
+    if (first) {
+      const v = rest[first]
+      flat[first + TREE_CELL_SUFFIX] = TREE_INDENT.repeat(depth) + (v == null ? '' : typeof v === 'object' ? (v.message || v.label || '') : String(v))
+    }
+    out.push(flat)
+    if (Array.isArray(children)) walk(children, depth + 1, key)
+  })
+  walk(rows, 0, null)
+  return out
+}
 
 /** The cell (of the technical ROW_LINES_COLUMN column) that paints each row's extra lines. */
 export const ROW_LINES_FIELD = '__rowLines'
