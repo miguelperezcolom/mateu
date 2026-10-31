@@ -38,7 +38,7 @@ content:
       type: Listing
       gridLayout: tree
       pageSize: 100
-      rowsSource: {ref: space-spacecraft-tree}
+      rowsSource: {ref: space-spacecraft-components}
       columns:
         - {type: GridColumn, id: name, label: Component, identifier: true}
         - {type: GridColumn, id: kind, label: Kind}

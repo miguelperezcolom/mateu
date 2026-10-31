@@ -48,4 +48,4 @@ sources:
   space-credits: {baseUrl: "https://space-api.ec1.mateu.io"}
   space-site-launches: {baseUrl: "https://space-api.ec1.mateu.io"}
   space-mission-gallery: {baseUrl: "https://space-api.ec1.mateu.io"}
-  space-spacecraft-tree: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-spacecraft-components: {baseUrl: "https://space-api.ec1.mateu.io"}

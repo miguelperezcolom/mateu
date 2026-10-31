@@ -394,8 +394,8 @@ sources:
         http://localhost:8122/api/missions/${state.id}
       itemsPath: gallery
 
-  - name: space-spacecraft-tree
-    description: The list in spacecraft-record.yaml
+  - name: space-spacecraft-components
+    description: A spacecraft's components, as a tree (spacecraft-record.yaml)
     source:
       url: >-
         http://localhost:8122/api/spacecraft/${state.id}/components/tree
