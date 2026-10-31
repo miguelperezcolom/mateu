@@ -40,12 +40,14 @@ Then open a project, point it at your backend in **Settings | Tools | Mateu** (b
   -Pmateu.registryUrl=https://registry.example.com -Pmateu.appId=demo-admin-panel
 ```
 
-This produces a portable `mateu-desktop-<version>-linux.tar.gz` (or `-Pinstaller.platform=windows`
-for a `.zip`): IntelliJ IDEA Community with the Mateu plugin preinstalled, isolated `data/`
-config (it never interferes with an IDE the user already has), first-boot prompts pre-answered,
-and a `mateu.sh`/`mateu.bat` launcher that opens the bundled workspace directly — unpack and
-double-click. The optional registry properties bake the [app registry](#app-registry-pointing-installables-at-their-backend)
-coordinates into the launcher, which is how a production desktop installable gets its backend.
+This produces the **Mateu desktop app**: IntelliJ IDEA Community with the Mateu plugin preinstalled
+and rebranded, with isolated settings (it never interferes with an IDE the user already has), first-boot
+prompts pre-answered and a launcher that opens the UI directly — a `.dmg` on macOS, a per-user setup
+`.exe` on Windows, a `.tar.gz` with an `install.sh` on Linux. Passing registry coordinates (or
+`-Pmateu.baseUrl`) builds a **fixed** app bound to that UI — see the
+[app registry](#app-registry-pointing-installables-at-their-backend); without them you get the **hub**,
+which keeps a list of UIs and opens `mateu://` links. The app updates itself. Variants, installers,
+updates and white-label builds: **[The Mateu desktop app](/native/desktop-app/)**.
 
 **Source:** `frontend/app/intellij-plugin/`
 

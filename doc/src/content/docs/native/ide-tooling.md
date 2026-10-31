@@ -157,8 +157,9 @@ JVM system properties override the settings, for CI or a one-off run: `-Dmateu.b
 the wire traffic.
 
 The standalone desktop distribution (the IDE rebranded as your app, see
-[Desktop & Mobile](/native/)) is the only place the plugin takes over the frame title, hides foreign
-tool windows and lands on the home route.
+[The Mateu desktop app](/native/desktop-app/)) is the only place the plugin takes over the frame title,
+hides foreign tool windows, lands on the home route and updates itself; in a developer's IDE the plugin
+is updated from the JetBrains Marketplace as usual.
 
 ## Live development: the Mateu App run configuration
 
