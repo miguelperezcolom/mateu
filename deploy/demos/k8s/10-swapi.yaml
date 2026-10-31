@@ -21,7 +21,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: swapi
-          image: miguelperezcolom/swapi-service:2026.10.30
+          image: miguelperezcolom/swapi-service:2026.10.31
           env:
             - { name: SERVER_PORT, value: "8120" }
             # exit on OOM so Kubernetes restarts it, rather than a half-alive JVM that answers nothing
