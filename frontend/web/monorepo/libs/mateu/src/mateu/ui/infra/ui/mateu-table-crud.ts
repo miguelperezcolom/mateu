@@ -782,13 +782,16 @@ export class MateuTableCrud extends LitElement {
         // whatever totalPath it declares — and it is never proxied (there may be no server at all).
         const sampled = isSampled(src)
         const serverPaged = totalPathOf(src) != null && !sampled
+        // A tree keeps each row's next level under `children` (the source's field map may point it
+        // at another response field) — not a column, so it is carried through the projection.
+        const childrenId = this.effectiveGridLayout === 'tree' ? 'children' : undefined
         const pagePromise: Promise<{ rows: Record<string, unknown>[]; total: number | null }> = viaProxy(src)
             ? new Promise((resolve) => {
                 this.dispatchEvent(new CustomEvent('action-requested', {
                     detail: {
                         actionId: '__restfetch__',
                         parameters: { _sourceKind: 'rows', _sourceId: this.id },
-                        callback: (uiIncrement: any) => resolve(pageOf(uiIncrement?.appData?.['_restfetch'], src, columnIds)),
+                        callback: (uiIncrement: any) => resolve(pageOf(uiIncrement?.appData?.['_restfetch'], src, columnIds, childrenId)),
                         callbackonly: true
                     },
                     bubbles: true,
@@ -796,8 +799,8 @@ export class MateuTableCrud extends LitElement {
                 }))
             })
             : serverPaged
-                ? fetchExternalPage(src, columnIds, templateResolver(this.state, this.data))
-                : fetchExternalRows(src, columnIds, templateResolver(this.state, this.data))
+                ? fetchExternalPage(src, columnIds, templateResolver(this.state, this.data), fetch, childrenId)
+                : fetchExternalRows(src, columnIds, templateResolver(this.state, this.data), fetch, childrenId)
                     .then((rows) => ({ rows, total: null }))
         pagePromise
             .then(({ rows: fetched, total }) => {

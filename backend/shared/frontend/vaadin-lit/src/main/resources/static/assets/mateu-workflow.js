@@ -1,5 +1,5 @@
 
-import{S as e,T as t,_ as n,c as r,o as i,s as a,x as o}from"./vendor-lit.js";import{T as s}from"./mateu-vaadin.js";import{a as c,i as l,n as u,t as d}from"./neutralChrome.js";var f=160,p=56,m=220,h=110,g=60,_={ACTION:`#3B82F6`,JOIN:`#8B5CF6`,FORK:`#F59E0B`,END:`#EF4444`,USER_TASK:`#10B981`,PROCESS:`#6366F1`},v={ACTION:`▶`,JOIN:`⟨`,FORK:`⟩`,END:`◼`,USER_TASK:`👤`,PROCESS:`⚙`},y=[`ACTION`,`JOIN`,`FORK`,`END`,`USER_TASK`,`PROCESS`];function b(){return`step-`+Math.random().toString(36).slice(2,8)}var x=class extends n{constructor(...e){super(...e),this.value=`{"name":"New Workflow","steps":[]}`,this.wf={name:`New Workflow`,steps:[]},this.positions={},this.selectedId=null,this.showMeta=!1,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;let t=this.toSvgPoint(e);this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener(`mousemove`,this.onMouseMove),window.removeEventListener(`mouseup`,this.onMouseUp)}}updated(e){if(e.has(`value`)){try{this.wf=JSON.parse(this.value)}catch{}this.autoLayout()}}autoLayout(){let e=this.wf.steps??[],t={};e.forEach(e=>{t[e.id]=0});let n=!0;for(;n;)n=!1,e.forEach(e=>{if(e.preconditionStepId!=null&&t[e.preconditionStepId]!==void 0){let r=t[e.preconditionStepId]+1;r>t[e.id]&&(t[e.id]=r,n=!0)}});let r={};e.forEach(e=>{let n=t[e.id]??0;(r[n]??=[]).push(e.id)});let i={...this.positions},a=!1;Object.entries(r).forEach(([e,t])=>{let n=Number(e);t.forEach((e,t)=>{i[e]||(i[e]={x:g+n*m,y:g+t*h},a=!0)})}),a&&(this.positions=i)}emit(){let e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){this.wf={...this.wf,steps:this.wf.steps.map(n=>n.id===e?{...n,...t}:n)},this.emit()}addStep(){let e=b(),t={id:e,type:`ACTION`,name:`New Step`};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};let n=Object.values(this.positions).map(e=>e.y),r=n.length?Math.max(...n)+h:g;this.positions={...this.positions,[e]:{x:g,y:r}},this.selectedId=e,this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(t=>t.id!==e).map(t=>t.preconditionStepId===e?{...t,preconditionStepId:void 0}:t)};let{[e]:t,...n}=this.positions;this.positions=n,this.selectedId===e&&(this.selectedId=null),this.emit()}onNodeMouseDown(e,t){e.preventDefault(),this.draggingId=t;let n=this.positions[t]??{x:0,y:0};this.svgEl=e.currentTarget.closest(`svg`);let r=this.toSvgPoint(e);this.dragOffset={x:r.x-n.x,y:r.y-n.y},window.addEventListener(`mousemove`,this.onMouseMove),window.addEventListener(`mouseup`,this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};let t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}canvasSize(){let e=Object.values(this.positions),t=e.length?Math.max(...e.map(e=>e.x))+f+g:600,n=e.length?Math.max(...e.map(e=>e.y))+p+g:400;return{w:Math.max(t,600),h:Math.max(n,400)}}render(){let{w:e,h:t}=this.canvasSize(),n=this.wf.steps??[];return o`
+import{O as e,T as t,a as n,b as r,i,r as a,w as o}from"./vendor-lit.js";import{T as s}from"./mateu-vaadin.js";import{a as c,i as l,n as u,t as d}from"./neutralChrome.js";var f=160,p=56,m=220,h=110,g=60,_={ACTION:`#3B82F6`,JOIN:`#8B5CF6`,FORK:`#F59E0B`,END:`#EF4444`,USER_TASK:`#10B981`,PROCESS:`#6366F1`},v={ACTION:`▶`,JOIN:`⟨`,FORK:`⟩`,END:`◼`,USER_TASK:`👤`,PROCESS:`⚙`},y=[`ACTION`,`JOIN`,`FORK`,`END`,`USER_TASK`,`PROCESS`];function b(){return`step-`+Math.random().toString(36).slice(2,8)}var x=class extends r{constructor(...e){super(...e),this.value=`{"name":"New Workflow","steps":[]}`,this.wf={name:`New Workflow`,steps:[]},this.positions={},this.selectedId=null,this.showMeta=!1,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;let t=this.toSvgPoint(e);this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener(`mousemove`,this.onMouseMove),window.removeEventListener(`mouseup`,this.onMouseUp)}}updated(e){if(e.has(`value`)){try{this.wf=JSON.parse(this.value)}catch{}this.autoLayout()}}autoLayout(){let e=this.wf.steps??[],t={};e.forEach(e=>{t[e.id]=0});let n=!0;for(;n;)n=!1,e.forEach(e=>{if(e.preconditionStepId!=null&&t[e.preconditionStepId]!==void 0){let r=t[e.preconditionStepId]+1;r>t[e.id]&&(t[e.id]=r,n=!0)}});let r={};e.forEach(e=>{let n=t[e.id]??0;(r[n]??=[]).push(e.id)});let i={...this.positions},a=!1;Object.entries(r).forEach(([e,t])=>{let n=Number(e);t.forEach((e,t)=>{i[e]||(i[e]={x:g+n*m,y:g+t*h},a=!0)})}),a&&(this.positions=i)}emit(){let e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){this.wf={...this.wf,steps:this.wf.steps.map(n=>n.id===e?{...n,...t}:n)},this.emit()}addStep(){let e=b(),t={id:e,type:`ACTION`,name:`New Step`};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};let n=Object.values(this.positions).map(e=>e.y),r=n.length?Math.max(...n)+h:g;this.positions={...this.positions,[e]:{x:g,y:r}},this.selectedId=e,this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(t=>t.id!==e).map(t=>t.preconditionStepId===e?{...t,preconditionStepId:void 0}:t)};let{[e]:t,...n}=this.positions;this.positions=n,this.selectedId===e&&(this.selectedId=null),this.emit()}onNodeMouseDown(e,t){e.preventDefault(),this.draggingId=t;let n=this.positions[t]??{x:0,y:0};this.svgEl=e.currentTarget.closest(`svg`);let r=this.toSvgPoint(e);this.dragOffset={x:r.x-n.x,y:r.y-n.y},window.addEventListener(`mousemove`,this.onMouseMove),window.addEventListener(`mouseup`,this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};let t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}canvasSize(){let e=Object.values(this.positions),t=e.length?Math.max(...e.map(e=>e.x))+f+g:600,n=e.length?Math.max(...e.map(e=>e.y))+p+g:400;return{w:Math.max(t,600),h:Math.max(n,400)}}render(){let{w:e,h:t}=this.canvasSize(),n=this.wf.steps??[];return o`
             <div class="root">
                 ${this.renderToolbar()}
                 ${this.showMeta?this.renderMeta():``}
@@ -63,15 +63,15 @@ import{S as e,T as t,_ as n,c as r,o as i,s as a,x as o}from"./vendor-lit.js";im
                     `:``}
                 </div>
             </div>
-        `}renderArrow(t){if(!t.preconditionStepId)return e``;let n=this.positions[t.preconditionStepId],r=this.positions[t.id];if(!n||!r)return e``;let i=n.x+f,a=n.y+p/2,o=r.x,s=r.y+p/2,c=(i+o)/2;return e`
+        `}renderArrow(e){if(!e.preconditionStepId)return t``;let n=this.positions[e.preconditionStepId],r=this.positions[e.id];if(!n||!r)return t``;let i=n.x+f,a=n.y+p/2,o=r.x,s=r.y+p/2,c=(i+o)/2;return t`
             <path d="M${i},${a} C${c},${a} ${c},${s} ${o},${s}"
                   fill="none" stroke="#94a3b8" stroke-width="2"
                   marker-end="url(#arrow)"/>
-        `}renderNode(t){let n=this.positions[t.id]??{x:g,y:g},r=_[t.type]??`#64748b`,i=v[t.type]??`•`,a=this.selectedId===t.id;return e`
+        `}renderNode(e){let n=this.positions[e.id]??{x:g,y:g},r=_[e.type]??`#64748b`,i=v[e.type]??`•`,a=this.selectedId===e.id;return t`
             <g transform="translate(${n.x},${n.y})"
                style="cursor:grab"
-               @mousedown="${e=>this.onNodeMouseDown(e,t.id)}"
-               @click="${e=>{e.stopPropagation(),this.selectedId=t.id}}">
+               @mousedown="${t=>this.onNodeMouseDown(t,e.id)}"
+               @click="${t=>{t.stopPropagation(),this.selectedId=e.id}}">
                 <rect width="${f}" height="${p}" rx="8"
                       fill="white"
                       stroke="${a?r:`#e2e8f0`}"
@@ -84,10 +84,10 @@ import{S as e,T as t,_ as n,c as r,o as i,s as a,x as o}from"./vendor-lit.js";im
                       font-size="14" fill="white">${i}</text>
                 <!-- name -->
                 <text x="44" y="${p/2-6}" font-size="11" fill="#1e293b" font-weight="600">
-                    ${t.name.length>16?t.name.slice(0,15)+`…`:t.name}
+                    ${e.name.length>16?e.name.slice(0,15)+`…`:e.name}
                 </text>
-                <text x="44" y="${36}" font-size="9" fill="#94a3b8">${t.id}</text>
-                <text x="44" y="${48}" font-size="9" fill="${r}">${t.type}</text>
+                <text x="44" y="${36}" font-size="9" fill="#94a3b8">${e.id}</text>
+                <text x="44" y="${48}" font-size="9" fill="${r}">${e.type}</text>
             </g>
         `}renderPanel(){let e=this.wf.steps.find(e=>e.id===this.selectedId);if(!e)return``;let t=this.wf.steps.filter(t=>t.id!==e.id),n=(e,t)=>o`
             <div class="field">
@@ -153,7 +153,7 @@ import{S as e,T as t,_ as n,c as r,o as i,s as a,x as o}from"./vendor-lit.js";im
                         @change="${t=>this.updateStep(e.id,{childWorkflowDefinitionId:t.target.value||void 0})}"/>`):``}
                 </div>
             </div>
-        `}exportJson(){let e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:`application/json`}),n=URL.createObjectURL(t),r=document.createElement(`a`);r.href=n,r.download=(this.wf.name??`workflow`).replace(/\s+/g,`-`).toLowerCase()+`.json`,r.click(),URL.revokeObjectURL(n)}static{this.styles=[c,t`
+        `}exportJson(){let e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:`application/json`}),n=URL.createObjectURL(t),r=document.createElement(`a`);r.href=n,r.download=(this.wf.name??`workflow`).replace(/\s+/g,`-`).toLowerCase()+`.json`,r.click(),URL.revokeObjectURL(n)}static{this.styles=[c,e`
         :host { display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif); }
 
         .root { display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff); }
@@ -231,4 +231,4 @@ import{S as e,T as t,_ as n,c as r,o as i,s as a,x as o}from"./vendor-lit.js";im
         .inp:focus { border-color: #3B82F6; }
         textarea.inp { resize: vertical; }
         input[readonly].inp { background: #f8fafc; color: #94a3b8; }
-    `]}};s([a()],x.prototype,`value`,void 0),s([i()],x.prototype,`wf`,void 0),s([i()],x.prototype,`positions`,void 0),s([i()],x.prototype,`selectedId`,void 0),s([i()],x.prototype,`showMeta`,void 0),x=s([r(`mateu-workflow`)],x);export{x as MateuWorkflow};
+    `]}};s([i()],x.prototype,`value`,void 0),s([a()],x.prototype,`wf`,void 0),s([a()],x.prototype,`positions`,void 0),s([a()],x.prototype,`selectedId`,void 0),s([a()],x.prototype,`showMeta`,void 0),x=s([n(`mateu-workflow`)],x);export{x as MateuWorkflow};

@@ -7620,13 +7620,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const tableColumns = lines.extra.length ? lines.first : (md.columns || [])
     // what each cell PAINTS (labels, badges, clipped/abbreviated text), before group rows are
     // interleaved: the content a compact column is sized to (columnSizingOf)
-    const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
+    // TREE (gridLayout: tree): the rows nest under `children`; the table draws them flattened, each
+    // level indented under its parent (always expanded, like the shared neutral tree of the web lib)
+    const tree = md.gridLayout === 'tree'
+    const content = tree ? treeRowsOf(page.content || [], tableColumns) : (page.content || [])
+    const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(content, md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
     const footers = aggregateFootersOf(md, (ctx.data || {}).crud) || {}
     // the columns sized by the DEFAULT rule (they declare no width/flexGrow): id → their compact
     // width (fit) — finishColumnSizing lets them grow when no other column does
     const fitColumns = {}
     const defaultSized = []
-    const columns = tableColumns.map((col) => {
+    const columns = tableColumns.map((col, colIndex) => {
       const c = col.metadata || col
       const def = { headerText: c.label || c.id, field: c.id }
       // editable cell → editor template per type (always visible, commit per cell:
@@ -7663,9 +7667,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // Abbreviated UUID: a text column whose values are UUIDs is painted "…-<last block>"
       // with the whole UUID in the tooltip. The row does NOT change: the cell reads a separate field,
       // precomputed in uuidCellRows (VB CSP: the template cannot trim the text).
-      if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
+      if (!def.template && uuidColumnIds(content, md.columns || []).indexOf(c.id) >= 0) {
         def.field = c.id + UUID_CELL_SUFFIX
         def.template = 'cellUuid'
+      }
+      // the tree column (the first one) reads its indented text (treeRowsOf)
+      if (tree && colIndex === 0 && !def.template && def.field === c.id) {
+        def.field = c.id + TREE_CELL_SUFFIX
       }
       const align = alignOf(c)
       if (align && !def.template) {
@@ -7975,6 +7983,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   const PRIMARY_CELL_SUFFIX = '__primary'
+
+  /** The field the first column of a tree listing paints: its text indented by the row's depth. */
+  const TREE_CELL_SUFFIX = '__treeCell'
+  const TREE_INDENT = '\u00a0\u00a0\u00a0\u00a0'
+
+  /**
+   * A tree listing's rows (each nesting its next level under `children`) as the FLAT rows a table
+   * draws: depth first, each parent before its children, `_treeDepth` stamped and the first column's
+   * text indented by it in `<id>__treeCell` (VB CSP: the template cannot indent). A row keeps its
+   * `_rowNumber` — the table's key — unless it has none or another row has it already (REST children
+   * carry none; a server may number each level from 0): then it is keyed by its path, `<parent>/<i>`.
+   * The `children` themselves are dropped from the flat row: they are rows of their own now.
+   */
+  function treeRowsOf(rows, columns) {
+    const firstCol = (columns || []).map((c) => (c && c.metadata) || c).find(Boolean)
+    const first = firstCol && firstCol.id
+    const out = []
+    const seen = new Set()
+    const walk = (items, depth, parentKey) => (items || []).forEach((row, i) => {
+      if (!row || typeof row !== 'object') return
+      const { children, ...rest } = row
+      let key = rest._rowNumber
+      if (key == null || seen.has(String(key))) key = parentKey == null ? '_row:' + i : parentKey + '/' + i
+      seen.add(String(key))
+      const flat = { ...rest, _rowNumber: key, _treeDepth: depth }
+      if (first) {
+        const v = rest[first]
+        flat[first + TREE_CELL_SUFFIX] = TREE_INDENT.repeat(depth) + (v == null ? '' : typeof v === 'object' ? (v.message || v.label || '') : String(v))
+      }
+      out.push(flat)
+      if (Array.isArray(children)) walk(children, depth + 1, key)
+    })
+    walk(rows, 0, null)
+    return out
+  }
 
   /** The cell (of the technical ROW_LINES_COLUMN column) that paints each row's extra lines. */
   const ROW_LINES_FIELD = '__rowLines'
@@ -18417,20 +18460,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** A response as listing rows keyed by column id; `pathOf` maps a column to the path it reads. */
-  function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id) {
+  function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id, childrenId) {
     const arr = getByPath(json, itemsPath)
     if (!Array.isArray(arr)) return []
-    return arr.map((item) => {
+    // A tree's rows nest their next level under `childrenId` (not a column): carried through,
+    // projected the same way level after level — without it a tree kept only its roots.
+    const shape = (items) => items.map((item) => {
       const row = {}
       for (const id of columnIds) row[id] = getByPath(item, pathOf(id))
+      if (childrenId) {
+        const kids = getByPath(item, pathOf(childrenId))
+        if (Array.isArray(kids)) row[childrenId] = shape(kids)
+      }
       return row
     })
+    return shape(arr)
   }
 
+  /** The field a tree listing (`gridLayout: tree`) nests each row's next level under. */
+  const TREE_CHILDREN = 'children'
+
   /** Rows + total of an already fetched response (shared by the direct and the proxied legs). */
-  function restPageOf(json, source, columnIds) {
+  function restPageOf(json, source, columnIds, childrenId) {
     const resolved = resolveRestSource(source) || {}
-    const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+    const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id), childrenId)
     const raw = getByPath(json, totalPathOf(source))
     const total = typeof raw === 'number' ? raw : Number(raw)
     return { rows, total: raw != null && Number.isFinite(total) ? total : null }
@@ -18727,6 +18780,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const columnIds = restColumnIdsOf(md)
     const sampled = isSampled(src)
     const serverPaged = totalPathOf(src) != null && !sampled
+    const childrenId = md.gridLayout === 'tree' ? TREE_CHILDREN : undefined
     let fetched = []
     let total = null
     try {
@@ -18734,10 +18788,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'crud' }, true)
         const appData = (inc && inc.appData) || {}
         if (appData._restfetchError) throw new Error('proxied rows failed')
-        ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds))
+        ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds, childrenId))
       } else {
         const json = await fetchRestJson(src, { state: componentState || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
-        ;({ rows: fetched, total } = restPageOf(json, src, columnIds))
+        ;({ rows: fetched, total } = restPageOf(json, src, columnIds, childrenId))
       }
     } catch (e) {
       try { console.warn('mateu: external rows fetch failed', e) } catch (ignored) { /* no console */ }

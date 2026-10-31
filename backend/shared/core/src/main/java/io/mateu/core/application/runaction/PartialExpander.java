@@ -7,6 +7,7 @@ import io.mateu.uidl.fluent.FormTemplate;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -112,6 +113,37 @@ public final class PartialExpander {
   }
 
   /**
+   * A page template's slot value. Besides component lists, a template may hold a list of PARTS that
+   * are records of slots themselves — a {@code GuidedProcessPage}'s steps, each with its own {@code
+   * content}. Those are not components, so the generic walk stepped over them and a partial inside
+   * a wizard step reached the mappers unexpanded (and rendered as nothing). Each part is walked
+   * like the template it belongs to.
+   */
+  private static Object rewriteTemplateValue(
+      Object value, HttpRequest request, Deque<String> chain) {
+    if (!isListOfParts(value)) {
+      return rewriteValue(value, request, chain);
+    }
+    var changed = false;
+    var rewritten = new ArrayList<Object>();
+    for (var part : (Collection<?>) value) {
+      var expanded = ComponentRecords.rewriteRecord(part, v -> rewriteValue(v, request, chain));
+      changed |= expanded != part;
+      rewritten.add(expanded);
+    }
+    return changed ? List.copyOf(rewritten) : value;
+  }
+
+  /** A non-empty list of records that are not components (a template's steps, say). */
+  private static boolean isListOfParts(Object value) {
+    if (!(value instanceof Collection<?> collection) || collection.isEmpty()) {
+      return false;
+    }
+    var first = collection.iterator().next();
+    return first != null && first.getClass().isRecord() && !(first instanceof Component);
+  }
+
+  /**
    * One record-component value with its partials expanded (same reference when nothing changed).
    */
   private static Object rewriteValue(Object value, HttpRequest request, Deque<String> chain) {
@@ -122,7 +154,7 @@ public final class PartialExpander {
     if (value instanceof FormTemplate template) {
       // a page template's slots (Form.template) are component lists too: a partial in a slot
       // splices
-      return ComponentRecords.rewriteRecord(template, v -> rewriteValue(v, request, chain));
+      return ComponentRecords.rewriteRecord(template, v -> rewriteTemplateValue(v, request, chain));
     }
     if (!ComponentRecords.isComponentList(value)) {
       // Options, grid columns, flex grows — plenty of lists on a component hold no
