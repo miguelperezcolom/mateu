@@ -42,6 +42,3 @@ content:
       columns:
         - {type: GridColumn, id: name, label: Component, identifier: true}
         - {type: GridColumn, id: kind, label: Kind}
-        # WORKAROUND: a listing keeps only the declared columns of a fetched row, so the tree's
-        # `children` must be declared to survive; it cannot be hidden, so it shows last — see the README.
-        - {type: GridColumn, id: children, label: ""}

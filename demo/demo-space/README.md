@@ -103,6 +103,9 @@ live API. 🟡 = renders, with the defect noted.
 
 ## Mateu bugs found (3.0-beta.25)
 
+All twelve are fixed in **3.0-beta.30** (Mateu #958, #959, #960, #961), which this demo now runs; the
+`children` workaround columns are gone. The list stays as the record of what the demo caught.
+
 1. **Vaadin: a `MultimediaContentPage` banner is not interpolated.** `title: ${state.name}` (also
    overline, subtitle) shows literally; Redwood interpolates it. Repro: `missions/6` (or
    demo-starwars `films/1`).

@@ -17,6 +17,3 @@ columns:
   - {type: GridColumn, id: orbitalPeriodDays, label: Orbit (days), dataType: number}
   - {type: GridColumn, id: surfaceGravity, label: Gravity (m/s²), dataType: number}
   - {type: GridColumn, id: missionCount, label: Missions, dataType: integer}
-  # WORKAROUND: a listing keeps only the declared columns of a fetched row, so the tree's
-  # `children` must be declared to survive; it cannot be hidden, so it shows last — see the README.
-  - {type: GridColumn, id: children, label: ""}
