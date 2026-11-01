@@ -30,7 +30,7 @@ define([
      */
     async run(context, { actionId, parameters, fromNested, surfaceId, route, ctaId, ctas }) {
       if (ctaId && ctas && ctas[ctaId]) ({ actionId, route } = ctas[ctaId]);
-      const click = bridge.blockClickOf({ actionId, parameters, route });
+      const click = bridge.blockClickOf({ actionId, parameters, route , state: bridge.routeStateOf(context.$application.variables.mateuRegistry, context.$page && context.$page.variables.mateuDraft)});
       if (click.navigate) {
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: click.navigate, force: true } });
         return;

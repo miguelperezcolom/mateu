@@ -2579,6 +2579,12 @@ test('a page that DECLARES the Multimedia content page → a welcome banner (int
   assert.equal(mmc.overline, 'Episode IV')
   assert.equal(mmc.theme, 'dark-plum')
   assert.equal(mmc.ctas.length, 1)
+  // its calls to action navigate to the RECORD: a route template is interpolated like the texts
+  const routed = JSON.parse(JSON.stringify(host.tree).replace(/"route":"([^"]*)"/, '"route":"films/${state.id}/edit"'))
+  assert.ok(JSON.stringify(routed).includes('films/${state.id}/edit'))
+  const withRoute = templatedMultimediaOf({ ...host, state: { id: '4' }, tree: routed })
+  assert.ok(JSON.stringify(withRoute).includes('films/4/edit'))
+  assert.ok(!JSON.stringify(withRoute).includes('${state.id}'))
   // one section is enough: the template HAS the navigator (the auto rule needs several)
   assert.equal(tocOf(host).on, true)
 })

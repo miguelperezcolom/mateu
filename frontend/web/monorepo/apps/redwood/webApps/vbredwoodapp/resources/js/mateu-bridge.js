@@ -4465,7 +4465,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const look = welcomeLookOf(welcomeKeyOf(ctx), banner.tone)
     // the banner shows ONE record: its texts are templates over the page state
     const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
+    // ...and so are its calls to action's routes (an Edit to `missions/${state.id}/edit` went to the
+    // literal placeholder)
+    const routed = (c) => (c && c.route ? { ...c, route: text(c.route) } : c)
     return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
+      ctas: (banner.ctas || []).map(routed),
+      primaryCtaRoute: text(banner.primaryCtaRoute), secondaryCtaRoute: text(banner.secondaryCtaRoute),
+      secondaryById: Object.fromEntries(Object.entries(banner.secondaryById || {}).map(([k, v]) => [k, routed(v)])),
       theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
   }
 
@@ -20395,6 +20401,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * returns the chromeless App; the content arrives with consumedRoute + serverSideType).
    * Returns the new registry. targetId = key of the target context (initiator).
    */
+  /** The registry without one context (the reducer then starts that context afresh). */
+  function withoutContext(reg, ctxId) {
+    if (!reg || !reg.contexts || !reg.contexts[ctxId]) return reg
+    const { [ctxId]: _dropped, ...contexts } = reg.contexts
+    return { ...reg, contexts }
+  }
+
   async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
     // live reload (liveReload.mjs): what was typed travels with the load — a view model is hydrated with
     // it — and is put back over the response, so a definition-only page keeps it
@@ -20430,7 +20443,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         serverSideType: outbound.serverSideType,
       })
     }
-    let next = reduceContexts(reg, firstIncrement)
+    // a route load is a NEW screen in that context: nothing of the previous one carries over. A screen
+    // answering with no state of its own (a YAML Listing) kept the previous screen's — a mission's
+    // `name` became the astronauts' name filter and the list came back empty.
+    let next = reduceContexts(withoutContext(reg, ctxId), firstIncrement)
     // the component's ACTIONS (with their sse flag) travel in the mediator's WRAPPER —
     // the content load loses them, so they are kept here
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
@@ -23746,6 +23762,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
   // the state it carries (the drawer's with its draft, or the host's with the form draft and the
   // listing's selection), whether it may leave at all (rows required, required fields empty, a row
@@ -23898,7 +23915,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * @param {{ actionId?: string, parameters?: object, route?: string }} button
    * @returns {{ navigate: string } | { actionId: string, parameters: object }}
    */
-  function blockClickOf({ actionId, parameters, route } = {}) {
+  /** The state a navigating button's route is read against: the screen's, with what is typed over it. */
+  function routeStateOf(reg, draft) {
+    const host = reg && reg.contexts && reg.contexts[HOST_ID]
+    return { ...((host && host.state) || {}), ...(draft || {}) }
+  }
+
+  function blockClickOf({ actionId, parameters, route, state } = {}) {
+    // a RouteLink's route is a template over the screen's state (`missions/${state.id}/edit`): it went
+    // out with the literal placeholder wherever the projection had not interpolated it already
+    if (typeof route === 'string' && route.includes('${')) route = interpolate(route, state || {})
     if (typeof route === 'string' && route.trim() !== '') return { navigate: route.trim() }
     return { actionId: actionId || '', parameters: parameters || {} }
   }
@@ -26860,6 +26886,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,
+    routeStateOf,
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,
