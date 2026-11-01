@@ -23,7 +23,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-museum:3.0-beta.31
+          image: miguelperezcolom/demo-museum:3.0-beta.32
           env:
             - { name: SERVER_PORT, value: "8601" }
             - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
