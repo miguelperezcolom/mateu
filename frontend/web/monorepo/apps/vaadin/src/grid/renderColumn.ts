@@ -1,5 +1,7 @@
 import { numericCommitValue } from '@components/fieldValue'
-import { navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
+import { datePickerI18n } from "../fields/dateLocale.ts";
+import { isExternalRoute, navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
+import { safeHref } from '@infra/ui/safeNavigate.ts'
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { html, LitElement, nothing } from "lit";
 import { interpolate } from "@infra/ui/interpolation.ts";
@@ -113,11 +115,11 @@ const renderEditableCell = (
         case 'number':
             return html`<vaadin-number-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-number-field>`
         case 'date':
-            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
+            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
         case 'time':
             return html`<vaadin-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-time-picker>`
         case 'datetime':
-            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-time-picker>`
+            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-time-picker>`
         case 'select':
             return html`<vaadin-combo-box accessible-name="${name}"
                 theme="small" style="width:100%;"
@@ -482,7 +484,16 @@ export const columnRenderer = (item: any,
     const rowRoute = (container as any)?.metadata?.rowRoute
     if (column.identifier && rowRoute) {
         const route = rowRouteOf(rowRoute, item, state, data)
-        if (route) {
+        // a route that is a whole URL leaves the app: a plain new-tab link (refused schemes get none)
+        const external = !!route && isExternalRoute(route)
+        const externalHref = external ? safeHref(route) : undefined
+        if (external && externalHref) {
+            return html`<a href="${externalHref}" target="_blank" rel="noopener noreferrer" title="${cellValue}"
+                @click="${(e: MouseEvent) => e.stopPropagation()}"
+                style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; color: var(--lumo-primary-text-color); text-decoration: none; cursor: pointer;"
+            >${uuidAwareText(cellValue)}</a>`
+        }
+        if (route && !external) {
             const href = '/' + route.replace(/^\/+/, '')
             return html`<a href="${href}" title="${cellValue}"
                 @click="${(e: MouseEvent) => {

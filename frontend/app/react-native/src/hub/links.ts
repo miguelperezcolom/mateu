@@ -28,6 +28,12 @@ export const MAX_IMPORT = 50;
 export interface ParseOptions {
   /** Accept `http://` base URLs (development builds only). */
   allowInsecure?: boolean;
+  /**
+   * Accept `http://` only for THIS machine (localhost, 127.x, [::1]) — the desktop app, which a
+   * developer's IDE hands the app it just started (`http://localhost:8080`). A phone has no use for
+   * it: its loopback is itself.
+   */
+  allowLoopbackHttp?: boolean;
   /** Extra hosts (`host[:port]`) whose `/add` path is accepted — the web build's own origin. */
   extraLinkHosts?: string[];
 }
@@ -69,7 +75,7 @@ export function normalizeBaseUrl(input: string, options: ParseOptions = {}): Bas
   const authority = m[2];
   const path = m[3] ?? '';
   if (scheme !== 'https' && scheme !== 'http') return { ok: false, reason: 'Only https addresses can be added.' };
-  if (scheme === 'http' && !options.allowInsecure) {
+  if (scheme === 'http' && !options.allowInsecure && !options.allowLoopbackHttp) {
     return { ok: false, reason: 'Only secure (https) addresses can be added.' };
   }
   if (authority.includes('@')) return { ok: false, reason: 'Addresses with a user name or password are not accepted.' };
@@ -83,6 +89,9 @@ export function normalizeBaseUrl(input: string, options: ParseOptions = {}): Bas
     return { ok: false, reason: 'International domain names must be entered in their xn-- form.' };
   }
   if (!HOST_RE.test(host) && !IPV6_RE.test(host)) return { ok: false, reason: 'The address has an invalid host.' };
+  if (scheme === 'http' && !options.allowInsecure && !isLoopbackHost(host)) {
+    return { ok: false, reason: 'Only secure (https) addresses can be added.' };
+  }
   if (port !== undefined) {
     const n = Number(port);
     if (!(n >= 1 && n <= 65535)) return { ok: false, reason: 'The address has an invalid port.' };
@@ -94,6 +103,11 @@ export function normalizeBaseUrl(input: string, options: ParseOptions = {}): Bas
   const hostPort = port && !defaultPort ? `${host}:${port}` : host;
   const cleanPath = path.replace(/\/+$/, '');
   return { ok: true, baseUrl: `${scheme}://${hostPort}${cleanPath}`, host: hostPort, secure: scheme === 'https' };
+}
+
+/** This machine: `localhost`, `127.0.0.0/8`, `[::1]` (an already lower-cased host, no port). */
+export function isLoopbackHost(host: string): boolean {
+  return host === 'localhost' || host === '[::1]' || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host);
 }
 
 /** The host[:port] of an already-normalised base URL — what the confirm screen shows big. */

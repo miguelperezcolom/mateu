@@ -5703,7 +5703,7 @@
       }
     },
     "Kanban" : {
-      "description" : "A read-only kanban board: columns of cards.",
+      "description" : "A kanban board: columns of cards.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5724,6 +5724,27 @@
           "type" : "string"
         },
         "cssClasses" : {
+          "type" : "string"
+        },
+        "moveActionId" : {
+          "type" : "string"
+        },
+        "rowsSource" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "columnField" : {
+          "type" : "string"
+        },
+        "card" : {
+          "$ref" : "#/$defs/KanbanCard"
+        },
+        "cardColors" : {
+          "type" : "object"
+        },
+        "cardRoute" : {
+          "type" : "string"
+        },
+        "orderField" : {
           "type" : "string"
         },
         "note" : {

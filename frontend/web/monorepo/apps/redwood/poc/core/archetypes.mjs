@@ -1,7 +1,7 @@
 import { collectTexts } from './tree.mjs'
 import { BADGE_CLASSES, interpolate, islandContentOf, buttonRouteOf } from './content.mjs'
 import { declaresTemplate, templateFormOf } from './overviews.mjs'
-import { PANE_TYPES, findOutside, pageHeaderNodeOf } from './pageHeader.mjs'
+import { PANE_TYPES, findOutside, pageHeaderNodeOf, pageToolbarOf, pageSubtitleOf, isBackButton } from './pageHeader.mjs'
 import { STATUS_BADGE, findByType, findFirst } from './listing.mjs'
 import { iconClassOf } from './display.mjs'
 import { chromeText } from '../i18n.mjs'
@@ -27,7 +27,7 @@ export function sameFoldoutStructure(before, now) {
  *  Each slot also projects its RICH blocks (same pipeline as the host: StatusList
  *  cards, buttons, inputs, notices…) — the markup paints blocks and keeps texts only
  *  as the legacy form for tests/fixtures. */
-export function foldoutOf(ctx) {
+export function foldoutOf(ctx, { parent = null } = {}) {
   // the PAGE foldout: one placed in a tab (or in a console panel) is content of that
   // tab — visit() paints it there, with its collapsible panels — and does not take over the screen
   const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
@@ -38,7 +38,10 @@ export function foldoutOf(ctx) {
   for (const child of children) bySlot[child.slot || ''] = child
   const blocksOf = (slotNode) => {
     const blocks = slotNode
-      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound })
+      // templateSlot: a panel is a slot of the page, so a Listing in it (an exhibition's works, its
+      // loans) is drawn there with the rows it loads — read alone, the panel's subtree did not say
+      // it sits in a templated page and the listing was dropped
+      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound, templateSlot: true })
       : null
     // same visual contract as hostContentOf: column blocks with their colClass,
     // the rest full-row
@@ -69,6 +72,10 @@ export function foldoutOf(ctx) {
     .concat((md.badges || []).map((b) => (b && typeof b === 'object' ? b.text || b.label : b))
       .filter((t) => t != null && String(t).trim())
       .map((t) => ({ isBadge: true, label: String(t), badgeClass: STATUS_BADGE.NONE, blockClass: 'oj-flex-item oj-sm-12' })))
+  const declared = declaresTemplate(ctx, 'FoldoutPage')
+  const owns = declared || (!!page && !findByType(ctx.tree, 'EntityHeader'))
+  // the page's subtitle (a booking's «Total … · Pagado …») heads the overview when the band is gone
+  const subtitle = owns && !declared ? pageSubtitleOf(ctx) : ''
   return {
     headerTitle: interpolate(String(md.headerTitle || ''), (ctx && ctx.state) || {}),
     // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
@@ -77,18 +84,17 @@ export function foldoutOf(ctx) {
     overviewOnTop: md.orientation === 'horizontal',
     // the navigation header, the overview's Edit and the badges: what may change between two
     // records of the same foldout (re-bound in place, like the panels' content)
-    header: declaresTemplate(ctx, 'FoldoutPage') ? foldoutPageHeaderOf(foldoutHeaderOf(md), templateFormOf(ctx), state) : foldoutHeaderOf(md),
-    // a declared FoldoutPage owns the page header (Toolkit 26C: the layout's own header and the
-    // overview panel carry the navigation and the actions — there is no page header above it)
-    ownsHeader: declaresTemplate(ctx, 'FoldoutPage'),
+    header: foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }),
+    // the foldout owns the page header (Toolkit 26C: the layout's own header and the overview panel
+    // carry the navigation and the actions — there is no page header above it): a declared
+    // FoldoutPage, and any page whose foldout is the page, unless an EntityHeader's facts need the band
+    ownsHeader: owns,
     badges: pageBadges,
     overview: {
       texts: collectTexts(bySlot['overview']),
       // a PLAIN block that carries them as atoms: the overview template only paints isCard/isPlain
       // blocks and isBadge is an atom of their items — a standalone isBadge block was not shown
-      blocks: (pageBadges.length
-        ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items: pageBadges }]
-        : []).concat(blocksOf(bySlot['overview'])),
+      blocks: overviewHeadBlocks(pageBadges, subtitle).concat(blocksOf(bySlot['overview'])),
     },
     panels: (md.panels || []).map((panel, i) => ({
       title: panel.title || '',
@@ -149,6 +155,60 @@ export function foldoutHeaderOf(md) {
     // it to dispatchHostBlockAction (ctaId/ctas), so a YAML page with no action behind it still works
     ctas: {},
   }
+}
+
+/** The block that heads the overview: the page badges and, when the foldout owns the page, its
+ *  subtitle — a PLAIN block carrying them as atoms (the overview template only paints isCard/isPlain
+ *  blocks). None when there is neither. */
+function overviewHeadBlocks(badges, subtitle) {
+  const items = badges.concat(subtitle ? [{ isText: true, text: subtitle, cls: 'oj-typography-body-sm oj-text-color-secondary' }] : [])
+  return items.length ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items }] : []
+}
+
+/** The foldout's header: the wire's (foldoutHeaderOf), plus the page's toolbar when the foldout owns
+ *  the page — a declared FoldoutPage's form toolbar, else the page toolbar (and the trail's parent). */
+function foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }) {
+  const header = foldoutHeaderOf(md)
+  if (!owns) return header
+  if (declared) return foldoutPageHeaderOf(header, templateFormOf(ctx), (ctx && ctx.state) || {})
+  return foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+}
+
+/** Where a page foldout's go-to-parent leads: its back button, else the trail's parent; null with neither. */
+function foldoutParentOf(back, parent) {
+  if (back) return { label: back.label, actionId: back.actionId, target: { actionId: back.actionId, route: back.route || '' } }
+  if (parent && parent.route) return { label: parent.label, actionId: 'parent', target: { actionId: '', route: parent.route } }
+  return null
+}
+
+/**
+ * A page foldout's header from the PAGE toolbar (pageToolbarOf: {actionId, label, chroming, route,
+ * disabled}): the back button — else the trail's parent (`parent`: {label, route}) — becomes the
+ * layout's go-to-parent; the other buttons the overview panel's actions, the primary first (an
+ * «Edit» as the pencil). The wire's own navigation (FoldoutLayout.navigation) keeps priority.
+ */
+export function foldoutToolbarHeaderOf(header, toolbar, parent = null) {
+  const buttons = (toolbar || []).filter((b) => b && b.actionId)
+  const back = buttons.find(isBackButton)
+  const rest = buttons.filter((b) => b !== back)
+    .sort((a, b) => (b.chroming === 'callToAction') - (a.chroming === 'callToAction'))
+  const ctas = { ...(header.ctas || {}) }
+  const out = { ...header, ctas }
+  const up = header.goToParent ? null : foldoutParentOf(back, parent)
+  if (up) {
+    ctas.parent = up.target
+    Object.assign(out, { hasNavigation: true, goToParent: true, parentActionId: up.actionId,
+      parentLabel: up.label || chromeText('goBack') })
+  }
+  if (rest.length) {
+    out.overviewActions = (header.overviewActions || []).concat(rest.map((b, i) => {
+      const id = 'toolbar-' + i
+      ctas[id] = { actionId: b.actionId, route: b.route || '' }
+      return { id, label: b.label, display: b.disabled ? 'disabled' : 'on',
+        ...(i === 0 && b.chroming === 'callToAction' && /^edit\b/i.test(b.label || '') ? { icon: 'oj-ux-ico-edit' } : {}) }
+    }))
+  }
+  return out
 }
 
 const FOLDOUT_BACK_IDS = /^(back|backToList|cancel-view|cancel)$/

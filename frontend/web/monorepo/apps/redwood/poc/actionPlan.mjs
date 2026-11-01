@@ -2,6 +2,8 @@ import {
   HOST_ID, overlayOf, withListingSelection, validationOf, formRefusalOf, listActionRequestOf, ROW_VALIDATING_VERBS,
   validateRow, rowEditorOf, overlayTransportOf, actionTransportOf,
 } from './reduceContexts.mjs'
+import { interpolate } from './core/content.mjs'
+import { withNestedSelection } from './core/listing.mjs'
 
 // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
 // the state it carries (the drawer's with its draft, or the host's with the form draft and the
@@ -29,6 +31,9 @@ export function outboundActionOf(reg, id, inputs = {}) {
 
   // a host action on a listing with selection carries the marked rows (crud_selected_items), as
   // in Vaadin; the drawer's do not (they act on ITS record)
+  // …and an action on the toolbar of a listing NESTED in the page (a record's documents) carries
+  // the rows marked on THAT listing
+  if (!overlay) componentState = withNestedSelection(componentState, host, id)
   if (!overlay && listing && listing.rowsSelectionEnabled) {
     componentState = withListingSelection(componentState, listing, listingRows, listingSelection)
     if ((listing.selectionRequired || []).indexOf(id) >= 0 && !componentState.crud_selected_items.length) {
@@ -155,7 +160,15 @@ export function onlyMessagesAnswer({ hostRepainted, flipRoute, events, overlayBe
  * @param {{ actionId?: string, parameters?: object, route?: string }} button
  * @returns {{ navigate: string } | { actionId: string, parameters: object }}
  */
-export function blockClickOf({ actionId, parameters, route } = {}) {
+/** The state a navigating button's route is read against: the screen's, with what is typed over it. */
+export function routeStateOf(reg, draft) {
+  return { ...reg?.contexts?.[HOST_ID]?.state, ...draft }
+}
+
+export function blockClickOf({ actionId, parameters, route, state } = {}) {
+  // a RouteLink's route is a template over the screen's state (`missions/${state.id}/edit`): it went
+  // out with the literal placeholder wherever the projection had not interpolated it already
+  if (typeof route === 'string' && route.includes('${')) route = interpolate(route, state || {})
   if (typeof route === 'string' && route.trim() !== '') return { navigate: route.trim() }
   return { actionId: actionId || '', parameters: parameters || {} }
 }

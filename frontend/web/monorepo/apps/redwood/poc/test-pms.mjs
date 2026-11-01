@@ -27,8 +27,9 @@ import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMulti
 import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
+import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
@@ -40,7 +41,7 @@ import { hoverLinesOf } from './hover.mjs'
 import { draggedIdsOf, dragTypeOfMime } from './dnd.mjs'
 import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
-import { listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf } from './core/listing.mjs'
+import { nestedListingAtomOf, nestedListingKeyOf, pageListingNodeOf, templateNestsListings, listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf } from './core/listing.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
@@ -1557,7 +1558,7 @@ test('campos richText / html / markdown: con formato en sólo lectura; un richTe
   assert.deepEqual(ro.map((a) => [a.label, a.html]), [['Notes', '<p>VIP <b>guest</b></p>'], ['Policy', '<p><strong>No</strong> pets</p>']])
   const [layout] = atomsOf(node({ type: 'FormLayout' }, [node({ type: 'FormField', fieldId: 'notes', dataType: 'string', stereotype: 'richText', label: 'Notes' })]), { notes: '<p>x</p>' })
   assert.ok(layout.isFormLayout)
-  assert.ok(layout.fields[0].isRichEditor && !layout.fields[0].isTextArea, 'JET has no rich text editor: mateu-rich-text-field')
+  assert.ok(layout.fields[0].isRichEditor && !layout.fields[0].isTextArea, 'an editable richText is mateu-rich-text-field (Spectra\'s editor inside)')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /:data-mateu-html="\[\[ \$current\.data\.html \]\]"/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRichText\(\)/)
 })
@@ -2065,6 +2066,34 @@ atest('navigating to another screen starts it at its top — not on back/forward
   assert.equal(calls.length, 1)
 })
 
+atest('the old screen does not jump to its top before the new one is there', async () => {
+  // «Open the Met» halfway down the welcome page: the page scrolled up at the click, and only then
+  // did the museum arrive. Now: when the new screen lands, or when the old one is hidden (0.5 s)
+  const calls = []
+  const timers = []
+  const win = {
+    scrollTo: (x, y) => calls.push([x, y]),
+    setTimeout: (fn, ms) => { timers.push({ fn, ms, cleared: false }); return timers.length - 1 },
+    clearTimeout: (id) => { timers[id].cleared = true },
+  }
+  const landed = scrollToTopWhenReplaced({ event: { detail: { route: '/museums/1' } } }, win)
+  assert.deepEqual(calls, [])
+  assert.equal(timers[0].ms, 500)
+  assert.equal(landed(), true)
+  assert.deepEqual(calls, [[0, 0]])
+  assert.equal(timers[0].cleared, true)
+  assert.equal(landed(), false)
+  // a slow load: the old screen hides at 0.5 s and the page goes up then, once
+  const slow = scrollToTopWhenReplaced({}, win)
+  timers[1].fn()
+  assert.equal(calls.length, 2)
+  assert.equal(slow(), false)
+  assert.equal(calls.length, 2)
+  // back/forward keeps the browser's position, as before
+  assert.equal(scrollToTopWhenReplaced({ fromUrl: true }, win)(), false)
+  assert.equal(calls.length, 2)
+})
+
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
 void HOST_ID
 
@@ -2324,6 +2353,25 @@ test('GanttPage → oj-sp-data-management-page: the canvas + detail in the defau
   const pageJson = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
   assert.ok(pageJson.imports.components['oj-sp-data-management-page'])
   assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].chain, 'dmPanelClosed')
+  // a YAML DockedPanel (no toggle action): its ✕ closes it here and it stays closed on that route —
+  // putting the state back to 'auto' with the panel still projected reopened it at once
+  assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].parameters.panel, 'bottom')
+  const yamlPanel = { tree: { type: 'ClientSide', id: 'dm', metadata: { type: 'VerticalLayout' }, children: [
+    { type: 'ClientSide', id: 'data-management', metadata: { type: 'VerticalLayout' }, children: [
+      { type: 'ClientSide', id: 'data-management-toolbar', metadata: { type: 'HorizontalLayout' }, children: [] },
+      { type: 'ClientSide', id: 'data-management-body', metadata: { type: 'VerticalLayout' }, children: [] },
+      { type: 'ClientSide', id: 'loans-notes', metadata: { type: 'DockedPanel', title: 'About this data', open: true }, children: [
+        { type: 'ClientSide', metadata: { type: 'Text', text: 'Synthetic' }, children: [] }] }] }] },
+    state: {}, data: {}, outbound: { route: '/loans' } }
+  const open = dataManagementPageOf(yamlPanel)
+  assert.ok(open.bottom.on, 'the YAML panel is projected open'); {
+    assert.equal(open.bottom.closeActionId, '')
+    assert.equal(dataManagementWithoutPanel(open, 'bottom').bottomOpened, 'none')
+    closeDockedPanel('loans', 'bottom')
+    assert.equal(dataManagementPageOf(yamlPanel).bottom.on, false, 'closed for good on that route')
+    assert.equal(dataManagementPageOf({ ...yamlPanel, outbound: { route: '/other' } }).bottom.on, true, 'other routes keep theirs')
+  }
+  assert.ok(webApp('flows/main/pages/main-start-page-chains/dmPanelClosed.js').includes('bridge.closeDockedPanel('))
   assert.ok(existsSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'dmPanelClosed.js')))
   assert.match(webApp('resources/css/app.css'), /\.mateu-dm-page:not\(\.mateu-dm-transactional\) oj-sp-header-create-edit \[id\$="_cancelAction"\]/, 'no transaction: Cancel/primary hidden')
   // a page declaring a cancel + a primary @Toolbar action (pageHeaderOf → createEdit) shows them:
@@ -2390,6 +2438,71 @@ test('ItemOverview → oj-sp-item-overview-page: the key panel in oj-sp-item-ove
   assert.match(page, /edit: \$application\.variables\.mateuPageHeader\.itemEdit/)
   assert.match(page, /on-sp-edit="\[\[ \$listeners\.headerPrimary \]\]"/)
 })
+
+test('a nested listing is drawn as picture cards or a table, its first page only', () => {
+  const works = { type: 'ClientSide', id: 'w', metadata: { type: 'Crud', title: 'Works of ${state.name}', gridLayout: 'cards', rowRoute: 'artworks/${row.id}',
+    rowsSource: { ref: 'works' }, columns: [{ metadata: { id: 'img', label: 'Image', stereotype: 'image' } }, { metadata: { id: 'title', label: 'Title', identifier: true } },
+      { metadata: { id: 'by', label: 'By' } }, { metadata: { id: 'ops', dataType: 'actionGroup' } }] }, children: [] }
+  const key = nestedListingKeyOf(works)
+  const pending = nestedListingAtomOf(works, { state: { name: 'SMK' }, data: {} })
+  assert.equal(pending.title, 'Works of SMK')
+  assert.equal(pending.loaded, false)
+  assert.equal(pending.isEmpty, false)
+  const rows = [{ id: 7, img: 'a.jpg', title: 'Harvesters', by: 'Bruegel' }, { id: 8, img: 'b.jpg', title: 'Untitled', by: null }]
+  const cards = nestedListingAtomOf(works, { state: {}, data: { [key]: { page: { content: rows } } } })
+  assert.ok(cards.asCards && !cards.asTable)
+  assert.equal(cards.cards.length, 2)
+  assert.equal(cards.cards[0].image, 'a.jpg')
+  assert.equal(cards.cards[0].title, 'Harvesters')
+  assert.deepEqual(cards.cards[0].lines, [{ label: 'By', value: 'Bruegel' }])
+  assert.deepEqual(cards.cards[1].lines, [])
+  assert.ok(cards.cards[0].route)
+  const loans = { ...works, id: 'l', metadata: { ...works.metadata, gridLayout: undefined, title: '', emptyStateMessage: 'No loans' } }
+  const lkey = nestedListingKeyOf(loans)
+  const table = nestedListingAtomOf(loans, { state: {}, data: { [lkey]: { page: { content: rows } } } })
+  assert.ok(table.asTable && !table.asCards)
+  assert.deepEqual(table.columns.map((c) => c.id), ['img', 'title', 'by'])
+  assert.equal(table.columns[0].template, 'cellNestedImage')
+  assert.equal(table.columns[1].template, 'cellNestedLink')
+  assert.ok(table.columns.every((c) => c.sortable === 'disabled'))
+  assert.ok(table.rows[0].__href.includes('artworks/7'))
+  const empty = nestedListingAtomOf(loans, { state: {}, data: { [lkey]: { page: { content: [] } } } })
+  assert.ok(empty.isEmpty)
+  assert.equal(empty.emptyText, 'No loans')
+})
+
+test('which listing is the page\'s own: none on a template that nests them, the list slot on a collection detail', () => {
+  const crud = (id) => ({ type: 'ClientSide', id, metadata: { type: 'Crud', columns: [] }, children: [] })
+  const page = (template, children) => ({ type: 'ServerSide', children: [{ type: 'ClientSide', id: 'p',
+    metadata: { type: 'Form', ...(template ? { template: { type: template } } : {}) }, children }] })
+  assert.equal(pageListingNodeOf(page(null, [])), null)
+  assert.equal(pageListingNodeOf(page(null, [crud('a')])).id, 'a')
+  assert.equal(pageListingNodeOf(page('GeneralOverviewPage', [crud('a')])), null)
+  assert.equal(pageListingNodeOf(page('HeroSearchPage', [crud('a')])).id, 'a')
+  const list = { type: 'ClientSide', id: 'collection-detail-list', metadata: { type: 'VerticalLayout' }, children: [crud('b')] }
+  assert.equal(pageListingNodeOf(page('CollectionDetailPage', [crud('a'), list])).id, 'b')
+  assert.equal(pageListingNodeOf(page('CollectionDetailPage', [crud('a')])), null)
+  assert.ok(templateNestsListings(page('FoldoutPage', [])))
+  assert.ok(!templateNestsListings(page('DataManagementPage', [])))
+  assert.ok(!templateNestsListings(page(null, [])))
+})
+
+
+test('a Listing in a foldout panel is drawn there with the rows it loaded (an exhibition\'s works, its loans)', () => {
+  const works = { type: 'ClientSide', id: 'w', metadata: { type: 'Crud', rowsSource: { ref: 'works' }, gridLayout: 'cards',
+    columns: [{ metadata: { id: 'title', label: 'Title', identifier: true } }] }, children: [] }
+  const key = nestedListingKeyOf(works)
+  const tree = { type: 'ServerSide', children: [{ type: 'ClientSide', id: 'p', metadata: { type: 'Form', template: { type: 'FoldoutPage' } }, children: [
+    { type: 'ClientSide', id: 'f', metadata: { type: 'FoldoutLayout', panels: [{ title: 'The works' }] }, children: [
+      { type: 'ClientSide', id: 'o', slot: 'overview', metadata: { type: 'VerticalLayout' }, children: [] },
+      { type: 'ClientSide', id: 'p0', slot: 'panel-0', metadata: { type: 'VerticalLayout' }, children: [works] }] }] }] }
+  const foldout = foldoutOf({ tree, state: {}, data: { [key]: { page: { content: [{ id: 1, title: 'Harvesters' }] } } } })
+  const atoms = foldout.panels[0].blocks.flatMap((b) => b.items || [b])
+  const listing = atoms.find((a) => a.isNestedListing)
+  assert.ok(listing, 'the panel draws the listing')
+  assert.deepEqual(listing.cards.map((c) => c.title), ['Harvesters'])
+})
+
 console.log(`\n${pass} tests PMS OK`)
 
 test('a page that DECLARES the Item overview page template (YAML template: ItemOverviewPage) → Spectra\'s, from the slots by id', () => {
@@ -2486,6 +2599,12 @@ test('a page that DECLARES the Multimedia content page → a welcome banner (int
   assert.equal(mmc.overline, 'Episode IV')
   assert.equal(mmc.theme, 'dark-plum')
   assert.equal(mmc.ctas.length, 1)
+  // its calls to action navigate to the RECORD: a route template is interpolated like the texts
+  const routed = JSON.parse(JSON.stringify(host.tree).replace(/"route":"([^"]*)"/, '"route":"films/${state.id}/edit"'))
+  assert.ok(JSON.stringify(routed).includes('films/${state.id}/edit'))
+  const withRoute = templatedMultimediaOf({ ...host, state: { id: '4' }, tree: routed })
+  assert.ok(JSON.stringify(withRoute).includes('films/4/edit'))
+  assert.ok(!JSON.stringify(withRoute).includes('${state.id}'))
   // one section is enough: the template HAS the navigator (the auto rule needs several)
   assert.equal(tocOf(host).on, true)
 })

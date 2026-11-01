@@ -46,8 +46,14 @@ define([
           $application.variables.mateuRegistry = markedReg;
         }
         const draft = Object.assign({}, $page.variables.mateuDrawerDraft);
-        // an Amount keeps its currency: the money input edits only the number
-        draft[fieldId] = bridge.committedValueOf(draft[fieldId], detail.value);
+        // one END of a date range (`<field>#from|to`) edits the whole {from, to}
+        const drawerRange = bridge.rangeEditOf(fieldId, draft, {}, detail.value);
+        if (drawerRange) {
+          draft[drawerRange.fieldId] = drawerRange.value;
+        } else {
+          // an Amount keeps its currency: the money input edits only the number
+          draft[fieldId] = bridge.committedValueOf(draft[fieldId], detail.value);
+        }
         $page.variables.mateuDrawerDraft = draft;
         // a create/edit drawer (Spectra template) holds Esc / a click outside while this differs
         const drawerNow = $application.variables.mateuDrawer || {};
@@ -59,8 +65,15 @@ define([
         }
         const draft = Object.assign({}, $page.variables.mateuDraft);
         const hostState = (($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID] || {}).state || {};
-        // an Amount keeps its currency: the money input edits only the number
-        draft[fieldId] = bridge.committedValueOf(fieldId in draft ? draft[fieldId] : hostState[fieldId], detail.value);
+        // one END of a date range (`<field>#from|to`) edits the whole {from, to}
+        const range = bridge.rangeEditOf(fieldId, draft, hostState, detail.value);
+        if (range) {
+          fieldId = range.fieldId;
+          draft[fieldId] = range.value;
+        } else {
+          // an Amount keeps its currency: the money input edits only the number
+          draft[fieldId] = bridge.committedValueOf(fieldId in draft ? draft[fieldId] : hostState[fieldId], detail.value);
+        }
         $page.variables.mateuDraft = draft;
         // live reload (dev mode): the shell restores what was typed when repainting this screen
         bridge.noteLiveDraft(window.__mateuLoadedFull, draft);

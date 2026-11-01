@@ -67,7 +67,22 @@ record SeededYamlPage(
    */
   @Override
   public String declaredPageType() {
-    return pageType;
+    if (pageType != null) return pageType;
+    // a page that fills a template is the template's kind of page, whatever it holds right now
+    if (layout instanceof io.mateu.uidl.fluent.Form form && form.template() != null) {
+      var ofTemplate =
+          io.mateu.core.domain.out.componentmapper.PageTypeResolver.ofTemplate(form.template());
+      if (ofTemplate != null) {
+        return io.mateu.core.domain.out.componentmapper.PageTypeResolver.toWireName(ofTemplate);
+      }
+    }
+    // a `type: Listing` page (served wrapped because its route seeds state, or for its proxied
+    // rows) is a collection, as a Java Listing is — it went out as a FORM page, capped
+    if (layout instanceof io.mateu.uidl.fluent.Listing) {
+      return io.mateu.core.domain.out.componentmapper.PageTypeResolver.toWireName(
+          io.mateu.uidl.annotations.PageType.COLLECTION);
+    }
+    return null;
   }
 
   SeededYamlPage(Component layout, Map<String, Object> state) {
@@ -139,6 +154,14 @@ record SeededYamlPage(
               RestSourceKind.ROWS,
               listing.id() != null ? listing.id() : "crud", // CrudlMapper's default id
               resolved(listing.rowsSource())));
+    }
+    // a live kanban's cards, likewise: fetched through __restfetch__ by the board's id
+    if (node instanceof io.mateu.uidl.data.Kanban kanban && kanban.rowsSource() != null) {
+      out.add(
+          new DeclaredRestSource(
+              RestSourceKind.ROWS,
+              kanban.id() != null ? kanban.id() : "kanban",
+              resolved(kanban.rowsSource())));
     }
     if (node instanceof java.util.Collection<?> collection) {
       collection.forEach(child -> collectListings(child, out, seen));

@@ -132,15 +132,42 @@ Micronaut or Helidon; Maven or Gradle) and
    tool window and the **visual editor's Play** then use the running app — and opens it in the browser;
 4. after every HotSwap, fires `POST /mateu/dev/reload`.
 
+The run configuration picks where it opens: the browser, the **Mateu desktop app** — a separate IntelliJ
+with its own window, which gets the running app through its `mateu://` link (see
+[IDE tooling](/native/ide-tooling/#live-development-the-mateu-app-run-configuration)) — an emulator, a
+simulator or a phone. The desktop app and the phone app follow the same development server as the browser (see
+[On the desktop and the phone](#on-the-desktop-and-the-phone)).
+
 *Run › Reload Mateu Screen* fires the reload by hand. An edit made in the **visual editor's canvas** is
 written to the YAML file, so it reaches the running app (and its open browsers) like any other edit.
 
 ### VS Code — *Mateu: Run App (Live)*
 
 The command runs the same launch as a shell task (*Mateu (live)* terminal) and opens the app once it
-answers. Attach a *Java: Attach* debug configuration on port 5005 for hot code replace: when the Java
+answers — in the browser, or in the Mateu desktop app with `"mateu.liveRun.openIn": "desktop"`
+(*Mateu: Open Running App in the Desktop App* does it on demand; without the desktop app installed you
+are offered the download or the browser). Attach a *Java: Attach* debug configuration on port 5005 for hot code replace: when the Java
 debugger reports a hot code replace, the extension fires the reload. *Mateu: Reload Screen* does it by
 hand.
+
+## On the desktop and the phone
+
+A backend in development mode also says where its events are in its hub manifest
+(`GET /mateu/v3/manifest` answers `"devEvents": "/mateu/dev/events"`; outside development mode the
+member is absent). The native renderers read it when they open the UI and follow the stream while it
+is open:
+
+- **Desktop app (IntelliJ)** — open the running app from the run configuration (*Open in: Mateu
+  desktop app*), VS Code (`"mateu.liveRun.openIn": "desktop"`) or its hub. A YAML edit, a HotSwap's
+  reload or a restart reloads the app shell and every open Mateu view.
+- **Phone app** — open it from the IDE's phone link / QR code (a plain-http address on your machine or
+  your network is accepted for a development server). The same events re-render the screen on display.
+
+On the native renderers every re-render reopens the screen from the server (a page-scoped change is
+treated like an app-scoped one), so values typed and not yet saved are lost. The phone needs to reach
+your machine: same network, and a firewall that lets the port through. The React Native app run on
+**expo web** (a browser at `localhost:8081`) is another origin, so start the backend with
+`-Dmateu.cors.allowed-origins=http://localhost:8081` for it; a phone or an emulator does not need it.
 
 ## .NET and Python backends
 
@@ -197,4 +224,5 @@ Registration is weak and costs nothing outside development mode. The ports have 
   rest. The reload after a HotSwap is fired as the swap starts, with a short delay — on a very slow swap,
   press *Reload Mateu Screen*.
 - An **app-scoped** reload (routes, mounts, shell) remounts the shell, so typed values are not kept.
-- The React Native and IntelliJ native renderers do not subscribe yet: reopen the screen.
+- On the desktop and phone apps a re-render reopens the screen, so unsaved typed values are not kept.
+- A static bundle (no backend) has no development mode: rebuild the bundle.

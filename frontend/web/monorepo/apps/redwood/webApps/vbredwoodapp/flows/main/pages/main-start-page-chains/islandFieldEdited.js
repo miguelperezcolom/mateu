@@ -36,7 +36,11 @@ define([
         $application.variables.mateuDirty = true;
       }
       const draft = Object.assign({}, $page.variables.mateuIslandDraft);
-      draft[fieldId] = detail.value;
+      // one END of a date range (`<field>#from|to`) edits the whole {from, to}
+      const islandCtx = ($application.variables.mateuRegistry.contexts || {})[$application.variables.mateuIslandId] || {};
+      const range = bridge.rangeEditOf(fieldId, draft, islandCtx.state, detail.value);
+      if (range) draft[range.fieldId] = range.value;
+      else draft[fieldId] = detail.value;
       $page.variables.mateuIslandDraft = draft;
     }
   }

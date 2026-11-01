@@ -12,6 +12,7 @@ public class EditActionHandler implements CrudOrchestratorActionHandler {
 
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
+    io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate.checkEdit(orchestrator);
     var id = CrudIdExtractor.extractId(orchestrator, httpRequest);
     if (orchestrator.editInDrawer()) {
       var editor = orchestrator.edit(orchestrator.toId(String.valueOf(id)), httpRequest);

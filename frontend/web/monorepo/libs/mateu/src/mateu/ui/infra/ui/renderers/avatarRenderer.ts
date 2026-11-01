@@ -1,5 +1,5 @@
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
-import { interpolate } from "@infra/ui/interpolation.ts";
+import { interpolate, interpolateFields } from "@infra/ui/interpolation.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Avatar from "@mateu/shared/apiClients/dtos/componentmetadata/Avatar";
 import { html, nothing } from "lit";
@@ -15,8 +15,9 @@ const abbrOf = (name: string, abbr?: string): string =>
     abbr || (typeof name === 'string' && name ? name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() : '')
 
 export const renderAvatar = (component: ClientSideComponent, state: ComponentState, data: ComponentData) => {
-    const metadata = component.metadata as Avatar
-    const name = evalIfNecessary(metadata.name, state, data) as string
+    // the image too: `image: ${state.thumbnail}` was requested literally (a 404)
+    const metadata = interpolateFields(component.metadata as Avatar, ['name', 'image', 'abbreviation'], state, data)
+    const name = metadata.name
     return html`<span style="${CIRCLE}${component.style}" class="${component.cssClasses}"
                       title="${name || nothing}" slot="${component.slot??nothing}">
         ${metadata.image

@@ -4,6 +4,7 @@
 // that runs the shared `interpolate`); the endpoint is fetched directly, no Mateu server mediating.
 
 import { withoutTrailingSlashes } from './trailingSlashes.ts';
+import { interpolateBody } from './jsonTemplate.ts';
 
 type Json = Record<string, any>;
 
@@ -306,7 +307,10 @@ export async function fetchExternalJson(
   // last so it wins over any declared header.
   Object.assign(headers, await externalAuthHeaders({ url, method }));
   const init: RequestInit = { method, headers };
-  if (method !== 'GET' && method !== 'HEAD' && source['body']) init.body = resolve(source['body']);
+  // a JSON body gets its VALUES escaped (a quote or a newline in a value broke the request: 400)
+  if (method !== 'GET' && method !== 'HEAD' && source['body']) {
+    init.body = interpolateBody(String(source['body']), (source['headers'] as Json) ?? undefined, (t) => resolve(t));
+  }
   const res = await fetch(url, init);
   if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`);
   return res.json();

@@ -82,7 +82,7 @@ exactly the definition above, **valid against the published `routes-schema.json`
 the LLM *authoring* UIDL, not operating an app. `live-ecdemo-probe.mjs` in the same folder is the probe
 used (it folds the system prompt + schema into the agent's single message and keeps the plain-text reply).
 
-## Limits (honest) {#limits-honest}
+## Limits (honest)
 
 - **The LLM call is the only unverified part** in the tests — the loop is exercised with a scripted LLM
   and the **real** published schemas; `npm test` never calls an API.

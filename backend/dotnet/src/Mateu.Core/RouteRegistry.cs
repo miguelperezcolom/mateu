@@ -8,13 +8,21 @@ namespace Mateu.Core;
 /// <summary>A matched route: the entry that answered, and the path parameters read off the URL.</summary>
 internal sealed record RouteMatch(RouteEntry Entry, IReadOnlyDictionary<string, object?> PathParams)
 {
-    public Dictionary<string, object?> Params(IReadOnlyDictionary<string, object?>? incoming)
+    /// <summary>The route's parameters for a request, in the order every Mateu server and client
+    /// uses: <c>fixed &gt; client state &gt; path &gt; query &gt; defaults</c>. A null in the client
+    /// state is no value at all — the path, the query and the defaults still fill it.</summary>
+    public Dictionary<string, object?> Params(IReadOnlyDictionary<string, object?>? incoming,
+        IReadOnlyDictionary<string, string>? query = null)
     {
-        var fromRequest = new Dictionary<string, object?>();
+        var resolved = new Dictionary<string, object?>();
         if (incoming is not null)
-            foreach (var kv in incoming) fromRequest[kv.Key] = kv.Value;
-        foreach (var kv in PathParams) fromRequest[kv.Key] = kv.Value;
-        return Entry.ResolveParams(fromRequest);
+            foreach (var kv in incoming) resolved[kv.Key] = kv.Value;
+        foreach (var kv in PathParams)
+            if (resolved.GetValueOrDefault(kv.Key) is null) resolved[kv.Key] = kv.Value;
+        if (query is not null)
+            foreach (var kv in query)
+                if (resolved.GetValueOrDefault(kv.Key) is null) resolved[kv.Key] = kv.Value;
+        return Entry.ResolveParams(resolved);
     }
 }
 
@@ -246,7 +254,7 @@ internal sealed class RouteRegistry : ISpecsCache
         {
             try
             {
-                if (Yaml.Deserialize<object?>(File.ReadAllText(file)) is not IDictionary<object, object> root)
+                if (Yaml.Read<object?>(File.ReadAllText(file)) is not IDictionary<object, object> root)
                     continue;
                 if (Str(root, "type") != "UI") continue;
                 var basePath = Normalize(Str(root, "basePath") ?? Str(root, "base_path"));
@@ -281,7 +289,7 @@ internal sealed class RouteRegistry : ISpecsCache
             if (!File.Exists(path)) continue;
             try
             {
-                if (Yaml.Deserialize<object?>(File.ReadAllText(path)) is not { } root) continue;
+                if (Yaml.Read<object?>(File.ReadAllText(path)) is not { } root) continue;
                 var nodes = root switch
                 {
                     IDictionary<object, object> map when map.TryGetValue("routes", out var r) => r as IEnumerable<object>,
@@ -341,7 +349,7 @@ internal sealed class RouteRegistry : ISpecsCache
     {
         try
         {
-            return Yaml.Deserialize<object?>(File.ReadAllText(file)) is IDictionary<object, object> map
+            return Yaml.Read<object?>(File.ReadAllText(file)) is IDictionary<object, object> map
                    && Str(map, "type") == "Routes";
         }
         catch (Exception)
@@ -355,7 +363,7 @@ internal sealed class RouteRegistry : ISpecsCache
         if (!File.Exists(path)) return [];
         try
         {
-            var root = Yaml.Deserialize<object?>(File.ReadAllText(path));
+            var root = Yaml.Read<object?>(File.ReadAllText(path));
             // Both shapes are accepted: a bare list of entries, or a `routes:` envelope.
             var nodes = root switch
             {

@@ -8,6 +8,7 @@ import {
     readOnlyAsPlainText,
     readOnlyGridLayout,
     fitColumnToWidth,
+    freezeRowEditorButton,
     visibleSections,
     wheelToRow,
 } from './foldoutGeometry'
@@ -85,6 +86,16 @@ describe('foldout geometry (Vaadin, as Redwood)', () => {
         expect(readOnlyGridLayout(false, 3).allRowsVisible).toBe(true)
         const col = fitColumnToWidth({ metadata: { type: 'GridColumn', id: 'amount', width: '12rem', frozen: true } })
         expect(col.metadata).toMatchObject({ id: 'amount', width: '3rem', flexGrow: '1', frozen: false, autoWidth: false })
+    })
+
+    it("an editable grid keeps its rows' Edit button in view: frozen to the end", () => {
+        const edit = { metadata: { type: 'GridColumn', id: '_select', stereotype: 'button', text: 'Edit' } }
+        expect(freezeRowEditorButton(edit).metadata).toMatchObject({ id: '_select', frozenToEnd: true })
+        const name = { metadata: { type: 'GridColumn', id: 'name', stereotype: 'regular' } }
+        expect(freezeRowEditorButton(name)).toBe(name)
+        // a data field that happens to be called _select is not the button
+        const data = { metadata: { type: 'GridColumn', id: '_select', stereotype: 'regular' } }
+        expect(freezeRowEditorButton(data)).toBe(data)
     })
 
     it('turns the wheel into paging the row, as Redwood does', () => {

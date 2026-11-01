@@ -14,6 +14,19 @@ class ExpressionsTest : TestCase() {
     private fun eval(expr: String, state: Map<String, Any?> = emptyMap(), appState: Map<String, Any?> = emptyMap()) =
         Expressions.evaluate(expr, mapOf("state" to state, "appState" to appState))
 
+    fun testAJsonBodyEscapesItsValuesNeverTheTemplate() {
+        val ctx = mapOf("state" to mapOf("name" to "O\"Brien\nJr", "age" to 40, "node" to mapper.readTree("\"a\\\\b\"")))
+        val json = mapOf("Content-Type" to "application/json; charset=utf-8")
+        val body = Expressions.interpolateBody("{\"name\":\"\${state.name}\",\"age\":\${state.age},\"n\":\"\${state.node}\"}", json, ctx)
+        val parsed = mapper.readTree(body)
+        assertEquals("O\"Brien\nJr", parsed.get("name").asText())
+        assertEquals(40, parsed.get("age").asInt())
+        // a plain-text body is filled as it always was
+        assertEquals("q=O\"Brien\nJr", Expressions.interpolateBody("q=\${state.name}", mapOf("content-type" to "text/plain"), ctx))
+        assertEquals("\\u0001", Expressions.jsonEscape("\u0001"))
+        assertFalse(Expressions.declaresJson(emptyMap()))
+    }
+
     fun testLiteralsAndArithmetic() {
         assertEquals(7.0, eval("1 + 2 * 3"))
         assertEquals(9.0, eval("(1 + 2) * 3"))

@@ -89,6 +89,26 @@ public final class PageTypeResolver {
   }
 
   /** The {@link PageType} of a wire name (any case), or {@code null} for a blank/unknown one. */
+  /**
+   * The page type a YAML page template stands for (a {@code template:} on a {@code type: Form}), or
+   * null for a template this does not know. Whether or not the page has its content yet — a
+   * collection detail with nothing selected, or with one record open — it is the same page: its
+   * type (and so its default width) must not flip when a record is selected.
+   */
+  public static PageType ofTemplate(Object template) {
+    if (template == null) return null;
+    return switch (template.getClass().getSimpleName()) {
+      case "CollectionDetailPage", "DataManagementPage" -> PageType.COLLECTION;
+      case "DashboardLandingPage" -> PageType.DASHBOARD;
+      case "WelcomePage", "HeroSearchPage" -> PageType.LANDING;
+      case "ItemOverviewPage", "GeneralOverviewPage", "FoldoutPage", "MultimediaContentPage" ->
+          PageType.DETAIL;
+      case "GuidedProcessPage" -> PageType.PROCESS;
+      case "AdvancedCreateEditPage" -> PageType.FORM;
+      default -> null;
+    };
+  }
+
   public static PageType fromWireName(String wireName) {
     if (wireName == null || wireName.isBlank()) {
       return null;

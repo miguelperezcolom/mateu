@@ -1,5 +1,6 @@
 package io.mateu.core.infra;
 
+import io.mateu.core.domain.ProxyExpression;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -9,14 +10,27 @@ import java.util.regex.Pattern;
 /**
  * Server-side {@code ${...}} interpolation for the PROXY mode of the external-REST features — the
  * backend counterpart of the frontend's client-side interpolate. Resolves {@code ${state.field}}
- * from the component state and {@code ${secret.KEY}} from a {@link
- * io.mateu.uidl.interfaces.SecretsProvider} (so auth secrets are injected on the server, never on
- * the client). An unresolvable placeholder becomes the empty string; a template without {@code ${}
- * } is returned untouched.
+ * (and a nested {@code ${state.field.key}}) from the component state and {@code ${secret.KEY}} from
+ * a {@link io.mateu.uidl.interfaces.SecretsProvider} (so auth secrets are injected on the server,
+ * never on the client). An unresolvable placeholder becomes the empty string; a template without
+ * {@code ${} } is returned untouched.
+ *
+ * <p>It is not a JavaScript evaluator, but it understands the few forms a source template uses
+ * beside a plain path, so a proxied call means what the browser's would: a fallback {@code ${a ??
+ * b}} (a literal or another path on the right), and {@code ${encodeURIComponent(x)}}.
+ *
+ * <p>A <b>money</b> value ({@code {value, currency, locale}}, what a {@code dataType: money} field
+ * holds) is substituted as its AMOUNT: {@code ${state.price}} → {@code 12500000}; its currency is
+ * {@code ${state.price.currency}}. It used to land as a Java map's {@code toString} ({@code
+ * {value=12500000, currency=EUR, …}}) and the endpoint answered 400.
  */
 public final class TemplateInterpolator {
 
   private static final Pattern PLACEHOLDER = Pattern.compile("\\$\\{([^}]+)}");
+
+  private static final String ENCODE_CALL = "encodeURIComponent";
+
+  private static final Pattern NUMBER = Pattern.compile("-?\\d+(\\.\\d+)?");
 
   private TemplateInterpolator() {}
 
@@ -86,15 +100,20 @@ public final class TemplateInterpolator {
     var matcher = PLACEHOLDER.matcher(template);
     var sb = new StringBuilder();
     while (matcher.find()) {
+      // `${encodeURIComponent(x)}` — the way a value had to be written before Mateu encoded it —
+      // means `${x}`: encoded ONCE, here. Encoding it again sent `a%252Cb` for `a,b`.
       var expr = matcher.group(1).trim();
-      var value = valueOf(expr, state, secrets);
+      var explicitlyEncoded = encodeCallArgument(expr);
+      var valueExpr = explicitlyEncoded != null ? explicitlyEncoded : expr;
+      var resolved = resolve(valueExpr, state, secrets);
+      var value = explicitlyEncoded != null ? jsText(resolved) : text(resolved);
       String replacement;
       if (matcher.start() < originEnd) {
-        if (expr.startsWith("state.")) {
+        if (valueExpr.startsWith("state.")) {
           throw new IllegalArgumentException(
               "A client state value cannot choose the origin of a URL: " + template);
         }
-        replacement = value;
+        replacement = explicitlyEncoded != null ? urlEncode(value) : value;
       } else if (inQuery(template, matcher.start())) {
         replacement = urlEncode(value);
       } else {
@@ -111,15 +130,168 @@ public final class TemplateInterpolator {
 
   private static String valueOf(
       String expr, Map<String, Object> state, Function<String, String> secrets) {
-    if (expr.startsWith("state.")) {
-      var v = state != null ? state.get(expr.substring("state.".length())) : null;
-      return v == null ? "" : String.valueOf(v);
+    return text(resolve(expr, state, secrets));
+  }
+
+  /**
+   * The value an expression names, or null: {@code state.a} / {@code state.a.b}, {@code
+   * secret.KEY}, a literal ({@code 'x'}, {@code "x"}, a number, {@code true}/{@code false}/{@code
+   * null}), {@code a ?? b} (b when a is null or absent), or {@code encodeURIComponent(x)}.
+   */
+  private static Object resolve(
+      String rawExpr, Map<String, Object> state, Function<String, String> secrets) {
+    var expr = rawExpr.trim();
+    // a plain path keeps its old meaning first: a FLAT key "a.b" in the state wins over a walk
+    if (PLAIN_STATE_PATH.matcher(expr).matches()) {
+      return path(state, expr.substring("state.".length()));
     }
-    if (expr.startsWith("secret.")) {
-      var v = secrets != null ? secrets.apply(expr.substring("secret.".length())) : null;
-      return v == null ? "" : v;
+    // anything else is an expression, evaluated with the browser's meaning (ProxyExpression) so a
+    // source flipped to proxy: true keeps sending what it sent from the browser
+    try {
+      var value = ProxyExpression.evaluate(expr, state, secrets);
+      return value == ProxyExpression.UNDEFINED ? null : value;
+    } catch (ProxyExpression.Unsupported e) {
+      warnUnsupported(expr, e.getMessage());
+      return null;
+    } catch (RuntimeException e) {
+      // e.g. reading a member of a missing value: the placeholder renders empty, as before
+      return null;
     }
-    return "";
+  }
+
+  private static final Pattern PLAIN_STATE_PATH =
+      Pattern.compile("state\\.[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)*");
+
+  private static final java.util.Set<String> WARNED =
+      java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+  private static void warnUnsupported(String expr, String why) {
+    if (WARNED.size() < 1000 && WARNED.add(expr)) {
+      org.slf4j.LoggerFactory.getLogger(TemplateInterpolator.class)
+          .warn(
+              "A source template the server cannot evaluate renders empty: ${{}} ({})", expr, why);
+    }
+  }
+
+  /** {@code a.b.c} in the state: a flat key first (as always), else a walk through nested maps. */
+  private static Object path(Map<String, Object> state, String path) {
+    if (state == null) {
+      return null;
+    }
+    if (state.containsKey(path)) {
+      return state.get(path);
+    }
+    Object current = state;
+    for (var part : path.split("\\.")) {
+      if (!(current instanceof Map<?, ?> map)) {
+        return null;
+      }
+      current = map.get(part.trim());
+    }
+    return current;
+  }
+
+  /** A resolved value as the text that lands in the template. */
+  private static String text(Object v) {
+    if (v == null) {
+      return "";
+    }
+    if (isMoney(v)) {
+      var amount = ((Map<?, ?>) v).get("value");
+      if (amount instanceof Double || amount instanceof Float) {
+        // 1.25E7 → 12500000: a JSON number, not Java's scientific notation
+        return new java.math.BigDecimal(amount.toString()).stripTrailingZeros().toPlainString();
+      }
+      return amount == null ? "" : ProxyExpression.text(amount);
+    }
+    // as JavaScript's String(v), the browser leg's conversion: a list is `a,b` (it was Java's
+    // `[a, b]`, so a multi-select filter sent a different text when proxied), 3.0 is `3`
+    return ProxyExpression.text(v);
+  }
+
+  /**
+   * A value as JavaScript's {@code String(v)} converts it — what {@code encodeURIComponent(v)}
+   * encodes in the browser: a list as {@code a,b} (a multi-select's values), a money value as its
+   * amount.
+   */
+  private static String jsText(Object v) {
+    if (v instanceof java.util.Collection<?> items) {
+      return items.stream()
+          .map(TemplateInterpolator::jsText)
+          .collect(java.util.stream.Collectors.joining(","));
+    }
+    return text(v);
+  }
+
+  /** A money value: what a {@code dataType: money} field holds ({@code {value, currency, …}}). */
+  static boolean isMoney(Object v) {
+    return v instanceof Map<?, ?> map && map.containsKey("value") && map.containsKey("currency");
+  }
+
+  /**
+   * The argument of an expression that is exactly ONE {@code encodeURIComponent(…)} call, or null —
+   * {@code encodeURIComponent(a) + encodeURIComponent(b)} is not one.
+   */
+  static String encodeCallArgument(String expr) {
+    var e = expr.trim();
+    if (!e.startsWith(ENCODE_CALL)) {
+      return null;
+    }
+    var rest = e.substring(ENCODE_CALL.length()).trim();
+    if (!rest.startsWith("(") || !rest.endsWith(")")) {
+      return null;
+    }
+    int depth = 0;
+    char quote = 0;
+    for (int i = 0; i < rest.length(); i++) {
+      char c = rest.charAt(i);
+      if (quote != 0) {
+        if (c == '\\') {
+          i++;
+        } else if (c == quote) {
+          quote = 0;
+        }
+        continue;
+      }
+      if (c == '\'' || c == '"' || c == '`') {
+        quote = c;
+      } else if (c == '(') {
+        depth++;
+      } else if (c == ')') {
+        depth--;
+        if (depth == 0 && i != rest.length() - 1) {
+          return null; // the call closes before the end: something follows it
+        }
+      }
+    }
+    return depth == 0 ? rest.substring(1, rest.length() - 1) : null;
+  }
+
+  /** The index of {@code token} outside quotes and parentheses, or -1. */
+  private static int topLevelIndexOf(String expr, String token) {
+    int depth = 0;
+    char quote = 0;
+    for (int i = 0; i < expr.length(); i++) {
+      char c = expr.charAt(i);
+      if (quote != 0) {
+        if (c == '\\') {
+          i++;
+        } else if (c == quote) {
+          quote = 0;
+        }
+        continue;
+      }
+      if (c == '\'' || c == '"' || c == '`') {
+        quote = c;
+      } else if (c == '(' || c == '[') {
+        depth++;
+      } else if (c == ')' || c == ']') {
+        depth--;
+      } else if (depth == 0 && expr.startsWith(token, i)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /**

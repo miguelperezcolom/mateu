@@ -78,14 +78,32 @@ public record RouteTable(List<RouteEntry> routes) {
   /** A matched route: the entry that answered, and the path parameters read off the URL. */
   public record Match(RouteEntry entry, Map<String, Object> pathParams) {
 
-    /** The effective parameters, with the entry's fixed ones winning over the path's. */
+    /** The effective parameters for a request that brought no query string (see below). */
     public Map<String, Object> params(Map<String, Object> incoming) {
-      var fromRequest = new java.util.LinkedHashMap<String, Object>();
+      return params(incoming, null);
+    }
+
+    /**
+     * The effective parameters, in the order every Mateu server and client uses: {@code fixed >
+     * client state > path > query > defaults}. A null in the client state is no value at all — the
+     * path, the query and the defaults still fill it.
+     */
+    public Map<String, Object> params(Map<String, Object> incoming, Map<String, ?> query) {
+      var resolved = new java.util.LinkedHashMap<String, Object>();
       if (incoming != null) {
-        fromRequest.putAll(incoming);
+        resolved.putAll(incoming);
       }
-      fromRequest.putAll(pathParams);
-      return entry.resolveParams(fromRequest);
+      pathParams.forEach((k, v) -> fillIfMissing(resolved, k, v));
+      if (query != null) {
+        query.forEach((k, v) -> fillIfMissing(resolved, k, v));
+      }
+      return entry.resolveParams(resolved);
+    }
+
+    private static void fillIfMissing(Map<String, Object> resolved, String key, Object value) {
+      if (resolved.get(key) == null) {
+        resolved.put(key, value);
+      }
     }
   }
 

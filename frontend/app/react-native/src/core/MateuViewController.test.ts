@@ -411,6 +411,32 @@ test('declared flows run client-side with no round trip; a RunAction step comes 
   void session;
 });
 
+test('a REST action reads the call parameters over the state and says whether it went through (a kanban move)', async () => {
+  const realFetch = globalThis.fetch;
+  const seen: Json[] = [];
+  globalThis.fetch = (async (url: string, init: Json) => {
+    seen.push({ url, init });
+    if (String(url).includes('/0')) return { ok: false, status: 409, json: async () => ({}) };
+    return { ok: true, status: 200, json: async () => ({}) };
+  }) as any;
+  try {
+    const { c } = harness([fragment(ssc({
+      actions: [{ id: 'moveTask', restAction: { source: { url: 'https://api.x/tasks/${state._cardId}', method: 'PUT',
+        body: '{"title":"${state.title}","status":"${state._toColumnId}"}' } } }],
+    }))]);
+    await c.initialLoad('/board');
+    const ok = await c.runAction('moveTask', { _cardId: '9', _toColumnId: 'done', title: 'Varnish' });
+    assert.equal(ok, true);
+    assert.equal(seen[0].url, 'https://api.x/tasks/9');
+    assert.equal(seen[0].init.body, '{"title":"Varnish","status":"done"}');
+    // the parameters are the call's, not the screen's state
+    assert.equal(c.currentComponentState['_cardId'], undefined);
+    assert.equal(await c.runAction('moveTask', { _cardId: '0', _toColumnId: 'done' }), false);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 test('@RestAction runs against the endpoint in the client and merges the result into the state', async () => {
   const realFetch = globalThis.fetch;
   const seen: Json[] = [];

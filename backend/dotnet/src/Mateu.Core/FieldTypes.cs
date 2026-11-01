@@ -130,7 +130,7 @@ internal sealed class FieldTypeRegistry : ISpecsCache
 
     private static object? Root(string path)
     {
-        try { return Yaml.Deserialize<object?>(File.ReadAllText(path)); }
+        try { return Yaml.Read<object?>(File.ReadAllText(path)); }
         catch { return null; }
     }
 
@@ -138,7 +138,7 @@ internal sealed class FieldTypeRegistry : ISpecsCache
     {
         try
         {
-            var nodes = Yaml.Deserialize<object?>(File.ReadAllText(path)) switch
+            var nodes = Yaml.Read<object?>(File.ReadAllText(path)) switch
             {
                 IDictionary<object, object> map when map.TryGetValue("types", out var t) => t as IEnumerable<object>,
                 IEnumerable<object> list => list,

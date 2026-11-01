@@ -1,7 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { buttonId } from "@infra/ui/renderers/nodeIdStamp.ts";
 import { html, LitElement, nothing } from "lit";
-import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+import { pageColumnCap, renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -72,7 +72,7 @@ export const hoistLeadingEntityHeader = (component: ClientSideComponent): Client
  * (a form of fixed-width fields) shrank to that content: a narrow column in the middle. The page's
  * style comes after, so a style that sets its own width still wins.
  */
-export const pageStyle = (style?: string): string => `width: 100%; box-sizing: border-box; ${style ?? ''}`
+export const pageStyle = (style?: string): string => `width: 100%; box-sizing: border-box; ${pageColumnCap(style ?? '')}`
 
 /** A page's floating action buttons (a reflected page's `@Fab`s, a YAML page's `fabs:`): each
  *  dispatches its action like a button — FROM the button. Dispatched on the container (the page's

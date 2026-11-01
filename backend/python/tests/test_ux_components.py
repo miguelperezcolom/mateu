@@ -223,6 +223,34 @@ class PlanningPage(ComponentTreeSupplier):
         return None
 
 
+@ui("kanban-move")
+@title("Tasks")
+class MovableBoard(ComponentTreeSupplier):
+    """A movable, live board (Java: KanbanMoveSyncTest's fixtures)."""
+
+    def component(self):
+        from mateu_ui.uidl.rest_sources import RestDataSource as UidlSource
+
+        return Kanban(
+            id="live",
+            columns=(
+                KanbanColumn(id="backlog", title="Backlog", color="#6b7280"),
+                KanbanColumn(id="done", title="Done"),
+            ),
+            move_action_id="moveTask",
+            rows_source=UidlSource(url="/api/tasks", items_path="content"),
+            column_field="status",
+            card=KanbanCard(id="${row.id}", title="${row.title}", badge="${row.priority}", color="${row.priority}"),
+            card_colors={"urgent": "#dc2626"},
+            card_route="tasks/${row.id}",
+            order_field="rank",
+        )
+
+    # a plain method: the board naming it is what advertises it
+    def move_task(self):
+        return None
+
+
 @ui("sprint-board")
 @title("Sprint board")
 class SprintBoard(ComponentTreeSupplier):
@@ -987,6 +1015,22 @@ def test_a_dashboard_can_let_the_viewer_reorder_its_tiles_keyed_by_their_ids():
     assert [c["id"] for c in grid["children"]] == ["arrivals", "departures"]
     (fixed,) = page_children(render(FixedDashboard))
     assert fixed["metadata"]["reorderable"] is False
+
+
+def test_a_kanban_carries_its_move_action_and_live_source_and_advertises_the_move():
+    doc = render(MovableBoard)
+    (kanban,) = page_children(doc)
+    meta = kanban["metadata"]
+    assert meta["moveActionId"] == "moveTask"
+    assert meta["rowsSource"]["url"] == "/api/tasks"
+    assert meta["rowsSource"]["itemsPath"] == "content"
+    assert meta["columnField"] == "status"
+    assert meta["card"]["title"] == "${row.title}"
+    assert meta["cardColors"] == {"urgent": "#dc2626"}
+    assert meta["cardRoute"] == "tasks/${row.id}"
+    assert meta["orderField"] == "rank"
+    action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
+    assert "moveTask" in action_ids
 
 
 def test_component_tree_supplier_emits_kanban():

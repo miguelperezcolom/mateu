@@ -32,6 +32,16 @@ test('M-S4: a record title the server escaped (\\${) shows ${ as written and is 
   assert.equal(literalText('C:\\dir'), 'C:\\dir', 'no marker: not a template, untouched')
 })
 
+test('a header template is an EXPRESSION like on the web: ??, ternaries, data — escapes stay literal', () => {
+  // Fable review A13: Redwood did path substitution only, so these showed raw on the header
+  assert.equal(interpolate("${state.firstName} ${state.lastName ?? ''}", { firstName: 'Ana' }), 'Ana ')
+  assert.equal(interpolate("${state.n > 1 ? 'many' : 'one'}", { n: 3 }), 'many')
+  assert.equal(interpolate('Total ${data.total}', {}, { data: { total: 7 } }), 'Total 7')
+  assert.equal(interpolate('${state.missing.deep}', {}), '')
+  // the server's literal escapes are still never evaluated, even with an expression inside
+  assert.equal(interpolate("A \\${state.x ?? 'y'}", { x: 1 }), "A ${state.x ?? 'y'}")
+})
+
 test('M-S4: the window title effect carries the same string the header shows', () => {
   const reg0 = { contexts: {}, stack: [], shell: null }
   const reg = reduceContexts(reg0, { fragments: [], messages: [],

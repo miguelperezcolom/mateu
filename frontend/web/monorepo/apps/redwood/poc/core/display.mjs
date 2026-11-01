@@ -5,6 +5,7 @@ import { collectTexts } from './tree.mjs'
 import { avatarOf } from './atoms.mjs'
 import { ojIconOf, GENERIC_ICON } from './shellNav.mjs'
 import { BADGE_CLASSES, NOTICE_CLASSES, dataProviderFactory } from './content.mjs'
+import { kanbanKeyOf, kanbanColumnsOnScreen, kanbanTextOf } from './kanban.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the DISPLAY components that
 // were not rendered before (Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid,
 // Testimonials, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard, ProcessMonitor,
@@ -64,28 +65,58 @@ export function cssColorOf(color) {
 const badgeClassOf = (color) => BADGE_CLASSES[toneOf(color) || 'contrast'] || BADGE_CLASSES.contrast
 
 // ── Kanban (JET has no board): columns of oj-panel, cards as oj-action-card when they act ───────
-export function kanbanAtomOf(m, interp = (x) => x) {
+// With a moveActionId its cards move: kanbanDom (dnd.mjs) drags them between and within columns
+// (data-* below say which board, column and card), and each card's ⋯ menu moves it from the keyboard;
+// the move is painted at once (a pending move, core/kanban.mjs) and the chain kanbanCardMoved runs
+// the action. A LIVE board (rowsSource) draws its cards from the items the page loaded (ctx.data).
+export function kanbanAtomOf(m, interp = (x) => x, ctx = null) {
+  const key = kanbanKeyOf(m)
+  const movable = !!m.moveActionId
+  const columns = kanbanColumnsOnScreen(m, (ctx && ctx.data) || {})
+  const titleOf = (col) => interp(str(col.title || col.id))
   return {
     isKanban: true,
-    columns: keyed((m.columns || []).map((col) => {
+    kanbanKey: key,
+    moveActionId: str(m.moveActionId),
+    movable,
+    columns: keyed(columns.map((col) => {
       const cards = col.cards || []
       const color = cssColorOf(col.color)
       const tone = toneOf(col.color)
       return {
-        title: interp(str(col.title)),
+        columnId: str(col.id),
+        title: titleOf(col),
         countText: String(cards.length),
         headerClass: 'mateu-kanban-head' + (tone ? ' mateu-tone-' + tone : ''),
         headerStyle: color ? { borderTopColor: color } : {},
-        cards: keyed(cards.map((card) => ({
-          title: interp(str(card.title)),
-          description: interp(str(card.description)),
-          badge: interp(str(card.badge)),
-          hasBadge: !!card.badge,
-          badgeClass: badgeClassOf(card.color),
-          cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
-          cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : ''),
-          ...clickable(card.actionId, { _clickedCard: card }),
-        }))),
+        cards: keyed(cards.map((card, index) => {
+          const route = m.cardRoute && card.row ? kanbanTextOf(m.cardRoute, card.row) : ''
+          const { row, ...plain } = card
+          const act = route ? { clickable: true, plain: false, actionId: '', parameters: {}, route }
+            : clickable(card.actionId, { ...(row || {}), _clickedCard: plain })
+          return {
+            cardId: str(card.id),
+            title: interp(str(card.title)),
+            description: interp(str(card.description)),
+            badge: interp(str(card.badge)),
+            hasBadge: !!card.badge,
+            badgeClass: badgeClassOf(card.color),
+            cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
+            cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : '') + (movable ? ' mateu-kanban-movable' : ''),
+            route: route || '',
+            movable,
+            moveLabel: chromeText('kanbanMove').replace('{card}', str(card.title)),
+            // the keyboard's way: up / down in its column, or to the end of another
+            moves: movable ? keyed([
+              ...(index > 0 ? [{ label: chromeText('kanbanMoveUp'), toColumnId: str(col.id), toIndex: index - 1 }] : []),
+              ...(index < cards.length - 1 ? [{ label: chromeText('kanbanMoveDown'), toColumnId: str(col.id), toIndex: index + 1 }] : []),
+              ...columns.filter((o) => o.id !== col.id).map((o) => ({
+                label: chromeText('kanbanMoveTo').replace('{column}', titleOf(o)), toColumnId: str(o.id), toIndex: (o.cards || []).length,
+              })),
+            ].map((mv) => ({ ...mv, value: JSON.stringify({ cardId: str(card.id), fromColumnId: str(col.id), toColumnId: mv.toColumnId, toIndex: mv.toIndex }) }))) : [],
+            ...act,
+          }
+        })),
         isEmpty: !cards.length,
       }
     })),

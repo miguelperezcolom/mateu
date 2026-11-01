@@ -356,6 +356,7 @@ def add_mateu(
             principal=authenticated_principal(request),
             client_address=request.client.host if request.client is not None else None,
             self_base_url=_local_origin(request),
+            query_params=dict(request.query_params),
         )
 
     def run_bound(mateu_request: MateuRequest, fn: Callable[[], Any]) -> Any:

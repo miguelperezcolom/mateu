@@ -237,6 +237,8 @@ export class EditorCanvas extends LitElement {
         window.removeEventListener('resize', this.reposition)
         this.resizeObserver?.disconnect()
         this.settleTimers.forEach((t) => window.clearTimeout(t))
+        // a preview scheduled before the canvas left the page must not run (or report) after it
+        window.clearTimeout(this.previewTimer)
         this.endDrag()
     }
 
@@ -433,6 +435,8 @@ export class EditorCanvas extends LitElement {
     }
 
     private status(kind: 'ok' | 'fallback' | 'error' | 'client', text: string) {
+        // an async preview that settles after the canvas was removed reports to nobody
+        if (!this.isConnected) return
         this.dispatchEvent(new CustomEvent('preview-status', { detail: { kind, text }, bubbles: true, composed: true }))
     }
 

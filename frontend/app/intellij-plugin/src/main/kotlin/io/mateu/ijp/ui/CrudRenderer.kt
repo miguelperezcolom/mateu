@@ -234,6 +234,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val openRow: (JsonNode) -> Unit = { row ->
         when (val target = RowOpen.targetOf(rowOpen, row)) {
             is RowOpen.Target.Route -> ctx.navigate(target.route, "", null, null)
+            is RowOpen.Target.Url -> SafeHtml.browse(target.url) // refuses anything but http(s)/mailto
             is RowOpen.Target.Action -> ctx.runAction(target.actionId, rowAsParams(ctx, row))
             null -> Unit
         }

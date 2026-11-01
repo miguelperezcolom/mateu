@@ -6,6 +6,7 @@ import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { interpolateFields } from "@infra/ui/interpolation.ts";
 
 const cardSurface = `
     background: var(--lumo-base-color, #fff);
@@ -55,8 +56,9 @@ export const metricCardAccessibleText = (metadata: MetricCard): string => {
         .join(', ')
 }
 
-export const renderMetricCard = (component: ClientSideComponent) => {
-    const metadata = component.metadata as MetricCard
+export const renderMetricCard = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
+    const metadata = interpolateFields(component.metadata as MetricCard,
+        ['title', 'value', 'unit', 'timeframe', 'trendLabel', 'description'], state, data)
     const clickable = !!metadata.actionId
     const timeframe = present(metadata.timeframe) ? metadata.timeframe.trim() : undefined
     return html`

@@ -70,7 +70,13 @@ internal static class MobileManifest
     }
 
     /// <summary>The manifest of <paramref name="appType"/> (null = an anonymous "Mateu" app).</summary>
-    public static string Json(Type? appType)
+    public static string Json(Type? appType) => Json(appType, RunningMateuVersion());
+
+    /// <summary>
+    /// As <see cref="Json(Type?)"/>, with the running Mateu version given: it travels as
+    /// <c>mateuVersion</c> when it names a release, so a hub app can tell whether it predates this UI.
+    /// </summary>
+    public static string Json(Type? appType, string? mateuVersion)
     {
         var mobile = appType?.GetCustomAttribute<MobileAppAttribute>();
         var (name, shortName, icon, themeColor) = Derive(appType);
@@ -95,6 +101,10 @@ internal static class MobileManifest
             if (themeColor is not null) w.WriteString("themeColor", themeColor);
             w.WriteString("wireVersion", WireVersion);
             w.WriteString("minAppVersion", minAppVersion);
+            var release = ReleaseVersion(mateuVersion);
+            if (release is not null) w.WriteString("mateuVersion", release);
+            // development mode: where the live-reload events are (the native renderers subscribe)
+            if (DevSpecs.Enabled) w.WriteString("devEvents", DevSpecs.EventsPath);
             if (issuer is not null && clientId is not null)
             {
                 w.WriteStartObject("auth");
@@ -110,6 +120,27 @@ internal static class MobileManifest
         }
         return Encoding.UTF8.GetString(buffer.ToArray());
     }
+
+    private static readonly System.Text.RegularExpressions.Regex Release =
+        new(@"^\d+\.\d+(\.\d+)?([-.]?(alpha|beta|rc|a|b)\.?\d+)?$");
+
+    /// <summary>
+    /// The version when it names a release (<c>3.0.0-beta.33</c>, <c>3.1.0</c>), null for a
+    /// development build (<c>3.0.0-dev</c>, <c>0.0.1-MATEU</c>) or none. Build metadata
+    /// (<c>+sha</c>) is dropped first. Same rule as Java's and Python's manifests.
+    /// </summary>
+    public static string? ReleaseVersion(string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version)) return null;
+        var v = version.Trim();
+        var plus = v.IndexOf('+');
+        if (plus >= 0) v = v[..plus];
+        if (v.StartsWith("0.", StringComparison.Ordinal)) return null;
+        return Release.IsMatch(v) ? v : null;
+    }
+
+    private static string? RunningMateuVersion() =>
+        typeof(MobileManifest).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
     private static string? Setting(string env) => Blank(Environment.GetEnvironmentVariable(env));
 

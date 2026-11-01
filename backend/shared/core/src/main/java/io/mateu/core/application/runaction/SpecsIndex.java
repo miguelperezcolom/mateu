@@ -2,7 +2,6 @@ package io.mateu.core.application.runaction;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +40,7 @@ public final class SpecsIndex {
 
   static final String ROOT = "specs/ui";
 
-  private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+  private static final ObjectMapper YAML = SpecsYaml.mapper();
 
   private static final Map<ClassLoader, SpecsIndex> BY_CLASSLOADER =
       Collections.synchronizedMap(new WeakHashMap<>());

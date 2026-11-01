@@ -89,7 +89,7 @@ source: {url: "/api/products?status=${state.status}"}
 |---|---|
 | `state`, `data`, `appState`, `appData` | everywhere |
 | `i18n` | any text. Resolved per locale (see [Translations](/define/yaml/translations/)) |
-| `row` | per-row templates such as a listing's `rowRoute` |
+| `row` | per-row templates such as a listing's `rowRoute` (a route of the app, or a whole URL such as `${row.url}`, which opens in a new tab) |
 | `searchText`, `page`, `size` | a listing source's url and body |
 | `secret` | **only** in a proxied source, resolved on the server. The browser never sees it |
 
@@ -158,6 +158,21 @@ actions:
       - type: Navigate
         route: products
 ```
+
+A `Navigate` route takes `${…}` placeholders, resolved when the flow runs against the page's state
+and data — with the **action's parameters on top of the state**. So a map marker
+(`markerActionId`, whose click sends `_markerId`) can open its record:
+
+```yaml
+actions:
+  - id: openSite
+    steps:
+      - type: Navigate
+        route: launch-sites/${state._markerId}
+```
+
+The route is interpolated like a source url: each value is encoded as a path segment (or a query
+component after a `?`), and a `.`/`..` value is refused.
 
 In Java the same triggers are annotations (`@Trigger(type = TriggerType.OnLoad, actionId = "load")`,
 `@SubscribeTo(event = "product-saved", action = "refresh")`, `@AutoSave`) or a `TriggersSupplier`.

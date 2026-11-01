@@ -3371,11 +3371,35 @@
         "type" : {
           "const" : "Kanban"
         },
+        "card" : {
+          "$ref" : "#/$defs/KanbanCardDto"
+        },
+        "cardColors" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "cardRoute" : {
+          "type" : "string"
+        },
+        "columnField" : {
+          "type" : "string"
+        },
         "columns" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/$defs/KanbanColumnDto"
           }
+        },
+        "moveActionId" : {
+          "type" : "string"
+        },
+        "orderField" : {
+          "type" : "string"
+        },
+        "rowsSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
         }
       },
       "required" : [ "type" ]

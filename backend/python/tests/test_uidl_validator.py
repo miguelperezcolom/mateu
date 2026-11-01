@@ -225,3 +225,18 @@ def test_a_deep_document_does_not_crash():
     report = validate(deep)
     assert report["kind"] in (None, "component")
     assert isinstance(report["errors"], list)
+
+
+def test_a_source_template_the_server_cannot_evaluate_is_flagged():
+    # Java UidlValidatorTest.aSourceTemplateTheServerCannotEvaluateIsFlagged
+    listing = (
+        "type: Listing\n"
+        "rowsSource:\n"
+        '  url: "https://api.example.com/x?offset=${(state.page ?? 0) * 20}&id=${data.id}&ids=${state.items.map(i => i.id)}"\n'
+        "columns: [{type: GridColumn, id: name}]\n"
+    )
+    messages = [w["message"] for w in validate(listing)["warnings"] if w["code"] == "proxy_unsafe_template"]
+    assert len(messages) == 2
+    assert "${data.id}" in messages[0] and "only the browser has" in messages[0]
+    assert "state.items.map" in messages[1]
+    assert "state.page" not in " ".join(messages)

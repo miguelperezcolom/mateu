@@ -27,6 +27,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       loading: 'Loading',
       search: 'Search…',
       noData: 'No data',
+      rangeTo: 'To',
       new: 'New',
       confirm: 'Confirm',
       cancel: 'Cancel',
@@ -99,6 +100,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureRetake: 'Retake',
       captureUpload: 'Upload',
       captureReplace: 'Replace',
+      captureUseUrl: 'Use a URL',
+      captureImageUrl: 'Image URL',
       captureNoCamera: 'Camera unavailable — choose a file',
       captureEmpty: 'No file',
       captureStart: 'Open camera',
@@ -154,6 +157,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatExpand: 'Widen the assistant',
       chatRestore: 'Restore the width',
       selectRowsFirst: 'You first need to select some rows',
+      kanbanMove: 'Move {card}',
+      kanbanMoveTo: 'Move to {column}',
+      kanbanMoveUp: 'Move up',
+      kanbanMoveDown: 'Move down',
+      kanbanMoveFailed: 'The card could not be moved; it is back where it was',
       searchResults: 'Search results',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Connect AI',
@@ -262,6 +270,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       loading: 'Cargando',
       search: 'Buscar…',
       noData: 'Sin datos',
+      rangeTo: 'Hasta',
       new: 'Nuevo',
       confirm: 'Confirmar',
       cancel: 'Cancelar',
@@ -328,6 +337,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureRetake: 'Repetir',
       captureUpload: 'Subir',
       captureReplace: 'Sustituir',
+      captureUseUrl: 'Usar una URL',
+      captureImageUrl: 'URL de la imagen',
       captureNoCamera: 'Cámara no disponible — elige un fichero',
       captureEmpty: 'Sin fichero',
       captureStart: 'Abrir cámara',
@@ -380,6 +391,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatExpand: 'Ampliar el asistente',
       chatRestore: 'Ancho normal',
       selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
+      kanbanMove: 'Mover {card}',
+      kanbanMoveTo: 'Mover a {column}',
+      kanbanMoveUp: 'Subir',
+      kanbanMoveDown: 'Bajar',
+      kanbanMoveFailed: 'No se pudo mover la tarjeta; ha vuelto a su sitio',
       searchResults: 'Resultados',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Conectar IA',
@@ -1497,8 +1513,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // component are painted WITH formatting. VB does not stamp HTML from a binding, so the atom carries the
   // ALREADY SANITISED HTML in data-mateu-html and installRichText dumps it into its container. Sanitising is
   // by ALLOWLIST (text tags; of attributes only a link's href with a safe
-  // scheme): no scripts, styles, handlers or iframes. JET has no rich text
-  // editor: editing a richText is an oj-text-area with its HTML (declared limitation).
+  // scheme): no scripts, styles, handlers or iframes. Editing a richText is Spectra's own editor
+  // (oj-sp-input-rich-text-2) inside mateu-rich-text-field, which falls back to a small one of its own.
 
   const ALLOWED = new Set(['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'code', 'pre', 'blockquote',
     'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'span', 'div', 'hr', 'table', 'thead',
@@ -1791,6 +1807,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return clean.replace(/<(p|div)>(\s|&nbsp;|<br>)*<\/\1>/g, '').replace(/<br>/g, '').trim() ? clean : ''
   }
 
+  /** Spectra's rich text editor (oj-sp-input-rich-text-2, on CKEditor 5): the module that defines it. */
+  const SPECTRA_RICH_TEXT_LOADER = 'oj-sp/input-rich-text-2/loader'
+
+  /** Its toolbar: no `uploadImage` — CKEditor would inline the picture as base64 in the value. */
+  const SPECTRA_RICH_TEXT_TOOLBAR = ['heading', 'bold', 'italic', 'underline', 'bulletedList', 'numberedList',
+    'link', 'horizontalLine', 'removeFormat', 'undo', 'redo', 'generateHtmlSupport']
+
+  /** Asks the page's AMD loader for Spectra's editor once per window: a promise of whether it loaded
+   *  (false with no loader — Node, a page without RequireJS — or when the CDN does not answer). */
+  function spectraRichTextReady(win) {
+    if (!win) return Promise.resolve(false)
+    if (!win.__mateuSpectraRte) {
+      win.__mateuSpectraRte = typeof win.require !== 'function'
+        ? Promise.resolve(false)
+        : new Promise((resolve) => {
+          try {
+            win.require([SPECTRA_RICH_TEXT_LOADER], () => resolve(true), () => resolve(false))
+          } catch (e) {
+            resolve(false)
+          }
+        })
+    }
+    return win.__mateuSpectraRte
+  }
+
   /** The toolbar of the editor: each command and its accessible label. */
   const RICH_TEXT_COMMANDS = [
     { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'rteBold', key: 'b' },
@@ -1861,11 +1902,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /**
    * `<mateu-rich-text-field value="<p>…</p>" readonly>`: the editor of an editable richText field.
-   * JET/Redwood has no rich text editor (oj-text-area is plain text), and the web renderer's editor
-   * (Tiptap) cannot be imported by the bridge — so a small one: a toolbar of oj-buttons over a
-   * contenteditable region. The value is HTML (a legacy Delta opens converted); it leaves as
-   * `valueChanged` {value, updatedFrom:'internal'} — the event shape of a JET component, so the
-   * field chains treat it like any other — on blur, sanitised by the same allowlist as the viewer.
+   * It is Spectra's (oj-sp-input-rich-text-2: headings, marks, lists, links, a rule, the source),
+   * loaded from the page's CDN when the page has an AMD loader. Mounted by hand inside a VB page, a
+   * JET element waits for the page's binding provider to apply bindings to it and stays "being
+   * upgraded" forever: its wrapper says `data-oj-binding-provider="none"`. Until it loads — and for
+   * good when there is no loader or the CDN fails — a small editor of its own: a toolbar of
+   * oj-buttons over a contenteditable region. Either way the value is HTML (a legacy Delta opens
+   * converted) and leaves as `valueChanged` {value, updatedFrom:'internal'} — the event shape of a
+   * JET component, so the field chains treat it like any other — on blur, sanitised by the same
+   * allowlist as the viewer.
    */
   function defineRichTextField(win = typeof window !== 'undefined' ? window : null) {
     if (!win || !win.customElements || win.customElements.get('mateu-rich-text-field')) return
@@ -1878,8 +1923,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
       get readonlyNow() { return this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false' }
       commit() {
-        if (!this.area) return
-        const value = richTextValueOf(this.area.innerHTML)
+        if (this.area) this.commitHtml(this.area.innerHTML)
+      }
+      commitHtml(html) {
+        const value = richTextValueOf(html)
         if (value === richTextValueOf(richTextHtml(this.value))) return
         this.editing = true
         this.value = value
@@ -1897,6 +1944,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           view.innerHTML = html
           this.appendChild(view)
           this.area = null
+          return
+        }
+        if (this.spectra !== false && typeof win.require === 'function') {
+          this.renderSpectra(html)
           return
         }
         const bar = doc.createElement('div')
@@ -1943,6 +1994,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         this.area = area
         this.appendChild(bar)
         this.appendChild(area)
+      }
+      renderSpectra(html) {
+        this.area = null
+        const box = doc.createElement('div')
+        box.className = 'mateu-rte-spectra'
+        box.setAttribute('data-oj-binding-provider', 'none')
+        const editor = doc.createElement('oj-sp-input-rich-text-2')
+        if (this.getAttribute('aria-label')) editor.setAttribute('label-hint', this.getAttribute('aria-label'))
+        // ATTRIBUTES, not properties: the element is usually created before the loader defines it,
+        // and a property set on it then shadows the setter of its class — the editor opened empty, with
+        // the default toolbar. The label is the field's oj-label; the toolbar is read once, at mount.
+        editor.setAttribute('display-options', JSON.stringify({ label: 'off', formattingToolbar: 'on', toolbarItems: SPECTRA_RICH_TEXT_TOOLBAR }))
+        editor.setAttribute('value', html)
+        // 'internal': the user's edit, on blur — not the echo of the value set here
+        editor.addEventListener('valueChanged', (e) => {
+          if (e.detail && e.detail.updatedFrom === 'internal') this.commitHtml(e.detail.value || '')
+        })
+        // …but its valueChanged comes AFTER the blur, asynchronously: a click on Save would run the
+        // action with the old value. Leaving the editor commits what it holds now (rawValue follows
+        // every keystroke), synchronously, before the click; moving to its own toolbar does not.
+        box.addEventListener('focusout', (e) => {
+          if (e.relatedTarget && box.contains(e.relatedTarget)) return
+          if (typeof editor.rawValue === 'string') this.commitHtml(editor.rawValue)
+        })
+        box.appendChild(editor)
+        this.appendChild(box)
+        spectraRichTextReady(win).then((ok) => {
+          if (ok || !this.contains(box)) return
+          this.spectra = false // no CDN: our own editor, for good
+          this.render()
+        })
       }
     }
     win.customElements.define('mateu-rich-text-field', MateuRichTextField)
@@ -2881,7 +2963,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Each slot also projects its RICH blocks (same pipeline as the host: StatusList
    *  cards, buttons, inputs, notices…) — the markup paints blocks and keeps texts only
    *  as the legacy form for tests/fixtures. */
-  function foldoutOf(ctx) {
+  function foldoutOf(ctx, { parent = null } = {}) {
     // the PAGE foldout: one placed in a tab (or in a console panel) is content of that
     // tab — visit() paints it there, with its collapsible panels — and does not take over the screen
     const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
@@ -2892,7 +2974,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const child of children) bySlot[child.slot || ''] = child
     const blocksOf = (slotNode) => {
       const blocks = slotNode
-        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound })
+        // templateSlot: a panel is a slot of the page, so a Listing in it (an exhibition's works, its
+        // loans) is drawn there with the rows it loads — read alone, the panel's subtree did not say
+        // it sits in a templated page and the listing was dropped
+        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound, templateSlot: true })
         : null
       // same visual contract as hostContentOf: column blocks with their colClass,
       // the rest full-row
@@ -2923,6 +3008,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .concat((md.badges || []).map((b) => (b && typeof b === 'object' ? b.text || b.label : b))
         .filter((t) => t != null && String(t).trim())
         .map((t) => ({ isBadge: true, label: String(t), badgeClass: STATUS_BADGE.NONE, blockClass: 'oj-flex-item oj-sm-12' })))
+    const declared = declaresTemplate(ctx, 'FoldoutPage')
+    const owns = declared || (!!page && !findByType(ctx.tree, 'EntityHeader'))
+    // the page's subtitle (a booking's «Total … · Pagado …») heads the overview when the band is gone
+    const subtitle = owns && !declared ? pageSubtitleOf(ctx) : ''
     return {
       headerTitle: interpolate(String(md.headerTitle || ''), (ctx && ctx.state) || {}),
       // FoldoutLayout.orientation: 'vertical' (default) = the overview is the first column, left of
@@ -2931,18 +3020,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       overviewOnTop: md.orientation === 'horizontal',
       // the navigation header, the overview's Edit and the badges: what may change between two
       // records of the same foldout (re-bound in place, like the panels' content)
-      header: declaresTemplate(ctx, 'FoldoutPage') ? foldoutPageHeaderOf(foldoutHeaderOf(md), templateFormOf(ctx), state) : foldoutHeaderOf(md),
-      // a declared FoldoutPage owns the page header (Toolkit 26C: the layout's own header and the
-      // overview panel carry the navigation and the actions — there is no page header above it)
-      ownsHeader: declaresTemplate(ctx, 'FoldoutPage'),
+      header: foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }),
+      // the foldout owns the page header (Toolkit 26C: the layout's own header and the overview panel
+      // carry the navigation and the actions — there is no page header above it): a declared
+      // FoldoutPage, and any page whose foldout is the page, unless an EntityHeader's facts need the band
+      ownsHeader: owns,
       badges: pageBadges,
       overview: {
         texts: collectTexts(bySlot['overview']),
         // a PLAIN block that carries them as atoms: the overview template only paints isCard/isPlain
         // blocks and isBadge is an atom of their items — a standalone isBadge block was not shown
-        blocks: (pageBadges.length
-          ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items: pageBadges }]
-          : []).concat(blocksOf(bySlot['overview'])),
+        blocks: overviewHeadBlocks(pageBadges, subtitle).concat(blocksOf(bySlot['overview'])),
       },
       panels: (md.panels || []).map((panel, i) => ({
         title: panel.title || '',
@@ -3003,6 +3091,60 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // it to dispatchHostBlockAction (ctaId/ctas), so a YAML page with no action behind it still works
       ctas: {},
     }
+  }
+
+  /** The block that heads the overview: the page badges and, when the foldout owns the page, its
+   *  subtitle — a PLAIN block carrying them as atoms (the overview template only paints isCard/isPlain
+   *  blocks). None when there is neither. */
+  function overviewHeadBlocks(badges, subtitle) {
+    const items = badges.concat(subtitle ? [{ isText: true, text: subtitle, cls: 'oj-typography-body-sm oj-text-color-secondary' }] : [])
+    return items.length ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items }] : []
+  }
+
+  /** The foldout's header: the wire's (foldoutHeaderOf), plus the page's toolbar when the foldout owns
+   *  the page — a declared FoldoutPage's form toolbar, else the page toolbar (and the trail's parent). */
+  function foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }) {
+    const header = foldoutHeaderOf(md)
+    if (!owns) return header
+    if (declared) return foldoutPageHeaderOf(header, templateFormOf(ctx), (ctx && ctx.state) || {})
+    return foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+  }
+
+  /** Where a page foldout's go-to-parent leads: its back button, else the trail's parent; null with neither. */
+  function foldoutParentOf(back, parent) {
+    if (back) return { label: back.label, actionId: back.actionId, target: { actionId: back.actionId, route: back.route || '' } }
+    if (parent && parent.route) return { label: parent.label, actionId: 'parent', target: { actionId: '', route: parent.route } }
+    return null
+  }
+
+  /**
+   * A page foldout's header from the PAGE toolbar (pageToolbarOf: {actionId, label, chroming, route,
+   * disabled}): the back button — else the trail's parent (`parent`: {label, route}) — becomes the
+   * layout's go-to-parent; the other buttons the overview panel's actions, the primary first (an
+   * «Edit» as the pencil). The wire's own navigation (FoldoutLayout.navigation) keeps priority.
+   */
+  function foldoutToolbarHeaderOf(header, toolbar, parent = null) {
+    const buttons = (toolbar || []).filter((b) => b && b.actionId)
+    const back = buttons.find(isBackButton)
+    const rest = buttons.filter((b) => b !== back)
+      .sort((a, b) => (b.chroming === 'callToAction') - (a.chroming === 'callToAction'))
+    const ctas = { ...(header.ctas || {}) }
+    const out = { ...header, ctas }
+    const up = header.goToParent ? null : foldoutParentOf(back, parent)
+    if (up) {
+      ctas.parent = up.target
+      Object.assign(out, { hasNavigation: true, goToParent: true, parentActionId: up.actionId,
+        parentLabel: up.label || chromeText('goBack') })
+    }
+    if (rest.length) {
+      out.overviewActions = (header.overviewActions || []).concat(rest.map((b, i) => {
+        const id = 'toolbar-' + i
+        ctas[id] = { actionId: b.actionId, route: b.route || '' }
+        return { id, label: b.label, display: b.disabled ? 'disabled' : 'on',
+          ...(i === 0 && b.chroming === 'callToAction' && /^edit\b/i.test(b.label || '') ? { icon: 'oj-ux-ico-edit' } : {}) }
+      }))
+    }
+    return out
   }
 
   const FOLDOUT_BACK_IDS = /^(back|backToList|cancel-view|cancel)$/
@@ -3461,8 +3603,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function metricOf(m, interp = (x) => x) {
     const trend = m.trend || ''
     const title = interp(m.title || '')
-    const value = String(m.value == null ? '' : m.value)
-    const unit = m.unit || ''
+    // the value interpolates like the texts around it (`value: ${state.visitors}` showed literally)
+    const value = m.value == null ? '' : String(interp(String(m.value)))
+    const unit = m.unit ? String(interp(m.unit)) : ''
     // the period the number covers ("Last 7 days"): under the value, and in the accessible text
     const timeframe = String(interp(m.timeframe || '') || '').trim()
     const trendLabel = m.trendLabel ? interp(m.trendLabel) : ''
@@ -3598,6 +3741,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
     'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
     'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
+    // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
+    'isNestedListing',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -3675,6 +3820,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
     return { wizard, title: title || wizard.title, subtitle: wizard.subtitle, content, sections, nav }
   }
+
 
 
 
@@ -3874,6 +4020,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         kpiActionId: mm ? (mm.actionId || '') : '',
       }
     })
+    // a LISTING the welcome declares among its pieces (featured records as picture cards): a full-width
+    // tile of its own, where it sits — before the tiles when it comes before them. It was taken for the
+    // page's listing and, the welcome owning the page, drawn nowhere.
+    if (declaresTemplate(ctx, 'WelcomePage')) {
+      // by POSITION (the VB registry is read through proxies: node identity is not reliable)
+      const nested = new Set(nestedListingNodesOf(ctx.tree).map(nestedListingKeyOf))
+      const before = []
+      const after = []
+      let tilesSeen = false
+      walkWithinSurface(ctx.tree, (n) => {
+        const type = n && n.metadata && n.metadata.type
+        if (type === 'DashboardLayout' || type === 'DashboardPanel') tilesSeen = true
+        if (type !== 'Crud' || !nested.has(nestedListingKeyOf(n))) return
+        const atom = nestedListingAtomOf(n, ctx)
+        ;(tilesSeen ? after : before).push({ title: atom.title, subtitle: '', colClass: 'oj-flex-item oj-sm-12', texts: [], textNodes: [],
+          items: [{ ...atom, title: '' }], isKpi: false, kpiTitle: '', kpiValue: '', kpiCaption: '', kpiTimeframe: '', kpiAriaLabel: '', kpiActionId: '' })
+      })
+      tiles.unshift(...before)
+      tiles.push(...after)
+    }
     // the charts are drawn in their tiles now (the full-width chart under the tiles is gone)
     const trend = null
     return {
@@ -4348,7 +4514,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const form = templateFormOf(ctx)
     return {
       title: interpolate(String((form && form.metadata && form.metadata.title) || ''), state),
-      collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list')),
+      // the collection slot's listing is the PAGE's (painted by the listing body), not a nested one
+      collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list'))
+        .map((b) => ({ ...b, items: (b.items || []).filter((a) => !(a && a.isNestedListing)) }))
+        .filter((b) => (b.items || []).length || b.isSpSectionHeader),
       selectedItems: detailNode ? [{ id: String(state.id != null ? state.id : 'selected') }] : [],
       detail: detailNode ? blocksOf(detailNode) : [],
       noSelection: detailNode ? [] : blocksOf(nodeById(ctx.tree, 'collection-detail-no-selection')),
@@ -4376,7 +4545,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const look = welcomeLookOf(welcomeKeyOf(ctx), banner.tone)
     // the banner shows ONE record: its texts are templates over the page state
     const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
+    // ...and so are its calls to action's routes (an Edit to `missions/${state.id}/edit` went to the
+    // literal placeholder)
+    const routed = (c) => (c?.route ? { ...c, route: text(c.route) } : c)
     return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
+      ctas: (banner.ctas || []).map(routed),
+      primaryCtaRoute: text(banner.primaryCtaRoute), secondaryCtaRoute: text(banner.secondaryCtaRoute),
+      secondaryById: Object.fromEntries(Object.entries(banner.secondaryById || {}).map(([k, v]) => [k, routed(v)])),
       theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
   }
 
@@ -4496,8 +4671,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  left auto (absorbs the drawer), cap 1408 — and never less than 24px on the left: the cap
    *  subtracts both gutters, or a narrow area ended up stuck to the left with a gap only on the
    *  right. */
+  // A page that declares no width takes its TYPE's default, as on the web (libs/mateu layout/pageWidth.ts,
+  // owner decision 2026-11-01): collection and dashboard pages are about their data and want the room.
+  const PAGE_TYPE_WIDTHS = { collection: 'fullWidth', dashboard: 'fullWidth' }
+
   function pageStyleOf(ctx) {
-    const width = (ctx && ctx.pageWidth) || 'fixed'
+    const width = (ctx && ctx.pageWidth) || PAGE_TYPE_WIDTHS[String((ctx && ctx.pageType) || '').toLowerCase()] || 'fixed'
     if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }
     if (width === 'fullWidth') return { maxWidth: 'none', margin: '0', padding: '24px' }
     // the right gutter (aligned with the shell's floating chrome, see above) …
@@ -4773,6 +4952,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
   /** The action ids a tree advertises at any level (`actions: [{id | actionId}]`). */
@@ -4930,15 +5110,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function rowRouteOf(template, row) {
     if (!template) return ''
     let unresolved = false
+    // a template that is ONE placeholder takes the value whole (`${row.imageLarge}` → a URL): encoding
+    // it as a path segment turned https:// into https%3A%2F%2F. A value inside a path is a segment.
+    const whole = /^\s*\$\{\s*row\.[A-Za-z0-9_]+\s*\}\s*$/.test(String(template))
     const route = String(template).replace(/\$\{\s*row\.([A-Za-z0-9_]+)\s*\}/g, (all, field) => {
       const value = row ? row[field] : undefined
       if (value == null || value === '') { unresolved = true; return '' }
-      return encodeURIComponent(typeof value === 'object' ? (value.value ?? value.message ?? '') : String(value))
+      const text = typeof value === 'object' ? String(value.value ?? value.message ?? '') : String(value)
+      return whole ? text.trim() : encodeURIComponent(text)
     })
     return unresolved || route.includes('${') ? '' : route
   }
 
-  function interpolate(text, state) {
+  /**
+   * Whether a route leaves the app: it carries a scheme (`https://…`, `mailto:`, a refused
+   * `javascript:`) or is protocol-relative (`//host`). The web's isExternalRoute (libs/mateu
+   * rowRoute.ts) is the same rule.
+   */
+  function isExternalRoute(route) {
+    const r = String(route == null ? '' : route).trim()
+    return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
+  }
+
+  function interpolate(text, state, scope = {}) {
     // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
     // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
     if (text != null && String(text).includes('i18n.')) {
@@ -4949,12 +5143,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // and nested paths: `${state.status.message}` (the badge of a header @Status)
     // `\${` / `\\` are the literal escapes the server writes around DATA (Templates.literal): they
     // show as `${` / `\`, never as an expression — a record titled «${state.id}» is not evaluated
+    // Anything else in `${…}` is an EXPRESSION, evaluated like the web renderer does
+    // (`${state.lastName ?? ''}`, `${data.total}`, `${state.a ? 'x' : 'y'}`) with the sandboxed
+    // evaluator (rules.mjs) over state, data, appState and appData — a header used to show such a
+    // title raw. A failed one shows nothing, never the template.
     const source = String(text == null ? '' : text)
     if (!source.includes('${')) return source
     return source.replace(
-      /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
-      (all, escaped, dotted, quoted) => {
+      /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}|\$\{([^}]*)\}/g,
+      (all, escaped, dotted, quoted, expression) => {
         if (escaped) return escaped === '\\' ? '\\' : '${'
+        if (expression !== undefined) {
+          const value = evaluateExpression(expression, { ...scope, state: state || {} })
+          return value != null && typeof value !== 'object' ? String(value) : ''
+        }
         if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
         let value = state
         for (const part of dotted.split('.')) {
@@ -5735,7 +5937,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // its affordances (@Section(addAction, editAction, viewMoreAction)) are the section's own
           // buttons — add as its primary action, edit, view more — and leave the body
           card.sectionActions = sectionAffordancesOf(node)
-          card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items), card.sectionActions)
+          card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items, interp(card.sectionTitle)), card.sectionActions)
         }
         plain = null
         return
@@ -5914,7 +6116,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           badges: (m.badges || []).map(badgeOf),
           // a fact naming an action: its icon button right after the value (factProjectionOf)
           facts: (m.facts || []).map((f) => factProjectionOf(f, interp(f.value))),
-          metricLabel: m.metricLabel || '',
+          metricLabel: interp(m.metricLabel || ''),
           metricValue: interp(m.metricValue || ''),
         }, container)
         return
@@ -6057,7 +6259,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Image') {
         // JET has no image component: an <img> capped at its container's width
         // a RELATIVE path is served by the backend (like an Element's module), not by the VB app
-        if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
+        // …with the component's own style (filtered like a Text's: presentation only) and cssClasses —
+        // without them a `max-width: 220px` portrait was drawn as wide as its column
+        if (m.src) {
+          atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || ''),
+            style: styleObjectOf(node.style || m.style), cls: String(node.cssClasses || m.cssClasses || '').trim() }, container)
+        }
         return
       }
       if (t === 'Avatar') {
@@ -6279,8 +6486,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Stat') {
         atom({
           isStat: true,
-          label: m.label || '',
-          value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
+          label: interp(m.label || ''),
+          value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
         }, container)
         // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
         if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
@@ -6296,7 +6503,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       // ── display components with their own projection (core/display.mjs) ──
-      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp), container); return }
+      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp, ctx), container); return }
       if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
       if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
       if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }
@@ -6323,6 +6530,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
       if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
       if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
+      // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
+      // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
+      // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
+      if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
+        atom(nestedListingAtomOf(node, ctx), container)
+        return
+      }
       if (t === 'MicroFrontend') {
         // a surface of its own, loaded from its baseUrl like a @Subresource (withSubresources paints it)
         const sub = microFrontendOf(m)
@@ -6841,17 +7055,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * A section card's body for oj-sp-section, which draws the section's title itself: its atoms
    * without the leading heading — or, when the heading shares a title row with the section's buttons
    * (@Section(editAction…), an @Inline type's @Toolbar), that row without its heading.
+   * `title` (the section's, as drawn): only a heading that IS the title is dropped — a section whose
+   * title is its Card's own (`title:`) does not repeat it in its body, so its first heading is CONTENT
+   * (a `Text` with `container: h2` opening the section was taken for the title and lost).
    */
-  function sectionBodyOf(items) {
+  function sectionBodyOf(items, title) {
     const list = items || []
     const first = list[0]
-    if (first && first.isHeading) return list.slice(1)
-    if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading)) {
-      const rest = first.items.filter((i) => !(i && i.rowHeading))
+    const isTitle = (text) => title == null || String(text == null ? '' : text).trim() === String(title).trim()
+    if (first && first.isHeading && isTitle(first.text)) return list.slice(1)
+    if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading && isTitle(i.text))) {
+      const rest = first.items.filter((i) => !(i && i.rowHeading && isTitle(i.text)))
       return rest.length ? [{ ...first, items: rest }].concat(list.slice(1)) : list.slice(1)
     }
     return list
   }
+
 
 
 
@@ -6966,15 +7185,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const m = node.metadata
     const state = ctx.state || {}
     const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
-    const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state)))
-    if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
+    const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state, { data: (ctx && ctx.data) || {} })))
+    if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state, { data: (ctx && ctx.data) || {} }) })
     // Mateu's Chip colors → oj-sp badge status
     const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }
     return {
-      title: interpolate(m.title, state),
-      subtitle: interpolate(m.subtitle || '', state) + (badgeText ? ' · ' + badgeText : ''),
+      title: interpolate(m.title, state, { data: (ctx && ctx.data) || {} }),
+      subtitle: interpolate(m.subtitle || '', state, { data: (ctx && ctx.data) || {} }) + (badgeText ? ' · ' + badgeText : ''),
       // the subtitle WITHOUT the concatenated badges (for templates that paint the badge separately)
-      subtitlePlain: interpolate(m.subtitle || '', state),
+      subtitlePlain: interpolate(m.subtitle || '', state, { data: (ctx && ctx.data) || {} }),
       badges: (m.badges || []).map((b) => ({ label: b.label, status: BADGE_STATUS[b.color] || 'neutral' })),
       facts,
     }
@@ -7005,8 +7224,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ((page.metadata || {}).kpis || [])
       .filter((k) => k && (k.title || k.text))
       .map((k) => ({
-        label: page.fromForm ? interpolate(k.title || '', state) : (k.title || ''),
-        value: interpolate(k.text == null ? '' : String(k.text), state),
+        label: page.fromForm ? interpolate(k.title || '', state, { data: (ctx && ctx.data) || {} }) : (k.title || ''),
+        value: interpolate(k.text == null ? '' : String(k.text), state, { data: (ctx && ctx.data) || {} }),
       }))
   }
 
@@ -7063,7 +7282,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const text = (v) => {
       if (v == null) return ''
       let s = String(v)
-      if (s.includes('${')) s = interpolate(s, state)
+      if (s.includes('${')) s = interpolate(s, state, { data: (ctx && ctx.data) || {} })
       if (s.includes('${')) {
         const value = evaluateTemplate(s, scope)
         s = value == null || value === false ? '' : String(value)
@@ -7095,7 +7314,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
     // listing page shows only the table, so the line was lost — it is the page's subtitle
     if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
-    return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+    return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
   }
 
   function textWithId(n, id) {
@@ -7162,7 +7381,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       actionId: RECORD_SWITCHER_ACTION, route: '', objectOptions: [], contextOptions: [], fact: null }
     if (!sw) return none
     const state = (ctx && ctx.state) || {}
-    const interp = (t) => (page.fromForm ? interpolate(t, state) : String(t))
+    const interp = (t) => (page.fromForm ? interpolate(t, state, { data: (ctx && ctx.data) || {} }) : String(t))
     // the declared options, else (a YAML `optionsSource`) the ones loadRestOptions fetched into
     // ctx.data._switcher — the same slot a select's REST options land in
     const loaded = ((ctx && ctx.data && ctx.data[RECORD_SWITCHER_OPTIONS]) || {}).content
@@ -7227,7 +7446,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return {
           actionId: b.actionId,
           // a label may name the record ("Back to ${state.name}")
-          label: interpolate(b.label || b.actionId, state),
+          label: interpolate(b.label || b.actionId, state, { data: (ctx && ctx.data) || {} }),
           chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
           disabled: !!b.disabled || (!!b.route && route == null),
           ...(route ? { route } : {}),
@@ -7374,7 +7593,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The title the host's Crud declares, if any. */
   function crudTitleOf(host) {
-    const crud = host && host.tree ? findByType(host.tree, 'Crud') : null
+    const crud = host && host.tree ? pageListingNodeOf(host.tree) : null
     return crud && crud.metadata ? crud.metadata.title : ''
   }
 
@@ -7403,6 +7622,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...summary, title: level.title, levelSubtitle: own && own !== level.title ? own : '' }
   }
 
+  /** The trail's parent of the screen at `route` ({label, route}), or null: a page foldout's go-to-parent
+   *  when its toolbar has no back button (archetypes foldoutOf). */
+  function parentCrumbOf(reg, route) {
+    return parentCrumb(summarizeHost(reg, route).trail) || null
+  }
+
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
     const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
@@ -7419,7 +7644,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a YAML page's title is a template (`title: ${state.name}`); a page declaring a
     // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
     // borrowing the crud's or the menu's label (pageHeaderOf)
-    const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state).trim() : ''
+    const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
     const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
     return {
       // a listing's Page carries no title: it travels in the Crud metadata, and if it is not
@@ -7454,6 +7679,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
   /** RENDER helper: first node of the tree with the given metadata.type. */
@@ -7476,6 +7704,161 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let found = null
     walkWithinSurface(tree, (n) => { if (!found && test(n)) found = n })
     return found
+  }
+
+  // ── NESTED LISTINGS: a Listing inside a page template's content ─────────────────────────────────
+  //
+  // A page that DECLARES a template (YAML `template:`) lays its content out in the template's slots,
+  // and a Listing among that content (a general overview's «launches from here», a multimedia page's
+  // gallery section, a welcome's featured cards, a collection detail's works) is PART of that content,
+  // as on Vaadin — not the page's own listing. Taken for the page listing it was hoisted out of its
+  // slot: painted on top with its search bar (and the page painted again below it), or not at all.
+  // Only the templates whose listing IS the page (a hero search's results, a data management page's
+  // table, a collection detail's collection slot) keep the listing branch.
+
+  /** The templates whose listing is the PAGE's own (the listing branch, or the slot holding it). */
+  const PAGE_LISTING_TEMPLATES = { HeroSearchPage: true, DataManagementPage: true, CollectionDetailPage: true }
+
+  /** The template a page DECLARES (`template:` on its Form, served wrapped in its ServerSide), or ''. */
+  function declaredTemplateTypeOf(tree) {
+    let node = tree
+    while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
+    const md = node && node.metadata
+    return md && md.type === 'Form' && md.template && md.template.type ? String(md.template.type) : ''
+  }
+
+  /** Whether a page's template holds its listings as CONTENT (nested listings) rather than as the page. */
+  function templateNestsListings(tree) {
+    const type = declaredTemplateTypeOf(tree)
+    return !!type && !PAGE_LISTING_TEMPLATES[type]
+  }
+
+  /** Every Listing (Crud) of the surface, in document order (not crossing into another surface). */
+  function cruds(tree) {
+    const out = []
+    walkWithinSurface(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud') out.push(n) })
+    return out
+  }
+
+  /** The PAGE's own listing — the one the listing branch paints: the first Listing of a page without a
+   *  template; the collection slot's on a collection detail; none on a template that nests them. */
+  function pageListingNodeOf(tree) {
+    const all = cruds(tree)
+    if (!all.length) return null
+    const type = declaredTemplateTypeOf(tree)
+    if (!type) return all[0]
+    if (!PAGE_LISTING_TEMPLATES[type]) return null
+    if (type === 'CollectionDetailPage') {
+      const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')
+      return (list && cruds(list)[0]) || null
+    }
+    return all[0]
+  }
+
+  /** The listings painted IN the content of a templated page (they read their rows from a source). */
+  function nestedListingNodesOf(tree) {
+    const own = pageListingNodeOf(tree)
+    const ownKey = own ? nestedListingKeyOf(own) : null
+    return cruds(tree).filter((n) => n !== own && n.metadata.rowsSource && (!ownKey || nestedListingKeyOf(n) !== ownKey))
+  }
+
+  /** A nested listing's key — where its rows are kept (ctx.data[key]) and the suffix of the action that
+   *  loads them. From what it IS (its source, columns, title), not its position: the slots are projected
+   *  from sub-trees, where the page's document order is not known. */
+  function nestedListingKeyOf(node) {
+    const md = (node && node.metadata) || {}
+    const columns = leafColumnsOf(md.columns || []).map((c) => (c && (c.metadata ? c.metadata.id || c.id : c.id)) || '')
+    return 'nestedListing-' + stableHashOf(JSON.stringify([md.rowsSource || null, columns, md.title || '', md.rowRoute || '']))
+  }
+
+  /** The OnLoad action that loads a nested listing's rows (answered in the browser, restSources.mjs). */
+  const NESTED_LISTING_ACTION = '__nestedlisting__:'
+
+  /** The load actions of a context's nested listings. */
+  function nestedListingTriggersOf(ctx) {
+    const tree = ctx && ctx.tree
+    if (!tree) return []
+    return nestedListingNodesOf(tree).map((n) => NESTED_LISTING_ACTION + nestedListingKeyOf(n))
+  }
+
+  /**
+   * A nested listing as an ATOM of the content it sits in: its rows (ctx.data[key], once loaded) as
+   * picture cards (`gridLayout: cards`) or as a table; a row with a `rowRoute` opens it (a card is an
+   * action card that navigates, a table row's first column a link). Its first page only: no search
+   * bar, filters or pager — those belong to a page's own listing.
+   */
+  function nestedListingAtomOf(node, ctx) {
+    const md = (node && node.metadata) || {}
+    const key = nestedListingKeyOf(node)
+    const state = (ctx && ctx.state) || {}
+    const loaded = ctx && ctx.data ? ctx.data[key] : null
+    const page = (loaded && loaded.page) || {}
+    const columns = leafColumnsOf(md.columns || []).map((c) => ({ ...(c.metadata || c), id: (c.metadata && c.metadata.id) || c.id }))
+      .filter((c) => c.id && c.dataType !== 'actionGroup')
+    const rows = labelCellRows(page.content || [], columns)
+    const text = (v) => (v == null ? '' : typeof v === 'object' ? String(v.value ?? v.message ?? v.label ?? '') : String(v))
+    const imageCol = columns.find((c) => c.stereotype === 'image')
+    const titleCol = columns.find((c) => c.identifier && c !== imageCol) || columns.find((c) => c !== imageCol)
+    const cellOf = (row, c) => text(labelColumn(c) ? row[c.id + LABEL_CELL_SUFFIX] : row[c.id])
+    const asCards = md.gridLayout === 'cards' || !!md.showCards
+    const routeOf = (row) => rowRouteOf(md.rowRoute, row)
+    const cards = asCards ? rows.map((row, i) => ({
+      key: String(row._rowNumber != null ? row._rowNumber : i),
+      image: imageCol ? text(row[imageCol.id]) : '',
+      title: titleCol ? cellOf(row, titleCol) : '',
+      lines: columns.filter((c) => c !== imageCol && c !== titleCol)
+        .map((c) => ({ label: c.label || c.id, value: cellOf(row, c) }))
+        .filter((l) => l.value !== ''),
+      route: routeOf(row),
+    })) : []
+    const tableRows = asCards ? [] : rows.map((row, i) => {
+      const route = routeOf(row)
+      // a route that is a whole URL is a plain link to it, in a new tab
+      const external = !!route && isExternalRoute(route)
+      return { ...row, __key: String(row._rowNumber != null ? row._rowNumber : i),
+        __href: external ? safeHref(route) : route ? urlOfRoute(route.charAt(0) === '/' ? route : '/' + route) : '',
+        __target: external ? '_blank' : '', __rel: external ? 'noopener noreferrer' : '' }
+    })
+    const tableColumns = asCards ? [] : columns.map((c, i) => {
+      const field = labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id
+      // its first page only, as it came: no sorting (a header arrow that sorted nothing)
+      const def = { headerText: c.label || c.id, field, id: c.id, sortable: 'disabled' }
+      if (c.stereotype === 'image') def.template = 'cellNestedImage'
+      else if (md.rowRoute && c === titleCol) def.template = 'cellNestedLink'
+      return def
+    })
+    // a listing with row selection (a bulk toolbar action: "Delete selected") marks its rows like the
+    // page's own listing does — on a table; a card grid has no selection in Redwood
+    const selectable = !asCards && !!(md.rowsSelectionEnabled || md.multipleRowSelectionEnabled)
+    const toolbar = (md.toolbar || []).map((b) => (b && b.metadata) || b)
+      .filter((b) => b && b.actionId)
+      .map((b) => ({
+        actionId: String(b.actionId),
+        label: interpolate(String(b.label || b.actionId), state),
+        chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+        disabled: !!b.disabled,
+        parameters: {},
+        route: '',
+        surfaceId: '',
+        fromNested: false,
+      }))
+    return {
+      isNestedListing: true,
+      nestedKey: key,
+      title: interpolate(String(md.title || ''), state),
+      asCards,
+      asTable: !asCards,
+      cards,
+      columns: tableColumns,
+      rows: tableRows,
+      toolbar,
+      hasToolbar: toolbar.length > 0,
+      selectionMode: selectable ? { row: 'multiple' } : { row: 'none' },
+      adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
+      loaded: !!loaded,
+      isEmpty: !!loaded && rows.length === 0,
+      emptyText: md.emptyStateMessage || chromeText('noData'),
+    }
   }
 
   /** Projection of the LISTING (Crud component): columns + rows (from the data axis) + search.
@@ -7528,6 +7911,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * className), and a click inside one never opens the row.
    */
   const NO_OPEN_CELL_CLASS = 'mateu-cell-noopen'
+  /** On a listing's table when a row click opens something: only then the rows show the hand cursor. */
+  const ROWS_OPEN_CLASS = 'mateu-rows-open'
   const DISPLAY_DATA_TYPES = ['action', 'actionGroup', 'menu', 'component', 'link', 'button']
   const DISPLAY_STEREOTYPES = ['button', 'link', 'html']
   function isDisplayColumn(c) {
@@ -7564,7 +7949,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The pre-search blocks while no search has answered yet; null otherwise (or when none). */
   function listingPreSearchBlocksOf(ctx) {
-    const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+    const crudNode = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
     const pre = crudNode && crudNode.metadata && Array.isArray(crudNode.metadata.preSearch) ? crudNode.metadata.preSearch : []
     if (!pre.length || listingSearchedOf(ctx)) return null
     // kind island: as host content the first EmptyState is the page's own one, and skipped
@@ -7607,7 +7992,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function listingBaseOf(ctx, opts = {}) {
-    const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+    const crudNode = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
     if (!crudNode) return null
     // column groups flattened to their leaf columns (leafColumnsOf): from here on a listing only
     // ever sees plain columns
@@ -7620,13 +8005,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const tableColumns = lines.extra.length ? lines.first : (md.columns || [])
     // what each cell PAINTS (labels, badges, clipped/abbreviated text), before group rows are
     // interleaved: the content a compact column is sized to (columnSizingOf)
-    const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
+    // TREE (gridLayout: tree): the rows nest under `children`; the table draws them flattened, each
+    // level indented under its parent (always expanded, like the shared neutral tree of the web lib)
+    const tree = md.gridLayout === 'tree'
+    const content = tree ? treeRowsOf(page.content || [], tableColumns) : (page.content || [])
+    const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(content, md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
     const footers = aggregateFootersOf(md, (ctx.data || {}).crud) || {}
     // the columns sized by the DEFAULT rule (they declare no width/flexGrow): id → their compact
     // width (fit) — finishColumnSizing lets them grow when no other column does
     const fitColumns = {}
     const defaultSized = []
-    const columns = tableColumns.map((col) => {
+    const columns = tableColumns.map((col, colIndex) => {
       const c = col.metadata || col
       const def = { headerText: c.label || c.id, field: c.id }
       // editable cell → editor template per type (always visible, commit per cell:
@@ -7663,9 +8052,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // Abbreviated UUID: a text column whose values are UUIDs is painted "…-<last block>"
       // with the whole UUID in the tooltip. The row does NOT change: the cell reads a separate field,
       // precomputed in uuidCellRows (VB CSP: the template cannot trim the text).
-      if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
+      if (!def.template && uuidColumnIds(content, md.columns || []).indexOf(c.id) >= 0) {
         def.field = c.id + UUID_CELL_SUFFIX
         def.template = 'cellUuid'
+      }
+      // the tree column (the first one) reads its indented text (treeRowsOf)
+      if (tree && colIndex === 0 && !def.template && def.field === c.id) {
+        def.field = c.id + TREE_CELL_SUFFIX
       }
       const align = alignOf(c)
       if (align && !def.template) {
@@ -7696,6 +8089,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
       return def
     }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : [])
+    const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
+    // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
+    // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
+    const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath
+    const tableClass = (lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4)
+      : 'oj-sm-12') + (rowsOpen ? ' ' + ROWS_OPEN_CLASS : '')
     return {
       // PAGINATION: the page the server sent (Page: pageNumber/pageSize/totalElements) →
       // table footer with the range and the controls; precomputed (VB CSP)
@@ -7706,7 +8105,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       rowRoute: md.rowRoute || '',
       searchable: !!md.searchable,
       pageSize: md.pageSize || 20,
-      emptyStateMessage: md.emptyStateMessage || 'No data.',
+      emptyStateMessage: md.emptyStateMessage || chromeText('noData'),
       columns: finishColumnSizing(columns, fitColumns),
       fitColumns,
       defaultSizedColumns: defaultSized,
@@ -7720,7 +8119,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // number of extra lines (0 = normal listing) and the table class that makes room for them
       // (PRECOMPUTED: VB CSP)
       extraLines: lines.extra.length,
-      tableClass: lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4) : 'oj-sm-12',
+      tableClass,
       // Redwood table density: the compact 'grid' is for WORK tables —
       // it switches on when the crud is inline-editable (@InlineEditing marks the columns
       // as editable on the wire); a lookup listing stays at 'list' (airy).
@@ -7737,7 +8136,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // row is clicked. A NAVIGABLE row (first column with actionId 'view') still opens the record:
       // the detail is for lookup listings, where the click had no other destination.
       detailPath: md.detailPath || null,
-      navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
+      navigable,
       // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
       // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
       // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
@@ -7931,6 +8330,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
   }
 
+  // The marked rows of each listing NESTED in a page's content, by its key (the oj-table's
+  // selection, written by the nestedListingSelected chain). A nested listing's rows are not the
+  // page's listing, so they have no place in mateuListingSelection.
+  const nestedSelections = new Map()
+
+  /** What is marked on a nested listing: oj-table's KeySet (`detail.value.row`), kept as a selection. */
+  function setNestedSelection(key, keySet) {
+    if (!key) return
+    const selection = selectionOfKeySet(keySet)
+    if (selection.all || selection.keys.length) nestedSelections.set(String(key), selection)
+    else nestedSelections.delete(String(key))
+  }
+
+  /** Forgets what was marked on a nested listing (its rows were reloaded). */
+  function clearNestedSelection(key) {
+    nestedSelections.delete(String(key))
+  }
+
+  /**
+   * The componentState of an action declared on a NESTED listing's toolbar (a bulk "Delete
+   * selected"): its marked rows as crud_selected_items, as Vaadin sends them. Any other action, or
+   * a page with no such listing, leaves the state untouched.
+   */
+  function withNestedSelection(componentState, host, actionId) {
+    const tree = host && host.tree
+    if (!tree || !actionId) return componentState
+    const owner = nestedListingNodesOf(tree).find((n) => ((n.metadata && n.metadata.toolbar) || [])
+      .some((b) => ((b && b.metadata) || b || {}).actionId === actionId))
+    if (!owner) return componentState
+    const key = nestedListingKeyOf(owner)
+    const rows = (((host.data || {})[key] || {}).page || {}).content || []
+    return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, nestedSelections.get(key)) })
+  }
+
   // rows with @Status columns: the {type, message} value gets stamped with the JET badge
   // class (Redwood, system) — the cell template cannot map (CSP without ternaries)
   const STATUS_BADGE = {
@@ -7975,6 +8408,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   const PRIMARY_CELL_SUFFIX = '__primary'
+
+  /** The field the first column of a tree listing paints: its text indented by the row's depth. */
+  const TREE_CELL_SUFFIX = '__treeCell'
+  const TREE_INDENT = '\u00a0\u00a0\u00a0\u00a0'
+
+  /**
+   * A tree listing's rows (each nesting its next level under `children`) as the FLAT rows a table
+   * draws: depth first, each parent before its children, `_treeDepth` stamped and the first column's
+   * text indented by it in `<id>__treeCell` (VB CSP: the template cannot indent). A row keeps its
+   * `_rowNumber` — the table's key — unless it has none or another row has it already (REST children
+   * carry none; a server may number each level from 0): then it is keyed by its path, `<parent>/<i>`.
+   * The `children` themselves are dropped from the flat row: they are rows of their own now.
+   */
+  function treeRowsOf(rows, columns) {
+    const firstCol = (columns || []).map((c) => (c && c.metadata) || c).find(Boolean)
+    const first = firstCol && firstCol.id
+    const out = []
+    const seen = new Set()
+    const walk = (items, depth, parentKey) => (items || []).forEach((row, i) => {
+      if (!row || typeof row !== 'object') return
+      const { children, ...rest } = row
+      let key = rest._rowNumber
+      if (key == null || seen.has(String(key))) key = parentKey == null ? '_row:' + i : parentKey + '/' + i
+      seen.add(String(key))
+      const flat = { ...rest, _rowNumber: key, _treeDepth: depth }
+      if (first) {
+        const v = rest[first]
+        flat[first + TREE_CELL_SUFFIX] = TREE_INDENT.repeat(depth) + (v == null ? '' : typeof v === 'object' ? (v.message || v.label || '') : String(v))
+      }
+      out.push(flat)
+      if (Array.isArray(children)) walk(children, depth + 1, key)
+    })
+    walk(rows, 0, null)
+    return out
+  }
 
   /** The cell (of the technical ROW_LINES_COLUMN column) that paints each row's extra lines. */
   const ROW_LINES_FIELD = '__rowLines'
@@ -9107,6 +9575,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
   /** OnLoad triggers of the context (e.g. the listing fires 'search' on load). */
@@ -9117,11 +9586,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .map((t) => t.actionId)
     // a listing reading its rows from a REST source (rowsSource) loads them on opening, as the web's
     // mateu-table-crud does — a YAML listing carries no OnLoad trigger of its own
-    if (ids.indexOf('search') < 0 && ctx && ctx.tree
-        && findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud' && !!n.metadata.rowsSource)) {
+    // (the PAGE's listing: one nested in a templated page's content is loaded on its own, below)
+    const own = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
+    if (ids.indexOf('search') < 0 && own && own.metadata && !!own.metadata.rowsSource) {
       ids.push('search')
     }
-    return ids
+    // the listings nested in a templated page's content: each loads its rows on opening, kept apart
+    // …and so do the live kanban boards (their items: restSources.mjs kanbanAnswerOf)
+    return ids.concat(nestedListingTriggersOf(ctx), kanbanTriggersOf(ctx))
   }
 
   /**
@@ -9610,15 +10082,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //    its first step.
   //  - The container answers a State with the new list and `_show_detail[campo] = false`
   //    (closes); `_create-and-stay` also answers a new row in `<campo>-container`.
-  //  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row).
+  //  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row) — or, for a row
+  //    whose fields show by its values (VisibilitySupplier), the neighbour's re-built ServerSide.
+  //  - `<campo>_refresh-detail` (the row's OnValueChange trigger, see rowValueChangeActionOf)
+  //    answers only the re-built ServerSide in `<campo>-container`, with the edited row as state.
   //  - The row's lookups (`search-<campo>`) are resolved by the ROW's ServerSide with the
   //    row's state: its response is a data-only fragment to its id.
 
   /** The actions a row editor sends to the list's container: `rooms_create`… */
-  const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down)$/
+  const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down|refresh-detail)$/
 
   /** Verbs that carry the dialog's row in parameters.initiatorState. */
-  const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true }
+  const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true, 'refresh-detail': true }
 
   /** Verbs that validate the row before leaving (the empty required fields). */
   const ROW_VALIDATING_VERBS = { create: true, 'create-and-stay': true, save: true }
@@ -9825,6 +10300,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let value = raw == null || raw === '' ? null : raw
     // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
     if (widget.isMoney && value != null && typeof value === 'object') value = value.value
+    if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)), messagesCustom: [] }
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
     else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -9975,7 +10451,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       columns: withoutDefaultSizing(listing.columns || [], listing).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
       rows: listing.rows || [],
       isEmpty: !!listing.isEmpty,
-      emptyText: listing.emptyStateMessage || 'No data.',
+      emptyText: listing.emptyStateMessage || chromeText('noData'),
       selectionMode: { row: multi ? 'multiple' : 'none' },
       pageSize: listing.pageSize || 20,
       paging: listing.paging,
@@ -10001,7 +10477,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       columns: withoutDefaultSizing(listing.columns || [], listing).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
       rows: listing.rows || [],
       isEmpty: !!listing.isEmpty,
-      emptyText: listing.emptyStateMessage || 'No data.',
+      emptyText: listing.emptyStateMessage || chromeText('noData'),
       selectionMode: { row: 'none' },
       pageSize: listing.pageSize || 20,
       paging: listing.paging,
@@ -10098,7 +10574,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // template (see poc/templates/fields-extra.html).
   const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
   const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
-  const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
+  // `image` is an image BY ITS URL (typed in, previewed); `uploadableImage` is the one you upload
+  const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'url', signature: 'signature', camera: 'camera' }
 
   /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
   function extraWidgetOf(f, options, value) {
@@ -10164,9 +10641,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return value
   }
 
+  /** A `dateRange` form field ({from, to} on the wire, as Vaadin's vcf-date-range-picker edits it). */
+  function isDateRangeField(md) {
+    return !!md && (md.dataType === 'dateRange' || md.stereotype === 'dateRange')
+  }
+
+  /** The ids a date range's two inputs edit (`<field>#from`, `<field>#to`): JET has no range picker, so
+   *  each end is its own oj-input-date and its edit is folded back into the field (rangeEditOf). */
+  const RANGE_PART = /^(.+)#(from|to)$/
+
+  /** A range's ends from its wire value: {from, to}, or Vaadin's "from;to" text. */
+  function dateRangeEndsOf(value) {
+    if (value && typeof value === 'object') return { from: value.from || null, to: value.to || null }
+    if (typeof value === 'string' && value.indexOf(';') >= 0) {
+      const [from, to] = value.split(';')
+      return { from: from || null, to: to || null }
+    }
+    return { from: null, to: null }
+  }
+
+  /**
+   * The edit of one END of a date range (its input's field id is `<field>#from|to`) as the field's new
+   * value — `{fieldId, value: {from, to}}`, the other end kept from the draft or else the state — or null
+   * when the id is not a range end (the edit is the field's own).
+   */
+  function rangeEditOf(fieldId, draft, state, value) {
+    const m = RANGE_PART.exec(String(fieldId || ''))
+    if (!m) return null
+    const id = m[1]
+    const current = draft && id in draft ? draft[id] : (state || {})[id]
+    return { fieldId: id, value: { ...dateRangeEndsOf(current), [m[2]]: value == null || value === '' ? null : value } }
+  }
+
   /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
   function isExtraLayoutField(md) {
-    return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+    return !!(isDateRangeField(md) || md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
       || md.stereotype === 'email' || md.stereotype === 'link'
       || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
       || (md.stereotype === 'richText' && !md.readOnly)
@@ -10181,10 +10690,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  server shows as a fact — and send it back. */
   const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
 
+  /** The date range widget's own flags: its two ends as parts, each with the id its edit carries. */
+  function dateRangeWidgetOf(f, value) {
+    const ends = dateRangeEndsOf(value)
+    const label = f.label || f.fieldId
+    // the first end carries the field's label, the second says it is the end of the range
+    const part = (end, key) => ({
+      fieldId: f.fieldId + '#' + end,
+      label: key ? chromeText(key) : label,
+      value: ends[end],
+      required: !!f.required,
+      readonly: !!f.readOnly,
+    })
+    return { isDateRange: true, rangeParts: [part('from', ''), part('to', 'rangeTo')] }
+  }
+
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
     if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
-    const extra = extraWidgetOf(f, optionsOf(f, data), value)
+    // a DATE RANGE: two oj-input-date (from, to), each editing its end (rangeEditOf) — the field was
+    // not drawn at all (its type is not a layout type)
+    const extra = isDateRangeField(f) ? dateRangeWidgetOf(f, value) : extraWidgetOf(f, optionsOf(f, data), value)
     if (extra) {
       const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
       return {
@@ -10543,6 +11069,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
+   * The action a change of `fieldId` in the open ROW EDITOR fires: the row's OnValueChange trigger,
+   * over the row's state with its draft — the server's `<campo>_refresh-detail` when the row's
+   * VisibilitySupplier depends on that field (a block's type: the editor is re-built with the fields
+   * of the new type). null when no row editor is open or the field fires nothing.
+   */
+  function rowValueChangeActionOf(reg, fieldId, rowDraft = {}, opts = {}) {
+    const holder = reg && reg.contexts && reg.contexts[opts.holderId || HOST_ID]
+    if (!holder || !holder.tree) return null
+    const state = holder.state || {}
+    const show = state._show_detail || {}
+    for (const listId of Object.keys(modalListsOf(holder.tree))) {
+      if (!(show[listId] === true || state[listId + '_show_detail'] === true)) continue
+      const ctx = reg.contexts[listId + '-container']
+      if (!ctx || !ctx.tree) continue
+      return valueChangeActionOf(ctx, fieldId, { ...(ctx.state || {}), ...(rowDraft || {}) })
+    }
+    return null
+  }
+
+  /**
    * Projection of the open ROW EDITOR (the oj-dialog): null if no modal list of the
    * container has its detail open (`_show_detail[campo]`) with the form already received
    * in `<campo>-container`.
@@ -10882,6 +11428,235 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): a kanban board's pure half —
+  // a LIVE board's cards from the items of its rowsSource, what a move does to the columns and the
+  // action it runs. The web's libs/mateu kanbanModel.ts is the same rules (RN core/kanban.ts and the
+  // IntelliJ plugin's KanbanModel.kt too).
+
+  /** The OnLoad action that loads a live board's items (answered in the browser, restSources.mjs). */
+  const KANBAN_ACTION = '__kanban__:'
+
+  /** Where a live board's items are kept (ctx.data[key]) — from what it IS, not its position. */
+  function kanbanKeyOf(md) {
+    const m = md || {}
+    return 'kanban-' + stableHashOf(JSON.stringify([m.rowsSource || null, (m.columns || []).map((c) => c && c.id), m.columnField || '']))
+  }
+
+  /** The Kanban nodes of a tree. */
+  function kanbanNodesOf(tree) {
+    const out = []
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (n.metadata && n.metadata.type === 'Kanban') out.push(n)
+      for (const c of n.children || []) walk(c)
+    }
+    walk(tree)
+    return out
+  }
+
+  /** The load actions of a context's live boards. */
+  function kanbanTriggersOf(ctx) {
+    return kanbanNodesOf(ctx && ctx.tree).filter((n) => n.metadata.rowsSource).map((n) => KANBAN_ACTION + kanbanKeyOf(n.metadata))
+  }
+
+  const valueAt = (row, path) => String(path).split('.').reduce((v, k) => (v != null && typeof v === 'object' ? v[k] : undefined), row)
+
+  /** `${row.x}` (dotted paths too) against an item, values as they are (not a url): unresolved → ''. */
+  function kanbanTextOf(template, row) {
+    if (template == null) return ''
+    return String(template).replace(/\$\{\s*row\.([A-Za-z0-9_$.]+)\s*\}/g, (all, path) => {
+      const v = valueAt(row, path)
+      return v == null ? '' : (typeof v === 'object' ? JSON.stringify(v) : String(v))
+    })
+  }
+
+  /** The items of a source's answer: at its itemsPath, or the answer itself when it is a list. */
+  function kanbanItemsOf(json, itemsPath) {
+    const items = itemsPath ? valueAt(json, itemsPath) : json
+    return Array.isArray(items) ? items.filter((i) => i && typeof i === 'object') : []
+  }
+
+  /** A sortable order value: a number (or a numeric text) as a number, anything else as text, absent = undefined. */
+  function kanbanOrderValueOf(value) {
+    if (value == null || value === '') return undefined
+    if (typeof value === 'number') return Number.isFinite(value) ? value : undefined
+    const n = Number(value)
+    return typeof value === 'string' && value.trim() !== '' && Number.isFinite(n) ? n : String(value)
+  }
+
+  /** Compares two order values: numbers before texts, absent values last. */
+  function kanbanCompareOrder(a, b) {
+    if (a === undefined || b === undefined) return a === b ? 0 : a === undefined ? 1 : -1
+    if (typeof a === 'number' && typeof b === 'number') return a - b
+    if (typeof a === 'number') return -1
+    if (typeof b === 'number') return 1
+    return a < b ? -1 : a > b ? 1 : 0
+  }
+
+  /**
+   * The declared columns filled with one card per item, in the source's order — or sorted by the
+   * board's `orderField` when it declares one (stable; items without one go last): an item goes to the
+   * column whose id equals its `columnField` (default `status`); one naming no declared column is left
+   * out. A card's texts come from the `card` template, its id defaulting to the item's `id`; a colour
+   * naming a key of `cardColors` takes that value. Each card keeps its item (`row`).
+   */
+  function kanbanCardsFromRows(md, rows) {
+    const field = md.columnField || 'status'
+    const tpl = md.card || {}
+    const columns = (md.columns || []).map((c) => ({ ...c, cards: [] }))
+    const byId = new Map(columns.map((c) => [String(c.id), c]))
+    for (const row of rows || []) {
+      const column = byId.get(String(row[field] == null ? '' : row[field]))
+      if (!column) continue
+      const color = tpl.color != null ? kanbanTextOf(tpl.color, row) : ''
+      const colors = md.cardColors || {}
+      column.cards.push({
+        id: (tpl.id != null ? kanbanTextOf(tpl.id, row) : '') || String(row.id == null ? '' : row.id),
+        title: tpl.title != null ? kanbanTextOf(tpl.title, row) : String(row.title == null ? (row.name == null ? '' : row.name) : row.title),
+        description: tpl.description != null ? kanbanTextOf(tpl.description, row) : '',
+        badge: tpl.badge != null ? kanbanTextOf(tpl.badge, row) : '',
+        color: color && colors[color] ? colors[color] : color,
+        actionId: tpl.actionId != null ? kanbanTextOf(tpl.actionId, row) : '',
+        row,
+      })
+    }
+    const order = md.orderField
+    if (order) {
+      for (const column of columns) {
+        column.cards = [...column.cards].sort((a, b) => kanbanCompareOrder(kanbanOrderValueOf(a.row && a.row[order]), kanbanOrderValueOf(b.row && b.row[order])))
+      }
+    }
+    return columns
+  }
+
+  /** The columns after a move (the index is the position AFTER the card left its place, clamped). */
+  function kanbanMovedColumns(columns, move) {
+    const from = (columns || []).find((c) => c.id === move.fromColumnId)
+    const to = (columns || []).find((c) => c.id === move.toColumnId)
+    const card = from && (from.cards || []).find((c) => c.id === move.cardId)
+    if (!from || !to || !card) return columns
+    return columns.map((c) => {
+      let cards = (c.cards || []).filter((x) => !(c === from && x === card))
+      if (c === to) {
+        const at = Math.max(0, Math.min(Number(move.toIndex) || 0, cards.length))
+        cards = [...cards.slice(0, at), card, ...cards.slice(at)]
+      }
+      return c === from || c === to ? { ...c, cards } : c
+    })
+  }
+
+  /** Whether the move changes anything (a card dropped back where it was does not). */
+  function kanbanIsRealMove(columns, move) {
+    if (move.fromColumnId !== move.toColumnId) return true
+    const col = (columns || []).find((c) => c.id === move.fromColumnId)
+    const index = col ? (col.cards || []).findIndex((c) => c.id === move.cardId) : -1
+    return index >= 0 && index !== Number(move.toIndex)
+  }
+
+  /**
+   * The order value a moved card takes so that sorting by `orderField` keeps it where it was dropped,
+   * from its neighbours in the target column AFTER the move: halfway between both, one past the
+   * previous, one before the next, 0 in an empty column — or the card's index when a neighbour has no
+   * numeric order. Same rule as libs/mateu kanbanModel.orderAfterMove (corpus kanban-order.json).
+   */
+  function kanbanOrderAfterMove(after, move, orderField) {
+    const column = (after || []).find((c) => c.id === move.toColumnId)
+    const cards = (column && column.cards) || []
+    const at = cards.findIndex((c) => c.id === move.cardId)
+    if (at < 0) return Number(move.toIndex) || 0
+    const numeric = (card) => {
+      const v = card ? kanbanOrderValueOf(card.row && card.row[orderField]) : undefined
+      return typeof v === 'number' ? v : undefined
+    }
+    const prevCard = cards[at - 1]
+    const nextCard = cards[at + 1]
+    const prev = numeric(prevCard)
+    const next = numeric(nextCard)
+    if ((prevCard && prev === undefined) || (nextCard && next === undefined)) return at
+    if (prev !== undefined && next !== undefined) return (prev + next) / 2
+    if (prev !== undefined) return prev + 1
+    if (next !== undefined) return next - 1
+    return 0
+  }
+
+  /**
+   * What the move action receives: the card's item with `_cardId/_fromColumnId/_toColumnId/_toIndex`,
+   * and with an `orderField` the card's new order value as `_toOrder` and over the item's own field.
+   */
+  function kanbanMoveParametersOf(card, move, orderField, after) {
+    const parameters = {
+      ...((card && card.row) || {}),
+      _cardId: move.cardId,
+      _fromColumnId: move.fromColumnId,
+      _toColumnId: move.toColumnId,
+      _toIndex: Number(move.toIndex) || 0,
+    }
+    if (orderField && after) {
+      const order = kanbanOrderAfterMove(after, move, orderField)
+      parameters[orderField] = order
+      parameters._toOrder = order
+    }
+    return parameters
+  }
+
+  /** The index a card dropped at pointerY lands on, given the middles of the column's other cards. */
+  function kanbanDropIndexOf(pointerY, cardMiddles) {
+    const at = (cardMiddles || []).findIndex((middle) => pointerY < middle)
+    return at < 0 ? (cardMiddles || []).length : at
+  }
+
+  // The moves on screen whose action has not answered yet, by board key: the projection paints them at
+  // once (optimistic) and the chain drops them when the action answers — failed = the card is back.
+  const pendingKanbanMoves = new Map()
+  function setPendingKanbanMove(key, move) {
+    if (move) pendingKanbanMoves.set(key, move)
+    else pendingKanbanMoves.delete(key)
+  }
+  function pendingKanbanMoveOf(key) {
+    return pendingKanbanMoves.get(key) || null
+  }
+
+  /** The board's columns as they are on screen: the live items (or the declared cards), plus a pending move. */
+  function kanbanColumnsOnScreen(md, data) {
+    const key = kanbanKeyOf(md)
+    const loaded = data && data[key]
+    const columns = md.rowsSource
+      ? kanbanCardsFromRows(md, (loaded && loaded.items) || [])
+      : (md.columns || []).map((c) => ({ ...c, cards: c.cards || [] }))
+    const pending = pendingKanbanMoveOf(key)
+    return pending ? kanbanMovedColumns(columns, pending) : columns
+  }
+
+  /**
+   * What the kanbanCardMoved chain does with a move on the board `key` of the context `ctx`: null when
+   * nothing (no such board, not movable, the card dropped where it was); else the action to run and its
+   * parameters (the card's item + where it went), and the action that reads a live board again.
+   */
+  function kanbanMovePlanOf(ctx, key, move) {
+    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+    const md = node && node.metadata
+    if (!md || !md.moveActionId) return null
+    const columns = kanbanColumnsOnScreen(md, (ctx && ctx.data) || {})
+    if (!kanbanIsRealMove(columns, move)) return null
+    const from = columns.find((c) => c.id === move.fromColumnId)
+    const card = from && (from.cards || []).find((c) => c.id === move.cardId)
+    if (!card) return null
+    return {
+      actionId: md.moveActionId,
+      parameters: kanbanMoveParametersOf(card, move, md.orderField, kanbanMovedColumns(columns, move)),
+      reloadActionId: md.rowsSource ? KANBAN_ACTION + key : '',
+    }
+  }
+
+  /** Whether an action's answer says it failed (an error message, or no answer at all). */
+  function kanbanMoveFailed(increment) {
+    if (!increment) return true
+    return (increment.messages || []).some((m) => m && (m.variant === 'error' || m.type === 'error'))
+  }
+
+
+
+
 
 
 
@@ -10947,28 +11722,58 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const badgeClassOf = (color) => BADGE_CLASSES[toneOf(color) || 'contrast'] || BADGE_CLASSES.contrast
 
   // ── Kanban (JET has no board): columns of oj-panel, cards as oj-action-card when they act ───────
-  function kanbanAtomOf(m, interp = (x) => x) {
+  // With a moveActionId its cards move: kanbanDom (dnd.mjs) drags them between and within columns
+  // (data-* below say which board, column and card), and each card's ⋯ menu moves it from the keyboard;
+  // the move is painted at once (a pending move, core/kanban.mjs) and the chain kanbanCardMoved runs
+  // the action. A LIVE board (rowsSource) draws its cards from the items the page loaded (ctx.data).
+  function kanbanAtomOf(m, interp = (x) => x, ctx = null) {
+    const key = kanbanKeyOf(m)
+    const movable = !!m.moveActionId
+    const columns = kanbanColumnsOnScreen(m, (ctx && ctx.data) || {})
+    const titleOf = (col) => interp(str(col.title || col.id))
     return {
       isKanban: true,
-      columns: keyed((m.columns || []).map((col) => {
+      kanbanKey: key,
+      moveActionId: str(m.moveActionId),
+      movable,
+      columns: keyed(columns.map((col) => {
         const cards = col.cards || []
         const color = cssColorOf(col.color)
         const tone = toneOf(col.color)
         return {
-          title: interp(str(col.title)),
+          columnId: str(col.id),
+          title: titleOf(col),
           countText: String(cards.length),
           headerClass: 'mateu-kanban-head' + (tone ? ' mateu-tone-' + tone : ''),
           headerStyle: color ? { borderTopColor: color } : {},
-          cards: keyed(cards.map((card) => ({
-            title: interp(str(card.title)),
-            description: interp(str(card.description)),
-            badge: interp(str(card.badge)),
-            hasBadge: !!card.badge,
-            badgeClass: badgeClassOf(card.color),
-            cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
-            cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : ''),
-            ...clickable(card.actionId, { _clickedCard: card }),
-          }))),
+          cards: keyed(cards.map((card, index) => {
+            const route = m.cardRoute && card.row ? kanbanTextOf(m.cardRoute, card.row) : ''
+            const { row, ...plain } = card
+            const act = route ? { clickable: true, plain: false, actionId: '', parameters: {}, route }
+              : clickable(card.actionId, { ...(row || {}), _clickedCard: plain })
+            return {
+              cardId: str(card.id),
+              title: interp(str(card.title)),
+              description: interp(str(card.description)),
+              badge: interp(str(card.badge)),
+              hasBadge: !!card.badge,
+              badgeClass: badgeClassOf(card.color),
+              cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
+              cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : '') + (movable ? ' mateu-kanban-movable' : ''),
+              route: route || '',
+              movable,
+              moveLabel: chromeText('kanbanMove').replace('{card}', str(card.title)),
+              // the keyboard's way: up / down in its column, or to the end of another
+              moves: movable ? keyed([
+                ...(index > 0 ? [{ label: chromeText('kanbanMoveUp'), toColumnId: str(col.id), toIndex: index - 1 }] : []),
+                ...(index < cards.length - 1 ? [{ label: chromeText('kanbanMoveDown'), toColumnId: str(col.id), toIndex: index + 1 }] : []),
+                ...columns.filter((o) => o.id !== col.id).map((o) => ({
+                  label: chromeText('kanbanMoveTo').replace('{column}', titleOf(o)), toColumnId: str(o.id), toIndex: (o.cards || []).length,
+                })),
+              ].map((mv) => ({ ...mv, value: JSON.stringify({ cardId: str(card.id), fromColumnId: str(col.id), toColumnId: mv.toColumnId, toIndex: mv.toIndex }) }))) : [],
+              ...act,
+            }
+          })),
           isEmpty: !cards.length,
         }
       })),
@@ -12115,6 +12920,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const NO_PANEL = { on: false, title: '', closeActionId: '', blocks: [] }
 
+  // Docked panels the user closed that have no toggle action of their own (a YAML DockedPanel with
+  // `open: true`): nothing on the server takes them away, so the page would keep projecting them open
+  // and the ✕ reopened them at once. They stay closed on that route for the session.
+  const closedDockedPanels = new Set()
+  const panelKey = (route, which) => String(route || '').replace(/^\/+/, '') + '|' + which
+
+  /** The user closed this docked panel (`end` | `bottom`) on this route, and nothing else will. */
+  function closeDockedPanel(route, which) {
+    closedDockedPanels.add(panelKey(route, which))
+  }
+
+  /** The projection without that panel: what the page shows the moment it is closed. */
+  function dataManagementWithoutPanel(dm, which) {
+    if (!dm) return dm
+    return which === 'end' ? { ...dm, end: NO_PANEL, endOpened: 'none' } : { ...dm, bottom: NO_PANEL, bottomOpened: 'none' }
+  }
+
   /**
    * DataManagement / GanttPage → oj-sp-data-management-page: its transactional header (the page
    * title), its main content (the toolbar + the grid/gantt view, or the gantt + the detail card), the
@@ -12163,6 +12985,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (after[1]) bottom = dockedPanelOf(ctx, after[1], DATA_MANAGEMENT_ID + '-bottom')
     }
+    const route = ctx.outbound && ctx.outbound.route
+    if (end.on && !end.closeActionId && closedDockedPanels.has(panelKey(route, 'end'))) end = NO_PANEL
+    if (bottom.on && !bottom.closeActionId && closedDockedPanels.has(panelKey(route, 'bottom'))) bottom = NO_PANEL
     return {
       kind: gantt ? 'gantt' : 'dataManagement',
       title: titleNode ? String(titleNode.metadata.text || '') : '',
@@ -13835,6 +14660,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   ].join(';')
 
   const regions = {}
+  /** The repeat each region is waiting to put back (see announce). */
+  const pendingRepeats = new Map()
 
   function regionFor(politeness) {
     if (typeof document === 'undefined' || !document.body) return null
@@ -13879,11 +14706,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!text) return
     const region = regionFor(options.politeness || 'polite')
     if (!region) return
+    // A repeat still waiting to be put back is outdated by whatever is said now: left running, it
+    // wrote the OLD message over the new one 60 ms later (the newer message was never heard).
+    clearTimeout(pendingRepeats.get(region))
+    pendingRepeats.delete(region)
     if (region.textContent === text) {
       // Repeating the same message is a real case (two failed saves in a row) and a
       // region whose text does not change announces nothing: it is cleared and set again.
       region.textContent = ''
-      setTimeout(() => { region.textContent = text }, 60)
+      pendingRepeats.set(region, setTimeout(() => {
+        pendingRepeats.delete(region)
+        region.textContent = text
+      }, 60))
       return
     }
     region.textContent = text
@@ -15090,7 +15924,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // component's event, so the field-change chains (hostInputChanged, mateuFieldEdited…)
   // treat it as one more.
   //
-  //   <mateu-capture-field mode="signature|camera|file|image" accept="…" readonly value="data:…">
+  //   <mateu-capture-field mode="signature|camera|file|image|url" accept="…" readonly value="data:…">
+  //
+  // `url` is the image stereotype (an image by its URL): editable, the URL input with a contained preview
+  // under it that follows what is typed; read-only, the image alone.
   //
   // The pure part (how a file is read, what text it shows) is exported and tested in Node; the DOM part
   // is defined once per document (defineCaptureField).
@@ -15105,7 +15942,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return v
   }
 
-  const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
+  const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere', 'useUrl', 'imageUrl']
+
+  /**
+   * The value an uploadable image takes from a URL typed or pasted ("Use a URL" next to Upload): an
+   * http(s) URL or a path on this site, trimmed; undefined for a blank (Remove clears it), a data: URI
+   * (that is what Upload produces), a protocol-relative URL or any other scheme. The same rule as
+   * libs/mateu imageUrl.ts.
+   */
+  function imageUrlOf(text) {
+    if (typeof text !== 'string') return undefined
+    // eslint-disable-next-line no-control-regex
+    const url = text.replace(/[\u0000-\u001f\u007f]/g, '').trim()
+    if (!url) return undefined
+    const m = /^([a-z][a-z0-9+.-]*):/i.exec(url)
+    if (m) return /^https?$/i.test(m[1]) ? url : undefined
+    if (url.indexOf('//') === 0) return undefined
+    return url
+  }
 
   /** The capture fields' texts in `lang` (the interface catalogue, i18n.mjs). */
   function captureTexts(lang) {
@@ -15200,6 +16054,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const actions = doc.createElement('div')
         actions.className = 'oj-sm-margin-2x-top'
 
+        if (mode === 'url' && !readonly) {
+          this.renderUrl(box, value)
+          this.appendChild(box)
+          return
+        }
         if (value && (mode !== 'file' || isImageValue(value))) {
           const img = doc.createElement('img')
           // the guard inline, where the value is assigned: only data:image, http(s) or a path with no
@@ -15243,8 +16102,54 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           dash.textContent = '—'
           box.appendChild(dash)
         }
+        // an uploadable image can also be set from a URL (the value already shows one): a box under
+        // the actions, committed on change with the same rule as the web (imageUrlOf)
+        if (mode === 'image' && !readonly) {
+          actions.appendChild(button(t.useUrl, 'borderless', () => {
+            this.urlOpen = !this.urlOpen
+            this.render()
+          }))
+        }
         this.appendChild(box)
         if (actions.childNodes.length) this.appendChild(actions)
+        if (mode === 'image' && !readonly && this.urlOpen) {
+          const input = doc.createElement('input')
+          input.type = 'url'
+          input.className = 'oj-text-field-input mateu-capture-url oj-sm-margin-2x-top'
+          input.placeholder = 'https://…'
+          input.setAttribute('aria-label', t.imageUrl)
+          input.value = /^data:/i.test(String(value || '')) ? '' : String(value || '')
+          input.addEventListener('change', () => {
+            const url = imageUrlOf(input.value)
+            if (url !== undefined && url !== value) this.emit(url)
+          })
+          this.appendChild(input)
+        }
+      }
+
+      /** The image stereotype, editable: its URL typed in, the preview following it (committed on change). */
+      renderUrl(box, value) {
+        const input = doc.createElement('input')
+        input.type = 'url'
+        input.className = 'oj-text-field-input mateu-capture-url'
+        input.value = value
+        const label = this.getAttribute('aria-label')
+        if (label) input.setAttribute('aria-label', label)
+        const img = doc.createElement('img')
+        img.alt = ''
+        img.className = 'mateu-capture-preview'
+        const show = (v) => {
+          // the same guard as the other modes: only data:image, http(s) or a scheme-less path
+          const src = safeImageSrc(v)
+          if (src) img.src = src; else img.removeAttribute('src')
+          img.hidden = !src
+        }
+        show(value)
+        input.addEventListener('input', () => show(input.value))
+        input.addEventListener('change', () => this.emit(input.value.trim()))
+        box.classList.add('mateu-capture-url-box')
+        box.appendChild(input)
+        box.appendChild(img)
       }
 
       renderPad(box, actions) {
@@ -15832,6 +16737,92 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // Where in the session history each entry this app wrote sits, so a back/forward the user then
+  // refuses ("you have unsaved changes" → stay) can be UNDONE instead of papered over — the Redwood
+  // twin of libs/mateu infra/ui/historyIndex.ts.
+  //
+  // Staying used to PUSH the URL of the screen on display. After a Back that is close enough, but
+  // after a FORWARD it builds a wrong history: [A, B*, C] → forward to C → stay → [A, B, C, B*] — the
+  // user is "on B" with C behind them, and the next Back goes to C. Every entry pushed or replaced
+  // through `history` carries an index (`__mateuIdx`); a popstate moved by `to - from`, and staying is
+  // `history.go(from - to)`, which lands exactly where the user was and keeps the forward entries.
+  // The popstate that `go` fires itself is swallowed. Entries this app did not write (or hash mode,
+  // where hashchange carries no state) have no index: staying falls back to pushing the URL.
+
+  const HISTORY_IDX = '__mateuIdx'
+
+  let historyInstalledOn
+  let historyCurrent = { idx: 0, href: '' }
+  let historySwallow = 0
+  let historyLastMove = null
+
+  const historyIndexOf = (state) => {
+    const v = state && typeof state === 'object' ? state[HISTORY_IDX] : undefined
+    return typeof v === 'number' ? v : undefined
+  }
+
+  const withHistoryIndex = (state, idx) => ({ ...(state && typeof state === 'object' ? state : {}), [HISTORY_IDX]: idx })
+
+  /** Stamps every history entry this window writes from now on. Idempotent. */
+  function installHistoryIndex(win = (typeof window !== 'undefined' ? window : undefined)) {
+    if (!win || !win.history || historyInstalledOn === win) return
+    historyInstalledOn = win
+    const h = win.history
+    const push = h.pushState.bind(h)
+    const replace = h.replaceState.bind(h)
+    const existing = historyIndexOf(h.state)
+    historyCurrent = { idx: existing ?? 0, href: win.location.href }
+    if (existing === undefined) replace(withHistoryIndex(h.state, 0), '')
+    h.pushState = (state, unused, url) => {
+      const idx = historyCurrent.idx + 1
+      push(withHistoryIndex(state, idx), unused, url)
+      historyCurrent = { idx, href: win.location.href }
+    }
+    h.replaceState = (state, unused, url) => {
+      replace(withHistoryIndex(state, historyCurrent.idx), unused, url)
+      historyCurrent = { idx: historyCurrent.idx, href: win.location.href }
+    }
+  }
+
+  /**
+   * A popstate happened: remembers where the user came FROM and where they are now, for a
+   * {@link restoreUrlAfterStaying} that follows. Returns false when this popstate is the echo of our
+   * own `go` (staying) and must be ignored.
+   */
+  function notePopState(state, win = (typeof window !== 'undefined' ? window : undefined)) {
+    const from = historyCurrent
+    const to = historyIndexOf(state)
+    historyCurrent = { idx: to ?? historyCurrent.idx, href: win ? win.location.href : '' }
+    if (historySwallow > 0) {
+      historySwallow--
+      historyLastMove = null
+      return false
+    }
+    historyLastMove = { from, to }
+    return true
+  }
+
+  /** Undo the last back/forward the user refused, when its entries carry indexes: true when done. */
+  function undoLastMove(win = (typeof window !== 'undefined' ? window : undefined)) {
+    const moved = historyLastMove
+    historyLastMove = null
+    if (!moved || !win || !win.history || moved.to === undefined || moved.to === moved.from.idx) return false
+    historySwallow++
+    win.history.go(moved.from.idx - moved.to)
+    return true
+  }
+
+  /** Tests only. */
+  function resetHistoryIndexForTests() {
+    historyInstalledOn = undefined
+    historyCurrent = { idx: 0, href: '' }
+    historySwallow = 0
+    historyLastMove = null
+  }
+
+
+
+
 
 
 
@@ -15881,16 +16872,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
+   * A flow's commands with their placeholders resolved against `scope` ({state, data, appState, …}).
+   * A `Navigate` route is a URL: interpolated like a source url (a value encoded as a path segment
+   * or a query component, a dot segment refused), so `route: missions/${state._markerId}` opens the
+   * clicked record — it used to navigate to the literal text. libs/mateu's resolveFlowCommand.
+   */
+  function resolveFlowCommands(commands, scope) {
+    if (!commands || !scope) return commands
+    return commands.map((c) => (c && c.type === 'NavigateTo' && typeof c.data === 'string' && c.data.indexOf('${') >= 0
+      ? { ...c, data: interpolateRestUrl(c.data, scope) }
+      : c))
+  }
+
+  /**
    * The flow a PAGE button runs client-side, OWNER FIRST: the host page's own action of that id (its
    * declared flow, or null — its server action), else the app's action catalogue entry. Null: the
-   * action goes to the server as before.
+   * action goes to the server as before. With a `scope` the commands' placeholders are resolved
+   * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
    */
-  function pageFlowOf(reg, actionId) {
+  function pageFlowOf(reg, actionId, scope) {
     const host = reg && reg.contexts ? reg.contexts[HOST_ID] : null
     const own = [...((host && host.declaredActions) || []), ...((host && host.tree && host.tree.actions) || [])]
       .find((a) => a && a.id === actionId)
-    if (own) return flowCommandsOf(own)
-    return flowCommandsOf(catalogueActionOf(reg && reg.shell, actionId))
+    const commands = own ? flowCommandsOf(own) : flowCommandsOf(catalogueActionOf(reg && reg.shell, actionId))
+    return resolveFlowCommands(commands, scope)
   }
 
   /**
@@ -16109,6 +17114,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function restoreUrlAfterStaying(route, fromUrl, win = (typeof window !== 'undefined' ? window : undefined)) {
     if (!route || !win || !win.history) return undefined
+    // a back/forward over entries this app wrote is UNDONE (history.go): pushing after a FORWARD left
+    // the user "on B" with C behind them (historyIndex.mjs, libs/mateu historyIndex.ts)
+    if (fromUrl && undoLastMove(win)) return undefined
     const url = urlOfRoute(route)
     if (fromUrl) win.history.pushState(null, '', url)
     else win.history.replaceState(null, '', url)
@@ -17371,6 +18379,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
   // of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
   // (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
@@ -17524,6 +18533,89 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       let params = {}
       try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
       dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, {})
+    }, true)
+  }
+
+  // ── KANBAN CARDS: a movable board (moveActionId) paints each card in a wrapper carrying its ids
+  // (.mateu-kanban-item[data-card-id], its column's section[data-column-id], the board's
+  // [data-kanban-key][data-move-action]). Dragging one over a column draws a line where it will land;
+  // dropping it — or picking a move in its ⋯ select (the keyboard's way) — hands the move to the sink
+  // (the kanbanCardMoved chain), which paints it at once and runs the action.
+  const KANBAN_MIME = 'application/x-mateu-kanban-card'
+  let kanbanSink = null
+  function setKanbanMoveSink(fn) { kanbanSink = typeof fn === 'function' ? fn : null }
+
+  /** The move a drop at pointerY over a column element means, for the card being dragged. */
+  function kanbanDropMoveOf(columnEl, dragged, pointerY) {
+    const others = Array.from(columnEl.querySelectorAll('.mateu-kanban-item[data-card-id]'))
+      .filter((el) => el.getAttribute('data-card-id') !== dragged.cardId)
+    const middles = others.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 })
+    return { ...dragged, toColumnId: columnEl.getAttribute('data-column-id'), toIndex: kanbanDropIndexOf(pointerY, middles) }
+  }
+
+  function installKanbans(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuKanbans) return
+    doc.__mateuKanbans = true
+    let dragged = null
+    const boardOf = (el) => (el && el.closest ? el.closest('.mateu-kanban[data-kanban-key]') : null)
+    const send = (board, move) => {
+      if (!board || !kanbanSink || !board.getAttribute('data-move-action')) return
+      kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move })
+    }
+    const clearMarks = () => {
+      for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
+      for (const el of doc.querySelectorAll('.mateu-kanban-over, .mateu-kanban-dragging')) el.classList.remove('mateu-kanban-over', 'mateu-kanban-dragging')
+    }
+    doc.addEventListener('dragstart', (e) => {
+      const item = e.target && e.target.closest ? e.target.closest('.mateu-kanban-item[draggable="true"]') : null
+      const column = item && item.closest('[data-column-id]')
+      if (!item || !column || !boardOf(item) || !e.dataTransfer) return
+      dragged = { cardId: item.getAttribute('data-card-id'), fromColumnId: column.getAttribute('data-column-id'), board: boardOf(item) }
+      e.dataTransfer.setData(KANBAN_MIME, dragged.cardId)
+      e.dataTransfer.effectAllowed = 'move'
+      item.classList.add('mateu-kanban-dragging')
+    }, true)
+    doc.addEventListener('dragover', (e) => {
+      if (!dragged) return
+      const column = e.target && e.target.closest ? e.target.closest('[data-column-id]') : null
+      if (!column || boardOf(column) !== dragged.board) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+      const move = kanbanDropMoveOf(column, dragged, e.clientY)
+      for (const el of doc.querySelectorAll('.mateu-kanban-over')) if (el !== column) el.classList.remove('mateu-kanban-over')
+      column.classList.add('mateu-kanban-over')
+      // the line where it lands: before the card at that index (of the others), or at the end
+      for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
+      const others = Array.from(column.querySelectorAll('.mateu-kanban-item[data-card-id]'))
+        .filter((el) => el.getAttribute('data-card-id') !== dragged.cardId)
+      const line = doc.createElement('div')
+      line.className = 'mateu-kanban-drop-line'
+      const before = others[move.toIndex]
+      if (before) before.parentNode.insertBefore(line, before)
+      else column.appendChild(line)
+    }, true)
+    doc.addEventListener('drop', (e) => {
+      if (!dragged) return
+      const column = e.target && e.target.closest ? e.target.closest('[data-column-id]') : null
+      if (!column || boardOf(column) !== dragged.board) return
+      e.preventDefault()
+      const { board, ...from } = dragged
+      const move = kanbanDropMoveOf(column, from, e.clientY)
+      dragged = null
+      clearMarks()
+      send(board, move)
+    }, true)
+    doc.addEventListener('dragend', () => { dragged = null; clearMarks() }, true)
+    // the keyboard's way: the card's ⋯ select (each option's value is the move, as JSON)
+    doc.addEventListener('change', (e) => {
+      const select = e.target
+      if (!select || !select.classList || !select.classList.contains('mateu-kanban-move')) return
+      const raw = select.value
+      select.value = ''
+      if (!raw) return
+      let move
+      try { move = JSON.parse(raw) } catch (err) { return }
+      send(boardOf(select), move)
     }, true)
   }
 
@@ -18262,6 +19354,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
   let restCatalogue = []
@@ -18417,20 +19510,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** A response as listing rows keyed by column id; `pathOf` maps a column to the path it reads. */
-  function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id) {
+  function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id, childrenId) {
     const arr = getByPath(json, itemsPath)
     if (!Array.isArray(arr)) return []
-    return arr.map((item) => {
+    // A tree's rows nest their next level under `childrenId` (not a column): carried through,
+    // projected the same way level after level — without it a tree kept only its roots.
+    const shape = (items) => items.map((item) => {
       const row = {}
       for (const id of columnIds) row[id] = getByPath(item, pathOf(id))
+      if (childrenId) {
+        const kids = getByPath(item, pathOf(childrenId))
+        if (Array.isArray(kids)) row[childrenId] = shape(kids)
+      }
       return row
     })
+    return shape(arr)
   }
 
+  /** The field a tree listing (`gridLayout: tree`) nests each row's next level under. */
+  const TREE_CHILDREN = 'children'
+
   /** Rows + total of an already fetched response (shared by the direct and the proxied legs). */
-  function restPageOf(json, source, columnIds) {
+  function restPageOf(json, source, columnIds, childrenId) {
     const resolved = resolveRestSource(source) || {}
-    const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+    const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id), childrenId)
     const raw = getByPath(json, totalPathOf(source))
     const total = typeof raw === 'number' ? raw : Number(raw)
     return { rows, total: raw != null && Number.isFinite(total) ? total : null }
@@ -18459,7 +19562,52 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return value
   }
 
-  const restText = (v) => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v))
+  /** A money value: what a `dataType: money` field holds (`{value, currency, locale}`). */
+  const isMoney = (v) => v != null && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v
+
+  /** A value as the text that lands in a template: a MONEY value as its amount (its currency is
+   *  `${state.price.currency}`), a LIST as JavaScript's String() — `a,b`, like libs/mateu's
+   *  templateText and the servers (it was JSON here, `["a","b"]`, so a multi-select filter sent a third
+   *  text) — any other object as JSON. */
+  const restText = (v) => (v == null ? ''
+    : isMoney(v) ? restText(v.value)
+      : Array.isArray(v) ? String(v)
+        : typeof v === 'object' ? JSON.stringify(v) : String(v))
+
+  /** A value as JavaScript's String() converts it — what `encodeURIComponent(v)` encodes (an array
+   *  as `a,b`) — but a money value as its amount. */
+  const jsText = (v) => (v == null ? '' : isMoney(v) ? jsText(v.value) : String(v))
+
+  const ENCODE_CALL = 'encodeURIComponent'
+
+  /**
+   * The argument of an expression that is exactly ONE `encodeURIComponent(…)` call, else null
+   * (`encodeURIComponent(a) + encodeURIComponent(b)` is not one) — libs/mateu's encodeCallArgument
+   * and the server's TemplateInterpolator.encodeCallArgument.
+   */
+  function encodeCallArgument(expr) {
+    const e = String(expr).trim()
+    if (e.indexOf(ENCODE_CALL) !== 0) return null
+    const rest = e.substring(ENCODE_CALL.length).trim()
+    if (rest[0] !== '(' || rest[rest.length - 1] !== ')') return null
+    let depth = 0
+    let quote = ''
+    for (let i = 0; i < rest.length; i++) {
+      const c = rest[i]
+      if (quote) {
+        if (c === '\\') i++
+        else if (c === quote) quote = ''
+        continue
+      }
+      if (c === "'" || c === '"' || c === '`') quote = c
+      else if (c === '(') depth++
+      else if (c === ')') {
+        depth--
+        if (depth === 0 && i !== rest.length - 1) return null
+      }
+    }
+    return depth === 0 ? rest.substring(1, rest.length - 1) : null
+  }
 
   /** Interpolates a header or a body; `escape` maps each value (the JSON escaping of a JSON body). */
   function interpolateRest(text, scope, escape = (s) => s) {
@@ -18472,6 +19620,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * .interpolateUrl, so the direct and the proxied legs reach the same url: raw in the origin (and a
    * `${state…}` there is refused: the client state must not choose the host), a path segment in the
    * path (a dot segment refused), a query component after a literal `?`/`#`. Throws when refused.
+   * An expression that is exactly one `encodeURIComponent(x)` call means `${x}`: encoded ONCE, here
+   * (it used to be encoded again — `Painting%252CPhotograph`, `Sample%2520Return`).
    */
   function interpolateRestUrl(text, scope) {
     if (text == null || String(text).indexOf('${') < 0) return text
@@ -18492,10 +19642,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       literal += lit
       out += lit
-      const value = restText(restScopeValue(m[1], scope))
+      const explicitlyEncoded = encodeCallArgument(m[1])
+      const valueExpr = explicitlyEncoded != null ? explicitlyEncoded : m[1]
+      const raw = restScopeValue(valueExpr, scope)
+      const value = explicitlyEncoded != null ? jsText(raw) : restText(raw)
       if (originOpen || (first && lit === '')) {
-        if (/^\s*state\b/.test(m[1])) throw new Error('A client state value cannot choose the origin of a URL: ' + src)
-        out += value
+        if (/^\s*state\b/.test(valueExpr)) throw new Error('A client state value cannot choose the origin of a URL: ' + src)
+        out += explicitlyEncoded != null ? encodeURIComponent(value) : value
       } else if (/[?#]/.test(literal)) {
         out += encodeURIComponent(value)
       } else {
@@ -18562,12 +19715,48 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!res.ok) {
       const err = new Error('External REST fetch failed: ' + res.status)
       err.status = res.status
+      // what the service said about it, for the user's toast
+      try { err.detail = typeof res.text === 'function' ? serviceMessageOf(await res.text()) : undefined } catch (e) { err.detail = undefined }
       throw err
     }
     if (res.status === 204 || res.status === 205) return null
     if (typeof res.text !== 'function') return res.json()
     const text = await res.text()
     return text.trim() === '' ? null : JSON.parse(text)
+  }
+
+  /**
+   * What a failed REST call's error body says, for a person ("Image larger than 2 MB" rather than
+   * "Request failed (HTTP 400)"): a JSON object's message / detail (RFC 7807) / error (a string, or
+   * {message}) / title, else short plain text (never HTML or a list); control characters out,
+   * whitespace folded, ≤ 300 characters; undefined when there is nothing to show. The same rule as
+   * libs/mateu serviceMessage.ts and the server's RestProxyCalls.serviceMessageOf (the proxied leg).
+   */
+  function serviceMessageOf(body) {
+    if (body == null) return undefined
+    const clip = (t) => {
+      // eslint-disable-next-line no-control-regex
+      const clean = String(t).replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim()
+      if (!clean) return undefined
+      return clean.length > 300 ? clean.slice(0, 299) + '…' : clean
+    }
+    const fromObject = (json) => {
+      if (!json || typeof json !== 'object' || Array.isArray(json)) return undefined
+      for (const key of ['message', 'detail', 'error', 'title']) {
+        const value = json[key]
+        if (typeof value === 'string' && value.trim()) return clip(value)
+        if (value && typeof value === 'object' && typeof value.message === 'string' && value.message.trim()) return clip(value.message)
+      }
+      return undefined
+    }
+    if (typeof body === 'object') return fromObject(body)
+    const text = String(body).trim()
+    if (!text) return undefined
+    if (text.charAt(0) === '{') {
+      try { return fromObject(JSON.parse(text)) } catch (e) { return undefined }
+    }
+    if (text.charAt(0) === '<' || text.charAt(0) === '[' || text.length > 300) return undefined
+    return clip(text)
   }
 
   // ── in-memory search, filters and sort (an unpaged endpoint, or a sample) ─────────────────────
@@ -18664,9 +19853,67 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── the listing ───────────────────────────────────────────────────────────────────────────────
 
+  /**
+   * The rows of a listing NESTED in a templated page's content (its `__nestedlisting__:<key>` OnLoad):
+   * its source fetched like a page listing's first page (the record's state interpolated), answered as
+   * a data-only increment that keeps them under the listing's own key — never `crud`, the page listing's.
+   */
+  function nestedListingAnswerOf(ctx, actionId, opts = {}) {
+    const key = String(actionId).slice(NESTED_LISTING_ACTION.length)
+    const node = nestedListingNodesOf(ctx && ctx.tree).find((n) => nestedListingKeyOf(n) === key)
+    if (!node) return Promise.resolve(restIncrement([]))
+    // its rows are re-read: what was marked on the old ones (a deleted row) no longer applies
+    clearNestedSelection(key)
+    return restRowsIncrement(ctx, node, { ...((ctx && ctx.state) || {}), page: 0 }, opts).then((inc) => ({
+      ...inc,
+      fragments: (inc.fragments || []).map((f) => ({ ...f, data: { [key]: (f.data && f.data.crud) || { page: { content: [] } } } })),
+    }))
+  }
+
+  /**
+   * Loads a LIVE kanban board's items (its rowsSource — proxied through `__restfetch__` by the board's
+   * id when the source says so, direct otherwise) into ctx.data[key].items, where kanbanAtomOf draws
+   * the cards from. A source that fails leaves the board with the items it had.
+   */
+  async function kanbanAnswerOf(ctx, actionId, opts = {}) {
+    const key = String(actionId).slice(KANBAN_ACTION.length)
+    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+    const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
+    if (!node || !node.metadata.rowsSource) return restIncrement([])
+    const src = node.metadata.rowsSource
+    try {
+      let json
+      if (viaProxy(src) && opts.server) {
+        const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'kanban' }, true)
+        const appData = (inc && inc.appData) || {}
+        if (appData._restfetchError) throw new Error('proxied kanban items failed')
+        json = appData._restfetch
+      } else {
+        json = await fetchRestJson(src, { state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
+      }
+      const items = kanbanItemsOf(json, (resolveRestSource(src) || {}).itemsPath)
+      return restIncrement([{ targetComponentId: target, data: { [key]: { items } } }])
+    } catch (e) {
+      try { console.warn('mateu: kanban items fetch failed', e) } catch (ignored) { /* no console */ }
+      return restIncrement([])
+    }
+  }
+
+  /**
+   * What refreshes the lists of a screen after a REST write that lands back on it: the load action
+   * of each listing nested in its content when the page has no listing of its own (a `search` sent
+   * there is refused: 403), else the page listing's `search` — as before.
+   */
+  function refreshActionsOf(ctx) {
+    const tree = ctx && ctx.tree
+    const nested = tree && !pageListingNodeOf(tree) ? nestedListingNodesOf(tree) : []
+    return nested.length ? nested.map((n) => NESTED_LISTING_ACTION + nestedListingKeyOf(n)) : ['search']
+  }
+
   /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
   function restListingOf(ctx) {
-    const node = ctx && ctx.tree ? findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud') : null
+    // the PAGE's listing: one nested in a templated page's content is answered by nestedListingAnswerOf
+    const node = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
     return node && node.metadata && node.metadata.rowsSource ? node : null
   }
 
@@ -18727,6 +19974,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const columnIds = restColumnIdsOf(md)
     const sampled = isSampled(src)
     const serverPaged = totalPathOf(src) != null && !sampled
+    const childrenId = md.gridLayout === 'tree' ? TREE_CHILDREN : undefined
     let fetched = []
     let total = null
     try {
@@ -18734,10 +19982,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'crud' }, true)
         const appData = (inc && inc.appData) || {}
         if (appData._restfetchError) throw new Error('proxied rows failed')
-        ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds))
+        ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds, childrenId))
       } else {
         const json = await fetchRestJson(src, { state: componentState || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
-        ;({ rows: fetched, total } = restPageOf(json, src, columnIds))
+        ;({ rows: fetched, total } = restPageOf(json, src, columnIds, childrenId))
       }
     } catch (e) {
       try { console.warn('mateu: external rows fetch failed', e) } catch (ignored) { /* no console */ }
@@ -18874,12 +20122,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * (crud_selected_items) — in the browser for a direct source, as ONE proxied call otherwise.
    */
   async function runRestAction(ctx, actionId, rest, componentState, opts = {}) {
-    const state = componentState || (ctx && ctx.state) || {}
+    // the call's own parameters (a kanban move's _cardId/_toColumnId and the moved card's item) sit over
+    // the state its templates read — the proxied leg merges them the same way (RestProxyCalls.callState)
+    const callParameters = opts.parameters || {}
+    const state = { ...(componentState || (ctx && ctx.state) || {}), ...callParameters }
     const data = (ctx && ctx.data) || {}
     const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
     const kind = actionId === '__restdata__' ? 'data' : 'action'
     const isProxy = viaProxy(rest.source) && !!opts.server
-    const failure = (status) => restIncrement([], [{ variant: 'error', text: 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
+    // what the service said (its error body: e.detail direct, _restfetchError.detail proxied) when it
+    // said something, else the generic text
+    const failure = (status, detail) => restIncrement([], [{ variant: 'error',
+      text: (typeof detail === 'string' && detail.trim()) ? detail : 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
     const success = (json, mergeResult) => {
       const fragments = []
       let merged = state
@@ -18898,7 +20152,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const route = interpolateRest(rest.successRoute, scope)
       if (route && route.indexOf('${') < 0) {
         if (opts.route != null && restRouteOf(route) === restRouteOf(opts.route)) {
-          commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: 'search' } })
+          // back to the screen on display: refresh what it lists instead of navigating. The PAGE's
+          // listing re-runs its `search`; a listing nested in the content (a record page's documents)
+          // re-runs its own load — a `search` sent to a page with no listing of its own is refused (403).
+          for (const refresh of refreshActionsOf(ctx)) {
+            commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: refresh } })
+          }
         } else {
           commands.push({ targetComponentId: target, type: 'NavigateTo', data: route })
         }
@@ -18908,7 +20167,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const fromProxy = (inc, mergeResult) => {
       const appData = (inc && inc.appData) || {}
       const err = appData._restfetchError
-      if (err) return failure(typeof err.status === 'number' ? err.status : 0)
+      if (err) return failure(typeof err.status === 'number' ? err.status : 0, err.detail)
       return success(appData._restfetch, mergeResult)
     }
 
@@ -18920,16 +20179,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         await Promise.all(rows.map((row) => fetchRestJson(rest.source, { state: { ...state, ...row }, row, data, appState: opts.appState || {} }, opts.fetchImpl)))
         return success(null, false)
       } catch (e) {
-        return failure(e && e.status)
+        return failure(e && e.status, e && e.detail)
       }
     }
     try {
-      if (isProxy) return fromProxy(await opts.server({ _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
+      if (isProxy) return fromProxy(await opts.server({ ...callParameters, _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
       const json = await fetchRestJson(rest.source, { state, data, appState: opts.appState || {} }, opts.fetchImpl)
       return success(json, true)
     } catch (e) {
       try { console.warn('mateu: rest action failed', e) } catch (ignored) { /* no console */ }
-      return failure(e && e.status)
+      return failure(e && e.status, e && e.detail)
     }
   }
 
@@ -18946,6 +20205,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!ctx || !actionId) return null
     const rest = restActionOf(ctx, actionId)
     if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
+    if (String(actionId).indexOf(NESTED_LISTING_ACTION) === 0) return nestedListingAnswerOf(ctx, actionId, opts)
+    if (String(actionId).indexOf(KANBAN_ACTION) === 0) return kanbanAnswerOf(ctx, actionId, opts)
     if (actionId === 'search') {
       const node = restListingOf(ctx)
       if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)
@@ -19160,6 +20421,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...component, initialData: { ...component.initialData, ...params } }
   }
 
+  /** The query parameters of a route string (`/people?dept=sales`), first value of each. */
+  function queryOf(route) {
+    const at = route ? route.indexOf('?') : -1
+    if (at < 0) return {}
+    const out = {}
+    new URLSearchParams(route.substring(at + 1)).forEach((value, key) => {
+      if (!(key in out)) out[key] = value
+    })
+    return out
+  }
+
+  /**
+   * The route's query parameters on a screen the bundle answered, at the level the server gives them:
+   * `fixed > path > query > what the pre-rendered answer carries` — the server seeds the query into
+   * the load's state (RouteSegmentUtils.addParameterValues); a bundled answer was rendered with no
+   * query and dropped it. Pinned (fixed) and path parameters are never overridden from the URL, and an
+   * app shell is left alone. Same rule as libs/mateu's withQueryParams (conformance route-params.json).
+   */
+  function applyQueryParams(syncPath, increment, query) {
+    if (!increment || !query || !Object.keys(query).length) return increment
+    const first = increment.fragments && increment.fragments[0]
+    if (first && first.component && first.component.metadata && first.component.metadata.type === 'App') return increment
+    const m = matchRouteEntry(syncPath)
+    const fixed = (m && m.entry.fixedParams) || {}
+    const path = (m && m.pathParams) || {}
+    const params = Object.fromEntries(Object.entries(query).filter(([k]) => !(k in fixed) && !(k in path)))
+    if (!Object.keys(params).length) return increment
+    return {
+      ...increment,
+      fragments: (increment.fragments || []).map((f) => ({
+        ...f,
+        state: { ...f.state, ...params },
+        data: { ...f.data, ...params },
+      })),
+    }
+  }
+
   /** The bundled increment for a route (exact match then :param template), re-targeted so its
    *  fragments land on the loading surface: the exporter had no initiator, so a fragment's
    *  targetComponentId is null — reduceContexts routes null → HOST, but a load INTO an island must
@@ -19168,7 +20466,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const syncPath = toSyncPath(route)
     // a route load INTO the booted shell takes the route's content (see `contents`); the shell's own
     // bootstrap (and a fresh load of a mount without an App) keeps the exported `json`
-    const inc = localizeBundled(getBundledIncrement(syncPath, !!options.content) || matchBundledTemplate(syncPath))
+    const inc = localizeBundled(applyQueryParams(syncPath,
+      getBundledIncrement(syncPath, !!options.content) || matchBundledTemplate(syncPath), queryOf(route)))
     if (!inc) return undefined
     return {
       ...inc,
@@ -19277,6 +20576,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // the mount read once at boot (loadMateuShell) for the chains.
 
   /** '' (root) or '/segment(s)' without a trailing slash. */
+
+
 
   function normalizeMount(value) {
     let v = String(value == null ? '' : value).trim()
@@ -19463,6 +20764,46 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return true
   }
 
+  /** How long the old screen stays on show once another starts loading (app.css mateu-stale-hide). */
+  const STALE_SCREEN_HIDE_MS = 500
+
+  /**
+   * scrollToTopOnNavigate, but not while the old screen is still on show: scrolled at once, the page
+   * the user clicked in jumped to its top and only then did the new one arrive. It scrolls when the
+   * old screen is hidden (after STALE_SCREEN_HIDE_MS) or when the new one is in place — the function
+   * returned, called once the navigation lands — whichever comes first, and only once.
+   */
+  function scrollToTopWhenReplaced(params = {}, win = typeof window !== 'undefined' ? window : null,
+      delay = STALE_SCREEN_HIDE_MS) {
+    let done = false
+    const scroll = () => {
+      if (done) return false
+      done = true
+      return scrollToTopOnNavigate(params, win)
+    }
+    const timer = win && typeof win.setTimeout === 'function' ? win.setTimeout(scroll, delay) : null
+    return () => {
+      if (timer != null && typeof win.clearTimeout === 'function') win.clearTimeout(timer)
+      return scroll()
+    }
+  }
+
+
+  /**
+   * A navigation to a route that is a whole URL (a rowRoute `${row.url}`, a RouteLink to
+   * `https://…`) leaves the app: it opens in a new tab (noopener), never as a route of the mount. A
+   * refused scheme (javascript:, data:…) goes nowhere. True when the route was external (handled).
+   */
+  function openExternalRoute(route, win = typeof window !== 'undefined' ? window : null) {
+    if (!isExternalRoute(route)) return false
+    const href = safeHref(route)
+    if (href && /^(https?:|mailto:|tel:|\/\/)/i.test(href) && win && typeof win.open === 'function') {
+      win.open(href, '_blank', 'noopener,noreferrer')
+    } else {
+      try { console.warn('mateu: refused to open a route that is not http(s):', route) } catch (e) { /* no console */ }
+    }
+    return true
+  }
 
 
   // Bridge transport — contract CONFIRMED against demo/demo-vb (see DESIGN-NOTES
@@ -19683,6 +21024,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const restAnswer = restAnswerOf(ctx, actionId, componentState, {
       route,
       appState: (extra && extra.appState) || {},
+      parameters: (extra && extra.parameters) || {},
       server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
         { ...extra, parameters, idempotent: !!idempotent }),
     })
@@ -19907,6 +21249,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * returns the chromeless App; the content arrives with consumedRoute + serverSideType).
    * Returns the new registry. targetId = key of the target context (initiator).
    */
+  /** The registry without one context (the reducer then starts that context afresh). */
+  function withoutContext(reg, ctxId) {
+    if (!reg?.contexts?.[ctxId]) return reg
+    const contexts = { ...reg.contexts }
+    delete contexts[ctxId]
+    return { ...reg, contexts }
+  }
+
   async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
     // live reload (liveReload.mjs): what was typed travels with the load — a view model is hydrated with
     // it — and is put back over the response, so a definition-only page keeps it
@@ -19942,7 +21292,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         serverSideType: outbound.serverSideType,
       })
     }
-    let next = reduceContexts(reg, firstIncrement)
+    // a route load is a NEW screen in that context: nothing of the previous one carries over. A screen
+    // answering with no state of its own (a YAML Listing) kept the previous screen's — a mission's
+    // `name` became the astronauts' name filter and the list came back empty.
+    let next = reduceContexts(withoutContext(reg, ctxId), firstIncrement)
     // the component's ACTIONS (with their sse flag) travel in the mediator's WRAPPER —
     // the content load loses them, so they are kept here
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
@@ -22833,18 +24186,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { mateuRegistry: next, mateuDrawerOpen: false, mateuDrawer: vars.drawer, mateuDialog: vars.dialog }
   }
 
-  function listHeaderVarsOf(listingSummary) {
+  function listHeaderVarsOf(listingSummary, selection = null) {
     const toolbar = listingSummary ? listingSummary.toolbar : []
+    const required = (listingSummary && listingSummary.selectionRequired) || []
     const primaryToolbar = toolbar.length ? toolbar[0] : null
     // a DISABLED button (CrudDisplay New/Delete: Toggle.disabled) is shown but inert: oj-sp's
-    // display 'disabled'
+    // display 'disabled'. An action that needs rows (Delete, a @ListToolbarButton…) is ALSO disabled
+    // while nothing is checked — as Spectra's collection actions are — and comes on with the first
+    // checked row (listSecondaryForSelection, from the selection chain)
     return {
       mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
       mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
       // a primary that NAVIGATES (a RouteLink button): listPrimary goes there instead of running the id
       mateuListPrimaryRoute: primaryToolbar && primaryToolbar.route ? primaryToolbar.route : '',
-      mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
+      mateuListSecondary: listSecondaryForSelection(toolbar.slice(1).map((b) => ({
+        id: b.actionId, value: b.actionId, label: b.label,
+        ...(b.disabled ? { inert: true } : {}),
+        ...((b.rowsSelectedRequired || required.indexOf(b.actionId) >= 0) ? { needsSelection: true } : {}),
+      })), selection),
     }
+  }
+
+  /** Whether a listing selection (selectionOfKeySet) holds at least one row. */
+  function hasSelectedRows(selection) {
+    return !!selection && (selection.all || (selection.keys || []).length > 0)
+  }
+
+  /** The listing header's secondary actions with their `display` for a selection: an inert one is
+   *  always disabled, one that needs rows is disabled until a row is checked. */
+  function listSecondaryForSelection(items, selection) {
+    const any = hasSelectedRows(selection)
+    return (items || []).map((item) => {
+      const { display, ...rest } = item
+      return (item.inert || (item.needsSelection && !any)) ? { ...rest, display: 'disabled' } : rest
+    })
   }
 
   /**
@@ -23236,6 +24611,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+
   // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
   // the state it carries (the drawer's with its draft, or the host's with the form draft and the
   // listing's selection), whether it may leave at all (rows required, required fields empty, a row
@@ -23262,6 +24639,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     // a host action on a listing with selection carries the marked rows (crud_selected_items), as
     // in Vaadin; the drawer's do not (they act on ITS record)
+    // …and an action on the toolbar of a listing NESTED in the page (a record's documents) carries
+    // the rows marked on THAT listing
+    if (!overlay) componentState = withNestedSelection(componentState, host, id)
     if (!overlay && listing && listing.rowsSelectionEnabled) {
       componentState = withListingSelection(componentState, listing, listingRows, listingSelection)
       if ((listing.selectionRequired || []).indexOf(id) >= 0 && !componentState.crud_selected_items.length) {
@@ -23388,7 +24768,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * @param {{ actionId?: string, parameters?: object, route?: string }} button
    * @returns {{ navigate: string } | { actionId: string, parameters: object }}
    */
-  function blockClickOf({ actionId, parameters, route } = {}) {
+  /** The state a navigating button's route is read against: the screen's, with what is typed over it. */
+  function routeStateOf(reg, draft) {
+    return { ...reg?.contexts?.[HOST_ID]?.state, ...draft }
+  }
+
+  function blockClickOf({ actionId, parameters, route, state } = {}) {
+    // a RouteLink's route is a template over the screen's state (`missions/${state.id}/edit`): it went
+    // out with the literal placeholder wherever the projection had not interpolated it already
+    if (typeof route === 'string' && route.includes('${')) route = interpolate(route, state || {})
     if (typeof route === 'string' && route.trim() !== '') return { navigate: route.trim() }
     return { actionId: actionId || '', parameters: parameters || {} }
   }
@@ -25527,7 +26915,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-    'installDrawerGuard', 'installAttachmentChips',
+    'installDrawerGuard', 'installAttachmentChips', 'installKanbans',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -25546,8 +26934,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installClientErrorReporting: 'would ship the host page errors to the Mateu backend',
     // the IDE visual editor's canvas frames the STANDALONE app (its preview page), never a host app
     installEditorPreview: 'the visual editor previews the standalone app only',
+    // it wraps history.pushState/replaceState of the WINDOW: the host page owns its history, and an
+    // embedded component never routes by path
+    installHistoryIndex: 'the host page owns the window history',
     // the tile-reorder sink is wired, with its own payload, by installEmbeddedContentRuntime
     setTileReorderSink: 'wired separately (its payload is a scope, not an action)',
+    // the kanban sink likewise: its payload is a board and a move, handed to its own chain
+    setKanbanMoveSink: 'wired separately (its payload is a board key and a move, not an action)',
     // live reload (dev mode) answers an app-level change by reloading the WINDOW: in a host page that
     // is the host's app, not ours — the embedded component is not live-reloaded (yet)
     installDevLiveReload: 'an app-level reload would reload the host page',
@@ -25579,6 +26972,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const sink of CONTENT_ACTION_SINKS) if (typeof b[sink] === 'function') b[sink](runPageAction)
     if (typeof b.setTileReorderSink === 'function') {
       b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
+    }
+    if (typeof b.setKanbanMoveSink === 'function') {
+      b.setKanbanMoveSink(({ key, move }) => runtime.fireEvent('application:mateuKanbanMove', { key, move }))
     }
     // the document-level listeners once per page; the sinks and hooks above/below follow the
     // CURRENT component (a new <mateu-ui> takes them over)
@@ -25829,7 +27225,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
-  // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
+  // an editable richText (Spectra's editor, HTML; a legacy Delta opens converted) and a colour field
   defineRichTextField();
   defineMarkupField();
   defineColorField();
@@ -25933,6 +27329,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installHover,
     installDragAndDrop,
     setDropSink,
+    // kanban drag and drop (core/kanban.mjs + dnd.mjs)
+    installKanbans,
+    setKanbanMoveSink,
+    setPendingKanbanMove,
+    kanbanMovePlanOf,
+    kanbanMoveFailed,
     setKeysActionSink,
     setAccessKeysEnabled,
     startPolling,
@@ -25961,6 +27363,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     setRuleActionSink,
     valueChangeActionOf,
     committedValueOf,
+    rangeEditOf,
     triggerDownload,
     autoTrail,
     parentCrumb,
@@ -25984,6 +27387,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     dynFormMetadataOf,
     actionsOf,
     summarizeHost,
+    parentCrumbOf,
     withinAppLevels,
     findByType,
     // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
@@ -26008,6 +27412,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     rowRouteOf,
     listingOf,
     rowClickOpensRecord,
+    // a docked panel with no toggle action closes on the client (spPages.mjs)
+    closeDockedPanel,
+    dataManagementWithoutPanel,
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,
@@ -26018,6 +27425,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    // the rows marked on a listing nested in a page's content (nestedListingSelected chain)
+    setNestedSelection,
     toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
@@ -26047,6 +27456,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     listActionOf,
     listActionRequestOf,
     rowEditorOf,
+    rowValueChangeActionOf,
     rowFieldsOf,
     validateRow,
     // validationRequired de las acciones del host (el next de un wizard): obligatorios vacíos
@@ -26091,6 +27501,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
     confirmNavigationAway,
+    // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
+    installHistoryIndex,
+    notePopState,
     restoreUrlAfterStaying,
     hasOpenOverlays,
     withoutOverlays,
@@ -26164,7 +27577,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    openExternalRoute,
+    isExternalRoute,
     scrollToTopOnNavigate,
+    scrollToTopWhenReplaced,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,
@@ -26322,6 +27738,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the page projection and the outbound action plan the two big page chains share
     // (poc/pageProjection.mjs, poc/actionPlan.mjs)
     listHeaderVarsOf,
+    listSecondaryForSelection,
     wizardVarsOf,
     archetypeVarsOf,
     islandVarsOf,
@@ -26346,6 +27763,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,
+    routeStateOf,
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,

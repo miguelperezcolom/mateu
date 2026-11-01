@@ -134,4 +134,44 @@ class YamlMountRoutesTest {
       server.stop();
     }
   }
+
+  /**
+   * An app that requires a login (@LoginConfig): the YAML mount's API, served outside Jersey, used
+   * to run any action for an anonymous caller. Now it answers 401 when nobody authenticated.
+   */
+  @Test
+  void anAppThatRequiresALoginRefusesAnAnonymousCallToTheMountsApi() {
+    var cdi = CDI.current();
+    var service = cdi.select(MateuService.class).get();
+    var routeRegistry = cdi.select(RouteRegistry.class).get();
+    var yamlAppLoader = cdi.select(YamlAppLoader.class).get();
+    var mount = new YamlMounts.Mount("locked", "Locked app");
+    var routing = HttpRouting.builder();
+    MateuHelidonRoutes.yamlMountRoutes(
+        routing,
+        java.util.List.of(mount),
+        () -> service,
+        () -> routeRegistry,
+        () -> yamlAppLoader,
+        req -> HelidonSeIdentity.principalOf(req) == null);
+    WebServer server = WebServer.builder().port(0).routing(routing).build().start();
+    try {
+      RestAssured.given()
+          .port(server.port())
+          .contentType("application/json")
+          .body("{\"actionId\":\"\",\"route\":\"/\",\"componentState\":{}}")
+          .post(mount.apiPrefix() + "/v3/sync/home")
+          .then()
+          .statusCode(401);
+      RestAssured.given()
+          .port(server.port())
+          .contentType("application/json")
+          .body("{\"actionId\":\"\",\"route\":\"/\",\"componentState\":{}}")
+          .post(mount.apiPrefix() + "/v3/sse/home")
+          .then()
+          .statusCode(401);
+    } finally {
+      server.stop();
+    }
+  }
 }

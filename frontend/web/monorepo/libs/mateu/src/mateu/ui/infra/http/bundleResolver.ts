@@ -8,6 +8,7 @@
 // one per UI it runs. Runtime imports stay RELATIVE with a `.ts` extension and types are imported
 // with `import type`, so Metro and `node --test` (type stripping) load this closure as it is.
 import { expandDefinition, isClientExpandable, type DefinitionSpec } from '../expander/expandDefinition.ts'
+import { declaresAccessKeys } from '../expander/accessKeys.ts'
 import type { FieldTypeEntry } from '../expander/fieldTypes.ts'
 import type { TranslationCatalogue } from '../i18n/translations.ts'
 import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
@@ -45,6 +46,15 @@ export interface RouteEntry {
     appState?: Record<string, unknown>
     // The named source that loads the route's data on entry (`data: <source>` in routes.yaml).
     data?: { ref?: string | null, url?: string | null } | null
+    // Who may reach the route (`access:` in routes.yaml) — enforced by the server only.
+    access?: { roles?: string[], groups?: string[], scopes?: string[], permissions?: string[] } | null
+}
+
+/** Whether a route declares who may reach it: a browser has no identity to check that against. */
+export const restrictsAccess = (entry: RouteEntry | undefined): boolean => {
+    const access = entry?.access
+    if (!access) return false
+    return [access.roles, access.groups, access.scopes, access.permissions].some(list => (list?.length ?? 0) > 0)
 }
 
 export interface BundleManifest {
@@ -222,8 +232,9 @@ const withDefaults = (defaults: Record<string, unknown>, carried: Record<string,
  *
  * Defaults only fill what nothing else supplied (a null included); fixed ones override everything,
  * which is the whole point of pinning them. The server's order is `fixed > client state > path >
- * query > defaults`: a statically served load has no client state yet and no query level, and its
- * increment is what the server rendered for the route, so the two agree
+ * query > defaults`: a statically served load has no client state yet, its increment is what the
+ * server rendered for the route, and the query level is applied on the answer (withQueryParams), so
+ * the two agree
  * (conformance/client/route-params.json pins it, for this renderer and Redwood).
  * Returns the increment untouched when no entry answers the path.
  */
@@ -331,8 +342,15 @@ export const expandedIncrement = (
     const match = matchRouteEntry(state, syncPath)
     const name = match?.entry.definition
     if (!name) return undefined
+    // A route that declares `access:` is the server's to answer (per caller): the definition may
+    // ship for a public route that shares it, but expanding it here would show it to everybody.
+    if (restrictsAccess(match!.entry)) return undefined
     const raw = state.definitions[name]
     if (!raw || !isClientExpandable(raw)) return undefined
+    // …and so is a definition that declares access keys: a current bundle never ships one, but one
+    // built before that rule does — rendering it would hand every visitor what the keys withhold.
+    // (The visual editor's Play expands such a definition on purpose, unrestricted, elsewhere.)
+    if (declaresAccessKeys(raw)) return undefined
     const spec = localize(raw)
     const expanded = expandDefinition(spec, match!.entry.route, undefined, {
         data: match!.entry.data ?? undefined,
@@ -387,10 +405,54 @@ export const rootIncrement = (state: BundleState, localize: Localize = asIs): UI
  *    screen — its exported content, a :param template's content, or its definition expanded here.
  * A content load is never answered with a shell: that is what nested shells until the tab died.
  * `${i18n.…}` is resolved with `localize`, in the definition expanded and in the answer.
+ * `query` is the route's own query string (`/people?dept=sales` → `{dept: 'sales'}`): it seeds the
+ * screen's state at the server's query level — see withQueryParams.
  */
 export const resolveLoad = (
     state: BundleState, syncPath: string, consumedRoute?: string, localize: Localize = asIs,
-): UIIncrement | undefined => localize(resolveLoadRaw(state, syncPath, consumedRoute, localize))
+    query?: Record<string, string>,
+): UIIncrement | undefined =>
+    localize(withQueryParams(state, syncPath, resolveLoadRaw(state, syncPath, consumedRoute, localize), query))
+
+/**
+ * The route's query parameters on a screen the bundle answered, at the level the server gives them:
+ *
+ *   fixed  >  path  >  query  >  what the pre-rendered answer carries (its defaults included)
+ *
+ * The server seeds the query into the state of the load (RouteSegmentUtils.addParameterValues), so
+ * `/people?dept=sales` shows `${state.dept}` filled; a bundle answer was rendered with no query at
+ * all, and dropped it. A pinned (fixed) or path parameter is never overridden from the URL, and an
+ * app shell is left alone — its content load carries the query to the screen.
+ */
+export const withQueryParams = (
+    state: BundleState, syncPath: string, answer: UIIncrement | undefined, query?: Record<string, string>,
+): UIIncrement | undefined => {
+    if (!answer || !query || !Object.keys(query).length || appShellOf(answer)) return answer
+    const match = matchRouteEntry(state, syncPath)
+    const fixed = match?.entry.fixedParams ?? {}
+    const path = match?.pathParams ?? {}
+    const params = Object.fromEntries(Object.entries(query).filter(([k]) => !(k in fixed) && !(k in path)))
+    if (!Object.keys(params).length) return answer
+    return {
+        ...answer,
+        fragments: (answer.fragments ?? []).map(f => ({
+            ...f,
+            state: { ...f.state, ...params },
+            data: { ...f.data, ...params },
+        })),
+    }
+}
+
+/** The query parameters of a route string (`/people?dept=sales&page=2`), first value of each. */
+export const queryOf = (route: string | undefined): Record<string, string> => {
+    const at = route?.indexOf('?') ?? -1
+    if (at < 0) return {}
+    const out: Record<string, string> = {}
+    new URLSearchParams(route!.substring(at + 1)).forEach((value, key) => {
+        if (!(key in out)) out[key] = value
+    })
+    return out
+}
 
 const resolveLoadRaw = (
     state: BundleState, syncPath: string, consumedRoute: string | undefined, localize: Localize,

@@ -85,7 +85,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "FoldoutLayout" -> renderFoldout(this, component, metadata, state, data)
             "Gantt" -> renderGantt(metadata, ctx)
             "PlanningBoard" -> renderPlanningBoard(this, metadata)
-            "Kanban" -> renderKanban(this, metadata)
+            "Kanban" -> renderKanban(this, metadata, component.text("id"))
             "Timeline" -> renderTimeline(this, metadata)
             "ProgressSteps" -> renderProgressSteps(metadata)
             "Stat" -> renderStat(this, metadata)

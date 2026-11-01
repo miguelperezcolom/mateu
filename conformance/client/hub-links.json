@@ -1,0 +1,875 @@
+{
+  "$comment": "Generated from frontend/app/react-native/src/hub/links.ts (the reference) by links.conformance.test.ts with HUB_LINKS_WRITE=true. Run by the React Native app and the IntelliJ desktop app (HubLinksConformanceTest).",
+  "addresses": [
+    {
+      "input": "acme.com",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com",
+        "host": "acme.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "  https://Acme.COM/crm/  ",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com/crm",
+        "host": "acme.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "https://acme.com/crm?x=1#y",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com/crm",
+        "host": "acme.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "https://acme.com:443/a",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com/a",
+        "host": "acme.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "https://acme.com:8443",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com:8443",
+        "host": "acme.com:8443",
+        "secure": true
+      }
+    },
+    {
+      "input": "localhost:8080",
+      "options": {
+        "allowInsecure": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "https://localhost:8080",
+        "host": "localhost:8080",
+        "secure": true
+      }
+    },
+    {
+      "input": "http://acme.com",
+      "result": {
+        "ok": false,
+        "reason": "Only secure (https) addresses can be added."
+      }
+    },
+    {
+      "input": "http://localhost:8080/",
+      "options": {
+        "allowInsecure": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "http://localhost:8080",
+        "host": "localhost:8080",
+        "secure": false
+      }
+    },
+    {
+      "input": "http://acme.com:80/x",
+      "options": {
+        "allowInsecure": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "http://acme.com/x",
+        "host": "acme.com",
+        "secure": false
+      }
+    },
+    {
+      "input": "javascript:alert(1)",
+      "result": {
+        "ok": false,
+        "reason": "Only https addresses can be added."
+      }
+    },
+    {
+      "input": "data:text/html,<script>1</script>",
+      "result": {
+        "ok": false,
+        "reason": "Only https addresses can be added."
+      }
+    },
+    {
+      "input": "file:///etc/passwd",
+      "result": {
+        "ok": false,
+        "reason": "Only https addresses can be added."
+      }
+    },
+    {
+      "input": "mailto:a@b.com",
+      "result": {
+        "ok": false,
+        "reason": "Only https addresses can be added."
+      }
+    },
+    {
+      "input": "ftp://acme.com",
+      "result": {
+        "ok": false,
+        "reason": "Only https addresses can be added."
+      }
+    },
+    {
+      "input": "https://bank.com@evil.com",
+      "result": {
+        "ok": false,
+        "reason": "Addresses with a user name or password are not accepted."
+      }
+    },
+    {
+      "input": "https://user:pass@acme.com",
+      "result": {
+        "ok": false,
+        "reason": "Addresses with a user name or password are not accepted."
+      }
+    },
+    {
+      "input": "https://аcme.com",
+      "result": {
+        "ok": false,
+        "reason": "International domain names must be entered in their xn-- form."
+      }
+    },
+    {
+      "input": "https://acme.com/\u202emoc.live",
+      "result": {
+        "ok": false,
+        "reason": "The address contains spaces or hidden characters."
+      }
+    },
+    {
+      "input": "https://acme .com",
+      "result": {
+        "ok": false,
+        "reason": "The address contains spaces or hidden characters."
+      }
+    },
+    {
+      "input": "https://acme.com/\u0000",
+      "result": {
+        "ok": false,
+        "reason": "The address contains spaces or hidden characters."
+      }
+    },
+    {
+      "input": "https://acme.com:99999",
+      "result": {
+        "ok": false,
+        "reason": "The address has an invalid port."
+      }
+    },
+    {
+      "input": "https://acme.com:0",
+      "result": {
+        "ok": false,
+        "reason": "The address has an invalid port."
+      }
+    },
+    {
+      "input": "https://",
+      "result": {
+        "ok": false,
+        "reason": "The address has no host."
+      }
+    },
+    {
+      "input": "https://-acme.com",
+      "result": {
+        "ok": false,
+        "reason": "The address has an invalid host."
+      }
+    },
+    {
+      "input": "https://acme.com/../admin",
+      "result": {
+        "ok": false,
+        "reason": "The address has an invalid path."
+      }
+    },
+    {
+      "input": "https://acme.com/./a",
+      "result": {
+        "ok": false,
+        "reason": "The address has an invalid path."
+      }
+    },
+    {
+      "input": "https://acme.com\\@evil.com",
+      "result": {
+        "ok": false,
+        "reason": "Addresses with a user name or password are not accepted."
+      }
+    },
+    {
+      "input": "",
+      "result": {
+        "ok": false,
+        "reason": "Enter an address."
+      }
+    },
+    {
+      "input": "   ",
+      "result": {
+        "ok": false,
+        "reason": "Enter an address."
+      }
+    },
+    {
+      "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "result": {
+        "ok": false,
+        "reason": "The address is too long."
+      }
+    },
+    {
+      "input": "https://[::1]:8080",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://[::1]:8080",
+        "host": "[::1]:8080",
+        "secure": true
+      }
+    },
+    {
+      "input": "https://xn--80ak6aa92e.com",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://xn--80ak6aa92e.com",
+        "host": "xn--80ak6aa92e.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "https://acme.com.",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com",
+        "host": "acme.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "https://acme.com:8080/",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com:8080",
+        "host": "acme.com:8080",
+        "secure": true
+      }
+    },
+    {
+      "input": "acme.com:443",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com",
+        "host": "acme.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "http://localhost:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "http://localhost:8080",
+        "host": "localhost:8080",
+        "secure": false
+      }
+    },
+    {
+      "input": "http://127.0.0.1:8080/crm/",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "http://127.0.0.1:8080/crm",
+        "host": "127.0.0.1:8080",
+        "secure": false
+      }
+    },
+    {
+      "input": "http://[::1]:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "http://[::1]:8080",
+        "host": "[::1]:8080",
+        "secure": false
+      }
+    },
+    {
+      "input": "http://192.168.1.20:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": false,
+        "reason": "Only secure (https) addresses can be added."
+      }
+    },
+    {
+      "input": "http://acme.com",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": false,
+        "reason": "Only secure (https) addresses can be added."
+      }
+    },
+    {
+      "input": "http://localhost.evil.com",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": false,
+        "reason": "Only secure (https) addresses can be added."
+      }
+    },
+    {
+      "input": "localhost:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "https://localhost:8080",
+        "host": "localhost:8080",
+        "secure": true
+      }
+    },
+    {
+      "input": "https://acme.com",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com",
+        "host": "acme.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "http://user@localhost:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": false,
+        "reason": "Addresses with a user name or password are not accepted."
+      }
+    },
+    {
+      "input": "https://a_b.com",
+      "result": {
+        "ok": false,
+        "reason": "The address has an invalid host."
+      }
+    },
+    {
+      "input": "https://acme.com/a\\b",
+      "result": {
+        "ok": false,
+        "reason": "The address has an invalid path."
+      }
+    },
+    {
+      "input": "https://acme.com/​x",
+      "result": {
+        "ok": false,
+        "reason": "The address contains spaces or hidden characters."
+      }
+    },
+    {
+      "input": "https://acme.com/crm/orders/7",
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com/crm/orders/7",
+        "host": "acme.com",
+        "secure": true
+      }
+    }
+  ],
+  "routes": [
+    {
+      "input": "orders/12",
+      "result": "/orders/12"
+    },
+    {
+      "input": "/orders?x=1",
+      "result": "/orders?x=1"
+    },
+    {
+      "input": "//evil.com",
+      "result": null
+    },
+    {
+      "input": "https://evil.com",
+      "result": null
+    },
+    {
+      "input": "javascript:alert(1)",
+      "result": null
+    },
+    {
+      "input": "/a/../../b",
+      "result": null
+    },
+    {
+      "input": "/a b",
+      "result": null
+    },
+    {
+      "input": "",
+      "result": null
+    },
+    {
+      "input": null,
+      "result": null
+    },
+    {
+      "input": "  /x  ",
+      "result": "/x"
+    },
+    {
+      "input": "/a#b",
+      "result": "/a#b"
+    },
+    {
+      "input": "/a\\b",
+      "result": null
+    },
+    {
+      "input": "/rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+      "result": null
+    },
+    {
+      "input": "/ok/..x",
+      "result": "/ok/..x"
+    }
+  ],
+  "links": [
+    {
+      "input": "https://mateu.io/add?u=https%3A%2F%2Facme.com%2Fcrm&r=%2Forders%2F7",
+      "result": {
+        "kind": "add",
+        "baseUrl": "https://acme.com/crm",
+        "route": "/orders/7"
+      }
+    },
+    {
+      "input": "https://www.mateu.io/add/?u=acme.com",
+      "result": {
+        "kind": "add",
+        "baseUrl": "https://acme.com"
+      }
+    },
+    {
+      "input": "mateu://add?u=https://acme.com",
+      "result": {
+        "kind": "add",
+        "baseUrl": "https://acme.com"
+      }
+    },
+    {
+      "input": "MATEU:///add?u=acme.com",
+      "result": {
+        "kind": "add",
+        "baseUrl": "https://acme.com"
+      }
+    },
+    {
+      "input": "mateu://add?u=acme.com&r=https://evil.com",
+      "result": {
+        "kind": "add",
+        "baseUrl": "https://acme.com"
+      }
+    },
+    {
+      "input": "mateu://add?u=acme.com&r=a&r=b",
+      "result": {
+        "kind": "add",
+        "baseUrl": "https://acme.com"
+      }
+    },
+    {
+      "input": "",
+      "result": {
+        "kind": "invalid",
+        "reason": "The code is empty."
+      }
+    },
+    {
+      "input": "hello",
+      "result": {
+        "kind": "invalid",
+        "reason": "This code is not a Mateu link."
+      }
+    },
+    {
+      "input": "WIFI:S:home;T:WPA;P:secret;;",
+      "result": {
+        "kind": "invalid",
+        "reason": "This code is not a Mateu link."
+      }
+    },
+    {
+      "input": "https://evil.com/add?u=acme.com",
+      "result": {
+        "kind": "invalid",
+        "reason": "This code is not a Mateu link."
+      }
+    },
+    {
+      "input": "https://mateu.io/other?u=acme.com",
+      "result": {
+        "kind": "invalid",
+        "reason": "This code is not a Mateu link."
+      }
+    },
+    {
+      "input": "http://mateu.io/add?u=acme.com",
+      "result": {
+        "kind": "invalid",
+        "reason": "This code is not a Mateu link."
+      }
+    },
+    {
+      "input": "http://mateu.io/add?u=acme.com",
+      "options": {
+        "allowInsecure": true
+      },
+      "result": {
+        "kind": "add",
+        "baseUrl": "https://acme.com"
+      }
+    },
+    {
+      "input": "mateu://add?u=http%3A%2F%2Flocalhost%3A8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "kind": "add",
+        "baseUrl": "http://localhost:8080"
+      }
+    },
+    {
+      "input": "mateu://add?u=http%3A%2F%2Facme.com",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "kind": "invalid",
+        "reason": "Only secure (https) addresses can be added."
+      }
+    },
+    {
+      "input": "mateu://delete?u=acme.com",
+      "result": {
+        "kind": "invalid",
+        "reason": "This code is not a Mateu link."
+      }
+    },
+    {
+      "input": "mateu://add",
+      "result": {
+        "kind": "invalid",
+        "reason": "The link does not say which app to add."
+      }
+    },
+    {
+      "input": "mateu://add?u=javascript:alert(1)",
+      "result": {
+        "kind": "invalid",
+        "reason": "Only https addresses can be added."
+      }
+    },
+    {
+      "input": "mateu://add?u=https://bank.com@evil.com",
+      "result": {
+        "kind": "invalid",
+        "reason": "Addresses with a user name or password are not accepted."
+      }
+    },
+    {
+      "input": "mateu://add?u=%E0%A4%A",
+      "result": {
+        "kind": "invalid",
+        "reason": "The link is damaged."
+      }
+    },
+    {
+      "input": "otpauth://totp/x?secret=abc",
+      "result": {
+        "kind": "invalid",
+        "reason": "This code is not a Mateu link."
+      }
+    },
+    {
+      "input": "mateu://add?u=a+b.com",
+      "result": {
+        "kind": "invalid",
+        "reason": "The address contains spaces or hidden characters."
+      }
+    },
+    {
+      "input": "http://localhost:19010/add?u=http%3A%2F%2Flocalhost%3A8080",
+      "options": {
+        "allowInsecure": true,
+        "extraLinkHosts": [
+          "localhost:19010"
+        ]
+      },
+      "result": {
+        "kind": "add",
+        "baseUrl": "http://localhost:8080"
+      }
+    },
+    {
+      "input": "http://localhost:19010/?u=x",
+      "options": {
+        "allowInsecure": true,
+        "extraLinkHosts": [
+          "localhost:19010"
+        ]
+      },
+      "result": {
+        "kind": "invalid",
+        "reason": "This code is not a Mateu link."
+      }
+    },
+    {
+      "input": "https://mateu.io/add?u=acme.com&u=https%3A%2F%2Facme.com%2F&u=javascript:x&u=b.io",
+      "result": {
+        "kind": "import",
+        "baseUrls": [
+          "https://acme.com",
+          "https://b.io"
+        ],
+        "rejected": 1
+      }
+    },
+    {
+      "input": "https://mateu.io/add?u=https%3A%2F%2Facme.com%2Fcrm&u=https%3A%2F%2Fdemo.mateu.io%2Fcounter",
+      "result": {
+        "kind": "import",
+        "baseUrls": [
+          "https://acme.com/crm",
+          "https://demo.mateu.io/counter"
+        ],
+        "rejected": 0
+      }
+    },
+    {
+      "input": "mateu://import?d=eyJ2IjoxLCJ1IjpbImh0dHBzOi8vYWNtZS5jb20vY3JtIiwiaHR0cHM6Ly9iLmlvIl19",
+      "result": {
+        "kind": "import",
+        "baseUrls": [
+          "https://acme.com/crm",
+          "https://b.io"
+        ],
+        "rejected": 0
+      }
+    },
+    {
+      "input": "mateu://import?d=eyJ2IjoxLCJ1IjpbImh0dHBzOi8vaMOpbGxvLmNvbSIsImIuaW8iXX0",
+      "result": {
+        "kind": "import",
+        "baseUrls": [
+          "https://b.io"
+        ],
+        "rejected": 1
+      }
+    },
+    {
+      "input": "mateu://import?d=eyJ2IjoxLCJ1IjpbImh0dHBzOi8vaDAuY29tIiwiaHR0cHM6Ly9oMS5jb20iLCJodHRwczovL2gyLmNvbSIsImh0dHBzOi8vaDMuY29tIiwiaHR0cHM6Ly9oNC5jb20iLCJodHRwczovL2g1LmNvbSIsImh0dHBzOi8vaDYuY29tIiwiaHR0cHM6Ly9oNy5jb20iLCJodHRwczovL2g4LmNvbSIsImh0dHBzOi8vaDkuY29tIiwiaHR0cHM6Ly9oMTAuY29tIiwiaHR0cHM6Ly9oMTEuY29tIiwiaHR0cHM6Ly9oMTIuY29tIiwiaHR0cHM6Ly9oMTMuY29tIiwiaHR0cHM6Ly9oMTQuY29tIiwiaHR0cHM6Ly9oMTUuY29tIiwiaHR0cHM6Ly9oMTYuY29tIiwiaHR0cHM6Ly9oMTcuY29tIiwiaHR0cHM6Ly9oMTguY29tIiwiaHR0cHM6Ly9oMTkuY29tIiwiaHR0cHM6Ly9oMjAuY29tIiwiaHR0cHM6Ly9oMjEuY29tIiwiaHR0cHM6Ly9oMjIuY29tIiwiaHR0cHM6Ly9oMjMuY29tIiwiaHR0cHM6Ly9oMjQuY29tIiwiaHR0cHM6Ly9oMjUuY29tIiwiaHR0cHM6Ly9oMjYuY29tIiwiaHR0cHM6Ly9oMjcuY29tIiwiaHR0cHM6Ly9oMjguY29tIiwiaHR0cHM6Ly9oMjkuY29tIiwiaHR0cHM6Ly9oMzAuY29tIiwiaHR0cHM6Ly9oMzEuY29tIiwiaHR0cHM6Ly9oMzIuY29tIiwiaHR0cHM6Ly9oMzMuY29tIiwiaHR0cHM6Ly9oMzQuY29tIiwiaHR0cHM6Ly9oMzUuY29tIiwiaHR0cHM6Ly9oMzYuY29tIiwiaHR0cHM6Ly9oMzcuY29tIiwiaHR0cHM6Ly9oMzguY29tIiwiaHR0cHM6Ly9oMzkuY29tIiwiaHR0cHM6Ly9oNDAuY29tIiwiaHR0cHM6Ly9oNDEuY29tIiwiaHR0cHM6Ly9oNDIuY29tIiwiaHR0cHM6Ly9oNDMuY29tIiwiaHR0cHM6Ly9oNDQuY29tIiwiaHR0cHM6Ly9oNDUuY29tIiwiaHR0cHM6Ly9oNDYuY29tIiwiaHR0cHM6Ly9oNDcuY29tIiwiaHR0cHM6Ly9oNDguY29tIiwiaHR0cHM6Ly9oNDkuY29tIiwiaHR0cHM6Ly9oNTAuY29tIiwiaHR0cHM6Ly9oNTEuY29tIiwiaHR0cHM6Ly9oNTIuY29tIiwiaHR0cHM6Ly9oNTMuY29tIiwiaHR0cHM6Ly9oNTQuY29tIiwiaHR0cHM6Ly9oNTUuY29tIiwiaHR0cHM6Ly9oNTYuY29tIiwiaHR0cHM6Ly9oNTcuY29tIiwiaHR0cHM6Ly9oNTguY29tIiwiaHR0cHM6Ly9oNTkuY29tIiwiaHR0cHM6Ly9oNjAuY29tIiwiaHR0cHM6Ly9oNjEuY29tIiwiaHR0cHM6Ly9oNjIuY29tIiwiaHR0cHM6Ly9oNjMuY29tIiwiaHR0cHM6Ly9oNjQuY29tIiwiaHR0cHM6Ly9oNjUuY29tIiwiaHR0cHM6Ly9oNjYuY29tIiwiaHR0cHM6Ly9oNjcuY29tIiwiaHR0cHM6Ly9oNjguY29tIiwiaHR0cHM6Ly9oNjkuY29tIiwiaHR0cHM6Ly9oNzAuY29tIiwiaHR0cHM6Ly9oNzEuY29tIiwiaHR0cHM6Ly9oNzIuY29tIiwiaHR0cHM6Ly9oNzMuY29tIiwiaHR0cHM6Ly9oNzQuY29tIiwiaHR0cHM6Ly9oNzUuY29tIiwiaHR0cHM6Ly9oNzYuY29tIiwiaHR0cHM6Ly9oNzcuY29tIiwiaHR0cHM6Ly9oNzguY29tIiwiaHR0cHM6Ly9oNzkuY29tIl19",
+      "result": {
+        "kind": "import",
+        "baseUrls": [
+          "https://h0.com",
+          "https://h1.com",
+          "https://h2.com",
+          "https://h3.com",
+          "https://h4.com",
+          "https://h5.com",
+          "https://h6.com",
+          "https://h7.com",
+          "https://h8.com",
+          "https://h9.com",
+          "https://h10.com",
+          "https://h11.com",
+          "https://h12.com",
+          "https://h13.com",
+          "https://h14.com",
+          "https://h15.com",
+          "https://h16.com",
+          "https://h17.com",
+          "https://h18.com",
+          "https://h19.com",
+          "https://h20.com",
+          "https://h21.com",
+          "https://h22.com",
+          "https://h23.com",
+          "https://h24.com",
+          "https://h25.com",
+          "https://h26.com",
+          "https://h27.com",
+          "https://h28.com",
+          "https://h29.com",
+          "https://h30.com",
+          "https://h31.com",
+          "https://h32.com",
+          "https://h33.com",
+          "https://h34.com",
+          "https://h35.com",
+          "https://h36.com",
+          "https://h37.com",
+          "https://h38.com",
+          "https://h39.com",
+          "https://h40.com",
+          "https://h41.com",
+          "https://h42.com",
+          "https://h43.com",
+          "https://h44.com",
+          "https://h45.com",
+          "https://h46.com",
+          "https://h47.com",
+          "https://h48.com",
+          "https://h49.com"
+        ],
+        "rejected": 30
+      }
+    },
+    {
+      "input": "mateu://import?d=!!!",
+      "result": {
+        "kind": "invalid",
+        "reason": "The import code is damaged."
+      }
+    },
+    {
+      "input": "mateu://import?d=a",
+      "result": {
+        "kind": "invalid",
+        "reason": "The import code is damaged."
+      }
+    },
+    {
+      "input": "mateu://import?d=bm90IGpzb24",
+      "result": {
+        "kind": "invalid",
+        "reason": "The import code is damaged."
+      }
+    },
+    {
+      "input": "mateu://import?d=eyJ2IjoyLCJ1IjpbImEuY29tIl19",
+      "result": {
+        "kind": "invalid",
+        "reason": "The import code is damaged."
+      }
+    },
+    {
+      "input": "mateu://import?d=eyJ2IjoxLCJ1IjoiYS5jb20ifQ",
+      "result": {
+        "kind": "invalid",
+        "reason": "The import code is damaged."
+      }
+    },
+    {
+      "input": "mateu://import?d=eyJ2IjoxLCJ1IjpbMSwyXX0",
+      "result": {
+        "kind": "invalid",
+        "reason": "The import code has no usable addresses."
+      }
+    },
+    {
+      "input": "mateu://import?d=eyJ2IjoxLCJ1IjpbImphdmFzY3JpcHQ6eCJdfQ",
+      "result": {
+        "kind": "invalid",
+        "reason": "The import code has no usable addresses."
+      }
+    },
+    {
+      "input": "mateu://import",
+      "result": {
+        "kind": "invalid",
+        "reason": "The import code is damaged."
+      }
+    },
+    {
+      "input": "https://mateu.io/import?d=eyJ2IjoxLCJ1IjpbImEuY29tIl19",
+      "result": {
+        "kind": "import",
+        "baseUrls": [
+          "https://a.com"
+        ],
+        "rejected": 0
+      }
+    },
+    {
+      "input": "mateu://add?d=eyJ2IjoxLCJ1IjpbImEuY29tIl19",
+      "result": {
+        "kind": "import",
+        "baseUrls": [
+          "https://a.com"
+        ],
+        "rejected": 0
+      }
+    },
+    {
+      "input": "https://mateu.io/add?u=https%3A%2F%2Facme.com%2Fcrm&r=%2Forders",
+      "result": {
+        "kind": "add",
+        "baseUrl": "https://acme.com/crm",
+        "route": "/orders"
+      }
+    },
+    {
+      "input": "https://mateu.io/add?u=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "result": {
+        "kind": "invalid",
+        "reason": "The code is too long."
+      }
+    }
+  ],
+  "addLinks": [
+    {
+      "baseUrl": "https://acme.com/crm",
+      "route": "orders",
+      "result": "https://mateu.io/add?u=https%3A%2F%2Facme.com%2Fcrm&r=%2Forders"
+    },
+    {
+      "baseUrl": "https://acme.com",
+      "route": null,
+      "result": "https://mateu.io/add?u=https%3A%2F%2Facme.com"
+    },
+    {
+      "baseUrl": "https://acme.com",
+      "route": "//evil",
+      "result": "https://mateu.io/add?u=https%3A%2F%2Facme.com"
+    }
+  ]
+}
