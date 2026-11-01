@@ -30,7 +30,8 @@ public class CrudFormComponentBuilder {
    *     button row (via {@code PageView.buttons}) instead of the top toolbar — used for the
    *     edit-in-drawer mode so the actions sit at the foot of the drawer, the RDS "Create and Edit
    *     - Drawer" footer treatment. They stay inside the form page, so the action wiring is
-   *     unchanged.
+   *     unchanged. The editor's own {@code @Button}s render under the form in either mode (before
+   *     cancel/save in the bottom row), see {@link EditorButtons}.
    */
   public static Component build(
       boolean isCreation,
@@ -72,6 +73,12 @@ public class CrudFormComponentBuilder {
       formActions.add(
           Action.builder().id("save-and-next").validationRequired(true).bubble(true).build());
     }
+    // the editor's own @Button actions (insert, translate, preview…): under the form, bubbling to
+    // the crud with the form's values like save does — see EditorButtons
+    var editorButtons = EditorButtons.buttons(isCreation, editor, httpRequest);
+    if (!editorButtons.isEmpty()) {
+      formActions.addAll(EditorButtons.actions(isCreation, editor));
+    }
     var builder =
         PageView.builder()
             .title(title)
@@ -91,9 +98,15 @@ public class CrudFormComponentBuilder {
                     .toList())
             .actions(formActions);
     if (buttonsAtBottom) {
-      builder.buttons(buttons);
+      // one bottom row: the editor's actions first, then cancel / save
+      var row = new ArrayList<UserTrigger>(editorButtons);
+      row.addAll(buttons);
+      builder.buttons(row);
     } else {
       builder.toolbar(buttons);
+      if (!editorButtons.isEmpty()) {
+        builder.buttons(editorButtons);
+      }
     }
     return builder.build();
   }
