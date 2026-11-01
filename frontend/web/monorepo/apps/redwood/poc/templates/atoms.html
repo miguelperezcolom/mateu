@@ -612,7 +612,7 @@
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
                           <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
                             <template slot="cellNestedLink">
-                              <a :href="[[ $current.row.__href ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
+                              <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
                             <template slot="cellNestedImage">
                               <img class="mateu-nested-cell-img" :src="[[ $current.data ]]" alt="" />

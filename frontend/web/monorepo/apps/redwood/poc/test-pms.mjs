@@ -27,6 +27,7 @@ import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMulti
 import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
+import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
 import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
@@ -2352,6 +2353,25 @@ test('GanttPage → oj-sp-data-management-page: the canvas + detail in the defau
   const pageJson = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
   assert.ok(pageJson.imports.components['oj-sp-data-management-page'])
   assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].chain, 'dmPanelClosed')
+  // a YAML DockedPanel (no toggle action): its ✕ closes it here and it stays closed on that route —
+  // putting the state back to 'auto' with the panel still projected reopened it at once
+  assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].parameters.panel, 'bottom')
+  const yamlPanel = { tree: { type: 'ClientSide', id: 'dm', metadata: { type: 'VerticalLayout' }, children: [
+    { type: 'ClientSide', id: 'data-management', metadata: { type: 'VerticalLayout' }, children: [
+      { type: 'ClientSide', id: 'data-management-toolbar', metadata: { type: 'HorizontalLayout' }, children: [] },
+      { type: 'ClientSide', id: 'data-management-body', metadata: { type: 'VerticalLayout' }, children: [] },
+      { type: 'ClientSide', id: 'loans-notes', metadata: { type: 'DockedPanel', title: 'About this data', open: true }, children: [
+        { type: 'ClientSide', metadata: { type: 'Text', text: 'Synthetic' }, children: [] }] }] }] },
+    state: {}, data: {}, outbound: { route: '/loans' } }
+  const open = dataManagementPageOf(yamlPanel)
+  assert.ok(open.bottom.on, 'the YAML panel is projected open'); {
+    assert.equal(open.bottom.closeActionId, '')
+    assert.equal(dataManagementWithoutPanel(open, 'bottom').bottomOpened, 'none')
+    closeDockedPanel('loans', 'bottom')
+    assert.equal(dataManagementPageOf(yamlPanel).bottom.on, false, 'closed for good on that route')
+    assert.equal(dataManagementPageOf({ ...yamlPanel, outbound: { route: '/other' } }).bottom.on, true, 'other routes keep theirs')
+  }
+  assert.ok(webApp('flows/main/pages/main-start-page-chains/dmPanelClosed.js').includes('bridge.closeDockedPanel('))
   assert.ok(existsSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'dmPanelClosed.js')))
   assert.match(webApp('resources/css/app.css'), /\.mateu-dm-page:not\(\.mateu-dm-transactional\) oj-sp-header-create-edit \[id\$="_cancelAction"\]/, 'no transaction: Cancel/primary hidden')
   // a page declaring a cancel + a primary @Toolbar action (pageHeaderOf → createEdit) shows them:
@@ -2579,6 +2599,12 @@ test('a page that DECLARES the Multimedia content page → a welcome banner (int
   assert.equal(mmc.overline, 'Episode IV')
   assert.equal(mmc.theme, 'dark-plum')
   assert.equal(mmc.ctas.length, 1)
+  // its calls to action navigate to the RECORD: a route template is interpolated like the texts
+  const routed = JSON.parse(JSON.stringify(host.tree).replace(/"route":"([^"]*)"/, '"route":"films/${state.id}/edit"'))
+  assert.ok(JSON.stringify(routed).includes('films/${state.id}/edit'))
+  const withRoute = templatedMultimediaOf({ ...host, state: { id: '4' }, tree: routed })
+  assert.ok(JSON.stringify(withRoute).includes('films/4/edit'))
+  assert.ok(!JSON.stringify(withRoute).includes('${state.id}'))
   // one section is enough: the template HAS the navigator (the auto rule needs several)
   assert.equal(tocOf(host).on, true)
 })

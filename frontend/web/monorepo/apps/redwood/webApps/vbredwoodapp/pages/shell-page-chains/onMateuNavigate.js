@@ -86,8 +86,8 @@ define([
         : detail.selectedValue != null ? detail.selectedValue
         : detail.value != null ? detail.value : detail.route;
       // 'null': the TABS menu (oj-sp-in-app-navigation) reports its selection being CLEARED (the
-      // shell binds '' as null — a screen an agent generated is on show) as the string "null"
-      if (route == null || route === '' || (detail.currentId === 'null' && route === 'null')) {
+      // shell binds '' as null — a screen an agent generated is on show) as the string "null"; a whole URL opens in a new tab
+      if (route == null || route === '' || (detail.currentId === 'null' && route === 'null') || bridge.openExternalRoute(route)) {
         return;
       }
       // A menu leaf that RUNS rules (RuleLink) instead of naming a route: every menu surface

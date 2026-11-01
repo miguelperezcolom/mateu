@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cellActionOf, isDisplayColumn, rowOpenLabel, rowOpenOf, rowPressOf, rowRouteFields, rowRouteOf } from './rowOpen.ts';
+import { cellActionOf, isDisplayColumn, isExternalRoute, rowOpenLabel, rowOpenOf, rowPressOf, rowRouteFields, rowRouteOf } from './rowOpen.ts';
 
 test('U1 a listing is navigable by its rowRoute (wins) or a view column; otherwise not', () => {
   assert.deepEqual(rowOpenOf('people/${row.id}', [{ actionId: 'view' }]), { kind: 'route', template: 'people/${row.id}' });
@@ -42,4 +42,14 @@ test('the fields a rowRoute needs are fetched with the row: without them a tap o
   assert.deepEqual(rowRouteFields('orders/${row.customer.id}/${ row.number }/${row.number}'), ['customer', 'number']);
   assert.deepEqual(rowRouteFields(undefined), []);
   assert.deepEqual(rowRouteFields('people'), []);
+});
+
+test('a rowRoute that is a whole URL is opened by the OS, never as a route of the UI', () => {
+  const url = 'https://images-assets.nasa.gov/image/a/a~large.jpg';
+  const open = rowOpenOf('${row.imageLarge}', []);
+  assert.deepEqual(rowPressOf(open, { imageLarge: url }), { kind: 'url', url });
+  assert.deepEqual(rowPressOf(rowOpenOf('${row.u}', []), { u: '//cdn.x/y' }), { kind: 'url', url: 'https://cdn.x/y' });
+  assert.deepEqual(rowPressOf(rowOpenOf('people/${row.id}', []), { id: 3 }), { kind: 'route', route: 'people/3' });
+  for (const ext of [url, '//cdn.x/y', 'mailto:a@b.c', 'javascript:alert(1)']) assert.ok(isExternalRoute(ext), ext);
+  for (const own of ['people/3', '/people/3', 'a?q=b:c']) assert.ok(!isExternalRoute(own), own);
 });

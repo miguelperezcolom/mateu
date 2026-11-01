@@ -12,7 +12,7 @@ import {
   generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
   overlayVarsOf, EMPTY_OVERLAY,
 } from './pageProjection.mjs'
-import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, refusedFieldsOf } from './actionPlan.mjs'
+import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, routeStateOf, refusedFieldsOf } from './actionPlan.mjs'
 import { validationErrorsOf, isSseAction } from './core/rowEditor.mjs'
 import { sameRowsSameProvider } from './core/content.mjs'
 import { evaluateExpression } from './rules.mjs'
@@ -496,10 +496,14 @@ test('a display-block click: a RouteLink button navigates, any other runs its ac
   assert.deepEqual(blockClickOf({ actionId: 'greet', parameters: { a: 1 } }), { actionId: 'greet', parameters: { a: 1 } })
   // VB binds an absent route as '' (or the literal 'undefined' is never sent): blank → action
   assert.deepEqual(blockClickOf({ actionId: 'greet', route: '  ' }), { actionId: 'greet', parameters: {} })
+  // a RouteLink route is a template over the screen's state (a record page's Edit)
+  assert.deepEqual(blockClickOf({ route: 'missions/${state.id}/edit', state: { id: 6 } }), { navigate: 'missions/6/edit' })
+  assert.deepEqual(routeStateOf({ contexts: { [HOST_ID]: { state: { id: 6, name: 'a' } } } }, { name: 'b' }), { id: 6, name: 'b' })
   // both dispatchers consult it before running anything
   for (const chain of ['dispatchHostBlockAction', 'dispatchIslandAction']) {
     const src = webApp(`flows/main/pages/main-start-page-chains/${chain}.js`)
     assert.ok(src.includes('bridge.blockClickOf') && src.includes('application:mateuNavigate'), chain)
+    assert.ok(src.includes('bridge.routeStateOf('), chain + ' reads the route against the state')
   }
 })
 

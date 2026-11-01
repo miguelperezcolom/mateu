@@ -27,6 +27,7 @@ import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 import {withoutResolvedMicroFrontends} from "@infra/resolvedMicroFrontends.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
+import {mergeOntoScreen} from "@infra/ui/fragmentMerge.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import {actionIsForCurrentView, staleCheck, uxIdentity, ViewGeneration} from "@infra/ui/staleViewGuard.ts";
@@ -596,11 +597,8 @@ export class MateuUx extends ConnectedElement {
             // A state/data-only fragment (e.g. a host-page push emitted while an embedded
             // mediator loads) must not blank the routed content — merge it onto the current
             // fragment instead of replacing it wholesale.
-            this.fragment = {
-                ...this.fragment,
-                state: { ...(this.fragment.state ?? {}), ...(fragment.state ?? {}) },
-                data: { ...(this.fragment.data ?? {}), ...(fragment.data ?? {}) },
-            }
+            // (kept as it is when the reply changes nothing: see mergeOntoScreen)
+            this.fragment = mergeOntoScreen(this.fragment, fragment)
             // The structure on screen may never have been stamped — a cache seed followed by a
             // state-only reply reaches this return without a full structure ever arriving.
             this.stampPageChrome()
@@ -614,11 +612,7 @@ export class MateuUx extends ConnectedElement {
             // carries no structureHash, so the server could not say so by replying state-only):
             // keep the components on screen and take only its state and data. Replacing them
             // re-mounted the page — it flickered and ran its OnLoad (its record fetch) twice.
-            this.fragment = {
-                ...this.fragment,
-                state: { ...(this.fragment.state ?? {}), ...(fragment.state ?? {}) },
-                data: { ...(this.fragment.data ?? {}), ...(fragment.data ?? {}) },
-            }
+            this.fragment = mergeOntoScreen(this.fragment, fragment)
             this.lastAuthoritativeKey = this.structureCacheKey()
             if (this.pendingRouteFocus && this.hasRenderedContent) {
                 this.focusNewContent()

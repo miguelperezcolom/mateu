@@ -1,5 +1,6 @@
 import { numericCommitValue } from '@components/fieldValue'
-import { navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
+import { isExternalRoute, navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
+import { safeHref } from '@infra/ui/safeNavigate.ts'
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { html, LitElement, nothing } from "lit";
 import { interpolate } from "@infra/ui/interpolation.ts";
@@ -482,7 +483,16 @@ export const columnRenderer = (item: any,
     const rowRoute = (container as any)?.metadata?.rowRoute
     if (column.identifier && rowRoute) {
         const route = rowRouteOf(rowRoute, item, state, data)
-        if (route) {
+        // a route that is a whole URL leaves the app: a plain new-tab link (refused schemes get none)
+        const external = !!route && isExternalRoute(route)
+        const externalHref = external ? safeHref(route) : undefined
+        if (external && externalHref) {
+            return html`<a href="${externalHref}" target="_blank" rel="noopener noreferrer" title="${cellValue}"
+                @click="${(e: MouseEvent) => e.stopPropagation()}"
+                style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; color: var(--lumo-primary-text-color); text-decoration: none; cursor: pointer;"
+            >${uuidAwareText(cellValue)}</a>`
+        }
+        if (route && !external) {
             const href = '/' + route.replace(/^\/+/, '')
             return html`<a href="${href}" title="${cellValue}"
                 @click="${(e: MouseEvent) => {
