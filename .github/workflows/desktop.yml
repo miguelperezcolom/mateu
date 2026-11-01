@@ -102,7 +102,8 @@ jobs:
           args=(-Pinstaller.platform=macos "-Pinstaller.arch=$ARCH")
           if [ "$HAS_SIGNING" = "true" ]; then args+=("-Pmacos.sign.identity=$SIGN_IDENTITY"); fi
           if [ "$HAS_SIGNING" = "true" ] && [ "$HAS_NOTARY" = "true" ]; then args+=(-Pmacos.notarize.profile=mateu-notary); fi
-          ./gradlew buildInstaller "${args[@]}" --no-daemon --console=plain
+          # through the helper: a cold IDE layout index loses com.intellij.java now and then (#2192)
+          cd ../../.. && scripts/intellij-gradle.sh buildInstaller "${args[@]}" --console=plain
       - name: Attach to the release
         env:
           ARCH: ${{ matrix.arch }}
@@ -123,7 +124,10 @@ jobs:
     steps:
       # the IDE is downloaded, unpacked and repacked (~6 GB on disk): make room first
       - name: Free disk space
-        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL \
+            /usr/share/swift /usr/local/share/boost /usr/local/.ghcup /opt/microsoft /opt/google /usr/local/share/chromium
+          df -h /
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -146,7 +150,10 @@ jobs:
       - name: Build the app
         env:
           PLATFORM: ${{ matrix.platform }}
-        run: cd frontend/app/intellij-plugin && ./gradlew buildInstaller "-Pinstaller.platform=$PLATFORM" --no-daemon --console=plain
+        run: scripts/intellij-gradle.sh buildInstaller "-Pinstaller.platform=$PLATFORM" --console=plain
+      - name: Disk and memory when it failed
+        if: failure()
+        run: df -h / /tmp; free -m
       - name: Attach to the release
         env:
           PLATFORM: ${{ matrix.platform }}
@@ -184,11 +191,10 @@ jobs:
         run: cd frontend/app/intellij-plugin && perl -pi -e 's/^version = ".*"/version = "$ENV{INTELLIJ_VERSION}"/' build.gradle.kts
       - name: Build the plugin and the update feed
         run: |
-          cd frontend/app/intellij-plugin
-          ./gradlew desktopUpdateFeed --no-daemon --console=plain \
+          scripts/intellij-gradle.sh desktopUpdateFeed --console=plain \
             "-Pfeed.downloadBase=https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG" \
             "-Pfeed.notes=Mateu $INTELLIJ_VERSION — https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
-          cat build/installer/mateu-desktop-update.json
+          cat frontend/app/intellij-plugin/build/installer/mateu-desktop-update.json
       # the plugin first: the feed must never name a file that is not there yet
       - name: Attach the plugin, then the feed
         run: |
