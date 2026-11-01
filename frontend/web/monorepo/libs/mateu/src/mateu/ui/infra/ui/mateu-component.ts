@@ -684,14 +684,21 @@ export class MateuComponent extends ComponentElement {
     // Runs a @RestAction: fetches the external endpoint CLIENT-SIDE (url/headers/body interpolated
     // from the live state), then merges the object at resultPath into the form state (so bound
     // fields refresh) and shows a success toast; an error shows a failure toast. No Mateu round-trip.
-    handleRestAction = (rest: RestActionDto, actionId?: string) => {
+    handleRestAction = (rest: RestActionDto, actionId?: string,
+                        call: { parameters?: Record<string, unknown>, settled?: (ok: boolean) => void } = {}) => {
+        // The call's own parameters (a kanban move's `_cardId`/`_toColumnId` and the moved card's
+        // row) sit over the state its templates read — on the proxied leg the server does the same
+        // (RestProxyCalls.callState). `settled` tells the caller how it went (a move puts its card
+        // back when the call fails).
+        const callState = { ...this.state, ...(call.parameters ?? {}) }
         // Merge the fetched object (at resultPath) into the form state and toast — shared by the
         // direct and proxy paths, so a @RestAction/@RestData behaves the same either way.
         // Toast + navigate on success. Shared by the single-call path (after the response merges)
         // and the bulk path (once, after every row). A successRoute still holding ${ (an id the
         // response never supplied) is left alone; pointed back at the listing it reloads it.
         const announce = () => {
-            const msg = interpolate(rest.successMessage, this.state, this.data)
+            // after the answer merged into the state, the call's parameters still over it
+            const msg = interpolate(rest.successMessage, { ...this.state, ...(call.parameters ?? {}) }, this.data)
             if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
             const route = interpolate(rest.successRoute, this.state, this.data)
             if (!route || route.includes('${')) return
@@ -713,8 +720,10 @@ export class MateuComponent extends ComponentElement {
                 }
             }
             announce()
+            call.settled?.(true)
         }
         const onError = (e: unknown) => {
+            call.settled?.(false)
             console.warn('mateu: rest action failed', e)
             // a source nobody declared is a configuration mistake the user can name to someone,
             // not a transient failure: say which source, and keep the toast until it is read
@@ -730,6 +739,7 @@ export class MateuComponent extends ComponentElement {
         const handleProxyResult = (uiIncrement: any, onOk: (json: unknown) => void) => {
             const err = uiIncrement?.appData?.['_restfetchError']
             if (err) {
+                call.settled?.(false)
                 const status = typeof err?.status === 'number' && err.status > 0 ? ` (HTTP ${err.status})` : ''
                 showToast({ text: chromeTextf('requestFailed', { status }), variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
                 return
@@ -780,7 +790,7 @@ export class MateuComponent extends ComponentElement {
             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                 detail: {
                     actionId: '__restfetch__',
-                    parameters: { _sourceKind: kind, _sourceId: actionId },
+                    parameters: { ...(call.parameters ?? {}), _sourceKind: kind, _sourceId: actionId },
                     callback: (uiIncrement: any) => handleProxyResult(uiIncrement, applyResult),
                     callbackonly: true
                 },
@@ -789,9 +799,9 @@ export class MateuComponent extends ComponentElement {
             }))
             return
         }
-        const resolve = templateResolver(this.state, this.data)
+        const resolve = templateResolver(callState, this.data)
         // The same resolver over a json-escaped copy of the state, for the body of a JSON request.
-        const resolveJson = (t: string | undefined) => interpolate(t, jsonSafe(this.state), jsonSafe(this.data))
+        const resolveJson = (t: string | undefined) => interpolate(t, jsonSafe(callState), jsonSafe(this.data))
         fetchExternalJson(rest.source, resolve, undefined, resolveJson)
             .then(applyResult)
             .catch(onError)
@@ -973,7 +983,9 @@ export class MateuComponent extends ComponentElement {
         // @RestAction: call an arbitrary REST endpoint CLIENT-SIDE instead of dispatching to the
         // Mateu server — fetch + toast + optional merge of the response into the form state.
         if (action && action.restAction) {
-            this.handleRestAction(action.restAction, action.id)
+            this.handleRestAction(action.restAction, action.id,
+                { parameters: detail.parameters as Record<string, unknown> | undefined,
+                  settled: (detail as { settled?: (ok: boolean) => void }).settled })
             return
         }
 
