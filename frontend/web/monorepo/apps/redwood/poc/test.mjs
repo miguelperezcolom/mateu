@@ -2124,7 +2124,7 @@ atest('a route load is a NEW screen: the previous screen\'s state never carries 
     const before = empty()
     before.contexts[HOST_ID] = { id: HOST_ID, kind: 'host', state: { id: 6, name: 'Apollo 11' }, data: {},
       tree: { type: 'ServerSide', id: '_mission', children: [] } }
-    const reg = await loadRouteInto('http://x', before, '/astronauts', '', {})
+    const reg = await loadRouteInto('https://x', before, '/astronauts', '', {})
     assert.equal(reg.contexts[HOST_ID].state.name, undefined)
     assert.equal(reg.contexts[HOST_ID].tree.metadata.title, 'Astronauts')
   } finally { globalThis.fetch = original }

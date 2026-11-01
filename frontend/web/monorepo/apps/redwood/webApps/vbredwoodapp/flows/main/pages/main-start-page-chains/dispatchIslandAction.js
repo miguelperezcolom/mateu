@@ -25,7 +25,7 @@ define([
      * @param {string} params.route  the RouteLink of a navigating button
      */
     async run(context, { actionId, parameters, fromNested, route }) {
-      const click = bridge.blockClickOf({ actionId, parameters, route , state: bridge.routeStateOf(context.$application.variables.mateuRegistry, context.$page && context.$page.variables.mateuDraft)});
+      const click = bridge.blockClickOf({ actionId, parameters, route, state: bridge.routeStateOf(context.$application.variables.mateuRegistry, context.$page?.variables.mateuDraft) });
       if (click.navigate) {
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: click.navigate, force: true } });
         return;

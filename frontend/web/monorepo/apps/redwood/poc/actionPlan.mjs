@@ -158,8 +158,7 @@ export function onlyMessagesAnswer({ hostRepainted, flipRoute, events, overlayBe
  */
 /** The state a navigating button's route is read against: the screen's, with what is typed over it. */
 export function routeStateOf(reg, draft) {
-  const host = reg && reg.contexts && reg.contexts[HOST_ID]
-  return { ...((host && host.state) || {}), ...(draft || {}) }
+  return { ...reg?.contexts?.[HOST_ID]?.state, ...draft }
 }
 
 export function blockClickOf({ actionId, parameters, route, state } = {}) {

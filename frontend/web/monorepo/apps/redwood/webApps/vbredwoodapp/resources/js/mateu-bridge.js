@@ -4467,7 +4467,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
     // ...and so are its calls to action's routes (an Edit to `missions/${state.id}/edit` went to the
     // literal placeholder)
-    const routed = (c) => (c && c.route ? { ...c, route: text(c.route) } : c)
+    const routed = (c) => (c?.route ? { ...c, route: text(c.route) } : c)
     return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
       ctas: (banner.ctas || []).map(routed),
       primaryCtaRoute: text(banner.primaryCtaRoute), secondaryCtaRoute: text(banner.secondaryCtaRoute),
@@ -20403,8 +20403,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   /** The registry without one context (the reducer then starts that context afresh). */
   function withoutContext(reg, ctxId) {
-    if (!reg || !reg.contexts || !reg.contexts[ctxId]) return reg
-    const { [ctxId]: _dropped, ...contexts } = reg.contexts
+    if (!reg?.contexts?.[ctxId]) return reg
+    const contexts = { ...reg.contexts }
+    delete contexts[ctxId]
     return { ...reg, contexts }
   }
 
@@ -23917,8 +23918,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   /** The state a navigating button's route is read against: the screen's, with what is typed over it. */
   function routeStateOf(reg, draft) {
-    const host = reg && reg.contexts && reg.contexts[HOST_ID]
-    return { ...((host && host.state) || {}), ...(draft || {}) }
+    return { ...reg?.contexts?.[HOST_ID]?.state, ...draft }
   }
 
   function blockClickOf({ actionId, parameters, route, state } = {}) {

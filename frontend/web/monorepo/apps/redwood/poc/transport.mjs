@@ -443,8 +443,9 @@ export async function loadMenuRouteInto(base, reg, route, targetId = '', extra =
  */
 /** The registry without one context (the reducer then starts that context afresh). */
 function withoutContext(reg, ctxId) {
-  if (!reg || !reg.contexts || !reg.contexts[ctxId]) return reg
-  const { [ctxId]: _dropped, ...contexts } = reg.contexts
+  if (!reg?.contexts?.[ctxId]) return reg
+  const contexts = { ...reg.contexts }
+  delete contexts[ctxId]
   return { ...reg, contexts }
 }
 
