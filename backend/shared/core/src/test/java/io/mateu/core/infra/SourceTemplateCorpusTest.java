@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mateu.core.domain.ProxyExpression;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;

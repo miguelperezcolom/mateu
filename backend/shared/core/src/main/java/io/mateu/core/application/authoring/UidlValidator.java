@@ -503,7 +503,7 @@ public final class UidlValidator {
      * A source template the SERVER cannot evaluate the way the browser does: on a proxied source
      * (proxy: true, or an environment overlay that flips it) such a placeholder renders empty —
      * paging, filters or ids silently missing. The server evaluates the subset of {@link
-     * io.mateu.core.infra.ProxyExpression}; {@code data}/{@code appState}/{@code appData} exist
+     * io.mateu.core.domain.ProxyExpression}; {@code data}/{@code appState}/{@code appData} exist
      * only in the browser.
      */
     private void proxySafe(String template, String path, Node at) {
@@ -513,7 +513,7 @@ public final class UidlValidator {
         String why = null;
         if (CLIENT_ONLY_ROOT.matcher(expr).find()) {
           why = "reads data/appState/appData, which only the browser has";
-        } else if (!io.mateu.core.infra.ProxyExpression.isSupported(expr)) {
+        } else if (!io.mateu.core.domain.ProxyExpression.isSupported(expr)) {
           why = "uses syntax outside what the server evaluates";
         }
         if (why != null) {

@@ -4,6 +4,8 @@
 # Beta integration (2026-10-18): settings read through MateuSettings (F2), the advertised-action
 # set shared with the strict action check (F2) and request-language validation messages
 # (fixes/extra) — reviewed, added together.
+# YAML partials inlined before the access/i18n passes (2026-11-01): YamlPartials reads partial
+# files through DevSpecs.classLoader, exactly like its sibling YamlUidlLoader — reviewed.
 # MCP authoring (2026-10-18): McpJsonRpc reads DevMode — mateu_save_spec exists only in development
 # mode — reviewed.
 # Live UI push (2026-10-19): AgentPush reads its switches through MateuSettings, AgentCaller the
@@ -41,6 +43,7 @@ application -> infra: io/mateu/core/application/runaction/RunActionUseCase.java
 application -> infra: io/mateu/core/application/runaction/SampleSources.java
 application -> infra: io/mateu/core/application/runaction/SpecsIndex.java
 application -> infra: io/mateu/core/application/runaction/YamlAppLoader.java
+application -> infra: io/mateu/core/application/runaction/YamlPartials.java
 application -> infra: io/mateu/core/application/runaction/YamlUidlLoader.java
 application -> infra: io/mateu/core/application/security/ActionMethods.java
 application -> infra: io/mateu/core/application/security/WireTypePolicy.java

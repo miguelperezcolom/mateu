@@ -275,7 +275,7 @@ internal fun isRemoteImage(value: String): Boolean = Regex("^https?://", RegexOp
 
 private fun imageLabel(value: String): JBLabel {
     val img = decodeDataUri(value)
-    if (img != null) return JBLabel(scaledIcon(img))
+    if (img != null) return JBLabel().apply { icon = scaledIcon(img) }
     val label = JBLabel(plain(if (value.isBlank()) "—" else value))
     // a URL value is shown as the image it names (the web and the phone do), the url text meanwhile
     if (isRemoteImage(value)) {

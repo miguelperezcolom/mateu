@@ -1,4 +1,4 @@
-package io.mateu.core.infra;
+package io.mateu.core.domain;
 
 import java.util.ArrayList;
 import java.util.Collection;

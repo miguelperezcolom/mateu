@@ -1,5 +1,6 @@
 package io.mateu.core.infra;
 
+import io.mateu.core.domain.ProxyExpression;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
