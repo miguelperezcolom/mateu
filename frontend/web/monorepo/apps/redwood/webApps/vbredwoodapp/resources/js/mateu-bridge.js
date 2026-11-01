@@ -14637,6 +14637,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   ].join(';')
 
   const regions = {}
+  /** The repeat each region is waiting to put back (see announce). */
+  const pendingRepeats = new Map()
 
   function regionFor(politeness) {
     if (typeof document === 'undefined' || !document.body) return null
@@ -14681,11 +14683,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!text) return
     const region = regionFor(options.politeness || 'polite')
     if (!region) return
+    // A repeat still waiting to be put back is outdated by whatever is said now: left running, it
+    // wrote the OLD message over the new one 60 ms later (the newer message was never heard).
+    clearTimeout(pendingRepeats.get(region))
+    pendingRepeats.delete(region)
     if (region.textContent === text) {
       // Repeating the same message is a real case (two failed saves in a row) and a
       // region whose text does not change announces nothing: it is cleared and set again.
       region.textContent = ''
-      setTimeout(() => { region.textContent = text }, 60)
+      pendingRepeats.set(region, setTimeout(() => {
+        pendingRepeats.delete(region)
+        region.textContent = text
+      }, 60))
       return
     }
     region.textContent = text

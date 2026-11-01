@@ -11,6 +11,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+
+- **Screen readers no longer hear a stale message over a newer one (Vaadin + Redwood).** Repeating a
+  message (two failed saves in a row) clears the live region and puts the text back 60 ms later; a
+  different message announced in between was then overwritten by the old one. A newer announcement
+  now cancels the pending repeat (`libs/mateu` `announcer.ts`, Redwood `poc/a11y.mjs`). This was also
+  the intermittent Redwood suite failure: a test waited a fixed 80 ms for the previous test's repeat.
+
 ### Changed
 
 - **Vaadin: listings, boards and dashboards use the full width.** Every page sat in the server's
