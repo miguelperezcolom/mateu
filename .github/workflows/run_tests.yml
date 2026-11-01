@@ -181,6 +181,13 @@ jobs:
 
       - name: The docs' component list is the component catalogue (uidl-catalog.json)
         run: node scripts/gen-supported-components.mjs --check
+      # File.deleteRecursively() follows symlinks: on the macOS dmg stage (a link to /Applications) it
+      # deleted the developer's /Applications. The build uses deleteTree; no deleteRecursively may return.
+      - name: The installer build never deletes through a symlink
+        run: |
+          if grep -nE '(\.|\{ *)deleteRecursively\(\)' frontend/app/intellij-plugin/build.gradle.kts | grep -v '^[0-9]*: \*'; then
+            echo "::error::use deleteTree(), never deleteRecursively(), in frontend/app/intellij-plugin/build.gradle.kts"; exit 1
+          fi
 
       - name: MCP server tests
         run: cd frontend/mcp-server && node --test
