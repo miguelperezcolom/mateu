@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import io.mateu.core.application.microfrontends.MicroFrontendSettings;
 import io.mateu.core.infra.WireMapper;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.ClientSideComponentDto;
@@ -57,6 +58,14 @@ import org.junit.jupiter.api.Test;
 class MicroFrontendServerResolutionSyncTest {
 
   static final ObjectMapper WIRE = WireMapper.shared();
+
+  /**
+   * The deadline of a remote that is expected to ANSWER: generous, so a loaded CI runner never
+   * turns "answers in time" into a timeout (the .NET port's twin flaked that way on its cold first
+   * call). The tests about deadlines use their own short ones (150 ms, a slot's 100 ms).
+   */
+  static final int IN_TIME = 5000;
+
   static HttpServer remote;
   static String base;
   static TestMateu mateu;
@@ -75,6 +84,8 @@ class MicroFrontendServerResolutionSyncTest {
     base = "http://127.0.0.1:" + remote.getAddress().getPort();
     // the content service is registered as a path on this server (/_content-hub)
     System.setProperty("mateu.self-base-url", base);
+    // the budget cap (2000 by default) would clip IN_TIME
+    System.setProperty(MicroFrontendSettings.MAX_BUDGET, String.valueOf(2 * IN_TIME));
     mateu =
         TestMateu.withUisAndBeans(
             List.of(new Remotes(), new ExchangeIdentity(), new Recorder()),
@@ -92,11 +103,15 @@ class MicroFrontendServerResolutionSyncTest {
             Exchanged.class,
             SlotPage.class,
             DeadSlotPage.class);
+    // warm up: the first resolution pays the cold start (JIT, Jackson's metadata, the first
+    // connection); each test clears what it reads
+    mateu.sync("/mfe-fast");
   }
 
   @AfterAll
   static void stop() {
     System.clearProperty("mateu.self-base-url");
+    System.clearProperty(MicroFrontendSettings.MAX_BUDGET);
     mateu.close();
     remote.stop(0);
   }
@@ -228,10 +243,10 @@ class MicroFrontendServerResolutionSyncTest {
               "cacheuser",
               "cacheshared",
               "cachenone")) {
-        all.add(new RemoteDescriptor(name, base + "/" + name, 1000, null));
+        all.add(new RemoteDescriptor(name, base + "/" + name, IN_TIME, null));
       }
-      all.add(new RemoteDescriptor("anon", base + "/anon", 1000, RemoteIdentityStrategy.NONE));
-      all.add(new RemoteDescriptor("exchanged", base + "/exchanged", 1000, "exchange"));
+      all.add(new RemoteDescriptor("anon", base + "/anon", IN_TIME, RemoteIdentityStrategy.NONE));
+      all.add(new RemoteDescriptor("exchanged", base + "/exchanged", IN_TIME, "exchange"));
       // a path on this server, as content-hub is deployed
       all.add(new RemoteDescriptor("content", "/_content-hub", 1000, null));
       return all;
@@ -290,7 +305,7 @@ class MicroFrontendServerResolutionSyncTest {
   @UI("/mfe-fast")
   public static class FastServer extends Page {
     List<Component> parts() {
-      return List.of(mfe("fast", Resolve.SERVER, 1000));
+      return List.of(mfe("fast", Resolve.SERVER, IN_TIME));
     }
   }
 
@@ -304,7 +319,7 @@ class MicroFrontendServerResolutionSyncTest {
   @UI("/mfe-broken")
   public static class BrokenServer extends Page {
     List<Component> parts() {
-      return List.of(mfe("broken", Resolve.SERVER, 1000));
+      return List.of(mfe("broken", Resolve.SERVER, IN_TIME));
     }
   }
 
@@ -312,7 +327,7 @@ class MicroFrontendServerResolutionSyncTest {
   public static class Unregistered extends Page {
     List<Component> parts() {
       return List.of(
-          mfe("fast", Resolve.SERVER, 1000),
+          mfe("fast", Resolve.SERVER, IN_TIME),
           MicroFrontend.builder()
               .baseUrl("http://169.254.169.254/latest")
               .route("/meta-data")
@@ -344,42 +359,42 @@ class MicroFrontendServerResolutionSyncTest {
   @UI("/mfe-cache-key")
   public static class CacheByKey extends Page {
     List<Component> parts() {
-      return List.of(mfe("cachekey", Resolve.SERVER, 1000));
+      return List.of(mfe("cachekey", Resolve.SERVER, IN_TIME));
     }
   }
 
   @UI("/mfe-cache-user")
   public static class CachePerUser extends Page {
     List<Component> parts() {
-      return List.of(mfe("cacheuser", Resolve.SERVER, 1000));
+      return List.of(mfe("cacheuser", Resolve.SERVER, IN_TIME));
     }
   }
 
   @UI("/mfe-cache-shared")
   public static class CacheShared extends Page {
     List<Component> parts() {
-      return List.of(mfe("cacheshared", Resolve.SERVER, 1000));
+      return List.of(mfe("cacheshared", Resolve.SERVER, IN_TIME));
     }
   }
 
   @UI("/mfe-cache-none")
   public static class CacheNone extends Page {
     List<Component> parts() {
-      return List.of(mfe("cachenone", Resolve.SERVER, 1000));
+      return List.of(mfe("cachenone", Resolve.SERVER, IN_TIME));
     }
   }
 
   @UI("/mfe-anon")
   public static class Anonymous extends Page {
     List<Component> parts() {
-      return List.of(mfe("anon", Resolve.SERVER, 1000));
+      return List.of(mfe("anon", Resolve.SERVER, IN_TIME));
     }
   }
 
   @UI("/mfe-exchanged")
   public static class Exchanged extends Page {
     List<Component> parts() {
-      return List.of(mfe("exchanged", Resolve.SERVER, 1000));
+      return List.of(mfe("exchanged", Resolve.SERVER, IN_TIME));
     }
   }
 

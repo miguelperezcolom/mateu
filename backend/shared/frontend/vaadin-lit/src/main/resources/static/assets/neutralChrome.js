@@ -1,5 +1,5 @@
 
-import{S as e,T as t}from"./vendor-lit.js";var n=t`
+import{E as e,k as t}from"./vendor-lit.js";var n=t`
     .nbtn {
         display: inline-flex;
         align-items: center;

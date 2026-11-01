@@ -267,6 +267,23 @@ def test_a_runtime_view_declares_its_proxy_sources(fetched):
     assert fetched[0].full_url == "https://cities.example.com/list"
 
 
+def test_a_direct_source_is_never_proxied(fetched):
+    # "countries" is not proxy=True: the browser calls it, the server refuses to (403)
+    from mateu_ui.core.action_guard import MateuForbiddenException
+
+    with pytest.raises(MateuForbiddenException):
+        restfetch(handler(), DirectOnly, "options", "country")
+    assert fetched == []
+
+
+def test_a_proxied_sources_headers_never_reach_the_client():
+    # the server calls a proxied source from its own table: its headers (an API key's placeholder,
+    # or a literal key) are not part of the catalogue the browser receives
+    entry = next(e for e in app_meta(handler())["restSources"] if e["name"] == "secret-thing")
+    assert entry["source"]["proxy"] is True
+    assert entry["source"].get("headers") is None
+
+
 def test_the_proxy_never_fetches_what_the_view_did_not_declare(fetched):
     inc = restfetch(handler(), RuntimeForm, "options", "nope")
     assert inc.app_data == {"_restfetch": {}}

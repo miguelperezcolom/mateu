@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["TODO_TEAM_ID.io.mateu.app"],
+        "appIDs": ["2V77LVXCM8.io.mateu.app"],
         "components": [
           { "/": "/add", "comment": "Add a UI: https://mateu.io/add?u=<base URL>[&r=<route>]" },
           { "/": "/add/*" }

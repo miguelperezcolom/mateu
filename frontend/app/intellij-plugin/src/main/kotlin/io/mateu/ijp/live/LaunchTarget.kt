@@ -12,8 +12,8 @@ import java.nio.charset.StandardCharsets
 enum class LaunchTarget(val label: String) {
     /** The default browser: the web renderer the app serves. */
     WEB("Web (browser)"),
-    /** The Mateu tool window of this IDE: the IntelliJ renderer. */
-    DESKTOP("Desktop (this IDE)"),
+    /** The Mateu desktop app — a separate IntelliJ — through its `mateu://` link (see [DesktopApp]). */
+    DESKTOP("Desktop (Mateu app)"),
     /** The Mateu app (React Native renderer) on the running Android emulator. */
     ANDROID_EMULATOR("Android emulator"),
     /** The Mateu app (React Native renderer) on the booted iOS simulator. */

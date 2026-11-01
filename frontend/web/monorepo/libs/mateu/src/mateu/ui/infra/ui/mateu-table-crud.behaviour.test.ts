@@ -74,7 +74,9 @@ describe('the URL is the listing\'s memory', () => {
         const search = actions().find(a => a.actionId === 'search')
         expect(search).toBeDefined()
         expect(search.parameters._searchState).toMatchObject({
-            page: 2, size: 10, sort: [{ fieldId: 'customer', direction: 'asc' }],
+            // `asc` from a typed link reaches the server as the wire's `ascending` (sortDirection.ts):
+            // the server only knows the two words and answered `asc` with "Something went wrong"
+            page: 2, size: 10, sort: [{ fieldId: 'customer', direction: 'ascending' }],
             customer: 'An', date_from: '2024-01-01',
         })
         // a param that is not a filter of this listing is not hydrated into its state
@@ -445,6 +447,17 @@ describe('listings fed by an external endpoint', () => {
         ask.callback({ appData: { _restfetch: [{ id: 'Z9', customer: 'Zoe' }] } })
         await settle()
         expect(el.data.crud.page.content[0]).toMatchObject({ id: 'Z9', customer: 'Zoe', _rowNumber: 'Z9' })
+    })
+
+    it('a tree keeps each row\'s children (not a column) and draws them under their parent', async () => {
+        registerExternalJsonMock(() => [
+            { id: 'A1', customer: 'Ana', children: [{ id: 'A1.1', customer: 'Child', children: [] }] },
+        ])
+        const { el, root } = await mount(external({ gridLayout: 'tree', filters: [] }), undefined)
+        await settle()
+        await el.updateComplete
+        expect(el.data.crud.page.content[0].children).toEqual([{ id: 'A1.1', customer: 'Child', children: [] }])
+        expect(root.textContent).toContain('Child')
     })
 
     it('rows fetched here survive the parent pushing down empty data', async () => {

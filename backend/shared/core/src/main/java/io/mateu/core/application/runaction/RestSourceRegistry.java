@@ -2,7 +2,6 @@ package io.mateu.core.application.runaction;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.mateu.core.application.export.RouteRegistrations;
 import io.mateu.uidl.annotations.RestSource;
 import io.mateu.uidl.annotations.RestSources;
@@ -57,7 +56,7 @@ public class RestSourceRegistry implements io.mateu.core.infra.dev.SpecsCache {
   /** The conventional authored catalogue. */
   static final String CONVENTIONAL_SOURCES = "specs/ui/sources.yaml";
 
-  private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
+  private final ObjectMapper yaml = SpecsYaml.mapper();
 
   private volatile RestSourceCatalog catalog;
 

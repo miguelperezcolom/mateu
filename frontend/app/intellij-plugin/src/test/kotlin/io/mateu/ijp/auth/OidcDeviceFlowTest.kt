@@ -12,6 +12,7 @@ class OidcDeviceFlowTest : TestCase() {
     private lateinit var server: HttpServer
     private val tokenAnswers = ArrayDeque<Pair<Int, String>>()
     private val tokenForms = ArrayList<Map<String, String>>()
+    private val deviceForms = ArrayList<Map<String, String>>()
     private val slept = ArrayList<Long>()
     private val base get() = "http://127.0.0.1:${server.address.port}"
 
@@ -23,6 +24,7 @@ class OidcDeviceFlowTest : TestCase() {
         server.createContext("/device") {
             val form = form(it)
             assertEquals("ide", form["client_id"])
+            deviceForms.add(form)
             send(it, 200, """{"device_code":"DC","user_code":"ABCD-EFGH","verification_uri":"$base/activate",
                 "verification_uri_complete":"$base/activate?code=ABCD-EFGH","interval":2,"expires_in":60}""")
         }
@@ -121,5 +123,21 @@ class OidcDeviceFlowTest : TestCase() {
         } catch (ex: OidcDeviceFlow.OidcException) {
             assertTrue(ex.message!!.contains("issuer"))
         }
+    }
+
+    /** A client set up for the phone (PKCE S256 required) serves the desktop too: found against Keycloak. */
+    fun testTheDeviceRequestCarriesAPkceChallengeAndThePollItsVerifier() {
+        tokenAnswers += 200 to """{"access_token":"AT","refresh_token":"RT","expires_in":300}"""
+        val f = flow()
+        val e = f.endpoints()
+        val code = f.start(e)
+        val device = deviceForms.single()
+        assertEquals("S256", device["code_challenge_method"])
+        assertNotNull(code.codeVerifier)
+        assertEquals(Pkce.challenge(code.codeVerifier!!), device["code_challenge"])
+        f.poll(e, code)
+        assertEquals(code.codeVerifier, tokenForms.single()["code_verifier"])
+        // RFC 7636 appendix B test vector
+        assertEquals("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", Pkce.challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"))
     }
 }

@@ -51,7 +51,8 @@ object RestFetch {
         val method = source.text("method").ifBlank { "GET" }.uppercase()
         val headers = LinkedHashMap<String, String>()
         source.path("headers").properties().forEach { (k, v) -> headers[k] = Expressions.interpolate(v.asText(""), ctx) }
-        val body = source.get("body")?.asText("").orEmpty().let { if (it.isBlank()) null else Expressions.interpolate(it, ctx) }
+        // a JSON body gets its VALUES escaped (a quote or a newline in a value broke the request: 400)
+        val body = source.get("body")?.asText("").orEmpty().let { if (it.isBlank()) null else Expressions.interpolateBody(it, headers, ctx) }
         // A registered client-side auth provider supplies dynamic headers (merged last, so it wins).
         headers.putAll(authHeaders(url, method))
         return apiClient.fetchExternal(url, method, headers, body)

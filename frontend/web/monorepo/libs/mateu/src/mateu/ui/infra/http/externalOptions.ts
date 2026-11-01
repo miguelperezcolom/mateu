@@ -1,6 +1,7 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
 import { declaresJson } from './jsonTemplate.ts'
+import { ExternalRestError, serviceMessageOf } from './serviceMessage.ts'
 import { UnknownRestSourceError, getRestSource, isSampled, pathOfField, remoteCataloguesSettled, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
 import type { TemplateResolver } from '../ui/interpolation.ts'
 
@@ -60,14 +61,23 @@ export function mapItemsToRows(
     itemsPath: string | undefined,
     columnIds: string[],
     pathOf: (columnId: string) => string = (id) => id,
+    childrenId?: string,
 ): Record<string, unknown>[] {
     const arr = getByPath(json, itemsPath)
     if (!Array.isArray(arr)) return []
-    return arr.map((item) => {
+    const shape = (items: unknown[]): Record<string, unknown>[] => items.map((item) => {
         const row: Record<string, unknown> = {}
         for (const id of columnIds) row[id] = getByPath(item, pathOf(id))
+        // A tree's rows nest: each carries the next level under `childrenId`. That is not a column,
+        // so a row projected onto the columns alone lost it and the tree showed only its roots.
+        // The children are items of the same shape, projected the same way, level after level.
+        if (childrenId) {
+            const kids = getByPath(item, pathOf(childrenId))
+            if (Array.isArray(kids)) row[childrenId] = shape(kids)
+        }
         return row
     })
+    return shape(arr)
 }
 
 /** Interpolate the url/headers/body of a {@link RestDataSource} and fetch it — the shared leg of the
@@ -146,7 +156,16 @@ export async function fetchExternalJson(
         init.body = forBody(source.body) ?? source.body
     }
     const res = await fetchImpl(url, init)
-    if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`)
+    if (!res.ok) {
+        // keep what the service said about it (its error body) for the user's toast
+        let detail: string | undefined
+        try {
+            detail = typeof res.text === 'function' ? serviceMessageOf(await res.text()) : undefined
+        } catch {
+            detail = undefined
+        }
+        throw new ExternalRestError(res.status, detail)
+    }
     // A write commonly answers 204 No Content (a DELETE almost always does): an empty body is a
     // success with nothing to merge, not a JSON parse error — which used to turn every such delete
     // into a "Request failed" toast after the record was already gone.
@@ -182,12 +201,13 @@ export async function fetchExternalRows(
     columnIds: string[],
     resolve: TemplateResolver = (t) => t,
     fetchImpl: typeof fetch = fetch,
+    childrenId?: string,
 ): Promise<Record<string, unknown>[]> {
     const json = await fetchExternalJson(source, resolve, fetchImpl)
     const resolved = resolveRestSource(source)
     // Each column is read by the path the SOURCE maps its id to, which is how a nested response
     // field reaches a flat column: a column id cannot itself be `customer.name`.
-    return mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+    return mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id), childrenId)
 }
 
 /**
@@ -207,9 +227,10 @@ export async function fetchExternalPage(
     columnIds: string[],
     resolve: TemplateResolver = (t) => t,
     fetchImpl: typeof fetch = fetch,
+    childrenId?: string,
 ): Promise<{ rows: Record<string, unknown>[]; total: number | null }> {
     const json = await fetchExternalJson(source, resolve, fetchImpl)
-    return pageOf(json, source, columnIds)
+    return pageOf(json, source, columnIds, childrenId)
 }
 
 /** Shapes an already-fetched response into rows + total. Shared by the direct and proxied paths. */
@@ -217,9 +238,10 @@ export function pageOf(
     json: unknown,
     source: RestDataSource,
     columnIds: string[],
+    childrenId?: string,
 ): { rows: Record<string, unknown>[]; total: number | null } {
     const resolved = resolveRestSource(source)
-    const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+    const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id), childrenId)
     const raw = getByPath(json, totalPathOf(source))
     const total = typeof raw === 'number' ? raw : Number(raw)
     return { rows, total: Number.isFinite(total) ? total : null }

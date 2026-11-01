@@ -22,6 +22,8 @@
 
 /** '' (root) or '/segment(s)' without a trailing slash. */
 import { isEmbedded } from './embedded.mjs'
+import { isExternalRoute } from './core/content.mjs'
+import { safeHref } from './core/display.mjs'
 export function normalizeMount(value) {
   let v = String(value == null ? '' : value).trim()
   if (!v || v === '/') return ''
@@ -207,3 +209,43 @@ export function scrollToTopOnNavigate({ fromUrl, liveState } = {}, win = typeof 
   return true
 }
 
+/** How long the old screen stays on show once another starts loading (app.css mateu-stale-hide). */
+export const STALE_SCREEN_HIDE_MS = 500
+
+/**
+ * scrollToTopOnNavigate, but not while the old screen is still on show: scrolled at once, the page
+ * the user clicked in jumped to its top and only then did the new one arrive. It scrolls when the
+ * old screen is hidden (after STALE_SCREEN_HIDE_MS) or when the new one is in place — the function
+ * returned, called once the navigation lands — whichever comes first, and only once.
+ */
+export function scrollToTopWhenReplaced(params = {}, win = typeof window !== 'undefined' ? window : null,
+    delay = STALE_SCREEN_HIDE_MS) {
+  let done = false
+  const scroll = () => {
+    if (done) return false
+    done = true
+    return scrollToTopOnNavigate(params, win)
+  }
+  const timer = win && typeof win.setTimeout === 'function' ? win.setTimeout(scroll, delay) : null
+  return () => {
+    if (timer != null && typeof win.clearTimeout === 'function') win.clearTimeout(timer)
+    return scroll()
+  }
+}
+
+
+/**
+ * A navigation to a route that is a whole URL (a rowRoute `${row.url}`, a RouteLink to
+ * `https://…`) leaves the app: it opens in a new tab (noopener), never as a route of the mount. A
+ * refused scheme (javascript:, data:…) goes nowhere. True when the route was external (handled).
+ */
+export function openExternalRoute(route, win = typeof window !== 'undefined' ? window : null) {
+  if (!isExternalRoute(route)) return false
+  const href = safeHref(route)
+  if (href && /^(https?:|mailto:|tel:|\/\/)/i.test(href) && win && typeof win.open === 'function') {
+    win.open(href, '_blank', 'noopener,noreferrer')
+  } else {
+    try { console.warn('mateu: refused to open a route that is not http(s):', route) } catch (e) { /* no console */ }
+  }
+  return true
+}

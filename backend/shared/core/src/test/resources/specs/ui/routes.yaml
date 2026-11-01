@@ -140,3 +140,17 @@ routes:
 
   - route: template-form-header
     definition: template-form-header.yaml
+
+  # A collection detail page with one record open (a route that seeds state, like `data:`): it is
+  # the template's kind of page — collection — not a form. Used by YamlPageTypeSyncTest.
+  - route: page-type-template/:id
+    definition: page-type-template.yaml
+    state:
+      name: Mars
+
+  # A listing page whose route seeds state: served wrapped, it is a collection, not a form.
+  # Used by YamlPageTypeSyncTest.
+  - route: page-type-listing
+    definition: page-type-listing.yaml
+    state:
+      status: open

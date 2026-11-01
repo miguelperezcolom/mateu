@@ -34,7 +34,7 @@ export const MODULES = [
   'i18n.mjs', 'oracleCdn.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'versionSkew.mjs', 'a11y.mjs', 'elements.mjs', 'foldouts.mjs',
-  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'drawers.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
+  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'historyIndex.mjs', 'shellFlows.mjs', 'drawers.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'toc.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'untrusted.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'agentPush.mjs', 'theme.mjs', 'qr.mjs',
   'editorPreview.mjs', 'embedded.mjs',
@@ -104,7 +104,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
-  // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
+  // an editable richText (Spectra's editor, HTML; a legacy Delta opens converted) and a colour field
   defineRichTextField();
   defineMarkupField();
   defineColorField();
@@ -208,6 +208,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installHover,
     installDragAndDrop,
     setDropSink,
+    // kanban drag and drop (core/kanban.mjs + dnd.mjs)
+    installKanbans,
+    setKanbanMoveSink,
+    setPendingKanbanMove,
+    kanbanMovePlanOf,
+    kanbanMoveFailed,
     setKeysActionSink,
     setAccessKeysEnabled,
     startPolling,
@@ -236,6 +242,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     setRuleActionSink,
     valueChangeActionOf,
     committedValueOf,
+    rangeEditOf,
     triggerDownload,
     autoTrail,
     parentCrumb,
@@ -259,6 +266,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dynFormMetadataOf,
     actionsOf,
     summarizeHost,
+    parentCrumbOf,
     withinAppLevels,
     findByType,
     // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
@@ -283,6 +291,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     rowRouteOf,
     listingOf,
     rowClickOpensRecord,
+    // a docked panel with no toggle action closes on the client (spPages.mjs)
+    closeDockedPanel,
+    dataManagementWithoutPanel,
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,
@@ -293,6 +304,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    // the rows marked on a listing nested in a page's content (nestedListingSelected chain)
+    setNestedSelection,
     toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
@@ -366,6 +379,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
     confirmNavigationAway,
+    // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
+    installHistoryIndex,
+    notePopState,
     restoreUrlAfterStaying,
     hasOpenOverlays,
     withoutOverlays,
@@ -439,7 +455,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    openExternalRoute,
+    isExternalRoute,
     scrollToTopOnNavigate,
+    scrollToTopWhenReplaced,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,
@@ -597,6 +616,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // the page projection and the outbound action plan the two big page chains share
     // (poc/pageProjection.mjs, poc/actionPlan.mjs)
     listHeaderVarsOf,
+    listSecondaryForSelection,
     wizardVarsOf,
     archetypeVarsOf,
     islandVarsOf,
@@ -621,6 +641,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,
+    routeStateOf,
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,

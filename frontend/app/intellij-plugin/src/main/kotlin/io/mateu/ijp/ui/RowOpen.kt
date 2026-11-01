@@ -31,6 +31,8 @@ object RowOpen {
     /** What opening one row does. */
     sealed interface Target {
         data class Route(val route: String) : Target
+        /** A route that is a whole URL (`${'$'}{row.imageLarge}`): the browser opens it, not the UI. */
+        data class Url(val url: String) : Target
         data class Action(val actionId: String) : Target
     }
 
@@ -68,7 +70,17 @@ object RowOpen {
             if (text.isNullOrEmpty()) { unresolved = true; "" } else text
         }
         if (unresolved || route.contains("\${")) return null
-        return route.trimStart('/')
+        // a whole URL keeps its `//`; an app route is mount-relative
+        return if (isExternal(route)) route.trim() else route.trimStart('/')
+    }
+
+    /**
+     * Whether a route leaves the app: it carries a scheme (`https://…`, `mailto:`, a refused
+     * `javascript:`) or is protocol-relative (`//host`). Same rule as the web's isExternalRoute.
+     */
+    fun isExternal(route: String): Boolean {
+        val r = route.trim()
+        return Regex("^[a-zA-Z][a-zA-Z0-9+.-]*:").containsMatchIn(r) || r.startsWith("//")
     }
 
     /** Rows that never open: group/totals markers and rows flagged `viewable: false`. */
@@ -78,7 +90,9 @@ object RowOpen {
     fun targetOf(open: Open?, row: JsonNode?): Target? {
         if (open == null || !rowOpens(row)) return null
         return when (open) {
-            is Open.Route -> routeOf(open.template, row)?.let { Target.Route(it) }
+            is Open.Route -> routeOf(open.template, row)?.let {
+                if (!isExternal(it)) Target.Route(it) else Target.Url(if (it.startsWith("//")) "https:$it" else it)
+            }
             is Open.Action -> Target.Action(open.actionId)
         }
     }

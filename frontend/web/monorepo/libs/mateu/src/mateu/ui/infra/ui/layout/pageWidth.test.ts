@@ -67,6 +67,7 @@ describe('resolvePageWidth', () => {
             ComponentMetadataType.Bpmn,
             ComponentMetadataType.Workflow,
             ComponentMetadataType.Map,
+            ComponentMetadataType.FoldoutLayout,
         ]) {
             const layout = clientSide(ComponentMetadataType.VerticalLayout, {}, [clientSide(type)])
             expect(resolvePageWidth(serverSide({}, [page(undefined, [layout])])), type).toBe('edge')
@@ -133,6 +134,42 @@ describe('resolvePageWidth', () => {
         const kanban = page(undefined, [clientSide(ComponentMetadataType.Kanban)])
         expect(resolvePageWidth(serverSide({ pageType: 'detail' }, [kanban]))).toBe('edge')
         expect(resolvePageWidth(serverSide({ pageType: 'dashboard' }, [kanban]))).toBe('edge')
+    })
+
+    it('gives collection and dashboard pages the full width, dense or not', () => {
+        const plain = page(undefined, [crud({ columns: [plainColumn()] })])
+        expect(resolvePageWidth(serverSide({ pageType: 'collection' }, [plain]))).toBe('full')
+        expect(resolvePageWidth(serverSide({ pageType: 'dashboard' }, [clientSide(ComponentMetadataType.Card)]))).toBe('full')
+    })
+
+    it('reads a bare listing route (a Crud with no page type) as a collection', () => {
+        expect(resolvePageWidth(crud({ columns: [plainColumn()] }))).toBe('full')
+        expect(resolvePageWidth(serverSide({}, [crud({ columns: [plainColumn()] })]))).toBe('full')
+    })
+
+    it('keeps a form page that embeds a small listing at fixed', () => {
+        const form = clientSide(ComponentMetadataType.Form, {}, [crud({ columns: [plainColumn()] })])
+        expect(resolvePageWidth(serverSide({ pageType: 'form' }, [form]))).toBe('fixed')
+    })
+
+    it('gives a board or a foldout on a FORM page the full width, never the edges', () => {
+        for (const type of [ComponentMetadataType.Kanban, ComponentMetadataType.FoldoutLayout]) {
+            const form = clientSide(ComponentMetadataType.Form, {}, [clientSide(type)])
+            expect(resolvePageWidth(serverSide({ pageType: 'form' }, [form])), type).toBe('full')
+        }
+    })
+
+    it('reads a bare YAML Form route as a form page — or as its template\'s kind of page', () => {
+        const map = clientSide(ComponentMetadataType.Form, {}, [clientSide(ComponentMetadataType.Map)])
+        expect(resolvePageWidth(map)).toBe('full')
+        const collection = clientSide(ComponentMetadataType.Form, { template: { type: 'CollectionDetailPage' } }, [crud({ columns: [plainColumn()] })])
+        expect(resolvePageWidth(collection)).toBe('full')
+        expect(resolvePageWidth(clientSide(ComponentMetadataType.Form, {}, [clientSide(ComponentMetadataType.Text)]))).toBe('fixed')
+    })
+
+    it('paints a foldout detail page edge to edge', () => {
+        const foldout = clientSide(ComponentMetadataType.FoldoutLayout)
+        expect(resolvePageWidth(serverSide({ pageType: 'detail' }, [foldout]))).toBe('edge')
     })
 
     it('reads the page type from the Page metadata when the wrapper says nothing', () => {

@@ -986,7 +986,14 @@ Mateu.Uidl.ItemOverview ctor()
 Mateu.Uidl.ItemOverview method Mateu.Uidl.IComponent Component()
 Mateu.Uidl.ItemOverview property System.String PanelWidth { get; }
 Mateu.Uidl.Kanban ctor()
+Mateu.Uidl.Kanban property Mateu.Uidl.KanbanCard Card { get;init; }
+Mateu.Uidl.Kanban property Mateu.Uidl.RestDataSource RowsSource { get;init; }
+Mateu.Uidl.Kanban property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> CardColors { get;init; }
 Mateu.Uidl.Kanban property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.KanbanColumn> Columns { get;init; }
+Mateu.Uidl.Kanban property System.String CardRoute { get;init; }
+Mateu.Uidl.Kanban property System.String ColumnField { get;init; }
+Mateu.Uidl.Kanban property System.String MoveActionId { get;init; }
+Mateu.Uidl.Kanban property System.String OrderField { get;init; }
 Mateu.Uidl.KanbanCard ctor()
 Mateu.Uidl.KanbanCard property System.String ActionId { get;init; }
 Mateu.Uidl.KanbanCard property System.String Badge { get;init; }

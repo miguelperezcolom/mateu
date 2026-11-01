@@ -304,8 +304,9 @@ export function metricAriaLabel({ title, value, unit, timeframe, trendLabel, des
 export function metricOf(m, interp = (x) => x) {
   const trend = m.trend || ''
   const title = interp(m.title || '')
-  const value = String(m.value == null ? '' : m.value)
-  const unit = m.unit || ''
+  // the value interpolates like the texts around it (`value: ${state.visitors}` showed literally)
+  const value = m.value == null ? '' : String(interp(String(m.value)))
+  const unit = m.unit ? String(interp(m.unit)) : ''
   // the period the number covers ("Last 7 days"): under the value, and in the accessible text
   const timeframe = String(interp(m.timeframe || '') || '').trim()
   const trendLabel = m.trendLabel ? interp(m.trendLabel) : ''
@@ -441,6 +442,8 @@ export const RICH_ATOM_FLAGS = [
   'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
   'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
   'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
+  // a Listing nested in a templated page's content (core/listing.mjs nestedListingAtomOf)
+  'isNestedListing',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])

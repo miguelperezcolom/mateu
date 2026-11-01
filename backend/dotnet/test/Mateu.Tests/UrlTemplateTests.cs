@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Mateu.Core;
 using Xunit;
 
@@ -75,5 +76,37 @@ public class UrlTemplateTests
             Environment.SetEnvironmentVariable("MATEU_TEST_DB_PASSWORD", null);
             Environment.SetEnvironmentVariable("MATEU_SECRET_MATEU_TEST_TOKEN", null);
         }
+    }
+
+    /// <summary>The proxy's own resolver over a state as the wire delivers it (JsonElements).</summary>
+    private static string Proxy(string template, string stateJson) =>
+        UrlTemplate.Interpolate(template, expr => UrlTemplate.ValueOf(expr,
+            JsonSerializer.Deserialize<Dictionary<string, object?>>(stateJson)!, _ => null));
+
+    [Fact]
+    public void An_explicit_encodeURIComponent_is_encoded_once()
+    {
+        // demo-starwars' sources.yaml: a multi-select and a search with a space matched nothing
+        const string art = "https://api.example.com/art?type=${encodeURIComponent(state.type)}";
+        Assert.Equal("https://api.example.com/art?type=Painting%2CPhotograph", Proxy(art, """{"type":["Painting","Photograph"]}"""));
+        Assert.Equal("https://api.example.com/art?type=Painting%2CPhotograph", Proxy(art, """{"type":"Painting,Photograph"}"""));
+        const string search = "https://api.example.com/m?search=${encodeURIComponent(state.q ?? '')}";
+        Assert.Equal("https://api.example.com/m?search=Sample%20Return", Proxy(search, """{"q":"Sample Return"}"""));
+        Assert.Equal("https://api.example.com/m?search=", Proxy(search, "{}"));
+        Assert.Equal("/x/a%2Fb", Proxy("/x/${encodeURIComponent(state.v)}", """{"v":"a/b"}"""));
+        Assert.Throws<ArgumentException>(() => Proxy("/x/${encodeURIComponent(state.v)}", """{"v":".."}"""));
+        Assert.Throws<ArgumentException>(() => Proxy("${encodeURIComponent(state.base)}/x", """{"base":"http://evil"}"""));
+        Assert.Null(UrlTemplate.EncodeCallArgument("encodeURIComponent(a) + encodeURIComponent(b)"));
+    }
+
+    [Fact]
+    public void A_fallback_and_a_money_value_resolve_like_the_browser()
+    {
+        Assert.Equal("/p?page=3&size=20", Proxy("/p?page=${state.page ?? 0}&size=${state.size ?? 20}", """{"page":3}"""));
+        const string price = """{"price":{"value":12500000,"currency":"EUR","locale":"es-ES"}}""";
+        Assert.Equal("/x?min=12500000&cur=EUR", Proxy("/x?min=${state.price}&cur=${state.price.currency}", price));
+        var state = JsonSerializer.Deserialize<Dictionary<string, object?>>(price)!;
+        Assert.Equal("12500000", UrlTemplate.ValueOf("state.price", state, _ => null));
+        Assert.Equal("EUR", UrlTemplate.ValueOf("state.price.currency", state, _ => null));
     }
 }

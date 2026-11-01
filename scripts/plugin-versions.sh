@@ -11,7 +11,7 @@
 # JetBrains Marketplace takes the framework's version as it is. The VS Code Marketplace and Open VSX
 # take only major.minor.patch numbers, and only ever a HIGHER one than the last published. So a beta
 # of X.0 is published BELOW X.0.0 — (X-1).99.N, and a release candidate (X-1).999.N, above every
-beta whatever its number — and from the GA on every version is the framework's
+# beta whatever its number — and from the GA on every version is the framework's
 # own, unchanged. (Mapping beta.N to X.0.N would have made X.0.1 lower than the last beta: rejected.)
 # Published as an ordinary version, NOT --pre-release: a pre-release only reaches users who opted
 # into that channel, and the extension's existing users would stop getting updates. A tag this

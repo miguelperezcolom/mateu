@@ -58,9 +58,17 @@ final class RestProxyCalls {
   static final class RestProxyException extends RuntimeException {
     final int status;
 
+    /** What the service said about it (its error body), for the user; null when it said nothing. */
+    final String detail;
+
     RestProxyException(int status, String message) {
+      this(status, message, null);
+    }
+
+    RestProxyException(int status, String message, String detail) {
       super(message);
       this.status = status;
+      this.detail = detail;
     }
   }
 
@@ -73,14 +81,20 @@ final class RestProxyCalls {
     if (source == null) {
       return body(Map.of());
     }
-    var state =
-        command.componentState() != null ? command.componentState() : Map.<String, Object>of();
+    var state = callState(command.componentState(), params);
     // SAMPLE mode (opt-in only, see SampleSources): a source carrying sample data answers with it
     // instead of being called — the proxied twin of the browser's short-circuit in
     // fetchExternalJson, so both legs agree. A read gets the sample; a write (and a bulk one)
     // succeeds without persisting anything.
     if (SampleSources.enabled() && source.carriesSample()) {
       return sampleAnswer(source);
+    }
+    // Only a source declared proxy: true is called by the server. A direct one is meant to stay in
+    // the browser: proxying it on request ran a server-side call — with ${secret.X} resolved — the
+    // author never asked for (refused like any action the page does not offer)
+    if (!source.proxy() && source.url() != null && !source.url().isBlank()) {
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "__restfetch__: " + kind + "/" + id + " is not a proxied source (proxy: true)");
     }
     // Bulk (forEachSelectedRow): the loop runs on the SERVER, once per selected listing row, each
     // row merged OVER the component state so a per-id url like `.../people/${state.id}` resolves to
@@ -93,7 +107,7 @@ final class RestProxyCalls {
     try {
       return body(performRestCall(source, state));
     } catch (RestProxyException e) {
-      return restFetchError(e.status, "Request failed" + statusSuffix(e.status));
+      return restFetchError(e.status, "Request failed" + statusSuffix(e.status), e.detail);
     }
   }
 
@@ -119,7 +133,8 @@ final class RestProxyCalls {
       // A failed row must not read as success: surface it rather than reload as if all deleted.
       return restFetchError(
           firstError.status,
-          failed + " of " + list.size() + " failed" + statusSuffix(firstError.status));
+          failed + " of " + list.size() + " failed" + statusSuffix(firstError.status),
+          firstError.detail);
     }
     // The rows are gone; the client reloads the listing via successRoute, so no body is needed.
     return body(Map.of());
@@ -158,6 +173,11 @@ final class RestProxyCalls {
       var answer = sampleAnswer(source);
       return () -> answer;
     }
+    // a DIRECT shell source is the browser's to fetch: not proxied on request (see fetch)
+    if (!source.proxy() && source.url() != null && !source.url().isBlank()) {
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "_appsource: the shell's source is not a proxied source (proxy: true)");
+    }
     // the variables the browser interpolates with (searchText, ids…), minus the routing keys
     var state = new LinkedHashMap<String, Object>();
     params.forEach(
@@ -170,9 +190,34 @@ final class RestProxyCalls {
       try {
         return body(performRestCall(source, state));
       } catch (RestProxyException e) {
-        return restFetchError(e.status, "Request failed" + statusSuffix(e.status));
+        return restFetchError(e.status, "Request failed" + statusSuffix(e.status), e.detail);
       }
     };
+  }
+
+  /** The proxy's own routing keys: what to call, never a value to interpolate. */
+  private static final java.util.Set<String> ROUTING_PARAMETERS =
+      java.util.Set.of("_sourceKind", "_sourceId", "_forEachSelectedRow");
+
+  /**
+   * The state a call interpolates with: the component state with the action's parameters over it —
+   * a kanban move's {@code _cardId}/{@code _toColumnId} and the moved card's row reach {@code
+   * ${state._toColumnId}} exactly as they do on the browser's direct leg (mateu-component merges
+   * them the same way).
+   */
+  static Map<String, Object> callState(
+      Map<String, Object> componentState, Map<String, Object> params) {
+    var state = new LinkedHashMap<String, Object>();
+    if (componentState != null) {
+      state.putAll(componentState);
+    }
+    params.forEach(
+        (key, value) -> {
+          if (!ROUTING_PARAMETERS.contains(key)) {
+            state.put(key, value);
+          }
+        });
+    return state;
   }
 
   private static Map<String, Object> parametersOf(RunActionCommand command) {
@@ -196,9 +241,72 @@ final class RestProxyCalls {
   }
 
   private static UIIncrementDto restFetchError(int status, String message) {
-    return UIIncrementDto.builder()
-        .appData(Map.of(RESTFETCH_ERROR_KEY, Map.of("status", status, "message", message)))
-        .build();
+    return restFetchError(status, message, null);
+  }
+
+  /**
+   * The failure the client shows. {@code detail} is what the SERVICE said (its error body, see
+   * {@link #serviceMessageOf}): the user reads "Image larger than 2 MB", not "Request failed (HTTP
+   * 400)". Only the upstream's message travels — never its headers or the url we called.
+   */
+  private static UIIncrementDto restFetchError(int status, String message, String detail) {
+    var error = new LinkedHashMap<String, Object>();
+    error.put("status", status);
+    error.put("message", message);
+    if (detail != null) {
+      error.put("detail", detail);
+    }
+    return UIIncrementDto.builder().appData(Map.of(RESTFETCH_ERROR_KEY, error)).build();
+  }
+
+  private static final int SERVICE_MESSAGE_MAX = 300;
+
+  /**
+   * What an error body says, for a person: a JSON object's {@code message}, {@code detail} (RFC
+   * 7807), {@code error} (a string, or an object with a message) or {@code title}; else the body
+   * itself when it is short plain text (never HTML). Control characters out, at most 300
+   * characters; null when there is nothing worth showing. The browser applies the same rule to a
+   * direct call (libs/mateu {@code serviceMessage.ts}, Redwood {@code serviceMessageOf}).
+   */
+  static String serviceMessageOf(String body) {
+    if (body == null || body.isBlank()) {
+      return null;
+    }
+    var text = body.trim();
+    if (text.startsWith("{")) {
+      try {
+        var json = REST_MAPPER.readTree(text);
+        for (var key : List.of("message", "detail", "error", "title")) {
+          var value = json.get(key);
+          if (value != null && value.isTextual() && !value.asText().isBlank()) {
+            return clipped(value.asText());
+          }
+          if (value != null && value.isObject()) {
+            var nested = value.get("message");
+            if (nested != null && nested.isTextual() && !nested.asText().isBlank()) {
+              return clipped(nested.asText());
+            }
+          }
+        }
+      } catch (Exception e) {
+        return null;
+      }
+      return null;
+    }
+    if (text.startsWith("<") || text.startsWith("[") || text.length() > SERVICE_MESSAGE_MAX) {
+      return null;
+    }
+    return clipped(text);
+  }
+
+  private static String clipped(String text) {
+    var clean = text.replaceAll("[\\p{Cntrl}&&[^\\n]]", "").replaceAll("\\s+", " ").trim();
+    if (clean.isEmpty()) {
+      return null;
+    }
+    return clean.length() > SERVICE_MESSAGE_MAX
+        ? clean.substring(0, SERVICE_MESSAGE_MAX - 1) + "…"
+        : clean;
   }
 
   /**
@@ -252,7 +360,10 @@ final class RestProxyCalls {
       var response =
           REST_HTTP.send(builder.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
-        throw new RestProxyException(response.statusCode(), "HTTP " + response.statusCode());
+        throw new RestProxyException(
+            response.statusCode(),
+            "HTTP " + response.statusCode(),
+            serviceMessageOf(response.body()));
       }
       return parseBody(response.body());
     } catch (RestProxyException e) {

@@ -689,12 +689,28 @@ class KanbanColumn:
 
 @dataclass(frozen=True)
 class Kanban(Component):
-    """A read-only kanban board: columns of cards. Cards may carry an ``action_id``."""
+    """A kanban board: columns of cards. Cards may carry an ``action_id``.
+
+    With a ``move_action_id`` its cards move (drag, or a "Move to…" menu): the action runs with the
+    card's row plus ``_cardId``, ``_fromColumnId``, ``_toColumnId`` and ``_toIndex``. With a
+    ``rows_source`` the board is LIVE: one card per item, in the column whose id equals the item's
+    ``column_field`` (default ``status``), drawn from the ``card`` template (``${row.x}``), coloured
+    by ``card_colors`` and opening ``card_route`` — in the source's order, or sorted by
+    ``order_field`` when set (a move then also sends the card's new order value as ``_toOrder``,
+    written over the item's own field too). (Mirrors ``io.mateu.uidl.data.Kanban``.)
+    """
 
     columns: tuple[KanbanColumn, ...] = ()
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    move_action_id: str | None = None
+    rows_source: object | None = None
+    column_field: str | None = None
+    card: KanbanCard | None = None
+    card_colors: dict | None = None
+    card_route: str | None = None
+    order_field: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "columns", tuple(self.columns))

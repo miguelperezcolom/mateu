@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DEMO_BASE_URL, ENTRIES_KEY, SEEDED_KEY, UiStore, searchEntries, uiSecretKeys } from './uiStore.ts';
-import { uiSessionId } from './uiSession.ts';
+import { hubBarSignsOut, uiSessionId } from './uiSession.ts';
 import { exportLink, parseHubLink } from './links.ts';
 import type { KeyValueStore } from '../core/sessionId.ts';
 
@@ -173,4 +173,10 @@ test('secret keys are secure-store safe', () => {
   const k = uiSecretKeys('a/b c');
   assert.match(k.tokens, /^[A-Za-z0-9._-]+$/);
   assert.match(k.sessionId, /^[A-Za-z0-9._-]+$/);
+});
+
+test('a signed-in UI offers Sign out on the hub bar (a tabs shell has no drawer to put it in)', () => {
+  assert.equal(hubBarSignsOut(true, 'ready'), true);
+  assert.equal(hubBarSignsOut(true, 'signin'), false, 'not before signing in');
+  assert.equal(hubBarSignsOut(false, 'ready'), false, 'a UI with no sign-in has nothing to sign out of');
 });

@@ -516,6 +516,12 @@ export class MateuFilterBar extends LitElement {
                 })
             }
         })
+        // A listing with nothing to search (its source takes no text) and no filter to set: the bar
+        // was still drawn — a search box with no input that took no typing — so draw none at all.
+        if (this.metadata?.searchable === false && this.filters.length === 0
+            && this.scopeFilters.length === 0 && chips.length === 0) {
+            return html`<slot></slot>`
+        }
         return html`
             <div class="smart-search">
                 <div class="bar"

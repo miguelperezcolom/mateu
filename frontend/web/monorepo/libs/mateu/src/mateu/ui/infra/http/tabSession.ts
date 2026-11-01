@@ -37,8 +37,23 @@ export const AGENT_SECRET_KEY = 'mateu-agent-channel-secret'
 /** The BroadcastChannel the tabs of an origin (it is origin-scoped by the platform) answer on. */
 export const TAB_SESSION_CHANNEL = 'mateu-tab-sessions'
 export const TAB_SESSION_WAIT_MS = 250
+/**
+ * How long a tab that ASKED keeps listening after its wait. The tab that holds the id answers from its
+ * main thread: busy with a heavy render, its "mine" can arrive after `waitMs` — and a duplicate that
+ * stopped listening then kept the copied id, two tabs sharing one session (and one push channel).
+ * A late answer inside this window still re-keys the duplicate ({@link onTabSessionRekeyed}).
+ */
+export const TAB_SESSION_LATE_MS = 10_000
 
 type Message = { type?: unknown, id?: unknown }
+
+const rekeyListeners = new Set<() => void>()
+
+/** Called when a LATE answer re-keyed this tab after the claim settled (the agent channel reconnects). */
+export const onTabSessionRekeyed = (listener: () => void): (() => void) => {
+    rekeyListeners.add(listener)
+    return () => { rekeyListeners.delete(listener) }
+}
 
 export interface ClaimOptions {
     /** Where the id and secret live (sessionStorage by default). */
@@ -47,6 +62,10 @@ export interface ClaimOptions {
     Channel?: (new (name: string) => BroadcastChannel) | null
     /** How long to wait for an answer. */
     waitMs?: number
+    /** How long a late answer still re-keys the tab ({@link TAB_SESSION_LATE_MS}). */
+    lateMs?: number
+    /** The clock (tests). */
+    now?: () => number
     /** The navigation type ('reload' skips the question); the platform's by default. */
     navigationType?: string
 }
@@ -83,13 +102,33 @@ export const claimTabSession = (options: ClaimOptions = {}): Promise<boolean> =>
     }
     // Node (tests, SSR) keeps the process alive for an open channel; a browser has no unref
     ;(channel as unknown as { unref?: () => void }).unref?.()
+    const lateMs = options.lateMs ?? TAB_SESSION_LATE_MS
+    const now = options.now ?? Date.now
+    // the duplicate: a new session — the id now, the secret lazily (agentChannel.channelSecret)
+    const rekey = () => {
+        storage.set(SESSION_ID_KEY, nanoid())  // the same shape as authToken.sessionId's
+        storage.remove(AGENT_SECRET_KEY)
+    }
     let taken = false
+    // set once this tab ASKED and its wait is over: until then a late "mine" for the id it asked
+    // about still means it is the duplicate. A tab that never asked (or is past the window) never
+    // re-keys on a "mine" — that is an answer to SOMEONE ELSE's question.
+    let lateUntil = 0
     channel.onmessage = (e: MessageEvent) => {
         const m = (e?.data ?? {}) as Message
         const mine = storage.get(SESSION_ID_KEY)
         if (!mine || m.id !== mine) return
         if (m.type === 'who') channel.postMessage({ type: 'mine', id: m.id })
-        else if (m.type === 'mine') taken = true
+        else if (m.type === 'mine') {
+            taken = true
+            if (lateUntil && now() <= lateUntil) {
+                lateUntil = 0
+                rekey()
+                for (const listener of [...rekeyListeners]) {
+                    try { listener() } catch { /* a listener's failure is its own */ }
+                }
+            }
+        }
     }
     const navigationType = options.navigationType ?? platformNavigationType()
     if (!known || navigationType === 'reload') return Promise.resolve(false)
@@ -100,12 +139,11 @@ export const claimTabSession = (options: ClaimOptions = {}): Promise<boolean> =>
     }
     return new Promise((resolve) => setTimeout(() => {
         if (!taken) {
+            lateUntil = now() + lateMs
             resolve(false)
             return
         }
-        // the duplicate: a new session — the id now, the secret lazily (agentChannel.channelSecret)
-        storage.set(SESSION_ID_KEY, nanoid())  // the same shape as authToken.sessionId's
-        storage.remove(AGENT_SECRET_KEY)
+        rekey()
         resolve(true)
     }, waitMs))
 }

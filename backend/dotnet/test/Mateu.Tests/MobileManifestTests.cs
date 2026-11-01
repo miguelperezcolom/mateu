@@ -52,6 +52,28 @@ public class MobileManifestTests
         Assert.Equal(Plain, MobileManifest.Json(typeof(MobilePlainApp)));
     }
 
+    // The Mateu release travels as `mateuVersion` (after minAppVersion) so the hub apps can tell whether
+    // they predate this UI — only a release. Same JSON as Java's MobileManifestVersionTest and Python's.
+    [Fact]
+    public void A_release_travels_after_min_app_version()
+    {
+        Assert.Equal(
+            "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\",\"mateuVersion\":\"3.0.0-beta.33\"}",
+            MobileManifest.Json(typeof(MobilePlainApp), "3.0.0-beta.33+abc123"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("3.0.0-dev")]
+    [InlineData("3.0.0-dev+sha")]
+    [InlineData("0.0.1-MATEU")]
+    [InlineData("3.0-SNAPSHOT")]
+    public void A_development_build_sends_no_version(string? dev)
+    {
+        Assert.Equal(Plain, MobileManifest.Json(typeof(MobilePlainApp), dev));
+    }
+
     [Fact]
     public void Environment_settings_override_and_complete_the_manifest()
     {

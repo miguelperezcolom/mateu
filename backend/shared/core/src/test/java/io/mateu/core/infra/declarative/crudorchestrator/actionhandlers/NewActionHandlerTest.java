@@ -19,6 +19,11 @@ class NewActionHandlerTest {
 
   private final NewActionHandler handler = new NewActionHandler();
 
+  @org.junit.jupiter.api.BeforeEach
+  void mayWrite() {
+    CrudMocks.allowWrites(orchestrator);
+  }
+
   @Test
   void supportsOnlyNewAction() {
     assertThat(handler.supports("new", httpRequest)).isTrue();

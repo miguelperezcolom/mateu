@@ -21,7 +21,7 @@ in the same change.
 |---|---|---|---|
 | Forms, sections, field types, validation. Field help (`[Help]` / `Help()` → `description`), `[SliderMin]`/`[SliderMax]` (`SliderMin()`/`SliderMax()`) and the fluent `FormField`'s `placeholder`/`autofocus`/`step` are in both ports (conformance cases `field-help`, `field-hints`). Ports: no `@Section(sticky, columns, style)`, `@MainFilter`, `@HiddenIn*` | ✅ | 🟡 | 🟡 |
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
-| App shell + menus + navigation. Ports: no `@App(layout, backLink, ask…)`, and 25 of the 62 `AppDto` members are never emitted (see [envelope members](#envelope-members)) | ✅ | 🟡 | 🟡 |
+| App shell + menus + navigation. Ports: no `@App(layout, backLink, ask…)`, and some `AppDto` members are never emitted (see [envelope members](#envelope-members)) | ✅ | 🟡 | 🟡 |
 | App shell + menus authored IN CODE (Java `AppSupplier`/`MenuSupplier` returning a fluent `AppShell`; .NET `IAppSupplier`/`IMenuSupplier` + `AppShell`; Python `AppSupplier`/`MenuSupplier` + `AppShell`) — the whole shell (or just the menu) computed at request time, overriding the static `@App`/`@Menu` declarations | ✅ | ✅ | ✅ |
 | [App shell as data](/define/yaml/app-shell/) (`type: AppShell` definition bound to a mount route) with its FLOWS — `actions:` with `steps:` that a menu `RuleLink` (`RunAction` rule) runs client-side, no round-trip — plus `widgets:` and the header switches `themeToggle`/`commandCenter`/`chromeless`/`accessKeys`. Code-built shells carry the same (`AppShell.builder().action(...)`). The ports have no `type: AppShell` definitions: N/A there | ✅ | N/A | N/A |
 | Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
@@ -123,6 +123,11 @@ in the same change.
 | AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
 | Federation (remote menus + `MicroFrontend` islands) | ✅ | ✅ | ✅ |
+| [Micro frontends resolved in the server](/java-ui-definition/components/micro-frontend/#resolving-it-in-the-server-resolve--server) (`resolve = SERVER`: the host asks the remote while building the view and embeds its fragments; remote registry, identity strategies, fragment cache decided by the remote, correlation id) and [`@ContentSlot`](/java-ui-definition/components/content-slot/) (.NET `[ContentSlot]` + `Mateu.Core/MicroFrontends`, Python `ContentSlot()` + `core/microfrontends.py`; slot keys checked at registration instead of compile time). Ports: no YAML `ContentSlot` builder, no `mateu.remotes.*` properties — remotes are configured with the server options | ✅ | 🟡 | 🟡 |
+| [Version skew](/deploy/versions-across-teams/) (`X-Mateu-Build` on every Mateu response, the renderer's "this app has been updated" band; .NET `VersionSkewMiddleware`, Python `core/version_skew.py` / `add_mateu(build_id=…)`) | ✅ | ✅ | ✅ |
+| [Oracle CDN mirror](/deploy/oracle-cdn-mirror/) for the Redwood page (`mateu.oracle-cdn.url`; .NET `MateuOptions.OracleCdnUrl`, Python `add_mateu(oracle_cdn_url=…)`) | ✅ | ✅ | ✅ |
+| [Inferred form column count](/java-ui-definition/forms/#how-many-columns) (one column up to 6 visible fields, two from 7 on; a declared count wins — conformance case `form-columns`) | ✅ | ✅ | ✅ |
+| [Page templates in YAML](/define/yaml/pages/#page-templates--template) (`template:` on a `type: Form`: Item overview, Welcome, Dashboard landing, General overview, Collection detail, Foldout, Multimedia content, Advanced create/edit, Guided process, Data management, Hero search). The ports' YAML builders do not read `template:` | ✅ | — | — |
 | Component adapters | ✅ | ✅ `IComponentAdapter<T>` SPI | ✅ (`ComponentAdapter` + `AdaptedView`) |
 | Hero search archetype | ✅ | ✅ | ✅ |
 | Page toolbar from methods (`@Toolbar`, `@ViewToolbarButton`). `@Toolbar` is in both ports (.NET `[Toolbar]`, Python `@toolbar`: label, `buttonStyle`, validation, access gates; conformance case `page-toolbar`). Neither port has `@ViewToolbarButton`: a CRUD record's view page carries the fixed Back to list / Add another / Edit toolbar | ✅ | 🟡 | 🟡 |
@@ -260,11 +265,11 @@ express, not broken screens:
 
 | DTO | Java-only members |
 |---|---|
-| `AppDto` (25 of 62) | `accentColor`, `accentStrip`, `generatedAccentStrip`, `actions`, `apps`, `askIcon`, `askLabel`, `backLabel`, `backRoute`, `noBreadcrumbs`, `cssClasses`, `style`, `drawerClosed`, `fabs`, `favicon`, `icon`, `logo`, `home`, `homeUriPrefix`, `globalSearchSource`, `notificationsSource`, `notificationsReadSource`, `mcpUrl`, `uploadUrl`, `welcomeMessage` |
-| `CrudlDto` (26 of 49) | `multipleRowSelectionEnabled`, `onRowSelectionChangedActionId`, `selectionListened`, `hasActionOnSelectedRow`, `useButtonForDetail`, `infiniteScrolling`, `lazyLoading`, `lazyColumnRendering`, `initialPage`, `allRowsVisible`, `contentHeight`, `size`, `header`, `footer`, `child`, `rowRoute` (Java's YAML listings), `showCards`, `wrapCellContent`, `columnBorders`, `columnReorderingAllowed`, `noBorder`, `noRowBorder`, `rowStripes`, `gridStyle`, `vaadinGridCellBackground`, `vaadinGridCellPadding` |
-| `FormFieldDto` (6 of 43; .NET also lacks `detailPath`, `formStyle`, `formTheme`, `useButtonForDetail`) | `badges`, `bold`, `rightAligned`, `cssClasses`, `mainFilter`, `observed` |
-| `ActionDto` (8 of 19) | `sse`, `background`, `confirmationTexts`, `js`, `href`, `customEvent`, `modalStyle`, `modalTitle` |
-| `DialogDto` (4 of 15) | `draggable`, `resizable`, `top`, `left` |
+| `AppDto` | `accentColor`, `accentStrip`, `generatedAccentStrip`, `actions`, `apps`, `askIcon`, `askLabel`, `backLabel`, `backRoute`, `noBreadcrumbs`, `cssClasses`, `style`, `drawerClosed`, `fabs`, `favicon`, `icon`, `logo`, `home`, `homeUriPrefix`, `globalSearchSource`, `notificationsSource`, `notificationsReadSource`, `mcpUrl`, `uploadUrl`, `welcomeMessage` |
+| `CrudlDto` | `multipleRowSelectionEnabled`, `onRowSelectionChangedActionId`, `selectionListened`, `hasActionOnSelectedRow`, `useButtonForDetail`, `infiniteScrolling`, `lazyLoading`, `lazyColumnRendering`, `initialPage`, `allRowsVisible`, `contentHeight`, `size`, `header`, `footer`, `child`, `rowRoute` (Java's YAML listings), `showCards`, `wrapCellContent`, `columnBorders`, `columnReorderingAllowed`, `noBorder`, `noRowBorder`, `rowStripes`, `gridStyle`, `vaadinGridCellBackground`, `vaadinGridCellPadding` |
+| `FormFieldDto` (.NET also lacks `detailPath`, `formStyle`, `formTheme`, `useButtonForDetail`) | `badges`, `bold`, `rightAligned`, `cssClasses`, `mainFilter`, `observed` |
+| `ActionDto` | `sse`, `background`, `confirmationTexts`, `js`, `href`, `customEvent`, `modalStyle`, `modalTitle` |
+| `DialogDto` | `draggable`, `resizable`, `top`, `left` |
 
 #### Authoring
 
@@ -324,6 +329,7 @@ of each type and fail on a placeholder — not a string match on the source.
 | Redwood pattern gaps (2026-10-10): header record/context switcher, `Announce`, hero tone, foldout `summary-N`, crud `preSearch`, a `Drawer` re-sent with an open drawer's id refreshing in place | ✅ shared DS-neutral elements | ✅ oj-sp header data switcher, `dark-<tone>` banner, `oj-sp-foldout-panel` summary slot | ✅ combo + speed search | ✅ bottom-sheet switcher |
 | Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
 | Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ (tree = JTree; cards/list adapt to the table) | ✅ |
+| A listing's `rowRoute` that resolves to a whole URL (`${row.imageLarge}`, `https://…`) opens outside the app — only http(s)/mailto/tel | ✅ new tab | ✅ new tab | ✅ system browser | ✅ system browser |
 | Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
 | Date picker | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
 | Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ |

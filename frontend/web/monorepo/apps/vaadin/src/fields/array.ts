@@ -2,6 +2,7 @@ import { html, nothing, TemplateResult } from 'lit'
 import { ifDefined } from 'lit/directives/if-defined.js'
 import type { FieldLabel, FieldValue } from './fieldEvents'
 import type { MateuField } from './mateu-field'
+import { asSelectValues, pickedOptionsOf, selectValuesChanged, sourcedOptions } from './string/select'
 
 /** dataType array: multi-selects, checkbox groups, grids, list boxes. */
 
@@ -119,15 +120,17 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
                 ></vaadin-multi-select-combo-box>
                 `
             }
+            // inline options, or a REST source's (it used to be read by the select only)
+            const options = host.field.optionsSource ? sourcedOptions(host) : host.field.options
             return html`
                 <vaadin-multi-select-combo-box
                         placeholder="${host.field?.placeholder ?? nothing}"
                         label="${label}"
                         item-label-path="label"
                         item-value-path="value"
-                        .items="${host.field.options}"
+                        .items="${options}"
                         .helperText="${host.helperText()}"
-                        .selectedItems="${host.selectedItems(value)}"
+                        .selectedItems="${pickedOptionsOf(options, value)}"
                         ?autofocus="${host.field.wantsFocus}"
                         ?required="${host.field.required || nothing}"
                         @selected-items-changed="${host.multiComboBoxValueChanged}"
@@ -167,20 +170,23 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
             </vaadin-checkbox-group>
                 `
         }
+        // a multiSelect (and any array field with options): inline, or a REST source's — and the
+        // values as strings, since a checkbox's value is one (an id list [5, 11] checked nothing)
+        const options = host.field.optionsSource ? sourcedOptions(host) : host.field.options
         return html `
             <vaadin-checkbox-group
                     id="${host.field.fieldId}"
                     label="${label}"
-                    @value-changed="${host.valueChanged}"
+                    @value-changed="${selectValuesChanged(host, options)}"
                     theme="vertical"
                     .helperText="${host.helperText()}"
                     ?autofocus="${host.field.wantsFocus}"
                     ?required="${host.field.required || nothing}"
                     data-colspan="${host.field.colspan}"
                     class="mateu-checkbox-group-${host.field.optionsColumns > 1?'multi-column':''}"
-                    .value="${value}"
+                    .value="${asSelectValues(value)}"
             >
-                    ${host.field.options?.map(option => html`
+                    ${options?.map(option => html`
                     <vaadin-checkbox 
                             value="${option.value}" 
                             label="${option.label}"

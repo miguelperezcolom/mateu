@@ -411,7 +411,27 @@ class ComponentMapperMixin(MixinBase):
                 )
                 for col in c.columns
             ]
-            return self._fluent_client(KanbanMetadata(columns=columns), c)
+            card = c.card
+            meta = KanbanMetadata(
+                columns=columns,
+                move_action_id=c.move_action_id,
+                rows_source=self._fluent_rest_source(c.rows_source),
+                column_field=c.column_field,
+                card=KanbanCardRecord(
+                    id=card.id,
+                    title=card.title,
+                    description=card.description,
+                    badge=card.badge,
+                    color=card.color,
+                    action_id=card.action_id,
+                )
+                if card is not None
+                else None,
+                card_colors=dict(c.card_colors) if c.card_colors else None,
+                card_route=c.card_route,
+                order_field=c.order_field,
+            )
+            return self._fluent_client(meta, c)
         if isinstance(c, fluent.Timeline):
             items = [
                 TimelineItemRecord(

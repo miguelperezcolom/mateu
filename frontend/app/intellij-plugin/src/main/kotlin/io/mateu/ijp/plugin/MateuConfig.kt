@@ -23,9 +23,15 @@ data class MateuConfig(
      *  registry, or the standalone distribution). Only then does the plugin boot an app, take the
      *  frame title or show its tool windows/toolbar widget — otherwise it defers to the platform. */
     val configured: Boolean,
+    /** The desktop build variant (`-Dmateu.variant`, baked in by `buildInstaller`): `hub` = the user's
+     *  own list of UIs, added by QR / address / `mateu://` link; `fixed` (or none) = one UI. */
+    val variant: String? = null,
 ) {
     /** The standalone desktop distribution (IntelliJ rebranded as "Mateu"), not a developer's IDE. */
     val standalone: Boolean get() = focused
+
+    /** The hub: only the standalone app, only the `hub` variant. */
+    val hub: Boolean get() = standalone && variant == "hub"
 }
 
 /** The single default backend for a configured project that names no base URL (Spring Boot's port). */
@@ -57,6 +63,7 @@ fun resolveMateuConfig(
     val focused = (sys("mateu.focused") ?: bundle("mateu.focused") ?: "false").toBoolean()
     val productName = sys("mateu.productName") ?: bundle("mateu.productName") ?: "Mateu"
     val config = parseConfig(sys("mateu.config") ?: bundle("mateu.config") ?: "{}")
+    val variant = (sys("mateu.variant") ?: bundle("mateu.variant"))?.lowercase()
     val configured = focused || baseUrl != null || (registryUrl != null && appId != null)
     return MateuConfig(
         baseUrl = (baseUrl ?: DEFAULT_BASE_URL).trimEnd('/'),
@@ -67,6 +74,7 @@ fun resolveMateuConfig(
         registryUrl = registryUrl,
         appId = appId,
         configured = configured,
+        variant = variant,
     )
 }
 

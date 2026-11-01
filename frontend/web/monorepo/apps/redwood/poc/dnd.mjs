@@ -1,4 +1,5 @@
 import { writeTileOrder, moveTile, moveTileBy } from './prefs.mjs'
+import { kanbanDropIndexOf } from './core/kanban.mjs'
 // DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
 // of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
 // (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
@@ -152,5 +153,88 @@ export function installDragAndDrop(doc = typeof document !== 'undefined' ? docum
     let params = {}
     try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
     dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, {})
+  }, true)
+}
+
+// ── KANBAN CARDS: a movable board (moveActionId) paints each card in a wrapper carrying its ids
+// (.mateu-kanban-item[data-card-id], its column's section[data-column-id], the board's
+// [data-kanban-key][data-move-action]). Dragging one over a column draws a line where it will land;
+// dropping it — or picking a move in its ⋯ select (the keyboard's way) — hands the move to the sink
+// (the kanbanCardMoved chain), which paints it at once and runs the action.
+const KANBAN_MIME = 'application/x-mateu-kanban-card'
+let kanbanSink = null
+export function setKanbanMoveSink(fn) { kanbanSink = typeof fn === 'function' ? fn : null }
+
+/** The move a drop at pointerY over a column element means, for the card being dragged. */
+export function kanbanDropMoveOf(columnEl, dragged, pointerY) {
+  const others = Array.from(columnEl.querySelectorAll('.mateu-kanban-item[data-card-id]'))
+    .filter((el) => el.getAttribute('data-card-id') !== dragged.cardId)
+  const middles = others.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 })
+  return { ...dragged, toColumnId: columnEl.getAttribute('data-column-id'), toIndex: kanbanDropIndexOf(pointerY, middles) }
+}
+
+export function installKanbans(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuKanbans) return
+  doc.__mateuKanbans = true
+  let dragged = null
+  const boardOf = (el) => (el && el.closest ? el.closest('.mateu-kanban[data-kanban-key]') : null)
+  const send = (board, move) => {
+    if (!board || !kanbanSink || !board.getAttribute('data-move-action')) return
+    kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move })
+  }
+  const clearMarks = () => {
+    for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
+    for (const el of doc.querySelectorAll('.mateu-kanban-over, .mateu-kanban-dragging')) el.classList.remove('mateu-kanban-over', 'mateu-kanban-dragging')
+  }
+  doc.addEventListener('dragstart', (e) => {
+    const item = e.target && e.target.closest ? e.target.closest('.mateu-kanban-item[draggable="true"]') : null
+    const column = item && item.closest('[data-column-id]')
+    if (!item || !column || !boardOf(item) || !e.dataTransfer) return
+    dragged = { cardId: item.getAttribute('data-card-id'), fromColumnId: column.getAttribute('data-column-id'), board: boardOf(item) }
+    e.dataTransfer.setData(KANBAN_MIME, dragged.cardId)
+    e.dataTransfer.effectAllowed = 'move'
+    item.classList.add('mateu-kanban-dragging')
+  }, true)
+  doc.addEventListener('dragover', (e) => {
+    if (!dragged) return
+    const column = e.target && e.target.closest ? e.target.closest('[data-column-id]') : null
+    if (!column || boardOf(column) !== dragged.board) return
+    e.preventDefault()
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+    const move = kanbanDropMoveOf(column, dragged, e.clientY)
+    for (const el of doc.querySelectorAll('.mateu-kanban-over')) if (el !== column) el.classList.remove('mateu-kanban-over')
+    column.classList.add('mateu-kanban-over')
+    // the line where it lands: before the card at that index (of the others), or at the end
+    for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
+    const others = Array.from(column.querySelectorAll('.mateu-kanban-item[data-card-id]'))
+      .filter((el) => el.getAttribute('data-card-id') !== dragged.cardId)
+    const line = doc.createElement('div')
+    line.className = 'mateu-kanban-drop-line'
+    const before = others[move.toIndex]
+    if (before) before.parentNode.insertBefore(line, before)
+    else column.appendChild(line)
+  }, true)
+  doc.addEventListener('drop', (e) => {
+    if (!dragged) return
+    const column = e.target && e.target.closest ? e.target.closest('[data-column-id]') : null
+    if (!column || boardOf(column) !== dragged.board) return
+    e.preventDefault()
+    const { board, ...from } = dragged
+    const move = kanbanDropMoveOf(column, from, e.clientY)
+    dragged = null
+    clearMarks()
+    send(board, move)
+  }, true)
+  doc.addEventListener('dragend', () => { dragged = null; clearMarks() }, true)
+  // the keyboard's way: the card's ⋯ select (each option's value is the move, as JSON)
+  doc.addEventListener('change', (e) => {
+    const select = e.target
+    if (!select || !select.classList || !select.classList.contains('mateu-kanban-move')) return
+    const raw = select.value
+    select.value = ''
+    if (!raw) return
+    let move
+    try { move = JSON.parse(raw) } catch (err) { return }
+    send(boardOf(select), move)
   }, true)
 }

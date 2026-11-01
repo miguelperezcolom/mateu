@@ -24,7 +24,8 @@ import org.junit.jupiter.api.Test;
 /**
  * The structure hash is digested while the canonical JSON is written instead of from a byte array
  * of it: the VALUE must not change — it is exactly SHA-256 over the canonical (sorted, ISO-dated)
- * JSON of the component without its instance id and hash slot, as it always was.
+ * JSON of the component without its instance ids (its own and its nested components' UUIDs) and
+ * hash slot.
  */
 class StructureHashDigestTest {
 
@@ -85,7 +86,13 @@ class StructureHashDigestTest {
   }
 
   static String expected(ServerSideComponentDto component) throws Exception {
-    byte[] json = CANONICAL.writeValueAsBytes(component.withId(null).withStructureHash(null));
+    var tree = CANONICAL.valueToTree(component.withId(null).withStructureHash(null));
+    // the instance ids (UUIDs) of nested components are not structure either
+    tree.findParents("id").stream()
+        .map(com.fasterxml.jackson.databind.node.ObjectNode.class::cast)
+        .filter(o -> o.get("id").asText().matches("[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"))
+        .forEach(o -> o.putNull("id"));
+    byte[] json = CANONICAL.writeValueAsBytes(tree);
     return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(json));
   }
 
@@ -105,5 +112,41 @@ class StructureHashDigestTest {
         assertThat(component.structureHash()).as(route).isEqualTo(expected(component));
       }
     }
+  }
+
+  /**
+   * A nested component that names no id gets a fresh UUID on every request: the same structure must
+   * still hash the same, or the client never gets the state-only answer and re-mounts (and
+   * re-loads) the page it already painted from its cache. An id the structure names still counts.
+   */
+  @Test
+  void nestedInstanceIdsDoNotChangeTheHashButNamedIdsDo() {
+    var page = routed(mateu.sync("/hash/form")).get(0);
+    String first = hashWith(page, java.util.UUID.randomUUID().toString());
+    String second = hashWith(page, java.util.UUID.randomUUID().toString());
+    assertThat(first).isEqualTo(second);
+    assertThat(hashWith(page, "name")).isNotEqualTo(hashWith(page, "surname"));
+  }
+
+  static String hashWith(ServerSideComponentDto page, String childId) {
+    var child =
+        new io.mateu.dtos.ClientSideComponentDto(
+            new io.mateu.dtos.ElementDto("div", java.util.Map.of(), java.util.Map.of(), "About"),
+            childId,
+            List.of(),
+            null,
+            null,
+            null,
+            null);
+    var children = new java.util.ArrayList<>(page.children());
+    children.add(child);
+    var component = (ServerSideComponentDto) page.withChildren(children);
+    var increment =
+        UIIncrementDto.builder()
+            .fragments(List.of(io.mateu.dtos.UIFragmentDto.builder().component(component).build()))
+            .build();
+    var stamped =
+        io.mateu.core.infra.StructureHashPostProcessor.apply(increment, null).fragments().get(0);
+    return ((ServerSideComponentDto) stamped.component()).structureHash();
   }
 }

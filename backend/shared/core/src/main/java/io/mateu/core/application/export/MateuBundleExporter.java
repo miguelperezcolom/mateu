@@ -207,13 +207,48 @@ public final class MateuBundleExporter {
         onlyStatic,
         entries,
         authored,
-        mock ? sources : sources.strippedOfSamples(),
+        // proxied sources ship without their request headers/body (RestSourceCatalog.forTheClient)
+        (mock ? sources : sources.strippedOfSamples()).forTheClient(),
         BundleManifest.aggregateCapabilitiesOf(entries),
-        definitions,
+        withoutGuardedDefinitions(definitions, authored),
         actionCatalogue(),
         translationCatalogue(),
         io.mateu.core.application.runaction.Environments.activeName(),
         mock ? Boolean.TRUE : null);
+  }
+
+  /**
+   * The definitions the manifest may carry: none that depends on WHO asks. A definition declaring
+   * access keys ({@code eyesOnly:} …, partials inlined) is dropped, and so is one that only routes
+   * declaring {@code access:} use — those routes are kept backend-served ({@link
+   * #yamlAccessRestriction}), and the raw file in a public bundle would hand every visitor the very
+   * content the keys withhold (the browser expander renders whatever it is given). A definition a
+   * public route also uses ships; the client refuses to expand it for the restricted route.
+   */
+  static Map<String, JsonNode> withoutGuardedDefinitions(
+      Map<String, JsonNode> definitions, RouteTable authored) {
+    if (definitions == null || definitions.isEmpty() || authored == null) {
+      return definitions;
+    }
+    var publicUse = new java.util.HashSet<String>();
+    for (var entry : authored.routes()) {
+      if (entry.definition() != null && !entry.restrictsAccess()) {
+        publicUse.add(entry.definition());
+      }
+    }
+    var out = new java.util.LinkedHashMap<String, JsonNode>();
+    definitions.forEach(
+        (name, node) -> {
+          if (io.mateu.core.application.security.YamlAccess.declaresAccess(node)) {
+            log.info("bundle: definition {} declares access keys — not shipped raw", name);
+          } else if (!publicUse.contains(name)) {
+            log.info(
+                "bundle: definition {} serves only access-restricted routes — not shipped", name);
+          } else {
+            out.put(name, node);
+          }
+        });
+    return out;
   }
 
   /**
@@ -282,7 +317,7 @@ public final class MateuBundleExporter {
    * definition is logged and omitted, leaving that route pre-rendered/backend-served as before.
    */
   private static Map<String, JsonNode> collectDefinitions(ClassLoader cl, RouteTable authored) {
-    var mapper = new YAMLMapper();
+    var mapper = new YAMLMapper(io.mateu.core.application.runaction.SpecsYaml.factory());
     var types = new io.mateu.core.application.runaction.FieldTypeRegistry();
     var out = new java.util.LinkedHashMap<String, JsonNode>();
     var inliner = new DefinitionInliner(cl);

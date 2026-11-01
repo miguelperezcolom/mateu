@@ -1,4 +1,5 @@
 import { calendarAtomOf, calendarPageToolbarOf } from '../calendar.mjs'
+import { evaluateExpression } from '../rules.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
@@ -7,7 +8,7 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
-import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
+import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
@@ -171,15 +172,29 @@ export function notFoundOf(tree, lang) {
 export function rowRouteOf(template, row) {
   if (!template) return ''
   let unresolved = false
+  // a template that is ONE placeholder takes the value whole (`${row.imageLarge}` → a URL): encoding
+  // it as a path segment turned https:// into https%3A%2F%2F. A value inside a path is a segment.
+  const whole = /^\s*\$\{\s*row\.[A-Za-z0-9_]+\s*\}\s*$/.test(String(template))
   const route = String(template).replace(/\$\{\s*row\.([A-Za-z0-9_]+)\s*\}/g, (all, field) => {
     const value = row ? row[field] : undefined
     if (value == null || value === '') { unresolved = true; return '' }
-    return encodeURIComponent(typeof value === 'object' ? (value.value ?? value.message ?? '') : String(value))
+    const text = typeof value === 'object' ? String(value.value ?? value.message ?? '') : String(value)
+    return whole ? text.trim() : encodeURIComponent(text)
   })
   return unresolved || route.includes('${') ? '' : route
 }
 
-export function interpolate(text, state) {
+/**
+ * Whether a route leaves the app: it carries a scheme (`https://…`, `mailto:`, a refused
+ * `javascript:`) or is protocol-relative (`//host`). The web's isExternalRoute (libs/mateu
+ * rowRoute.ts) is the same rule.
+ */
+export function isExternalRoute(route) {
+  const r = String(route == null ? '' : route).trim()
+  return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
+}
+
+export function interpolate(text, state, scope = {}) {
   // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
   // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
   if (text != null && String(text).includes('i18n.')) {
@@ -190,12 +205,20 @@ export function interpolate(text, state) {
   // and nested paths: `${state.status.message}` (the badge of a header @Status)
   // `\${` / `\\` are the literal escapes the server writes around DATA (Templates.literal): they
   // show as `${` / `\`, never as an expression — a record titled «${state.id}» is not evaluated
+  // Anything else in `${…}` is an EXPRESSION, evaluated like the web renderer does
+  // (`${state.lastName ?? ''}`, `${data.total}`, `${state.a ? 'x' : 'y'}`) with the sandboxed
+  // evaluator (rules.mjs) over state, data, appState and appData — a header used to show such a
+  // title raw. A failed one shows nothing, never the template.
   const source = String(text == null ? '' : text)
   if (!source.includes('${')) return source
   return source.replace(
-    /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
-    (all, escaped, dotted, quoted) => {
+    /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}|\$\{([^}]*)\}/g,
+    (all, escaped, dotted, quoted, expression) => {
       if (escaped) return escaped === '\\' ? '\\' : '${'
+      if (expression !== undefined) {
+        const value = evaluateExpression(expression, { ...scope, state: state || {} })
+        return value != null && typeof value !== 'object' ? String(value) : ''
+      }
       if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
       let value = state
       for (const part of dotted.split('.')) {
@@ -976,7 +999,7 @@ export function islandContentOf(ctx, opts = {}) {
         // its affordances (@Section(addAction, editAction, viewMoreAction)) are the section's own
         // buttons — add as its primary action, edit, view more — and leave the body
         card.sectionActions = sectionAffordancesOf(node)
-        card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items), card.sectionActions)
+        card.sectionItems = withoutSectionAffordances(sectionBodyOf(card.items, interp(card.sectionTitle)), card.sectionActions)
       }
       plain = null
       return
@@ -1155,7 +1178,7 @@ export function islandContentOf(ctx, opts = {}) {
         badges: (m.badges || []).map(badgeOf),
         // a fact naming an action: its icon button right after the value (factProjectionOf)
         facts: (m.facts || []).map((f) => factProjectionOf(f, interp(f.value))),
-        metricLabel: m.metricLabel || '',
+        metricLabel: interp(m.metricLabel || ''),
         metricValue: interp(m.metricValue || ''),
       }, container)
       return
@@ -1298,7 +1321,12 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Image') {
       // JET has no image component: an <img> capped at its container's width
       // a RELATIVE path is served by the backend (like an Element's module), not by the VB app
-      if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
+      // …with the component's own style (filtered like a Text's: presentation only) and cssClasses —
+      // without them a `max-width: 220px` portrait was drawn as wide as its column
+      if (m.src) {
+        atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || ''),
+          style: styleObjectOf(node.style || m.style), cls: String(node.cssClasses || m.cssClasses || '').trim() }, container)
+      }
       return
     }
     if (t === 'Avatar') {
@@ -1520,8 +1548,8 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Stat') {
       atom({
         isStat: true,
-        label: m.label || '',
-        value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
+        label: interp(m.label || ''),
+        value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
       }, container)
       // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
       if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
@@ -1537,7 +1565,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     // ── display components with their own projection (core/display.mjs) ──
-    if (t === 'Kanban') { atom(kanbanAtomOf(m, interp), container); return }
+    if (t === 'Kanban') { atom(kanbanAtomOf(m, interp, ctx), container); return }
     if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
     if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
     if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }
@@ -1564,6 +1592,13 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
     if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
     if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
+    // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
+    // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
+    // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
+    if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
+      atom(nestedListingAtomOf(node, ctx), container)
+      return
+    }
     if (t === 'MicroFrontend') {
       // a surface of its own, loaded from its baseUrl like a @Subresource (withSubresources paints it)
       const sub = microFrontendOf(m)
@@ -2082,13 +2117,17 @@ export function wizardForwardOf(ctx) {
  * A section card's body for oj-sp-section, which draws the section's title itself: its atoms
  * without the leading heading — or, when the heading shares a title row with the section's buttons
  * (@Section(editAction…), an @Inline type's @Toolbar), that row without its heading.
+ * `title` (the section's, as drawn): only a heading that IS the title is dropped — a section whose
+ * title is its Card's own (`title:`) does not repeat it in its body, so its first heading is CONTENT
+ * (a `Text` with `container: h2` opening the section was taken for the title and lost).
  */
-export function sectionBodyOf(items) {
+export function sectionBodyOf(items, title) {
   const list = items || []
   const first = list[0]
-  if (first && first.isHeading) return list.slice(1)
-  if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading)) {
-    const rest = first.items.filter((i) => !(i && i.rowHeading))
+  const isTitle = (text) => title == null || String(text == null ? '' : text).trim() === String(title).trim()
+  if (first && first.isHeading && isTitle(first.text)) return list.slice(1)
+  if (first && first.isRow && (first.items || []).some((i) => i && i.rowHeading && isTitle(i.text))) {
+    const rest = first.items.filter((i) => !(i && i.rowHeading && isTitle(i.text)))
     return rest.length ? [{ ...first, items: rest }].concat(list.slice(1)) : list.slice(1)
   }
   return list

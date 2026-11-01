@@ -9,7 +9,7 @@ import { ORACLE_CDN, oracleCdnBase, oracleCdnUrl } from './oracleCdn.mjs'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { foldoutHeaderOf, foldoutIconClassOf, foldoutPageHeaderOf } from './core/archetypes.mjs'
+import { foldoutHeaderOf, foldoutIconClassOf, foldoutPageHeaderOf, foldoutToolbarHeaderOf } from './core/archetypes.mjs'
 import { styledTextOf } from './core/content.mjs'
 import { styleObjectOf } from './richtext.mjs'
 import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
@@ -395,6 +395,31 @@ test('listing: la columna principal (@PrimaryColumn) lleva imagen delante y capt
   assert.deepEqual(listingSortOf({ header: 'name', direction: 'ascending' }, listing.sortFields), [{ field: 'sortName', direction: 'ascending' }])
 })
 
+test('listing: only rows that open something (route, record, detail) invite the click — a plain list keeps the arrow', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  const md = crud.metadata
+  const cols = md.columns.map((c) => c.metadata || c)
+  const tableOf = () => {
+    const search = JSON.parse(JSON.stringify(fx('search-listing')))
+    search.fragments[0].targetComponentId = ''
+    return listingOf(reduceContexts(reduceContexts(empty(), content), search).contexts[HOST_ID]).tableClass
+  }
+  const firstAction = cols[0].actionId
+  cols[0].actionId = 'view'
+  assert.match(tableOf(), /mateu-rows-open/) // navigable: opens the record
+  cols[0].actionId = undefined
+  assert.doesNotMatch(tableOf(), /mateu-rows-open/) // nothing to open (photo credits)
+  md.rowRoute = 'people/${row.id}'
+  assert.match(tableOf(), /mateu-rows-open/) // a route per row
+  delete md.rowRoute
+  md.detailPath = 'notes'
+  assert.match(tableOf(), /mateu-rows-open/) // a detail to show
+  delete md.detailPath
+  cols[0].actionId = firstAction
+})
+
 test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas, el resto va debajo como pares', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = ''
@@ -406,7 +431,7 @@ test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas,
   search.fragments[0].targetComponentId = ''
   const plain = listingOf(reduceContexts(reg, search).contexts[HOST_ID])
   assert.equal(plain.extraLines, 0)
-  assert.equal(plain.tableClass, 'oj-sm-12')
+  assert.doesNotMatch(plain.tableClass, /mateu-multiline-table/)
   assert.ok(plain.columns.every((c) => c.id !== ROW_LINES_FIELD))
   assert.equal(plain.rows[0][ROW_LINES_FIELD], undefined)
   // the last data column, to line 2
@@ -1058,6 +1083,12 @@ test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la ana
   const foldout = reduceContexts(empty(), fx('load-foldout')).contexts[HOST_ID]
   assert.equal(foldout.pageWidth, 'edgeToEdge')
   assert.deepEqual(pageStyleOf(foldout), { maxWidth: 'none', margin: '0', padding: '0' })
+  // no declared width: the page TYPE decides, as on the web — a dashboard / collection takes the room
+  // (the museum's DashboardLandingPage resolved fixed); a declared width still wins
+  assert.deepEqual(pageStyleOf({ pageType: 'dashboard' }), { maxWidth: 'none', margin: '0', padding: '24px' })
+  assert.deepEqual(pageStyleOf({ pageType: 'COLLECTION' }), { maxWidth: 'none', margin: '0', padding: '24px' })
+  assert.equal(pageStyleOf({ pageType: 'form' }).maxWidth, fixedStyle.maxWidth)
+  assert.equal(pageStyleOf({ pageType: 'dashboard', pageWidth: 'fixed' }).maxWidth, fixedStyle.maxWidth)
 })
 
 // 22) Composed archetypes: welcome, general overview and item overview are projected from the core.
@@ -2110,6 +2141,23 @@ atest('el contexto recuerda de qué pod se cargó, y sus acciones vuelven allí'
     asked.length = 0
     await runMateuAction('/la-shell', reg.contexts[HOST_ID], '/booking/bookings', 'search', {})
     assert.ok(asked[0].startsWith('/_booking/mateu/v3/sync/'), asked[0])
+  } finally { globalThis.fetch = original }
+})
+
+atest('a route load is a NEW screen: the previous screen\'s state never carries over', async () => {
+  // a record page (state.name = the mission) → a listing answering with no state of its own: its
+  // search used to interpolate the mission's name into the rows url and the list came back empty
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+    type: 'ClientSide', id: '_list', metadata: { type: 'Crud', title: 'Astronauts' }, children: [],
+  } }] }) })
+  try {
+    const before = empty()
+    before.contexts[HOST_ID] = { id: HOST_ID, kind: 'host', state: { id: 6, name: 'Apollo 11' }, data: {},
+      tree: { type: 'ServerSide', id: '_mission', children: [] } }
+    const reg = await loadRouteInto('https://x', before, '/astronauts', '', {})
+    assert.equal(reg.contexts[HOST_ID].state.name, undefined)
+    assert.equal(reg.contexts[HOST_ID].tree.metadata.title, 'Astronauts')
   } finally { globalThis.fetch = original }
 })
 
@@ -4435,6 +4483,38 @@ test('P1: @RowRoute — la fila abre la ruta del maestro; una plantilla sin reso
   assert.equal(p1RowRouteOf('/customers/${row.id}', {}), '')
   assert.equal(p1RowRouteOf('', { id: '3' }), '')
 })
+import { isExternalRoute as extIsExternalRoute } from './core/content.mjs'
+import { nestedListingAtomOf as extNestedListingAtomOf, nestedListingKeyOf as extNestedListingKeyOf } from './core/listing.mjs'
+import { openExternalRoute as extOpenExternalRoute } from './mount.mjs'
+
+test('a rowRoute that is a whole URL: taken unencoded, it leaves the app in a new tab', () => {
+  const url = 'https://images-assets.nasa.gov/image/a/a~large.jpg'
+  // one placeholder = the whole value; inside a path a value is still a segment
+  assert.equal(p1RowRouteOf('${row.imageLarge}', { imageLarge: url }), url)
+  assert.equal(p1RowRouteOf('photos/${row.t}', { t: 'a b' }), 'photos/a%20b')
+  for (const ext of [url, '//cdn.x/y', 'mailto:a@b.c', 'javascript:alert(1)']) assert.ok(extIsExternalRoute(ext), ext)
+  for (const own of ['missions/6', '/missions/6/edit', 'a?q=b:c', '']) assert.ok(!extIsExternalRoute(own), own)
+  const opened = []
+  const win = { open: (...a) => opened.push(a) }
+  assert.equal(extOpenExternalRoute(url, win), true)
+  assert.deepEqual(opened, [[url, '_blank', 'noopener,noreferrer']])
+  // a refused scheme is handled (no in-app navigation) but opens nothing
+  const warn = console.warn; console.warn = () => {}
+  try { assert.equal(extOpenExternalRoute('javascript:alert(1)', win), true) } finally { console.warn = warn }
+  assert.equal(opened.length, 1)
+  assert.equal(extOpenExternalRoute('missions/6', win), false)
+  // onMateuNavigate asks first, before anything else loads
+  assert.ok(webApp('pages/shell-page-chains/onMateuNavigate.js').includes('bridge.openExternalRoute(route)'))
+  // a nested listing: a card carries the URL; a table row links to it in a new tab
+  const node = { type: 'ClientSide', id: 'g', metadata: { type: 'Listing', gridLayout: 'cards', rowRoute: '${row.imageLarge}',
+    columns: [{ type: 'GridColumn', id: 'imageTitle', identifier: true }] } }
+  const rows = [{ imageTitle: 'Scott', imageLarge: url }]
+  const data = { [extNestedListingKeyOf(node)]: { page: { content: rows } } }
+  assert.equal(extNestedListingAtomOf(node, { state: {}, data }).cards[0].route, url)
+  const table = { ...node, metadata: { ...node.metadata, gridLayout: 'table' } }
+  const row = extNestedListingAtomOf(table, { state: {}, data: { [extNestedListingKeyOf(table)]: { page: { content: rows } } } }).rows[0]
+  assert.deepEqual([row.__href, row.__target, row.__rel], [url, '_blank', 'noopener noreferrer'])
+})
 import { appLevelOf as p1AppLevelOf, splitNestedApps as p1SplitNestedApps, tabRoutePath as p1TabRoutePath, islandContentOf as p1IslandContentOf } from './reduceContexts.mjs'
 
 test('P1: la URL de una pestaña con clave sustituye la de su barra', () => {
@@ -5222,7 +5302,8 @@ import { isLeaveAction, isConflictDialogAnswer, confirmLeaveAction, tracksUnsave
 }
 
 // ── unsaved changes SCOPED per overlay (the web's dirtyGuard): the page's + each open overlay's ───
-import { withOverlayDirty, overlaysHoldUnsavedChanges, hasUnsavedChanges, confirmNavigationAway, withoutOverlays, hasOpenOverlays, topOverlayContextOf } from './shellFlows.mjs'
+import { withOverlayDirty, overlaysHoldUnsavedChanges, hasUnsavedChanges, confirmNavigationAway, withoutOverlays, hasOpenOverlays, topOverlayContextOf, restoreUrlAfterStaying } from './shellFlows.mjs'
+import { installHistoryIndex, notePopState, resetHistoryIndexForTests } from './historyIndex.mjs'
 {
   // the crud's create/edit drawer as the server sends it: the form is a ServerSide in metadata.content
   const crudDrawer = { type: 'ClientSide', id: 'fieldId', metadata: { type: 'Drawer', content: {
@@ -5255,6 +5336,35 @@ import { withOverlayDirty, overlaysHoldUnsavedChanges, hasUnsavedChanges, confir
     assert.equal(hasUnsavedChanges({ mateuDirty: false, mateuRegistry: withDrawer(true) }), true)
     assert.equal(overlaysHoldUnsavedChanges(withDrawer(true)), true)
     assert.equal(hasUnsavedChanges(undefined), false)
+  })
+
+  test('staying after a refused FORWARD undoes the move (history.go), not a push that reorders history', () => {
+    // a minimal session history: entries + a cursor, popstate driven by the test
+    const entries = [{ state: null, url: 'https://x/a' }]
+    let at = 0
+    const calls = []
+    const win = {
+      location: { get href() { return entries[at].url } },
+      history: {
+        get state() { return entries[at].state },
+        pushState(state, _t, url) { entries.splice(at + 1); entries.push({ state, url: 'https://x' + url }); at++ },
+        replaceState(state, _t, url) { entries[at] = { state, url: url ? 'https://x' + url : entries[at].url } },
+        go(n) { calls.push(n); at += n },
+      },
+    }
+    resetHistoryIndexForTests()
+    installHistoryIndex(win)
+    win.history.pushState(null, '', '/b')
+    win.history.pushState(null, '', '/c')
+    // back to B, then FORWARD to C, which the user refuses (unsaved changes on B)
+    at = 1; assert.equal(notePopState(entries[at].state, win), true)
+    at = 2; assert.equal(notePopState(entries[at].state, win), true)
+    restoreUrlAfterStaying('b', true, win)
+    assert.deepEqual(calls, [-1], 'go back by one: B again, C kept ahead')
+    assert.equal(entries.length, 3, 'nothing pushed')
+    // the popstate that go() fires is the echo of staying: swallowed
+    assert.equal(notePopState(entries[at].state, win), false)
+    resetHistoryIndexForTests()
   })
 
   test('confirmNavigationAway: ONE question for page + overlays; stay changes nothing, accept discards them all', () => {
@@ -5365,8 +5475,14 @@ import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
     assert.equal(pageFlowOf(reg, 'save'), null, 'the page owns it: its server action')
     assert.equal(pageFlowOf(reg, 'refreshCustomers'), null, 'a REST entry is not a flow')
     assert.equal(pageFlowOf(reg, 'nobody'), null)
+    // a Navigate route reads the state and the action's parameters: a map marker opens its record
+    const markerReg = { ...reg, contexts: { ...reg.contexts, [HOST_ID]: { declaredActions: [
+      { id: 'openSite', commands: [{ type: 'NavigateTo', data: 'launch-sites/${state._markerId}' }] },
+    ] } } }
+    assert.equal(pageFlowOf(markerReg, 'openSite', { state: { _markerId: 'KSC 39A' } })[0].data, 'launch-sites/KSC%2039A')
+    assert.equal(pageFlowOf(markerReg, 'openSite')[0].data, 'launch-sites/${state._markerId}', 'no scope: as written')
     const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'runMateuAction.js'), 'utf8')
-    assert.match(chain, /const clientFlow = preset \? null : bridge\.pageFlowOf\(before, id\);/)
+    assert.match(chain, /const clientFlow = preset \? null : bridge\.pageFlowOf\(before, id, \{ state: \{ \.\.\.\(componentState \|\| \{\}\), \.\.\.\(parameters \|\| \{\}\) \}, appState \}\);/)
     const amd = readFileSync(join(here, 'make-amd.mjs'), 'utf8')
     assert.match(amd, /pageFlowOf,/)
   })
@@ -6764,6 +6880,25 @@ test('FoldoutPage (YAML): the form toolbar becomes the layout header — back = 
   // no toolbar: the header stays as the wire said
   assert.deepEqual(foldoutPageHeaderOf(foldoutHeaderOf({}), { metadata: {} }).overviewActions, [])
 })
+test('page foldout (Java): the page toolbar becomes the layout header — back or the trail parent = go-to-parent, the rest = overview actions', () => {
+  const toolbar = [
+    { actionId: 'cancel-view', label: 'Back to list' },
+    { actionId: 'confirmBooking', label: 'Confirm booking', chroming: 'outlined' },
+    { actionId: 'edit', label: 'Edit', chroming: 'callToAction' },
+    { actionId: 'verRecorrido', label: 'Ver recorrido', chroming: 'outlined', disabled: true },
+  ]
+  const h = foldoutToolbarHeaderOf(foldoutHeaderOf({}), toolbar, { label: 'Bookings', route: 'bookings' })
+  assert.deepEqual([h.goToParent, h.parentLabel, h.parentActionId], [true, 'Back to list', 'cancel-view'])
+  assert.deepEqual(h.ctas.parent, { actionId: 'cancel-view', route: '' })
+  assert.deepEqual(h.overviewActions.map((a) => [a.label, a.icon || '', a.display]),
+    [['Edit', 'oj-ux-ico-edit', 'on'], ['Confirm booking', '', 'on'], ['Ver recorrido', '', 'disabled']])
+  // no back button: the trail's parent, by its route
+  const t = foldoutToolbarHeaderOf(foldoutHeaderOf({}), [{ actionId: 'iniciarCheckin', label: 'Completar check-in', chroming: 'callToAction' }], { label: 'Reservas', route: 'reservas' })
+  assert.deepEqual([t.goToParent, t.parentLabel, t.ctas.parent.route], [true, 'Reservas', 'reservas'])
+  // the wire's own navigation keeps priority
+  const w = foldoutToolbarHeaderOf(foldoutHeaderOf({ navigation: { parentActionId: 'up', parentLabel: 'Up' } }), toolbar, null)
+  assert.deepEqual([w.parentActionId, w.parentLabel, w.ctas.parent], ['up', 'Up', undefined])
+})
 test('Foldout page: the layout binds the header, the overview can take the overview slot, the actions reach the host', () => {
   const html = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
   const H = '$application.variables.mateuFoldoutContent.header'
@@ -6811,6 +6946,17 @@ test('Text.style: filtered like an Element\'s HTML style; a weight / size beats 
   assert.deepEqual(t.style, { color: '#c00', fontWeight: '700' })
   assert.equal(t.cls, 'oj-typography-heading-md oj-typography-bold')
 })
+test('a listing in a slot of a page template is not the page listing: one header, the template one', () => {
+  // /museums/1 (GeneralOverviewPage) and /exhibitions/1 (FoldoutPage) drew the listing page too —
+  // its header with the search box and its band — above the template's own header and band
+  const crud = { type: 'ClientSide', id: 'deps', metadata: { type: 'Crud', columns: [{ metadata: { id: 'name', label: 'Name' } }] }, children: [] }
+  const page = (template) => ({ tree: { type: 'ServerSide', children: [{ type: 'ClientSide', id: 'p',
+    metadata: { type: 'Form', title: 'The Met', ...(template ? { template: { type: template } } : {}) }, children: [crud] }] }, data: {}, state: {} })
+  for (const owning of ['GeneralOverviewPage', 'FoldoutPage', 'ItemOverviewPage']) assert.equal(listingOf(page(owning)), null, owning)
+  // a page with no template keeps the old rule
+  assert.ok(listingOf(page(null)))
+})
+
 test('HorizontalLayout: inline pieces make a row; any other child keeps the stacked projection', () => {
   const node = (metadata, children = []) => ({ type: 'ClientSide', metadata, children })
   const project = (hl) => hostContentOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 's', children: [node({ type: 'VerticalLayout' }, [hl])] } }, null, {}).flatMap((b) => b.items)

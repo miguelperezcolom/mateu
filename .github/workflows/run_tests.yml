@@ -179,6 +179,16 @@ jobs:
       - name: The IDE plugins' versions follow the framework's release tag
         run: node --test scripts/plugin-versions.test.mjs
 
+      - name: The docs' component list is the component catalogue (uidl-catalog.json)
+        run: node scripts/gen-supported-components.mjs --check
+      # File.deleteRecursively() follows symlinks: on the macOS dmg stage (a link to /Applications) it
+      # deleted the developer's /Applications. The build uses deleteTree; no deleteRecursively may return.
+      - name: The installer build never deletes through a symlink
+        run: |
+          if grep -nE '(\.|\{ *)deleteRecursively\(\)' frontend/app/intellij-plugin/build.gradle.kts | grep -v '^[0-9]*: \*'; then
+            echo "::error::use deleteTree(), never deleteRecursively(), in frontend/app/intellij-plugin/build.gradle.kts"; exit 1
+          fi
+
       - name: MCP server tests
         run: cd frontend/mcp-server && node --test
 
@@ -262,7 +272,7 @@ jobs:
         id: layout-index
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: frontend/app/intellij-plugin/.intellijPlatform/layoutIndex
+          path: frontend/app/intellij-plugin/.intellijPlatform/ides/layoutIndex
           key: intellij-layout-index-${{ hashFiles('frontend/app/intellij-plugin/build.gradle.kts') }}
 
       # copyVisualEditor is skipped (with a warning) because the web monorepo is not installed: the
@@ -272,10 +282,10 @@ jobs:
         run: scripts/intellij-gradle.sh test koverVerify --console=plain
 
       - name: Save the IntelliJ layout index (only a complete one)
-        if: success() && steps.layout-index.outputs.cache-hit != 'true' && hashFiles('frontend/app/intellij-plugin/.intellijPlatform/layoutIndex/*.json') != ''
+        if: success() && steps.layout-index.outputs.cache-hit != 'true' && hashFiles('frontend/app/intellij-plugin/.intellijPlatform/ides/layoutIndex/*.json') != ''
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: frontend/app/intellij-plugin/.intellijPlatform/layoutIndex
+          path: frontend/app/intellij-plugin/.intellijPlatform/ides/layoutIndex
           key: intellij-layout-index-${{ hashFiles('frontend/app/intellij-plugin/build.gradle.kts') }}
 
   # The browser suite, split into legs that run side by side (scripts/ci-e2e-leg.sh says which SUT

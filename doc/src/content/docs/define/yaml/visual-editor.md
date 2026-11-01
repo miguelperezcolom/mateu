@@ -49,7 +49,7 @@ whole authoring model:
 ```
 
 - **App → routes.** Each menu item links to a **route** by name.
-- **Routes → pages.** Each route's `definition` names a **page** file; its optional `viewModel` names
+- **Routes → pages.** Each route's `layout` names a **page** file; its optional `viewModel` names
   the **data source** behind that page. The mount's root route (`""`) names the **app shell**.
 - **Pages → partials and data sources.** A page inlines a **partial** by `ref`, and its fields bind
   (by convention: `FormField id` ↔ property) to the **data source** the route paired it with.
@@ -57,8 +57,8 @@ whole authoring model:
 Because these references form a closed graph, the ideal editor lets you **pick** each one from what
 already exists in the project: add a menu link and choose the route from a dropdown; add a route and
 choose its page from the pages you have; drop a `Partial` and pick which partial; bind a field and
-pick it from the data source's contract. That "pick, don't type" experience is what
-[project awareness](#project-awareness-the-roadmap) delivers.
+pick it from the data source's contract. That "pick, don't type" experience is what the
+[reference pickers](#where-a-reference-is-typed) deliver.
 
 ## Set up
 
@@ -127,24 +127,23 @@ you add links, groups, separators and **actions**.
 - **Widgets** — the components drawn in the shell header (`widgets:`): add, remove and reorder them.
   Widgets the editor does not know how to edit are kept untouched.
 
-Each `RouteLink` names a **route** in the `route` field. *Target:* choose the route from a dropdown of
-the routes declared in this mount. *Today:* type the route name (e.g. `orders`) — it must match a
-`route:` in the routes file.
+Each `RouteLink` names a **route** in the `route` field: choose it from the dropdown of the routes
+declared in this mount, or type it (e.g. `orders`) — it must match a `route:` in the routes file.
 
 ### 3. The routes — `routes.yaml`
 
-The route registry is pure routing: each URL is bound to a page **definition** and, optionally, a
+The route registry is pure routing: each URL is bound to a page **layout** and, optionally, a
 **view model** (its data source). The root route names the app shell.
 
 ```yaml
 type: Routes
 routes:
   - route: ""              # the mount root → the app shell view
-    definition: app.yaml   # ← references the app shell
+    layout: app.yaml       # ← references the app shell
   - route: orders
-    definition: orders.yaml   # ← references a page
+    layout: orders.yaml       # ← references a page
   - route: users
-    definition: users.yaml    # ← references a page
+    layout: users.yaml        # ← references a page
   - route: tasks
     viewModel: io.mateu.demo.appdefinition.TaskCrud   # ← references a data source (no page: the model brings its own UI)
   - route: dashboard
@@ -547,13 +546,13 @@ Two files make a mount designable with **no backend and no API**:
 
 New › Mateu › **Field Types** (IntelliJ and VS Code) creates an empty catalogue.
 
-## Project awareness — the roadmap
+## Where a reference is typed
 
-Everything above works today; what is still landing is the **"pick, don't type"** half of each
-reference. The editors are currently **single-file** — each one edits the file it was opened on and
-does not yet know what sibling files the mount contains — so a reference is authored as a string. The
-project-awareness work gives the editor a view of the whole mount so it can offer the pickers this
-manual describes and validate that a reference resolves.
+In IntelliJ and VS Code the editor enumerates the mount's `specs/ui/**` and refreshes its pickers when
+files change, so every cross-file reference above is chosen from a list (and can still be typed). A
+host that sees only the file being edited — the standalone web editor opened on a single file, or a
+share link — has no project to list: there a reference is typed, and it must match what the other
+files declare.
 
 ## See also
 

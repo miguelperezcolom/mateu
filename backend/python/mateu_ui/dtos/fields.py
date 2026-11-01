@@ -8,7 +8,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from pydantic import Field
+from pydantic import Field, field_serializer
 
 from .base import Wire
 
@@ -137,6 +137,13 @@ class RestDataSource(Wire):
     #: SAMPLE data: the response the endpoint would return, answered instead of calling it — only
     #: in sample mode, and only then on the wire (mirrors RestDataSourceDto.sample).
     sample: Any | None = None
+
+    @field_serializer("headers", "body")
+    def _kept_on_the_server_when_proxied(self, value):
+        # a proxied source is called BY THE SERVER from its own table: its request headers and body
+        # template (where an API key gets written) never travel to the browser (mirrors Java's
+        # RestDataSource.forTheClient)
+        return None if self.proxy else value
 
 
 class RestSourceEntryRecord(Wire):

@@ -8,9 +8,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -20,13 +22,22 @@ define([
      * @param {Object} context
      * @param {Object} params
      * @param {string} params.state     the template's new drawerState ('closed' = its ✕)
-     * @param {string} params.actionId  the panel's toggle action ('' = a persistent panel, nothing to run)
+     * @param {string} params.actionId  the panel's toggle action ('' = none: the panel closes here, for good on this route)
+     * @param {string} params.panel     'end' | 'bottom'
      */
-    async run(context, { state, actionId }) {
-      const { $page } = context;
+    async run(context, { state, actionId, panel }) {
+      const { $page, $application } = context;
       if (state !== 'closed') return;
+      if (!actionId) {
+        // no toggle to run (a YAML DockedPanel): it closes here and stays closed on this route —
+        // putting the state back to 'auto' with the panel still projected reopened it at once
+        const host = $application.variables.mateuRegistry.contexts[bridge.HOST_ID];
+        bridge.closeDockedPanel(host && host.outbound && host.outbound.route, panel || 'bottom');
+        $application.variables.mateuDm = bridge.dataManagementWithoutPanel($application.variables.mateuDm, panel || 'bottom');
+        $page.variables.mateuDmBottomState = 'auto';
+        return;
+      }
       $page.variables.mateuDmBottomState = 'auto';
-      if (!actionId) return;
       await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId, parameters: {} } });
     }
   }

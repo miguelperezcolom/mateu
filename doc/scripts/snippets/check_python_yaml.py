@@ -226,7 +226,10 @@ COMPONENT_BRANCH = 9
 
 
 def wants_schema(code: str) -> bool:
-    return bool(re.search(r"^type:\s*\S", code, re.M) or re.search(r"\$schema", code))
+    # a bare route file (`routes:` at the top, no `type:`) is a Routes file too: left unchecked, the
+    # deprecated `definition:` key survived in the route samples for months
+    return bool(re.search(r"^type:\s*\S", code, re.M) or re.search(r"\$schema", code)
+                or re.search(r"^routes:\s*$", code, re.M))
 
 
 def closed(node, in_all_of=False):
@@ -280,7 +283,15 @@ def check_yaml(snippets: list[dict], schema_path: str) -> list[dict]:
         for doc in docs:
             if not isinstance(doc, dict):
                 continue
+            if "type" not in doc and isinstance(doc.get("routes"), list):
+                doc = {"type": "Routes", **doc}
             kind = doc.get("type")
+            if kind == "Routes":
+                for i, entry in enumerate(doc.get("routes") or []):
+                    if isinstance(entry, dict) and "definition" in entry:
+                        r["status"] = "fail"
+                        r["errors"].append({"line": 0, "message":
+                            f"routes[{i}]: `definition:` is the deprecated alias of `layout:` — use `layout:`"})
             branch = SPEC_KINDS.index(kind) if kind in SPEC_KINDS else (
                 COMPONENT_BRANCH if kind else 10 if "layout" in doc or "layoutDelta" in doc else None)
             if branch is None:

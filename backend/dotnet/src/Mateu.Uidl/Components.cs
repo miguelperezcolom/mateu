@@ -398,10 +398,24 @@ public sealed record KanbanColumn
     public IReadOnlyList<KanbanCard> Cards { get; init; } = [];
 }
 
-/// <summary>A read-only kanban board: columns of cards. Cards may carry an ActionId to be clickable.</summary>
+/// <summary>A kanban board: columns of cards. Cards may carry an ActionId to be clickable. With a
+/// MoveActionId its cards move (drag, or a "Move to…" menu): the action runs with the card's row plus
+/// parameters._cardId, _fromColumnId, _toColumnId and _toIndex. With a RowsSource it is LIVE: one card
+/// per item, in the column whose Id equals the item's ColumnField (default "status"), drawn from the
+/// Card template (${row.x}), coloured by CardColors, opening CardRoute — in the source's order, or sorted by
+/// OrderField when set (a move then also sends the card's new order value as _toOrder, written over the
+/// item's own field too). (Mirrors io.mateu.uidl.data.Kanban.)</summary>
 public sealed record Kanban : ComponentBase
 {
     public IReadOnlyList<KanbanColumn> Columns { get; init; } = [];
+    public string? MoveActionId { get; init; }
+    public RestDataSource? RowsSource { get; init; }
+    public string? ColumnField { get; init; }
+    public KanbanCard? Card { get; init; }
+    public IReadOnlyDictionary<string, string>? CardColors { get; init; }
+    public string? CardRoute { get; init; }
+    /// <summary>The item field that orders a column's cards; a move sends its new value.</summary>
+    public string? OrderField { get; init; }
 }
 
 /// <summary>One entry on a <see cref="Timeline"/>. Timestamp is a free-form label; an ActionId

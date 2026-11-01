@@ -144,6 +144,40 @@ add_mateu(
   `appState["audience"]` — any caller can send any value. Tailor screens with it; hide data with
   `EyesOnly`.
 
+### Server options
+
+Every keyword argument of `add_mateu(app, *sources, …)`. Most fall back to an environment variable,
+so a deployment can switch them without code.
+
+| Option | Default | What it does |
+|---|---|---|
+| `translator` | Mateu's | The `Translator` for `${i18n.…}` texts and the chrome. |
+| `base_url` | `""` | Path prefix the endpoints are served under. |
+| `cors_origins` | none (CORS off) | Origins allowed to call the API. `cors=True` without origins raises. |
+| `identity_provider` | the identity your app set (`request.state.mateu_identity`, else Starlette auth) | Parameterless provider of the caller's `Identity`. |
+| `secrets_provider` | env `MATEU_SECRET_<KEY>` | `key → value` for `${secret.KEY}` in proxied sources. |
+| `dev` | env `MATEU_DEV` | Exception details in error toasts. |
+| `proxy_timeout_seconds` | `30.0` | Timeout of a proxied REST call. |
+| `environment` | env `MATEU_ENVIRONMENT` | The `type: Environment` overlay applied to the source catalogue ([environments](/deploy/environments/)). |
+| `live_reload` | env `MATEU_DEV` | Development mode: specs watched, `GET /mateu/dev/events` + `POST /mateu/dev/reload`. |
+| `mcp` | env `MATEU_MCP_ENABLED`, else off | The native MCP endpoint `POST /mateu/mcp`. |
+| `ui` | env `MATEU_UI` | A web renderer's `static/` folder or jar, to serve the page too. |
+| `mcp_push` | env `MATEU_MCP_PUSH_ENABLED`, else off | [Live UI push](/reference/agent-operability/#drive-a-live-ui) (needs `mcp`). |
+| `mcp_push_rate_per_minute` | env `MATEU_MCP_PUSH_RATE_PER_MINUTE`, else 30 | Messages per session per rolling minute. |
+| `mcp_push_max_sessions` | env `MATEU_MCP_PUSH_MAX_SESSIONS`, else 1000 | Live UI sessions held at once. |
+| `mcp_push_max_sessions_per_owner` | env `MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER`, else 20 | Sessions per signed-in user. |
+| `mcp_push_max_anonymous_sessions_per_address` | env `MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS`, else 200 | Anonymous sessions per client address (behind a proxy, run uvicorn with `--proxy-headers`). |
+| `build_id` | env `MATEU_BUILD_ID`, else a fingerprint of the release | The `X-Mateu-Build` id ([versions across teams](/deploy/versions-across-teams/)). |
+| `oracle_cdn_url` | env `MATEU_ORACLE_CDN_URL` | A mirror of Oracle's CDN for the Redwood page ([Oracle CDN mirror](/deploy/oracle-cdn-mirror/)). |
+| `remotes` | none | `RemoteDescriptor`s for [server-resolved micro frontends](/java-ui-definition/components/micro-frontend/#net-and-python) and content slots (on top of `RemoteCatalogSupplier` subclasses). |
+| `default_timeout_ms` | env `MATEU_MICROFRONTENDS_DEFAULT_TIMEOUT_MS`, else 500 | Budget of a server-resolved fragment that names none. |
+| `max_budget_ms` | env `MATEU_MICROFRONTENDS_MAX_BUDGET_MS`, else 2000 | The most a view waits for its fragments. |
+| `content_remote_id` | env `MATEU_CONTENT_SLOTS_REMOTE`, else `content` | The remote [content slots](/java-ui-definition/components/content-slot/#net-and-python) are resolved against. |
+| `content_route` | env `MATEU_CONTENT_SLOTS_ROUTE`, else `/content-slots/{key}` | A slot's route on the content remote. |
+| `self_base_url` | env `MATEU_SELF_BASE_URL` | This server's origin, for a remote registered as a path on it. |
+| `content_slots_descriptor_enabled` | env `MATEU_CONTENT_SLOTS_DESCRIPTOR_ENABLED`, else off | Serve the `__content_slots__` descriptor action. |
+| `remote_registry`, `identity_strategies`, `fragment_cache_store`, `correlation_id_provider`, `resolution_listeners` | Mateu's | Replace (or add to) the micro-frontend collaborators. |
+
 ## Forms
 
 A `@ui` class becomes a routed form. Public type-hinted fields become fields (the type is inferred:
@@ -568,6 +602,14 @@ def component(self):
 
 The island mounts its own `mateu-ux` against the remote backend and runs its own sync loop.
 
+**Resolved in the server.** A micro frontend can also be resolved by this server while it builds the
+view (`resolve = SERVER`): the host asks the remote and embeds the answer, falling back to the
+browser asking when the remote is slow or down. Remotes are registered with `add_mateu(remotes=…)`, and the same
+machinery fills **content slots** — holes for managed content a content service provides. See
+[MicroFrontend: .NET and Python](/java-ui-definition/components/micro-frontend/#net-and-python),
+[ContentSlot: .NET and Python](/java-ui-definition/components/content-slot/#net-and-python) and the
+[server options](#server-options).
+
 ## Adapting foreign classes (component adapters)
 
 The `ComponentAdapter` SPI (Java's `ComponentAdapter<T>`) renders a class that carries no Mateu
@@ -742,8 +784,10 @@ routes:
 ```
 
 Entries are merged **over** the decorator-declared views and win. Parameters resolve as
-`fixed > client state > path > defaults`: defaults only fill what nothing else supplied, while fixed
-ones are re-applied on the server over everything, including the state the client sends back.
+`fixed > client state > path > query > defaults` — the same order as the Java server and the
+browser: a `None` in the client state is no value (the path, the URL's query and the defaults still
+fill it), defaults only fill what nothing else supplied, and fixed ones are re-applied on the server
+over everything, including the state the client sends back.
 
 Both `viewModel` and `view_model` are accepted — the file is the same one a Java or C# app consumes,
 but snake_case reads more naturally here.

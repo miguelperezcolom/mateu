@@ -142,14 +142,18 @@ final class RestSourceResolver {
       return null;
     }
     var wantedId = id == null ? "" : id;
-    return declarations.stream()
-        .filter(d -> d != null && d.source() != null && wanted.equals(d.kind()))
-        // ROWS and DATA have one per view, so an id is not part of what identifies them.
-        .filter(
-            d ->
-                wanted == RestSourceKind.ROWS
-                    || wanted == RestSourceKind.DATA
-                    || wantedId.equals(d.id()))
+    var ofKind =
+        declarations.stream()
+            .filter(d -> d != null && d.source() != null && wanted.equals(d.kind()))
+            .toList();
+    // the one named first: a page can hold a listing AND a live kanban, both ROWS
+    var named = ofKind.stream().filter(d -> wantedId.equals(d.id())).findFirst();
+    if (named.isPresent()) {
+      return named.get().source();
+    }
+    // ROWS and DATA have one per view, so an id is not part of what identifies them.
+    return ofKind.stream()
+        .filter(d -> wanted == RestSourceKind.ROWS || wanted == RestSourceKind.DATA)
         .map(io.mateu.uidl.data.DeclaredRestSource::source)
         .findFirst()
         .orElse(null);

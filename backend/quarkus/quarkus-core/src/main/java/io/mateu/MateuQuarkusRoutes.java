@@ -308,7 +308,9 @@ public class MateuQuarkusRoutes {
     var endpoint = new McpEndpoint(service);
     router
         .post(McpEndpoint.PATH)
-        .order(EARLY + 3)
+        // after Quarkus' HTTP security, like the YAML mounts: at EARLY the app's
+        // quarkus.http.auth.permission policies never applied to MCP, and its tools ran anonymous
+        .order(AFTER_SECURITY)
         .handler(BodyHandler.create())
         .blockingHandler(
             rc -> {
@@ -316,7 +318,10 @@ public class MateuQuarkusRoutes {
                 String response =
                     endpoint.handle(
                         rc.body().asString(),
-                        rq -> new QuarkusHttpRequest(rc.request()).storeRunActionRqDto(rq));
+                        rq ->
+                            new QuarkusHttpRequest(rc.request())
+                                .withIdentityOf(rc)
+                                .storeRunActionRqDto(rq));
                 if (response == null) {
                   rc.response().setStatusCode(McpEndpoint.ACCEPTED).end();
                 } else {
@@ -453,8 +458,11 @@ public class MateuQuarkusRoutes {
       // pass on what they do not serve, so the app's own endpoints and the assets keep winning.
       String deepLinks =
           mount.basePath().isEmpty()
-              ? "/[^.]*"
-              : java.util.regex.Pattern.quote(mount.spaPath() + "/") + "[^.]*";
+              ? "/(" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + ")?"
+              : java.util.regex.Pattern.quote(mount.spaPath() + "/")
+                  + "("
+                  + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET
+                  + ")?";
       router
           .getWithRegex(deepLinks)
           .order(Integer.MAX_VALUE - 100)

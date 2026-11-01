@@ -3,6 +3,7 @@ import HeroSection from "@mateu/shared/apiClients/dtos/componentmetadata/HeroSec
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { interpolateFields } from "@infra/ui/interpolation.ts";
 
 /**
  * The hero's background: the app's accent (@App(accentColor) → --mateu-accent) deepened, as
@@ -57,7 +58,9 @@ export const heroImageCss = (image: string | undefined): string | undefined =>
  * alignment.
  */
 export const renderHeroSection = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
-    const metadata = component.metadata as HeroSection
+    // a Welcome / MultimediaContentPage banner shows the record: `title: ${state.name}`
+    const metadata = interpolateFields(component.metadata as HeroSection,
+        ['overline', 'title', 'subtitle', 'image'], state, data, { appState, appData })
     const image = heroImageCss(metadata.image)
     const centered = !image && metadata.centered !== false
     const alignment = centered ? 'center' : 'flex-start'

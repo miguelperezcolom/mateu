@@ -4,6 +4,14 @@ import { fetchManifest, parseManifest, resolveIcon, resolveMount, versionGate } 
 
 const BASE = 'https://acme.com/crm';
 
+test('the manifest keeps the Mateu release serving the UI — only a release', () => {
+  assert.equal(parseManifest({ name: 'x', mateuVersion: '3.0-beta.33' }, BASE).mateuVersion, '3.0-beta.33');
+  assert.equal(parseManifest({ name: 'x', mateuVersion: '3.0.0b33' }, BASE).mateuVersion, '3.0.0b33');
+  assert.equal(parseManifest({ name: 'x', mateuVersion: '0.0.1-MATEU' }, BASE).mateuVersion, undefined);
+  assert.equal(parseManifest({ name: 'x', mateuVersion: '<script>' }, BASE).mateuVersion, undefined);
+  assert.equal(parseManifest({ name: 'x', mateuVersion: 3 }, BASE).mateuVersion, undefined);
+});
+
 test('a full manifest is parsed', () => {
   const m = parseManifest(
     {

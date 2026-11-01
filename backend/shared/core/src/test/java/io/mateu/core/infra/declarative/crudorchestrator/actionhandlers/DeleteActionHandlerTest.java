@@ -34,6 +34,7 @@ class DeleteActionHandlerTest {
   @BeforeEach
   @SuppressWarnings("unchecked")
   void setUp() {
+    CrudMocks.allowWrites(orchestrator);
     when(orchestrator.getIdFieldForRow()).thenReturn("id");
     when(httpRequest.runActionRq())
         .thenReturn(RunActionRqDto.builder().initiatorComponentId("test_app").build());

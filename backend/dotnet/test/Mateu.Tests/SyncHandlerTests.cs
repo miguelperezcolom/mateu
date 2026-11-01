@@ -954,10 +954,12 @@ public class Featured
 
 public class SyncHandlerTests
 {
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
+    internal static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
     };
+
+    private static readonly JsonSerializerOptions Json = JsonOptions;
 
     private static SyncHandler Handler() => new(new MateuRegistry(typeof(SimpleForm).Assembly));
 
@@ -1180,48 +1182,6 @@ public class SyncHandlerTests
         // notice, never an attempt to run "__preview__" as an action of the page
         var inc = Handler().Handle(new RunActionRqDto { ActionId = "__preview__", Route = "", ConsumedRoute = "_empty" });
         Assert.Contains("Invalid or empty YAML", Render(inc));
-    }
-
-    [Fact]
-    public void Yaml_page_binds_its_layout_to_the_declared_modelView()
-    {
-        var dir = Path.Combine("specs", "ui");
-        Directory.CreateDirectory(dir);
-        var file = Path.Combine(dir, "yaml-bound-demo.yaml");
-        File.WriteAllText(file, """
-            modelView: Mateu.Tests.YamlBoundView
-            layout:
-              type: VerticalLayout
-              content:
-                - type: FormField
-                  id: name
-                  label: Name
-                - type: Button
-                  label: Greet
-                  actionId: greet
-            """);
-        try
-        {
-            // First load: no view class resolves the route → the YAML page binds to its modelView.
-            var json = Render(Handler().Handle(
-                new RunActionRqDto { Route = "yaml-bound-demo", ConsumedRoute = "yaml-bound-demo" }));
-            Assert.Contains("\"serverSideType\":\"Mateu.Tests.YamlBoundView\"", json);
-            Assert.Contains("\"fieldId\":\"name\"", json);   // the YAML layout's field
-            Assert.Contains("\"actionId\":\"greet\"", json); // the YAML button routes to the modelView method
-            Assert.Contains("\"seed\"", json);               // the modelView's state seeded into initialData
-
-            // Action round-trip: the button dispatches greet on the modelView (resolved by serverSideType,
-            // which carries no [UI] route — resolved by full name against the scanned assemblies).
-            var acted = Handler().Handle(new RunActionRqDto
-            {
-                Route = "yaml-bound-demo",
-                ActionId = "greet",
-                ServerSideType = "Mateu.Tests.YamlBoundView",
-                ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
-            });
-            Assert.Equal("Hello Ann!", Assert.Single(acted.Messages).Text);
-        }
-        finally { File.Delete(file); }
     }
 
     [Fact]
@@ -3371,5 +3331,58 @@ public class SyncHandlerTests
     public void An_empty_search_text_is_forwarded_as_is()
     {
         Assert.Equal(3, GlobalSearch("").Count);
+    }
+}
+
+/// <summary>Writes a YAML page into the process's specs/ui: in the DevMode collection, never in parallel
+/// with tests that read that directory (the build id hashes it — VersionSkewTests saw two hosts of the
+/// same release disagree while this file existed for one of them).</summary>
+[Collection("DevMode")]
+public class SyncHandlerSpecsFileTests
+{
+    private static SyncHandler Handler() => new(new MateuRegistry(typeof(SimpleForm).Assembly));
+
+    private static string Render(UIIncrementDto inc) => JsonSerializer.Serialize(inc, SyncHandlerTests.JsonOptions);
+
+    [Fact]
+    public void Yaml_page_binds_its_layout_to_the_declared_modelView()
+    {
+        var dir = Path.Combine("specs", "ui");
+        Directory.CreateDirectory(dir);
+        var file = Path.Combine(dir, "yaml-bound-demo.yaml");
+        File.WriteAllText(file, """
+            modelView: Mateu.Tests.YamlBoundView
+            layout:
+              type: VerticalLayout
+              content:
+                - type: FormField
+                  id: name
+                  label: Name
+                - type: Button
+                  label: Greet
+                  actionId: greet
+            """);
+        try
+        {
+            // First load: no view class resolves the route → the YAML page binds to its modelView.
+            var json = Render(Handler().Handle(
+                new RunActionRqDto { Route = "yaml-bound-demo", ConsumedRoute = "yaml-bound-demo" }));
+            Assert.Contains("\"serverSideType\":\"Mateu.Tests.YamlBoundView\"", json);
+            Assert.Contains("\"fieldId\":\"name\"", json);   // the YAML layout's field
+            Assert.Contains("\"actionId\":\"greet\"", json); // the YAML button routes to the modelView method
+            Assert.Contains("\"seed\"", json);               // the modelView's state seeded into initialData
+
+            // Action round-trip: the button dispatches greet on the modelView (resolved by serverSideType,
+            // which carries no [UI] route — resolved by full name against the scanned assemblies).
+            var acted = Handler().Handle(new RunActionRqDto
+            {
+                Route = "yaml-bound-demo",
+                ActionId = "greet",
+                ServerSideType = "Mateu.Tests.YamlBoundView",
+                ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
+            });
+            Assert.Equal("Hello Ann!", Assert.Single(acted.Messages).Text);
+        }
+        finally { File.Delete(file); }
     }
 }

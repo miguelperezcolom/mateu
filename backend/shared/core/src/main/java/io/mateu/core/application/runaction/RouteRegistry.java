@@ -1,7 +1,6 @@
 package io.mateu.core.application.runaction;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.mateu.core.application.export.RouteRegistrations;
 import io.mateu.core.application.runaction.MountRegistry.Mount;
 import io.mateu.uidl.data.RestDataSource;
@@ -55,7 +54,7 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
    */
   static final String CONVENTIONAL_ROUTES = "specs/ui/routes.yaml";
 
-  private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
+  private final ObjectMapper yaml = SpecsYaml.mapper();
   private final MountRegistry mountRegistry = new MountRegistry();
 
   private volatile RouteTable table;

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict'
 import { makeDom, dataTransfer, sleep, FakeEvent } from './test-harness-dom.mjs'
 import { installKeys, setShortcutContext, setKeysActionSink, setAccessKeysEnabled } from './keys.mjs'
 import { shortcutMatches, installActionPanels } from './actionPanels.mjs'
-import { installDragAndDrop, setDropSink, installTileReorder, setTileReorderSink, paintedTileOrder } from './dnd.mjs'
+import { installDragAndDrop, setDropSink, installTileReorder, setTileReorderSink, paintedTileOrder, installKanbans, setKanbanMoveSink } from './dnd.mjs'
 import { installMatrixGrids, setMatrixActionSink } from './matrix.mjs'
 import { panelExpanded, matrixSectionKey } from './reduceContexts.mjs'
 import { installPlanningRange, setPlanningRangeSink } from './planning.mjs'
@@ -26,6 +26,7 @@ import { setRulesContext, setRulesContexts, applyRulesNow, installRules, setRule
 import { installCalendars, setCalendarActionSink } from './calendar.mjs'
 import { installToc, tocActiveIndex, tocSectionsOf } from './toc.mjs'
 import { defineCaptureField, defineColorField, captureTexts } from './inputs.mjs'
+import { CAPTURE_MODES } from './core/rowEditor.mjs'
 import { installRowTones, setListingTones, installStickyHeader, overflowTitleOf } from './tables.mjs'
 import { readTileOrder } from './prefs.mjs'
 import { chromeText } from './i18n.mjs'
@@ -34,7 +35,7 @@ import { applyFoldoutFolds, resetFoldoutFolds, FOLDED_CLASS } from './foldouts.m
 import { sanitizeElementHtml, mountElements, setElementEventSink, setElementModuleBase } from './elements.mjs'
 import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents, decorateFactActions, installFactActions, setFactActionSink, decorateScoreboard, installScoreboards, setScoreboardActionSink, setScoreboardDataResolver, scoreboardDrillInOf } from './displayDom.mjs'
 import { registerCustomComponent, fieldWidgetOf } from './reduceContexts.mjs'
-import { defineMarkupField, defineRichTextField, installRichText } from './richtext.mjs'
+import { defineMarkupField, defineRichTextField, installRichText, spectraRichTextReady, SPECTRA_RICH_TEXT_LOADER, SPECTRA_RICH_TEXT_TOOLBAR } from './richtext.mjs'
 
 // in the bridge everything shares one scope: keys.mjs uses actionPanels.mjs's shortcutMatches
 // without importing it. In Node, separate modules — it is given through the global, as the bridge would see it.
@@ -168,6 +169,57 @@ test('dnd: soltar filas en un DropZone que acepta su tipo lanza su acción con _
   assert.deepEqual(sink.calls[1][1], { _draggedIds: ['C1', 'C2'], _dragType: 'charge' }, 'parámetros ilegibles: se suelta igual')
   fire(zone, 'drop', { dataTransfer: dataTransfer({ 'application/x-mateu-charge': '[]' }) })
   assert.equal(sink.calls.length, 2, 'nada arrastrado: nada que lanzar')
+})
+
+test('kanban: a card dragged to another column (or picked in its ⋯ select) moves where the line showed', () => {
+  const { doc, el, fire } = makeDom()
+  const card = (id, top) => el('div', { class: 'mateu-kanban-item', draggable: 'true', 'data-card-id': id }, el('span', { text: id })).box({ top, height: 40 })
+  const todo = el('section', { 'data-column-id': 'todo' }, card('a', 0), card('b', 50))
+  const done = el('section', { 'data-column-id': 'done' }, card('c', 0), card('d', 50))
+  const board = el('div', { class: 'mateu-kanban', 'data-kanban-key': 'k1', 'data-move-action': 'moveTask' }, todo, done)
+  const foreign = el('div', { class: 'mateu-kanban', 'data-kanban-key': 'k2', 'data-move-action': 'x' }, el('section', { 'data-column-id': 'z' }))
+  doc.body.appendChild(board); doc.body.appendChild(foreign)
+  installKanbans(doc)
+  installKanbans(doc) // once per document
+  const sink = sinkLog()
+  setKanbanMoveSink(sink)
+  const dt = dataTransfer({})
+  fire(todo.querySelector('[data-card-id="a"] span'), 'dragstart', { dataTransfer: dt })
+  assert.equal(dt.getData('application/x-mateu-kanban-card'), 'a')
+  assert.ok(todo.querySelector('[data-card-id="a"]').classList.contains('mateu-kanban-dragging'))
+  // over «done» between c and d: the line goes before d
+  const over = fire(done, 'dragover', { dataTransfer: dt, clientY: 30 })
+  assert.ok(over.defaultPrevented && done.classList.contains('mateu-kanban-over'))
+  const line = done.querySelector('.mateu-kanban-drop-line')
+  assert.ok(line && done.childNodes[done.childNodes.indexOf(line) + 1] === done.querySelector('[data-card-id="d"]'))
+  // past the last card: the line goes at the end; another board is not a target
+  fire(done, 'dragover', { dataTransfer: dt, clientY: 500 })
+  assert.equal(done.childNodes[done.childNodes.length - 1].className, 'mateu-kanban-drop-line')
+  assert.equal(fire(foreign.querySelector('section'), 'dragover', { dataTransfer: dt, clientY: 0 }).defaultPrevented, false)
+  fire(done, 'drop', { dataTransfer: dt, clientY: 30 })
+  assert.deepEqual(sink.calls, [[{ key: 'k1', actionId: 'moveTask', move: { cardId: 'a', fromColumnId: 'todo', toColumnId: 'done', toIndex: 1 } }]])
+  assert.equal(doc.querySelectorAll('.mateu-kanban-drop-line, .mateu-kanban-over, .mateu-kanban-dragging').length, 0)
+  // a drop with nothing dragged, and a dragend, do nothing
+  fire(done, 'drop', { dataTransfer: dt, clientY: 30 })
+  fire(doc.body, 'dragend')
+  assert.equal(sink.calls.length, 1)
+  // the keyboard's way: the ⋯ select carries the move as JSON; a blank or unreadable value is ignored
+  const select = el('select', { class: 'mateu-kanban-move' })
+  todo.querySelector('[data-card-id="b"]').appendChild(select)
+  select.value = JSON.stringify({ cardId: 'b', fromColumnId: 'todo', toColumnId: 'done', toIndex: 0 })
+  fire(select, 'change')
+  assert.deepEqual(sink.calls[1][0].move, { cardId: 'b', fromColumnId: 'todo', toColumnId: 'done', toIndex: 0 })
+  assert.equal(select.value, '', 'the select resets after a move')
+  select.value = '{roto'
+  fire(select, 'change')
+  select.value = ''
+  fire(select, 'change')
+  assert.equal(sink.calls.length, 2)
+  // a board with no move action never moves
+  board.removeAttribute('data-move-action')
+  select.value = JSON.stringify({ cardId: 'b' })
+  fire(select, 'change')
+  assert.equal(sink.calls.length, 2)
 })
 
 test('dnd: los tiles reordenables se mueven arrastrando y con Alt+←/→, y el orden se guarda', async () => {
@@ -931,6 +983,40 @@ test('capture: firmar y Aceptar emite el PNG; sin tinta no; Quitar vacía; sólo
   void el
 })
 
+test('capture: el estereotipo image editable es la URL con una vista previa contenida que la sigue; en sólo lectura, la imagen', () => {
+  const { doc, win, fire } = makeDom()
+  defineCaptureField(win)
+  const field = doc.createElement('mateu-capture-field')
+  field.setAttribute('mode', 'url')
+  field.setAttribute('value', 'https://x.test/a.jpg')
+  const values = []
+  field.addEventListener('valueChanged', (e) => values.push(e.detail))
+  doc.body.appendChild(field)
+  const input = field.querySelector('input.mateu-capture-url')
+  assert.ok(input, 'editable: hay un input para cambiar la URL')
+  assert.equal(input.value, 'https://x.test/a.jpg')
+  assert.equal(field.querySelector('img.mateu-capture-preview').src, 'https://x.test/a.jpg')
+  assert.equal(field.querySelectorAll('oj-button').length, 0, 'no es el de subir fichero')
+  input.value = 'https://x.test/b.jpg'
+  fire(input, 'input')
+  assert.equal(field.querySelector('img.mateu-capture-preview').src, 'https://x.test/b.jpg', 'la vista previa sigue lo tecleado')
+  fire(input, 'change')
+  assert.equal(values.at(-1).value, 'https://x.test/b.jpg')
+  // read-only: only the image
+  const ro = doc.createElement('mateu-capture-field')
+  ro.setAttribute('mode', 'url')
+  ro.setAttribute('readonly', '')
+  ro.setAttribute('value', 'https://x.test/a.jpg')
+  doc.body.appendChild(ro)
+  assert.equal(ro.querySelector('input'), null)
+  assert.equal(ro.querySelector('img').src, 'https://x.test/a.jpg')
+})
+
+test('fieldWidgetOf: el estereotipo image se edita como URL (url), uploadableImage se sube (image)', () => {
+  assert.equal(CAPTURE_MODES.image, 'url')
+  assert.equal(CAPTURE_MODES.uploadableImage, 'image')
+})
+
 test('capture: un fichero que no es imagen se describe; la cámara sin getUserMedia cae al selector de fichero', async () => {
   const { doc, win, fire } = makeDom()
   defineCaptureField(win)
@@ -1061,6 +1147,83 @@ test('rich text field: the toolbar and Ctrl+B format; a link must be safe', () =
   fire(f.querySelector('.mateu-rte-area'), 'keydown', { key: 'B', ctrlKey: true })
   fire(f.querySelector('.mateu-rte-area'), 'keydown', { key: 'q', ctrlKey: true })
   assert.deepEqual(commands, [['bold', null], ['createLink', 'https://example.com'], ['bold', null]])
+})
+
+test('rich text field: Spectra\'s editor when the page has an AMD loader — unbound, its toolbar, the user\'s edits only', async () => {
+  const { doc, win } = makeDom()
+  const asked = []
+  win.require = (mods, ok) => { asked.push(mods); setTimeout(ok, 0) }
+  defineRichTextField(win)
+  const f = doc.createElement('mateu-rich-text-field')
+  f.setAttribute('aria-label', 'Notes')
+  f.setAttribute('value', JSON.stringify([{ insert: 'Hi', attributes: { bold: true } }, { insert: '\n' }]))
+  const values = []
+  f.addEventListener('valueChanged', (e) => values.push(e.detail.value))
+  doc.body.appendChild(f)
+  const box = f.querySelector('.mateu-rte-spectra')
+  assert.equal(box.getAttribute('data-oj-binding-provider'), 'none', 'or JET waits for bindings nobody applies')
+  const editor = box.querySelector('oj-sp-input-rich-text-2')
+  assert.equal(editor.getAttribute('label-hint'), 'Notes')
+  assert.equal(editor.getAttribute('value'), '<p><strong>Hi</strong></p>', 'the Delta opened as HTML')
+  const options = JSON.parse(editor.getAttribute('display-options'))
+  assert.deepEqual(options, { label: 'off', formattingToolbar: 'on', toolbarItems: SPECTRA_RICH_TEXT_TOOLBAR })
+  assert.ok(!SPECTRA_RICH_TEXT_TOOLBAR.includes('uploadImage'), 'no base64 pictures in the value')
+  assert.equal(f.querySelector('.mateu-rte-area'), null, 'not our own editor')
+  const change = (value, updatedFrom) => editor.dispatchEvent(new FakeEvent('valueChanged', { bubbles: false, detail: { value, updatedFrom } }))
+  change('<p>echo</p>', 'external')
+  change('<p><strong>Hi</strong></p>', 'internal')
+  assert.deepEqual(values, [], 'the echo of the value set, and an edit that changed nothing, are not commits')
+  change('<p>New <script>x</script><a href="https://x.org" target="_blank" rel="noopener noreferrer">link</a></p>', 'internal')
+  assert.deepEqual(values, ['<p>New <a href="https://x.org" target="_blank" rel="noopener noreferrer">link</a></p>'], 'committed sanitised')
+  assert.equal(f.querySelector('oj-sp-input-rich-text-2'), editor, 'committing does not remount the editor')
+  change(undefined, 'internal')
+  assert.deepEqual(values.slice(1), [null], 'an editor left empty is null')
+  // leaving the editor commits what it holds at once (its own valueChanged comes later)
+  const leave = (relatedTarget) => box.dispatchEvent(new FakeEvent('focusout', { bubbles: true, relatedTarget }))
+  editor.rawValue = '<p>typed</p>'
+  leave(box.querySelector('oj-sp-input-rich-text-2'))
+  assert.deepEqual(values.slice(2), [], 'to its own toolbar: not a commit')
+  delete editor.rawValue
+  leave(null)
+  assert.deepEqual(values.slice(2), [], 'nothing read yet: nothing to commit')
+  editor.rawValue = '<p>typed</p>'
+  leave(null)
+  assert.deepEqual(values.slice(2), ['<p>typed</p>'], 'out of it: committed before the click lands')
+  change('<p>typed</p>', 'internal')
+  assert.deepEqual(values.slice(2), ['<p>typed</p>'], 'its late valueChanged repeats it: nothing more')
+  await sleep(5)
+  assert.ok(f.querySelector('oj-sp-input-rich-text-2'), 'loaded: it stays')
+  assert.deepEqual(asked, [[SPECTRA_RICH_TEXT_LOADER]], 'asked once per window')
+})
+
+test('rich text field: when Spectra\'s editor does not load, our own editor takes over', async () => {
+  const { doc, win } = makeDom()
+  win.require = (mods, ok, fail) => setTimeout(() => fail(new Error('CDN down')), 0)
+  defineRichTextField(win)
+  const f = doc.createElement('mateu-rich-text-field')
+  f.setAttribute('value', '<p>x</p>')
+  doc.body.appendChild(f)
+  assert.ok(f.querySelector('oj-sp-input-rich-text-2'))
+  await sleep(5)
+  assert.equal(f.querySelector('oj-sp-input-rich-text-2'), null)
+  assert.match(f.querySelector('.mateu-rte-area').innerHTML, /x/)
+  f.setAttribute('value', '<p>y</p>')
+  assert.ok(f.querySelector('.mateu-rte-area'), 'for good: a new value does not try again')
+  // a field removed before the answer is left alone
+  const { doc: doc2, win: win2 } = makeDom()
+  win2.require = (mods, ok, fail) => setTimeout(() => fail(new Error('down')), 0)
+  defineRichTextField(win2)
+  const g = doc2.createElement('mateu-rich-text-field')
+  doc2.body.appendChild(g)
+  g.setAttribute('readonly', '')
+  await sleep(5)
+  assert.ok(g.querySelector('.mateu-atom-richtext'), 'read only, nothing to fall back from')
+})
+
+test('spectraRichTextReady: false with no window, no AMD loader, or a loader that throws', async () => {
+  assert.equal(await spectraRichTextReady(null), false)
+  assert.equal(await spectraRichTextReady({}), false)
+  assert.equal(await spectraRichTextReady({ require: () => { throw new Error('no config') } }), false)
 })
 
 test('rich text in content: [data-mateu-html] gets its sanitised HTML now and whenever it changes', () => {

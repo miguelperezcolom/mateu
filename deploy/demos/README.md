@@ -1,6 +1,6 @@
-# Public demos (`swapi.mateu.io`, `demo.mateu.io`, `starwars.ec1.mateu.io`, `starwars-rw.ec1.mateu.io`)
+# Public demos (`swapi.mateu.io`, `demo.mateu.io`)
 
-Four apps in namespace `mateu-demos` of the owner's Cloudfleet cluster (Hetzner, one small node), behind
+Two apps in namespace `mateu-demos` of the owner's Cloudfleet cluster (Hetzner, one small node), behind
 ingress-nginx and a Hetzner load balancer, TLS by cert-manager (`letsencrypt` ClusterIssuer, HTTP-01).
 DNS is on Netlify (zone `mateu.io`): `swapi.mateu.io`, `demo.mateu.io`, `*.ec1.mateu.io` point at the LB.
 
@@ -8,10 +8,10 @@ DNS is on Netlify (zone `mateu.io`): `swapi.mateu.io`, `demo.mateu.io`, `*.ec1.m
 |---|---|---|
 | swapi-service (github.com/miguelperezcolom/swapi-service) | `miguelperezcolom/swapi-service:<date>` | `swapi.mateu.io` (root → Swagger UI), `swapi.ec1.mateu.io` |
 | `demo/demo-vaadin-webflux` | `miguelperezcolom/demo-vaadin-webflux:<date>` | `demo.mateu.io`, `demo.ec1.mateu.io` |
-| `demo/demo-starwars` (100% YAML over swapi; the UI to try the Mateu mobile app with) | `miguelperezcolom/demo-starwars:<date>` | `starwars.ec1.mateu.io` |
-| the same YAML as a **static Redwood site** (`-Predwood-bundle`) behind nginx; only `/mateu/**` (the writes, which carry the swapi key) is proxied to `demo-starwars` | `miguelperezcolom/demo-starwars-redwood:<date>` | `starwars-rw.ec1.mateu.io` |
 
 Needs (owner's machine only): kube context for the cluster, Docker Hub push rights, the Netlify token.
+The Star Wars demos (`starwars[-rw].ec1.mateu.io`) were retired: the museum and NASA demos cover what
+they showed. `demo/demo-starwars` stays — the docs and tests use it, and swapi stays up for them.
 Never touch the other namespaces of that cluster.
 
 ## Build & push (JDK 21 — swapi's Lombok doesn't compile on JDK 26)
@@ -23,17 +23,6 @@ docker buildx build --platform linux/amd64 -f deploy/demos/demo-vaadin-webflux.D
   -t miguelperezcolom/demo-vaadin-webflux:$TAG -t miguelperezcolom/demo-vaadin-webflux:latest --push .
 # bump the tag in k8s/20-demo-vaadin-webflux.yaml (same for swapi in k8s/10-swapi.yaml)
 
-# starwars: built from the repo root, with a released Mateu
-(cd demo/demo-starwars && mvn -B -ntp clean package -DskipTests -Dmateu.version=<release>)
-docker buildx build --platform linux/amd64 -f deploy/demos/demo-starwars.Dockerfile \
-  -t miguelperezcolom/demo-starwars:$TAG -t miguelperezcolom/demo-starwars:latest --push .
-# bump the tag in k8s/40-demo-starwars.yaml
-
-# starwars on Redwood: the static bundle + nginx (starwars-redwood/nginx.conf)
-(cd demo/demo-starwars && mvn -B -ntp clean package -DskipTests -Predwood-bundle -Dmateu.version=<release>)
-docker buildx build --platform linux/amd64 -f deploy/demos/demo-starwars-redwood.Dockerfile \
-  -t miguelperezcolom/demo-starwars-redwood:$TAG -t miguelperezcolom/demo-starwars-redwood:latest --push .
-# bump the tag in k8s/41-demo-starwars-redwood.yaml
 ```
 
 ## Deploy
@@ -44,6 +33,6 @@ $K -n mateu-demos get secret swapi-write-key >/dev/null 2>&1 || \
   $K -n mateu-demos create secret generic swapi-write-key \
      --from-literal=WRITE_KEY="$(head -c 32 /dev/urandom | base64 | tr -d '/+=' | head -c 32)"
 $K apply -f deploy/demos/k8s/
-$K -n mateu-demos rollout status deploy/swapi deploy/demo-vaadin-webflux deploy/demo-starwars deploy/demo-starwars-redwood --timeout=5m
+$K -n mateu-demos rollout status deploy/swapi deploy/demo-vaadin-webflux --timeout=5m
 ```
 Check certificates: `$K -n mateu-demos get certificate,challenge`.

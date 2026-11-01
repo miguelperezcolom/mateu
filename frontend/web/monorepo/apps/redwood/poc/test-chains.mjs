@@ -12,7 +12,7 @@ import {
   generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
   overlayVarsOf, EMPTY_OVERLAY,
 } from './pageProjection.mjs'
-import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, refusedFieldsOf } from './actionPlan.mjs'
+import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, routeStateOf, refusedFieldsOf } from './actionPlan.mjs'
 import { validationErrorsOf, isSseAction } from './core/rowEditor.mjs'
 import { sameRowsSameProvider } from './core/content.mjs'
 import { evaluateExpression } from './rules.mjs'
@@ -128,6 +128,20 @@ test('collection header: the first toolbar button is primary, the rest secondary
   // a RouteLink primary ("New character" → people/new) carries its route: listPrimary navigates
   assert.equal(listHeaderVarsOf({ toolbar: [{ actionId: 'newCharacter', label: 'New character', route: 'people/new' }] }).mateuListPrimaryRoute, 'people/new')
   assert.deepEqual(v.mateuListSecondary, [{ id: 'exp', value: 'exp', label: 'Export' }])
+})
+
+test('collection header: an action that needs rows is disabled until a row is checked; an inert one stays disabled', async () => {
+  const { listSecondaryForSelection } = await import('./pageProjection.mjs')
+  const summary = { selectionRequired: ['delete'], toolbar: [
+    { actionId: 'new', label: 'New' }, { actionId: 'delete', label: 'Delete' },
+    { actionId: 'bulk', label: 'Bulk', rowsSelectedRequired: true }, { actionId: 'off', label: 'Off', disabled: true }, { actionId: 'exp', label: 'Export' }] }
+  const none = listHeaderVarsOf(summary).mateuListSecondary
+  assert.deepEqual(none.map((a) => [a.id, a.display || 'on']), [['delete', 'disabled'], ['bulk', 'disabled'], ['off', 'disabled'], ['exp', 'on']])
+  const one = listSecondaryForSelection(none, { all: false, keys: [3], except: [] })
+  assert.deepEqual(one.map((a) => [a.id, a.display || 'on']), [['delete', 'on'], ['bulk', 'on'], ['off', 'disabled'], ['exp', 'on']])
+  const all = listSecondaryForSelection(one, { all: true, keys: [], except: [] })
+  assert.equal(all[0].display, undefined)
+  assert.equal(listSecondaryForSelection(all, { all: false, keys: [], except: [] })[0].display, 'disabled')
 })
 
 test('wizard footer: forward button and step — an action keeps the step, a navigation enters by the overview', () => {
@@ -259,6 +273,21 @@ test('page layout: width anatomy, bleeding header and the band overlap', () => {
   const iop = pageLayoutOf({ host: {}, iopOn: true, bleedingHeader: true, band: false }).vars
   assert.deepEqual([iop.mateuShellPageLayout, iop.mateuPageMaxWidth, iop.mateuPageHostClass], ['fixedWidth', fixed.mateuPageMaxWidth, 'mateu-iop-host'])
   assert.equal(fixed.mateuPageHostClass, '')
+})
+
+test('an empty listing says so in the chrome language, not a hard-wired English «No data.»', async () => {
+  const { listingOf } = await import('./core/listing.mjs')
+  const { chromeText } = await import('./i18n.mjs')
+  const l = listingOf({ state: {}, data: {}, tree: { type: 'ClientSide', id: 'c', metadata: { type: 'Crud', columns: [] }, children: [] } })
+  assert.equal(l.emptyStateMessage, chromeText('noData'))
+  const own = listingOf({ state: {}, data: {}, tree: { type: 'ClientSide', id: 'c', metadata: { type: 'Crud', columns: [], emptyStateMessage: 'Nada' }, children: [] } })
+  assert.equal(own.emptyStateMessage, 'Nada')
+})
+
+test('onMateuNavigate: every navigation names the tab — a federated screen with no SetWindowTitle no longer keeps the previous title', () => {
+  const chain = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../webApps/vbredwoodapp/pages/shell-page-chains/onMateuNavigate.js'), 'utf-8')
+  assert.match(chain, /bridge\.setDocTitle\(\(reg\.effects && reg\.effects\.docTitle\) \|\| summary\.title \|\| \(reg\.shell && reg\.shell\.title\)\)/)
+  assert.doesNotMatch(chain, /if \(reg\.effects && reg\.effects\.docTitle\) \{/)
 })
 
 test('onMateuNavigate: the item overview template (mateuItemOv) is what turns iopOn on — not the reverted mateuIop', () => {
@@ -467,10 +496,14 @@ test('a display-block click: a RouteLink button navigates, any other runs its ac
   assert.deepEqual(blockClickOf({ actionId: 'greet', parameters: { a: 1 } }), { actionId: 'greet', parameters: { a: 1 } })
   // VB binds an absent route as '' (or the literal 'undefined' is never sent): blank → action
   assert.deepEqual(blockClickOf({ actionId: 'greet', route: '  ' }), { actionId: 'greet', parameters: {} })
+  // a RouteLink route is a template over the screen's state (a record page's Edit)
+  assert.deepEqual(blockClickOf({ route: 'missions/${state.id}/edit', state: { id: 6 } }), { navigate: 'missions/6/edit' })
+  assert.deepEqual(routeStateOf({ contexts: { [HOST_ID]: { state: { id: 6, name: 'a' } } } }, { name: 'b' }), { id: 6, name: 'b' })
   // both dispatchers consult it before running anything
   for (const chain of ['dispatchHostBlockAction', 'dispatchIslandAction']) {
     const src = webApp(`flows/main/pages/main-start-page-chains/${chain}.js`)
     assert.ok(src.includes('bridge.blockClickOf') && src.includes('application:mateuNavigate'), chain)
+    assert.ok(src.includes('bridge.routeStateOf('), chain + ' reads the route against the state')
   }
 })
 
@@ -504,9 +537,18 @@ test('a listing keeps its page and sort in the URL, with the Vaadin contract (ba
     { page: 2, sort: [{ field: 'title', direction: 'descending' }, { field: 'year', direction: 'ascending' }] })
   assert.deepEqual(listingUrlPagingOf(''), { page: 0, sort: [] })
   const search = webApp('flows/main/pages/main-start-page-chains/runMateuSearch.js')
-  assert.ok(search.includes('bridge.listingUrlOf(') && search.includes('history.replaceState'), 'every search writes the URL')
+  // every search writes the URL — as a NEW history entry: Back returns to the previous page/filters
+  // (it used to replaceState, and Back left the listing — Fable review A8)
+  assert.ok(search.includes('bridge.listingUrlOf(') && search.includes('history.pushState') && !search.includes('history.replaceState'),
+    'every search pushes the URL')
+  const filters = webApp('flows/main/pages/main-start-page-chains/smartFiltersChanged.js')
+  assert.ok(filters.includes('history.pushState') && !filters.includes('history.replaceState'), 'a filter change pushes the URL')
   const nav = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'onMateuNavigate.js'), 'utf8')
   assert.ok(nav.includes('bridge.listingUrlPagingOf('), 'navigation restores page and sort')
+  // a back/forward compares with the URL ON SCREEN (with its query): back from ?page=1 to the bare
+  // listing is another state of it, not the menu entry's echo — and staying puts that URL back
+  assert.ok(nav.includes('((requested || fromUrl) && window.__mateuLoadedFull != null)'), 'back/forward vs the loaded URL')
+  assert.ok(nav.includes('bridge.restoreUrlAfterStaying(window.__mateuLoadedFull ||'), 'stay keeps the query')
 })
 
 test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.catalogJson}#" 400 on every load)', () => {
