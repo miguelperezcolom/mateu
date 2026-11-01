@@ -1,8 +1,11 @@
 # The conservation board — a LIVE KANBAN: one column per status, one card per task (read from
-# museum-service), its colour the priority. Drag a card to another column — or use its ⋯ Move menu —
-# and the task's status is saved (museum-task-move, a PUT with the card's own record); the board then
-# reads the tasks again. A card opens the task (conservation/tasks/:id). The filterable list is
-# conservation/tasks. Needs a Mateu with Kanban moveActionId/rowsSource (after 3.0-beta.32).
+# museum-service), its colour the priority. Drag a card to another column or to another place in its
+# column — or use its ⋯ Move menu — and the move is saved (museum-task-move, a PUT with the card's own
+# record: its new status AND its new boardOrder); the board then reads the tasks again. The order is
+# the task's `boardOrder` (orderField): a dropped card gets the midpoint of its new neighbours, so a
+# reload shows it exactly where it was dropped. A card opens the task (conservation/tasks/:id). The
+# filterable list is conservation/tasks. Needs Mateu 3.0-beta.35 (Kanban orderField) and a
+# museum-service with boardOrder.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
 title: Conservation board
@@ -19,6 +22,7 @@ content:
     id: board
     rowsSource: {ref: museum-conservation-board}
     columnField: status
+    orderField: boardOrder
     card:
       title: "${row.type}"
       description: "${row.artworkTitle} · ${row.museumName} · ${row.assignee} · due ${row.dueDate}"

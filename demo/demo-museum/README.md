@@ -76,7 +76,7 @@ anchor: one value, aliased by each entry.)
 | **DataManagementPage** — the loans as a data view with docked panels (a **timeline** of the workflow) | `/loans` | `loans.yaml` |
 | **GuidedProcessPage** — the *request a loan* **wizard** (4 steps, one form, a proxied create) | `/loans/new` | `loan-new.yaml` |
 | **AdvancedCreateEditPage** — a record whose status select walks a workflow, with its **documents**: upload (a `fileUpload` field, sent as a data URI through a proxied source), a list whose row opens the file (`rowRoute: ${row.url}`), delete selected | `/loans/:id` | `loan.yaml` |
-| **Kanban** — the conservation board; a card opens the live task | `/conservation` | `conservation.yaml` (generated) |
+| **Kanban**, live — drag cards between and within columns (or the ⋯ Move menu); the move is saved, and the order kept (`orderField: boardOrder`) | `/conservation` | `conservation.yaml` |
 | Listing **grouped** by status | `/conservation/tasks` | `conservation-tasks.yaml` |
 | Create / edit sharing a list partial; **slider**, radio, select | `/conservation/tasks/new`, `/conservation/tasks/:id` | `task-new.yaml`, `task-edit.yaml`, `partials/task-fields.yaml` |
 | Date-range + number-range filters, money and integer columns | `/visits` | `visits.yaml` |
@@ -84,10 +84,13 @@ anchor: one value, aliased by each entry.)
 ### Live, and snapshot
 
 Listings, records, selects, the record switcher, the global search and the dashboard's header KPIs
-read museum-service **live**. Three components cannot: a YAML `Chart`, `Kanban` and `Calendar` carry
-their data in the definition (they have no `source:`), and a `MetricCard` does not interpolate
-`${state…}` on Vaadin. For those, [`scripts/snapshot.py`](scripts/snapshot.py) reads the API once
-and writes `calendar.yaml`, `conservation.yaml` and `partials/generated/*`. Every card and event
+read museum-service **live**, and so does the conservation board: a `Kanban` with a `rowsSource`
+(cards from `/api/conservation-tasks?sort=boardOrder`), a move action that PUTs the task's new status
+and `boardOrder`, and `orderField: boardOrder` so a dropped card stays exactly where it was dropped
+(Mateu 3.0-beta.35). Two components cannot read a source: a YAML `Chart` and `Calendar` carry their
+data in the definition, and a `MetricCard` does not interpolate `${state…}` on Vaadin. For those,
+[`scripts/snapshot.py`](scripts/snapshot.py) reads the API once and writes `calendar.yaml` and
+`partials/generated/*`. Every card and event
 opens the **live** record, so what you edit is always current. Re-run it after the seed changes:
 
 ```bash
