@@ -278,8 +278,21 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
                 val refusal = manifest?.let { io.mateu.ijp.hub.HubManifest.refusal(it) }
                 if (refusal != null) {
                     showHub()
-                    showBootProblem("Can't open ${entry.name}", refusal, NotificationType.WARNING)
+                    // a newer Mateu app would open it ([AppCompat] newer wire): offer the update
+                    val updatable = manifest.bundle == null &&
+                        io.mateu.ijp.hub.HubManifest.compat(manifest).reason == io.mateu.ijp.hub.AppCompat.Reason.NEWER_WIRE
+                    io.mateu.ijp.hub.HubUpdate.notifyCompat(project, "Can't open ${entry.name}", refusal, NotificationType.WARNING, updatable)
                     return@invokeLater
+                }
+                // ahead of this app: it opens, with a suggestion to update
+                manifest?.let { m ->
+                    val compat = io.mateu.ijp.hub.HubManifest.compat(m)
+                    if (compat.status == io.mateu.ijp.hub.AppCompat.Status.RECOMMENDED) {
+                        io.mateu.ijp.hub.HubUpdate.notifyCompat(
+                            project, "${entry.name} runs a newer Mateu",
+                            io.mateu.ijp.hub.HubManifest.compatMessage(m, compat).orEmpty(), NotificationType.INFORMATION, true,
+                        )
+                    }
                 }
                 // offline: the stored copy of the manifest still says how to sign in
                 val current = store.edit { list ->

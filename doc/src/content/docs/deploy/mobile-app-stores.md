@@ -169,9 +169,16 @@ For a backend that is already secured, see also
 - **Adding asks for confirmation.** The confirmation screen shows the domain prominently, next to
   the manifest's name and icon, so a QR code from an untrusted source can't pass itself off as
   another UI.
-- **"Update the app".** If your UI needs a newer app, set `minAppVersion`. Users on an older app
-  then see an "Update the app" screen instead of a screen that half works. A wire version the app
-  doesn't understand gets the same treatment.
+- **"Update the app".** The app checks by itself whether it can render your UI: the manifest carries
+  the server's wire version and Mateu release, and the app compares them with its own. A UI on a
+  wire the app does not understand is not added or opened; the person gets **Update Mateu** instead
+  of a screen that half works. A UI on a newer Mateu release opens with a suggestion to update. If
+  your UI needs a newer app for any other reason, set `minAppVersion`. See
+  [Can this app open that UI?](/ux-patterns/mobile-app/#can-this-app-open-that-ui).
+- **Over-the-air updates.** Each Mateu release publishes its JavaScript to the installed apps
+  (expo-updates, channel `production`) when the repository has an `EXPO_TOKEN` secret, so
+  **Update Mateu** can install it at once. A native change still needs a store build
+  (`frontend/app/react-native/RELEASE.md`).
 
 ## B. Your own branded app on the React Native renderer
 

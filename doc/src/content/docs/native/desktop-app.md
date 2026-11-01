@@ -112,6 +112,13 @@ When a release needs a newer IntelliJ build under it, the app does not patch the
 **"A new version of Mateu needs to be reinstalled"** with a link to the installer for the user's
 operating system.
 
+A UI can also ask for an update. When one is added or opened, the hub compares its manifest
+(`wireVersion`, `mateuVersion`) with this app — the same rule as the phone app,
+[Can this app open that UI?](/ux-patterns/mobile-app/#can-this-app-open-that-ui). One on a wire this
+app does not understand is not added or opened, and **Update Mateu** checks the feed at once; one on
+a newer Mateu release opens with a note offering the same. With no newer version in the feed, it
+says so.
+
 IntelliJ's own update checks are switched off in the desktop app — it never offers to update to
 IntelliJ IDEA (`-Dide.no.platform.update`), and plugin update checks are off too, since the Mateu
 plugin is updated by the app itself.

@@ -23,7 +23,8 @@ object HubFlow {
 
         data class ImportMany(val baseUrls: List<String>, val rejected: Int, val alreadyThere: Int) : Proposal
 
-        data class Refused(val reason: String) : Proposal
+        /** [updatable]: a newer Mateu app would open it ([AppCompat] newer wire) — offer the update. */
+        data class Refused(val reason: String, val updatable: Boolean = false) : Proposal
     }
 
     fun propose(
@@ -56,7 +57,9 @@ object HubFlow {
 
     private fun one(baseUrl: String, route: String?, fetched: HubManifest.Fetch, entries: HubEntries): Proposal = when (fetched) {
         is HubManifest.Fetch.Failed -> Proposal.Refused(fetched.reason)
-        is HubManifest.Fetch.Ok -> HubManifest.refusal(fetched.manifest)?.let { Proposal.Refused(it) }
+        is HubManifest.Fetch.Ok -> HubManifest.refusal(fetched.manifest)?.let {
+            Proposal.Refused(it, updatable = fetched.manifest.bundle == null && HubManifest.compat(fetched.manifest).reason == AppCompat.Reason.NEWER_WIRE)
+        }
             ?: Proposal.AddOne(baseUrl, HubLinks.sanitizeRoute(route), fetched.manifest, entries.findByBaseUrl(baseUrl))
     }
 }
