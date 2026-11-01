@@ -27,6 +27,8 @@ spec:
           image: miguelperezcolom/space-service:4635ee9
           env:
             - { name: SERVER_PORT, value: "8122" }
+            # an uploaded portrait is served by this API and linked with an absolute URL (the UI is elsewhere)
+            - { name: PUBLIC_BASE_URL, value: "https://space-api.ec1.mateu.io" }
             - name: WRITE_KEY
               valueFrom:
                 secretKeyRef: { name: space-service-write-key, key: WRITE_KEY }
@@ -70,6 +72,8 @@ metadata:
   namespace: mateu-demos
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
+    # an astronaut's uploaded portrait (≤ 2 MB) travels base64-encoded in the save: ~2.7 MB of JSON
+    nginx.ingress.kubernetes.io/proxy-body-size: "4m"
 spec:
   ingressClassName: nginx
   tls:

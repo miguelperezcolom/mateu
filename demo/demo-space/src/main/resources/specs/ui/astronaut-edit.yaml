@@ -1,6 +1,8 @@
 # Edit an astronaut: text, a select, dates, integer and decimal numbers, a radio, rich text and the
-# portrait — a URL with its preview (the NASA Image Library's ~medium rendition; space-service derives
-# the thumbnail and large sizes), its title and its credit. Photos are linked, never uploaded.
+# portrait — UPLOADED (stereotype uploadableImage: preview, Upload/Replace, Delete). The browser reads
+# the picked file into a data: URI that travels in the save like any other field; space-service keeps
+# it (JPEG/PNG/WebP/GIF, up to 2 MB) and points the astronaut's image, thumbnail and large version at
+# /api/astronauts/{id}/portrait. The seeded portraits stay linked from the NASA Image Library.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
 title: Edit ${state.name}
@@ -41,10 +43,9 @@ content:
       type: FormLayout
       maxColumns: 2
       content:
-        # the preview and the URL apart: a FormField with stereotype image only displays it, full size,
-        # and offers no input to change it
-        - {type: Image, src: "${state.image}", alt: "${state.name}", style: "max-width: 220px; border-radius: 8px;"}
-        - {type: FormField, id: image, label: Photo URL (NASA Image Library ~medium), colspan: 2}
+        # the preview and its Upload/Replace/Delete in one field: the value is the picture's URL (a
+        # seeded NASA one) or, once a file is picked, the file itself as a data: URI
+        - {type: FormField, id: image, label: Photo, stereotype: uploadableImage, colspan: 2}
         - {type: FormField, id: imageTitle, label: Photo title}
         - {type: FormField, id: imageCredit, label: Photo credit, placeholder: "NASA"}
 actions:

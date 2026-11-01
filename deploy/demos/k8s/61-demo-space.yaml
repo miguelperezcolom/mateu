@@ -68,6 +68,8 @@ metadata:
   namespace: mateu-demos
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
+    # an astronaut's uploaded portrait (≤ 2 MB) travels base64-encoded in the save: ~2.7 MB of JSON
+    nginx.ingress.kubernetes.io/proxy-body-size: "4m"
 spec:
   ingressClassName: nginx
   tls:
