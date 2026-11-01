@@ -8,7 +8,8 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { evaluateExpression } from './rules.mjs'
-import { __setBundleForTests, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundle.mjs'
+import { __setBundleForTests, applyQueryParams, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundle.mjs'
+import { interpolateRestUrl } from './restSources.mjs'
 
 const corpusFile = (name) => fileURLToPath(new URL('../../../../../../conformance/client/' + name, import.meta.url))
 const isMarker = (v, key) => !!v && typeof v === 'object' && v[key] === true
@@ -38,7 +39,8 @@ for (const c of routeParams.cases) {
     : []
   __setBundleForTests(undefined, templates, c.routes)
   try {
-    const out = c.template ? matchBundledTemplate(c.syncPath) : applyRouteParams(c.syncPath, increment)
+    const routed = c.template ? matchBundledTemplate(c.syncPath) : applyRouteParams(c.syncPath, increment)
+    const out = c.query ? applyQueryParams(c.syncPath, routed, c.query) : routed
     if (c.expected.untouched) {
       assert.equal(out, increment, 'the same reference')
     } else {
@@ -67,10 +69,22 @@ for (const s of routeParams.syncPaths) {
   }
 }
 
+// ── a source's URL template, the direct leg (conformance/client/source-templates.json) ──────────
+const sourceTemplates = JSON.parse(readFileSync(corpusFile('source-templates.json'), 'utf8'))
+for (const c of sourceTemplates.cases) {
+  try {
+    assert.equal(interpolateRestUrl(c.template, { state: c.state }), c.expected)
+    passed++
+  } catch (e) {
+    failures.push(`source template: ${c.name}: ${e.message}`)
+  }
+}
+
 const total = expressions.cases.length + routeParams.cases.length + routeParams.syncPaths.length
+  + sourceTemplates.cases.length
 if (failures.length) {
   console.error(failures.map((f) => '  ✗ ' + f).join('\n'))
   console.error(`${failures.length} of ${total} client conformance cases FAILED`)
   process.exit(1)
 }
-console.log(`${passed} client conformance cases OK (expressions, route params)`)
+console.log(`${passed} client conformance cases OK (expressions, route params, source templates)`)

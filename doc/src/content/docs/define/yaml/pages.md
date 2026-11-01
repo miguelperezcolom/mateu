@@ -74,11 +74,17 @@ content:
         dataType: date
 ```
 
+A `HorizontalLayout` with no `spacing:` key is **spaced** (an image beside a form, two cards side
+by side never touch); write `spacing: false` to set its children flush. A `VerticalLayout` is not
+spaced unless it says `spacing: true`. The same default applies on every backend (Java, .NET,
+Python) and in a static bundle.
+
 ## Page type — `pageType:`
 
 A page has a coarse **page type** — `landing`, `collection`, `detail`, `form`, `process` or
-`dashboard` (the Redwood page-template families). It sets the page's default width (form, process
-and landing pages are capped; collection, detail and dashboard pages defer to their content) and is
+`dashboard` (the Redwood page-template families). It sets the page's default width (collection and
+dashboard pages are full width; form, process and landing pages are capped; detail pages defer to
+their content — see [page width](/ux-patterns/page-templates/)) and is
 stamped on the rendered page as `data-page-type`. A Java view declares it with
 `@PageTemplate(PageType.X)`; a YAML page declares it with a top-level `pageType:` key, beside
 `layout:` (or beside `type:` in a bare tree):

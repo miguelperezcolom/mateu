@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid'
 import type App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import { safeSessionStorage } from '@infra/safeStorage.ts'
 import { sessionId } from '@infra/http/authToken.ts'
-import { AGENT_SECRET_KEY, tabSessionReady } from '@infra/http/tabSession.ts'
+import { AGENT_SECRET_KEY, onTabSessionRekeyed, tabSessionReady } from '@infra/http/tabSession.ts'
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
@@ -170,6 +170,15 @@ const stopStream = () => {
     controller?.abort()
     controller = null
 }
+
+// A late answer showed this tab is a duplicate after the channel opened with the copied id: drop
+// that stream (it belongs to the original) and reopen with the new id and a fresh secret.
+onTabSessionRekeyed(() => {
+    memorySecret = undefined
+    if (!controller) return
+    stopStream()
+    connect()
+})
 
 const schedule = (delay: number) => {
     clearTimeout(reconnectTimer)

@@ -53,7 +53,8 @@ define([
 
       // the URL states the listing's state — filters, text, PAGE and SORT — as in Vaadin and in
       // the static bundle: coming back from a record, reloading or sharing the link keeps it.
-      // replaceState: paging or sorting is not a new screen in the history
+      // pushState: a page, a sort or a search the user asked for is a history entry — Back returns
+      // to the previous one (onMateuNavigate reloads it from the URL), as the listing doc promises
       const full = bridge.listingUrlOf(route || '', $application.variables.mateuFilterValues || {},
         $application.variables.mateuLastSearchText || '',
         { page: page || 0, sort: $application.variables.mateuListingSort || [] });
@@ -61,10 +62,10 @@ define([
       if (window.__mateuUrlPathMode) {
         if (bridge.currentRoutePathOf(window.location) === full.split('?')[0]
             && bridge.currentRouteOf(window.location) !== full) {
-          window.history.replaceState(window.history.state, '', bridge.urlOfRoute(full));
+          window.history.pushState(window.history.state, '', bridge.urlOfRoute(full));
         }
       } else if (window.location.hash !== '#' + full) {
-        window.history.replaceState(window.history.state, '', '#' + full);
+        window.history.pushState(window.history.state, '', '#' + full);
       }
 
       const refreshed = bridge.listingOf(reg.contexts[bridge.HOST_ID]);

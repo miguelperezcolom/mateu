@@ -13,6 +13,7 @@ import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.remote.RemoteConfiguration
 import com.intellij.execution.remote.RemoteConfigurationType
 import com.intellij.ide.BrowserUtil
+import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -115,8 +116,48 @@ class MateuLiveService(private val project: Project) {
         }
     }
 
-    /** The Mateu tool window, pointed at the running app (and reconnected when it pointed elsewhere). */
+    /**
+     * The Mateu desktop app — a SEPARATE IntelliJ with its own window — opens the running app: the IDE
+     * hands the OS the hub's add link (`mateu://add?u=<url>`), the app confirms it (domain shown) and
+     * opens the UI. This IDE's settings are not touched. When no desktop app is installed: say so, with
+     * the download and the old way (this IDE's Mateu tool window) one click away — never silently.
+     */
     private fun openOnDesktop(url: String) {
+        val os = DesktopApp.osOf()
+        val link = DesktopApp.linkOf(url)
+        ApplicationManager.getApplication().executeOnPooledThread {
+            val installed = DesktopApp.handlerProbeOf(os)?.let { probe ->
+                runCatching { CapturingProcessHandler(GeneralCommandLine(probe)).runProcess(15_000) }
+                    .map { DesktopApp.handlerFound(os, if (it.isTimeout) -1 else it.exitCode, it.stdout) }
+                    .getOrDefault(false)
+            } ?: false
+            val opened = installed && DesktopApp.openCommandOf(os, link)?.let { command ->
+                runCatching { CapturingProcessHandler(GeneralCommandLine(command)).runProcess(15_000) }
+                    .map { !it.isTimeout && it.exitCode == 0 }
+                    .getOrDefault(false)
+            } == true
+            if (!opened) ApplicationManager.getApplication().invokeLater { offerDesktopApp(url, installed) }
+        }
+    }
+
+    /** No desktop app took the link: download it, or open the app in this IDE's Mateu tool window. */
+    private fun offerDesktopApp(url: String, installed: Boolean) {
+        val text = if (installed) {
+            "The Mateu desktop app did not open $url."
+        } else {
+            "The Mateu desktop app is not installed: it opens the app in a window of its own (a separate IntelliJ)."
+        }
+        NotificationGroupManager.getInstance().getNotificationGroup("Mateu")
+            .createNotification(text, NotificationType.INFORMATION)
+            .addAction(NotificationAction.createSimpleExpiring("Download the Mateu desktop app") {
+                BrowserUtil.browse(DesktopApp.DOWNLOAD_URL)
+            })
+            .addAction(NotificationAction.createSimpleExpiring("Open in this IDE instead") { openInThisIde(url) })
+            .notify(project)
+    }
+
+    /** The Mateu tool window of THIS IDE, pointed at the running app (and reconnected when it pointed elsewhere). */
+    private fun openInThisIde(url: String) {
         val state = MateuSettings.getInstance(project).state
         if (state.baseUrl != url || state.registryUrl.isNotBlank()) {
             state.baseUrl = url

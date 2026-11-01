@@ -134,4 +134,57 @@ class RouteParamPrecedenceTest {
 
     assertThat(state).containsEntry("customerId", "7");
   }
+
+  @Test
+  void theQuerySitsBetweenThePathAndTheDefaultsAndANullIsNoValue() {
+    var entry =
+        new RouteEntry("orders/:id", null, "X", Map.of("tenant", "acme"), Map.of("page", 1));
+    var query =
+        new io.mateu.core.testutil.FakeHttpRequest(io.mateu.dtos.RunActionRqDto.builder().build()) {
+          private final Map<String, String> values =
+              Map.of("id", "9", "tenant", "evil", "q", "x", "page", "3", "dept", "sales");
+
+          @Override
+          public java.util.List<String> getParameterNames() {
+            return java.util.List.copyOf(values.keySet());
+          }
+
+          @Override
+          public String getParameterValue(String name) {
+            return values.get(name);
+          }
+        };
+    var clientState = new java.util.HashMap<String, Object>();
+    clientState.put("dept", null); // a null is no value: the query fills it
+    var state =
+        RouteSegmentUtils.addParameterValues(
+            clientState,
+            "/orders/42",
+            new ResolvedRoute("/orders/42", "orders/:id", Object.class, entry),
+            query);
+
+    assertThat(state).containsEntry("id", "42"); // path over query
+    assertThat(state).containsEntry("tenant", "acme"); // fixed over query
+    assertThat(state).containsEntry("q", "x"); // the query seeds what nobody named
+    assertThat(state).containsEntry("page", "3"); // query over defaults
+    assertThat(state).containsEntry("dept", "sales");
+  }
+
+  @Test
+  void theUidlHelperUsesTheSameOrder() {
+    var entry =
+        new RouteEntry("orders/:id", null, "X", Map.of("tenant", "acme"), Map.of("page", 1));
+    var match = new io.mateu.uidl.data.RouteTable(java.util.List.of(entry)).match("orders/42");
+    assertThat(match).isPresent();
+    var incoming = new java.util.HashMap<String, Object>();
+    incoming.put("id", null);
+    incoming.put("page", null);
+    var params = match.get().params(incoming, Map.of("q", "x", "id", "9"));
+    assertThat(params)
+        .containsEntry("id", "42")
+        .containsEntry("tenant", "acme")
+        .containsEntry("q", "x")
+        .containsEntry("page", 1);
+    assertThat(match.get().params(Map.of("id", "7"))).containsEntry("id", "7");
+  }
 }

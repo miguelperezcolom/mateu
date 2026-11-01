@@ -347,6 +347,11 @@ class ActionPipelineSecurityTest {
    */
   @Test
   void aHandlerTheViewsOwnCodeNamesRunsInStrictMode() {
+    // before the dialog was handed out, its confirm handler is just a public method: refused
+    io.mateu.core.domain.out.fragmentmapper.mappers.IssuedActionsTestHook.forget();
+    assertRefused(() -> mateu.run(rq(SecApp.class.getName(), "doArchive")));
+    // the dialog an action returns names its confirm handler: that response advertises it
+    mateu.run(rq(SecApp.class.getName(), "archive"));
     var archived = mateu.run(rq(SecApp.class.getName(), "doArchive"));
     assertThat(archived.messages()).extracting(m -> m.text()).contains("archived");
   }

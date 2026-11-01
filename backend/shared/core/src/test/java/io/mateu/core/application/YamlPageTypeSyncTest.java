@@ -92,6 +92,12 @@ class YamlPageTypeSyncTest {
   }
 
   @Test
+  void aWrappedListingPageIsACollection() {
+    // it used to go out as a `form` page, so the renderer capped a listing at the form width
+    assertThat(componentOf(mateu.sync("/page-type-listing")).pageType()).isEqualTo("collection");
+  }
+
+  @Test
   void anUnknownTypeIsIgnoredAndInferred() {
     assertThat(componentOf(mateu.sync("/page-type-typo")).pageType()).isEqualTo("form");
   }

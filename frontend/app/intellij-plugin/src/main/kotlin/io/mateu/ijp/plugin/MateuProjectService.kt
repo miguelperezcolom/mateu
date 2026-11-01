@@ -252,7 +252,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         project.putUserData(MATEU_SESSION, null)
         hubEntryId = null
         homeOpened = false
-        io.mateu.ijp.auth.MateuAuthService.getInstance(project).forgetSession()
+        // the UI's sign-in stays (per-UI sessions, OidcSessions): opening it again finds you signed in
         closeViews()
         MateuFrameTitle.set(project, loadMateuConfig(project).productName)
         val store = io.mateu.ijp.hub.HubStore.getInstance()
@@ -318,7 +318,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
                     }
                 }
                 hubEntryId = current.id
-                io.mateu.ijp.auth.MateuAuthService.getInstance(project).forgetSession()
+                // no forgetSession: the auth service reads THIS UI's session (backend + issuer + client)
                 session?.dispose()
                 session = null
                 project.putUserData(MATEU_SESSION, null)

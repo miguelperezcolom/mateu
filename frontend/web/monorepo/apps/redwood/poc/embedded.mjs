@@ -517,7 +517,7 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
   'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-  'installDrawerGuard', 'installAttachmentChips',
+  'installDrawerGuard', 'installAttachmentChips', 'installKanbans',
 ])
 
 /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -538,6 +538,8 @@ export const NOT_IN_EMBEDDED = Object.freeze({
   installEditorPreview: 'the visual editor previews the standalone app only',
   // the tile-reorder sink is wired, with its own payload, by installEmbeddedContentRuntime
   setTileReorderSink: 'wired separately (its payload is a scope, not an action)',
+  // the kanban sink likewise: its payload is a board and a move, handed to its own chain
+  setKanbanMoveSink: 'wired separately (its payload is a board key and a move, not an action)',
   // live reload (dev mode) answers an app-level change by reloading the WINDOW: in a host page that
   // is the host's app, not ours — the embedded component is not live-reloaded (yet)
   installDevLiveReload: 'an app-level reload would reload the host page',
@@ -569,6 +571,9 @@ export function installEmbeddedContentRuntime(b, runtime) {
   for (const sink of CONTENT_ACTION_SINKS) if (typeof b[sink] === 'function') b[sink](runPageAction)
   if (typeof b.setTileReorderSink === 'function') {
     b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
+  }
+  if (typeof b.setKanbanMoveSink === 'function') {
+    b.setKanbanMoveSink(({ key, move }) => runtime.fireEvent('application:mateuKanbanMove', { key, move }))
   }
   // the document-level listeners once per page; the sinks and hooks above/below follow the
   // CURRENT component (a new <mateu-ui> takes them over)

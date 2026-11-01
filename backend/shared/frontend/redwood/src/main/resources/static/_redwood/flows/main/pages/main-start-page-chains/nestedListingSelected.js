@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","resources/js/mateu-bridge"],(ActionChain,bridge)=>{"use strict";return class extends ActionChain{async run(context,{event}){const table=event&&event.target,key=table&&table.dataset?table.dataset.nestedKey:"",row=event&&event.detail&&event.detail.value&&event.detail.value.row;bridge.setNestedSelection(key,row)}};});
+//# sourceMappingURL=nestedListingSelected.js.map

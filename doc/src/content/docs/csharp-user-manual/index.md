@@ -881,8 +881,10 @@ routes:
 ```
 
 Entries are merged **over** the attribute-declared views and win. Parameters resolve as
-`fixed > client state > path > defaults`: defaults only fill what nothing else supplied, while fixed
-ones are re-applied on the server over everything, including the state the client sends back.
+`fixed > client state > path > query > defaults` — the same order as the Java server and the
+browser: a `null` in the client state is no value (the path, the URL's query and the defaults still
+fill it), defaults only fill what nothing else supplied, and fixed ones are re-applied on the server
+over everything, including the state the client sends back.
 
 `viewModel` takes the type's full name. Both `viewModel` and `view_model` are accepted, since the
 file is the same one a Java or Python app consumes.

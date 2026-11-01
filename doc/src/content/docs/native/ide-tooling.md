@@ -170,7 +170,7 @@ web, on the desktop and in the mobile app from the IDE:
 | Open in | What happens once the app answers |
 |---|---|
 | **Web (browser)** | the default browser opens it — the web renderer |
-| **Desktop (this IDE)** | **Settings | Tools | Mateu** points at it and the **Mateu** tool window reconnects — the IntelliJ renderer |
+| **Desktop (Mateu app)** | the [Mateu desktop app](/native/desktop-app/) — a **separate** IntelliJ with its own window — gets `mateu://add?u=http://localhost:<port>`, confirms it and opens the UI with the IntelliJ renderer. Your IDE's settings are not touched. Not installed? A notification offers the download and *Open in this IDE instead* (the **Mateu** tool window of your IDE) |
 | **Android emulator** | `adb shell am start` opens `mateu://add?u=http://10.0.2.2:<port>` in the Mateu app on the running emulator |
 | **iOS simulator** | `xcrun simctl openurl booted mateu://add?u=http://localhost:<port>` (macOS) |
 | **Phone (QR code)** | the app listens on the network and a dialog shows the QR of `https://mateu.io/add?u=http://<lan ip>:<port>` |
@@ -180,8 +180,12 @@ the debug agent either way). The module is found from the project — a Spring B
 or Helidon app (Maven or Gradle) first, else a YAML-only project that builds a **static bundle**, which
 runs with `mvn mateu-bundle:dev` (no backend: nothing to attach a debugger to, and the desktop target
 is refused because the IntelliJ renderer needs a backend). The *Module directory* field overrides the
-choice. The Mateu app accepts a plain `http` address only in a **development build**, so the
-emulator, simulator and phone targets need one installed.
+choice. The phone app accepts a plain `http` address only in a **development build**, so the
+emulator, simulator and phone targets need one installed. The desktop app accepts plain `http` for
+**this machine only** (`localhost`, `127.x`, `[::1]` — what the IDE hands it), in every build; any other
+plain-http address is still refused. On macOS the link is opened with the desktop app by its bundle id
+(`io.mateu.desktop`), because on Apple silicon the phone app, installed from the App Store, claims
+`mateu://` too.
 
 **Run | Open Mateu App In…** opens the app that is already running on another target without
 restarting it (the phone only when the app already listens on the network). **Run | Run Mateu App

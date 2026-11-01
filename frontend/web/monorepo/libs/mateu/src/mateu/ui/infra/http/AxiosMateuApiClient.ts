@@ -7,6 +7,7 @@ import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
 import {loopGuard} from "@infra/ui/loopGuard.ts";
 import {awaitBundle, hasBundle, isForeignBaseUrl, isStaticBundleUrl, resolveBundledLoad, resolveRemoteBundledLoad, toSyncPath} from "@infra/http/bundleStore.ts";
+import {queryOf} from "@infra/http/bundleResolver.ts";
 import {classifyRequestFailure} from "@infra/http/requestPolicy.ts";
 import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPolicy.ts";
 import {connectivity} from "@infra/http/connectivity.ts";
@@ -296,7 +297,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
                 // then — specs mode (Phase 6) — a definition-only route expanded client-side. The
                 // consumed route tells a fresh load (→ the app shell, aimed at the route) from the
                 // shell filling its content slot (→ the route's own screen) — see #557.
-                const bundled = resolveBundledLoad(toSyncPath(route), consumedRoute)
+                const bundled = resolveBundledLoad(toSyncPath(route), consumedRoute, queryOf(route))
                 if (bundled) {
                     // The exporter had no initiatorComponentId, so the pre-rendered fragments carry
                     // a null target. The client only applies fragments whose targetComponentId is a

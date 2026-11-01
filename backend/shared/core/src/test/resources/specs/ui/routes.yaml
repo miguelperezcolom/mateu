@@ -147,3 +147,10 @@ routes:
     definition: page-type-template.yaml
     state:
       name: Mars
+
+  # A listing page whose route seeds state: served wrapped, it is a collection, not a form.
+  # Used by YamlPageTypeSyncTest.
+  - route: page-type-listing
+    definition: page-type-listing.yaml
+    state:
+      status: open

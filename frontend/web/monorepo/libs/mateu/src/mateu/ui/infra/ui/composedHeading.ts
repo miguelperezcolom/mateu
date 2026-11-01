@@ -38,8 +38,10 @@ const named = (n: Node | undefined, depth = 0): boolean => {
     if (!n || depth > 12) return false
     const type = n.metadata?.type
     if (type && NAMING_TYPES.has(type)) return true
-    // a listing names the page only when it carries a title of its own
-    if (type === 'Crud' && typeof n.metadata?.title === 'string' && n.metadata.title.trim()) return true
+    // a listing — or a YAML Form (its header: a page filling a template is a detail/collection page
+    // since its type follows the template) — names the page only when it carries a title of its own;
+    // without this a templated record page got its window title ("13") drawn above its own header
+    if ((type === 'Crud' || type === 'Form') && typeof n.metadata?.title === 'string' && n.metadata.title.trim()) return true
     if (type === 'Text' && typeof n.id === 'string' && n.id.endsWith('page-title')) return true
     // a YAML/fluent page that opens with its own h1/h2 (e.g. `{type: Text, container: h2}`)
     if (isHeadingText(n)) return true

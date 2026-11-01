@@ -97,6 +97,25 @@ it on **every** Mateu request (and on the AI chat), from a pluggable **token pro
 Register these redirect URIs as allowed for the client at the identity provider:
 `mateu://auth` (iOS/Android — the app's scheme is `mateu`) and `<web origin>/auth` (expo web).
 
+**One client for the phone and the desktop app.** In Keycloak (Clients ▸ Create client), the same
+public client serves both Mateu apps:
+
+| Keycloak setting | Value | Why |
+|---|---|---|
+| Client authentication | **Off** (public client) | an installed app cannot keep a secret |
+| Standard flow | **On** | the phone's Authorization Code flow |
+| OAuth 2.0 Device Authorization Grant | **On** | the [desktop app](/native/desktop-app/#signing-in) signs in with the device flow |
+| Direct access grants | Off | not used |
+| Valid redirect URIs | `mateu://auth` (+ `http://localhost:8081/*` for expo web in development) | where the phone comes back |
+| Web origins | `+` | expo web (development) |
+| Advanced ▸ Proof Key for Code Exchange Code Challenge Method | **S256** | both apps send a PKCE challenge — the desktop's device request too |
+
+The UI's manifest names the provider (`mateu.mobile.oidc.issuer` / `client-id`, or the
+`MATEU_MOBILE_OIDC_*` environment variables); the issuer must be `https` — plain `http` is accepted
+only by development builds, for a provider on your own machine. Validating the token the apps send
+is the host application's job (a Spring/Quarkus/… resource server, or your FastAPI/ASP.NET auth):
+Mateu takes the roles from what the framework authenticated.
+
 **Session expiry** follows the web renderers' contract: a **401** gives the app one chance to
 re-authenticate — an explicit `onSessionExpired(handler)` (`src/core/sessionGuard.ts`) wins;
 otherwise the provider refreshes silently, then prompts — and the original request is retried

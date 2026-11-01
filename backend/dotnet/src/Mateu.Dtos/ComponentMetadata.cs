@@ -225,7 +225,17 @@ public record PlanningBlockDto(
     string? Icon = null, string? Summary = null);
 
 /// <summary>Kanban board metadata: columns of cards.</summary>
-public record KanbanMetadataDto(IReadOnlyList<KanbanColumnDto> Columns) : ComponentMetadataDto;
+public record KanbanMetadataDto(IReadOnlyList<KanbanColumnDto> Columns) : ComponentMetadataDto
+{
+    /// <summary>The action a dropped card runs; null = the cards do not move.</summary>
+    public string? MoveActionId { get; init; }
+    /// <summary>A LIVE board: the source whose items are its cards.</summary>
+    public RestDataSourceDto? RowsSource { get; init; }
+    public string? ColumnField { get; init; }
+    public KanbanCardDto? Card { get; init; }
+    public IReadOnlyDictionary<string, string>? CardColors { get; init; }
+    public string? CardRoute { get; init; }
+}
 
 /// <summary>One kanban column with its cards.</summary>
 public record KanbanColumnDto(string? Id, string? Title, string? Color, IReadOnlyList<KanbanCardDto> Cards);

@@ -12,6 +12,7 @@ public class NewActionHandler implements CrudOrchestratorActionHandler {
 
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
+    io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate.checkCreate(orchestrator);
     if (orchestrator.editInDrawer()) {
       var creationForm = orchestrator.creationForm(httpRequest);
       return CrudDrawerBuilder.build(

@@ -106,6 +106,9 @@ public class FieldMapper {
     if (source == null) {
       return null;
     }
+    // a proxied source's headers and body template stay on the server, which makes that call from
+    // its own catalogue: they are where an API key gets written, and the browser never needs them
+    source = source.forTheClient();
     return new RestDataSourceDto(
         source.ref(),
         source.url(),

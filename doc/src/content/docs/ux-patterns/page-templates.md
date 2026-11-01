@@ -51,8 +51,14 @@ Three notes on how to read the table:
 - **Page width is a template parameter.** `@PageWidth(FIXED | FULL_WIDTH | EDGE_TO_EDGE)` (or the
   `PageWidthSupplier` hook — `Foldout` declares edge-to-edge) decides how the content column is
   sized: capped and centered, fluid with side margins, or touching the viewport edges. When
-  neither is set, the renderer infers it from the content (full-bleed canvases → edge-to-edge,
-  dense datagrids → full width, anything else → fixed). On the Vaadin shell all three modes
+  neither is set, the renderer decides, first rule that applies: full-bleed content (a gantt,
+  planning board, kanban, BPMN/workflow, map or foldout) → edge-to-edge, except on a **form**
+  page, which never bleeds and gets full width instead; a **collection** or **dashboard** page
+  (listings, boards, search pages, KPI pages) → full width; a form, process or landing page →
+  fixed; a dense datagrid (inline editing, compact) → full width; anything else → fixed. A YAML
+  page with no envelope is a form page, or the kind of page its `template:` stands for. On a
+  fixed page a form keeps its 900 px reading column; a full or edge page lifts that column and
+  takes the whole width it resolved to. On the Vaadin shell all three modes
   render: *fixed* caps the content column at 1392 px centered, *full width* is fluid with margins
   that grow from 24 px to 96 px on wide screens, and
   *edge to edge* drops the shell gutters for the content while the page header keeps its own
@@ -74,8 +80,8 @@ Three notes on how to read the table:
   (plain reflected forms), `process` (wizards), `dashboard` (archetype, or any ModelView with
   `MetricCard` fields). Archetypes declare theirs through the mapping; declare it explicitly with
   `@PageTemplate(PageType.X)` — or, on a YAML page, with a top-level `pageType: landing` key
-  ([YAML pages](/define/yaml/pages/#page-type--pagetype)); declared, either wins over inference. The type anchors the width default (form/process/landing are
-  always capped; collection/detail/dashboard defer to the content inference) and is stamped as
+  ([YAML pages](/define/yaml/pages/#page-type--pagetype)); declared, either wins over inference. The type anchors the width default (collection/dashboard are
+  full width, form/process/landing are capped, detail defers to the content inference) and is stamped as
   `data-page-type` on the rendered page host as a stylesheet hook.
 - **Peer navigation.** A detail/overview page can implement `PeerNavigationSupplier` to add the
   previous/next-object arrows to the header (the Redwood "next/previous object" element): return a

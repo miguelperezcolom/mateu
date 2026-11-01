@@ -8,13 +8,21 @@ namespace Mateu.Core;
 /// <summary>A matched route: the entry that answered, and the path parameters read off the URL.</summary>
 internal sealed record RouteMatch(RouteEntry Entry, IReadOnlyDictionary<string, object?> PathParams)
 {
-    public Dictionary<string, object?> Params(IReadOnlyDictionary<string, object?>? incoming)
+    /// <summary>The route's parameters for a request, in the order every Mateu server and client
+    /// uses: <c>fixed &gt; client state &gt; path &gt; query &gt; defaults</c>. A null in the client
+    /// state is no value at all — the path, the query and the defaults still fill it.</summary>
+    public Dictionary<string, object?> Params(IReadOnlyDictionary<string, object?>? incoming,
+        IReadOnlyDictionary<string, string>? query = null)
     {
-        var fromRequest = new Dictionary<string, object?>();
+        var resolved = new Dictionary<string, object?>();
         if (incoming is not null)
-            foreach (var kv in incoming) fromRequest[kv.Key] = kv.Value;
-        foreach (var kv in PathParams) fromRequest[kv.Key] = kv.Value;
-        return Entry.ResolveParams(fromRequest);
+            foreach (var kv in incoming) resolved[kv.Key] = kv.Value;
+        foreach (var kv in PathParams)
+            if (resolved.GetValueOrDefault(kv.Key) is null) resolved[kv.Key] = kv.Value;
+        if (query is not null)
+            foreach (var kv in query)
+                if (resolved.GetValueOrDefault(kv.Key) is null) resolved[kv.Key] = kv.Value;
+        return Entry.ResolveParams(resolved);
     }
 }
 

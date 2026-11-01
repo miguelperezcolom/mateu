@@ -138,7 +138,8 @@ final class ListingColumnBuilder {
     boolean editable =
         instance != null
             && MetaAnnotations.isPresent(instance.getClass(), InlineEditing.class)
-            && !MetaAnnotations.isPresent(field, ReadOnly.class);
+            && !MetaAnnotations.isPresent(field, ReadOnly.class)
+            && !isVersionField(field);
     return GridColumn.builder()
         .id(field.getName())
         .label(getLabel(field))
@@ -217,5 +218,24 @@ final class ListingColumnBuilder {
             field, io.mateu.uidl.annotations.Tooltip.class);
     if (tooltip != null && !tooltip.value().isBlank()) return tooltip.value();
     return columnWidth != null ? field.getName() : null;
+  }
+
+  /**
+   * The optimistic-lock version (Mateu's {@code @Version}, or the store's own JPA / Spring Data
+   * one) is never edited in place: it answers "did you see the latest?", it is not data.
+   */
+  private static boolean isVersionField(java.lang.reflect.Field field) {
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Version.class)) {
+      return true;
+    }
+    for (var annotation : field.getAnnotations()) {
+      var name = annotation.annotationType().getName();
+      if (name.equals("jakarta.persistence.Version")
+          || name.equals("javax.persistence.Version")
+          || name.equals("org.springframework.data.annotation.Version")) {
+        return true;
+      }
+    }
+    return false;
   }
 }

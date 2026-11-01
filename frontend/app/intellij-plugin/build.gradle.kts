@@ -774,11 +774,13 @@ tasks.register<JavaExec>("renderProbe") {
 tasks.test {
     jvmArgs("-Djava.awt.headless=true")
     // Opt-in LIVE probes against a running backend (AgentPushLiveProbeTest): -Pmateu.live.baseUrl=…
-    for (key in listOf("mateu.live.baseUrl", "mateu.live.route")) {
+    // … and OidcLiveProbeTest against a real OIDC provider: -Pmateu.live.oidc=<issuer>|<backend>,…
+    for (key in listOf("mateu.live.baseUrl", "mateu.live.route", "mateu.live.oidc", "mateu.live.oidc.handoff")) {
         (findProperty(key) as String?)?.let { systemProperty(key, it) }
     }
     // a live run must not be answered from the cache of a run without (or against another) backend
     inputs.property("mateuLiveBaseUrl", (findProperty("mateu.live.baseUrl") as String?) ?: "")
+    inputs.property("mateuLiveOidc", (findProperty("mateu.live.oidc") as String?) ?: "")
     // ConformanceCorpusRenderTest reads the repo's corpus at run time: declare it, or a cached test
     // result outlives a change to the cases.
     inputs.dir(rootProject.file("../../../conformance/cases"))

@@ -28,6 +28,7 @@ class HubLinksConformanceTest {
     private fun options(case: JsonNode) = case.get("options")?.let { o ->
         HubLinks.Options(
             allowInsecure = o.path("allowInsecure").asBoolean(false),
+            allowLoopbackHttp = o.path("allowLoopbackHttp").asBoolean(false),
             extraLinkHosts = o.path("extraLinkHosts").map { it.asText() },
         )
     } ?: HubLinks.Options()

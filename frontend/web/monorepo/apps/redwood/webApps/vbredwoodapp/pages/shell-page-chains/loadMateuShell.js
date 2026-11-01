@@ -129,6 +129,11 @@ define([
       // dragging rows (@DragRows) onto a DropZone: its action with origin and destination
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);
+      // kanban cards: drag between/within columns or the ⋯ select → the content page's kanbanCardMoved
+      bridge.setKanbanMoveSink(({ key, move }) => Actions.fireEvent(window.__mateuShellContext || context, {
+        name: 'application:mateuKanbanMove', payload: { key, move },
+      }));
+      bridge.installKanbans();
       bridge.setKeysActionSink(runPageAction);
       // compare & merge (RecordMerge): picks are DOM state; the merge goes out as a page action
       bridge.installRecordMerges();

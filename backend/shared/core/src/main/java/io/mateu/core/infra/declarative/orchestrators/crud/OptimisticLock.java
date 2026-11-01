@@ -92,12 +92,18 @@ public final class OptimisticLock {
       Object incomingVersion = field.get().get(incoming);
       Object storedVersion = field.get().get(stored.get());
       if (incomingVersion == null || storedVersion == null) {
-        // the form did not carry the version (or the row has none yet): nothing to compare
+        // the form did not carry the version (or the row has none yet): nothing to compare — the
+        // write continues from the stored version, never from none
+        field.get().set(incoming, storedVersion);
         return;
       }
       if (isNewer(storedVersion, incomingVersion)) {
         throw new StaleEditException();
       }
+      // not stale: the version the record is saved from is the STORED one. The client's copy only
+      // answers "did you see the latest?" — a version AHEAD of the stored one (an inline-edited or
+      // crafted 999) used to be saved and bumped to 1000
+      field.get().set(incoming, storedVersion);
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     }

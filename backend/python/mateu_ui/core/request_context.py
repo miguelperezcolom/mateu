@@ -44,6 +44,9 @@ class MateuRequest:
     #: or None — never read from a request header. A remote registered as a path on this server
     #: is called there when no ``self_base_url`` is configured.
     self_base_url: str | None = None
+    #: The query parameters of the request URL (first value of each), as the adapter parsed them —
+    #: a route's ``?…`` travels on the POST URL and seeds the state at the query precedence level.
+    query_params: Mapping[str, str] = field(default_factory=dict)
 
     def header(self, name: str) -> str | None:
         return self.headers.get(name.lower())
