@@ -132,6 +132,17 @@ export function fitColumnToWidth<T extends { metadata?: any }>(column: T): T {
     return { ...column, metadata: { ...md, width: '3rem', autoWidth: false, flexGrow: '1', frozen: false, frozenToEnd: false } }
 }
 
+/**
+ * An editable grid's per-row editor button (the `_select` column the server adds last, "Edit") is
+ * frozen to the END: a row with many fields is a wide grid, and the button sat past the horizontal
+ * scroll. Done here, not on the wire, so it holds whatever backend drew the grid.
+ */
+export function freezeRowEditorButton<T extends { metadata?: any }>(column: T): T {
+    const md = column?.metadata
+    if (!md || md.id !== '_select' || md.stereotype !== 'button') return column
+    return { ...column, metadata: { ...md, frozenToEnd: true } }
+}
+
 /** A vertical scroller met under the pointer: where it is and how far it can go. */
 export interface VerticalScroller { scrollTop: number; scrollHeight: number; clientHeight: number }
 

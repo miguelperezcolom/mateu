@@ -1,18 +1,11 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
-import static io.mateu.core.domain.ComponentState.wrap;
-import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.*;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;
-import io.mateu.uidl.data.Text;
-import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
 public class SelectActionHandler {
@@ -45,43 +38,17 @@ public class SelectActionHandler {
     var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
     data.put("_position", "" + (position + 1) + "/" + items.size());
 
-    // _rowClass only rides in the state for wizard steps; plain forms resolve the row type
-    // from the field's generic type.
-    var stateRowClass = httpRequest.runActionRq().componentState().get(fieldId + "_rowClass");
-    var rowClass =
-        stateRowClass != null
-            ? io.mateu.core.application.security.WireTypes.rowClass(
-                stateRowClass.toString(), field.getDeclaringClass())
-            : getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
+    var rowClass = CrudFieldHandlerHelper.rowClass(field, fieldId, httpRequest);
 
-    Map<String, Object> filteredState =
-        (Map<String, Object>) httpRequest.runActionRq().parameters();
-    var item = MateuInstanceFactory.newInstance(rowClass, filteredState, null);
+    // The row as the holder keeps it, with what the click sent on top (a client may send only the
+    // _rowNumber): the editor is built on THIS row, so its suppliers see its values.
+    var rowValues = new HashMap<String, Object>(data);
+    rowValues.putAll((Map<String, Object>) httpRequest.runActionRq().parameters());
+    var item = MateuInstanceFactory.newInstance(rowClass, rowValues, httpRequest);
     addRowNumber(rowClass, data);
 
-    String fid = getFieldId(field, "", false);
     return List.of(
         new State(newState),
-        wrap(
-                CrudFieldHandlerHelper.buildDetailForm(
-                    CrudFieldHandlerHelper.detailTitle(
-                        "Edit", getGenericClass(field, field.getType(), "E")),
-                    field,
-                    httpRequest,
-                    false,
-                    List.of(Text.builder().text("${state['_position']}").build()),
-                    List.<UserTrigger>of(
-                        Button.builder().label("Prev").actionId(fid + "_prev").build(),
-                        Button.builder().label("Next").actionId(fid + "_next").build()),
-                    CrudFieldHandlerHelper.rowEditorButtons(fid, "_save", false),
-                    0),
-                item,
-                (String) httpRequest.getAttribute("baseUrl"),
-                httpRequest.runActionRq().route(),
-                httpRequest.runActionRq().consumedRoute(),
-                httpRequest.runActionRq().initiatorComponentId(),
-                httpRequest)
-            .withContainerId(fieldId + "-container")
-            .withInitialData(data));
+        CrudFieldHandlerHelper.editRowEditor(field, fieldId, httpRequest, item, data));
   }
 }

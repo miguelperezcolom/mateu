@@ -63,7 +63,7 @@ import {
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf, columnSizingOf, finishColumnSizing, isCompactColumn, estimateTextPx, withoutDefaultSizing,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, smartFilterDropdownRowsOf, dropdownRowsFor, suggestionsProviderOf, setMetadataProviderFactory, KEYWORD_FILTER,
-  listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
+  listActionOf, listActionRequestOf, rowEditorOf, rowValueChangeActionOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
   isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
   wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf, confirmationDefaultsOf,
@@ -3738,6 +3738,29 @@ test('rowedit (edición): Create añade la fila y cierra; "Save and add another"
   assert.equal(editor.fields.find((f) => f.fieldId === 'roomTypeCode').value, null, 'fila NUEVA, vacía')
   // the new row needs its options again (its ServerSide is a different one)
   assert.equal(pendingLookupsOf(again.contexts['rooms-container']).length, 3)
+})
+
+test('rowedit: a field the row\'s visibility depends on re-builds the dialog (<campo>_refresh-detail)', () => {
+  // the server declares the row's OnValueChange trigger on the fields its VisibilitySupplier
+  // depends on (here, as if roomTypeCode decided which fields show)
+  const withTrigger = (inc) => ({ ...inc, fragments: inc.fragments.map((f) => (f.targetComponentId === 'rooms-container'
+    ? { ...f, component: { ...f.component, triggers: [{ type: 'OnValueChange', actionId: 'rooms_refresh-detail', propertyName: 'roomTypeCode' }] } }
+    : f)) })
+  const opened = reduceContexts(editForm(), withTrigger(fx('rowedit-select')))
+  assert.equal(rowValueChangeActionOf(opened, 'roomTypeCode', { roomTypeCode: 'DBLSV' }), 'rooms_refresh-detail')
+  assert.equal(rowValueChangeActionOf(opened, 'adults', { adults: 3 }), null, 'a field it does not depend on fires nothing')
+  assert.equal(rowValueChangeActionOf(editForm(), 'roomTypeCode', {}), null, 'no row editor open')
+  // it travels like Save: the CONTAINER's state, the row with its draft in initiatorState
+  const rq = listActionRequestOf(opened, 'rooms_refresh-detail', { rowDraft: { roomTypeCode: 'DBLSV' } })
+  assert.equal(rq.verb, 'refresh-detail')
+  assert.equal(rq.parameters.initiatorState.roomTypeCode, 'DBLSV')
+  assert.equal(rq.parameters.initiatorState._rowNumber, 0)
+  assert.equal(rq.componentState.roomTypeCode, undefined, 'the row is NOT the componentState')
+  // the answer is only the re-built editor in rooms-container: the dialog stays open, the list as it was
+  const rebuilt = fx('rowedit-select').fragments.filter((f) => f.targetComponentId === 'rooms-container')
+  const refreshed = reduceContexts(opened, { ...fx('rowedit-select'), fragments: rebuilt })
+  assert.ok(rowEditorOf(refreshed), 'the dialog stays open')
+  assert.deepEqual(refreshed.contexts[HOST_ID].state.rooms, opened.contexts[HOST_ID].state.rooms)
 })
 
 test('rowedit (edición): Quitar una fila la manda en <campo>_selected_items, tal cual está en la lista', () => {

@@ -14,6 +14,10 @@
 # recognises it reads the Crud's label hooks (infra); its runner is an action runner like the others — reviewed.
 # Archetype page header (2026-10-26): the page around a composed tree belongs to the model behind
 # an @AutoPage bridge (ModelBridge, infra) — the same read TreeActionHarvester makes — reviewed.
+# Row editor visibility (2026-11-01): the row class (WireTypes) is resolved once, in
+# CrudFieldHandlerHelper, for every handler that used to resolve it itself; RowVisibilityTriggers
+# reads the row's fields and state like its sibling handlers (AllEditableFieldsProvider,
+# FormViewModel.toMap) — reviewed.
 application -> infra: io/mateu/core/application/agentpush/AgentCaller.java
 application -> infra: io/mateu/core/application/agentpush/AgentPush.java
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
@@ -68,9 +72,7 @@ domain -> application: io/mateu/core/domain/act/LiveUpdatesActionRunner.java
 domain -> application: io/mateu/core/domain/act/NotificationsActionRunner.java
 domain -> application: io/mateu/core/domain/act/RecordSwitcherActionRunner.java
 domain -> application: io/mateu/core/domain/act/SearchFieldActionRunner.java
-domain -> application: io/mateu/core/domain/act/crudfieldhandlers/AddActionHandler.java
-domain -> application: io/mateu/core/domain/act/crudfieldhandlers/CreateActionHandler.java
-domain -> application: io/mateu/core/domain/act/crudfieldhandlers/SelectActionHandler.java
+domain -> application: io/mateu/core/domain/act/crudfieldhandlers/CrudFieldHandlerHelper.java
 domain -> application: io/mateu/core/domain/out/componentmapper/AppMenuBuilder.java
 domain -> application: io/mateu/core/domain/out/componentmapper/EmbeddedOrchestratorFieldBuilder.java
 domain -> application: io/mateu/core/domain/out/componentmapper/HomeRouteResolver.java
@@ -99,6 +101,7 @@ domain -> infra: io/mateu/core/domain/act/ListingRowActionRunner.java
 domain -> infra: io/mateu/core/domain/act/SearchFieldActionRunner.java
 domain -> infra: io/mateu/core/domain/act/crudfieldhandlers/AddActionHandler.java
 domain -> infra: io/mateu/core/domain/act/crudfieldhandlers/CreateActionHandler.java
+domain -> infra: io/mateu/core/domain/act/crudfieldhandlers/RowVisibilityTriggers.java
 domain -> infra: io/mateu/core/domain/act/crudfieldhandlers/SelectActionHandler.java
 domain -> infra: io/mateu/core/domain/out/CommandMapper.java
 domain -> infra: io/mateu/core/domain/out/componentmapper/EmbeddedOrchestratorFieldBuilder.java

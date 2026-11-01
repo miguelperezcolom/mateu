@@ -25,6 +25,8 @@ describe('resolveComponentState', () => {
         expect(resolveComponentState(holder, parameters, 'rooms_create')).toEqual(holder)
         expect(resolveComponentState(holder, parameters, 'rooms_create-and-stay')).toEqual(holder)
         expect(resolveComponentState(holder, parameters, 'rooms_cancel')).toEqual(holder)
+        // the row editor re-built when a field its visibility depends on changes
+        expect(resolveComponentState(holder, parameters, 'rooms_refresh-detail')).toEqual(holder)
     })
 
     it('still prefers initiatorState for an action that is not a list of the holder', () => {

@@ -10082,15 +10082,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //    its first step.
   //  - The container answers a State with the new list and `_show_detail[campo] = false`
   //    (closes); `_create-and-stay` also answers a new row in `<campo>-container`.
-  //  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row).
+  //  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row) — or, for a row
+  //    whose fields show by its values (VisibilitySupplier), the neighbour's re-built ServerSide.
+  //  - `<campo>_refresh-detail` (the row's OnValueChange trigger, see rowValueChangeActionOf)
+  //    answers only the re-built ServerSide in `<campo>-container`, with the edited row as state.
   //  - The row's lookups (`search-<campo>`) are resolved by the ROW's ServerSide with the
   //    row's state: its response is a data-only fragment to its id.
 
   /** The actions a row editor sends to the list's container: `rooms_create`… */
-  const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down)$/
+  const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down|refresh-detail)$/
 
   /** Verbs that carry the dialog's row in parameters.initiatorState. */
-  const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true }
+  const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true, 'refresh-detail': true }
 
   /** Verbs that validate the row before leaving (the empty required fields). */
   const ROW_VALIDATING_VERBS = { create: true, 'create-and-stay': true, save: true }
@@ -11063,6 +11066,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         outbound: { ...(holder.outbound || {}), serverSideType: row.tree.serverSideType },
       },
     }
+  }
+
+  /**
+   * The action a change of `fieldId` in the open ROW EDITOR fires: the row's OnValueChange trigger,
+   * over the row's state with its draft — the server's `<campo>_refresh-detail` when the row's
+   * VisibilitySupplier depends on that field (a block's type: the editor is re-built with the fields
+   * of the new type). null when no row editor is open or the field fires nothing.
+   */
+  function rowValueChangeActionOf(reg, fieldId, rowDraft = {}, opts = {}) {
+    const holder = reg && reg.contexts && reg.contexts[opts.holderId || HOST_ID]
+    if (!holder || !holder.tree) return null
+    const state = holder.state || {}
+    const show = state._show_detail || {}
+    for (const listId of Object.keys(modalListsOf(holder.tree))) {
+      if (!(show[listId] === true || state[listId + '_show_detail'] === true)) continue
+      const ctx = reg.contexts[listId + '-container']
+      if (!ctx || !ctx.tree) continue
+      return valueChangeActionOf(ctx, fieldId, { ...(ctx.state || {}), ...(rowDraft || {}) })
+    }
+    return null
   }
 
   /**
@@ -27424,6 +27447,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     listActionOf,
     listActionRequestOf,
     rowEditorOf,
+    rowValueChangeActionOf,
     rowFieldsOf,
     validateRow,
     // validationRequired de las acciones del host (el next de un wizard): obligatorios vacíos
