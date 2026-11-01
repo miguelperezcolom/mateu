@@ -11,7 +11,10 @@
 ; any staged update are replaced.
 
 Unicode true
-SetCompressor /SOLID lzma
+; NOT /SOLID: the bundle is ~3.6 GB uncompressed (the IntelliJ distribution), and makensis 3.10
+; dies with SIGBUS building one solid block that size (reproduced: exit 135 on the real bundle).
+; Per-file LZMA builds it and the setup is ~950 MB.
+SetCompressor lzma
 RequestExecutionLevel user
 
 !include "MUI2.nsh"
