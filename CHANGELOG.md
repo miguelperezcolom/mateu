@@ -19,6 +19,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   too); without it, a notification offers the download or the old way. The desktop app accepts plain
   http for this machine only (hub-links corpus option `allowLoopbackHttp`). VS Code: setting
   `mateu.liveRun.openIn` + *Mateu: Open Running App in the Desktop App*.
+- **A `mateu://` link that STARTS the desktop app now works.** The platform took the URL as the whole
+  command line and never opened the workspace the launcher passes: the app sat on IntelliJ's welcome
+  screen and answered "This Mateu app does not add UIs from links". It now opens its bundled workspace
+  first.
 
 - **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
   app (a gallery's photographs, a document in another system) can point at one elsewhere:

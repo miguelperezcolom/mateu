@@ -246,6 +246,18 @@ class HubTest {
     }
 
     @Test
+    fun `a link that starts the app finds the workspace bundled next to the IDE`() {
+        val mac = kotlin.io.path.createTempDirectory("mac-contents").toFile()
+        File(mac, "Resources/workspace").mkdirs()
+        assertEquals(File(mac, "Resources/workspace"), MateuProtocolHandler.bundledWorkspaceOf(mac.path))
+        val bundle = kotlin.io.path.createTempDirectory("portable-bundle").toFile()
+        File(bundle, "workspace").mkdirs()
+        assertEquals(File(bundle, "workspace"), MateuProtocolHandler.bundledWorkspaceOf(bundle.path))
+        // a developer's IDE has none: the link is refused as before
+        assertNull(MateuProtocolHandler.bundledWorkspaceOf(kotlin.io.path.createTempDirectory("ide").toFile().path))
+    }
+
+    @Test
     fun `a dev app on this machine keeps its plain-http icon and local identity provider`() {
         val m = HubManifest.parse(
             json("""{"icon":"/icon.png","auth":{"issuer":"http://localhost:8180/realms/dev","clientId":"crm"}}"""),
