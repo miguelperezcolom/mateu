@@ -11,6 +11,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed
+
+- **Vaadin: listings, boards and dashboards use the full width.** Every page sat in the server's
+  default 900px column whatever width it resolved to; that column is now only a FIXED page's (a
+  form's reading measure), and full/edge pages take their width. The width rules: full-bleed content
+  (gantt, planning board, kanban, BPMN, map, foldout) → edge-to-edge, but full width on a form page;
+  collection and dashboard pages → full width; form/process/landing → fixed. A YAML listing page
+  served with route seeds is a collection (it went out as a form page).
+- **A YAML `HorizontalLayout` with no `spacing:` is spaced** on the Java backend and in static bundles,
+  as it already was on .NET and Python — an image beside a form no longer touches it.
+
+### Fixed
+
+- **Vaadin: an edge page's header keeps its gutter** (a templated foldout's title, back arrow and
+  actions touched the viewport edges), and a YAML page filling a template no longer draws its window
+  title ("13") above its own header.
+- **Vaadin: a listing's header wraps on a phone** — the actions go below the title instead of
+  squeezing it to "Laun…".
+
 ### Added
 
 - **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
