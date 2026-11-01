@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 
 from .base import Wire
+
+if TYPE_CHECKING:  # resolved at runtime by mateu_ui.dtos._rebuild_all()
+    from .fields import RestDataSource
 
 
 class KanbanCardRecord(Wire):
