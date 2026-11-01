@@ -395,6 +395,31 @@ test('listing: la columna principal (@PrimaryColumn) lleva imagen delante y capt
   assert.deepEqual(listingSortOf({ header: 'name', direction: 'ascending' }, listing.sortFields), [{ field: 'sortName', direction: 'ascending' }])
 })
 
+test('listing: only rows that open something (route, record, detail) invite the click — a plain list keeps the arrow', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  const md = crud.metadata
+  const cols = md.columns.map((c) => c.metadata || c)
+  const tableOf = () => {
+    const search = JSON.parse(JSON.stringify(fx('search-listing')))
+    search.fragments[0].targetComponentId = ''
+    return listingOf(reduceContexts(reduceContexts(empty(), content), search).contexts[HOST_ID]).tableClass
+  }
+  const firstAction = cols[0].actionId
+  cols[0].actionId = 'view'
+  assert.match(tableOf(), /mateu-rows-open/) // navigable: opens the record
+  cols[0].actionId = undefined
+  assert.doesNotMatch(tableOf(), /mateu-rows-open/) // nothing to open (photo credits)
+  md.rowRoute = 'people/${row.id}'
+  assert.match(tableOf(), /mateu-rows-open/) // a route per row
+  delete md.rowRoute
+  md.detailPath = 'notes'
+  assert.match(tableOf(), /mateu-rows-open/) // a detail to show
+  delete md.detailPath
+  cols[0].actionId = firstAction
+})
+
 test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas, el resto va debajo como pares', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = ''
@@ -406,7 +431,7 @@ test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas,
   search.fragments[0].targetComponentId = ''
   const plain = listingOf(reduceContexts(reg, search).contexts[HOST_ID])
   assert.equal(plain.extraLines, 0)
-  assert.equal(plain.tableClass, 'oj-sm-12')
+  assert.doesNotMatch(plain.tableClass, /mateu-multiline-table/)
   assert.ok(plain.columns.every((c) => c.id !== ROW_LINES_FIELD))
   assert.equal(plain.rows[0][ROW_LINES_FIELD], undefined)
   // the last data column, to line 2
