@@ -4,8 +4,8 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: AppShell
 title: Museums
 subtitle: Three art museums in one UI — authored entirely in YAML
-logo: /images/mateu.png
-favicon: /images/mateu.png
+logo: /images/museum.svg
+favicon: /images/museum.svg
 variant: MENU_ON_TOP
 homeRoute: welcome
 # the command palette's entity search (⌘K): one REST source over every collection
