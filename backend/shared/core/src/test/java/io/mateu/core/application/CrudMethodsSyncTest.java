@@ -32,6 +32,12 @@ class CrudMethodsSyncTest {
   public static class Job implements Identifiable {
     String id;
     String name;
+    // the row action each row offers: serving the rows hands "pauseOne" to the client
+    io.mateu.uidl.data.ColumnActionGroup actions =
+        new io.mateu.uidl.data.ColumnActionGroup(
+            new io.mateu.uidl.data.ColumnAction[] {
+              new io.mateu.uidl.data.ColumnAction("pauseOne", "Pause")
+            });
 
     public Job() {}
 
@@ -65,10 +71,6 @@ class CrudMethodsSyncTest {
     void purge(HttpRequest httpRequest) {
       ran = "purged";
     }
-
-    // the column the listing would show: naming the method in the view's own code advertises it
-    static final io.mateu.uidl.data.ColumnAction PAUSE =
-        new io.mateu.uidl.data.ColumnAction("pauseOne", "Pause");
 
     public Object pauseOne(Job row, HttpRequest httpRequest) {
       ran = "paused:" + row.id();
@@ -201,6 +203,8 @@ class CrudMethodsSyncTest {
   /** Strict mode (M-S1): a row method a ColumnAction of the view names runs; an unnamed one not. */
   @Test
   void aRowMethodTheViewNamesRunsAndAnUnnamedOneIsRefused() {
+    // the listing serves its rows first: their ColumnAction is what advertises the row method
+    run("search", Map.of());
     run("action-on-row-pauseOne", Map.of("_clickedRow", Map.of("id", "j1", "name", "Backup")));
     assertThat(JobsCrud.ran).isEqualTo("paused:j1");
     JobsCrud.ran = null;

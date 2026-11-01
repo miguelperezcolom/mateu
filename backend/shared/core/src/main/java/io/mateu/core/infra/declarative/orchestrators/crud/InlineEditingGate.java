@@ -15,7 +15,7 @@ public final class InlineEditingGate {
   private InlineEditingGate() {}
 
   public static boolean offered(Crud<?, ?, ?, ?, ?, ?> crud) {
-    if (crud == null || !crud.canEdit()) {
+    if (!CrudWriteGate.mayEdit(crud)) {
       return false;
     }
     return MetaAnnotations.isPresent(crud.getClass(), InlineEditing.class)

@@ -70,8 +70,41 @@ class CapabilityRowActionSyncTest {
     mateu.close();
   }
 
+  private static io.mateu.dtos.UIIncrementDto run(String actionId, Map<String, Object> params) {
+    return mateu.run(
+        RunActionRqDto.builder()
+            .route("/")
+            .consumedRoute("")
+            .serverSideType(People.class.getName())
+            .actionId(actionId)
+            .componentState(Map.of())
+            .parameters(params)
+            .initiatorComponentId("c1")
+            .build());
+  }
+
+  /**
+   * The row action is advertised by the rows the listing SERVED (their ColumnAction), not by a
+   * string literal of the class: before a search has handed it out, a crafted call is refused.
+   */
+  @Test
+  void aRowActionNoServedRowOfferedIsRefused() {
+    io.mateu.core.domain.out.fragmentmapper.mappers.IssuedActionsTestHook.forget();
+    org.assertj.core.api.Assertions.assertThatThrownBy(
+            () ->
+                run(
+                    "action-on-row-approve",
+                    Map.of("_clickedRow", Map.of("id", "R-001", "name", "Ada"))))
+        .satisfies(
+            e ->
+                assertThat(io.mateu.core.application.security.MateuForbiddenException.find(e))
+                    .isNotNull());
+  }
+
   @Test
   void theColumnsActionRunsOnTheClickedRow() {
+    // the listing serves its rows first — that is what hands the row action to the client
+    run("search", Map.of());
     var increment =
         mateu.run(
             RunActionRqDto.builder()

@@ -94,10 +94,9 @@ class YamlDeclaredActionsSyncTest {
     assertThat(remove.restAction().source().proxy())
         .as("a call carrying a secret has to be made server-side")
         .isTrue();
-    // The placeholder travels as a placeholder. Were the value substituted here, an API key would
-    // be sitting in the JSON any viewer can read.
-    assertThat(remove.restAction().source().headers().get("X-Api-Key"))
-        .isEqualTo("${secret.WRITE_KEY}");
+    // A proxied call's headers do not travel at all — not even the placeholder: the server makes
+    // that call from its own table, and a literal key written there would otherwise be readable.
+    assertThat(remove.restAction().source().headers()).isNull();
   }
 
   @Test

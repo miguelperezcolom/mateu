@@ -37,6 +37,12 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
       return null;
     }
     var persistAction = saveAndNext ? "save" : actionId;
+    // a crud that may not create / edit refuses the write itself (403), not only its button
+    if ("create".equals(persistAction)) {
+      io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate.checkCreate(orchestrator);
+    } else {
+      io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate.checkEdit(orchestrator);
+    }
     Object savedId;
     try {
       if (orchestrator.editInDrawer()) {
@@ -131,6 +137,15 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
         && orchestrator.canCreate();
   }
 
+  /**
+   * A failure whose message was written for the user: a {@link io.mateu.uidl.UserFacingException},
+   * or the validation refusal (the drawer's own check words it with the fields' labels).
+   */
+  private static boolean meantForTheUser(RuntimeException failure) {
+    return failure instanceof io.mateu.uidl.UserFacingException
+        || failure instanceof jakarta.validation.ConstraintViolationException;
+  }
+
   /** The edit drawer for the row after the saved one, or null when it was the last. */
   private static Object nextDrawer(Object savedId, HttpRequest httpRequest, Crud orchestrator) {
     var nextId = orchestrator.nextIdAfter(savedId, httpRequest);
@@ -164,10 +179,16 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
       // what the user typed: the drawer's form bubbles its save with it as initiatorState
       typed.putAll(
           io.mateu.core.infra.declarative.orchestrators.crud.CrudFormState.of(httpRequest));
-      var message =
-          failure.getMessage() != null && !failure.getMessage().isBlank()
+      // through the error boundary like any failed action: a UserFacingException / validation as
+      // written, anything else the generic text + a reference (logged at ERROR) — the raw message
+      // of a store exception (an SQL statement, its values) used to be shown in the drawer
+      var said =
+          meantForTheUser(failure)
               ? failure.getMessage()
-              : "The record could not be saved";
+              : io.mateu.core.application.runaction.ErrorBoundary.toMessage(
+                      failure, persistAction, httpRequest)
+                  .text();
+      var message = said != null && !said.isBlank() ? said : "The record could not be saved";
       var responses = new ArrayList<Object>();
       responses.add(
           CrudDrawerBuilder.build(

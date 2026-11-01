@@ -207,7 +207,8 @@ public final class MateuBundleExporter {
         onlyStatic,
         entries,
         authored,
-        mock ? sources : sources.strippedOfSamples(),
+        // proxied sources ship without their request headers/body (RestSourceCatalog.forTheClient)
+        (mock ? sources : sources.strippedOfSamples()).forTheClient(),
         BundleManifest.aggregateCapabilitiesOf(entries),
         definitions,
         actionCatalogue(),

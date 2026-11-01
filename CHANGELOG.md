@@ -11,6 +11,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Security
+
+- **A CRUD's writes are refused if forced, not only undrawn** (Java, .NET, Python): `@ReadOnly`,
+  `@NotCreatable`/`@NotEditable`/`@NotDeletable`, `canCreate/canEdit/canDelete()` and `display()`
+  toggles (`off`/`disabled`) now answer 403 to a crafted `create`/`save`/`update-row`/`delete`.
+- **Strict action mode no longer reads the class's string literals**: an unmarked method is accepted
+  when the view's declarations name it or a response to the view emitted its id (a dialog's confirm,
+  an undo, a served row's `ColumnAction`). A handler named only by a literal now needs `@Action`.
+- `nested-form-action-<field>-<method>` must name a field, and its validated buttons are re-checked.
+- A failed save in an edit drawer shows the error boundary's text (generic + reference), not the
+  raw exception message (Java, .NET, Python).
+- A proxied REST source's headers and body template never reach the client (app catalogue,
+  responses, `manifest.json`); `__restfetch__` refuses a source that is not `proxy: true`.
+- Helidon MP: the SSE, MCP and YAML-mount routes (outside Jersey) see Helidon security's caller and
+  refuse anonymous calls when the app requires a login; Quarkus `/mateu/mcp` runs after HTTP security.
+- Bulk-delete ids reach the store as the crud's id type; a save never adopts a client `@Version`
+  ahead of the stored one, and a version column is not inline-editable.
+
 ### Added
 
 - **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
