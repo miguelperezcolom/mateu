@@ -24,6 +24,11 @@ public static class MfeRemote
 {
     public static string Base = "http://127.0.0.1:1";
 
+    /// <summary>The deadline of a remote that is expected to ANSWER: generous, so a loaded CI runner
+    /// (two TFMs and the rest of the suite at once) never turns "answers in time" into a timeout. The
+    /// tests about deadlines use their own short ones (150 ms, a slot's 100 ms).</summary>
+    public const int InTime = 5000;
+
     public static MicroFrontend Server(string remote, int? timeoutMs, string route = "/widget") =>
         new(Base + "/" + remote, route) { ServerSideType = "remote.Widget", Resolve = Resolve.Server, TimeoutMs = timeoutMs };
 
@@ -39,7 +44,7 @@ public class MfeClientOnly : IComponentTreeSupplier
 [UI("mfe-fast")]
 public class MfeFastServer : IComponentTreeSupplier
 {
-    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("fast", 1000));
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("fast", MfeRemote.InTime));
 }
 
 [UI("mfe-slow")]
@@ -51,14 +56,14 @@ public class MfeSlowServer : IComponentTreeSupplier
 [UI("mfe-broken")]
 public class MfeBrokenServer : IComponentTreeSupplier
 {
-    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("broken", 1000));
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("broken", MfeRemote.InTime));
 }
 
 [UI("mfe-unregistered")]
 public class MfeUnregistered : IComponentTreeSupplier
 {
     public IComponent Component() => MfeRemote.Page(
-        MfeRemote.Server("fast", 1000),
+        MfeRemote.Server("fast", MfeRemote.InTime),
         new MicroFrontend("http://169.254.169.254/latest", "/meta-data") { Resolve = Resolve.Server });
 }
 
@@ -74,37 +79,37 @@ public class MfeParallel : IComponentTreeSupplier
 [UI("mfe-cache-key")]
 public class MfeCacheByKey : IComponentTreeSupplier
 {
-    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("cachekey", 1000));
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("cachekey", MfeRemote.InTime));
 }
 
 [UI("mfe-cache-user")]
 public class MfeCachePerUser : IComponentTreeSupplier
 {
-    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("cacheuser", 1000));
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("cacheuser", MfeRemote.InTime));
 }
 
 [UI("mfe-cache-shared")]
 public class MfeCacheShared : IComponentTreeSupplier
 {
-    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("cacheshared", 1000));
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("cacheshared", MfeRemote.InTime));
 }
 
 [UI("mfe-cache-none")]
 public class MfeCacheNone : IComponentTreeSupplier
 {
-    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("cachenone", 1000));
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("cachenone", MfeRemote.InTime));
 }
 
 [UI("mfe-anon")]
 public class MfeAnonymous : IComponentTreeSupplier
 {
-    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("anon", 1000));
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("anon", MfeRemote.InTime));
 }
 
 [UI("mfe-exchanged")]
 public class MfeExchanged : IComponentTreeSupplier
 {
-    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("exchanged", 1000));
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("exchanged", MfeRemote.InTime));
 }
 
 [UI("mfe-slot-page")]
@@ -168,9 +173,9 @@ public sealed class MfeHosts : IAsyncLifetime
         public IReadOnlyList<RemoteDescriptor> Remotes() =>
         [
             .. new[] { "fast", "slow", "broken", "delayed", "cachekey", "cacheuser", "cacheshared", "cachenone" }
-                .Select(name => new RemoteDescriptor(name, hosts.RemoteBase + "/" + name, 1000)),
-            new RemoteDescriptor("anon", hosts.RemoteBase + "/anon", 1000, IRemoteIdentityStrategy.NoneName),
-            new RemoteDescriptor("exchanged", hosts.RemoteBase + "/exchanged", 1000, "exchange"),
+                .Select(name => new RemoteDescriptor(name, hosts.RemoteBase + "/" + name, MfeRemote.InTime)),
+            new RemoteDescriptor("anon", hosts.RemoteBase + "/anon", MfeRemote.InTime, IRemoteIdentityStrategy.NoneName),
+            new RemoteDescriptor("exchanged", hosts.RemoteBase + "/exchanged", MfeRemote.InTime, "exchange"),
         ];
     }
 
@@ -195,6 +200,17 @@ public sealed class MfeHosts : IAsyncLifetime
         MfeRemote.Base = RemoteBase;
         _host = await StartHost(o => { });
         Host = new HttpClient { BaseAddress = new Uri(Address(_host)) };
+        // Warm up: the first resolution in a process pays the cold start of both servers (Kestrel's
+        // pipeline, System.Text.Json's metadata for the whole DTO graph, the first connection). On a
+        // loaded runner that exceeded a remote's deadline, so whichever test ran first saw a timeout
+        // and an empty Requests. One full round trip here; each test clears the queues it reads.
+        using var warmUp = new HttpRequestMessage(HttpMethod.Post, "/mateu/v3/sync/mfe-fast")
+        {
+            Content = new StringContent("{\"route\":\"mfe-fast\",\"actionId\":\"\"}", System.Text.Encoding.UTF8, "application/json"),
+        };
+        using var _ = await Host.SendAsync(warmUp);
+        Requests.Clear();
+        Events.Clear();
     }
 
     public async Task<WebApplication> StartHost(Action<MateuOptions> configure, Action<WebApplication>? map = null)
@@ -210,6 +226,7 @@ public sealed class MfeHosts : IAsyncLifetime
                 // server's base url is the remote's (so the path lands there)
                 o.Remotes.Add(new RemoteDescriptor("content", "/_content-hub", 1000));
                 o.SelfBaseUrl = RemoteBase;
+                o.MaxBudgetMs = 2 * MfeRemote.InTime;
                 configure(o);
             }, typeof(MfeHosts).Assembly);
         }, app =>
@@ -516,7 +533,10 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
     public async Task The_remote_gets_the_users_identity_and_the_correlation_id()
     {
         await Load("mfe-fast", "Bearer alice", "corr-42");
-        var request = Assert.Single(Requests);
+        // when the remote was never reached, say what the resolver recorded instead of a bare "empty"
+        Assert.True(Requests.Count == 1, "the remote received " + Requests.Count + " calls; the resolution: "
+            + string.Join("; ", Events.Select(e => e.Outcome + " " + e.Error)));
+        var request = Requests[0];
         Assert.Equal("Bearer alice", request.GetValueOrDefault("Authorization"));
         Assert.Equal("corr-42", request.GetValueOrDefault("X-Mateu-Correlation-Id"));
         Assert.Equal("corr-42", Assert.Single(Events).CorrelationId);
