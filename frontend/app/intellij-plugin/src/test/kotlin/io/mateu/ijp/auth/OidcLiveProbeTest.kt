@@ -57,7 +57,7 @@ class OidcLiveProbeTest : TestCase() {
             handoff.writeText("${code.browseUri}\n${code.userCode}\n")
             println("LIVE device code for $issuer: ${code.userCode} at ${code.verificationUri}")
             val tokens = flow.poll(endpoints, code)
-            handoff.delete()
+            java.nio.file.Files.deleteIfExists(handoff.toPath())
             assertNotNull("refresh token from $issuer", tokens.refreshToken)
             println("LIVE signed in at $issuer, access token expires in ${tokens.expiresInSeconds}s")
             assertEquals("the role-gated page with the token ($backend)", 200, backendStatus(backend, tokens.accessToken, "staff"))
