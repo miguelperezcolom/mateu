@@ -111,15 +111,15 @@ export function entityHeaderOf(ctx) {
   const m = node.metadata
   const state = ctx.state || {}
   const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
-  const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state)))
-  if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
+  const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state, { data: (ctx && ctx.data) || {} })))
+  if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state, { data: (ctx && ctx.data) || {} }) })
   // Mateu's Chip colors → oj-sp badge status
   const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }
   return {
-    title: interpolate(m.title, state),
-    subtitle: interpolate(m.subtitle || '', state) + (badgeText ? ' · ' + badgeText : ''),
+    title: interpolate(m.title, state, { data: (ctx && ctx.data) || {} }),
+    subtitle: interpolate(m.subtitle || '', state, { data: (ctx && ctx.data) || {} }) + (badgeText ? ' · ' + badgeText : ''),
     // the subtitle WITHOUT the concatenated badges (for templates that paint the badge separately)
-    subtitlePlain: interpolate(m.subtitle || '', state),
+    subtitlePlain: interpolate(m.subtitle || '', state, { data: (ctx && ctx.data) || {} }),
     badges: (m.badges || []).map((b) => ({ label: b.label, status: BADGE_STATUS[b.color] || 'neutral' })),
     facts,
   }
@@ -150,8 +150,8 @@ export function pageKpisOf(ctx) {
   return ((page.metadata || {}).kpis || [])
     .filter((k) => k && (k.title || k.text))
     .map((k) => ({
-      label: page.fromForm ? interpolate(k.title || '', state) : (k.title || ''),
-      value: interpolate(k.text == null ? '' : String(k.text), state),
+      label: page.fromForm ? interpolate(k.title || '', state, { data: (ctx && ctx.data) || {} }) : (k.title || ''),
+      value: interpolate(k.text == null ? '' : String(k.text), state, { data: (ctx && ctx.data) || {} }),
     }))
 }
 
@@ -208,7 +208,7 @@ export function pageHeaderExtrasOf(ctx) {
   const text = (v) => {
     if (v == null) return ''
     let s = String(v)
-    if (s.includes('${')) s = interpolate(s, state)
+    if (s.includes('${')) s = interpolate(s, state, { data: (ctx && ctx.data) || {} })
     if (s.includes('${')) {
       const value = evaluateTemplate(s, scope)
       s = value == null || value === false ? '' : String(value)
@@ -240,7 +240,7 @@ export function pageSubtitleOf(ctx) {
   // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
   // listing page shows only the table, so the line was lost — it is the page's subtitle
   if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
-  return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+  return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
 }
 
 function textWithId(n, id) {
@@ -307,7 +307,7 @@ export function pageSwitcherOf(ctx) {
     actionId: RECORD_SWITCHER_ACTION, route: '', objectOptions: [], contextOptions: [], fact: null }
   if (!sw) return none
   const state = (ctx && ctx.state) || {}
-  const interp = (t) => (page.fromForm ? interpolate(t, state) : String(t))
+  const interp = (t) => (page.fromForm ? interpolate(t, state, { data: (ctx && ctx.data) || {} }) : String(t))
   // the declared options, else (a YAML `optionsSource`) the ones loadRestOptions fetched into
   // ctx.data._switcher — the same slot a select's REST options land in
   const loaded = ((ctx && ctx.data && ctx.data[RECORD_SWITCHER_OPTIONS]) || {}).content
@@ -372,7 +372,7 @@ export function pageToolbarOf(ctx) {
       return {
         actionId: b.actionId,
         // a label may name the record ("Back to ${state.name}")
-        label: interpolate(b.label || b.actionId, state),
+        label: interpolate(b.label || b.actionId, state, { data: (ctx && ctx.data) || {} }),
         chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
         disabled: !!b.disabled || (!!b.route && route == null),
         ...(route ? { route } : {}),
@@ -570,7 +570,7 @@ export function summarizeHost(reg, route) {
   // a YAML page's title is a template (`title: ${state.name}`); a page declaring a
   // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
   // borrowing the crud's or the menu's label (pageHeaderOf)
-  const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state).trim() : ''
+  const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
   const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
   return {
     // a listing's Page carries no title: it travels in the Crud metadata, and if it is not

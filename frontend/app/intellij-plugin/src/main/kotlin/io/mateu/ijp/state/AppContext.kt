@@ -375,7 +375,7 @@ class AppContext(val session: AppSession) {
 
         // Dirty guard on discarding actions (Cancel on an edit form): confirm before throwing away
         // unsaved changes on a tracked form.
-        if (trackDirty && dirty && actionId in DISCARD_ACTIONS) {
+        if (trackDirty && dirty && LeaveActions.isLeaveAction(actionId, currentActionIds)) {
             val choice = JOptionPane.showOptionDialog(
                 contentPane,
                 "There are unsaved changes. Discard them?",
@@ -593,6 +593,8 @@ class AppContext(val session: AppSession) {
     fun captureComponentContext(sscNode: JsonNode, serverSideType: String) {
         screen = ScreenDeclarations.of(sscNode)
         val actionNodes = sscNode.path("actions")
+        // the view's own action ids: a wizard's (it advertises `next`) `back` is a step, not a leave
+        currentActionIds = actionNodes.mapNotNull { node -> node.path("id").asText("").takeIf { it.isNotEmpty() } }
         // A catalogue REST call reached from the menu runs against the latest loaded view.
         session.restActionRunner = { id, rest -> SwingUtilities.invokeLater { handleRestAction(rest, id) } }
         fieldAttributes.clear()
@@ -1344,6 +1346,9 @@ class AppContext(val session: AppSession) {
     /** True while a stale-screen failure's cleanup runs: its generic error is not shown. */
     private var suppressErrors = false
 
+    /** The loaded view's own action ids (LeaveActions: a wizard advertises `next`). */
+    private var currentActionIds: List<String> = emptyList()
+
     private fun showError(message: String?) {
         if (suppressErrors) return
         if (silentErrors) { println("[Mateu] error: $message"); return }
@@ -1351,8 +1356,4 @@ class AppContext(val session: AppSession) {
         JOptionPane.showMessageDialog(session.frame, message ?: "Error", "Error", JOptionPane.ERROR_MESSAGE)
     }
 
-    companion object {
-        /** Actions that abandon a tracked form's edits — guarded by the dirty confirm. */
-        private val DISCARD_ACTIONS = setOf("cancel-edit", "cancel-view", "cancel")
-    }
 }

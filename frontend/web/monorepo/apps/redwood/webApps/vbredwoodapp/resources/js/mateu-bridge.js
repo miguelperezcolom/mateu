@@ -4868,6 +4868,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
   /** The action ids a tree advertises at any level (`actions: [{id | actionId}]`). */
@@ -5047,7 +5048,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
   }
 
-  function interpolate(text, state) {
+  function interpolate(text, state, scope = {}) {
     // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
     // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
     if (text != null && String(text).includes('i18n.')) {
@@ -5058,12 +5059,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // and nested paths: `${state.status.message}` (the badge of a header @Status)
     // `\${` / `\\` are the literal escapes the server writes around DATA (Templates.literal): they
     // show as `${` / `\`, never as an expression — a record titled «${state.id}» is not evaluated
+    // Anything else in `${…}` is an EXPRESSION, evaluated like the web renderer does
+    // (`${state.lastName ?? ''}`, `${data.total}`, `${state.a ? 'x' : 'y'}`) with the sandboxed
+    // evaluator (rules.mjs) over state, data, appState and appData — a header used to show such a
+    // title raw. A failed one shows nothing, never the template.
     const source = String(text == null ? '' : text)
     if (!source.includes('${')) return source
     return source.replace(
-      /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
-      (all, escaped, dotted, quoted) => {
+      /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}|\$\{([^}]*)\}/g,
+      (all, escaped, dotted, quoted, expression) => {
         if (escaped) return escaped === '\\' ? '\\' : '${'
+        if (expression !== undefined) {
+          const value = evaluateExpression(expression, { ...scope, state: state || {} })
+          return value != null && typeof value !== 'object' ? String(value) : ''
+        }
         if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
         let value = state
         for (const part of dotted.split('.')) {
@@ -7092,15 +7101,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const m = node.metadata
     const state = ctx.state || {}
     const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
-    const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state)))
-    if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
+    const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state, { data: (ctx && ctx.data) || {} })))
+    if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state, { data: (ctx && ctx.data) || {} }) })
     // Mateu's Chip colors → oj-sp badge status
     const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }
     return {
-      title: interpolate(m.title, state),
-      subtitle: interpolate(m.subtitle || '', state) + (badgeText ? ' · ' + badgeText : ''),
+      title: interpolate(m.title, state, { data: (ctx && ctx.data) || {} }),
+      subtitle: interpolate(m.subtitle || '', state, { data: (ctx && ctx.data) || {} }) + (badgeText ? ' · ' + badgeText : ''),
       // the subtitle WITHOUT the concatenated badges (for templates that paint the badge separately)
-      subtitlePlain: interpolate(m.subtitle || '', state),
+      subtitlePlain: interpolate(m.subtitle || '', state, { data: (ctx && ctx.data) || {} }),
       badges: (m.badges || []).map((b) => ({ label: b.label, status: BADGE_STATUS[b.color] || 'neutral' })),
       facts,
     }
@@ -7131,8 +7140,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ((page.metadata || {}).kpis || [])
       .filter((k) => k && (k.title || k.text))
       .map((k) => ({
-        label: page.fromForm ? interpolate(k.title || '', state) : (k.title || ''),
-        value: interpolate(k.text == null ? '' : String(k.text), state),
+        label: page.fromForm ? interpolate(k.title || '', state, { data: (ctx && ctx.data) || {} }) : (k.title || ''),
+        value: interpolate(k.text == null ? '' : String(k.text), state, { data: (ctx && ctx.data) || {} }),
       }))
   }
 
@@ -7189,7 +7198,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const text = (v) => {
       if (v == null) return ''
       let s = String(v)
-      if (s.includes('${')) s = interpolate(s, state)
+      if (s.includes('${')) s = interpolate(s, state, { data: (ctx && ctx.data) || {} })
       if (s.includes('${')) {
         const value = evaluateTemplate(s, scope)
         s = value == null || value === false ? '' : String(value)
@@ -7221,7 +7230,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
     // listing page shows only the table, so the line was lost — it is the page's subtitle
     if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
-    return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+    return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
   }
 
   function textWithId(n, id) {
@@ -7288,7 +7297,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       actionId: RECORD_SWITCHER_ACTION, route: '', objectOptions: [], contextOptions: [], fact: null }
     if (!sw) return none
     const state = (ctx && ctx.state) || {}
-    const interp = (t) => (page.fromForm ? interpolate(t, state) : String(t))
+    const interp = (t) => (page.fromForm ? interpolate(t, state, { data: (ctx && ctx.data) || {} }) : String(t))
     // the declared options, else (a YAML `optionsSource`) the ones loadRestOptions fetched into
     // ctx.data._switcher — the same slot a select's REST options land in
     const loaded = ((ctx && ctx.data && ctx.data[RECORD_SWITCHER_OPTIONS]) || {}).content
@@ -7353,7 +7362,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return {
           actionId: b.actionId,
           // a label may name the record ("Back to ${state.name}")
-          label: interpolate(b.label || b.actionId, state),
+          label: interpolate(b.label || b.actionId, state, { data: (ctx && ctx.data) || {} }),
           chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
           disabled: !!b.disabled || (!!b.route && route == null),
           ...(route ? { route } : {}),
@@ -7551,7 +7560,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a YAML page's title is a template (`title: ${state.name}`); a page declaring a
     // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
     // borrowing the crud's or the menu's label (pageHeaderOf)
-    const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state).trim() : ''
+    const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
     const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
     return {
       // a listing's Page carries no title: it travels in the Crud metadata, and if it is not

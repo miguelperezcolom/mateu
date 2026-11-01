@@ -537,9 +537,18 @@ test('a listing keeps its page and sort in the URL, with the Vaadin contract (ba
     { page: 2, sort: [{ field: 'title', direction: 'descending' }, { field: 'year', direction: 'ascending' }] })
   assert.deepEqual(listingUrlPagingOf(''), { page: 0, sort: [] })
   const search = webApp('flows/main/pages/main-start-page-chains/runMateuSearch.js')
-  assert.ok(search.includes('bridge.listingUrlOf(') && search.includes('history.replaceState'), 'every search writes the URL')
+  // every search writes the URL — as a NEW history entry: Back returns to the previous page/filters
+  // (it used to replaceState, and Back left the listing — Fable review A8)
+  assert.ok(search.includes('bridge.listingUrlOf(') && search.includes('history.pushState') && !search.includes('history.replaceState'),
+    'every search pushes the URL')
+  const filters = webApp('flows/main/pages/main-start-page-chains/smartFiltersChanged.js')
+  assert.ok(filters.includes('history.pushState') && !filters.includes('history.replaceState'), 'a filter change pushes the URL')
   const nav = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'onMateuNavigate.js'), 'utf8')
   assert.ok(nav.includes('bridge.listingUrlPagingOf('), 'navigation restores page and sort')
+  // a back/forward compares with the URL ON SCREEN (with its query): back from ?page=1 to the bare
+  // listing is another state of it, not the menu entry's echo — and staying puts that URL back
+  assert.ok(nav.includes('((requested || fromUrl) && window.__mateuLoadedFull != null)'), 'back/forward vs the loaded URL')
+  assert.ok(nav.includes('bridge.restoreUrlAfterStaying(window.__mateuLoadedFull ||'), 'stay keeps the query')
 })
 
 test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.catalogJson}#" 400 on every load)', () => {

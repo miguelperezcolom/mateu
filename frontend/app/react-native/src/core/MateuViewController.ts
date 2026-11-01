@@ -2,6 +2,7 @@ import { recordTiming, timed } from './timing.ts';
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
 import { applyClientRules } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
+import { isLeaveAction } from './leaveActions.ts';
 import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './viewWire.ts';
@@ -253,7 +254,7 @@ export class MateuViewController {
   async runAction(actionId: string, parameters?: Json, silent = false): Promise<void> {
     // Dirty guard on discarding actions (Cancel on an edit form).
     // The host may confirm asynchronously; a synchronous confirm hook keeps it simple here.
-    if (this.trackDirty && this.dirty && DISCARD_ACTIONS.has(actionId)) {
+    if (this.trackDirty && this.dirty && isLeaveAction(actionId, this.currentComponentActions)) {
       const proceed = await this.confirmDiscard();
       if (!proceed) return;
       this.setDirty(false);
@@ -992,4 +993,3 @@ export class MateuViewController {
   }
 }
 
-const DISCARD_ACTIONS = new Set(['cancel-edit', 'cancel-view', 'cancel']);
