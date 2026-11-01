@@ -14,6 +14,7 @@ import { addLink, base64UrlEncode, encodeImportPayload, exportLink, normalizeBas
 const CORPUS = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../../conformance/client/hub-links.json');
 
 const dev: ParseOptions = { allowInsecure: true };
+const desktop: ParseOptions = { allowLoopbackHttp: true };
 
 const addresses: [string, ParseOptions?][] = [
   ['acme.com'], ['  https://Acme.COM/crm/  '], ['https://acme.com/crm?x=1#y'], ['https://acme.com:443/a'],
@@ -24,6 +25,9 @@ const addresses: [string, ParseOptions?][] = [
   ['https://acme.com:99999'], ['https://acme.com:0'], ['https://'], ['https://-acme.com'], ['https://acme.com/../admin'],
   ['https://acme.com/./a'], ['https://acme.com\\@evil.com'], [''], ['   '], ['x'.repeat(3000)], ['https://[::1]:8080'],
   ['https://xn--80ak6aa92e.com'], ['https://acme.com.'], ['https://acme.com:8080/'], ['acme.com:443'],
+  ['http://localhost:8080', desktop], ['http://127.0.0.1:8080/crm/', desktop], ['http://[::1]:8080', desktop],
+  ['http://192.168.1.20:8080', desktop], ['http://acme.com', desktop], ['http://localhost.evil.com', desktop],
+  ['localhost:8080', desktop], ['https://acme.com', desktop], ['http://user@localhost:8080', desktop],
   ['https://a_b.com'], ['https://acme.com/a\\b'], ['https://acme.com/​x'], ['https://acme.com/crm/orders/7'],
 ];
 
@@ -36,7 +40,7 @@ const links: [string, ParseOptions?][] = [
   ['https://mateu.io/add?u=https%3A%2F%2Facme.com%2Fcrm&r=%2Forders%2F7'], ['https://www.mateu.io/add/?u=acme.com'],
   ['mateu://add?u=https://acme.com'], ['MATEU:///add?u=acme.com'], ['mateu://add?u=acme.com&r=https://evil.com'],
   ['mateu://add?u=acme.com&r=a&r=b'], [''], ['hello'], ['WIFI:S:home;T:WPA;P:secret;;'], ['https://evil.com/add?u=acme.com'],
-  ['https://mateu.io/other?u=acme.com'], ['http://mateu.io/add?u=acme.com'], ['http://mateu.io/add?u=acme.com', dev],
+  ['https://mateu.io/other?u=acme.com'], ['http://mateu.io/add?u=acme.com'], ['http://mateu.io/add?u=acme.com', dev], ['mateu://add?u=http%3A%2F%2Flocalhost%3A8080', desktop], ['mateu://add?u=http%3A%2F%2Facme.com', desktop],
   ['mateu://delete?u=acme.com'], ['mateu://add'], ['mateu://add?u=javascript:alert(1)'], ['mateu://add?u=https://bank.com@evil.com'],
   ['mateu://add?u=%E0%A4%A'], ['otpauth://totp/x?secret=abc'], ['mateu://add?u=a+b.com'],
   ['http://localhost:19010/add?u=http%3A%2F%2Flocalhost%3A8080', { allowInsecure: true, extraLinkHosts: ['localhost:19010'] }],

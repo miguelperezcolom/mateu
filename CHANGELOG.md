@@ -74,6 +74,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   draw the cards from a REST source, read again after each move — so a YAML page with a `restAction`
   move needs no Java. A REST action now reads its call parameters over the state on both legs
   (browser and proxied). Java, .NET, Python; Vaadin, Redwood, React Native, IntelliJ.
+- **Live run ▸ Desktop opens the UI in the Mateu desktop app, a separate IntelliJ.** It used to repoint
+  the developer's own IDE and open its tool window. The IDE now hands the installed desktop app
+  `mateu://add?u=http://localhost:<port>` (macOS: by bundle id, since the phone app claims the scheme
+  too); without it, a notification offers the download or the old way. The desktop app accepts plain
+  http for this machine only (hub-links corpus option `allowLoopbackHttp`). VS Code: setting
+  `mateu.liveRun.openIn` + *Mateu: Open Running App in the Desktop App*.
+- **A `mateu://` link that STARTS the desktop app now works.** The platform took the URL as the whole
+  command line and never opened the workspace the launcher passes: the app sat on IntelliJ's welcome
+  screen and answered "This Mateu app does not add UIs from links". It now opens its bundled workspace
+  first.
 - **The hub apps check whether they can render a UI, by themselves.** The UI manifest now carries the
   server's Mateu release (`mateuVersion`, beside `wireVersion`; Java, .NET and Python, omitted on a
   development build). When a UI is added, opened or its manifest refreshed, the phone and desktop apps

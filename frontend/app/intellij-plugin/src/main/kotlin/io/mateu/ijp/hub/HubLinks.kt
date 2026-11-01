@@ -36,6 +36,11 @@ object HubLinks {
     data class Options(
         /** Accept `http://` base URLs (development only). */
         val allowInsecure: Boolean = false,
+        /**
+         * Accept `http://` only for THIS machine (localhost, 127.x, [::1]) — what the desktop app sets,
+         * since a developer's IDE hands it the app it just started (`http://localhost:8080`).
+         */
+        val allowLoopbackHttp: Boolean = false,
         /** Extra hosts (`host[:port]`) whose `/add` path is accepted. */
         val extraLinkHosts: List<String> = emptyList(),
     )
@@ -83,7 +88,7 @@ object HubLinks {
         val authority = m.groupValues[2]
         val path = m.groupValues[3]
         if (scheme != "https" && scheme != "http") return BaseUrl.Refused("Only https addresses can be added.")
-        if (scheme == "http" && !options.allowInsecure) return BaseUrl.Refused("Only secure (https) addresses can be added.")
+        if (scheme == "http" && !options.allowInsecure && !options.allowLoopbackHttp) return BaseUrl.Refused("Only secure (https) addresses can be added.")
         if (authority.contains('@')) return BaseUrl.Refused("Addresses with a user name or password are not accepted.")
         val hp = HOST_PORT.find(authority) ?: return BaseUrl.Refused("The address has an invalid host.")
         val host = hp.groupValues[1].lowercase().removeSuffix(".")
@@ -91,6 +96,7 @@ object HubLinks {
         if (host.isEmpty()) return BaseUrl.Refused("The address has no host.")
         if (NON_ASCII.containsMatchIn(host)) return BaseUrl.Refused("International domain names must be entered in their xn-- form.")
         if (!HOST_RE.matches(host) && !IPV6_RE.matches(host)) return BaseUrl.Refused("The address has an invalid host.")
+        if (scheme == "http" && !options.allowInsecure && !isLoopbackHost(host)) return BaseUrl.Refused("Only secure (https) addresses can be added.")
         if (port != null) {
             val n = port.toInt()
             if (n !in 1..65535) return BaseUrl.Refused("The address has an invalid port.")
@@ -104,6 +110,10 @@ object HubLinks {
     }
 
     /** The host[:port] of an already-normalised base URL — what the confirm step shows big. */
+    /** This machine: `localhost`, `127.0.0.0/8`, `[::1]` (an already lower-cased host, no port). */
+    fun isLoopbackHost(host: String): Boolean =
+        host == "localhost" || host == "[::1]" || Regex("^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$").matches(host)
+
     fun domainOf(baseUrl: String): String = URL_RE.find(baseUrl)?.groupValues?.get(2)?.lowercase() ?: baseUrl
 
     /** A route to open inside the UI: relative to its mount, never an absolute or protocol-relative URL. */

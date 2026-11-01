@@ -64,6 +64,19 @@
             "Redwood (Oracle Visual Builder) — served by io.mateu:mateu-redwood"
           ],
           "markdownDescription": "The renderer the whole project paints with. **Stored in `specs/ui/project.yaml`** (`type: Project`) — the file is the truth: changing this setting writes it, and the setting follows the file whenever it changes. The visual editor and Play open in it and the static bundle ships it; a served app renders with its Maven dependency (the server warns when the two disagree). Same as *Mateu: Project Settings…*."
+        },
+        "mateu.liveRun.openIn": {
+          "type": "string",
+          "enum": [
+            "web",
+            "desktop"
+          ],
+          "default": "web",
+          "enumDescriptions": [
+            "The default browser (the web renderer the app serves)",
+            "The Mateu desktop app — a separate IntelliJ with its own window — through its mateu:// link"
+          ],
+          "markdownDescription": "Where *Mateu: Run App (Live)* opens the app once it answers. `desktop` needs the Mateu desktop app installed (its installers are on every release); without it you are offered the download or the browser. *Mateu: Open Running App in the Desktop App* does it on demand."
         }
       }
     },
@@ -106,6 +119,11 @@
       {
         "command": "mateu.reloadScreen",
         "title": "Reload Screen",
+        "category": "Mateu"
+      },
+      {
+        "command": "mateu.openInDesktopApp",
+        "title": "Open Running App in the Desktop App",
         "category": "Mateu"
       }
     ],
@@ -162,7 +180,8 @@
     "onCommand:mateu.addRoute",
     "onCommand:mateu.projectSettings",
     "onCommand:mateu.runLive",
-    "onCommand:mateu.reloadScreen"
+    "onCommand:mateu.reloadScreen",
+    "onCommand:mateu.openInDesktopApp"
   ],
   "keywords": [
     "mateu",
