@@ -1810,6 +1810,8 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
 
 .mateu-rich-text-field { display: block; border: 1px solid var(--oj-core-border-color, #ccc); border-radius: var(--oj-core-border-radius-md, 6px);
   background: var(--oj-core-bg-color-content, #fff); }
+/* Spectra's editor inside brings its own frame: the wrapper's would draw a second, empty one */
+.mateu-rich-text-field:has(> .mateu-rte-spectra) { border: none; background: none; }
 .mateu-rte-toolbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px; border-block-end: 1px solid var(--oj-core-divider-color, #eee); }
 .mateu-rte-area { min-height: 6rem; padding: 8px 12px; outline: none; }
 .mateu-rte-area:focus-visible { box-shadow: inset 0 0 0 2px var(--oj-core-focus-border-color, #2b6a9e); }

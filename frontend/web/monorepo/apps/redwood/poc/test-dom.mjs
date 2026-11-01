@@ -35,7 +35,7 @@ import { applyFoldoutFolds, resetFoldoutFolds, FOLDED_CLASS } from './foldouts.m
 import { sanitizeElementHtml, mountElements, setElementEventSink, setElementModuleBase } from './elements.mjs'
 import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents, decorateFactActions, installFactActions, setFactActionSink, decorateScoreboard, installScoreboards, setScoreboardActionSink, setScoreboardDataResolver, scoreboardDrillInOf } from './displayDom.mjs'
 import { registerCustomComponent, fieldWidgetOf } from './reduceContexts.mjs'
-import { defineMarkupField, defineRichTextField, installRichText } from './richtext.mjs'
+import { defineMarkupField, defineRichTextField, installRichText, spectraRichTextReady, SPECTRA_RICH_TEXT_LOADER, SPECTRA_RICH_TEXT_TOOLBAR } from './richtext.mjs'
 
 // in the bridge everything shares one scope: keys.mjs uses actionPanels.mjs's shortcutMatches
 // without importing it. In Node, separate modules — it is given through the global, as the bridge would see it.
@@ -1147,6 +1147,83 @@ test('rich text field: the toolbar and Ctrl+B format; a link must be safe', () =
   fire(f.querySelector('.mateu-rte-area'), 'keydown', { key: 'B', ctrlKey: true })
   fire(f.querySelector('.mateu-rte-area'), 'keydown', { key: 'q', ctrlKey: true })
   assert.deepEqual(commands, [['bold', null], ['createLink', 'https://example.com'], ['bold', null]])
+})
+
+test('rich text field: Spectra\'s editor when the page has an AMD loader — unbound, its toolbar, the user\'s edits only', async () => {
+  const { doc, win } = makeDom()
+  const asked = []
+  win.require = (mods, ok) => { asked.push(mods); setTimeout(ok, 0) }
+  defineRichTextField(win)
+  const f = doc.createElement('mateu-rich-text-field')
+  f.setAttribute('aria-label', 'Notes')
+  f.setAttribute('value', JSON.stringify([{ insert: 'Hi', attributes: { bold: true } }, { insert: '\n' }]))
+  const values = []
+  f.addEventListener('valueChanged', (e) => values.push(e.detail.value))
+  doc.body.appendChild(f)
+  const box = f.querySelector('.mateu-rte-spectra')
+  assert.equal(box.getAttribute('data-oj-binding-provider'), 'none', 'or JET waits for bindings nobody applies')
+  const editor = box.querySelector('oj-sp-input-rich-text-2')
+  assert.equal(editor.getAttribute('label-hint'), 'Notes')
+  assert.equal(editor.getAttribute('value'), '<p><strong>Hi</strong></p>', 'the Delta opened as HTML')
+  const options = JSON.parse(editor.getAttribute('display-options'))
+  assert.deepEqual(options, { label: 'off', formattingToolbar: 'on', toolbarItems: SPECTRA_RICH_TEXT_TOOLBAR })
+  assert.ok(!SPECTRA_RICH_TEXT_TOOLBAR.includes('uploadImage'), 'no base64 pictures in the value')
+  assert.equal(f.querySelector('.mateu-rte-area'), null, 'not our own editor')
+  const change = (value, updatedFrom) => editor.dispatchEvent(new FakeEvent('valueChanged', { bubbles: false, detail: { value, updatedFrom } }))
+  change('<p>echo</p>', 'external')
+  change('<p><strong>Hi</strong></p>', 'internal')
+  assert.deepEqual(values, [], 'the echo of the value set, and an edit that changed nothing, are not commits')
+  change('<p>New <script>x</script><a href="https://x.org" target="_blank" rel="noopener noreferrer">link</a></p>', 'internal')
+  assert.deepEqual(values, ['<p>New <a href="https://x.org" target="_blank" rel="noopener noreferrer">link</a></p>'], 'committed sanitised')
+  assert.equal(f.querySelector('oj-sp-input-rich-text-2'), editor, 'committing does not remount the editor')
+  change(undefined, 'internal')
+  assert.deepEqual(values.slice(1), [null], 'an editor left empty is null')
+  // leaving the editor commits what it holds at once (its own valueChanged comes later)
+  const leave = (relatedTarget) => box.dispatchEvent(new FakeEvent('focusout', { bubbles: true, relatedTarget }))
+  editor.rawValue = '<p>typed</p>'
+  leave(box.querySelector('oj-sp-input-rich-text-2'))
+  assert.deepEqual(values.slice(2), [], 'to its own toolbar: not a commit')
+  delete editor.rawValue
+  leave(null)
+  assert.deepEqual(values.slice(2), [], 'nothing read yet: nothing to commit')
+  editor.rawValue = '<p>typed</p>'
+  leave(null)
+  assert.deepEqual(values.slice(2), ['<p>typed</p>'], 'out of it: committed before the click lands')
+  change('<p>typed</p>', 'internal')
+  assert.deepEqual(values.slice(2), ['<p>typed</p>'], 'its late valueChanged repeats it: nothing more')
+  await sleep(5)
+  assert.ok(f.querySelector('oj-sp-input-rich-text-2'), 'loaded: it stays')
+  assert.deepEqual(asked, [[SPECTRA_RICH_TEXT_LOADER]], 'asked once per window')
+})
+
+test('rich text field: when Spectra\'s editor does not load, our own editor takes over', async () => {
+  const { doc, win } = makeDom()
+  win.require = (mods, ok, fail) => setTimeout(() => fail(new Error('CDN down')), 0)
+  defineRichTextField(win)
+  const f = doc.createElement('mateu-rich-text-field')
+  f.setAttribute('value', '<p>x</p>')
+  doc.body.appendChild(f)
+  assert.ok(f.querySelector('oj-sp-input-rich-text-2'))
+  await sleep(5)
+  assert.equal(f.querySelector('oj-sp-input-rich-text-2'), null)
+  assert.match(f.querySelector('.mateu-rte-area').innerHTML, /x/)
+  f.setAttribute('value', '<p>y</p>')
+  assert.ok(f.querySelector('.mateu-rte-area'), 'for good: a new value does not try again')
+  // a field removed before the answer is left alone
+  const { doc: doc2, win: win2 } = makeDom()
+  win2.require = (mods, ok, fail) => setTimeout(() => fail(new Error('down')), 0)
+  defineRichTextField(win2)
+  const g = doc2.createElement('mateu-rich-text-field')
+  doc2.body.appendChild(g)
+  g.setAttribute('readonly', '')
+  await sleep(5)
+  assert.ok(g.querySelector('.mateu-atom-richtext'), 'read only, nothing to fall back from')
+})
+
+test('spectraRichTextReady: false with no window, no AMD loader, or a loader that throws', async () => {
+  assert.equal(await spectraRichTextReady(null), false)
+  assert.equal(await spectraRichTextReady({}), false)
+  assert.equal(await spectraRichTextReady({ require: () => { throw new Error('no config') } }), false)
 })
 
 test('rich text in content: [data-mateu-html] gets its sanitised HTML now and whenever it changes', () => {
