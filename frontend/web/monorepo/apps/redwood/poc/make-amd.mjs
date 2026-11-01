@@ -285,6 +285,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     rowRouteOf,
     listingOf,
     rowClickOpensRecord,
+    // a docked panel with no toggle action closes on the client (spPages.mjs)
+    closeDockedPanel,
+    dataManagementWithoutPanel,
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,

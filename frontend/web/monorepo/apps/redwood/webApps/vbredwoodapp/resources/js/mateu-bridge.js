@@ -12483,6 +12483,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const NO_PANEL = { on: false, title: '', closeActionId: '', blocks: [] }
 
+  // Docked panels the user closed that have no toggle action of their own (a YAML DockedPanel with
+  // `open: true`): nothing on the server takes them away, so the page would keep projecting them open
+  // and the ✕ reopened them at once. They stay closed on that route for the session.
+  const closedDockedPanels = new Set()
+  const panelKey = (route, which) => String(route || '').replace(/^\/+/, '') + '|' + which
+
+  /** The user closed this docked panel (`end` | `bottom`) on this route, and nothing else will. */
+  function closeDockedPanel(route, which) {
+    closedDockedPanels.add(panelKey(route, which))
+  }
+
+  /** The projection without that panel: what the page shows the moment it is closed. */
+  function dataManagementWithoutPanel(dm, which) {
+    if (!dm) return dm
+    return which === 'end' ? { ...dm, end: NO_PANEL, endOpened: 'none' } : { ...dm, bottom: NO_PANEL, bottomOpened: 'none' }
+  }
+
   /**
    * DataManagement / GanttPage → oj-sp-data-management-page: its transactional header (the page
    * title), its main content (the toolbar + the grid/gantt view, or the gantt + the detail card), the
@@ -12531,6 +12548,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (after[1]) bottom = dockedPanelOf(ctx, after[1], DATA_MANAGEMENT_ID + '-bottom')
     }
+    const route = ctx.outbound && ctx.outbound.route
+    if (end.on && !end.closeActionId && closedDockedPanels.has(panelKey(route, 'end'))) end = NO_PANEL
+    if (bottom.on && !bottom.closeActionId && closedDockedPanels.has(panelKey(route, 'bottom'))) bottom = NO_PANEL
     return {
       kind: gantt ? 'gantt' : 'dataManagement',
       title: titleNode ? String(titleNode.metadata.text || '') : '',
@@ -26583,6 +26603,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     rowRouteOf,
     listingOf,
     rowClickOpensRecord,
+    // a docked panel with no toggle action closes on the client (spPages.mjs)
+    closeDockedPanel,
+    dataManagementWithoutPanel,
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,

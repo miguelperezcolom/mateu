@@ -27,6 +27,7 @@ import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMulti
 import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
+import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
 import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
@@ -2352,6 +2353,25 @@ test('GanttPage → oj-sp-data-management-page: the canvas + detail in the defau
   const pageJson = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
   assert.ok(pageJson.imports.components['oj-sp-data-management-page'])
   assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].chain, 'dmPanelClosed')
+  // a YAML DockedPanel (no toggle action): its ✕ closes it here and it stays closed on that route —
+  // putting the state back to 'auto' with the panel still projected reopened it at once
+  assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].parameters.panel, 'bottom')
+  const yamlPanel = { tree: { type: 'ClientSide', id: 'dm', metadata: { type: 'VerticalLayout' }, children: [
+    { type: 'ClientSide', id: 'data-management', metadata: { type: 'VerticalLayout' }, children: [
+      { type: 'ClientSide', id: 'data-management-toolbar', metadata: { type: 'HorizontalLayout' }, children: [] },
+      { type: 'ClientSide', id: 'data-management-body', metadata: { type: 'VerticalLayout' }, children: [] },
+      { type: 'ClientSide', id: 'loans-notes', metadata: { type: 'DockedPanel', title: 'About this data', open: true }, children: [
+        { type: 'ClientSide', metadata: { type: 'Text', text: 'Synthetic' }, children: [] }] }] }] },
+    state: {}, data: {}, outbound: { route: '/loans' } }
+  const open = dataManagementPageOf(yamlPanel)
+  assert.ok(open.bottom.on, 'the YAML panel is projected open'); {
+    assert.equal(open.bottom.closeActionId, '')
+    assert.equal(dataManagementWithoutPanel(open, 'bottom').bottomOpened, 'none')
+    closeDockedPanel('loans', 'bottom')
+    assert.equal(dataManagementPageOf(yamlPanel).bottom.on, false, 'closed for good on that route')
+    assert.equal(dataManagementPageOf({ ...yamlPanel, outbound: { route: '/other' } }).bottom.on, true, 'other routes keep theirs')
+  }
+  assert.ok(webApp('flows/main/pages/main-start-page-chains/dmPanelClosed.js').includes('bridge.closeDockedPanel('))
   assert.ok(existsSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'dmPanelClosed.js')))
   assert.match(webApp('resources/css/app.css'), /\.mateu-dm-page:not\(\.mateu-dm-transactional\) oj-sp-header-create-edit \[id\$="_cancelAction"\]/, 'no transaction: Cancel/primary hidden')
   // a page declaring a cancel + a primary @Toolbar action (pageHeaderOf → createEdit) shows them:
