@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Space Exploration">
+  <rect width="64" height="64" rx="14" fill="#0b1d3a"/>
+  <circle cx="13" cy="14" r="1.2" fill="#fff"/><circle cx="50" cy="10" r="1" fill="#fff"/><circle cx="54" cy="30" r="1.2" fill="#fff"/><circle cx="9" cy="40" r="1" fill="#fff"/>
+  <circle cx="44" cy="46" r="11" fill="#e8743b"/>
+  <ellipse cx="44" cy="46" rx="17" ry="4.5" fill="none" stroke="#f4c27a" stroke-width="2" transform="rotate(-20 44 46)"/>
+  <g transform="rotate(40 26 30)">
+    <path d="M26 8c6 6 8 14 6 24H20c-2-10 0-18 6-24z" fill="#f2f4f8"/>
+    <circle cx="26" cy="21" r="3.2" fill="#3a7bd5"/>
+    <path d="M20 26l-6 8h7zM32 26l6 8h-7z" fill="#d6435b"/>
+    <path d="M22 32h8l-2 6h-4z" fill="#f7b733"/>
+  </g>
+</svg>

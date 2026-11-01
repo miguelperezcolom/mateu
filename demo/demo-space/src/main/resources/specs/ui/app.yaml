@@ -4,8 +4,8 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: AppShell
 title: Space Exploration
 subtitle: A Mateu app authored entirely in YAML, over NASA missions, crews, spacecraft and launches
-logo: /images/mateu.png
-favicon: /images/mateu.png
+logo: /images/space.svg
+favicon: /images/space.svg
 variant: MENU_ON_TOP
 homeRoute: welcome
 mobileQr: true
