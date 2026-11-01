@@ -122,7 +122,8 @@ jobs:
     timeout-minutes: 200
     permissions:
       contents: write # push the bump branch
-      pull-requests: write # open the PR
+      pull-requests: write # open the PR, close the superseded ones
+      actions: write # dispatch the checks on the bump branch (see below)
     env:
       TAG: ${{ github.event.release.tag_name }}
     steps:
@@ -161,10 +162,25 @@ jobs:
           if ! git push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$branch"; then
             echo "::warning::Could not push $branch with the workflow token. $hint"; exit 0
           fi
-          body="The starters, the \"start here\" demos, the AI reference files, the .NET/Python guides and the japicmp baseline now pin \`$V\`, which Maven Central serves. Review \`backend/api-compat/japicmp-exclusions.properties\` against the new baseline. Opened by the release workflow: close and reopen this PR to run the checks."
+          body="The starters, the \"start here\" demos, the AI reference files, the .NET/Python guides and the japicmp baseline now pin \`$V\`, which Maven Central serves. Review \`backend/api-compat/japicmp-exclusions.properties\` against the new baseline. Opened by the release workflow, which also dispatched the checks on this branch (a PR opened with the workflow token runs none of its own) and closed the bump PRs this one supersedes."
           if ! gh pr create --base master --head "$branch" --title "Point the examples at $V" --body "$body"; then
             echo "::warning::Pushed $branch but could not open the PR (is 'Allow GitHub Actions to create and approve pull requests' off?). Open it by hand from $branch."
+            exit 0
           fi
+          # A PR (or push) made with the workflow token triggers no workflow, so this PR would sit with
+          # no checks — and the required "e2e" never reported, it was never merged: the bumps for
+          # beta.28 to beta.31 piled up and the starters stayed on beta.12. A workflow_dispatch IS
+          # allowed from the workflow token, and its check runs land on the branch's head commit,
+          # which is what the PR's required checks read.
+          if ! gh workflow run run_tests.yml --ref "$branch"; then
+            echo "::warning::Could not dispatch the checks on $branch: run 'Run tests' on it by hand (Actions ▸ Run tests ▸ Run workflow)."
+          fi
+          # Only the newest bump matters: an older one still open is superseded by this one.
+          gh pr list --state open --search "\"Point the examples at\" in:title" --json number,headRefName \
+            --jq ".[] | select(.headRefName != \"$branch\" and (.headRefName | startswith(\"chore/bump-examples-\"))) | .number" |
+            while read -r old; do
+              gh pr close "$old" --delete-branch --comment "Superseded by the bump to $V." || echo "::warning::Could not close #$old."
+            done
 
   # The Redwood EMBEDDED component (<mateu-ui>, a JET Custom Component a Visual Builder developer
   # imports into their own app) is not a Maven/PyPI/NuGet artifact: it ships as a zip attached to the
