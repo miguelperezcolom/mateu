@@ -74,7 +74,9 @@ describe('the URL is the listing\'s memory', () => {
         const search = actions().find(a => a.actionId === 'search')
         expect(search).toBeDefined()
         expect(search.parameters._searchState).toMatchObject({
-            page: 2, size: 10, sort: [{ fieldId: 'customer', direction: 'asc' }],
+            // `asc` from a typed link reaches the server as the wire's `ascending` (sortDirection.ts):
+            // the server only knows the two words and answered `asc` with "Something went wrong"
+            page: 2, size: 10, sort: [{ fieldId: 'customer', direction: 'ascending' }],
             customer: 'An', date_from: '2024-01-01',
         })
         // a param that is not a filter of this listing is not hydrated into its state

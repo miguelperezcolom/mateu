@@ -1,4 +1,5 @@
 import { calendarAtomOf, calendarPageToolbarOf } from '../calendar.mjs'
+import { evaluateExpression } from '../rules.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
@@ -193,7 +194,7 @@ export function isExternalRoute(route) {
   return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
 }
 
-export function interpolate(text, state) {
+export function interpolate(text, state, scope = {}) {
   // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
   // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
   if (text != null && String(text).includes('i18n.')) {
@@ -204,12 +205,20 @@ export function interpolate(text, state) {
   // and nested paths: `${state.status.message}` (the badge of a header @Status)
   // `\${` / `\\` are the literal escapes the server writes around DATA (Templates.literal): they
   // show as `${` / `\`, never as an expression — a record titled «${state.id}» is not evaluated
+  // Anything else in `${…}` is an EXPRESSION, evaluated like the web renderer does
+  // (`${state.lastName ?? ''}`, `${data.total}`, `${state.a ? 'x' : 'y'}`) with the sandboxed
+  // evaluator (rules.mjs) over state, data, appState and appData — a header used to show such a
+  // title raw. A failed one shows nothing, never the template.
   const source = String(text == null ? '' : text)
   if (!source.includes('${')) return source
   return source.replace(
-    /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
-    (all, escaped, dotted, quoted) => {
+    /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}|\$\{([^}]*)\}/g,
+    (all, escaped, dotted, quoted, expression) => {
       if (escaped) return escaped === '\\' ? '\\' : '${'
+      if (expression !== undefined) {
+        const value = evaluateExpression(expression, { ...scope, state: state || {} })
+        return value != null && typeof value !== 'object' ? String(value) : ''
+      }
       if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
       let value = state
       for (const part of dotted.split('.')) {

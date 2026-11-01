@@ -41,6 +41,7 @@ import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
 import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.ts';
 import { IDS_PARAM, SEARCH_ALIAS, SEARCH_PARAM } from '@infra/ui/idSetFilter.ts';
+import { sortDirectionOf } from '@infra/ui/sortDirection.ts';
 import { isListingOwnLoad } from '@infra/http/localRequests.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { showsPreSearch } from '@infra/ui/listingPreSearch.ts'
@@ -486,6 +487,7 @@ export class MateuTableCrud extends LitElement {
         this.resizeObserver.observe(this)
         this.addEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
         window.addEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
+        window.addEventListener('popstate', this._onPopState)
     }
 
     // the URL moved under this listing: updated() compares it with the one it applied
@@ -502,6 +504,7 @@ export class MateuTableCrud extends LitElement {
         this.resizeObserver?.disconnect()
         this.removeEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
         window.removeEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
+        window.removeEventListener('popstate', this._onPopState)
     }
 
     /**
@@ -640,10 +643,20 @@ export class MateuTableCrud extends LitElement {
         const search = params.toString()
         const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname
         if (window.location.pathname + window.location.search !== newUrl) {
-            history.replaceState(null, '', newUrl)
+            // A page, a sort, a filter or a search the user asked for is a history entry: Back
+            // returns to the previous one (the listing re-reads the URL — see updated()), as the
+            // filters doc promises. Re-stating what the URL already asked for, on a load, is not.
+            if (this._urlWrite === 'replace') history.replaceState(history.state, '', newUrl)
+            else history.pushState(history.state, '', newUrl)
         }
         this._appliedUrl = window.location.pathname + window.location.search
     }
+
+    /** How the next URL write goes: `push` for the user's own changes, `replace` while (re)loading. */
+    private _urlWrite: 'push' | 'replace' = 'push'
+
+    /** Back/forward between two states of THIS listing (same path, other query): re-read the URL. */
+    private _onPopState = () => this.requestUpdate()
 
     /** The URL (path + query) whose filters this listing last applied or wrote. */
     private _appliedUrl: string | undefined = undefined
@@ -680,7 +693,13 @@ export class MateuTableCrud extends LitElement {
         const sortParam = params.get('sort')
         if (sortParam) {
             const sort = sortParam.split(',')
-                .map(s => { const [fieldId, direction] = s.split(':'); return fieldId && direction ? {fieldId, direction} : null })
+                .map(s => {
+                    const [fieldId, raw] = s.split(':')
+                    // a typed or shared link may say asc/desc: the server knows only the two
+                    // words, and an unknown direction answered "Something went wrong"
+                    const direction = sortDirectionOf(raw)
+                    return fieldId && direction ? {fieldId, direction} : null
+                })
                 .filter(Boolean)
             if (sort.length > 0) {
                 result.sort = sort
@@ -953,7 +972,13 @@ export class MateuTableCrud extends LitElement {
                 // An external-REST listing (@RestListing) fetches its rows CLIENT-SIDE on mount —
                 // there is no server OnLoad trigger for declarative listings.
                 if (urlHasNonDefault || metadata.rowsSource || urlChanged) {
-                    this.handleSearchRequested(undefined)
+                    // the URL already says this: a rewrite (normalising it) is not a new entry
+                    this._urlWrite = 'replace'
+                    try {
+                        this.handleSearchRequested(undefined)
+                    } finally {
+                        this._urlWrite = 'push'
+                    }
                 }
             } else {
                 // A re-render pushed a fresh server state (the search response's own state), which

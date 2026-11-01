@@ -51,6 +51,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Back returns to the previous page, sort or filters of a listing** (Vaadin and Redwood). Each
+  change the user makes is now a history entry (`pushState`); it used to replace the URL, so Back
+  left the listing. A hand-typed `?sort=name:asc` is read as `ascending` instead of failing.
+- **The browser tab of a YAML record page shows the record's name** (Vaadin), not the route's id
+  ("28" → "Voyager 1"): the window title follows the page title once its `data:` arrives, and the
+  screen reader hears it once. Redwood header texts now evaluate expressions (`${state.a ?? ''}`,
+  `${data.x}`) like the web.
+- **A server `NavigateTo` no longer raises the browser's "Leave site?" prompt** on a form with
+  unsaved changes; staying after a refused Forward no longer scrambles the history; React Native and
+  the IntelliJ plugin ask before every leave action (`cancel-new`, `back`…), not only three.
+
 - **Redwood: a `Listing` in a foldout panel is drawn, with its rows.** On a `FoldoutPage` (an exhibition's
   works and loans) the listing's rows were loaded but the panel drew nothing: a panel's content was read
   without the page around it, so the listing was not known to sit in a templated page's slot. A foldout
