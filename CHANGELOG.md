@@ -22,6 +22,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **A deep link to a record whose id has a dot opens it.** `/people/ana.perez` or `/releases/1.2` on a
+  reload or a shared link was a 404: any dot made a path a file. Now a path is a file only when its last
+  segment ends in a web asset's extension (`SpaFallback.isAsset`), on every adapter and in every
+  generated index controller.
 - **Redwood: a `Listing` in a foldout panel is drawn, with its rows.** On a `FoldoutPage` (an exhibition's
   works and loans) the listing's rows were loaded but the panel drew nothing: a panel's content was read
   without the page around it, so the listing was not known to sit in a templated page's slot. A foldout

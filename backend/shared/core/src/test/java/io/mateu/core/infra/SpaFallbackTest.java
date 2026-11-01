@@ -17,6 +17,26 @@ class SpaFallbackTest {
   }
 
   @Test
+  void aDotMakesAFileOnlyAsTheExtensionOfAWebAsset() {
+    // a record whose id has a dot is a route: a username, a version
+    assertThat(SpaFallback.candidate("/intranet/personas/ana.perez")).isTrue();
+    assertThat(SpaFallback.candidate("/releases/3.0-beta.31")).isTrue();
+    assertThat(SpaFallback.candidate("/users/ana.perez/edit")).isTrue();
+    // files
+    assertThat(SpaFallback.isAsset("/assets/mateu.js")).isTrue();
+    assertThat(SpaFallback.isAsset("/images/Logo.PNG")).isTrue();
+    assertThat(SpaFallback.isAsset("/fonts/inter.woff2?v=3")).isTrue();
+    assertThat(SpaFallback.isAsset("/manifest.webmanifest")).isTrue();
+    assertThat(SpaFallback.isAsset("/intranet/personas/ana.perez")).isFalse();
+    assertThat(SpaFallback.isAsset("/a.b/c")).isFalse();
+    assertThat(SpaFallback.isAsset(null)).isFalse();
+    // the regex the routing frameworks use agrees
+    var route = java.util.regex.Pattern.compile(SpaFallback.NOT_AN_ASSET);
+    assertThat(route.matcher("personas/ana.perez").matches()).isTrue();
+    assertThat(route.matcher("assets/mateu.JS").matches()).isFalse();
+  }
+
+  @Test
   void theLongestBaseUrlOwnsADeepLink() {
     var bases = List.of("", "/admin", "/admin/hotel");
     assertThat(SpaFallback.target("/admin/hotel/stays/1", bases)).isEqualTo("/admin/hotel");

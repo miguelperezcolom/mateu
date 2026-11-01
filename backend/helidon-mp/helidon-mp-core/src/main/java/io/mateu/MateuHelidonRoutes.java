@@ -299,7 +299,7 @@ public class MateuHelidonRoutes {
             mount.spaPath() + "/*",
             (req, res) -> {
               var path = req.path().path();
-              if (path.contains(".")
+              if (io.mateu.core.infra.SpaFallback.isAsset(path)
                   || path.contains("/mateu/")
                   || !io.mateu.core.infra.SpaFallback.acceptsHtml(
                       req.headers().first(io.helidon.http.HeaderNames.ACCEPT).orElse(null))) {
