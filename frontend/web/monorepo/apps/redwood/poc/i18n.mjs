@@ -150,6 +150,11 @@ export const CHROME_TEXTS = {
     chatExpand: 'Widen the assistant',
     chatRestore: 'Restore the width',
     selectRowsFirst: 'You first need to select some rows',
+    kanbanMove: 'Move {card}',
+    kanbanMoveTo: 'Move to {column}',
+    kanbanMoveUp: 'Move up',
+    kanbanMoveDown: 'Move down',
+    kanbanMoveFailed: 'The card could not be moved; it is back where it was',
     searchResults: 'Search results',
     // ── live UI push (agentPush.mjs) ──
     agentConnect: 'Connect AI',
@@ -377,6 +382,11 @@ export const CHROME_TEXTS = {
     chatExpand: 'Ampliar el asistente',
     chatRestore: 'Ancho normal',
     selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
+    kanbanMove: 'Mover {card}',
+    kanbanMoveTo: 'Mover a {column}',
+    kanbanMoveUp: 'Subir',
+    kanbanMoveDown: 'Bajar',
+    kanbanMoveFailed: 'No se pudo mover la tarjeta; ha vuelto a su sitio',
     searchResults: 'Resultados',
     // ── live UI push (agentPush.mjs) ──
     agentConnect: 'Conectar IA',

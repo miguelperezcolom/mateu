@@ -970,6 +970,17 @@
         }
       ]
     },
+    "application:mateuKanbanMove": {
+      "chains": [
+        {
+          "chain": "kanbanCardMoved",
+          "parameters": {
+            "key": "{{ $event.key }}",
+            "move": "{{ $event.move }}"
+          }
+        }
+      ]
+    },
     "application:mateuTilesReordered": {
       "chains": [
         {

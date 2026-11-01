@@ -208,6 +208,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installHover,
     installDragAndDrop,
     setDropSink,
+    // kanban drag and drop (core/kanban.mjs + dnd.mjs)
+    installKanbans,
+    setKanbanMoveSink,
+    setPendingKanbanMove,
+    kanbanMovePlanOf,
+    kanbanMoveFailed,
     setKeysActionSink,
     setAccessKeysEnabled,
     startPolling,

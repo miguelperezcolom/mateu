@@ -155,6 +155,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatExpand: 'Widen the assistant',
       chatRestore: 'Restore the width',
       selectRowsFirst: 'You first need to select some rows',
+      kanbanMove: 'Move {card}',
+      kanbanMoveTo: 'Move to {column}',
+      kanbanMoveUp: 'Move up',
+      kanbanMoveDown: 'Move down',
+      kanbanMoveFailed: 'The card could not be moved; it is back where it was',
       searchResults: 'Search results',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Connect AI',
@@ -382,6 +387,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatExpand: 'Ampliar el asistente',
       chatRestore: 'Ancho normal',
       selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
+      kanbanMove: 'Mover {card}',
+      kanbanMoveTo: 'Mover a {column}',
+      kanbanMoveUp: 'Subir',
+      kanbanMoveDown: 'Bajar',
+      kanbanMoveFailed: 'No se pudo mover la tarjeta; ha vuelto a su sitio',
       searchResults: 'Resultados',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Conectar IA',
@@ -6410,7 +6420,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       // ── display components with their own projection (core/display.mjs) ──
-      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp), container); return }
+      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp, ctx), container); return }
       if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
       if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
       if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }
@@ -9422,6 +9432,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
   /** OnLoad triggers of the context (e.g. the listing fires 'search' on load). */
@@ -9438,7 +9449,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ids.push('search')
     }
     // the listings nested in a templated page's content: each loads its rows on opening, kept apart
-    return ids.concat(nestedListingTriggersOf(ctx))
+    // …and so do the live kanban boards (their items: restSources.mjs kanbanAnswerOf)
+    return ids.concat(nestedListingTriggersOf(ctx), kanbanTriggersOf(ctx))
   }
 
   /**
@@ -11250,6 +11262,176 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): a kanban board's pure half —
+  // a LIVE board's cards from the items of its rowsSource, what a move does to the columns and the
+  // action it runs. The web's libs/mateu kanbanModel.ts is the same rules (RN core/kanban.ts and the
+  // IntelliJ plugin's KanbanModel.kt too).
+
+  /** The OnLoad action that loads a live board's items (answered in the browser, restSources.mjs). */
+  const KANBAN_ACTION = '__kanban__:'
+
+  /** Where a live board's items are kept (ctx.data[key]) — from what it IS, not its position. */
+  function kanbanKeyOf(md) {
+    const m = md || {}
+    return 'kanban-' + stableHashOf(JSON.stringify([m.rowsSource || null, (m.columns || []).map((c) => c && c.id), m.columnField || '']))
+  }
+
+  /** The Kanban nodes of a tree. */
+  function kanbanNodesOf(tree) {
+    const out = []
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (n.metadata && n.metadata.type === 'Kanban') out.push(n)
+      for (const c of n.children || []) walk(c)
+    }
+    walk(tree)
+    return out
+  }
+
+  /** The load actions of a context's live boards. */
+  function kanbanTriggersOf(ctx) {
+    return kanbanNodesOf(ctx && ctx.tree).filter((n) => n.metadata.rowsSource).map((n) => KANBAN_ACTION + kanbanKeyOf(n.metadata))
+  }
+
+  const valueAt = (row, path) => String(path).split('.').reduce((v, k) => (v != null && typeof v === 'object' ? v[k] : undefined), row)
+
+  /** `${row.x}` (dotted paths too) against an item, values as they are (not a url): unresolved → ''. */
+  function kanbanTextOf(template, row) {
+    if (template == null) return ''
+    return String(template).replace(/\$\{\s*row\.([A-Za-z0-9_$.]+)\s*\}/g, (all, path) => {
+      const v = valueAt(row, path)
+      return v == null ? '' : (typeof v === 'object' ? JSON.stringify(v) : String(v))
+    })
+  }
+
+  /** The items of a source's answer: at its itemsPath, or the answer itself when it is a list. */
+  function kanbanItemsOf(json, itemsPath) {
+    const items = itemsPath ? valueAt(json, itemsPath) : json
+    return Array.isArray(items) ? items.filter((i) => i && typeof i === 'object') : []
+  }
+
+  /**
+   * The declared columns filled with one card per item, in the source's order: an item goes to the
+   * column whose id equals its `columnField` (default `status`); one naming no declared column is left
+   * out. A card's texts come from the `card` template, its id defaulting to the item's `id`; a colour
+   * naming a key of `cardColors` takes that value. Each card keeps its item (`row`).
+   */
+  function kanbanCardsFromRows(md, rows) {
+    const field = md.columnField || 'status'
+    const tpl = md.card || {}
+    const columns = (md.columns || []).map((c) => ({ ...c, cards: [] }))
+    const byId = new Map(columns.map((c) => [String(c.id), c]))
+    for (const row of rows || []) {
+      const column = byId.get(String(row[field] == null ? '' : row[field]))
+      if (!column) continue
+      const color = tpl.color != null ? kanbanTextOf(tpl.color, row) : ''
+      const colors = md.cardColors || {}
+      column.cards.push({
+        id: (tpl.id != null ? kanbanTextOf(tpl.id, row) : '') || String(row.id == null ? '' : row.id),
+        title: tpl.title != null ? kanbanTextOf(tpl.title, row) : String(row.title == null ? (row.name == null ? '' : row.name) : row.title),
+        description: tpl.description != null ? kanbanTextOf(tpl.description, row) : '',
+        badge: tpl.badge != null ? kanbanTextOf(tpl.badge, row) : '',
+        color: color && colors[color] ? colors[color] : color,
+        actionId: tpl.actionId != null ? kanbanTextOf(tpl.actionId, row) : '',
+        row,
+      })
+    }
+    return columns
+  }
+
+  /** The columns after a move (the index is the position AFTER the card left its place, clamped). */
+  function kanbanMovedColumns(columns, move) {
+    const from = (columns || []).find((c) => c.id === move.fromColumnId)
+    const to = (columns || []).find((c) => c.id === move.toColumnId)
+    const card = from && (from.cards || []).find((c) => c.id === move.cardId)
+    if (!from || !to || !card) return columns
+    return columns.map((c) => {
+      let cards = (c.cards || []).filter((x) => !(c === from && x === card))
+      if (c === to) {
+        const at = Math.max(0, Math.min(Number(move.toIndex) || 0, cards.length))
+        cards = [...cards.slice(0, at), card, ...cards.slice(at)]
+      }
+      return c === from || c === to ? { ...c, cards } : c
+    })
+  }
+
+  /** Whether the move changes anything (a card dropped back where it was does not). */
+  function kanbanIsRealMove(columns, move) {
+    if (move.fromColumnId !== move.toColumnId) return true
+    const col = (columns || []).find((c) => c.id === move.fromColumnId)
+    const index = col ? (col.cards || []).findIndex((c) => c.id === move.cardId) : -1
+    return index >= 0 && index !== Number(move.toIndex)
+  }
+
+  /** What the move action receives: the card's item with `_cardId/_fromColumnId/_toColumnId/_toIndex`. */
+  function kanbanMoveParametersOf(card, move) {
+    return {
+      ...((card && card.row) || {}),
+      _cardId: move.cardId,
+      _fromColumnId: move.fromColumnId,
+      _toColumnId: move.toColumnId,
+      _toIndex: Number(move.toIndex) || 0,
+    }
+  }
+
+  /** The index a card dropped at pointerY lands on, given the middles of the column's other cards. */
+  function kanbanDropIndexOf(pointerY, cardMiddles) {
+    const at = (cardMiddles || []).findIndex((middle) => pointerY < middle)
+    return at < 0 ? (cardMiddles || []).length : at
+  }
+
+  // The moves on screen whose action has not answered yet, by board key: the projection paints them at
+  // once (optimistic) and the chain drops them when the action answers — failed = the card is back.
+  const pendingKanbanMoves = new Map()
+  function setPendingKanbanMove(key, move) {
+    if (move) pendingKanbanMoves.set(key, move)
+    else pendingKanbanMoves.delete(key)
+  }
+  function pendingKanbanMoveOf(key) {
+    return pendingKanbanMoves.get(key) || null
+  }
+
+  /** The board's columns as they are on screen: the live items (or the declared cards), plus a pending move. */
+  function kanbanColumnsOnScreen(md, data) {
+    const key = kanbanKeyOf(md)
+    const loaded = data && data[key]
+    const columns = md.rowsSource
+      ? kanbanCardsFromRows(md, (loaded && loaded.items) || [])
+      : (md.columns || []).map((c) => ({ ...c, cards: c.cards || [] }))
+    const pending = pendingKanbanMoveOf(key)
+    return pending ? kanbanMovedColumns(columns, pending) : columns
+  }
+
+  /**
+   * What the kanbanCardMoved chain does with a move on the board `key` of the context `ctx`: null when
+   * nothing (no such board, not movable, the card dropped where it was); else the action to run and its
+   * parameters (the card's item + where it went), and the action that reads a live board again.
+   */
+  function kanbanMovePlanOf(ctx, key, move) {
+    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+    const md = node && node.metadata
+    if (!md || !md.moveActionId) return null
+    const columns = kanbanColumnsOnScreen(md, (ctx && ctx.data) || {})
+    if (!kanbanIsRealMove(columns, move)) return null
+    const from = columns.find((c) => c.id === move.fromColumnId)
+    const card = from && (from.cards || []).find((c) => c.id === move.cardId)
+    if (!card) return null
+    return {
+      actionId: md.moveActionId,
+      parameters: kanbanMoveParametersOf(card, move),
+      reloadActionId: md.rowsSource ? KANBAN_ACTION + key : '',
+    }
+  }
+
+  /** Whether an action's answer says it failed (an error message, or no answer at all). */
+  function kanbanMoveFailed(increment) {
+    if (!increment) return true
+    return (increment.messages || []).some((m) => m && (m.variant === 'error' || m.type === 'error'))
+  }
+
+
+
+
 
 
 
@@ -11315,28 +11497,58 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const badgeClassOf = (color) => BADGE_CLASSES[toneOf(color) || 'contrast'] || BADGE_CLASSES.contrast
 
   // ── Kanban (JET has no board): columns of oj-panel, cards as oj-action-card when they act ───────
-  function kanbanAtomOf(m, interp = (x) => x) {
+  // With a moveActionId its cards move: kanbanDom (dnd.mjs) drags them between and within columns
+  // (data-* below say which board, column and card), and each card's ⋯ menu moves it from the keyboard;
+  // the move is painted at once (a pending move, core/kanban.mjs) and the chain kanbanCardMoved runs
+  // the action. A LIVE board (rowsSource) draws its cards from the items the page loaded (ctx.data).
+  function kanbanAtomOf(m, interp = (x) => x, ctx = null) {
+    const key = kanbanKeyOf(m)
+    const movable = !!m.moveActionId
+    const columns = kanbanColumnsOnScreen(m, (ctx && ctx.data) || {})
+    const titleOf = (col) => interp(str(col.title || col.id))
     return {
       isKanban: true,
-      columns: keyed((m.columns || []).map((col) => {
+      kanbanKey: key,
+      moveActionId: str(m.moveActionId),
+      movable,
+      columns: keyed(columns.map((col) => {
         const cards = col.cards || []
         const color = cssColorOf(col.color)
         const tone = toneOf(col.color)
         return {
-          title: interp(str(col.title)),
+          columnId: str(col.id),
+          title: titleOf(col),
           countText: String(cards.length),
           headerClass: 'mateu-kanban-head' + (tone ? ' mateu-tone-' + tone : ''),
           headerStyle: color ? { borderTopColor: color } : {},
-          cards: keyed(cards.map((card) => ({
-            title: interp(str(card.title)),
-            description: interp(str(card.description)),
-            badge: interp(str(card.badge)),
-            hasBadge: !!card.badge,
-            badgeClass: badgeClassOf(card.color),
-            cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
-            cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : ''),
-            ...clickable(card.actionId, { _clickedCard: card }),
-          }))),
+          cards: keyed(cards.map((card, index) => {
+            const route = m.cardRoute && card.row ? kanbanTextOf(m.cardRoute, card.row) : ''
+            const { row, ...plain } = card
+            const act = route ? { clickable: true, plain: false, actionId: '', parameters: {}, route }
+              : clickable(card.actionId, { ...(row || {}), _clickedCard: plain })
+            return {
+              cardId: str(card.id),
+              title: interp(str(card.title)),
+              description: interp(str(card.description)),
+              badge: interp(str(card.badge)),
+              hasBadge: !!card.badge,
+              badgeClass: badgeClassOf(card.color),
+              cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
+              cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : '') + (movable ? ' mateu-kanban-movable' : ''),
+              route: route || '',
+              movable,
+              moveLabel: chromeText('kanbanMove').replace('{card}', str(card.title)),
+              // the keyboard's way: up / down in its column, or to the end of another
+              moves: movable ? keyed([
+                ...(index > 0 ? [{ label: chromeText('kanbanMoveUp'), toColumnId: str(col.id), toIndex: index - 1 }] : []),
+                ...(index < cards.length - 1 ? [{ label: chromeText('kanbanMoveDown'), toColumnId: str(col.id), toIndex: index + 1 }] : []),
+                ...columns.filter((o) => o.id !== col.id).map((o) => ({
+                  label: chromeText('kanbanMoveTo').replace('{column}', titleOf(o)), toColumnId: str(o.id), toIndex: (o.cards || []).length,
+                })),
+              ].map((mv) => ({ ...mv, value: JSON.stringify({ cardId: str(card.id), fromColumnId: str(col.id), toColumnId: mv.toColumnId, toIndex: mv.toIndex }) }))) : [],
+              ...act,
+            }
+          })),
           isEmpty: !cards.length,
         }
       })),
@@ -17807,6 +18019,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
   // of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
   // (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
@@ -17960,6 +18173,89 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       let params = {}
       try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
       dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, {})
+    }, true)
+  }
+
+  // ── KANBAN CARDS: a movable board (moveActionId) paints each card in a wrapper carrying its ids
+  // (.mateu-kanban-item[data-card-id], its column's section[data-column-id], the board's
+  // [data-kanban-key][data-move-action]). Dragging one over a column draws a line where it will land;
+  // dropping it — or picking a move in its ⋯ select (the keyboard's way) — hands the move to the sink
+  // (the kanbanCardMoved chain), which paints it at once and runs the action.
+  const KANBAN_MIME = 'application/x-mateu-kanban-card'
+  let kanbanSink = null
+  function setKanbanMoveSink(fn) { kanbanSink = typeof fn === 'function' ? fn : null }
+
+  /** The move a drop at pointerY over a column element means, for the card being dragged. */
+  function kanbanDropMoveOf(columnEl, dragged, pointerY) {
+    const others = Array.from(columnEl.querySelectorAll('.mateu-kanban-item[data-card-id]'))
+      .filter((el) => el.getAttribute('data-card-id') !== dragged.cardId)
+    const middles = others.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 })
+    return { ...dragged, toColumnId: columnEl.getAttribute('data-column-id'), toIndex: kanbanDropIndexOf(pointerY, middles) }
+  }
+
+  function installKanbans(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuKanbans) return
+    doc.__mateuKanbans = true
+    let dragged = null
+    const boardOf = (el) => (el && el.closest ? el.closest('.mateu-kanban[data-kanban-key]') : null)
+    const send = (board, move) => {
+      if (!board || !kanbanSink || !board.getAttribute('data-move-action')) return
+      kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move })
+    }
+    const clearMarks = () => {
+      for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
+      for (const el of doc.querySelectorAll('.mateu-kanban-over, .mateu-kanban-dragging')) el.classList.remove('mateu-kanban-over', 'mateu-kanban-dragging')
+    }
+    doc.addEventListener('dragstart', (e) => {
+      const item = e.target && e.target.closest ? e.target.closest('.mateu-kanban-item[draggable="true"]') : null
+      const column = item && item.closest('[data-column-id]')
+      if (!item || !column || !boardOf(item) || !e.dataTransfer) return
+      dragged = { cardId: item.getAttribute('data-card-id'), fromColumnId: column.getAttribute('data-column-id'), board: boardOf(item) }
+      e.dataTransfer.setData(KANBAN_MIME, dragged.cardId)
+      e.dataTransfer.effectAllowed = 'move'
+      item.classList.add('mateu-kanban-dragging')
+    }, true)
+    doc.addEventListener('dragover', (e) => {
+      if (!dragged) return
+      const column = e.target && e.target.closest ? e.target.closest('[data-column-id]') : null
+      if (!column || boardOf(column) !== dragged.board) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+      const move = kanbanDropMoveOf(column, dragged, e.clientY)
+      for (const el of doc.querySelectorAll('.mateu-kanban-over')) if (el !== column) el.classList.remove('mateu-kanban-over')
+      column.classList.add('mateu-kanban-over')
+      // the line where it lands: before the card at that index (of the others), or at the end
+      for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
+      const others = Array.from(column.querySelectorAll('.mateu-kanban-item[data-card-id]'))
+        .filter((el) => el.getAttribute('data-card-id') !== dragged.cardId)
+      const line = doc.createElement('div')
+      line.className = 'mateu-kanban-drop-line'
+      const before = others[move.toIndex]
+      if (before) before.parentNode.insertBefore(line, before)
+      else column.appendChild(line)
+    }, true)
+    doc.addEventListener('drop', (e) => {
+      if (!dragged) return
+      const column = e.target && e.target.closest ? e.target.closest('[data-column-id]') : null
+      if (!column || boardOf(column) !== dragged.board) return
+      e.preventDefault()
+      const { board, ...from } = dragged
+      const move = kanbanDropMoveOf(column, from, e.clientY)
+      dragged = null
+      clearMarks()
+      send(board, move)
+    }, true)
+    doc.addEventListener('dragend', () => { dragged = null; clearMarks() }, true)
+    // the keyboard's way: the card's ⋯ select (each option's value is the move, as JSON)
+    doc.addEventListener('change', (e) => {
+      const select = e.target
+      if (!select || !select.classList || !select.classList.contains('mateu-kanban-move')) return
+      const raw = select.value
+      select.value = ''
+      if (!raw) return
+      let move
+      try { move = JSON.parse(raw) } catch (err) { return }
+      send(boardOf(select), move)
     }, true)
   }
 
@@ -18698,6 +18994,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
   let restCatalogue = []
@@ -19170,6 +19467,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
   }
 
+  /**
+   * Loads a LIVE kanban board's items (its rowsSource — proxied through `__restfetch__` by the board's
+   * id when the source says so, direct otherwise) into ctx.data[key].items, where kanbanAtomOf draws
+   * the cards from. A source that fails leaves the board with the items it had.
+   */
+  async function kanbanAnswerOf(ctx, actionId, opts = {}) {
+    const key = String(actionId).slice(KANBAN_ACTION.length)
+    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+    const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
+    if (!node || !node.metadata.rowsSource) return restIncrement([])
+    const src = node.metadata.rowsSource
+    try {
+      let json
+      if (viaProxy(src) && opts.server) {
+        const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'kanban' }, true)
+        const appData = (inc && inc.appData) || {}
+        if (appData._restfetchError) throw new Error('proxied kanban items failed')
+        json = appData._restfetch
+      } else {
+        json = await fetchRestJson(src, { state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
+      }
+      const items = kanbanItemsOf(json, (resolveRestSource(src) || {}).itemsPath)
+      return restIncrement([{ targetComponentId: target, data: { [key]: { items } } }])
+    } catch (e) {
+      try { console.warn('mateu: kanban items fetch failed', e) } catch (ignored) { /* no console */ }
+      return restIncrement([])
+    }
+  }
+
   /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
   function restListingOf(ctx) {
     // the PAGE's listing: one nested in a templated page's content is answered by nestedListingAnswerOf
@@ -19382,7 +19708,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * (crud_selected_items) — in the browser for a direct source, as ONE proxied call otherwise.
    */
   async function runRestAction(ctx, actionId, rest, componentState, opts = {}) {
-    const state = componentState || (ctx && ctx.state) || {}
+    // the call's own parameters (a kanban move's _cardId/_toColumnId and the moved card's item) sit over
+    // the state its templates read — the proxied leg merges them the same way (RestProxyCalls.callState)
+    const callParameters = opts.parameters || {}
+    const state = { ...(componentState || (ctx && ctx.state) || {}), ...callParameters }
     const data = (ctx && ctx.data) || {}
     const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
     const kind = actionId === '__restdata__' ? 'data' : 'action'
@@ -19432,7 +19761,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
     try {
-      if (isProxy) return fromProxy(await opts.server({ _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
+      if (isProxy) return fromProxy(await opts.server({ ...callParameters, _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
       const json = await fetchRestJson(rest.source, { state, data, appState: opts.appState || {} }, opts.fetchImpl)
       return success(json, true)
     } catch (e) {
@@ -19455,6 +19784,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const rest = restActionOf(ctx, actionId)
     if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
     if (String(actionId).indexOf(NESTED_LISTING_ACTION) === 0) return nestedListingAnswerOf(ctx, actionId, opts)
+    if (String(actionId).indexOf(KANBAN_ACTION) === 0) return kanbanAnswerOf(ctx, actionId, opts)
     if (actionId === 'search') {
       const node = restListingOf(ctx)
       if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)
@@ -20234,6 +20564,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const restAnswer = restAnswerOf(ctx, actionId, componentState, {
       route,
       appState: (extra && extra.appState) || {},
+      parameters: (extra && extra.parameters) || {},
       server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
         { ...extra, parameters, idempotent: !!idempotent }),
     })
@@ -26120,7 +26451,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-    'installDrawerGuard', 'installAttachmentChips',
+    'installDrawerGuard', 'installAttachmentChips', 'installKanbans',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -26141,6 +26472,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installEditorPreview: 'the visual editor previews the standalone app only',
     // the tile-reorder sink is wired, with its own payload, by installEmbeddedContentRuntime
     setTileReorderSink: 'wired separately (its payload is a scope, not an action)',
+    // the kanban sink likewise: its payload is a board and a move, handed to its own chain
+    setKanbanMoveSink: 'wired separately (its payload is a board key and a move, not an action)',
     // live reload (dev mode) answers an app-level change by reloading the WINDOW: in a host page that
     // is the host's app, not ours — the embedded component is not live-reloaded (yet)
     installDevLiveReload: 'an app-level reload would reload the host page',
@@ -26172,6 +26505,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const sink of CONTENT_ACTION_SINKS) if (typeof b[sink] === 'function') b[sink](runPageAction)
     if (typeof b.setTileReorderSink === 'function') {
       b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
+    }
+    if (typeof b.setKanbanMoveSink === 'function') {
+      b.setKanbanMoveSink(({ key, move }) => runtime.fireEvent('application:mateuKanbanMove', { key, move }))
     }
     // the document-level listeners once per page; the sinks and hooks above/below follow the
     // CURRENT component (a new <mateu-ui> takes them over)
@@ -26526,6 +26862,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installHover,
     installDragAndDrop,
     setDropSink,
+    // kanban drag and drop (core/kanban.mjs + dnd.mjs)
+    installKanbans,
+    setKanbanMoveSink,
+    setPendingKanbanMove,
+    kanbanMovePlanOf,
+    kanbanMoveFailed,
     setKeysActionSink,
     setAccessKeysEnabled,
     startPolling,

@@ -26,6 +26,7 @@
 // loadLookups). Pure except the default fetch, which every function takes as an argument.
 
 import { findFirst, pageListingNodeOf, nestedListingNodesOf, nestedListingKeyOf, NESTED_LISTING_ACTION } from './core/listing.mjs'
+import { KANBAN_ACTION, kanbanKeyOf, kanbanNodesOf, kanbanItemsOf } from './core/kanban.mjs'
 import { collectFields } from './core/tree.mjs'
 import { pageHeaderNodeOf, RECORD_SWITCHER_OPTIONS } from './core/pageHeader.mjs'
 import { declaredActionOf, LOOKUP_LOADED } from './core/rowEditor.mjs'
@@ -503,6 +504,35 @@ export function nestedListingAnswerOf(ctx, actionId, opts = {}) {
   }))
 }
 
+/**
+ * Loads a LIVE kanban board's items (its rowsSource — proxied through `__restfetch__` by the board's
+ * id when the source says so, direct otherwise) into ctx.data[key].items, where kanbanAtomOf draws
+ * the cards from. A source that fails leaves the board with the items it had.
+ */
+export async function kanbanAnswerOf(ctx, actionId, opts = {}) {
+  const key = String(actionId).slice(KANBAN_ACTION.length)
+  const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+  const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
+  if (!node || !node.metadata.rowsSource) return restIncrement([])
+  const src = node.metadata.rowsSource
+  try {
+    let json
+    if (viaProxy(src) && opts.server) {
+      const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'kanban' }, true)
+      const appData = (inc && inc.appData) || {}
+      if (appData._restfetchError) throw new Error('proxied kanban items failed')
+      json = appData._restfetch
+    } else {
+      json = await fetchRestJson(src, { state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
+    }
+    const items = kanbanItemsOf(json, (resolveRestSource(src) || {}).itemsPath)
+    return restIncrement([{ targetComponentId: target, data: { [key]: { items } } }])
+  } catch (e) {
+    try { console.warn('mateu: kanban items fetch failed', e) } catch (ignored) { /* no console */ }
+    return restIncrement([])
+  }
+}
+
 /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
 export function restListingOf(ctx) {
   // the PAGE's listing: one nested in a templated page's content is answered by nestedListingAnswerOf
@@ -715,7 +745,10 @@ const restRouteOf = (r) => String(r || '').replace(/^\/+/, '').replace(/\/+$/, '
  * (crud_selected_items) — in the browser for a direct source, as ONE proxied call otherwise.
  */
 export async function runRestAction(ctx, actionId, rest, componentState, opts = {}) {
-  const state = componentState || (ctx && ctx.state) || {}
+  // the call's own parameters (a kanban move's _cardId/_toColumnId and the moved card's item) sit over
+  // the state its templates read — the proxied leg merges them the same way (RestProxyCalls.callState)
+  const callParameters = opts.parameters || {}
+  const state = { ...(componentState || (ctx && ctx.state) || {}), ...callParameters }
   const data = (ctx && ctx.data) || {}
   const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
   const kind = actionId === '__restdata__' ? 'data' : 'action'
@@ -765,7 +798,7 @@ export async function runRestAction(ctx, actionId, rest, componentState, opts = 
     }
   }
   try {
-    if (isProxy) return fromProxy(await opts.server({ _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
+    if (isProxy) return fromProxy(await opts.server({ ...callParameters, _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
     const json = await fetchRestJson(rest.source, { state, data, appState: opts.appState || {} }, opts.fetchImpl)
     return success(json, true)
   } catch (e) {
@@ -788,6 +821,7 @@ export function restAnswerOf(ctx, actionId, componentState, opts = {}) {
   const rest = restActionOf(ctx, actionId)
   if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
   if (String(actionId).indexOf(NESTED_LISTING_ACTION) === 0) return nestedListingAnswerOf(ctx, actionId, opts)
+  if (String(actionId).indexOf(KANBAN_ACTION) === 0) return kanbanAnswerOf(ctx, actionId, opts)
   if (actionId === 'search') {
     const node = restListingOf(ctx)
     if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)

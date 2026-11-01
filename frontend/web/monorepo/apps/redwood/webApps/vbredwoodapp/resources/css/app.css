@@ -1682,6 +1682,16 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
 .mateu-kanban-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 4px 8px;
   border-top: 3px solid var(--mateu-tone, var(--oj-core-divider-color, #ddd)); }
 .mateu-kanban-card { width: 100%; border-inline-start: 3px solid var(--mateu-tone, transparent); }
+/* a movable board (moveActionId): drag a card (kanbanDom, dnd.mjs) or move it with its ⋯ select */
+.mateu-kanban-item { position: relative; }
+.mateu-kanban-item[draggable="true"] { cursor: grab; }
+.mateu-kanban-item.mateu-kanban-dragging { opacity: .45; }
+.mateu-kanban-col.mateu-kanban-over { outline: 2px dashed var(--oj-core-brand-color, #227e9e); outline-offset: -2px; }
+.mateu-kanban-drop-line { height: 3px; border-radius: 2px; background: var(--oj-core-brand-color, #227e9e); }
+.mateu-kanban-move { position: absolute; inset-block-start: 4px; inset-inline-end: 4px; width: 1.9rem; height: 1.6rem;
+  border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--oj-core-text-color-secondary, #6f6f6f);
+  font: inherit; cursor: pointer; appearance: none; text-align: center; }
+.mateu-kanban-move:hover, .mateu-kanban-move:focus-visible { background: var(--oj-core-neutral-contrast, rgba(0,0,0,.06)); border-color: var(--oj-core-divider-color, #ddd); }
 
 .mateu-timeline { list-style: none; margin: 0; padding: 0; }
 .mateu-timeline-item { display: flex; gap: var(--oj-core-spacing-3x, 12px); position: relative; padding-block-end: var(--oj-core-spacing-4x, 16px); }

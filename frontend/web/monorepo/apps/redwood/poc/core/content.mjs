@@ -1556,7 +1556,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     // ── display components with their own projection (core/display.mjs) ──
-    if (t === 'Kanban') { atom(kanbanAtomOf(m, interp), container); return }
+    if (t === 'Kanban') { atom(kanbanAtomOf(m, interp, ctx), container); return }
     if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
     if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
     if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }

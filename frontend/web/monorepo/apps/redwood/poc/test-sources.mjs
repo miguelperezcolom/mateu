@@ -824,6 +824,41 @@ test('options mapping: primitives are their own value and label; a half mapping 
   assert.deepEqual(mapOptions({ nope: 1 }, 'items', 'id', 'name'), [])
 })
 
+test('a live kanban: its items load from its source into the host data, by the board key', async () => {
+  reset()
+  const { kanbanKeyOf, KANBAN_ACTION } = await import('./core/kanban.mjs')
+  const md = { type: 'Kanban', columns: [{ id: 'backlog' }], rowsSource: { url: 'https://api.example.com/tasks', itemsPath: 'content' } }
+  const key = kanbanKeyOf(md)
+  const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'host', children: [{ type: 'ClientSide', id: 'board', metadata: md, children: [] }] }, state: {}, data: {} }
+  const f = stubFetch({ content: [{ id: 1, status: 'backlog' }] })
+  const inc = await restAnswerOf(ctx, KANBAN_ACTION + key, {}, { fetchImpl: f })
+  assert.equal(f.calls[0].url, 'https://api.example.com/tasks')
+  assert.deepEqual(inc.fragments[0].data[key].items, [{ id: 1, status: 'backlog' }])
+  // a proxied source goes through __restfetch__ by the board's id
+  const proxied = { ...ctx, tree: { ...ctx.tree, children: [{ ...ctx.tree.children[0], metadata: { ...md, rowsSource: { ...md.rowsSource, proxy: true } } }] } }
+  const asked = []
+  const pinc = await restAnswerOf(proxied, KANBAN_ACTION + kanbanKeyOf({ ...md, rowsSource: { ...md.rowsSource, proxy: true } }), {},
+    { server: async (params) => { asked.push(params); return { appData: { _restfetch: { content: [{ id: 2, status: 'backlog' }] } } } } })
+  assert.deepEqual(asked, [{ _sourceKind: 'rows', _sourceId: 'board' }])
+  assert.equal(Object.values(pinc.fragments[0].data)[0].items[0].id, 2)
+})
+
+test('a REST action reads its call parameters over the state — a kanban move PUTs the card it moved', async () => {
+  reset()
+  const ctx = { id: HOST_ID, state: { page: 1 }, data: {}, tree: { type: 'ServerSide', id: 'host', actions: [{ id: 'moveTask', restAction: {
+    source: { url: 'https://api.example.com/tasks/${state._cardId}', method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: '{"title":"${state.title}","status":"${state._toColumnId}"}' } } }], children: [] } }
+  const f = stubFetch({})
+  await restAnswerOf(ctx, 'moveTask', ctx.state, { fetchImpl: f, parameters: { title: 'Varnish', _cardId: '9', _toColumnId: 'done' } })
+  assert.equal(f.calls[0].url, 'https://api.example.com/tasks/9')
+  assert.deepEqual(JSON.parse(f.calls[0].init.body), { title: 'Varnish', status: 'done' })
+  // proxied: the parameters travel with the __restfetch__ (the server merges them the same way)
+  const pctx = { ...ctx, tree: { ...ctx.tree, actions: [{ id: 'moveTask', restAction: { source: { ...ctx.tree.actions[0].restAction.source, proxy: true } } }] } }
+  const asked = []
+  await restAnswerOf(pctx, 'moveTask', ctx.state, { parameters: { _cardId: '9' }, server: async (p) => { asked.push(p); return { appData: { _restfetch: {} } } } })
+  assert.deepEqual(asked, [{ _cardId: '9', _sourceKind: 'action', _sourceId: 'moveTask' }])
+})
+
 for (const { name, fn } of queue) {
   try {
     await fn()
