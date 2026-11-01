@@ -104,6 +104,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   scheme or `//` leaves the app — a new tab on the web renderers, the browser on React Native and in
   the IntelliJ plugin — and only http(s)/mailto/tel are opened. A one-placeholder template takes its
   value unescaped (Redwood escaped it as a path segment). Vaadin, Redwood, React Native, IntelliJ.
+- **Redwood: an editable `richText` is Spectra's rich text editor.** `oj-sp-input-rich-text-2` (CKEditor 5)
+  from the same Oracle CDN, with headings, bold/italic/underline, lists, links, a horizontal rule,
+  the source view and undo/redo — instead of Mateu's small contenteditable editor, which stays as the
+  fallback when the CDN does not load. No picture upload: CKEditor would inline it as base64 in the
+  value. Same contract as before: the value is HTML (a legacy Quill Delta opens converted), sanitised
+  by the same allowlist, and it is committed when the editor is left, before a click on Save runs.
 
 ### Fixed
 

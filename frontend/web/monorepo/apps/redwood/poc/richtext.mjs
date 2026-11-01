@@ -3,8 +3,8 @@ import { chromeText } from './i18n.mjs'
 // component are painted WITH formatting. VB does not stamp HTML from a binding, so the atom carries the
 // ALREADY SANITISED HTML in data-mateu-html and installRichText dumps it into its container. Sanitising is
 // by ALLOWLIST (text tags; of attributes only a link's href with a safe
-// scheme): no scripts, styles, handlers or iframes. JET has no rich text
-// editor: editing a richText is an oj-text-area with its HTML (declared limitation).
+// scheme): no scripts, styles, handlers or iframes. Editing a richText is Spectra's own editor
+// (oj-sp-input-rich-text-2) inside mateu-rich-text-field, which falls back to a small one of its own.
 
 const ALLOWED = new Set(['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'code', 'pre', 'blockquote',
   'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'span', 'div', 'hr', 'table', 'thead',
@@ -297,6 +297,31 @@ export function richTextValueOf(html) {
   return clean.replace(/<(p|div)>(\s|&nbsp;|<br>)*<\/\1>/g, '').replace(/<br>/g, '').trim() ? clean : ''
 }
 
+/** Spectra's rich text editor (oj-sp-input-rich-text-2, on CKEditor 5): the module that defines it. */
+export const SPECTRA_RICH_TEXT_LOADER = 'oj-sp/input-rich-text-2/loader'
+
+/** Its toolbar: no `uploadImage` — CKEditor would inline the picture as base64 in the value. */
+export const SPECTRA_RICH_TEXT_TOOLBAR = ['heading', 'bold', 'italic', 'underline', 'bulletedList', 'numberedList',
+  'link', 'horizontalLine', 'removeFormat', 'undo', 'redo', 'generateHtmlSupport']
+
+/** Asks the page's AMD loader for Spectra's editor once per window: a promise of whether it loaded
+ *  (false with no loader — Node, a page without RequireJS — or when the CDN does not answer). */
+export function spectraRichTextReady(win) {
+  if (!win) return Promise.resolve(false)
+  if (!win.__mateuSpectraRte) {
+    win.__mateuSpectraRte = typeof win.require !== 'function'
+      ? Promise.resolve(false)
+      : new Promise((resolve) => {
+        try {
+          win.require([SPECTRA_RICH_TEXT_LOADER], () => resolve(true), () => resolve(false))
+        } catch (e) {
+          resolve(false)
+        }
+      })
+  }
+  return win.__mateuSpectraRte
+}
+
 /** The toolbar of the editor: each command and its accessible label. */
 export const RICH_TEXT_COMMANDS = [
   { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'rteBold', key: 'b' },
@@ -367,11 +392,15 @@ export function defineMarkupField(win = typeof window !== 'undefined' ? window :
 
 /**
  * `<mateu-rich-text-field value="<p>…</p>" readonly>`: the editor of an editable richText field.
- * JET/Redwood has no rich text editor (oj-text-area is plain text), and the web renderer's editor
- * (Tiptap) cannot be imported by the bridge — so a small one: a toolbar of oj-buttons over a
- * contenteditable region. The value is HTML (a legacy Delta opens converted); it leaves as
- * `valueChanged` {value, updatedFrom:'internal'} — the event shape of a JET component, so the
- * field chains treat it like any other — on blur, sanitised by the same allowlist as the viewer.
+ * It is Spectra's (oj-sp-input-rich-text-2: headings, marks, lists, links, a rule, the source),
+ * loaded from the page's CDN when the page has an AMD loader. Mounted by hand inside a VB page, a
+ * JET element waits for the page's binding provider to apply bindings to it and stays "being
+ * upgraded" forever: its wrapper says `data-oj-binding-provider="none"`. Until it loads — and for
+ * good when there is no loader or the CDN fails — a small editor of its own: a toolbar of
+ * oj-buttons over a contenteditable region. Either way the value is HTML (a legacy Delta opens
+ * converted) and leaves as `valueChanged` {value, updatedFrom:'internal'} — the event shape of a
+ * JET component, so the field chains treat it like any other — on blur, sanitised by the same
+ * allowlist as the viewer.
  */
 export function defineRichTextField(win = typeof window !== 'undefined' ? window : null) {
   if (!win || !win.customElements || win.customElements.get('mateu-rich-text-field')) return
@@ -384,8 +413,10 @@ export function defineRichTextField(win = typeof window !== 'undefined' ? window
     set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
     get readonlyNow() { return this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false' }
     commit() {
-      if (!this.area) return
-      const value = richTextValueOf(this.area.innerHTML)
+      if (this.area) this.commitHtml(this.area.innerHTML)
+    }
+    commitHtml(html) {
+      const value = richTextValueOf(html)
       if (value === richTextValueOf(richTextHtml(this.value))) return
       this.editing = true
       this.value = value
@@ -403,6 +434,10 @@ export function defineRichTextField(win = typeof window !== 'undefined' ? window
         view.innerHTML = html
         this.appendChild(view)
         this.area = null
+        return
+      }
+      if (this.spectra !== false && typeof win.require === 'function') {
+        this.renderSpectra(html)
         return
       }
       const bar = doc.createElement('div')
@@ -449,6 +484,37 @@ export function defineRichTextField(win = typeof window !== 'undefined' ? window
       this.area = area
       this.appendChild(bar)
       this.appendChild(area)
+    }
+    renderSpectra(html) {
+      this.area = null
+      const box = doc.createElement('div')
+      box.className = 'mateu-rte-spectra'
+      box.setAttribute('data-oj-binding-provider', 'none')
+      const editor = doc.createElement('oj-sp-input-rich-text-2')
+      if (this.getAttribute('aria-label')) editor.setAttribute('label-hint', this.getAttribute('aria-label'))
+      // ATTRIBUTES, not properties: the element is usually created before the loader defines it,
+      // and a property set on it then shadows the setter of its class — the editor opened empty, with
+      // the default toolbar. The label is the field's oj-label; the toolbar is read once, at mount.
+      editor.setAttribute('display-options', JSON.stringify({ label: 'off', formattingToolbar: 'on', toolbarItems: SPECTRA_RICH_TEXT_TOOLBAR }))
+      editor.setAttribute('value', html)
+      // 'internal': the user's edit, on blur — not the echo of the value set here
+      editor.addEventListener('valueChanged', (e) => {
+        if (e.detail && e.detail.updatedFrom === 'internal') this.commitHtml(e.detail.value || '')
+      })
+      // …but its valueChanged comes AFTER the blur, asynchronously: a click on Save would run the
+      // action with the old value. Leaving the editor commits what it holds now (rawValue follows
+      // every keystroke), synchronously, before the click; moving to its own toolbar does not.
+      box.addEventListener('focusout', (e) => {
+        if (e.relatedTarget && box.contains(e.relatedTarget)) return
+        if (typeof editor.rawValue === 'string') this.commitHtml(editor.rawValue)
+      })
+      box.appendChild(editor)
+      this.appendChild(box)
+      spectraRichTextReady(win).then((ok) => {
+        if (ok || !this.contains(box)) return
+        this.spectra = false // no CDN: our own editor, for good
+        this.render()
+      })
     }
   }
   win.customElements.define('mateu-rich-text-field', MateuRichTextField)
