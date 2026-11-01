@@ -209,9 +209,8 @@ location /mateu/ { proxy_pass http://my-mateu-backend:8080; }
 location / { try_files $uri $uri/ /index.html; }
 ```
 
-The public Star Wars demo is built this way (`starwars-rw.ec1.mateu.io`, `deploy/demos/` in the
-repository). It is a Redwood bundle whose create, edit and delete go through the
-`demo/demo-starwars` backend, which holds the swapi write key.
+`demo/demo-starwars` is built this way (`mvn package -Predwood-bundle`): a Redwood bundle whose
+create, edit and delete go through the `demo/demo-starwars` backend, which holds the swapi write key.
 
 ## Hosting
 
