@@ -100,6 +100,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureRetake: 'Retake',
       captureUpload: 'Upload',
       captureReplace: 'Replace',
+      captureUseUrl: 'Use a URL',
+      captureImageUrl: 'Image URL',
       captureNoCamera: 'Camera unavailable — choose a file',
       captureEmpty: 'No file',
       captureStart: 'Open camera',
@@ -335,6 +337,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureRetake: 'Repetir',
       captureUpload: 'Subir',
       captureReplace: 'Sustituir',
+      captureUseUrl: 'Usar una URL',
+      captureImageUrl: 'URL de la imagen',
       captureNoCamera: 'Cámara no disponible — elige un fichero',
       captureEmpty: 'Sin fichero',
       captureStart: 'Abrir cámara',
@@ -7753,6 +7757,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       else if (md.rowRoute && c === titleCol) def.template = 'cellNestedLink'
       return def
     })
+    // a listing with row selection (a bulk toolbar action: "Delete selected") marks its rows like the
+    // page's own listing does — on a table; a card grid has no selection in Redwood
+    const selectable = !asCards && !!(md.rowsSelectionEnabled || md.multipleRowSelectionEnabled)
+    const toolbar = (md.toolbar || []).map((b) => (b && b.metadata) || b)
+      .filter((b) => b && b.actionId)
+      .map((b) => ({
+        actionId: String(b.actionId),
+        label: interpolate(String(b.label || b.actionId), state),
+        chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+        disabled: !!b.disabled,
+        parameters: {},
+        route: '',
+        surfaceId: '',
+        fromNested: false,
+      }))
     return {
       isNestedListing: true,
       nestedKey: key,
@@ -7762,6 +7781,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       cards,
       columns: tableColumns,
       rows: tableRows,
+      toolbar,
+      hasToolbar: toolbar.length > 0,
+      selectionMode: selectable ? { row: 'multiple' } : { row: 'none' },
       adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
       loaded: !!loaded,
       isEmpty: !!loaded && rows.length === 0,
@@ -8228,6 +8250,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function withListingSelection(componentState, listing, rows, selection) {
     if (!listing || !listing.rowsSelectionEnabled) return componentState
     return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
+  }
+
+  // The marked rows of each listing NESTED in a page's content, by its key (the oj-table's
+  // selection, written by the nestedListingSelected chain). A nested listing's rows are not the
+  // page's listing, so they have no place in mateuListingSelection.
+  const nestedSelections = new Map()
+
+  /** What is marked on a nested listing: oj-table's KeySet (`detail.value.row`), kept as a selection. */
+  function setNestedSelection(key, keySet) {
+    if (!key) return
+    const selection = selectionOfKeySet(keySet)
+    if (selection.all || selection.keys.length) nestedSelections.set(String(key), selection)
+    else nestedSelections.delete(String(key))
+  }
+
+  /** Forgets what was marked on a nested listing (its rows were reloaded). */
+  function clearNestedSelection(key) {
+    nestedSelections.delete(String(key))
+  }
+
+  /**
+   * The componentState of an action declared on a NESTED listing's toolbar (a bulk "Delete
+   * selected"): its marked rows as crud_selected_items, as Vaadin sends them. Any other action, or
+   * a page with no such listing, leaves the state untouched.
+   */
+  function withNestedSelection(componentState, host, actionId) {
+    const tree = host && host.tree
+    if (!tree || !actionId) return componentState
+    const owner = nestedListingNodesOf(tree).find((n) => ((n.metadata && n.metadata.toolbar) || [])
+      .some((b) => ((b && b.metadata) || b || {}).actionId === actionId))
+    if (!owner) return componentState
+    const key = nestedListingKeyOf(owner)
+    const rows = (((host.data || {})[key] || {}).page || {}).content || []
+    return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, nestedSelections.get(key)) })
   }
 
   // rows with @Status columns: the {type, message} value gets stamped with the JET badge
@@ -15717,7 +15773,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return v
   }
 
-  const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
+  const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere', 'useUrl', 'imageUrl']
+
+  /**
+   * The value an uploadable image takes from a URL typed or pasted ("Use a URL" next to Upload): an
+   * http(s) URL or a path on this site, trimmed; undefined for a blank (Remove clears it), a data: URI
+   * (that is what Upload produces), a protocol-relative URL or any other scheme. The same rule as
+   * libs/mateu imageUrl.ts.
+   */
+  function imageUrlOf(text) {
+    if (typeof text !== 'string') return undefined
+    // eslint-disable-next-line no-control-regex
+    const url = text.replace(/[\u0000-\u001f\u007f]/g, '').trim()
+    if (!url) return undefined
+    const m = /^([a-z][a-z0-9+.-]*):/i.exec(url)
+    if (m) return /^https?$/i.test(m[1]) ? url : undefined
+    if (url.indexOf('//') === 0) return undefined
+    return url
+  }
 
   /** The capture fields' texts in `lang` (the interface catalogue, i18n.mjs). */
   function captureTexts(lang) {
@@ -15860,8 +15933,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           dash.textContent = '—'
           box.appendChild(dash)
         }
+        // an uploadable image can also be set from a URL (the value already shows one): a box under
+        // the actions, committed on change with the same rule as the web (imageUrlOf)
+        if (mode === 'image' && !readonly) {
+          actions.appendChild(button(t.useUrl, 'borderless', () => {
+            this.urlOpen = !this.urlOpen
+            this.render()
+          }))
+        }
         this.appendChild(box)
         if (actions.childNodes.length) this.appendChild(actions)
+        if (mode === 'image' && !readonly && this.urlOpen) {
+          const input = doc.createElement('input')
+          input.type = 'url'
+          input.className = 'oj-text-field-input mateu-capture-url oj-sm-margin-2x-top'
+          input.placeholder = 'https://…'
+          input.setAttribute('aria-label', t.imageUrl)
+          input.value = /^data:/i.test(String(value || '')) ? '' : String(value || '')
+          input.addEventListener('change', () => {
+            const url = imageUrlOf(input.value)
+            if (url !== undefined && url !== value) this.emit(url)
+          })
+          this.appendChild(input)
+        }
       }
 
       /** The image stereotype, editable: its URL typed in, the preview following it (committed on change). */
@@ -19364,12 +19458,48 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!res.ok) {
       const err = new Error('External REST fetch failed: ' + res.status)
       err.status = res.status
+      // what the service said about it, for the user's toast
+      try { err.detail = typeof res.text === 'function' ? serviceMessageOf(await res.text()) : undefined } catch (e) { err.detail = undefined }
       throw err
     }
     if (res.status === 204 || res.status === 205) return null
     if (typeof res.text !== 'function') return res.json()
     const text = await res.text()
     return text.trim() === '' ? null : JSON.parse(text)
+  }
+
+  /**
+   * What a failed REST call's error body says, for a person ("Image larger than 2 MB" rather than
+   * "Request failed (HTTP 400)"): a JSON object's message / detail (RFC 7807) / error (a string, or
+   * {message}) / title, else short plain text (never HTML or a list); control characters out,
+   * whitespace folded, ≤ 300 characters; undefined when there is nothing to show. The same rule as
+   * libs/mateu serviceMessage.ts and the server's RestProxyCalls.serviceMessageOf (the proxied leg).
+   */
+  function serviceMessageOf(body) {
+    if (body == null) return undefined
+    const clip = (t) => {
+      // eslint-disable-next-line no-control-regex
+      const clean = String(t).replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim()
+      if (!clean) return undefined
+      return clean.length > 300 ? clean.slice(0, 299) + '…' : clean
+    }
+    const fromObject = (json) => {
+      if (!json || typeof json !== 'object' || Array.isArray(json)) return undefined
+      for (const key of ['message', 'detail', 'error', 'title']) {
+        const value = json[key]
+        if (typeof value === 'string' && value.trim()) return clip(value)
+        if (value && typeof value === 'object' && typeof value.message === 'string' && value.message.trim()) return clip(value.message)
+      }
+      return undefined
+    }
+    if (typeof body === 'object') return fromObject(body)
+    const text = String(body).trim()
+    if (!text) return undefined
+    if (text.charAt(0) === '{') {
+      try { return fromObject(JSON.parse(text)) } catch (e) { return undefined }
+    }
+    if (text.charAt(0) === '<' || text.charAt(0) === '[' || text.length > 300) return undefined
+    return clip(text)
   }
 
   // ── in-memory search, filters and sort (an unpaged endpoint, or a sample) ─────────────────────
@@ -19475,6 +19605,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const key = String(actionId).slice(NESTED_LISTING_ACTION.length)
     const node = nestedListingNodesOf(ctx && ctx.tree).find((n) => nestedListingKeyOf(n) === key)
     if (!node) return Promise.resolve(restIncrement([]))
+    // its rows are re-read: what was marked on the old ones (a deleted row) no longer applies
+    clearNestedSelection(key)
     return restRowsIncrement(ctx, node, { ...((ctx && ctx.state) || {}), page: 0 }, opts).then((inc) => ({
       ...inc,
       fragments: (inc.fragments || []).map((f) => ({ ...f, data: { [key]: (f.data && f.data.crud) || { page: { content: [] } } } })),
@@ -19508,6 +19640,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       try { console.warn('mateu: kanban items fetch failed', e) } catch (ignored) { /* no console */ }
       return restIncrement([])
     }
+  }
+
+  /**
+   * What refreshes the lists of a screen after a REST write that lands back on it: the load action
+   * of each listing nested in its content when the page has no listing of its own (a `search` sent
+   * there is refused: 403), else the page listing's `search` — as before.
+   */
+  function refreshActionsOf(ctx) {
+    const tree = ctx && ctx.tree
+    const nested = tree && !pageListingNodeOf(tree) ? nestedListingNodesOf(tree) : []
+    return nested.length ? nested.map((n) => NESTED_LISTING_ACTION + nestedListingKeyOf(n)) : ['search']
   }
 
   /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
@@ -19730,7 +19873,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
     const kind = actionId === '__restdata__' ? 'data' : 'action'
     const isProxy = viaProxy(rest.source) && !!opts.server
-    const failure = (status) => restIncrement([], [{ variant: 'error', text: 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
+    // what the service said (its error body: e.detail direct, _restfetchError.detail proxied) when it
+    // said something, else the generic text
+    const failure = (status, detail) => restIncrement([], [{ variant: 'error',
+      text: (typeof detail === 'string' && detail.trim()) ? detail : 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
     const success = (json, mergeResult) => {
       const fragments = []
       let merged = state
@@ -19749,7 +19895,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const route = interpolateRest(rest.successRoute, scope)
       if (route && route.indexOf('${') < 0) {
         if (opts.route != null && restRouteOf(route) === restRouteOf(opts.route)) {
-          commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: 'search' } })
+          // back to the screen on display: refresh what it lists instead of navigating. The PAGE's
+          // listing re-runs its `search`; a listing nested in the content (a record page's documents)
+          // re-runs its own load — a `search` sent to a page with no listing of its own is refused (403).
+          for (const refresh of refreshActionsOf(ctx)) {
+            commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: refresh } })
+          }
         } else {
           commands.push({ targetComponentId: target, type: 'NavigateTo', data: route })
         }
@@ -19759,7 +19910,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const fromProxy = (inc, mergeResult) => {
       const appData = (inc && inc.appData) || {}
       const err = appData._restfetchError
-      if (err) return failure(typeof err.status === 'number' ? err.status : 0)
+      if (err) return failure(typeof err.status === 'number' ? err.status : 0, err.detail)
       return success(appData._restfetch, mergeResult)
     }
 
@@ -19771,7 +19922,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         await Promise.all(rows.map((row) => fetchRestJson(rest.source, { state: { ...state, ...row }, row, data, appState: opts.appState || {} }, opts.fetchImpl)))
         return success(null, false)
       } catch (e) {
-        return failure(e && e.status)
+        return failure(e && e.status, e && e.detail)
       }
     }
     try {
@@ -19780,7 +19931,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return success(json, true)
     } catch (e) {
       try { console.warn('mateu: rest action failed', e) } catch (ignored) { /* no console */ }
-      return failure(e && e.status)
+      return failure(e && e.status, e && e.detail)
     }
   }
 
@@ -24204,6 +24355,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
   // the state it carries (the drawer's with its draft, or the host's with the form draft and the
   // listing's selection), whether it may leave at all (rows required, required fields empty, a row
@@ -24230,6 +24382,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     // a host action on a listing with selection carries the marked rows (crud_selected_items), as
     // in Vaadin; the drawer's do not (they act on ITS record)
+    // …and an action on the toolbar of a listing NESTED in the page (a record's documents) carries
+    // the rows marked on THAT listing
+    if (!overlay) componentState = withNestedSelection(componentState, host, id)
     if (!overlay && listing && listing.rowsSelectionEnabled) {
       componentState = withListingSelection(componentState, listing, listingRows, listingSelection)
       if ((listing.selectionRequired || []).indexOf(id) >= 0 && !componentState.crud_selected_items.length) {
@@ -27010,6 +27165,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    // the rows marked on a listing nested in a page's content (nestedListingSelected chain)
+    setNestedSelection,
     toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
