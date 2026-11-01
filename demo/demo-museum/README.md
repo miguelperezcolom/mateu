@@ -106,6 +106,7 @@ python3 scripts/snapshot.py            # museum-service on :8121
 | Live dashboard MetricCards | header `kpis` are live; the cards are a snapshot | `MetricCard` did not interpolate `${state…}` on Vaadin before 3.0-beta.30 (#958) |
 | A tree from a REST source on Redwood | flat on Redwood (Vaadin draws the tree) | Redwood's listing does not draw `gridLayout: tree` for a source; rows keep their `children` since 3.0-beta.30 (#959) |
 | The artist's works beside the artist on Redwood | drawn since 3.0-beta.30 (#960) | a `Listing` nested in a templated page now stays in its slot and loads its rows |
+| The works and loans in the exhibition's foldout on Redwood | drawn since 3.0-beta.31 (#972) | a `Listing` inside a foldout panel is drawn there, with its rows |
 
 Renderer differences worth knowing: Redwood does not draw the dashboard's header `kpis` (its
 template takes the title and subtitle only), drops a `Text` with `container: h2` inside a section,
