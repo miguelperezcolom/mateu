@@ -134,6 +134,13 @@ in the same change.
 | Triggers (`@Trigger`: `OnLoad` with `timeoutMillis`/`times`, `OnSuccess`, `OnError`, `OnValueChange` — periodic refresh, chained actions). .NET `[Trigger(TriggerType…)]`, Python `@trigger(TriggerType…)`; the actions they name are advertised and runnable (conformance case `triggers`) | ✅ | ✅ | ✅ |
 | Class-level `@AutoSave` (debounced save on every change). The ports emit `AutoSave` only from their archetypes (CollectionDetail, GeneralOverview…) | ✅ | — | — |
 | Editable views (`EditableView` / `AutoEditableView`, `MasterDetailView` orchestrators: a read view with an Edit toolbar that flips to an editor and back) | ✅ | — | — |
+| [CRUD write gates on the server](/java-user-manual/advanced/security/) (`@ReadOnly`, `@NotCreatable`/`@NotEditable`/`@NotDeletable`, `canCreate/canEdit/canDelete`, `display()` toggles off/disabled: a forced write answers 403 and the refused actions are not advertised) | ✅ | ✅ | ✅ |
+| [Kanban moves](/ux-patterns/kanban/) (`moveActionId` with `_cardId`/`_fromColumnId`/`_toColumnId`/`_toIndex`, live boards from `rowsSource`, `orderField` keeping the manual order; corpus `conformance/client/kanban-order.json` for the renderers) | ✅ | ✅ | ✅ |
+| [Route-parameter precedence](/concepts/routes-and-mounts/#precedence) `fixed > client state > path > query > defaults` (a null client value is no value), also in static bundles — corpus `conformance/client/route-params.json` | ✅ | ✅ | ✅ |
+| [Proxied source templates](/concepts/data-sources/#proxy-mode) evaluated with the browser's expression subset (corpus `conformance/client/source-templates.json`), the validator's `proxy_unsafe_template` warning, and a proxied source's headers/body never sent to the client | ✅ | ✅ | ✅ |
+| [The service's message on a failed REST call](/concepts/data-sources/#when-a-call-fails), on the direct and the proxied leg | ✅ | ✅ | ✅ |
+| Hub manifest version fields for the [apps' compatibility check](/ux-patterns/mobile-app/) (`wireVersion`, `mateuVersion` on a release) and `devEvents` in development mode ([live reload on desktop and phone](/java-user-manual/build/live-reload/)) | ✅ | ✅ | ✅ |
+| Access keys and `${i18n.…}` inside a YAML `type: Partial` applied on the server like inline content (Java pinned by `YamlPartialAccessSyncTest`; not yet checked or pinned in the ports) | ✅ | 🟡 | 🟡 |
 
 Import wizard on .NET/Python: same step flow (upload/paste → auto-mapped column grid with a
 select-editable target-field cell → per-line validation report → typed import + result counts)

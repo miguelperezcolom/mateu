@@ -63,7 +63,9 @@ fills the **Street** and **City** fields and shows an "Address found" toast.
 descriptor + `successMessage` + `resultPath`). When the button is clicked, the renderer validates the
 form (the action is validation-required like any button), then — instead of POSTing to Mateu —
 interpolates the url/headers/body against the live state, `fetch`es the endpoint, merges
-`resultPath` into the form state and shows the toast. A non-2xx response shows a failure toast. The
+`resultPath` into the form state and shows the toast. A non-2xx response shows a failure toast with
+the service's own message when its body carries one (see
+[When a call fails](/concepts/data-sources/#when-a-call-fails)). The
 endpoint must be reachable from the browser (CORS-friendly for cross-origin APIs).
 
 :::note[CORS & auth]

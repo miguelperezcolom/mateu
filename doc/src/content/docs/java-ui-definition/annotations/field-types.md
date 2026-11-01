@@ -124,6 +124,15 @@ so the image travels in the string itself — **no upload endpoint is required**
 be a plain image URL. *Delete* clears the value; pressing your form's action round-trips the value
 (the data URI or URL) to the backend like any other string.
 
+Beside *Upload*, **Use a URL** lets the user type or paste an image address instead of picking a file
+(Vaadin and Redwood). Only `http(s)` addresses and paths of the site are accepted — a `data:` or
+`javascript:` value typed there is refused. A value that is a URL is shown as the image on every
+renderer (the IntelliJ desktop app included).
+
+The server still decides what to keep: if the endpoint behind your save refuses the image (too big,
+wrong type), the user sees that endpoint's own message — see
+[When a call fails](/concepts/data-sources/#when-a-call-fails).
+
 ### Example
 
 ```java
