@@ -565,7 +565,10 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
     String text = null;
     try (var is = resource) {
       text = new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-      var root = mapper.readTree(text);
+      // YAML partials inlined as source first: the access and translation passes — and the decision
+      // to re-derive per request below — then see a partial's eyesOnly:/${i18n.…} like inline
+      // content
+      var root = YamlPartials.compose(mapper.readTree(text));
       if (root == null) {
         return NONE;
       }

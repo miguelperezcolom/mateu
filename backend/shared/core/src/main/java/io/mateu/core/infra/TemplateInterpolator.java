@@ -140,30 +140,36 @@ public final class TemplateInterpolator {
   private static Object resolve(
       String rawExpr, Map<String, Object> state, Function<String, String> secrets) {
     var expr = rawExpr.trim();
-    int coalesce = topLevelIndexOf(expr, "??");
-    if (coalesce >= 0) {
-      var left = resolve(expr.substring(0, coalesce), state, secrets);
-      return left != null ? left : resolve(expr.substring(coalesce + 2), state, secrets);
-    }
-    var encoded = encodeCallArgument(expr);
-    if (encoded != null) {
-      return urlEncode(jsText(resolve(encoded, state, secrets)));
-    }
-    if (expr.length() >= 2
-        && (expr.charAt(0) == '\'' || expr.charAt(0) == '"')
-        && expr.charAt(expr.length() - 1) == expr.charAt(0)) {
-      return expr.substring(1, expr.length() - 1);
-    }
-    if (NUMBER.matcher(expr).matches() || "true".equals(expr) || "false".equals(expr)) {
-      return expr;
-    }
-    if (expr.startsWith("state.")) {
+    // a plain path keeps its old meaning first: a FLAT key "a.b" in the state wins over a walk
+    if (PLAIN_STATE_PATH.matcher(expr).matches()) {
       return path(state, expr.substring("state.".length()));
     }
-    if (expr.startsWith("secret.")) {
-      return secrets != null ? secrets.apply(expr.substring("secret.".length())) : null;
+    // anything else is an expression, evaluated with the browser's meaning (ProxyExpression) so a
+    // source flipped to proxy: true keeps sending what it sent from the browser
+    try {
+      var value = ProxyExpression.evaluate(expr, state, secrets);
+      return value == ProxyExpression.UNDEFINED ? null : value;
+    } catch (ProxyExpression.Unsupported e) {
+      warnUnsupported(expr, e.getMessage());
+      return null;
+    } catch (RuntimeException e) {
+      // e.g. reading a member of a missing value: the placeholder renders empty, as before
+      return null;
     }
-    return null;
+  }
+
+  private static final Pattern PLAIN_STATE_PATH =
+      Pattern.compile("state\\.[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)*");
+
+  private static final java.util.Set<String> WARNED =
+      java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+  private static void warnUnsupported(String expr, String why) {
+    if (WARNED.size() < 1000 && WARNED.add(expr)) {
+      org.slf4j.LoggerFactory.getLogger(TemplateInterpolator.class)
+          .warn(
+              "A source template the server cannot evaluate renders empty: ${{}} ({})", expr, why);
+    }
   }
 
   /** {@code a.b.c} in the state: a flat key first (as always), else a walk through nested maps. */
@@ -195,9 +201,11 @@ public final class TemplateInterpolator {
         // 1.25E7 → 12500000: a JSON number, not Java's scientific notation
         return new java.math.BigDecimal(amount.toString()).stripTrailingZeros().toPlainString();
       }
-      return amount == null ? "" : String.valueOf(amount);
+      return amount == null ? "" : ProxyExpression.text(amount);
     }
-    return String.valueOf(v);
+    // as JavaScript's String(v), the browser leg's conversion: a list is `a,b` (it was Java's
+    // `[a, b]`, so a multi-select filter sent a different text when proxied), 3.0 is `3`
+    return ProxyExpression.text(v);
   }
 
   /**

@@ -139,6 +139,10 @@ internal static class UrlTemplate
         JsonElement { ValueKind: JsonValueKind.True } => "true",
         JsonElement { ValueKind: JsonValueKind.False } => "false",
         JsonElement { ValueKind: JsonValueKind.Null or JsonValueKind.Undefined } => "",
+        // as JavaScript's String(v), the browser leg: a list is `a,b` (it was its raw JSON or the
+        // type name, so a multi-select filter sent a different text when proxied)
+        JsonElement { ValueKind: JsonValueKind.Array } el => string.Join(",", el.EnumerateArray().Select(e => Text(e))),
+        IEnumerable items and not IDictionary<string, object?> => string.Join(",", items.Cast<object?>().Select(Text)),
         _ => v.ToString() ?? "",
     };
 

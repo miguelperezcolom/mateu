@@ -46,14 +46,16 @@ their null-safe member access, and Kotlin's single null.
 
 ## Route parameter precedence
 
-The server applies `fixed > client state > path > query > defaults`
-(`RouteSegmentUtils.addParameterValues`; a route's `state:` seeds sit at the defaults level, above
-`defaultParams`). A statically served load has no client state yet and no query level (a listing's
-query string is its own filters, never part of the screen), and its increment is what the server
-rendered for the route — so the bundle applies `fixed > path > increment > state seeds >
-defaultParams`, where a `null` in the increment is no value at all (the server's `putIfAbsent`
-fills a key mapped to null). For a pre-rendered increment the two orders give the same answer;
-`route-params.json` pins that.
+Every server (Java `RouteSegmentUtils.addParameterValues`, .NET `RouteMatch.Params`, Python
+`Match.params`) applies `fixed > client state > path > query > defaults`, where a `null` in the
+client state is no value at all (the path, the query and the defaults still fill it), and a route's
+`state:` seeds sit at the defaults level, above `defaultParams`. A statically served load has no
+client state yet and its increment is what the server rendered for the route — so the bundle applies
+`fixed > path > query > increment > state seeds > defaultParams` (the query on the answer:
+`withQueryParams` / `applyQueryParams`; a case's optional `query` exercises it), where a `null` in
+the increment is no value at all (the server's `putIfAbsent` fills a key mapped to null). For a
+pre-rendered increment the orders give the same answer; `route-params.json` pins that, and each
+server pins its own order in its route-registry tests.
 
 ## Adding a case
 

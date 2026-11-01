@@ -29,6 +29,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   title ("13") above its own header.
 - **Vaadin: a listing's header wraps on a phone** — the actions go below the title instead of
   squeezing it to "Laun…".
+### Fixed (security and parity — Fable review)
+
+- **A `type: Partial`'s access keys and `${i18n.…}` are applied on the server**, like the same
+  content written inline. A section guarded by `eyesOnly:` used to reach every caller once it lived
+  in a partial, and its texts stayed raw.
+- **A bundle never ships a definition that depends on who asks.** A hybrid bundle wrote access-guarded
+  definitions raw into `manifest.json` and the browser expanded them for everybody; now they are not
+  shipped, and the resolver refuses to expand a route with `access:` or a definition with access keys.
+- **One route-parameter order everywhere: `fixed > client state > path > query > defaults`.** The .NET
+  and Python servers ranked the path over the client state, let a null erase a default and ignored the
+  URL query; static bundles (web, Redwood, React Native) dropped the query too.
+- **A proxied REST source sends what the browser would.** The server now evaluates the expression
+  subset sources use (`${(state.page ?? 0) * 20}`, conditionals, `?.`, `String`/`Number`) instead of
+  sending it empty, and a list value is `a,b` on every leg (Java sent `[a, b]`, Python `['a', 'b']`,
+  Redwood `["a","b"]`). The validator flags a template the server cannot evaluate
+  (`proxy_unsafe_template`). Pinned by `conformance/client/source-templates.json`.
 
 ### Added
 
