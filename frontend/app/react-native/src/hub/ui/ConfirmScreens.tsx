@@ -4,7 +4,10 @@ import { ActivityIndicator, Icon } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
-import { fetchManifest, resolveMount, versionGate, type UiManifest } from '../manifest';
+import { appSide } from '../appUpdate';
+import { appCompatibility, compatMessage, hubLang } from '../compat';
+import { fetchManifest, resolveMount, type UiManifest } from '../manifest';
+import { UpdateAppButton } from './UpdateApp';
 import type { HubEntry } from '../uiStore';
 import { HubBar, HubCard, Notice, PrimaryButton, UiIcon, hubStyles } from './common';
 
@@ -115,7 +118,10 @@ export function ConfirmAddScreen({
 }
 
 function ManifestCard({ manifest, missing, appVersion, onAdd }: { manifest: UiManifest; missing: boolean; appVersion: string; onAdd: (m: UiManifest) => void }) {
-  const gate = versionGate(manifest, appVersion);
+  // can THIS app render it (compat.ts)? required → not added: the update is offered instead
+  const app = { ...appSide(), appVersion };
+  const compat = appCompatibility(manifest, app);
+  const message = compat.reason ? compatMessage(compat.reason, manifest, app, hubLang()) : null;
   const issuer = manifest.auth ? domainOf(manifest.auth.issuer) : null;
   return (
     <>
@@ -132,10 +138,17 @@ function ManifestCard({ manifest, missing, appVersion, onAdd }: { manifest: UiMa
       {issuer && (
         <Notice tone="info" text={`You will sign in with ${issuer}.`} />
       )}
-      {!gate.ok && (
-        <Notice tone="warning" text={`${gate.reason} You can add it now and open it after updating Mateu.`} />
+      {compat.status === 'required' ? (
+        <>
+          <Notice tone="warning" alert text={message!} />
+          {compat.reason !== 'olderWire' && <UpdateAppButton />}
+        </>
+      ) : (
+        <>
+          {compat.status === 'recommended' && <Notice tone="info" text={message!} />}
+          <PrimaryButton label="Add" icon="plus" onPress={() => onAdd(manifest)} hint={`Adds ${manifest.name} to your list`} />
+        </>
       )}
-      <PrimaryButton label="Add" icon="plus" onPress={() => onAdd(manifest)} hint={`Adds ${manifest.name} to your list`} />
     </>
   );
 }

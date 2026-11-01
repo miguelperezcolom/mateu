@@ -1,3 +1,4 @@
+import { fieldAttribute } from '@components/mateu-file-upload.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { html, nothing, TemplateResult } from 'lit'
 import { getThemeForBadgetType } from '@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts'
@@ -20,11 +21,15 @@ export function renderMoneyField(host: MateuField, _fieldId: string, value: Fiel
                     data-colspan="${host.field.colspan}"
             ><div style="width: 186px; text-align: right;">${formatted}</div></vaadin-custom-field>`
         }
+        // the currency an EMPTY amount starts in: the field's declared `currency` attribute, else
+        // EUR — Redwood's rule (an Amount's own currency, else the declared one, else EUR)
+        const declared = fieldAttribute(host.field.attributes, 'currency')
         return html`<mateu-money-field
                     id="${host.field.fieldId}"
                     label="${label}"
                     @value-changed="${host.valueChanged}"
                     .value="${value}"
+                    .defaultCurrency="${declared ? String(declared).toUpperCase() : undefined}"
                     .helperText="${host.helperText()}"
                     ?autofocus="${host.field.wantsFocus}"
                     ?required="${host.field.required || nothing}"

@@ -74,11 +74,17 @@ content:
         dataType: date
 ```
 
+A `HorizontalLayout` with no `spacing:` key is **spaced** (an image beside a form, two cards side
+by side never touch); write `spacing: false` to set its children flush. A `VerticalLayout` is not
+spaced unless it says `spacing: true`. The same default applies on every backend (Java, .NET,
+Python) and in a static bundle.
+
 ## Page type — `pageType:`
 
 A page has a coarse **page type** — `landing`, `collection`, `detail`, `form`, `process` or
-`dashboard` (the Redwood page-template families). It sets the page's default width (form, process
-and landing pages are capped; collection, detail and dashboard pages defer to their content) and is
+`dashboard` (the Redwood page-template families). It sets the page's default width (collection and
+dashboard pages are full width; form, process and landing pages are capped; detail pages defer to
+their content — see [page width](/ux-patterns/page-templates/)) and is
 stamped on the rendered page as `data-page-type`. A Java view declares it with
 `@PageTemplate(PageType.X)`; a YAML page declares it with a top-level `pageType:` key, beside
 `layout:` (or beside `type:` in a bare tree):
@@ -261,14 +267,16 @@ content:                     # the template's main slot
   on the form (`template: {type, avatar, photo}`).
 - It works served by the **Java** backend, pre-rendered into a static bundle and expanded in the
   browser from a `specsOnly` bundle. The .NET and Python YAML builders do not read `template:` yet.
-- `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The IDEs' **Item
-  Overview** page template writes it. More templates follow the same shape.
+- `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The eleven templates
+  in the table above are available; the IDEs' **Item Overview** page template writes `template:` for you.
 - Demo: the record pages of `demo/demo-starwars` (`person.yaml`, `planet.yaml`, `film.yaml`…).
 
 ## Available types
 
-All component types from the [`io.mateu.uidl.data`](/java-ui-definition/supported-components/) package are supported.
-Use the exact class name as the `type` value.
+Every component type has a row in the [component list](/java-ui-definition/supported-components/#every-component)
+— generated from the catalogue the build produces, with a one-line description, its main attributes
+and a link to the page that explains it. Use the exact type name as the `type` value. A few to start
+with:
 
 **Layout components:** `VerticalLayout`, `HorizontalLayout`, `FormLayout`, `TabLayout`, `SplitLayout`, `MasterDetailLayout`, `AccordionLayout`, `BoardLayout`, `CarouselLayout`, `Grid`, …
 

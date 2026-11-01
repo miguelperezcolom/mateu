@@ -190,7 +190,13 @@ public class RunActionUseCase {
                                                 command.actionId(),
                                                 command.httpRequest(),
                                                 result,
-                                                instance)))))
+                                                instance))
+                                    // the action ids this response hands out for the view (a
+                                    // dialog's confirm, an undo): strict mode accepts them back
+                                    .doOnNext(
+                                        increment ->
+                                            io.mateu.core.domain.out.fragmentmapper.mappers
+                                                .IssuedActions.record(instance, increment)))))
         // the micro frontends this server resolves (resolve = SERVER, content slots), in order:
         // a stream's increments must not overtake each other while one waits for its remotes
         .concatMap(increment -> resolveMicroFrontends(increment, command))

@@ -112,6 +112,19 @@ export interface KanbanColumn {
 export interface Kanban {
   type?: 'Kanban';
   columns?: KanbanColumn[];
+  /** The action a moved card runs; absent = the cards do not move. */
+  moveActionId?: string;
+  /** A LIVE board: the source whose items are its cards. */
+  rowsSource?: Record<string, unknown>;
+  /** The item field naming a card's column (default `status`). */
+  columnField?: string;
+  /** Template of a card drawn from an item (`${row.x}`). */
+  card?: KanbanCard;
+  cardColors?: Record<string, string>;
+  /** Where a card from the source goes when tapped (`tasks/${row.id}`). */
+  cardRoute?: string;
+  /** The item field that orders a column's cards; a move sends its new value (`_toOrder`). */
+  orderField?: string;
 }
 
 export interface TimelineItem {

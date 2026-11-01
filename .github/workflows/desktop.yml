@@ -1,0 +1,203 @@
+# Builds the Mateu DESKTOP APP (IntelliJ IDEA Community + the Mateu plugin, see `buildInstaller` in
+# frontend/app/intellij-plugin/build.gradle.kts) with the framework's release and attaches it to the
+# GitHub Release `v3.0-beta.N`, at the plugin's version (scripts/plugin-versions.sh):
+#
+#   mateu-desktop-<v>-macos-aarch64.dmg / .zip    mateu-desktop-<v>-macos-intel.dmg / .zip
+#   mateu-desktop-<v>-linux.tar.gz                mateu-desktop-<v>-windows-setup.exe / -windows.zip
+#   mateu-intellij-plugin-<v>.zip                 mateu-desktop-update.json  ← uploaded LAST
+#
+# Installed apps poll `releases/latest/download/mateu-desktop-update.json` (io.mateu.ijp.update): the
+# feed goes up only after every installer is there, so it never points at a missing file.
+# Both macOS architectures are built on an Apple-silicon runner (only the downloaded IDE differs).
+#
+# Optional secrets — without them the macOS app is signed ad-hoc (first launch: right-click ▸ Open):
+#   MACOS_CERTIFICATE_P12 (base64 of a Developer ID Application .p12), MACOS_CERTIFICATE_PASSWORD,
+#   MACOS_SIGN_IDENTITY ("Developer ID Application: Name (TEAMID)")
+#   MACOS_NOTARY_APPLE_ID, MACOS_NOTARY_TEAM_ID, MACOS_NOTARY_PASSWORD (app-specific) — to notarize too
+
+name: Desktop app
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to (re)build the desktop app for (e.g. v3.0-beta.27)
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  macos:
+    permissions:
+      contents: write # gh release upload
+    if: startsWith(github.event.release.tag_name || inputs.tag, 'v')
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [aarch64, intel]
+    env:
+      HAS_SIGNING: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.MACOS_SIGN_IDENTITY != '' }}
+      HAS_NOTARY: ${{ secrets.MACOS_NOTARY_APPLE_ID != '' && secrets.MACOS_NOTARY_PASSWORD != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Derive the versions from the tag
+        run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Install monorepo dependencies
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
+      - name: Set the plugin version from the tag
+        run: cd frontend/app/intellij-plugin && perl -pi -e 's/^version = ".*"/version = "$ENV{INTELLIJ_VERSION}"/' build.gradle.kts
+      - name: Import the Developer ID certificate
+        if: env.HAS_SIGNING == 'true'
+        env:
+          P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          echo "$P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          # keep the user's keychains on the search list, plus the new one first
+          existing=()
+          while IFS= read -r k; do existing+=("$(echo "$k" | sed -e 's/^[[:space:]]*"//' -e 's/"$//')"); done < <(security list-keychains -d user)
+          security list-keychains -d user -s "$KEYCHAIN" "${existing[@]}"
+          rm "$RUNNER_TEMP/cert.p12"
+      - name: Store the notarization credentials
+        if: env.HAS_SIGNING == 'true' && env.HAS_NOTARY == 'true'
+        env:
+          APPLE_ID: ${{ secrets.MACOS_NOTARY_APPLE_ID }}
+          TEAM_ID: ${{ secrets.MACOS_NOTARY_TEAM_ID }}
+          APP_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}
+        run: xcrun notarytool store-credentials mateu-notary --apple-id "$APPLE_ID" --team-id "$TEAM_ID" --password "$APP_PASSWORD"
+      - name: Build the app
+        env:
+          ARCH: ${{ matrix.arch }}
+          SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+        run: |
+          cd frontend/app/intellij-plugin
+          args=(-Pinstaller.platform=macos "-Pinstaller.arch=$ARCH")
+          if [ "$HAS_SIGNING" = "true" ]; then args+=("-Pmacos.sign.identity=$SIGN_IDENTITY"); fi
+          if [ "$HAS_SIGNING" = "true" ] && [ "$HAS_NOTARY" = "true" ]; then args+=(-Pmacos.notarize.profile=mateu-notary); fi
+          # through the helper: a cold IDE layout index loses com.intellij.java now and then (#2192)
+          cd ../../.. && scripts/intellij-gradle.sh buildInstaller "${args[@]}" --console=plain
+      - name: Attach to the release
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          cd frontend/app/intellij-plugin/build/installer
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
+            "mateu-desktop-$INTELLIJ_VERSION-macos-$ARCH.dmg" "mateu-desktop-$INTELLIJ_VERSION-macos-$ARCH.zip"
+
+  linux-windows:
+    permissions:
+      contents: write # gh release upload
+    if: startsWith(github.event.release.tag_name || inputs.tag, 'v')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [linux, windows]
+    steps:
+      # the IDE is downloaded, unpacked and repacked (~6 GB on disk): make room first
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL \
+            /usr/share/swift /usr/local/share/boost /usr/local/.ghcup /opt/microsoft /opt/google /usr/local/share/chromium
+          df -h /
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Derive the versions from the tag
+        run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Install monorepo dependencies
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
+      - name: Install NSIS (the Windows setup)
+        if: matrix.platform == 'windows'
+        run: sudo apt-get update -q && sudo apt-get install -y -q nsis
+      - name: Set the plugin version from the tag
+        run: cd frontend/app/intellij-plugin && perl -pi -e 's/^version = ".*"/version = "$ENV{INTELLIJ_VERSION}"/' build.gradle.kts
+      - name: Build the app
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: scripts/intellij-gradle.sh buildInstaller "-Pinstaller.platform=$PLATFORM" --console=plain
+      - name: Disk and memory when it failed
+        if: failure()
+        run: df -h / /tmp; free -m
+      - name: Attach to the release
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          cd frontend/app/intellij-plugin/build/installer
+          if [ "$PLATFORM" = "linux" ]; then
+            files=("mateu-desktop-$INTELLIJ_VERSION-linux.tar.gz")
+          else
+            files=("mateu-desktop-$INTELLIJ_VERSION-windows-setup.exe" "mateu-desktop-$INTELLIJ_VERSION-windows.zip")
+          fi
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${files[@]}"
+
+  # The plugin the apps download + the feed that points at everything above. Last, on purpose.
+  feed:
+    permissions:
+      contents: write # gh release upload
+    needs: [macos, linux-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Derive the versions from the tag
+        run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Install monorepo dependencies
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
+      - name: Set the plugin version from the tag
+        run: cd frontend/app/intellij-plugin && perl -pi -e 's/^version = ".*"/version = "$ENV{INTELLIJ_VERSION}"/' build.gradle.kts
+      - name: Build the plugin and the update feed
+        run: |
+          scripts/intellij-gradle.sh desktopUpdateFeed --console=plain \
+            "-Pfeed.downloadBase=https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG" \
+            "-Pfeed.notes=Mateu $INTELLIJ_VERSION — https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
+          cat frontend/app/intellij-plugin/build/installer/mateu-desktop-update.json
+      # the plugin first: the feed must never name a file that is not there yet
+      - name: Attach the plugin, then the feed
+        run: |
+          cd frontend/app/intellij-plugin
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "build/distributions/mateu-intellij-plugin-$INTELLIJ_VERSION.zip"
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber build/installer/mateu-desktop-update.json

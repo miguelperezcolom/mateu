@@ -75,8 +75,8 @@ class RestActionBulkSyncTest {
     assertThat(del.restAction().source().proxy())
         .as("a per-row delete carrying a secret is made server-side")
         .isTrue();
-    assertThat(del.restAction().source().headers().get("X-Api-Key"))
-        .as("the placeholder travels as a placeholder, resolved only on the server")
-        .isEqualTo("${secret.WRITE_KEY}");
+    assertThat(del.restAction().source().headers())
+        .as("a proxied call's headers (the secret's placeholder included) stay on the server")
+        .isNull();
   }
 }

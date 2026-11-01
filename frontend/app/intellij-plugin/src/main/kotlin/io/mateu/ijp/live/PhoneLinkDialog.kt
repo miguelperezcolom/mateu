@@ -39,7 +39,7 @@ class PhoneLinkDialog(project: Project, private val link: String) : DialogWrappe
             ),
             BorderLayout.NORTH,
         )
-        panel.add(QrPanel(QrCode.encode(link, QrCode.Ecc.M)), BorderLayout.CENTER)
+        panel.add(QrPanel(link, "QR code of the link that opens the app on a phone"), BorderLayout.CENTER)
         panel.add(
             ActionLink("Copy link") { CopyPasteManager.getInstance().setContents(StringSelection(link)) }.apply {
                 toolTipText = plainTip(link)
@@ -50,15 +50,17 @@ class PhoneLinkDialog(project: Project, private val link: String) : DialogWrappe
     }
 }
 
-/** Draws a QR symbol dark on white with a 4-module quiet zone, whatever the IDE theme. */
-private class QrPanel(private val qr: QrCode) : JPanel() {
+/** Draws the QR symbol of [text] dark on white with a 4-module quiet zone, whatever the IDE theme
+ *  (also the desktop hub's "Share" and "Export" codes). */
+internal class QrPanel(text: String, name: String) : JPanel() {
+    private val qr: QrCode = QrCode.encode(text, QrCode.Ecc.M)
     private val quiet = 4
     private val cell = JBUI.scale(6)
 
     init {
         val side = (qr.size + quiet * 2) * cell
         preferredSize = Dimension(side, side)
-        accessibleContext.accessibleName = "QR code of the link that opens the app on a phone"
+        getAccessibleContext().accessibleName = name
     }
 
     override fun paintComponent(g: Graphics) {

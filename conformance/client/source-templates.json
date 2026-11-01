@@ -1,0 +1,19 @@
+{
+  "about": "A REST source URL template interpolated against the component state must give the SAME url on the direct leg (the browser: libs/mateu interpolateUrl, Redwood interpolateRestUrl) and the proxied one (the server: Java TemplateInterpolator.interpolateUrl) — flipping a source to proxy: true must not change what is sent. Placeholders here sit in the query, where every leg percent-encodes the value as a query component. Run by the Java core (SourceTemplateCorpusTest), libs/mateu (sourceTemplates.conformance.test.ts) and Redwood (test-conformance.mjs). The server evaluates the expression subset a source uses (ProxyExpression): `data`, `appState` and `appData` exist only in the browser.",
+  "cases": [
+    { "name": "a plain path", "template": "https://api.example.com/x?q=${state.q}", "state": { "q": "apollo 11" }, "expected": "https://api.example.com/x?q=apollo%2011" },
+    { "name": "a fallback for a missing value", "template": "https://api.example.com/x?page=${state.page ?? 0}", "state": {}, "expected": "https://api.example.com/x?page=0" },
+    { "name": "arithmetic over a fallback (offset paging)", "template": "https://api.example.com/x?offset=${(state.page ?? 0) * 20}", "state": { "page": 2 }, "expected": "https://api.example.com/x?offset=40" },
+    { "name": "arithmetic with nothing in the state", "template": "https://api.example.com/x?offset=${(state.page ?? 0) * 20}", "state": {}, "expected": "https://api.example.com/x?offset=0" },
+    { "name": "a conditional", "template": "https://api.example.com/x?dir=${state.desc ? 'desc' : 'asc'}", "state": { "desc": true }, "expected": "https://api.example.com/x?dir=desc" },
+    { "name": "a conditional whose untaken branch would fail", "template": "https://api.example.com/x?f=${state.sort ? state.sort[0].fieldId : ''}", "state": {}, "expected": "https://api.example.com/x?f=" },
+    { "name": "optional chaining into a list", "template": "https://api.example.com/x?sort=${state.sort?.[0]?.fieldId ?? ''}", "state": { "sort": [{ "fieldId": "name" }] }, "expected": "https://api.example.com/x?sort=name" },
+    { "name": "optional chaining on a missing value", "template": "https://api.example.com/x?sort=${state.sort?.[0]?.fieldId ?? ''}", "state": {}, "expected": "https://api.example.com/x?sort=" },
+    { "name": "a list value is `a,b` on every leg", "template": "https://api.example.com/x?status=${state.status}", "state": { "status": ["OPEN", "CLOSED"] }, "expected": "https://api.example.com/x?status=OPEN%2CCLOSED" },
+    { "name": "a whole number keeps no decimals", "template": "https://api.example.com/x?n=${state.n + 1}", "state": { "n": 41 }, "expected": "https://api.example.com/x?n=42" },
+    { "name": "String and string concatenation", "template": "https://api.example.com/x?k=${String(state.year) + '-' + state.code}", "state": { "year": 2026, "code": "A" }, "expected": "https://api.example.com/x?k=2026-A" },
+    { "name": "Number of a text", "template": "https://api.example.com/x?n=${Number(state.n) * 2}", "state": { "n": "21" }, "expected": "https://api.example.com/x?n=42" },
+    { "name": "a null-safe member of a missing value renders empty", "template": "https://api.example.com/x?v=${state.missing?.deep}", "state": {}, "expected": "https://api.example.com/x?v=" },
+    { "name": "comparison and logical operators", "template": "https://api.example.com/x?big=${state.n > 10 && state.n <= 100}", "state": { "n": 42 }, "expected": "https://api.example.com/x?big=true" }
+  ]
+}

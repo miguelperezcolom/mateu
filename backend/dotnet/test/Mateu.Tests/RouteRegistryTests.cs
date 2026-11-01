@@ -80,6 +80,24 @@ public class RouteRegistryTests
     }
 
     [Fact]
+    public void The_full_precedence_order_matches_the_java_server()
+    {
+        // fixed > client state > path > query > defaults; a null in the client state is no value
+        var order = Registry().Match("orders/42")!;
+        Assert.Equal("7", order.Params(new Dictionary<string, object?> { ["id"] = "7" })["id"]);
+        Assert.Equal("42", order.Params(new Dictionary<string, object?> { ["id"] = null })["id"]);
+        Assert.Equal("42", order.Params(null, new Dictionary<string, string> { ["id"] = "9" })["id"]);
+        Assert.Equal("x", order.Params(null, new Dictionary<string, string> { ["q"] = "x" })["q"]);
+        Assert.Equal("mine", order.Params(new Dictionary<string, object?> { ["q"] = "mine" },
+            new Dictionary<string, string> { ["q"] = "x" })["q"]);
+        var seeded = Registry().Match("tickets")!;
+        Assert.Equal("3", seeded.Params(null, new Dictionary<string, string> { ["page"] = "3" })["page"]);
+        Assert.Equal(1, Convert.ToInt32(seeded.Params(new Dictionary<string, object?> { ["page"] = null })["page"]));
+        Assert.Equal("open", Registry().Match("tickets/open")!
+            .Params(null, new Dictionary<string, string> { ["status"] = "all" })["status"]);
+    }
+
+    [Fact]
     public void A_static_route_is_not_swallowed_by_its_parameterised_sibling()
     {
         // orders/:id is declared BEFORE orders/new in the fixture on purpose: matching must not

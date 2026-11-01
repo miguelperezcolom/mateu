@@ -110,6 +110,14 @@ public class ActionMapper {
     if (Boolean.TRUE.equals(httpRequest.getAttribute("edit"))) {
       actions.add(Action.builder().id("save").validationRequired(true).bubble(true).build());
     }
+    // a crud's routed creation / edit form: the editor's own @Buttons bubble to the crud with the
+    // form's values, like create / save (see EditorButtons)
+    if (Boolean.TRUE.equals(httpRequest.getAttribute("new"))
+        || Boolean.TRUE.equals(httpRequest.getAttribute("edit"))) {
+      actions.addAll(
+          io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.EditorButtons.actions(
+              Boolean.TRUE.equals(httpRequest.getAttribute("new")), serverSideObject));
+    }
 
     actions.addAll(fieldActions);
 

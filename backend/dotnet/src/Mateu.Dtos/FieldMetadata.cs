@@ -121,8 +121,34 @@ public record RemoteCoordinatesDto(string Action)
 public record RestDataSourceDto(string Url)
 {
     public string? Method { get; init; }
+
+    /// <summary>The request headers — read by the SERVER for a proxied fetch. On the wire they are
+    /// written only for a direct (browser) source: a proxied one is called from the server's own
+    /// table, and its headers are where an API key gets written (mirrors Java's
+    /// RestDataSource.forTheClient).</summary>
+    [JsonIgnore]
     public Dictionary<string, string>? Headers { get; init; }
+
+    /// <summary>The body template — like <see cref="Headers"/>, kept off the wire when proxied.</summary>
+    [JsonIgnore]
     public string? Body { get; init; }
+
+    [JsonInclude]
+    [JsonPropertyName("headers")]
+    private Dictionary<string, string>? WireHeaders
+    {
+        get => Proxy ? null : Headers;
+        init => Headers = value;
+    }
+
+    [JsonInclude]
+    [JsonPropertyName("body")]
+    private string? WireBody
+    {
+        get => Proxy ? null : Body;
+        init => Body = value;
+    }
+
     public string? ItemsPath { get; init; }
     public string? ValuePath { get; init; }
     public string? LabelPath { get; init; }

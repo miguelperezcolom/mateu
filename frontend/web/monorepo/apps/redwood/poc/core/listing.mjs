@@ -1,7 +1,10 @@
 import { applyColumnPrefs } from '../prefs.mjs'
 import { walkWithinSurface } from './tree.mjs'
 import { dragMimeOf } from './atoms.mjs'
-import { buttonRouteOf, columnPrefsReader, islandContentOf } from './content.mjs'
+import { buttonRouteOf, columnPrefsReader, islandContentOf, interpolate, isExternalRoute, rowRouteOf, dataProviderFactory } from './content.mjs'
+import { safeHref } from './display.mjs'
+import { stableHashOf } from './overviews.mjs'
+import { urlOfRoute } from '../mount.mjs'
 import { optionsOf } from './rowEditor.mjs'
 import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
 import { chromeText, chromeLanguage, moneyText } from '../i18n.mjs'
@@ -27,6 +30,161 @@ export function findFirst(tree, test) {
   let found = null
   walkWithinSurface(tree, (n) => { if (!found && test(n)) found = n })
   return found
+}
+
+// ── NESTED LISTINGS: a Listing inside a page template's content ─────────────────────────────────
+//
+// A page that DECLARES a template (YAML `template:`) lays its content out in the template's slots,
+// and a Listing among that content (a general overview's «launches from here», a multimedia page's
+// gallery section, a welcome's featured cards, a collection detail's works) is PART of that content,
+// as on Vaadin — not the page's own listing. Taken for the page listing it was hoisted out of its
+// slot: painted on top with its search bar (and the page painted again below it), or not at all.
+// Only the templates whose listing IS the page (a hero search's results, a data management page's
+// table, a collection detail's collection slot) keep the listing branch.
+
+/** The templates whose listing is the PAGE's own (the listing branch, or the slot holding it). */
+const PAGE_LISTING_TEMPLATES = { HeroSearchPage: true, DataManagementPage: true, CollectionDetailPage: true }
+
+/** The template a page DECLARES (`template:` on its Form, served wrapped in its ServerSide), or ''. */
+function declaredTemplateTypeOf(tree) {
+  let node = tree
+  while (node && node.type === 'ServerSide' && (node.children || []).length === 1) node = node.children[0]
+  const md = node && node.metadata
+  return md && md.type === 'Form' && md.template && md.template.type ? String(md.template.type) : ''
+}
+
+/** Whether a page's template holds its listings as CONTENT (nested listings) rather than as the page. */
+export function templateNestsListings(tree) {
+  const type = declaredTemplateTypeOf(tree)
+  return !!type && !PAGE_LISTING_TEMPLATES[type]
+}
+
+/** Every Listing (Crud) of the surface, in document order (not crossing into another surface). */
+function cruds(tree) {
+  const out = []
+  walkWithinSurface(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud') out.push(n) })
+  return out
+}
+
+/** The PAGE's own listing — the one the listing branch paints: the first Listing of a page without a
+ *  template; the collection slot's on a collection detail; none on a template that nests them. */
+export function pageListingNodeOf(tree) {
+  const all = cruds(tree)
+  if (!all.length) return null
+  const type = declaredTemplateTypeOf(tree)
+  if (!type) return all[0]
+  if (!PAGE_LISTING_TEMPLATES[type]) return null
+  if (type === 'CollectionDetailPage') {
+    const list = findFirst(tree, (n) => n && n.id === 'collection-detail-list')
+    return (list && cruds(list)[0]) || null
+  }
+  return all[0]
+}
+
+/** The listings painted IN the content of a templated page (they read their rows from a source). */
+export function nestedListingNodesOf(tree) {
+  const own = pageListingNodeOf(tree)
+  const ownKey = own ? nestedListingKeyOf(own) : null
+  return cruds(tree).filter((n) => n !== own && n.metadata.rowsSource && (!ownKey || nestedListingKeyOf(n) !== ownKey))
+}
+
+/** A nested listing's key — where its rows are kept (ctx.data[key]) and the suffix of the action that
+ *  loads them. From what it IS (its source, columns, title), not its position: the slots are projected
+ *  from sub-trees, where the page's document order is not known. */
+export function nestedListingKeyOf(node) {
+  const md = (node && node.metadata) || {}
+  const columns = leafColumnsOf(md.columns || []).map((c) => (c && (c.metadata ? c.metadata.id || c.id : c.id)) || '')
+  return 'nestedListing-' + stableHashOf(JSON.stringify([md.rowsSource || null, columns, md.title || '', md.rowRoute || '']))
+}
+
+/** The OnLoad action that loads a nested listing's rows (answered in the browser, restSources.mjs). */
+export const NESTED_LISTING_ACTION = '__nestedlisting__:'
+
+/** The load actions of a context's nested listings. */
+export function nestedListingTriggersOf(ctx) {
+  const tree = ctx && ctx.tree
+  if (!tree) return []
+  return nestedListingNodesOf(tree).map((n) => NESTED_LISTING_ACTION + nestedListingKeyOf(n))
+}
+
+/**
+ * A nested listing as an ATOM of the content it sits in: its rows (ctx.data[key], once loaded) as
+ * picture cards (`gridLayout: cards`) or as a table; a row with a `rowRoute` opens it (a card is an
+ * action card that navigates, a table row's first column a link). Its first page only: no search
+ * bar, filters or pager — those belong to a page's own listing.
+ */
+export function nestedListingAtomOf(node, ctx) {
+  const md = (node && node.metadata) || {}
+  const key = nestedListingKeyOf(node)
+  const state = (ctx && ctx.state) || {}
+  const loaded = ctx && ctx.data ? ctx.data[key] : null
+  const page = (loaded && loaded.page) || {}
+  const columns = leafColumnsOf(md.columns || []).map((c) => ({ ...(c.metadata || c), id: (c.metadata && c.metadata.id) || c.id }))
+    .filter((c) => c.id && c.dataType !== 'actionGroup')
+  const rows = labelCellRows(page.content || [], columns)
+  const text = (v) => (v == null ? '' : typeof v === 'object' ? String(v.value ?? v.message ?? v.label ?? '') : String(v))
+  const imageCol = columns.find((c) => c.stereotype === 'image')
+  const titleCol = columns.find((c) => c.identifier && c !== imageCol) || columns.find((c) => c !== imageCol)
+  const cellOf = (row, c) => text(labelColumn(c) ? row[c.id + LABEL_CELL_SUFFIX] : row[c.id])
+  const asCards = md.gridLayout === 'cards' || !!md.showCards
+  const routeOf = (row) => rowRouteOf(md.rowRoute, row)
+  const cards = asCards ? rows.map((row, i) => ({
+    key: String(row._rowNumber != null ? row._rowNumber : i),
+    image: imageCol ? text(row[imageCol.id]) : '',
+    title: titleCol ? cellOf(row, titleCol) : '',
+    lines: columns.filter((c) => c !== imageCol && c !== titleCol)
+      .map((c) => ({ label: c.label || c.id, value: cellOf(row, c) }))
+      .filter((l) => l.value !== ''),
+    route: routeOf(row),
+  })) : []
+  const tableRows = asCards ? [] : rows.map((row, i) => {
+    const route = routeOf(row)
+    // a route that is a whole URL is a plain link to it, in a new tab
+    const external = !!route && isExternalRoute(route)
+    return { ...row, __key: String(row._rowNumber != null ? row._rowNumber : i),
+      __href: external ? safeHref(route) : route ? urlOfRoute(route.charAt(0) === '/' ? route : '/' + route) : '',
+      __target: external ? '_blank' : '', __rel: external ? 'noopener noreferrer' : '' }
+  })
+  const tableColumns = asCards ? [] : columns.map((c, i) => {
+    const field = labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id
+    // its first page only, as it came: no sorting (a header arrow that sorted nothing)
+    const def = { headerText: c.label || c.id, field, id: c.id, sortable: 'disabled' }
+    if (c.stereotype === 'image') def.template = 'cellNestedImage'
+    else if (md.rowRoute && c === titleCol) def.template = 'cellNestedLink'
+    return def
+  })
+  // a listing with row selection (a bulk toolbar action: "Delete selected") marks its rows like the
+  // page's own listing does — on a table; a card grid has no selection in Redwood
+  const selectable = !asCards && !!(md.rowsSelectionEnabled || md.multipleRowSelectionEnabled)
+  const toolbar = (md.toolbar || []).map((b) => (b && b.metadata) || b)
+    .filter((b) => b && b.actionId)
+    .map((b) => ({
+      actionId: String(b.actionId),
+      label: interpolate(String(b.label || b.actionId), state),
+      chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      disabled: !!b.disabled,
+      parameters: {},
+      route: '',
+      surfaceId: '',
+      fromNested: false,
+    }))
+  return {
+    isNestedListing: true,
+    nestedKey: key,
+    title: interpolate(String(md.title || ''), state),
+    asCards,
+    asTable: !asCards,
+    cards,
+    columns: tableColumns,
+    rows: tableRows,
+    toolbar,
+    hasToolbar: toolbar.length > 0,
+    selectionMode: selectable ? { row: 'multiple' } : { row: 'none' },
+    adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
+    loaded: !!loaded,
+    isEmpty: !!loaded && rows.length === 0,
+    emptyText: md.emptyStateMessage || chromeText('noData'),
+  }
 }
 
 /** Projection of the LISTING (Crud component): columns + rows (from the data axis) + search.
@@ -79,6 +237,8 @@ export function rowClickOpensRecord(listing) {
  * className), and a click inside one never opens the row.
  */
 export const NO_OPEN_CELL_CLASS = 'mateu-cell-noopen'
+/** On a listing's table when a row click opens something: only then the rows show the hand cursor. */
+export const ROWS_OPEN_CLASS = 'mateu-rows-open'
 const DISPLAY_DATA_TYPES = ['action', 'actionGroup', 'menu', 'component', 'link', 'button']
 const DISPLAY_STEREOTYPES = ['button', 'link', 'html']
 export function isDisplayColumn(c) {
@@ -115,7 +275,7 @@ export function listingSearchedOf(ctx) {
 
 /** The pre-search blocks while no search has answered yet; null otherwise (or when none). */
 export function listingPreSearchBlocksOf(ctx) {
-  const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+  const crudNode = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
   const pre = crudNode && crudNode.metadata && Array.isArray(crudNode.metadata.preSearch) ? crudNode.metadata.preSearch : []
   if (!pre.length || listingSearchedOf(ctx)) return null
   // kind island: as host content the first EmptyState is the page's own one, and skipped
@@ -158,7 +318,7 @@ export function listingHeaderBlocksOf(ctx) {
 }
 
 export function listingBaseOf(ctx, opts = {}) {
-  const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+  const crudNode = ctx && ctx.tree ? pageListingNodeOf(ctx.tree) : null
   if (!crudNode) return null
   // column groups flattened to their leaf columns (leafColumnsOf): from here on a listing only
   // ever sees plain columns
@@ -171,13 +331,17 @@ export function listingBaseOf(ctx, opts = {}) {
   const tableColumns = lines.extra.length ? lines.first : (md.columns || [])
   // what each cell PAINTS (labels, badges, clipped/abbreviated text), before group rows are
   // interleaved: the content a compact column is sized to (columnSizingOf)
-  const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
+  // TREE (gridLayout: tree): the rows nest under `children`; the table draws them flattened, each
+  // level indented under its parent (always expanded, like the shared neutral tree of the web lib)
+  const tree = md.gridLayout === 'tree'
+  const content = tree ? treeRowsOf(page.content || [], tableColumns) : (page.content || [])
+  const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(content, md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
   const footers = aggregateFootersOf(md, (ctx.data || {}).crud) || {}
   // the columns sized by the DEFAULT rule (they declare no width/flexGrow): id → their compact
   // width (fit) — finishColumnSizing lets them grow when no other column does
   const fitColumns = {}
   const defaultSized = []
-  const columns = tableColumns.map((col) => {
+  const columns = tableColumns.map((col, colIndex) => {
     const c = col.metadata || col
     const def = { headerText: c.label || c.id, field: c.id }
     // editable cell → editor template per type (always visible, commit per cell:
@@ -214,9 +378,13 @@ export function listingBaseOf(ctx, opts = {}) {
     // Abbreviated UUID: a text column whose values are UUIDs is painted "…-<last block>"
     // with the whole UUID in the tooltip. The row does NOT change: the cell reads a separate field,
     // precomputed in uuidCellRows (VB CSP: the template cannot trim the text).
-    if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
+    if (!def.template && uuidColumnIds(content, md.columns || []).indexOf(c.id) >= 0) {
       def.field = c.id + UUID_CELL_SUFFIX
       def.template = 'cellUuid'
+    }
+    // the tree column (the first one) reads its indented text (treeRowsOf)
+    if (tree && colIndex === 0 && !def.template && def.field === c.id) {
+      def.field = c.id + TREE_CELL_SUFFIX
     }
     const align = alignOf(c)
     if (align && !def.template) {
@@ -247,6 +415,12 @@ export function listingBaseOf(ctx, opts = {}) {
     if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
     return def
   }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : [])
+  const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
+  // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
+  // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
+  const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath
+  const tableClass = (lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4)
+    : 'oj-sm-12') + (rowsOpen ? ' ' + ROWS_OPEN_CLASS : '')
   return {
     // PAGINATION: the page the server sent (Page: pageNumber/pageSize/totalElements) →
     // table footer with the range and the controls; precomputed (VB CSP)
@@ -257,7 +431,7 @@ export function listingBaseOf(ctx, opts = {}) {
     rowRoute: md.rowRoute || '',
     searchable: !!md.searchable,
     pageSize: md.pageSize || 20,
-    emptyStateMessage: md.emptyStateMessage || 'No data.',
+    emptyStateMessage: md.emptyStateMessage || chromeText('noData'),
     columns: finishColumnSizing(columns, fitColumns),
     fitColumns,
     defaultSizedColumns: defaultSized,
@@ -271,7 +445,7 @@ export function listingBaseOf(ctx, opts = {}) {
     // number of extra lines (0 = normal listing) and the table class that makes room for them
     // (PRECOMPUTED: VB CSP)
     extraLines: lines.extra.length,
-    tableClass: lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4) : 'oj-sm-12',
+    tableClass,
     // Redwood table density: the compact 'grid' is for WORK tables —
     // it switches on when the crud is inline-editable (@InlineEditing marks the columns
     // as editable on the wire); a lookup listing stays at 'list' (airy).
@@ -288,7 +462,7 @@ export function listingBaseOf(ctx, opts = {}) {
     // row is clicked. A NAVIGABLE row (first column with actionId 'view') still opens the record:
     // the detail is for lookup listings, where the click had no other destination.
     detailPath: md.detailPath || null,
-    navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
+    navigable,
     // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
     // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
     // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
@@ -482,6 +656,40 @@ export function withListingSelection(componentState, listing, rows, selection) {
   return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
 }
 
+// The marked rows of each listing NESTED in a page's content, by its key (the oj-table's
+// selection, written by the nestedListingSelected chain). A nested listing's rows are not the
+// page's listing, so they have no place in mateuListingSelection.
+const nestedSelections = new Map()
+
+/** What is marked on a nested listing: oj-table's KeySet (`detail.value.row`), kept as a selection. */
+export function setNestedSelection(key, keySet) {
+  if (!key) return
+  const selection = selectionOfKeySet(keySet)
+  if (selection.all || selection.keys.length) nestedSelections.set(String(key), selection)
+  else nestedSelections.delete(String(key))
+}
+
+/** Forgets what was marked on a nested listing (its rows were reloaded). */
+export function clearNestedSelection(key) {
+  nestedSelections.delete(String(key))
+}
+
+/**
+ * The componentState of an action declared on a NESTED listing's toolbar (a bulk "Delete
+ * selected"): its marked rows as crud_selected_items, as Vaadin sends them. Any other action, or
+ * a page with no such listing, leaves the state untouched.
+ */
+export function withNestedSelection(componentState, host, actionId) {
+  const tree = host && host.tree
+  if (!tree || !actionId) return componentState
+  const owner = nestedListingNodesOf(tree).find((n) => ((n.metadata && n.metadata.toolbar) || [])
+    .some((b) => ((b && b.metadata) || b || {}).actionId === actionId))
+  if (!owner) return componentState
+  const key = nestedListingKeyOf(owner)
+  const rows = (((host.data || {})[key] || {}).page || {}).content || []
+  return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, nestedSelections.get(key)) })
+}
+
 // rows with @Status columns: the {type, message} value gets stamped with the JET badge
 // class (Redwood, system) — the cell template cannot map (CSP without ternaries)
 export const STATUS_BADGE = {
@@ -526,6 +734,41 @@ export function uuidCellRows(rows, columns) {
 }
 
 export const PRIMARY_CELL_SUFFIX = '__primary'
+
+/** The field the first column of a tree listing paints: its text indented by the row's depth. */
+export const TREE_CELL_SUFFIX = '__treeCell'
+const TREE_INDENT = '\u00a0\u00a0\u00a0\u00a0'
+
+/**
+ * A tree listing's rows (each nesting its next level under `children`) as the FLAT rows a table
+ * draws: depth first, each parent before its children, `_treeDepth` stamped and the first column's
+ * text indented by it in `<id>__treeCell` (VB CSP: the template cannot indent). A row keeps its
+ * `_rowNumber` — the table's key — unless it has none or another row has it already (REST children
+ * carry none; a server may number each level from 0): then it is keyed by its path, `<parent>/<i>`.
+ * The `children` themselves are dropped from the flat row: they are rows of their own now.
+ */
+export function treeRowsOf(rows, columns) {
+  const firstCol = (columns || []).map((c) => (c && c.metadata) || c).find(Boolean)
+  const first = firstCol && firstCol.id
+  const out = []
+  const seen = new Set()
+  const walk = (items, depth, parentKey) => (items || []).forEach((row, i) => {
+    if (!row || typeof row !== 'object') return
+    const { children, ...rest } = row
+    let key = rest._rowNumber
+    if (key == null || seen.has(String(key))) key = parentKey == null ? '_row:' + i : parentKey + '/' + i
+    seen.add(String(key))
+    const flat = { ...rest, _rowNumber: key, _treeDepth: depth }
+    if (first) {
+      const v = rest[first]
+      flat[first + TREE_CELL_SUFFIX] = TREE_INDENT.repeat(depth) + (v == null ? '' : typeof v === 'object' ? (v.message || v.label || '') : String(v))
+    }
+    out.push(flat)
+    if (Array.isArray(children)) walk(children, depth + 1, key)
+  })
+  walk(rows, 0, null)
+  return out
+}
 
 /** The cell (of the technical ROW_LINES_COLUMN column) that paints each row's extra lines. */
 export const ROW_LINES_FIELD = '__rowLines'

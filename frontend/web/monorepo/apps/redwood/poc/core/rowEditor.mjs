@@ -3,7 +3,7 @@ import { RICH_TEXT_STEREOTYPES } from './atoms.mjs'
 import { converterOf, interpolate } from './content.mjs'
 import { ROW_LINES_FIELD, findByType, isBlank, listingOf, withoutDefaultSizing } from './listing.mjs'
 import { chromeText, chromeLanguage } from '../i18n.mjs'
-import { evaluateExpression, evaluateTemplate } from '../rules.mjs'
+import { evaluateExpression, evaluateTemplate, valueChangeActionOf } from '../rules.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
 // ── ROW EDITOR of a form list (@DetailFormCustomisation position = modal) ──
@@ -21,15 +21,18 @@ import { evaluateExpression, evaluateTemplate } from '../rules.mjs'
 //    its first step.
 //  - The container answers a State with the new list and `_show_detail[campo] = false`
 //    (closes); `_create-and-stay` also answers a new row in `<campo>-container`.
-//  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row).
+//  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row) — or, for a row
+//    whose fields show by its values (VisibilitySupplier), the neighbour's re-built ServerSide.
+//  - `<campo>_refresh-detail` (the row's OnValueChange trigger, see rowValueChangeActionOf)
+//    answers only the re-built ServerSide in `<campo>-container`, with the edited row as state.
 //  - The row's lookups (`search-<campo>`) are resolved by the ROW's ServerSide with the
 //    row's state: its response is a data-only fragment to its id.
 
 /** The actions a row editor sends to the list's container: `rooms_create`… */
-export const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down)$/
+export const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down|refresh-detail)$/
 
 /** Verbs that carry the dialog's row in parameters.initiatorState. */
-export const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true }
+export const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true, 'refresh-detail': true }
 
 /** Verbs that validate the row before leaving (the empty required fields). */
 export const ROW_VALIDATING_VERBS = { create: true, 'create-and-stay': true, save: true }
@@ -236,6 +239,7 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   let value = raw == null || raw === '' ? null : raw
   // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
   if (widget.isMoney && value != null && typeof value === 'object') value = value.value
+  if (widget.isDateRange) return { ...widget, value: dateRangeEndsOf(raw), colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)), messagesCustom: [] }
   if (widget.isBoolean) value = !!raw
   else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
   else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -386,7 +390,7 @@ export function searchPickerOf(reg) {
     columns: withoutDefaultSizing(listing.columns || [], listing).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
     rows: listing.rows || [],
     isEmpty: !!listing.isEmpty,
-    emptyText: listing.emptyStateMessage || 'No data.',
+    emptyText: listing.emptyStateMessage || chromeText('noData'),
     selectionMode: { row: multi ? 'multiple' : 'none' },
     pageSize: listing.pageSize || 20,
     paging: listing.paging,
@@ -412,7 +416,7 @@ function listingOverlayOf(id, ctx) {
     columns: withoutDefaultSizing(listing.columns || [], listing).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
     rows: listing.rows || [],
     isEmpty: !!listing.isEmpty,
-    emptyText: listing.emptyStateMessage || 'No data.',
+    emptyText: listing.emptyStateMessage || chromeText('noData'),
     selectionMode: { row: 'none' },
     pageSize: listing.pageSize || 20,
     paging: listing.paging,
@@ -509,7 +513,8 @@ export function withSearchableIds(projection, fieldId, ids) {
 // template (see poc/templates/fields-extra.html).
 export const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
 export const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
-export const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
+// `image` is an image BY ITS URL (typed in, previewed); `uploadableImage` is the one you upload
+export const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'url', signature: 'signature', camera: 'camera' }
 
 /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
 export function extraWidgetOf(f, options, value) {
@@ -575,9 +580,41 @@ export function committedValueOf(previous, value) {
   return value
 }
 
+/** A `dateRange` form field ({from, to} on the wire, as Vaadin's vcf-date-range-picker edits it). */
+export function isDateRangeField(md) {
+  return !!md && (md.dataType === 'dateRange' || md.stereotype === 'dateRange')
+}
+
+/** The ids a date range's two inputs edit (`<field>#from`, `<field>#to`): JET has no range picker, so
+ *  each end is its own oj-input-date and its edit is folded back into the field (rangeEditOf). */
+const RANGE_PART = /^(.+)#(from|to)$/
+
+/** A range's ends from its wire value: {from, to}, or Vaadin's "from;to" text. */
+export function dateRangeEndsOf(value) {
+  if (value && typeof value === 'object') return { from: value.from || null, to: value.to || null }
+  if (typeof value === 'string' && value.indexOf(';') >= 0) {
+    const [from, to] = value.split(';')
+    return { from: from || null, to: to || null }
+  }
+  return { from: null, to: null }
+}
+
+/**
+ * The edit of one END of a date range (its input's field id is `<field>#from|to`) as the field's new
+ * value — `{fieldId, value: {from, to}}`, the other end kept from the draft or else the state — or null
+ * when the id is not a range end (the edit is the field's own).
+ */
+export function rangeEditOf(fieldId, draft, state, value) {
+  const m = RANGE_PART.exec(String(fieldId || ''))
+  if (!m) return null
+  const id = m[1]
+  const current = draft && id in draft ? draft[id] : (state || {})[id]
+  return { fieldId: id, value: { ...dateRangeEndsOf(current), [m[2]]: value == null || value === '' ? null : value } }
+}
+
 /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
 export function isExtraLayoutField(md) {
-  return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+  return !!(isDateRangeField(md) || md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
     || md.stereotype === 'email' || md.stereotype === 'link'
     || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
     || (md.stereotype === 'richText' && !md.readOnly)
@@ -592,10 +629,27 @@ export function isExtraLayoutField(md) {
  *  server shows as a fact — and send it back. */
 export const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
 
+/** The date range widget's own flags: its two ends as parts, each with the id its edit carries. */
+function dateRangeWidgetOf(f, value) {
+  const ends = dateRangeEndsOf(value)
+  const label = f.label || f.fieldId
+  // the first end carries the field's label, the second says it is the end of the range
+  const part = (end, key) => ({
+    fieldId: f.fieldId + '#' + end,
+    label: key ? chromeText(key) : label,
+    value: ends[end],
+    required: !!f.required,
+    readonly: !!f.readOnly,
+  })
+  return { isDateRange: true, rangeParts: [part('from', ''), part('to', 'rangeTo')] }
+}
+
 export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
   if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
-  const extra = extraWidgetOf(f, optionsOf(f, data), value)
+  // a DATE RANGE: two oj-input-date (from, to), each editing its end (rangeEditOf) — the field was
+  // not drawn at all (its type is not a layout type)
+  const extra = isDateRangeField(f) ? dateRangeWidgetOf(f, value) : extraWidgetOf(f, optionsOf(f, data), value)
   if (extra) {
     const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
     return {
@@ -951,6 +1005,26 @@ export function lookupRequestOf(reg, rowCtxId, fieldId, opts = {}) {
       outbound: { ...(holder.outbound || {}), serverSideType: row.tree.serverSideType },
     },
   }
+}
+
+/**
+ * The action a change of `fieldId` in the open ROW EDITOR fires: the row's OnValueChange trigger,
+ * over the row's state with its draft — the server's `<campo>_refresh-detail` when the row's
+ * VisibilitySupplier depends on that field (a block's type: the editor is re-built with the fields
+ * of the new type). null when no row editor is open or the field fires nothing.
+ */
+export function rowValueChangeActionOf(reg, fieldId, rowDraft = {}, opts = {}) {
+  const holder = reg && reg.contexts && reg.contexts[opts.holderId || HOST_ID]
+  if (!holder || !holder.tree) return null
+  const state = holder.state || {}
+  const show = state._show_detail || {}
+  for (const listId of Object.keys(modalListsOf(holder.tree))) {
+    if (!(show[listId] === true || state[listId + '_show_detail'] === true)) continue
+    const ctx = reg.contexts[listId + '-container']
+    if (!ctx || !ctx.tree) continue
+    return valueChangeActionOf(ctx, fieldId, { ...(ctx.state || {}), ...(rowDraft || {}) })
+  }
+  return null
 }
 
 /**

@@ -24,7 +24,7 @@
         <java.version>21</java.version>
         <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
              -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
-        <mateu.version>3.0-beta.25</mateu.version>
+        <mateu.version>3.0-beta.32</mateu.version>
     </properties>
 
     <dependencies>
@@ -62,8 +62,7 @@
              target/mateu-bundle/ (serve it at the root of its host, with an SPA fallback; Redwood
              pre-renders every route). Reads go from the browser straight to swapi.mateu.io. The WRITES
              are proxy sources (the X-Api-Key must not reach the browser), so the bundle is a hybrid:
-             those fall through to a Mateu backend at the same origin's /mateu/** (see
-             deploy/demos/k8s/41-demo-starwars-redwood.yaml), not staticOnly. -->
+             those fall through to a Mateu backend at the same origin's /mateu/**, not staticOnly. -->
         <profile>
             <id>redwood-bundle</id>
             <dependencies>

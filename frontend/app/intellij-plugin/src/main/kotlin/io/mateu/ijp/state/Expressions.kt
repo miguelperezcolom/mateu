@@ -17,8 +17,39 @@ object Expressions {
     /** `i18n.orders.title` — the translation scope the server resolves (TranslationRegistry). */
     private val I18N_KEY = Regex("^i18n\\.([A-Za-z0-9_][A-Za-z0-9_.\\-]*)$")
 
+    /**
+     * A request BODY template: when the request declares JSON (a `Content-Type` naming json), every
+     * text VALUE is JSON-escaped where it lands — the template itself never is. `{"name":"${state.name}"}`
+     * broke on any value with a quote, a backslash or a newline (the endpoint answered 400). Numbers
+     * and booleans are left alone. libs/mateu jsonTemplate.ts, RN core/jsonTemplate.ts.
+     */
+    fun interpolateBody(template: String?, headers: Map<String, String>, ctx: Map<String, Any?>): String =
+        interpolate(template, ctx, json = declaresJson(headers))
+
+    /** Whether a request declares a JSON body, which is when its values need escaping. */
+    fun declaresJson(headers: Map<String, String>): Boolean =
+        headers.any { (name, value) -> name.equals("content-type", ignoreCase = true) && value.lowercase().contains("json") }
+
+    /** Escapes a value for the inside of a JSON string, without adding the surrounding quotes. */
+    fun jsonEscape(value: String): String = buildString {
+        for (ch in value) {
+            when (ch) {
+                '"' -> append("\\\"")
+                '\\' -> append("\\\\")
+                '\n' -> append("\\n")
+                '\r' -> append("\\r")
+                '\t' -> append("\\t")
+                '\b' -> append("\\b")
+                '\u000C' -> append("\\f")
+                else -> if (ch < ' ') append("\\u%04x".format(ch.code)) else append(ch)
+            }
+        }
+    }
+
     /** Replaces every `${expr}` with its evaluated value ('' on failure/null). */
-    fun interpolate(template: String?, ctx: Map<String, Any?>): String {
+    fun interpolate(template: String?, ctx: Map<String, Any?>): String = interpolate(template, ctx, json = false)
+
+    private fun interpolate(template: String?, ctx: Map<String, Any?>, json: Boolean): String {
         if (template == null || !template.contains("\${")) return template ?: ""
         return Regex("\\$\\{([^}]+)}").replace(template) { m ->
             // `${i18n.key}` is resolved by the SERVER for the caller's language; one that reaches the
@@ -29,6 +60,9 @@ object Expressions {
                 when (val v = evaluate(m.groupValues[1].trim(), ctx)) {
                     null -> ""
                     is Double -> if (v % 1.0 == 0.0 && !v.isInfinite()) v.toLong().toString() else v.toString()
+                    is String -> if (json) jsonEscape(v) else v
+                    is com.fasterxml.jackson.databind.JsonNode ->
+                        if (json && v.isTextual) jsonEscape(v.asText()) else v.toString()
                     else -> v.toString()
                 }
             } catch (e: Exception) {

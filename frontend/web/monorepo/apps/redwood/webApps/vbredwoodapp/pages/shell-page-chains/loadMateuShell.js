@@ -129,6 +129,11 @@ define([
       // dragging rows (@DragRows) onto a DropZone: its action with origin and destination
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);
+      // kanban cards: drag between/within columns or the ⋯ select → the content page's kanbanCardMoved
+      bridge.setKanbanMoveSink(({ key, move }) => Actions.fireEvent(window.__mateuShellContext || context, {
+        name: 'application:mateuKanbanMove', payload: { key, move },
+      }));
+      bridge.installKanbans();
       bridge.setKeysActionSink(runPageAction);
       // compare & merge (RecordMerge): picks are DOM state; the merge goes out as a page action
       bridge.installRecordMerges();
@@ -540,7 +545,12 @@ define([
       // are still alive after vbEnter); popstate in path mode, hashchange in hash mode
       if (!window.__mateuHashWired) {
         window.__mateuHashWired = true;
-        window.addEventListener(pathMode ? 'popstate' : 'hashchange', () => {
+        // every entry this app writes carries its place in history, so staying after a refused
+        // back/forward can UNDO the move (historyIndex.mjs) — path mode only: a hashchange has no state
+        if (pathMode) bridge.installHistoryIndex(window);
+        window.addEventListener(pathMode ? 'popstate' : 'hashchange', (event) => {
+          // the echo of our own history.go (the user stayed): nothing to load
+          if (pathMode && !bridge.notePopState(event.state, window)) return;
           // in path mode, going back to '/' is going back to the home
           const route = urlRoute() || (pathMode ? ($application.variables.mateuHomeRoute || '') : '');
           if (route) {

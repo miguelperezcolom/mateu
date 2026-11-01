@@ -384,8 +384,13 @@ class AppSession(
         }
     }
 
+    /** The development-mode live reload follower (io.mateu.ijp.live.LiveReload), stopped with the session. */
+    var liveReload: io.mateu.ijp.live.LiveReload.Follower? = null
+
     /** The session ends (project closed): the stream and the idle watcher stop, the pool too. */
     fun dispose() {
+        liveReload?.stop()
+        liveReload = null
         syncLiveUpdates(false)
         agentChannel?.stop()
         agentChannel = null

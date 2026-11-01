@@ -28,4 +28,31 @@ class TemplateInterpolatorTest {
         .isEqualTo("https://api/x");
     assertThat(TemplateInterpolator.interpolate(null, Map.of(), k -> null)).isEmpty();
   }
+
+  @Test
+  void aMoneyValueIsItsAmountAndItsCurrencyIsReachable() {
+    // what a `dataType: money` field holds; it used to land as `{value=12500000, currency=EUR, …}`
+    var state =
+        Map.<String, Object>of(
+            "v", Map.of("value", 12500000, "currency", "EUR", "locale", "es-ES"),
+            "d", Map.of("value", 1.25E7, "currency", "USD"));
+    var body =
+        TemplateInterpolator.interpolate(
+            "{\"v\":\"${state.v}\",\"c\":\"${state.v.currency}\",\"d\":${state.d}}",
+            state,
+            k -> null,
+            TemplateInterpolator::jsonEscape);
+    assertThat(body).isEqualTo("{\"v\":\"12500000\",\"c\":\"EUR\",\"d\":12500000}");
+  }
+
+  @Test
+  void aNestedPathAndAFallback() {
+    var state = Map.<String, Object>of("a", Map.of("b", "x"), "flat.key", "y");
+    assertThat(TemplateInterpolator.interpolate("${state.a.b}", state, k -> null)).isEqualTo("x");
+    // a flat key that contains a dot still wins, as before
+    assertThat(TemplateInterpolator.interpolate("${state.flat.key}", state, k -> null))
+        .isEqualTo("y");
+    assertThat(TemplateInterpolator.interpolate("${state.none ?? 'n/a'}", state, k -> null))
+        .isEqualTo("n/a");
+  }
 }

@@ -443,6 +443,7 @@ export default defineConfig({
 										{ slug: 'java-user-manual/build/listing' },
 										{ slug: 'java-user-manual/build/relationships-vs-embedded-cruds' },
 										{ slug: 'java-user-manual/build/master-detail' },
+										{ slug: 'java-user-manual/build/master-detail-view' },
 										{ slug: 'java-user-manual/build/orders-customers-order-lines' },
 										{ slug: 'java-user-manual/build/live-reload', label: 'Live reload (development mode)' },
 									],
@@ -532,6 +533,7 @@ export default defineConfig({
 						{ slug: 'native/react-native', label: 'Mobile: the Mateu app' },
 						{ slug: 'ux-patterns/mobile-app', label: 'Mobile: Open on mobile (QR)' },
 						{ slug: 'native', label: 'Desktop: IntelliJ (and native overview)' },
+						{ slug: 'native/desktop-app', label: 'Desktop: the Mateu app' },
 						{ slug: 'design-systems/branding-and-design-tokens', label: 'Branding & design tokens' },
 						{ slug: 'design-systems/accent-strip', label: 'Accent colour' },
 						{

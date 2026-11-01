@@ -13,13 +13,54 @@ public final class SpaFallback {
   private SpaFallback() {}
 
   /**
-   * Whether a GET to {@code path} is a candidate for the fallback at all: not an asset (no dot in
-   * it), not the root itself, not an actuator/management path.
+   * The extensions of the files a web app serves (scripts, styles, images, fonts, media, data). A
+   * path whose last segment ends in one of them is a FILE; any other path — {@code
+   * /people/ana.perez}, {@code /versions/1.2} — is a route, dots and all. Before, any dot made a
+   * path a file, so a deep link to a record whose id has one (a username, a version) was a 404.
+   */
+  public static final String ASSET_EXTENSIONS =
+      "js|mjs|cjs|map|css|html?|json|webmanifest|xml|txt|csv|pdf|png|jpe?g|gif|webp|avif|svg|ico|bmp|tiff?|woff2?|ttf|otf|eot|mp4|webm|ogg|mp3|wav|m4a|wasm|zip|gz|br|ya?ml|md|bcmap";
+
+  /**
+   * A path (or path segment) that does NOT end in an asset's extension, for the frameworks that
+   * route by regex (JAX-RS {@code @Path}, Spring path patterns, Micronaut URI templates, Vert.x).
+   * One negative lookahead per extension and the inline {@code (?i)} flag: no group and no colon,
+   * because Spring rejects capturing groups in a path variable and Micronaut's URI template cuts
+   * the regex at a colon ({@code (?:…)}, {@code (?i:…)}). Same extensions as {@link
+   * #ASSET_EXTENSIONS} (a test keeps them in step).
+   */
+  public static final String NOT_AN_ASSET =
+      "(?i)(?!.*\\.js$)(?!.*\\.mjs$)(?!.*\\.cjs$)(?!.*\\.map$)(?!.*\\.css$)(?!.*\\.html?$)"
+          + "(?!.*\\.json$)(?!.*\\.webmanifest$)(?!.*\\.xml$)(?!.*\\.txt$)(?!.*\\.csv$)(?!.*\\.pdf$)"
+          + "(?!.*\\.png$)(?!.*\\.jpe?g$)(?!.*\\.gif$)(?!.*\\.webp$)(?!.*\\.avif$)(?!.*\\.svg$)"
+          + "(?!.*\\.ico$)(?!.*\\.bmp$)(?!.*\\.tiff?$)(?!.*\\.woff2?$)(?!.*\\.ttf$)(?!.*\\.otf$)"
+          + "(?!.*\\.eot$)(?!.*\\.mp4$)(?!.*\\.webm$)(?!.*\\.ogg$)(?!.*\\.mp3$)(?!.*\\.wav$)"
+          + "(?!.*\\.m4a$)(?!.*\\.wasm$)(?!.*\\.zip$)(?!.*\\.gz$)(?!.*\\.br$)(?!.*\\.ya?ml$)"
+          + "(?!.*\\.md$)(?!.*\\.bcmap$).+";
+
+  private static final java.util.regex.Pattern ASSET =
+      java.util.regex.Pattern.compile(
+          ".*\\.(?:" + ASSET_EXTENSIONS + ")$", java.util.regex.Pattern.CASE_INSENSITIVE);
+
+  /** Whether {@code path} names a file: its last segment ends in an asset's extension. */
+  public static boolean isAsset(String path) {
+    if (path == null) {
+      return false;
+    }
+    var query = path.indexOf('?');
+    var bare = query < 0 ? path : path.substring(0, query);
+    var last = bare.substring(bare.lastIndexOf('/') + 1);
+    return ASSET.matcher(last).matches();
+  }
+
+  /**
+   * Whether a GET to {@code path} is a candidate for the fallback at all: not an asset ({@link
+   * #isAsset}), not the root itself, not an actuator/management path.
    */
   public static boolean candidate(String path) {
     return path != null
         && !path.equals("/")
-        && !path.contains(".")
+        && !isAsset(path)
         && !path.startsWith("/actuator")
         // a parked document is fetched by navigating to it: it must reach its endpoint, never the
         // index page

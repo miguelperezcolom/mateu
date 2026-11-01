@@ -18,3 +18,13 @@ export async function uiSessionId(store: KeyValueStore, uiId: string, make: () =
   await store.set(key, id).catch(() => {});
   return id;
 }
+
+/**
+ * Whether the hub's own top bar offers "Sign out" for the open UI: when the UI signs in and is on
+ * screen. A UI whose app shell has a drawer CLAIMS the bar (the drawer has its own entry) and the bar
+ * is not drawn at all then; a bottom-tabs shell, or one with no menu, keeps the hub's bar — which, before
+ * this, left no way to sign out of it but removing the UI.
+ */
+export function hubBarSignsOut(signsIn: boolean, phase: string): boolean {
+  return signsIn && phase === 'ready';
+}

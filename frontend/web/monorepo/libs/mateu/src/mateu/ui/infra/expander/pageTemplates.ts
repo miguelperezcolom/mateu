@@ -92,8 +92,10 @@ function banner(id: string, t: Node, tiles: FluentNode[], form: Node): FluentNod
     return [hero as unknown as FluentNode, ...tiles]
 }
 
+// The layouts a template lays out are the SERVER's (Java records, spacing off unless set): they
+// say `spacing: false` explicitly, or the YAML default (an authored layout is spaced) would apply.
 const slot = (id: string, content: FluentNode[], style?: string): FluentNode =>
-    ({ type: 'VerticalLayout', id, content, ...(style ? { style } : {}) }) as FluentNode
+    ({ type: 'VerticalLayout', id, content, spacing: false, ...(style ? { style } : {}) }) as unknown as FluentNode
 
 function media(t: Node): FluentNode | null {
     const avatar = t.avatar as Node | undefined
@@ -203,9 +205,9 @@ function guidedProcess(t: Node): FluentNode {
 }
 
 const docked = (panel: Node, style: string): FluentNode => ({
-    type: 'VerticalLayout', ...(panel.id != null ? { id: panel.id } : {}), cssClasses: 'mateu-docked-panel', style,
+    type: 'VerticalLayout', ...(panel.id != null ? { id: panel.id } : {}), cssClasses: 'mateu-docked-panel', style, spacing: false,
     content: [
-        { type: 'HorizontalLayout', style: 'align-items: center; width: 100%;',
+        { type: 'HorizontalLayout', style: 'align-items: center; width: 100%;', spacing: false,
             content: [{ type: 'Text', text: panel.title, size: 'm', noMargins: true, style: 'font-weight: 600; flex: 1;' }] },
         ...nodes(panel.content),
     ],

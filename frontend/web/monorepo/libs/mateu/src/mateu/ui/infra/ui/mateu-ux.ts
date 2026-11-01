@@ -25,7 +25,9 @@ import {applyPreloaded} from "@infra/ui/preloadedIncrement.ts";
 import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
+import {withoutResolvedMicroFrontends} from "@infra/resolvedMicroFrontends.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
+import {mergeOntoScreen} from "@infra/ui/fragmentMerge.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import {actionIsForCurrentView, staleCheck, uxIdentity, ViewGeneration} from "@infra/ui/staleViewGuard.ts";
@@ -138,6 +140,12 @@ export class MateuUx extends ConnectedElement {
      * can reply state-only when the structure is unchanged (phase b). Undefined = full structure.
      */
     private currentStructureHash: string | undefined
+
+    /**
+     * The cached structure this ux painted as a prediction for the load in flight (as stored, JSON),
+     * until the authoritative fragment lands: an identical one only brings state and data.
+     */
+    private seededStructure: string | undefined
 
     /**
      * The component the page chrome below was last stamped from, so a view that re-reads itself
@@ -480,6 +488,7 @@ export class MateuUx extends ConnectedElement {
                         // request still carries knownStructureHash and the server can reply state-only.
                         const cached = getCachedStructure(cacheKey)
                         this.currentStructureHash = cached?.hash
+                        this.seededStructure = cached ? JSON.stringify(cached.component) : undefined
                         if (cached) {
                             this.fragment = {
                                 targetComponentId: this.id,
@@ -588,13 +597,28 @@ export class MateuUx extends ConnectedElement {
             // A state/data-only fragment (e.g. a host-page push emitted while an embedded
             // mediator loads) must not blank the routed content — merge it onto the current
             // fragment instead of replacing it wholesale.
-            this.fragment = {
-                ...this.fragment,
-                state: { ...(this.fragment.state ?? {}), ...(fragment.state ?? {}) },
-                data: { ...(this.fragment.data ?? {}), ...(fragment.data ?? {}) },
-            }
+            // (kept as it is when the reply changes nothing: see mergeOntoScreen)
+            this.fragment = mergeOntoScreen(this.fragment, fragment)
             // The structure on screen may never have been stamped — a cache seed followed by a
             // state-only reply reaches this return without a full structure ever arriving.
+            this.stampPageChrome()
+            return
+        }
+        const seeded = this.seededStructure
+        this.seededStructure = undefined
+        if (seeded && fragment.component && fragment.action !== UIFragmentAction.Add
+            && this.fragment?.component && seeded === JSON.stringify(withoutResolvedMicroFrontends(fragment.component))) {
+            // The authoritative answer IS the predicted structure (a static or YAML page, which
+            // carries no structureHash, so the server could not say so by replying state-only):
+            // keep the components on screen and take only its state and data. Replacing them
+            // re-mounted the page — it flickered and ran its OnLoad (its record fetch) twice.
+            this.fragment = mergeOntoScreen(this.fragment, fragment)
+            this.lastAuthoritativeKey = this.structureCacheKey()
+            if (this.pendingRouteFocus && this.hasRenderedContent) {
+                this.focusNewContent()
+            }
+            this.pendingRouteFocus = false
+            this.hasRenderedContent = true
             this.stampPageChrome()
             return
         }
@@ -763,6 +787,16 @@ export class MateuUx extends ConnectedElement {
            reaches the edges). Inside a padded .app-content the gutter is 0: the shell pads it. */
         :host([data-page-width='edge']) {
             --mateu-edge-header-gutter: var(--mateu-content-gutter, 0px);
+        }
+        /* The server's default page column (max-width 900px — a form's reading measure) only
+           applies to a FIXED page: a full or edge one takes the width it resolved to (pageColumnCap,
+           renderComponent.ts). A fixed view nested in it starts again from 900px. */
+        :host([data-page-width='full']),
+        :host([data-page-width='edge']) {
+            --mateu-page-column-cap: none;
+        }
+        :host([data-page-width='fixed']) {
+            --mateu-page-column-cap: 900px;
         }
 
         /* The aside channel (layout/fabRail.ts): when the page has FABs or a section index, the

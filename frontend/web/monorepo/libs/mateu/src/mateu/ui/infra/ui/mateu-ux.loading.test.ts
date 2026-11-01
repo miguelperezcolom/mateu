@@ -279,6 +279,57 @@ describe('the structure cache', () => {
         expect(call()[15]).toMatchObject({ knownStructureHash: 'h1' })
     })
 
+    it('an answer with the very structure painted from the cache keeps it on screen and takes only its state', async () => {
+        // a static/YAML page carries no structureHash, so the server cannot answer state-only: the
+        // identical structure replaced the predicted one, re-mounting the page — it flickered and
+        // ran its OnLoad (its record fetch) twice
+        const first = await mount({ route: '/yaml' })
+        first.applyFragment(fragment(view('Museum')))
+        document.body.innerHTML = ''
+
+        const again = await mount({ route: '/yaml' })
+        await settle(again)
+        const painted = again.fragment!.component
+        again.applyFragment(fragment(view('Museum'), { name: 'SMK' }))
+        expect(again.fragment!.component).toBe(painted)
+        expect(again.fragment!.state).toMatchObject({ name: 'SMK' })
+
+        // a different structure still replaces it
+        again.applyFragment(fragment(view('Other')))
+        await settle(again)
+        expect(text(again)).toContain('Other')
+    })
+
+    it('a state-only answer that changes nothing keeps what the content loaded itself (a revisited record page)', async () => {
+        // A collection-detail record page revisited: the cache paints its structure, its OnLoad
+        // fetches the record (REST data into the child's own state) while the load is out, and the
+        // server, seeing the echoed hash, answers state-only with the id the seed already had. The
+        // merge made new state/data objects, the child was re-bound to its seed and the record it
+        // had loaded was gone for good (its OnLoad had already fired): the detail went blank.
+        const record = () => view('Earth', { structureHash: 'h-body', initialData: { id: '4' } })
+        const first = await mount({ route: '/bodies/4' })
+        first.applyFragment(fragment(record(), { id: '4' }))
+        document.body.innerHTML = ''
+
+        const again = await mount({ route: '/bodies/4' })
+        await settle(again)
+        const child = again.renderRoot.querySelector('mateu-component') as unknown as { state: Record<string, unknown> }
+        child.state = { ...child.state, name: 'Earth', radiusKm: 6371 } // what its OnLoad brought
+        const before = again.fragment
+
+        again.applyFragment({ targetComponentId: 'ux', component: undefined, state: { id: '4' }, data: {},
+            action: UIFragmentAction.Replace, containerId: undefined } as never)
+        await settle(again)
+        expect(again.fragment).toBe(before)
+        expect(child.state).toMatchObject({ id: '4', name: 'Earth', radiusKm: 6371 })
+
+        // an answer that DOES change the state still reaches the content
+        again.applyFragment({ targetComponentId: 'ux', component: undefined, state: { id: '5' }, data: {},
+            action: UIFragmentAction.Replace, containerId: undefined } as never)
+        await settle(again)
+        expect(child.state).toMatchObject({ id: '5' })
+    })
+
     it('a @StaticView revisit is answered from the session cache without asking the server', async () => {
         const first = await mount({ route: '/static' })
         first.applyFragment(fragment(view('Static screen', { staticView: true }), { s: 1 }))

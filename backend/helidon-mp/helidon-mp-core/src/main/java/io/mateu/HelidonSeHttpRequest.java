@@ -69,4 +69,10 @@ public class HelidonSeHttpRequest implements HttpRequest {
   public String path() {
     return delegate.path().path();
   }
+
+  /** The caller Helidon security authenticated for this request (null = nobody). */
+  @Override
+  public java.security.Principal getUserPrincipal() {
+    return HelidonSeIdentity.principalOf(delegate);
+  }
 }

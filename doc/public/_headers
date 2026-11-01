@@ -1,0 +1,7 @@
+# Netlify response headers (copied to dist/ by Astro).
+# The universal-link / App Link association files: Apple and Google need JSON, a 200 and no redirect.
+# The Apple one has no file extension, so the content type must be said here.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+/.well-known/assetlinks.json
+  Content-Type: application/json

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { __setBundleForTests, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundleStore'
+import { __setBundleForTests, applyQueryParams, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundleStore'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
 
 /**
@@ -14,6 +14,8 @@ interface Case {
     routes: Json[]
     template?: { routePattern: string; paramNames: string[] }
     syncPath: string
+    // the route's query string, applied on the answer (the server's query level)
+    query?: Record<string, string>
     increment: Json
     expected: { untouched?: boolean; appState?: Json; fragments?: { state: Json; data: Json; initialData?: Json }[] }
 }
@@ -31,7 +33,8 @@ describe('client conformance corpus — route params (web)', () => {
                 ? [{ regex: new RegExp(c.template.routePattern), paramNames: c.template.paramNames, increment }]
                 : []
             __setBundleForTests(undefined, templates, c.routes as never)
-            const out = c.template ? matchBundledTemplate(c.syncPath) : applyRouteParams(c.syncPath, increment)
+            const routed = c.template ? matchBundledTemplate(c.syncPath) : applyRouteParams(c.syncPath, increment)
+            const out = c.query ? applyQueryParams(c.syncPath, routed, c.query) : routed
             if (c.expected.untouched) {
                 expect(out).toBe(increment)
                 return

@@ -1,6 +1,7 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
 import { interpolate, islandContentOf, hostContentOf, editorNodeIds } from './content.mjs'
-import { findByType, findFirst } from './listing.mjs'
+import { findByType, findFirst, nestedListingNodesOf, nestedListingAtomOf, nestedListingKeyOf } from './listing.mjs'
+import { walkWithinSurface } from './tree.mjs'
 import { pageHeaderNodeOf, factProjectionOf, contextualInfoOf, factActionsJsonOf, badgeStatusOf } from './pageHeader.mjs'
 import { gridColClasses, metricAriaLabel, panelColClass } from './atoms.mjs'
 import { chromeText } from '../i18n.mjs'
@@ -195,6 +196,26 @@ export function welcomeOf(ctx) {
       kpiActionId: mm ? (mm.actionId || '') : '',
     }
   })
+  // a LISTING the welcome declares among its pieces (featured records as picture cards): a full-width
+  // tile of its own, where it sits — before the tiles when it comes before them. It was taken for the
+  // page's listing and, the welcome owning the page, drawn nowhere.
+  if (declaresTemplate(ctx, 'WelcomePage')) {
+    // by POSITION (the VB registry is read through proxies: node identity is not reliable)
+    const nested = new Set(nestedListingNodesOf(ctx.tree).map(nestedListingKeyOf))
+    const before = []
+    const after = []
+    let tilesSeen = false
+    walkWithinSurface(ctx.tree, (n) => {
+      const type = n && n.metadata && n.metadata.type
+      if (type === 'DashboardLayout' || type === 'DashboardPanel') tilesSeen = true
+      if (type !== 'Crud' || !nested.has(nestedListingKeyOf(n))) return
+      const atom = nestedListingAtomOf(n, ctx)
+      ;(tilesSeen ? after : before).push({ title: atom.title, subtitle: '', colClass: 'oj-flex-item oj-sm-12', texts: [], textNodes: [],
+        items: [{ ...atom, title: '' }], isKpi: false, kpiTitle: '', kpiValue: '', kpiCaption: '', kpiTimeframe: '', kpiAriaLabel: '', kpiActionId: '' })
+    })
+    tiles.unshift(...before)
+    tiles.push(...after)
+  }
   // the charts are drawn in their tiles now (the full-width chart under the tiles is gone)
   const trend = null
   return {
@@ -669,7 +690,10 @@ export function templatedCollectionDetailOf(ctx) {
   const form = templateFormOf(ctx)
   return {
     title: interpolate(String((form && form.metadata && form.metadata.title) || ''), state),
-    collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list')),
+    // the collection slot's listing is the PAGE's (painted by the listing body), not a nested one
+    collection: blocksOf(nodeById(ctx.tree, 'collection-detail-list'))
+      .map((b) => ({ ...b, items: (b.items || []).filter((a) => !(a && a.isNestedListing)) }))
+      .filter((b) => (b.items || []).length || b.isSpSectionHeader),
     selectedItems: detailNode ? [{ id: String(state.id != null ? state.id : 'selected') }] : [],
     detail: detailNode ? blocksOf(detailNode) : [],
     noSelection: detailNode ? [] : blocksOf(nodeById(ctx.tree, 'collection-detail-no-selection')),
@@ -697,7 +721,13 @@ export function templatedMultimediaOf(ctx) {
   const look = welcomeLookOf(welcomeKeyOf(ctx), banner.tone)
   // the banner shows ONE record: its texts are templates over the page state
   const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
+  // ...and so are its calls to action's routes (an Edit to `missions/${state.id}/edit` went to the
+  // literal placeholder)
+  const routed = (c) => (c?.route ? { ...c, route: text(c.route) } : c)
   return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
+    ctas: (banner.ctas || []).map(routed),
+    primaryCtaRoute: text(banner.primaryCtaRoute), secondaryCtaRoute: text(banner.secondaryCtaRoute),
+    secondaryById: Object.fromEntries(Object.entries(banner.secondaryById || {}).map(([k, v]) => [k, routed(v)])),
     theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
 }
 
@@ -817,8 +847,12 @@ export function bannersOf(ctx) {
  *  left auto (absorbs the drawer), cap 1408 — and never less than 24px on the left: the cap
  *  subtracts both gutters, or a narrow area ended up stuck to the left with a gap only on the
  *  right. */
+// A page that declares no width takes its TYPE's default, as on the web (libs/mateu layout/pageWidth.ts,
+// owner decision 2026-11-01): collection and dashboard pages are about their data and want the room.
+const PAGE_TYPE_WIDTHS = { collection: 'fullWidth', dashboard: 'fullWidth' }
+
 export function pageStyleOf(ctx) {
-  const width = (ctx && ctx.pageWidth) || 'fixed'
+  const width = (ctx && ctx.pageWidth) || PAGE_TYPE_WIDTHS[String((ctx && ctx.pageType) || '').toLowerCase()] || 'fixed'
   if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }
   if (width === 'fullWidth') return { maxWidth: 'none', margin: '0', padding: '24px' }
   // the right gutter (aligned with the shell's floating chrome, see above) …

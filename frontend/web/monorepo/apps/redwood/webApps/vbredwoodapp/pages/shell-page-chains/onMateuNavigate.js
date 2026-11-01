@@ -49,12 +49,13 @@ define([
      */
     async run(context, params) {
       const { $application } = context;
-      const seq = ++navigationSeq;
+      const seq = ++navigationSeq; let toTop = null; // to the top once the old screen hides or the new one lands
       try {
-        return await this.navigate(context, params || {}, () => {
-          $application.variables.mateuNavigating = true;
-          bridge.scrollToTopOnNavigate(params || {}); // another screen starts at its top
+        const result = await this.navigate(context, params || {}, () => {
+          $application.variables.mateuNavigating = true; toTop = bridge.scrollToTopWhenReplaced(params || {});
         });
+        if (toTop && seq === navigationSeq) toTop();
+        return result;
       } catch (e) {
         // a response that arrived when we had already navigated to another screen: dies silently
         // (the transport discarded it: it is neither painted nor raises an error band)
@@ -85,8 +86,8 @@ define([
         : detail.selectedValue != null ? detail.selectedValue
         : detail.value != null ? detail.value : detail.route;
       // 'null': the TABS menu (oj-sp-in-app-navigation) reports its selection being CLEARED (the
-      // shell binds '' as null — a screen an agent generated is on show) as the string "null"
-      if (route == null || route === '' || (detail.currentId === 'null' && route === 'null')) {
+      // shell binds '' as null — a screen an agent generated is on show) as the string "null"; a whole URL opens in a new tab
+      if (route == null || route === '' || (detail.currentId === 'null' && route === 'null') || bridge.openExternalRoute(route)) {
         return;
       }
       // A menu leaf that RUNS rules (RuleLink) instead of naming a route: every menu surface
@@ -113,7 +114,7 @@ define([
       // user may have changed by removing chips. Otherwise the agent asking again for
       // «/booking/bookings?status=Cancelled» after the chip was removed achieved nothing.
       const requested = detail.currentId == null && detail.selectedValue == null && detail.value == null;
-      const current = (requested && window.__mateuLoadedFull != null)
+      const current = ((requested || fromUrl) && window.__mateuLoadedFull != null) // back/forward: vs the URL on screen
         ? window.__mateuLoadedFull
         : ($application.variables.mateuSelectedNavId || $application.variables.mateuSelectedRoute);
       const target = bridge.navTargetOf(route, current);
@@ -138,7 +139,7 @@ define([
       // unsaved on the page OR an open overlay → ONE confirm (shellFlows.mjs); stay = URL restored —
       // PUSHED after a back/forward, as on the web (replacing it, the next Back would leave the app)
       if (!force && !bridge.confirmNavigationAway($application.variables)) {
-        return bridge.restoreUrlAfterStaying($application.variables.mateuSelectedRoute, fromUrl);
+        return bridge.restoreUrlAfterStaying(window.__mateuLoadedFull || $application.variables.mateuSelectedRoute, fromUrl);
       }
       // Another screen: every overlay closes, not left orphaned over the new page (the content page
       // drops its drafts and dialogs on mateuOverlaysClosed; the drawer guard must not hold the close)
@@ -298,7 +299,7 @@ define([
 
       // same remount as in runMateuAction: if we come from ANOTHER foldout, re-create the
       // subtree so the inner bindings do not keep the old blocks
-      const foldoutProjection = bridge.foldoutOf(host);
+      const foldoutProjection = bridge.foldoutOf(host, { parent: bridge.parentCrumbOf(reg, route) });
       if ($application.variables.mateuFoldout && foldoutProjection) {
         $application.variables.mateuFoldout = null;
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -499,8 +500,8 @@ define([
       // general rule: the page header is ALWAYS painted by a vb header; only the
       // templates that already integrate their own (guided process / general overview / welcome /
       // the listing's smart-filter-search) suppress it
-      // a foldout with page actions (a crud's @FoldoutDetail view: Edit, Cancel…)
-      // keeps the vb header, which is where those actions go
+      // a page foldout owns the header (its toolbar goes to the layout's own controls, archetypes
+      // foldoutToolbarHeaderOf) unless an EntityHeader's facts keep the vb header
       const integratedHeader = !!(wizardProjection || welcome || archetypes.dashboard || archetypes.todo || archetypes.spPage
         || bridge.templateOwnsHeader(archetypes)
         || overviewProjection || listingSummary
@@ -588,9 +589,8 @@ define([
       }
       $application.variables.mateuDirty = false;
 
-      if (reg.effects && reg.effects.docTitle) {
-        bridge.setDocTitle(reg.effects.docTitle);
-      }
+      // EVERY navigation names the tab (a federated screen may send no SetWindowTitle: the previous page's stayed)
+      bridge.setDocTitle((reg.effects && reg.effects.docTitle) || summary.title || (reg.shell && reg.shell.title));
     }
   }
 

@@ -2,9 +2,11 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Stat from "@mateu/shared/apiClients/dtos/componentmetadata/Stat";
 import { html, nothing } from "lit";
 import "@infra/ui/mateu-stat.ts";
+import { interpolateFields } from "@infra/ui/interpolation.ts";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 
-export const renderStat = (component: ClientSideComponent) => {
-    const metadata = component.metadata as Stat
+export const renderStat = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
+    const metadata = interpolateFields(component.metadata as Stat, ['label', 'value', 'unit', 'delta'], state, data)
     return html`
         <mateu-stat
                 label="${metadata.label ?? nothing}"

@@ -228,6 +228,33 @@ public class RestSourceCatalogueTests
     }
 
     [Fact]
+    public async Task A_direct_source_is_never_proxied()
+    {
+        // the inline option is not Proxy: the browser calls it, the server refuses to (403)
+        var fake = new FakeHttp();
+        await Assert.ThrowsAsync<MateuForbiddenException>(() =>
+            Handler(Authored(), new HttpClient(fake)).HandleAsync(RestFetch("by-ref-sources", "options", "inline")));
+        Assert.Empty(fake.Urls);
+    }
+
+    [Fact]
+    public void A_proxied_sources_headers_and_body_stay_off_the_wire()
+    {
+        var proxied = new RestDataSourceDto("https://x.example.com")
+        {
+            Proxy = true, Headers = new() { ["X-Api-Key"] = "${secret.KEY}" }, Body = "{\"a\":1}",
+        };
+        var json = JsonSerializer.Serialize(proxied, Json);
+        Assert.DoesNotContain("X-Api-Key", json);
+        Assert.DoesNotContain("\"body\":\"", json);
+        // the server still reads them (it makes that call)
+        Assert.Equal("${secret.KEY}", proxied.Headers!["X-Api-Key"]);
+        // a direct source keeps them: the browser makes that call
+        var direct = proxied with { Proxy = false };
+        Assert.Contains("X-Api-Key", JsonSerializer.Serialize(direct, Json));
+    }
+
+    [Fact]
     public async Task A_RestSourceSupplier_view_gates_and_resolves_the_proxy_fetch()
     {
         var json = JsonSerializer.Serialize(Handler(RestSourceCatalog.Empty).Handle(new RunActionRqDto { Route = "supplied-sources" }), Json);

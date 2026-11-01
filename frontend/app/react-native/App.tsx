@@ -24,6 +24,8 @@ import { setRendererVersion } from './src/core/buildSkew';
 import { SessionContent } from './src/shell/SessionContent';
 import { fetchStaticBundle, type StaticBundle } from './src/core/staticBundle';
 import { HubApp } from './src/hub/HubApp';
+import { bootModeOf } from './src/core/buildVariant';
+import { fetchManifest } from './src/hub/manifest';
 import { MateuThemeProvider } from './src/ui/MateuTheme';
 import { StatusBar } from 'expo-status-bar';
 
@@ -207,13 +209,51 @@ function RegistryBoot() {
   return <AuthGate config={entry ? configFromEntry(entry) : DEV_CONFIG} />;
 }
 
+/** A FIXED build (src/core/buildVariant.ts): the UI baked in at build time. Its sign-in comes from
+ *  the UI's own manifest, like a hub entry's; an unreachable manifest boots without one. */
+function FixedBoot({ baseUrl, route }: { baseUrl: string; route: string }) {
+  const [config, setConfig] = useState<BootConfig | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void fetchManifest(baseUrl).then((found) => {
+      if (alive) setConfig({ baseUrl, appState: {}, oidc: found.ok ? found.manifest.auth ?? null : null });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [baseUrl]);
+  if (!config) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+  return <AuthGate config={config} route={MATEU_ROUTE || route} />;
+}
+
+function Boot() {
+  const mode = bootModeOf((Constants.expoConfig?.extra ?? {}) as Record<string, unknown>, directMode(), {
+    registryUrl: process.env.EXPO_PUBLIC_MATEU_REGISTRY_URL,
+    appId: process.env.EXPO_PUBLIC_MATEU_APP_ID,
+  });
+  switch (mode.kind) {
+    case 'hub':
+      return <HubApp />;
+    case 'fixed':
+      return <FixedBoot baseUrl={mode.baseUrl} route={mode.route} />;
+    default:
+      return <RegistryBoot />;
+  }
+}
+
 /**
  * Identity gate: resolves the install's session id (random, persisted — never shared between
  * installs), registers the OIDC token provider when the backend is secured, and — unless the
  * config says to sign in lazily — asks the user to sign in before the first screen. After that
  * every Mateu request carries `Authorization: Bearer`; a 401 refreshes or re-prompts and retries.
  */
-function AuthGate({ config }: { config: BootConfig }) {
+function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?: string }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [phase, setPhase] = useState<'checking' | 'signin' | 'ready'>('checking');
   const [signInError, setSignInError] = useState('');
@@ -273,7 +313,7 @@ function AuthGate({ config }: { config: BootConfig }) {
   }
   return (
     <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle }}>
-      <SessionContent initialRoute={MATEU_ROUTE} />
+      <SessionContent initialRoute={route} />
     </MateuAppProvider>
   );
 }
@@ -288,7 +328,7 @@ export default function App() {
         {() => (
           <SafeAreaView style={styles.safeArea}>
             <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
-            {readRegistryConfig() || directMode() ? <RegistryBoot /> : <HubApp />}
+            <Boot />
           </SafeAreaView>
         )}
       </MateuThemeProvider>

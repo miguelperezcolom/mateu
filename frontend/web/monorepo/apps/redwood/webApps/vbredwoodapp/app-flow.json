@@ -1009,6 +1009,13 @@
         "parameters": "any"
       }
     },
+    "mateuKanbanMove": {
+      "description": "a card of a movable kanban board was dropped elsewhere or moved from its select (installKanbans): the content page paints it and runs the board's moveActionId",
+      "payloadType": {
+        "key": "string",
+        "move": "object"
+      }
+    },
     "mateuTilesReordered": {
       "description": "el usuario reordeno los tiles de una rejilla reordenable (orden ya guardado): la pagina de contenido re-proyecta el host",
       "payloadType": {

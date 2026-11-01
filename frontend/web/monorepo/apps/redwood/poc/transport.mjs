@@ -217,6 +217,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
   const restAnswer = restAnswerOf(ctx, actionId, componentState, {
     route,
     appState: (extra && extra.appState) || {},
+    parameters: (extra && extra.parameters) || {},
     server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
       { ...extra, parameters, idempotent: !!idempotent }),
   })
@@ -441,6 +442,14 @@ export async function loadMenuRouteInto(base, reg, route, targetId = '', extra =
  * returns the chromeless App; the content arrives with consumedRoute + serverSideType).
  * Returns the new registry. targetId = key of the target context (initiator).
  */
+/** The registry without one context (the reducer then starts that context afresh). */
+function withoutContext(reg, ctxId) {
+  if (!reg?.contexts?.[ctxId]) return reg
+  const contexts = { ...reg.contexts }
+  delete contexts[ctxId]
+  return { ...reg, contexts }
+}
+
 export async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
   // live reload (liveReload.mjs): what was typed travels with the load — a view model is hydrated with
   // it — and is put back over the response, so a definition-only page keeps it
@@ -476,7 +485,10 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
       serverSideType: outbound.serverSideType,
     })
   }
-  let next = reduceContexts(reg, firstIncrement)
+  // a route load is a NEW screen in that context: nothing of the previous one carries over. A screen
+  // answering with no state of its own (a YAML Listing) kept the previous screen's — a mission's
+  // `name` became the astronauts' name filter and the list came back empty.
+  let next = reduceContexts(withoutContext(reg, ctxId), firstIncrement)
   // the component's ACTIONS (with their sse flag) travel in the mediator's WRAPPER —
   // the content load loses them, so they are kept here
   const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree

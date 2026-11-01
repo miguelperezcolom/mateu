@@ -1,0 +1,6 @@
+# A listing page with no `pageType:`, served wrapped because its route seeds state: a collection.
+# Used by YamlPageTypeSyncTest.
+type: Listing
+title: Tasks
+columns:
+  - {type: GridColumn, id: name, label: Name}

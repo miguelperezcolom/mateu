@@ -101,7 +101,7 @@ internal sealed class TranslationRegistry : ISpecsCache
             try
             {
                 var relative = Path.GetRelativePath(dir, file).Replace('\\', '/');
-                if (Parse(Yaml.Deserialize<object?>(File.ReadAllText(file)), relative) is { } t) found.Add(t);
+                if (Parse(Yaml.Read<object?>(File.ReadAllText(file)), relative) is { } t) found.Add(t);
             }
             catch (Exception e)
             {

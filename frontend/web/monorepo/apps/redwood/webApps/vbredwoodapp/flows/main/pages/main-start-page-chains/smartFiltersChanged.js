@@ -40,7 +40,7 @@ define([
       }
       $application.variables.mateuFilterValues = state.values;
       // the URL states the applied filters (as in Vaadin): a removed chip leaves the query, an added
-      // one enters it. replaceState: filtering is not a new screen in the history.
+      // one enters it. pushState: each filter change is a history entry Back returns to.
       const full = bridge.listingUrlOf($application.variables.mateuSelectedRoute || '',
         state.values, state.searchText);
       window.__mateuLoadedFull = full;
@@ -49,10 +49,10 @@ define([
         // better not to touch it than to write a route that is not it)
         if (bridge.currentRoutePathOf(window.location) === full.split('?')[0]
             && bridge.currentRouteOf(window.location) !== full) {
-          window.history.replaceState(window.history.state, '', bridge.urlOfRoute(full));
+          window.history.pushState(window.history.state, '', bridge.urlOfRoute(full));
         }
       } else if (window.location.hash !== '#' + full) {
-        window.history.replaceState(window.history.state, '', '#' + full);
+        window.history.pushState(window.history.state, '', '#' + full);
       }
       await Actions.callChain(context, {
         chain: 'runMateuSearch',

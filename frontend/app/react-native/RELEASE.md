@@ -9,16 +9,48 @@ React Native renderer. Without a registry in `app.json` (`expo.extra.mateuRegist
 
 | What | Where it goes |
 |---|---|
-| Apple Developer Program membership (99 $/year), App Store Connect app record for `io.mateu.app` | — |
+| ✅ Apple Developer Program membership (team `2V77LVXCM8`), App ID `io.mateu.app` (Associated Domains), App Store Connect app record | — |
 | Google Play developer account (25 $ once), Play Console app for `io.mateu.app` | — |
-| **Apple Team ID** | `well-known/apple-app-site-association` (`TODO_APPLE_TEAM_ID`), served at `https://mateu.io/.well-known/apple-app-site-association` (`Content-Type: application/json`, no redirect) |
-| **Android signing SHA-256** (Play App Signing key, plus the EAS upload key for internal APKs) | `well-known/assetlinks.json`, served at `https://mateu.io/.well-known/assetlinks.json` |
+| ✅ **Apple Team ID** `2V77LVXCM8` | `well-known/apple-app-site-association`, published from `doc/public/.well-known/` at `https://mateu.io/.well-known/apple-app-site-association` (`Content-Type: application/json` via `doc/public/_headers`, no redirect) |
+| 🟡 **Android signing SHA-256**: the GitHub APK key is in (`61:A6:…:07:02`, keystore in the owner's `~/.mateu-secrets/android`). **TODO**: the Play App Signing key once the Play app exists (+ the EAS upload key for internal APKs) | `well-known/assetlinks.json` AND `doc/public/.well-known/assetlinks.json` (the published one: real fingerprints only, never a TODO) |
 | `https://mateu.io/add` landing page (store badges + the QR again, for phones without the app) | mateu.io site |
-| App Store id for the "Update the app" button | `src/hub/ui/UiSession.tsx` → `STORE_URL` (`idTODO_APP_STORE_ID`) |
-| `https://demo.mateu.io/counter` must be up, public, with no login (it is the preinstalled "Try a demo" entry the reviewer uses) | demo deployment |
-| Privacy policy URL (required by both stores even for "no data collected") | store listings |
+| ✅ App Store id `6829227403` (App Store Connect app record created, SKU `mateu-app`) | `src/hub/ui/UiSession.tsx` → `STORE_URL` |
+| ✅ `https://demo.mateu.io/counter` is up, public, with no login (checked 2026-10-31; it is the preinstalled "Try a demo" entry the reviewer uses) | demo deployment |
+| ✅ Privacy policy: **https://mateu.io/privacy** (`doc/src/pages/privacy.astro` — keep it in step with §5) | store listings |
 | Bundle id: `io.mateu.app` on iOS and Android (decided 2026-10-12; it cannot change after the first store release) | `app.json` |
 | EAS: `eas login` as `miguelperezcolom` (the `owner` in app.json); project id already set | — |
+
+## 0b. Android APK on GitHub (no EAS, no queue)
+
+Every framework release (`v3.0-beta.N`) also builds an Android APK on a GitHub runner and attaches it
+to the release as `mateu-app-<tag>-android.apk` (`.github/workflows/mobile.yml`: `expo prebuild` +
+`gradlew assembleRelease`, signed with the `ANDROID_KEYSTORE_*` secrets — without them no APK is
+attached, because a debug-signed one could never be updated). Pull requests that touch the app build
+it too, as a check (workflow artifact). Put the key's SHA-256 in `well-known/assetlinks.json` so
+`https://mateu.io/add` opens the sideloaded app. iOS has no equivalent: an iPhone installs only from
+the App Store, TestFlight or an ad-hoc build for registered devices.
+
+## 0c. Over-the-air updates on every release (EXPO_TOKEN)
+
+Every framework release also publishes the app's JavaScript over the air (`ota` job in
+`.github/workflows/mobile.yml`: `eas update --channel production`), so an installed app gets the
+renderer of that release without a store review, and its hub's compatibility check
+(`src/hub/compat.ts`) then knows it renders UIs on that release (`MATEU_VERSION` is stamped into the
+update's app config). It runs only when the repository has the **`EXPO_TOKEN`** secret; without it
+the job says so and skips.
+
+1. expo.dev → avatar → **Account settings → Access tokens → Create token** (a robot user's token is
+   better if the account has one; scope: the `mateu` project).
+2. `gh secret set EXPO_TOKEN` and paste it (stdin, so it never lands in the shell history).
+
+An over-the-air update only reaches installs of the **same app version** (`runtimeVersion.policy =
+appVersion`). A **native** change — a new native module, a permission, an Expo SDK upgrade, anything
+under `ios/`/`android/` or in `app.json` plugins — needs a store build (§1) with a bumped
+`expo.version`; publishing it over the air would crash the old binaries, so do not.
+
+When a build is made by hand (`eas build`), pass `MATEU_VERSION=<release>` (e.g. `3.0-beta.33`) in
+its environment so the hub knows which release the binary carries; without it the app compares only
+wire versions.
 
 ## 1. Build
 
@@ -105,6 +137,10 @@ sign-in tokens and a random session id (Keychain / Android Keystore via expo-sec
 "Export my UIs" QR carries addresses only.
 
 ## 6. Store listing basics
+
+Ready-to-paste texts (name, subtitle, promotional text, keywords, short + full description, what's new;
+English and Spanish, within each store's limits): `store/listing.md`.
+
 
 - Name: **Mateu**. Subtitle (iOS): "Your business apps, native". Category: Business / Productivity.
 - Screenshots: run `e2e/rn-hub-probe.mjs` with `SHOTS=<dir>` for the flows on a phone viewport (web

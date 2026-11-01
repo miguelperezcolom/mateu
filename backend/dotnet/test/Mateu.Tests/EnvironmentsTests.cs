@@ -84,4 +84,27 @@ public class EnvironmentsTests
     [InlineData(null, "https://b.com", "https://b.com")]
     public void Rebase_keeps_the_path_under_the_new_origin(string? url, string baseUrl, string expected) =>
         Assert.Equal(expected, Environments.Rebase(url, baseUrl));
+
+    [Fact]
+    public void Yaml_anchors_aliases_and_merge_keys_are_resolved()
+    {
+        // one base url written once and aliased by every entry (Java resolves them too: SpecsYaml)
+        var dir = Directory.CreateTempSubdirectory("yaml-env-alias-").FullName;
+        Directory.CreateDirectory(Path.Combine(dir, "environments"));
+        File.WriteAllText(Path.Combine(dir, "environments", "public.yaml"), """
+            api: &api {baseUrl: "https://museum-api.example.com"}
+            host: &host "https://space-api.example.com"
+            sources:
+              museum-artworks: *api
+              space-missions: {baseUrl: *host}
+              space-crew:
+                <<: *api
+                proxy: true
+            """);
+        var sources = Environments.All(dir)["public"].Sources;
+        Assert.Equal("https://museum-api.example.com", sources["museum-artworks"].BaseUrl);
+        Assert.Equal("https://space-api.example.com", sources["space-missions"].BaseUrl);
+        Assert.Equal("https://museum-api.example.com", sources["space-crew"].BaseUrl);
+        Assert.True(sources["space-crew"].Proxy);
+    }
 }

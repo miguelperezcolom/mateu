@@ -533,7 +533,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isImage ]]">
-                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                      <img class="mateu-atom-image" :class="[[ $current.data.cls || '' ]]" :style="[[ $current.data.style || {} ]]" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isAvatar ]]">
                       <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
@@ -555,6 +555,86 @@
                           </template>
                         </oj-bind-for-each>
                       </oj-film-strip>
+                    </oj-bind-if>
+                    <!-- a LISTING nested in a templated page's content (a general overview's slot, a multimedia
+                         section, a welcome's featured cards, a collection detail's works): its first page,
+                         drawn where it sits — picture cards (an action card per row opening its rowRoute) or a
+                         table whose title column links to the row's route (listing.mjs nestedListingAtomOf) -->
+                    <oj-bind-if test="[[ $current.data.isNestedListing ]]">
+                      <div class="mateu-nested-listing oj-sm-margin-2x-bottom" :data-nested-listing="[[ $current.data.nestedKey ]]">
+                        <oj-bind-if test="[[ !!$current.data.title ]]">
+                          <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.isEmpty ]]">
+                          <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.asCards ]]">
+                          <div class="oj-flex mateu-nested-cards">
+                            <oj-bind-for-each data="[[ $current.data.cards ]]">
+                              <template>
+                                <div class="oj-flex-item oj-sm-12 oj-md-6 oj-lg-4 oj-sm-padding-2x-end oj-sm-padding-2x-bottom">
+                                  <oj-bind-if test="[[ !!$current.data.route ]]">
+                                    <oj-action-card class="mateu-nested-card" style="width:100%"
+                                      on-oj-action="[[ $listeners.{{blockAction}} ]]">
+                                      <oj-bind-if test="[[ !!$current.data.image ]]">
+                                        <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
+                                      </oj-bind-if>
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm"><span class="oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </oj-action-card>
+                                  </oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.route ]]">
+                                    <div class="oj-panel mateu-nested-card">
+                                      <oj-bind-if test="[[ !!$current.data.image ]]">
+                                        <img class="mateu-nested-card-img" :src="[[ $current.data.image ]]" :alt="[[ $current.data.title ]]" />
+                                      </oj-bind-if>
+                                      <div class="oj-sm-padding-3x">
+                                        <div class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                          <template>
+                                            <div class="oj-typography-body-sm"><span class="oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                          </template>
+                                        </oj-bind-for-each>
+                                      </div>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
+                            <template slot="cellNestedLink">
+                              <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
+                            </template>
+                            <template slot="cellNestedImage">
+                              <img class="mateu-nested-cell-img" :src="[[ $current.data ]]" alt="" />
+                            </template>
+                          </oj-table>
+                        </oj-bind-if>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <hr class="mateu-separator oj-sm-margin-3x-vertical">
@@ -1074,17 +1154,22 @@
                     </oj-bind-if>
                     <!-- ══ DISPLAY components projected by poc/core/display.mjs ══ -->
                     <oj-bind-if test="[[ $current.data.isKanban ]]">
-                      <!-- Kanban: JET has no board — oj-panel columns, oj-action-card cards when they act -->
-                      <div class="mateu-kanban oj-sm-margin-2x-bottom" role="list">
+                      <!-- Kanban: JET has no board — oj-panel columns, oj-action-card cards when they act.
+                           A movable board (moveActionId): each card's wrapper carries its ids, so kanbanDom
+                           (dnd.mjs) drags it between and within columns; the ⋯ select moves it from the keyboard -->
+                      <div class="mateu-kanban oj-sm-margin-2x-bottom" role="list"
+                           :data-kanban-key="[[ $current.data.kanbanKey ]]" :data-move-action="[[ $current.data.moveActionId ]]">
                         <oj-bind-for-each data="[[ $current.data.columns ]]">
                           <template>
-                            <section class="mateu-kanban-col oj-panel" role="listitem">
+                            <section class="mateu-kanban-col oj-panel" role="listitem" :data-column-id="[[ $current.data.columnId ]]">
                               <div :class="[[ $current.data.headerClass ]]" :style="[[ $current.data.headerStyle ]]">
                                 <span class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
                                 <span class="oj-badge oj-badge-neutral oj-badge-subtle"><oj-bind-text value="[[ $current.data.countText ]]"></oj-bind-text></span>
                               </div>
                               <oj-bind-for-each data="[[ $current.data.cards ]]">
                                 <template>
+                                  <div class="mateu-kanban-item" :data-card-id="[[ $current.data.cardId ]]"
+                                       :draggable="[[ $current.data.movable ? 'true' : 'false' ]]">
                                   <oj-bind-if test="[[ $current.data.clickable ]]">
                                     <oj-action-card :class="[[ $current.data.cardClass ]]" :style="[[ $current.data.cardStyle ]]"
                                       on-oj-action="[[ $listeners.{{blockAction}} ]]">
@@ -1106,6 +1191,17 @@
                                       </oj-bind-if>
                                     </div>
                                   </oj-bind-if>
+                                  <oj-bind-if test="[[ $current.data.movable ]]">
+                                    <select class="mateu-kanban-move" :aria-label="[[ $current.data.moveLabel ]]" :title="[[ $current.data.moveLabel ]]">
+                                      <option value="">⋯</option>
+                                      <oj-bind-for-each data="[[ $current.data.moves ]]">
+                                        <template>
+                                          <option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></option>
+                                        </template>
+                                      </oj-bind-for-each>
+                                    </select>
+                                  </oj-bind-if>
+                                  </div>
                                 </template>
                               </oj-bind-for-each>
                             </section>

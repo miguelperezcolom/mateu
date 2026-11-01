@@ -7102,6 +7102,41 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "move_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "rows_source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "column_field",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "card",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "card_colors",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "card_route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "order_field",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },

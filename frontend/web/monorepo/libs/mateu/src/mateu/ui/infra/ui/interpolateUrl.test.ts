@@ -1,10 +1,31 @@
 import { describe, expect, it } from 'vitest'
-import { interpolateUrl, templateResolver, urlEncode } from './interpolation'
+import { interpolate, interpolateUrl, templateResolver, urlEncode } from './interpolation'
 import { fetchExternalJson } from '../http/externalOptions'
 
 // The same cases are pinned on the server (TemplateInterpolatorUrlTest), .NET (UrlTemplateTests)
 // and Python (test_url_template.py): a direct call and a proxied one must reach the same url.
 describe('interpolateUrl', () => {
+    it('an explicit encodeURIComponent is not encoded a second time', () => {
+        // demo-starwars' sources.yaml: a multi-select and a search with a space matched nothing
+        expect(interpolateUrl('https://api.example.com/art?type=${encodeURIComponent(state.type)}', { type: ['Painting', 'Photograph'] }))
+            .toBe('https://api.example.com/art?type=Painting%2CPhotograph')
+        expect(interpolateUrl("https://api.example.com/m?search=${encodeURIComponent(state.q ?? '')}", { q: 'Sample Return' }))
+            .toBe('https://api.example.com/m?search=Sample%20Return')
+        expect(interpolateUrl("https://api.example.com/m?search=${encodeURIComponent(state.q ?? '')}", {}))
+            .toBe('https://api.example.com/m?search=')
+        // byte for byte what the server's urlEncode gives, and a dot segment is still refused
+        expect(interpolateUrl('/x/${encodeURIComponent(state.v)}', { v: "a/b!" })).toBe('/x/a%2Fb%21')
+        expect(() => interpolateUrl('/x/${encodeURIComponent(state.v)}', { v: '..' })).toThrow()
+        expect(() => interpolateUrl('${encodeURIComponent(state.base)}/x', { base: 'http://evil' })).toThrow()
+    })
+
+    it('a money value lands as its amount; its currency is reachable', () => {
+        const price = { value: 12500000, currency: 'EUR', locale: 'es-ES' }
+        expect(interpolateUrl('/x?min=${state.price}&cur=${state.price.currency}', { price }))
+            .toBe('/x?min=12500000&cur=EUR')
+        expect(interpolate('{"v":"${state.price}"}', { price })).toBe('{"v":"12500000"}')
+    })
+
     it('a path value cannot add segments or a query', () => {
         expect(interpolateUrl('https://api.example.com/people/${state.id}', { id: '1/../../admin?x=' }))
             .toBe('https://api.example.com/people/1%2F..%2F..%2Fadmin%3Fx%3D')

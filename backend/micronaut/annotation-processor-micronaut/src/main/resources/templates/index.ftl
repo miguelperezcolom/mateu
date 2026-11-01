@@ -31,7 +31,7 @@ public class ${simpleClassName}Controller {
     // asks for HTML.
     // Any character but a dot (a dot is a static asset): a record id with a space, an accent, a `+`,
     // `~`, `:` or `@` (/stays/Jos%C3%A9) is a deep link like any other — it used to be a 404 here only.
-    @Get(value = "/{+path:(?!.*mateu/v3/manifest$)[^.]+}", produces = MediaType.TEXT_HTML)
+    @Get(value = "/{+path:(?!.*mateu/v3/manifest$)" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", produces = MediaType.TEXT_HTML)
     public String getIndexAlways(String path,
             @io.micronaut.http.annotation.Header("Accept") @io.micronaut.core.annotation.Nullable String accept) {
         // Only a NAVIGATION gets the index: a data fetch (Accept without text/html — a REST source

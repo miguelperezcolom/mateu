@@ -2,6 +2,7 @@ import { html, nothing, TemplateResult } from 'lit'
 import type { FieldLabel, FieldValue } from './fieldEvents'
 import { requireElement } from '@infra/ui/lazyElements.ts'
 import type { MateuField } from './mateu-field'
+import { datePickerI18n, dateRangePickerI18n } from './dateLocale'
 
 /** Dates and times: dateRange, date, dateTime, time. */
 
@@ -12,6 +13,7 @@ export function renderDateRangeField(host: MateuField, _fieldId: string, value: 
         return html`<vcf-date-range-picker
                 id="${host.field.fieldId}"
                 label="${label}"
+                .i18n="${dateRangePickerI18n()}"
                 @value-changed="${(e: CustomEvent) => {
                     if (e.detail.value) {
                         e.detail.value = {
@@ -37,6 +39,7 @@ export function renderDateField(host: MateuField, _fieldId: string, value: Field
                 placeholder="${host.field?.placeholder ?? nothing}"
                     id="${host.field.fieldId}"
                     label="${label}"
+                    .i18n="${datePickerI18n()}"
                     @value-changed="${host.valueChanged}"
                     value="${value}"
                     .helperText="${host.helperText()}"
@@ -51,6 +54,7 @@ export function renderDateTimeField(host: MateuField, _fieldId: string, value: F
         return html`<vaadin-date-time-picker
                     id="${host.field.fieldId}"
                     label="${label}"
+                    .i18n="${datePickerI18n()}"
                     @value-changed="${host.valueChanged}"
                     value="${value}"
                     .helperText="${host.helperText()}"

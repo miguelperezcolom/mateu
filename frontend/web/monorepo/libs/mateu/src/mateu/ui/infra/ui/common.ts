@@ -22,7 +22,7 @@ export const resolveComponentState = (
 }
 
 /** The actions a list field's row editor sends to the form that holds the list: `rooms_create`… */
-const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down)$/
+const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down|refresh-detail)$/
 
 /**
  * A list field's action — the row editor's Save, Cancel, Next… bubbled up to the form that holds the

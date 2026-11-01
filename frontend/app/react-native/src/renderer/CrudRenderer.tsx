@@ -32,6 +32,7 @@ import { showsPreSearch } from './patternGaps';
 import { cellText } from './cellText';
 import { useButtonPress } from './useButtonPress';
 import { rowOpenLabel, rowOpenOf, rowPressOf, rowRouteFields } from '../core/rowOpen';
+import { openExternal } from './openExternal';
 import {
   activeFilterCount,
   allRowsSelected,
@@ -279,7 +280,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const handleRowPress = (row: Record<string, unknown>) => {
     if (rowOpen) {
       const press = rowPressOf(rowOpen, row);
-      if (press?.kind === 'route') {
+      if (press?.kind === 'url') {
+        openExternal(press.url); // refuses anything but http(s)/mailto/tel
+      } else if (press?.kind === 'route') {
         // no label: a route is no title (the screen shows its own)
         controller.session.openView({ label: '', route: press.route, consumedRoute: '', serverSideType: '' });
       } else if (press) {

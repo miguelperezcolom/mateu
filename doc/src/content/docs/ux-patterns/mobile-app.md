@@ -60,6 +60,7 @@ ASP.NET Core and by FastAPI, with `Content-Type: application/json`,
   "themeColor": "#1f6feb",
   "wireVersion": "3.0",
   "minAppVersion": "1.0.0",
+  "mateuVersion": "3.0-beta.33",
   "auth": {
     "type": "oidc",
     "issuer": "https://auth.acme.com/realms/acme",
@@ -72,6 +73,24 @@ ASP.NET Core and by FastAPI, with `Content-Type: application/json`,
 A member with no value is **omitted**, never `null`. Name, icon and colour come from the app
 itself, so a rename or a new icon reaches every phone without anybody re-scanning. An `icon` may be
 relative: the app resolves it against the manifest's URL.
+
+### Can this app open that UI?
+
+When a UI is added, when it is opened, and whenever its manifest is refreshed in the background,
+the app compares the manifest with itself: the wire it was built for, the Mateu release its renderer
+comes from and its own app version. You declare nothing for this: the server sends `wireVersion` and
+`mateuVersion` by itself.
+
+| Outcome | When | What the person sees |
+|---|---|---|
+| **Update required** | another wire major, or an app older than `minAppVersion` | the UI is not added, or not opened; **Update Mateu** is offered (an older wire major means the *server* must be updated, so no update is offered) |
+| **Update recommended** | a newer wire minor, or a newer Mateu release than the app's renderer | it opens, with a note that some screens may not display correctly and **Update Mateu** |
+| **Compatible** | anything else, including whatever cannot be compared | it opens |
+
+**Update Mateu** installs an over-the-air update when one is published (the app relaunches on it),
+and otherwise opens the store the app came from — the App Store, Google Play, or the GitHub releases
+page for the APK attached there. The rule is one file, `conformance/client/app-compat.json`, run by
+the phone app and by the desktop app.
 
 ### Where each member comes from
 
@@ -88,6 +107,7 @@ Settings win because the identity provider usually changes per environment while
 | `themeColor` | `MATEU_MOBILE_THEME_COLOR` | `themeColor` / `ThemeColor` / `theme_color` | Java: `@App(accentColor)`; else omitted |
 | `wireVersion` | — | — | the server's wire version, the same value every response carries (`"3.0"`; servers before 3.0-alpha.426 sent `"3"` — the app compares the major only, so both are the same wire) |
 | `minAppVersion` | `MATEU_MOBILE_MIN_APP_VERSION` | `minAppVersion` / `MinAppVersion` / `min_app_version` | `"1.0.0"` |
+| `mateuVersion` | — | — | the Mateu release the server runs (`3.0-beta.33`; .NET `3.0.0-beta.33`, Python `3.0.0b33`); omitted on a development build, which names no release |
 | `auth.issuer` | `MATEU_MOBILE_OIDC_ISSUER` | `oidcIssuer` / `OidcIssuer` / `oidc_issuer` | — |
 | `auth.clientId` | `MATEU_MOBILE_OIDC_CLIENT_ID` | `oidcClientId` / `OidcClientId` / `oidc_client_id` | — |
 | `auth.scopes` | `MATEU_MOBILE_OIDC_SCOPES` (comma and/or space separated) | `scopes` / `Scopes` / `scopes` | `["openid", "profile"]` |
@@ -205,6 +225,39 @@ moments later:
 
 Each step logs its duration as `[Mateu timing] <step>: <n> ms (cache | snapshot | network)`. They are
 also kept in `globalThis.__mateuTimings`, to measure on a real phone.
+
+## The desktop app
+
+The desktop Mateu app (IntelliJ IDEA Community with the Mateu plugin, built by `buildInstaller` —
+see [IDE tooling](/native/ide-tooling/)) has the same hub in its `hub` build: **My UIs**, with
+search, open, reorder, remove, **Share…** (the QR code of one UI, to open it on a phone) and
+**Export…** (one QR with the whole list). A `fixed` build is bound to one UI and has none of it,
+like the phone's.
+
+A UI is added by its address, by a Mateu link, or by its **QR code**. On a desktop the code is
+usually on the screen rather than in front of a camera, so *Add a UI* reads it:
+
+- **From the screen**: every monitor is captured and searched. On macOS this needs the *Screen
+  Recording* permission for Mateu; without it the capture is only the wallpaper and the dialog says so.
+- **From the clipboard**: an image copied with the system's screenshot shortcut, or a copied link.
+- **From an image file**.
+
+When several codes are found, the Mateu one wins. A page address (what a browser's own *QR code for
+this page* holds) is looked up like on the phone: the manifest is asked from the full path upwards.
+
+`mateu://` links open the desktop app too: the installer registers the scheme with the operating
+system for the hub build (macOS, the Windows registry, a Linux `.desktop` file), and the link goes
+through the same confirmation as a scanned code.
+
+The rules are the phone's — the same link grammar, refusals and sentences, checked by both against
+`conformance/client/hub-links.json` — with two differences: the desktop app opens only UIs served by
+a Mateu backend (a static bundle is refused, with a sentence saying so), and it does not read
+`minAppVersion`, which speaks of the phone app's versions. The rest of the compatibility check is
+the phone's: a different wire major is refused, with **Update Mateu** when a newer app would open
+it, and a UI on a newer Mateu release opens with a note. There, **Update Mateu** checks the
+desktop app's update feed at once and offers **Restart** when a newer version is ready. Each UI keeps its own sign-in (OIDC device flow against the issuer its manifest names;
+tokens in the OS credential store, per base URL), and switching UI never carries one UI's token to
+another.
 
 ## Security
 

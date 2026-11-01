@@ -16,11 +16,12 @@
 #
 # So this script:
 #   1. drops a persisted index that lacks com.intellij.java (a poisoned one would fail every run);
-#   2. runs the Gradle command;
-#   3. on exactly that failure signature, deletes the index, stops the daemon (the index also lives in
+#   2. builds the index on its own (printBundledPlugins) and checks it, up to 6 times, until complete;
+#   3. runs the Gradle command;
+#   4. on exactly that failure signature, deletes the index, stops the daemon (the index also lives in
 #      a build service's memory) and retries ONCE. Any other failure is reported as is.
 #
-# The caller caches .intellijPlatform/layoutIndex (see `layout_index_ok` below), which removes the
+# The caller caches .intellijPlatform/ides/layoutIndex (see `layout_index_ok` below), which removes the
 # window entirely on later runs.
 #
 # Usage: scripts/intellij-gradle.sh test --console=plain
@@ -28,7 +29,14 @@
 set -uo pipefail
 
 cd "$(dirname "$0")/../frontend/app/intellij-plugin" || exit 1
-INDEX_DIR=.intellijPlatform/layoutIndex
+# Where the IntelliJ Platform Gradle Plugin keeps it: .intellijPlatform/ides/layoutIndex since 2.x
+# (it was .intellijPlatform/layoutIndex — checking and caching that stale path is why master's
+# warm-caches "failed" every attempt from 2026-10 on and every PR indexed cold). The workflows cache
+# INDEX_DIR; an index found anywhere else under .intellijPlatform is reported, not silently missed.
+INDEX_DIR=.intellijPlatform/ides/layoutIndex
+for found in $(find .intellijPlatform -type d -name layoutIndex 2>/dev/null); do
+  [ "$found" = "$INDEX_DIR" ] || echo "::warning::IntelliJ layout index found at $found, not at $INDEX_DIR — update scripts/intellij-gradle.sh and the workflows' cache paths."
+done
 
 # A complete index names the bundled plugins the build depends on (build.gradle.kts bundledPlugin).
 layout_index_ok() {
@@ -47,6 +55,24 @@ fi
 if [ -d "$INDEX_DIR" ] && ! layout_index_ok; then
   echo "::warning::Discarding an incomplete IntelliJ layout index (it lacks a bundled plugin the build needs)."
   rm -rf "$INDEX_DIR"
+fi
+
+# Build and CHECK the index before the real command, up to INDEX_ATTEMPTS times: on a CI runner a cold
+# build loses a plugin far more often than upstream's measured 1 in 6 (2026-10: most attempts; master's
+# warm-caches failed three in a row), so a single retry of the whole command was not enough. Indexing
+# alone (printBundledPlugins) takes a minute, the test run that follows then finds it complete.
+INDEX_ATTEMPTS=${INTELLIJ_INDEX_ATTEMPTS:-6}
+if ! layout_index_ok; then
+  for attempt in $(seq 1 "$INDEX_ATTEMPTS"); do
+    ./gradlew printBundledPlugins --console=plain -q > /dev/null 2>&1 || true
+    if layout_index_ok; then
+      [ "$attempt" -gt 1 ] && echo "::notice::IntelliJ layout index complete after $attempt attempts."
+      break
+    fi
+    echo "::warning::attempt $attempt built an incomplete IntelliJ layout index (JetBrains/intellij-platform-gradle-plugin#2192) — rebuilding it"
+    rm -rf "$INDEX_DIR"
+    ./gradlew --stop > /dev/null 2>&1 || true
+  done
 fi
 
 log="${RUNNER_TEMP:-/tmp}/intellij-gradle.log"

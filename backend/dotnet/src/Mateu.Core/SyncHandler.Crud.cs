@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Mateu.Dtos;
 using Mateu.Uidl;
+using Microsoft.Extensions.Logging;
 
 namespace Mateu.Core;
 
@@ -70,6 +71,12 @@ internal sealed partial class SyncHandler
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(crud, rq);
         // A [Searchable] field on the entity form opens its selector dialog.
         if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(element, rq);
+
+        // the WRITES the crud does not offer are refused (403), not only undrawn (mirrors Java's
+        // CrudWriteGate): a [ReadOnly] crud, CanCreate/CanEdit/CanDelete narrowed, a Disabled/Off
+        // Create or Delete — a crafted request used to create, save and delete anyway
+        if (rq.ActionId is "create" or "save" or "save-and-next" or "update-row" or "delete")
+            EnsureWriteAllowed(crud, crudType, rq.ActionId);
 
         return rq.ActionId switch
         {
@@ -201,6 +208,22 @@ internal sealed partial class SyncHandler
     private static CrudDisplay DisplayOf(object crud) =>
         (crud as ICrudAffordances)?.Display ?? CrudDisplay.Defaults;
 
+    private static void EnsureWriteAllowed(object crud, Type crudType, string actionId)
+    {
+        var display = DisplayOf(crud);
+        bool Can(string name) => crudType.GetProperty(name)?.GetValue(crud) as bool? ?? true;
+        var readOnly = crudType.Find<ReadOnlyAttribute>() is not null;
+        var allowed = !readOnly && actionId switch
+        {
+            "create" => Can("CanCreate") && display.Create.Enabled(),
+            "delete" => Can("CanDelete") && display.Delete.Enabled(),
+            _ => Can("CanEdit"),
+        };
+        if (!allowed)
+            throw new MateuForbiddenException(
+                $"{actionId}: {crudType.Name} does not let the user {actionId}");
+    }
+
     private static bool Allowed(CrudDisplay display, string actionId) => actionId switch
     {
         "new" => display.Create.Enabled(),
@@ -297,9 +320,16 @@ internal sealed partial class SyncHandler
             // drawer mode: a failed save keeps the drawer open and shows WHY inside it (the Redwood
             // create-edit-drawer error banner) with the values the user typed, and announces it
             // assertively — nothing takes focus (mirrors Java's PersistActionHandler).
-            var message = string.IsNullOrWhiteSpace(failure.InnerException.Message)
+            // through the error boundary like any failed action: a UserFacingException / validation
+            // as written, anything else the generic text + a reference, logged — the raw message of
+            // a store exception (an SQL statement, its values) used to be shown in the drawer
+            var (said, reference) = ErrorBoundary.Describe(failure.InnerException);
+            if (reference is not null)
+                MateuLogging.For("Mateu.Crud").LogError(failure.InnerException,
+                    "Error handling action {ActionId} [ref {Reference}]", rq.ActionId, reference);
+            var message = string.IsNullOrWhiteSpace(said.Text)
                 ? "The record could not be saved"
-                : failure.InnerException.Message;
+                : said.Text;
             var mode = id is null ? "new" : "edit";
             var route = id is null ? $"{baseRoute}/new" : $"{baseRoute}/{id}/edit";
             return UIIncrementDto.Of(
@@ -424,12 +454,13 @@ internal sealed partial class SyncHandler
     {
         if (storedVersion is not { } stored || VersionProperty(incoming.GetType()) is not { } version)
             return false;
-        if (ForceOverwrite(rq))
-        {
-            SetVersion(incoming, version, stored);
-            return false;
-        }
-        return stored > Convert.ToInt64(version.GetValue(incoming) ?? 0L);
+        if (!ForceOverwrite(rq) && stored > Convert.ToInt64(version.GetValue(incoming) ?? 0L))
+            return true;
+        // not stale (or overwritten on purpose): the record is saved FROM the stored version. The
+        // client's copy only answered "did you see the latest?" — a version AHEAD of the stored one
+        // (a crafted 999) used to be saved and bumped to 1000
+        SetVersion(incoming, version, stored);
+        return false;
     }
 
     /// <summary>Increments the entity's [Version] by 1 before persisting (int stays int, long

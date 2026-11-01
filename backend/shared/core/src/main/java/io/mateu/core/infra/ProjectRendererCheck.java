@@ -1,7 +1,6 @@
 package io.mateu.core.infra;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.mateu.core.application.runaction.MountRegistry;
 import io.mateu.uidl.data.ProjectRenderer;
 import io.mateu.uidl.data.ProjectSettings;
@@ -35,7 +34,7 @@ public final class ProjectRendererCheck {
   static final String INDEX_TEMPLATE = "static/_index.html";
 
   private static final AtomicBoolean CHECKED = new AtomicBoolean();
-  private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+  private static final ObjectMapper YAML = io.mateu.core.application.runaction.SpecsYaml.mapper();
 
   /**
    * Dev mode: an edited descriptor is checked again (the check is once per JVM otherwise). Held

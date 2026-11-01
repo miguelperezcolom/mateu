@@ -41,6 +41,7 @@ import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
 import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.ts';
 import { IDS_PARAM, SEARCH_ALIAS, SEARCH_PARAM } from '@infra/ui/idSetFilter.ts';
+import { sortDirectionOf } from '@infra/ui/sortDirection.ts';
 import { isListingOwnLoad } from '@infra/http/localRequests.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { showsPreSearch } from '@infra/ui/listingPreSearch.ts'
@@ -486,6 +487,7 @@ export class MateuTableCrud extends LitElement {
         this.resizeObserver.observe(this)
         this.addEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
         window.addEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
+        window.addEventListener('popstate', this._onPopState)
     }
 
     // the URL moved under this listing: updated() compares it with the one it applied
@@ -502,6 +504,7 @@ export class MateuTableCrud extends LitElement {
         this.resizeObserver?.disconnect()
         this.removeEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
         window.removeEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
+        window.removeEventListener('popstate', this._onPopState)
     }
 
     /**
@@ -640,10 +643,20 @@ export class MateuTableCrud extends LitElement {
         const search = params.toString()
         const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname
         if (window.location.pathname + window.location.search !== newUrl) {
-            history.replaceState(null, '', newUrl)
+            // A page, a sort, a filter or a search the user asked for is a history entry: Back
+            // returns to the previous one (the listing re-reads the URL — see updated()), as the
+            // filters doc promises. Re-stating what the URL already asked for, on a load, is not.
+            if (this._urlWrite === 'replace') history.replaceState(history.state, '', newUrl)
+            else history.pushState(history.state, '', newUrl)
         }
         this._appliedUrl = window.location.pathname + window.location.search
     }
+
+    /** How the next URL write goes: `push` for the user's own changes, `replace` while (re)loading. */
+    private _urlWrite: 'push' | 'replace' = 'push'
+
+    /** Back/forward between two states of THIS listing (same path, other query): re-read the URL. */
+    private _onPopState = () => this.requestUpdate()
 
     /** The URL (path + query) whose filters this listing last applied or wrote. */
     private _appliedUrl: string | undefined = undefined
@@ -680,7 +693,13 @@ export class MateuTableCrud extends LitElement {
         const sortParam = params.get('sort')
         if (sortParam) {
             const sort = sortParam.split(',')
-                .map(s => { const [fieldId, direction] = s.split(':'); return fieldId && direction ? {fieldId, direction} : null })
+                .map(s => {
+                    const [fieldId, raw] = s.split(':')
+                    // a typed or shared link may say asc/desc: the server knows only the two
+                    // words, and an unknown direction answered "Something went wrong"
+                    const direction = sortDirectionOf(raw)
+                    return fieldId && direction ? {fieldId, direction} : null
+                })
                 .filter(Boolean)
             if (sort.length > 0) {
                 result.sort = sort
@@ -782,13 +801,16 @@ export class MateuTableCrud extends LitElement {
         // whatever totalPath it declares — and it is never proxied (there may be no server at all).
         const sampled = isSampled(src)
         const serverPaged = totalPathOf(src) != null && !sampled
+        // A tree keeps each row's next level under `children` (the source's field map may point it
+        // at another response field) — not a column, so it is carried through the projection.
+        const childrenId = this.effectiveGridLayout === 'tree' ? 'children' : undefined
         const pagePromise: Promise<{ rows: Record<string, unknown>[]; total: number | null }> = viaProxy(src)
             ? new Promise((resolve) => {
                 this.dispatchEvent(new CustomEvent('action-requested', {
                     detail: {
                         actionId: '__restfetch__',
                         parameters: { _sourceKind: 'rows', _sourceId: this.id },
-                        callback: (uiIncrement: any) => resolve(pageOf(uiIncrement?.appData?.['_restfetch'], src, columnIds)),
+                        callback: (uiIncrement: any) => resolve(pageOf(uiIncrement?.appData?.['_restfetch'], src, columnIds, childrenId)),
                         callbackonly: true
                     },
                     bubbles: true,
@@ -796,8 +818,8 @@ export class MateuTableCrud extends LitElement {
                 }))
             })
             : serverPaged
-                ? fetchExternalPage(src, columnIds, templateResolver(this.state, this.data))
-                : fetchExternalRows(src, columnIds, templateResolver(this.state, this.data))
+                ? fetchExternalPage(src, columnIds, templateResolver(this.state, this.data), fetch, childrenId)
+                : fetchExternalRows(src, columnIds, templateResolver(this.state, this.data), fetch, childrenId)
                     .then((rows) => ({ rows, total: null }))
         pagePromise
             .then(({ rows: fetched, total }) => {
@@ -950,7 +972,13 @@ export class MateuTableCrud extends LitElement {
                 // An external-REST listing (@RestListing) fetches its rows CLIENT-SIDE on mount —
                 // there is no server OnLoad trigger for declarative listings.
                 if (urlHasNonDefault || metadata.rowsSource || urlChanged) {
-                    this.handleSearchRequested(undefined)
+                    // the URL already says this: a rewrite (normalising it) is not a new entry
+                    this._urlWrite = 'replace'
+                    try {
+                        this.handleSearchRequested(undefined)
+                    } finally {
+                        this._urlWrite = 'push'
+                    }
                 }
             } else {
                 // A re-render pushed a fresh server state (the search response's own state), which
@@ -1338,8 +1366,10 @@ export class MateuTableCrud extends LitElement {
             const idCol = railCols.find(c => c.identifier) ?? railCols[0]
             const secCols = railCols.filter(c => c !== idCol)
             return html`
-                <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
-                    <div style="width: 260px; flex-shrink: 0; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
+                <!-- the list beside the detail where there is room; on a phone the detail wraps BELOW
+                     the list, which then takes the whole line (its tiny grow only matters alone) -->
+                <div class="m-master-detail" style="display: flex; flex-wrap: wrap; height: 100%; min-height: 400px; gap: 0;">
+                    <div style="flex: 1 0 260px; max-width: 100%; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
                         <div class="m-listbox" style="width: 100%;">
                             ${rows.length === 0 ? html`<div class="m-item" disabled>${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                             ${rows.map(item => html`
@@ -1356,7 +1386,7 @@ export class MateuTableCrud extends LitElement {
                             `)}
                         </div>
                     </div>
-                    <div style="flex: 1; padding: var(--lumo-space-m); overflow-y: auto;">
+                    <div style="flex: 1000 1 20rem; min-width: min(20rem, 100%); padding: var(--lumo-space-m); overflow-y: auto;">
                         ${this.selectedItem ? html`
                             <div class="m-formlayout">
                                 ${allCols.map(col => html`
@@ -1547,7 +1577,7 @@ export class MateuTableCrud extends LitElement {
         return html`
             ${importDialog}
             ${hasHeader ? html`
-                    <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem); ${EDGE_GUTTER}">
+                    <div style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem); ${EDGE_GUTTER}">
                         ${backButtons.map(button => html`
                             <button class="back-chevron"
                                     data-action-id="${button.id}"
@@ -1559,7 +1589,9 @@ export class MateuTableCrud extends LitElement {
                                           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </button>`)}
-                        <div style="flex: 1; min-width: 0;">
+                        <!-- the title block keeps a readable width (like the form header's): on a
+                             phone the actions wrap below it instead of squeezing it to "Laun…" -->
+                        <div style="flex: 1 1 0; min-width: min(16rem, 100% - 3rem);">
                             ${metadata?.title ? html`
                                 <h2 style="margin: 0; font-size: var(--lumo-font-size-xxl); font-weight: 700; color: var(--lumo-header-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.evalLabel(metadata.title)}</h2>
                             ` : nothing}

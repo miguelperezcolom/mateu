@@ -5,7 +5,7 @@ import { Appbar, Divider, Drawer as PaperDrawer, FAB, IconButton, Text as PaperT
 import { navigationTheme, useThemeControl } from '../ui/MateuTheme';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { BackHandler, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { BackHandler, Image, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
@@ -25,6 +25,9 @@ import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type S
 import type { AppShortcut } from '../core/appShellExtras';
 import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
 import { openExternal } from './openExternal';
+import { fetch as streamingFetch } from 'expo/fetch';
+import { devEventsUrlOf, followLiveReload } from '../core/liveReload';
+import { MANIFEST_PATH } from '../hub/manifest';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -780,6 +783,31 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // its load from scratch against the redeployed backend — the same remount an @AppContext change does
   React.useEffect(() => {
     session.reload = () => setContextVersion((v) => v + 1);
+  }, [session]);
+  // development mode (the IDE's "Run Mateu App (Live)"): the manifest names the backend's live-reload
+  // events (core/liveReload.ts) — a YAML edit, a HotSwap or a restart re-renders the screen on
+  // display, as on the web. A production backend (or a static bundle) names none: nothing is opened.
+  React.useEffect(() => {
+    const base = session.api.baseUrl;
+    if (!base || session.api.local) return;
+    let stop: (() => void) | undefined;
+    let cancelled = false;
+    fetch(base + MANIFEST_PATH, { headers: { Accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((manifest) => {
+        const url = devEventsUrlOf(base, manifest);
+        if (url && !cancelled) {
+          // a browser's own fetch streams; expo/fetch is the one that streams on a device (React
+          // Native's fetch buffers the whole body, and expo/fetch on the web never hands one over)
+          const fetchImpl = Platform.OS === 'web' ? fetch : (streamingFetch as unknown as typeof fetch);
+          stop = followLiveReload({ url, fetchImpl, onAction: () => session.reload() });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
   }, [session]);
   // the remotes the app's menu names are the ones its backend chose: they may carry credentials
   declareMenuRemotes(session, appMeta.menu);

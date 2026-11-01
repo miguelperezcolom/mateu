@@ -32,6 +32,9 @@ import { chatTurnsOf } from './displayDom.mjs'
 import { REDWOOD_COVERAGE } from './coverage.mjs'
 import { setChromeLanguage, CHROME_TEXTS } from './i18n.mjs'
 import { ruleSurfacesOf, surfaceOfElement } from './rules.mjs'
+import { kanbanKeyOf, kanbanTriggersOf, kanbanCardsFromRows, kanbanMovedColumns, kanbanIsRealMove, kanbanMoveParametersOf,
+  kanbanDropIndexOf, setPendingKanbanMove, kanbanMovePlanOf, kanbanMoveFailed, KANBAN_ACTION } from './core/kanban.mjs'
+import { onLoadTriggers } from './core/reducer.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -118,6 +121,88 @@ test('Kanban: columns with counts and tones; clickable cards send _clickedCard',
   assert.equal(col.cards[0].parameters._clickedCard.id, 'a')
   assert.match(col.cards[0].badgeClass, /danger/)
   assert.deepEqual(kanbanAtomOf({ columns: [{ color: '#ff0000', cards: [] }] }).columns[0].headerStyle, { borderTopColor: '#ff0000' })
+})
+
+test('Kanban: a movable board paints its ids and a keyboard menu; a plain one stays as it was', () => {
+  const md = { moveActionId: 'moveTask', columns: [
+    { id: 'todo', title: 'To do', cards: [{ id: 't1', title: 'Write' }, { id: 't2', title: 'Review' }] },
+    { id: 'done', title: 'Done', cards: [] }] }
+  const k = kanbanAtomOf(md)
+  assert.equal(k.movable, true)
+  assert.equal(k.moveActionId, 'moveTask')
+  assert.equal(k.kanbanKey, kanbanKeyOf(md))
+  assert.deepEqual(k.columns.map((c) => c.columnId), ['todo', 'done'])
+  const first = k.columns[0].cards[0]
+  assert.equal(first.cardId, 't1')
+  assert.equal(first.movable, true)
+  assert.match(first.cardClass, /mateu-kanban-movable/)
+  assert.equal(first.moveLabel, 'Move Write')
+  assert.deepEqual(first.moves.map((m) => m.label), ['Move down', 'Move to Done'])
+  assert.deepEqual(JSON.parse(first.moves[1].value), { cardId: 't1', fromColumnId: 'todo', toColumnId: 'done', toIndex: 0 })
+  const plain = kanbanAtomOf({ columns: md.columns })
+  assert.equal(plain.movable, false)
+  assert.deepEqual(plain.columns[0].cards[0].moves, [])
+  // the template paints the ids kanbanDom reads, and the select only on a movable board
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.match(html, /:data-kanban-key="\[\[ \$current\.data\.kanbanKey \]\]" :data-move-action=/)
+  assert.match(html, /class="mateu-kanban-item" :data-card-id=/)
+  assert.match(html, /<select class="mateu-kanban-move"/)
+})
+
+test('Kanban: a live board draws its cards from the loaded items, a pending move painted at once', () => {
+  const md = {
+    id: 'board', moveActionId: 'moveTask', columnField: 'status', cardRoute: 'tasks/${row.id}',
+    rowsSource: { url: 'https://api.example.com/tasks', itemsPath: 'content' },
+    card: { title: '${row.title}', badge: '${row.priority}', color: '${row.priority}' },
+    cardColors: { urgent: '#dc2626' },
+    columns: [{ id: 'backlog', title: 'Backlog' }, { id: 'done', title: 'Done' }],
+  }
+  const key = kanbanKeyOf(md)
+  const items = [{ id: 1, title: 'Varnish', status: 'backlog', priority: 'urgent' }, { id: 2, title: 'Mount', status: 'done', priority: 'low' },
+    { id: 3, title: 'Lost', status: 'archived' }]
+  // loads on opening, like a nested listing
+  const ctx = { tree: { type: 'ServerSide', id: 'host', children: [{ type: 'ClientSide', id: 'board', metadata: { type: 'Kanban', ...md }, children: [] }] },
+    data: { [key]: { items } }, state: {} }
+  assert.ok(onLoadTriggers(ctx).includes(KANBAN_ACTION + key))
+  assert.deepEqual(kanbanTriggersOf(ctx), [KANBAN_ACTION + key])
+  const k = kanbanAtomOf(md, (x) => x, ctx)
+  assert.deepEqual(k.columns.map((c) => c.cards.map((x) => x.title)), [['Varnish'], ['Mount']])
+  const card = k.columns[0].cards[0]
+  assert.equal(card.route, 'tasks/1')
+  assert.equal(card.clickable, true)
+  assert.deepEqual(card.cardStyle, { borderInlineStartColor: '#dc2626' })
+  // a pending move is on screen before the action answers; dropping it puts the card back
+  setPendingKanbanMove(key, { cardId: '1', fromColumnId: 'backlog', toColumnId: 'done', toIndex: 1 })
+  assert.deepEqual(kanbanAtomOf(md, (x) => x, ctx).columns.map((c) => c.cards.map((x) => x.title)), [[], ['Mount', 'Varnish']])
+  setPendingKanbanMove(key, null)
+  assert.deepEqual(kanbanAtomOf(md, (x) => x, ctx).columns.map((c) => c.cards.map((x) => x.title)), [['Varnish'], ['Mount']])
+  // the chain's plan: the action, the card's item with where it went, and the reload of a live board
+  const plan = kanbanMovePlanOf(ctx, key, { cardId: '1', fromColumnId: 'backlog', toColumnId: 'done', toIndex: 0 })
+  assert.equal(plan.actionId, 'moveTask')
+  assert.deepEqual(plan.parameters, { ...items[0], _cardId: '1', _fromColumnId: 'backlog', _toColumnId: 'done', _toIndex: 0 })
+  assert.equal(plan.reloadActionId, KANBAN_ACTION + key)
+  assert.equal(kanbanMovePlanOf(ctx, key, { cardId: '1', fromColumnId: 'backlog', toColumnId: 'backlog', toIndex: 0 }), null, 'dropped where it was')
+  assert.equal(kanbanMovePlanOf(ctx, 'other', { cardId: '1', fromColumnId: 'backlog', toColumnId: 'done', toIndex: 0 }), null)
+})
+
+test('Kanban: moves, positions and failures read like the web (kanbanModel.ts)', () => {
+  const cols = kanbanCardsFromRows({ columns: [{ id: 'a' }, { id: 'b' }] }, [{ id: 1, status: 'a' }, { id: 2, status: 'a' }, { id: 3, status: 'b' }])
+  assert.deepEqual(kanbanMovedColumns(cols, { cardId: '1', fromColumnId: 'a', toColumnId: 'a', toIndex: 1 })[0].cards.map((c) => c.id), ['2', '1'])
+  assert.deepEqual(kanbanMovedColumns(cols, { cardId: '1', fromColumnId: 'a', toColumnId: 'b', toIndex: 9 })[1].cards.map((c) => c.id), ['3', '1'])
+  assert.equal(kanbanMovedColumns(cols, { cardId: 'x', fromColumnId: 'a', toColumnId: 'b', toIndex: 0 }), cols)
+  assert.equal(kanbanIsRealMove(cols, { cardId: '1', fromColumnId: 'a', toColumnId: 'a', toIndex: 0 }), false)
+  assert.deepEqual(kanbanMoveParametersOf({ id: 'k' }, { cardId: 'k', fromColumnId: 'a', toColumnId: 'b', toIndex: 2 }),
+    { _cardId: 'k', _fromColumnId: 'a', _toColumnId: 'b', _toIndex: 2 })
+  assert.deepEqual([kanbanDropIndexOf(5, [10, 30]), kanbanDropIndexOf(20, [10, 30]), kanbanDropIndexOf(99, [10, 30])], [0, 1, 2])
+  assert.equal(kanbanMoveFailed(null), true)
+  assert.equal(kanbanMoveFailed({ messages: [{ variant: 'error', text: 'Request failed' }] }), true)
+  assert.equal(kanbanMoveFailed({ messages: [], fragments: [] }), false)
+  // the shell hands drops to the content page's chain
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.installKanbans\(\)/)
+  assert.match(shell, /application:mateuKanbanMove/)
+  const page = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
+  assert.equal(page.eventListeners['application:mateuKanbanMove'].chains[0].chain, 'kanbanCardMoved')
 })
 
 test('colours: a theme tone or a CSS colour; anything else is ignored', () => {
@@ -319,6 +404,16 @@ test('BPMN: shapes from the BPMN-DI, flows from their waypoints', () => {
   const atom = bpmnAtomOf({ xml }, 'proc 1')
   assert.equal(atom.bpmnId, 'mateuBpmn-proc_1')
   assert.match(atom.ariaLabel, /Order received/)
+})
+
+test('a MetricCard, a Stat and an EntityHeader metric interpolate ${state.x} (value and unit too)', () => {
+  const state = { budget: 1200, visitors: 37, label: 'Rating' }
+  const [band] = atomsOf(node({ type: 'MetricCard', title: 'Budget', value: '${state.budget}', unit: 'USD' }), state)
+  assert.equal(band.metrics[0].value, '1200')
+  const [stat] = atomsOf(node({ type: 'Stat', label: 'Visitors', value: '${state.visitors}' }), state)
+  assert.equal(stat.value, '37')
+  const [header] = atomsOf(node({ type: 'EntityHeader', title: 'X', metricLabel: '${state.label}', metricValue: '4' }), state)
+  assert.equal(header.metricLabel, 'Rating')
 })
 
 test('Popover rich content: structure as sanitised HTML', () => {

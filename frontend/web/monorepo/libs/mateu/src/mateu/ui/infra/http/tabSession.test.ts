@@ -21,7 +21,14 @@ const storageOf = (entries: Record<string, string> = {}): Storage => {
     return { m, get: (k) => m.get(k) ?? null, set: (k, v) => { m.set(k, v); return true }, remove: (k) => { m.delete(k) } }
 }
 
-/** A BroadcastChannel bus: what one instance posts reaches every OTHER open instance of the name, async. */
+/**
+ * A BroadcastChannel bus: what one instance posts reaches every OTHER open instance of the name, async.
+ * Delivered as a MICROTASK, not a timer: a timer-delivered question and answer raced the claim's own
+ * `waitMs` timer — when the worker was busy for longer than waitMs, every timer had expired at once,
+ * the answer was re-queued behind the wait and the duplicate concluded no other tab had its id
+ * (1 run in ~10 of the full suite). The claim's real contract is "an answer that arrives within
+ * waitMs"; a microtask is always within it.
+ */
 const busOf = () => {
     const open = new Set<FakeChannel>()
     class FakeChannel {
@@ -29,7 +36,7 @@ const busOf = () => {
         constructor(readonly name: string) { open.add(this) }
         postMessage(data: unknown) {
             for (const other of open) {
-                if (other !== this && other.name === this.name) setTimeout(() => other.onmessage?.({ data: structuredClone(data) }), 0)
+                if (other !== this && other.name === this.name) queueMicrotask(() => other.onmessage?.({ data: structuredClone(data) }))
             }
         }
         close() { open.delete(this) }
