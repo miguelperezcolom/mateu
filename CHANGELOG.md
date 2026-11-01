@@ -13,6 +13,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Kanban boards move: drag and drop, and a Move menu.** A `Kanban` with a `moveActionId` lets
+  its cards be dragged to another column or reordered within one (a line shows where it lands); each
+  card also has a Move menu (`⋯`: up, down, to another column) for the keyboard, screen readers, phones
+  and the IntelliJ plugin. The card moves at once and goes back if the action fails; the action gets
+  the card's item plus `_cardId`, `_fromColumnId`, `_toColumnId` and `_toIndex`. A board can also be
+  **live**: `rowsSource` + `columnField` + a `card` template (`${row.x}`) + `cardColors` + `cardRoute`
+  draw the cards from a REST source, read again after each move — so a YAML page with a `restAction`
+  move needs no Java. A REST action now reads its call parameters over the state on both legs
+  (browser and proxied). Java, .NET, Python; Vaadin, Redwood, React Native, IntelliJ.
+
 - **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
   app (a gallery's photographs, a document in another system) can point at one elsewhere:
   `rowRoute: ${row.imageLarge}` or `https://example.com/docs/${row.id}`. A route that starts with a

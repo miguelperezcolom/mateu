@@ -1707,13 +1707,31 @@
     } ]
   }, {
     "type" : "Kanban",
-    "description" : "A read-only kanban board: columns of cards.",
+    "description" : "A kanban board: columns of cards.",
     "attributes" : [ {
       "name" : "id",
       "type" : "string"
     }, {
       "name" : "columns",
       "type" : "list of KanbanColumn"
+    }, {
+      "name" : "moveActionId",
+      "type" : "string"
+    }, {
+      "name" : "rowsSource",
+      "type" : "RestDataSource"
+    }, {
+      "name" : "columnField",
+      "type" : "string"
+    }, {
+      "name" : "card",
+      "type" : "KanbanCard"
+    }, {
+      "name" : "cardColors",
+      "type" : "object"
+    }, {
+      "name" : "cardRoute",
+      "type" : "string"
     } ]
   }, {
     "type" : "Ledger",
