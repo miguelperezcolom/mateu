@@ -90,7 +90,8 @@ export function pageOf(type, family) {
   return null
 }
 
-const cell = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim()
+// a table cell: backslashes first (or the pipe's escape could be undone), then the pipes
+const cell = (s) => String(s ?? '').replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim()
 
 function row(c, family) {
   const page = pageOf(c.type, family)
@@ -104,7 +105,7 @@ export function render(catalog) {
   const familyOf = {}
   for (const [family, types] of Object.entries(families)) for (const t of types) familyOf[t] = family
   const byType = Object.fromEntries((catalog.components || []).map((c) => [c.type, c]))
-  const all = Object.keys(byType).sort()
+  const all = Object.keys(byType).sort((a, b) => a.localeCompare(b))
   const components = all.filter((t) => !familyOf[t])
   const head = '| Type | What it is | Main attributes |\n|---|---|---|'
   const out = [BEGIN, '']
@@ -117,7 +118,7 @@ export function render(catalog) {
     Trigger: ['Triggers', 'What a definition\'s `triggers:` list holds.'],
     Step: ['Flow steps', 'The steps of an action\'s client-side flow (`steps:`).'],
   }
-  for (const family of Object.keys(families).sort()) {
+  for (const family of Object.keys(families).sort((a, b) => a.localeCompare(b))) {
     const [title, intro] = titles[family] || [family, '']
     const types = families[family].filter((t) => byType[t]).sort()
     if (!types.length) continue
