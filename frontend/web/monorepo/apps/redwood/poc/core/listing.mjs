@@ -153,6 +153,21 @@ export function nestedListingAtomOf(node, ctx) {
     else if (md.rowRoute && c === titleCol) def.template = 'cellNestedLink'
     return def
   })
+  // a listing with row selection (a bulk toolbar action: "Delete selected") marks its rows like the
+  // page's own listing does — on a table; a card grid has no selection in Redwood
+  const selectable = !asCards && !!(md.rowsSelectionEnabled || md.multipleRowSelectionEnabled)
+  const toolbar = (md.toolbar || []).map((b) => (b && b.metadata) || b)
+    .filter((b) => b && b.actionId)
+    .map((b) => ({
+      actionId: String(b.actionId),
+      label: interpolate(String(b.label || b.actionId), state),
+      chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      disabled: !!b.disabled,
+      parameters: {},
+      route: '',
+      surfaceId: '',
+      fromNested: false,
+    }))
   return {
     isNestedListing: true,
     nestedKey: key,
@@ -162,6 +177,9 @@ export function nestedListingAtomOf(node, ctx) {
     cards,
     columns: tableColumns,
     rows: tableRows,
+    toolbar,
+    hasToolbar: toolbar.length > 0,
+    selectionMode: selectable ? { row: 'multiple' } : { row: 'none' },
     adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
     loaded: !!loaded,
     isEmpty: !!loaded && rows.length === 0,
@@ -628,6 +646,40 @@ export function rowAsArrived(row) {
 export function withListingSelection(componentState, listing, rows, selection) {
   if (!listing || !listing.rowsSelectionEnabled) return componentState
   return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
+}
+
+// The marked rows of each listing NESTED in a page's content, by its key (the oj-table's
+// selection, written by the nestedListingSelected chain). A nested listing's rows are not the
+// page's listing, so they have no place in mateuListingSelection.
+const nestedSelections = new Map()
+
+/** What is marked on a nested listing: oj-table's KeySet (`detail.value.row`), kept as a selection. */
+export function setNestedSelection(key, keySet) {
+  if (!key) return
+  const selection = selectionOfKeySet(keySet)
+  if (selection.all || selection.keys.length) nestedSelections.set(String(key), selection)
+  else nestedSelections.delete(String(key))
+}
+
+/** Forgets what was marked on a nested listing (its rows were reloaded). */
+export function clearNestedSelection(key) {
+  nestedSelections.delete(String(key))
+}
+
+/**
+ * The componentState of an action declared on a NESTED listing's toolbar (a bulk "Delete
+ * selected"): its marked rows as crud_selected_items, as Vaadin sends them. Any other action, or
+ * a page with no such listing, leaves the state untouched.
+ */
+export function withNestedSelection(componentState, host, actionId) {
+  const tree = host && host.tree
+  if (!tree || !actionId) return componentState
+  const owner = nestedListingNodesOf(tree).find((n) => ((n.metadata && n.metadata.toolbar) || [])
+    .some((b) => ((b && b.metadata) || b || {}).actionId === actionId))
+  if (!owner) return componentState
+  const key = nestedListingKeyOf(owner)
+  const rows = (((host.data || {})[key] || {}).page || {}).content || []
+  return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, nestedSelections.get(key)) })
 }
 
 // rows with @Status columns: the {type, message} value gets stamped with the JET badge

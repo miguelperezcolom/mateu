@@ -133,6 +133,8 @@ const en = {
     // field widgets
     upload: 'Upload',
     replace: 'Replace',
+    useImageUrl: 'Use a URL',
+    imageUrl: 'Image URL',
     chooseFile: 'Choose file',
     capture: 'Capture',
     accept: 'Accept',
@@ -395,6 +397,8 @@ const es: Catalogue = {
     itemsFound: '{count} elementos encontrados.',
     upload: 'Subir',
     replace: 'Reemplazar',
+    useImageUrl: 'Usar una URL',
+    imageUrl: 'URL de la imagen',
     chooseFile: 'Elegir fichero',
     capture: 'Capturar',
     accept: 'Aceptar',

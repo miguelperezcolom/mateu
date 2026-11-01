@@ -1,6 +1,7 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
 import { declaresJson } from './jsonTemplate.ts'
+import { ExternalRestError, serviceMessageOf } from './serviceMessage.ts'
 import { UnknownRestSourceError, getRestSource, isSampled, pathOfField, remoteCataloguesSettled, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
 import type { TemplateResolver } from '../ui/interpolation.ts'
 
@@ -155,7 +156,16 @@ export async function fetchExternalJson(
         init.body = forBody(source.body) ?? source.body
     }
     const res = await fetchImpl(url, init)
-    if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`)
+    if (!res.ok) {
+        // keep what the service said about it (its error body) for the user's toast
+        let detail: string | undefined
+        try {
+            detail = typeof res.text === 'function' ? serviceMessageOf(await res.text()) : undefined
+        } catch {
+            detail = undefined
+        }
+        throw new ExternalRestError(res.status, detail)
+    }
     // A write commonly answers 204 No Content (a DELETE almost always does): an empty body is a
     // success with nothing to merge, not a JSON parse error — which used to turn every such delete
     // into a "Request failed" toast after the record was already gone.

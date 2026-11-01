@@ -18,7 +18,12 @@ import { pageSwitcherOf, reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOO
 import { runMateuAction, loadLookups } from './transport.mjs'
 import { adoptShellSources, fetchGlobalSearch, sourcedNotificationsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { fetchNotifications } from './notify.mjs'
-import { jsonEscape, declaresJson, restAnswerOf as restAnswer, mapItemsToOptions as mapOptions } from './restSources.mjs'
+import { jsonEscape, declaresJson, restAnswerOf as restAnswer, mapItemsToOptions as mapOptions, refreshActionsOf, serviceMessageOf } from './restSources.mjs'
+import { NESTED_LISTING_ACTION, nestedListingKeyOf, nestedListingAtomOf, setNestedSelection, clearNestedSelection, withNestedSelection } from './core/listing.mjs'
+import { imageUrlOf } from './inputs.mjs'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 let passed = 0
 const queue = []
@@ -405,6 +410,82 @@ test('rest action: back to the route on screen re-runs the search; a failure toa
   assert.deepEqual(failed.commands, [])
   assert.equal(failed.messages[0].variant, 'error')
   assert.match(failed.messages[0].text, /500/)
+})
+
+// A record page (a templated Form) with a listing NESTED in its content: the loan's documents
+const docsListing = { type: 'ClientSide', id: 'docs', children: [], metadata: { type: 'Crud', rowsSource: { url: 'https://api.example.com/loans/${state.id}/documents', itemsPath: 'content' },
+  rowsSelectionEnabled: true, toolbar: [{ type: 'Button', label: 'Delete selected', actionId: 'delete-documents' }],
+  columns: [col('id'), col('name', { identifier: true })] } }
+const recordPageCtx = (restAction, state = { id: 43 }) => ({
+  id: HOST_ID,
+  tree: { type: 'ServerSide', id: 'page', actions: [{ id: 'upload', restAction }, { id: 'delete-documents', restAction }], children: [
+    { type: 'ClientSide', id: 'form', metadata: { type: 'Form', template: { type: 'AdvancedCreateEditPage' } }, children: [docsListing] }] },
+  state, data: {},
+})
+
+test('rest action back on a record page re-reads its NESTED listing, not the page `search` (refused: 403)', async () => {
+  reset()
+  const ctx = recordPageCtx({ source: { url: 'https://api.example.com/loans/43/documents', method: 'POST' }, successRoute: 'loans/${state.id}' })
+  const inc = await restAnswerOf(ctx, 'upload', ctx.state, { fetchImpl: stubFetch(null, 204), route: '/loans/43' })
+  assert.deepEqual(inc.commands.map((c) => c.data.actionId), [NESTED_LISTING_ACTION + nestedListingKeyOf(docsListing)])
+  assert.deepEqual(refreshActionsOf(ctx), [NESTED_LISTING_ACTION + nestedListingKeyOf(docsListing)])
+  // a page with its own listing (or none at all) keeps re-running `search`, as before
+  assert.deepEqual(refreshActionsOf(actionCtx({})), ['search'])
+})
+
+test('a refused REST call shows what the service said, direct or proxied; the generic text otherwise', async () => {
+  reset()
+  const direct = actionCtx({ source: { url: 'https://api.example.com/astronauts/1', method: 'PUT' } }, { id: 1 })
+  const said = await restAnswerOf(direct, 'save', direct.state, { fetchImpl: stubFetch({ status: 400, error: 'Bad Request', message: 'Image larger than 2 MB' }, 400), route: '/x' })
+  assert.deepEqual(said.messages, [{ variant: 'error', text: 'Image larger than 2 MB' }])
+  const silent = await restAnswerOf(direct, 'save', direct.state, { fetchImpl: stubFetch(null, 500), route: '/x' })
+  assert.deepEqual(silent.messages, [{ variant: 'error', text: 'Request failed (HTTP 500)' }])
+  const proxied = actionCtx({ source: { url: 'https://api.example.com/astronauts/1', method: 'PUT', proxy: true } }, { id: 1 })
+  const server = async () => ({ appData: { _restfetchError: { status: 400, message: 'Request failed (HTTP 400)', detail: 'Image larger than 2 MB' } } })
+  const viaServer = await restAnswerOf(proxied, 'save', proxied.state, { server, route: '/x' })
+  assert.deepEqual(viaServer.messages, [{ variant: 'error', text: 'Image larger than 2 MB' }])
+  // the same extraction rule as the server and libs/mateu (their tests carry these cases)
+  assert.equal(serviceMessageOf('{"title":"Invalid","detail":"Name is required"}'), 'Name is required')
+  assert.equal(serviceMessageOf('{"error":{"message":"quota exceeded"}}'), 'quota exceeded')
+  assert.equal(serviceMessageOf('Astronaut still on a crew'), 'Astronaut still on a crew')
+  for (const nothing of [null, '  ', '<html>502</html>', '[1]', 'x'.repeat(301), '{"status":500}', '{bad']) assert.equal(serviceMessageOf(nothing), undefined)
+  assert.equal(serviceMessageOf('{"message":"two\\u0007\\n  lines"}'), 'two lines')
+})
+
+test('a nested listing with row selection: its toolbar is drawn, its table selects, a toolbar action carries the marked rows', () => {
+  const key = nestedListingKeyOf(docsListing)
+  const host = { ...recordPageCtx({}), data: { [key]: { page: { content: [{ id: 7, name: 'a.pdf', _rowNumber: '7' }, { id: 8, name: 'b.pdf', _rowNumber: '8' }] } } } }
+  const atom = nestedListingAtomOf(docsListing, host)
+  assert.deepEqual(atom.toolbar.map((b) => [b.label, b.actionId]), [['Delete selected', 'delete-documents']])
+  assert.equal(atom.hasToolbar, true)
+  assert.deepEqual(atom.selectionMode, { row: 'multiple' })
+  // none marked: nothing carried; one marked: that row, as it arrived
+  assert.deepEqual(withNestedSelection({ id: 43 }, host, 'delete-documents').crud_selected_items, [])
+  setNestedSelection(key, { values: () => new Set(['8']) })
+  assert.deepEqual(withNestedSelection({ id: 43 }, host, 'delete-documents').crud_selected_items.map((r) => r.id), [8])
+  // an action that is not on that listing's toolbar is left alone
+  assert.equal(withNestedSelection({ id: 43 }, host, 'save').crud_selected_items, undefined)
+  // a listing with no selection keeps a plain table
+  const plain = { ...docsListing, metadata: { ...docsListing.metadata, rowsSelectionEnabled: false, toolbar: [] } }
+  assert.deepEqual(nestedListingAtomOf(plain, host).selectionMode, { row: 'none' })
+  clearNestedSelection(key)
+  assert.deepEqual(withNestedSelection({ id: 43 }, host, 'delete-documents').crud_selected_items, [])
+})
+
+test('the nested listing template: a toolbar of block actions and a selectable table wired to nestedListingSelected', () => {
+  const tpl = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'templates', 'atoms.html'), 'utf8')
+  assert.match(tpl, /hasToolbar[\s\S]*?\$listeners\.\{\{blockAction\}\}/)
+  assert.match(tpl, /selection-mode="\[\[ \$current\.data\.selectionMode \]\]"[\s\S]*?on-selected-changed="\[\[ \$listeners\.nestedListingSelected \]\]"/)
+  const page = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.json'), 'utf8'))
+  assert.equal(page.eventListeners.nestedListingSelected.chains[0].chain, 'nestedListingSelected')
+  const chain = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'nestedListingSelected.js'), 'utf8')
+  assert.match(chain, /bridge\.setNestedSelection\(key, row\)/)
+})
+
+test('an uploadable image can be set from a URL: http(s) or a path, never a data:/script one', () => {
+  assert.equal(imageUrlOf(' https://images.nasa.gov/a~medium.jpg '), 'https://images.nasa.gov/a~medium.jpg')
+  assert.equal(imageUrlOf('/images/a.png'), '/images/a.png')
+  for (const bad of ['', '  ', 'data:image/png;base64,AA', '//evil/x.png', 'javascript:alert(1)', 'java\tscript:x', 'file:///x', 3]) assert.equal(imageUrlOf(bad), undefined, String(bad))
 })
 
 test('rest action in sample mode: the write answers null, nothing is fetched, it still succeeds', async () => {

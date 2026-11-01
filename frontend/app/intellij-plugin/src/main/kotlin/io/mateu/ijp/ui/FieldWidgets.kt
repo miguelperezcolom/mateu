@@ -265,14 +265,30 @@ private fun decodeDataUri(value: String): BufferedImage? = runCatching {
     if (base64.isBlank()) null else ImageIO.read(Base64.getDecoder().decode(base64).inputStream())
 }.getOrNull()
 
+private fun scaledIcon(img: java.awt.image.BufferedImage): javax.swing.ImageIcon {
+    val scale = minOf(1.0, 280.0 / img.width)
+    return javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH))
+}
+
+/** An http(s) image value (a URL the user typed in on the web, a NASA portrait…): fetched off the EDT. */
+internal fun isRemoteImage(value: String): Boolean = Regex("^https?://", RegexOption.IGNORE_CASE).containsMatchIn(value.trim())
+
 private fun imageLabel(value: String): JBLabel {
     val img = decodeDataUri(value)
-    return if (img != null) {
-        val scale = minOf(1.0, 280.0 / img.width)
-        JBLabel(javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH)))
-    } else {
-        JBLabel(plain(if (value.isBlank()) "—" else value))
+    if (img != null) return JBLabel(scaledIcon(img))
+    val label = JBLabel(plain(if (value.isBlank()) "—" else value))
+    // a URL value is shown as the image it names (the web and the phone do), the url text meanwhile
+    if (isRemoteImage(value)) {
+        Thread {
+            val remote = runCatching { ImageIO.read(java.net.URI(value.trim()).toURL()) }.getOrNull()
+            if (remote != null) javax.swing.SwingUtilities.invokeLater {
+                label.text = null
+                label.icon = scaledIcon(remote)
+                label.revalidate()
+            }
+        }.apply { isDaemon = true; name = "mateu-image-preview" }.start()
     }
+    return label
 }
 
 fun imagePreviewField(value: String): JComponent = imageLabel(value)

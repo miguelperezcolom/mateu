@@ -304,6 +304,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    // the rows marked on a listing nested in a page's content (nestedListingSelected chain)
+    setNestedSelection,
     toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,

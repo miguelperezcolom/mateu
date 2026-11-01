@@ -72,6 +72,8 @@
   "captureRetake": "Repetir",
   "captureUpload": "Subir",
   "captureReplace": "Sustituir",
+  "captureUseUrl": "Usar una URL",
+  "captureImageUrl": "URL de la imagen",
   "captureNoCamera": "Cámara no disponible — elige un fichero",
   "captureEmpty": "Sin fichero",
   "captureStart": "Abrir cámara",
