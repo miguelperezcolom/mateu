@@ -40,4 +40,17 @@ class MobileManifestVersionTest {
       assertThat(MobileManifest.releaseVersion(release)).as(release).isEqualTo(release);
     }
   }
+
+  @Test
+  void inDevelopmentModeTheManifestSaysWhereTheLiveReloadEventsAre() {
+    try {
+      io.mateu.core.infra.dev.DevMode.disable();
+      assertThat(MobileManifest.build(PLAIN, "3.0-beta.35")).doesNotContainKey("devEvents");
+      io.mateu.core.infra.dev.DevMode.enable(null);
+      assertThat(MobileManifest.build(PLAIN, "3.0-beta.35"))
+          .containsEntry("devEvents", "/mateu/dev/events");
+    } finally {
+      io.mateu.core.infra.dev.DevMode.reset();
+    }
+  }
 }

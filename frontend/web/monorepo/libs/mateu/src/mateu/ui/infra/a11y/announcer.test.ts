@@ -66,6 +66,16 @@ describe('announcer', () => {
         vi.useRealTimers()
     })
 
+    it('never lets a pending repeat overwrite a newer message', () => {
+        vi.useFakeTimers()
+        announce('Saved')
+        announce('Saved') // the repeat: cleared now, put back a moment later…
+        announce('Order 42 opened') // …but something newer is said in between
+        vi.advanceTimersByTime(100)
+        expect(region('polite')?.textContent).toBe('Order 42 opened')
+        vi.useRealTimers()
+    })
+
     it('says nothing for an empty or blank message', () => {
         announce('')
         announce('   ')

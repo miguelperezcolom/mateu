@@ -31,6 +31,8 @@ public class MobilePlainApp
 
 public class MobileHome { public string? Name { get; set; } }
 
+// Process-wide: DevSpecs.Enabled (dev mode) is global and adds devEvents to the manifest.
+[Collection(ProcessWideStateCollection.Name)]
 public class MobileManifestTests
 {
     private const string Acme =
@@ -124,5 +126,21 @@ public class MobileManifestTests
         Assert.Equal("public, max-age=300", response.Headers.CacheControl?.ToString());
         Assert.Equal("nosniff", string.Join(",", response.Headers.GetValues("X-Content-Type-Options")));
         Assert.Equal(Acme, await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public void In_development_mode_the_manifest_says_where_the_live_reload_events_are()
+    {
+        try
+        {
+            DevSpecs.Enable(false);
+            Assert.DoesNotContain("devEvents", MobileManifest.Json(typeof(MobileHome), "3.0-beta.35"));
+            DevSpecs.Enable(true, System.IO.Directory.CreateTempSubdirectory("mateu-manifest-").FullName);
+            Assert.Contains("\"devEvents\":\"/mateu/dev/events\"", MobileManifest.Json(typeof(MobileHome), "3.0-beta.35"));
+        }
+        finally
+        {
+            DevSpecs.Enable(false);
+        }
     }
 }
