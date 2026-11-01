@@ -112,7 +112,7 @@ sources:
       url: http://localhost:8122/api/astronauts/${state.id}
 
   - name: space-astronaut-update
-    description: Replace an astronaut (a new portrait URL brings its thumbnail and large sizes)
+    description: Replace an astronaut (a new portrait — a URL, or an uploaded data URI — brings its thumbnail and large sizes)
     source:
       url: http://localhost:8122/api/astronauts/${state.id}
       method: PUT
