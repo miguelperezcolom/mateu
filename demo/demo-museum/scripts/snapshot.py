@@ -8,7 +8,6 @@ ${state…} on Vaadin. So for those this script reads museum-service once and wr
 
   specs/ui/partials/generated/dashboard-kpis.yaml     the dashboard's scoreboard   (/api/stats)
   specs/ui/partials/generated/dashboard-charts.yaml   the dashboard's chart panels (/api/stats)
-  specs/ui/conservation.yaml                          the conservation board  (/api/conservation-tasks)
   specs/ui/calendar.yaml                              the exhibition calendar (/api/exhibitions)
 
 Each card and each event opens the live record (conservation/tasks/:id, exhibitions/:id), so the
@@ -217,5 +216,5 @@ content:
 if __name__ == "__main__":
     dashboard_kpis()
     dashboard_charts()
-    conservation_board()
+    # conservation_board() — the board is LIVE now (conservation.yaml reads museum-service itself)
     exhibition_calendar()

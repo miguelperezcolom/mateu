@@ -50,6 +50,8 @@ sources:
   museum-task: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-task-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-task-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-conservation-board: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-task-move: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-task-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-exhibition-artworks: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-exhibition-loans: {baseUrl: "https://museum-api.ec1.mateu.io"}

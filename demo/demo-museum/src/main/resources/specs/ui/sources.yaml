@@ -361,6 +361,23 @@ sources:
       headers:
         X-Api-Key: ${secret.MUSEUM_WRITE_KEY}
 
+  - name: museum-conservation-board
+    description: Every conservation task, for the board (by due date)
+    source:
+      url: http://localhost:8121/api/conservation-tasks?size=200&sort=dueDate
+      itemsPath: content
+
+  - name: museum-task-move
+    description: Move a task on the board — its own record (the dropped card's item) with the new status
+    source:
+      url: http://localhost:8121/api/conservation-tasks/${state._cardId}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.MUSEUM_WRITE_KEY}
+      body: '{"title":"${state.title}","artworkId":"${state.artworkId}","type":"${state.type}","priority":"${state.priority}","status":"${state._toColumnId}","assignee":"${state.assignee}","dueDate":"${state.dueDate}","estimatedHours":"${state.estimatedHours}","notes":"${state.notes}"}'
+
   - name: museum-task
     description: One conservation task by id
     source:
