@@ -1,7 +1,7 @@
 {
   "name": "mateu",
   "displayName": "Mateu",
-  "version": "3.0.0-beta.32",
+  "version": "3.0.0-beta.35",
   "description": "Build business UIs with Mateu, the model-driven UI system: declare the model as Java (@UI), C# ([UI]), Python (@ui) or YAML (specs/ui) and Mateu renders forms, CRUDs, wizards, dashboards and app shells. Skills for authoring screens, scaffolding projects, running and verifying them, static bundles and federation.",
   "author": {
     "name": "Miguel Pérez Colom",
