@@ -18909,8 +18909,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const isMoney = (v) => v != null && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v
 
   /** A value as the text that lands in a template: a MONEY value as its amount (its currency is
-   *  `${state.price.currency}`), any other object as JSON — like the server's TemplateInterpolator. */
-  const restText = (v) => (v == null ? '' : isMoney(v) ? restText(v.value) : typeof v === 'object' ? JSON.stringify(v) : String(v))
+   *  `${state.price.currency}`), a LIST as JavaScript's String() — `a,b`, like libs/mateu's
+   *  templateText and the servers (it was JSON here, `["a","b"]`, so a multi-select filter sent a third
+   *  text) — any other object as JSON. */
+  const restText = (v) => (v == null ? ''
+    : isMoney(v) ? restText(v.value)
+      : Array.isArray(v) ? String(v)
+        : typeof v === 'object' ? JSON.stringify(v) : String(v))
 
   /** A value as JavaScript's String() converts it — what `encodeURIComponent(v)` encodes (an array
    *  as `a,b`) — but a money value as its amount. */
@@ -19669,6 +19674,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...component, initialData: { ...component.initialData, ...params } }
   }
 
+  /** The query parameters of a route string (`/people?dept=sales`), first value of each. */
+  function queryOf(route) {
+    const at = route ? route.indexOf('?') : -1
+    if (at < 0) return {}
+    const out = {}
+    new URLSearchParams(route.substring(at + 1)).forEach((value, key) => {
+      if (!(key in out)) out[key] = value
+    })
+    return out
+  }
+
+  /**
+   * The route's query parameters on a screen the bundle answered, at the level the server gives them:
+   * `fixed > path > query > what the pre-rendered answer carries` — the server seeds the query into
+   * the load's state (RouteSegmentUtils.addParameterValues); a bundled answer was rendered with no
+   * query and dropped it. Pinned (fixed) and path parameters are never overridden from the URL, and an
+   * app shell is left alone. Same rule as libs/mateu's withQueryParams (conformance route-params.json).
+   */
+  function applyQueryParams(syncPath, increment, query) {
+    if (!increment || !query || !Object.keys(query).length) return increment
+    const first = increment.fragments && increment.fragments[0]
+    if (first && first.component && first.component.metadata && first.component.metadata.type === 'App') return increment
+    const m = matchRouteEntry(syncPath)
+    const fixed = (m && m.entry.fixedParams) || {}
+    const path = (m && m.pathParams) || {}
+    const params = Object.fromEntries(Object.entries(query).filter(([k]) => !(k in fixed) && !(k in path)))
+    if (!Object.keys(params).length) return increment
+    return {
+      ...increment,
+      fragments: (increment.fragments || []).map((f) => ({
+        ...f,
+        state: { ...f.state, ...params },
+        data: { ...f.data, ...params },
+      })),
+    }
+  }
+
   /** The bundled increment for a route (exact match then :param template), re-targeted so its
    *  fragments land on the loading surface: the exporter had no initiator, so a fragment's
    *  targetComponentId is null — reduceContexts routes null → HOST, but a load INTO an island must
@@ -19677,7 +19719,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const syncPath = toSyncPath(route)
     // a route load INTO the booted shell takes the route's content (see `contents`); the shell's own
     // bootstrap (and a fresh load of a mount without an App) keeps the exported `json`
-    const inc = localizeBundled(getBundledIncrement(syncPath, !!options.content) || matchBundledTemplate(syncPath))
+    const inc = localizeBundled(applyQueryParams(syncPath,
+      getBundledIncrement(syncPath, !!options.content) || matchBundledTemplate(syncPath), queryOf(route)))
     if (!inc) return undefined
     return {
       ...inc,
