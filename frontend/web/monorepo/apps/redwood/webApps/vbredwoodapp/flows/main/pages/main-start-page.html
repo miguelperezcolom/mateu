@@ -1095,6 +1095,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -1140,7 +1152,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -3554,6 +3569,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -3599,7 +3626,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -5466,6 +5496,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -5511,7 +5553,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -7411,6 +7456,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -7456,7 +7513,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -9323,6 +9383,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -9368,7 +9440,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -11296,6 +11371,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -11341,7 +11428,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -13262,6 +13352,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -13307,7 +13409,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -15180,6 +15285,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -15225,7 +15342,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -17109,6 +17229,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -17154,7 +17286,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -19056,6 +19191,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -19101,7 +19248,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -20979,6 +21129,18 @@
                           <oj-bind-if test="[[ !!$current.data.title ]]">
                             <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                           </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                              <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                <template>
+                                  <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                    disabled="[[ !!$current.data.disabled ]]"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isEmpty ]]">
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                           </oj-bind-if>
@@ -21024,7 +21186,10 @@
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                            <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                            <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                              selection-mode="[[ $current.data.selectionMode ]]"
+                              :data-nested-key="[[ $current.data.nestedKey ]]"
+                              on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                               <template slot="cellNestedLink">
                                 <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                               </template>
@@ -22920,6 +23085,18 @@
                           <oj-bind-if test="[[ !!$current.data.title ]]">
                             <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                           </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                              <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                <template>
+                                  <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                    disabled="[[ !!$current.data.disabled ]]"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isEmpty ]]">
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                           </oj-bind-if>
@@ -22965,7 +23142,10 @@
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                            <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                            <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                              selection-mode="[[ $current.data.selectionMode ]]"
+                              :data-nested-key="[[ $current.data.nestedKey ]]"
+                              on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                               <template slot="cellNestedLink">
                                 <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                               </template>
@@ -24848,6 +25028,18 @@
                               <oj-bind-if test="[[ !!$current.data.title ]]">
                                 <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                                <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                                  <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                    <template>
+                                      <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                        disabled="[[ !!$current.data.disabled ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <oj-bind-if test="[[ $current.data.isEmpty ]]">
                                 <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                               </oj-bind-if>
@@ -24893,7 +25085,10 @@
                                 </div>
                               </oj-bind-if>
                               <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                                <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                                <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                                  selection-mode="[[ $current.data.selectionMode ]]"
+                                  :data-nested-key="[[ $current.data.nestedKey ]]"
+                                  on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                                   <template slot="cellNestedLink">
                                     <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                                   </template>
@@ -27021,6 +27216,18 @@
                                 <oj-bind-if test="[[ !!$current.data.title ]]">
                                   <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                                  <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                                    <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                          disabled="[[ !!$current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
+                                </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.isEmpty ]]">
                                   <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                                 </oj-bind-if>
@@ -27066,7 +27273,10 @@
                                   </div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                                  <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                                  <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                                    selection-mode="[[ $current.data.selectionMode ]]"
+                                    :data-nested-key="[[ $current.data.nestedKey ]]"
+                                    on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                                     <template slot="cellNestedLink">
                                       <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                                     </template>
@@ -28949,6 +29159,18 @@
                                 <oj-bind-if test="[[ !!$current.data.title ]]">
                                   <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                                  <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                                    <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                          disabled="[[ !!$current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
+                                </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.isEmpty ]]">
                                   <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                                 </oj-bind-if>
@@ -28994,7 +29216,10 @@
                                   </div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                                  <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                                  <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                                    selection-mode="[[ $current.data.selectionMode ]]"
+                                    :data-nested-key="[[ $current.data.nestedKey ]]"
+                                    on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                                     <template slot="cellNestedLink">
                                       <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                                     </template>
@@ -30902,6 +31127,18 @@
                                 <oj-bind-if test="[[ !!$current.data.title ]]">
                                   <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                                  <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                                    <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                          disabled="[[ !!$current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
+                                </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.isEmpty ]]">
                                   <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                                 </oj-bind-if>
@@ -30947,7 +31184,10 @@
                                   </div>
                                 </oj-bind-if>
                                 <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                                  <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                                  <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                                    selection-mode="[[ $current.data.selectionMode ]]"
+                                    :data-nested-key="[[ $current.data.nestedKey ]]"
+                                    on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                                     <template slot="cellNestedLink">
                                       <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                                     </template>
@@ -33067,6 +33307,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -33112,7 +33364,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -34984,6 +35239,18 @@
                           <oj-bind-if test="[[ !!$current.data.title ]]">
                             <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                           </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                              <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                <template>
+                                  <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                    disabled="[[ !!$current.data.disabled ]]"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isEmpty ]]">
                             <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                           </oj-bind-if>
@@ -35029,7 +35296,10 @@
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                            <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                            <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                              selection-mode="[[ $current.data.selectionMode ]]"
+                              :data-nested-key="[[ $current.data.nestedKey ]]"
+                              on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                               <template slot="cellNestedLink">
                                 <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                               </template>
@@ -36901,6 +37171,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -36946,7 +37228,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -38839,6 +39124,18 @@
                   <oj-bind-if test="[[ !!$current.data.title ]]">
                     <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                   </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                    <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                      <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                        <template>
+                          <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                            disabled="[[ !!$current.data.disabled ]]"
+                            :data-action-id="[[ $current.data.actionId ]]"
+                            on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        </template>
+                      </oj-bind-for-each>
+                    </div>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isEmpty ]]">
                     <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                   </oj-bind-if>
@@ -38884,7 +39181,10 @@
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                    <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                    <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                      selection-mode="[[ $current.data.selectionMode ]]"
+                      :data-nested-key="[[ $current.data.nestedKey ]]"
+                      on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                       <template slot="cellNestedLink">
                         <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                       </template>
@@ -40767,6 +41067,18 @@
                   <oj-bind-if test="[[ !!$current.data.title ]]">
                     <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                   </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                    <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                      <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                        <template>
+                          <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                            disabled="[[ !!$current.data.disabled ]]"
+                            :data-action-id="[[ $current.data.actionId ]]"
+                            on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        </template>
+                      </oj-bind-for-each>
+                    </div>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isEmpty ]]">
                     <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                   </oj-bind-if>
@@ -40812,7 +41124,10 @@
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                    <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                    <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                      selection-mode="[[ $current.data.selectionMode ]]"
+                      :data-nested-key="[[ $current.data.nestedKey ]]"
+                      on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                       <template slot="cellNestedLink">
                         <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                       </template>
@@ -42709,6 +43024,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -42754,7 +43081,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -44973,6 +45303,18 @@
                             <oj-bind-if test="[[ !!$current.data.title ]]">
                               <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                             </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                              <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                                <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                      disabled="[[ !!$current.data.disabled ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isEmpty ]]">
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                             </oj-bind-if>
@@ -45018,7 +45360,10 @@
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                              <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                              <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                                selection-mode="[[ $current.data.selectionMode ]]"
+                                :data-nested-key="[[ $current.data.nestedKey ]]"
+                                on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                                 <template slot="cellNestedLink">
                                   <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                                 </template>
@@ -47264,6 +47609,18 @@
                             <oj-bind-if test="[[ !!$current.data.title ]]">
                               <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                             </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                              <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                                <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                      disabled="[[ !!$current.data.disabled ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isEmpty ]]">
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                             </oj-bind-if>
@@ -47309,7 +47666,10 @@
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                              <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                              <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                                selection-mode="[[ $current.data.selectionMode ]]"
+                                :data-nested-key="[[ $current.data.nestedKey ]]"
+                                on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                                 <template slot="cellNestedLink">
                                   <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                                 </template>
@@ -49541,6 +49901,18 @@
                             <oj-bind-if test="[[ !!$current.data.title ]]">
                               <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                             </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                              <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                                <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                      disabled="[[ !!$current.data.disabled ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isEmpty ]]">
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                             </oj-bind-if>
@@ -49586,7 +49958,10 @@
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                              <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                              <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                                selection-mode="[[ $current.data.selectionMode ]]"
+                                :data-nested-key="[[ $current.data.nestedKey ]]"
+                                on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                                 <template slot="cellNestedLink">
                                   <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                                 </template>
@@ -51786,6 +52161,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -51831,7 +52218,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -53696,6 +54086,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -53741,7 +54143,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -56354,6 +56759,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -56399,7 +56816,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -58264,6 +58684,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -58309,7 +58741,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -60249,6 +60684,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -60294,7 +60741,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -62161,6 +62611,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -62206,7 +62668,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -64087,6 +64552,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -64132,7 +64609,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -65999,6 +66479,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -66044,7 +66536,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -67977,6 +68472,18 @@
                               <oj-bind-if test="[[ !!$current.data.title ]]">
                                 <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                                <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                                  <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                                    <template>
+                                      <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                        disabled="[[ !!$current.data.disabled ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <oj-bind-if test="[[ $current.data.isEmpty ]]">
                                 <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                               </oj-bind-if>
@@ -68022,7 +68529,10 @@
                                 </div>
                               </oj-bind-if>
                               <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                                <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                                <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                                  selection-mode="[[ $current.data.selectionMode ]]"
+                                  :data-nested-key="[[ $current.data.nestedKey ]]"
+                                  on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                                   <template slot="cellNestedLink">
                                     <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                                   </template>
@@ -70159,6 +70669,18 @@
                       <oj-bind-if test="[[ !!$current.data.title ]]">
                         <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                       </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                        <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                          <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                            <template>
+                              <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isEmpty ]]">
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                       </oj-bind-if>
@@ -70204,7 +70726,10 @@
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                        <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                        <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode ]]"
+                          :data-nested-key="[[ $current.data.nestedKey ]]"
+                          on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                           <template slot="cellNestedLink">
                             <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                           </template>
@@ -72089,6 +72614,18 @@
                       <oj-bind-if test="[[ !!$current.data.title ]]">
                         <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                       </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                        <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                          <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                            <template>
+                              <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                disabled="[[ !!$current.data.disabled ]]"
+                                :data-action-id="[[ $current.data.actionId ]]"
+                                on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                      </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isEmpty ]]">
                         <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                       </oj-bind-if>
@@ -72134,7 +72671,10 @@
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                        <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                        <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                          selection-mode="[[ $current.data.selectionMode ]]"
+                          :data-nested-key="[[ $current.data.nestedKey ]]"
+                          on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                           <template slot="cellNestedLink">
                             <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                           </template>
@@ -74001,6 +74541,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -74046,7 +74598,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>
@@ -75913,6 +76468,18 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasToolbar ]]">
+                          <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom mateu-nested-toolbar">
+                            <oj-bind-for-each data="[[ $current.data.toolbar ]]">
+                              <template>
+                                <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isEmpty ]]">
                           <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.emptyText ]]"></oj-bind-text></div>
                         </oj-bind-if>
@@ -75958,7 +76525,10 @@
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.asTable && !$current.data.isEmpty ]]">
-                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]">
+                          <oj-table class="oj-sm-12" display="list" data="[[ $current.data.adp ]]" columns="[[ $current.data.columns ]]"
+                            selection-mode="[[ $current.data.selectionMode ]]"
+                            :data-nested-key="[[ $current.data.nestedKey ]]"
+                            on-selected-changed="[[ $listeners.nestedListingSelected ]]">
                             <template slot="cellNestedLink">
                               <a :href="[[ $current.row.__href ]]" :target="[[ $current.row.__target ]]" :rel="[[ $current.row.__rel ]]"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></a>
                             </template>

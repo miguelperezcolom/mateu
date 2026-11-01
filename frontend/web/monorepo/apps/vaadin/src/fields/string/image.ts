@@ -41,9 +41,26 @@ export function renderImageField(host: MateuField, value: FieldValue, label: Fie
     `
 }
 
+const IMAGE_URL_PLACEHOLDER = 'https://…' // i18n-ok: a URL shape, the same in every language
+
+// Which uploadable-image fields have their "Use a URL" box open (per field element, client-side).
+const urlBoxOpen = new WeakSet<MateuField>()
+
 export function renderUploadableImageField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
     const hasImage = value != null && value !== ''
+    // the value is a data URI (an upload) or a URL — and a URL can also be typed or pasted
+    const currentUrl = typeof value === 'string' && !value.startsWith('data:') ? value : ''
+    const toggleUrlBox = () => {
+        if (urlBoxOpen.has(host)) urlBoxOpen.delete(host)
+        else urlBoxOpen.add(host)
+        host.requestUpdate()
+    }
+    const commitUrl = (e: Event) => {
+        const text = (e.target as HTMLInputElement).value
+        if (text === currentUrl) return
+        host.imageFromUrl(text)
+    }
     return html`
         <vaadin-custom-field
                 id="${host.field.fieldId}"
@@ -65,11 +82,25 @@ export function renderUploadableImageField(host: MateuField, value: FieldValue, 
                         <vaadin-icon icon="vaadin:upload" slot="prefix"></vaadin-icon>
                         ${hasImage ? chromeText('replace') : chromeText('upload')}
                     </vaadin-button>
+                    <vaadin-button theme="tertiary" class="mateu-image-use-url"
+                            aria-expanded="${urlBoxOpen.has(host) ? 'true' : 'false'}" @click="${toggleUrlBox}">
+                        <vaadin-icon icon="vaadin:link" slot="prefix"></vaadin-icon>
+                        ${chromeText('useImageUrl')}
+                    </vaadin-button>
                     ${hasImage ? html`<vaadin-button theme="error tertiary" @click="${host.imageDelete}">
                         <vaadin-icon icon="vaadin:trash" slot="prefix"></vaadin-icon>
                         ${chromeText('delete')}
                     </vaadin-button>` : nothing}
                 </vaadin-horizontal-layout>
+                ${urlBoxOpen.has(host) ? html`<vaadin-text-field
+                        class="mateu-image-url"
+                        accessible-name="${chromeText('imageUrl')}"
+                        placeholder="${IMAGE_URL_PLACEHOLDER}"
+                        .value="${currentUrl}"
+                        @value-changed="${(e: Event) => e.stopPropagation()}"
+                        @change="${commitUrl}"
+                        style="width: 100%;"
+                ></vaadin-text-field>` : nothing}
             </vaadin-vertical-layout>
         </vaadin-custom-field>
     `

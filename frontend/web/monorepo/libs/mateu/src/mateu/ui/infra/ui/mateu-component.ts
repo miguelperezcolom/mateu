@@ -2,6 +2,7 @@ import {customElement, property} from "lit/decorators.js";
 import { standInForOnLoad } from "@infra/ui/onLoadTimes.ts";
 import { jsonSafe } from '@infra/http/jsonTemplate.ts'
 import { UnknownRestSourceError, viaProxy } from '@infra/http/restSourceCatalogue.ts'
+import { ExternalRestError } from '@infra/http/serviceMessage.ts'
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@infra/ui/badgeStyles.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
@@ -718,9 +719,12 @@ export class MateuComponent extends ComponentElement {
             console.warn('mateu: rest action failed', e)
             // a source nobody declared is a configuration mistake the user can name to someone,
             // not a transient failure: say which source, and keep the toast until it is read
+            // what the service said (its error body) when it said something, else the generic text
             const text = e instanceof UnknownRestSourceError
                 ? chromeTextf('unknownRestSource', { name: e.sourceName })
-                : chromeTextf('requestFailed', { status: '' })
+                : e instanceof ExternalRestError
+                    ? (e.detail ?? chromeTextf('requestFailed', { status: ` (HTTP ${e.status})` }))
+                    : chromeTextf('requestFailed', { status: '' })
             showToast({ text, variant: 'error', position: 'bottomEnd', duration: e instanceof UnknownRestSourceError ? 0 : 3000 }, this)
         }
         // A proxied call reports failure on appData._restfetchError ({status, message}) instead of on
@@ -731,7 +735,9 @@ export class MateuComponent extends ComponentElement {
             const err = uiIncrement?.appData?.['_restfetchError']
             if (err) {
                 const status = typeof err?.status === 'number' && err.status > 0 ? ` (HTTP ${err.status})` : ''
-                showToast({ text: chromeTextf('requestFailed', { status }), variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+                // the server passes on what the service said (_restfetchError.detail), as text
+                const detail = typeof err?.detail === 'string' && err.detail.trim() ? err.detail : undefined
+                showToast({ text: detail ?? chromeTextf('requestFailed', { status }), variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
                 return
             }
             onOk(uiIncrement?.appData?.['_restfetch'])

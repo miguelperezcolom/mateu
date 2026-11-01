@@ -250,6 +250,16 @@
         }
       ]
     },
+    "nestedListingSelected": {
+      "chains": [
+        {
+          "chain": "nestedListingSelected",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
     "dmBottomStateChanged": {
       "chains": [
         {

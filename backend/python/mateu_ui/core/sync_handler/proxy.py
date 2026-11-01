@@ -22,21 +22,67 @@ from ._common import (
 
 
 class ProxyError(Exception):
-    """A proxied call that failed: a >=400 upstream status, or a transport error (status 0)."""
+    """A proxied call that failed: a >=400 upstream status, or a transport error (status 0).
+    ``detail`` is what the service said about it (its error body), for the user — or None."""
 
-    def __init__(self, status: int, message: str) -> None:
+    def __init__(self, status: int, message: str, detail: str | None = None) -> None:
         super().__init__(message)
         self.status = status
+        self.detail = detail
 
 
-def _restfetch_error(status: int) -> UIIncrement:
+_SERVICE_MESSAGE_MAX = 300
+
+
+def _clipped(text: str) -> str | None:
+    clean = re.sub(r"\s+", " ", re.sub(r"[\x00-\x09\x0b-\x1f\x7f]", "", text)).strip()
+    if not clean:
+        return None
+    if len(clean) > _SERVICE_MESSAGE_MAX:
+        return clean[: _SERVICE_MESSAGE_MAX - 1] + "…"
+    return clean
+
+
+def service_message_of(body: str | None) -> str | None:
+    """What an error body says, for a person (Java's RestProxyCalls.serviceMessageOf, same rule):
+    a JSON object's ``message``, ``detail`` (RFC 7807), ``error`` (a string, or an object with a
+    message) or ``title``; else short plain text (never HTML or a list); control characters out,
+    whitespace folded, at most 300 characters; None when there is nothing worth showing."""
+    if body is None:
+        return None
+    text = body.strip()
+    if not text:
+        return None
+    if text.startswith("{"):
+        try:
+            obj = json.loads(text)
+        except ValueError:
+            return None
+        if not isinstance(obj, dict):
+            return None
+        for key in ("message", "detail", "error", "title"):
+            value = obj.get(key)
+            if isinstance(value, str) and value.strip():
+                return _clipped(value)
+            if isinstance(value, dict):
+                nested = value.get("message")
+                if isinstance(nested, str) and nested.strip():
+                    return _clipped(nested)
+        return None
+    if text.startswith(("<", "[")) or len(text) > _SERVICE_MESSAGE_MAX:
+        return None
+    return _clipped(text)
+
+
+def _restfetch_error(status: int, detail: str | None = None) -> UIIncrement:
     """A failed proxied call rides back on ``_restfetchError`` (Java's restFetchError, same texts):
     an empty ``_restfetch`` read as success, and the renderer toasted "Saved" over a write that
-    never happened."""
+    never happened. ``detail`` — what the service said — is what the renderer shows when present."""
     suffix = f" (HTTP {status})" if status > 0 else ""
-    return UIIncrement(
-        app_data={"_restfetchError": {"status": status, "message": "Request failed" + suffix}}
-    )
+    error: dict[str, Any] = {"status": status, "message": "Request failed" + suffix}
+    if detail:
+        error["detail"] = detail
+    return UIIncrement(app_data={"_restfetchError": error})
 
 
 def _declares_json(headers: dict | None) -> bool:
@@ -84,7 +130,7 @@ class ProxyHandlerMixin(MixinBase):
                 try:
                     json_obj = self._fetch_proxy(source, rq.component_state)
                 except ProxyError as e:
-                    return _restfetch_error(e.status)
+                    return _restfetch_error(e.status, e.detail)
         return UIIncrement(app_data={"_restfetch": json_obj})
 
     def _fetch_proxy(self, source, state: dict) -> Any:
@@ -120,7 +166,11 @@ class ProxyHandlerMixin(MixinBase):
             raise
         except urllib.error.HTTPError as e:  # urllib raises for a >=400 answer
             log.warning("Proxy fetch failed for %s: HTTP %s", template, e.code)
-            raise ProxyError(e.code, f"HTTP {e.code}") from e
+            try:
+                detail = service_message_of(e.read().decode(errors="replace"))
+            except Exception:  # noqa: BLE001 - no body to read: the generic text then
+                detail = None
+            raise ProxyError(e.code, f"HTTP {e.code}", detail) from e
         except (urllib.error.URLError, ValueError, OSError) as e:
             log.warning("Proxy fetch failed for %s: %s", template, type(e).__name__)
             raise ProxyError(0, type(e).__name__) from e
