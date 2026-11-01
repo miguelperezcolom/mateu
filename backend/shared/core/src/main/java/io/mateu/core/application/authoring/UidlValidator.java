@@ -473,6 +473,8 @@ public final class UidlValidator {
                 + " is not in the business component catalogue (components.yaml).",
             path,
             value);
+      } else if (("url".equals(key) || "body".equals(key)) && "RestDataSource".equals(defName)) {
+        proxySafe(text, path, value);
       } else if ("fieldType".equals(key)) {
         resolves(
             context.fieldType(),
@@ -496,6 +498,44 @@ public final class UidlValidator {
             value.getStartMark());
       }
     }
+
+    /**
+     * A source template the SERVER cannot evaluate the way the browser does: on a proxied source
+     * (proxy: true, or an environment overlay that flips it) such a placeholder renders empty —
+     * paging, filters or ids silently missing. The server evaluates the subset of {@link
+     * io.mateu.core.infra.ProxyExpression}; {@code data}/{@code appState}/{@code appData} exist
+     * only in the browser.
+     */
+    private void proxySafe(String template, String path, Node at) {
+      var matcher = PLACEHOLDER.matcher(template);
+      while (matcher.find()) {
+        var expr = matcher.group(1).trim();
+        String why = null;
+        if (CLIENT_ONLY_ROOT.matcher(expr).find()) {
+          why = "reads data/appState/appData, which only the browser has";
+        } else if (!io.mateu.core.infra.ProxyExpression.isSupported(expr)) {
+          why = "uses syntax outside what the server evaluates";
+        }
+        if (why != null) {
+          issue(
+              warnings,
+              "proxy_unsafe_template",
+              "${"
+                  + expr
+                  + "} "
+                  + why
+                  + ": if this source is proxied (proxy: true, or an environment flips it) it is"
+                  + " sent empty.",
+              path,
+              at.getStartMark());
+        }
+      }
+    }
+
+    private static final java.util.regex.Pattern PLACEHOLDER =
+        java.util.regex.Pattern.compile("\\$\\{([^}]+)}");
+    private static final java.util.regex.Pattern CLIENT_ONLY_ROOT =
+        java.util.regex.Pattern.compile("(?<![\\w$.])(data|appState|appData)\\s*(\\.|\\?\\.|\\[)");
 
     private void resolves(
         Predicate<String> known, String name, String code, String message, String path, Node at) {

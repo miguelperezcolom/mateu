@@ -242,8 +242,13 @@ function restScopeValue(expr, scope) {
 const isMoney = (v) => v != null && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v
 
 /** A value as the text that lands in a template: a MONEY value as its amount (its currency is
- *  `${state.price.currency}`), any other object as JSON — like the server's TemplateInterpolator. */
-const restText = (v) => (v == null ? '' : isMoney(v) ? restText(v.value) : typeof v === 'object' ? JSON.stringify(v) : String(v))
+ *  `${state.price.currency}`), a LIST as JavaScript's String() — `a,b`, like libs/mateu's
+ *  templateText and the servers (it was JSON here, `["a","b"]`, so a multi-select filter sent a third
+ *  text) — any other object as JSON. */
+const restText = (v) => (v == null ? ''
+  : isMoney(v) ? restText(v.value)
+    : Array.isArray(v) ? String(v)
+      : typeof v === 'object' ? JSON.stringify(v) : String(v))
 
 /** A value as JavaScript's String() converts it — what `encodeURIComponent(v)` encodes (an array
  *  as `a,b`) — but a money value as its amount. */

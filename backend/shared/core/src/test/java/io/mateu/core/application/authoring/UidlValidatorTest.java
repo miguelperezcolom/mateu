@@ -121,4 +121,28 @@ class UidlValidatorTest {
     assertThat(schema.get("definitions").has("FieldDataType")).isTrue();
     assertThat(schema.get("definitions").has("FormField")).isFalse();
   }
+
+  @Test
+  void aSourceTemplateTheServerCannotEvaluateIsFlagged() {
+    var listing =
+        """
+        type: Listing
+        rowsSource:
+          url: "https://api.example.com/x?offset=${(state.page ?? 0) * 20}&id=${data.id}&ids=${state.items.map(i => i.id)}"
+        columns: [{type: GridColumn, id: name}]
+        """;
+    var warnings = validate(listing).get("warnings");
+    var messages = new ArrayList<String>();
+    warnings.forEach(
+        w -> {
+          if ("proxy_unsafe_template".equals(w.get("code").asText())) {
+            messages.add(w.get("message").asText());
+          }
+        });
+    assertThat(messages).hasSize(2);
+    assertThat(messages.get(0)).contains("${data.id}").contains("only the browser has");
+    assertThat(messages.get(1)).contains("state.items.map");
+    // what the server does evaluate is not flagged
+    assertThat(String.join(" ", messages)).doesNotContain("state.page");
+  }
 }
