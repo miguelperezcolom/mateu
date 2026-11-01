@@ -1,0 +1,36 @@
+# Edit a task (route tasks/:id): the record fetched by the route's `data:`, the shared fields, Save
+# and Delete — each a REST call the server makes with the write key.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.title}
+overline: ${state.missionName}
+subtitle: Task · ${state.phase}
+badges:
+  - {label: "${state.status}", color: contrast}
+kpis:
+  - {label: Due, value: "${state.dueDate}"}
+  - {label: Progress, value: "${state.progress} %"}
+toolbar:
+  - {type: Button, actionId: backToList, label: Back to the tasks, actionable: {type: RouteLink, route: tasks}}
+  - {type: Button, label: Delete, actionId: delete}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: Partial, ref: task-fields}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: space-task-update}
+      successMessage: Saved
+      successRoute: tasks
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: Delete this task? It comes back on the next restart of the API.
+    restAction:
+      source: {ref: space-task-delete}
+      successMessage: Deleted
+      successRoute: tasks

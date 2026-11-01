@@ -44,6 +44,12 @@ shared Star Wars theme. Read them in order.
 Declared once — served by a backend (1–4), federated (5), and shipped as a static bundle (6): the
 full spectrum. Each module has its own README with the details.
 
+**[`demo-space`](demo-space)** (port 8602, Redwood 8603) is the same 100%-YAML approach as Example 1
+on a NASA theme — every photograph public-domain NASA media — over
+[space-service](https://github.com/miguelperezcolom/space-service), built to exercise as much as YAML
+can express: every page template, master-detail, every field type, a wizard, a board, a calendar, a
+map, charts, trees and cross-collection search, on Vaadin and Redwood.
+
 ```bash
 # e.g. run Example 2
 cd demo/demo-starwars-2-code-first

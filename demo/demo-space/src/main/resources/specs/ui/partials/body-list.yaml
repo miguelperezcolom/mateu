@@ -1,0 +1,9 @@
+# The bodies of the Collection detail pages (bodies.yaml, body.yaml): a compact searchable listing
+# whose rows open the body beside it (rowRoute) — a partial, so both pages share one list.
+type: Listing
+pageSize: 40
+rowRoute: bodies/${row.id}
+searchable: true
+rowsSource: {ref: space-bodies}
+columns:
+  - {type: GridColumn, id: name, label: Body, identifier: true, stereotype: primary, leadingPath: thumbnail, captionPath: type}

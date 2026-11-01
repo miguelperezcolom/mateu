@@ -1,0 +1,65 @@
+# Edit an astronaut: text, a select, dates, integer and decimal numbers, a radio, rich text and the
+# portrait — UPLOADED (stereotype uploadableImage: preview, Upload/Replace, Delete). The browser reads
+# the picked file into a data: URI that travels in the save like any other field; space-service keeps
+# it (JPEG/PNG/WebP/GIF, up to 2 MB) and points the astronaut's image, thumbnail and large version at
+# /api/astronauts/{id}/portrait. The seeded portraits stay linked from the NASA Image Library.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Edit ${state.name}
+subtitle: Astronaut
+avatar: {type: Avatar, name: "${state.name}", image: "${state.thumbnail}"}
+toolbar:
+  - {type: Button, actionId: backToList, label: "Back to ${state.name}", actionable: {type: RouteLink, route: "astronauts/${state.id}"}}
+  - {type: Button, label: Delete, actionId: delete}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: FormField, id: name, label: Name, required: true}
+      - {type: FormField, id: nationality, label: Nationality}
+      - type: FormField
+        id: status
+        label: Status
+        stereotype: radio
+        options:
+          - {value: ACTIVE, label: Active}
+          - {value: RETIRED, label: Retired}
+          - {value: DECEASED, label: Deceased}
+      - {type: FormField, id: gender, label: Gender, stereotype: select, options: [{value: male, label: Male}, {value: female, label: Female}]}
+      - {type: FormField, id: birthDate, label: Born, dataType: date}
+      - {type: FormField, id: deathDate, label: Died, dataType: date}
+      - {type: FormField, id: birthPlace, label: Birthplace}
+      - {type: FormField, id: selectionGroup, label: Astronaut group}
+      - {type: FormField, id: selectionYear, label: Selection year, dataType: integer, min: 1959, max: 2030}
+      - {type: FormField, id: timeInSpaceDays, label: Days in space, dataType: number}
+      - {type: FormField, id: evaHours, label: Spacewalks (hours), dataType: number}
+      - {type: FormField, id: summary, label: Summary, colspan: 2}
+      - {type: FormField, id: bio, label: Biography, stereotype: richText, colspan: 2}
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Portrait}
+    content:
+      type: FormLayout
+      maxColumns: 2
+      content:
+        # the preview and its Upload/Replace/Delete in one field: the value is the picture's URL (a
+        # seeded NASA one) or, once a file is picked, the file itself as a data: URI
+        - {type: FormField, id: image, label: Photo, stereotype: uploadableImage, colspan: 2}
+        - {type: FormField, id: imageTitle, label: Photo title}
+        - {type: FormField, id: imageCredit, label: Photo credit, placeholder: "NASA"}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: space-astronaut-update}
+      successMessage: Saved
+      successRoute: astronauts/${state.id}
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: Delete this astronaut? Someone still on a mission's crew cannot be deleted (409).
+    restAction:
+      source: {ref: space-astronaut-delete}
+      successMessage: Deleted
+      successRoute: astronauts

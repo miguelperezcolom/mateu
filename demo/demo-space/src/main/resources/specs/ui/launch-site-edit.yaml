@@ -1,0 +1,27 @@
+# Edit a launch site: text, numbers for the coordinates, a yes/no toggle and a textarea.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Edit ${state.name}
+subtitle: Launch site
+toolbar:
+  - {type: Button, actionId: backToList, label: "Back to ${state.name}", actionable: {type: RouteLink, route: "launch-sites/${state.id}"}}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: FormField, id: name, label: Name, required: true, colspan: 2}
+      - {type: FormField, id: country, label: Country}
+      - {type: FormField, id: region, label: Region}
+      - {type: FormField, id: operator, label: Operator}
+      - {type: FormField, id: active, label: In use, dataType: bool, stereotype: toggle}
+      - {type: FormField, id: latitude, label: Latitude, dataType: number, min: -90, max: 90}
+      - {type: FormField, id: longitude, label: Longitude, dataType: number, min: -180, max: 180}
+      - {type: FormField, id: description, label: About, stereotype: textarea, colspan: 2}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: space-launch-site-update}
+      successMessage: Saved
+      successRoute: launch-sites/${state.id}

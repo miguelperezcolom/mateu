@@ -1,0 +1,51 @@
+# One astronaut, read-only (route astronauts/:id). It fills Redwood's ITEM OVERVIEW page template:
+# the overview panel pinned on one side — the official portrait (a 4:3 photo) and the key facts —
+# and the rest in TABS in its main slot: the biography (rich text), the flights and the record.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: ${state.summary}
+badges:
+  - {label: "${state.status}", color: contrast}
+toolbar:
+  - {type: Button, actionId: backToList, label: Back to the astronauts, actionable: {type: RouteLink, route: astronauts}}
+  - {type: Button, label: Edit, buttonStyle: primary, actionable: {type: RouteLink, route: "astronauts/${state.id}/edit"}}
+template:
+  type: ItemOverviewPage
+  photo: {src: "${state.image}"}
+  body:
+    - {type: FormField, id: nationality, label: Nationality, readOnly: true, propertyRow: true}
+    - {type: FormField, id: selectionGroup, label: Selected with, readOnly: true, propertyRow: true}
+    - {type: FormField, id: flights, label: Flights, dataType: integer, readOnly: true, propertyRow: true}
+    - {type: FormField, id: timeInSpaceDays, label: Days in space, dataType: number, readOnly: true, propertyRow: true}
+  footer:
+    - {type: Text, text: "Portrait: ${state.imageCredit}", size: xs}
+content:
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Biography
+        content:
+          type: FormLayout
+          maxColumns: 1
+          content:
+            - {type: FormField, id: bio, label: "", stereotype: html, readOnly: true}
+      - type: Tab
+        label: Flights
+        content:
+          type: FormLayout
+          maxColumns: 1
+          content:
+            - {type: FormField, id: missionNames, label: Missions in the dataset, stereotype: bulletedList, readOnly: true}
+      - type: Tab
+        label: Record
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: birthDate, label: Born, dataType: date, readOnly: true}
+            - {type: FormField, id: birthPlace, label: Birthplace, readOnly: true}
+            - {type: FormField, id: deathDate, label: Died, dataType: date, readOnly: true}
+            - {type: FormField, id: selectionYear, label: Selection year, dataType: integer, readOnly: true}
+            - {type: FormField, id: evaHours, label: Spacewalks (hours, approx.), dataType: number, readOnly: true}
+            - {type: FormField, id: wikidataUrl, label: Wikidata, stereotype: link, readOnly: true}

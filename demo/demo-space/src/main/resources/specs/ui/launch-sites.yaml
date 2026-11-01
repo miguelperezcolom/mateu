@@ -1,0 +1,34 @@
+# The launch sites as a listing: the server filters by country and by whether the pad is still in
+# use; a row opens the site's General overview page.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Launch sites
+subtitle: Fifteen pads, with their coordinates
+pageSize: 20
+rowRoute: launch-sites/${row.id}
+toolbar:
+  - {type: Button, label: On a map, buttonStyle: primary, actionable: {type: RouteLink, route: sites-map}}
+searchable: true
+filters:
+  - type: FormField
+    id: country
+    label: Country
+    stereotype: select
+    options:
+      - {value: United States, label: United States}
+      - {value: Kazakhstan, label: Kazakhstan}
+      - {value: France, label: France (French Guiana)}
+  - type: FormField
+    id: active
+    label: In use
+    stereotype: select
+    options:
+      - {value: "true", label: "In use (launched in the last ten years)"}
+      - {value: "false", label: "Historic"}
+rowsSource: {ref: space-launch-sites}
+columns:
+  - {type: GridColumn, id: name, label: Site, identifier: true, stereotype: primary, leadingPath: thumbnail, captionPath: operator}
+  - {type: GridColumn, id: country, label: Country}
+  - {type: GridColumn, id: region, label: Region}
+  - {type: GridColumn, id: launchCount, label: Launches, dataType: integer}
+  - {type: GridColumn, id: active, label: In use, dataType: bool}

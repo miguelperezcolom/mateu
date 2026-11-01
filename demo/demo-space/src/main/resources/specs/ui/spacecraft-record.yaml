@@ -1,0 +1,44 @@
+# One spacecraft, read-only (route spacecraft/:id). It fills Redwood's FOLDOUT LAYOUT template: the
+# overview always in view — picture, type, maker —, the rest in panels that fold out beside it, each
+# folded panel showing its summary. The components panel is a TREE (subsystem → instrument) read from
+# the API's /api/spacecraft/{id}/components/tree.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: Spacecraft · ${state.type}
+toolbar:
+  - {type: Button, actionId: backToList, label: Back, actionable: {type: RouteLink, route: spacecraft}}
+template:
+  type: FoldoutPage
+  overview:
+    - {type: Image, src: "${state.image}", style: "width: 100%; max-width: 22rem; border-radius: 8px"}
+    - {type: Text, text: "${state.imageTitle} — ${state.imageCredit}", size: xs}
+    - type: FormLayout
+      maxColumns: 1
+      content:
+        - {type: FormField, id: manufacturer, label: Manufacturer, readOnly: true}
+        - {type: FormField, id: type, label: Type, readOnly: true}
+content:
+  - type: FoldoutPanel
+    title: Specifications
+    open: true
+    content:
+      type: FormLayout
+      maxColumns: 1
+      content:
+        - {type: FormField, id: massKg, label: Mass (kg), dataType: number, readOnly: true}
+        - {type: FormField, id: powerWatts, label: Power (W), dataType: integer, readOnly: true}
+        - {type: FormField, id: powerSource, label: Power source, readOnly: true}
+        - {type: FormField, id: description, label: About, readOnly: true}
+        - {type: FormField, id: wikidataUrl, label: Wikidata, stereotype: link, readOnly: true}
+  - type: FoldoutPanel
+    title: Components
+    summary: {type: Text, text: "${state.componentCount} subsystems and instruments"}
+    content:
+      type: Listing
+      gridLayout: tree
+      pageSize: 100
+      rowsSource: {ref: space-spacecraft-components}
+      columns:
+        - {type: GridColumn, id: name, label: Component, identifier: true}
+        - {type: GridColumn, id: kind, label: Kind}

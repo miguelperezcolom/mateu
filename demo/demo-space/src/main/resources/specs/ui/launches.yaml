@@ -1,0 +1,32 @@
+# Every launch, as a MASTER-DETAIL listing (`gridLayout: masterDetail`): the list on the left, the
+# clicked launch's full record on the right, painted from the row already fetched. The server filters
+# by outcome, vehicle and a year range and pages the result.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Launches
+subtitle: When, on what and from where — fifty launches, 1961–2026
+pageSize: 20
+gridLayout: masterDetail
+toolbar:
+  - {type: Button, label: Calendar, actionable: {type: RouteLink, route: calendar}}
+  - {type: Button, label: Map of the sites, actionable: {type: RouteLink, route: sites-map}}
+searchable: true
+filters:
+  - type: FormField
+    id: outcome
+    label: Outcome
+    stereotype: multiSelect
+    options:
+      - {value: SUCCESS, label: Success}
+      - {value: FAILURE, label: Failure}
+      - {value: SCHEDULED, label: Scheduled}
+  - {type: FormField, id: vehicle, label: Vehicle}
+  - {type: FormField, id: launchYear, label: Year, dataType: integer, stereotype: numberRange}
+rowsSource: {ref: space-launches}
+columns:
+  - {type: GridColumn, id: missionName, label: Mission, identifier: true, stereotype: primary, leadingPath: image}
+  - {type: GridColumn, id: launchDate, label: Date, dataType: date}
+  - {type: GridColumn, id: launchTimeUtc, label: UTC}
+  - {type: GridColumn, id: vehicle, label: Vehicle}
+  - {type: GridColumn, id: siteName, label: Site}
+  - {type: GridColumn, id: outcome, label: Outcome}

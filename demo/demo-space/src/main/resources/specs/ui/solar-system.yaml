@@ -1,0 +1,19 @@
+# The solar system as a TREE (`gridLayout: tree`): the Sun, the bodies that orbit it, the moons that
+# orbit those — /api/bodies/tree, each row's `children` what orbits it. The server searches and keeps
+# the branches that lead to a match (try "europa").
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Solar system
+subtitle: What orbits what — 31 bodies
+gridLayout: tree
+pageSize: 200
+searchable: true
+rowRoute: bodies/${row.id}
+rowsSource: {ref: space-bodies-tree}
+columns:
+  - {type: GridColumn, id: name, label: Body, identifier: true}
+  - {type: GridColumn, id: type, label: Type}
+  - {type: GridColumn, id: radiusKm, label: Radius (km), dataType: number}
+  - {type: GridColumn, id: orbitalPeriodDays, label: Orbit (days), dataType: number}
+  - {type: GridColumn, id: surfaceGravity, label: Gravity (m/s²), dataType: number}
+  - {type: GridColumn, id: missionCount, label: Missions, dataType: integer}

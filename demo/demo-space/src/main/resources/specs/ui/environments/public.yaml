@@ -1,0 +1,51 @@
+# The `public` environment: where space-service lives once it is published. THE one place to
+# change the API's address — every source of the catalogue below is rebased on the anchor's base
+# url (the path and query of each stay as authored). Activate it with MATEU_ENVIRONMENT=public
+# (or -Dmateu.environment=public); without it the catalogue keeps http://localhost:8122.
+#
+# The list repeats every source by name because an environment overrides sources by name, one by
+# one (doc: deploy/environments). The address is written out on every line — a YAML anchor/alias
+# (`api: &api {…}` … `space-missions: *api`) would be the natural way to say it once, but Mateu's
+# reader does not resolve aliases (the sources stay as authored), so: one file, one search & replace.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Environment
+name: public
+sources:
+  space-missions: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-featured-missions: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-mission: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-mission-create: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-mission-update: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-mission-delete: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-astronauts: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-astronaut: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-astronaut-update: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-astronaut-delete: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-spacecraft-list: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-spacecraft-one: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-spacecraft-tree: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-bodies: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-body: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-bodies-tree: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-launch-sites: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-launch-site: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-launch-site-update: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-launches: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-tasks: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-task: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-task-create: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-task-update: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-task-delete: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-budgets: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-search: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-global-search: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-inbox: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-body-options: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-site-options: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-spacecraft-options: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-mission-options: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-astronaut-options: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-credits: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-site-launches: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-mission-gallery: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-spacecraft-components: {baseUrl: "https://space-api.ec1.mateu.io"}

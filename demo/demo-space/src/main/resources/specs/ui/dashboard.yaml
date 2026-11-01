@@ -1,0 +1,30 @@
+# "At a glance" fills Redwood's DASHBOARD LANDING PAGE template: the scoreboard's metrics in its `kpi`
+# slot, one panel per chart in the form's content. A chart and a metric card carry their data — they
+# do not read a REST source — so the figures are a snapshot of /api/stats written by
+# scripts/snapshot.py into the regions below. Clicking a metric drills into its listing.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Space exploration at a glance
+subtitle: Missions, launches, budget and the work left — the numbers behind the dataset
+template:
+  type: DashboardLandingPage
+  kpi:
+    # >>> generated: kpis (scripts/snapshot.py — do not edit by hand)
+    - {"type": "MetricCard", "title": "Missions", "value": "54", "description": "15 active, 24 crewed", "actionId": "go-missions"}
+    - {"type": "MetricCard", "title": "Astronauts", "value": "77", "description": "who flew them", "actionId": "go-astronauts"}
+    - {"type": "MetricCard", "title": "Launches", "value": "50", "description": "98.0% successful", "trend": "up", "actionId": "go-launches"}
+    - {"type": "MetricCard", "title": "Mission cost", "value": "$48.0 bn", "description": "where the cost is known", "timeframe": "1961–2026"}
+    # <<< generated: kpis
+content:
+  # >>> generated: charts (scripts/snapshot.py — do not edit by hand)
+  - {"type": "DashboardPanel", "title": "Launches per decade", "subtitle": "Every launch in the dataset", "content": {"type": "Chart", "chartType": "bar", "chartData": {"labels": ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"], "datasets": [{"label": "Launches", "data": [6.0, 8.0, 5.0, 5.0, 8.0, 7.0, 11.0]}]}}, "colSpan": 2}
+  - {"type": "DashboardPanel", "title": "Missions by status", "subtitle": "Planned, active, completed or lost", "content": {"type": "Chart", "chartType": "doughnut", "chartData": {"labels": ["Completed", "Active", "Failed", "Planned", "Partial success"], "datasets": [{"label": "Missions", "data": [33.0, 15.0, 3.0, 2.0, 1.0]}]}}}
+  - {"type": "DashboardPanel", "title": "Missions by type", "subtitle": "What kind of mission each one is", "content": {"type": "Chart", "chartType": "bar", "chartData": {"labels": ["Crewed", "Orbiter", "Flyby", "Rover", "Telescope", "Helicopter", "Lander", "Impactor", "Lunar flyby", "Probe", "Sample return"], "datasets": [{"label": "Missions", "data": [24.0, 7.0, 5.0, 5.0, 5.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0]}]}}}
+  - {"type": "DashboardPanel", "title": "Where they went", "subtitle": "Missions by destination", "content": {"type": "Chart", "chartType": "pie", "chartData": {"labels": ["Earth", "Moon", "Mars", "Jupiter", "101955 Bennu", "16 Psyche", "Dimorphos", "Europa", "Mercury", "Neptune", "Pluto", "Saturn", "Sun", "Titan"], "datasets": [{"label": "Missions", "data": [17.0, 9.0, 8.0, 5.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}]}}}
+  - {"type": "DashboardPanel", "title": "NASA budget", "subtitle": "Millions of USD per fiscal year (totals from Wikidata, interpolated)", "content": {"type": "Chart", "chartType": "line", "chartData": {"labels": ["2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"], "datasets": [{"label": "Budget (M USD)", "data": [18275.4, 18342.6, 18994.5, 19633.7, 19730.0, 19869.0, 20802.8, 21366.9, 21763.7, 22115.8, 22796.3, 23632.5, 24630.5, 25079.6, 25300.8]}]}}}
+  - {"type": "DashboardPanel", "title": "Work left", "subtitle": "Mission tasks by status (synthetic)", "content": {"type": "Chart", "chartType": "bar", "chartData": {"labels": ["Backlog", "Done", "In progress", "Testing"], "datasets": [{"label": "Tasks", "data": [30.0, 10.0, 8.0, 5.0]}]}}}
+  # <<< generated: charts
+actions:
+  - {id: go-missions, steps: [{type: Navigate, route: missions}]}
+  - {id: go-astronauts, steps: [{type: Navigate, route: astronauts}]}
+  - {id: go-launches, steps: [{type: Navigate, route: launches}]}

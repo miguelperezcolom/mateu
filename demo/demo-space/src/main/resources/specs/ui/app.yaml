@@ -1,0 +1,74 @@
+# The app shell — title, the menu grouped by what the user is doing, the header extras (the command
+# palette's entity search and an inbox, both fed by REST sources), all as data.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Space Exploration
+subtitle: A Mateu app authored entirely in YAML, over NASA missions, crews, spacecraft and launches
+logo: /images/space.svg
+favicon: /images/space.svg
+variant: MENU_ON_TOP
+homeRoute: welcome
+mobileQr: true
+# the palette's search across every collection (Ctrl/⌘ K): each hit opens its record
+globalSearch:
+  source: {ref: space-global-search}
+# the bell: the tasks in progress
+notifications:
+  source: {ref: space-inbox}
+headerActions:
+  - {label: Plan a mission, icon: "vaadin:rocket", route: plan}
+menu:
+  - type: RouteLink
+    label: Home
+    route: welcome
+    icon: vaadin:home
+  - type: RouteLink
+    label: At a glance
+    route: dashboard
+    icon: vaadin:dashboard
+  - type: RouteLink
+    label: Search
+    route: search
+    icon: vaadin:search
+  - type: Menu
+    label: Missions
+    icon: vaadin:rocket
+    submenu:
+      - {type: RouteLink, label: All missions, route: missions, icon: "vaadin:list"}
+      - {type: RouteLink, label: Mission control, route: mission-control, icon: "vaadin:desktop"}
+      - {type: RouteLink, label: Plan a mission, route: plan, icon: "vaadin:magic"}
+      - {type: RouteLink, label: Task board, route: board, icon: "vaadin:kanban"}
+      - {type: RouteLink, label: Tasks, route: tasks, icon: "vaadin:tasks"}
+      - {type: RouteLink, label: Mission timeline, route: timeline, icon: "vaadin:time-forward"}
+  - type: Menu
+    label: Launches
+    icon: vaadin:flight-takeoff
+    submenu:
+      - {type: RouteLink, label: Launch calendar, route: calendar, icon: "vaadin:calendar"}
+      - {type: RouteLink, label: All launches, route: launches, icon: "vaadin:list"}
+      - {type: RouteLink, label: Launch sites map, route: sites-map, icon: "vaadin:map-marker"}
+      - {type: RouteLink, label: Launch sites, route: launch-sites, icon: "vaadin:location-arrow"}
+  - type: RouteLink
+    label: Astronauts
+    route: astronauts
+    icon: vaadin:user-star
+  - type: Menu
+    label: Hardware
+    icon: vaadin:cogs
+    submenu:
+      - {type: RouteLink, label: Spacecraft, route: spacecraft, icon: "vaadin:cog"}
+      - {type: RouteLink, label: Component tree, route: components, icon: "vaadin:file-tree"}
+  - type: Menu
+    label: Solar system
+    icon: vaadin:globe
+    submenu:
+      - {type: RouteLink, label: Bodies, route: bodies, icon: "vaadin:circle"}
+      - {type: RouteLink, label: Solar system tree, route: solar-system, icon: "vaadin:file-tree"}
+  - type: RouteLink
+    label: Budget
+    route: budget
+    icon: vaadin:dollar
+  - type: RouteLink
+    label: Credits
+    route: credits
+    icon: vaadin:camera

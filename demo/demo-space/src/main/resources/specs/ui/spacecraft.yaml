@@ -1,0 +1,43 @@
+# The spacecraft: a listing the server filters by type, power source and a mass range. A row opens
+# the spacecraft's Foldout page; the Component tree page shows every breakdown at once.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Spacecraft
+subtitle: Capsules, orbiters, rovers, telescopes — 43 vehicles
+pageSize: 15
+rowRoute: spacecraft/${row.id}
+toolbar:
+  - {type: Button, label: Component tree, actionable: {type: RouteLink, route: components}}
+searchable: true
+filters:
+  - type: FormField
+    id: type
+    label: Type
+    stereotype: multiSelect
+    options:
+      - {value: CAPSULE, label: Capsule}
+      - {value: LANDER, label: Lander}
+      - {value: ORBITER, label: Orbiter}
+      - {value: ROVER, label: Rover}
+      - {value: PROBE, label: Probe}
+      - {value: TELESCOPE, label: Telescope}
+      - {value: STATION, label: Station}
+      - {value: HELICOPTER, label: Helicopter}
+  - type: FormField
+    id: powerSource
+    label: Power
+    stereotype: select
+    options:
+      - {value: SOLAR, label: Solar}
+      - {value: RTG, label: RTG (nuclear)}
+      - {value: FUEL_CELL, label: Fuel cells}
+      - {value: BATTERY, label: Batteries}
+  - {type: FormField, id: massKg, label: Mass (kg), dataType: number, stereotype: numberRange}
+rowsSource: {ref: space-spacecraft-list}
+columns:
+  - {type: GridColumn, id: name, label: Spacecraft, identifier: true, stereotype: primary, leadingPath: thumbnail, captionPath: manufacturer}
+  - {type: GridColumn, id: type, label: Type}
+  - {type: GridColumn, id: massKg, label: Mass (kg), dataType: number}
+  - {type: GridColumn, id: powerWatts, label: Power (W), dataType: integer}
+  - {type: GridColumn, id: powerSource, label: Power source}
+  - {type: GridColumn, id: componentCount, label: Components, dataType: integer}

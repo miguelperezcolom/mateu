@@ -1,0 +1,53 @@
+# The fields of a task, shared by the create and the edit page (a partial binds against whichever
+# page uses it): a select from a REST source, inline selects, a date, numbers, a slider and a textarea.
+content:
+  - {type: FormField, id: title, label: Task, required: true, colspan: 2}
+  - {type: FormField, id: missionId, label: Mission, required: true, stereotype: select, optionsSource: {ref: space-mission-options}}
+  - type: FormField
+    id: phase
+    label: Phase
+    stereotype: select
+    options:
+      - {value: DESIGN, label: Design}
+      - {value: BUILD, label: Build}
+      - {value: INTEGRATION, label: Integration}
+      - {value: TEST, label: Test}
+      - {value: LAUNCH_OPS, label: Launch operations}
+  - type: FormField
+    id: status
+    label: Status
+    stereotype: select
+    initialValue: BACKLOG
+    options:
+      - {value: BACKLOG, label: Backlog}
+      - {value: IN_PROGRESS, label: In progress}
+      - {value: TESTING, label: Testing}
+      - {value: DONE, label: Done}
+  - type: FormField
+    id: priority
+    label: Priority
+    stereotype: radio
+    initialValue: MEDIUM
+    options:
+      - {value: LOW, label: Low}
+      - {value: MEDIUM, label: Medium}
+      - {value: HIGH, label: High}
+      - {value: CRITICAL, label: Critical}
+  - type: FormField
+    id: owner
+    label: Team
+    stereotype: combobox
+    options:
+      - {value: Systems engineering, label: Systems engineering}
+      - {value: GNC team, label: GNC team}
+      - {value: Thermal team, label: Thermal team}
+      - {value: Payload team, label: Payload team}
+      - {value: Avionics team, label: Avionics team}
+      - {value: Ground systems, label: Ground systems}
+      - {value: Launch operations, label: Launch operations}
+      - {value: Flight software, label: Flight software}
+      - {value: Mission assurance, label: Mission assurance}
+  - {type: FormField, id: dueDate, label: Due, dataType: date}
+  - {type: FormField, id: estimateDays, label: Estimate (days), dataType: integer, min: 1, max: 120}
+  - {type: FormField, id: progress, label: Progress (%), dataType: integer, stereotype: slider, sliderMin: 0, sliderMax: 100}
+  - {type: FormField, id: description, label: Notes, stereotype: textarea, colspan: 2}

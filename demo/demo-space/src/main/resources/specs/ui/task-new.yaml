@@ -1,0 +1,20 @@
+# Create a task — a plain create form (the SIMPLE create-and-edit template), the fields shared with
+# the edit page through a partial.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: New task
+toolbar:
+  - {type: Button, actionId: cancel-new, label: Cancel, actionable: {type: RouteLink, route: tasks}}
+  - {type: Button, label: Create, actionId: create, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: Partial, ref: task-fields}
+actions:
+  - id: create
+    validationRequired: true
+    restAction:
+      source: {ref: space-task-create}
+      successMessage: Created
+      successRoute: tasks

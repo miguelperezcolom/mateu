@@ -20,6 +20,7 @@
   <modules>
     <module>demo-app-definition</module>
     <module>demo-starwars</module>
+    <module>demo-space</module>
     <module>demo-museum</module>
     <module>demo-starwars-2-code-first</module>
     <module>demo-starwars-3-forms</module>

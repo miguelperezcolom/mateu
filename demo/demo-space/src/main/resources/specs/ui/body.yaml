@@ -1,0 +1,35 @@
+# One body, SELECTED in Redwood's COLLECTION DETAIL PAGE template (route bodies/:id): the same list as
+# bodies.yaml (the body-list partial) beside this body's detail — the form's content.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Celestial bodies
+subtitle: The Sun, its planets and their moons, dwarf planets and the asteroids we visited
+toolbar:
+  - {type: Button, label: As a tree, actionable: {type: RouteLink, route: solar-system}}
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Partial, ref: body-list}
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - {type: Text, container: h2, text: "${state.name}"}
+      - {type: Text, text: "${state.description}"}
+      - {type: Image, src: "${state.image}", style: "width: 100%; max-height: 22rem; object-fit: contain; background: #000; border-radius: 8px"}
+      - {type: Text, text: "${state.imageTitle} — ${state.imageCredit}", size: xs}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Physical characteristics}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: type, label: Type, readOnly: true, propertyRow: true}
+            - {type: FormField, id: parentName, label: Orbits, readOnly: true, propertyRow: true}
+            - {type: FormField, id: radiusKm, label: Radius (km), dataType: number, readOnly: true, propertyRow: true}
+            - {type: FormField, id: massKg, label: Mass (kg), dataType: number, readOnly: true, propertyRow: true}
+            - {type: FormField, id: orbitalPeriodDays, label: Orbital period (days), dataType: number, readOnly: true, propertyRow: true}
+            - {type: FormField, id: surfaceGravity, label: Surface gravity (m/s²), dataType: number, readOnly: true, propertyRow: true}
+            - {type: FormField, id: missionCount, label: Missions there, dataType: integer, readOnly: true, propertyRow: true}
+            - {type: FormField, id: wikidataUrl, label: Wikidata, stereotype: link, readOnly: true, propertyRow: true}
