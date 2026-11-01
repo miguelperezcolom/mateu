@@ -1,8 +1,8 @@
 {
-  "rawBytes": 2698865,
-  "gzipBytes": 649581,
-  "measuredRawBytes": 2570347,
-  "measuredGzipBytes": 618648,
+  "rawBytes": 2802369,
+  "gzipBytes": 683296,
+  "measuredRawBytes": 2668922,
+  "measuredGzipBytes": 650758,
   "note": "Ceiling = measured + 5%. Raise it only as a reviewed change, saying why.",
-  "reason": "2026-10-17 (GA phase 4, R5): lowered after the optional elements moved to lazy chunks (chat, workflow, form editor + sortablejs, planning board, gantt, matrix grid, signature, camera, vaadin-markdown + marked, vcf-date-range-picker): 693132 \u2192 618648 gzip bytes measured."
+  "reason": "2026-11-01: +1.3 KB gzip for locale-aware date pickers (#1004: Intl-based format/parse shared by date, date-time, range and grid editors, plus the calendar's chrome texts) \u2014 re-baselined with --update."
 }

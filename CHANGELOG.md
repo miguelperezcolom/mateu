@@ -25,6 +25,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Vaadin: date pickers format and parse in the user's locale.** `vaadin-date-picker`,
+  `vaadin-date-time-picker`, `vcf-date-range-picker` and the grid's inline date editors used
+  Vaadin's en-US default (M/D/YYYY): in a Spanish browser "15/2/2027" read as month 15, the field
+  silently kept no value while still showing the text, and the server rejected the form as if the
+  date were missing. The locale is the UI's (`<html lang>`, from `AppDto.locale`, else the
+  browser's); order, separator and padding come from `Intl.DateTimeFormat`, typing accepts 1–2
+  digit day/month, 2- or 4-digit year and ISO `yyyy-mm-dd`, an impossible date (month 14,
+  31 February) leaves the field marked invalid, and month/weekday names, the first day of the week
+  and the calendar's buttons follow the locale too.
 - **A `List<Row>` field's row editor honours the row's `VisibilitySupplier`.** The editor ("Edit" and
   "+") was built from the row CLASS, so `isHidden` was never asked and every field of every row type
   showed (a quick-links block offered its HTML, item, section, limit and media fields). It is now built
