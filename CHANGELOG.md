@@ -13,6 +13,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Live run ▸ Desktop opens the UI in the Mateu desktop app, a separate IntelliJ.** It used to repoint
+  the developer's own IDE and open its tool window. The IDE now hands the installed desktop app
+  `mateu://add?u=http://localhost:<port>` (macOS: by bundle id, since the phone app claims the scheme
+  too); without it, a notification offers the download or the old way. The desktop app accepts plain
+  http for this machine only (hub-links corpus option `allowLoopbackHttp`). VS Code: setting
+  `mateu.liveRun.openIn` + *Mateu: Open Running App in the Desktop App*.
+
 - **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
   app (a gallery's photographs, a document in another system) can point at one elsewhere:
   `rowRoute: ${row.imageLarge}` or `https://example.com/docs/${row.id}`. A route that starts with a

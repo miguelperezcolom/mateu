@@ -46,9 +46,16 @@ import javax.swing.ListSelectionModel
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
-/** Development builds accept plain-http UIs (`-Dmateu.hub.allowInsecure=true`), like the app's dev build. */
+/**
+ * Development builds accept plain-http UIs (`-Dmateu.hub.allowInsecure=true`), like the app's dev build.
+ * Every build accepts plain http on THIS machine (localhost, 127.x, [::1]): that is the app a
+ * developer's IDE just started and hands over (Run live ▸ Desktop), and nothing else can be there.
+ */
 fun hubOptions(): HubLinks.Options =
-    HubLinks.Options(allowInsecure = System.getProperty("mateu.hub.allowInsecure")?.toBoolean() == true)
+    HubLinks.Options(
+        allowInsecure = System.getProperty("mateu.hub.allowInsecure")?.toBoolean() == true,
+        allowLoopbackHttp = true,
+    )
 
 /**
  * The desktop hub's home — "My UIs": the list, a search box, Add / Open / Share / Remove / reorder and

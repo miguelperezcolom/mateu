@@ -75,7 +75,8 @@ object HubManifest {
             }
         }
         val beforeQuery = absolute.split('?', '#')[0]
-        if (HubLinks.normalizeBaseUrl(beforeQuery, HubLinks.Options(allowInsecure)) !is HubLinks.BaseUrl.Ok || absolute.any { it.isWhitespace() }) return null
+        val options = HubLinks.Options(allowInsecure, allowLoopbackHttp = isLoopbackBase(baseUrl))
+        if (HubLinks.normalizeBaseUrl(beforeQuery, options) !is HubLinks.BaseUrl.Ok || absolute.any { it.isWhitespace() }) return null
         return absolute.substringBefore('#')
     }
 
@@ -89,19 +90,29 @@ object HubManifest {
             icon = resolveIcon(r?.get("icon"), baseUrl, allowInsecure),
             themeColor = r?.get("themeColor")?.takeIf { it.isTextual && HEX_COLOUR.matches(it.asText()) }?.asText()?.lowercase(),
             wireVersion = wire,
-            auth = authOf(r?.get("auth"), allowInsecure),
+            auth = authOf(r?.get("auth"), allowInsecure, baseUrl),
             bundle = r?.get("bundle")?.takeIf { it.isTextual && it.asText().isNotEmpty() }?.asText(),
         )
     }
 
+    /**
+     * Whether [baseUrl] is a plain-http app on THIS machine — the one a developer's IDE just started.
+     * Its icon and its identity provider may then be plain http on this machine too (a local Keycloak).
+     */
+    private fun isLoopbackBase(baseUrl: String): Boolean {
+        val ok = HubLinks.normalizeBaseUrl(baseUrl, HubLinks.Options(allowLoopbackHttp = true)) as? HubLinks.BaseUrl.Ok ?: return false
+        return !ok.secure && HubLinks.isLoopbackHost(ok.host.replace(Regex(":\\d+$"), ""))
+    }
+
     /** The manifest's sign-in, only when its identity provider is https too: the user's password goes there. */
-    private fun authOf(raw: JsonNode?, allowInsecure: Boolean): Auth? {
+    private fun authOf(raw: JsonNode?, allowInsecure: Boolean, baseUrl: String = ""): Auth? {
         if (raw == null || !raw.isObject) return null
         if ((raw.get("type")?.asText() ?: "oidc") != "oidc") return null
         val issuer = raw.get("issuer")?.takeIf { it.isTextual }?.asText()?.trimEnd('/').orEmpty()
         val clientId = raw.get("clientId")?.takeIf { it.isTextual }?.asText().orEmpty()
         if (issuer.isEmpty() || clientId.isEmpty()) return null
-        val secure = issuer.startsWith("https://", true) || (allowInsecure && issuer.startsWith("http://", true))
+        val localIssuer = isLoopbackBase(baseUrl) && isLoopbackBase(issuer)
+        val secure = issuer.startsWith("https://", true) || ((allowInsecure || localIssuer) && issuer.startsWith("http://", true))
         if (!secure) return null
         val scopesNode = raw.get("scopes")
         val scopes = when {

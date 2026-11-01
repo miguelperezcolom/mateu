@@ -241,5 +241,20 @@ class HubTest {
         assertFalse(cfg("mateu.focused" to "true").hub)
         assertFalse(cfg("mateu.variant" to "hub").hub) // a developer's IDE never becomes a hub
         assertEquals(false, hubOptions().allowInsecure)
+        // every build takes the app a developer's IDE started on THIS machine (Run live ▸ Desktop)
+        assertEquals(true, hubOptions().allowLoopbackHttp)
+    }
+
+    @Test
+    fun `a dev app on this machine keeps its plain-http icon and local identity provider`() {
+        val m = HubManifest.parse(
+            json("""{"icon":"/icon.png","auth":{"issuer":"http://localhost:8180/realms/dev","clientId":"crm"}}"""),
+            "http://localhost:8080",
+        )
+        assertEquals("http://localhost:8080/icon.png", m.icon)
+        assertEquals("http://localhost:8180/realms/dev", m.auth?.issuer)
+        // a remote https app never gets a plain-http identity provider, local or not
+        assertNull(HubManifest.parse(json("""{"auth":{"issuer":"http://localhost:8180/realms/dev","clientId":"crm"}}"""), "https://acme.com").auth)
+        assertNull(HubManifest.parse(json("""{"auth":{"issuer":"http://id.acme.com","clientId":"crm"}}"""), "http://localhost:8080").auth)
     }
 }
