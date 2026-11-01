@@ -1,5 +1,5 @@
 import {customElement, property, state} from "lit/decorators.js";
-import { readOnlyGridLayout, fitColumnToWidth } from '@infra/ui/foldoutGeometry.ts'
+import { readOnlyGridLayout, fitColumnToWidth, freezeRowEditorButton } from '@infra/ui/foldoutGeometry.ts'
 import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -325,7 +325,7 @@ export class MateuGrid extends MetadataDrivenElement {
         const selectedItems = this.selectedItems || []
         // read-only (a record's view page): a plain table — all rows, columns fit, cells wrap
         const layout = readOnlyGridLayout(this.field?.readOnly, items?.length ?? 0)
-        const columns = this.field?.readOnly ? (this.field?.columns ?? []).map(fitColumnToWidth) : this.field?.columns
+        const columns = this.field?.readOnly ? (this.field?.columns ?? []).map(fitColumnToWidth) : this.field?.columns?.map(freezeRowEditorButton)
 
         return html`<vaadin-vertical-layout style="width: 100%;">
             <!-- The field label is rendered by the surrounding mateu-field wrapper; rendering it
@@ -409,9 +409,12 @@ export class MateuGrid extends MetadataDrivenElement {
                 `:nothing}
 
                 ${this.field?.useButtonForDetail?html`
+                    <!-- frozen to the end like the per-row editor button before it: frozen-to-end columns
+                         must close the row, and a wide grid keeps both in view -->
                     <vaadin-grid-column
                             width="44px"
                             flex-grow="0"
+                            frozen-to-end
                             ${columnBodyRenderer<any>(
             (person, { detailsOpened }) => html`
               <vaadin-button

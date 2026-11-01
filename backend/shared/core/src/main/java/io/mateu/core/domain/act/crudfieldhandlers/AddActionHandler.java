@@ -1,16 +1,13 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
-import static io.mateu.core.domain.ComponentState.wrap;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.*;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.InlineEditing;
 import io.mateu.uidl.data.State;
-import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
@@ -29,12 +26,7 @@ public class AddActionHandler {
       String fieldId) {
     // _rowClass only rides in the state for wizard steps; plain forms resolve the row type
     // from the field's generic type.
-    var stateRowClass = httpRequest.runActionRq().componentState().get(fieldId + "_rowClass");
-    var rowClass =
-        stateRowClass != null
-            ? io.mateu.core.application.security.WireTypes.rowClass(
-                stateRowClass.toString(), field.getDeclaringClass())
-            : getGenericClass(field, field.getType(), "E");
+    var rowClass = CrudFieldHandlerHelper.rowClass(field, fieldId, httpRequest);
 
     // Inline-editing grids render no detail form (the container the form would target does not
     // exist): "+" appends an empty row to the list, to be edited in place.
@@ -61,26 +53,8 @@ public class AddActionHandler {
 
     var item = MateuInstanceFactory.newInstance(rowClass, Map.of(), httpRequest);
 
-    String fid = getFieldId(field, "", false);
     return List.of(
         new State(newState),
-        wrap(
-                CrudFieldHandlerHelper.buildDetailForm(
-                    CrudFieldHandlerHelper.detailTitle(
-                        "New", getGenericClass(field, field.getType(), "E")),
-                    field,
-                    httpRequest,
-                    true,
-                    null,
-                    List.<UserTrigger>of(),
-                    CrudFieldHandlerHelper.rowEditorButtons(fid, "_create", true),
-                    0),
-                item,
-                (String) httpRequest.getAttribute("baseUrl"),
-                httpRequest.runActionRq().route(),
-                httpRequest.runActionRq().consumedRoute(),
-                httpRequest.runActionRq().initiatorComponentId(),
-                httpRequest)
-            .withContainerId(fieldId + "-container"));
+        CrudFieldHandlerHelper.newRowEditor(field, fieldId, httpRequest, item));
   }
 }

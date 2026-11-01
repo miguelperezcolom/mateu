@@ -335,6 +335,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     listActionOf,
     listActionRequestOf,
     rowEditorOf,
+    rowValueChangeActionOf,
     rowFieldsOf,
     validateRow,
     // validationRequired de las acciones del host (el next de un wizard): obligatorios vacíos

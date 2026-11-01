@@ -3,7 +3,7 @@ import { RICH_TEXT_STEREOTYPES } from './atoms.mjs'
 import { converterOf, interpolate } from './content.mjs'
 import { ROW_LINES_FIELD, findByType, isBlank, listingOf, withoutDefaultSizing } from './listing.mjs'
 import { chromeText, chromeLanguage } from '../i18n.mjs'
-import { evaluateExpression, evaluateTemplate } from '../rules.mjs'
+import { evaluateExpression, evaluateTemplate, valueChangeActionOf } from '../rules.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
 // ── ROW EDITOR of a form list (@DetailFormCustomisation position = modal) ──
@@ -21,15 +21,18 @@ import { evaluateExpression, evaluateTemplate } from '../rules.mjs'
 //    its first step.
 //  - The container answers a State with the new list and `_show_detail[campo] = false`
 //    (closes); `_create-and-stay` also answers a new row in `<campo>-container`.
-//  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row).
+//  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row) — or, for a row
+//    whose fields show by its values (VisibilitySupplier), the neighbour's re-built ServerSide.
+//  - `<campo>_refresh-detail` (the row's OnValueChange trigger, see rowValueChangeActionOf)
+//    answers only the re-built ServerSide in `<campo>-container`, with the edited row as state.
 //  - The row's lookups (`search-<campo>`) are resolved by the ROW's ServerSide with the
 //    row's state: its response is a data-only fragment to its id.
 
 /** The actions a row editor sends to the list's container: `rooms_create`… */
-export const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down)$/
+export const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down|refresh-detail)$/
 
 /** Verbs that carry the dialog's row in parameters.initiatorState. */
-export const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true }
+export const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true, 'refresh-detail': true }
 
 /** Verbs that validate the row before leaving (the empty required fields). */
 export const ROW_VALIDATING_VERBS = { create: true, 'create-and-stay': true, save: true }
@@ -1002,6 +1005,26 @@ export function lookupRequestOf(reg, rowCtxId, fieldId, opts = {}) {
       outbound: { ...(holder.outbound || {}), serverSideType: row.tree.serverSideType },
     },
   }
+}
+
+/**
+ * The action a change of `fieldId` in the open ROW EDITOR fires: the row's OnValueChange trigger,
+ * over the row's state with its draft — the server's `<campo>_refresh-detail` when the row's
+ * VisibilitySupplier depends on that field (a block's type: the editor is re-built with the fields
+ * of the new type). null when no row editor is open or the field fires nothing.
+ */
+export function rowValueChangeActionOf(reg, fieldId, rowDraft = {}, opts = {}) {
+  const holder = reg && reg.contexts && reg.contexts[opts.holderId || HOST_ID]
+  if (!holder || !holder.tree) return null
+  const state = holder.state || {}
+  const show = state._show_detail || {}
+  for (const listId of Object.keys(modalListsOf(holder.tree))) {
+    if (!(show[listId] === true || state[listId + '_show_detail'] === true)) continue
+    const ctx = reg.contexts[listId + '-container']
+    if (!ctx || !ctx.tree) continue
+    return valueChangeActionOf(ctx, fieldId, { ...(ctx.state || {}), ...(rowDraft || {}) })
+  }
+  return null
 }
 
 /**

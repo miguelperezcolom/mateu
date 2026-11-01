@@ -28,6 +28,18 @@ import reactor.core.publisher.Flux;
 
 final class FieldActionCollector {
 
+  private static boolean rowDecidesItsVisibility(Field listField) {
+    try {
+      var rowClass =
+          io.mateu.uidl.reflection.GenericClassProvider.getGenericClass(
+              listField, listField.getType(), "E");
+      return rowClass != null
+          && io.mateu.uidl.interfaces.VisibilitySupplier.class.isAssignableFrom(rowClass);
+    } catch (RuntimeException e) {
+      return false;
+    }
+  }
+
   static List<Action> collect(Object serverSideObject) {
     List<Action> fieldActions = new ArrayList<>();
 
@@ -69,27 +81,41 @@ final class FieldActionCollector {
             field -> {
               String fieldName = field.getName();
               String fieldsToValidate = getConstrainedFieldNames(field);
-              return Stream.of(
-                      "_create",
-                      "_create-and-stay",
-                      "_add",
-                      "_select",
-                      "_selected",
-                      "_prev",
-                      "_next",
-                      "_save",
-                      "_remove",
-                      "_move-up",
-                      "_move-down",
-                      "_cancel")
+              // the row editor re-built when a field its visibility depends on changes: only a
+              // row that decides its own visibility has one (the wire of every other list is as
+              // it was, on every backend)
+              var suffixes =
+                  rowDecidesItsVisibility(field)
+                      ? Stream.of("_refresh-detail")
+                      : Stream.<String>empty();
+              return Stream.concat(
+                      Stream.of(
+                          "_create",
+                          "_create-and-stay",
+                          "_add",
+                          "_select",
+                          "_selected",
+                          "_prev",
+                          "_next",
+                          "_save",
+                          "_remove",
+                          "_move-up",
+                          "_move-down",
+                          "_cancel"),
+                      suffixes)
                   .map(
                       suffix -> {
                         boolean needsValidation =
                             suffix.equals("_create")
                                 || suffix.equals("_create-and-stay")
                                 || suffix.equals("_save");
+                        // the editor re-built on a value change is a read: no veil, no
+                        // exclusivity (the latest change wins)
+                        boolean refresh = suffix.equals("_refresh-detail");
                         return Action.builder()
                             .id(fieldName + suffix)
+                            .background(refresh)
+                            .idempotent(refresh)
                             .validationRequired(needsValidation)
                             .fieldsToValidate(needsValidation ? fieldsToValidate : null)
                             .build();

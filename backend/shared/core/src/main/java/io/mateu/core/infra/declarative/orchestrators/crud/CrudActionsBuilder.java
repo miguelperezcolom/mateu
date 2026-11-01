@@ -48,6 +48,25 @@ final class CrudActionsBuilder {
       actions.add(Action.builder().id("cancel-new").build());
       actions.add(Action.builder().id("action-on-row-*").build());
       actions.add(Action.builder().id("action-on-view-*").build());
+      // the editor's own @Buttons on the edit / creation form bubble here (EditorButtons)
+      if (mayEdit) {
+        actions.add(
+            Action.builder()
+                .id(
+                    io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.EditorButtons
+                            .EDIT_PREFIX
+                        + "*")
+                .build());
+      }
+      if (mayCreate) {
+        actions.add(
+            Action.builder()
+                .id(
+                    io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.EditorButtons
+                            .CREATE_PREFIX
+                        + "*")
+                .build());
+      }
       if (InlineEditingGate.offered(orchestrator)) {
         actions.add(Action.builder().id("update-row").build());
       }

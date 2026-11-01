@@ -33,6 +33,7 @@ public interface ActionHandler {
         && !actionId.endsWith("_move-up")
         && !actionId.endsWith("_move-down")
         && !actionId.endsWith("_cancel")
+        && !actionId.endsWith("_refresh-detail")
         && !actionId.startsWith("search-");
   }
 

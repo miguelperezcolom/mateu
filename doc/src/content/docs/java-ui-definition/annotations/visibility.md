@@ -811,6 +811,31 @@ In this example:
 - `discount` is only sent when the order is in draft.
 - The `approve` button is only sent when the order is pending.
 
+### In a row editor
+
+A row class of a `List<Row>` field can implement `VisibilitySupplier` too: the row editor (Edit, "+",
+Prev/Next) asks the row being edited, with its values. When a field it depends on changes while
+editing, the editor is re-built on the server with the fields the new value calls for. Mateu finds
+those fields itself by trying each value of the row's enum and boolean fields; a visibility that
+depends on a free-text field is evaluated when the editor opens.
+
+```java
+public class BlockForm implements VisibilitySupplier {
+    public BlockType type = BlockType.HTML;
+    public String html;           // only for HTML blocks
+    public List<LinkForm> links;  // only for QUICK_LINKS blocks
+
+    @Override
+    public boolean isHidden(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "html"  -> type != BlockType.HTML;
+            case "links" -> type != BlockType.QUICK_LINKS;
+            default      -> false;
+        };
+    }
+}
+```
+
 ### Comparison with @Hidden
 
 | | `@Hidden` | `VisibilitySupplier` |
