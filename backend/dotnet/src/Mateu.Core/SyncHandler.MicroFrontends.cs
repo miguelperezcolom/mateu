@@ -13,6 +13,10 @@ internal sealed partial class SyncHandler
     /// remote identity strategies, the correlation id and a remote view's cache key read.</summary>
     public Func<string, string?>? RequestHeader { get; init; }
 
+    /// <summary>The query parameters of the current request URL (first value of each): a route's
+    /// <c>?…</c> travels on the POST URL and seeds the state at the query precedence level.</summary>
+    public Func<IReadOnlyDictionary<string, string>>? RequestQuery { get; init; }
+
     /// <summary>The host framework's id of the current request (ASP.NET's TraceIdentifier).</summary>
     public Func<string?>? RequestTraceIdentifier { get; init; }
 

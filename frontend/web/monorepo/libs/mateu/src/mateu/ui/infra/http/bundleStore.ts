@@ -17,6 +17,7 @@ import {
 import {
     appShellOf, applyRouteParams as applyRouteParamsOf, bundledIncrement, bundledTemplate,
     expandedIncrement, matchRouteEntry, parseBundleManifest, resolveLoad, rootIncrement, toSyncPath as toSyncPathOf,
+    withQueryParams,
     type BundleManifest, type BundleState, type BundleTemplate, type RouteEntry,
 } from './bundleResolver.ts'
 
@@ -72,6 +73,11 @@ const localize = <T,>(value: T): T => {
 /** See bundleResolver.applyRouteParams — over the loaded bundle. */
 export const applyRouteParams = (syncPath: string, increment: UIIncrement): UIIncrement =>
     applyRouteParamsOf(current(), syncPath, increment)
+
+/** See bundleResolver.withQueryParams — over the loaded bundle. */
+export const applyQueryParams = (
+    syncPath: string, increment: UIIncrement | undefined, query: Record<string, string>,
+): UIIncrement | undefined => withQueryParams(current(), syncPath, increment, query)
 
 /** The registry entry answering a path, for callers that need its definition or view model. */
 export const getRouteEntry = (syncPath: string): RouteEntry | undefined =>
@@ -229,8 +235,10 @@ export const getExpandedIncrement = (syncPath: string): UIIncrement | undefined 
 
 /** The bundle's answer to a route LOAD, or undefined (→ the backend, if there is one). See
  *  bundleResolver.resolveLoad for the fresh/content rules (#557). */
-export const resolveBundledLoad = (syncPath: string, consumedRoute?: string): UIIncrement | undefined =>
-    state ? resolveLoad(state, syncPath, consumedRoute, localize) : undefined
+export const resolveBundledLoad = (
+    syncPath: string, consumedRoute?: string, query?: Record<string, string>,
+): UIIncrement | undefined =>
+    state ? resolveLoad(state, syncPath, consumedRoute, localize, query) : undefined
 
 /** Test hook: seed/clear the in-memory bundle directly. */
 export const __setBundleForTests = (

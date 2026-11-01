@@ -190,13 +190,14 @@ class RouteEntry:
         return [s[1:] for s in self.route.split("/") if s.startswith(":") and len(s) > 1]
 
     def resolve_params(self, from_request: dict[str, Any] | None) -> dict[str, Any]:
-        """Defaults first, then ``state`` at the same defaults level, then whatever the request
-        brought, then the fixed ones — which win over everything, which is the whole point of
-        declaring them fixed."""
-        resolved = dict(self.default_params)
-        for k, v in self.state.items():
-            resolved.setdefault(k, v)
-        resolved.update(from_request or {})
+        """What the request brought, then ``state`` and the defaults filling only what is still
+        missing (``None`` counts as missing), then the fixed ones — which win over everything,
+        which is the whole point of declaring them fixed."""
+        resolved = dict(from_request or {})
+        for seeds in (self.state, self.default_params):
+            for k, v in seeds.items():
+                if resolved.get(k) is None:
+                    resolved[k] = v
         resolved.update(self.fixed_params)
         return resolved
 
@@ -206,10 +207,21 @@ class Match:
     entry: RouteEntry
     path_params: dict[str, Any]
 
-    def params(self, incoming: dict[str, Any] | None) -> dict[str, Any]:
-        from_request = dict(incoming or {})
-        from_request.update(self.path_params)
-        return self.entry.resolve_params(from_request)
+    def params(
+        self, incoming: dict[str, Any] | None, query: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """The route's parameters for a request, in the order every Mateu server and client uses:
+
+        ``fixed > client state > path > query > defaults``
+
+        A ``None`` in the client state is no value at all — the path, the query and the defaults
+        still fill it (a child record's form carries its own, still empty, parent id)."""
+        resolved = dict(incoming or {})
+        for level in (self.path_params, query or {}):
+            for k, v in level.items():
+                if resolved.get(k) is None:
+                    resolved[k] = v
+        return self.entry.resolve_params(resolved)
 
 
 @dataclass(frozen=True)

@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { evaluateExpression } from './rules.mjs'
-import { __setBundleForTests, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundle.mjs'
+import { __setBundleForTests, applyQueryParams, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundle.mjs'
 
 const corpusFile = (name) => fileURLToPath(new URL('../../../../../../conformance/client/' + name, import.meta.url))
 const isMarker = (v, key) => !!v && typeof v === 'object' && v[key] === true
@@ -38,7 +38,8 @@ for (const c of routeParams.cases) {
     : []
   __setBundleForTests(undefined, templates, c.routes)
   try {
-    const out = c.template ? matchBundledTemplate(c.syncPath) : applyRouteParams(c.syncPath, increment)
+    const routed = c.template ? matchBundledTemplate(c.syncPath) : applyRouteParams(c.syncPath, increment)
+    const out = c.query ? applyQueryParams(c.syncPath, routed, c.query) : routed
     if (c.expected.untouched) {
       assert.equal(out, increment, 'the same reference')
     } else {

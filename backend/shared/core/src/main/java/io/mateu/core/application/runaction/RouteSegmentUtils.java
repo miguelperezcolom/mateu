@@ -68,7 +68,8 @@ final class RouteSegmentUtils {
           .forEach(
               fieldName -> {
                 try {
-                  if (!newData.containsKey(fieldName)) {
+                  // like the path: a null in the client state is no value, the query fills it
+                  if (newData.get(fieldName) == null) {
                     newData.put(fieldName, httpRequest.getParameterValue(fieldName));
                   }
                 } catch (Exception ignored) {

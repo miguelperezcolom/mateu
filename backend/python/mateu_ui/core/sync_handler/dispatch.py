@@ -227,7 +227,7 @@ class DispatchMixin(MixinBase):
         # derived, the same precedence the layout and page inference already use. Its parameters are
         # folded into the component state here, at the single point every downstream step reads:
         #
-        #   fixed > client state > path > defaults
+        #   fixed > client state > path > query > defaults
         #
         # The fixed ones are re-applied on the SERVER rather than trusted from the client, because
         # route resolution also runs in the browser (a statically deployed mount has no server to
@@ -235,8 +235,14 @@ class DispatchMixin(MixinBase):
         route_match = self.routes.match(rq.route)
         type_ = None
         if route_match is not None:
+            from ..request_context import current_request
+
+            in_flight = current_request()
+            query = dict(in_flight.query_params) if in_flight is not None else {}
             rq = rq.model_copy(
-                update={"component_state": route_match.params(rq.component_state or {})}
+                update={
+                    "component_state": route_match.params(rq.component_state or {}, query)
+                }
             )
             if route_match.entry.view_model:
                 type_ = self.registry.type_by_name(route_match.entry.view_model)

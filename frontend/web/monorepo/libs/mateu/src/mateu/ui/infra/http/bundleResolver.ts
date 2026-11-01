@@ -232,8 +232,9 @@ const withDefaults = (defaults: Record<string, unknown>, carried: Record<string,
  *
  * Defaults only fill what nothing else supplied (a null included); fixed ones override everything,
  * which is the whole point of pinning them. The server's order is `fixed > client state > path >
- * query > defaults`: a statically served load has no client state yet and no query level, and its
- * increment is what the server rendered for the route, so the two agree
+ * query > defaults`: a statically served load has no client state yet, its increment is what the
+ * server rendered for the route, and the query level is applied on the answer (withQueryParams), so
+ * the two agree
  * (conformance/client/route-params.json pins it, for this renderer and Redwood).
  * Returns the increment untouched when no entry answers the path.
  */
@@ -404,10 +405,54 @@ export const rootIncrement = (state: BundleState, localize: Localize = asIs): UI
  *    screen — its exported content, a :param template's content, or its definition expanded here.
  * A content load is never answered with a shell: that is what nested shells until the tab died.
  * `${i18n.…}` is resolved with `localize`, in the definition expanded and in the answer.
+ * `query` is the route's own query string (`/people?dept=sales` → `{dept: 'sales'}`): it seeds the
+ * screen's state at the server's query level — see withQueryParams.
  */
 export const resolveLoad = (
     state: BundleState, syncPath: string, consumedRoute?: string, localize: Localize = asIs,
-): UIIncrement | undefined => localize(resolveLoadRaw(state, syncPath, consumedRoute, localize))
+    query?: Record<string, string>,
+): UIIncrement | undefined =>
+    localize(withQueryParams(state, syncPath, resolveLoadRaw(state, syncPath, consumedRoute, localize), query))
+
+/**
+ * The route's query parameters on a screen the bundle answered, at the level the server gives them:
+ *
+ *   fixed  >  path  >  query  >  what the pre-rendered answer carries (its defaults included)
+ *
+ * The server seeds the query into the state of the load (RouteSegmentUtils.addParameterValues), so
+ * `/people?dept=sales` shows `${state.dept}` filled; a bundle answer was rendered with no query at
+ * all, and dropped it. A pinned (fixed) or path parameter is never overridden from the URL, and an
+ * app shell is left alone — its content load carries the query to the screen.
+ */
+export const withQueryParams = (
+    state: BundleState, syncPath: string, answer: UIIncrement | undefined, query?: Record<string, string>,
+): UIIncrement | undefined => {
+    if (!answer || !query || !Object.keys(query).length || appShellOf(answer)) return answer
+    const match = matchRouteEntry(state, syncPath)
+    const fixed = match?.entry.fixedParams ?? {}
+    const path = match?.pathParams ?? {}
+    const params = Object.fromEntries(Object.entries(query).filter(([k]) => !(k in fixed) && !(k in path)))
+    if (!Object.keys(params).length) return answer
+    return {
+        ...answer,
+        fragments: (answer.fragments ?? []).map(f => ({
+            ...f,
+            state: { ...f.state, ...params },
+            data: { ...f.data, ...params },
+        })),
+    }
+}
+
+/** The query parameters of a route string (`/people?dept=sales&page=2`), first value of each. */
+export const queryOf = (route: string | undefined): Record<string, string> => {
+    const at = route?.indexOf('?') ?? -1
+    if (at < 0) return {}
+    const out: Record<string, string> = {}
+    new URLSearchParams(route!.substring(at + 1)).forEach((value, key) => {
+        if (!(key in out)) out[key] = value
+    })
+    return out
+}
 
 const resolveLoadRaw = (
     state: BundleState, syncPath: string, consumedRoute: string | undefined, localize: Localize,
