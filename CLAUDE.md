@@ -113,7 +113,11 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             ACTIONS to the host (hybrid sites have a server; 404/405/no answer → "This UI has no server")
   intellij-plugin/        ← Desktop — IntelliJ IDEA plugin (tool windows, editor tabs, docking)
                             (the JavaFX and Compose renderers were REMOVED 2026-07-10)
-                            It is also the DESKTOP APP: `./gradlew buildInstaller` packages IntelliJ Community +
+                            DESKTOP INSTALLERS ARE BUILT ON CI ONLY (desktop.yml) — never run buildInstaller on a dev
+                            machine to "try it": until #1000 its macOS dmg stage (a link dmg/Applications -> /Applications)
+                            was cleaned with File.deleteRecursively(), which FOLLOWS links, and it deleted a developer's
+                            /Applications (2026-11-01). The build now uses deleteTree() (never follows links; CI fails if
+                            deleteRecursively() returns). It is also the DESKTOP APP: `./gradlew buildInstaller` packages IntelliJ Community +
                             the plugin as an installable, self-updating app (hub | fixed variants, mateu://
                             links) — doc native/desktop-app.md, CI .github/workflows/desktop.yml
   vscode-extension/       ← VS Code extension (visual editor host, New Project / New › Mateu wizards, Live Run)
