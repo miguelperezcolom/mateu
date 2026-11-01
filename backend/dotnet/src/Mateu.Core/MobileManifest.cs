@@ -103,6 +103,8 @@ internal static class MobileManifest
             w.WriteString("minAppVersion", minAppVersion);
             var release = ReleaseVersion(mateuVersion);
             if (release is not null) w.WriteString("mateuVersion", release);
+            // development mode: where the live-reload events are (the native renderers subscribe)
+            if (DevSpecs.Enabled) w.WriteString("devEvents", DevSpecs.EventsPath);
             if (issuer is not null && clientId is not null)
             {
                 w.WriteStartObject("auth");

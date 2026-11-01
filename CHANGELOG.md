@@ -24,6 +24,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Live reload reaches the desktop and phone apps.** Only the browser followed a development
+  server's live-reload events, so a YAML edit or a HotSwap re-rendered the web tab while the screen
+  opened from the IDE in the Mateu desktop app or on the phone stayed stale (the docs said the desktop
+  app re-rendered). A backend in development mode now names its event stream in the hub manifest
+  (`devEvents`, Java/.NET/Python; absent outside development mode), and the IntelliJ renderer
+  (`live/LiveReload.kt`) and the React Native app (`core/liveReload.ts`) follow it while a UI is open,
+  re-rendering on a YAML edit, an IDE reload or a restart. The meaning of each event is a shared
+  corpus, `conformance/client/live-reload.json`, run by the web, React Native and IntelliJ suites.
 - **Vaadin: an edge page's header keeps its gutter** (a templated foldout's title, back arrow and
   actions touched the viewport edges), and a YAML page filling a template no longer draws its window
   title ("13") above its own header.

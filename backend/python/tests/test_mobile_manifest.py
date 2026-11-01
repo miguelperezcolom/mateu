@@ -158,3 +158,15 @@ def test_a_development_build_sends_no_version(dev):
 @pytest.mark.parametrize("release", ["3.0-beta.33", "3.0-rc.1", "3.1.0", "3.0", "3.0.0-beta.33", "3.0.0b33", "3.0.0a412"])
 def test_releases_of_every_port_are_recognised(release):
     assert mobile_manifest.release_version(release) == release
+
+
+def test_in_development_mode_the_manifest_says_where_the_live_reload_events_are(tmp_path):
+    from mateu_ui.core import dev_specs
+
+    try:
+        dev_specs.enable(False)
+        assert "devEvents" not in mobile_manifest.manifest(None, "3.0-beta.35")
+        dev_specs.enable(True, str(tmp_path))
+        assert mobile_manifest.manifest(None, "3.0-beta.35")["devEvents"] == "/mateu/dev/events"
+    finally:
+        dev_specs.enable(False)

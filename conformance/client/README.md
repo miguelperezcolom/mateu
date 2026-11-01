@@ -36,6 +36,11 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   and the order value a moved card takes (`_toOrder`). Run by `kanbanOrder.conformance.test.ts`
   (libs/mateu), `poc/test-conformance.mjs` (Redwood), `src/core/kanbanOrder.conformance.test.ts`
   (React Native) and `KanbanOrderConformanceTest.kt` (IntelliJ).
+- `live-reload.json` — what a development server's live-reload event (`hello`, `specs-changed`,
+  `reload`, `ping`) means for the screen on display: nothing, re-render the page or the app, and the
+  boot id to remember (a new one = a restarted server). Run by `liveReload.conformance.test.ts`
+  (libs/mateu, the reference), `src/core/liveReload.test.ts` (React Native) and `LiveReloadTest.kt`
+  (IntelliJ).
 
 ## Expected values
 

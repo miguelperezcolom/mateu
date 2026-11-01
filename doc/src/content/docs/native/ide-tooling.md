@@ -195,6 +195,7 @@ time.
 In development mode (`mateu.dev=true`, every `src/main/resources/specs/ui` of the project watched) a
 YAML edit (in the text editor or the visual editor's canvas) re-renders the open screen in place, and
 every **HotSwap** fires `POST /mateu/dev/reload` so the screen shows the new code. **Run | Reload
-Mateu Screen** fires it by hand. VS Code has **Mateu: Run App (Live)** and **Mateu: Reload Screen**
+Mateu Screen** fires it by hand. The desktop app and the phone app re-render too: they find the
+event stream in the development server's manifest (`devEvents`) and follow it while the UI is open. VS Code has **Mateu: Run App (Live)** and **Mateu: Reload Screen**
 (also fired on a Java hot code replace), opening on the web. Details, adapters and limits: [Live
 reload](/java-user-manual/build/live-reload/).
