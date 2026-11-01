@@ -52,9 +52,26 @@ def _blank_to_none(value: Any) -> str | None:
     return text or None
 
 
-def manifest(app_type: type | None) -> dict[str, Any]:
+_RELEASE = re.compile(r"^\d+\.\d+(\.\d+)?([-.]?(alpha|beta|rc|a|b)\.?\d+)?$")
+
+
+def release_version(version: str | None) -> str | None:
+    """The version when it names a release (``3.0.0b33``, ``3.0-beta.33``, ``3.1.0``), None for a
+    development build (``3.0.0.dev0``, ``0.0.1-MATEU``) or none — an app cannot compare itself with
+    a version that names no release. Same rule as Java's and .NET's ``MobileManifest``."""
+    if not version:
+        return None
+    v = version.strip()
+    if v.startswith("0."):
+        return None
+    return v if _RELEASE.match(v) else None
+
+
+def manifest(app_type: type | None, mateu_version: str | None = None) -> dict[str, Any]:
     """The manifest of ``app_type`` (the ``@app`` class; None → a nameless "Mateu" app), as an
-    ordered dict whose absent members are omitted (never null)."""
+    ordered dict whose absent members are omitted (never null). ``mateuVersion`` is this
+    package's version when it is a release (``mateu_version`` overrides it, for tests): the hub
+    apps compare it with their own to tell whether they predate this UI."""
     declared: dict[str, Any] = (getattr(app_type, "__mateu_mobile_app__", None) or {}) if app_type else {}
 
     def pick(env: str, key: str) -> str | None:
@@ -77,6 +94,11 @@ def manifest(app_type: type | None) -> dict[str, Any]:
         out["themeColor"] = theme_color
     out["wireVersion"] = WIRE_VERSION
     out["minAppVersion"] = pick("MATEU_MOBILE_MIN_APP_VERSION", "min_app_version") or DEFAULT_MIN_APP_VERSION
+    if mateu_version is None:
+        from mateu_ui._version import __version__ as mateu_version
+    release = release_version(mateu_version)
+    if release:
+        out["mateuVersion"] = release
     issuer = pick("MATEU_MOBILE_OIDC_ISSUER", "oidc_issuer")
     client_id = pick("MATEU_MOBILE_OIDC_CLIENT_ID", "oidc_client_id")
     if issuer and client_id:

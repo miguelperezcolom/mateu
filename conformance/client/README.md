@@ -24,6 +24,10 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
 - `route-params.json` — registry entries + a pre-rendered increment + a sync path → the state,
   data, appState and initialData a statically served load must carry. Run by the web and Redwood
   suites (the only renderers with a static bundle mode).
+- `app-compat.json` — can a hub app (phone or desktop) render a UI: the UI's manifest
+  (`wireVersion`, `minAppVersion`, `mateuVersion`) against what the app knows of itself →
+  compatible | recommended | required, with the reason. Run by `src/hub/compat.conformance.test.ts`
+  (React Native, the reference) and `AppCompatConformanceTest.kt` (IntelliJ).
 - `agent-events.json` — which event names an AGENT (chat stream, live push) may dispatch: the
   built-in ones, else only one a view on screen subscribes to and never a framework/DOM event name.
   Run by `agentEventPolicy.test.ts` (libs/mateu) and `poc/test-chat-events.mjs` (Redwood); React

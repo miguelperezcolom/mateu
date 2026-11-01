@@ -265,6 +265,15 @@ hub, claiming NONE of the hub's links (a branded app must never answer for every
   macOS needs Screen Recording); `mateu://` arrives through the platform's `com.intellij.protocolHandler`
   EP (`MateuProtocolHandler`; macOS forwards OpenURI events of the app's CFBundleURLTypes). Desktop
   refuses static UIs and ignores `minAppVersion`.
+- **App/UI compatibility (2026-11-01)**: the manifest carries `mateuVersion` (the server's release,
+  only when it names one — `MobileManifest.releaseVersion` in the three backends) beside `wireVersion`;
+  the hub apps decide compatible | recommended | required with ONE rule, `conformance/client/app-compat.json`
+  (RN `src/hub/compat.ts` = reference; IntelliJ `hub/AppCompat.kt`), on add, open and RN's background
+  manifest refresh. The app's own release: RN `extra.mateuVersion` (app.config.ts ← `MATEU_VERSION`,
+  set by the release workflows incl. the `ota` job), IntelliJ the plugin version. "Update Mateu": RN
+  expo-updates then the store (`extra.distribution=github` → the releases page; `src/hub/appUpdate.ts`),
+  desktop `MateuUpdater.checkNow` (`HubUpdate`). OTA publishing: `mobile.yml` `ota` job, only with
+  `EXPO_TOKEN`.
 - **Parity**: `conformance/client/hub-links.json` generated from the app's `links.ts`
   (`HUB_LINKS_WRITE=true node --test src/hub/links.conformance.test.ts`), run by `HubLinksConformanceTest`.
   GOTCHA: in a Swing subclass Kotlin's `accessibleContext` is the protected FIELD (null), not the getter —

@@ -30,6 +30,28 @@ it too, as a check (workflow artifact). Put the key's SHA-256 in `well-known/ass
 `https://mateu.io/add` opens the sideloaded app. iOS has no equivalent: an iPhone installs only from
 the App Store, TestFlight or an ad-hoc build for registered devices.
 
+## 0c. Over-the-air updates on every release (EXPO_TOKEN)
+
+Every framework release also publishes the app's JavaScript over the air (`ota` job in
+`.github/workflows/mobile.yml`: `eas update --channel production`), so an installed app gets the
+renderer of that release without a store review, and its hub's compatibility check
+(`src/hub/compat.ts`) then knows it renders UIs on that release (`MATEU_VERSION` is stamped into the
+update's app config). It runs only when the repository has the **`EXPO_TOKEN`** secret; without it
+the job says so and skips.
+
+1. expo.dev → avatar → **Account settings → Access tokens → Create token** (a robot user's token is
+   better if the account has one; scope: the `mateu` project).
+2. `gh secret set EXPO_TOKEN` and paste it (stdin, so it never lands in the shell history).
+
+An over-the-air update only reaches installs of the **same app version** (`runtimeVersion.policy =
+appVersion`). A **native** change — a new native module, a permission, an Expo SDK upgrade, anything
+under `ios/`/`android/` or in `app.json` plugins — needs a store build (§1) with a bumped
+`expo.version`; publishing it over the air would crash the old binaries, so do not.
+
+When a build is made by hand (`eas build`), pass `MATEU_VERSION=<release>` (e.g. `3.0-beta.33`) in
+its environment so the hub knows which release the binary carries; without it the app compares only
+wire versions.
+
 ## 1. Build
 
 ```bash
