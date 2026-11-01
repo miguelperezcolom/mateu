@@ -1,0 +1,18 @@
+{
+  "description": "What a message of the dev event stream (GET /mateu/dev/events, development mode only) means for the screen on display. Every renderer that follows live reload runs these cases: libs/mateu (liveReloadPolicy.ts, the reference), React Native (src/core/liveReload.ts) and the IntelliJ plugin (live/LiveReloadPolicy.kt). `known` is the boot id seen before (null = none yet); `expect.action` is none | page (re-request the route on screen) | app (remount the app on the same URL); `expect.bootId` is the id to remember from now on.",
+  "cases": [
+    { "name": "the first hello only records the boot id", "message": { "type": "hello", "bootId": "a" }, "known": null, "expect": { "action": "none", "bootId": "a" } },
+    { "name": "a hello from the same server (a dropped connection) changes nothing", "message": { "type": "hello", "bootId": "a" }, "known": "a", "expect": { "action": "none", "bootId": "a" } },
+    { "name": "a hello from a restarted server re-renders the page", "message": { "type": "hello", "bootId": "b" }, "known": "a", "expect": { "action": "page", "bootId": "b" } },
+    { "name": "a hello without a boot id keeps the known one", "message": { "type": "hello" }, "known": "a", "expect": { "action": "none", "bootId": "a" } },
+    { "name": "a page-scoped spec change re-renders the page", "message": { "type": "specs-changed", "scope": "page", "files": ["specs/ui/a.yaml"] }, "known": "x", "expect": { "action": "page", "bootId": "x" } },
+    { "name": "a spec change with no scope is a page re-render", "message": { "type": "specs-changed", "files": ["a.yaml"] }, "known": "x", "expect": { "action": "page", "bootId": "x" } },
+    { "name": "an app-scoped spec change remounts the app", "message": { "type": "specs-changed", "scope": "app", "files": [] }, "known": "x", "expect": { "action": "app", "bootId": "x" } },
+    { "name": "an IDE reload request (after a HotSwap) re-renders the page", "message": { "type": "reload", "scope": "page" }, "known": "x", "expect": { "action": "page", "bootId": "x" } },
+    { "name": "a reload request with no scope re-renders the page", "message": { "type": "reload" }, "known": "x", "expect": { "action": "page", "bootId": "x" } },
+    { "name": "an app-scoped reload request remounts the app", "message": { "type": "reload", "scope": "app" }, "known": "x", "expect": { "action": "app", "bootId": "x" } },
+    { "name": "a ping is ignored", "message": { "type": "ping" }, "known": "x", "expect": { "action": "none", "bootId": "x" } },
+    { "name": "an unknown message is ignored", "message": { "type": "whatever" }, "known": "x", "expect": { "action": "none", "bootId": "x" } },
+    { "name": "no message at all is ignored", "message": null, "known": "x", "expect": { "action": "none", "bootId": "x" } }
+  ]
+}
