@@ -42,7 +42,8 @@ public class FieldCrudActionRunner implements ActionRunner {
             || actionId.endsWith("_remove")
             || actionId.endsWith("_cancel")
             || actionId.endsWith("_move-up")
-            || actionId.endsWith("_move-down")) {
+            || actionId.endsWith("_move-down")
+            || actionId.endsWith("_refresh-detail")) {
           return true;
         }
       }

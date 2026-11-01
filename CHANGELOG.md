@@ -25,6 +25,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **A `List<Row>` field's row editor honours the row's `VisibilitySupplier`.** The editor ("Edit" and
+  "+") was built from the row CLASS, so `isHidden` was never asked and every field of every row type
+  showed (a quick-links block offered its HTML, item, section, limit and media fields). It is now built
+  on the row instance with that row's values, re-built for the neighbour on Prev/Next, and re-built
+  while editing when a field the visibility depends on changes: each enum/boolean field of the row is
+  probed, and the ones that change what `isHidden` hides get an OnValueChange trigger that answers
+  `<field>_refresh-detail` (a background read, Vaadin and Redwood). Visibility hanging on a free-text
+  field is evaluated when the editor opens.
+- **Vaadin: a wide row grid keeps "Edit" in view** — the per-row Edit column (and the details toggle)
+  is frozen to the end by the renderer instead of sitting past the horizontal scroll (no wire change).
+- **Vaadin: an edge page's header keeps its gutter** (a templated foldout's title, back arrow and
+  actions touched the viewport edges), and a YAML page filling a template no longer draws its window
+  title ("13") above its own header.
+- **Vaadin: a listing's header wraps on a phone** — the actions go below the title instead of
+  squeezing it to "Laun…".
+### Fixed (security and parity — Fable review)
 - **Screen readers no longer hear a stale message over a newer one (Vaadin + Redwood).** Repeating a
   message (two failed saves in a row) clears the live region and puts the text back 60 ms later; a
   different message announced in between was then overwritten by the old one. A newer announcement

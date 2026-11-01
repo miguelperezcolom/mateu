@@ -7,6 +7,7 @@ import static io.mateu.core.domain.act.crudfieldhandlers.MoveDownActionHandler.h
 import static io.mateu.core.domain.act.crudfieldhandlers.MoveUpActionHandler.handleMoveUp;
 import static io.mateu.core.domain.act.crudfieldhandlers.NavigateActionHandler.handleNext;
 import static io.mateu.core.domain.act.crudfieldhandlers.NavigateActionHandler.handlePrev;
+import static io.mateu.core.domain.act.crudfieldhandlers.RefreshDetailActionHandler.handleRefreshDetail;
 import static io.mateu.core.domain.act.crudfieldhandlers.RemoveActionHandler.handleRemove;
 import static io.mateu.core.domain.act.crudfieldhandlers.SaveActionHandler.handleSave;
 import static io.mateu.core.domain.act.crudfieldhandlers.SelectActionHandler.handleSelect;
@@ -66,6 +67,10 @@ final class CrudFieldActionDispatcher {
     }
     if (actionId.endsWith("_move-down")) {
       return handleMoveDown(
+          instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId);
+    }
+    if (actionId.endsWith("_refresh-detail")) {
+      return handleRefreshDetail(
           instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId);
     }
     if (actionId.endsWith("_cancel")) {
