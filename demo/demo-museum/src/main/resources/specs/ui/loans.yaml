@@ -55,7 +55,7 @@ content:
     rowsSource:
       ref: museum-loans
     columns:
-      - {type: GridColumn, id: artworkTitle, label: Work, identifier: true, stereotype: primary, leadingPath: artworkImage, captionPath: exhibitionTitle, width: 20rem, flexGrow: 0}
+      - {type: GridColumn, id: artworkTitle, label: Work, identifier: true, stereotype: primary, leadingPath: artworkImage, captionPath: exhibitionTitle, width: 20rem, flexGrow: "0"}
       - {type: GridColumn, id: fromMuseumName, label: From}
       - {type: GridColumn, id: toMuseumName, label: To}
       - {type: GridColumn, id: status, label: Status, dataType: status}

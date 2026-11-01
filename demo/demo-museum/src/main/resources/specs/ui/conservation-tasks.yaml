@@ -31,7 +31,7 @@ filters:
 rowsSource:
   ref: museum-conservation-tasks
 columns:
-  - {type: GridColumn, id: title, label: Task, identifier: true, stereotype: primary, leadingPath: artworkImage, captionPath: museumName, width: 22rem, flexGrow: 0}
+  - {type: GridColumn, id: title, label: Task, identifier: true, stereotype: primary, leadingPath: artworkImage, captionPath: museumName, width: 22rem, flexGrow: "0"}
   - {type: GridColumn, id: status, label: Status, dataType: status}
   - {type: GridColumn, id: priority, label: Priority, dataType: status}
   - {type: GridColumn, id: assignee, label: Assignee}

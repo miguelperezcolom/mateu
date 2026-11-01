@@ -52,7 +52,7 @@ filters:
 rowsSource:
   ref: museum-artworks
 columns:
-  - {type: GridColumn, id: title, label: Title, identifier: true, stereotype: primary, leadingPath: imageSmall, captionPath: artistDisplay, width: 19rem, flexGrow: 0}
+  - {type: GridColumn, id: title, label: Title, identifier: true, stereotype: primary, leadingPath: imageSmall, captionPath: artistDisplay, width: 19rem, flexGrow: "0"}
   - {type: GridColumn, id: museumName, label: Museum}
   - {type: GridColumn, id: classification, label: Kind}
   - {type: GridColumn, id: objectDate, label: Date}

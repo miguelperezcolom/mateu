@@ -31,7 +31,7 @@ filters:
 rowsSource:
   ref: museum-exhibitions
 columns:
-  - {type: GridColumn, id: title, label: Exhibition, identifier: true, stereotype: primary, leadingPath: image, captionPath: museumName, width: 22rem, flexGrow: 0}
+  - {type: GridColumn, id: title, label: Exhibition, identifier: true, stereotype: primary, leadingPath: image, captionPath: museumName, width: 22rem, flexGrow: "0"}
   - {type: GridColumn, id: status, label: Status, dataType: status}
   - {type: GridColumn, id: startDate, label: Opens, dataType: date}
   - {type: GridColumn, id: endDate, label: Closes, dataType: date}
