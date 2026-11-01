@@ -34,6 +34,10 @@ class SpaFallbackTest {
     var route = java.util.regex.Pattern.compile(SpaFallback.NOT_AN_ASSET);
     assertThat(route.matcher("personas/ana.perez").matches()).isTrue();
     assertThat(route.matcher("assets/mateu.JS").matches()).isFalse();
+    assertThat(SpaFallback.NOT_AN_ASSET).doesNotContain(":").doesNotContain("(?:");
+    for (var ext : SpaFallback.ASSET_EXTENSIONS.split("\\|")) {
+      assertThat(SpaFallback.NOT_AN_ASSET).contains("(?!.*\\." + ext + "$)");
+    }
   }
 
   @Test

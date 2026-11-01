@@ -24,8 +24,19 @@ public final class SpaFallback {
   /**
    * A path (or path segment) that does NOT end in an asset's extension, for the frameworks that
    * route by regex (JAX-RS {@code @Path}, Spring path patterns, Micronaut URI templates, Vert.x).
+   * One negative lookahead per extension and the inline {@code (?i)} flag: no group and no colon,
+   * because Spring rejects capturing groups in a path variable and Micronaut's URI template cuts
+   * the regex at a colon ({@code (?:…)}, {@code (?i:…)}). Same extensions as {@link
+   * #ASSET_EXTENSIONS} (a test keeps them in step).
    */
-  public static final String NOT_AN_ASSET = "(?!.*\\.(?i:" + ASSET_EXTENSIONS + ")$).+";
+  public static final String NOT_AN_ASSET =
+      "(?i)(?!.*\\.js$)(?!.*\\.mjs$)(?!.*\\.cjs$)(?!.*\\.map$)(?!.*\\.css$)(?!.*\\.html?$)"
+          + "(?!.*\\.json$)(?!.*\\.webmanifest$)(?!.*\\.xml$)(?!.*\\.txt$)(?!.*\\.csv$)(?!.*\\.pdf$)"
+          + "(?!.*\\.png$)(?!.*\\.jpe?g$)(?!.*\\.gif$)(?!.*\\.webp$)(?!.*\\.avif$)(?!.*\\.svg$)"
+          + "(?!.*\\.ico$)(?!.*\\.bmp$)(?!.*\\.tiff?$)(?!.*\\.woff2?$)(?!.*\\.ttf$)(?!.*\\.otf$)"
+          + "(?!.*\\.eot$)(?!.*\\.mp4$)(?!.*\\.webm$)(?!.*\\.ogg$)(?!.*\\.mp3$)(?!.*\\.wav$)"
+          + "(?!.*\\.m4a$)(?!.*\\.wasm$)(?!.*\\.zip$)(?!.*\\.gz$)(?!.*\\.br$)(?!.*\\.ya?ml$)"
+          + "(?!.*\\.md$)(?!.*\\.bcmap$).+";
 
   private static final java.util.regex.Pattern ASSET =
       java.util.regex.Pattern.compile(
