@@ -1558,7 +1558,7 @@ test('campos richText / html / markdown: con formato en sólo lectura; un richTe
   assert.deepEqual(ro.map((a) => [a.label, a.html]), [['Notes', '<p>VIP <b>guest</b></p>'], ['Policy', '<p><strong>No</strong> pets</p>']])
   const [layout] = atomsOf(node({ type: 'FormLayout' }, [node({ type: 'FormField', fieldId: 'notes', dataType: 'string', stereotype: 'richText', label: 'Notes' })]), { notes: '<p>x</p>' })
   assert.ok(layout.isFormLayout)
-  assert.ok(layout.fields[0].isRichEditor && !layout.fields[0].isTextArea, 'JET has no rich text editor: mateu-rich-text-field')
+  assert.ok(layout.fields[0].isRichEditor && !layout.fields[0].isTextArea, 'an editable richText is mateu-rich-text-field (Spectra\'s editor inside)')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /:data-mateu-html="\[\[ \$current\.data\.html \]\]"/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRichText\(\)/)
 })
