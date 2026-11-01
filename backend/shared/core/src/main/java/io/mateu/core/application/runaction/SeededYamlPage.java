@@ -149,6 +149,14 @@ record SeededYamlPage(
               listing.id() != null ? listing.id() : "crud", // CrudlMapper's default id
               resolved(listing.rowsSource())));
     }
+    // a live kanban's cards, likewise: fetched through __restfetch__ by the board's id
+    if (node instanceof io.mateu.uidl.data.Kanban kanban && kanban.rowsSource() != null) {
+      out.add(
+          new DeclaredRestSource(
+              RestSourceKind.ROWS,
+              kanban.id() != null ? kanban.id() : "kanban",
+              resolved(kanban.rowsSource())));
+    }
     if (node instanceof java.util.Collection<?> collection) {
       collection.forEach(child -> collectListings(child, out, seen));
       return;

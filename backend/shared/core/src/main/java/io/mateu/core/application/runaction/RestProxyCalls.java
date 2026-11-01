@@ -73,8 +73,7 @@ final class RestProxyCalls {
     if (source == null) {
       return body(Map.of());
     }
-    var state =
-        command.componentState() != null ? command.componentState() : Map.<String, Object>of();
+    var state = callState(command.componentState(), params);
     // SAMPLE mode (opt-in only, see SampleSources): a source carrying sample data answers with it
     // instead of being called — the proxied twin of the browser's short-circuit in
     // fetchExternalJson, so both legs agree. A read gets the sample; a write (and a bulk one)
@@ -173,6 +172,31 @@ final class RestProxyCalls {
         return restFetchError(e.status, "Request failed" + statusSuffix(e.status));
       }
     };
+  }
+
+  /** The proxy's own routing keys: what to call, never a value to interpolate. */
+  private static final java.util.Set<String> ROUTING_PARAMETERS =
+      java.util.Set.of("_sourceKind", "_sourceId", "_forEachSelectedRow");
+
+  /**
+   * The state a call interpolates with: the component state with the action's parameters over it —
+   * a kanban move's {@code _cardId}/{@code _toColumnId} and the moved card's row reach {@code
+   * ${state._toColumnId}} exactly as they do on the browser's direct leg (mateu-component merges
+   * them the same way).
+   */
+  static Map<String, Object> callState(
+      Map<String, Object> componentState, Map<String, Object> params) {
+    var state = new LinkedHashMap<String, Object>();
+    if (componentState != null) {
+      state.putAll(componentState);
+    }
+    params.forEach(
+        (key, value) -> {
+          if (!ROUTING_PARAMETERS.contains(key)) {
+            state.put(key, value);
+          }
+        });
+    return state;
   }
 
   private static Map<String, Object> parametersOf(RunActionCommand command) {
