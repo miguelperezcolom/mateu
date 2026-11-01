@@ -1,0 +1,49 @@
+# The route registry: each URL bound to a definition. No viewModel anywhere — no Java behind any
+# screen. A record route names the source that fetches it (`data:`); the id comes from the path and the
+# source's url interpolates it as ${state.id}. A `new` route comes BEFORE its parameterised sibling so
+# `artworks/new` is not read as an id.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - {route: "", definition: app.yaml}                       # the app shell
+  - {route: welcome, definition: welcome.yaml}              # WelcomePage
+  - {route: dashboard, definition: dashboard.yaml, data: museum-stats}   # DashboardLandingPage, live KPIs
+  - {route: search, definition: search.yaml}                # HeroSearchPage over every collection
+
+  # artworks: listing → item overview → gallery → edit; create
+  - {route: artworks, definition: artworks.yaml}
+  - {route: artworks/new, definition: artwork-new.yaml}     # AdvancedCreateEditPage, every field type
+  - {route: artworks/:id, definition: artwork.yaml, data: museum-artwork}                # ItemOverviewPage
+  - {route: artworks/:id/gallery, definition: artwork-gallery.yaml, data: museum-artwork} # MultimediaContentPage
+  - {route: artworks/:id/edit, definition: artwork-edit.yaml, data: museum-artwork}
+
+  # artists: CollectionDetailPage — the selection is in the URL
+  - {route: artists, definition: artists.yaml}
+  - {route: artists/:id, definition: artist.yaml, data: museum-artist}
+
+  # museums: master-detail listing → GeneralOverviewPage with a record switcher
+  - {route: museums, definition: museums.yaml}
+  - {route: museums/:id, definition: museum.yaml, data: museum-museum}
+  - {route: map, definition: map.yaml}                      # Map
+  - {route: collection, definition: collection.yaml}        # tree listing
+  - {route: departments, definition: departments.yaml}
+
+  # exhibitions: listing, calendar, FoldoutPage, edit, create
+  - {route: exhibitions, definition: exhibitions.yaml}
+  - {route: exhibitions/new, definition: exhibition-new.yaml}
+  - {route: exhibitions/:id, definition: exhibition.yaml, data: museum-exhibition}
+  - {route: exhibitions/:id/edit, definition: exhibition-edit.yaml, data: museum-exhibition}
+  - {route: calendar, definition: calendar.yaml}            # Calendar
+
+  # loans: DataManagementPage, the request wizard (GuidedProcessPage), one loan
+  - {route: loans, definition: loans.yaml}
+  - {route: loans/new, definition: loan-new.yaml}
+  - {route: loans/:id, definition: loan.yaml, data: museum-loan}
+
+  # conservation: the kanban, the grouped list, one task, create
+  - {route: conservation, definition: conservation.yaml}    # Kanban
+  - {route: conservation/tasks, definition: conservation-tasks.yaml}
+  - {route: conservation/tasks/new, definition: task-new.yaml}
+  - {route: conservation/tasks/:id, definition: task-edit.yaml, data: museum-task}
+
+  - {route: visits, definition: visits.yaml}

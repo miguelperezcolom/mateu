@@ -1,0 +1,6 @@
+# The mount: a UI served at "/" — the data-driven equivalent of @UI. No Java class declares it.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /
+routes:
+  - routes.yaml

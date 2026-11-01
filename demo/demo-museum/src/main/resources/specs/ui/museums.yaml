@@ -1,0 +1,20 @@
+# The museums — a MASTER-DETAIL listing: the list on the left, the selected museum's full row on the
+# right, from the row already on screen (no second request). The museum's own page (museums/:id) is
+# one click away from the detail.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Museums
+subtitle: Where the works are held
+gridLayout: masterDetail
+pageSize: 10
+searchable: true
+rowsSource:
+  ref: museum-museums
+columns:
+  - {type: GridColumn, id: name, label: Museum, identifier: true, stereotype: primary, leadingPath: image, captionPath: city, priority: 1}
+  - {type: GridColumn, id: country, label: Country, priority: 2}
+  - {type: GridColumn, id: founded, label: Founded, dataType: integer}
+  - {type: GridColumn, id: artworkCount, label: Works here, dataType: integer}
+  - {type: GridColumn, id: departmentCount, label: Departments, dataType: integer}
+  - {type: GridColumn, id: website, label: Website, stereotype: link}
+  - {type: GridColumn, id: description, label: About}

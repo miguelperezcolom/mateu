@@ -1,0 +1,39 @@
+# The app shell. The menu groups the screens by what the user is doing: exploring the collections,
+# running the exhibition programme, or operating the museums.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Museums
+subtitle: Three art museums in one UI — authored entirely in YAML
+logo: /images/museum.svg
+favicon: /images/museum.svg
+variant: MENU_ON_TOP
+homeRoute: welcome
+# the command palette's entity search (⌘K): one REST source over every collection
+globalSearch:
+  source: {ref: museum-search}
+menu:
+  - {type: RouteLink, label: Home, route: welcome, icon: "vaadin:home"}
+  - type: Menu
+    label: Explore
+    submenu:
+      - {type: RouteLink, label: Search everything, route: search, icon: "vaadin:search"}
+      - {type: RouteLink, label: Artworks, route: artworks, icon: "vaadin:picture"}
+      - {type: RouteLink, label: Artists, route: artists, icon: "vaadin:user"}
+      - {type: RouteLink, label: Museums, route: museums, icon: "vaadin:institution"}
+      - {type: RouteLink, label: Map, route: map, icon: "vaadin:map-marker"}
+      - {type: RouteLink, label: Collection tree, route: collection, icon: "vaadin:file-tree"}
+  - type: Menu
+    label: Exhibitions
+    submenu:
+      - {type: RouteLink, label: Exhibitions, route: exhibitions, icon: "vaadin:calendar-o"}
+      - {type: RouteLink, label: Calendar, route: calendar, icon: "vaadin:calendar"}
+      - {type: RouteLink, label: Loans, route: loans, icon: "vaadin:truck"}
+      - {type: RouteLink, label: Request a loan, route: loans/new, icon: "vaadin:plus"}
+  - type: Menu
+    label: Operations
+    submenu:
+      - {type: RouteLink, label: Dashboard, route: dashboard, icon: "vaadin:dashboard"}
+      - {type: RouteLink, label: Conservation board, route: conservation, icon: "vaadin:tools"}
+      - {type: RouteLink, label: Conservation tasks, route: conservation/tasks, icon: "vaadin:list"}
+      - {type: RouteLink, label: Visits, route: visits, icon: "vaadin:chart"}
+      - {type: RouteLink, label: Departments, route: departments, icon: "vaadin:sitemap"}

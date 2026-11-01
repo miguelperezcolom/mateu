@@ -1,0 +1,50 @@
+# Edit an exhibition: dates, a status select, a budget, and a select referencing the museums.
+# The works it hangs are NOT edited here: a multi-select whose options come from a REST source is not
+# drawn by the renderers yet (a multiSelect reads only inline `options`), and the API keeps the hang
+# when the body leaves the list out. The works are on the exhibition's page.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Edit ${state.title}
+subtitle: ${state.museumName}
+toolbar:
+  - type: Button
+    actionId: cancel-edit
+    label: Cancel
+    actionable: {type: RouteLink, route: "exhibitions/${state.id}"}
+  - {type: Button, label: Delete, actionId: delete, color: error}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: FormField, id: title, label: Title, required: true, colspan: 2}
+      - {type: FormField, id: museumId, label: Museum, stereotype: select, required: true, optionsSource: {ref: museum-museum-options}}
+      - type: FormField
+        id: status
+        label: Status
+        stereotype: select
+        options:
+          - {value: planned, label: Planned}
+          - {value: open, label: Open}
+          - {value: closed, label: Closed}
+      - {type: FormField, id: startDate, label: Opens, dataType: date, required: true}
+      - {type: FormField, id: endDate, label: Closes, dataType: date, required: true}
+      - {type: FormField, id: curator, label: Curator}
+      - {type: FormField, id: budget, label: Budget (USD), dataType: number}
+      - {type: FormField, id: visitors, label: Visitors so far, dataType: integer}
+      - {type: FormField, id: description, label: Description, stereotype: textarea, colspan: 2}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: museum-exhibition-update}
+      successMessage: Saved
+      successRoute: exhibitions/${state.id}
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: Delete this exhibition? One with loans attached is refused.
+    restAction:
+      source: {ref: museum-exhibition-delete}
+      successMessage: Deleted
+      successRoute: exhibitions

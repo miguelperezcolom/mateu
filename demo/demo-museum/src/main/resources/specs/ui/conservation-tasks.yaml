@@ -1,0 +1,39 @@
+# The conservation tasks as a listing, GROUPED by status (the board's columns as row groups), with
+# priority and museum filters — the live counterpart of the board.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Conservation tasks
+subtitle: Every task on every board, grouped by status
+pageSize: 100
+groupBy: status
+rowRoute: conservation/tasks/${row.id}
+toolbar:
+  - type: Button
+    label: New task
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: conservation/tasks/new}
+  - type: Button
+    label: The board
+    actionable: {type: RouteLink, route: conservation}
+searchable: true
+filters:
+  - type: FormField
+    id: priority
+    label: Priority
+    stereotype: multiSelect
+    options:
+      - {value: urgent, label: Urgent}
+      - {value: high, label: High}
+      - {value: medium, label: Medium}
+      - {value: low, label: Low}
+  - {type: FormField, id: museumId, label: Museum, stereotype: select, optionsSource: {ref: museum-museum-options}}
+  - {type: FormField, id: dueDate, label: Due, dataType: date, stereotype: dateRange}
+rowsSource:
+  ref: museum-conservation-tasks
+columns:
+  - {type: GridColumn, id: title, label: Task, identifier: true, stereotype: primary, leadingPath: artworkImage, captionPath: museumName, width: 22rem, flexGrow: "0"}
+  - {type: GridColumn, id: status, label: Status, dataType: status}
+  - {type: GridColumn, id: priority, label: Priority, dataType: status}
+  - {type: GridColumn, id: assignee, label: Assignee}
+  - {type: GridColumn, id: dueDate, label: Due, dataType: date}
+  - {type: GridColumn, id: estimatedHours, label: Hours, dataType: integer}

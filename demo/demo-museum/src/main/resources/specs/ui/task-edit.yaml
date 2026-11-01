@@ -1,0 +1,32 @@
+# One conservation task: move it along the board (status), re-prioritise, re-assign.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.title}
+subtitle: ${state.artworkTitle} · ${state.museumName}
+badges:
+  - {label: "${state.priority}", color: warning}
+toolbar:
+  - type: Button
+    actionId: cancel-edit
+    label: Cancel
+    actionable: {type: RouteLink, route: conservation}
+  - {type: Button, label: Delete, actionId: delete, color: error}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: Partial, ref: task-fields}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: museum-task-update}
+      successMessage: Saved
+      successRoute: conservation
+  - id: delete
+    confirmationRequired: true
+    restAction:
+      source: {ref: museum-task-delete}
+      successMessage: Deleted
+      successRoute: conservation

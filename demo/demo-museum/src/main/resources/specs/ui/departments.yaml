@@ -1,0 +1,15 @@
+# The curatorial departments, filterable by museum (a select whose options come from a REST source).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Departments
+pageSize: 20
+searchable: true
+filters:
+  - {type: FormField, id: museumId, label: Museum, stereotype: select, optionsSource: {ref: museum-museum-options}}
+rowsSource:
+  ref: museum-departments
+columns:
+  - {type: GridColumn, id: name, label: Department, identifier: true}
+  - {type: GridColumn, id: museumName, label: Museum}
+  - {type: GridColumn, id: head, label: Head}
+  - {type: GridColumn, id: artworkCount, label: Works, dataType: integer}

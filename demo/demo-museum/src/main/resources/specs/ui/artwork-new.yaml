@@ -1,0 +1,116 @@
+# Create an artwork — Redwood's ADVANCED CREATE AND EDIT page template: the header is the form's (its
+# title, Cancel and the primary Create), the content its main slot — the attributes in SECTIONS with
+# the vertical anchor navigator beside them, and a `detail` slot with guidance. It is also the demo's
+# field-type catalogue: text, textarea, rich text, integer, number, money, select (fixed options and
+# options from a REST source), toggle, checkbox, image, link.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: New artwork
+titlePlaceholder: New artwork…
+subtitle: Add a work to one of the collections
+toolbar:
+  - type: Button
+    actionId: cancel-new
+    label: Cancel
+    actionable: {type: RouteLink, route: artworks}
+  - {type: Button, label: Create, actionId: create, buttonStyle: primary}
+template:
+  type: AdvancedCreateEditPage
+  detail:
+    - type: Card
+      title: {type: Text, container: h3, text: Before you start}
+      content:
+        type: VerticalLayout
+        content:
+          - {type: Markdown, markdown: "Only **public-domain** works belong here. Link the museum's own image URLs — never upload a copy — and say whose they are in the credit line."}
+          - {type: Text, text: "The estimated value is for insurance and loans; it is not published.", size: s}
+content:
+  - type: VerticalLayout
+    horizontalAlignment: STRETCH
+    content:
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Identification}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: title, label: Title, required: true, autofocus: true, colspan: 2}
+            # a combo referencing another collection: the choices come from a REST source
+            - {type: FormField, id: artistId, label: Artist, stereotype: select, optionsSource: {ref: museum-artist-options}}
+            - {type: FormField, id: artistDisplay, label: Attribution as shown, placeholder: "e.g. Unknown, Egypt"}
+            - {type: FormField, id: objectDate, label: Date as shown, placeholder: "ca. 1511"}
+            - {type: FormField, id: beginYear, label: From year, dataType: integer}
+            - {type: FormField, id: endYear, label: To year, dataType: integer}
+            - {type: FormField, id: culture, label: Culture}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Where it is}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: museumId, label: Museum, stereotype: select, required: true, optionsSource: {ref: museum-museum-options}}
+            - {type: FormField, id: departmentId, label: Department, stereotype: select, optionsSource: {ref: museum-department-options}}
+            - {type: FormField, id: onView, label: On view, dataType: bool, stereotype: toggle}
+            - {type: FormField, id: gallery, label: Gallery, placeholder: Gallery 607}
+            - {type: FormField, id: highlight, label: A highlight of the collection, dataType: bool, stereotype: checkbox}
+            - {type: FormField, id: acquisitionYear, label: Acquired (year), dataType: integer}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: The object}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            # an enum: a closed set of choices, written inline
+            - type: FormField
+              id: classification
+              label: Kind
+              stereotype: select
+              options:
+                - {value: Painting, label: Painting}
+                - {value: Sculpture, label: Sculpture}
+                - {value: Drawing, label: Drawing}
+                - {value: Print, label: Print}
+                - {value: Photograph, label: Photograph}
+                - {value: Arms and Armor, label: Arms and armour}
+                - {value: Ceramics, label: Ceramics}
+                - {value: Metalwork, label: Metalwork}
+                - {value: Textile, label: Textile}
+                - {value: Decorative arts, label: Decorative arts}
+            - {type: FormField, id: medium, label: Medium, placeholder: Oil on canvas}
+            - {type: FormField, id: heightCm, label: Height (cm), dataType: number}
+            - {type: FormField, id: widthCm, label: Width (cm), dataType: number}
+            - {type: FormField, id: dimensions, label: Dimensions as shown, colspan: 2}
+            - {type: FormField, id: tags, label: Tags, stereotype: textarea, placeholder: "portraits, women, music", colspan: 2}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Value and description}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: estimatedValue, label: Estimated value (USD), dataType: number}
+            - {type: FormField, id: accessionNumber, label: Accession number}
+            - {type: FormField, id: description, label: Description, stereotype: richText, colspan: 2}
+            - {type: FormField, id: creditLine, label: Credit line, colspan: 2}
+      - type: Card
+        cssClasses: mateu-section
+        title: {type: Text, container: h3, text: Image and source}
+        content:
+          type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: imageLarge, label: Image URL (large), stereotype: image, colspan: 2}
+            - {type: FormField, id: imageSmall, label: Image URL (small)}
+            - {type: FormField, id: imageCredit, label: Image credit, placeholder: "The Metropolitan Museum of Art · CC0"}
+            - {type: FormField, id: sourceUrl, label: The work's page, stereotype: link, colspan: 2}
+actions:
+  - id: create
+    validationRequired: true
+    restAction:
+      source: {ref: museum-artwork-create}
+      successMessage: Created
+      resultPath: ""
+      successRoute: artworks/${state.id}
