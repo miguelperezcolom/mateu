@@ -34,6 +34,8 @@ class OidcDeviceFlow(
         val verificationUriComplete: String?,
         val intervalSeconds: Long,
         val expiresInSeconds: Long,
+        /** The PKCE verifier of this request's challenge, sent back with every token poll. */
+        val codeVerifier: String? = null,
     ) {
         /** The page to open: the "complete" URI pre-fills the user code when the provider offers it. */
         val browseUri: String get() = verificationUriComplete ?: verificationUri
@@ -59,9 +61,21 @@ class OidcDeviceFlow(
         )
     }
 
-    /** Step 1: ask for a device code + the user code the user confirms in the browser. */
+    /**
+     * Step 1: ask for a device code + the user code the user confirms in the browser.
+     *
+     * With PKCE (S256): a client set up for the phone app — Authorization Code + PKCE required, which
+     * is what Keycloak's "PKCE Method: S256" does — refuses a device request without a challenge
+     * ("Missing parameter: code_challenge_method"), and the same client serves both apps. A provider
+     * that does not use PKCE on the device grant ignores the two parameters.
+     */
     fun start(endpoints: Endpoints = endpoints()): DeviceCode {
-        val form = mutableMapOf("client_id" to config.clientId)
+        val verifier = Pkce.verifier()
+        val form = mutableMapOf(
+            "client_id" to config.clientId,
+            "code_challenge" to Pkce.challenge(verifier),
+            "code_challenge_method" to "S256",
+        )
         config.scope?.ifBlank { null }?.let { form["scope"] = it }
         val (status, body) = postForm(endpoints.deviceAuthorization, form)
         if (status !in 200..299) throw OidcException(errorOf(body) ?: "Device authorization failed (HTTP $status).")
@@ -74,6 +88,7 @@ class OidcDeviceFlow(
             verificationUriComplete = body.path("verification_uri_complete").textOrNull(),
             intervalSeconds = body.path("interval").asLong(5).coerceAtLeast(1),
             expiresInSeconds = body.path("expires_in").asLong(600),
+            codeVerifier = verifier,
         )
     }
 
@@ -91,14 +106,13 @@ class OidcDeviceFlow(
             sleeper(interval * 1000)
             waited += interval
             if (cancelled()) throw OidcException("Sign-in cancelled.")
-            val (status, body) = postForm(
-                endpoints.token,
-                mapOf(
-                    "grant_type" to DEVICE_GRANT,
-                    "device_code" to code.deviceCode,
-                    "client_id" to config.clientId,
-                ),
+            val form = mutableMapOf(
+                "grant_type" to DEVICE_GRANT,
+                "device_code" to code.deviceCode,
+                "client_id" to config.clientId,
             )
+            code.codeVerifier?.let { form["code_verifier"] = it }
+            val (status, body) = postForm(endpoints.token, form)
             if (status in 200..299) return tokensOf(body)
             when (body.path("error").asText("")) {
                 "authorization_pending" -> continue
@@ -170,3 +184,18 @@ data class OidcConfig(
 )
 
 private fun JsonNode.textOrNull(): String? = if (isTextual && asText().isNotBlank()) asText() else null
+
+/** PKCE (RFC 7636) with S256: a random verifier and its base64url SHA-256 challenge. */
+internal object Pkce {
+    private val random = java.security.SecureRandom()
+
+    fun verifier(): String {
+        val bytes = ByteArray(32).also(random::nextBytes)
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+    }
+
+    fun challenge(verifier: String): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(StandardCharsets.US_ASCII))
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
+    }
+}

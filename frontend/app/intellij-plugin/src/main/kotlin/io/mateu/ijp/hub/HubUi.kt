@@ -154,7 +154,7 @@ class HubPanel(
         val ok = Messages.showYesNoDialog(project, "Remove ${entry.name} (${HubLinks.domainOf(entry.baseUrl)}) from this app? You will be signed out of it.", "Remove UI", Messages.getQuestionIcon())
         if (ok == Messages.YES) {
             store.edit { it.remove(entry.id) }
-            io.mateu.ijp.auth.MateuCredentials.clear(entry.baseUrl)
+            forgetSignIn(entry)
         }
     }
 

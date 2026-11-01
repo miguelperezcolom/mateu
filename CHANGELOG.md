@@ -65,6 +65,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Desktop app: one sign-in per UI.** Switching UIs in the desktop hub no longer drops the session
+  of the one you leave: each UI keeps its own (keyed by address + identity provider + client), Sign
+  out is per UI, removing a UI deletes its stored tokens. An earlier single stored token moves to its
+  UI once. Verified end to end against Keycloak (device flow, refresh, two realms).
 - **Kanban boards move: drag and drop, and a Move menu.** A `Kanban` with a `moveActionId` lets
   its cards be dragged to another column or reordered within one (a line shows where it lands); each
   card also has a Move menu (`⋯`: up, down, to another column) for the keyboard, screen readers, phones
@@ -103,6 +107,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Desktop sign-in failed against a client that requires PKCE.** A client set up for the phone app
+  (Keycloak "PKCE Method: S256") refused the desktop's device request with "Missing parameter:
+  code_challenge_method". The device flow now sends a PKCE challenge (and its verifier on the token poll).
+
+- **Phone app: no way to sign out of a UI with bottom tabs.** "Sign out" lived only in the app shell's
+  drawer; a UI whose shell has tabs (or no menu) had none. The hub's top bar now offers it while signed in.
 - **Back returns to the previous page, sort or filters of a listing** (Vaadin and Redwood). Each
   change the user makes is now a history entry (`pushState`); it used to replace the URL, so Back
   left the listing. A hand-typed `?sort=name:asc` is read as `ascending` instead of failing.
