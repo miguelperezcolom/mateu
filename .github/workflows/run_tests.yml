@@ -179,6 +179,9 @@ jobs:
       - name: The IDE plugins' versions follow the framework's release tag
         run: node --test scripts/plugin-versions.test.mjs
 
+      - name: The docs' component list is the component catalogue (uidl-catalog.json)
+        run: node scripts/gen-supported-components.mjs --check
+
       - name: MCP server tests
         run: cd frontend/mcp-server && node --test
 

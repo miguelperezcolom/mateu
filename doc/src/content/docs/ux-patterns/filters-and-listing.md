@@ -262,8 +262,8 @@ narrowed instead of only the bare screen.
 ## Known gaps
 
 - **Segmented filter tabs with counts** ("All / Waiting queue (3)"): there is no declarative
-  annotation for preset filter tabs over a listing. `@MainFilter` only highlights one search
-  field. Saved views cover the preset part (named condition sets, no live counts); otherwise
+  annotation for preset filter tabs over a listing. `@MainFilter` only flags a field on the
+  wire; no renderer treats it differently. Saved views cover the preset part (named condition sets, no live counts); otherwise
   emulate with a filter field (enum or boolean), or with `TaskQueue`/`QueueGroup` when the
   grouped-queue shape fits.
 

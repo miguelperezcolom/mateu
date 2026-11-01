@@ -291,6 +291,13 @@ class ConfirmAddDialog(project: Project, private val proposal: HubFlow.Proposal.
             panel.add(Box.createVerticalStrut(JBUI.scale(8)))
             panel.add(JBLabel(plain("You will sign in at ${HubLinks.domainOf(auth.issuer)}.")).apply { alignmentX = 0f })
         }
+        // a UI ahead of this app opens, but may send components it predates ([AppCompat] recommended)
+        val compat = HubManifest.compat(m)
+        if (compat.status == AppCompat.Status.RECOMMENDED) {
+            panel.add(Box.createVerticalStrut(JBUI.scale(8)))
+            panel.add(JBLabel(plain(HubManifest.compatMessage(m, compat).orEmpty())).apply { alignmentX = 0f })
+            panel.add(ActionLink("Update Mateu") { HubUpdate.run(null) }.apply { alignmentX = 0f })
+        }
         if (proposal.existing != null) {
             panel.add(Box.createVerticalStrut(JBUI.scale(8)))
             panel.add(JBLabel("It is already in your list.").apply { alignmentX = 0f })
@@ -329,7 +336,13 @@ object HubAdd {
             project,
         )
         when (proposal) {
-            is HubFlow.Proposal.Refused -> Messages.showErrorDialog(project, proposal.reason, "Can't Add This UI")
+            is HubFlow.Proposal.Refused -> if (proposal.updatable) {
+                // a newer Mateu app would open it: offer the update instead of a dead end
+                val update = Messages.showOkCancelDialog(project, proposal.reason, "Can't Add This UI Yet", "Update Mateu", "Cancel", Messages.getWarningIcon())
+                if (update == Messages.OK) HubUpdate.run(project)
+            } else {
+                Messages.showErrorDialog(project, proposal.reason, "Can't Add This UI")
+            }
             is HubFlow.Proposal.AddOne -> {
                 if (!ConfirmAddDialog(project, proposal).showAndGet()) return
                 val entry = proposal.existing ?: store.edit { it.add(proposal.baseUrl, proposal.manifest).first }

@@ -17,7 +17,7 @@
  * from instead of calling `/mateu/v3/sync`. A bundle built before that file existed is recognised by
  * its `manifest.json` when the manifest path does not answer JSON, and named from its app shell.
  */
-import { compareVersionStrings } from './version.ts';
+import { appCompatibility, compatMessage, mateuRelease } from './compat.ts';
 import { MIN_WIRE_VERSION } from '../core/wireVersion.ts';
 import { oidcConfigFrom, type OidcConfig } from '../core/oidcConfig.ts';
 import { domainOf, normalizeBaseUrl } from './links.ts';
@@ -35,6 +35,8 @@ export interface UiManifest {
   themeColor?: string;
   wireVersion?: string;
   minAppVersion?: string;
+  /** The Mateu release serving this UI (sent by the server itself): compat.ts compares it with ours. */
+  mateuVersion?: string;
   auth?: OidcConfig;
   /** A STATIC UI: the bundle manifest it runs from, relative to its base URL (core/staticBundle.ts). */
   bundle?: string;
@@ -95,6 +97,9 @@ export function parseManifest(raw: unknown, baseUrl: string, allowInsecure = fal
   if (typeof r['minAppVersion'] === 'string' && /^\d+(\.\d+){0,3}$/.test(r['minAppVersion'])) {
     manifest.minAppVersion = r['minAppVersion'];
   }
+  if (typeof r['mateuVersion'] === 'string' && mateuRelease(r['mateuVersion'])) {
+    manifest.mateuVersion = r['mateuVersion'];
+  }
   const auth = authOf(r['auth'], allowInsecure);
   if (auth) manifest.auth = auth;
   const bundle = bundleOf(r['bundle']);
@@ -117,22 +122,14 @@ function bundleOf(raw: unknown): string | undefined {
 
 export type VersionGate = { ok: true } | { ok: false; reason: string };
 
-/** Can THIS app render that UI? A different wire major, or a minAppVersion above ours → "Update the app". */
+/** Can THIS app render that UI at all? The `required` half of compat.ts (a different wire major, or a
+ *  minAppVersion above ours) — what the hub screens use is appCompatibility itself. */
 export function versionGate(manifest: UiManifest, appVersion: string): VersionGate {
-  if (manifest.wireVersion) {
-    const major = parseInt(manifest.wireVersion, 10);
-    const ours = parseInt(MIN_WIRE_VERSION, 10);
-    if (Number.isFinite(major) && major > ours) {
-      return { ok: false, reason: `This app uses a newer Mateu (wire ${manifest.wireVersion}) than this version of the Mateu app understands.` };
-    }
-    if (Number.isFinite(major) && major < ours) {
-      return { ok: false, reason: `This app's server is too old for this version of the Mateu app (wire ${manifest.wireVersion}).` };
-    }
-  }
-  if (manifest.minAppVersion && compareVersionStrings(appVersion, manifest.minAppVersion) < 0) {
-    return { ok: false, reason: `This app needs Mateu ${manifest.minAppVersion} or later; you have ${appVersion}.` };
-  }
-  return { ok: true };
+  const app = { wire: MIN_WIRE_VERSION, mateuVersion: null, appVersion };
+  const compat = appCompatibility(manifest, app);
+  return compat.status === 'required' && compat.reason
+    ? { ok: false, reason: compatMessage(compat.reason, manifest, app) }
+    : { ok: true };
 }
 
 type FetchLike = (url: string, init?: { headers?: Record<string, string>; signal?: AbortSignal }) => Promise<{
