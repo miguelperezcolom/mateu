@@ -372,6 +372,8 @@ internal sealed class UidlValidator(JsonObject specsSchema)
             else if (key == "ref" && defName == "ComponentRef")
                 Resolves(context.Component, text!, "unresolved_component",
                     "Component " + Quote(text!) + " is not in the business component catalogue (components.yaml).", path, value);
+            else if (key is "url" or "body" && defName == "RestDataSource")
+                ProxySafe(text!, path, value);
             else if (key == "fieldType")
                 Resolves(context.FieldType, text!, "unresolved_field_type",
                     "Field type " + Quote(text!) + " is not in the field type catalogue (types.yaml).", path, value);
@@ -384,6 +386,30 @@ internal sealed class UidlValidator(JsonObject specsSchema)
                     + " runs if the view model bound to the page has an action of that name.",
                     path, value);
         }
+
+        /// <summary>A source template the SERVER cannot evaluate the way the browser does: on a
+        /// proxied source (proxy: true, or an environment overlay that flips it) such a placeholder
+        /// renders empty. The server evaluates <see cref="ProxyExpression"/>'s subset; data/appState/
+        /// appData exist only in the browser. Java's UidlValidator.proxySafe.</summary>
+        private void ProxySafe(string template, string path, YNode at)
+        {
+            foreach (System.Text.RegularExpressions.Match m in ProxyPlaceholder.Matches(template))
+            {
+                var expr = m.Groups[1].Value.Trim();
+                string? why = null;
+                if (ClientOnlyRoot.IsMatch(expr)) why = "reads data/appState/appData, which only the browser has";
+                else if (!ProxyExpression.IsSupported(expr)) why = "uses syntax outside what the server evaluates";
+                if (why is not null)
+                    Issue(_warnings, "proxy_unsafe_template",
+                        "${" + expr + "} " + why
+                        + ": if this source is proxied (proxy: true, or an environment flips it) it is sent empty.",
+                        path, at);
+            }
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex ProxyPlaceholder = new(@"\$\{([^}]+)}");
+        private static readonly System.Text.RegularExpressions.Regex ClientOnlyRoot =
+            new(@"(?<![\w$.])(data|appState|appData)\s*(\.|\?\.|\[)");
 
         private void Resolves(Func<string, bool>? known, string name, string code, string message, string path, YNode at)
         {
