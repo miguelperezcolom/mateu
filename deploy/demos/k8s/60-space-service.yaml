@@ -24,7 +24,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/space-service:4635ee9
+          image: miguelperezcolom/space-service:661a4f7
           env:
             - { name: SERVER_PORT, value: "8122" }
             # an uploaded portrait is served by this API and linked with an absolute URL (the UI is elsewhere)
