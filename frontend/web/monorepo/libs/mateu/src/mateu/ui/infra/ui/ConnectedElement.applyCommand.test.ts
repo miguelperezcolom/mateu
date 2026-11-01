@@ -60,6 +60,29 @@ describe('ConnectedElement.applyCommand', () => {
         expect(warn).toHaveBeenCalled()
     })
 
+    it('a server NavigateTo leaves without the "Leave site?" prompt: what was typed is no longer unsaved', async () => {
+        // Fable review A7: the guard kept beforeunload armed, so a backend navigation after a save
+        // raised the browser's native prompt on a @ConfirmOnNavigationIfDirty form
+        const { dirtyGuard } = await import('./dirtyGuard')
+        const assign = vi.fn()
+        const location = window.location
+        Object.defineProperty(window, 'location', { configurable: true, value: { ...location, href: location.href, origin: location.origin, assign } })
+        try {
+            dirtyGuard.markDirty()
+            el.applyCommand(cmd('NavigateTo', '/elsewhere'))
+            expect(dirtyGuard.dirty).toBe(false)
+            expect(assign).toHaveBeenCalled()
+            // a cross-origin URL opens a new tab: this page stays, and so do its unsaved changes
+            vi.spyOn(window, 'open').mockImplementation(() => null)
+            dirtyGuard.markDirty()
+            el.applyCommand(cmd('NavigateTo', 'https://other.example/x'))
+            expect(dirtyGuard.dirty).toBe(true)
+        } finally {
+            Object.defineProperty(window, 'location', { configurable: true, value: location })
+            dirtyGuard.markClean()
+        }
+    })
+
     it('NavigateTo opens a cross-origin URL in a new tab without an opener', () => {
         const open = vi.spyOn(window, 'open').mockImplementation(() => null)
         el.applyCommand(cmd('NavigateTo', 'https://other.example/x'))

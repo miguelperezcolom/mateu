@@ -101,6 +101,9 @@ public static class MateuExtensions
                                         && ctx.Request.Headers.TryGetValue(name, out var value)
                     ? value.ToString()
                     : null,
+                RequestQuery = () => accessor.HttpContext is { } ctx
+                    ? ctx.Request.Query.ToDictionary(q => q.Key, q => q.Value.FirstOrDefault() ?? "")
+                    : new Dictionary<string, string>(),
                 RequestTraceIdentifier = () => accessor.HttpContext?.TraceIdentifier,
                 RequestSelfBaseUrl = () => accessor.HttpContext is { } ctx ? LocalOrigin(ctx) : null,
                 MicroFrontendResolver = MicroFrontendResolverOf(sp, options),

@@ -65,7 +65,15 @@ internal static class ComponentMapper
 
         Kanban k => Dto(k, new KanbanMetadataDto(k.Columns.Select(col => new KanbanColumnDto(
             col.Id, col.Title, col.Color, col.Cards.Select(c => new KanbanCardDto(
-                c.Id, c.Title, c.Description, c.Badge, c.Color, c.ActionId)).ToList())).ToList())),
+                c.Id, c.Title, c.Description, c.Badge, c.Color, c.ActionId)).ToList())).ToList())
+        {
+            MoveActionId = k.MoveActionId,
+            RowsSource = k.RowsSource is null ? null : MateuCatalogs.ToDto(k.RowsSource),
+            ColumnField = k.ColumnField,
+            Card = k.Card is null ? null : new KanbanCardDto(k.Card.Id, k.Card.Title, k.Card.Description, k.Card.Badge, k.Card.Color, k.Card.ActionId),
+            CardColors = k.CardColors,
+            CardRoute = k.CardRoute,
+        }),
 
         Timeline tl => Dto(tl, new TimelineMetadataDto(tl.Items.Select(it => new TimelineItemDto(
             it.Id, it.Title, it.Description, it.Timestamp, it.Icon, it.Color, it.ActionId)).ToList())),

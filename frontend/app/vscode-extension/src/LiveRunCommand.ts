@@ -3,7 +3,11 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as http from 'node:http'
 import * as https from 'node:https'
-import { BuildTool, isHotCodeReplaced, liveRunPlan, LiveRunPlan, reloadUrlOf } from './liveRun'
+import { execFile } from 'node:child_process'
+import {
+    BuildTool, DESKTOP_DOWNLOAD_URL, desktopFound, desktopLinkOf, desktopOpenCommandOf, desktopProbeOf,
+    isHotCodeReplaced, liveRunPlan, LiveRunPlan, reloadUrlOf,
+} from './liveRun'
 
 /**
  * `Mateu: Run App (Live)` starts the workspace's Mateu app in development mode as a task (its own
@@ -19,6 +23,10 @@ export class LiveRunCommand {
         return vscode.Disposable.from(
             vscode.commands.registerCommand('mateu.runLive', () => LiveRunCommand.run()),
             vscode.commands.registerCommand('mateu.reloadScreen', () => LiveRunCommand.reload(true)),
+            vscode.commands.registerCommand('mateu.openInDesktopApp', () => {
+                const url = LiveRunCommand.appUrl ?? vscode.workspace.getConfiguration('mateu').get<string>('baseUrl')
+                if (url) return LiveRunCommand.openInDesktopApp(url)
+            }),
             vscode.debug.onDidReceiveDebugSessionCustomEvent((event) => {
                 if (isHotCodeReplaced(event)) LiveRunCommand.reload(false)
             }),
@@ -57,7 +65,11 @@ export class LiveRunCommand {
         const deadline = Date.now() + 5 * 60_000
         const poll = async () => {
             if (await answers(run.appUrl)) {
-                vscode.env.openExternal(vscode.Uri.parse(run.appUrl))
+                if (vscode.workspace.getConfiguration('mateu').get('liveRun.openIn') === 'desktop') {
+                    await LiveRunCommand.openInDesktopApp(run.appUrl)
+                } else {
+                    vscode.env.openExternal(vscode.Uri.parse(run.appUrl))
+                }
                 return
             }
             if (Date.now() < deadline) setTimeout(poll, 1000)
@@ -108,7 +120,38 @@ export class LiveRunCommand {
         })
         request.end()
     }
+
+    /**
+     * The Mateu desktop app — a separate IntelliJ with its own window — opens the running app: the OS
+     * gets the hub's add link, the app confirms it and opens the UI. When it is not installed: say so,
+     * with the download and the browser one click away.
+     */
+    static async openInDesktopApp(appUrl: string) {
+        const platform = process.platform
+        const link = desktopLinkOf(appUrl)
+        const probe = desktopProbeOf(platform)
+        const installed = probe ? desktopFound(platform, ...(await exec(probe))) : false
+        const command = desktopOpenCommandOf(platform, link)
+        if (installed && command && (await exec(command))[0] === 0) return
+        const download = 'Download the Mateu desktop app'
+        const browser = 'Open in the browser instead'
+        const choice = await vscode.window.showInformationMessage(
+            installed
+                ? `Mateu: the desktop app did not open ${appUrl}.`
+                : 'Mateu: the desktop app is not installed — it opens the app in a window of its own (a separate IntelliJ).',
+            download, browser)
+        if (choice === download) vscode.env.openExternal(vscode.Uri.parse(DESKTOP_DOWNLOAD_URL))
+        if (choice === browser) vscode.env.openExternal(vscode.Uri.parse(appUrl))
+    }
 }
+
+/** Runs [command, ...args] (no shell): [exit code, stdout]; a command that cannot start answers -1. */
+const exec = ([command, ...args]: string[]): Promise<[number, string]> => new Promise((resolve) => {
+    execFile(command, args, { timeout: 15_000 }, (error, stdout) => {
+        const code = error ? (typeof (error as { code?: unknown }).code === 'number' ? (error as { code: number }).code : -1) : 0
+        resolve([code, String(stdout ?? '')])
+    })
+})
 
 const clientFor = (url: string) => (url.startsWith('https:') ? https : http)
 

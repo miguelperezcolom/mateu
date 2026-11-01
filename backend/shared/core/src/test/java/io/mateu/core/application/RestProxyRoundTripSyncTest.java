@@ -50,6 +50,10 @@ class RestProxyRoundTripSyncTest {
 
     @RestAction(url = BASE + "/missing", method = "GET", proxy = true)
     public void lookup() {}
+
+    // a DIRECT call: the browser makes it, the server never does
+    @RestAction(url = BASE + "/people", method = "GET")
+    public void browse() {}
   }
 
   static TestMateu mateu;
@@ -177,6 +181,24 @@ class RestProxyRoundTripSyncTest {
     assertThat(error).containsEntry("status", 500);
     assertThat(String.valueOf(error.get("message"))).isEqualTo("1 of 3 failed (HTTP 500)");
     assertThat(received).hasSize(3);
+  }
+
+  /**
+   * A source not declared {@code proxy: true} is the browser's to call: asking the server to proxy
+   * it (with any ${secret.X} it carries resolved) is refused, and nothing reaches the upstream.
+   */
+  @Test
+  void aDirectSourceIsNeverProxied() {
+    RuntimeException refused = null;
+    try {
+      fetch("browse", Map.of(), Map.of());
+    } catch (RuntimeException e) {
+      refused = e;
+    }
+    assertThat(refused).isNotNull();
+    assertThat(io.mateu.core.application.security.MateuForbiddenException.find(refused))
+        .isNotNull();
+    assertThat(received).isEmpty();
   }
 
   @Test

@@ -28,19 +28,26 @@ internal sealed partial class SyncHandler
             // read gets the sample; a write succeeds without persisting anything.
             if (source is { Sample: { } sample } && SampleMode)
                 json = SampleSources.IsRead(source.Method) ? sample : new Dictionary<string, object?>();
+            else if (source is { Proxy: false } direct && !string.IsNullOrEmpty(direct.Url))
+                // a DIRECT source is the browser's to call: proxying it on request ran a server-side
+                // call (with ${secret.X} resolved) the author never asked for — refused (403)
+                throw new MateuForbiddenException(
+                    $"__restfetch__: {kind}/{id} is not a proxied source (Proxy = true)");
             else if (source is not null)
             {
-                var (body, status) = await FetchProxyAsync(source, rq.ComponentState, cancellationToken).ConfigureAwait(false);
+                var (body, status, detail) = await FetchProxyAsync(source, rq.ComponentState, cancellationToken).ConfigureAwait(false);
                 if (status is { } failed)
+                {
+                    var error = new Dictionary<string, object?>
+                    {
+                        ["status"] = failed,
+                        ["message"] = "Request failed" + (failed > 0 ? $" (HTTP {failed})" : ""),
+                    };
+                    // what the service said (its error body): the renderer shows it instead
+                    if (detail is not null) error["detail"] = detail;
                     return new UIIncrementDto([], [], [], [], false,
-                        new Dictionary<string, object?>
-                        {
-                            ["_restfetchError"] = new Dictionary<string, object?>
-                            {
-                                ["status"] = failed,
-                                ["message"] = "Request failed" + (failed > 0 ? $" (HTTP {failed})" : ""),
-                            },
-                        }, null);
+                        new Dictionary<string, object?> { ["_restfetchError"] = error }, null);
+                }
                 json = body ?? new Dictionary<string, object?>();
             }
         }
@@ -52,7 +59,7 @@ internal sealed partial class SyncHandler
     /// parsed body (an empty body — a 204 — is an empty object), or the failure status: the upstream's
     /// for a &gt;=400 answer, 0 for a transport error — logged without the url's query, which may carry
     /// an interpolated secret.</summary>
-    private async Task<(object? Body, int? FailedStatus)> FetchProxyAsync(
+    private async Task<(object? Body, int? FailedStatus, string? Detail)> FetchProxyAsync(
         RestDataSourceDto source, Dictionary<string, object?> state, CancellationToken cancellationToken)
     {
         // values percent-encoded by position: client state cannot steer the server's request
@@ -87,19 +94,65 @@ internal sealed partial class SyncHandler
             {
                 MateuLogging.For("Mateu.RestProxy").LogWarning(
                     "Proxied {Method} {Url} answered {Status}", method, StripQuery(url), (int)resp.StatusCode);
-                return (null, (int)resp.StatusCode);
+                string? detail = null;
+                try { detail = ServiceMessageOf(await resp.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)); }
+                catch (Exception) when (!cancellationToken.IsCancellationRequested) { detail = null; }
+                return (null, (int)resp.StatusCode, detail);
             }
             var text = await resp.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(text)) return (new Dictionary<string, object?>(), null);
-            return (JsonSerializer.Deserialize<JsonElement>(text), null);
+            if (string.IsNullOrWhiteSpace(text)) return (new Dictionary<string, object?>(), null, null);
+            return (JsonSerializer.Deserialize<JsonElement>(text), null, null);
         }
         catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
             // The url may carry an interpolated secret in its query: log it without the query.
             MateuLogging.For("Mateu.RestProxy").LogWarning(
                 "Proxied fetch of {Url} failed: {Error}", StripQuery(url), e.GetType().Name);
-            return (null, 0);
+            return (null, 0, null);
         }
+    }
+
+    private const int ServiceMessageMax = 300;
+
+    /// <summary>What an error body says, for a person (Java's RestProxyCalls.serviceMessageOf, same
+    /// rule): a JSON object's <c>message</c>, <c>detail</c> (RFC 7807), <c>error</c> (a string, or an
+    /// object with a message) or <c>title</c>; else short plain text (never HTML or a list); control
+    /// characters out, whitespace folded, at most 300 characters; null when nothing is worth showing.</summary>
+    internal static string? ServiceMessageOf(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return null;
+        var text = body.Trim();
+        if (text.StartsWith('{'))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(text);
+                if (doc.RootElement.ValueKind != JsonValueKind.Object) return null;
+                foreach (var key in new[] { "message", "detail", "error", "title" })
+                {
+                    if (!doc.RootElement.TryGetProperty(key, out var value)) continue;
+                    if (value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString()))
+                        return Clipped(value.GetString()!);
+                    if (value.ValueKind == JsonValueKind.Object && value.TryGetProperty("message", out var nested)
+                        && nested.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(nested.GetString()))
+                        return Clipped(nested.GetString()!);
+                }
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+            return null;
+        }
+        if (text.StartsWith('<') || text.StartsWith('[') || text.Length > ServiceMessageMax) return null;
+        return Clipped(text);
+    }
+
+    private static string? Clipped(string text)
+    {
+        var clean = Regex.Replace(Regex.Replace(text, "[\\u0000-\\u0009\\u000b-\\u001f\\u007f]", ""), "\\s+", " ").Trim();
+        if (clean.Length == 0) return null;
+        return clean.Length > ServiceMessageMax ? clean[..(ServiceMessageMax - 1)] + "…" : clean;
     }
 
     /// <summary>Whether the request declares a JSON body (a Content-Type naming json) — Java's

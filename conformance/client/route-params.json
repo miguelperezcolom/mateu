@@ -30,6 +30,30 @@
       "expected": { "fragments": [{ "state": { "status": "closed", "page": 1 }, "data": { "status": "open", "page": 1 } }] }
     },
     {
+      "name": "the route's query seeds what nothing else names (the server's query level)",
+      "routes": [{ "route": "people" }],
+      "syncPath": "people",
+      "query": { "dept": "sales" },
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "dept": "sales" }, "data": { "dept": "sales" } }] }
+    },
+    {
+      "name": "the query beats a default the answer carries",
+      "routes": [{ "route": "tickets", "defaultParams": { "page": 1 } }],
+      "syncPath": "tickets",
+      "query": { "page": "3" },
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "page": "3" }, "data": { "page": "3" } }] }
+    },
+    {
+      "name": "a fixed and a path parameter beat the query",
+      "routes": [{ "route": "orders/:id", "fixedParams": { "tenant": "acme" } }],
+      "syncPath": "orders/42",
+      "query": { "id": "9", "tenant": "evil", "q": "x" },
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "id": "42", "tenant": "acme", "q": "x" }, "data": { "id": "42", "tenant": "acme", "q": "x" } }] }
+    },
+    {
       "name": "a null in the increment is no value: the default fills it (the server's putIfAbsent)",
       "routes": [{ "route": "tickets", "defaultParams": { "status": "open" } }],
       "syncPath": "tickets",

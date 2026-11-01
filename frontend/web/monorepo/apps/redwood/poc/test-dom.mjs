@@ -11,7 +11,7 @@ import assert from 'node:assert/strict'
 import { makeDom, dataTransfer, sleep, FakeEvent } from './test-harness-dom.mjs'
 import { installKeys, setShortcutContext, setKeysActionSink, setAccessKeysEnabled } from './keys.mjs'
 import { shortcutMatches, installActionPanels } from './actionPanels.mjs'
-import { installDragAndDrop, setDropSink, installTileReorder, setTileReorderSink, paintedTileOrder } from './dnd.mjs'
+import { installDragAndDrop, setDropSink, installTileReorder, setTileReorderSink, paintedTileOrder, installKanbans, setKanbanMoveSink } from './dnd.mjs'
 import { installMatrixGrids, setMatrixActionSink } from './matrix.mjs'
 import { panelExpanded, matrixSectionKey } from './reduceContexts.mjs'
 import { installPlanningRange, setPlanningRangeSink } from './planning.mjs'
@@ -169,6 +169,57 @@ test('dnd: soltar filas en un DropZone que acepta su tipo lanza su acción con _
   assert.deepEqual(sink.calls[1][1], { _draggedIds: ['C1', 'C2'], _dragType: 'charge' }, 'parámetros ilegibles: se suelta igual')
   fire(zone, 'drop', { dataTransfer: dataTransfer({ 'application/x-mateu-charge': '[]' }) })
   assert.equal(sink.calls.length, 2, 'nada arrastrado: nada que lanzar')
+})
+
+test('kanban: a card dragged to another column (or picked in its ⋯ select) moves where the line showed', () => {
+  const { doc, el, fire } = makeDom()
+  const card = (id, top) => el('div', { class: 'mateu-kanban-item', draggable: 'true', 'data-card-id': id }, el('span', { text: id })).box({ top, height: 40 })
+  const todo = el('section', { 'data-column-id': 'todo' }, card('a', 0), card('b', 50))
+  const done = el('section', { 'data-column-id': 'done' }, card('c', 0), card('d', 50))
+  const board = el('div', { class: 'mateu-kanban', 'data-kanban-key': 'k1', 'data-move-action': 'moveTask' }, todo, done)
+  const foreign = el('div', { class: 'mateu-kanban', 'data-kanban-key': 'k2', 'data-move-action': 'x' }, el('section', { 'data-column-id': 'z' }))
+  doc.body.appendChild(board); doc.body.appendChild(foreign)
+  installKanbans(doc)
+  installKanbans(doc) // once per document
+  const sink = sinkLog()
+  setKanbanMoveSink(sink)
+  const dt = dataTransfer({})
+  fire(todo.querySelector('[data-card-id="a"] span'), 'dragstart', { dataTransfer: dt })
+  assert.equal(dt.getData('application/x-mateu-kanban-card'), 'a')
+  assert.ok(todo.querySelector('[data-card-id="a"]').classList.contains('mateu-kanban-dragging'))
+  // over «done» between c and d: the line goes before d
+  const over = fire(done, 'dragover', { dataTransfer: dt, clientY: 30 })
+  assert.ok(over.defaultPrevented && done.classList.contains('mateu-kanban-over'))
+  const line = done.querySelector('.mateu-kanban-drop-line')
+  assert.ok(line && done.childNodes[done.childNodes.indexOf(line) + 1] === done.querySelector('[data-card-id="d"]'))
+  // past the last card: the line goes at the end; another board is not a target
+  fire(done, 'dragover', { dataTransfer: dt, clientY: 500 })
+  assert.equal(done.childNodes[done.childNodes.length - 1].className, 'mateu-kanban-drop-line')
+  assert.equal(fire(foreign.querySelector('section'), 'dragover', { dataTransfer: dt, clientY: 0 }).defaultPrevented, false)
+  fire(done, 'drop', { dataTransfer: dt, clientY: 30 })
+  assert.deepEqual(sink.calls, [[{ key: 'k1', actionId: 'moveTask', move: { cardId: 'a', fromColumnId: 'todo', toColumnId: 'done', toIndex: 1 } }]])
+  assert.equal(doc.querySelectorAll('.mateu-kanban-drop-line, .mateu-kanban-over, .mateu-kanban-dragging').length, 0)
+  // a drop with nothing dragged, and a dragend, do nothing
+  fire(done, 'drop', { dataTransfer: dt, clientY: 30 })
+  fire(doc.body, 'dragend')
+  assert.equal(sink.calls.length, 1)
+  // the keyboard's way: the ⋯ select carries the move as JSON; a blank or unreadable value is ignored
+  const select = el('select', { class: 'mateu-kanban-move' })
+  todo.querySelector('[data-card-id="b"]').appendChild(select)
+  select.value = JSON.stringify({ cardId: 'b', fromColumnId: 'todo', toColumnId: 'done', toIndex: 0 })
+  fire(select, 'change')
+  assert.deepEqual(sink.calls[1][0].move, { cardId: 'b', fromColumnId: 'todo', toColumnId: 'done', toIndex: 0 })
+  assert.equal(select.value, '', 'the select resets after a move')
+  select.value = '{roto'
+  fire(select, 'change')
+  select.value = ''
+  fire(select, 'change')
+  assert.equal(sink.calls.length, 2)
+  // a board with no move action never moves
+  board.removeAttribute('data-move-action')
+  select.value = JSON.stringify({ cardId: 'b' })
+  fire(select, 'change')
+  assert.equal(sink.calls.length, 2)
 })
 
 test('dnd: los tiles reordenables se mueven arrastrando y con Alt+←/→, y el orden se guarda', async () => {

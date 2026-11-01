@@ -24,14 +24,18 @@ import io.mateu.ijp.plugin.loadMateuConfig
  * the device flow (the refresh token is kept in PasswordSafe, the access token only in memory and
  * refreshed on demand). `-Dmateu.token=…` overrides everything (CI, probes).
  *
+ * OIDC sessions are PER UI ([OidcSessions], keyed by backend + issuer + client): the desktop hub
+ * switching the project to another UI reads that UI's session, so coming back to a UI finds you still
+ * signed in, and no UI's token ever reaches another backend or another identity provider.
+ *
  * On a 401 an OIDC session first tries a silent refresh; when that is not possible the user gets ONE
  * notification (throttled) offering to sign in / open the settings, and the call fails.
  */
 @Service(Service.Level.PROJECT)
 class MateuAuthService(private val project: Project) : TokenProvider {
 
-    @Volatile private var accessToken: String? = null
     @Volatile private var lastPrompt = 0L
+    private val sessions get() = MateuCredentials.sessions
 
     private val settings get() = MateuSettings.getInstance(project).state
     private val backend get() = loadMateuConfig(project).baseUrl
@@ -41,27 +45,32 @@ class MateuAuthService(private val project: Project) : TokenProvider {
         return when (settings.authMode) {
             AuthMode.NONE -> null
             AuthMode.TOKEN -> MateuCredentials.get(MateuCredentials.Kind.TOKEN, backend)
-            AuthMode.OIDC -> accessToken ?: refreshSilently()
+            AuthMode.OIDC -> sessions.accessToken(sessionKey()) ?: refreshSilently()
         }
     }
 
     override fun onUnauthorized(rejected: String?): Boolean {
         if (settings.authMode == AuthMode.OIDC) {
-            if (rejected != null && rejected == accessToken) accessToken = null
+            sessions.evict(sessionKey(), rejected)
             if (refreshSilently() != null) return true
         }
         promptForCredentials()
         return false
     }
 
+    /** The OIDC session of the UI the project points at now. */
+    fun sessionKey(): OidcSessions.SessionKey =
+        OidcSessions.SessionKey.of(backend, settings.oidcIssuer, settings.oidcClientId)
+
     /** OIDC: exchange the stored refresh token for a new access token (null when there is none / refused). */
     @Synchronized
     private fun refreshSilently(): String? {
-        accessToken?.let { return it }
-        val refresh = MateuCredentials.get(MateuCredentials.Kind.REFRESH_TOKEN, backend) ?: return null
+        val key = sessionKey()
+        sessions.accessToken(key)?.let { return it }
+        val refresh = sessions.refreshToken(key) ?: return null
         val tokens = runCatching { OidcDeviceFlow(oidcConfig()).refresh(refresh) }.getOrNull() ?: return null
-        accessToken = tokens.accessToken
-        tokens.refreshToken?.let { MateuCredentials.set(MateuCredentials.Kind.REFRESH_TOKEN, backend, it) }
+        sessions.rememberAccessToken(key, tokens.accessToken)
+        tokens.refreshToken?.let { sessions.storeRefreshToken(key, it) }
         return tokens.accessToken
     }
 
@@ -78,21 +87,18 @@ class MateuAuthService(private val project: Project) : TokenProvider {
     fun isSignedIn(): Boolean = when (settings.authMode) {
         AuthMode.NONE -> false
         AuthMode.TOKEN -> MateuCredentials.get(MateuCredentials.Kind.TOKEN, backend) != null
-        AuthMode.OIDC -> accessToken != null || MateuCredentials.get(MateuCredentials.Kind.REFRESH_TOKEN, backend) != null
+        AuthMode.OIDC -> sessions.isSignedIn(sessionKey())
     }
 
     /** Store (or clear, with blank) the manual bearer token for the current backend. */
     fun setManualToken(token: String?) = MateuCredentials.set(MateuCredentials.Kind.TOKEN, backend, token)
 
-    /** The project now points at ANOTHER backend (the desktop hub switched UI): the in-memory access
-     *  token belongs to the previous one and must never reach the next. Stored tokens are per backend. */
-    fun forgetSession() {
-        accessToken = null
-    }
-
+    /** Sign out of the UI the project points at now — the other UIs keep their sessions. */
     fun signOut() {
-        accessToken = null
-        MateuCredentials.clear(backend)
+        when (settings.authMode) {
+            AuthMode.OIDC -> sessions.signOut(sessionKey())
+            else -> MateuCredentials.clear(backend)
+        }
     }
 
     /**
@@ -101,7 +107,7 @@ class MateuAuthService(private val project: Project) : TokenProvider {
      */
     fun signIn(onDone: (Boolean) -> Unit = {}) {
         val flow = OidcDeviceFlow(oidcConfig())
-        val target = backend
+        val target = sessionKey()
         ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Signing in to Mateu", true) {
             private var ok = false
             private var error: String? = null
@@ -118,8 +124,8 @@ class MateuAuthService(private val project: Project) : TokenProvider {
                     )
                     io.mateu.ijp.ui.SafeHtml.browse(code.browseUri)
                     val tokens = flow.poll(endpoints, code) { indicator.isCanceled }
-                    accessToken = tokens.accessToken
-                    MateuCredentials.set(MateuCredentials.Kind.REFRESH_TOKEN, target, tokens.refreshToken)
+                    sessions.rememberAccessToken(target, tokens.accessToken)
+                    sessions.storeRefreshToken(target, tokens.refreshToken)
                     ok = true
                 } catch (e: Exception) {
                     error = e.message ?: e.toString()

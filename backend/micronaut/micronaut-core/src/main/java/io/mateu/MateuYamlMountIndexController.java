@@ -30,7 +30,10 @@ public class MateuYamlMountIndexController {
   }
 
   @Get(
-      uris = {"/", "/{+path:(?!.*mateu/v3/manifest$)[^.]*}"},
+      uris = {
+        "/",
+        "/{+path:(?!.*mateu/v3/manifest$)" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}"
+      },
       produces = MediaType.TEXT_HTML)
   @ExecuteOn(TaskExecutors.BLOCKING)
   public HttpResponse<String> index(

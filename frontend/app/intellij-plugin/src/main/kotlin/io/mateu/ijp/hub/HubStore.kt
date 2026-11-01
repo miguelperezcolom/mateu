@@ -12,8 +12,9 @@ import java.security.SecureRandom
  * "My UIs" — the desktop hub's list, the twin of the app's `src/hub/uiStore.ts`.
  *
  * Only METADATA lives here (base URL, name, icon, colour, the sign-in the manifest declared, timestamps):
- * what an export QR may show anyway. Tokens never do — the plugin keeps them in PasswordSafe, keyed by
- * base URL (MateuCredentials), so removing an entry clears them there.
+ * what an export QR may show anyway. Tokens never do — the plugin keeps them in PasswordSafe, one
+ * session per UI (OidcSessions: base URL + issuer + client), so removing an entry clears them there
+ * ([forgetSignIn]).
  */
 data class HubEntry(
     val id: String,
@@ -217,4 +218,11 @@ class HubStore : PersistentStateComponent<HubStore.StateBean> {
             lastOpened = b.lastOpened.takeIf { it > 0 },
         )
     }
+}
+
+/** Everything the IDE stored to sign in to this UI: its OIDC session(s) and a manual token. */
+fun forgetSignIn(entry: HubEntry) {
+    val keys = listOfNotNull(entry.auth?.let { io.mateu.ijp.auth.OidcSessions.SessionKey.of(entry.baseUrl, it.issuer, it.clientId) })
+    io.mateu.ijp.auth.MateuCredentials.sessions.forget(entry.baseUrl, keys)
+    io.mateu.ijp.auth.MateuCredentials.clear(entry.baseUrl)
 }

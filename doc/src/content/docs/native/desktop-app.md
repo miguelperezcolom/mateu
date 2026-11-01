@@ -97,6 +97,27 @@ tar -xzf mateu-desktop-<version>-linux.tar.gz
 links (`xdg-mime default <name>.desktop x-scheme-handler/mateu`). Running a newer bundle's
 `install.sh` upgrades in place, keeping the settings and the workspace.
 
+## Signing in
+
+A UI that declares a sign-in in its manifest (`auth`: the OpenID Connect issuer and client, the same
+the [phone app](/native/react-native/#3-signing-in-to-a-secured-backend) uses) is signed in to with the
+**OAuth 2.0 Device Authorization Grant** — the usual flow for a desktop app, with no local redirect
+server: the app shows a short code and opens the provider's page in the browser, you sign in there and
+confirm the code, and the app gets its tokens. The access token stays in memory; the refresh token is
+kept in the operating system's credential store (Keychain, Windows Credential Manager, KWallet/libsecret,
+through IntelliJ's PasswordSafe) and renews the access token before you notice.
+
+**One sign-in per UI.** Each UI of your list keeps its own session (keyed by its address, its provider
+and its client): switching to another UI and back finds you still signed in, a token of one UI is never
+sent to another UI or to another provider, **Sign out** signs you out of the open UI only, and removing
+a UI from the list deletes what was stored to sign in to it.
+
+At the identity provider, the client needs the **device grant** switched on — in Keycloak, *Clients ▸
+your client ▸ Capability config ▸ OAuth 2.0 Device Authorization Grant*. A client set up for the phone
+(public, Standard flow, PKCE **S256**) serves the desktop app as it is once that switch is on: the app
+sends a PKCE challenge with the device request too. The full list of Keycloak settings is on the
+[phone app page](/native/react-native/#3-signing-in-to-a-secured-backend).
+
 ## Updates
 
 The app keeps its Mateu plugin up to date by itself:
@@ -111,6 +132,13 @@ The app keeps its Mateu plugin up to date by itself:
 When a release needs a newer IntelliJ build under it, the app does not patch the platform: it shows
 **"A new version of Mateu needs to be reinstalled"** with a link to the installer for the user's
 operating system.
+
+A UI can also ask for an update. When one is added or opened, the hub compares its manifest
+(`wireVersion`, `mateuVersion`) with this app — the same rule as the phone app,
+[Can this app open that UI?](/ux-patterns/mobile-app/#can-this-app-open-that-ui). One on a wire this
+app does not understand is not added or opened, and **Update Mateu** checks the feed at once; one on
+a newer Mateu release opens with a note offering the same. With no newer version in the feed, it
+says so.
 
 IntelliJ's own update checks are switched off in the desktop app — it never offers to update to
 IntelliJ IDEA (`-Dide.no.platform.update`), and plugin update checks are off too, since the Mateu
@@ -146,6 +174,23 @@ must be `https`. Generate a feed for your own release with
 
 Point an app at another feed with `-Pmateu.updateUrl=https://…` at build time (or `-Dmateu.updateUrl`
 in its VM options); `-Pmateu.updateUrl=none` builds an app that never updates itself.
+
+## Trying the UI you are developing
+
+The hub app is also where a developer looks at the UI they are building, in a window of its own and
+not inside the IDE they write it in: the **Mateu App** run configuration's *Desktop (Mateu app)* target
+in IntelliJ, and `"mateu.liveRun.openIn": "desktop"` (or *Mateu: Open Running App in the Desktop App*)
+in VS Code, start the app in development mode and hand the desktop app
+`mateu://add?u=http://localhost:<port>`. It confirms the UI as with any link and opens it; HotSwaps and
+YAML edits re-render it like a browser tab (see [Live reload](/java-user-manual/build/live-reload/)).
+
+- Plain `http` is accepted for **this machine only** (`localhost`, `127.x`, `[::1]`), in every build —
+  that is where the IDE's app runs. Any other plain-http address is refused, as before. A dev app on
+  this machine may also use a plain-http identity provider on this machine (a local Keycloak).
+- On macOS the IDE opens the link with the desktop app by bundle id (`io.mateu.desktop`): on Apple
+  silicon the phone app, installed from the App Store, claims `mateu://` as well.
+- No desktop app installed: the IDE says so and offers the download (the latest release) or the old
+  way, its own **Mateu** tool window.
 
 ## White-label builds
 

@@ -73,17 +73,21 @@ public sealed record RouteEntry(
             .Select(s => s[1..])
             .ToList();
 
-    /// <summary>Defaults first (with <c>State</c> seeded at that same level), then whatever the
-    /// request brought, then the fixed ones — which win over everything, which is the whole point of
-    /// declaring them fixed.</summary>
+    /// <summary>Whatever the request brought, then <c>State</c> and the defaults filling only what is
+    /// still missing (a null counts as missing), then the fixed ones — which win over everything,
+    /// which is the whole point of declaring them fixed.</summary>
     public Dictionary<string, object?> ResolveParams(IReadOnlyDictionary<string, object?>? fromRequest)
     {
-        var resolved = new Dictionary<string, object?>(DefaultParams);
-        // `State` seeds at the defaults level too (literal component state the route brings).
-        if (State is not null)
-            foreach (var kv in State) resolved.TryAdd(kv.Key, kv.Value);
+        var resolved = new Dictionary<string, object?>();
         if (fromRequest is not null)
             foreach (var kv in fromRequest) resolved[kv.Key] = kv.Value;
+        // `State` seeds at the defaults level (literal component state the route brings).
+        foreach (var seeds in new[] { State, DefaultParams })
+        {
+            if (seeds is null) continue;
+            foreach (var kv in seeds)
+                if (resolved.GetValueOrDefault(kv.Key) is null) resolved[kv.Key] = kv.Value;
+        }
         foreach (var kv in FixedParams) resolved[kv.Key] = kv.Value;
         return resolved;
     }

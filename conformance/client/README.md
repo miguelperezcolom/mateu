@@ -24,6 +24,10 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
 - `route-params.json` — registry entries + a pre-rendered increment + a sync path → the state,
   data, appState and initialData a statically served load must carry. Run by the web and Redwood
   suites (the only renderers with a static bundle mode).
+- `app-compat.json` — can a hub app (phone or desktop) render a UI: the UI's manifest
+  (`wireVersion`, `minAppVersion`, `mateuVersion`) against what the app knows of itself →
+  compatible | recommended | required, with the reason. Run by `src/hub/compat.conformance.test.ts`
+  (React Native, the reference) and `AppCompatConformanceTest.kt` (IntelliJ).
 - `agent-events.json` — which event names an AGENT (chat stream, live push) may dispatch: the
   built-in ones, else only one a view on screen subscribes to and never a framework/DOM event name.
   Run by `agentEventPolicy.test.ts` (libs/mateu) and `poc/test-chat-events.mjs` (Redwood); React
@@ -46,14 +50,16 @@ their null-safe member access, and Kotlin's single null.
 
 ## Route parameter precedence
 
-The server applies `fixed > client state > path > query > defaults`
-(`RouteSegmentUtils.addParameterValues`; a route's `state:` seeds sit at the defaults level, above
-`defaultParams`). A statically served load has no client state yet and no query level (a listing's
-query string is its own filters, never part of the screen), and its increment is what the server
-rendered for the route — so the bundle applies `fixed > path > increment > state seeds >
-defaultParams`, where a `null` in the increment is no value at all (the server's `putIfAbsent`
-fills a key mapped to null). For a pre-rendered increment the two orders give the same answer;
-`route-params.json` pins that.
+Every server (Java `RouteSegmentUtils.addParameterValues`, .NET `RouteMatch.Params`, Python
+`Match.params`) applies `fixed > client state > path > query > defaults`, where a `null` in the
+client state is no value at all (the path, the query and the defaults still fill it), and a route's
+`state:` seeds sit at the defaults level, above `defaultParams`. A statically served load has no
+client state yet and its increment is what the server rendered for the route — so the bundle applies
+`fixed > path > query > increment > state seeds > defaultParams` (the query on the answer:
+`withQueryParams` / `applyQueryParams`; a case's optional `query` exercises it), where a `null` in
+the increment is no value at all (the server's `putIfAbsent` fills a key mapped to null). For a
+pre-rendered increment the orders give the same answer; `route-params.json` pins that, and each
+server pins its own order in its route-registry tests.
 
 ## Adding a case
 

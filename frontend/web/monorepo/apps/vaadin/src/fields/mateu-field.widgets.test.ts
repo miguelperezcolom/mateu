@@ -301,14 +301,31 @@ describe('mateu-field: an uploadable image (data URI, no upload endpoint)', () =
         const empty = await mount({ stereotype: 'uploadableImage' }, { f: '' })
         expect(empty.root.querySelector('img')).toBeNull()
         const buttons = Array.from(empty.root.querySelectorAll('vaadin-button')).map(b => b.textContent!.trim())
-        expect(buttons).toEqual(['Upload'])
+        expect(buttons).toEqual(['Upload', 'Use a URL'])
         document.body.innerHTML = ''
         const full = await mount({ stereotype: 'uploadableImage' }, { f: 'data:image/png;base64,AAAA' })
         expect(full.root.querySelector('img')!.getAttribute('src')).toBe('data:image/png;base64,AAAA')
         const labels = Array.from(full.root.querySelectorAll('vaadin-button')).map(b => b.textContent!.trim())
-        expect(labels).toEqual(['Replace', 'Delete'])
-        ;(full.root.querySelectorAll('vaadin-button')[1] as HTMLElement).click()
+        expect(labels).toEqual(['Replace', 'Use a URL', 'Delete'])
+        ;(full.root.querySelectorAll('vaadin-button')[2] as HTMLElement).click()
         expect(full.changes).toEqual([{ value: '', fieldId: 'f' }])
+    })
+
+    it('Use a URL opens a box: an http(s) URL becomes the value, a data:/script one is ignored', async () => {
+        const { root, changes } = await mount({ stereotype: 'uploadableImage' }, { f: '' })
+        expect(root.querySelector('vaadin-text-field.mateu-image-url')).toBeNull()
+        ;(root.querySelectorAll('vaadin-button')[1] as HTMLElement).click()
+        const field = await vi.waitFor(() => {
+            const f = root.querySelector('vaadin-text-field.mateu-image-url') as HTMLInputElement | null
+            expect(f).not.toBeNull()
+            return f!
+        })
+        field.value = 'javascript:alert(1)'
+        field.dispatchEvent(new Event('change'))
+        expect(changes).toEqual([])
+        field.value = ' https://images.nasa.gov/a~medium.jpg '
+        field.dispatchEvent(new Event('change'))
+        expect(changes).toEqual([{ value: 'https://images.nasa.gov/a~medium.jpg', fieldId: 'f' }])
     })
 
     it('Upload opens the file picker and the picked file is written as a data URI', async () => {

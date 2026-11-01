@@ -28,12 +28,13 @@ import {
 import { registerRemoteMenuRetry } from "@infra/ui/remoteMenuRetry.ts";
 import { announce } from "@infra/a11y/announcer.ts";
 import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
-import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { resolveSafeUrl, safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ConnectionScope } from '@infra/ui/connectionScope.ts'
 import { setRemoteRestSources, trackRemoteCatalogues } from '@infra/http/restSourceCatalogue.ts'
 import { trustDeclaredRemotes } from '@infra/http/credentialScope.ts'
 import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/documents.ts'
-import { windowTitleChanged } from '@infra/ui/composedHeading.ts'
+import { setServerWindowTitle } from '@infra/ui/windowTitle.ts'
 import { literalText } from '@infra/ui/interpolation.ts'
 
 export default abstract class ConnectedElement extends LitElement {
@@ -249,14 +250,14 @@ export default abstract class ConnectedElement extends LitElement {
         if ('SetWindowTitle' == command.type) {
             // the page title as plain text: the server's literal escapes resolved (`\${` → `${`) and
             // markup dropped — the same string the heading and the breadcrumb show
-            document.title = plainText(literalText(command.data as string))
-            // a composed page (Dashboard, SmartSearchPage…) shows it as its heading (composedHeading.ts)
-            windowTitleChanged(document.title)
+            // (a composed page — Dashboard, SmartSearchPage… — shows it as its heading: composedHeading.ts).
             // A single-page app changes what is on screen without changing the page, so a screen
             // reader has nothing to announce and the user is told nothing about where they landed.
             // The backend sends this command on every route load, which makes it the one reliable
-            // "navigation happened, and here is its name" signal available to every renderer.
-            announce(document.title)
+            // "navigation happened, and here is its name" signal available to every renderer — it is
+            // announced a beat later, so a record page whose name arrives with its data is announced
+            // once, by name (windowTitle.ts).
+            setServerWindowTitle(plainText(literalText(command.data as string)))
         }
         if ('Announce' == command.type) {
             // the backend's announcement (the Redwood `announcement` slot): what just happened,
@@ -281,8 +282,15 @@ export default abstract class ConnectedElement extends LitElement {
         }
         if ('NavigateTo' == command.type) {
             const destination = command.data as string
-            // server-sent: only http(s)/relative, same-origin here, cross-origin in a new tab
-            if (destination) safeNavigate(destination)
+            // The server decided to leave (after a save, typically): what was typed is not "unsaved"
+            // any more, so the page leaves without the browser's "Leave site?" prompt — as the
+            // navigate-to-requested path does (mateu-ui). A new tab (cross-origin) leaves nothing.
+            if (destination) {
+                const resolved = resolveSafeUrl(destination)
+                if (resolved?.sameOrigin) dirtyGuard.markClean()
+                // server-sent: only http(s)/relative, same-origin here, cross-origin in a new tab
+                safeNavigate(destination)
+            }
         }
         if ('PushStateToHistory' == command.type) {
             const destination = command.data as string

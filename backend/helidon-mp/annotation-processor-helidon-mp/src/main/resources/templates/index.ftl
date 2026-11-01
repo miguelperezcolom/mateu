@@ -30,7 +30,7 @@ public class ${simpleClassName}Controller {
 
     // Any route under the UI, however deep (/hotel/stays/FO-1 on a reload or a shared link), answers
     // the index; a segment with a dot is a static asset (dist/assets/mateu.js) and is left alone.
-    @Path("/{path: [^.]+}")
+    @Path("/{path: " + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}")
     @GET
     @Produces(MediaType.TEXT_HTML)
     public String getIndexAlways(@jakarta.ws.rs.PathParam("path") String path,

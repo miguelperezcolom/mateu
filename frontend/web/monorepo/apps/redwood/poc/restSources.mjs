@@ -25,7 +25,8 @@
 // do not know the rows came from elsewhere. Field options load in `loadRestOptions` (from
 // loadLookups). Pure except the default fetch, which every function takes as an argument.
 
-import { findFirst, pageListingNodeOf, nestedListingNodesOf, nestedListingKeyOf, NESTED_LISTING_ACTION } from './core/listing.mjs'
+import { findFirst, pageListingNodeOf, nestedListingNodesOf, nestedListingKeyOf, NESTED_LISTING_ACTION, clearNestedSelection } from './core/listing.mjs'
+import { KANBAN_ACTION, kanbanKeyOf, kanbanNodesOf, kanbanItemsOf } from './core/kanban.mjs'
 import { collectFields } from './core/tree.mjs'
 import { pageHeaderNodeOf, RECORD_SWITCHER_OPTIONS } from './core/pageHeader.mjs'
 import { declaredActionOf, LOOKUP_LOADED } from './core/rowEditor.mjs'
@@ -242,8 +243,13 @@ function restScopeValue(expr, scope) {
 const isMoney = (v) => v != null && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v
 
 /** A value as the text that lands in a template: a MONEY value as its amount (its currency is
- *  `${state.price.currency}`), any other object as JSON — like the server's TemplateInterpolator. */
-const restText = (v) => (v == null ? '' : isMoney(v) ? restText(v.value) : typeof v === 'object' ? JSON.stringify(v) : String(v))
+ *  `${state.price.currency}`), a LIST as JavaScript's String() — `a,b`, like libs/mateu's
+ *  templateText and the servers (it was JSON here, `["a","b"]`, so a multi-select filter sent a third
+ *  text) — any other object as JSON. */
+const restText = (v) => (v == null ? ''
+  : isMoney(v) ? restText(v.value)
+    : Array.isArray(v) ? String(v)
+      : typeof v === 'object' ? JSON.stringify(v) : String(v))
 
 /** A value as JavaScript's String() converts it — what `encodeURIComponent(v)` encodes (an array
  *  as `a,b`) — but a money value as its amount. */
@@ -386,12 +392,48 @@ export async function fetchRestJson(declared, scope = {}, fetchImpl = defaultRes
   if (!res.ok) {
     const err = new Error('External REST fetch failed: ' + res.status)
     err.status = res.status
+    // what the service said about it, for the user's toast
+    try { err.detail = typeof res.text === 'function' ? serviceMessageOf(await res.text()) : undefined } catch (e) { err.detail = undefined }
     throw err
   }
   if (res.status === 204 || res.status === 205) return null
   if (typeof res.text !== 'function') return res.json()
   const text = await res.text()
   return text.trim() === '' ? null : JSON.parse(text)
+}
+
+/**
+ * What a failed REST call's error body says, for a person ("Image larger than 2 MB" rather than
+ * "Request failed (HTTP 400)"): a JSON object's message / detail (RFC 7807) / error (a string, or
+ * {message}) / title, else short plain text (never HTML or a list); control characters out,
+ * whitespace folded, ≤ 300 characters; undefined when there is nothing to show. The same rule as
+ * libs/mateu serviceMessage.ts and the server's RestProxyCalls.serviceMessageOf (the proxied leg).
+ */
+export function serviceMessageOf(body) {
+  if (body == null) return undefined
+  const clip = (t) => {
+    // eslint-disable-next-line no-control-regex
+    const clean = String(t).replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim()
+    if (!clean) return undefined
+    return clean.length > 300 ? clean.slice(0, 299) + '…' : clean
+  }
+  const fromObject = (json) => {
+    if (!json || typeof json !== 'object' || Array.isArray(json)) return undefined
+    for (const key of ['message', 'detail', 'error', 'title']) {
+      const value = json[key]
+      if (typeof value === 'string' && value.trim()) return clip(value)
+      if (value && typeof value === 'object' && typeof value.message === 'string' && value.message.trim()) return clip(value.message)
+    }
+    return undefined
+  }
+  if (typeof body === 'object') return fromObject(body)
+  const text = String(body).trim()
+  if (!text) return undefined
+  if (text.charAt(0) === '{') {
+    try { return fromObject(JSON.parse(text)) } catch (e) { return undefined }
+  }
+  if (text.charAt(0) === '<' || text.charAt(0) === '[' || text.length > 300) return undefined
+  return clip(text)
 }
 
 // ── in-memory search, filters and sort (an unpaged endpoint, or a sample) ─────────────────────
@@ -497,10 +539,52 @@ export function nestedListingAnswerOf(ctx, actionId, opts = {}) {
   const key = String(actionId).slice(NESTED_LISTING_ACTION.length)
   const node = nestedListingNodesOf(ctx && ctx.tree).find((n) => nestedListingKeyOf(n) === key)
   if (!node) return Promise.resolve(restIncrement([]))
+  // its rows are re-read: what was marked on the old ones (a deleted row) no longer applies
+  clearNestedSelection(key)
   return restRowsIncrement(ctx, node, { ...((ctx && ctx.state) || {}), page: 0 }, opts).then((inc) => ({
     ...inc,
     fragments: (inc.fragments || []).map((f) => ({ ...f, data: { [key]: (f.data && f.data.crud) || { page: { content: [] } } } })),
   }))
+}
+
+/**
+ * Loads a LIVE kanban board's items (its rowsSource — proxied through `__restfetch__` by the board's
+ * id when the source says so, direct otherwise) into ctx.data[key].items, where kanbanAtomOf draws
+ * the cards from. A source that fails leaves the board with the items it had.
+ */
+export async function kanbanAnswerOf(ctx, actionId, opts = {}) {
+  const key = String(actionId).slice(KANBAN_ACTION.length)
+  const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+  const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
+  if (!node || !node.metadata.rowsSource) return restIncrement([])
+  const src = node.metadata.rowsSource
+  try {
+    let json
+    if (viaProxy(src) && opts.server) {
+      const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'kanban' }, true)
+      const appData = (inc && inc.appData) || {}
+      if (appData._restfetchError) throw new Error('proxied kanban items failed')
+      json = appData._restfetch
+    } else {
+      json = await fetchRestJson(src, { state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
+    }
+    const items = kanbanItemsOf(json, (resolveRestSource(src) || {}).itemsPath)
+    return restIncrement([{ targetComponentId: target, data: { [key]: { items } } }])
+  } catch (e) {
+    try { console.warn('mateu: kanban items fetch failed', e) } catch (ignored) { /* no console */ }
+    return restIncrement([])
+  }
+}
+
+/**
+ * What refreshes the lists of a screen after a REST write that lands back on it: the load action
+ * of each listing nested in its content when the page has no listing of its own (a `search` sent
+ * there is refused: 403), else the page listing's `search` — as before.
+ */
+export function refreshActionsOf(ctx) {
+  const tree = ctx && ctx.tree
+  const nested = tree && !pageListingNodeOf(tree) ? nestedListingNodesOf(tree) : []
+  return nested.length ? nested.map((n) => NESTED_LISTING_ACTION + nestedListingKeyOf(n)) : ['search']
 }
 
 /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
@@ -715,12 +799,18 @@ const restRouteOf = (r) => String(r || '').replace(/^\/+/, '').replace(/\/+$/, '
  * (crud_selected_items) — in the browser for a direct source, as ONE proxied call otherwise.
  */
 export async function runRestAction(ctx, actionId, rest, componentState, opts = {}) {
-  const state = componentState || (ctx && ctx.state) || {}
+  // the call's own parameters (a kanban move's _cardId/_toColumnId and the moved card's item) sit over
+  // the state its templates read — the proxied leg merges them the same way (RestProxyCalls.callState)
+  const callParameters = opts.parameters || {}
+  const state = { ...(componentState || (ctx && ctx.state) || {}), ...callParameters }
   const data = (ctx && ctx.data) || {}
   const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
   const kind = actionId === '__restdata__' ? 'data' : 'action'
   const isProxy = viaProxy(rest.source) && !!opts.server
-  const failure = (status) => restIncrement([], [{ variant: 'error', text: 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
+  // what the service said (its error body: e.detail direct, _restfetchError.detail proxied) when it
+  // said something, else the generic text
+  const failure = (status, detail) => restIncrement([], [{ variant: 'error',
+    text: (typeof detail === 'string' && detail.trim()) ? detail : 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
   const success = (json, mergeResult) => {
     const fragments = []
     let merged = state
@@ -739,7 +829,12 @@ export async function runRestAction(ctx, actionId, rest, componentState, opts = 
     const route = interpolateRest(rest.successRoute, scope)
     if (route && route.indexOf('${') < 0) {
       if (opts.route != null && restRouteOf(route) === restRouteOf(opts.route)) {
-        commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: 'search' } })
+        // back to the screen on display: refresh what it lists instead of navigating. The PAGE's
+        // listing re-runs its `search`; a listing nested in the content (a record page's documents)
+        // re-runs its own load — a `search` sent to a page with no listing of its own is refused (403).
+        for (const refresh of refreshActionsOf(ctx)) {
+          commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: refresh } })
+        }
       } else {
         commands.push({ targetComponentId: target, type: 'NavigateTo', data: route })
       }
@@ -749,7 +844,7 @@ export async function runRestAction(ctx, actionId, rest, componentState, opts = 
   const fromProxy = (inc, mergeResult) => {
     const appData = (inc && inc.appData) || {}
     const err = appData._restfetchError
-    if (err) return failure(typeof err.status === 'number' ? err.status : 0)
+    if (err) return failure(typeof err.status === 'number' ? err.status : 0, err.detail)
     return success(appData._restfetch, mergeResult)
   }
 
@@ -761,16 +856,16 @@ export async function runRestAction(ctx, actionId, rest, componentState, opts = 
       await Promise.all(rows.map((row) => fetchRestJson(rest.source, { state: { ...state, ...row }, row, data, appState: opts.appState || {} }, opts.fetchImpl)))
       return success(null, false)
     } catch (e) {
-      return failure(e && e.status)
+      return failure(e && e.status, e && e.detail)
     }
   }
   try {
-    if (isProxy) return fromProxy(await opts.server({ _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
+    if (isProxy) return fromProxy(await opts.server({ ...callParameters, _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
     const json = await fetchRestJson(rest.source, { state, data, appState: opts.appState || {} }, opts.fetchImpl)
     return success(json, true)
   } catch (e) {
     try { console.warn('mateu: rest action failed', e) } catch (ignored) { /* no console */ }
-    return failure(e && e.status)
+    return failure(e && e.status, e && e.detail)
   }
 }
 
@@ -788,6 +883,7 @@ export function restAnswerOf(ctx, actionId, componentState, opts = {}) {
   const rest = restActionOf(ctx, actionId)
   if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
   if (String(actionId).indexOf(NESTED_LISTING_ACTION) === 0) return nestedListingAnswerOf(ctx, actionId, opts)
+  if (String(actionId).indexOf(KANBAN_ACTION) === 0) return kanbanAnswerOf(ctx, actionId, opts)
   if (actionId === 'search') {
     const node = restListingOf(ctx)
     if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)

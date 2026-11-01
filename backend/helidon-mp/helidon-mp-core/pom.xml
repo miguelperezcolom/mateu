@@ -89,6 +89,18 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- HelidonSeIdentity reads both REFLECTIVELY (an app may have neither): here only to test
+             that it finds the caller of a secured request and an app's @LoginConfig -->
+        <dependency>
+            <groupId>io.helidon.security</groupId>
+            <artifactId>helidon-security</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.jwt</groupId>
+            <artifactId>microprofile-jwt-auth-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

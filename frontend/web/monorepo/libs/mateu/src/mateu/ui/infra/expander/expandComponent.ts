@@ -166,6 +166,12 @@ export function expandComponent(authored: FluentNode): Component {
             metadata[key] = (value as FluentNode[]).map(expandButton)
         } else metadata[key] = value
     }
+    if (type === 'HorizontalLayout' && metadata.spacing === undefined) {
+        // An authored ROW with no `spacing:` is spaced — the YAML default of every backend (Java
+        // YamlUidlMapperFactory.spacedRowsByDefault, .NET YamlComponentBuilder, Python yaml_preview);
+        // `spacing: false` keeps it off. A column keeps the record default (off).
+        metadata.spacing = true
+    }
     if (type === 'FormField') {
         // The authored key for a field's id is `id`; the wire calls it `fieldId` (and keeps `id` on
         // the node, as the server does). The two defaults the renderer cannot do without.

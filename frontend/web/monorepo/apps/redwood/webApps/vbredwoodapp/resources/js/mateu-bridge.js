@@ -100,6 +100,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureRetake: 'Retake',
       captureUpload: 'Upload',
       captureReplace: 'Replace',
+      captureUseUrl: 'Use a URL',
+      captureImageUrl: 'Image URL',
       captureNoCamera: 'Camera unavailable — choose a file',
       captureEmpty: 'No file',
       captureStart: 'Open camera',
@@ -155,6 +157,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatExpand: 'Widen the assistant',
       chatRestore: 'Restore the width',
       selectRowsFirst: 'You first need to select some rows',
+      kanbanMove: 'Move {card}',
+      kanbanMoveTo: 'Move to {column}',
+      kanbanMoveUp: 'Move up',
+      kanbanMoveDown: 'Move down',
+      kanbanMoveFailed: 'The card could not be moved; it is back where it was',
       searchResults: 'Search results',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Connect AI',
@@ -330,6 +337,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       captureRetake: 'Repetir',
       captureUpload: 'Subir',
       captureReplace: 'Sustituir',
+      captureUseUrl: 'Usar una URL',
+      captureImageUrl: 'URL de la imagen',
       captureNoCamera: 'Cámara no disponible — elige un fichero',
       captureEmpty: 'Sin fichero',
       captureStart: 'Abrir cámara',
@@ -382,6 +391,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatExpand: 'Ampliar el asistente',
       chatRestore: 'Ancho normal',
       selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
+      kanbanMove: 'Mover {card}',
+      kanbanMoveTo: 'Mover a {column}',
+      kanbanMoveUp: 'Subir',
+      kanbanMoveDown: 'Bajar',
+      kanbanMoveFailed: 'No se pudo mover la tarjeta; ha vuelto a su sitio',
       searchResults: 'Resultados',
       // ── live UI push (agentPush.mjs) ──
       agentConnect: 'Conectar IA',
@@ -4934,6 +4948,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
   /** The action ids a tree advertises at any level (`actions: [{id | actionId}]`). */
@@ -5113,7 +5128,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
   }
 
-  function interpolate(text, state) {
+  function interpolate(text, state, scope = {}) {
     // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
     // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
     if (text != null && String(text).includes('i18n.')) {
@@ -5124,12 +5139,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // and nested paths: `${state.status.message}` (the badge of a header @Status)
     // `\${` / `\\` are the literal escapes the server writes around DATA (Templates.literal): they
     // show as `${` / `\`, never as an expression — a record titled «${state.id}» is not evaluated
+    // Anything else in `${…}` is an EXPRESSION, evaluated like the web renderer does
+    // (`${state.lastName ?? ''}`, `${data.total}`, `${state.a ? 'x' : 'y'}`) with the sandboxed
+    // evaluator (rules.mjs) over state, data, appState and appData — a header used to show such a
+    // title raw. A failed one shows nothing, never the template.
     const source = String(text == null ? '' : text)
     if (!source.includes('${')) return source
     return source.replace(
-      /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
-      (all, escaped, dotted, quoted) => {
+      /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}|\$\{([^}]*)\}/g,
+      (all, escaped, dotted, quoted, expression) => {
         if (escaped) return escaped === '\\' ? '\\' : '${'
+        if (expression !== undefined) {
+          const value = evaluateExpression(expression, { ...scope, state: state || {} })
+          return value != null && typeof value !== 'object' ? String(value) : ''
+        }
         if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
         let value = state
         for (const part of dotted.split('.')) {
@@ -6476,7 +6499,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       // ── display components with their own projection (core/display.mjs) ──
-      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp), container); return }
+      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp, ctx), container); return }
       if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
       if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
       if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }
@@ -7158,15 +7181,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const m = node.metadata
     const state = ctx.state || {}
     const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
-    const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state)))
-    if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
+    const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state, { data: (ctx && ctx.data) || {} })))
+    if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state, { data: (ctx && ctx.data) || {} }) })
     // Mateu's Chip colors → oj-sp badge status
     const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }
     return {
-      title: interpolate(m.title, state),
-      subtitle: interpolate(m.subtitle || '', state) + (badgeText ? ' · ' + badgeText : ''),
+      title: interpolate(m.title, state, { data: (ctx && ctx.data) || {} }),
+      subtitle: interpolate(m.subtitle || '', state, { data: (ctx && ctx.data) || {} }) + (badgeText ? ' · ' + badgeText : ''),
       // the subtitle WITHOUT the concatenated badges (for templates that paint the badge separately)
-      subtitlePlain: interpolate(m.subtitle || '', state),
+      subtitlePlain: interpolate(m.subtitle || '', state, { data: (ctx && ctx.data) || {} }),
       badges: (m.badges || []).map((b) => ({ label: b.label, status: BADGE_STATUS[b.color] || 'neutral' })),
       facts,
     }
@@ -7197,8 +7220,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ((page.metadata || {}).kpis || [])
       .filter((k) => k && (k.title || k.text))
       .map((k) => ({
-        label: page.fromForm ? interpolate(k.title || '', state) : (k.title || ''),
-        value: interpolate(k.text == null ? '' : String(k.text), state),
+        label: page.fromForm ? interpolate(k.title || '', state, { data: (ctx && ctx.data) || {} }) : (k.title || ''),
+        value: interpolate(k.text == null ? '' : String(k.text), state, { data: (ctx && ctx.data) || {} }),
       }))
   }
 
@@ -7255,7 +7278,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const text = (v) => {
       if (v == null) return ''
       let s = String(v)
-      if (s.includes('${')) s = interpolate(s, state)
+      if (s.includes('${')) s = interpolate(s, state, { data: (ctx && ctx.data) || {} })
       if (s.includes('${')) {
         const value = evaluateTemplate(s, scope)
         s = value == null || value === false ? '' : String(value)
@@ -7287,7 +7310,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
     // listing page shows only the table, so the line was lost — it is the page's subtitle
     if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
-    return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+    return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
   }
 
   function textWithId(n, id) {
@@ -7354,7 +7377,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       actionId: RECORD_SWITCHER_ACTION, route: '', objectOptions: [], contextOptions: [], fact: null }
     if (!sw) return none
     const state = (ctx && ctx.state) || {}
-    const interp = (t) => (page.fromForm ? interpolate(t, state) : String(t))
+    const interp = (t) => (page.fromForm ? interpolate(t, state, { data: (ctx && ctx.data) || {} }) : String(t))
     // the declared options, else (a YAML `optionsSource`) the ones loadRestOptions fetched into
     // ctx.data._switcher — the same slot a select's REST options land in
     const loaded = ((ctx && ctx.data && ctx.data[RECORD_SWITCHER_OPTIONS]) || {}).content
@@ -7419,7 +7442,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return {
           actionId: b.actionId,
           // a label may name the record ("Back to ${state.name}")
-          label: interpolate(b.label || b.actionId, state),
+          label: interpolate(b.label || b.actionId, state, { data: (ctx && ctx.data) || {} }),
           chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
           disabled: !!b.disabled || (!!b.route && route == null),
           ...(route ? { route } : {}),
@@ -7617,7 +7640,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a YAML page's title is a template (`title: ${state.name}`); a page declaring a
     // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
     // borrowing the crud's or the menu's label (pageHeaderOf)
-    const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state).trim() : ''
+    const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state, { data: host.data || {} }).trim() : ''
     const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
     return {
       // a listing's Page carries no title: it travels in the Crud metadata, and if it is not
@@ -7800,6 +7823,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       else if (md.rowRoute && c === titleCol) def.template = 'cellNestedLink'
       return def
     })
+    // a listing with row selection (a bulk toolbar action: "Delete selected") marks its rows like the
+    // page's own listing does — on a table; a card grid has no selection in Redwood
+    const selectable = !asCards && !!(md.rowsSelectionEnabled || md.multipleRowSelectionEnabled)
+    const toolbar = (md.toolbar || []).map((b) => (b && b.metadata) || b)
+      .filter((b) => b && b.actionId)
+      .map((b) => ({
+        actionId: String(b.actionId),
+        label: interpolate(String(b.label || b.actionId), state),
+        chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+        disabled: !!b.disabled,
+        parameters: {},
+        route: '',
+        surfaceId: '',
+        fromNested: false,
+      }))
     return {
       isNestedListing: true,
       nestedKey: key,
@@ -7809,6 +7847,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       cards,
       columns: tableColumns,
       rows: tableRows,
+      toolbar,
+      hasToolbar: toolbar.length > 0,
+      selectionMode: selectable ? { row: 'multiple' } : { row: 'none' },
       adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
       loaded: !!loaded,
       isEmpty: !!loaded && rows.length === 0,
@@ -7866,6 +7907,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * className), and a click inside one never opens the row.
    */
   const NO_OPEN_CELL_CLASS = 'mateu-cell-noopen'
+  /** On a listing's table when a row click opens something: only then the rows show the hand cursor. */
+  const ROWS_OPEN_CLASS = 'mateu-rows-open'
   const DISPLAY_DATA_TYPES = ['action', 'actionGroup', 'menu', 'component', 'link', 'button']
   const DISPLAY_STEREOTYPES = ['button', 'link', 'html']
   function isDisplayColumn(c) {
@@ -8042,6 +8085,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
       return def
     }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : [])
+    const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
+    // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
+    // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
+    const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath
+    const tableClass = (lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4)
+      : 'oj-sm-12') + (rowsOpen ? ' ' + ROWS_OPEN_CLASS : '')
     return {
       // PAGINATION: the page the server sent (Page: pageNumber/pageSize/totalElements) →
       // table footer with the range and the controls; precomputed (VB CSP)
@@ -8066,7 +8115,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // number of extra lines (0 = normal listing) and the table class that makes room for them
       // (PRECOMPUTED: VB CSP)
       extraLines: lines.extra.length,
-      tableClass: lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4) : 'oj-sm-12',
+      tableClass,
       // Redwood table density: the compact 'grid' is for WORK tables —
       // it switches on when the crud is inline-editable (@InlineEditing marks the columns
       // as editable on the wire); a lookup listing stays at 'list' (airy).
@@ -8083,7 +8132,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // row is clicked. A NAVIGABLE row (first column with actionId 'view') still opens the record:
       // the detail is for lookup listings, where the click had no other destination.
       detailPath: md.detailPath || null,
-      navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
+      navigable,
       // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
       // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
       // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
@@ -8275,6 +8324,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function withListingSelection(componentState, listing, rows, selection) {
     if (!listing || !listing.rowsSelectionEnabled) return componentState
     return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
+  }
+
+  // The marked rows of each listing NESTED in a page's content, by its key (the oj-table's
+  // selection, written by the nestedListingSelected chain). A nested listing's rows are not the
+  // page's listing, so they have no place in mateuListingSelection.
+  const nestedSelections = new Map()
+
+  /** What is marked on a nested listing: oj-table's KeySet (`detail.value.row`), kept as a selection. */
+  function setNestedSelection(key, keySet) {
+    if (!key) return
+    const selection = selectionOfKeySet(keySet)
+    if (selection.all || selection.keys.length) nestedSelections.set(String(key), selection)
+    else nestedSelections.delete(String(key))
+  }
+
+  /** Forgets what was marked on a nested listing (its rows were reloaded). */
+  function clearNestedSelection(key) {
+    nestedSelections.delete(String(key))
+  }
+
+  /**
+   * The componentState of an action declared on a NESTED listing's toolbar (a bulk "Delete
+   * selected"): its marked rows as crud_selected_items, as Vaadin sends them. Any other action, or
+   * a page with no such listing, leaves the state untouched.
+   */
+  function withNestedSelection(componentState, host, actionId) {
+    const tree = host && host.tree
+    if (!tree || !actionId) return componentState
+    const owner = nestedListingNodesOf(tree).find((n) => ((n.metadata && n.metadata.toolbar) || [])
+      .some((b) => ((b && b.metadata) || b || {}).actionId === actionId))
+    if (!owner) return componentState
+    const key = nestedListingKeyOf(owner)
+    const rows = (((host.data || {})[key] || {}).page || {}).content || []
+    return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, nestedSelections.get(key)) })
   }
 
   // rows with @Status columns: the {type, message} value gets stamped with the JET badge
@@ -9488,6 +9571,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
   /** OnLoad triggers of the context (e.g. the listing fires 'search' on load). */
@@ -9504,7 +9588,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ids.push('search')
     }
     // the listings nested in a templated page's content: each loads its rows on opening, kept apart
-    return ids.concat(nestedListingTriggersOf(ctx))
+    // …and so do the live kanban boards (their items: restSources.mjs kanbanAnswerOf)
+    return ids.concat(nestedListingTriggersOf(ctx), kanbanTriggersOf(ctx))
   }
 
   /**
@@ -11316,6 +11401,176 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): a kanban board's pure half —
+  // a LIVE board's cards from the items of its rowsSource, what a move does to the columns and the
+  // action it runs. The web's libs/mateu kanbanModel.ts is the same rules (RN core/kanban.ts and the
+  // IntelliJ plugin's KanbanModel.kt too).
+
+  /** The OnLoad action that loads a live board's items (answered in the browser, restSources.mjs). */
+  const KANBAN_ACTION = '__kanban__:'
+
+  /** Where a live board's items are kept (ctx.data[key]) — from what it IS, not its position. */
+  function kanbanKeyOf(md) {
+    const m = md || {}
+    return 'kanban-' + stableHashOf(JSON.stringify([m.rowsSource || null, (m.columns || []).map((c) => c && c.id), m.columnField || '']))
+  }
+
+  /** The Kanban nodes of a tree. */
+  function kanbanNodesOf(tree) {
+    const out = []
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (n.metadata && n.metadata.type === 'Kanban') out.push(n)
+      for (const c of n.children || []) walk(c)
+    }
+    walk(tree)
+    return out
+  }
+
+  /** The load actions of a context's live boards. */
+  function kanbanTriggersOf(ctx) {
+    return kanbanNodesOf(ctx && ctx.tree).filter((n) => n.metadata.rowsSource).map((n) => KANBAN_ACTION + kanbanKeyOf(n.metadata))
+  }
+
+  const valueAt = (row, path) => String(path).split('.').reduce((v, k) => (v != null && typeof v === 'object' ? v[k] : undefined), row)
+
+  /** `${row.x}` (dotted paths too) against an item, values as they are (not a url): unresolved → ''. */
+  function kanbanTextOf(template, row) {
+    if (template == null) return ''
+    return String(template).replace(/\$\{\s*row\.([A-Za-z0-9_$.]+)\s*\}/g, (all, path) => {
+      const v = valueAt(row, path)
+      return v == null ? '' : (typeof v === 'object' ? JSON.stringify(v) : String(v))
+    })
+  }
+
+  /** The items of a source's answer: at its itemsPath, or the answer itself when it is a list. */
+  function kanbanItemsOf(json, itemsPath) {
+    const items = itemsPath ? valueAt(json, itemsPath) : json
+    return Array.isArray(items) ? items.filter((i) => i && typeof i === 'object') : []
+  }
+
+  /**
+   * The declared columns filled with one card per item, in the source's order: an item goes to the
+   * column whose id equals its `columnField` (default `status`); one naming no declared column is left
+   * out. A card's texts come from the `card` template, its id defaulting to the item's `id`; a colour
+   * naming a key of `cardColors` takes that value. Each card keeps its item (`row`).
+   */
+  function kanbanCardsFromRows(md, rows) {
+    const field = md.columnField || 'status'
+    const tpl = md.card || {}
+    const columns = (md.columns || []).map((c) => ({ ...c, cards: [] }))
+    const byId = new Map(columns.map((c) => [String(c.id), c]))
+    for (const row of rows || []) {
+      const column = byId.get(String(row[field] == null ? '' : row[field]))
+      if (!column) continue
+      const color = tpl.color != null ? kanbanTextOf(tpl.color, row) : ''
+      const colors = md.cardColors || {}
+      column.cards.push({
+        id: (tpl.id != null ? kanbanTextOf(tpl.id, row) : '') || String(row.id == null ? '' : row.id),
+        title: tpl.title != null ? kanbanTextOf(tpl.title, row) : String(row.title == null ? (row.name == null ? '' : row.name) : row.title),
+        description: tpl.description != null ? kanbanTextOf(tpl.description, row) : '',
+        badge: tpl.badge != null ? kanbanTextOf(tpl.badge, row) : '',
+        color: color && colors[color] ? colors[color] : color,
+        actionId: tpl.actionId != null ? kanbanTextOf(tpl.actionId, row) : '',
+        row,
+      })
+    }
+    return columns
+  }
+
+  /** The columns after a move (the index is the position AFTER the card left its place, clamped). */
+  function kanbanMovedColumns(columns, move) {
+    const from = (columns || []).find((c) => c.id === move.fromColumnId)
+    const to = (columns || []).find((c) => c.id === move.toColumnId)
+    const card = from && (from.cards || []).find((c) => c.id === move.cardId)
+    if (!from || !to || !card) return columns
+    return columns.map((c) => {
+      let cards = (c.cards || []).filter((x) => !(c === from && x === card))
+      if (c === to) {
+        const at = Math.max(0, Math.min(Number(move.toIndex) || 0, cards.length))
+        cards = [...cards.slice(0, at), card, ...cards.slice(at)]
+      }
+      return c === from || c === to ? { ...c, cards } : c
+    })
+  }
+
+  /** Whether the move changes anything (a card dropped back where it was does not). */
+  function kanbanIsRealMove(columns, move) {
+    if (move.fromColumnId !== move.toColumnId) return true
+    const col = (columns || []).find((c) => c.id === move.fromColumnId)
+    const index = col ? (col.cards || []).findIndex((c) => c.id === move.cardId) : -1
+    return index >= 0 && index !== Number(move.toIndex)
+  }
+
+  /** What the move action receives: the card's item with `_cardId/_fromColumnId/_toColumnId/_toIndex`. */
+  function kanbanMoveParametersOf(card, move) {
+    return {
+      ...((card && card.row) || {}),
+      _cardId: move.cardId,
+      _fromColumnId: move.fromColumnId,
+      _toColumnId: move.toColumnId,
+      _toIndex: Number(move.toIndex) || 0,
+    }
+  }
+
+  /** The index a card dropped at pointerY lands on, given the middles of the column's other cards. */
+  function kanbanDropIndexOf(pointerY, cardMiddles) {
+    const at = (cardMiddles || []).findIndex((middle) => pointerY < middle)
+    return at < 0 ? (cardMiddles || []).length : at
+  }
+
+  // The moves on screen whose action has not answered yet, by board key: the projection paints them at
+  // once (optimistic) and the chain drops them when the action answers — failed = the card is back.
+  const pendingKanbanMoves = new Map()
+  function setPendingKanbanMove(key, move) {
+    if (move) pendingKanbanMoves.set(key, move)
+    else pendingKanbanMoves.delete(key)
+  }
+  function pendingKanbanMoveOf(key) {
+    return pendingKanbanMoves.get(key) || null
+  }
+
+  /** The board's columns as they are on screen: the live items (or the declared cards), plus a pending move. */
+  function kanbanColumnsOnScreen(md, data) {
+    const key = kanbanKeyOf(md)
+    const loaded = data && data[key]
+    const columns = md.rowsSource
+      ? kanbanCardsFromRows(md, (loaded && loaded.items) || [])
+      : (md.columns || []).map((c) => ({ ...c, cards: c.cards || [] }))
+    const pending = pendingKanbanMoveOf(key)
+    return pending ? kanbanMovedColumns(columns, pending) : columns
+  }
+
+  /**
+   * What the kanbanCardMoved chain does with a move on the board `key` of the context `ctx`: null when
+   * nothing (no such board, not movable, the card dropped where it was); else the action to run and its
+   * parameters (the card's item + where it went), and the action that reads a live board again.
+   */
+  function kanbanMovePlanOf(ctx, key, move) {
+    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+    const md = node && node.metadata
+    if (!md || !md.moveActionId) return null
+    const columns = kanbanColumnsOnScreen(md, (ctx && ctx.data) || {})
+    if (!kanbanIsRealMove(columns, move)) return null
+    const from = columns.find((c) => c.id === move.fromColumnId)
+    const card = from && (from.cards || []).find((c) => c.id === move.cardId)
+    if (!card) return null
+    return {
+      actionId: md.moveActionId,
+      parameters: kanbanMoveParametersOf(card, move),
+      reloadActionId: md.rowsSource ? KANBAN_ACTION + key : '',
+    }
+  }
+
+  /** Whether an action's answer says it failed (an error message, or no answer at all). */
+  function kanbanMoveFailed(increment) {
+    if (!increment) return true
+    return (increment.messages || []).some((m) => m && (m.variant === 'error' || m.type === 'error'))
+  }
+
+
+
+
 
 
 
@@ -11381,28 +11636,58 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const badgeClassOf = (color) => BADGE_CLASSES[toneOf(color) || 'contrast'] || BADGE_CLASSES.contrast
 
   // ── Kanban (JET has no board): columns of oj-panel, cards as oj-action-card when they act ───────
-  function kanbanAtomOf(m, interp = (x) => x) {
+  // With a moveActionId its cards move: kanbanDom (dnd.mjs) drags them between and within columns
+  // (data-* below say which board, column and card), and each card's ⋯ menu moves it from the keyboard;
+  // the move is painted at once (a pending move, core/kanban.mjs) and the chain kanbanCardMoved runs
+  // the action. A LIVE board (rowsSource) draws its cards from the items the page loaded (ctx.data).
+  function kanbanAtomOf(m, interp = (x) => x, ctx = null) {
+    const key = kanbanKeyOf(m)
+    const movable = !!m.moveActionId
+    const columns = kanbanColumnsOnScreen(m, (ctx && ctx.data) || {})
+    const titleOf = (col) => interp(str(col.title || col.id))
     return {
       isKanban: true,
-      columns: keyed((m.columns || []).map((col) => {
+      kanbanKey: key,
+      moveActionId: str(m.moveActionId),
+      movable,
+      columns: keyed(columns.map((col) => {
         const cards = col.cards || []
         const color = cssColorOf(col.color)
         const tone = toneOf(col.color)
         return {
-          title: interp(str(col.title)),
+          columnId: str(col.id),
+          title: titleOf(col),
           countText: String(cards.length),
           headerClass: 'mateu-kanban-head' + (tone ? ' mateu-tone-' + tone : ''),
           headerStyle: color ? { borderTopColor: color } : {},
-          cards: keyed(cards.map((card) => ({
-            title: interp(str(card.title)),
-            description: interp(str(card.description)),
-            badge: interp(str(card.badge)),
-            hasBadge: !!card.badge,
-            badgeClass: badgeClassOf(card.color),
-            cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
-            cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : ''),
-            ...clickable(card.actionId, { _clickedCard: card }),
-          }))),
+          cards: keyed(cards.map((card, index) => {
+            const route = m.cardRoute && card.row ? kanbanTextOf(m.cardRoute, card.row) : ''
+            const { row, ...plain } = card
+            const act = route ? { clickable: true, plain: false, actionId: '', parameters: {}, route }
+              : clickable(card.actionId, { ...(row || {}), _clickedCard: plain })
+            return {
+              cardId: str(card.id),
+              title: interp(str(card.title)),
+              description: interp(str(card.description)),
+              badge: interp(str(card.badge)),
+              hasBadge: !!card.badge,
+              badgeClass: badgeClassOf(card.color),
+              cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
+              cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : '') + (movable ? ' mateu-kanban-movable' : ''),
+              route: route || '',
+              movable,
+              moveLabel: chromeText('kanbanMove').replace('{card}', str(card.title)),
+              // the keyboard's way: up / down in its column, or to the end of another
+              moves: movable ? keyed([
+                ...(index > 0 ? [{ label: chromeText('kanbanMoveUp'), toColumnId: str(col.id), toIndex: index - 1 }] : []),
+                ...(index < cards.length - 1 ? [{ label: chromeText('kanbanMoveDown'), toColumnId: str(col.id), toIndex: index + 1 }] : []),
+                ...columns.filter((o) => o.id !== col.id).map((o) => ({
+                  label: chromeText('kanbanMoveTo').replace('{column}', titleOf(o)), toColumnId: str(o.id), toIndex: (o.cards || []).length,
+                })),
+              ].map((mv) => ({ ...mv, value: JSON.stringify({ cardId: str(card.id), fromColumnId: str(col.id), toColumnId: mv.toColumnId, toIndex: mv.toIndex }) }))) : [],
+              ...act,
+            }
+          })),
           isEmpty: !cards.length,
         }
       })),
@@ -15562,7 +15847,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return v
   }
 
-  const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
+  const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere', 'useUrl', 'imageUrl']
+
+  /**
+   * The value an uploadable image takes from a URL typed or pasted ("Use a URL" next to Upload): an
+   * http(s) URL or a path on this site, trimmed; undefined for a blank (Remove clears it), a data: URI
+   * (that is what Upload produces), a protocol-relative URL or any other scheme. The same rule as
+   * libs/mateu imageUrl.ts.
+   */
+  function imageUrlOf(text) {
+    if (typeof text !== 'string') return undefined
+    // eslint-disable-next-line no-control-regex
+    const url = text.replace(/[\u0000-\u001f\u007f]/g, '').trim()
+    if (!url) return undefined
+    const m = /^([a-z][a-z0-9+.-]*):/i.exec(url)
+    if (m) return /^https?$/i.test(m[1]) ? url : undefined
+    if (url.indexOf('//') === 0) return undefined
+    return url
+  }
 
   /** The capture fields' texts in `lang` (the interface catalogue, i18n.mjs). */
   function captureTexts(lang) {
@@ -15705,8 +16007,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           dash.textContent = '—'
           box.appendChild(dash)
         }
+        // an uploadable image can also be set from a URL (the value already shows one): a box under
+        // the actions, committed on change with the same rule as the web (imageUrlOf)
+        if (mode === 'image' && !readonly) {
+          actions.appendChild(button(t.useUrl, 'borderless', () => {
+            this.urlOpen = !this.urlOpen
+            this.render()
+          }))
+        }
         this.appendChild(box)
         if (actions.childNodes.length) this.appendChild(actions)
+        if (mode === 'image' && !readonly && this.urlOpen) {
+          const input = doc.createElement('input')
+          input.type = 'url'
+          input.className = 'oj-text-field-input mateu-capture-url oj-sm-margin-2x-top'
+          input.placeholder = 'https://…'
+          input.setAttribute('aria-label', t.imageUrl)
+          input.value = /^data:/i.test(String(value || '')) ? '' : String(value || '')
+          input.addEventListener('change', () => {
+            const url = imageUrlOf(input.value)
+            if (url !== undefined && url !== value) this.emit(url)
+          })
+          this.appendChild(input)
+        }
       }
 
       /** The image stereotype, editable: its URL typed in, the preview following it (committed on change). */
@@ -17873,6 +18196,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
   // of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
   // (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
@@ -18026,6 +18350,89 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       let params = {}
       try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
       dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, {})
+    }, true)
+  }
+
+  // ── KANBAN CARDS: a movable board (moveActionId) paints each card in a wrapper carrying its ids
+  // (.mateu-kanban-item[data-card-id], its column's section[data-column-id], the board's
+  // [data-kanban-key][data-move-action]). Dragging one over a column draws a line where it will land;
+  // dropping it — or picking a move in its ⋯ select (the keyboard's way) — hands the move to the sink
+  // (the kanbanCardMoved chain), which paints it at once and runs the action.
+  const KANBAN_MIME = 'application/x-mateu-kanban-card'
+  let kanbanSink = null
+  function setKanbanMoveSink(fn) { kanbanSink = typeof fn === 'function' ? fn : null }
+
+  /** The move a drop at pointerY over a column element means, for the card being dragged. */
+  function kanbanDropMoveOf(columnEl, dragged, pointerY) {
+    const others = Array.from(columnEl.querySelectorAll('.mateu-kanban-item[data-card-id]'))
+      .filter((el) => el.getAttribute('data-card-id') !== dragged.cardId)
+    const middles = others.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 })
+    return { ...dragged, toColumnId: columnEl.getAttribute('data-column-id'), toIndex: kanbanDropIndexOf(pointerY, middles) }
+  }
+
+  function installKanbans(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuKanbans) return
+    doc.__mateuKanbans = true
+    let dragged = null
+    const boardOf = (el) => (el && el.closest ? el.closest('.mateu-kanban[data-kanban-key]') : null)
+    const send = (board, move) => {
+      if (!board || !kanbanSink || !board.getAttribute('data-move-action')) return
+      kanbanSink({ key: board.getAttribute('data-kanban-key'), actionId: board.getAttribute('data-move-action'), move })
+    }
+    const clearMarks = () => {
+      for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
+      for (const el of doc.querySelectorAll('.mateu-kanban-over, .mateu-kanban-dragging')) el.classList.remove('mateu-kanban-over', 'mateu-kanban-dragging')
+    }
+    doc.addEventListener('dragstart', (e) => {
+      const item = e.target && e.target.closest ? e.target.closest('.mateu-kanban-item[draggable="true"]') : null
+      const column = item && item.closest('[data-column-id]')
+      if (!item || !column || !boardOf(item) || !e.dataTransfer) return
+      dragged = { cardId: item.getAttribute('data-card-id'), fromColumnId: column.getAttribute('data-column-id'), board: boardOf(item) }
+      e.dataTransfer.setData(KANBAN_MIME, dragged.cardId)
+      e.dataTransfer.effectAllowed = 'move'
+      item.classList.add('mateu-kanban-dragging')
+    }, true)
+    doc.addEventListener('dragover', (e) => {
+      if (!dragged) return
+      const column = e.target && e.target.closest ? e.target.closest('[data-column-id]') : null
+      if (!column || boardOf(column) !== dragged.board) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+      const move = kanbanDropMoveOf(column, dragged, e.clientY)
+      for (const el of doc.querySelectorAll('.mateu-kanban-over')) if (el !== column) el.classList.remove('mateu-kanban-over')
+      column.classList.add('mateu-kanban-over')
+      // the line where it lands: before the card at that index (of the others), or at the end
+      for (const el of doc.querySelectorAll('.mateu-kanban-drop-line')) el.remove()
+      const others = Array.from(column.querySelectorAll('.mateu-kanban-item[data-card-id]'))
+        .filter((el) => el.getAttribute('data-card-id') !== dragged.cardId)
+      const line = doc.createElement('div')
+      line.className = 'mateu-kanban-drop-line'
+      const before = others[move.toIndex]
+      if (before) before.parentNode.insertBefore(line, before)
+      else column.appendChild(line)
+    }, true)
+    doc.addEventListener('drop', (e) => {
+      if (!dragged) return
+      const column = e.target && e.target.closest ? e.target.closest('[data-column-id]') : null
+      if (!column || boardOf(column) !== dragged.board) return
+      e.preventDefault()
+      const { board, ...from } = dragged
+      const move = kanbanDropMoveOf(column, from, e.clientY)
+      dragged = null
+      clearMarks()
+      send(board, move)
+    }, true)
+    doc.addEventListener('dragend', () => { dragged = null; clearMarks() }, true)
+    // the keyboard's way: the card's ⋯ select (each option's value is the move, as JSON)
+    doc.addEventListener('change', (e) => {
+      const select = e.target
+      if (!select || !select.classList || !select.classList.contains('mateu-kanban-move')) return
+      const raw = select.value
+      select.value = ''
+      if (!raw) return
+      let move
+      try { move = JSON.parse(raw) } catch (err) { return }
+      send(boardOf(select), move)
     }, true)
   }
 
@@ -18764,6 +19171,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
   let restCatalogue = []
@@ -18975,8 +19383,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const isMoney = (v) => v != null && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v
 
   /** A value as the text that lands in a template: a MONEY value as its amount (its currency is
-   *  `${state.price.currency}`), any other object as JSON — like the server's TemplateInterpolator. */
-  const restText = (v) => (v == null ? '' : isMoney(v) ? restText(v.value) : typeof v === 'object' ? JSON.stringify(v) : String(v))
+   *  `${state.price.currency}`), a LIST as JavaScript's String() — `a,b`, like libs/mateu's
+   *  templateText and the servers (it was JSON here, `["a","b"]`, so a multi-select filter sent a third
+   *  text) — any other object as JSON. */
+  const restText = (v) => (v == null ? ''
+    : isMoney(v) ? restText(v.value)
+      : Array.isArray(v) ? String(v)
+        : typeof v === 'object' ? JSON.stringify(v) : String(v))
 
   /** A value as JavaScript's String() converts it — what `encodeURIComponent(v)` encodes (an array
    *  as `a,b`) — but a money value as its amount. */
@@ -19119,12 +19532,48 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!res.ok) {
       const err = new Error('External REST fetch failed: ' + res.status)
       err.status = res.status
+      // what the service said about it, for the user's toast
+      try { err.detail = typeof res.text === 'function' ? serviceMessageOf(await res.text()) : undefined } catch (e) { err.detail = undefined }
       throw err
     }
     if (res.status === 204 || res.status === 205) return null
     if (typeof res.text !== 'function') return res.json()
     const text = await res.text()
     return text.trim() === '' ? null : JSON.parse(text)
+  }
+
+  /**
+   * What a failed REST call's error body says, for a person ("Image larger than 2 MB" rather than
+   * "Request failed (HTTP 400)"): a JSON object's message / detail (RFC 7807) / error (a string, or
+   * {message}) / title, else short plain text (never HTML or a list); control characters out,
+   * whitespace folded, ≤ 300 characters; undefined when there is nothing to show. The same rule as
+   * libs/mateu serviceMessage.ts and the server's RestProxyCalls.serviceMessageOf (the proxied leg).
+   */
+  function serviceMessageOf(body) {
+    if (body == null) return undefined
+    const clip = (t) => {
+      // eslint-disable-next-line no-control-regex
+      const clean = String(t).replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim()
+      if (!clean) return undefined
+      return clean.length > 300 ? clean.slice(0, 299) + '…' : clean
+    }
+    const fromObject = (json) => {
+      if (!json || typeof json !== 'object' || Array.isArray(json)) return undefined
+      for (const key of ['message', 'detail', 'error', 'title']) {
+        const value = json[key]
+        if (typeof value === 'string' && value.trim()) return clip(value)
+        if (value && typeof value === 'object' && typeof value.message === 'string' && value.message.trim()) return clip(value.message)
+      }
+      return undefined
+    }
+    if (typeof body === 'object') return fromObject(body)
+    const text = String(body).trim()
+    if (!text) return undefined
+    if (text.charAt(0) === '{') {
+      try { return fromObject(JSON.parse(text)) } catch (e) { return undefined }
+    }
+    if (text.charAt(0) === '<' || text.charAt(0) === '[' || text.length > 300) return undefined
+    return clip(text)
   }
 
   // ── in-memory search, filters and sort (an unpaged endpoint, or a sample) ─────────────────────
@@ -19230,10 +19679,52 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const key = String(actionId).slice(NESTED_LISTING_ACTION.length)
     const node = nestedListingNodesOf(ctx && ctx.tree).find((n) => nestedListingKeyOf(n) === key)
     if (!node) return Promise.resolve(restIncrement([]))
+    // its rows are re-read: what was marked on the old ones (a deleted row) no longer applies
+    clearNestedSelection(key)
     return restRowsIncrement(ctx, node, { ...((ctx && ctx.state) || {}), page: 0 }, opts).then((inc) => ({
       ...inc,
       fragments: (inc.fragments || []).map((f) => ({ ...f, data: { [key]: (f.data && f.data.crud) || { page: { content: [] } } } })),
     }))
+  }
+
+  /**
+   * Loads a LIVE kanban board's items (its rowsSource — proxied through `__restfetch__` by the board's
+   * id when the source says so, direct otherwise) into ctx.data[key].items, where kanbanAtomOf draws
+   * the cards from. A source that fails leaves the board with the items it had.
+   */
+  async function kanbanAnswerOf(ctx, actionId, opts = {}) {
+    const key = String(actionId).slice(KANBAN_ACTION.length)
+    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+    const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
+    if (!node || !node.metadata.rowsSource) return restIncrement([])
+    const src = node.metadata.rowsSource
+    try {
+      let json
+      if (viaProxy(src) && opts.server) {
+        const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'kanban' }, true)
+        const appData = (inc && inc.appData) || {}
+        if (appData._restfetchError) throw new Error('proxied kanban items failed')
+        json = appData._restfetch
+      } else {
+        json = await fetchRestJson(src, { state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
+      }
+      const items = kanbanItemsOf(json, (resolveRestSource(src) || {}).itemsPath)
+      return restIncrement([{ targetComponentId: target, data: { [key]: { items } } }])
+    } catch (e) {
+      try { console.warn('mateu: kanban items fetch failed', e) } catch (ignored) { /* no console */ }
+      return restIncrement([])
+    }
+  }
+
+  /**
+   * What refreshes the lists of a screen after a REST write that lands back on it: the load action
+   * of each listing nested in its content when the page has no listing of its own (a `search` sent
+   * there is refused: 403), else the page listing's `search` — as before.
+   */
+  function refreshActionsOf(ctx) {
+    const tree = ctx && ctx.tree
+    const nested = tree && !pageListingNodeOf(tree) ? nestedListingNodesOf(tree) : []
+    return nested.length ? nested.map((n) => NESTED_LISTING_ACTION + nestedListingKeyOf(n)) : ['search']
   }
 
   /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
@@ -19448,12 +19939,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * (crud_selected_items) — in the browser for a direct source, as ONE proxied call otherwise.
    */
   async function runRestAction(ctx, actionId, rest, componentState, opts = {}) {
-    const state = componentState || (ctx && ctx.state) || {}
+    // the call's own parameters (a kanban move's _cardId/_toColumnId and the moved card's item) sit over
+    // the state its templates read — the proxied leg merges them the same way (RestProxyCalls.callState)
+    const callParameters = opts.parameters || {}
+    const state = { ...(componentState || (ctx && ctx.state) || {}), ...callParameters }
     const data = (ctx && ctx.data) || {}
     const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
     const kind = actionId === '__restdata__' ? 'data' : 'action'
     const isProxy = viaProxy(rest.source) && !!opts.server
-    const failure = (status) => restIncrement([], [{ variant: 'error', text: 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
+    // what the service said (its error body: e.detail direct, _restfetchError.detail proxied) when it
+    // said something, else the generic text
+    const failure = (status, detail) => restIncrement([], [{ variant: 'error',
+      text: (typeof detail === 'string' && detail.trim()) ? detail : 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
     const success = (json, mergeResult) => {
       const fragments = []
       let merged = state
@@ -19472,7 +19969,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const route = interpolateRest(rest.successRoute, scope)
       if (route && route.indexOf('${') < 0) {
         if (opts.route != null && restRouteOf(route) === restRouteOf(opts.route)) {
-          commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: 'search' } })
+          // back to the screen on display: refresh what it lists instead of navigating. The PAGE's
+          // listing re-runs its `search`; a listing nested in the content (a record page's documents)
+          // re-runs its own load — a `search` sent to a page with no listing of its own is refused (403).
+          for (const refresh of refreshActionsOf(ctx)) {
+            commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: refresh } })
+          }
         } else {
           commands.push({ targetComponentId: target, type: 'NavigateTo', data: route })
         }
@@ -19482,7 +19984,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const fromProxy = (inc, mergeResult) => {
       const appData = (inc && inc.appData) || {}
       const err = appData._restfetchError
-      if (err) return failure(typeof err.status === 'number' ? err.status : 0)
+      if (err) return failure(typeof err.status === 'number' ? err.status : 0, err.detail)
       return success(appData._restfetch, mergeResult)
     }
 
@@ -19494,16 +19996,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         await Promise.all(rows.map((row) => fetchRestJson(rest.source, { state: { ...state, ...row }, row, data, appState: opts.appState || {} }, opts.fetchImpl)))
         return success(null, false)
       } catch (e) {
-        return failure(e && e.status)
+        return failure(e && e.status, e && e.detail)
       }
     }
     try {
-      if (isProxy) return fromProxy(await opts.server({ _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
+      if (isProxy) return fromProxy(await opts.server({ ...callParameters, _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
       const json = await fetchRestJson(rest.source, { state, data, appState: opts.appState || {} }, opts.fetchImpl)
       return success(json, true)
     } catch (e) {
       try { console.warn('mateu: rest action failed', e) } catch (ignored) { /* no console */ }
-      return failure(e && e.status)
+      return failure(e && e.status, e && e.detail)
     }
   }
 
@@ -19521,6 +20023,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const rest = restActionOf(ctx, actionId)
     if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
     if (String(actionId).indexOf(NESTED_LISTING_ACTION) === 0) return nestedListingAnswerOf(ctx, actionId, opts)
+    if (String(actionId).indexOf(KANBAN_ACTION) === 0) return kanbanAnswerOf(ctx, actionId, opts)
     if (actionId === 'search') {
       const node = restListingOf(ctx)
       if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)
@@ -19735,6 +20238,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...component, initialData: { ...component.initialData, ...params } }
   }
 
+  /** The query parameters of a route string (`/people?dept=sales`), first value of each. */
+  function queryOf(route) {
+    const at = route ? route.indexOf('?') : -1
+    if (at < 0) return {}
+    const out = {}
+    new URLSearchParams(route.substring(at + 1)).forEach((value, key) => {
+      if (!(key in out)) out[key] = value
+    })
+    return out
+  }
+
+  /**
+   * The route's query parameters on a screen the bundle answered, at the level the server gives them:
+   * `fixed > path > query > what the pre-rendered answer carries` — the server seeds the query into
+   * the load's state (RouteSegmentUtils.addParameterValues); a bundled answer was rendered with no
+   * query and dropped it. Pinned (fixed) and path parameters are never overridden from the URL, and an
+   * app shell is left alone. Same rule as libs/mateu's withQueryParams (conformance route-params.json).
+   */
+  function applyQueryParams(syncPath, increment, query) {
+    if (!increment || !query || !Object.keys(query).length) return increment
+    const first = increment.fragments && increment.fragments[0]
+    if (first && first.component && first.component.metadata && first.component.metadata.type === 'App') return increment
+    const m = matchRouteEntry(syncPath)
+    const fixed = (m && m.entry.fixedParams) || {}
+    const path = (m && m.pathParams) || {}
+    const params = Object.fromEntries(Object.entries(query).filter(([k]) => !(k in fixed) && !(k in path)))
+    if (!Object.keys(params).length) return increment
+    return {
+      ...increment,
+      fragments: (increment.fragments || []).map((f) => ({
+        ...f,
+        state: { ...f.state, ...params },
+        data: { ...f.data, ...params },
+      })),
+    }
+  }
+
   /** The bundled increment for a route (exact match then :param template), re-targeted so its
    *  fragments land on the loading surface: the exporter had no initiator, so a fragment's
    *  targetComponentId is null — reduceContexts routes null → HOST, but a load INTO an island must
@@ -19743,7 +20283,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const syncPath = toSyncPath(route)
     // a route load INTO the booted shell takes the route's content (see `contents`); the shell's own
     // bootstrap (and a fresh load of a mount without an App) keeps the exported `json`
-    const inc = localizeBundled(getBundledIncrement(syncPath, !!options.content) || matchBundledTemplate(syncPath))
+    const inc = localizeBundled(applyQueryParams(syncPath,
+      getBundledIncrement(syncPath, !!options.content) || matchBundledTemplate(syncPath), queryOf(route)))
     if (!inc) return undefined
     return {
       ...inc,
@@ -20300,6 +20841,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const restAnswer = restAnswerOf(ctx, actionId, componentState, {
       route,
       appState: (extra && extra.appState) || {},
+      parameters: (extra && extra.parameters) || {},
       server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
         { ...extra, parameters, idempotent: !!idempotent }),
     })
@@ -23887,6 +24429,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
   // the state it carries (the drawer's with its draft, or the host's with the form draft and the
   // listing's selection), whether it may leave at all (rows required, required fields empty, a row
@@ -23913,6 +24456,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     // a host action on a listing with selection carries the marked rows (crud_selected_items), as
     // in Vaadin; the drawer's do not (they act on ITS record)
+    // …and an action on the toolbar of a listing NESTED in the page (a record's documents) carries
+    // the rows marked on THAT listing
+    if (!overlay) componentState = withNestedSelection(componentState, host, id)
     if (!overlay && listing && listing.rowsSelectionEnabled) {
       componentState = withListingSelection(componentState, listing, listingRows, listingSelection)
       if ((listing.selectionRequired || []).indexOf(id) >= 0 && !componentState.crud_selected_items.length) {
@@ -26186,7 +26732,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards',
-    'installDrawerGuard', 'installAttachmentChips',
+    'installDrawerGuard', 'installAttachmentChips', 'installKanbans',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -26207,6 +26753,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installEditorPreview: 'the visual editor previews the standalone app only',
     // the tile-reorder sink is wired, with its own payload, by installEmbeddedContentRuntime
     setTileReorderSink: 'wired separately (its payload is a scope, not an action)',
+    // the kanban sink likewise: its payload is a board and a move, handed to its own chain
+    setKanbanMoveSink: 'wired separately (its payload is a board key and a move, not an action)',
     // live reload (dev mode) answers an app-level change by reloading the WINDOW: in a host page that
     // is the host's app, not ours — the embedded component is not live-reloaded (yet)
     installDevLiveReload: 'an app-level reload would reload the host page',
@@ -26238,6 +26786,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const sink of CONTENT_ACTION_SINKS) if (typeof b[sink] === 'function') b[sink](runPageAction)
     if (typeof b.setTileReorderSink === 'function') {
       b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
+    }
+    if (typeof b.setKanbanMoveSink === 'function') {
+      b.setKanbanMoveSink(({ key, move }) => runtime.fireEvent('application:mateuKanbanMove', { key, move }))
     }
     // the document-level listeners once per page; the sinks and hooks above/below follow the
     // CURRENT component (a new <mateu-ui> takes them over)
@@ -26592,6 +27143,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installHover,
     installDragAndDrop,
     setDropSink,
+    // kanban drag and drop (core/kanban.mjs + dnd.mjs)
+    installKanbans,
+    setKanbanMoveSink,
+    setPendingKanbanMove,
+    kanbanMovePlanOf,
+    kanbanMoveFailed,
     setKeysActionSink,
     setAccessKeysEnabled,
     startPolling,
@@ -26682,6 +27239,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    // the rows marked on a listing nested in a page's content (nestedListingSelected chain)
+    setNestedSelection,
     toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,

@@ -142,3 +142,60 @@ without the embedded answer.
 
 See also [ContentSlot](/java-ui-definition/components/content-slot/), a micro frontend resolved in
 the server against a content service.
+
+## .NET and Python
+
+Both ports resolve micro frontends in the server with the same rules, wire and degradation as Java
+(conformance-pinned). What differs is the declaration and the configuration: there are no
+`mateu.remotes.*` properties — remotes and limits are server options.
+
+**.NET** — `Resolve = Resolve.Server` on the fluent `MicroFrontend`; remotes in `MateuOptions.Remotes`
+(or `IRemoteCatalogSupplier` services):
+
+```csharp
+builder.Services.AddMateu(o =>
+{
+    o.Remotes.Add(new RemoteDescriptor("orders", "https://orders.acme.com", 800));
+    o.MaxBudgetMs = 1500;
+});
+
+[UI("dashboard")]
+public class Dashboard : IComponentTreeSupplier
+{
+    public IComponent Component() => new VerticalLayout
+    {
+        Content = [new MicroFrontend("https://orders.acme.com", "/orders/summary") { Resolve = Resolve.Server, TimeoutMs = 300 }],
+    };
+}
+```
+
+Replace a collaborator by registering your own service: `IRemoteRegistry`, `IRemoteIdentityStrategy`
+(chosen by name in `RemoteDescriptor.Identity`), `ICorrelationIdProvider`, `IFragmentCacheStore`,
+`IMicroFrontendResolutionListener`; on the remote side, `[CacheableFragment(maxAgeSeconds)]` /
+`IFragmentCachePolicySupplier`.
+
+**Python** — `resolve=Resolve.SERVER` on `components.MicroFrontend`; remotes in
+`add_mateu(remotes=[...])` (or `RemoteCatalogSupplier` subclasses among the sources):
+
+```python
+from mateu_ui.uidl import ComponentTreeSupplier, RemoteDescriptor, ui
+from mateu_ui.uidl import components as fluent
+
+
+@ui("dashboard")
+class Dashboard(ComponentTreeSupplier):
+    def component(self):
+        return fluent.VerticalLayout(content=(
+            fluent.MicroFrontend(base_url="https://orders.acme.com", route="/orders/summary",
+                                 resolve=fluent.Resolve.SERVER, timeout_ms=300),
+        ))
+
+
+ORDERS = RemoteDescriptor("orders", "https://orders.acme.com", 800)
+# add_mateu(app, my_module, remotes=[ORDERS], max_budget_ms=1500)
+```
+
+The other options (`default_timeout_ms`, `self_base_url`, `remote_registry`, `identity_strategies`,
+`fragment_cache_store`, `correlation_id_provider`, `resolution_listeners`) are in the server options
+tables of the [Python](/python-user-manual/#server-options) and [.NET](/csharp-user-manual/#server-options)
+manuals.

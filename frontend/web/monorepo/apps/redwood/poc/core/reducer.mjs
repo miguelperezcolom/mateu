@@ -1,6 +1,7 @@
 import { HOST_ID, collectFields } from './tree.mjs'
 import { findByType, findFirst, pageListingNodeOf, nestedListingTriggersOf } from './listing.mjs'
 import { applyOverlayEvent } from './rowEditor.mjs'
+import { kanbanTriggersOf } from './kanban.mjs'
 import { literalText } from './content.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
@@ -18,7 +19,8 @@ export function onLoadTriggers(ctx) {
     ids.push('search')
   }
   // the listings nested in a templated page's content: each loads its rows on opening, kept apart
-  return ids.concat(nestedListingTriggersOf(ctx))
+  // …and so do the live kanban boards (their items: restSources.mjs kanbanAnswerOf)
+  return ids.concat(nestedListingTriggersOf(ctx), kanbanTriggersOf(ctx))
 }
 
 /**

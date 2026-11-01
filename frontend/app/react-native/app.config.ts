@@ -18,9 +18,22 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   // An APK built outside EAS (the GitHub release workflow, .github/workflows/mobile.yml) has no remote
   // build number: the workflow passes one, and it must only grow for the APK to install as an update.
   const versionCode = Number(process.env.MATEU_ANDROID_VERSION_CODE);
-  const base: ExpoConfig = Number.isInteger(versionCode) && versionCode > 0
+  const versioned: ExpoConfig = Number.isInteger(versionCode) && versionCode > 0
     ? { ...variant, android: { ...variant.android, versionCode } }
     : variant;
+  // What the hub's compatibility check knows of this build (src/hub/compat.ts, appUpdate.ts): the
+  // Mateu release its renderer comes from (MATEU_VERSION, set by the release workflows — also for
+  // an over-the-air update, which carries its own app config) and where it updates from
+  // (MATEU_DISTRIBUTION=github for the APK on the GitHub releases; a store build otherwise).
+  const stamped = Object.fromEntries(
+    [
+      ['mateuVersion', process.env.MATEU_VERSION?.trim()],
+      ['distribution', process.env.MATEU_DISTRIBUTION?.trim()],
+    ].filter(([, v]) => !!v),
+  );
+  const base: ExpoConfig = Object.keys(stamped).length
+    ? { ...versioned, extra: { ...(versioned.extra ?? {}), ...stamped } }
+    : versioned;
   if (process.env.APP_VARIANT !== 'development') return base;
 
   const plugins = (base.plugins ?? []).map((p) =>

@@ -210,7 +210,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // derived, the same precedence the layout and page inference already use. Its parameters are
         // folded into the component state here, at the single point every downstream step reads:
         //
-        //   fixed > client state > path > defaults
+        //   fixed > client state > path > query > defaults
         //
         // The fixed ones are re-applied on the SERVER rather than trusted from the client, because
         // route resolution also runs in the browser (a statically deployed mount has no server to
@@ -225,7 +225,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         Type? type = null;
         if (_routes.Match(rq.Route) is { } routeMatch)
         {
-            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState) };
+            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState, RequestQuery?.Invoke()) };
             routeEntry = routeMatch.Entry;
             if (!string.IsNullOrWhiteSpace(routeMatch.Entry.ViewModel))
                 type = registry.TypeByName(routeMatch.Entry.ViewModel);

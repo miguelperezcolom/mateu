@@ -42,6 +42,8 @@ object HubManifest {
         val wireVersion: String? = null,
         val auth: Auth? = null,
         val bundle: String? = null,
+        /** The Mateu release serving the UI (the server sends it itself): [AppCompat] compares it with ours. */
+        val mateuVersion: String? = null,
     )
 
     sealed interface Fetch {
@@ -75,7 +77,8 @@ object HubManifest {
             }
         }
         val beforeQuery = absolute.split('?', '#')[0]
-        if (HubLinks.normalizeBaseUrl(beforeQuery, HubLinks.Options(allowInsecure)) !is HubLinks.BaseUrl.Ok || absolute.any { it.isWhitespace() }) return null
+        val options = HubLinks.Options(allowInsecure, allowLoopbackHttp = isLoopbackBase(baseUrl))
+        if (HubLinks.normalizeBaseUrl(beforeQuery, options) !is HubLinks.BaseUrl.Ok || absolute.any { it.isWhitespace() }) return null
         return absolute.substringBefore('#')
     }
 
@@ -89,19 +92,30 @@ object HubManifest {
             icon = resolveIcon(r?.get("icon"), baseUrl, allowInsecure),
             themeColor = r?.get("themeColor")?.takeIf { it.isTextual && HEX_COLOUR.matches(it.asText()) }?.asText()?.lowercase(),
             wireVersion = wire,
-            auth = authOf(r?.get("auth"), allowInsecure),
+            auth = authOf(r?.get("auth"), allowInsecure, baseUrl),
             bundle = r?.get("bundle")?.takeIf { it.isTextual && it.asText().isNotEmpty() }?.asText(),
+            mateuVersion = r?.get("mateuVersion")?.takeIf { it.isTextual && AppCompat.release(it.asText()) != null }?.asText(),
         )
     }
 
+    /**
+     * Whether [baseUrl] is a plain-http app on THIS machine — the one a developer's IDE just started.
+     * Its icon and its identity provider may then be plain http on this machine too (a local Keycloak).
+     */
+    private fun isLoopbackBase(baseUrl: String): Boolean {
+        val ok = HubLinks.normalizeBaseUrl(baseUrl, HubLinks.Options(allowLoopbackHttp = true)) as? HubLinks.BaseUrl.Ok ?: return false
+        return !ok.secure && HubLinks.isLoopbackHost(ok.host.replace(Regex(":\\d+$"), ""))
+    }
+
     /** The manifest's sign-in, only when its identity provider is https too: the user's password goes there. */
-    private fun authOf(raw: JsonNode?, allowInsecure: Boolean): Auth? {
+    private fun authOf(raw: JsonNode?, allowInsecure: Boolean, baseUrl: String = ""): Auth? {
         if (raw == null || !raw.isObject) return null
         if ((raw.get("type")?.asText() ?: "oidc") != "oidc") return null
         val issuer = raw.get("issuer")?.takeIf { it.isTextual }?.asText()?.trimEnd('/').orEmpty()
         val clientId = raw.get("clientId")?.takeIf { it.isTextual }?.asText().orEmpty()
         if (issuer.isEmpty() || clientId.isEmpty()) return null
-        val secure = issuer.startsWith("https://", true) || (allowInsecure && issuer.startsWith("http://", true))
+        val localIssuer = isLoopbackBase(baseUrl) && isLoopbackBase(issuer)
+        val secure = issuer.startsWith("https://", true) || ((allowInsecure || localIssuer) && issuer.startsWith("http://", true))
         if (!secure) return null
         val scopesNode = raw.get("scopes")
         val scopes = when {
@@ -112,14 +126,28 @@ object HubManifest {
         return Auth(issuer, clientId, scopes, raw.get("audience")?.takeIf { it.isTextual && it.asText().isNotEmpty() }?.asText())
     }
 
-    /** Can the desktop app render that UI? A static site, or another wire major, cannot. Null = it can. */
+    /** Can the desktop app render that UI at all? A static site, or what [AppCompat] says is REQUIRED,
+     *  cannot. Null = it can (it may still be [compat]ibly behind: see [compat]). */
     fun refusal(manifest: Manifest, supportedMajor: Int = WireVersion.SUPPORTED_MAJOR): String? {
         if (manifest.bundle != null) return "This is a static UI (no server behind it): the desktop app can only open UIs served by a Mateu backend."
-        val major = manifest.wireVersion?.let { Regex("^\\d+").find(it)?.value?.toIntOrNull() }
-        if (major != null && major > supportedMajor) return "This app uses a newer Mateu (wire ${manifest.wireVersion}) than this version of the desktop app understands."
-        if (major != null && major < supportedMajor) return "This app's server is too old for this version of the desktop app (wire ${manifest.wireVersion})."
-        return null
+        val result = compat(manifest, supportedMajor)
+        return if (result.status == AppCompat.Status.REQUIRED) compatMessage(manifest, result, supportedMajor) else null
     }
+
+    /** This desktop app against that UI ([AppCompat]): its renderer's wire and Mateu release. */
+    fun compat(manifest: Manifest, supportedMajor: Int = WireVersion.SUPPORTED_MAJOR): AppCompat.Result =
+        AppCompat.of(ui(manifest), app(supportedMajor))
+
+    /** The sentence for [result]'s reason (null when compatible). */
+    fun compatMessage(manifest: Manifest, result: AppCompat.Result, supportedMajor: Int = WireVersion.SUPPORTED_MAJOR): String? =
+        result.reason?.let { AppCompat.message(it, manifest.name, ui(manifest), app(supportedMajor)) }
+
+    private fun ui(m: Manifest) = AppCompat.Ui(wireVersion = m.wireVersion, mateuVersion = m.mateuVersion)
+
+    private fun app(supportedMajor: Int) = AppCompat.App(
+        wire = "$supportedMajor.0",
+        mateuVersion = io.mateu.ijp.api.BuildSkew.pluginVersion.takeIf { AppCompat.release(it) != null },
+    )
 
     /** What the hub needs from HTTP: a GET answering status + body (a seam for tests). */
     fun interface Get {

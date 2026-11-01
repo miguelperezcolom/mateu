@@ -153,6 +153,21 @@ export function nestedListingAtomOf(node, ctx) {
     else if (md.rowRoute && c === titleCol) def.template = 'cellNestedLink'
     return def
   })
+  // a listing with row selection (a bulk toolbar action: "Delete selected") marks its rows like the
+  // page's own listing does — on a table; a card grid has no selection in Redwood
+  const selectable = !asCards && !!(md.rowsSelectionEnabled || md.multipleRowSelectionEnabled)
+  const toolbar = (md.toolbar || []).map((b) => (b && b.metadata) || b)
+    .filter((b) => b && b.actionId)
+    .map((b) => ({
+      actionId: String(b.actionId),
+      label: interpolate(String(b.label || b.actionId), state),
+      chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      disabled: !!b.disabled,
+      parameters: {},
+      route: '',
+      surfaceId: '',
+      fromNested: false,
+    }))
   return {
     isNestedListing: true,
     nestedKey: key,
@@ -162,6 +177,9 @@ export function nestedListingAtomOf(node, ctx) {
     cards,
     columns: tableColumns,
     rows: tableRows,
+    toolbar,
+    hasToolbar: toolbar.length > 0,
+    selectionMode: selectable ? { row: 'multiple' } : { row: 'none' },
     adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
     loaded: !!loaded,
     isEmpty: !!loaded && rows.length === 0,
@@ -219,6 +237,8 @@ export function rowClickOpensRecord(listing) {
  * className), and a click inside one never opens the row.
  */
 export const NO_OPEN_CELL_CLASS = 'mateu-cell-noopen'
+/** On a listing's table when a row click opens something: only then the rows show the hand cursor. */
+export const ROWS_OPEN_CLASS = 'mateu-rows-open'
 const DISPLAY_DATA_TYPES = ['action', 'actionGroup', 'menu', 'component', 'link', 'button']
 const DISPLAY_STEREOTYPES = ['button', 'link', 'html']
 export function isDisplayColumn(c) {
@@ -395,6 +415,12 @@ export function listingBaseOf(ctx, opts = {}) {
     if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
     return def
   }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : [])
+  const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
+  // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
+  // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
+  const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath
+  const tableClass = (lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4)
+    : 'oj-sm-12') + (rowsOpen ? ' ' + ROWS_OPEN_CLASS : '')
   return {
     // PAGINATION: the page the server sent (Page: pageNumber/pageSize/totalElements) →
     // table footer with the range and the controls; precomputed (VB CSP)
@@ -419,7 +445,7 @@ export function listingBaseOf(ctx, opts = {}) {
     // number of extra lines (0 = normal listing) and the table class that makes room for them
     // (PRECOMPUTED: VB CSP)
     extraLines: lines.extra.length,
-    tableClass: lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4) : 'oj-sm-12',
+    tableClass,
     // Redwood table density: the compact 'grid' is for WORK tables —
     // it switches on when the crud is inline-editable (@InlineEditing marks the columns
     // as editable on the wire); a lookup listing stays at 'list' (airy).
@@ -436,7 +462,7 @@ export function listingBaseOf(ctx, opts = {}) {
     // row is clicked. A NAVIGABLE row (first column with actionId 'view') still opens the record:
     // the detail is for lookup listings, where the click had no other destination.
     detailPath: md.detailPath || null,
-    navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
+    navigable,
     // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
     // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
     // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
@@ -628,6 +654,40 @@ export function rowAsArrived(row) {
 export function withListingSelection(componentState, listing, rows, selection) {
   if (!listing || !listing.rowsSelectionEnabled) return componentState
   return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
+}
+
+// The marked rows of each listing NESTED in a page's content, by its key (the oj-table's
+// selection, written by the nestedListingSelected chain). A nested listing's rows are not the
+// page's listing, so they have no place in mateuListingSelection.
+const nestedSelections = new Map()
+
+/** What is marked on a nested listing: oj-table's KeySet (`detail.value.row`), kept as a selection. */
+export function setNestedSelection(key, keySet) {
+  if (!key) return
+  const selection = selectionOfKeySet(keySet)
+  if (selection.all || selection.keys.length) nestedSelections.set(String(key), selection)
+  else nestedSelections.delete(String(key))
+}
+
+/** Forgets what was marked on a nested listing (its rows were reloaded). */
+export function clearNestedSelection(key) {
+  nestedSelections.delete(String(key))
+}
+
+/**
+ * The componentState of an action declared on a NESTED listing's toolbar (a bulk "Delete
+ * selected"): its marked rows as crud_selected_items, as Vaadin sends them. Any other action, or
+ * a page with no such listing, leaves the state untouched.
+ */
+export function withNestedSelection(componentState, host, actionId) {
+  const tree = host && host.tree
+  if (!tree || !actionId) return componentState
+  const owner = nestedListingNodesOf(tree).find((n) => ((n.metadata && n.metadata.toolbar) || [])
+    .some((b) => ((b && b.metadata) || b || {}).actionId === actionId))
+  if (!owner) return componentState
+  const key = nestedListingKeyOf(owner)
+  const rows = (((host.data || {})[key] || {}).page || {}).content || []
+  return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, nestedSelections.get(key)) })
 }
 
 // rows with @Status columns: the {type, message} value gets stamped with the JET badge

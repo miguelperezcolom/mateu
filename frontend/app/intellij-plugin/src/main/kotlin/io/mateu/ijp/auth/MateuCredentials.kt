@@ -26,4 +26,16 @@ object MateuCredentials {
     }
 
     fun clear(backend: String) = Kind.entries.forEach { set(it, backend, null) }
+
+    /** The refresh tokens of the per-UI OIDC sessions ([OidcSessions]), same service-name scheme. */
+    val store: OidcSessions.SecretStore = object : OidcSessions.SecretStore {
+        private fun attrs(account: String) = CredentialAttributes(generateServiceName("Mateu", account))
+        override fun get(account: String): String? = PasswordSafe.instance.getPassword(attrs(account))?.ifBlank { null }
+        override fun set(account: String, secret: String?) {
+            PasswordSafe.instance.set(attrs(account), secret?.ifBlank { null }?.let { Credentials("mateu", it) })
+        }
+    }
+
+    /** The app-wide OIDC sessions: one per (backend, issuer, client) — every project of the IDE shares them. */
+    val sessions: OidcSessions by lazy { OidcSessions(store) }
 }

@@ -180,7 +180,7 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators` | 3 | 2 | 0 | 0 | 1 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.calendar` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.collectiondetail` | 1 | 1 | 0 | 0 | 0 |
-| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 13 | 4 | 0 | 0 | 9 |
+| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 14 | 4 | 0 | 0 | 10 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 12 | 0 | 0 | 0 | 12 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers` | 7 | 0 | 0 | 0 | 7 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.dashboard` | 3 | 1 | 0 | 0 | 2 |
@@ -208,7 +208,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1023** | **833** | **90** | **45** | **55** |
+| **Total** | | **1024** | **833** | **90** | **45** | **56** |
 
 **Experimental types** (the whole type and its members):
 
@@ -242,6 +242,7 @@ same concepts.
 - `io.mateu.uidl.data.FoldoutPanel`: `summary`
 - `io.mateu.uidl.data.GridColumn`: `tones`
 - `io.mateu.uidl.data.HeroSection`: `overline`, `tone`
+- `io.mateu.uidl.data.Kanban`: `card`, `cardColors`, `cardRoute`, `columnField`, `moveActionId`, `rowsSource`
 - `io.mateu.uidl.data.Map`: `attribution`, `markerActionId`, `markers`, `tileUrl`
 - `io.mateu.uidl.data.Menu`: `presentation`
 - `io.mateu.uidl.data.MetricCard`: `timeframe`

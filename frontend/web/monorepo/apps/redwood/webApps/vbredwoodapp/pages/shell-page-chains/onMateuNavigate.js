@@ -114,7 +114,7 @@ define([
       // user may have changed by removing chips. Otherwise the agent asking again for
       // «/booking/bookings?status=Cancelled» after the chip was removed achieved nothing.
       const requested = detail.currentId == null && detail.selectedValue == null && detail.value == null;
-      const current = (requested && window.__mateuLoadedFull != null)
+      const current = ((requested || fromUrl) && window.__mateuLoadedFull != null) // back/forward: vs the URL on screen
         ? window.__mateuLoadedFull
         : ($application.variables.mateuSelectedNavId || $application.variables.mateuSelectedRoute);
       const target = bridge.navTargetOf(route, current);
@@ -139,7 +139,7 @@ define([
       // unsaved on the page OR an open overlay → ONE confirm (shellFlows.mjs); stay = URL restored —
       // PUSHED after a back/forward, as on the web (replacing it, the next Back would leave the app)
       if (!force && !bridge.confirmNavigationAway($application.variables)) {
-        return bridge.restoreUrlAfterStaying($application.variables.mateuSelectedRoute, fromUrl);
+        return bridge.restoreUrlAfterStaying(window.__mateuLoadedFull || $application.variables.mateuSelectedRoute, fromUrl);
       }
       // Another screen: every overlay closes, not left orphaned over the new page (the content page
       // drops its drafts and dialogs on mateuOverlaysClosed; the drawer guard must not hold the close)

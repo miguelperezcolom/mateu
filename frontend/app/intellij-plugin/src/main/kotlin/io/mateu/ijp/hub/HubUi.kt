@@ -46,9 +46,16 @@ import javax.swing.ListSelectionModel
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
-/** Development builds accept plain-http UIs (`-Dmateu.hub.allowInsecure=true`), like the app's dev build. */
+/**
+ * Development builds accept plain-http UIs (`-Dmateu.hub.allowInsecure=true`), like the app's dev build.
+ * Every build accepts plain http on THIS machine (localhost, 127.x, [::1]): that is the app a
+ * developer's IDE just started and hands over (Run live ▸ Desktop), and nothing else can be there.
+ */
 fun hubOptions(): HubLinks.Options =
-    HubLinks.Options(allowInsecure = System.getProperty("mateu.hub.allowInsecure")?.toBoolean() == true)
+    HubLinks.Options(
+        allowInsecure = System.getProperty("mateu.hub.allowInsecure")?.toBoolean() == true,
+        allowLoopbackHttp = true,
+    )
 
 /**
  * The desktop hub's home — "My UIs": the list, a search box, Add / Open / Share / Remove / reorder and
@@ -147,7 +154,7 @@ class HubPanel(
         val ok = Messages.showYesNoDialog(project, "Remove ${entry.name} (${HubLinks.domainOf(entry.baseUrl)}) from this app? You will be signed out of it.", "Remove UI", Messages.getQuestionIcon())
         if (ok == Messages.YES) {
             store.edit { it.remove(entry.id) }
-            io.mateu.ijp.auth.MateuCredentials.clear(entry.baseUrl)
+            forgetSignIn(entry)
         }
     }
 
@@ -284,6 +291,13 @@ class ConfirmAddDialog(project: Project, private val proposal: HubFlow.Proposal.
             panel.add(Box.createVerticalStrut(JBUI.scale(8)))
             panel.add(JBLabel(plain("You will sign in at ${HubLinks.domainOf(auth.issuer)}.")).apply { alignmentX = 0f })
         }
+        // a UI ahead of this app opens, but may send components it predates ([AppCompat] recommended)
+        val compat = HubManifest.compat(m)
+        if (compat.status == AppCompat.Status.RECOMMENDED) {
+            panel.add(Box.createVerticalStrut(JBUI.scale(8)))
+            panel.add(JBLabel(plain(HubManifest.compatMessage(m, compat).orEmpty())).apply { alignmentX = 0f })
+            panel.add(ActionLink("Update Mateu") { HubUpdate.run(null) }.apply { alignmentX = 0f })
+        }
         if (proposal.existing != null) {
             panel.add(Box.createVerticalStrut(JBUI.scale(8)))
             panel.add(JBLabel("It is already in your list.").apply { alignmentX = 0f })
@@ -322,7 +336,13 @@ object HubAdd {
             project,
         )
         when (proposal) {
-            is HubFlow.Proposal.Refused -> Messages.showErrorDialog(project, proposal.reason, "Can't Add This UI")
+            is HubFlow.Proposal.Refused -> if (proposal.updatable) {
+                // a newer Mateu app would open it: offer the update instead of a dead end
+                val update = Messages.showOkCancelDialog(project, proposal.reason, "Can't Add This UI Yet", "Update Mateu", "Cancel", Messages.getWarningIcon())
+                if (update == Messages.OK) HubUpdate.run(project)
+            } else {
+                Messages.showErrorDialog(project, proposal.reason, "Can't Add This UI")
+            }
             is HubFlow.Proposal.AddOne -> {
                 if (!ConfirmAddDialog(project, proposal).showAndGet()) return
                 val entry = proposal.existing ?: store.edit { it.add(proposal.baseUrl, proposal.manifest).first }

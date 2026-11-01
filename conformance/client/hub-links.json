@@ -282,6 +282,106 @@
       }
     },
     {
+      "input": "http://localhost:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "http://localhost:8080",
+        "host": "localhost:8080",
+        "secure": false
+      }
+    },
+    {
+      "input": "http://127.0.0.1:8080/crm/",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "http://127.0.0.1:8080/crm",
+        "host": "127.0.0.1:8080",
+        "secure": false
+      }
+    },
+    {
+      "input": "http://[::1]:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "http://[::1]:8080",
+        "host": "[::1]:8080",
+        "secure": false
+      }
+    },
+    {
+      "input": "http://192.168.1.20:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": false,
+        "reason": "Only secure (https) addresses can be added."
+      }
+    },
+    {
+      "input": "http://acme.com",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": false,
+        "reason": "Only secure (https) addresses can be added."
+      }
+    },
+    {
+      "input": "http://localhost.evil.com",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": false,
+        "reason": "Only secure (https) addresses can be added."
+      }
+    },
+    {
+      "input": "localhost:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "https://localhost:8080",
+        "host": "localhost:8080",
+        "secure": true
+      }
+    },
+    {
+      "input": "https://acme.com",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": true,
+        "baseUrl": "https://acme.com",
+        "host": "acme.com",
+        "secure": true
+      }
+    },
+    {
+      "input": "http://user@localhost:8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "ok": false,
+        "reason": "Addresses with a user name or password are not accepted."
+      }
+    },
+    {
       "input": "https://a_b.com",
       "result": {
         "ok": false,
@@ -464,6 +564,26 @@
       "result": {
         "kind": "add",
         "baseUrl": "https://acme.com"
+      }
+    },
+    {
+      "input": "mateu://add?u=http%3A%2F%2Flocalhost%3A8080",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "kind": "add",
+        "baseUrl": "http://localhost:8080"
+      }
+    },
+    {
+      "input": "mateu://add?u=http%3A%2F%2Facme.com",
+      "options": {
+        "allowLoopbackHttp": true
+      },
+      "result": {
+        "kind": "invalid",
+        "reason": "Only secure (https) addresses can be added."
       }
     },
     {

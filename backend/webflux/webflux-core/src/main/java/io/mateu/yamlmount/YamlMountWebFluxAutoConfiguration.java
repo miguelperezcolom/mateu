@@ -78,7 +78,7 @@ public class YamlMountWebFluxAutoConfiguration {
             RequestPredicates.GET(mount.spaPath() + "/**")
                 .and(
                     request ->
-                        !request.path().contains(".")
+                        !io.mateu.core.infra.SpaFallback.isAsset(request.path())
                             && !request.path().contains("/mateu/")
                             // a navigation, not a data fetch (see SpaFallback.acceptsHtml)
                             && io.mateu.core.infra.SpaFallback.acceptsHtml(
