@@ -7800,6 +7800,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * className), and a click inside one never opens the row.
    */
   const NO_OPEN_CELL_CLASS = 'mateu-cell-noopen'
+  /** On a listing's table when a row click opens something: only then the rows show the hand cursor. */
+  const ROWS_OPEN_CLASS = 'mateu-rows-open'
   const DISPLAY_DATA_TYPES = ['action', 'actionGroup', 'menu', 'component', 'link', 'button']
   const DISPLAY_STEREOTYPES = ['button', 'link', 'html']
   function isDisplayColumn(c) {
@@ -7976,6 +7978,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
       return def
     }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : [])
+    const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
+    // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
+    // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
+    const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath
+    const tableClass = (lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4)
+      : 'oj-sm-12') + (rowsOpen ? ' ' + ROWS_OPEN_CLASS : '')
     return {
       // PAGINATION: the page the server sent (Page: pageNumber/pageSize/totalElements) →
       // table footer with the range and the controls; precomputed (VB CSP)
@@ -8000,7 +8008,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // number of extra lines (0 = normal listing) and the table class that makes room for them
       // (PRECOMPUTED: VB CSP)
       extraLines: lines.extra.length,
-      tableClass: lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4) : 'oj-sm-12',
+      tableClass,
       // Redwood table density: the compact 'grid' is for WORK tables —
       // it switches on when the crud is inline-editable (@InlineEditing marks the columns
       // as editable on the wire); a lookup listing stays at 'list' (airy).
@@ -8017,7 +8025,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // row is clicked. A NAVIGABLE row (first column with actionId 'view') still opens the record:
       // the detail is for lookup listings, where the click had no other destination.
       detailPath: md.detailPath || null,
-      navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
+      navigable,
       // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
       // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
       // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
