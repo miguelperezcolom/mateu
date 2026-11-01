@@ -441,6 +441,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    openExternalRoute,
+    isExternalRoute,
     scrollToTopOnNavigate,
     scrollToTopWhenReplaced,
     bootstrapShell,

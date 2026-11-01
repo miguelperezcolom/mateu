@@ -5019,12 +5019,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function rowRouteOf(template, row) {
     if (!template) return ''
     let unresolved = false
+    // a template that is ONE placeholder takes the value whole (`${row.imageLarge}` → a URL): encoding
+    // it as a path segment turned https:// into https%3A%2F%2F. A value inside a path is a segment.
+    const whole = /^\s*\$\{\s*row\.[A-Za-z0-9_]+\s*\}\s*$/.test(String(template))
     const route = String(template).replace(/\$\{\s*row\.([A-Za-z0-9_]+)\s*\}/g, (all, field) => {
       const value = row ? row[field] : undefined
       if (value == null || value === '') { unresolved = true; return '' }
-      return encodeURIComponent(typeof value === 'object' ? (value.value ?? value.message ?? '') : String(value))
+      const text = typeof value === 'object' ? String(value.value ?? value.message ?? '') : String(value)
+      return whole ? text.trim() : encodeURIComponent(text)
     })
     return unresolved || route.includes('${') ? '' : route
+  }
+
+  /**
+   * Whether a route leaves the app: it carries a scheme (`https://…`, `mailto:`, a refused
+   * `javascript:`) or is protocol-relative (`//host`). The web's isExternalRoute (libs/mateu
+   * rowRoute.ts) is the same rule.
+   */
+  function isExternalRoute(route) {
+    const r = String(route == null ? '' : route).trim()
+    return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
   }
 
   function interpolate(text, state) {
@@ -7568,6 +7582,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
   /** RENDER helper: first node of the tree with the given metadata.type. */
@@ -7699,7 +7714,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })) : []
     const tableRows = asCards ? [] : rows.map((row, i) => {
       const route = routeOf(row)
-      return { ...row, __key: String(row._rowNumber != null ? row._rowNumber : i), __href: route ? urlOfRoute(route.charAt(0) === '/' ? route : '/' + route) : '' }
+      // a route that is a whole URL is a plain link to it, in a new tab
+      const external = !!route && isExternalRoute(route)
+      return { ...row, __key: String(row._rowNumber != null ? row._rowNumber : i),
+        __href: external ? safeHref(route) : route ? urlOfRoute(route.charAt(0) === '/' ? route : '/' + route) : '',
+        __target: external ? '_blank' : '', __rel: external ? 'noopener noreferrer' : '' }
     })
     const tableColumns = asCards ? [] : columns.map((c, i) => {
       const field = labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id
@@ -19742,6 +19761,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** '' (root) or '/segment(s)' without a trailing slash. */
 
+
+
   function normalizeMount(value) {
     let v = String(value == null ? '' : value).trim()
     if (!v || v === '/') return ''
@@ -19951,6 +19972,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+
+  /**
+   * A navigation to a route that is a whole URL (a rowRoute `${row.url}`, a RouteLink to
+   * `https://…`) leaves the app: it opens in a new tab (noopener), never as a route of the mount. A
+   * refused scheme (javascript:, data:…) goes nowhere. True when the route was external (handled).
+   */
+  function openExternalRoute(route, win = typeof window !== 'undefined' ? window : null) {
+    if (!isExternalRoute(route)) return false
+    const href = safeHref(route)
+    if (href && /^(https?:|mailto:|tel:|\/\/)/i.test(href) && win && typeof win.open === 'function') {
+      win.open(href, '_blank', 'noopener,noreferrer')
+    } else {
+      try { console.warn('mateu: refused to open a route that is not http(s):', route) } catch (e) { /* no console */ }
+    }
+    return true
+  }
 
 
   // Bridge transport — contract CONFIRMED against demo/demo-vb (see DESIGN-NOTES
@@ -26676,6 +26713,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    openExternalRoute,
+    isExternalRoute,
     scrollToTopOnNavigate,
     scrollToTopWhenReplaced,
     bootstrapShell,

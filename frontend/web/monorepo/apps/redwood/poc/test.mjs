@@ -4435,6 +4435,38 @@ test('P1: @RowRoute — la fila abre la ruta del maestro; una plantilla sin reso
   assert.equal(p1RowRouteOf('/customers/${row.id}', {}), '')
   assert.equal(p1RowRouteOf('', { id: '3' }), '')
 })
+import { isExternalRoute as extIsExternalRoute } from './core/content.mjs'
+import { nestedListingAtomOf as extNestedListingAtomOf, nestedListingKeyOf as extNestedListingKeyOf } from './core/listing.mjs'
+import { openExternalRoute as extOpenExternalRoute } from './mount.mjs'
+
+test('a rowRoute that is a whole URL: taken unencoded, it leaves the app in a new tab', () => {
+  const url = 'https://images-assets.nasa.gov/image/a/a~large.jpg'
+  // one placeholder = the whole value; inside a path a value is still a segment
+  assert.equal(p1RowRouteOf('${row.imageLarge}', { imageLarge: url }), url)
+  assert.equal(p1RowRouteOf('photos/${row.t}', { t: 'a b' }), 'photos/a%20b')
+  for (const ext of [url, '//cdn.x/y', 'mailto:a@b.c', 'javascript:alert(1)']) assert.ok(extIsExternalRoute(ext), ext)
+  for (const own of ['missions/6', '/missions/6/edit', 'a?q=b:c', '']) assert.ok(!extIsExternalRoute(own), own)
+  const opened = []
+  const win = { open: (...a) => opened.push(a) }
+  assert.equal(extOpenExternalRoute(url, win), true)
+  assert.deepEqual(opened, [[url, '_blank', 'noopener,noreferrer']])
+  // a refused scheme is handled (no in-app navigation) but opens nothing
+  const warn = console.warn; console.warn = () => {}
+  try { assert.equal(extOpenExternalRoute('javascript:alert(1)', win), true) } finally { console.warn = warn }
+  assert.equal(opened.length, 1)
+  assert.equal(extOpenExternalRoute('missions/6', win), false)
+  // onMateuNavigate asks first, before anything else loads
+  assert.ok(webApp('pages/shell-page-chains/onMateuNavigate.js').includes('bridge.openExternalRoute(route)'))
+  // a nested listing: a card carries the URL; a table row links to it in a new tab
+  const node = { type: 'ClientSide', id: 'g', metadata: { type: 'Listing', gridLayout: 'cards', rowRoute: '${row.imageLarge}',
+    columns: [{ type: 'GridColumn', id: 'imageTitle', identifier: true }] } }
+  const rows = [{ imageTitle: 'Scott', imageLarge: url }]
+  const data = { [extNestedListingKeyOf(node)]: { page: { content: rows } } }
+  assert.equal(extNestedListingAtomOf(node, { state: {}, data }).cards[0].route, url)
+  const table = { ...node, metadata: { ...node.metadata, gridLayout: 'table' } }
+  const row = extNestedListingAtomOf(table, { state: {}, data: { [extNestedListingKeyOf(table)]: { page: { content: rows } } } }).rows[0]
+  assert.deepEqual([row.__href, row.__target, row.__rel], [url, '_blank', 'noopener noreferrer'])
+})
 import { appLevelOf as p1AppLevelOf, splitNestedApps as p1SplitNestedApps, tabRoutePath as p1TabRoutePath, islandContentOf as p1IslandContentOf } from './reduceContexts.mjs'
 
 test('P1: la URL de una pestaña con clave sustituye la de su barra', () => {
