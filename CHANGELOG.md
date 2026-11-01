@@ -25,6 +25,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **An editor's `@Button` (and a `@ViewToolbarButton`) updates its crud page however the crud is
+  hosted** (Java). The answer aimed at an id derived from the component that sent the action
+  (`"ux_" + initiator − "_app" + "_cs_edit"` / `"_cs_view"`), which only names the page when the crud
+  is its app's home. As a menu entry of another app the app sends it, the answer — right values,
+  right message — went to `ux_ux_root_…_App_cs_edit`, which does not exist, and the form never
+  changed. A crud's routed `view` / `edit` / `new` page now carries its own id and route in its state
+  (`_pageId`, `_pageRoute`; internal, left out of `CrudFormState`), which every bubbled action sends
+  back, and the answer goes there. The edit / creation form is also re-rendered in place rather than
+  only re-stated, so what the editor computes from its values (a preview, a `Callable<Component>`
+  field, a button's visibility) follows them — same page, still in edit mode — and, when the action
+  changed a value, the form is marked dirty: leaving it asks first, as after typing.
 - **Vaadin: date pickers format and parse in the user's locale.** `vaadin-date-picker`,
   `vaadin-date-time-picker`, `vcf-date-range-picker` and the grid's inline date editors used
   Vaadin's en-US default (M/D/YYYY): in a Spanish browser "15/2/2027" read as month 15, the field

@@ -207,25 +207,57 @@ public abstract class MultiView
 
   private Object wrapView(
       String viewName, Object modelView, Component component, HttpRequest httpRequest) {
+    return wrapView(
+        viewName,
+        modelView,
+        component,
+        httpRequest.runActionRq().initiatorComponentId() + "_" + viewName,
+        getConsumedRoute(httpRequest),
+        httpRequest);
+  }
+
+  /**
+   * A routed page of this orchestrator ({@code view}, {@code edit}, {@code new}, …) under the id
+   * and consumed route it is known by on the client.
+   *
+   * <p>On a route load the id is the loading component's + {@code "_" + viewName} and the route is
+   * {@link #getConsumedRoute}. An action of the page that bubbles up to an ancestor (an editor's
+   * {@code @Button}, a {@code @ViewToolbarButton}) is answered with the page re-rendered under the
+   * SAME id and route, which it reads back from the page's own state ({@link RoutedPage}): the
+   * ancestor that sent the action has a different id and route in every hosting shape (the crud as
+   * its app's home, as a menu entry inside another app…), so neither can be derived from it.
+   */
+  public ServerSideComponentDto wrapView(
+      String viewName,
+      Object modelView,
+      Component component,
+      String pageId,
+      String consumedRoute,
+      HttpRequest httpRequest) {
     setRouteTo(viewName);
     httpRequest.setAttribute(viewName, true);
     addData(modelView, httpRequest);
-    return wrap(
-            component,
-            modelView,
-            (String) httpRequest.getAttribute("baseUrl"),
-            getConsumedRoute(httpRequest),
-            getConsumedRoute(httpRequest),
-            null,
-            httpRequest)
-        .withId(httpRequest.runActionRq().initiatorComponentId() + "_" + viewName)
-        .withTriggers(
-            Stream.concat(
-                    triggers(viewName, httpRequest).stream().map(TriggerMapper::mapTrigger),
-                    TriggerMapper.mapTriggers(modelView, httpRequest).stream())
-                .toList())
-        .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"))
-        .withPageType(pageTypeOfView(viewName, modelView));
+    var dto =
+        wrap(
+                component,
+                modelView,
+                (String) httpRequest.getAttribute("baseUrl"),
+                consumedRoute,
+                consumedRoute,
+                null,
+                httpRequest)
+            .withId(pageId)
+            .withTriggers(
+                Stream.concat(
+                        triggers(viewName, httpRequest).stream().map(TriggerMapper::mapTrigger),
+                        TriggerMapper.mapTriggers(modelView, httpRequest).stream())
+                    .toList())
+            .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"))
+            .withPageType(pageTypeOfView(viewName, modelView));
+    if (RoutedPage.tracks(viewName)) {
+      dto = dto.withInitialData(RoutedPage.stamp(dto.initialData(), pageId, consumedRoute));
+    }
+    return dto;
   }
 
   /**
