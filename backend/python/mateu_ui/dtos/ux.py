@@ -43,6 +43,7 @@ class KanbanMetadata(Wire):
     card: "KanbanCardRecord | None" = None
     card_colors: dict[str, str] | None = None
     card_route: str | None = None
+    order_field: str | None = None
 
 
 class TimelineItemRecord(Wire):

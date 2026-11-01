@@ -21,6 +21,8 @@ export interface LiveBoard {
   columnField?: string;
   card?: KanbanCard;
   cardColors?: Record<string, string>;
+  /** The item field that orders a column's cards; a move sends its new value. */
+  orderField?: string;
 }
 
 export interface KanbanMove {
@@ -48,7 +50,27 @@ export function itemsOf(json: unknown, itemsPath?: string): Dict[] {
   return Array.isArray(items) ? (items.filter((i) => i && typeof i === 'object') as Dict[]) : [];
 }
 
-/** The declared columns filled with one card per item (its `columnField`, default `status`). */
+/** A sortable order value: a number (or a numeric text) as a number, anything else as text, absent = undefined. */
+function orderValueOf(value: unknown): number | string | undefined {
+  if (value == null || value === '') return undefined;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  const n = Number(value);
+  return typeof value === 'string' && value.trim() !== '' && Number.isFinite(n) ? n : String(value);
+}
+
+/** Compares two order values: numbers before texts, absent values last. */
+function compareOrder(a: number | string | undefined, b: number | string | undefined): number {
+  if (a === undefined || b === undefined) return a === b ? 0 : a === undefined ? 1 : -1;
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  if (typeof a === 'number') return -1;
+  if (typeof b === 'number') return 1;
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * The declared columns filled with one card per item (its `columnField`, default `status`), in the
+ * source's order — or sorted by `orderField` when the board declares one (items without it last).
+ */
 export function cardsFromRows(board: LiveBoard, rows: Dict[]): BoardColumn[] {
   const field = board.columnField || 'status';
   const tpl = board.card ?? {};
@@ -67,6 +89,12 @@ export function cardsFromRows(board: LiveBoard, rows: Dict[]): BoardColumn[] {
       actionId: rowText(tpl.actionId, row),
       row,
     });
+  }
+  const order = board.orderField;
+  if (order) {
+    for (const column of columns) {
+      column.cards = [...column.cards!].sort((a, b) => compareOrder(orderValueOf(a.row?.[order]), orderValueOf(b.row?.[order])));
+    }
   }
   return columns;
 }
@@ -87,15 +115,49 @@ export function moveCard(columns: BoardColumn[], move: KanbanMove): BoardColumn[
   });
 }
 
-/** What the move action receives: the card's item with where it went over it. */
-export function moveParameters(card: BoardCard | undefined, move: KanbanMove): Dict {
-  return {
+/**
+ * The order value a moved card takes so that sorting by `orderField` keeps it where it was put, from
+ * its neighbours in the target column AFTER the move (`after` = moveCard's result): halfway between
+ * both, one past the previous, one before the next, 0 in an empty column — or the card's index when
+ * a neighbour has no numeric order. Corpus: conformance/client/kanban-order.json.
+ */
+export function orderAfterMove(after: BoardColumn[], move: KanbanMove, orderField: string): number {
+  const cards = after.find((c) => c.id === move.toColumnId)?.cards ?? [];
+  const at = cards.findIndex((c) => c.id === move.cardId);
+  if (at < 0) return move.toIndex;
+  const numeric = (card: BoardCard | undefined) => {
+    const v = card ? orderValueOf(card.row?.[orderField]) : undefined;
+    return typeof v === 'number' ? v : undefined;
+  };
+  const prevCard = cards[at - 1];
+  const nextCard = cards[at + 1];
+  const prev = numeric(prevCard);
+  const next = numeric(nextCard);
+  if ((prevCard && prev === undefined) || (nextCard && next === undefined)) return at;
+  if (prev !== undefined && next !== undefined) return (prev + next) / 2;
+  if (prev !== undefined) return prev + 1;
+  if (next !== undefined) return next - 1;
+  return 0;
+}
+
+/**
+ * What the move action receives: the card's item with where it went over it — and, with an
+ * `orderField`, its new order value as `_toOrder` and over the item's own field.
+ */
+export function moveParameters(card: BoardCard | undefined, move: KanbanMove, orderField?: string, after?: BoardColumn[]): Dict {
+  const parameters: Dict = {
     ...(card?.row ?? {}),
     _cardId: move.cardId,
     _fromColumnId: move.fromColumnId,
     _toColumnId: move.toColumnId,
     _toIndex: move.toIndex,
   };
+  if (orderField && after) {
+    const order = orderAfterMove(after, move, orderField);
+    parameters[orderField] = order;
+    parameters['_toOrder'] = order;
+  }
+  return parameters;
 }
 
 /** The moves a card's picker offers: up/down in its column, then to the end of each other column. */

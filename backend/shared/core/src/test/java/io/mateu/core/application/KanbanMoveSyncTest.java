@@ -86,6 +86,7 @@ class KanbanMoveSyncTest {
                         .build())
                 .cardColors(Map.of("urgent", "#dc2626"))
                 .cardRoute("tasks/${row.id}")
+                .orderField("rank")
                 .moveActionId("moveTask")
                 .build();
   }
@@ -151,6 +152,7 @@ class KanbanMoveSyncTest {
     assertThat(board.card().color()).isEqualTo("${row.priority}");
     assertThat(board.cardColors()).containsEntry("urgent", "#dc2626");
     assertThat(board.cardRoute()).isEqualTo("tasks/${row.id}");
+    assertThat(board.orderField()).isEqualTo("rank");
     assertThat(board.columns()).extracting(c -> c.id()).containsExactly("backlog", "done");
   }
 
@@ -159,5 +161,7 @@ class KanbanMoveSyncTest {
     var plain = new Kanban("k", List.of(), null, null);
     assertThat(plain.moveActionId()).isNull();
     assertThat(plain.rowsSource()).isNull();
+    assertThat(plain.orderField()).isNull();
+    assertThat(boardOf("/kanban-move").orderField()).isNull();
   }
 }

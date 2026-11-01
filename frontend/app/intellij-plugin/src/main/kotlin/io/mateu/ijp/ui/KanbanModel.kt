@@ -59,8 +59,32 @@ object KanbanModel {
             })
         }
 
-    /** The declared columns filled with one card per item (its `columnField`, default `status`). */
+    /** A sortable order value: a number (or a numeric text) as a Double, anything else as text, absent = null. */
+    private fun orderValueOf(value: JsonNode?): Any? = when {
+        value == null || value.isNull || value.isMissingNode -> null
+        value.isNumber -> value.asDouble().takeIf { it.isFinite() }
+        value.isTextual && value.asText().isEmpty() -> null
+        value.isTextual -> value.asText().trim().takeIf { it.isNotEmpty() }?.toDoubleOrNull()?.takeIf { it.isFinite() } ?: value.asText()
+        else -> value.asText()
+    }
+
+    /** Numbers before texts, absent values last. */
+    private val orderComparator = Comparator<Any?> { a, b ->
+        when {
+            a == null || b == null -> if (a == b) 0 else if (a == null) 1 else -1
+            a is Double && b is Double -> a.compareTo(b)
+            a is Double -> -1
+            b is Double -> 1
+            else -> (a as String).compareTo(b as String)
+        }
+    }
+
+    /**
+     * The declared columns filled with one card per item (its `columnField`, default `status`), in
+     * the source's order — or sorted by `orderField` when the board declares one (items without it last).
+     */
     fun cardsFromRows(metadata: JsonNode, rows: List<JsonNode>): List<Column> {
+        val order = metadata.str("orderField")
         val field = metadata.str("columnField").ifBlank { "status" }
         val tpl = metadata.path("card")
         val colors = metadata.path("cardColors")
@@ -78,8 +102,34 @@ object KanbanModel {
                     actionId = t("actionId", row).orEmpty(),
                     row = row,
                 )
-            })
+            }.let { cards -> if (order.isBlank()) cards else cards.sortedWith(compareBy(orderComparator) { orderValueOf(it.row?.get(order)) }) })
         }
+    }
+
+    /**
+     * The order value a moved card takes so that sorting by `orderField` keeps it where it was put,
+     * from its neighbours in the target column AFTER the move (`after` = moveCard's result): halfway
+     * between both, one past the previous, one before the next, 0 in an empty column — or the card's
+     * index when a neighbour has no numeric order. Whole values come back as Long (a body template
+     * must read `4`, not `4.0`). Corpus: conformance/client/kanban-order.json.
+     */
+    fun orderAfterMove(after: List<Column>, move: Move, orderField: String): Number {
+        val cards = after.firstOrNull { it.id == move.toColumnId }?.cards.orEmpty()
+        val at = cards.indexOfFirst { it.id == move.cardId }
+        if (at < 0) return move.toIndex.toLong()
+        fun numeric(card: Card?): Double? = card?.let { orderValueOf(it.row?.get(orderField)) as? Double }
+        val prevCard = cards.getOrNull(at - 1)
+        val nextCard = cards.getOrNull(at + 1)
+        val prev = numeric(prevCard)
+        val next = numeric(nextCard)
+        val value = when {
+            (prevCard != null && prev == null) || (nextCard != null && next == null) -> at.toDouble()
+            prev != null && next != null -> (prev + next) / 2
+            prev != null -> prev + 1
+            next != null -> next - 1
+            else -> 0.0
+        }
+        return if (value == Math.floor(value) && Math.abs(value) < 1e15) value.toLong() else value
     }
 
     /** The columns after a move (the index is the position AFTER the card left its place, clamped). */
@@ -112,16 +162,28 @@ object KanbanModel {
         return out
     }
 
-    /** What the move action receives: the card's item with `_cardId/_fromColumnId/_toColumnId/_toIndex`. */
+    /**
+     * What the move action receives: the card's item with `_cardId/_fromColumnId/_toColumnId/_toIndex`
+     * — and, with an `orderField`, the card's new order value as `_toOrder` and over the item's own field.
+     */
     @Suppress("UNCHECKED_CAST")
-    fun moveParameters(mapper: com.fasterxml.jackson.databind.ObjectMapper, card: Card?, move: Move): Map<String, Any?> {
+    fun moveParameters(
+        mapper: com.fasterxml.jackson.databind.ObjectMapper,
+        card: Card?,
+        move: Move,
+        orderField: String? = null,
+        after: List<Column>? = null,
+    ): Map<String, Any?> {
         val row = card?.row?.let { mapper.convertValue(it, Map::class.java) as Map<String, Any?> } ?: emptyMap()
-        return row + mapOf(
+        val parameters = row + mapOf(
             "_cardId" to move.cardId,
             "_fromColumnId" to move.fromColumnId,
             "_toColumnId" to move.toColumnId,
             "_toIndex" to move.toIndex,
         )
+        if (orderField.isNullOrBlank() || after == null) return parameters
+        val order = orderAfterMove(after, move, orderField)
+        return parameters + mapOf(orderField to order, "_toOrder" to order)
     }
 
     /** Where a live card goes when clicked (`tasks/${'$'}{row.id}`), or null. */

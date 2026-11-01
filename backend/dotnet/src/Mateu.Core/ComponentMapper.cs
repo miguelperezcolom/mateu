@@ -73,6 +73,7 @@ internal static class ComponentMapper
             Card = k.Card is null ? null : new KanbanCardDto(k.Card.Id, k.Card.Title, k.Card.Description, k.Card.Badge, k.Card.Color, k.Card.ActionId),
             CardColors = k.CardColors,
             CardRoute = k.CardRoute,
+            OrderField = k.OrderField,
         }),
 
         Timeline tl => Dto(tl, new TimelineMetadataDto(tl.Items.Select(it => new TimelineItemDto(

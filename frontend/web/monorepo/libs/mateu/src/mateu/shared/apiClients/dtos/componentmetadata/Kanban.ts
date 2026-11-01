@@ -17,4 +17,6 @@ export default interface Kanban extends ComponentMetadata {
     cardColors?: Record<string, string>
     /** Where a card from the source goes when clicked (`tasks/${row.id}`). */
     cardRoute?: string
+    /** The item field that orders a column's cards; a move sends its new value (`_toOrder`). */
+    orderField?: string
 }

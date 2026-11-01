@@ -32,6 +32,10 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   built-in ones, else only one a view on screen subscribes to and never a framework/DOM event name.
   Run by `agentEventPolicy.test.ts` (libs/mateu) and `poc/test-chat-events.mjs` (Redwood); React
   Native and IntelliJ deliver agent events only to their session bus of `@SubscribeTo` views.
+- `kanban-order.json` — a live Kanban board with an `orderField`: how a column's cards are sorted
+  and the order value a moved card takes (`_toOrder`). Run by `kanbanOrder.conformance.test.ts`
+  (libs/mateu), `poc/test-conformance.mjs` (Redwood), `src/core/kanbanOrder.conformance.test.ts`
+  (React Native) and `KanbanOrderConformanceTest.kt` (IntelliJ).
 
 ## Expected values
 

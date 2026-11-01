@@ -262,6 +262,7 @@ export function KanbanRenderer({ component }: { component: unknown }) {
           columns: declared, columnField: m['columnField'] as string | undefined,
           card: m['card'] as KanbanCard | undefined,
           cardColors: m['cardColors'] as Record<string, string> | undefined,
+          orderField: m['orderField'] as string | undefined,
         }, itemsOf(j, resolved.itemsPath)));
         setOptimistic(undefined);
       })
@@ -275,8 +276,9 @@ export function KanbanRenderer({ component }: { component: unknown }) {
     setPicking(undefined);
     const card = shown.find((c) => c.id === move.fromColumnId)?.cards?.find((c) => c.id === move.cardId);
     if (!moveActionId || !card) return;
-    setOptimistic(moveCard(shown, move));
-    const ok = await controller.runAction(moveActionId, moveParameters(card, move));
+    const after = moveCard(shown, move);
+    setOptimistic(after);
+    const ok = await controller.runAction(moveActionId, moveParameters(card, move, m['orderField'] as string | undefined, after));
     if (!ok) {
       setOptimistic(undefined);
       announce('The card could not be moved; it is back where it was');

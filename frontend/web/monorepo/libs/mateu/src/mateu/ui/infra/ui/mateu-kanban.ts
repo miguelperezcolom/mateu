@@ -56,6 +56,10 @@ export class MateuKanban extends LitElement {
     @property()
     cardRoute: string | undefined
 
+    /** The item field that orders a column's cards (kanbanModel.cardsFromRows / orderAfterMove). */
+    @property()
+    orderField: string | undefined
+
     @property({ attribute: false })
     state: Record<string, unknown> = {}
 
@@ -343,13 +347,14 @@ export class MateuKanban extends LitElement {
         const before = this.shown
         if (!this.movable || !isRealMove(before, move)) return
         const card = before.find(c => c.id === move.fromColumnId)?.cards?.find(c => c.id === move.cardId)
-        this.optimistic = moveCard(before, move)
+        const after = moveCard(before, move)
+        this.optimistic = after
         const column = before.find(c => c.id === move.toColumnId)
         announce(chromeTextf('kanbanMoved', { card: card?.title ?? '', column: column?.title ?? '', position: move.toIndex + 1 }))
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: this.moveActionId,
-                parameters: moveParameters(card, move),
+                parameters: moveParameters(card, move, this.orderField, after),
                 // answered by a REST action (mateu-component.handleRestAction): a live board reads its
                 // source again, keeping the moved card where it is until the new cards arrive
                 settled: (ok: boolean) => {

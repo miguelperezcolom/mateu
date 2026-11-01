@@ -242,7 +242,7 @@ same concepts.
 - `io.mateu.uidl.data.FoldoutPanel`: `summary`
 - `io.mateu.uidl.data.GridColumn`: `tones`
 - `io.mateu.uidl.data.HeroSection`: `overline`, `tone`
-- `io.mateu.uidl.data.Kanban`: `card`, `cardColors`, `cardRoute`, `columnField`, `moveActionId`, `rowsSource`
+- `io.mateu.uidl.data.Kanban`: `card`, `cardColors`, `cardRoute`, `columnField`, `moveActionId`, `orderField`, `rowsSource`
 - `io.mateu.uidl.data.Map`: `attribution`, `markerActionId`, `markers`, `tileUrl`
 - `io.mateu.uidl.data.Menu`: `presentation`
 - `io.mateu.uidl.data.MetricCard`: `timeframe`

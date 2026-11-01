@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { evaluateExpression } from './rules.mjs'
 import { __setBundleForTests, applyQueryParams, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundle.mjs'
 import { interpolateRestUrl } from './restSources.mjs'
+import { kanbanCardsFromRows, kanbanMovedColumns, kanbanMoveParametersOf } from './core/kanban.mjs'
 
 const corpusFile = (name) => fileURLToPath(new URL('../../../../../../conformance/client/' + name, import.meta.url))
 const isMarker = (v, key) => !!v && typeof v === 'object' && v[key] === true
@@ -80,11 +81,36 @@ for (const c of sourceTemplates.cases) {
   }
 }
 
+// ── a live Kanban board's orderField (conformance/client/kanban-order.json) ────────────────────
+const kanbanOrder = JSON.parse(readFileSync(corpusFile('kanban-order.json'), 'utf8'))
+const kanbanBoardOf = (orderField) => ({ columns: kanbanOrder.columns.map((id) => ({ id, title: id })), orderField })
+for (const c of kanbanOrder.sort) {
+  try {
+    const columns = kanbanCardsFromRows(kanbanBoardOf(c.orderField), c.rows)
+    assert.deepEqual(Object.fromEntries(columns.map((col) => [col.id, col.cards.map((card) => card.id)])), c.expected)
+    passed++
+  } catch (e) {
+    failures.push(`kanban order (sort): ${c.name}: ${e.message}`)
+  }
+}
+for (const c of kanbanOrder.move) {
+  try {
+    const columns = kanbanCardsFromRows(kanbanBoardOf(c.orderField), c.rows || kanbanOrder.rows)
+    const card = columns.find((col) => col.id === c.move.fromColumnId).cards.find((x) => x.id === c.move.cardId)
+    const parameters = kanbanMoveParametersOf(card, c.move, c.orderField, kanbanMovedColumns(columns, c.move))
+    assert.equal(parameters._toOrder, c.expectedOrder)
+    assert.equal(parameters[c.orderField], c.expectedOrder)
+    passed++
+  } catch (e) {
+    failures.push(`kanban order (move): ${c.name}: ${e.message}`)
+  }
+}
+
 const total = expressions.cases.length + routeParams.cases.length + routeParams.syncPaths.length
-  + sourceTemplates.cases.length
+  + sourceTemplates.cases.length + kanbanOrder.sort.length + kanbanOrder.move.length
 if (failures.length) {
   console.error(failures.map((f) => '  ✗ ' + f).join('\n'))
   console.error(`${failures.length} of ${total} client conformance cases FAILED`)
   process.exit(1)
 }
-console.log(`${passed} client conformance cases OK (expressions, route params, source templates)`)
+console.log(`${passed} client conformance cases OK (expressions, route params, source templates, kanban order)`)

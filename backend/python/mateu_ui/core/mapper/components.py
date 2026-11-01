@@ -429,6 +429,7 @@ class ComponentMapperMixin(MixinBase):
                 else None,
                 card_colors=dict(c.card_colors) if c.card_colors else None,
                 card_route=c.card_route,
+                order_field=c.order_field,
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Timeline):
