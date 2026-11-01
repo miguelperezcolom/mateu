@@ -25,6 +25,8 @@ export interface LiveBoard {
     card?: KanbanCard
     cardColors?: Record<string, string>
     cardRoute?: string
+    /** The item field that orders a column's cards: they are sorted by it, and a move sends its new value. */
+    orderField?: string
 }
 
 /** The items of a source's answer: at its itemsPath, or the answer itself when it is a list. */
@@ -36,8 +38,26 @@ export function itemsOf(json: unknown, itemsPath?: string): Record<string, unkno
 const text = (template: string | undefined, row: Record<string, unknown>, state?: Record<string, unknown>, data?: Record<string, unknown>) =>
     template == null ? undefined : (interpolate(template, state, data, { row }) ?? undefined)
 
+/** A sortable order value: a number (or a numeric text) as a number, anything else as text, absent = undefined. */
+function orderValueOf(value: unknown): number | string | undefined {
+    if (value == null || value === '') return undefined
+    if (typeof value === 'number') return Number.isFinite(value) ? value : undefined
+    const n = Number(value)
+    return typeof value === 'string' && value.trim() !== '' && Number.isFinite(n) ? n : String(value)
+}
+
+/** Compares two order values: numbers before texts, absent values last. */
+function compareOrder(a: number | string | undefined, b: number | string | undefined): number {
+    if (a === undefined || b === undefined) return a === b ? 0 : a === undefined ? 1 : -1
+    if (typeof a === 'number' && typeof b === 'number') return a - b
+    if (typeof a === 'number') return -1
+    if (typeof b === 'number') return 1
+    return a < b ? -1 : a > b ? 1 : 0
+}
+
 /**
- * The declared columns filled with one card per item, in the source's order: each item goes to the
+ * The declared columns filled with one card per item, in the source's order — or, when the board
+ * declares an `orderField`, sorted by it (stable; items without one go last): each item goes to the
  * column whose id equals its `columnField` (default `status`); an item naming no declared column is
  * left out. A card's texts come from the `card` template (`${row.x}`), its id defaulting to the
  * item's `id`; a colour naming a key of `cardColors` takes that value.
@@ -61,6 +81,12 @@ export function cardsFromRows(board: LiveBoard, rows: Record<string, unknown>[],
             actionId: text(template.actionId, row, state, data),
             row,
         })
+    }
+    const order = board.orderField
+    if (order) {
+        for (const column of columns) {
+            column.cards = [...column.cards!].sort((a, b) => compareOrder(orderValueOf(a.row?.[order]), orderValueOf(b.row?.[order])))
+        }
     }
     return columns
 }
@@ -101,17 +127,52 @@ export function isRealMove(columns: BoardColumn[], move: KanbanMove): boolean {
 }
 
 /**
+ * The order value a moved card takes so that sorting by `orderField` keeps it where it was dropped,
+ * from its neighbours in the target column AFTER the move (`after` = moveCard's result): halfway
+ * between both, one past the previous, one before the next, or 0 in an empty column. When a
+ * neighbour has no numeric order there is nothing to fit between: the card's index is used.
+ * One value for ONE write — the other cards keep theirs, so the field must hold decimals.
+ */
+export function orderAfterMove(after: BoardColumn[], move: KanbanMove, orderField: string): number {
+    const cards = after.find(c => c.id === move.toColumnId)?.cards ?? []
+    const at = cards.findIndex(c => c.id === move.cardId)
+    if (at < 0) return move.toIndex
+    const numeric = (card: BoardCard | undefined) => {
+        const v = card ? orderValueOf(card.row?.[orderField]) : undefined
+        return typeof v === 'number' ? v : undefined
+    }
+    const prevCard = cards[at - 1]
+    const nextCard = cards[at + 1]
+    const prev = numeric(prevCard)
+    const next = numeric(nextCard)
+    if ((prevCard && prev === undefined) || (nextCard && next === undefined)) return at
+    if (prev !== undefined && next !== undefined) return (prev + next) / 2
+    if (prev !== undefined) return prev + 1
+    if (next !== undefined) return next - 1
+    return 0
+}
+
+/**
  * What the move action receives: the card's item (when it came from a source — so a write that
  * needs the whole record has it) with `_cardId`, `_fromColumnId`, `_toColumnId` and `_toIndex` over it.
+ * With an `orderField`, also `_toOrder` — the card's new order value (orderAfterMove) — which is
+ * written over the item's own field too, so a body sending `${state.<orderField>}` sends the new one.
  */
-export function moveParameters(card: BoardCard | undefined, move: KanbanMove): Record<string, unknown> {
-    return {
+export function moveParameters(card: BoardCard | undefined, move: KanbanMove,
+                               orderField?: string, after?: BoardColumn[]): Record<string, unknown> {
+    const parameters: Record<string, unknown> = {
         ...(card?.row ?? {}),
         _cardId: move.cardId,
         _fromColumnId: move.fromColumnId,
         _toColumnId: move.toColumnId,
         _toIndex: move.toIndex,
     }
+    if (orderField && after) {
+        const order = orderAfterMove(after, move, orderField)
+        parameters[orderField] = order
+        parameters['_toOrder'] = order
+    }
+    return parameters
 }
 
 /** Where a card of a live board goes when clicked (`tasks/${row.id}`), or undefined. */

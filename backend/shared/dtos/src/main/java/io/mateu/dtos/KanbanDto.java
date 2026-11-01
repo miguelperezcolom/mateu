@@ -8,7 +8,8 @@ import lombok.Builder;
 /**
  * A kanban board. {@code moveActionId} makes its cards movable (drag and drop, or a "Move to…"
  * menu); {@code rowsSource} + {@code columnField} + {@code card} + {@code cardColors} + {@code
- * cardRoute} make it LIVE: the renderer reads the source and draws one card per item.
+ * cardRoute} make it LIVE: the renderer reads the source and draws one card per item, sorted by
+ * {@code orderField} when set (a move then sends the card's new value as {@code _toOrder}).
  */
 @Builder
 public record KanbanDto(
@@ -18,7 +19,8 @@ public record KanbanDto(
     String columnField,
     KanbanCardDto card,
     Map<String, String> cardColors,
-    String cardRoute)
+    String cardRoute,
+    String orderField)
     implements ComponentMetadataDto {
 
   public KanbanDto {
@@ -26,7 +28,7 @@ public record KanbanDto(
   }
 
   public KanbanDto(List<KanbanColumnDto> columns) {
-    this(columns, null, null, null, null, null, null);
+    this(columns, null, null, null, null, null, null, null);
   }
 
   @Override

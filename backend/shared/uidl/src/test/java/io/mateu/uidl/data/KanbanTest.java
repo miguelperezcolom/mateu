@@ -25,7 +25,16 @@ class KanbanTest {
     assertThat(board.card()).isNull();
     assertThat(board.cardColors()).isNull();
     assertThat(board.cardRoute()).isNull();
+    assertThat(board.orderField()).isNull();
     assertThat(board.columns().get(0).cards()).hasSize(1);
+  }
+
+  @Test
+  void theBoardBeforeOrderFieldKeepsItsConstructorAndHasNoOrder() {
+    var board = new Kanban("k", List.of(), null, null, "move", null, "status", null, null, null);
+    assertThat(board.moveActionId()).isEqualTo("move");
+    assertThat(board.orderField()).isNull();
+    assertThat(Kanban.builder().orderField("rank").build().orderField()).isEqualTo("rank");
   }
 
   @Test

@@ -847,8 +847,12 @@ export function bannersOf(ctx) {
  *  left auto (absorbs the drawer), cap 1408 — and never less than 24px on the left: the cap
  *  subtracts both gutters, or a narrow area ended up stuck to the left with a gap only on the
  *  right. */
+// A page that declares no width takes its TYPE's default, as on the web (libs/mateu layout/pageWidth.ts,
+// owner decision 2026-11-01): collection and dashboard pages are about their data and want the room.
+const PAGE_TYPE_WIDTHS = { collection: 'fullWidth', dashboard: 'fullWidth' }
+
 export function pageStyleOf(ctx) {
-  const width = (ctx && ctx.pageWidth) || 'fixed'
+  const width = (ctx && ctx.pageWidth) || PAGE_TYPE_WIDTHS[String((ctx && ctx.pageType) || '').toLowerCase()] || 'fixed'
   if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }
   if (width === 'fullWidth') return { maxWidth: 'none', margin: '0', padding: '24px' }
   // the right gutter (aligned with the shell's floating chrome, see above) …

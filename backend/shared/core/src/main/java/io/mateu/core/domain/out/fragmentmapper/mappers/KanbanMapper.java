@@ -40,6 +40,7 @@ public class KanbanMapper {
             .card(kanban.card() != null ? cardDto(kanban.card()) : null)
             .cardColors(kanban.cardColors())
             .cardRoute(kanban.cardRoute())
+            .orderField(kanban.orderField())
             .build(),
         kanban.id(),
         List.of(),

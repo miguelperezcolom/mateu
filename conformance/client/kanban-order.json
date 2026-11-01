@@ -1,0 +1,109 @@
+{
+  "description": "A live Kanban board with an orderField: how a column's cards are sorted, and the order value a moved card takes (_toOrder). Card ids are the items' ids; every item's column is its `status`.",
+  "columns": ["todo", "doing", "done"],
+  "sort": [
+    {
+      "name": "numbers sort ascending",
+      "orderField": "rank",
+      "rows": [
+        {"id": "a", "status": "todo", "rank": 3},
+        {"id": "b", "status": "todo", "rank": 1},
+        {"id": "c", "status": "todo", "rank": 2}
+      ],
+      "expected": {"todo": ["b", "c", "a"], "doing": [], "done": []}
+    },
+    {
+      "name": "numeric texts sort as numbers, not letter by letter",
+      "orderField": "rank",
+      "rows": [
+        {"id": "a", "status": "todo", "rank": "10"},
+        {"id": "b", "status": "todo", "rank": "9"},
+        {"id": "c", "status": "todo", "rank": 9.5}
+      ],
+      "expected": {"todo": ["b", "c", "a"], "doing": [], "done": []}
+    },
+    {
+      "name": "items without an order go last, in the source's order",
+      "orderField": "rank",
+      "rows": [
+        {"id": "a", "status": "todo"},
+        {"id": "b", "status": "todo", "rank": 2},
+        {"id": "c", "status": "todo", "rank": null},
+        {"id": "d", "status": "todo", "rank": 1}
+      ],
+      "expected": {"todo": ["d", "b", "a", "c"], "doing": [], "done": []}
+    },
+    {
+      "name": "numbers before texts, texts in text order",
+      "orderField": "rank",
+      "rows": [
+        {"id": "a", "status": "doing", "rank": "beta"},
+        {"id": "b", "status": "doing", "rank": "alpha"},
+        {"id": "c", "status": "doing", "rank": 5}
+      ],
+      "expected": {"todo": [], "doing": ["c", "b", "a"], "done": []}
+    },
+    {
+      "name": "without an orderField the source's order stays",
+      "rows": [
+        {"id": "a", "status": "todo", "rank": 3},
+        {"id": "b", "status": "todo", "rank": 1}
+      ],
+      "expected": {"todo": ["a", "b"], "doing": [], "done": []}
+    }
+  ],
+  "rows": [
+    {"id": "a", "status": "todo", "rank": 1},
+    {"id": "b", "status": "todo", "rank": 2},
+    {"id": "c", "status": "todo", "rank": 3},
+    {"id": "d", "status": "doing", "rank": 10}
+  ],
+  "move": [
+    {
+      "name": "to the top: one before the first",
+      "orderField": "rank",
+      "move": {"cardId": "c", "fromColumnId": "todo", "toColumnId": "todo", "toIndex": 0},
+      "expectedOrder": 0
+    },
+    {
+      "name": "to the end: one past the last",
+      "orderField": "rank",
+      "move": {"cardId": "a", "fromColumnId": "todo", "toColumnId": "todo", "toIndex": 2},
+      "expectedOrder": 4
+    },
+    {
+      "name": "between two cards: halfway",
+      "orderField": "rank",
+      "move": {"cardId": "c", "fromColumnId": "todo", "toColumnId": "todo", "toIndex": 1},
+      "expectedOrder": 1.5
+    },
+    {
+      "name": "to another column, after its card",
+      "orderField": "rank",
+      "move": {"cardId": "a", "fromColumnId": "todo", "toColumnId": "doing", "toIndex": 1},
+      "expectedOrder": 11
+    },
+    {
+      "name": "to another column, before its card",
+      "orderField": "rank",
+      "move": {"cardId": "a", "fromColumnId": "todo", "toColumnId": "doing", "toIndex": 0},
+      "expectedOrder": 9
+    },
+    {
+      "name": "into an empty column: 0",
+      "orderField": "rank",
+      "move": {"cardId": "b", "fromColumnId": "todo", "toColumnId": "done", "toIndex": 0},
+      "expectedOrder": 0
+    },
+    {
+      "name": "a neighbour without a numeric order: the card's index",
+      "orderField": "rank",
+      "rows": [
+        {"id": "a", "status": "todo", "rank": 1},
+        {"id": "b", "status": "todo"}
+      ],
+      "move": {"cardId": "a", "fromColumnId": "todo", "toColumnId": "todo", "toIndex": 1},
+      "expectedOrder": 1
+    }
+  ]
+}

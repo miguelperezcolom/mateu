@@ -66,7 +66,6 @@ internal static class UrlTemplate
     // ── the expressions a source template may use beside a plain path ──────────────────────────
 
     private const string EncodeCall = "encodeURIComponent";
-    private static readonly Regex NumberLiteral = new(@"^-?\d+(\.\d+)?$", RegexOptions.Compiled);
 
     /// <summary>The text a <c>${...}</c> expression resolves to (unknown → empty): <c>state.a</c> /
     /// <c>state.a.b</c>, <c>secret.KEY</c>, a literal, <c>a ?? b</c>, or <c>encodeURIComponent(x)</c>
@@ -78,22 +77,40 @@ internal static class UrlTemplate
     private static object? Resolve(string rawExpr, IReadOnlyDictionary<string, object?>? state, Func<string, string?> secrets)
     {
         var expr = rawExpr.Trim();
-        var coalesce = TopLevelIndexOf(expr, "??");
-        if (coalesce >= 0)
-        {
-            var left = Resolve(expr[..coalesce], state, secrets);
-            return IsAbsent(left) ? Resolve(expr[(coalesce + 2)..], state, secrets) : left;
-        }
+        // a plain path keeps its old meaning first: a FLAT key "a.b" in the state wins over a walk
+        if (PlainStatePath.IsMatch(expr)) return StatePath(state, expr[6..]);
         var inner = EncodeCallArgument(expr);
         if (inner is not null) return Encode(JsText(Resolve(inner, state, secrets)));
-        if (expr.Length >= 2 && (expr[0] == '\'' || expr[0] == '"') && expr[^1] == expr[0]) return expr[1..^1];
-        if (NumberLiteral.IsMatch(expr) || expr is "true" or "false") return expr;
-        if (expr.StartsWith("state.", StringComparison.Ordinal)) return StatePath(state, expr[6..]);
-        if (expr.StartsWith("secret.", StringComparison.Ordinal)) return secrets(expr[7..]);
-        return null;
+        // anything else is evaluated with the browser's meaning (ProxyExpression, Java's twin) so a
+        // source flipped to proxy: true keeps sending what it sent from the browser
+        try
+        {
+            var value = ProxyExpression.Evaluate(expr, state, secrets);
+            return ReferenceEquals(value, ProxyExpression.Undefined) ? null : value;
+        }
+        catch (ProxyExpression.UnsupportedException e)
+        {
+            WarnUnsupported(expr, e.Message);
+            return null;
+        }
+        catch (Exception)
+        {
+            return null; // e.g. a member of a missing value: the placeholder renders empty, as before
+        }
     }
 
-    private static bool IsAbsent(object? v) => v is null or JsonElement { ValueKind: JsonValueKind.Null or JsonValueKind.Undefined };
+    private static readonly Regex PlainStatePath =
+        new(@"^state\.[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*$", RegexOptions.Compiled);
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> Warned = new();
+
+    private static void WarnUnsupported(string expr, string why)
+    {
+        if (Warned.Count < 1000 && Warned.TryAdd(expr, true))
+            Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(MateuLogging.For("Mateu.UrlTemplate"),
+                "A source template the server cannot evaluate renders empty: ${{{Expression}}} ({Why})",
+                MateuLogging.Safe(expr), MateuLogging.Safe(why));
+    }
 
     /// <summary><c>a.b.c</c> in the state: a flat key first (as always), else a walk through nested objects.</summary>
     private static object? StatePath(IReadOnlyDictionary<string, object?>? state, string path)
@@ -131,19 +148,10 @@ internal static class UrlTemplate
     private static string Text(object? v) => v switch
     {
         _ when IsMoney(v) => Text(Child(v, "value")),
-        null => "",
-        string s => s,
-        bool b => b ? "true" : "false",
-        JsonElement { ValueKind: JsonValueKind.String } el => el.GetString() ?? "",
         JsonElement { ValueKind: JsonValueKind.Number } el => el.GetRawText(),
-        JsonElement { ValueKind: JsonValueKind.True } => "true",
-        JsonElement { ValueKind: JsonValueKind.False } => "false",
-        JsonElement { ValueKind: JsonValueKind.Null or JsonValueKind.Undefined } => "",
-        // as JavaScript's String(v), the browser leg: a list is `a,b` (it was its raw JSON or the
-        // type name, so a multi-select filter sent a different text when proxied)
-        JsonElement { ValueKind: JsonValueKind.Array } el => string.Join(",", el.EnumerateArray().Select(e => Text(e))),
-        IEnumerable items and not IDictionary<string, object?> => string.Join(",", items.Cast<object?>().Select(Text)),
-        _ => v.ToString() ?? "",
+        // as JavaScript's String(v), the browser leg: a list is `a,b`, 3.0 is `3`, an object is
+        // `[object Object]` — every leg converts a value the same way
+        _ => ProxyExpression.Text(v),
     };
 
     /// <summary>A value as JavaScript's <c>String(v)</c> converts it — what <c>encodeURIComponent(v)</c>
@@ -184,28 +192,6 @@ internal static class UrlTemplate
             }
         }
         return depth == 0 ? rest[1..^1] : null;
-    }
-
-    /// <summary>The index of <paramref name="token"/> outside quotes, parentheses and brackets, or -1.</summary>
-    private static int TopLevelIndexOf(string expr, string token)
-    {
-        var depth = 0;
-        var quote = '\0';
-        for (var i = 0; i < expr.Length; i++)
-        {
-            var c = expr[i];
-            if (quote != '\0')
-            {
-                if (c == '\\') i++;
-                else if (c == quote) quote = '\0';
-                continue;
-            }
-            if (c is '\'' or '"' or '`') quote = c;
-            else if (c is '(' or '[') depth++;
-            else if (c is ')' or ']') depth--;
-            else if (depth == 0 && string.CompareOrdinal(expr, i, token, 0, token.Length) == 0) return i;
-        }
-        return -1;
     }
 
     private static int OriginEnd(string t)

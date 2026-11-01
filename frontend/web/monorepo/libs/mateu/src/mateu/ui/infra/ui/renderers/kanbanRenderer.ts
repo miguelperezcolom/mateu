@@ -15,6 +15,7 @@ export const renderKanban = (component: ClientSideComponent, state?: Record<stri
                 .card="${metadata.card ?? undefined}"
                 .cardColors="${metadata.cardColors ?? undefined}"
                 .cardRoute="${metadata.cardRoute ?? undefined}"
+                .orderField="${metadata.orderField ?? undefined}"
                 .state="${state ?? {}}"
                 .data="${data ?? {}}"
                 style="${component.style??nothing}"

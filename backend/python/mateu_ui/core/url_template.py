@@ -17,9 +17,12 @@ other backends and renderers produce.
 
 from __future__ import annotations
 
+import logging
 import re
 import urllib.parse
 from typing import Any, Callable
+
+from . import proxy_expression
 
 _PLACEHOLDER = re.compile(r"\$\{([^}]+)\}")
 _ANY_PLACEHOLDER = re.compile(r"\$\{[^}]*\}")
@@ -43,7 +46,6 @@ def url_encode(value: str) -> str:
 # ── the expressions a source template may use beside a plain path ───────────────────────────────
 
 _ENCODE_CALL = "encodeURIComponent"
-_NUMBER = re.compile(r"-?\d+(\.\d+)?")
 
 
 def encode_call_argument(expr: str) -> str | None:
@@ -78,30 +80,6 @@ def encode_call_argument(expr: str) -> str | None:
     return rest[1:-1] if depth == 0 else None
 
 
-def _top_level_index(expr: str, token: str) -> int:
-    """The index of ``token`` outside quotes, parentheses and brackets, or -1."""
-    depth = 0
-    quote = ""
-    i = 0
-    while i < len(expr):
-        c = expr[i]
-        if quote:
-            if c == "\\":
-                i += 1
-            elif c == quote:
-                quote = ""
-        elif c in "'\"`":
-            quote = c
-        elif c in "([":
-            depth += 1
-        elif c in ")]":
-            depth -= 1
-        elif depth == 0 and expr.startswith(token, i):
-            return i
-        i += 1
-    return -1
-
-
 def is_money(v: Any) -> bool:
     """A money value: what a ``dataType: money`` field holds (``{value, currency, locale}``)."""
     return isinstance(v, dict) and "value" in v and "currency" in v
@@ -118,13 +96,15 @@ def template_text(v: Any) -> str:
     if isinstance(v, (list, tuple)):
         # as JavaScript's String(v), the browser leg: `a,b` (Python's repr sent `['a', 'b']`)
         return ",".join(template_text(x) for x in v)
-    if isinstance(v, float) and v.is_integer():
-        return str(int(v))
+    if isinstance(v, float):
+        return proxy_expression.text(v)
     if is_money(v):
         amount = v.get("value")
         if isinstance(amount, float) and amount.is_integer():
             return str(int(amount))
         return template_text(amount)
+    if isinstance(v, dict):
+        return "[object Object]"
     return str(v)
 
 
@@ -137,27 +117,38 @@ def js_text(v: Any) -> str:
 
 
 def resolve_expression(expr: str, state: dict | None, secret: Callable[[str], str | None]) -> Any:
-    """The value a ``${...}`` expression names, or None: ``state.a`` / ``state.a.b``, ``secret.KEY``,
-    a literal (``'x'``, ``"x"``, a number, ``true``/``false``/``null``), ``a ?? b`` (b when a is
-    absent) or ``encodeURIComponent(x)``. Not a JavaScript evaluator: the forms a source template
-    uses, so a proxied call means what the browser's would (Java's TemplateInterpolator)."""
+    """The value a ``${...}`` expression names, or None. A plain ``state.a.b`` path keeps its old
+    meaning (a FLAT key ``a.b`` wins over a walk); exactly ONE ``encodeURIComponent(x)`` is the
+    already-encoded value; anything else is evaluated with the browser's meaning by
+    :mod:`proxy_expression` (Java's TemplateInterpolator + ProxyExpression), so a source flipped to
+    ``proxy: true`` sends what it sent from the browser. An expression outside that subset renders
+    empty and is logged once."""
     expr = expr.strip()
-    i = _top_level_index(expr, "??")
-    if i >= 0:
-        left = resolve_expression(expr[:i], state, secret)
-        return left if left is not None else resolve_expression(expr[i + 2:], state, secret)
+    if _PLAIN_STATE_PATH.fullmatch(expr):
+        return _state_path(state or {}, expr[6:])
     inner = encode_call_argument(expr)
     if inner is not None:
         return url_encode(js_text(resolve_expression(inner, state, secret)))
-    if len(expr) >= 2 and expr[0] in "'\"" and expr[-1] == expr[0]:
-        return expr[1:-1]
-    if _NUMBER.fullmatch(expr) or expr in ("true", "false"):
-        return expr
-    if expr.startswith("state."):
-        return _state_path(state or {}, expr[6:])
-    if expr.startswith("secret."):
-        return secret(expr[7:])
-    return None
+    try:
+        value = proxy_expression.evaluate(expr, state or {}, secret)
+    except proxy_expression.Unsupported as e:
+        _warn_unsupported(expr, str(e))
+        return None
+    except Exception:  # noqa: BLE001 — e.g. a member of a missing value: renders empty, as before
+        return None
+    return None if value is proxy_expression.UNDEFINED else value
+
+
+_PLAIN_STATE_PATH = re.compile(r"state\.[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*")
+_WARNED: set[str] = set()
+
+
+def _warn_unsupported(expr: str, why: str) -> None:
+    if len(_WARNED) < 1000 and expr not in _WARNED:
+        _WARNED.add(expr)
+        logging.getLogger(__name__).warning(
+            "A source template the server cannot evaluate renders empty: ${%s} (%s)", expr, why
+        )
 
 
 def _state_path(state: dict, path: str) -> Any:

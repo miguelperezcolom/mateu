@@ -122,6 +122,38 @@ cards are fetched through the server by the board's `id`, and a proxied write ge
 parameters. The same fields exist in the ports (.NET `Kanban { MoveActionId, RowsSource, ColumnField,
 Card, CardColors, CardRoute }`, Python `Kanban(move_action_id=…, rows_source=…, …)`).
 
+## Keeping a manual order (`orderField`)
+
+A live board shows its cards **in the order the source returns them**. A move within a column
+sends `_toIndex`, but after the move the board reads the source again — so unless the source
+**stores** an order, the card jumps back to wherever the source lists it. Moving between columns
+works without one (the column is stored); keeping the order inside a column needs an order field.
+
+When the items carry one, name it with `orderField`:
+
+```yaml
+- type: Kanban
+  id: board
+  rowsSource: {ref: tasks}
+  columnField: status
+  orderField: rank
+  moveActionId: moveTask
+  columns: [...]
+```
+
+- The cards of each column are **sorted by it** (numbers ascending — a numeric text counts as a
+  number; texts after numbers; items without a value last, in the source's order).
+- A move also sends **`_toOrder`**, the card's new value, chosen to keep it exactly where it was
+  dropped: halfway between its new neighbours, one past the last card, one before the first, or `0`
+  in an empty column. The same value is written **over the item's own field**, so a body that
+  already sends `"rank": ${state.rank}` sends the new one with no change.
+
+That is **one write per move**: no other card is renumbered, so the field must accept decimals
+(`1.5` between `1` and `2`). If a neighbour has no numeric order there is nothing to fit between,
+and the card's position (`_toIndex`) is sent instead. A board without `orderField` behaves as
+before. The rule is pinned by a corpus every renderer runs (`conformance/client/kanban-order.json`);
+the ports have it too (.NET `OrderField`, Python `order_field`).
+
 ## When to use it
 
 Use a Kanban to **visualize** work by stage, and to move it along when the stages are the thing

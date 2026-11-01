@@ -243,6 +243,7 @@ class MovableBoard(ComponentTreeSupplier):
             card=KanbanCard(id="${row.id}", title="${row.title}", badge="${row.priority}", color="${row.priority}"),
             card_colors={"urgent": "#dc2626"},
             card_route="tasks/${row.id}",
+            order_field="rank",
         )
 
     # a plain method: the board naming it is what advertises it
@@ -1027,6 +1028,7 @@ def test_a_kanban_carries_its_move_action_and_live_source_and_advertises_the_mov
     assert meta["card"]["title"] == "${row.title}"
     assert meta["cardColors"] == {"urgent": "#dc2626"}
     assert meta["cardRoute"] == "tasks/${row.id}"
+    assert meta["orderField"] == "rank"
     action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
     assert "moveTask" in action_ids
 

@@ -536,6 +536,9 @@ export const NOT_IN_EMBEDDED = Object.freeze({
   installClientErrorReporting: 'would ship the host page errors to the Mateu backend',
   // the IDE visual editor's canvas frames the STANDALONE app (its preview page), never a host app
   installEditorPreview: 'the visual editor previews the standalone app only',
+  // it wraps history.pushState/replaceState of the WINDOW: the host page owns its history, and an
+  // embedded component never routes by path
+  installHistoryIndex: 'the host page owns the window history',
   // the tile-reorder sink is wired, with its own payload, by installEmbeddedContentRuntime
   setTileReorderSink: 'wired separately (its payload is a scope, not an action)',
   // the kanban sink likewise: its payload is a board and a move, handed to its own chain

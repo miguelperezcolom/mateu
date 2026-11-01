@@ -9,6 +9,8 @@ import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './
 import { MateuSession, type NavTarget } from './MateuSession.ts';
 import { setAppLocale } from './money.ts';
 import { externalAuthHeaders } from './restFetch.ts';
+import { declaresJson, jsonSafeContext } from './jsonTemplate.ts';
+import { resolvedPageTitle } from './windowTitle.ts';
 import { announce, announceLive } from '../a11y/a11y.ts';
 import { presentDocument } from './documentEffects.ts';
 import type { FileDownloadData } from './documents.ts';
@@ -424,7 +426,7 @@ export class MateuViewController {
             for (const [k, v] of Object.entries((target['headers'] as Json) ?? {})) headers[k] = interpolate(str(v), rowCtx);
             Object.assign(headers, await externalAuthHeaders({ url, method }));
             const init: RequestInit = { method, headers };
-            if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = interpolate(str(target['body']), rowCtx);
+            if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = bodyOf(target, headers, rowCtx);
             const res = await fetch(url, init);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
           }
@@ -443,7 +445,7 @@ export class MateuViewController {
         // A registered client-side auth provider supplies dynamic headers (merged last, so it wins).
         Object.assign(headers, await externalAuthHeaders({ url, method }));
         const init: RequestInit = { method, headers };
-        if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = resolve(target['body']);
+        if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = bodyOf(target, headers, ctx);
         const res = await fetch(url, init);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         json = await res.json();
@@ -915,6 +917,7 @@ export class MateuViewController {
       case 'SetWindowTitle': {
         const title = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['title']);
         if (title && !title.startsWith('[')) {
+          this.windowTitle = title;
           this.session.setTitle(title);
           // Navigating in a native app replaces the screen without any platform-level signal a
           // screen reader would pick up on its own, so it is announced here — the mobile
@@ -997,6 +1000,23 @@ export class MateuViewController {
   private publish(view: RenderedView): void {
     this.view = view;
     this.onRender(view);
+    // a YAML record page is named by the server before its record arrives ("28"): once its own
+    // title template resolves ("Voyager 1"), the title follows it — silently (core/windowTitle.ts)
+    const title = resolvedPageTitle(view.component, view.state ?? {}, view.data);
+    if (title && title !== this.windowTitle) {
+      this.windowTitle = title;
+      this.session.setTitle(title);
+    }
   }
+
+  /** The title last shown for this screen (SetWindowTitle, or the page's own once resolved). */
+  private windowTitle = '';
 }
 
+
+/** A restAction's body against ctx: when the request declares JSON, every scope is JSON-escaped first
+ *  (a quote or a newline in a value broke the body: 400), as on the web (libs/mateu jsonTemplate.ts). */
+function bodyOf(target: Json, headers: Record<string, string>, ctx: Record<string, unknown>): string {
+  const template = str(target['body']);
+  return interpolate(template, declaresJson(headers) ? jsonSafeContext(ctx) : ctx);
+}

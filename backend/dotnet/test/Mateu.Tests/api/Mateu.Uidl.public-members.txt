@@ -993,6 +993,7 @@ Mateu.Uidl.Kanban property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.K
 Mateu.Uidl.Kanban property System.String CardRoute { get;init; }
 Mateu.Uidl.Kanban property System.String ColumnField { get;init; }
 Mateu.Uidl.Kanban property System.String MoveActionId { get;init; }
+Mateu.Uidl.Kanban property System.String OrderField { get;init; }
 Mateu.Uidl.KanbanCard ctor()
 Mateu.Uidl.KanbanCard property System.String ActionId { get;init; }
 Mateu.Uidl.KanbanCard property System.String Badge { get;init; }

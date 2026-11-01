@@ -4671,8 +4671,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  left auto (absorbs the drawer), cap 1408 — and never less than 24px on the left: the cap
    *  subtracts both gutters, or a narrow area ended up stuck to the left with a gap only on the
    *  right. */
+  // A page that declares no width takes its TYPE's default, as on the web (libs/mateu layout/pageWidth.ts,
+  // owner decision 2026-11-01): collection and dashboard pages are about their data and want the room.
+  const PAGE_TYPE_WIDTHS = { collection: 'fullWidth', dashboard: 'fullWidth' }
+
   function pageStyleOf(ctx) {
-    const width = (ctx && ctx.pageWidth) || 'fixed'
+    const width = (ctx && ctx.pageWidth) || PAGE_TYPE_WIDTHS[String((ctx && ctx.pageType) || '').toLowerCase()] || 'fixed'
     if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }
     if (width === 'fullWidth') return { maxWidth: 'none', margin: '0', padding: '24px' }
     // the right gutter (aligned with the shell's floating chrome, see above) …
@@ -11449,8 +11453,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return Array.isArray(items) ? items.filter((i) => i && typeof i === 'object') : []
   }
 
+  /** A sortable order value: a number (or a numeric text) as a number, anything else as text, absent = undefined. */
+  function kanbanOrderValueOf(value) {
+    if (value == null || value === '') return undefined
+    if (typeof value === 'number') return Number.isFinite(value) ? value : undefined
+    const n = Number(value)
+    return typeof value === 'string' && value.trim() !== '' && Number.isFinite(n) ? n : String(value)
+  }
+
+  /** Compares two order values: numbers before texts, absent values last. */
+  function kanbanCompareOrder(a, b) {
+    if (a === undefined || b === undefined) return a === b ? 0 : a === undefined ? 1 : -1
+    if (typeof a === 'number' && typeof b === 'number') return a - b
+    if (typeof a === 'number') return -1
+    if (typeof b === 'number') return 1
+    return a < b ? -1 : a > b ? 1 : 0
+  }
+
   /**
-   * The declared columns filled with one card per item, in the source's order: an item goes to the
+   * The declared columns filled with one card per item, in the source's order — or sorted by the
+   * board's `orderField` when it declares one (stable; items without one go last): an item goes to the
    * column whose id equals its `columnField` (default `status`); one naming no declared column is left
    * out. A card's texts come from the `card` template, its id defaulting to the item's `id`; a colour
    * naming a key of `cardColors` takes that value. Each card keeps its item (`row`).
@@ -11474,6 +11496,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         actionId: tpl.actionId != null ? kanbanTextOf(tpl.actionId, row) : '',
         row,
       })
+    }
+    const order = md.orderField
+    if (order) {
+      for (const column of columns) {
+        column.cards = [...column.cards].sort((a, b) => kanbanCompareOrder(kanbanOrderValueOf(a.row && a.row[order]), kanbanOrderValueOf(b.row && b.row[order])))
+      }
     }
     return columns
   }
@@ -11502,15 +11530,50 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return index >= 0 && index !== Number(move.toIndex)
   }
 
-  /** What the move action receives: the card's item with `_cardId/_fromColumnId/_toColumnId/_toIndex`. */
-  function kanbanMoveParametersOf(card, move) {
-    return {
+  /**
+   * The order value a moved card takes so that sorting by `orderField` keeps it where it was dropped,
+   * from its neighbours in the target column AFTER the move: halfway between both, one past the
+   * previous, one before the next, 0 in an empty column — or the card's index when a neighbour has no
+   * numeric order. Same rule as libs/mateu kanbanModel.orderAfterMove (corpus kanban-order.json).
+   */
+  function kanbanOrderAfterMove(after, move, orderField) {
+    const column = (after || []).find((c) => c.id === move.toColumnId)
+    const cards = (column && column.cards) || []
+    const at = cards.findIndex((c) => c.id === move.cardId)
+    if (at < 0) return Number(move.toIndex) || 0
+    const numeric = (card) => {
+      const v = card ? kanbanOrderValueOf(card.row && card.row[orderField]) : undefined
+      return typeof v === 'number' ? v : undefined
+    }
+    const prevCard = cards[at - 1]
+    const nextCard = cards[at + 1]
+    const prev = numeric(prevCard)
+    const next = numeric(nextCard)
+    if ((prevCard && prev === undefined) || (nextCard && next === undefined)) return at
+    if (prev !== undefined && next !== undefined) return (prev + next) / 2
+    if (prev !== undefined) return prev + 1
+    if (next !== undefined) return next - 1
+    return 0
+  }
+
+  /**
+   * What the move action receives: the card's item with `_cardId/_fromColumnId/_toColumnId/_toIndex`,
+   * and with an `orderField` the card's new order value as `_toOrder` and over the item's own field.
+   */
+  function kanbanMoveParametersOf(card, move, orderField, after) {
+    const parameters = {
       ...((card && card.row) || {}),
       _cardId: move.cardId,
       _fromColumnId: move.fromColumnId,
       _toColumnId: move.toColumnId,
       _toIndex: Number(move.toIndex) || 0,
     }
+    if (orderField && after) {
+      const order = kanbanOrderAfterMove(after, move, orderField)
+      parameters[orderField] = order
+      parameters._toOrder = order
+    }
+    return parameters
   }
 
   /** The index a card dropped at pointerY lands on, given the middles of the column's other cards. */
@@ -11557,7 +11620,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!card) return null
     return {
       actionId: md.moveActionId,
-      parameters: kanbanMoveParametersOf(card, move),
+      parameters: kanbanMoveParametersOf(card, move, md.orderField, kanbanMovedColumns(columns, move)),
       reloadActionId: md.rowsSource ? KANBAN_ACTION + key : '',
     }
   }
@@ -16642,6 +16705,91 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // Where in the session history each entry this app wrote sits, so a back/forward the user then
+  // refuses ("you have unsaved changes" → stay) can be UNDONE instead of papered over — the Redwood
+  // twin of libs/mateu infra/ui/historyIndex.ts.
+  //
+  // Staying used to PUSH the URL of the screen on display. After a Back that is close enough, but
+  // after a FORWARD it builds a wrong history: [A, B*, C] → forward to C → stay → [A, B, C, B*] — the
+  // user is "on B" with C behind them, and the next Back goes to C. Every entry pushed or replaced
+  // through `history` carries an index (`__mateuIdx`); a popstate moved by `to - from`, and staying is
+  // `history.go(from - to)`, which lands exactly where the user was and keeps the forward entries.
+  // The popstate that `go` fires itself is swallowed. Entries this app did not write (or hash mode,
+  // where hashchange carries no state) have no index: staying falls back to pushing the URL.
+
+  const HISTORY_IDX = '__mateuIdx'
+
+  let historyInstalledOn
+  let historyCurrent = { idx: 0, href: '' }
+  let historySwallow = 0
+  let historyLastMove = null
+
+  const historyIndexOf = (state) => {
+    const v = state && typeof state === 'object' ? state[HISTORY_IDX] : undefined
+    return typeof v === 'number' ? v : undefined
+  }
+
+  const withHistoryIndex = (state, idx) => ({ ...(state && typeof state === 'object' ? state : {}), [HISTORY_IDX]: idx })
+
+  /** Stamps every history entry this window writes from now on. Idempotent. */
+  function installHistoryIndex(win = (typeof window !== 'undefined' ? window : undefined)) {
+    if (!win || !win.history || historyInstalledOn === win) return
+    historyInstalledOn = win
+    const h = win.history
+    const push = h.pushState.bind(h)
+    const replace = h.replaceState.bind(h)
+    const existing = historyIndexOf(h.state)
+    historyCurrent = { idx: existing ?? 0, href: win.location.href }
+    if (existing === undefined) replace(withHistoryIndex(h.state, 0), '')
+    h.pushState = (state, unused, url) => {
+      const idx = historyCurrent.idx + 1
+      push(withHistoryIndex(state, idx), unused, url)
+      historyCurrent = { idx, href: win.location.href }
+    }
+    h.replaceState = (state, unused, url) => {
+      replace(withHistoryIndex(state, historyCurrent.idx), unused, url)
+      historyCurrent = { idx: historyCurrent.idx, href: win.location.href }
+    }
+  }
+
+  /**
+   * A popstate happened: remembers where the user came FROM and where they are now, for a
+   * {@link restoreUrlAfterStaying} that follows. Returns false when this popstate is the echo of our
+   * own `go` (staying) and must be ignored.
+   */
+  function notePopState(state, win = (typeof window !== 'undefined' ? window : undefined)) {
+    const from = historyCurrent
+    const to = historyIndexOf(state)
+    historyCurrent = { idx: to ?? historyCurrent.idx, href: win ? win.location.href : '' }
+    if (historySwallow > 0) {
+      historySwallow--
+      historyLastMove = null
+      return false
+    }
+    historyLastMove = { from, to }
+    return true
+  }
+
+  /** Undo the last back/forward the user refused, when its entries carry indexes: true when done. */
+  function undoLastMove(win = (typeof window !== 'undefined' ? window : undefined)) {
+    const moved = historyLastMove
+    historyLastMove = null
+    if (!moved || !win || !win.history || moved.to === undefined || moved.to === moved.from.idx) return false
+    historySwallow++
+    win.history.go(moved.from.idx - moved.to)
+    return true
+  }
+
+  /** Tests only. */
+  function resetHistoryIndexForTests() {
+    historyInstalledOn = undefined
+    historyCurrent = { idx: 0, href: '' }
+    historySwallow = 0
+    historyLastMove = null
+  }
+
+
+
 
 
 
@@ -16934,6 +17082,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function restoreUrlAfterStaying(route, fromUrl, win = (typeof window !== 'undefined' ? window : undefined)) {
     if (!route || !win || !win.history) return undefined
+    // a back/forward over entries this app wrote is UNDONE (history.go): pushing after a FORWARD left
+    // the user "on B" with C behind them (historyIndex.mjs, libs/mateu historyIndex.ts)
+    if (fromUrl && undoLastMove(win)) return undefined
     const url = urlOfRoute(route)
     if (fromUrl) win.history.pushState(null, '', url)
     else win.history.replaceState(null, '', url)
@@ -26751,6 +26902,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installClientErrorReporting: 'would ship the host page errors to the Mateu backend',
     // the IDE visual editor's canvas frames the STANDALONE app (its preview page), never a host app
     installEditorPreview: 'the visual editor previews the standalone app only',
+    // it wraps history.pushState/replaceState of the WINDOW: the host page owns its history, and an
+    // embedded component never routes by path
+    installHistoryIndex: 'the host page owns the window history',
     // the tile-reorder sink is wired, with its own payload, by installEmbeddedContentRuntime
     setTileReorderSink: 'wired separately (its payload is a scope, not an action)',
     // the kanban sink likewise: its payload is a board and a move, handed to its own chain
@@ -27314,6 +27468,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
     confirmNavigationAway,
+    // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
+    installHistoryIndex,
+    notePopState,
     restoreUrlAfterStaying,
     hasOpenOverlays,
     withoutOverlays,

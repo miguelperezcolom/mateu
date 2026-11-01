@@ -575,6 +575,7 @@ public class KanbanMovePage : IComponentTreeSupplier
         Card = new KanbanCard { Id = "${row.id}", Title = "${row.title}", Badge = "${row.priority}", Color = "${row.priority}" },
         CardColors = new Dictionary<string, string> { ["urgent"] = "#dc2626" },
         CardRoute = "tasks/${row.id}",
+        OrderField = "rank",
     };
 
     // a plain method: the board naming it is what advertises it
@@ -781,6 +782,7 @@ public class ComponentTests
         Assert.Contains("\"title\":\"${row.title}\"", json);
         Assert.Contains("\"urgent\":\"#dc2626\"", json);
         Assert.Contains("\"cardRoute\":\"tasks/${row.id}\"", json);
+        Assert.Contains("\"orderField\":\"rank\"", json);
         // the web client only sends an action its component advertises (Java: KanbanMoveSyncTest)
         Assert.Contains("{\"id\":\"moveTask\"", json);
     }

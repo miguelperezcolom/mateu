@@ -23,6 +23,12 @@ import lombok.Builder;
  * any of its texts), coloured by {@code cardColors} when the card's colour names one of its keys,
  * and opening {@code cardRoute} ({@code tasks/${row.id}}) when clicked. After a successful move the
  * source is read again.
+ *
+ * <p>A live board keeps the source's order unless {@code orderField} names the item field that
+ * orders a column: its cards are then sorted by it, and a move also sends {@code _toOrder} — the
+ * card's new value, halfway between its new neighbours' (one past the last, one before the first, 0
+ * in an empty column) — written over the item's own field too. One write per move: the field must
+ * hold decimals.
  */
 @Builder
 public record Kanban(
@@ -41,10 +47,38 @@ public record Kanban(
     /** A card colour that names a key here takes its value ({@code urgent: "#dc2626"}). */
     @Experimental("kanban drag and drop (3.0-beta)") Map<String, String> cardColors,
     /** Where a card from {@code rowsSource} goes when clicked ({@code tasks/${row.id}}). */
-    @Experimental("kanban drag and drop (3.0-beta)") String cardRoute)
+    @Experimental("kanban drag and drop (3.0-beta)") String cardRoute,
+    /** The item field that orders a column's cards; a move sends its new value. */
+    @Experimental("kanban manual order (3.0-beta)") String orderField)
     implements Component {
 
   public Kanban(String id, List<KanbanColumn> columns, String style, String cssClasses) {
-    this(id, columns, style, cssClasses, null, null, null, null, null, null);
+    this(id, columns, style, cssClasses, null, null, null, null, null, null, null);
+  }
+
+  /** The board before {@code orderField}. */
+  public Kanban(
+      String id,
+      List<KanbanColumn> columns,
+      String style,
+      String cssClasses,
+      String moveActionId,
+      RestDataSource rowsSource,
+      String columnField,
+      KanbanCard card,
+      Map<String, String> cardColors,
+      String cardRoute) {
+    this(
+        id,
+        columns,
+        style,
+        cssClasses,
+        moveActionId,
+        rowsSource,
+        columnField,
+        card,
+        cardColors,
+        cardRoute,
+        null);
   }
 }

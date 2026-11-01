@@ -235,6 +235,8 @@ public record KanbanMetadataDto(IReadOnlyList<KanbanColumnDto> Columns) : Compon
     public KanbanCardDto? Card { get; init; }
     public IReadOnlyDictionary<string, string>? CardColors { get; init; }
     public string? CardRoute { get; init; }
+    /// <summary>The item field that orders a column's cards; a move sends its new value (_toOrder).</summary>
+    public string? OrderField { get; init; }
 }
 
 /// <summary>One kanban column with its cards.</summary>

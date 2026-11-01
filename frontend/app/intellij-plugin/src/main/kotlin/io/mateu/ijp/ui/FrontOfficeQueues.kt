@@ -39,7 +39,7 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
         val before = shown
         shown = KanbanModel.moveCard(shown, move)
         paint()
-        r.ctx.runAction(moveActionId, KanbanModel.moveParameters(r.ctx.mapper, card, move), onDone = { ok ->
+        r.ctx.runAction(moveActionId, KanbanModel.moveParameters(r.ctx.mapper, card, move, metadata.text("orderField"), shown), onDone = { ok ->
             if (!ok) {
                 shown = before
                 paint()
