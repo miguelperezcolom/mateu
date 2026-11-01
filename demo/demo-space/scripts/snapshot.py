@@ -70,14 +70,22 @@ def money_b(usd):
     return f"${usd / 1e9:,.1f} bn"
 
 
-def chart_panel(title, subtitle, chart_type, series, label, col_span=None):
+def chart_panel(title, subtitle, chart_type, series, label, col_span=None, style=None):
     panel = {"type": "DashboardPanel", "title": title, "subtitle": subtitle,
              "content": {"type": "Chart", "chartType": chart_type,
                          "chartData": {"labels": [human(p["label"]) if p["label"].isupper() else p["label"] for p in series],
                                        "datasets": [{"label": label, "data": [float(p["value"]) for p in series]}]}}}
     if col_span:
         panel["colSpan"] = col_span
+    if style:
+        panel["style"] = style
     return panel
+
+
+def zone(percent):
+    """A column of a wrapping row (the @Zones convention): side by side on a wide screen, one under the
+    other on a phone (the row wraps under 20rem; Redwood stacks the columns below md)."""
+    return f"flex: 1 1 calc({percent}% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);"
 
 
 def main():
@@ -112,9 +120,10 @@ def main():
 
     # ── budget page ──────────────────────────────────────────────────────────────────────────────
     budget_charts = [
-        chart_panel("Budget per year", "Millions of USD (totals: Wikidata, interpolated)", "bar", stats["budgetByYear"], "Budget (M USD)", 2),
+        chart_panel("Budget per year", "Millions of USD (totals: Wikidata, interpolated)", "bar", stats["budgetByYear"], "Budget (M USD)",
+                    style=zone(64)),
         chart_panel(f"By program, FY{stats['budgetYear']}", "Millions of USD (synthetic split)", "doughnut",
-                    stats["budgetByProgram"], "Budget (M USD)"),
+                    stats["budgetByProgram"], "Budget (M USD)", style=zone(36)),
     ]
     region("budget.yaml", "charts", [f"- {y(c)}" for c in budget_charts])
 

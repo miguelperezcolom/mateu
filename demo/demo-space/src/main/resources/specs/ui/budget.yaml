@@ -8,12 +8,13 @@ subtitle: Millions of US dollars per program and fiscal year — totals from Wik
 banners:
   - {theme: INFO, title: Synthetic split, description: "NASA's yearly totals come from Wikidata (2011, 2021 and 2023; the years between are interpolated). How each year is split between programs is generated, not real."}
 content:
-  - type: DashboardLayout
-    columns: 3
-    items:
+  # the two charts side by side on a wide screen, one under the other on a phone (the row wraps)
+  - type: HorizontalLayout
+    wrap: true
+    content:
       # >>> generated: charts (scripts/snapshot.py — do not edit by hand)
-      - {"type": "DashboardPanel", "title": "Budget per year", "subtitle": "Millions of USD (totals: Wikidata, interpolated)", "content": {"type": "Chart", "chartType": "bar", "chartData": {"labels": ["2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"], "datasets": [{"label": "Budget (M USD)", "data": [18275.4, 18342.6, 18994.5, 19633.7, 19730.0, 19869.0, 20802.8, 21366.9, 21763.7, 22115.8, 22796.3, 23632.5, 24630.5, 25079.6, 25300.8]}]}}, "colSpan": 2}
-      - {"type": "DashboardPanel", "title": "By program, FY2025", "subtitle": "Millions of USD (synthetic split)", "content": {"type": "Chart", "chartType": "doughnut", "chartData": {"labels": ["Science", "Exploration", "Space Operations", "Safety, Security and Mission Services", "Space Technology", "Aeronautics", "Construction and Environmental Compliance", "STEM Engagement", "Inspector General"], "datasets": [{"label": "Budget (M USD)", "data": [7442.5, 6435.8, 5051.9, 3458.1, 1284.9, 913.4, 532.8, 133.1, 48.3]}]}}}
+      - {"type": "DashboardPanel", "title": "Budget per year", "subtitle": "Millions of USD (totals: Wikidata, interpolated)", "content": {"type": "Chart", "chartType": "bar", "chartData": {"labels": ["2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"], "datasets": [{"label": "Budget (M USD)", "data": [18275.4, 18342.6, 18994.5, 19633.7, 19730.0, 19869.0, 20802.8, 21366.9, 21763.7, 22115.8, 22796.3, 23632.5, 24630.5, 25079.6, 25300.8]}]}}, "style": "flex: 1 1 calc(64% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);"}
+      - {"type": "DashboardPanel", "title": "By program, FY2025", "subtitle": "Millions of USD (synthetic split)", "content": {"type": "Chart", "chartType": "doughnut", "chartData": {"labels": ["Science", "Exploration", "Space Operations", "Safety, Security and Mission Services", "Space Technology", "Aeronautics", "Construction and Environmental Compliance", "STEM Engagement", "Inspector General"], "datasets": [{"label": "Budget (M USD)", "data": [7442.5, 6435.8, 5051.9, 3458.1, 1284.9, 913.4, 532.8, 133.1, 48.3]}]}}, "style": "flex: 1 1 calc(36% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);"}
       # <<< generated: charts
   - type: Listing
     title: Budget lines
