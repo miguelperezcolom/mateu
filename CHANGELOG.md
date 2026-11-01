@@ -11,6 +11,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
+  app (a gallery's photographs, a document in another system) can point at one elsewhere:
+  `rowRoute: ${row.imageLarge}` or `https://example.com/docs/${row.id}`. A route that starts with a
+  scheme or `//` leaves the app — a new tab on the web renderers, the browser on React Native and in
+  the IntelliJ plugin — and only http(s)/mailto/tel are opened. A one-placeholder template takes its
+  value unescaped (Redwood escaped it as a path segment). Vaadin, Redwood, React Native, IntelliJ.
+
 ### Fixed
 
 - **Redwood: a `Listing` in a foldout panel is drawn, with its rows.** On a `FoldoutPage` (an exhibition's

@@ -56,7 +56,15 @@ export function rowRouteOf(template: string, row: Dict): string | undefined {
     return String(v);
   });
   if (unresolved || route.includes('${')) return undefined;
-  return route.replace(/^\/+/, '');
+  // a whole URL keeps its `//`; an app route is mount-relative
+  return isExternalRoute(route) ? route.trim() : route.replace(/^\/+/, '');
+}
+
+/** Whether a route leaves the app: it carries a scheme (`https://…`, `mailto:`, a refused
+ *  `javascript:`) or is protocol-relative (`//host`). Same rule as the web's isExternalRoute. */
+export function isExternalRoute(route: string): boolean {
+  const r = route.trim();
+  return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//');
 }
 
 /** The row fields a `rowRoute` needs beyond the visible columns (`people/${row.id}` → `id`): a row
@@ -70,13 +78,17 @@ export function rowRouteFields(template: unknown): string[] {
 /** What pressing this row does, or undefined (group marker, `viewable: false`, unresolved route). */
 export type RowPress =
   | { kind: 'route'; route: string }
+  | { kind: 'url'; url: string }
   | { kind: 'action'; actionId: string; parameters: Dict };
 
 export function rowPressOf(open: RowOpen | undefined, row: Dict | null | undefined): RowPress | undefined {
   if (!open || !row || row['__mateuGroup'] || row['viewable'] === false) return undefined;
   if (open.kind === 'route') {
     const route = rowRouteOf(open.template, row);
-    return route ? { kind: 'route', route } : undefined;
+    if (!route) return undefined;
+    // a whole URL (`${row.imageLarge}`) is opened by the OS (browser), never as a route of the UI;
+    // a protocol-relative one is read as https
+    return isExternalRoute(route) ? { kind: 'url', url: route.startsWith('//') ? 'https:' + route : route } : { kind: 'route', route };
   }
   return { kind: 'action', actionId: open.actionId, parameters: { ...row } };
 }

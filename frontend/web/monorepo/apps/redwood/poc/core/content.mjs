@@ -171,12 +171,26 @@ export function notFoundOf(tree, lang) {
 export function rowRouteOf(template, row) {
   if (!template) return ''
   let unresolved = false
+  // a template that is ONE placeholder takes the value whole (`${row.imageLarge}` → a URL): encoding
+  // it as a path segment turned https:// into https%3A%2F%2F. A value inside a path is a segment.
+  const whole = /^\s*\$\{\s*row\.[A-Za-z0-9_]+\s*\}\s*$/.test(String(template))
   const route = String(template).replace(/\$\{\s*row\.([A-Za-z0-9_]+)\s*\}/g, (all, field) => {
     const value = row ? row[field] : undefined
     if (value == null || value === '') { unresolved = true; return '' }
-    return encodeURIComponent(typeof value === 'object' ? (value.value ?? value.message ?? '') : String(value))
+    const text = typeof value === 'object' ? String(value.value ?? value.message ?? '') : String(value)
+    return whole ? text.trim() : encodeURIComponent(text)
   })
   return unresolved || route.includes('${') ? '' : route
+}
+
+/**
+ * Whether a route leaves the app: it carries a scheme (`https://…`, `mailto:`, a refused
+ * `javascript:`) or is protocol-relative (`//host`). The web's isExternalRoute (libs/mateu
+ * rowRoute.ts) is the same rule.
+ */
+export function isExternalRoute(route) {
+  const r = String(route == null ? '' : route).trim()
+  return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
 }
 
 export function interpolate(text, state) {

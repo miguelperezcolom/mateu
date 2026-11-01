@@ -89,7 +89,7 @@ source: {url: "/api/products?status=${state.status}"}
 |---|---|
 | `state`, `data`, `appState`, `appData` | everywhere |
 | `i18n` | any text. Resolved per locale (see [Translations](/define/yaml/translations/)) |
-| `row` | per-row templates such as a listing's `rowRoute` |
+| `row` | per-row templates such as a listing's `rowRoute` (a route of the app, or a whole URL such as `${row.url}`, which opens in a new tab) |
 | `searchText`, `page`, `size` | a listing source's url and body |
 | `secret` | **only** in a proxied source, resolved on the server. The browser never sees it |
 
