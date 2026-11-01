@@ -22,6 +22,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Redwood: a listing whose rows open nothing shows no hand cursor.** Every table row invited a click;
+  now only a row that opens its route, its record or its detail does (`mateu-rows-open`).
 - **Redwood: a `Listing` in a foldout panel is drawn, with its rows.** On a `FoldoutPage` (an exhibition's
   works and loans) the listing's rows were loaded but the panel drew nothing: a panel's content was read
   without the page around it, so the listing was not known to sit in a templated page's slot. A foldout
