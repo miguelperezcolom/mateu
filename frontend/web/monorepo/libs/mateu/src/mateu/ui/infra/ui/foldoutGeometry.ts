@@ -137,8 +137,8 @@ export function fitColumnToWidth<T extends { metadata?: any }>(column: T): T {
  * frozen to the END: a row with many fields is a wide grid, and the button sat past the horizontal
  * scroll. Done here, not on the wire, so it holds whatever backend drew the grid.
  */
-export function freezeRowEditorButton<T extends { metadata?: any }>(column: T): T {
-    const md = column?.metadata
+export function freezeRowEditorButton<T extends { metadata?: object }>(column: T): T {
+    const md = column?.metadata as { id?: string; stereotype?: string } | undefined
     if (!md || md.id !== '_select' || md.stereotype !== 'button') return column
     return { ...column, metadata: { ...md, frozenToEnd: true } }
 }
