@@ -5296,7 +5296,8 @@ import { isLeaveAction, isConflictDialogAnswer, confirmLeaveAction, tracksUnsave
 }
 
 // ── unsaved changes SCOPED per overlay (the web's dirtyGuard): the page's + each open overlay's ───
-import { withOverlayDirty, overlaysHoldUnsavedChanges, hasUnsavedChanges, confirmNavigationAway, withoutOverlays, hasOpenOverlays, topOverlayContextOf } from './shellFlows.mjs'
+import { withOverlayDirty, overlaysHoldUnsavedChanges, hasUnsavedChanges, confirmNavigationAway, withoutOverlays, hasOpenOverlays, topOverlayContextOf, restoreUrlAfterStaying } from './shellFlows.mjs'
+import { installHistoryIndex, notePopState, resetHistoryIndexForTests } from './historyIndex.mjs'
 {
   // the crud's create/edit drawer as the server sends it: the form is a ServerSide in metadata.content
   const crudDrawer = { type: 'ClientSide', id: 'fieldId', metadata: { type: 'Drawer', content: {
@@ -5329,6 +5330,35 @@ import { withOverlayDirty, overlaysHoldUnsavedChanges, hasUnsavedChanges, confir
     assert.equal(hasUnsavedChanges({ mateuDirty: false, mateuRegistry: withDrawer(true) }), true)
     assert.equal(overlaysHoldUnsavedChanges(withDrawer(true)), true)
     assert.equal(hasUnsavedChanges(undefined), false)
+  })
+
+  test('staying after a refused FORWARD undoes the move (history.go), not a push that reorders history', () => {
+    // a minimal session history: entries + a cursor, popstate driven by the test
+    const entries = [{ state: null, url: 'https://x/a' }]
+    let at = 0
+    const calls = []
+    const win = {
+      location: { get href() { return entries[at].url } },
+      history: {
+        get state() { return entries[at].state },
+        pushState(state, _t, url) { entries.splice(at + 1); entries.push({ state, url: 'https://x' + url }); at++ },
+        replaceState(state, _t, url) { entries[at] = { state, url: url ? 'https://x' + url : entries[at].url } },
+        go(n) { calls.push(n); at += n },
+      },
+    }
+    resetHistoryIndexForTests()
+    installHistoryIndex(win)
+    win.history.pushState(null, '', '/b')
+    win.history.pushState(null, '', '/c')
+    // back to B, then FORWARD to C, which the user refuses (unsaved changes on B)
+    at = 1; assert.equal(notePopState(entries[at].state, win), true)
+    at = 2; assert.equal(notePopState(entries[at].state, win), true)
+    restoreUrlAfterStaying('b', true, win)
+    assert.deepEqual(calls, [-1], 'go back by one: B again, C kept ahead')
+    assert.equal(entries.length, 3, 'nothing pushed')
+    // the popstate that go() fires is the echo of staying: swallowed
+    assert.equal(notePopState(entries[at].state, win), false)
+    resetHistoryIndexForTests()
   })
 
   test('confirmNavigationAway: ONE question for page + overlays; stay changes nothing, accept discards them all', () => {

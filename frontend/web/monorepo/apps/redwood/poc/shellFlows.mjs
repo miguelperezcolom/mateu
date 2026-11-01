@@ -1,6 +1,7 @@
 import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
 import { urlOfRoute } from './mount.mjs'
+import { undoLastMove } from './historyIndex.mjs'
 import { interpolateRestUrl } from './restSources.mjs'
 
 // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
@@ -291,6 +292,9 @@ export function confirmNavigationAway(vars, win = (typeof window !== 'undefined'
  */
 export function restoreUrlAfterStaying(route, fromUrl, win = (typeof window !== 'undefined' ? window : undefined)) {
   if (!route || !win || !win.history) return undefined
+  // a back/forward over entries this app wrote is UNDONE (history.go): pushing after a FORWARD left
+  // the user "on B" with C behind them (historyIndex.mjs, libs/mateu historyIndex.ts)
+  if (fromUrl && undoLastMove(win)) return undefined
   const url = urlOfRoute(route)
   if (fromUrl) win.history.pushState(null, '', url)
   else win.history.replaceState(null, '', url)

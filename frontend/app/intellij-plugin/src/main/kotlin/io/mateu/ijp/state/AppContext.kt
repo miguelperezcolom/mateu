@@ -568,7 +568,7 @@ class AppContext(val session: AppSession) {
                         headers[k] = Expressions.interpolate(v.asText(""), ctx)
                     }
                     val body = target.get("body")?.asText("").orEmpty().let {
-                        if (it.isBlank()) null else Expressions.interpolate(it, ctx)
+                        if (it.isBlank()) null else Expressions.interpolateBody(it, headers, ctx)
                     }
                     // A registered client-side auth provider supplies dynamic headers (merged last).
                     headers.putAll(io.mateu.ijp.ui.RestFetch.authHeaders(url, method))
@@ -774,6 +774,10 @@ class AppContext(val session: AppSession) {
 
         val commands = increment.path("commands")
         if (commands.isArray) for (cmd in commands) handleCommand(cmd)
+
+        // a YAML record page is named by the server before its record arrives ("28"): once its own
+        // title template resolves ("Voyager 1"), the view's title follows it (WindowTitle)
+        WindowTitle.resolved(lastContent, currentComponentState)?.let { if (it != lastWindowTitle) setWindowTitle(it) }
 
         // Action-returned banners (PageBanner/PageBanners): bare returns replace, .append accumulates.
         val banners = increment.path("banners")
