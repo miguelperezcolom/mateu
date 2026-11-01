@@ -11,6 +11,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **A crud's edit and creation forms render the editor's own `@Button`s** (Java). They sit under the
+  form — in the drawer's bottom row, before Cancel/Save — and are the actions that only make sense
+  while editing (insert a medium into the text, translate it, refresh a preview). Like save, they
+  bubble to the crud with the form's values (`action-on-editor-<method>` /
+  `action-on-creation-form-<method>`): the method runs on the editor rebuilt from them, and an answer
+  of `this`, nothing, messages or `List.of(this, Message…)` updates the form in place — still in edit
+  mode, Save still saving what the action produced. Hidden (`VisibilitySupplier`, `@Hidden`,
+  `@Audience`) and unauthorised buttons are left out, and an id naming no `@Button` of the form is
+  refused (403). They used to be dropped: the form showed only Cancel/Save, and an editor method
+  invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
 - **Screen readers no longer hear a stale message over a newer one (Vaadin + Redwood).** Repeating a
