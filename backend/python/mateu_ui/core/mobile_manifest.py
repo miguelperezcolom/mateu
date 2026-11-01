@@ -99,6 +99,11 @@ def manifest(app_type: type | None, mateu_version: str | None = None) -> dict[st
     release = release_version(mateu_version)
     if release:
         out["mateuVersion"] = release
+    # development mode: where the live-reload events are (the native renderers subscribe to them)
+    from mateu_ui.core import dev_specs
+
+    if dev_specs.enabled():
+        out["devEvents"] = dev_specs.EVENTS_PATH
     issuer = pick("MATEU_MOBILE_OIDC_ISSUER", "oidc_issuer")
     client_id = pick("MATEU_MOBILE_OIDC_CLIENT_ID", "oidc_client_id")
     if issuer and client_id:

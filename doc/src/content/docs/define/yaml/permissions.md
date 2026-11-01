@@ -92,6 +92,10 @@ wire, and strips the keys: what reaches the client is what this caller may see. 
 browser enforced would be a suggestion — the same reason [pinned route
 parameters](/concepts/routes-and-mounts/#precedence) are re-applied on the server.
 
+A **partial** is no exception: the keys inside a `type: Partial` (and its `${i18n.…}` texts) are
+applied exactly as if its content were written in the page that references it — the server expands
+the partials into the definition first, then applies access and translations to the whole tree.
+
 Hiding is UX, not authorization. As with the annotations, the REST endpoints your screens call must
 still check who is calling.
 

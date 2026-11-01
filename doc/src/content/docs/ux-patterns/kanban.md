@@ -154,6 +154,12 @@ and the card's position (`_toIndex`) is sent instead. A board without `orderFiel
 before. The rule is pinned by a corpus every renderer runs (`conformance/client/kanban-order.json`);
 the ports have it too (.NET `OrderField`, Python `order_field`).
 
+A complete example is the museums demo's conservation board (`demo/demo-museum`,
+`conservation.yaml` on its branch; live at `museums.ec1.mateu.io/conservation`). Its rows source
+reads the tasks with `sort=boardOrder`, the board declares `orderField: boardOrder`, and the move
+action PUTs the task's record with `"boardOrder": "${state.boardOrder}"`. The service seeds each
+column 1000 apart and keeps whatever decimal a move writes.
+
 ## When to use it
 
 Use a Kanban to **visualize** work by stage, and to move it along when the stages are the thing

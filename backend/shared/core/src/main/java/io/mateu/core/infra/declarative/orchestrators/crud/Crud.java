@@ -53,6 +53,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
           new EditActionHandler(),
           new ActionOnRowActionHandler(),
           new ActionOnViewActionHandler(),
+          new ActionOnEditorActionHandler(),
           new UpdateRowActionHandler());
 
   @Override

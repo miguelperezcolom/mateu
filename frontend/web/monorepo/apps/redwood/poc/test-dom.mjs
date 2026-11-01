@@ -484,6 +484,21 @@ const withDocument = (doc, fn) => async () => {
     assert.equal(polite.textContent, 'Saved', 'un mensaje vacío no pisa nada')
     void el
   }))
+  // the same document: the live regions are created once per page and stay in it (a11y.mjs)
+  test('a11y: a repeat that is still pending never overwrites a newer message', withDocument(doc, async () => {
+    const polite = doc.querySelector('[data-mateu-live-region="polite"]')
+    announce('Ready')
+    announce('Ready') // the repeat: cleared now, put back a moment later…
+    assert.equal(polite.textContent, '')
+    announce('Order 42 opened') // …but something newer is said in between
+    assert.equal(polite.textContent, 'Order 42 opened')
+    await sleep(120)
+    assert.equal(polite.textContent, 'Order 42 opened', 'the stale repeat does not come back over it')
+    announce('Order 42 opened')
+    announce('Order 42 opened')
+    await sleep(120)
+    assert.equal(polite.textContent, 'Order 42 opened', 'a repeat still lands when nothing newer was said')
+  }))
 }
 
 {

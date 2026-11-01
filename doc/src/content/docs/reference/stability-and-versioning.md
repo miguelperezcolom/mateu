@@ -181,8 +181,8 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.calendar` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.collectiondetail` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 14 | 4 | 0 | 0 | 10 |
-| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 12 | 0 | 0 | 0 | 12 |
-| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers` | 7 | 0 | 0 | 0 | 7 |
+| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 13 | 0 | 0 | 0 | 13 |
+| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers` | 8 | 0 | 0 | 0 | 8 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.dashboard` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.datamanagement` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.editableview` | 2 | 2 | 0 | 0 | 0 |
@@ -208,7 +208,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1024** | **833** | **90** | **45** | **56** |
+| **Total** | | **1026** | **833** | **90** | **45** | **58** |
 
 **Experimental types** (the whole type and its members):
 

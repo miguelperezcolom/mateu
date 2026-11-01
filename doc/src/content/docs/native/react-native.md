@@ -48,6 +48,13 @@ java -jar target/demo-admin-panel-0.0.1-SNAPSHOT.jar --mateu.cors.allowed-origin
 
 Expo Go, simulators and installables are not browsers: they need no CORS setting.
 
+**Live reload.** Against a backend in development mode (`mateu.dev=true` — what the IDE's *Run Mateu
+App (Live)* starts), the app reads `devEvents` from the backend's manifest and follows
+`/mateu/dev/events` while the UI is open: a YAML edit under `specs/ui`, the reload the IDE fires after a
+HotSwap, or a restarted backend re-renders the screen on display without restarting the app (values
+typed and not saved are lost). A production backend names no event stream, so nothing is opened.
+Details: [Live reload](/java-user-manual/build/live-reload/#on-the-desktop-and-the-phone).
+
 ## 2. The app registry
 
 An installable carries only a **registry URL** and an **app id**. At boot it fetches

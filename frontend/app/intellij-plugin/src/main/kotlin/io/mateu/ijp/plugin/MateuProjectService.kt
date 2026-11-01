@@ -201,6 +201,17 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         s.onAppContextChanged = { ctx.initialLoad(route) }
         // The idle warning signed out: back to the app's root, as a fresh start.
         s.onSignedOut = { ctx.initialLoad(route) }
+        // Development mode ("Run Mateu App (Live)"): the backend's manifest names its live-reload
+        // events — a YAML edit, a HotSwap's reload or a restart re-renders the shell and every open
+        // view, like the browser. A production backend names none: nothing is followed.
+        s.liveReload = io.mateu.ijp.live.LiveReload.follow(baseUrl) {
+            SwingUtilities.invokeLater {
+                if (session === s) {
+                    ctx.initialLoad(route)
+                    viewManager.reloadAll()
+                }
+            }
+        }
     }
 
     /** Standalone landing: open the app's @HomeRoute (like the web shells) — falling back to the

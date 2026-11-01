@@ -183,6 +183,12 @@ public final class MobileManifest {
             attr(declared, MobileApp::minAppVersion),
             DEFAULT_MIN_APP_VERSION));
     put(manifest, "mateuVersion", releaseVersion(mateuVersion));
+    // in development mode: where the live-reload events are, so the native renderers (the phone
+    // app, the desktop app) re-render on a YAML edit or a HotSwap like the web does from its
+    // <meta name="mateu-dev">. Never outside development mode.
+    if (io.mateu.core.infra.dev.DevMode.enabled()) {
+      manifest.put("devEvents", io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH);
+    }
     String issuer = first(MateuSettings.get(OIDC_ISSUER), attr(declared, MobileApp::oidcIssuer));
     String clientId =
         first(MateuSettings.get(OIDC_CLIENT_ID), attr(declared, MobileApp::oidcClientId));

@@ -11,17 +11,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
-### Changed
+### Added
 
-- **Vaadin: listings, boards and dashboards use the full width.** Every page sat in the server's
-  default 900px column whatever width it resolved to; that column is now only a FIXED page's (a
-  form's reading measure), and full/edge pages take their width. The width rules: full-bleed content
-  (gantt, planning board, kanban, BPMN, map, foldout) → edge-to-edge, but full width on a form page;
-  collection and dashboard pages → full width; form/process/landing → fixed. A YAML listing page
-  served with route seeds is a collection (it went out as a form page).
-- **A YAML `HorizontalLayout` with no `spacing:` is spaced** on the Java backend and in static bundles,
-  as it already was on .NET and Python — an image beside a form no longer touches it.
-
+- **A crud's edit and creation forms render the editor's own `@Button`s** (Java). They sit under the
+  form — in the drawer's bottom row, before Cancel/Save — and are the actions that only make sense
+  while editing (insert a medium into the text, translate it, refresh a preview). Like save, they
+  bubble to the crud with the form's values (`action-on-editor-<method>` /
+  `action-on-creation-form-<method>`): the method runs on the editor rebuilt from them, and an answer
+  of `this`, nothing, messages or `List.of(this, Message…)` updates the form in place — still in edit
+  mode, Save still saving what the action produced. Hidden (`VisibilitySupplier`, `@Hidden`,
+  `@Audience`) and unauthorised buttons are left out, and an id naming no `@Button` of the form is
+  refused (403). They used to be dropped: the form showed only Cancel/Save, and an editor method
+  invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
 - **A `List<Row>` field's row editor honours the row's `VisibilitySupplier`.** The editor ("Edit" and
@@ -40,80 +41,51 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Vaadin: a listing's header wraps on a phone** — the actions go below the title instead of
   squeezing it to "Laun…".
 ### Fixed (security and parity — Fable review)
+- **Screen readers no longer hear a stale message over a newer one (Vaadin + Redwood).** Repeating a
+  message (two failed saves in a row) clears the live region and puts the text back 60 ms later; a
+  different message announced in between was then overwritten by the old one. A newer announcement
+  now cancels the pending repeat (`libs/mateu` `announcer.ts`, Redwood `poc/a11y.mjs`). This was also
+  the intermittent Redwood suite failure: a test waited a fixed 80 ms for the previous test's repeat.
 
-- **A `type: Partial`'s access keys and `${i18n.…}` are applied on the server**, like the same
-  content written inline. A section guarded by `eyesOnly:` used to reach every caller once it lived
-  in a partial, and its texts stayed raw.
-- **A bundle never ships a definition that depends on who asks.** A hybrid bundle wrote access-guarded
-  definitions raw into `manifest.json` and the browser expanded them for everybody; now they are not
-  shipped, and the resolver refuses to expand a route with `access:` or a definition with access keys.
-- **One route-parameter order everywhere: `fixed > client state > path > query > defaults`.** The .NET
-  and Python servers ranked the path over the client state, let a null erase a default and ignored the
-  URL query; static bundles (web, Redwood, React Native) dropped the query too.
-- **A proxied REST source sends what the browser would.** The server now evaluates the expression
-  subset sources use (`${(state.page ?? 0) * 20}`, conditionals, `?.`, `String`/`Number`) instead of
-  sending it empty, and a list value is `a,b` on every leg (Java sent `[a, b]`, Python `['a', 'b']`,
-  Redwood `["a","b"]`). The validator flags a template the server cannot evaluate
-  (`proxy_unsafe_template`). Pinned by `conformance/client/source-templates.json`.
-### Security
+- **Live reload reaches the desktop and phone apps.** Only the browser followed a development
+  server's live-reload events, so a YAML edit or a HotSwap re-rendered the web tab while the screen
+  opened from the IDE in the Mateu desktop app or on the phone stayed stale (the docs said the desktop
+  app re-rendered). A backend in development mode now names its event stream in the hub manifest
+  (`devEvents`, Java/.NET/Python; absent outside development mode), and the IntelliJ renderer
+  (`live/LiveReload.kt`) and the React Native app (`core/liveReload.ts`) follow it while a UI is open,
+  re-rendering on a YAML edit, an IDE reload or a restart. The meaning of each event is a shared
+  corpus, `conformance/client/live-reload.json`, run by the web, React Native and IntelliJ suites.
 
-- **A CRUD's writes are refused if forced, not only undrawn** (Java, .NET, Python): `@ReadOnly`,
-  `@NotCreatable`/`@NotEditable`/`@NotDeletable`, `canCreate/canEdit/canDelete()` and `display()`
-  toggles (`off`/`disabled`) now answer 403 to a crafted `create`/`save`/`update-row`/`delete`.
-- **Strict action mode no longer reads the class's string literals**: an unmarked method is accepted
-  when the view's declarations name it or a response to the view emitted its id (a dialog's confirm,
-  an undo, a served row's `ColumnAction`). A handler named only by a literal now needs `@Action`.
-- `nested-form-action-<field>-<method>` must name a field, and its validated buttons are re-checked.
-- A failed save in an edit drawer shows the error boundary's text (generic + reference), not the
-  raw exception message (Java, .NET, Python).
-- A proxied REST source's headers and body template never reach the client (app catalogue,
-  responses, `manifest.json`); `__restfetch__` refuses a source that is not `proxy: true`.
-- Helidon MP: the SSE, MCP and YAML-mount routes (outside Jersey) see Helidon security's caller and
-  refuse anonymous calls when the app requires a login; Quarkus `/mateu/mcp` runs after HTTP security.
-- Bulk-delete ids reach the store as the crud's id type; a save never adopts a client `@Version`
-  ahead of the stored one, and a version column is not inline-editable.
+### Documentation
+
+- Desktop installers are built on CI only; their build never uses `File.deleteRecursively()` (CLAUDE.md, CONTRIBUTING.md) (#1007).
+
+- The museums conservation board is the reference example of `orderField` (#1008).
+
+## [3.0-beta.35] — 2026-11-01
 
 ### Added
 
-- **Desktop app: one sign-in per UI.** Switching UIs in the desktop hub no longer drops the session
-  of the one you leave: each UI keeps its own (keyed by address + identity provider + client), Sign
-  out is per UI, removing a UI deletes its stored tokens. An earlier single stored token moves to its
-  UI once. Verified end to end against Keycloak (device flow, refresh, two realms).
-- **Kanban boards move: drag and drop, and a Move menu.** A `Kanban` with a `moveActionId` lets
-  its cards be dragged to another column or reordered within one (a line shows where it lands); each
-  card also has a Move menu (`⋯`: up, down, to another column) for the keyboard, screen readers, phones
-  and the IntelliJ plugin. The card moves at once and goes back if the action fails; the action gets
-  the card's item plus `_cardId`, `_fromColumnId`, `_toColumnId` and `_toIndex`. A board can also be
-  **live**: `rowsSource` + `columnField` + a `card` template (`${row.x}`) + `cardColors` + `cardRoute`
-  draw the cards from a REST source, read again after each move — so a YAML page with a `restAction`
-  move needs no Java. A REST action now reads its call parameters over the state on both legs
-  (browser and proxied). Java, .NET, Python; Vaadin, Redwood, React Native, IntelliJ.
-- **Live run ▸ Desktop opens the UI in the Mateu desktop app, a separate IntelliJ.** It used to repoint
-  the developer's own IDE and open its tool window. The IDE now hands the installed desktop app
-  `mateu://add?u=http://localhost:<port>` (macOS: by bundle id, since the phone app claims the scheme
-  too); without it, a notification offers the download or the old way. The desktop app accepts plain
-  http for this machine only (hub-links corpus option `allowLoopbackHttp`). VS Code: setting
-  `mateu.liveRun.openIn` + *Mateu: Open Running App in the Desktop App*.
-- **A `mateu://` link that STARTS the desktop app now works.** The platform took the URL as the whole
-  command line and never opened the workspace the launcher passes: the app sat on IntelliJ's welcome
-  screen and answered "This Mateu app does not add UIs from links". It now opens its bundled workspace
-  first.
-- **The hub apps check whether they can render a UI, by themselves.** The UI manifest now carries the
-  server's Mateu release (`mateuVersion`, beside `wireVersion`; Java, .NET and Python, omitted on a
-  development build). When a UI is added, opened or its manifest refreshed, the phone and desktop apps
-  compare it with their own wire and release (`conformance/client/app-compat.json`): another wire
-  major, or `minAppVersion` above the phone app → not added or opened, **Update Mateu** offered; a
-  newer minor or release → opens with a note. **Update Mateu** installs an over-the-air update when
-  there is one, else opens the store (or, for the GitHub APK, the releases page); on the desktop it
-  checks the update feed at once. Each release now publishes the phone app over the air when the
-  repository has `EXPO_TOKEN`.
+- **Kanban `orderField`**: a live board keeps the manual order of its cards (each move sends `_toOrder`, the midpoint between its new neighbours); shared corpus run by Vaadin, Redwood, React Native and IntelliJ (#1001).
 
-- **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
-  app (a gallery's photographs, a document in another system) can point at one elsewhere:
-  `rowRoute: ${row.imageLarge}` or `https://example.com/docs/${row.id}`. A route that starts with a
-  scheme or `//` leaves the app — a new tab on the web renderers, the browser on React Native and in
-  the IntelliJ plugin — and only http(s)/mailto/tel are opened. A one-placeholder template takes its
-  value unescaped (Redwood escaped it as a path segment). Vaadin, Redwood, React Native, IntelliJ.
+### Changed
+
+- .NET and Python proxies evaluate the same source-template subset as Java (shared corpus) and their validators warn `proxy_unsafe_template`; two .NET parity fixes (`String(-0)`, compact `JSON.stringify`) (#1001).
+
+### Fixed
+
+- React Native and IntelliJ: JSON-escaped `body:` values; the window title follows a YAML record's data (#1001).
+
+- Redwood: staying after a refused back/forward restores the history; pages with no declared width take their type's default (dashboards/collections full width) (#1001).
+
+- Web master-detail listings stack on phones (#1001).
+
+- Desktop installer build: never deletes through a symlink — the macOS dmg stage could delete /Applications when built locally (#1000).
+
+## [3.0-beta.34] — 2026-11-01
+
+### Added
+
 - **Redwood: an editable `richText` is Spectra's rich text editor.** `oj-sp-input-rich-text-2` (CKEditor 5)
   from the same Oracle CDN, with headings, bold/italic/underline, lists, links, a horizontal rule,
   the source view and undo/redo — instead of Mateu's small contenteditable editor, which stays as the
@@ -127,29 +99,189 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   reload or a shared link was a 404: any dot made a path a file. Now a path is a file only when its last
   segment ends in a web asset's extension (`SpaFallback.isAsset`), on every adapter and in every
   generated index controller.
+
+## [3.0-beta.33] — 2026-11-01
+
+### Security
+
+- **A CRUD's writes are refused if forced, not only undrawn** (Java, .NET, Python): `@ReadOnly`,
+  `@NotCreatable`/`@NotEditable`/`@NotDeletable`, `canCreate/canEdit/canDelete()` and `display()`
+  toggles (`off`/`disabled`) now answer 403 to a crafted `create`/`save`/`update-row`/`delete`.
+
+- **Strict action mode no longer reads the class's string literals**: an unmarked method is accepted
+  when the view's declarations name it or a response to the view emitted its id (a dialog's confirm,
+  an undo, a served row's `ColumnAction`). A handler named only by a literal now needs `@Action`.
+
+- `nested-form-action-<field>-<method>` must name a field, and its validated buttons are re-checked.
+
+- A failed save in an edit drawer shows the error boundary's text (generic + reference), not the
+  raw exception message (Java, .NET, Python).
+
+- A proxied REST source's headers and body template never reach the client (app catalogue,
+  responses, `manifest.json`); `__restfetch__` refuses a source that is not `proxy: true`.
+
+- Helidon MP: the SSE, MCP and YAML-mount routes (outside Jersey) see Helidon security's caller and
+  refuse anonymous calls when the app requires a login; Quarkus `/mateu/mcp` runs after HTTP security.
+
+- Bulk-delete ids reach the store as the crud's id type; a save never adopts a client `@Version`
+  ahead of the stored one, and a version column is not inline-editable.
+
+### Added
+
+- **Desktop app: one sign-in per UI.** Switching UIs in the desktop hub no longer drops the session
+  of the one you leave: each UI keeps its own (keyed by address + identity provider + client), Sign
+  out is per UI, removing a UI deletes its stored tokens. An earlier single stored token moves to its
+  UI once. Verified end to end against Keycloak (device flow, refresh, two realms).
+
+- **Kanban boards move: drag and drop, and a Move menu.** A `Kanban` with a `moveActionId` lets
+  its cards be dragged to another column or reordered within one (a line shows where it lands); each
+  card also has a Move menu (`⋯`: up, down, to another column) for the keyboard, screen readers, phones
+  and the IntelliJ plugin. The card moves at once and goes back if the action fails; the action gets
+  the card's item plus `_cardId`, `_fromColumnId`, `_toColumnId` and `_toIndex`. A board can also be
+  **live**: `rowsSource` + `columnField` + a `card` template (`${row.x}`) + `cardColors` + `cardRoute`
+  draw the cards from a REST source, read again after each move — so a YAML page with a `restAction`
+  move needs no Java. A REST action now reads its call parameters over the state on both legs
+  (browser and proxied). Java, .NET, Python; Vaadin, Redwood, React Native, IntelliJ.
+
+- **Live run ▸ Desktop opens the UI in the Mateu desktop app, a separate IntelliJ.** It used to repoint
+  the developer's own IDE and open its tool window. The IDE now hands the installed desktop app
+  `mateu://add?u=http://localhost:<port>` (macOS: by bundle id, since the phone app claims the scheme
+  too); without it, a notification offers the download or the old way. The desktop app accepts plain
+  http for this machine only (hub-links corpus option `allowLoopbackHttp`). VS Code: setting
+  `mateu.liveRun.openIn` + *Mateu: Open Running App in the Desktop App*.
+
+- **A `mateu://` link that STARTS the desktop app now works.** The platform took the URL as the whole
+  command line and never opened the workspace the launcher passes: the app sat on IntelliJ's welcome
+  screen and answered "This Mateu app does not add UIs from links". It now opens its bundled workspace
+  first.
+
+- **The hub apps check whether they can render a UI, by themselves.** The UI manifest now carries the
+  server's Mateu release (`mateuVersion`, beside `wireVersion`; Java, .NET and Python, omitted on a
+  development build). When a UI is added, opened or its manifest refreshed, the phone and desktop apps
+  compare it with their own wire and release (`conformance/client/app-compat.json`): another wire
+  major, or `minAppVersion` above the phone app → not added or opened, **Update Mateu** offered; a
+  newer minor or release → opens with a note. **Update Mateu** installs an over-the-air update when
+  there is one, else opens the store (or, for the GitHub APK, the releases page); on the desktop it
+  checks the update feed at once. Each release now publishes the phone app over the air when the
+  repository has `EXPO_TOKEN`.
+
+- `uploadableImage`: "Use a URL" beside Upload (Vaadin, Redwood; IntelliJ shows a URL value as an image) (#991).
+
+- A failed REST call shows the service's message (`message`/`error`/`detail`/RFC 7807, as text) instead of "Request failed (HTTP 400)", on the direct and the proxied leg, in every renderer and backend (#991).
+
+### Changed
+
+- **Vaadin: listings, boards and dashboards use the full width.** Every page sat in the server's
+  default 900px column whatever width it resolved to; that column is now only a FIXED page's (a
+  form's reading measure), and full/edge pages take their width. The width rules: full-bleed content
+  (gantt, planning board, kanban, BPMN, map, foldout) → edge-to-edge, but full width on a form page;
+  collection and dashboard pages → full width; form/process/landing → fixed. A YAML listing page
+  served with route seeds is a collection (it went out as a form page).
+
+- **A YAML `HorizontalLayout` with no `spacing:` is spaced** on the Java backend and in static bundles,
+  as it already was on .NET and Python — an image beside a form no longer touches it.
+
+### Fixed
+
+- **Vaadin: an edge page's header keeps its gutter** (a templated foldout's title, back arrow and
+  actions touched the viewport edges), and a YAML page filling a template no longer draws its window
+  title ("13") above its own header.
+
+- **Vaadin: a listing's header wraps on a phone** — the actions go below the title instead of
+  squeezing it to "Laun…".
+
 - **Desktop sign-in failed against a client that requires PKCE.** A client set up for the phone app
   (Keycloak "PKCE Method: S256") refused the desktop's device request with "Missing parameter:
   code_challenge_method". The device flow now sends a PKCE challenge (and its verifier on the token poll).
 
 - **Phone app: no way to sign out of a UI with bottom tabs.** "Sign out" lived only in the app shell's
   drawer; a UI whose shell has tabs (or no menu) had none. The hub's top bar now offers it while signed in.
+
 - **Back returns to the previous page, sort or filters of a listing** (Vaadin and Redwood). Each
   change the user makes is now a history entry (`pushState`); it used to replace the URL, so Back
   left the listing. A hand-typed `?sort=name:asc` is read as `ascending` instead of failing.
+
 - **The browser tab of a YAML record page shows the record's name** (Vaadin), not the route's id
   ("28" → "Voyager 1"): the window title follows the page title once its `data:` arrives, and the
   screen reader hears it once. Redwood header texts now evaluate expressions (`${state.a ?? ''}`,
   `${data.x}`) like the web.
+
 - **A server `NavigateTo` no longer raises the browser's "Leave site?" prompt** on a form with
   unsaved changes; staying after a refused Forward no longer scrambles the history; React Native and
   the IntelliJ plugin ask before every leave action (`cancel-new`, `back`…), not only three.
 
 - **Redwood: a listing whose rows open nothing shows no hand cursor.** Every table row invited a click;
   now only a row that opens its route, its record or its detail does (`mateu-rows-open`).
+
+- Redwood: a listing nested in a page selects rows and its toolbar acts on them; the list refreshes after a write without a 403 (#991).
+
+- Redwood: header texts interpolate expressions (`${state.x ?? 'y'}`, ternaries, `data.x`) (#992).
+
+- Desktop installers: the Windows setup builds again — per-file LZMA instead of one solid block that crashed makensis (#990).
+
+- Flaky tests fixed: the tab-session test bus, the .NET micro-frontend remote deadline (#989, #998).
+
+### Fixed (security and parity — Fable review)
+
+- **A `type: Partial`'s access keys and `${i18n.…}` are applied on the server**, like the same
+  content written inline. A section guarded by `eyesOnly:` used to reach every caller once it lived
+  in a partial, and its texts stayed raw.
+
+- **A bundle never ships a definition that depends on who asks.** A hybrid bundle wrote access-guarded
+  definitions raw into `manifest.json` and the browser expanded them for everybody; now they are not
+  shipped, and the resolver refuses to expand a route with `access:` or a definition with access keys.
+
+- **One route-parameter order everywhere: `fixed > client state > path > query > defaults`.** The .NET
+  and Python servers ranked the path over the client state, let a null erase a default and ignored the
+  URL query; static bundles (web, Redwood, React Native) dropped the query too.
+
+- **A proxied REST source sends what the browser would.** The server now evaluates the expression
+  subset sources use (`${(state.page ?? 0) * 20}`, conditionals, `?.`, `String`/`Number`) instead of
+  sending it empty, and a list value is `a,b` on every leg (Java sent `[a, b]`, Python `['a', 'b']`,
+  Redwood `["a","b"]`). The validator flags a template the server cannot evaluate
+  (`proxy_unsafe_template`). Pinned by `conformance/client/source-templates.json`.
+
+### Documentation
+
+- Docs audit applied: generated component list (CI-checked), `MasterDetailView`/`@DetailPart`, parity rows, C#/Python server options, `layout:` in samples (#983).
+
+## [3.0-beta.32] — 2026-11-01
+
+### Added
+
+- **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
+  app (a gallery's photographs, a document in another system) can point at one elsewhere:
+  `rowRoute: ${row.imageLarge}` or `https://example.com/docs/${row.id}`. A route that starts with a
+  scheme or `//` leaves the app — a new tab on the web renderers, the browser on React Native and in
+  the IntelliJ plugin — and only http(s)/mailto/tel are opened. A one-placeholder template takes its
+  value unescaped (Redwood escaped it as a path segment). Vaadin, Redwood, React Native, IntelliJ.
+
+### Fixed
+
+- Redwood: a new screen no longer inherits the previous one's state — a listing reached from a record searched with that record's fields and came back empty or with one row (#974).
+
+- Redwood: a RouteLink route is read against the screen's state (`missions/${state.id}/edit`) (#974).
+
+- Redwood: a docked panel with no toggle action (a YAML `DockedPanel`) stays closed when closed (#977).
+
+- Vaadin: a revisited record page keeps the data it loaded itself (the detail went blank) (#976).
+
+- A YAML page filling a template takes the template's page type — a collection detail no longer switches from full to fixed width when a record is selected (#978).
+
+- Desktop app: release builds go through the IntelliJ layout-index helper; a failing Windows setup now says why (#973).
+
+## [3.0-beta.31] — 2026-11-01
+
+### Fixed
+
 - **Redwood: a `Listing` in a foldout panel is drawn, with its rows.** On a `FoldoutPage` (an exhibition's
   works and loans) the listing's rows were loaded but the panel drew nothing: a panel's content was read
   without the page around it, so the listing was not known to sit in a templated page's slot. A foldout
   panel is such a slot now.
+
+## [3.0-beta.30] — 2026-10-31
+
+### Fixed
 
 - **A source url no longer encodes an explicit `encodeURIComponent(…)` twice.** Since Mateu encodes
   every value where it lands in a url, `search=${encodeURIComponent(state.searchText)}` sent
@@ -159,18 +291,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `${x}`: encoded once, a list joined with commas as JavaScript does. The same in Vaadin, Redwood and
   the Java, .NET and Python proxies, which now also resolve a fallback (`${state.page ?? 0}`) and a
   nested path.
+
 - **A money value interpolates as its amount.** A `dataType: money` value is `{value, currency,
   locale}`; `${state.v}` landed as `[object Object]` in the browser and as `{value=12500000,
   currency=EUR, …}` on the proxy, so a proxied write answered 400. `${state.v}` is now the amount and
   `${state.v.currency}` the currency, on every leg. Vaadin's money input also starts an empty amount
   in the field's declared `currency` attribute (EUR when none), as Redwood already did.
+
 - **A `Navigate` step resolves its placeholders.** `route: launch-sites/${state._markerId}` navigated
   to the literal text; the route is now interpolated (encoded like a url) against the page's state
   with the action's parameters on top, so a map marker can open its record. Vaadin and Redwood.
+
 - **YAML anchors and aliases are resolved in specs files.** Jackson's YAML parser read `*api` as the
   string `"api"`, so `museum-artworks: *api` in an environment re-pointed nothing while the log still
   counted it. The Java specs loader now resolves aliases and merge keys (`<<: *base`), as Python's
   does; .NET resolved aliases but not merge keys, and now does both.
+
 - **Vaadin: `${state.x}` in a banner, a MetricCard, an EntityHeader, an Anchor and an Avatar's image.**
   The components that draw their texts straight from their metadata never interpolated them: a YAML
   record page (`title: ${state.name}` on a route with `data:`) showed the raw template in the Welcome /
@@ -178,18 +314,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `EntityHeader` left in the body and an `Anchor`, and an `Avatar` requested `image: ${state.thumbnail}`
   literally (a 404). They interpolate now, like everything else (`interpolateFields`). Redwood already
   did, except a MetricCard's and a Stat's value and an EntityHeader's metric label: those too.
+
 - **Vaadin: a select whose options have numeric values shows its value.** `vaadin-select` and
   `vaadin-combo-box` match values as strings, so an option source giving ids (`{value: 25}`) never
   matched the field's `25` and the control stayed blank. The control gets the values as strings and a
   pick is written back as the option's own value (`25`, not `"25"`); the same for a checkbox group's
   list of ids.
+
 - **Vaadin: a `combobox` and a `multiSelect` read their `optionsSource`.** Only `select` fetched a REST
   source; a single or multi-valued combobox and a multi-select (checkbox group) listed nothing. The
   fetch is shared by every stereotype that offers options (Redwood already loaded them for any field).
+
 - **An editable `image` field can be changed.** In an editable form the `image` stereotype drew only
   the image, full size, with no input. It is now the URL input with a contained preview that follows
   the value; read-only it stays the image. Redwood offered a file upload for it (that is
   `uploadableImage`): now the same URL input and preview.
+
 - **A tree listing over a REST source keeps its children.** A `gridLayout: tree` Listing whose
   `rowsSource` is a REST source projected each fetched row onto its declared columns, so `children`
   (not a column) was dropped and only the roots showed; the workaround, a `children` column, painted
@@ -198,10 +338,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   another response field), on the direct and the proxied leg. Vaadin draws the hierarchy in its tree
   grid; Redwood, which drew the roots as a flat table, now draws every level flattened under its
   parent with the first column indented (always expanded — no expand/collapse toggle yet).
+
 - **A `Partial` inside a wizard step renders.** The partials of a `GuidedProcessPage` step were never
   expanded: the steps are records of slots, not components, so the expander stepped over them and
   the step drew nothing (`No mapper renders io.mateu.uidl.data.Partial`). A template's list of parts
   is now walked like the template itself.
+
 - **Redwood: a `Listing` inside a templated page stays where it is.** On a page that declares a
   `template:` (general overview, multimedia content, welcome, collection detail…) the first `Listing`
   anywhere was taken for the page's own listing and hoisted out of its slot: a general overview was
@@ -214,14 +356,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   interpolated) and is drawn in place, as picture cards (`gridLayout: cards`) or a table, a row with a
   `rowRoute` opening its record. Only a hero search's results, a data management page's table and a
   collection detail's list slot remain the page's listing.
+
 - **Redwood: a section's first heading is kept.** A `Text` with `container: h2` opening a section was
   taken for the section's title and dropped; only a heading that IS the title is now left out.
+
 - **Redwood: a `dateRange` form field is drawn**, as two date inputs (from, to) whose edits keep the
   field's `{from, to}` value. It was not drawn at all.
+
 - **Redwood: an `Image` honours its `style` and `cssClasses`** (a `max-width: 220px` portrait was drawn
   as wide as its column).
+
 - **Redwood: no more `ojtabbar.js` 404 on every page.** The page imported `oj-tab-bar` from
   `ojs/ojtabbar`, which JET does not ship; it lives in `ojs/ojnavigationlist`.
+
 - **A page opened again is loaded once, not twice.** A route drawn from the client structure cache
   (any return visit) was replaced by the server's identical structure as soon as it answered: the
   structure hash counted the random ids of the nested components that name none (a YAML page's
@@ -229,12 +376,51 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   re-mounted — it flickered — and ran its OnLoad, its record fetch, a second time. The hash leaves
   those instance ids out; and the web shells keep the predicted structure when the answer is the same
   one (a static bundle has no hash at all), taking only its state and data.
+
 - **Vaadin: no search box a listing cannot search.** A listing over a source that takes no text and
   with no filters still drew the search bar — a box without an input that took no typing (the works
   and loans of an exhibition's foldout panels). It draws none.
+
 - **Redwood: the page does not jump to its top before the next one opens.** Following a link halfway
   down a page scrolled it to the top at the click, and only then did the new screen arrive. It goes
   to the top when the old screen is hidden or the new one is in place, whichever comes first.
+
+## [3.0-beta.29] — 2026-10-31
+
+### Fixed
+
+- Redwood: every navigation names the browser tab (federated screens kept the previous title); an empty listing speaks the chrome language (#952).
+
+- Redwood: a page foldout owns its header as Toolkit 26C draws it (back → go-to-parent, actions on the overview panel); pinned foldout panels without a gap; listing actions that need rows are disabled until a row is checked (#956).
+
+## [3.0-beta.28] — 2026-10-31
+
+### Changed
+
+- Redwood page templates as the Toolkit 26C draws them: item overview keeps the page width; a lone tab draws no bar; read-only fields stacked (label above value) in the item overview and collection detail; collection detail content on Spectra's own inset; a declared `FoldoutPage` owns its header (back → go-to-parent, actions on the overview panel) (#947).
+
+- Star Wars demo: edit/new pages put Cancel + the primary action in the header; record pages show read-only details in up to 3 columns (#947).
+
+## [3.0-beta.27] — 2026-10-31
+
+### Added
+
+- **Micro frontends resolved in the server** (`MicroFrontend.resolve = SERVER`, `timeoutMs`): the host asks the remote while building the view and embeds its fragments; timeout/error degrades to the client. Remotes, identity, correlation id, fragment cache and resolution listeners behind interfaces (`io.mateu.uidl.remote`). Java, .NET and Python; every renderer paints the embedded answer. `@Experimental`.
+
+- **`@ContentSlot(key, fallback, timeoutMs, description, degradeToClient)`**: content resolved server-side against a content service (`/content-slots/{key}`), fallback on empty/error/timeout; keys checked at compile time and listed in `META-INF/mateu/content-slots.json` (new artifact `mateu-annotation-processor-slots`). Contract: docs `components/content-slot`.
+
+- Remote-decided fragment cache (`@CacheableFragment`, `FragmentCachePolicySupplier`, per-audience keys, `notModified`).
+
+- Demo `demo/demo-microfrontends` (:8623).
+
+### Fixed
+
+- Dev live-reload no longer loses a change made right after connecting; parity tests no longer depend on test order.
+
+## [3.0-beta.26] — 2026-10-31
+
+### Fixed
+
 - **A menu entry named like its group goes below it.** A `@Menu` field named like the menu that holds
   it (`users` inside a `users` section, the natural spelling of a users CRUD) got the group's own path,
   `/users` instead of `/users/users`, since `3.0-alpha.425` routed an entry "already under its group"
@@ -242,11 +428,48 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the group's index) and, since every route of the group starts with it, it was selected on all of
   them. Strictly under, now, in Java, .NET and Python; and the server compares an entry's path below
   its group when it marks it selected.
+
 - **Redwood: an empty single select is empty.** JET's `oj-select-one` paints its first option when the
   value is null and it has no placeholder, and only the generic form's copy had one: in every other
   form surface (host, drawer, dialog, wizard, island, listing…) an unset select looked filled in with
   its first option while the form held nothing. Every copy now carries the placeholder (the atoms
   template, expanded by `make-html.mjs`); a test pins it.
+
+## [3.0-beta.25] — 2026-10-30
+
+### Added
+
+- Page templates in YAML: `WelcomePage`, `DashboardLandingPage`, `GeneralOverviewPage`, `CollectionDetailPage`, `FoldoutPage`, `MultimediaContentPage`, `AdvancedCreateEditPage`, `GuidedProcessPage`, `DataManagementPage`, `HeroSearchPage` — drawn with Spectra's templates on Redwood (#939). Star Wars demo: one page per template.
+
+- Figma library of every template and component + the figma-to-yaml converter (#940).
+
+### Fixed
+
+- Vaadin: no flash of the previous screen on navigation (#941).
+
+## [3.0-beta.24] — 2026-10-30
+
+### Changed
+
+- Redwood: the item overview page as in Redwood's examples — the template owns the page (edge to edge, no content card), compact tab bar, the overview body stacked (label above value), sections in the main slot with Spectra's `oj-sp-section` header (#937).
+
+- Star Wars demo: record pages fill the main slot with sections (#935).
+
+## [3.0-beta.23] — 2026-10-30
+
+### Added
+
+- **Page templates in YAML** — `template:` on a `type: Form`: a page fills one of Redwood's page templates (fields and slots named as Spectra names them) or is free. First template: `ItemOverviewPage` (avatar/photo, body/footer slots, the form's content as the main slot). Redwood paints Spectra's `oj-sp-item-overview-page` (with its own edit action); the other renderers draw Mateu's version. Not yet in the .NET/Python YAML builders.
+
+- Web: `Image` interpolates `src`/`alt` against the page state.
+
+- IDEs: the Item Overview page template writes `template:`.
+
+### Changed
+
+- Redwood: no longer overrides the item overview template's look (forced `light` display mode and panel surface removed).
+
+- Star Wars demo: the record pages use the Item overview template.
 
 ## [3.0-beta.22] — 2026-10-29
 
