@@ -113,7 +113,7 @@ action that reads the list) — there is no per-cell save.
 
 ## Choosing the layout (`gridLayout()`)
 
-A declarative listing (a `Listing<Row>` class) can force how its rows are laid out by overriding `gridLayout()`. By default the renderer picks a layout from the column weights (`GridLayout.auto`), which for a wide, many-column row can fall back to `masterDetail`. Return `GridLayout.table` (or `list`, `cards`) to force it:
+A declarative listing (a `Listing<Row>` class) can force how its rows are laid out by overriding `gridLayout()`. By default (`GridLayout.auto`) a listing is a plain **table** at any width — the layout never changes on its own with the window size or the number of columns. Return `GridLayout.list`, `cards`, `masterDetail` or `tree` to get another layout (or `table` to say so explicitly):
 
 ```java
 @UI("/arrivals")

@@ -101,6 +101,50 @@ separate class library, name the assemblies to scan — otherwise their routes a
 builder.Services.AddMateu(typeof(Program).Assembly, typeof(Person).Assembly);
 ```
 
+### Server options
+
+`AddMateu(o => …)` configures the server (`MateuOptions`); `MapMateu(baseUrl: "", ui: null)` maps the
+endpoints. Most options fall back to an environment variable, so a deployment can switch them
+without code.
+
+```csharp
+builder.Services.AddMateu(o =>
+{
+    o.Environment = "staging";
+    o.OracleCdnUrl = "https://cdn.example.com/oracle/cdn";
+});
+```
+
+| Option | Default | What it does |
+|---|---|---|
+| `Identity` | the authenticated `HttpContext.User`'s claims | `HttpContext → Identity?` that `[EyesOnly]`/`[ReadOnlyUnless]`/`[DisabledUnless]` match (see [Identity, permissions and secrets](#identity-permissions-and-secrets)). |
+| `Secrets` | an `ISecretsProvider` service, else env `MATEU_SECRET_<KEY>` | `${secret.KEY}` in proxied REST sources. |
+| `DetailedErrors` | only in Development | Exception messages on screen. |
+| `Dev` | env `MATEU_DEV` | Development mode: specs watched, `GET /mateu/dev/events` + `POST /mateu/dev/reload`. |
+| `BuildId` | env `MATEU_BUILD_ID`, else a fingerprint of the release | The `X-Mateu-Build` id ([versions across teams](/deploy/versions-across-teams/)). |
+| `OracleCdnUrl` | env `MATEU_ORACLE_CDN_URL` | A mirror of Oracle's CDN for the Redwood page ([Oracle CDN mirror](/deploy/oracle-cdn-mirror/)). |
+| `Pwa` | on, unless env `MATEU_PWA_ENABLED=false` (always off in development) | Serve every UI as an installable PWA. |
+| `Environment` | env `MATEU_ENVIRONMENT` | The `type: Environment` overlay on the source catalogue ([environments](/deploy/environments/)). |
+| `MockSources` | env `MATEU_SOURCES_MOCK` | Sample mode: sources with `sample:` answer it instead of being called. Never in production. |
+| `HttpClient` | a shared client, 60 s timeout | The client proxied REST fetches use. |
+| `Mcp` | env `MATEU_MCP_ENABLED`, else off | The native MCP endpoint `POST /mateu/mcp`. |
+| `McpPush` | env `MATEU_MCP_PUSH_ENABLED`, else off | [Live UI push](/reference/agent-operability/#drive-a-live-ui) (needs `Mcp`). |
+| `McpPushRatePerMinute` | env `MATEU_MCP_PUSH_RATE_PER_MINUTE`, else 30 | Messages per session per rolling minute. |
+| `McpPushMaxSessions` | env `MATEU_MCP_PUSH_MAX_SESSIONS`, else 1000 | Live UI sessions held at once. |
+| `McpPushMaxSessionsPerOwner` | env `MATEU_MCP_PUSH_MAX_SESSIONS_PER_OWNER`, else 20 | Sessions per signed-in user. |
+| `McpPushMaxAnonymousSessionsPerAddress` | env `MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS`, else 200 | Anonymous sessions per client address (behind a proxy, use ASP.NET's `ForwardedHeaders`). |
+| `Remotes` | none | `RemoteDescriptor`s for [server-resolved micro frontends](/java-ui-definition/components/micro-frontend/#net-and-python) and content slots (on top of `IRemoteCatalogSupplier` services). |
+| `DefaultTimeoutMs` | 500 | Budget of a server-resolved fragment that names none. |
+| `MaxBudgetMs` | 2000 | The most a response waits for its fragments. |
+| `ContentRemoteId` | `content` | The remote [content slots](/java-ui-definition/components/content-slot/#net-and-python) are resolved against. |
+| `ContentRoute` | `/content-slots/{key}` | A slot's route on the content remote. |
+| `SelfBaseUrl` | the local socket | This server's origin, for a remote registered as a path on it. |
+| `ContentSlotsDescriptorEnabled` | off | Serve the `__content_slots__` descriptor action. |
+
+The micro-frontend collaborators are DI services: register your own `IRemoteRegistry`,
+`IRemoteIdentityStrategy`, `ICorrelationIdProvider`, `IFragmentCacheStore` or
+`IMicroFrontendResolutionListener` to replace or extend Mateu's.
+
 ## Forms
 
 A `[UI]` class becomes a routed form. Public properties become fields (the type is inferred:
@@ -601,6 +645,14 @@ public IComponent Component() =>
 ```
 
 The island mounts its own `mateu-ux` against the remote backend and runs its own sync loop.
+
+**Resolved in the server.** A micro frontend can also be resolved by this server while it builds the
+view (`resolve = SERVER`): the host asks the remote and embeds the answer, falling back to the
+browser asking when the remote is slow or down. Remotes are registered with `MateuOptions.Remotes`, and the same
+machinery fills **content slots** — holes for managed content a content service provides. See
+[MicroFrontend: .NET and Python](/java-ui-definition/components/micro-frontend/#net-and-python),
+[ContentSlot: .NET and Python](/java-ui-definition/components/content-slot/#net-and-python) and the
+[server options](#server-options).
 
 ## Adapting foreign classes (component adapters)
 

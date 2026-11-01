@@ -267,14 +267,16 @@ content:                     # the template's main slot
   on the form (`template: {type, avatar, photo}`).
 - It works served by the **Java** backend, pre-rendered into a static bundle and expanded in the
   browser from a `specsOnly` bundle. The .NET and Python YAML builders do not read `template:` yet.
-- `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The IDEs' **Item
-  Overview** page template writes it. More templates follow the same shape.
+- `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The eleven templates
+  in the table above are available; the IDEs' **Item Overview** page template writes `template:` for you.
 - Demo: the record pages of `demo/demo-starwars` (`person.yaml`, `planet.yaml`, `film.yaml`…).
 
 ## Available types
 
-All component types from the [`io.mateu.uidl.data`](/java-ui-definition/supported-components/) package are supported.
-Use the exact class name as the `type` value.
+Every component type has a row in the [component list](/java-ui-definition/supported-components/#every-component)
+— generated from the catalogue the build produces, with a one-line description, its main attributes
+and a link to the page that explains it. Use the exact type name as the `type` value. A few to start
+with:
 
 **Layout components:** `VerticalLayout`, `HorizontalLayout`, `FormLayout`, `TabLayout`, `SplitLayout`, `MasterDetailLayout`, `AccordionLayout`, `BoardLayout`, `CarouselLayout`, `Grid`, …
 

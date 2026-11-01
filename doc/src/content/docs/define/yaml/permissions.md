@@ -8,7 +8,7 @@ A YAML-only app restricts what each user sees and does with the same rules the a
 matching, **same evaluator**: the YAML keys are read by the very `Authorizer` that reads the
 annotations. There is one rule, written two ways.
 
-```yaml
+```yaml nocheck
 # specs/ui/routes.yaml
 routes:
   - route: admin/users

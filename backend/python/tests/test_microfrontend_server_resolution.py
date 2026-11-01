@@ -43,6 +43,10 @@ REQUESTS: list[dict] = []
 EVENTS: list[MicroFrontendResolutionEvent] = []
 BASE = ""
 
+# The deadline of a remote that is expected to ANSWER: generous, so a loaded CI runner never turns
+# "answers in time" into a timeout (the .NET port's twin flaked that way). Deadline tests use their own.
+IN_TIME = 5000
+
 
 # ── the remotes ───────────────────────────────────────────────────────────────────────────────
 
@@ -135,11 +139,11 @@ def _increment(fragment, policy):
 
 class Remotes(RemoteCatalogSupplier):
     def remotes(self):
-        out = [RemoteDescriptor(name, f"{BASE}/{name}", 1000) for name in (
+        out = [RemoteDescriptor(name, f"{BASE}/{name}", IN_TIME) for name in (
             "fast", "slow", "broken", "delayed", "cachekey", "cacheuser", "cacheshared", "cachenone")]
-        out.append(RemoteDescriptor("anon", f"{BASE}/anon", 1000, RemoteIdentityStrategy.NONE))
-        out.append(RemoteDescriptor("exchanged", f"{BASE}/exchanged", 1000, "exchange"))
-        out.append(RemoteDescriptor("unknownid", f"{BASE}/unknownid", 1000, "nobody-declared-it"))
+        out.append(RemoteDescriptor("anon", f"{BASE}/anon", IN_TIME, RemoteIdentityStrategy.NONE))
+        out.append(RemoteDescriptor("exchanged", f"{BASE}/exchanged", IN_TIME, "exchange"))
+        out.append(RemoteDescriptor("unknownid", f"{BASE}/unknownid", IN_TIME, "nobody-declared-it"))
         # a path on this server, as a content hub is deployed
         out.append(RemoteDescriptor("content", "/_content-hub", 1000))
         return out
@@ -185,7 +189,7 @@ class ClientOnly(_Page):
 @ui("mfe-fast")
 class FastServer(_Page):
     def parts(self):
-        return [mfe("fast", fluent.Resolve.SERVER, 1000)]
+        return [mfe("fast", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("mfe-slow")
@@ -197,14 +201,14 @@ class SlowServer(_Page):
 @ui("mfe-broken")
 class BrokenServer(_Page):
     def parts(self):
-        return [mfe("broken", fluent.Resolve.SERVER, 1000)]
+        return [mfe("broken", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("mfe-unregistered")
 class Unregistered(_Page):
     def parts(self):
         return [
-            mfe("fast", fluent.Resolve.SERVER, 1000),
+            mfe("fast", fluent.Resolve.SERVER, IN_TIME),
             fluent.MicroFrontend(base_url="http://169.254.169.254/latest", route="/meta-data",
                                  resolve=fluent.Resolve.SERVER),
         ]
@@ -213,7 +217,7 @@ class Unregistered(_Page):
 @ui("mfe-unknown-identity")
 class UnknownIdentity(_Page):
     def parts(self):
-        return [mfe("fast", fluent.Resolve.SERVER, 1000), mfe("unknownid", fluent.Resolve.SERVER, 1000)]
+        return [mfe("fast", fluent.Resolve.SERVER, IN_TIME), mfe("unknownid", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("mfe-parallel")
@@ -227,37 +231,37 @@ class Parallel(_Page):
 @ui("mfe-cache-key")
 class CacheByKey(_Page):
     def parts(self):
-        return [mfe("cachekey", fluent.Resolve.SERVER, 1000)]
+        return [mfe("cachekey", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("mfe-cache-user")
 class CachePerUser(_Page):
     def parts(self):
-        return [mfe("cacheuser", fluent.Resolve.SERVER, 1000)]
+        return [mfe("cacheuser", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("mfe-cache-shared")
 class CacheShared(_Page):
     def parts(self):
-        return [mfe("cacheshared", fluent.Resolve.SERVER, 1000)]
+        return [mfe("cacheshared", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("mfe-cache-none")
 class CacheNone(_Page):
     def parts(self):
-        return [mfe("cachenone", fluent.Resolve.SERVER, 1000)]
+        return [mfe("cachenone", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("mfe-anon")
 class Anonymous(_Page):
     def parts(self):
-        return [mfe("anon", fluent.Resolve.SERVER, 1000)]
+        return [mfe("anon", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("mfe-exchanged")
 class Exchanged(_Page):
     def parts(self):
-        return [mfe("exchanged", fluent.Resolve.SERVER, 1000)]
+        return [mfe("exchanged", fluent.Resolve.SERVER, IN_TIME)]
 
 
 @ui("slot-page")
@@ -292,8 +296,11 @@ def host():
     threading.Thread(target=server.serve_forever, daemon=True).start()
     BASE = f"http://127.0.0.1:{server.server_address[1]}"
     app = fastapi.FastAPI()
-    handler = add_mateu(app, *SOURCES, dev=False, self_base_url=BASE)
-    yield TestClient(app), handler
+    handler = add_mateu(app, *SOURCES, dev=False, self_base_url=BASE, max_budget_ms=2 * IN_TIME)
+    client = TestClient(app)
+    # warm up: the first resolution pays the cold start; each test clears what it reads
+    load(client, "mfe-fast")
+    yield client, handler
     server.shutdown()
     server.server_close()
 

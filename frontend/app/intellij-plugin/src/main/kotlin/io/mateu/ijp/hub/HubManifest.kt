@@ -42,6 +42,8 @@ object HubManifest {
         val wireVersion: String? = null,
         val auth: Auth? = null,
         val bundle: String? = null,
+        /** The Mateu release serving the UI (the server sends it itself): [AppCompat] compares it with ours. */
+        val mateuVersion: String? = null,
     )
 
     sealed interface Fetch {
@@ -91,6 +93,7 @@ object HubManifest {
             wireVersion = wire,
             auth = authOf(r?.get("auth"), allowInsecure),
             bundle = r?.get("bundle")?.takeIf { it.isTextual && it.asText().isNotEmpty() }?.asText(),
+            mateuVersion = r?.get("mateuVersion")?.takeIf { it.isTextual && AppCompat.release(it.asText()) != null }?.asText(),
         )
     }
 
@@ -112,14 +115,28 @@ object HubManifest {
         return Auth(issuer, clientId, scopes, raw.get("audience")?.takeIf { it.isTextual && it.asText().isNotEmpty() }?.asText())
     }
 
-    /** Can the desktop app render that UI? A static site, or another wire major, cannot. Null = it can. */
+    /** Can the desktop app render that UI at all? A static site, or what [AppCompat] says is REQUIRED,
+     *  cannot. Null = it can (it may still be [compat]ibly behind: see [compat]). */
     fun refusal(manifest: Manifest, supportedMajor: Int = WireVersion.SUPPORTED_MAJOR): String? {
         if (manifest.bundle != null) return "This is a static UI (no server behind it): the desktop app can only open UIs served by a Mateu backend."
-        val major = manifest.wireVersion?.let { Regex("^\\d+").find(it)?.value?.toIntOrNull() }
-        if (major != null && major > supportedMajor) return "This app uses a newer Mateu (wire ${manifest.wireVersion}) than this version of the desktop app understands."
-        if (major != null && major < supportedMajor) return "This app's server is too old for this version of the desktop app (wire ${manifest.wireVersion})."
-        return null
+        val result = compat(manifest, supportedMajor)
+        return if (result.status == AppCompat.Status.REQUIRED) compatMessage(manifest, result, supportedMajor) else null
     }
+
+    /** This desktop app against that UI ([AppCompat]): its renderer's wire and Mateu release. */
+    fun compat(manifest: Manifest, supportedMajor: Int = WireVersion.SUPPORTED_MAJOR): AppCompat.Result =
+        AppCompat.of(ui(manifest), app(supportedMajor))
+
+    /** The sentence for [result]'s reason (null when compatible). */
+    fun compatMessage(manifest: Manifest, result: AppCompat.Result, supportedMajor: Int = WireVersion.SUPPORTED_MAJOR): String? =
+        result.reason?.let { AppCompat.message(it, manifest.name, ui(manifest), app(supportedMajor)) }
+
+    private fun ui(m: Manifest) = AppCompat.Ui(wireVersion = m.wireVersion, mateuVersion = m.mateuVersion)
+
+    private fun app(supportedMajor: Int) = AppCompat.App(
+        wire = "$supportedMajor.0",
+        mateuVersion = io.mateu.ijp.api.BuildSkew.pluginVersion.takeIf { AppCompat.release(it) != null },
+    )
 
     /** What the hub needs from HTTP: a GET answering status + body (a seam for tests). */
     fun interface Get {
