@@ -25,7 +25,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: web
-          image: miguelperezcolom/demo-museum-redwood:3.0-beta.32
+          image: miguelperezcolom/demo-museum-redwood:3.0-beta.33
           ports:
             - { name: http, containerPort: 8080 }
           readinessProbe:
