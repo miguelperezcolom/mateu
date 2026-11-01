@@ -399,7 +399,9 @@ tasks.register("buildInstaller") {
         fun run(vararg cmd: String, dir: File) {
             val p = ProcessBuilder(*cmd).directory(dir).redirectErrorStream(true).start()
             val out = p.inputStream.readBytes().decodeToString()
-            check(p.waitFor() == 0) { "command failed: ${cmd.joinToString(" ")}\n$out" }
+            val rc = p.waitFor()
+            // > 128 = killed by a signal (137 = the OOM killer), which prints nothing of its own
+            check(rc == 0) { "command failed (exit $rc): ${cmd.joinToString(" ")}\n${out.takeLast(8000)}" }
         }
         fun capture(vararg cmd: String, dir: File): String {
             val p = ProcessBuilder(*cmd).directory(dir).redirectErrorStream(true).start()
@@ -671,7 +673,7 @@ tasks.register("buildInstaller") {
             logger.lifecycle("Building the NSIS installer (this compresses ~1 GB, give it a few minutes)…")
             setup.delete()
             run(
-                "makensis", "-V2",
+                "makensis", "-V3",
                 "-DPRODUCT=${o.product}", "-DSLUG=${o.slug}", "-DVERSION=$version",
                 "-DSRC_DIR=${root.absolutePath}", "-DOUT_FILE=${setup.absolutePath}",
                 "-DHUB=${o.hub}", "-DCLEAN_NSH=${clean.absolutePath}",
