@@ -22,6 +22,8 @@
 
 /** '' (root) or '/segment(s)' without a trailing slash. */
 import { isEmbedded } from './embedded.mjs'
+import { isExternalRoute } from './core/content.mjs'
+import { safeHref } from './core/display.mjs'
 export function normalizeMount(value) {
   let v = String(value == null ? '' : value).trim()
   if (!v || v === '/') return ''
@@ -231,3 +233,19 @@ export function scrollToTopWhenReplaced(params = {}, win = typeof window !== 'un
   }
 }
 
+
+/**
+ * A navigation to a route that is a whole URL (a rowRoute `${row.url}`, a RouteLink to
+ * `https://…`) leaves the app: it opens in a new tab (noopener), never as a route of the mount. A
+ * refused scheme (javascript:, data:…) goes nowhere. True when the route was external (handled).
+ */
+export function openExternalRoute(route, win = typeof window !== 'undefined' ? window : null) {
+  if (!isExternalRoute(route)) return false
+  const href = safeHref(route)
+  if (href && /^(https?:|mailto:|tel:|\/\/)/i.test(href) && win && typeof win.open === 'function') {
+    win.open(href, '_blank', 'noopener,noreferrer')
+  } else {
+    try { console.warn('mateu: refused to open a route that is not http(s):', route) } catch (e) { /* no console */ }
+  }
+  return true
+}

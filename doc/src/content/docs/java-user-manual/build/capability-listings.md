@@ -147,6 +147,23 @@ Enter on a focused row opens it too, and a navigable row shows a pointer cursor.
 
 A table whose rows expand a `@Details` panel on click keeps that click for expanding; the record then opens from its id link.
 
+### A row that opens somewhere else: a `rowRoute` that is a URL
+
+A `rowRoute` is normally a route of the app (`people/${row.id}`). When it resolves to a **whole URL** — it starts with a scheme such as `https://`, or with `//` — the row leaves the app instead: a click opens that URL in a **new tab** (on React Native, in the phone's browser; in the IntelliJ plugin, in the system browser), and the app stays where it was. A row whose items have no page of their own can point at one that exists elsewhere:
+
+```yaml
+# a mission's photo gallery: each card opens the full-size photograph
+type: Listing
+gridLayout: cards
+rowsSource: {ref: space-mission-gallery}
+rowRoute: ${row.imageLarge}      # or https://images.nasa.gov/details/${row.nasaId}
+columns:
+  - {type: GridColumn, id: image, label: Photograph, stereotype: image}
+  - {type: GridColumn, id: imageTitle, label: Title, identifier: true}
+```
+
+A template that is a single placeholder (`${row.imageLarge}`) takes the value as it is; a value inside a longer template is still escaped as a path segment. Only `http`, `https`, `mailto` and `tel` URLs are opened — a `javascript:` or `data:` value goes nowhere, the same rule as every other link that comes from data. In a table, the identifier column becomes an ordinary link to the URL with `target="_blank"`.
+
 ---
 
 ## Editable listing — `Editable` without `Navigable`

@@ -1,4 +1,5 @@
 import { interpolate } from './interpolation.ts'
+import { safeNavigate } from './safeNavigate.ts'
 
 /**
  * A listing's `rowRoute`: where a row click goes.
@@ -31,6 +32,12 @@ export function rowRouteOf(
  * the DS shells alike, with no shell-specific glue.
  */
 export function navigateToRoute(from: HTMLElement, route: string): void {
+    // A route that is a whole URL (`${row.imageLarge}`, `https://…`) leaves the app: it opens in a
+    // new tab, through the one door that refuses `javascript:` and friends.
+    if (isExternalRoute(route)) {
+        safeNavigate(route, { newTab: true })
+        return
+    }
     for (const type of ['route-changed', 'navigate-to-requested']) {
         from.dispatchEvent(new CustomEvent(type, { detail: { route }, bubbles: true, composed: true }))
     }
@@ -51,4 +58,16 @@ export function rowRouteFields(template: string | undefined): string[] {
         fields.add(match[1])
     }
     return [...fields]
+}
+
+/**
+ * Whether a route leaves the app: it carries a scheme (`https://…`, and also `mailto:` or a refused
+ * `javascript:`) or is protocol-relative (`//host/…`). Every other route is the app's own,
+ * mount-relative. The same rule in every renderer: Redwood `isExternalRoute` (poc/core/content.mjs),
+ * RN `isExternalRoute` (core/rowOpen.ts), IntelliJ `RowOpen.isExternal`.
+ */
+export function isExternalRoute(route: string | undefined | null): boolean {
+    if (!route) return false
+    const r = route.trim()
+    return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
 }

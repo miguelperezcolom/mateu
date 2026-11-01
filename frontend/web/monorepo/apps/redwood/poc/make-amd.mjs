@@ -285,6 +285,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     rowRouteOf,
     listingOf,
     rowClickOpensRecord,
+    // a docked panel with no toggle action closes on the client (spPages.mjs)
+    closeDockedPanel,
+    dataManagementWithoutPanel,
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,
@@ -441,6 +444,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    openExternalRoute,
+    isExternalRoute,
     scrollToTopOnNavigate,
     scrollToTopWhenReplaced,
     bootstrapShell,
@@ -625,6 +630,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,
+    routeStateOf,
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,

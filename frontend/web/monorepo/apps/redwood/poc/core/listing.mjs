@@ -1,7 +1,8 @@
 import { applyColumnPrefs } from '../prefs.mjs'
 import { walkWithinSurface } from './tree.mjs'
 import { dragMimeOf } from './atoms.mjs'
-import { buttonRouteOf, columnPrefsReader, islandContentOf, interpolate, rowRouteOf, dataProviderFactory } from './content.mjs'
+import { buttonRouteOf, columnPrefsReader, islandContentOf, interpolate, isExternalRoute, rowRouteOf, dataProviderFactory } from './content.mjs'
+import { safeHref } from './display.mjs'
 import { stableHashOf } from './overviews.mjs'
 import { urlOfRoute } from '../mount.mjs'
 import { optionsOf } from './rowEditor.mjs'
@@ -138,7 +139,11 @@ export function nestedListingAtomOf(node, ctx) {
   })) : []
   const tableRows = asCards ? [] : rows.map((row, i) => {
     const route = routeOf(row)
-    return { ...row, __key: String(row._rowNumber != null ? row._rowNumber : i), __href: route ? urlOfRoute(route.charAt(0) === '/' ? route : '/' + route) : '' }
+    // a route that is a whole URL is a plain link to it, in a new tab
+    const external = !!route && isExternalRoute(route)
+    return { ...row, __key: String(row._rowNumber != null ? row._rowNumber : i),
+      __href: external ? safeHref(route) : route ? urlOfRoute(route.charAt(0) === '/' ? route : '/' + route) : '',
+      __target: external ? '_blank' : '', __rel: external ? 'noopener noreferrer' : '' }
   })
   const tableColumns = asCards ? [] : columns.map((c, i) => {
     const field = labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id

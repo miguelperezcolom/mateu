@@ -2113,6 +2113,23 @@ atest('el contexto recuerda de qué pod se cargó, y sus acciones vuelven allí'
   } finally { globalThis.fetch = original }
 })
 
+atest('a route load is a NEW screen: the previous screen\'s state never carries over', async () => {
+  // a record page (state.name = the mission) → a listing answering with no state of its own: its
+  // search used to interpolate the mission's name into the rows url and the list came back empty
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+    type: 'ClientSide', id: '_list', metadata: { type: 'Crud', title: 'Astronauts' }, children: [],
+  } }] }) })
+  try {
+    const before = empty()
+    before.contexts[HOST_ID] = { id: HOST_ID, kind: 'host', state: { id: 6, name: 'Apollo 11' }, data: {},
+      tree: { type: 'ServerSide', id: '_mission', children: [] } }
+    const reg = await loadRouteInto('https://x', before, '/astronauts', '', {})
+    assert.equal(reg.contexts[HOST_ID].state.name, undefined)
+    assert.equal(reg.contexts[HOST_ID].tree.metadata.title, 'Astronauts')
+  } finally { globalThis.fetch = original }
+})
+
 atest('fetchWithPolicy adjunta el token que dejó el bootstrap', async () => {
   // The regression this pins: the bootstrap authenticated and stored the token, and NOTHING read it.
   // Every call went out without the header, the gateway returned 401, and the classifier translated it into
@@ -4434,6 +4451,38 @@ test('P1: @RowRoute — la fila abre la ruta del maestro; una plantilla sin reso
   assert.equal(p1RowRouteOf('/customers/${row.id}', { id: '3' }), '/customers/3')
   assert.equal(p1RowRouteOf('/customers/${row.id}', {}), '')
   assert.equal(p1RowRouteOf('', { id: '3' }), '')
+})
+import { isExternalRoute as extIsExternalRoute } from './core/content.mjs'
+import { nestedListingAtomOf as extNestedListingAtomOf, nestedListingKeyOf as extNestedListingKeyOf } from './core/listing.mjs'
+import { openExternalRoute as extOpenExternalRoute } from './mount.mjs'
+
+test('a rowRoute that is a whole URL: taken unencoded, it leaves the app in a new tab', () => {
+  const url = 'https://images-assets.nasa.gov/image/a/a~large.jpg'
+  // one placeholder = the whole value; inside a path a value is still a segment
+  assert.equal(p1RowRouteOf('${row.imageLarge}', { imageLarge: url }), url)
+  assert.equal(p1RowRouteOf('photos/${row.t}', { t: 'a b' }), 'photos/a%20b')
+  for (const ext of [url, '//cdn.x/y', 'mailto:a@b.c', 'javascript:alert(1)']) assert.ok(extIsExternalRoute(ext), ext)
+  for (const own of ['missions/6', '/missions/6/edit', 'a?q=b:c', '']) assert.ok(!extIsExternalRoute(own), own)
+  const opened = []
+  const win = { open: (...a) => opened.push(a) }
+  assert.equal(extOpenExternalRoute(url, win), true)
+  assert.deepEqual(opened, [[url, '_blank', 'noopener,noreferrer']])
+  // a refused scheme is handled (no in-app navigation) but opens nothing
+  const warn = console.warn; console.warn = () => {}
+  try { assert.equal(extOpenExternalRoute('javascript:alert(1)', win), true) } finally { console.warn = warn }
+  assert.equal(opened.length, 1)
+  assert.equal(extOpenExternalRoute('missions/6', win), false)
+  // onMateuNavigate asks first, before anything else loads
+  assert.ok(webApp('pages/shell-page-chains/onMateuNavigate.js').includes('bridge.openExternalRoute(route)'))
+  // a nested listing: a card carries the URL; a table row links to it in a new tab
+  const node = { type: 'ClientSide', id: 'g', metadata: { type: 'Listing', gridLayout: 'cards', rowRoute: '${row.imageLarge}',
+    columns: [{ type: 'GridColumn', id: 'imageTitle', identifier: true }] } }
+  const rows = [{ imageTitle: 'Scott', imageLarge: url }]
+  const data = { [extNestedListingKeyOf(node)]: { page: { content: rows } } }
+  assert.equal(extNestedListingAtomOf(node, { state: {}, data }).cards[0].route, url)
+  const table = { ...node, metadata: { ...node.metadata, gridLayout: 'table' } }
+  const row = extNestedListingAtomOf(table, { state: {}, data: { [extNestedListingKeyOf(table)]: { page: { content: rows } } } }).rows[0]
+  assert.deepEqual([row.__href, row.__target, row.__rel], [url, '_blank', 'noopener noreferrer'])
 })
 import { appLevelOf as p1AppLevelOf, splitNestedApps as p1SplitNestedApps, tabRoutePath as p1TabRoutePath, islandContentOf as p1IslandContentOf } from './reduceContexts.mjs'
 
