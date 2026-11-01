@@ -627,6 +627,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,
+    routeStateOf,
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,

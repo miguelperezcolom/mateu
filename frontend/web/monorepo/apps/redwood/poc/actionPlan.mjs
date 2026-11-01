@@ -2,6 +2,7 @@ import {
   HOST_ID, overlayOf, withListingSelection, validationOf, formRefusalOf, listActionRequestOf, ROW_VALIDATING_VERBS,
   validateRow, rowEditorOf, overlayTransportOf, actionTransportOf,
 } from './reduceContexts.mjs'
+import { interpolate } from './core/content.mjs'
 
 // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
 // the state it carries (the drawer's with its draft, or the host's with the form draft and the
@@ -155,7 +156,15 @@ export function onlyMessagesAnswer({ hostRepainted, flipRoute, events, overlayBe
  * @param {{ actionId?: string, parameters?: object, route?: string }} button
  * @returns {{ navigate: string } | { actionId: string, parameters: object }}
  */
-export function blockClickOf({ actionId, parameters, route } = {}) {
+/** The state a navigating button's route is read against: the screen's, with what is typed over it. */
+export function routeStateOf(reg, draft) {
+  return { ...reg?.contexts?.[HOST_ID]?.state, ...draft }
+}
+
+export function blockClickOf({ actionId, parameters, route, state } = {}) {
+  // a RouteLink's route is a template over the screen's state (`missions/${state.id}/edit`): it went
+  // out with the literal placeholder wherever the projection had not interpolated it already
+  if (typeof route === 'string' && route.includes('${')) route = interpolate(route, state || {})
   if (typeof route === 'string' && route.trim() !== '') return { navigate: route.trim() }
   return { actionId: actionId || '', parameters: parameters || {} }
 }
