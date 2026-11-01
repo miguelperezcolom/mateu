@@ -1,4 +1,36 @@
 import java.security.MessageDigest
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
+
+/**
+ * Deletes a file tree WITHOUT following symbolic links: a link is removed as a link, never entered.
+ *
+ * NEVER use Kotlin's File.deleteRecursively() in this build. It walks with File.isDirectory(), which
+ * follows links, so it deletes what a link points to. The macOS dmg stage holds a link
+ * `dmg/Applications -> /Applications` (the drag-to-install target), and cleaning that stage with
+ * deleteRecursively() deleted the contents of the developer's /Applications (2026-11-01).
+ */
+fun deleteTree(root: File) {
+    val path = root.toPath()
+    if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) return
+    if (Files.isSymbolicLink(path)) { Files.delete(path); return }
+    // walkFileTree without FOLLOW_LINKS visits a link as a file: visitFile deletes the link itself
+    Files.walkFileTree(path, object : SimpleFileVisitor<Path>() {
+        override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+            Files.delete(file); return FileVisitResult.CONTINUE
+        }
+        override fun visitFileFailed(file: Path, exc: java.io.IOException): FileVisitResult {
+            Files.deleteIfExists(file); return FileVisitResult.CONTINUE
+        }
+        override fun postVisitDirectory(dir: Path, exc: java.io.IOException?): FileVisitResult {
+            Files.delete(dir); return FileVisitResult.CONTINUE
+        }
+    })
+}
 
 plugins {
     kotlin("jvm") version "2.4.21"
@@ -167,7 +199,7 @@ val copyStarters = tasks.register("copyStarters") {
     doLast {
         check(source.resolve("generator/new-project.json").exists()) { "missing $source/generator/new-project.json" }
         val out = target.get().dir("mateu/starters").asFile
-        out.deleteRecursively()
+        deleteTree(out)
         val files = source.walkTopDown()
             .onEnter { it == source || it.name !in excluded }
             .filter { it.isFile && it.name !in excluded }
@@ -433,7 +465,7 @@ tasks.register("buildInstaller") {
             require(arch == "aarch64" || arch == "intel") { "installer.arch must be aarch64 or intel" }
             val key = "macos-$arch"
             val dmg = ideArchive(if (arch == "intel") "ideaIC-$ideVersion.dmg" else "ideaIC-$ideVersion-aarch64.dmg")
-            val work = File(installerDir, "work/macos").apply { deleteRecursively(); mkdirs() }
+            val work = File(installerDir, "work/macos").apply { deleteTree(this); mkdirs() }
             val mnt = File(work, "mnt").apply { mkdirs() }
             val appName = "${o.product}.app"
             val app = File(work, appName)
@@ -488,7 +520,7 @@ tasks.register("buildInstaller") {
             // custom plugin — on first run, and again when a reinstalled app brings another version.
             logger.lifecycle("Staging the Mateu plugin…")
             val resources = File(contents, "Resources")
-            val pluginStage = File(resources, "mateu-plugin").apply { deleteRecursively(); mkdirs() }
+            val pluginStage = File(resources, "mateu-plugin").apply { deleteTree(this); mkdirs() }
             run("unzip", "-q", "-o", pluginZip.absolutePath, "-d", pluginStage.absolutePath, dir = work)
             File(resources, "mateu-plugin-version.txt").writeText(version + "\n")
             File(src, "apply-update.sh").copyTo(File(resources, "apply-update.sh"), overwrite = true)
@@ -534,7 +566,7 @@ tasks.register("buildInstaller") {
             // Double-click .dmg: the .app beside a drag-to-/Applications shortcut. Move (not copy) the
             // work .app into the staging dir — same filesystem, so it's free.
             logger.lifecycle("Creating .dmg…")
-            val dmgStage = File(work, "dmg").apply { deleteRecursively(); mkdirs() }
+            val dmgStage = File(work, "dmg").apply { deleteTree(this); mkdirs() }
             val stagedApp = File(dmgStage, appName)
             run("mv", app.absolutePath, stagedApp.absolutePath, dir = work)
             run("ln", "-s", "/Applications", File(dmgStage, "Applications").absolutePath, dir = work)
@@ -561,7 +593,7 @@ tasks.register("buildInstaller") {
 
             // Ship the .app and a zip of it — from the staged (possibly stapled) copy.
             val out = File(installerDir, appName)
-            out.deleteRecursively()
+            deleteTree(out)
             run("cp", "-R", stagedApp.absolutePath, out.absolutePath, dir = work)
             val zip = File(installerDir, "${o.slug}-desktop-$version-$key.zip")
             zip.delete()
@@ -578,7 +610,7 @@ tasks.register("buildInstaller") {
         val linux = platform == "linux"
         val archive = ideArchive(if (linux) "ideaIC-$ideVersion.tar.gz" else "ideaIC-$ideVersion.win.zip")
         val work = File(installerDir, "work/$platform")
-        work.deleteRecursively()
+        deleteTree(work)
         work.mkdirs()
         val bundleName = "${o.slug}-desktop-$version"
         val root = File(work, bundleName)
