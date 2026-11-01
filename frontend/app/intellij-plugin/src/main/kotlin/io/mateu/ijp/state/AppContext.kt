@@ -370,8 +370,17 @@ class AppContext(val session: AppSession) {
         }
     }
 
-    fun runAction(actionId: String, parameters: Map<String, Any?>?, silent: Boolean = false) {
-        if (contentPane == null) return
+    /**
+     * Runs an action. [onDone] (on the EDT) says whether it went through — a kanban move puts its
+     * card back when it did not.
+     */
+    fun runAction(
+        actionId: String,
+        parameters: Map<String, Any?>?,
+        silent: Boolean = false,
+        onDone: ((Boolean) -> Unit)? = null,
+    ) {
+        if (contentPane == null) { onDone?.invoke(false); return }
 
         // Dirty guard on discarding actions (Cancel on an edit form): confirm before throwing away
         // unsaved changes on a tracked form.
@@ -386,7 +395,7 @@ class AppContext(val session: AppSession) {
                 arrayOf("Discard changes", "Keep editing"),
                 "Keep editing",
             )
-            if (choice != JOptionPane.YES_OPTION) return
+            if (choice != JOptionPane.YES_OPTION) { onDone?.invoke(false); return }
             setDirtyState(false)
         }
 
@@ -401,6 +410,7 @@ class AppContext(val session: AppSession) {
             }
             if (empty) {
                 showMessage("You first need to select some rows", "warning")
+                onDone?.invoke(false)
                 return
             }
         }
@@ -421,6 +431,7 @@ class AppContext(val session: AppSession) {
                 // they are taken to the problem rather than told there is one somewhere.
                 contentPane?.let { io.mateu.ijp.ui.announce(it, "There are validation errors. $summary") }
                 focusFirstInvalidField(fieldErrors.keys.firstOrNull())
+                onDone?.invoke(false)
                 return
             }
         }
@@ -438,14 +449,14 @@ class AppContext(val session: AppSession) {
                 arrayOf(t.confirmationText, t.denialText),
                 t.denialText,
             )
-            if (choice != JOptionPane.YES_OPTION) return
+            if (choice != JOptionPane.YES_OPTION) { onDone?.invoke(false); return }
         }
 
         // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching
         // to the Mateu server — fetch + merge the response into the state + notify (fires on click
         // for a @RestAction button, and on mount for @RestData via its OnLoad __restdata__ action).
         screen.restAction(actionId)?.let { rest ->
-            handleRestAction(rest, actionId)
+            handleRestAction(rest, actionId, parameters, onDone)
             return
         }
 
@@ -462,9 +473,10 @@ class AppContext(val session: AppSession) {
                 } finally {
                     flowDepth--
                 }
+                onDone?.invoke(true)
                 return
             }
-            handleRestAction(resolved.path("restAction"), actionId)
+            handleRestAction(resolved.path("restAction"), actionId, parameters, onDone)
             return
         }
 
@@ -483,10 +495,11 @@ class AppContext(val session: AppSession) {
                     ) { increment -> SwingUtilities.invokeLater { applyIncrement(increment) } }
                     com.fasterxml.jackson.databind.node.NullNode.instance
                 },
-                onOk = { polling.actionSucceeded(generation, actionId) },
+                onOk = { polling.actionSucceeded(generation, actionId); onDone?.invoke(true) },
                 onErr = {
                     if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
                     else showError("Action failed: ${it.message}")
+                    onDone?.invoke(false)
                 },
             )
             return
@@ -503,10 +516,12 @@ class AppContext(val session: AppSession) {
                 applyIncrement(increment)
                 // OnSuccess triggers (the polling loop) — only if still on the screen that dispatched it
                 polling.actionSucceeded(generation, actionId)
+                onDone?.invoke(true)
             },
             onErr = {
                 if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
                 else showError("Action failed: ${it.message}")
+                onDone?.invoke(false)
             },
         )
     }
@@ -517,9 +532,17 @@ class AppContext(val session: AppSession) {
      * state (so bound fields refresh) and show a success notification; an error shows a failure one.
      * No server round-trip — the plugin analogue of the web's mateu-component.handleRestAction.
      */
-    private fun handleRestAction(rest: JsonNode, actionId: String? = null) {
+    private fun handleRestAction(
+        rest: JsonNode,
+        actionId: String? = null,
+        parameters: Map<String, Any?>? = null,
+        onDone: ((Boolean) -> Unit)? = null,
+    ) {
         val source = rest.path("source")
-        val ctx = mapOf<String, Any?>("state" to currentComponentState, "appState" to appState)
+        // the call's own parameters (a kanban move's _cardId/_toColumnId and the moved card's item)
+        // sit over the state its templates read — the proxied leg merges them the same way server-side
+        val callState = HashMap<String, Any?>(currentComponentState).apply { putAll(parameters.orEmpty()) }
+        val ctx = mapOf<String, Any?>("state" to callState, "appState" to appState)
         background(
             work = {
                 // SAMPLE mode: a sampled source is neither fetched nor proxied — a read answers with a
@@ -533,7 +556,7 @@ class AppContext(val session: AppSession) {
                     // (screen-load) id resolves the class @RestData source; any other id is a
                     // @RestAction method — hence the source kind.
                     val kind = if (actionId == "__restdata__") "data" else "action"
-                    fetchViaProxy(kind, actionId.orEmpty())
+                    fetchViaProxy(kind, actionId.orEmpty(), parameters.orEmpty())
                 } else {
                     // A by-ref surface carries only the name: url, method, headers and body (like
                     // `proxy`) come from the RESOLVED source, or the call would go to an empty url.
@@ -563,12 +586,19 @@ class AppContext(val session: AppSession) {
                         rerenderCurrentForm()
                     }
                 }
-                val message = Expressions.interpolate(rest.get("successMessage")?.asText("").orEmpty(), ctx)
+                // after the result merged into the state, the call's parameters still over it
+                val after = mapOf<String, Any?>(
+                    "state" to HashMap<String, Any?>(currentComponentState).apply { putAll(parameters.orEmpty()) },
+                    "appState" to appState,
+                )
+                val message = Expressions.interpolate(rest.get("successMessage")?.asText("").orEmpty(), after)
                 if (message.isNotBlank()) showMessage(message, "success")
+                onDone?.invoke(true)
             },
             onErr = {
                 if (silentErrors) println("[Mateu] rest action failed: ${it.message}")
                 else showMessage("Request failed", "error")
+                onDone?.invoke(false)
             },
         )
     }
@@ -580,11 +610,11 @@ class AppContext(val session: AppSession) {
      * fetched (appData._restfetch). Runs on the CALLER's thread (options/rows/action already fetch
      * on a background worker), so no extra threading here.
      */
-    fun fetchViaProxy(sourceKind: String, sourceId: String): JsonNode {
+    fun fetchViaProxy(sourceKind: String, sourceId: String, extra: Map<String, Any?> = emptyMap()): JsonNode {
         val increment = apiClient.runAction(
             currentRoute, currentConsumedRoute, "__restfetch__", currentServerSideType,
             currentComponentId, currentComponentState, appState,
-            mapOf("_sourceKind" to sourceKind, "_sourceId" to sourceId),
+            extra + mapOf("_sourceKind" to sourceKind, "_sourceId" to sourceId),
         )
         return increment.path("appData").path("_restfetch")
     }

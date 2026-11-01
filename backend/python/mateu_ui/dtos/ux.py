@@ -34,6 +34,12 @@ class KanbanMetadata(Wire):
 
     type: Literal["Kanban"] = "Kanban"
     columns: list[KanbanColumnRecord] = Field(default_factory=list)
+    move_action_id: str | None = None
+    rows_source: "RestDataSource | None" = None
+    column_field: str | None = None
+    card: "KanbanCardRecord | None" = None
+    card_colors: dict[str, str] | None = None
+    card_route: str | None = None
 
 
 class TimelineItemRecord(Wire):
