@@ -2113,6 +2113,23 @@ atest('el contexto recuerda de qué pod se cargó, y sus acciones vuelven allí'
   } finally { globalThis.fetch = original }
 })
 
+atest('a route load is a NEW screen: the previous screen\'s state never carries over', async () => {
+  // a record page (state.name = the mission) → a listing answering with no state of its own: its
+  // search used to interpolate the mission's name into the rows url and the list came back empty
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+    type: 'ClientSide', id: '_list', metadata: { type: 'Crud', title: 'Astronauts' }, children: [],
+  } }] }) })
+  try {
+    const before = empty()
+    before.contexts[HOST_ID] = { id: HOST_ID, kind: 'host', state: { id: 6, name: 'Apollo 11' }, data: {},
+      tree: { type: 'ServerSide', id: '_mission', children: [] } }
+    const reg = await loadRouteInto('https://x', before, '/astronauts', '', {})
+    assert.equal(reg.contexts[HOST_ID].state.name, undefined)
+    assert.equal(reg.contexts[HOST_ID].tree.metadata.title, 'Astronauts')
+  } finally { globalThis.fetch = original }
+})
+
 atest('fetchWithPolicy adjunta el token que dejó el bootstrap', async () => {
   // The regression this pins: the bootstrap authenticated and stored the token, and NOTHING read it.
   // Every call went out without the header, the gateway returned 401, and the classifier translated it into

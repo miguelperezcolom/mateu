@@ -721,7 +721,13 @@ export function templatedMultimediaOf(ctx) {
   const look = welcomeLookOf(welcomeKeyOf(ctx), banner.tone)
   // the banner shows ONE record: its texts are templates over the page state
   const text = (t) => interpolate(String(t || ''), (ctx && ctx.state) || {})
+  // ...and so are its calls to action's routes (an Edit to `missions/${state.id}/edit` went to the
+  // literal placeholder)
+  const routed = (c) => (c?.route ? { ...c, route: text(c.route) } : c)
   return { ...banner, overline: text(banner.overline), title: text(banner.title), subtitle: text(banner.subtitle),
+    ctas: (banner.ctas || []).map(routed),
+    primaryCtaRoute: text(banner.primaryCtaRoute), secondaryCtaRoute: text(banner.secondaryCtaRoute),
+    secondaryById: Object.fromEntries(Object.entries(banner.secondaryById || {}).map(([k, v]) => [k, routed(v)])),
     theme: look.theme, illuBg: look.illuBg, illu: look.illu, themedImage: look.themedImage || 'none' }
 }
 
