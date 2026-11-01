@@ -107,6 +107,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **A deep link to a record whose id has a dot opens it.** `/people/ana.perez` or `/releases/1.2` on a
+  reload or a shared link was a 404: any dot made a path a file. Now a path is a file only when its last
+  segment ends in a web asset's extension (`SpaFallback.isAsset`), on every adapter and in every
+  generated index controller.
 - **Desktop sign-in failed against a client that requires PKCE.** A client set up for the phone app
   (Keycloak "PKCE Method: S256") refused the desktop's device request with "Missing parameter:
   code_challenge_method". The device flow now sends a PKCE challenge (and its verifier on the token poll).

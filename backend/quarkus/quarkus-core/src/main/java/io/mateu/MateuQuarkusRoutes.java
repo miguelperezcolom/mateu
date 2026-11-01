@@ -458,8 +458,11 @@ public class MateuQuarkusRoutes {
       // pass on what they do not serve, so the app's own endpoints and the assets keep winning.
       String deepLinks =
           mount.basePath().isEmpty()
-              ? "/[^.]*"
-              : java.util.regex.Pattern.quote(mount.spaPath() + "/") + "[^.]*";
+              ? "/(" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + ")?"
+              : java.util.regex.Pattern.quote(mount.spaPath() + "/")
+                  + "("
+                  + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET
+                  + ")?";
       router
           .getWithRegex(deepLinks)
           .order(Integer.MAX_VALUE - 100)
