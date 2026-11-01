@@ -1366,8 +1366,10 @@ export class MateuTableCrud extends LitElement {
             const idCol = railCols.find(c => c.identifier) ?? railCols[0]
             const secCols = railCols.filter(c => c !== idCol)
             return html`
-                <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
-                    <div style="width: 260px; flex-shrink: 0; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
+                <!-- the list beside the detail where there is room; on a phone the detail wraps BELOW
+                     the list, which then takes the whole line (its tiny grow only matters alone) -->
+                <div class="m-master-detail" style="display: flex; flex-wrap: wrap; height: 100%; min-height: 400px; gap: 0;">
+                    <div style="flex: 1 0 260px; max-width: 100%; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
                         <div class="m-listbox" style="width: 100%;">
                             ${rows.length === 0 ? html`<div class="m-item" disabled>${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                             ${rows.map(item => html`
@@ -1384,7 +1386,7 @@ export class MateuTableCrud extends LitElement {
                             `)}
                         </div>
                     </div>
-                    <div style="flex: 1; padding: var(--lumo-space-m); overflow-y: auto;">
+                    <div style="flex: 1000 1 20rem; min-width: min(20rem, 100%); padding: var(--lumo-space-m); overflow-y: auto;">
                         ${this.selectedItem ? html`
                             <div class="m-formlayout">
                                 ${allCols.map(col => html`

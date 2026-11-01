@@ -1083,6 +1083,12 @@ test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la ana
   const foldout = reduceContexts(empty(), fx('load-foldout')).contexts[HOST_ID]
   assert.equal(foldout.pageWidth, 'edgeToEdge')
   assert.deepEqual(pageStyleOf(foldout), { maxWidth: 'none', margin: '0', padding: '0' })
+  // no declared width: the page TYPE decides, as on the web — a dashboard / collection takes the room
+  // (the museum's DashboardLandingPage resolved fixed); a declared width still wins
+  assert.deepEqual(pageStyleOf({ pageType: 'dashboard' }), { maxWidth: 'none', margin: '0', padding: '24px' })
+  assert.deepEqual(pageStyleOf({ pageType: 'COLLECTION' }), { maxWidth: 'none', margin: '0', padding: '24px' })
+  assert.equal(pageStyleOf({ pageType: 'form' }).maxWidth, fixedStyle.maxWidth)
+  assert.equal(pageStyleOf({ pageType: 'dashboard', pageWidth: 'fixed' }).maxWidth, fixedStyle.maxWidth)
 })
 
 // 22) Composed archetypes: welcome, general overview and item overview are projected from the core.
