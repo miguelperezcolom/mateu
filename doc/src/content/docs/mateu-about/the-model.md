@@ -60,7 +60,7 @@ content:
 # specs/ui/routes.yaml
 routes:
   - route: orders
-    definition: orders.yaml
+    layout: orders.yaml
 ```
 
 Neither is the "real" one. They meet in the same model, and a screen can mix them: `@UISpec` takes
