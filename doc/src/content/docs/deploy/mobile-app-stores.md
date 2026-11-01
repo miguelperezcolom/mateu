@@ -54,6 +54,20 @@ GET <baseUrl>/mateu/v3/manifest
 }
 ```
 
+Each member comes from a server setting (a `mateu.*` property, a JVM system property or its
+`MATEU_MOBILE_*` environment variable) first, then from `@MobileApp`, then from what the app already
+declares:
+
+| Member | Setting | `@MobileApp` | Otherwise |
+|---|---|---|---|
+| `name` / `shortName` | `mateu.mobile.name` / `mateu.mobile.short-name` | `name` / `shortName` | `@Title`, the shell's `title` |
+| `icon` | `mateu.mobile.icon` | `icon` | `@Logo` / `@FavIcon`, the shell's `logo` |
+| `themeColor` | `mateu.mobile.theme-color` | `themeColor` | `@App(accentColor)` |
+| `minAppVersion` | `mateu.mobile.min-app-version` | `minAppVersion` | `1.0.0` |
+| `auth.issuer` | `mateu.mobile.oidc.issuer` | `oidcIssuer` | no `auth` (the UI needs no sign-in) |
+| `auth.clientId` | `mateu.mobile.oidc.client-id` | `oidcClientId` | — |
+| `auth.scopes` | `mateu.mobile.oidc.scopes` (comma-separated) | `scopes` | `openid, profile` |
+
 - **You don't write it by hand.** Every Mateu backend (the five Java adapters, .NET and Python)
   serves it, built from your app shell ([how each member is derived](/ux-patterns/mobile-app/#the-ui-manifest),
   including `@MobileApp` for the members the shell doesn't say). The name, icon and colours come from your `@App` class or

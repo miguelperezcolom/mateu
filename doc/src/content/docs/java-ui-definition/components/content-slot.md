@@ -154,3 +154,47 @@ POST /mateu/v3/sync/_no_route
 ```
 
 It is off by default: it describes the application's screens.
+
+## .NET and Python
+
+Both ports have content slots, with the same contract with the content service. Two differences:
+there is no annotation processor, so a malformed or repeated key fails when the views are
+**registered** (at startup) instead of at compile time; and there is no YAML `ContentSlot` builder.
+
+```csharp
+builder.Services.AddMateu(o =>
+{
+    o.Remotes.Add(new RemoteDescriptor("content", "/_content-hub", 1000));
+    o.SelfBaseUrl = "https://shell.acme.com";
+    // o.ContentRemoteId = "content"; o.ContentRoute = "/content-slots/{key}";  (the defaults)
+});
+
+[UI("home")]
+public class Home
+{
+    [ContentSlot(Key = "front-office.home.destacado", Fallback = "No news today", TimeoutMs = 100,
+        Description = "Banner at the top of the home page")]
+    public string? Destacado { get; set; }
+}
+```
+
+```python
+from typing import Annotated
+
+from mateu_ui.uidl import ContentSlot, RemoteDescriptor, ui
+
+
+@ui("home")
+class Home:
+    destacado: Annotated[str | None, ContentSlot(key="front-office.home.destacado",
+                                                 fallback="No news today", timeout_ms=100,
+                                                 description="Banner at the top of the home page")] = None
+
+
+CONTENT = RemoteDescriptor("content", "/_content-hub", 1000)
+# add_mateu(app, my_module, remotes=[CONTENT], self_base_url="https://shell.acme.com")
+```
+
+The fluent twins are .NET `new ContentSlot("front-office.home.destacado") { Fallback = "…" }` and
+Python `components.ContentSlot(key=…, fallback=…)`. The slot descriptor action is switched on with
+`o.ContentSlotsDescriptorEnabled = true` / `add_mateu(content_slots_descriptor_enabled=True)`.

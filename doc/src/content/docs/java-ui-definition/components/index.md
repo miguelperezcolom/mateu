@@ -2,9 +2,12 @@
 title: "Component reference"
 ---
 
-Detailed reference for every fluent component available in Mateu.
+Detailed reference pages for the most used fluent components: what each one does, its properties,
+and a working code example drawn from the demo application.
 
-Each page covers what the component does, its properties, and a working code example drawn from the demo application.
+This is not every component — the [complete list](/java-ui-definition/supported-components/#every-component)
+(generated from the component catalogue) has all of them, each linked to the page or pattern that
+explains it.
 
 ---
 
