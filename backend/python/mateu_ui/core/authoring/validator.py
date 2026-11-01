@@ -25,6 +25,8 @@ from typing import Any
 import yaml
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
+from .. import proxy_expression
+
 #: Largest definition accepted (UTF-8 bytes); the same limit in every implementation.
 MAX_YAML_BYTES = 262_144
 
@@ -34,6 +36,8 @@ MAX_NODES = 100_000
 _INT = re.compile(r"[-+]?[0-9]+")
 _FLOAT = re.compile(r"[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?")
 _IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+_PLACEHOLDER = re.compile(r"\$\{([^}]+)}")
+_CLIENT_ONLY_ROOT = re.compile(r"(?<![\w$.])(data|appState|appData)\s*(\.|\?\.|\[)")
 _REF_PREFIX = "#/$defs/"
 
 _TYPED_KINDS = {
@@ -379,6 +383,8 @@ class _Run:
                 f"Component {quote(text)} is not in the business component catalogue (components.yaml).",
                 path, value,
             )
+        elif key in ("url", "body") and def_name == "RestDataSource":
+            self.proxy_safe(text, path, value)
         elif key == "fieldType":
             self.resolves(
                 ctx.field_type, text, "unresolved_field_type",
@@ -398,6 +404,28 @@ class _Run:
                 path,
                 value.start_mark,
             )
+
+    def proxy_safe(self, template: str, path: str, at: Node) -> None:
+        """A source template the SERVER cannot evaluate the way the browser does: on a proxied source
+        (proxy: true, or an environment overlay that flips it) such a placeholder renders empty.
+        The server evaluates the subset of :mod:`mateu_ui.core.proxy_expression`; ``data``/
+        ``appState``/``appData`` exist only in the browser. Java's UidlValidator.proxySafe."""
+        for m in _PLACEHOLDER.finditer(template):
+            expr = m.group(1).strip()
+            why = None
+            if _CLIENT_ONLY_ROOT.search(expr):
+                why = "reads data/appState/appData, which only the browser has"
+            elif not proxy_expression.is_supported(expr):
+                why = "uses syntax outside what the server evaluates"
+            if why is not None:
+                self.issue(
+                    self.warnings,
+                    "proxy_unsafe_template",
+                    "${" + expr + "} " + why
+                    + ": if this source is proxied (proxy: true, or an environment flips it) it is sent empty.",
+                    path,
+                    at.start_mark,
+                )
 
     def resolves(
         self, known: Predicate | None, name: str, code: str, message: str, path: str, at: Node
