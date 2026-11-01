@@ -67,6 +67,16 @@ export class MateuForm extends MetadataDrivenElement {
             gap: var(--lumo-space-m, 1rem);
         }
 
+        /* an edge page (a templated foldout, a map): the CONTENT bleeds, the header and banners
+           keep the shell's gutter — as mateu-page's do (mateu-ux sets --mateu-edge-header-gutter;
+           0 on fixed/full pages). The title, back arrow and actions touched the viewport edges. */
+        mateu-content-header,
+        mateu-form-banners {
+            display: block;
+            box-sizing: border-box;
+            padding-inline: var(--mateu-edge-header-gutter, 0px);
+        }
+
         .redwood .form-header {
             background-color: rgb(44, 82, 102);
             color: var(--lumo-base-color);

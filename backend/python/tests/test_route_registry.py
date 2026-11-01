@@ -4,7 +4,7 @@
 The precedence must match the Java server and both web renderers exactly, or the same route would
 behave differently depending on which backend and which renderer serve it:
 
-    fixed  >  client state  >  path  >  defaults
+    fixed  >  client state  >  path  >  query  >  defaults
 """
 
 from __future__ import annotations
@@ -79,6 +79,20 @@ def test_a_seeded_parameter_is_overridable_by_the_request():
 
 def test_a_path_parameter_reaches_the_params():
     assert registry().match("orders/42").params({})["id"] == "42"
+
+
+def test_the_full_precedence_order_matches_the_java_server():
+    # fixed > client state > path > query > defaults; a None in the client state is no value
+    match = registry().match("orders/42")
+    assert match.params({"id": "7"})["id"] == "7"  # client state over path
+    assert match.params({"id": None})["id"] == "42"  # None is no value: the path fills it
+    assert match.params({}, {"id": "9"})["id"] == "42"  # path over query
+    assert match.params({}, {"q": "x"})["q"] == "x"  # the query seeds what nothing else names
+    assert match.params({"q": "mine"}, {"q": "x"})["q"] == "mine"  # client state over query
+    seeded = registry().match("tickets")
+    assert seeded.params({}, {"page": "3"})["page"] == "3"  # query over defaults
+    assert seeded.params({"page": None})["page"] == 1  # None does not erase a default
+    assert registry().match("tickets/open").params({}, {"status": "all"})["status"] == "open"
 
 
 def test_a_static_route_is_not_swallowed_by_its_parameterised_sibling():

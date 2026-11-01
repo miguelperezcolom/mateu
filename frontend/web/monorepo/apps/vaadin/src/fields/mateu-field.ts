@@ -9,6 +9,7 @@ import { interpolate } from '@components/interpolation'
 import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
 import { isSearchableMulti } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
+import { imageUrlOf } from '@infra/ui/imageUrl.ts'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -628,6 +629,17 @@ export class MateuField extends LitElement {
     imageDelete = () => {
         this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
             detail: { value: '', fieldId: this.field?.fieldId },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+    /** An uploadable image set from a pasted URL (only an http(s) or relative one is taken). */
+    imageFromUrl = (url: string) => {
+        const value = imageUrlOf(url)
+        if (value === undefined) return
+        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
+            detail: { value, fieldId: this.field?.fieldId },
             bubbles: true,
             composed: true
         }))

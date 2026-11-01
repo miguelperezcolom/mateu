@@ -14,6 +14,8 @@ import type Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 
 import { interpolate, literalText, possiblyHtml } from './interpolation'
+import { notePageTitle } from './windowTitle'
+import { plainText } from './navTree'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { navigateToRoute } from './rowRoute'
 import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } from './breadcrumbTrail'
@@ -139,6 +141,7 @@ export class MateuContentHeader extends LitElement {
     /** After each render, move one more secondary into the "…" menu while the action cluster still
      *  overflows the header (wrapped to a new line or past the right edge). Monotonic → converges. */
     protected updated(changed: Map<PropertyKey, unknown>) {
+        if (changed.has('metadata') || changed.has('state') || changed.has('data')) this._followPageTitle()
         if (changed.has('_overflowOpen') && this._overflowOpen) this._placeOverflowMenu()
         if (changed.has('metadata') || changed.has('data')) { this._resetOverflow(); return }
         // Inside a dialog the header is as wide as its content, and moving a button into the menu
@@ -161,6 +164,21 @@ export class MateuContentHeader extends LitElement {
     }
 
     /** Whether this header is drawn inside a dialog (crossing shadow roots on the way up). */
+    /**
+     * The window title follows this page's title when it is a template that resolves only once the
+     * page's data is in (a YAML record page: `title: ${state.name}`, the record from `data:`): the
+     * server could only name the window by the route ("28"). Only the page's MAIN header (level 0,
+     * not a dialog's or an embedded island's) names the window, and only a dynamic title — a fixed
+     * one is exactly what the server already sent.
+     */
+    private _followPageTitle() {
+        const metadata = this.metadata as Form | undefined
+        const title = metadata?.title
+        if (!title || metadata?.titleIsText || (metadata?.level ?? 0) !== 0) return
+        if (!String(title).includes('${') || this._inDialog()) return
+        notePageTitle(plainText(interpolate(title, this.state, this.data)))
+    }
+
     private _inDialog(): boolean {
         let node: any = this
         while (node) {

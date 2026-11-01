@@ -26,7 +26,24 @@ export function safeImageSrc(value) {
   return v
 }
 
-const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
+const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere', 'useUrl', 'imageUrl']
+
+/**
+ * The value an uploadable image takes from a URL typed or pasted ("Use a URL" next to Upload): an
+ * http(s) URL or a path on this site, trimmed; undefined for a blank (Remove clears it), a data: URI
+ * (that is what Upload produces), a protocol-relative URL or any other scheme. The same rule as
+ * libs/mateu imageUrl.ts.
+ */
+export function imageUrlOf(text) {
+  if (typeof text !== 'string') return undefined
+  // eslint-disable-next-line no-control-regex
+  const url = text.replace(/[\u0000-\u001f\u007f]/g, '').trim()
+  if (!url) return undefined
+  const m = /^([a-z][a-z0-9+.-]*):/i.exec(url)
+  if (m) return /^https?$/i.test(m[1]) ? url : undefined
+  if (url.indexOf('//') === 0) return undefined
+  return url
+}
 
 /** The capture fields' texts in `lang` (the interface catalogue, i18n.mjs). */
 export function captureTexts(lang) {
@@ -169,8 +186,29 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
         dash.textContent = '—'
         box.appendChild(dash)
       }
+      // an uploadable image can also be set from a URL (the value already shows one): a box under
+      // the actions, committed on change with the same rule as the web (imageUrlOf)
+      if (mode === 'image' && !readonly) {
+        actions.appendChild(button(t.useUrl, 'borderless', () => {
+          this.urlOpen = !this.urlOpen
+          this.render()
+        }))
+      }
       this.appendChild(box)
       if (actions.childNodes.length) this.appendChild(actions)
+      if (mode === 'image' && !readonly && this.urlOpen) {
+        const input = doc.createElement('input')
+        input.type = 'url'
+        input.className = 'oj-text-field-input mateu-capture-url oj-sm-margin-2x-top'
+        input.placeholder = 'https://…'
+        input.setAttribute('aria-label', t.imageUrl)
+        input.value = /^data:/i.test(String(value || '')) ? '' : String(value || '')
+        input.addEventListener('change', () => {
+          const url = imageUrlOf(input.value)
+          if (url !== undefined && url !== value) this.emit(url)
+        })
+        this.appendChild(input)
+      }
     }
 
     /** The image stereotype, editable: its URL typed in, the preview following it (committed on change). */

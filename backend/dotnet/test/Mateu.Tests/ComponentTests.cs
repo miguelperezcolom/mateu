@@ -557,6 +557,30 @@ public class PlanningPage : IComponentTreeSupplier
     public object? OpenBooking() => null;
 }
 
+/// <summary>A movable, live kanban board (Java: KanbanMoveSyncTest's fixtures).</summary>
+[UI("kanban-move"), Title("Tasks")]
+public class KanbanMovePage : IComponentTreeSupplier
+{
+    public IComponent Component() => new Kanban
+    {
+        Id = "live",
+        Columns =
+        [
+            new KanbanColumn { Id = "backlog", Title = "Backlog", Color = "#6b7280" },
+            new KanbanColumn { Id = "done", Title = "Done" },
+        ],
+        MoveActionId = "moveTask",
+        RowsSource = new RestDataSource { Url = "/api/tasks", ItemsPath = "content" },
+        ColumnField = "status",
+        Card = new KanbanCard { Id = "${row.id}", Title = "${row.title}", Badge = "${row.priority}", Color = "${row.priority}" },
+        CardColors = new Dictionary<string, string> { ["urgent"] = "#dc2626" },
+        CardRoute = "tasks/${row.id}",
+    };
+
+    // a plain method: the board naming it is what advertises it
+    public object? MoveTask() => null;
+}
+
 /// <summary>An EntityHeader whose fact carries an action (Java: EntityHeaderFactActionSyncTest's
 /// fixture): the pencil next to "EMPRESA".</summary>
 [UI("stay-with-company"), Title("Stay")]
@@ -743,6 +767,22 @@ public class ComponentTests
         Assert.Contains("\"color\":\"#94a3b8\"", json);
         Assert.Contains("\"badge\":\"3\"", json);
         Assert.Contains("\"actionId\":\"openCard\"", json);
+    }
+
+    [Fact]
+    public void Kanban_carries_its_move_action_and_live_source_and_advertises_the_move()
+    {
+        var json = RenderView(typeof(KanbanMovePage));
+
+        Assert.Contains("\"moveActionId\":\"moveTask\"", json);
+        Assert.Contains("\"rowsSource\":{", json);
+        Assert.Contains("\"itemsPath\":\"content\"", json);
+        Assert.Contains("\"columnField\":\"status\"", json);
+        Assert.Contains("\"title\":\"${row.title}\"", json);
+        Assert.Contains("\"urgent\":\"#dc2626\"", json);
+        Assert.Contains("\"cardRoute\":\"tasks/${row.id}\"", json);
+        // the web client only sends an action its component advertises (Java: KanbanMoveSyncTest)
+        Assert.Contains("{\"id\":\"moveTask\"", json);
     }
 
     [Fact]

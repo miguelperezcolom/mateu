@@ -7,6 +7,7 @@ import './mateu-debug-overlay'
 import {Subscription} from "rxjs";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
+import {installHistoryIndex, notePopState, stay} from "@infra/ui/historyIndex.ts";
 import {registerNeutralNotifier} from "@infra/notify/neutralNotifier.ts";
 import {mountConnectivityBanner} from "@infra/ui/mateu-connectivity-banner.ts";
 import {installAnnouncer} from "@infra/a11y/announcer.ts";
@@ -159,11 +160,16 @@ export class MateuUi extends LitElement {
         dirtyGuard.install()
         this._lastUrl = window.location.href
 
+        installHistoryIndex(window)
         window.onpopstate = (e) => {
-            // Back/forward has already changed the URL by the time popstate fires.
-            // If the form is dirty and the user cancels, restore the URL we were on.
+            // Back/forward has already changed the URL by the time popstate fires. Our own undo of a
+            // refused move (below) fires one too: that one is not a navigation.
+            const moved = notePopState(e.state, window)
+            if (!moved) return
+            // If the form is dirty and the user cancels, go back to where we were — undoing the
+            // move in its own direction (historyIndex.ts), not pushing a copy of our URL.
             if (!dirtyGuard.confirmLeave()) {
-                window.history.pushState({}, "", this._lastUrl)
+                stay(moved.to === undefined ? { from: { idx: moved.from.idx, href: this._lastUrl || moved.from.href } } : moved, window)
                 return
             }
             const w = e.target as Window

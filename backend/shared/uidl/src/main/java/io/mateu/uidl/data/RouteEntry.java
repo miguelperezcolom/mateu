@@ -243,17 +243,21 @@ public record RouteEntry(
   }
 
   /**
-   * Resolves the effective parameters for one request: defaults first, then whatever the request
-   * brought (path parameters and incoming state), and finally the fixed ones — which win over
-   * everything, which is the whole point of declaring them fixed.
+   * Resolves the effective parameters for one request: whatever the request brought (incoming
+   * state, path and query parameters, already ranked by {@link RouteTable.Match#params}), then
+   * {@code state} and the defaults filling only what is still missing (a null counts as missing),
+   * and finally the fixed ones — which win over everything, which is the whole point of declaring
+   * them fixed.
    */
   public Map<String, Object> resolveParams(Map<String, Object> fromRequest) {
-    var resolved = new java.util.LinkedHashMap<String, Object>(defaultParams);
-    // `state` seeds at the defaults level too (literal component state the route brings).
-    state.forEach(resolved::putIfAbsent);
+    var resolved = new java.util.LinkedHashMap<String, Object>();
     if (fromRequest != null) {
       resolved.putAll(fromRequest);
     }
+    // `state` and the defaults fill only what the request left missing (a null counts as missing);
+    // HashMap.putIfAbsent treats a key mapped to null as absent, which is exactly that.
+    state.forEach(resolved::putIfAbsent);
+    defaultParams.forEach(resolved::putIfAbsent);
     resolved.putAll(fixedParams);
     return resolved;
   }

@@ -140,10 +140,12 @@ describe('string fields', () => {
     it('an uploadable image offers Delete only when there is an image', () => {
         const withImage = draw(renderUploadableImageField(host({ stereotype: 'uploadableImage' }), 'data:image/png;base64,x', 'P'))
         expect(withImage.querySelector('img')).not.toBeNull()
-        expect(withImage.querySelectorAll('vaadin-button').length).toBe(2)
+        // Replace, Use a URL, Delete
+        expect(withImage.querySelectorAll('vaadin-button').length).toBe(3)
         const empty = draw(renderUploadableImageField(host({ stereotype: 'uploadableImage' }), '', 'P'))
         expect(empty.querySelector('img')).toBeNull()
-        expect(empty.querySelectorAll('vaadin-button').length).toBe(1)
+        // Upload, Use a URL
+        expect(empty.querySelectorAll('vaadin-button').length).toBe(2)
     })
 
     it('a remote combobox shows the selected value from the data, else from its label', () => {
