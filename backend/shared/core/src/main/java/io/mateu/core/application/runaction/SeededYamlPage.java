@@ -67,7 +67,16 @@ record SeededYamlPage(
    */
   @Override
   public String declaredPageType() {
-    return pageType;
+    if (pageType != null) return pageType;
+    // a page that fills a template is the template's kind of page, whatever it holds right now
+    if (layout instanceof io.mateu.uidl.fluent.Form form && form.template() != null) {
+      var ofTemplate =
+          io.mateu.core.domain.out.componentmapper.PageTypeResolver.ofTemplate(form.template());
+      if (ofTemplate != null) {
+        return io.mateu.core.domain.out.componentmapper.PageTypeResolver.toWireName(ofTemplate);
+      }
+    }
+    return null;
   }
 
   SeededYamlPage(Component layout, Map<String, Object> state) {

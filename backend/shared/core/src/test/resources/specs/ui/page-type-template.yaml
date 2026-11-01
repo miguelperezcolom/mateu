@@ -1,0 +1,8 @@
+# A page that fills the Collection detail page template, with its selected record as content and no
+# `pageType:`: the template says which kind of page it is (collection). Used by YamlPageTypeSyncTest.
+type: Form
+title: Bodies
+template:
+  type: CollectionDetailPage
+content:
+  - {type: Text, text: "${state.name}"}

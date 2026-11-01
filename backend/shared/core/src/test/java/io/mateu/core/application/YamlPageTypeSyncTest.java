@@ -85,6 +85,13 @@ class YamlPageTypeSyncTest {
   }
 
   @Test
+  void aPageFillingATemplateIsTheTemplatesKindOfPage() {
+    // a collection detail with a record open used to go out as a `form` page (and so capped to a
+    // fixed width) while the same page with nothing selected was a full-width collection
+    assertThat(componentOf(mateu.sync("/page-type-template/4")).pageType()).isEqualTo("collection");
+  }
+
+  @Test
   void anUnknownTypeIsIgnoredAndInferred() {
     assertThat(componentOf(mateu.sync("/page-type-typo")).pageType()).isEqualTo("form");
   }
