@@ -80,6 +80,8 @@ export class MateuKanban extends LitElement {
     @state()
     private menuFor: string | undefined
 
+    private unresolvedLoads = 0
+
     private loadedSignature: string | undefined
     private releaseHost: (() => void) | undefined
 
@@ -279,11 +281,12 @@ export class MateuKanban extends LitElement {
         try {
             signature = JSON.stringify([source, templateResolver(this.state, this.data)(resolveRestSource(source).url ?? '')])
         } catch {
-            signature = String(Math.random())
+            // a url that does not resolve yet: never equal to the last one, so it loads again
+            signature = 'unresolved:' + (++this.unresolvedLoads)
         }
         if (!force && signature === this.loadedSignature) return
         this.loadedSignature = signature
-        this.load(source)
+        this.load(source).catch(() => { /* load() reports its own failure */ })
     }
 
     private load(source: RestDataSource): Promise<void> {
@@ -355,7 +358,9 @@ export class MateuKanban extends LitElement {
                         return
                     }
                     if (this.rowsSource) {
-                        this.load(this.rowsSource).then(() => { this.optimistic = undefined })
+                        this.load(this.rowsSource)
+                            .then(() => { this.optimistic = undefined })
+                            .catch(() => { /* load() reports its own failure */ })
                     }
                 },
             },
