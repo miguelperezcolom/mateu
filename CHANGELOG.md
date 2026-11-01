@@ -17,6 +17,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   of the one you leave: each UI keeps its own (keyed by address + identity provider + client), Sign
   out is per UI, removing a UI deletes its stored tokens. An earlier single stored token moves to its
   UI once. Verified end to end against Keycloak (device flow, refresh, two realms).
+- **The hub apps check whether they can render a UI, by themselves.** The UI manifest now carries the
+  server's Mateu release (`mateuVersion`, beside `wireVersion`; Java, .NET and Python, omitted on a
+  development build). When a UI is added, opened or its manifest refreshed, the phone and desktop apps
+  compare it with their own wire and release (`conformance/client/app-compat.json`): another wire
+  major, or `minAppVersion` above the phone app → not added or opened, **Update Mateu** offered; a
+  newer minor or release → opens with a note. **Update Mateu** installs an over-the-air update when
+  there is one, else opens the store (or, for the GitHub APK, the releases page); on the desktop it
+  checks the update feed at once. Each release now publishes the phone app over the air when the
+  repository has `EXPO_TOKEN`.
 
 - **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
   app (a gallery's photographs, a document in another system) can point at one elsewhere:

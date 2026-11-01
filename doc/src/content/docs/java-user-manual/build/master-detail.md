@@ -4,6 +4,11 @@ title: "Master-detail (Process + Steps)"
 
 A master-detail UI in Mateu is built by embedding a child CRUD orchestrator inside a parent screen, not by using `List<Entity>`.
 
+:::tip[One record, several views of it?]
+When the "detail" is not a list of children but several parts of the same record shown one at a time
+(a booking's guest, folios, notes…), use [`MasterDetailView`](/java-user-manual/build/master-detail-view/).
+:::
+
 The pattern applies to any parent-child relationship: Order + OrderLines, Customer + Contacts, Project + Tasks. This page uses a Process + Steps example to show the mechanics clearly. The [golden example](/java-user-manual/build/orders-customers-order-lines/) applies the same pattern to Orders and OrderLines with a full backend stack.
 
 ---

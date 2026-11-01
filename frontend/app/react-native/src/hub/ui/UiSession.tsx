@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Appbar } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { headingA11y } from '../../a11y/a11y';
@@ -13,23 +13,19 @@ import { timed } from '../../core/timing';
 import { cachedStaticBundle } from '../bundleCache';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
-import { fetchManifest, versionGate, type ManifestFetch, type UiManifest } from '../manifest';
-import { allowInsecure, appVersion, metaStore, secretStore, uiStore } from '../storage';
+import { appSide } from '../appUpdate';
+import { appCompatibility, compatMessage, hubLang } from '../compat';
+import { fetchManifest, type ManifestFetch, type UiManifest } from '../manifest';
+import { allowInsecure, metaStore, secretStore, uiStore } from '../storage';
 import { uiSecretKeys, type HubEntry } from '../uiStore';
 import { hubBarSignsOut, uiSessionId } from '../uiSession';
-import { PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
-
-// TODO(owner): the store listings, once they exist (App Store id is assigned by App Store Connect).
-const STORE_URL = Platform.select({
-  ios: 'https://apps.apple.com/app/id6829227403',
-  android: 'https://play.google.com/store/apps/details?id=io.mateu.app',
-  default: 'https://mateu.io',
-});
+import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
+import { UpdateAppButton } from './UpdateApp';
 
 type Phase =
   | { name: 'manifest' }
   | { name: 'error'; reason: string }
-  | { name: 'update'; reason: string }
+  | { name: 'update'; reason: string; canUpdate: boolean }
   | { name: 'signin'; error?: string }
   | { name: 'ready' };
 
@@ -86,6 +82,21 @@ export function UiSession({
   /** A static UI (no server): the bundle it runs from. */
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
+  /** A UI ahead of this app (compat.ts `recommended`): it opens, with this note above it. */
+  const [compatNotice, setCompatNotice] = useState<string | null>(null);
+
+  /** Can THIS app render that manifest's UI? Stops at the update screen when it cannot (true). */
+  const applyCompat = (m: UiManifest): boolean => {
+    const app = appSide();
+    const compat = appCompatibility(m, app);
+    const message = compat.reason ? compatMessage(compat.reason, { ...m, name: m.name ?? entry.name }, app, hubLang()) : null;
+    if (compat.status === 'required') {
+      setPhase({ name: 'update', reason: message!, canUpdate: compat.reason !== 'olderWire' });
+      return true;
+    }
+    setCompatNotice(compat.status === 'recommended' ? message : null);
+    return false;
+  };
 
   const provider = useMemo(
     () => (manifest?.auth ? new OidcTokenProvider(manifest.auth, secretStore, uiSecretKeys(entry.id).tokens) : null),
@@ -106,7 +117,15 @@ export function UiSession({
       let fetched: ManifestFetch;
       if (entry.manifest) {
         fetched = { ok: false, reason: 'cached' };
-        void fetchFresh().then((fresh) => (fresh.ok ? manifestOf(fresh, entry) : undefined)).catch(() => undefined);
+        // …and the fresh copy is checked too: a UI that moved to a Mateu this app cannot render
+        // stops here, one that moved ahead of it gets the notice (compat.ts)
+        void fetchFresh()
+          .then(async (fresh) => {
+            if (!fresh.ok) return;
+            await manifestOf(fresh, entry);
+            if (alive) applyCompat(fresh.manifest);
+          })
+          .catch(() => undefined);
       } else {
         fetched = await fetchFresh();
       }
@@ -125,8 +144,7 @@ export function UiSession({
       setManifest(m.manifest);
       setBundle(found.bundle);
       setSessionId(id);
-      const gate = versionGate(m.manifest, appVersion());
-      if (!gate.ok) return setPhase({ name: 'update', reason: gate.reason });
+      if (applyCompat(m.manifest)) return;
       setPhase(m.manifest.auth ? { name: 'signin' } : { name: 'ready' });
     })();
     return () => {
@@ -204,10 +222,10 @@ export function UiSession({
   } else if (phase.name === 'update') {
     body = (
       <View style={hubStyles.centered}>
-        <Text style={hubStyles.title} {...headingA11y(2)}>Update the app</Text>
-        <Text style={hubStyles.text}>{phase.reason}</Text>
-        <PrimaryButton label="Update Mateu" onPress={() => void Linking.openURL(STORE_URL!)} style={styles.wide} />
-        <SecondaryButton label="Check again" onPress={() => setAttempt((a) => a + 1)} />
+        <Text style={hubStyles.title} {...headingA11y(2)}>{hubLang() === 'es' ? 'Actualiza la app' : 'Update the app'}</Text>
+        <Text style={hubStyles.text} accessibilityRole="alert">{phase.reason}</Text>
+        {phase.canUpdate && <UpdateAppButton style={styles.wide} />}
+        <SecondaryButton label={hubLang() === 'es' ? 'Comprobar de nuevo' : 'Check again'} onPress={() => setAttempt((a) => a + 1)} />
       </View>
     );
   } else if (phase.name === 'signin') {
@@ -228,9 +246,20 @@ export function UiSession({
     );
   } else {
     body = (
-      <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots }}>
-        <SessionContent initialRoute={route} visible={visible} />
-      </MateuAppProvider>
+      <>
+        {compatNotice && (
+          <View style={styles.compat}>
+            <Notice tone="info" text={compatNotice} />
+            <View style={styles.compatActions}>
+              <UpdateAppButton />
+              <SecondaryButton label={hubLang() === 'es' ? 'Ahora no' : 'Not now'} onPress={() => setCompatNotice(null)} />
+            </View>
+          </View>
+        )}
+        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots }}>
+          <SessionContent initialRoute={route} visible={visible} />
+        </MateuAppProvider>
+      </>
     );
   }
 
@@ -267,4 +296,6 @@ const styles = themed(() => StyleSheet.create({
   hidden: { display: 'none' },
   barName: { fontSize: 22, fontWeight: '400' },
   wide: { alignSelf: 'stretch', maxWidth: 340, marginTop: theme.spacing.sm },
+  compat: { padding: theme.spacing.sm, gap: theme.spacing.xs, backgroundColor: theme.surface },
+  compatActions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: theme.spacing.sm },
 }));

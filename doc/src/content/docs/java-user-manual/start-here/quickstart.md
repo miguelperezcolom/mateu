@@ -65,7 +65,7 @@ set nothing else on the classpath runs as a processor.
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
+        <version>4.1.1</version>
         <relativePath/>
     </parent>
 

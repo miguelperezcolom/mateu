@@ -54,6 +54,20 @@ GET <baseUrl>/mateu/v3/manifest
 }
 ```
 
+Each member comes from a server setting (a `mateu.*` property, a JVM system property or its
+`MATEU_MOBILE_*` environment variable) first, then from `@MobileApp`, then from what the app already
+declares:
+
+| Member | Setting | `@MobileApp` | Otherwise |
+|---|---|---|---|
+| `name` / `shortName` | `mateu.mobile.name` / `mateu.mobile.short-name` | `name` / `shortName` | `@Title`, the shell's `title` |
+| `icon` | `mateu.mobile.icon` | `icon` | `@Logo` / `@FavIcon`, the shell's `logo` |
+| `themeColor` | `mateu.mobile.theme-color` | `themeColor` | `@App(accentColor)` |
+| `minAppVersion` | `mateu.mobile.min-app-version` | `minAppVersion` | `1.0.0` |
+| `auth.issuer` | `mateu.mobile.oidc.issuer` | `oidcIssuer` | no `auth` (the UI needs no sign-in) |
+| `auth.clientId` | `mateu.mobile.oidc.client-id` | `oidcClientId` | — |
+| `auth.scopes` | `mateu.mobile.oidc.scopes` (comma-separated) | `scopes` | `openid, profile` |
+
 - **You don't write it by hand.** Every Mateu backend (the five Java adapters, .NET and Python)
   serves it, built from your app shell ([how each member is derived](/ux-patterns/mobile-app/#the-ui-manifest),
   including `@MobileApp` for the members the shell doesn't say). The name, icon and colours come from your `@App` class or
@@ -155,9 +169,16 @@ For a backend that is already secured, see also
 - **Adding asks for confirmation.** The confirmation screen shows the domain prominently, next to
   the manifest's name and icon, so a QR code from an untrusted source can't pass itself off as
   another UI.
-- **"Update the app".** If your UI needs a newer app, set `minAppVersion`. Users on an older app
-  then see an "Update the app" screen instead of a screen that half works. A wire version the app
-  doesn't understand gets the same treatment.
+- **"Update the app".** The app checks by itself whether it can render your UI: the manifest carries
+  the server's wire version and Mateu release, and the app compares them with its own. A UI on a
+  wire the app does not understand is not added or opened; the person gets **Update Mateu** instead
+  of a screen that half works. A UI on a newer Mateu release opens with a suggestion to update. If
+  your UI needs a newer app for any other reason, set `minAppVersion`. See
+  [Can this app open that UI?](/ux-patterns/mobile-app/#can-this-app-open-that-ui).
+- **Over-the-air updates.** Each Mateu release publishes its JavaScript to the installed apps
+  (expo-updates, channel `production`) when the repository has an `EXPO_TOKEN` secret, so
+  **Update Mateu** can install it at once. A native change still needs a store build
+  (`frontend/app/react-native/RELEASE.md`).
 
 ## B. Your own branded app on the React Native renderer
 

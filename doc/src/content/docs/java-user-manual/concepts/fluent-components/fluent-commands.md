@@ -210,6 +210,26 @@ CRUD create and edit views activate dirty-state tracking automatically — no an
 
 ---
 
+## Download a file
+
+Return `UICommand.downloadFile(filename, mimeType, bytes)` to make the browser save a file the
+action produced — a generated PDF, a CSV. The bytes travel base64-encoded in the response (the
+command's payload is a `FileDownload` record), so no download endpoint is needed:
+
+```java
+@Toolbar
+Object exportCsv() {
+    byte[] csv = "id,name\n1,Ada\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    return UICommand.downloadFile("people.csv", "text/csv", csv);
+}
+```
+
+For large files, files to show in a tab instead of saving, or to print, use the
+[documents API](/ux-patterns/documents-and-printing/), which fills the other members of
+`FileDownload` (a short-lived `url`, `disposition`, `print`).
+
+---
+
 ## UICommand summary
 
 | `UICommandType` | Shorthand | Effect | `data` field |
@@ -222,6 +242,7 @@ CRUD create and edit views activate dirty-state tracking automatically — no an
 | `PushStateToHistory` | `UICommand.pushStateToHistory(url)` | Update browser URL without navigation | URL string |
 | `MarkAsDirty` | `UICommand.markAsDirty()` | Mark the component as having unsaved changes | — |
 | `MarkAsClean` | `UICommand.markAsClean()` | Clear the dirty flag after a successful save | — |
+| `DownloadFile` | `UICommand.downloadFile(name, type, bytes)` | Save a file the action produced | `FileDownload` |
 
 Alternatively, return a `URI` object to navigate the browser to a route.
 
