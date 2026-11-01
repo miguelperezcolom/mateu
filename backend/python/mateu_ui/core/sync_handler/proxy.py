@@ -126,6 +126,18 @@ class ProxyHandlerMixin(MixinBase):
                 # anything, and the endpoint is never called.
                 method = (source.method or "GET").strip().upper()
                 json_obj = copy.deepcopy(source.sample) if method in ("", "GET", "HEAD") else {}
+            elif (
+                source is not None
+                and not getattr(source, "proxy", False)
+                and getattr(source, "url", None)
+            ):
+                # a DIRECT source is the browser's to call: proxying it on request ran a
+                # server-side call (with ${secret.X} resolved) the author never asked for
+                from ..action_guard import MateuForbiddenException
+
+                raise MateuForbiddenException(
+                    f"Forbidden: __restfetch__ {kind}/{source_id} is not a proxied source"
+                )
             elif source is not None:
                 try:
                     json_obj = self._fetch_proxy(source, rq.component_state)

@@ -101,6 +101,23 @@ public final class TreeActionHarvester {
     return all;
   }
 
+  /** The ids {@code node} names as {@code actionId}/{@code *ActionId}, into {@code ids}. */
+  static void collectReferenced(Object node, Set<String> ids, Map<Object, Boolean> visited) {
+    collect(node, ids, visited);
+  }
+
+  /** The class whose methods a view's actions run: the plain model behind an @AutoPage bridge. */
+  static Class<?> ownerClassOf(Object view) {
+    // a crud runs its row/view methods on its behaviour source (the capability bridge's listing)
+    if (view
+            instanceof
+            io.mateu.core.infra.declarative.orchestrators.crud.Crud<?, ?, ?, ?, ?, ?> crud
+        && crud.behaviourSource() != null) {
+      return crud.behaviourSource().getClass();
+    }
+    return io.mateu.core.infra.ModelBridge.ownerOf(view).getClass();
+  }
+
   private static void collect(Object node, Set<String> ids, Map<Object, Boolean> visited) {
     if (node == null || visited.put(node, Boolean.TRUE) != null) {
       return;

@@ -37,6 +37,28 @@ public record RestSourceCatalog(List<RestSourceEntry> sources) {
   }
 
   /**
+   * This catalogue as a client may see it: proxied sources lose their request headers and body
+   * template (see {@link RestDataSource#forTheClient()}) — the server calls them from its own
+   * table. Not a getter (manifest Jackson gotcha, see above).
+   */
+  public RestSourceCatalog forTheClient() {
+    return new RestSourceCatalog(
+        sources.stream()
+            .map(
+                entry ->
+                    new RestSourceEntry(
+                        entry.name(),
+                        entry.source() == null ? null : entry.source().forTheClient(),
+                        entry.provenance(),
+                        entry.fields(),
+                        entry.totalPath(),
+                        entry.description(),
+                        entry.sample(),
+                        entry.sampleFile()))
+            .toList());
+  }
+
+  /**
    * This catalogue without any sample data — what ships when sample mode is off, so design-time
    * data never travels to production. Not a getter (manifest Jackson gotcha, see above).
    */

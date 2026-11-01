@@ -28,6 +28,11 @@ internal sealed partial class SyncHandler
             // read gets the sample; a write succeeds without persisting anything.
             if (source is { Sample: { } sample } && SampleMode)
                 json = SampleSources.IsRead(source.Method) ? sample : new Dictionary<string, object?>();
+            else if (source is { Proxy: false } direct && !string.IsNullOrEmpty(direct.Url))
+                // a DIRECT source is the browser's to call: proxying it on request ran a server-side
+                // call (with ${secret.X} resolved) the author never asked for — refused (403)
+                throw new MateuForbiddenException(
+                    $"__restfetch__: {kind}/{id} is not a proxied source (Proxy = true)");
             else if (source is not null)
             {
                 var (body, status, detail) = await FetchProxyAsync(source, rq.ComponentState, cancellationToken).ConfigureAwait(false);

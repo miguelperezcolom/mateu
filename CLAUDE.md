@@ -886,7 +886,16 @@ Durable rules and where they live:
 
 - **Security defaults changed.** Java **strict action mode is the DEFAULT** (`mateu.actions.strict=false`
   opts back): an `actionId` runs only a marked method or one the view advertises (`AdvertisedActions`,
-  shared with the check). An **unknown actionId is 403 + one WARN** in Java (CRUD included), .NET and
+  shared with the check) — its declarations/components, or an id a RESPONSE to it emitted
+  (`IssuedActions`: a dialog's confirm, an undo, a served row's `ColumnAction`; 2026-11 replaced the
+  constant-pool `ClassLiterals`, which let any string literal advertise a method). **CRUD writes are
+  gated server-side** (`CrudWriteGate`: `@ReadOnly`/`@Not*`/`canX()`/`display()` off|disabled → 403,
+  not advertised; .NET `EnsureWriteAllowed`, Python crud dispatch). Saves adopt the STORED `@Version`;
+  a version column is never inline-editable. A proxied source's headers/body never reach the client
+  (`RestDataSource.forTheClient`, .NET DTO serialization, Python field serializer) and `__restfetch__`
+  refuses a direct source. Helidon SE routes (SSE, MCP, YAML mounts) see Helidon security's principal
+  and refuse anonymous calls when the app requires a login (`HelidonSeIdentity`); Quarkus MCP runs
+  after HTTP security. An **unknown actionId is 403 + one WARN** in Java (CRUD included), .NET and
   Python. **CSRF**: adding Spring Security no longer kills every action — `MateuCsrfAutoConfiguration`
   (mvc-core) / `MateuCsrfWebFluxAutoConfiguration` exempt Mateu's JSON endpoints (`CsrfExemption`); a
   403 Mateu did not send gets its own client text. CRUD saves are not a mass-assignment channel

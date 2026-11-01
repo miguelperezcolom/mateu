@@ -89,6 +89,13 @@ final class RestProxyCalls {
     if (SampleSources.enabled() && source.carriesSample()) {
       return sampleAnswer(source);
     }
+    // Only a source declared proxy: true is called by the server. A direct one is meant to stay in
+    // the browser: proxying it on request ran a server-side call — with ${secret.X} resolved — the
+    // author never asked for (refused like any action the page does not offer)
+    if (!source.proxy() && source.url() != null && !source.url().isBlank()) {
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "__restfetch__: " + kind + "/" + id + " is not a proxied source (proxy: true)");
+    }
     // Bulk (forEachSelectedRow): the loop runs on the SERVER, once per selected listing row, each
     // row merged OVER the component state so a per-id url like `.../people/${state.id}` resolves to
     // that row's id. Doing it here — rather than firing N calls from the browser — keeps the secret
@@ -165,6 +172,11 @@ final class RestProxyCalls {
     if (SampleSources.enabled() && source.carriesSample()) {
       var answer = sampleAnswer(source);
       return () -> answer;
+    }
+    // a DIRECT shell source is the browser's to fetch: not proxied on request (see fetch)
+    if (!source.proxy() && source.url() != null && !source.url().isBlank()) {
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "_appsource: the shell's source is not a proxied source (proxy: true)");
     }
     // the variables the browser interpolates with (searchText, ids…), minus the routing keys
     var state = new LinkedHashMap<String, Object>();

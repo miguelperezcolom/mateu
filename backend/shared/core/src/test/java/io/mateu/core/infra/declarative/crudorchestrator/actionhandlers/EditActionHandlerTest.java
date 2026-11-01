@@ -28,6 +28,7 @@ class EditActionHandlerTest {
 
   @BeforeEach
   void setUp() {
+    CrudMocks.allowWrites(orchestrator);
     when(orchestrator.getIdFieldForRow()).thenReturn("id");
   }
 
