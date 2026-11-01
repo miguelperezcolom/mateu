@@ -250,6 +250,16 @@
         }
       ]
     },
+    "nestedListingSelected": {
+      "chains": [
+        {
+          "chain": "nestedListingSelected",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
     "dmBottomStateChanged": {
       "chains": [
         {
@@ -967,6 +977,17 @@
       "chains": [
         {
           "chain": "mateuOverlaysClosed"
+        }
+      ]
+    },
+    "application:mateuKanbanMove": {
+      "chains": [
+        {
+          "chain": "kanbanCardMoved",
+          "parameters": {
+            "key": "{{ $event.key }}",
+            "move": "{{ $event.move }}"
+          }
         }
       ]
     },

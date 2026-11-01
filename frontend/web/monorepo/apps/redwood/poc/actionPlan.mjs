@@ -3,6 +3,7 @@ import {
   validateRow, rowEditorOf, overlayTransportOf, actionTransportOf,
 } from './reduceContexts.mjs'
 import { interpolate } from './core/content.mjs'
+import { withNestedSelection } from './core/listing.mjs'
 
 // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
 // the state it carries (the drawer's with its draft, or the host's with the form draft and the
@@ -30,6 +31,9 @@ export function outboundActionOf(reg, id, inputs = {}) {
 
   // a host action on a listing with selection carries the marked rows (crud_selected_items), as
   // in Vaadin; the drawer's do not (they act on ITS record)
+  // …and an action on the toolbar of a listing NESTED in the page (a record's documents) carries
+  // the rows marked on THAT listing
+  if (!overlay) componentState = withNestedSelection(componentState, host, id)
   if (!overlay && listing && listing.rowsSelectionEnabled) {
     componentState = withListingSelection(componentState, listing, listingRows, listingSelection)
     if ((listing.selectionRequired || []).indexOf(id) >= 0 && !componentState.crud_selected_items.length) {

@@ -217,6 +217,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
   const restAnswer = restAnswerOf(ctx, actionId, componentState, {
     route,
     appState: (extra && extra.appState) || {},
+    parameters: (extra && extra.parameters) || {},
     server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
       { ...extra, parameters, idempotent: !!idempotent }),
   })

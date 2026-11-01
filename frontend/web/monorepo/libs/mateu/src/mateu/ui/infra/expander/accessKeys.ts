@@ -37,5 +37,12 @@ export function withoutAccessKeys<T>(spec: T): T {
     return stripped
 }
 
+/** Whether `spec` declares any access key, anywhere in its tree. */
+export function declaresAccessKeys(spec: unknown): boolean {
+    const found = { any: false }
+    strip(spec, found)
+    return found.any
+}
+
 /** Test hook. */
 export const __resetAccessWarningForTests = (): void => { warned = false }

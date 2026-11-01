@@ -115,6 +115,11 @@ def template_text(v: Any) -> str:
         return ""
     if isinstance(v, bool):
         return "true" if v else "false"
+    if isinstance(v, (list, tuple)):
+        # as JavaScript's String(v), the browser leg: `a,b` (Python's repr sent `['a', 'b']`)
+        return ",".join(template_text(x) for x in v)
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
     if is_money(v):
         amount = v.get("value")
         if isinstance(amount, float) and amount.is_integer():

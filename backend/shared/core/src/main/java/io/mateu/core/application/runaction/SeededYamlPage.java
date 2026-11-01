@@ -76,6 +76,12 @@ record SeededYamlPage(
         return io.mateu.core.domain.out.componentmapper.PageTypeResolver.toWireName(ofTemplate);
       }
     }
+    // a `type: Listing` page (served wrapped because its route seeds state, or for its proxied
+    // rows) is a collection, as a Java Listing is — it went out as a FORM page, capped
+    if (layout instanceof io.mateu.uidl.fluent.Listing) {
+      return io.mateu.core.domain.out.componentmapper.PageTypeResolver.toWireName(
+          io.mateu.uidl.annotations.PageType.COLLECTION);
+    }
     return null;
   }
 
@@ -148,6 +154,14 @@ record SeededYamlPage(
               RestSourceKind.ROWS,
               listing.id() != null ? listing.id() : "crud", // CrudlMapper's default id
               resolved(listing.rowsSource())));
+    }
+    // a live kanban's cards, likewise: fetched through __restfetch__ by the board's id
+    if (node instanceof io.mateu.uidl.data.Kanban kanban && kanban.rowsSource() != null) {
+      out.add(
+          new DeclaredRestSource(
+              RestSourceKind.ROWS,
+              kanban.id() != null ? kanban.id() : "kanban",
+              resolved(kanban.rowsSource())));
     }
     if (node instanceof java.util.Collection<?> collection) {
       collection.forEach(child -> collectListings(child, out, seen));

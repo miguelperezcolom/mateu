@@ -26,6 +26,7 @@ import {
   mentionsI18n,
   parseBundleManifest,
   pickLocale,
+  queryOf,
   resolveLoad,
   rootIncrement,
   setActionCatalogue,
@@ -138,7 +139,8 @@ export class StaticBundle {
     }
     this.prime();
     const syncPath = toSyncPath(request.route);
-    const increment = resolveLoad(this.state, syncPath, request.consumedRoute, this.localize);
+    // the route's query seeds the screen like on a server (bundleResolver.withQueryParams)
+    const increment = resolveLoad(this.state, syncPath, request.consumedRoute, this.localize, queryOf(request.route));
     if (!increment) throw new Error(`Not found: ${request.route || '/'}`);
     return this.withCatalogue(deepCopy(increment) as unknown as Json);
   }

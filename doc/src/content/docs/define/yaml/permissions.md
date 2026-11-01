@@ -104,7 +104,10 @@ there the keys are cosmetic:
   or its definition declares any of the keys (`StaticSafetyCheck`) — exactly as it does for
   `@EyesOnly`. A screen that depends on who asks cannot be one file for everyone.
 - A non-static (hybrid) bundle keeps those routes **backend-served**: they are not pre-rendered nor
-  shipped as raw definitions, and the backend answers them per user.
+  shipped as raw definitions, and the backend answers them per user. A definition that declares
+  access keys (in itself or in a partial it uses) never travels in `manifest.json`; one shared by a
+  public route and a route with `access:` does, and the browser still refuses to expand it for the
+  restricted route — it asks the backend.
 - The browser-side expander (specs-only bundles, the visual editor's **▶ Play**) has no identity
   either: it renders the definition **as authored, unrestricted**, and warns once in the console.
   Play shows you everything; check restrictions against a running backend.

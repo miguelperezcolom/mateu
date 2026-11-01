@@ -16,6 +16,7 @@ export {
   appShellOf,
   isBundleManifest,
   parseBundleManifest,
+  queryOf,
   resolveLoad,
   rootIncrement,
   toSyncPath,

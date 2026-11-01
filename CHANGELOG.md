@@ -11,6 +11,40 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed
+
+- **Vaadin: listings, boards and dashboards use the full width.** Every page sat in the server's
+  default 900px column whatever width it resolved to; that column is now only a FIXED page's (a
+  form's reading measure), and full/edge pages take their width. The width rules: full-bleed content
+  (gantt, planning board, kanban, BPMN, map, foldout) → edge-to-edge, but full width on a form page;
+  collection and dashboard pages → full width; form/process/landing → fixed. A YAML listing page
+  served with route seeds is a collection (it went out as a form page).
+- **A YAML `HorizontalLayout` with no `spacing:` is spaced** on the Java backend and in static bundles,
+  as it already was on .NET and Python — an image beside a form no longer touches it.
+
+### Fixed
+
+- **Vaadin: an edge page's header keeps its gutter** (a templated foldout's title, back arrow and
+  actions touched the viewport edges), and a YAML page filling a template no longer draws its window
+  title ("13") above its own header.
+- **Vaadin: a listing's header wraps on a phone** — the actions go below the title instead of
+  squeezing it to "Laun…".
+### Fixed (security and parity — Fable review)
+
+- **A `type: Partial`'s access keys and `${i18n.…}` are applied on the server**, like the same
+  content written inline. A section guarded by `eyesOnly:` used to reach every caller once it lived
+  in a partial, and its texts stayed raw.
+- **A bundle never ships a definition that depends on who asks.** A hybrid bundle wrote access-guarded
+  definitions raw into `manifest.json` and the browser expanded them for everybody; now they are not
+  shipped, and the resolver refuses to expand a route with `access:` or a definition with access keys.
+- **One route-parameter order everywhere: `fixed > client state > path > query > defaults`.** The .NET
+  and Python servers ranked the path over the client state, let a null erase a default and ignored the
+  URL query; static bundles (web, Redwood, React Native) dropped the query too.
+- **A proxied REST source sends what the browser would.** The server now evaluates the expression
+  subset sources use (`${(state.page ?? 0) * 20}`, conditionals, `?.`, `String`/`Number`) instead of
+  sending it empty, and a list value is `a,b` on every leg (Java sent `[a, b]`, Python `['a', 'b']`,
+  Redwood `["a","b"]`). The validator flags a template the server cannot evaluate
+  (`proxy_unsafe_template`). Pinned by `conformance/client/source-templates.json`.
 ### Security
 
 - **A CRUD's writes are refused if forced, not only undrawn** (Java, .NET, Python): `@ReadOnly`,
@@ -31,6 +65,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Kanban boards move: drag and drop, and a Move menu.** A `Kanban` with a `moveActionId` lets
+  its cards be dragged to another column or reordered within one (a line shows where it lands); each
+  card also has a Move menu (`⋯`: up, down, to another column) for the keyboard, screen readers, phones
+  and the IntelliJ plugin. The card moves at once and goes back if the action fails; the action gets
+  the card's item plus `_cardId`, `_fromColumnId`, `_toColumnId` and `_toIndex`. A board can also be
+  **live**: `rowsSource` + `columnField` + a `card` template (`${row.x}`) + `cardColors` + `cardRoute`
+  draw the cards from a REST source, read again after each move — so a YAML page with a `restAction`
+  move needs no Java. A REST action now reads its call parameters over the state on both legs
+  (browser and proxied). Java, .NET, Python; Vaadin, Redwood, React Native, IntelliJ.
 - **Live run ▸ Desktop opens the UI in the Mateu desktop app, a separate IntelliJ.** It used to repoint
   the developer's own IDE and open its tool window. The IDE now hands the installed desktop app
   `mateu://add?u=http://localhost:<port>` (macOS: by bundle id, since the phone app claims the scheme
@@ -59,6 +102,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   value unescaped (Redwood escaped it as a path segment). Vaadin, Redwood, React Native, IntelliJ.
 
 ### Fixed
+
+- **Back returns to the previous page, sort or filters of a listing** (Vaadin and Redwood). Each
+  change the user makes is now a history entry (`pushState`); it used to replace the URL, so Back
+  left the listing. A hand-typed `?sort=name:asc` is read as `ascending` instead of failing.
+- **The browser tab of a YAML record page shows the record's name** (Vaadin), not the route's id
+  ("28" → "Voyager 1"): the window title follows the page title once its `data:` arrives, and the
+  screen reader hears it once. Redwood header texts now evaluate expressions (`${state.a ?? ''}`,
+  `${data.x}`) like the web.
+- **A server `NavigateTo` no longer raises the browser's "Leave site?" prompt** on a form with
+  unsaved changes; staying after a refused Forward no longer scrambles the history; React Native and
+  the IntelliJ plugin ask before every leave action (`cancel-new`, `back`…), not only three.
 
 - **Redwood: a listing whose rows open nothing shows no hand cursor.** Every table row invited a click;
   now only a row that opens its route, its record or its detail does (`mateu-rows-open`).

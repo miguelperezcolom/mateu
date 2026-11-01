@@ -2,6 +2,7 @@ import { recordTiming, timed } from './timing.ts';
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
 import { applyClientRules } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
+import { isLeaveAction } from './leaveActions.ts';
 import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './viewWire.ts';
@@ -250,12 +251,13 @@ export class MateuViewController {
     return snapshots.keyOf(route, consumedRoute, serverSideType);
   }
 
-  async runAction(actionId: string, parameters?: Json, silent = false): Promise<void> {
+  /** Runs an action; resolves whether it went through (a kanban move puts its card back otherwise). */
+  async runAction(actionId: string, parameters?: Json, silent = false): Promise<boolean> {
     // Dirty guard on discarding actions (Cancel on an edit form).
     // The host may confirm asynchronously; a synchronous confirm hook keeps it simple here.
-    if (this.trackDirty && this.dirty && DISCARD_ACTIONS.has(actionId)) {
+    if (this.trackDirty && this.dirty && isLeaveAction(actionId, this.currentComponentActions)) {
       const proceed = await this.confirmDiscard();
-      if (!proceed) return;
+      if (!proceed) return false;
       this.setDirty(false);
     }
 
@@ -265,7 +267,7 @@ export class MateuViewController {
       const selection = this.currentComponentState['crud_selected_items'];
       if (!Array.isArray(selection) || selection.length === 0) {
         this.session.notify(null, 'You first need to select some rows', 'warning');
-        return;
+        return false;
       }
     }
 
@@ -291,22 +293,21 @@ export class MateuViewController {
         // A toast is a visual affordance: a screen-reader user gets no indication that the save
         // was refused, let alone why. Speak it.
         announce(`There are validation errors. ${summary}`);
-        return;
+        return false;
       }
     }
 
     // @Action(confirmationRequired): ask first, with the declared texts — same order as the web's
     // mateu-component (selection guard, validation, then the question).
     const confirmation = this.actionConfirmation[actionId];
-    if (confirmation && !(await this.session.confirmAction(confirmation))) return;
+    if (confirmation && !(await this.session.confirmAction(confirmation))) return false;
 
     // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching to
     // the Mateu server — fetch + merge the response into the state + toast (fires on click for a
     // @RestAction button, and on mount for @RestData via its OnLoad trigger's __restdata__ action).
     const rest = this.actionRestData[actionId];
     if (rest) {
-      await this.handleRestAction(rest, actionId);
-      return;
+      return this.handleRestAction(rest, actionId, parameters);
     }
 
     // A declared FLOW (the page's own `actions:` lowered to commands) or, for an id the page does
@@ -321,11 +322,10 @@ export class MateuViewController {
         } finally {
           this.flowDepth--;
         }
-        return;
+        return true;
       }
       if (resolved!.restAction) {
-        await this.handleRestAction(resolved!.restAction as Json, actionId);
-        return;
+        return this.handleRestAction(resolved!.restAction as Json, actionId, parameters);
       }
     }
 
@@ -347,7 +347,7 @@ export class MateuViewController {
           (increment) => this.applyIncrement(increment as Json),
         );
         this.polling.actionSucceeded(generation, actionId);
-        return;
+        return true;
       }
       const increment = await this.session.api.runAction({
         route: this.currentRoute,
@@ -362,10 +362,12 @@ export class MateuViewController {
       this.applyIncrement(increment as Json);
       // OnSuccess triggers (the polling loop) — only if we are still on the screen that dispatched it
       this.polling.actionSucceeded(generation, actionId);
+      return true;
     } catch (e) {
       // a stale-screen refusal already showed its own notice (with Reload) — not a second toast
       if (silent || this.silentErrors || isStaleScreenError(e)) devLog('[Mateu] action failed:', actionId, errorText(e));
       else this.session.notify(null, `Action failed: ${errorText(e)}`, 'error');
+      return false;
     }
   }
 
@@ -378,9 +380,11 @@ export class MateuViewController {
    * (so bound fields refresh) and show a success toast; an error shows a failure toast. No server
    * round-trip — the RN analogue of the web's mateu-component.handleRestAction.
    */
-  private async handleRestAction(rest: Json, actionId?: string): Promise<void> {
+  private async handleRestAction(rest: Json, actionId?: string, parameters?: Json): Promise<boolean> {
+    // the call's own parameters (a kanban move's _cardId/_toColumnId and the moved card's item) sit
+    // over the state its templates read — the proxied leg merges them the same way on the server
     const ctx = {
-      state: this.currentComponentState,
+      state: { ...this.currentComponentState, ...(parameters ?? {}) },
       data: this.view.data,
       appState: this.session.appState,
       appData: {},
@@ -407,7 +411,7 @@ export class MateuViewController {
         const rows = (this.currentComponentState['crud_selected_items'] as Json[] | undefined) ?? [];
         if (!rows.length) {
           this.session.notify(null, 'You first need to select some rows', 'warning');
-          return;
+          return false;
         }
         if (this.session.sources.viaProxy(source)) {
           json = await this.fetchViaProxy(kind, actionId ?? '', { _forEachSelectedRow: true });
@@ -430,7 +434,7 @@ export class MateuViewController {
         // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via
         // the reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
         // @RestData source; any other id is a @RestAction method — hence the source kind.
-        json = await this.fetchViaProxy(kind, actionId ?? '');
+        json = await this.fetchViaProxy(kind, actionId ?? '', { ...(parameters ?? {}) });
       } else {
         const url = this.session.sources.absolute(interpolateUrl(str(target['url']), ctx));
         const method = (str(target['method']) || 'GET').toUpperCase();
@@ -459,15 +463,19 @@ export class MateuViewController {
           });
         }
       }
-      const message = interpolate(str(rest['successMessage']), ctx);
+      // after the result merged into the state, the call's parameters still over it
+      const after = { ...ctx, state: { ...this.currentComponentState, ...(parameters ?? {}) } };
+      const message = interpolate(str(rest['successMessage']), after);
       if (message) this.session.notify(null, message, 'info', { duration: 3000 });
       // successRoute: where a 2xx lands, interpolated against the state the result merged into
       // (the web's rule)
-      const successRoute = interpolate(str(rest['successRoute']), ctx);
+      const successRoute = interpolate(str(rest['successRoute']), after);
       if (successRoute && !successRoute.includes('${')) this.handleCommand({ type: 'NavigateTo', data: successRoute });
+      return true;
     } catch (e) {
       if (this.silentErrors) devLog('[Mateu] rest action failed:', errorText(e));
       else this.session.notify(null, `Request failed: ${errorText(e)}`, 'error');
+      return false;
     }
   }
 
@@ -992,4 +1000,3 @@ export class MateuViewController {
   }
 }
 
-const DISCARD_ACTIONS = new Set(['cancel-edit', 'cancel-view', 'cancel']);

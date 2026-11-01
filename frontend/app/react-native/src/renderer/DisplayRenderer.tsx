@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from '../ui/Text';
+import { Dialog, Portal } from 'react-native-paper';
+import { BoardCard, BoardColumn, KanbanMove, cardRouteOf, cardsFromRows, itemsOf, moveCard, moveParameters, movesOf } from '../core/kanban';
+import { fetchExternalJson } from '../core/restFetch';
+import { interpolate, interpolateUrl } from '../core/expressions';
+import { isExternalRoute } from '../core/rowOpen';
+import { openExternal } from './openExternal';
+import { announce } from '../a11y/a11y';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
+import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanCard, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
 import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { foldoutSummaryOf, heroToneColors } from './patternGaps';
@@ -225,32 +232,120 @@ export function GanttRenderer({ component }: { component: unknown }) {
 // ── Kanban (horizontal scroll of columns, each a stack of cards) ──────────────
 export function KanbanRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
-  const columns = (meta(component)['columns'] as KanbanColumn[]) ?? [];
+  const m = meta(component);
+  const declared = (m['columns'] as KanbanColumn[]) ?? [];
+  const moveActionId = m['moveActionId'] as string | undefined;
+  const rowsSource = m['rowsSource'] as Record<string, unknown> | undefined;
+  const cardRoute = m['cardRoute'] as string | undefined;
+  const [live, setLive] = useState<BoardColumn[] | undefined>(undefined);
+  // the board right after a move, until the action answers (put back when it fails)
+  const [optimistic, setOptimistic] = useState<BoardColumn[] | undefined>(undefined);
+  const [picking, setPicking] = useState<{ cardId: string; columnId: string; title: string } | undefined>(undefined);
+  const [reload, setReload] = useState(0);
+  // the server re-rendered the board: it is the truth now
+  useEffect(() => { setOptimistic(undefined); }, [declared]);
+  // a LIVE board reads its source (proxied by the board id, or direct) — again after every move
+  const sourceKey = rowsSource ? JSON.stringify(rowsSource) : '';
+  useEffect(() => {
+    if (!rowsSource) return;
+    let cancelled = false;
+    const sources = controller.session.sources;
+    const resolved = sources.resolve(rowsSource) as { itemsPath?: string };
+    const ctx = { state: controller.currentComponentState, appState: controller.session.appState };
+    const json = sources.viaProxy(rowsSource)
+      ? controller.fetchViaProxy('rows', String((component as Dict)?.['id'] ?? 'kanban'))
+      : fetchExternalJson(rowsSource, (t) => interpolate(String(t ?? ''), ctx), (t) => interpolateUrl(String(t ?? ''), ctx), sources);
+    json
+      .then((j) => {
+        if (cancelled) return;
+        setLive(cardsFromRows({
+          columns: declared, columnField: m['columnField'] as string | undefined,
+          card: m['card'] as KanbanCard | undefined,
+          cardColors: m['cardColors'] as Record<string, string> | undefined,
+        }, itemsOf(j, resolved.itemsPath)));
+        setOptimistic(undefined);
+      })
+      .catch((e) => console.warn('mateu: kanban items fetch failed', e));
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceKey, reload]);
+
+  const shown: BoardColumn[] = optimistic ?? live ?? declared;
+  const commit = async (move: KanbanMove) => {
+    setPicking(undefined);
+    const card = shown.find((c) => c.id === move.fromColumnId)?.cards?.find((c) => c.id === move.cardId);
+    if (!moveActionId || !card) return;
+    setOptimistic(moveCard(shown, move));
+    const ok = await controller.runAction(moveActionId, moveParameters(card, move));
+    if (!ok) {
+      setOptimistic(undefined);
+      announce('The card could not be moved; it is back where it was');
+    } else if (rowsSource) {
+      setReload((r) => r + 1);
+    }
+  };
+  const open = (card: BoardCard) => {
+    const route = cardRouteOf(cardRoute, card);
+    if (route) {
+      if (isExternalRoute(route)) openExternal(route.startsWith('//') ? 'https:' + route : route);
+      else controller.session.openView({ label: '', route, consumedRoute: '', serverSideType: '' });
+      return;
+    }
+    if (card.actionId) {
+      const { row, ...plain } = card;
+      void controller.runAction(card.actionId, { ...(row ?? {}), _clickedCard: plain });
+    }
+  };
   return (
+    <>
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.kanbanBoard}>
-      {columns.map((col, i) => (
+      {shown.map((col, i) => (
         <View key={col.id ?? i} style={styles.kanbanColumn}>
           <View style={[styles.kanbanHead, { borderBottomColor: col.color ?? theme.border }]}>
             <Text style={styles.kanbanTitle} numberOfLines={1}>{col.title ?? ''}</Text>
             <Text style={styles.kanbanCount}>{col.cards?.length ?? 0}</Text>
           </View>
           {(col.cards ?? []).map((card, j) => {
+            const movable = !!moveActionId && !!card.id && !!col.id;
+            const pick = () => setPicking({ cardId: card.id!, columnId: col.id!, title: card.title ?? '' });
             const body = (
-              <View key={card.id ?? j} style={[styles.kanbanCard, { borderLeftColor: card.color ?? 'transparent' }]}>
-                <Text style={styles.kanbanCardTitle}>{card.title ?? ''}</Text>
+              <View style={[styles.kanbanCard, { borderLeftColor: card.color ?? 'transparent' }]}>
+                <Text style={[styles.kanbanCardTitle, movable && styles.kanbanCardTitleMovable]}>{card.title ?? ''}</Text>
                 {!!card.description && <Text style={styles.kanbanCardDesc}>{card.description}</Text>}
                 {!!card.badge && <Text style={styles.kanbanBadge}>{card.badge}</Text>}
+                {movable && (
+                  <TouchableOpacity {...buttonA11y({ label: `Move ${card.title ?? ''}` })} style={styles.kanbanMove} onPress={pick}>
+                    <Text style={styles.kanbanMoveText}>⋯</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             );
-            return card.actionId ? (
-              <TouchableOpacity {...buttonA11y()} key={card.id ?? j} onPress={() => void controller.runAction(card.actionId!)}>
+            const acts = !!card.actionId || !!cardRouteOf(cardRoute, card);
+            return acts || movable ? (
+              <TouchableOpacity {...buttonA11y()} key={card.id ?? j} disabled={!acts && !movable}
+                onPress={acts ? () => open(card) : undefined} onLongPress={movable ? pick : undefined}>
                 {body}
               </TouchableOpacity>
-            ) : body;
+            ) : <View key={card.id ?? j}>{body}</View>;
           })}
         </View>
       ))}
     </ScrollView>
+    {/* "Move…": the touch (and screen reader) way of dragging a card — up/down or to another column */}
+    <Portal>
+      <Dialog visible={!!picking} onDismiss={() => setPicking(undefined)}>
+        <Dialog.Title>{`Move ${picking?.title ?? ''}`}</Dialog.Title>
+        <Dialog.Content>
+          {picking && movesOf(shown, picking.cardId, picking.columnId).map((item) => (
+            <TouchableOpacity {...buttonA11y({ label: item.label })} key={item.label} style={styles.kanbanMoveRow}
+              onPress={() => void commit(item.move)}>
+              <Text>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </Dialog.Content>
+      </Dialog>
+    </Portal>
+    </>
   );
 }
 
@@ -1223,6 +1318,10 @@ const styles = themed(() => StyleSheet.create({
   kanbanCard: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderLeftWidth: 3, borderRadius: 8, padding: 10, gap: 4 },
   kanbanCardTitle: { fontWeight: '600', color: theme.ink },
   kanbanCardDesc: { fontSize: 12, color: theme.muted },
+  kanbanCardTitleMovable: { paddingRight: 28 },
+  kanbanMove: { position: 'absolute', top: 4, right: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  kanbanMoveText: { fontSize: 18, color: theme.muted },
+  kanbanMoveRow: { paddingVertical: 12 },
   kanbanBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '600', color: theme.primary, backgroundColor: 'rgba(26,115,232,0.1)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 1, overflow: 'hidden' },
   // Timeline
   timeline: {},

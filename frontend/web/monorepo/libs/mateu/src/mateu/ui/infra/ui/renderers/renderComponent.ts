@@ -28,8 +28,18 @@ export const serverSideStyle = (style?: string): string | undefined => {
     if (!style) return style
     const centred = /margin\s*:\s*(?:0\s+)?auto/.test(style) && /max-width\s*:/.test(style)
     const sized = /(^|[;\s])width\s*:/.test(style)
-    return centred && !sized ? `width: 100%; box-sizing: border-box; ${style}` : style
+    return centred && !sized ? `width: 100%; box-sizing: border-box; ${pageColumnCap(style)}` : style
 }
+
+/**
+ * The server's DEFAULT page column (`max-width: 900px` — ComponentTreeSupplier.style(), the crud
+ * orchestrators, StyleConstants.CONTAINER) is a reading measure for a FORM. On a page the content
+ * view resolved as full or edge (a listing, a board, a foldout) it capped everything at 900px anyway,
+ * so the width rules never showed. The default cap becomes `--mateu-page-column-cap`, which the
+ * content view sets to `none` for full/edge pages (mateu-ux styles); any other max-width is kept.
+ */
+export const pageColumnCap = (style: string): string =>
+    style.replace(/max-width\s*:\s*900px/g, 'max-width: var(--mateu-page-column-cap, 900px)')
 
 // An empty state/data map stands for every other one: callers pass a fresh `{}` when there is none.
 const EMPTY = {}
