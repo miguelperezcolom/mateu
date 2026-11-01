@@ -132,13 +132,21 @@ Micronaut or Helidon; Maven or Gradle) and
    tool window and the **visual editor's Play** then use the running app — and opens it in the browser;
 4. after every HotSwap, fires `POST /mateu/dev/reload`.
 
+The run configuration picks where it opens: the browser, the **Mateu desktop app** — a separate IntelliJ
+with its own window, which gets the running app through its `mateu://` link (see
+[IDE tooling](/native/ide-tooling/#live-development-the-mateu-app-run-configuration)) — an emulator, a
+simulator or a phone. A screen open in the desktop app re-renders after a HotSwap or a YAML edit like
+one in the browser: it is another client of the same development server.
+
 *Run › Reload Mateu Screen* fires the reload by hand. An edit made in the **visual editor's canvas** is
 written to the YAML file, so it reaches the running app (and its open browsers) like any other edit.
 
 ### VS Code — *Mateu: Run App (Live)*
 
 The command runs the same launch as a shell task (*Mateu (live)* terminal) and opens the app once it
-answers. Attach a *Java: Attach* debug configuration on port 5005 for hot code replace: when the Java
+answers — in the browser, or in the Mateu desktop app with `"mateu.liveRun.openIn": "desktop"`
+(*Mateu: Open Running App in the Desktop App* does it on demand; without the desktop app installed you
+are offered the download or the browser). Attach a *Java: Attach* debug configuration on port 5005 for hot code replace: when the Java
 debugger reports a hot code replace, the extension fires the reload. *Mateu: Reload Screen* does it by
 hand.
 

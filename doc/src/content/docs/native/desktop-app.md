@@ -154,6 +154,23 @@ must be `https`. Generate a feed for your own release with
 Point an app at another feed with `-Pmateu.updateUrl=https://…` at build time (or `-Dmateu.updateUrl`
 in its VM options); `-Pmateu.updateUrl=none` builds an app that never updates itself.
 
+## Trying the UI you are developing
+
+The hub app is also where a developer looks at the UI they are building, in a window of its own and
+not inside the IDE they write it in: the **Mateu App** run configuration's *Desktop (Mateu app)* target
+in IntelliJ, and `"mateu.liveRun.openIn": "desktop"` (or *Mateu: Open Running App in the Desktop App*)
+in VS Code, start the app in development mode and hand the desktop app
+`mateu://add?u=http://localhost:<port>`. It confirms the UI as with any link and opens it; HotSwaps and
+YAML edits re-render it like a browser tab (see [Live reload](/java-user-manual/build/live-reload/)).
+
+- Plain `http` is accepted for **this machine only** (`localhost`, `127.x`, `[::1]`), in every build —
+  that is where the IDE's app runs. Any other plain-http address is refused, as before. A dev app on
+  this machine may also use a plain-http identity provider on this machine (a local Keycloak).
+- On macOS the IDE opens the link with the desktop app by bundle id (`io.mateu.desktop`): on Apple
+  silicon the phone app, installed from the App Store, claims `mateu://` as well.
+- No desktop app installed: the IDE says so and offers the download (the latest release) or the old
+  way, its own **Mateu** tool window.
+
 ## White-label builds
 
 A product of your own is a `fixed` build with your name, and usually your own feed (or none):

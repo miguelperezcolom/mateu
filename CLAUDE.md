@@ -278,6 +278,14 @@ hub, claiming NONE of the hub's links (a branded app must never answer for every
   (`HUB_LINKS_WRITE=true node --test src/hub/links.conformance.test.ts`), run by `HubLinksConformanceTest`.
   GOTCHA: in a Swing subclass Kotlin's `accessibleContext` is the protected FIELD (null), not the getter —
   use `getAccessibleContext()` (it NPE'd PhoneLinkDialog's QrPanel).
+- **Live run ▸ Desktop = the desktop app, never the developer's IDE (2026-11-01)**: `live/DesktopApp.kt`
+  (pure; VS Code twin in `liveRun.ts` `desktop*`, setting `mateu.liveRun.openIn`) probes the OS for the
+  installed hub app (macOS by BUNDLE ID `io.mateu.desktop` via JXA — the iPhone app on Apple silicon
+  claims `mateu://` too, so never trust the default handler; Windows `HKCR\mateu\shell\open\command`;
+  Linux `xdg-mime`) and opens `mateu://add?u=<appUrl>` with it (`open -b`); not found → notification
+  (download / "Open in this IDE instead" = the old tool-window path). Hub option `allowLoopbackHttp`
+  (corpus-pinned; desktop `hubOptions()` sets it, the phone does not): plain http for localhost/127.x/[::1]
+  only; a loopback dev app may also use a loopback http icon/OIDC issuer (`HubManifest.isLoopbackBase`).
 - Docs: `deploy/mobile-app-stores.md#hub-or-fixed-mateu_variant`, `ux-patterns/mobile-app.md#the-desktop-app`.
 ### Micro frontends resolved in the server + `@ContentSlot` (2026-10-31, `@Experimental`)
 
