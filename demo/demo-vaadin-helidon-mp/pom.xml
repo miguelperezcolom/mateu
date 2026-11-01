@@ -14,7 +14,7 @@
     <properties>
         <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
              -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
-        <mateu.version>3.0-beta.12</mateu.version>
+        <mateu.version>3.0-beta.32</mateu.version>
     </properties>
 
     <dependencies>
