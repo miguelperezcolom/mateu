@@ -185,6 +185,29 @@ endpoint the proxy calls is resolved from a table the server holds, rather than 
 scattered across fields, and never from the request. That is what keeps the proxy from becoming an
 open relay.
 
+What the client receives of a proxied source is only what it needs to ask for it: its name, the
+`proxy` flag and the reading rules (`itemsPath`, `fields`, `totalPath`…). Its **headers and body
+template never leave the server** — not in the app's catalogue, not in a screen, not in a bundle's
+`manifest.json` — so neither a secret placeholder nor an internal header is visible in the browser.
+The server, in turn, only proxies sources declared `proxy: true`: asking it to relay a direct source
+is refused.
+
+The expressions in a proxied source's url, headers and body are evaluated by the server with the
+same rules the browser uses for a direct one (arithmetic, `??`, `?.`, `[]`, `String`, `Number`,
+`encodeURIComponent`, `JSON.stringify`; lists render as `a,b`), in Java, .NET and Python alike —
+pinned by the shared corpus `conformance/client/source-templates.json`. An expression outside that
+subset renders empty and the validator warns `proxy_unsafe_template`.
+
+## When a call fails
+
+A REST call that answers a non-2xx status shows the user **what the service said**, not "Request
+failed (HTTP 400)": the error body's `message`, `detail` (RFC 7807), `error` (a string, or an object
+with a `message`) or `title`, in that order — or the body itself when it is short plain text. It is
+cleaned (control characters out, at most 300 characters) and shown as text, never as markup. When
+the body carries nothing usable, the generic text stays. The same rule applies to a direct call
+(made by the browser) and to a proxied one (the server passes the upstream message back), on every
+renderer and in the Java, .NET and Python servers.
+
 ## Per-environment overrides
 
 `pre` and `pro` usually differ only in where the endpoints live. An
