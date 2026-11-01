@@ -355,3 +355,32 @@ public class OrderForm implements PostHydrationHandler {
     }
 }
 ```
+
+---
+
+# FooterSupplier
+
+Supplies the components drawn in a page's **footer** region, below its content. It is the
+programmatic counterpart of `@Footer` fields (each `@Footer`-annotated component field of the page
+goes there); when a page implements `FooterSupplier`, its `footer()` is used and the `@Footer`
+fields are ignored.
+
+```java
+public interface FooterSupplier {
+    Collection<Component> footer();
+}
+```
+
+## Usage
+
+```java
+@UI("/orders/:id")
+public class OrderPage implements FooterSupplier {
+    String status = "Open";
+
+    @Override
+    public Collection<Component> footer() {
+        return List.of(new Text("Prices include VAT. Last synchronised with the ERP an hour ago."));
+    }
+}
+```

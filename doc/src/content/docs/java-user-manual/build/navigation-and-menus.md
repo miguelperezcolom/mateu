@@ -402,6 +402,29 @@ The menu is a `List<Actionable>`, so both leaf kinds compose — a `RouteLink`/`
 navigates and a `RuleLink` that runs client-side rules (the [route-or-rule leaf](#a-leaf-is-a-route-or-a-rule)) —
 plus `Menu` sub-trees and `RemoteMenu` federated entries.
 
+Two more entries complete the set:
+
+- **`MenuSeparator`** — a divider between entries (`new MenuSeparator()`, YAML `type: MenuSeparator`).
+  It draws a line in the menus that support one (the drawer, a `Directory`) and is skipped where a
+  divider has no meaning.
+- **`MethodLink`** — an entry that **runs a method** of a class instead of opening a page:
+  `new MethodLink("/refresh", "Refresh data", Maintenance.class, "refresh")`. Selecting it creates the
+  class like a page and calls the method; what the method returns (a `Message`, a component, a
+  navigation) is the answer, as for any [action](/java-ui-definition/annotations/actions/).
+
+```java
+public class Maintenance {
+  public Message refresh() {
+    return new Message("Data refreshed");
+  }
+}
+
+List<Actionable> menu = List.of(
+    new RouteLink("/home", "Home"),
+    new MenuSeparator(),
+    new MethodLink("/refresh", "Refresh data", Maintenance.class, "refresh"));
+```
+
 **Parity.** `AppSupplier`/`MenuSupplier` (Java), `IAppSupplier`/`IMenuSupplier` + `AppShell` (.NET)
 and `AppSupplier`/`MenuSupplier` + `AppShell` (Python) all compose the shell + menu in code,
 overriding the static declarations; a field the shell leaves unset falls back to the declared

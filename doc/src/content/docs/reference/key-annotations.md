@@ -703,7 +703,9 @@ These are also part of the public DSL and are worth knowing:
 - `@Signature` — signature capture on a String field (drawing canvas → PNG data URI in the value)
 - `@PhotoCapture` — photo capture on a String field (device camera → JPEG data URI; file-input fallback opens the native camera on phones)
 - `@TreeSelect` — the field's dropdown unfolds a TREE of options (children come from the view's `OptionsSupplier`); `leavesOnly = true` restricts selection to leaves
-- `@MainFilter` / `@Filterable` — mark filter fields for CRUD listings
+- `@Filterable` — mark filter fields for CRUD listings; `@MainFilter` flags one of them as the main
+  one on the wire (`mainFilter`), which no current renderer treats differently — every filter is a
+  condition of the smart search bar
 - `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the store (`CrudStore`) as a `FilterCriterion`
 - Home route — `@HomeRoute` was removed: the home is the app's first menu item, or what the app class returns from `HomeRouteSupplier.homeRoute()`
 - `@Fab` — floating action button (app level or page level)
