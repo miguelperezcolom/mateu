@@ -8,6 +8,7 @@
 // one per UI it runs. Runtime imports stay RELATIVE with a `.ts` extension and types are imported
 // with `import type`, so Metro and `node --test` (type stripping) load this closure as it is.
 import { expandDefinition, isClientExpandable, type DefinitionSpec } from '../expander/expandDefinition.ts'
+import { declaresAccessKeys } from '../expander/accessKeys.ts'
 import type { FieldTypeEntry } from '../expander/fieldTypes.ts'
 import type { TranslationCatalogue } from '../i18n/translations.ts'
 import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
@@ -45,6 +46,15 @@ export interface RouteEntry {
     appState?: Record<string, unknown>
     // The named source that loads the route's data on entry (`data: <source>` in routes.yaml).
     data?: { ref?: string | null, url?: string | null } | null
+    // Who may reach the route (`access:` in routes.yaml) — enforced by the server only.
+    access?: { roles?: string[], groups?: string[], scopes?: string[], permissions?: string[] } | null
+}
+
+/** Whether a route declares who may reach it: a browser has no identity to check that against. */
+export const restrictsAccess = (entry: RouteEntry | undefined): boolean => {
+    const access = entry?.access
+    if (!access) return false
+    return [access.roles, access.groups, access.scopes, access.permissions].some(list => (list?.length ?? 0) > 0)
 }
 
 export interface BundleManifest {
@@ -331,8 +341,15 @@ export const expandedIncrement = (
     const match = matchRouteEntry(state, syncPath)
     const name = match?.entry.definition
     if (!name) return undefined
+    // A route that declares `access:` is the server's to answer (per caller): the definition may
+    // ship for a public route that shares it, but expanding it here would show it to everybody.
+    if (restrictsAccess(match!.entry)) return undefined
     const raw = state.definitions[name]
     if (!raw || !isClientExpandable(raw)) return undefined
+    // …and so is a definition that declares access keys: a current bundle never ships one, but one
+    // built before that rule does — rendering it would hand every visitor what the keys withhold.
+    // (The visual editor's Play expands such a definition on purpose, unrestricted, elsewhere.)
+    if (declaresAccessKeys(raw)) return undefined
     const spec = localize(raw)
     const expanded = expandDefinition(spec, match!.entry.route, undefined, {
         data: match!.entry.data ?? undefined,

@@ -57,4 +57,30 @@ describe('bundle specs mode — client-side definition expansion (Phase 6, incre
         expect(getExpandedIncrement('bare')).toBeUndefined()    // no definition
         expect(getExpandedIncrement('missing')).toBeUndefined() // definition not shipped
     })
+
+    it('never expands what depends on who asks: a route with access:, or a definition with access keys', () => {
+        const guarded: DefinitionSpec = {
+            layout: { type: 'VerticalLayout', content: [
+                { type: 'Text', text: 'Public' },
+                { type: 'Text', text: 'Salaries', eyesOnly: { roles: ['hr'] } } as any,
+            ] },
+        }
+        __setBundleForTests(
+            undefined, [],
+            [
+                // a public route and a restricted one sharing a definition: the public one expands
+                { route: 'about', definition: 'about.yaml' },
+                { route: 'about-admin', definition: 'about.yaml', access: { roles: ['admin'] } },
+                // a definition carrying access keys (a manifest built before they were withheld)
+                { route: 'salaries', definition: 'salaries.yaml' },
+                // an empty restriction lets everybody through
+                { route: 'open', definition: 'about.yaml', access: { roles: [] } },
+            ],
+            { 'about.yaml': aboutSpec, 'salaries.yaml': guarded },
+        )
+        expect(getExpandedIncrement('about')).toBeDefined()
+        expect(getExpandedIncrement('about-admin')).toBeUndefined()
+        expect(getExpandedIncrement('salaries')).toBeUndefined()
+        expect(getExpandedIncrement('open')).toBeDefined()
+    })
 })
