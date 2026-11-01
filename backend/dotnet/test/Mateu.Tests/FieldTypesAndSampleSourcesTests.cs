@@ -292,3 +292,50 @@ public class FieldTypesAndSampleSourcesTests
         Assert.False(SampleSources.Truthy("yes"));
     }
 }
+
+/// <summary>What a field type hands a field that names it (<see cref="FieldTypeResolver.AttributesOf"/>):
+/// its attributes as authored YAML values, so its options and options source travel with it.</summary>
+public class FieldTypeAttributesTests
+{
+    [Fact]
+    public void A_type_supplies_its_options_and_its_options_source_as_yaml_values()
+    {
+        var type = new FieldTypeEntry("country")
+        {
+            Label = "Country",
+            Required = true,
+            Options = [new Option("ES", "Spain"), new Option("PT", "Portugal")],
+            OptionsSource = new RestDataSource
+            {
+                Ref = "countries", Url = "/api/countries", Method = "GET",
+                ItemsPath = "content", ValuePath = "code", LabelPath = "name", Proxy = true,
+            },
+            Min = 1, Max = 10.5,
+        };
+        var a = FieldTypeResolver.AttributesOf(type);
+        Assert.Equal("Country", a["label"]);
+        Assert.Equal("true", a["required"]);
+        var options = Assert.IsAssignableFrom<IEnumerable<object>>(a["options"]).Cast<IDictionary<object, object>>().ToList();
+        Assert.Equal(["ES", "PT"], options.Select(o => (string)o["value"]));
+        Assert.Equal(["Spain", "Portugal"], options.Select(o => (string)o["label"]));
+        var source = Assert.IsAssignableFrom<IDictionary<object, object>>(a["optionsSource"]);
+        Assert.Equal("countries", source["ref"]);
+        Assert.Equal("/api/countries", source["url"]);
+        Assert.Equal("GET", source["method"]);
+        Assert.Equal("content", source["itemsPath"]);
+        Assert.Equal("code", source["valuePath"]);
+        Assert.Equal("name", source["labelPath"]);
+        Assert.Equal("true", source["proxy"]);
+        Assert.Equal("1", a["min"]);
+        Assert.Equal("10.5", a["max"]);
+        Assert.False(a.ContainsKey("placeholder")); // absent attributes are omitted
+    }
+
+    [Fact]
+    public void An_empty_options_source_supplies_nothing()
+    {
+        var a = FieldTypeResolver.AttributesOf(new FieldTypeEntry("plain") { OptionsSource = new RestDataSource() });
+        Assert.False(a.ContainsKey("optionsSource"));
+        Assert.False(a.ContainsKey("options"));
+    }
+}

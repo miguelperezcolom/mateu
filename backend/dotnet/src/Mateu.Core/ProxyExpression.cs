@@ -487,6 +487,7 @@ internal sealed class ProxyExpression
     {
         if (double.IsNaN(d)) return "NaN";
         if (double.IsInfinity(d)) return d > 0 ? "Infinity" : "-Infinity";
+        if (d == 0) return "0"; // String(-0) is "0" in JavaScript, as Java and Python print it
         if (d == Math.Floor(d) && Math.Abs(d) < 1e21) return d.ToString("F0", CultureInfo.InvariantCulture);
         return d.ToString("R", CultureInfo.InvariantCulture);
     }
@@ -496,7 +497,8 @@ internal sealed class ProxyExpression
         try
         {
             v = ReferenceEquals(v, Undefined) ? null : v;
-            return v is JsonElement el ? el.GetRawText() : JsonSerializer.Serialize(v);
+            // compact, as JSON.stringify writes it — GetRawText() would keep the source's whitespace
+            return JsonSerializer.Serialize(v);
         }
         catch (Exception)
         {
