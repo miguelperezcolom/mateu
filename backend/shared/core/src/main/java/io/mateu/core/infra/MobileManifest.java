@@ -141,6 +141,15 @@ public final class MobileManifest {
 
   /** The manifest members, in wire order, absent ones left out. */
   public static Map<String, Object> build(Source source) {
+    return build(source, io.mateu.core.infra.versioning.MateuVersion.current());
+  }
+
+  /**
+   * As {@link #build(Source)}, with the running Mateu version given: it travels as {@code
+   * mateuVersion} when it names a release, so a hub app can tell whether it predates components
+   * this UI may send (the app's own compatibility check — the author declares nothing).
+   */
+  static Map<String, Object> build(Source source, String mateuVersion) {
     MobileApp declared = source.mobileApp();
     Map<String, Object> manifest = new LinkedHashMap<>();
     String name = first(MateuSettings.get(NAME), attr(declared, MobileApp::name), source.title());
@@ -173,6 +182,7 @@ public final class MobileManifest {
             MateuSettings.get(MIN_APP_VERSION),
             attr(declared, MobileApp::minAppVersion),
             DEFAULT_MIN_APP_VERSION));
+    put(manifest, "mateuVersion", releaseVersion(mateuVersion));
     String issuer = first(MateuSettings.get(OIDC_ISSUER), attr(declared, MobileApp::oidcIssuer));
     String clientId =
         first(MateuSettings.get(OIDC_CLIENT_ID), attr(declared, MobileApp::oidcClientId));
@@ -185,6 +195,22 @@ public final class MobileManifest {
       manifest.put("auth", auth);
     }
     return manifest;
+  }
+
+  private static final java.util.regex.Pattern RELEASE =
+      java.util.regex.Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?([-.]?(alpha|beta|rc|a|b)\\.?\\d+)?$");
+
+  /**
+   * The version when it names a release ({@code 3.0-beta.33}, {@code 3.1.0}, {@code 3.0.0b33}),
+   * null for a development build ({@code 0.0.1-MATEU}, {@code …-SNAPSHOT}, {@code 3.0.0.dev0}) or
+   * none: an app cannot compare itself with a version that names no release. Same rule in the .NET
+   * and Python manifests.
+   */
+  public static String releaseVersion(String version) {
+    if (version == null) return null;
+    String v = version.trim();
+    if (v.startsWith("0.")) return null;
+    return RELEASE.matcher(v).matches() ? v : null;
   }
 
   /** Compact JSON, members in insertion (wire) order. */
