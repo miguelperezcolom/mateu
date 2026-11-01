@@ -75,6 +75,8 @@ content:
           pageSize: 6
           gridLayout: cards
           rowsSource: {ref: space-mission-gallery}
+          # a photograph has no page in the app: a card opens the full-size image in a new tab
+          rowRoute: ${row.imageLarge}
           columns:
             - {type: GridColumn, id: image, label: Photograph, stereotype: image}
             - {type: GridColumn, id: imageTitle, label: Title, identifier: true}
