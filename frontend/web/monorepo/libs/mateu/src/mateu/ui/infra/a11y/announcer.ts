@@ -18,6 +18,8 @@
 type Politeness = 'polite' | 'assertive'
 
 const regions = new Map<Politeness, HTMLElement>()
+/** The repeat each region is waiting to put back (see announce). */
+const pendingRepeats = new Map<HTMLElement, ReturnType<typeof setTimeout>>()
 
 const REGION_STYLE = [
     'position:absolute',
@@ -74,9 +76,16 @@ export const announce = (message: string, options: { politeness?: Politeness } =
     if (!text) return
     const region = regionFor(options.politeness ?? 'polite')
     if (!region) return
+    // A repeat still waiting to be put back is outdated by whatever is said now: left running, it
+    // wrote the OLD message over the new one 60 ms later (the newer message was never heard).
+    clearTimeout(pendingRepeats.get(region))
+    pendingRepeats.delete(region)
     if (region.textContent === text) {
         region.textContent = ''
-        setTimeout(() => { region.textContent = text }, 60)
+        pendingRepeats.set(region, setTimeout(() => {
+            pendingRepeats.delete(region)
+            region.textContent = text
+        }, 60))
         return
     }
     region.textContent = text
@@ -84,6 +93,8 @@ export const announce = (message: string, options: { politeness?: Politeness } =
 
 /** Test seam: forgets the regions (and removes them from the document). */
 export const resetAnnouncer = (): void => {
+    pendingRepeats.forEach((timer) => clearTimeout(timer))
+    pendingRepeats.clear()
     regions.forEach((region) => region.remove())
     regions.clear()
 }

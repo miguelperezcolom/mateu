@@ -446,7 +446,7 @@ const pageOf = () => {
 }
 
 test('Connect AI: the dialog opens with a fresh code and its countdown; pairing turns the dot on; Disconnect unpairs', async () => {
-  await sleep(80) // a repeated announcement of the previous test lands 60 ms later (a11y.mjs)
+  // no wait for the previous test's repeated announcement: a newer announce cancels it (a11y.mjs)
   resetAgentPush()
   const { doc, fire, dialog } = pageOf()
   await withDocument(doc, async () => {
