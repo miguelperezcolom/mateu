@@ -31,7 +31,7 @@ internal sealed partial class SyncHandler
             else if (source is { Proxy: false } direct && !string.IsNullOrEmpty(direct.Url))
                 // a DIRECT source is the browser's to call: proxying it on request ran a server-side
                 // call (with ${secret.X} resolved) the author never asked for — refused (403)
-                throw new Mateu.Uidl.MateuForbiddenException(
+                throw new MateuForbiddenException(
                     $"__restfetch__: {kind}/{id} is not a proxied source (Proxy = true)");
             else if (source is not null)
             {
