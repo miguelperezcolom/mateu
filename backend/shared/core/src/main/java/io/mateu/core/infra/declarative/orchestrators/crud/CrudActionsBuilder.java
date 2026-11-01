@@ -18,16 +18,30 @@ final class CrudActionsBuilder {
   static List<Action> buildActions(Crud<?, ?, ?, ?, ?, ?> orchestrator, HttpRequest httpRequest) {
     var actions = new ArrayList<Action>();
     if (httpRequest.getAttribute("mediator") != null) {
-      actions.add(Action.builder().id("delete").build());
-      actions.add(Action.builder().id("save").build());
-      actions.add(Action.builder().id("create").build());
-      if (orchestrator.editInDrawer() && orchestrator.display().saveAndNext().shown()) {
+      // only the writes the crud lets the user make (CrudWriteGate): an advertised write that the
+      // gate then refuses would still be a 403, but nothing should invite it
+      var mayEdit = CrudWriteGate.mayEdit(orchestrator);
+      var mayCreate = CrudWriteGate.mayCreate(orchestrator);
+      if (CrudWriteGate.mayDelete(orchestrator)) {
+        actions.add(Action.builder().id("delete").build());
+      }
+      if (mayEdit) {
+        actions.add(Action.builder().id("save").build());
+      }
+      if (mayCreate) {
+        actions.add(Action.builder().id("create").build());
+      }
+      if (mayEdit && orchestrator.editInDrawer() && orchestrator.display().saveAndNext().shown()) {
         // the edit drawer's "Save and next" bubbles to the mediator like save does
         actions.add(Action.builder().id("save-and-next").build());
       }
-      actions.add(Action.builder().id("new").build());
+      if (mayCreate) {
+        actions.add(Action.builder().id("new").build());
+      }
       actions.add(Action.builder().id("view").build());
-      actions.add(Action.builder().id("edit").build());
+      if (mayEdit) {
+        actions.add(Action.builder().id("edit").build());
+      }
       actions.add(Action.builder().id("cancel-create").build());
       actions.add(Action.builder().id("cancel-view").build());
       actions.add(Action.builder().id("cancel-edit").build());
@@ -43,13 +57,15 @@ final class CrudActionsBuilder {
       if (InlineEditingGate.offered(orchestrator)) {
         actions.add(Action.builder().id("update-row").build());
       }
-      actions.add(
-          Action.builder()
-              .id("delete")
-              .confirmationRequired(true)
-              .rowsSelectedRequired(true)
-              .bubble(true)
-              .build());
+      if (CrudWriteGate.mayDelete(orchestrator)) {
+        actions.add(
+            Action.builder()
+                .id("delete")
+                .confirmationRequired(true)
+                .rowsSelectedRequired(true)
+                .bubble(true)
+                .build());
+      }
       // the Export buttons of the list toolbar (ListRouteResolver): advertised, or dropped
       actions.addAll(io.mateu.uidl.interfaces.Listing.exportActions(orchestrator));
       if (orchestrator.behaviourSource() instanceof UploadEnabled) {

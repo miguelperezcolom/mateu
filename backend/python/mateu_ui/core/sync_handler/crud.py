@@ -32,7 +32,7 @@ from mateu_ui.uidl.messages import UserFacingException
 
 from .. import action_guard
 from ..naming import camel_case
-from ..reflection import view_fields
+from ..reflection import class_flag, view_fields
 from ..registry import normalize
 from ..export import FORMATS
 from ._base import MixinBase
@@ -86,10 +86,20 @@ class CrudHandlerMixin(MixinBase):
             return self.crud_search(crud, element, rq)
         # Crud.display(): a disabled (or off) New / Delete cannot be forced from the client either
         display = self.mapper._crud_display(crud_type, crud)
-        if (aid == "new" and not display.create.enabled()) or (
-            aid == "delete" and not display.delete.enabled()
-        ):
+        if aid == "new" and not display.create.enabled():
             return UIIncrement.of()
+        # the WRITES a crud does not offer are refused (403), not only undrawn — a read-only crud
+        # (@read_only on the crud class), a disabled/off create or delete — mirrors Java's
+        # CrudWriteGate: a crafted request used to create, save and delete anyway
+        read_only_crud = bool(class_flag(crud_type, "__mateu_read_only__", False))
+        if aid in ("create", "save", SAVE_AND_NEXT, "delete", "update-row") and (
+            read_only_crud
+            or (aid == "create" and not display.create.enabled())
+            or (aid == "delete" and not display.delete.enabled())
+        ):
+            from ..action_guard import MateuForbiddenException
+
+            raise MateuForbiddenException(f"Forbidden: {aid} on {crud_type.__name__}")
         if aid in ("create", "save", SAVE_AND_NEXT):
             if aid == SAVE_AND_NEXT and not display.save_and_next.enabled():
                 return UIIncrement.of()
@@ -397,9 +407,10 @@ class CrudHandlerMixin(MixinBase):
         if broken:
             return self.error("; ".join(broken))
         if version is not None:
-            if stored_version is not None and self._force_overwrite(rq):
-                # the user chose to overwrite from the conflict dialog: adopt the STORED version
-                # so the bump below moves it forward instead of resurrecting the stale one
+            if stored_version is not None:
+                # the record is saved FROM the stored version (adopted on an overwrite too): the
+                # client's copy only answered "did you see the latest?" — a version AHEAD of the
+                # stored one (a crafted 999) used to be saved and bumped to 1000
                 setattr(entity, version.name, stored_version)
             setattr(entity, version.name, self._version_of(entity, version) + 1)
         in_drawer = getattr(type(crud), "__mateu_edit_in_drawer__", False)
@@ -410,8 +421,13 @@ class CrudHandlerMixin(MixinBase):
             # Redwood create-edit-drawer error banner), with the values the user typed — and is
             # announced, since nothing takes focus (mirrors Java's PersistActionHandler).
             if in_drawer and self.mapper._crud_display(type(crud), crud).error_banner.shown():
+                # through the error boundary like any failed action: a UserFacingException as
+                # written, anything else the generic text + a reference (logged) — the raw text
+                # of a store exception (an SQL statement, its values) used to be shown
+                from mateu_ui.core.error_boundary import describe
+
                 message = (
-                    getattr(failure, "message", None) or str(failure)
+                    describe(failure, rq.action_id).get("text")
                     or "The record could not be saved"
                 )
                 base = base_route.rstrip("/")

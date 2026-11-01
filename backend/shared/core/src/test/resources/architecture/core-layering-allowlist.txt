@@ -80,7 +80,6 @@ domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMap
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/AdvertisedActions.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/AppHomeRouteResolver.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/AppMapper.java
-domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ClassLiterals.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentCatalogMapper.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentTreeSupplierMapper.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/CrudlMapper.java

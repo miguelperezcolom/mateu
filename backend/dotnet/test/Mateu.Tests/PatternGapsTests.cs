@@ -74,6 +74,7 @@ public abstract class PgRoomsBase : Crud<PgRoom>
     public override void Save(PgRoom entity)
     {
         if (entity.Name.Contains("boom")) throw new InvalidOperationException("Room names cannot explode");
+        if (entity.Name.Contains("taken")) throw new UserFacingException("That name is taken");
         var i = Rooms.FindIndex(r => r.Id == entity.Id);
         if (i >= 0) Rooms[i] = entity;
         else Rooms.Add(entity);
@@ -86,6 +87,9 @@ public class PgRoomsCrud : PgRoomsBase
     public override bool EditInDrawer => true;
     public override CrudDisplay Display => CrudDisplay.Defaults with { SaveAndNext = Toggle.On };
 }
+
+[UI("pg-rooms-read-only"), Title("Rooms (read only)"), ReadOnly]
+public class PgReadOnlyRoomsCrud : PgRoomsBase;
 
 [UI("pg-rooms-locked"), Title("Rooms (locked)")]
 public class PgLockedRoomsCrud : PgRoomsBase
@@ -368,8 +372,7 @@ public class PatternGapsTests
         Assert.True((bool?)Button(inc, "new")?["disabled"]);
         Assert.Null(Button(inc, "delete"));
         // and the wire cannot force them
-        var forced = Run("/pg-rooms-locked", typeof(PgLockedRoomsCrud), "delete");
-        Assert.Contains(forced.Messages, m => m.Variant == "error");
+        Assert.Throws<MateuForbiddenException>(() => Run("/pg-rooms-locked", typeof(PgLockedRoomsCrud), "delete"));
     }
 
     [Fact]
@@ -412,12 +415,41 @@ public class PatternGapsTests
             new() { ["id"] = "r2", ["name"] = "boom room" });
         var drawer = (DrawerMetadataDto)((ClientSideComponentDto)Assert.Single(inc.Fragments).Component!).Metadata;
         var notice = Objects(Wire(drawer)).First(o => (string?)o["type"] == "Notice");
-        Assert.Equal("Room names cannot explode", (string?)notice["text"]);
+        // an unexpected exception goes through the error boundary: the generic text + a reference,
+        // never its raw message (a UserFacingException is shown as written — next test)
+        var text = (string?)notice["text"];
+        Assert.StartsWith("An unexpected error occurred. Reference: ", text);
+        Assert.DoesNotContain("explode", text);
         Assert.Equal("danger", (string?)notice["theme"]);
         Assert.Equal("boom room", ((IDictionary<string, object?>)drawer.InitialData!)["name"]);
         // and it is announced, since nothing takes focus
         var announce = Assert.Single(inc.Commands, c => c.Type == "Announce");
-        Assert.Equal(new AnnouncementDto("Room names cannot explode", true), announce.Data);
+        Assert.Equal(new AnnouncementDto(text!, true), announce.Data);
+    }
+
+    [Fact]
+    public void A_user_facing_failure_in_the_drawer_is_shown_as_written()
+    {
+        var inc = Run("/pg-rooms-drawer/r2/edit", typeof(PgRoomsCrud), "create",
+            new() { ["id"] = "r2", ["name"] = "taken" });
+        var drawer = (DrawerMetadataDto)((ClientSideComponentDto)Assert.Single(inc.Fragments).Component!).Metadata;
+        var notice = Objects(Wire(drawer)).First(o => (string?)o["type"] == "Notice");
+        Assert.Equal("That name is taken", (string?)notice["text"]);
+    }
+
+    [Fact]
+    public void Writes_the_crud_does_not_offer_are_refused_if_forced()
+    {
+        // Create Disabled, Delete Off: refused (403), not just undrawn
+        Assert.Throws<MateuForbiddenException>(() => Run("/pg-rooms-locked", typeof(PgLockedRoomsCrud), "delete",
+            new() { ["crud_selected_items"] = new List<object?> { new Dictionary<string, object?> { ["id"] = "r2" } } }));
+        Assert.Throws<MateuForbiddenException>(() => Run("/pg-rooms-locked", typeof(PgLockedRoomsCrud), "create",
+            new() { ["id"] = "r9", ["name"] = "Nine" }));
+        // a [ReadOnly] crud refuses every write
+        Assert.Throws<MateuForbiddenException>(() => Run("/pg-rooms-read-only/r1/edit", typeof(PgReadOnlyRoomsCrud), "save",
+            new() { ["id"] = "r1", ["name"] = "X" }));
+        Assert.Throws<MateuForbiddenException>(() => Run("/pg-rooms-read-only", typeof(PgReadOnlyRoomsCrud), "delete",
+            new() { ["crud_selected_items"] = new List<object?> { new Dictionary<string, object?> { ["id"] = "r1" } } }));
     }
 
     // ── Page slots ────────────────────────────────────────────────────────────────────────

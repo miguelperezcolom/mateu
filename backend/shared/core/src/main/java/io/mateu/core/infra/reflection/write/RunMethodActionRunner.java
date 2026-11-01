@@ -56,7 +56,12 @@ public class RunMethodActionRunner implements ActionRunner {
       var fieldId = fieldAndMethod.substring(0, fieldAndMethod.indexOf('-'));
       methodName = fieldAndMethod.substring(fieldId.length() + 1);
       var field = getFieldByName(instance.getClass(), fieldId);
-      if (field != null) {
+      if (field == null) {
+        // a prefixed id naming no field of the view is a crafted request: it used to fall back to
+        // the VIEW's method of that name, skipping the server-side constraint check below
+        throw new MateuForbiddenException("nested form field not found: " + fieldId);
+      }
+      {
         // The nested form is part of the view (a sub-object it renders), never a dependency the
         // container injected: an @Autowired service reached this way would expose its methods.
         if (!isNestedFormField(field)) {
@@ -87,9 +92,10 @@ public class RunMethodActionRunner implements ActionRunner {
                             .advertises(target, command.httpRequest(), name)));
     if (m != null) {
       if (!m.canAccess(instance)) m.setAccessible(true);
-      if (!command.actionId().startsWith("nested-form-action-")) {
-        checkConstraints(instance, m, command);
-      }
+      // the browser validates the whole PAGE before a validationRequired action, nested section
+      // buttons included: the server re-checks the same thing — the holding view, whose state
+      // carries the nested form's fields too
+      checkConstraints(view, m, command);
       Object result = invoke(m, instance, command);
       if (result == null) {
         var state = ComponentState.getState(instance, command.httpRequest());

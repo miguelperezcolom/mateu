@@ -43,6 +43,7 @@ from mateu_ui.uidl import (  # noqa: E402
     Wizard,
     WizardDisplay,
     edit_in_drawer,
+    read_only,
     title,
     ui,
     welcome_banner,
@@ -268,7 +269,14 @@ class _RoomStore:
     def save(self, entity):
         if entity.name and "boom" in entity.name:
             raise ValueError("Room names cannot explode")
+        if entity.name and "taken" in entity.name:
+            from mateu_ui.uidl.messages import UserFacingException
+
+            raise UserFacingException("That name is taken")
         ROOMS[:] = [entity if r.id == entity.id else r for r in ROOMS]
+
+    def delete(self, id):
+        ROOMS[:] = [r for r in ROOMS if r.id != id]
 
 
 @ui("/rooms-drawer")
@@ -352,13 +360,64 @@ def test_a_failed_save_in_the_drawer_shows_an_error_banner_keeping_what_was_type
     drawers = metas(inc, "Drawer")
     assert len(drawers) == 1
     notice = next(d for d in walk(drawers[0]) if d.get("type") == "Notice")
-    assert notice["text"] == "Room names cannot explode"
+    # an unexpected exception goes through the error boundary: the generic text + a reference,
+    # never its raw message (a UserFacingException is shown as written — see below)
+    assert notice["text"].startswith("An unexpected error occurred. Reference: ")
+    assert "explode" not in notice["text"]
     assert notice["theme"] == "danger"
     assert "boom room" in inc.model_dump_json(by_alias=True)
     # and it is announced, since nothing takes focus
     announce = next(c for c in inc.commands if c.type == "Announce")
-    assert announce.data.text == "Room names cannot explode"
+    assert announce.data.text == notice["text"]
     assert announce.data.assertive is True
+
+
+def test_a_user_facing_failure_in_the_drawer_is_shown_as_written():
+    _rooms_reset()
+    inc = run(RoomsCrud, "/rooms-drawer/r2/edit", "create", {"id": "r2", "name": "taken"})
+    notice = next(d for d in walk(metas(inc, "Drawer")[0]) if d.get("type") == "Notice")
+    assert notice["text"] == "That name is taken"
+
+
+def _forbidden(call) -> bool:
+    from mateu_ui.core.action_guard import MateuForbiddenException
+
+    try:
+        call()
+    except MateuForbiddenException:
+        return True
+    return False
+
+
+def test_writes_the_crud_does_not_offer_are_refused_if_forced():
+    _rooms_reset()
+    state = {"crud_selected_items": [{"id": "r2"}]}
+    # create disabled, delete off (LockedRoomsCrud): refused (403), nothing written
+    assert _forbidden(lambda: run(LockedRoomsCrud, "/rooms-locked", "delete", state))
+    assert _forbidden(
+        lambda: run(LockedRoomsCrud, "/rooms-locked", "create", {"id": "r9", "name": "Nine"})
+    )
+    assert [r.id for r in ROOMS] == ["r1", "r2", "r3"]
+
+
+@ui("/rooms-read-only")
+@title("Rooms (read only)")
+@read_only
+class ReadOnlyRoomsCrud(_RoomStore, Crud[Room]):
+    element_type = Room
+
+
+def test_a_read_only_crud_refuses_every_write():
+    _rooms_reset()
+    assert _forbidden(
+        lambda: run(
+            ReadOnlyRoomsCrud, "/rooms-read-only", "delete", {"crud_selected_items": [{"id": "r2"}]}
+        )
+    )
+    assert _forbidden(
+        lambda: run(ReadOnlyRoomsCrud, "/rooms-read-only/r1/edit", "save", {"id": "r1", "name": "X"})
+    )
+    assert [r.name for r in ROOMS] == ["Ocean view", "Garden", "Attic"]
 
 
 # ── Page slots: GeneralOverview info, foldout summary, docked panels, pre-search, tones ────
