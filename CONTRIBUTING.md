@@ -141,6 +141,15 @@ Every commit of a PR needs it; `git rebase --signoff master` adds it to commits 
 Conventional-commit style, scoped by area: `feat(core): …`, `fix(redwood): …`, `docs: …`,
 `build(demos): …`. Explain **why** in the body.
 
+## Desktop installers
+
+The desktop app's installers (`./gradlew buildInstaller` in `frontend/app/intellij-plugin`) are built
+by CI (`.github/workflows/desktop.yml`) on every release. Do not build them on your own machine to try
+them — download them from the release instead. They package a whole IntelliJ distribution, touch
+system locations on macOS (the dmg's drag-to-install link points at `/Applications`) and need signing
+secrets to be useful. In that build script, never use Kotlin's `File.deleteRecursively()`: it follows
+symbolic links. Use `deleteTree()`, which removes a link as a link (CI checks for it).
+
 ## Releases
 
 Maintainers cut releases (`gh release create vX.Y-…`); GitHub Actions build, test and publish to
