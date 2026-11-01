@@ -1,0 +1,38 @@
+# The conservation board — a LIVE KANBAN: one column per status, one card per task (read from
+# museum-service), its colour the priority. Drag a card to another column or to another place in its
+# column — or use its ⋯ Move menu — and the move is saved (museum-task-move, a PUT with the card's own
+# record: its new status AND its new boardOrder); the board then reads the tasks again. The order is
+# the task's `boardOrder` (orderField): a dropped card gets the midpoint of its new neighbours, so a
+# reload shows it exactly where it was dropped. A card opens the task (conservation/tasks/:id). The
+# filterable list is conservation/tasks. Needs Mateu 3.0-beta.35 (Kanban orderField) and a
+# museum-service with boardOrder.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Conservation board
+subtitle: Every task across the three museums — drag a card to move it along
+toolbar:
+  - {type: Button, label: New task, buttonStyle: primary, actionable: {type: RouteLink, route: conservation/tasks/new}}
+  - {type: Button, label: As a list, actionable: {type: RouteLink, route: conservation/tasks}}
+actions:
+  - id: moveTask
+    restAction:
+      source: {ref: museum-task-move}
+content:
+  - type: Kanban
+    id: board
+    rowsSource: {ref: museum-conservation-board}
+    columnField: status
+    orderField: boardOrder
+    card:
+      title: "${row.type}"
+      description: "${row.artworkTitle} · ${row.museumName} · ${row.assignee} · due ${row.dueDate}"
+      badge: "${row.priority}"
+      color: "${row.priority}"
+    cardColors: {urgent: "#dc2626", high: "#d97706", medium: "#2563eb", low: "#9ca3af"}
+    cardRoute: conservation/tasks/${row.id}
+    moveActionId: moveTask
+    columns:
+      - {id: backlog, title: Backlog, color: "#6b7280"}
+      - {id: in_progress, title: In progress, color: "#2563eb"}
+      - {id: review, title: Review, color: "#d97706"}
+      - {id: done, title: Done, color: "#16a34a"}

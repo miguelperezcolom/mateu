@@ -1,0 +1,24 @@
+# The museums on a street map (OpenStreetMap tiles), a pin per museum with its label and, on hover, its
+# description. A YAML Map carries its markers: the three museums do not move, so they are written here.
+#
+# A pin click does NOT open the museum: `markerActionId` names ONE action for every pin, the clicked
+# pin's id arrives as a parameter (_markerId), and a YAML action's Navigate step cannot interpolate it
+# (its route is taken literally). Opening "the clicked museum" needs a server action — Java — so here
+# the buttons under the map do it.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: The museums on the map
+subtitle: New York, Copenhagen and Cleveland
+content:
+  - type: Map
+    id: museums-map
+    markers:
+      - {id: "1", latitude: 40.7794, longitude: -73.9632, label: The Met, description: "The Metropolitan Museum of Art · New York", color: "#c8102e"}
+      - {id: "2", latitude: 55.6888, longitude: 12.5784, label: SMK, description: "Statens Museum for Kunst · Copenhagen", color: "#1d4ed8"}
+      - {id: "3", latitude: 41.5089, longitude: -81.6116, label: Cleveland, description: "Cleveland Museum of Art · Cleveland", color: "#047857"}
+    style: "height: 34rem;"
+  - type: HorizontalLayout
+    content:
+      - {type: Button, label: The Met, actionable: {type: RouteLink, route: museums/1}}
+      - {type: Button, label: SMK, actionable: {type: RouteLink, route: museums/2}}
+      - {type: Button, label: Cleveland, actionable: {type: RouteLink, route: museums/3}}

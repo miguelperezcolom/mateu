@@ -1,0 +1,38 @@
+# Plan a new exhibition. The run is entered as a DATE RANGE (one field, two dates).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: New exhibition
+subtitle: Plan a show
+toolbar:
+  - type: Button
+    actionId: cancel-new
+    label: Cancel
+    actionable: {type: RouteLink, route: exhibitions}
+  - {type: Button, label: Create, actionId: create, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: FormField, id: title, label: Title, required: true, autofocus: true, colspan: 2}
+      - {type: FormField, id: museumId, label: Museum, stereotype: select, required: true, optionsSource: {ref: museum-museum-options}}
+      - type: FormField
+        id: status
+        label: Status
+        stereotype: radio
+        initialValue: planned
+        options:
+          - {value: planned, label: Planned}
+          - {value: open, label: Open}
+      - {type: FormField, id: startDate, label: Opens, dataType: date, required: true}
+      - {type: FormField, id: endDate, label: Closes, dataType: date, required: true}
+      - {type: FormField, id: curator, label: Curator}
+      - {type: FormField, id: budget, label: Budget (USD), dataType: number}
+      - {type: FormField, id: description, label: Description, stereotype: textarea, colspan: 2}
+actions:
+  - id: create
+    validationRequired: true
+    restAction:
+      source: {ref: museum-exhibition-create}
+      successMessage: Created
+      resultPath: ""
+      successRoute: exhibitions/${state.id}

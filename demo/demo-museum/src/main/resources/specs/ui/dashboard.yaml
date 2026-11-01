@@ -1,0 +1,28 @@
+# Operations at a glance — Redwood's DASHBOARD LANDING PAGE template: the scoreboard's metrics in its
+# `kpi` slot, one panel per chart in the main area.
+#
+# LIVE: the route's `data:` loads museum-service's /api/stats into the page state, and the page
+# header's `kpis` interpolate it (${state.visitorsYtdLabel}…) — write a loan and they move.
+# SNAPSHOT: the scoreboard's MetricCards and the charts. A YAML Chart carries its data (it cannot read
+# a REST source), and a MetricCard does not interpolate ${state…} on Vaadin, so scripts/snapshot.py
+# writes both from the same endpoint into partials/generated/.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Operations at a glance
+subtitle: Visitors, the collection, loans and conservation across the three museums
+timestamp: ${state.lastVisitDate}
+kpis:
+  - {label: Visitors 2026, value: "${state.visitorsYtdLabel}"}
+  - {label: Revenue 2026, value: "${state.revenueYtdLabel}"}
+  - {label: Active loans, value: "${state.activeLoans}"}
+  - {label: Open tasks, value: "${state.openTasks}"}
+template:
+  type: DashboardLandingPage
+  kpi:
+    - {type: Partial, ref: generated/dashboard-kpis}
+content:
+  - {type: Partial, ref: generated/dashboard-charts}
+actions:
+  - {id: open-exhibitions, steps: [{type: Navigate, route: exhibitions}]}
+  - {id: open-loans, steps: [{type: Navigate, route: loans}]}
+  - {id: open-board, steps: [{type: Navigate, route: conservation}]}

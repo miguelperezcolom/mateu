@@ -1,0 +1,15 @@
+# The collection as a TREE: museum → department → gallery, with the works in each. A listing in tree
+# layout over a REST source whose rows carry `children` (museum-service's /api/collection-tree).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: The collection
+subtitle: Museum → department → gallery, with how many works each holds and how many are on view
+gridLayout: tree
+pageSize: 100
+rowsSource:
+  ref: museum-collection-tree
+columns:
+  - {type: GridColumn, id: name, label: Name, identifier: true}
+  - {type: GridColumn, id: kind, label: Level}
+  - {type: GridColumn, id: artworks, label: Works, dataType: integer}
+  - {type: GridColumn, id: onView, label: On view, dataType: integer}

@@ -1,0 +1,39 @@
+# The exhibition programme: a listing with a multi-select (status), a select fed by a REST source
+# (museum), a DATE RANGE (opening) and a money range (budget) — all evaluated by museum-service.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Exhibitions
+subtitle: Planned, open and closed — on a calendar too
+pageSize: 20
+rowRoute: exhibitions/${row.id}
+toolbar:
+  - type: Button
+    label: New exhibition
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: exhibitions/new}
+  - type: Button
+    label: Calendar
+    actionable: {type: RouteLink, route: calendar}
+searchable: true
+filters:
+  - {type: FormField, id: title, label: Title}
+  - type: FormField
+    id: status
+    label: Status
+    stereotype: multiSelect
+    options:
+      - {value: planned, label: Planned}
+      - {value: open, label: Open}
+      - {value: closed, label: Closed}
+  - {type: FormField, id: museumId, label: Museum, stereotype: select, optionsSource: {ref: museum-museum-options}}
+  - {type: FormField, id: startDate, label: Opens, dataType: date, stereotype: dateRange}
+  - {type: FormField, id: budget, label: Budget (USD), dataType: number, stereotype: numberRange}
+rowsSource:
+  ref: museum-exhibitions
+columns:
+  - {type: GridColumn, id: title, label: Exhibition, identifier: true, stereotype: primary, leadingPath: image, captionPath: museumName, width: 22rem, flexGrow: "0"}
+  - {type: GridColumn, id: status, label: Status, dataType: status}
+  - {type: GridColumn, id: startDate, label: Opens, dataType: date}
+  - {type: GridColumn, id: endDate, label: Closes, dataType: date}
+  - {type: GridColumn, id: curator, label: Curator}
+  - {type: GridColumn, id: budget, label: Budget, dataType: money, align: end}

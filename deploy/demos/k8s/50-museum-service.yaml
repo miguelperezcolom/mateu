@@ -1,0 +1,87 @@
+# museum-service — the museums demo's writable data API (github.com/miguelperezcolom/museum-service), as swapi.
+# museum-api.ec1.mateu.io: the demo's sources read it from the browser (CORS *); writes carry the key, held by the
+# demo's backend (proxy sources), never the browser. Image: miguelperezcolom/museum-service:<tag>, built from
+# that repo (mvn package, then docker build).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: museum-service
+  namespace: mateu-demos
+  labels: { app: museum-service }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: museum-service }
+  template:
+    metadata:
+      labels: { app: museum-service }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/museum-service:a594d0e
+          env:
+            - { name: SERVER_PORT, value: "8121" }
+            - name: WRITE_KEY
+              valueFrom:
+                secretKeyRef: { name: museum-service-write-key, key: WRITE_KEY }
+          ports:
+            - { name: http, containerPort: 8121 }
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8121 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8121 }
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "320Mi", cpu: "50m" }
+            limits:   { memory: "448Mi" }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: museum-service
+  namespace: mateu-demos
+spec:
+  selector: { app: museum-service }
+  ports:
+    - { name: http, port: 8121, targetPort: 8121 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: museum-service
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # a loan document travels as a data URI in a JSON body: 5 MB of file ≈ 7 MB (ingress-nginx defaults to 1m)
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [museum-api.ec1.mateu.io]
+      secretName: museum-service-tls
+  rules:
+    - host: museum-api.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: museum-service, port: { number: 8121 } }

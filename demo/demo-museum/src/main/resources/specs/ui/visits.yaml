@@ -1,0 +1,20 @@
+# Daily visits: a date-range filter, a museum select and a number range, with money and integer
+# columns. The newest day first.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Visits
+subtitle: Visitors, members and ticket revenue per open day, 2026
+pageSize: 25
+searchable: false
+filters:
+  - {type: FormField, id: museumId, label: Museum, stereotype: select, optionsSource: {ref: museum-museum-options}}
+  - {type: FormField, id: date, label: Day, dataType: date, stereotype: dateRange}
+  - {type: FormField, id: visitors, label: Visitors, dataType: integer, stereotype: numberRange}
+rowsSource:
+  ref: museum-visits
+columns:
+  - {type: GridColumn, id: date, label: Day, dataType: date, identifier: true}
+  - {type: GridColumn, id: museumName, label: Museum}
+  - {type: GridColumn, id: visitors, label: Visitors, dataType: integer, align: end}
+  - {type: GridColumn, id: members, label: Members, dataType: integer, align: end}
+  - {type: GridColumn, id: revenue, label: Revenue, dataType: money, align: end}

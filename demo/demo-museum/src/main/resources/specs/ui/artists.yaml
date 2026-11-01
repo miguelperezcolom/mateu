@@ -1,0 +1,13 @@
+# The artists — Redwood's COLLECTION DETAIL page template. With nothing selected (this route) the
+# template shows its noSelection slot; picking an artist goes to artists/:id, the same list beside the
+# artist's detail. Selection lives in the URL.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Artists
+subtitle: One row per artist across the three museums
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Partial, ref: artists-list}
+  noSelection:
+    - {type: EmptyState, title: Pick an artist, description: "Their nationality, lifespan and the works the three museums hold."}

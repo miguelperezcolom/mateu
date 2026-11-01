@@ -1,0 +1,77 @@
+# The home page fills Redwood's WELCOME PAGE template: the banner is the page's own title,
+# description, overline and calls to action (the primary first); the tiles under it are one panel per
+# museum. Every link is a RouteLink — no server action behind any of it.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Three museums, one collection
+overline: A Mateu demo
+subtitle: >-
+  Public-domain masterpieces of The Metropolitan Museum of Art, the National Gallery of Denmark (SMK)
+  and the Cleveland Museum of Art — searched, filtered, lent, conserved and charted. Every screen is
+  YAML, rendered by Mateu over museum-service.
+toolbar:
+  - type: Button
+    label: Browse the artworks
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: artworks}
+  - type: Button
+    label: Search everything
+    actionable: {type: RouteLink, route: search}
+template:
+  type: WelcomePage
+  backgroundColor: dark-sienna
+content:
+  - type: DashboardLayout
+    columns: 3
+    items:
+      - type: DashboardPanel
+        title: The Met
+        subtitle: New York · founded 1870
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Image, src: "https://images.metmuseum.org/CRDImages/ep/mobile-large/DT47.jpg", alt: "A painting from the Met's collection", style: "width: 100%; height: 180px; object-fit: cover; border-radius: 8px;"}
+            - {type: Text, text: "Old masters, arms and armour, Egyptian temples and early photography."}
+            - {type: Button, label: Open the Met, actionable: {type: RouteLink, route: museums/1}}
+      - type: DashboardPanel
+        title: SMK
+        subtitle: Copenhagen · Statens Museum for Kunst
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Image, src: "https://iip.smk.dk/iiif/jp2/gf06g715p_kms8914.tif.jp2/full/!400,/0/default.jpg", alt: "Wood with Crooked Tree, Mogens Ballin", style: "width: 100%; height: 180px; object-fit: cover; border-radius: 8px;"}
+            - {type: Text, text: "The Danish Golden Age, Dutch masters, prints and drawings and the royal casts."}
+            - {type: Button, label: Open SMK, actionable: {type: RouteLink, route: museums/2}}
+      - type: DashboardPanel
+        title: Cleveland
+        subtitle: Cleveland Museum of Art · founded 1913
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Image, src: "https://openaccess-cdn.clevelandart.org/1927.1984/1927.1984_web.jpg", alt: "The Biglin Brothers Turning the Stake, Thomas Eakins", style: "width: 100%; height: 180px; object-fit: cover; border-radius: 8px;"}
+            - {type: Text, text: "Asian and Egyptian art, medieval treasures and an armour court."}
+            - {type: Button, label: Open Cleveland, actionable: {type: RouteLink, route: museums/3}}
+      - type: DashboardPanel
+        title: Exhibitions
+        subtitle: 18 shows, planned, open and closed
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "On a calendar, with the works they hang and the loans they need."}
+            - {type: Button, label: See the calendar, actionable: {type: RouteLink, route: calendar}}
+      - type: DashboardPanel
+        title: Conservation
+        subtitle: A board per museum
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "Condition reports, cleaning, inpainting — from backlog to done."}
+            - {type: Button, label: Open the board, actionable: {type: RouteLink, route: conservation}}
+      - type: DashboardPanel
+        title: Visitors
+        subtitle: Every open day of 2026
+        content:
+          type: VerticalLayout
+          content:
+            - {type: Text, text: "Visitors, members and ticket revenue, charted by month."}
+            - {type: Button, label: Open the dashboard, actionable: {type: RouteLink, route: dashboard}}

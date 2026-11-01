@@ -1,0 +1,22 @@
+# A new conservation task — it lands in the backlog unless a status is picked.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: New conservation task
+toolbar:
+  - type: Button
+    actionId: cancel-new
+    label: Cancel
+    actionable: {type: RouteLink, route: conservation}
+  - {type: Button, label: Create, actionId: create, buttonStyle: primary}
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: Partial, ref: task-fields}
+actions:
+  - id: create
+    validationRequired: true
+    restAction:
+      source: {ref: museum-task-create}
+      successMessage: Created
+      successRoute: conservation

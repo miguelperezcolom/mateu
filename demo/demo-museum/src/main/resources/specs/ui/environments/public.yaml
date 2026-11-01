@@ -1,0 +1,59 @@
+# The PUBLIC deployment of museum-service. sources.yaml points at http://localhost:8121; activating
+# this environment re-points EVERY source at the URL below — the one place to change it:
+#
+#   MATEU_ENVIRONMENT=public mvn spring-boot:run        (or -Dmateu.environment=public)
+#   mvn package -Predwood-bundle -Dmateu.bundle.environment=public   (a static bundle)
+#
+# An environment names each source it re-points (Mateu has no "every source" wildcard), so every
+# entry spells the base out: YAML anchors/aliases are not resolved in specs files (a Mateu bug noted
+# in the README), so one anchor aliased by the rest re-pointed nothing.
+sources:
+  museum-museums: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-departments: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artists: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artworks: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-exhibitions: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loans: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-conservation-tasks: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-visits: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-search: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-collection-tree: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-stats: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-museum-options: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-department-options: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artist-options: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artwork-options: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-exhibition-options: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-museum: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-museum-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-museum-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-museum-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artist: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artist-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artist-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artist-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artwork: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artwork-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artwork-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artwork-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-exhibition: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-exhibition-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-exhibition-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-exhibition-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-documents: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-document-upload: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-document-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-task: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-task-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-task-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-conservation-board: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-task-move: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-task-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-exhibition-artworks: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-exhibition-loans: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-artist-artworks: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-museum-departments: {baseUrl: "https://museum-api.ec1.mateu.io"}

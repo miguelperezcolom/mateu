@@ -1,0 +1,50 @@
+# Request a loan — a WIZARD: Redwood's GUIDED PROCESS page template. All the steps are ONE form, so
+# moving between them keeps what was typed with no round trip; the primary action (Request) runs the
+# create with every step's fields. The lender is the work's own museum and the borrower the show's —
+# museum-service fills both in, and the new loan starts as `requested`.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Request a loan
+subtitle: Borrow a work from another museum for one of your exhibitions
+toolbar:
+  - type: Button
+    actionId: cancel-new
+    label: Cancel
+    actionable: {type: RouteLink, route: loans}
+  - {type: Button, label: Request, actionId: create, buttonStyle: primary}
+template:
+  type: GuidedProcessPage
+  steps:
+    - id: work
+      title: The work
+      description: What you want to borrow
+      content:
+        - {type: FormField, id: artworkId, label: Artwork, stereotype: select, required: true, optionsSource: {ref: museum-artwork-options}}
+        - {type: Text, text: "It leaves from the museum that holds it.", size: s}
+    - id: show
+      title: The exhibition
+      description: Where it will hang
+      content:
+        - {type: FormField, id: exhibitionId, label: Exhibition, stereotype: select, required: true, optionsSource: {ref: museum-exhibition-options}}
+        - {type: Text, text: "Only open and planned exhibitions are listed; the borrower is the exhibition's museum.", size: s}
+    - id: dates
+      title: Dates
+      description: From crate to crate
+      content:
+        - {type: FormField, id: startDate, label: Leaves the lender, dataType: date, required: true}
+        - {type: FormField, id: endDate, label: Back home by, dataType: date, required: true}
+    - id: insurance
+      title: Insurance and transport
+      description: Nail to nail
+      content:
+        - {type: FormField, id: insuranceValue, label: Insured for (USD), dataType: number, required: true}
+        - {type: FormField, id: courier, label: Courier}
+        - {type: FormField, id: notes, label: Conditions, stereotype: textarea, placeholder: "Climate-controlled crate, 50% RH, max 50 lux"}
+actions:
+  - id: create
+    validationRequired: true
+    restAction:
+      source: {ref: museum-loan-create}
+      successMessage: Loan requested
+      resultPath: ""
+      successRoute: loans/${state.id}

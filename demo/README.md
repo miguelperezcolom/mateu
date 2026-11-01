@@ -56,6 +56,12 @@ cd demo/demo-starwars-2-code-first
 mvn spring-boot:run     # → http://localhost:8601
 ```
 
+## Museums — the showcase that replaces Star Wars
+
+| Module | Port | What it is | Run |
+|---|---|---|---|
+| [`demo-museum`](demo-museum) | 8601 | **100% YAML over [museum-service](https://github.com/miguelperezcolom/museum-service)** — public-domain artworks of the Met, SMK and Cleveland (CC0 / public-domain images, credited). Every Redwood page template, server-side listings, master-detail, a guided process, a kanban, a calendar, a map, charts and a tree, on Vaadin and Redwood. | museum-service on :8121, then `mvn spring-boot:run` |
+
 ## The same app on every Java runtime
 
 Portability across the wire: the same kind of screens on each supported framework. Start-here

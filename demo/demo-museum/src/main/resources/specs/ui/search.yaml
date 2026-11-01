@@ -1,0 +1,24 @@
+# Search everything — Redwood's HERO SEARCH page template: a hero with the page's title and
+# description over the search and its results. The results come from ONE REST source over every
+# collection (museums, artists, exhibitions, artworks); each hit carries the route that opens it, so
+# a row navigates to whatever kind of thing it is.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Search the collections
+subtitle: An artist, a title, a museum, a city, a culture — "Rembrandt", "armour", "Copenhagen", "Japan"
+template:
+  type: HeroSearchPage
+  backgroundColor: dark-pine
+content:
+  - type: Listing
+    pageSize: 12
+    rowRoute: ${row.route}
+    searchable: true
+    gridLayout: cards
+    rowsSource:
+      ref: museum-search
+    columns:
+      - {type: GridColumn, id: image, label: Image, stereotype: image}
+      - {type: GridColumn, id: label, label: Name, identifier: true}
+      - {type: GridColumn, id: description, label: About}
+      - {type: GridColumn, id: category, label: Kind, dataType: status}
