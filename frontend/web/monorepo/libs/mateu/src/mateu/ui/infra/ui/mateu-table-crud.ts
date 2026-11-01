@@ -1550,7 +1550,7 @@ export class MateuTableCrud extends LitElement {
         return html`
             ${importDialog}
             ${hasHeader ? html`
-                    <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem); ${EDGE_GUTTER}">
+                    <div style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem); ${EDGE_GUTTER}">
                         ${backButtons.map(button => html`
                             <button class="back-chevron"
                                     data-action-id="${button.id}"
@@ -1562,7 +1562,9 @@ export class MateuTableCrud extends LitElement {
                                           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </button>`)}
-                        <div style="flex: 1; min-width: 0;">
+                        <!-- the title block keeps a readable width (like the form header's): on a
+                             phone the actions wrap below it instead of squeezing it to "Laun…" -->
+                        <div style="flex: 1 1 0; min-width: min(16rem, 100% - 3rem);">
                             ${metadata?.title ? html`
                                 <h2 style="margin: 0; font-size: var(--lumo-font-size-xxl); font-weight: 700; color: var(--lumo-header-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.evalLabel(metadata.title)}</h2>
                             ` : nothing}

@@ -24,9 +24,67 @@ final class YamlUidlMapperFactory {
       visible = false)
   abstract static class PolymorphicMixin {}
 
+  /**
+   * A YAML {@code HorizontalLayout} with no {@code spacing:} key is SPACED — as the .NET and Python
+   * YAML builders always had it. The fluent record defaults the flag to false (a primitive, so the
+   * wire cannot tell "absent" from "false"), and an image laid beside a form came out glued to it
+   * in the Vaadin renderer (Redwood gaps its blocks on its own). The browser expander applies the
+   * same default for a specs-only bundle; {@code spacing: false} still turns it off. A {@code
+   * VerticalLayout} keeps the record default, like in the ports; the Java fluent default is
+   * unchanged.
+   */
+  static com.fasterxml.jackson.databind.Module spacedRowsByDefault() {
+    var module = new com.fasterxml.jackson.databind.module.SimpleModule("mateu-yaml-spacing");
+    module.setDeserializerModifier(
+        new com.fasterxml.jackson.databind.deser.BeanDeserializerModifier() {
+          @Override
+          public com.fasterxml.jackson.databind.JsonDeserializer<?> modifyDeserializer(
+              com.fasterxml.jackson.databind.DeserializationConfig config,
+              com.fasterxml.jackson.databind.BeanDescription description,
+              com.fasterxml.jackson.databind.JsonDeserializer<?> deserializer) {
+            if (description.getBeanClass() != io.mateu.uidl.data.HorizontalLayout.class) {
+              return deserializer;
+            }
+            return new SpacingDefault(deserializer);
+          }
+        });
+    return module;
+  }
+
+  /** Reads the layout's keys, adds {@code spacing: true} when absent, then builds the record. */
+  static final class SpacingDefault
+      extends com.fasterxml.jackson.databind.deser.std.DelegatingDeserializer {
+
+    SpacingDefault(com.fasterxml.jackson.databind.JsonDeserializer<?> delegate) {
+      super(delegate);
+    }
+
+    @Override
+    protected com.fasterxml.jackson.databind.JsonDeserializer<?> newDelegatingInstance(
+        com.fasterxml.jackson.databind.JsonDeserializer<?> newDelegatee) {
+      return new SpacingDefault(newDelegatee);
+    }
+
+    @Override
+    public Object deserialize(
+        com.fasterxml.jackson.core.JsonParser parser,
+        com.fasterxml.jackson.databind.DeserializationContext context)
+        throws java.io.IOException {
+      com.fasterxml.jackson.databind.JsonNode tree = context.readTree(parser);
+      if (tree instanceof com.fasterxml.jackson.databind.node.ObjectNode object
+          && !object.has("spacing")) {
+        object.put("spacing", true);
+      }
+      var replay = tree.traverse(parser.getCodec());
+      replay.nextToken();
+      return _delegatee.deserialize(replay, context);
+    }
+  }
+
   static ObjectMapper create() {
     var mapper = new ObjectMapper(SpecsYaml.factory());
     mapper.registerModule(new JavaTimeModule());
+    mapper.registerModule(spacedRowsByDefault());
     // A definition may carry authoring-only keys the model does not model — a `$schema` reference
     // (for editor IntelliSense) or a future field — so unknown properties are ignored rather than
     // rejected. Without this a bare-component page with `$schema:` would fail to deserialize.

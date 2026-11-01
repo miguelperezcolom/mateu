@@ -18,6 +18,12 @@ describe('composed page heading', () => {
         expect(needsComposedHeading({ type: 'ServerSide', pageType: 'detail', children: [grid] })).toBe(true)
     })
 
+    it('a YAML page filling a template (a detail/collection page) is named by its Form title', () => {
+        const form = (title?: string) => ({ type: 'ClientSide', metadata: { type: 'Form', ...(title ? { title } : {}) }, children: [grid] })
+        expect(needsComposedHeading({ type: 'ServerSide', pageType: 'detail', children: [form('${state.title}')] })).toBe(false)
+        expect(needsComposedHeading({ type: 'ServerSide', pageType: 'detail', children: [form()] })).toBe(true)
+    })
+
     it('a page that names itself does not', () => {
         expect(needsComposedHeading({ type: 'ServerSide', pageType: 'dashboard',
             children: [{ type: 'ClientSide', metadata: { type: 'Page' } }] })).toBe(false)

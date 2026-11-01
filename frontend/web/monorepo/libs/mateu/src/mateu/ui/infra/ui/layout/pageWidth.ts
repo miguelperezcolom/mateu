@@ -25,12 +25,17 @@ const FULL_BLEED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Bpmn,
     ComponentMetadataType.Workflow,
     ComponentMetadataType.Map,
+    // a foldout's panels unfold sideways: squeezed into the fixed column they could not
+    ComponentMetadataType.FoldoutLayout,
 ])
 
-/** Width default by coarse page type (the Redwood template families): decisive only where the
- * family consensus is strong — form/process/landing pages are always capped. Collection, detail
- * and dashboard pages defer to the content inference (dense → full, full-bleed → edge). */
+/** Width default by coarse page type (the Redwood template families). Collection and dashboard
+ * pages are about their data, which wants the room: full. Form, process and landing pages are read
+ * line by line and stay capped: fixed. Detail pages defer to their content. (Owner decision
+ * 2026-11-01: listings and boards at a fixed 1200px truncated their last columns.) */
 const PAGE_TYPE_DEFAULT_WIDTH: Record<string, ResolvedPageWidth | undefined> = {
+    collection: 'full',
+    dashboard: 'full',
     landing: 'fixed',
     form: 'fixed',
     process: 'fixed',
@@ -71,7 +76,37 @@ export const pageTypeOf = (component: Component): string | undefined => {
         }
         return undefined
     }
-    return find(component)
+    return find(component) ?? bareFormPageTypeOf(component)
+}
+
+/**
+ * The page type of a route whose content IS a `Form` (a YAML page served bare, with no envelope to
+ * carry a page type): the kind of page its `template:` stands for — the same table as the server's
+ * PageTypeResolver.ofTemplate — or `form`.
+ */
+const bareFormPageTypeOf = (component: Component): string | undefined => {
+    let node: Component | undefined = component
+    while (node && node.type == ComponentType.ServerSide && (node.children ?? []).length === 1) {
+        node = node.children![0]
+    }
+    const metadata = node ? metadataOf(node) : undefined
+    if (metadata?.type != ComponentMetadataType.Form) return undefined
+    const template = (metadata as unknown as { template?: { type?: string } }).template?.type
+    return template ? (TEMPLATE_PAGE_TYPES[template] ?? 'form') : 'form'
+}
+
+const TEMPLATE_PAGE_TYPES: Record<string, string> = {
+    CollectionDetailPage: 'collection',
+    DataManagementPage: 'collection',
+    DashboardLandingPage: 'dashboard',
+    WelcomePage: 'landing',
+    HeroSearchPage: 'landing',
+    ItemOverviewPage: 'detail',
+    GeneralOverviewPage: 'detail',
+    FoldoutPage: 'detail',
+    MultimediaContentPage: 'detail',
+    GuidedProcessPage: 'process',
+    AdvancedCreateEditPage: 'form',
 }
 
 /** A crud is dense when it edits inline (editable columns) or packs its rows (compact). */
@@ -102,27 +137,41 @@ export const isAppShell = (component: Component): boolean => {
 
 /**
  * Resolves the page width a routed view gets (the first parameter of the Oracle Redwood page
- * templates): a width declared on the server-side component — or on its Page metadata — wins;
- * a TOP-LEVEL App shell is always edge (its pages apply their own width inside — mediator pages
- * carry an App reference child but are NOT shells, so the shell rule needs the `top` flag); the
- * coarse page type anchors the default (form/process/landing are always capped); with no
- * declaration the width is inferred from the content tree: full-bleed components
- * (gantt, planning board, kanban, bpmn/workflow, map) → edge; a dense datagrid (inline editing
- * or compact crud) → full; anything else → fixed. A form page never bleeds: declared edge-to-edge,
- * it is full (the width, with the gutter) — a crud's editor shares its class, and so its declared
- * width, with the detail page, whose foldout panels are what wanted the edges.
+ * templates), first rule that answers wins:
+ *  1. a width DECLARED on the server-side component or its Page metadata (a form page declared
+ *     edge-to-edge gets full: a crud's editor shares its class, and so its declared width, with the
+ *     detail page whose foldout panels wanted the edges);
+ *  2. a TOP-LEVEL App shell → edge (its pages apply their own width inside — mediator pages carry an
+ *     App reference child but are NOT shells, so the shell rule needs the `top` flag);
+ *  3. full-bleed content anywhere in the tree (gantt, planning board, kanban, bpmn/workflow, map,
+ *     foldout) → edge, except on a FORM page, which never bleeds: full (a YAML page with no template
+ *     is a form page, and a board on it still wants the width);
+ *  4. the coarse page type: collection / dashboard → full; form / process / landing → fixed (a
+ *     bare listing route, a Crud with no page type around it, is a collection);
+ *  5. a dense datagrid (inline editing or compact crud) → full;
+ *  6. fixed.
  */
 export const resolvePageWidth = (component: Component | undefined, opts?: { top?: boolean }): ResolvedPageWidth => {
     if (!component) return 'fixed'
+    const pageType = pageTypeOf(component) ?? (isBareListing(component) ? 'collection' : undefined)
     const declared = wireToMode((component as ServerSideComponent).pageWidth) ?? declaredInTree(component)
-    if (declared) return declared === 'edge' && pageTypeOf(component) === 'form' ? 'full' : declared
+    if (declared) return declared === 'edge' && pageType === 'form' ? 'full' : declared
     if (opts?.top && isAppShell(component)) return 'edge'
-    const typeDefault = PAGE_TYPE_DEFAULT_WIDTH[pageTypeOf(component) ?? '']
-    if (typeDefault) return typeDefault
     if (contains(component, node => {
         const type = metadataOf(node)?.type
         return type != undefined && FULL_BLEED_TYPES.has(type)
-    })) return 'edge'
+    })) return pageType === 'form' ? 'full' : 'edge'
+    const typeDefault = PAGE_TYPE_DEFAULT_WIDTH[pageType ?? '']
+    if (typeDefault) return typeDefault
     if (contains(component, isDenseCrud)) return 'full'
     return 'fixed'
+}
+
+/** A route whose whole content IS a listing (a YAML `type: Listing` page), bare or in its envelope. */
+const isBareListing = (component: Component): boolean => {
+    let node: Component | undefined = component
+    while (node && node.type == ComponentType.ServerSide && (node.children ?? []).length === 1) {
+        node = node.children![0]
+    }
+    return !!node && metadataOf(node)?.type == ComponentMetadataType.Crud
 }

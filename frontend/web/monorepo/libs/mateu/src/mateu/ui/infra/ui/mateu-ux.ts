@@ -788,6 +788,16 @@ export class MateuUx extends ConnectedElement {
         :host([data-page-width='edge']) {
             --mateu-edge-header-gutter: var(--mateu-content-gutter, 0px);
         }
+        /* The server's default page column (max-width 900px — a form's reading measure) only
+           applies to a FIXED page: a full or edge one takes the width it resolved to (pageColumnCap,
+           renderComponent.ts). A fixed view nested in it starts again from 900px. */
+        :host([data-page-width='full']),
+        :host([data-page-width='edge']) {
+            --mateu-page-column-cap: none;
+        }
+        :host([data-page-width='fixed']) {
+            --mateu-page-column-cap: 900px;
+        }
 
         /* The aside channel (layout/fabRail.ts): when the page has FABs or a section index, the
            content view leaves room at its end for them, so they sit OUTSIDE the work area. Fixed:
