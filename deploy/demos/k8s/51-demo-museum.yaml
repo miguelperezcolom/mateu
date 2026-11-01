@@ -68,6 +68,8 @@ metadata:
   namespace: mateu-demos
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
+    # a loan document travels as a data URI in a JSON body: 5 MB of file ≈ 7 MB (ingress-nginx defaults to 1m)
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
 spec:
   ingressClassName: nginx
   tls:

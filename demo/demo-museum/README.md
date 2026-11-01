@@ -75,7 +75,7 @@ anchor: one value, aliased by each entry.)
 | **Calendar** — every exhibition as a multi-day event, month/agenda views; an event opens the show | `/calendar` | `calendar.yaml` (generated) |
 | **DataManagementPage** — the loans as a data view with docked panels (a **timeline** of the workflow) | `/loans` | `loans.yaml` |
 | **GuidedProcessPage** — the *request a loan* **wizard** (4 steps, one form, a proxied create) | `/loans/new` | `loan-new.yaml` |
-| A record whose status select walks a workflow | `/loans/:id` | `loan.yaml` |
+| **AdvancedCreateEditPage** — a record whose status select walks a workflow, with its **documents**: upload (a `fileUpload` field, sent as a data URI through a proxied source), a list whose row opens the file (`rowRoute: ${row.url}`), delete selected | `/loans/:id` | `loan.yaml` |
 | **Kanban** — the conservation board; a card opens the live task | `/conservation` | `conservation.yaml` (generated) |
 | Listing **grouped** by status | `/conservation/tasks` | `conservation-tasks.yaml` |
 | Create / edit sharing a list partial; **slider**, radio, select | `/conservation/tasks/new`, `/conservation/tasks/:id` | `task-new.yaml`, `task-edit.yaml`, `partials/task-fields.yaml` |
@@ -107,6 +107,9 @@ python3 scripts/snapshot.py            # museum-service on :8121
 | A tree from a REST source on Redwood | flat on Redwood (Vaadin draws the tree) | Redwood's listing does not draw `gridLayout: tree` for a source; rows keep their `children` since 3.0-beta.30 (#959) |
 | The artist's works beside the artist on Redwood | drawn since 3.0-beta.30 (#960) | a `Listing` nested in a templated page now stays in its slot and loads its rows |
 | The works and loans in the exhibition's foldout on Redwood | drawn since 3.0-beta.31 (#972) | a `Listing` inside a foldout panel is drawn there, with its rows |
+| A loan document's row opening the file | a new tab from 3.0-beta.32 | before it a `rowRoute` was always an app route; a whole URL (`${row.url}`) opens in a new tab since #977 |
+| Deleting a loan's documents on Redwood | Vaadin only | a `Listing` nested in a page's content is drawn as a plain table on Redwood: no selection, so no "Delete selected" |
+| The documents list refreshing after an upload on Redwood | the file is uploaded; the page then shows a refusal | Redwood refreshes a `successRoute` back to the same route by sending `search`, which a page with no listing of its own refuses (403) |
 
 Renderer differences worth knowing: Redwood does not draw the dashboard's header `kpis` (its
 template takes the title and subtitle only), drops a `Text` with `container: h2` inside a section,

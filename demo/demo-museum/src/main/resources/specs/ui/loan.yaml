@@ -10,6 +10,9 @@ badges:
 kpis:
   - {label: Exhibition, value: "${state.exhibitionTitle}"}
   - {label: Insured for, value: "${state.insuranceValue}"}
+# a create-and-edit page: Redwood's Advanced create and edit template (the header's Save; the
+# documents list below is the page's CONTENT, not the page's own listing)
+template: {type: AdvancedCreateEditPage}
 toolbar:
   - type: Button
     actionId: backToList
@@ -41,6 +44,37 @@ content:
           - {type: FormField, id: insuranceValue, label: Insured for (USD), dataType: number}
           - {type: FormField, id: exhibitionId, label: Exhibition, stereotype: select, optionsSource: {ref: museum-exhibition-options}}
           - {type: FormField, id: notes, label: Conditions, stereotype: textarea, colspan: 2}
+  # the loan's documents — its agreement, condition reports, receipts: listed from museum-service,
+  # a row opens the file in a new tab (rowRoute: a whole URL), selected ones can be deleted, and a
+  # file picked below is uploaded as a data URI (the field's value) with Upload
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Documents}
+    content:
+      type: VerticalLayout
+      horizontalAlignment: STRETCH
+      content:
+        - type: Listing
+          pageSize: 20
+          rowsSelectionEnabled: true
+          rowRoute: ${row.url}
+          rowsSource: {ref: museum-loan-documents}
+          toolbar:
+            - {type: Button, label: Delete selected, color: error, actionId: delete-documents}
+          columns:
+            - {type: GridColumn, id: id, label: "#", dataType: integer}
+            - {type: GridColumn, id: name, label: Document, identifier: true}
+            - {type: GridColumn, id: contentType, label: Type}
+            - {type: GridColumn, id: size, label: Bytes, dataType: integer}
+            - {type: GridColumn, id: uploadedAt, label: Uploaded, dataType: dateTime}
+        - type: FormLayout
+          maxColumns: 2
+          content:
+            - {type: FormField, id: document, label: "Add a document (PDF, image, text, Office — 5 MB at most)", stereotype: fileUpload}
+            - {type: FormField, id: documentName, label: "Name (optional — else the file's own)"}
+        - type: HorizontalLayout
+          content:
+            - {type: Button, label: Upload, actionId: upload-document}
 actions:
   - id: save
     validationRequired: true
@@ -56,3 +90,18 @@ actions:
       source: {ref: museum-loan-delete}
       successMessage: Deleted
       successRoute: loans
+  - id: upload-document
+    restAction:
+      source: {ref: museum-loan-document-upload}
+      successMessage: Uploaded
+      successRoute: loans/${state.id}
+  - id: delete-documents
+    rowsSelectedRequired: true
+    confirmationRequired: true
+    confirmationTexts:
+      message: Delete the selected documents?
+    restAction:
+      forEachSelectedRow: true
+      source: {ref: museum-loan-document-delete}
+      successMessage: Deleted
+      successRoute: loans/${state.id}

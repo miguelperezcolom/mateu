@@ -332,6 +332,35 @@ sources:
       headers:
         X-Api-Key: ${secret.MUSEUM_WRITE_KEY}
 
+  # a loan's documents (its agreement, condition reports…): listed straight from the API (each with an
+  # absolute url — the row opens it in a new tab), uploaded and deleted through the server (the key)
+  - name: museum-loan-documents
+    description: The documents list in loan.yaml
+    source:
+      url: http://localhost:8121/api/loans/${state.id}/documents
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: museum-loan-document-upload
+    description: Upload a document to a loan (a data URI, from the page's fileUpload field)
+    source:
+      url: http://localhost:8121/api/loans/${state.id}/documents
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.MUSEUM_WRITE_KEY}
+      body: '{"name":"${state.documentName}","content":"${state.document}"}'
+
+  - name: museum-loan-document-delete
+    description: Delete one of a loan's documents (by its own id)
+    source:
+      url: http://localhost:8121/api/loan-documents/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.MUSEUM_WRITE_KEY}
+
   - name: museum-task
     description: One conservation task by id
     source:

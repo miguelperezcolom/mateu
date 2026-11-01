@@ -44,6 +44,9 @@ sources:
   museum-loan-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-loan-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-loan-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-documents: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-document-upload: {baseUrl: "https://museum-api.ec1.mateu.io"}
+  museum-loan-document-delete: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-task: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-task-create: {baseUrl: "https://museum-api.ec1.mateu.io"}
   museum-task-update: {baseUrl: "https://museum-api.ec1.mateu.io"}
