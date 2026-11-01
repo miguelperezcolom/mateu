@@ -13,6 +13,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Desktop app: one sign-in per UI.** Switching UIs in the desktop hub no longer drops the session
+  of the one you leave: each UI keeps its own (keyed by address + identity provider + client), Sign
+  out is per UI, removing a UI deletes its stored tokens. An earlier single stored token moves to its
+  UI once. Verified end to end against Keycloak (device flow, refresh, two realms).
+
 - **A `rowRoute` can be a URL: the row opens it in a new tab.** A row whose items have no page in the
   app (a gallery's photographs, a document in another system) can point at one elsewhere:
   `rowRoute: ${row.imageLarge}` or `https://example.com/docs/${row.id}`. A route that starts with a
@@ -21,6 +26,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   value unescaped (Redwood escaped it as a path segment). Vaadin, Redwood, React Native, IntelliJ.
 
 ### Fixed
+
+- **Desktop sign-in failed against a client that requires PKCE.** A client set up for the phone app
+  (Keycloak "PKCE Method: S256") refused the desktop's device request with "Missing parameter:
+  code_challenge_method". The device flow now sends a PKCE challenge (and its verifier on the token poll).
+
+- **Phone app: no way to sign out of a UI with bottom tabs.** "Sign out" lived only in the app shell's
+  drawer; a UI whose shell has tabs (or no menu) had none. The hub's top bar now offers it while signed in.
 
 - **Redwood: a `Listing` in a foldout panel is drawn, with its rows.** On a `FoldoutPage` (an exhibition's
   works and loans) the listing's rows were loaded but the panel drew nothing: a panel's content was read

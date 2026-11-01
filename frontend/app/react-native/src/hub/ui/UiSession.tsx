@@ -16,7 +16,7 @@ import { domainOf } from '../links';
 import { fetchManifest, versionGate, type ManifestFetch, type UiManifest } from '../manifest';
 import { allowInsecure, appVersion, metaStore, secretStore, uiStore } from '../storage';
 import { uiSecretKeys, type HubEntry } from '../uiStore';
-import { uiSessionId } from '../uiSession';
+import { hubBarSignsOut, uiSessionId } from '../uiSession';
 import { PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 
 // TODO(owner): the store listings, once they exist (App Store id is assigned by App Store Connect).
@@ -156,6 +156,11 @@ export function UiSession({
     }
   };
 
+  const signOutHere = async () => {
+    await provider?.logout();
+    setPhase({ name: 'signin' });
+  };
+
   const onSession = useCallback(
     (session: MateuSession) => {
       session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed };
@@ -245,6 +250,11 @@ export function UiSession({
           testID="hub-switch"
         />
         <Appbar.Action icon="swap-horizontal" onPress={onSwitch} color={ink} accessibilityLabel="Switch UI" />
+        {/* a UI whose shell has no drawer (bottom tabs, no menu) had no "Sign out" anywhere: the hub's
+            bar offers it while signed in (a drawer shell claims the bar and has its own entry) */}
+        {hubBarSignsOut(!!provider, phase.name) && (
+          <Appbar.Action icon="logout" onPress={() => void signOutHere()} color={ink} accessibilityLabel="Sign out" testID="hub-sign-out" />
+        )}
       </Appbar.Header>
       )}
       {body}
