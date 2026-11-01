@@ -443,6 +443,7 @@ export default defineConfig({
 										{ slug: 'java-user-manual/build/listing' },
 										{ slug: 'java-user-manual/build/relationships-vs-embedded-cruds' },
 										{ slug: 'java-user-manual/build/master-detail' },
+										{ slug: 'java-user-manual/build/master-detail-view' },
 										{ slug: 'java-user-manual/build/orders-customers-order-lines' },
 										{ slug: 'java-user-manual/build/live-reload', label: 'Live reload (development mode)' },
 									],

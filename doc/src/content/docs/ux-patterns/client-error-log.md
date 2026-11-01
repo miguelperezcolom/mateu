@@ -69,13 +69,13 @@ such as `code`, `state` and `access_token` are masked as `***`.
 
 Each pod's stdout carries the lines, so with Alloy/Promtail shipping container logs:
 
-```logql
+```txt
 {namespace="<ns>"} |= "client-error"
 ```
 
 Narrow it down by parsing the JSON after the prefix:
 
-```logql
+```txt
 {namespace="<ns>"} |= "client-error" | regexp `client-error (?P<report>\{.*\})` | line_format "{{.report}}" | json | kind="unauthorized"
 ```
 

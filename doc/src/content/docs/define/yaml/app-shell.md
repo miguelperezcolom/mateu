@@ -38,11 +38,11 @@ The route registry binds that definition to the mount's root:
 type: Routes
 routes:
   - route: ""              # the mount root → the app shell view
-    definition: app.yaml
+    layout: app.yaml
   - route: orders
-    definition: orders.yaml
+    layout: orders.yaml
   - route: users
-    definition: users.yaml
+    layout: users.yaml
 ```
 
 With the shell, the routes and the page definitions they point at, the mount needs **no Mateu Java at
