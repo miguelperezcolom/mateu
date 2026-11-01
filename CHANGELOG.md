@@ -24,6 +24,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Vaadin: date pickers format and parse in the user's locale.** `vaadin-date-picker`,
+  `vaadin-date-time-picker`, `vcf-date-range-picker` and the grid's inline date editors used
+  Vaadin's en-US default (M/D/YYYY): in a Spanish browser "15/2/2027" read as month 15, the field
+  silently kept no value while still showing the text, and the server rejected the form as if the
+  date were missing. The locale is the UI's (`<html lang>`, from `AppDto.locale`, else the
+  browser's); order, separator and padding come from `Intl.DateTimeFormat`, typing accepts 1–2
+  digit day/month, 2- or 4-digit year and ISO `yyyy-mm-dd`, an impossible date (month 14,
+  31 February) leaves the field marked invalid, and month/weekday names, the first day of the week
+  and the calendar's buttons follow the locale too.
 - **Vaadin: an edge page's header keeps its gutter** (a templated foldout's title, back arrow and
   actions touched the viewport edges), and a YAML page filling a template no longer draws its window
   title ("13") above its own header.

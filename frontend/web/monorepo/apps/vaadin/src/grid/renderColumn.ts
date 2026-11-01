@@ -1,4 +1,5 @@
 import { numericCommitValue } from '@components/fieldValue'
+import { datePickerI18n } from "../fields/dateLocale.ts";
 import { isExternalRoute, navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
@@ -114,11 +115,11 @@ const renderEditableCell = (
         case 'number':
             return html`<vaadin-number-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-number-field>`
         case 'date':
-            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
+            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
         case 'time':
             return html`<vaadin-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-time-picker>`
         case 'datetime':
-            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-time-picker>`
+            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-time-picker>`
         case 'select':
             return html`<vaadin-combo-box accessible-name="${name}"
                 theme="small" style="width:100%;"
