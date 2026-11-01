@@ -28,8 +28,9 @@ oj-sp-global-header a[id$='_HOa1'] {
   order: 99;
 }
 
-/* Actionable listing rows (ojRowAction opens the booking): click affordance */
-#mateuTable tbody tr {
+/* Actionable listing rows (a click opens their route, record or detail — listing.mjs ROWS_OPEN_CLASS):
+   click affordance. A plain list (nothing to open) keeps the arrow. */
+#mateuTable.mateu-rows-open tbody tr {
   cursor: pointer;
 }
 /* …except cells with their own click (editors, buttons, links, menus: poc isDisplayColumn) */
