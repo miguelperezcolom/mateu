@@ -77,6 +77,20 @@ public record RestDataSource(
     return sample != null;
   }
 
+  /**
+   * What a client is given of this descriptor. A proxied one ({@code proxy: true}) is called BY THE
+   * SERVER, from the server's own catalogue, so the browser never needs its request headers or body
+   * template — and they are where an API key would be written: they are dropped. A direct one is
+   * returned as it is (the browser makes that call). Not a getter (manifest Jackson gotcha).
+   */
+  public RestDataSource forTheClient() {
+    if (!proxy || (headers == null && body == null)) {
+      return this;
+    }
+    return new RestDataSource(
+        ref, url, method, null, null, itemsPath, valuePath, labelPath, proxy, sample);
+  }
+
   /** This descriptor with the given sample data (null clears it). */
   public RestDataSource withSample(Object sampleData) {
     return new RestDataSource(

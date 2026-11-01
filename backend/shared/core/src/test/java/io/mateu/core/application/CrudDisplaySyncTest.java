@@ -207,7 +207,10 @@ class CrudDisplaySyncTest {
     assertThat(drawer).isNotNull();
     var notice = WireWalk.first(drawer, NoticeDto.class);
     assertThat(notice).isNotNull();
-    assertThat(notice.text()).isEqualTo("Room names cannot explode");
+    // an unexpected exception goes through the error boundary: the generic text + a reference,
+    // never its raw message (a UserFacingException is shown as written — ServerWriteGatesSyncTest)
+    assertThat(notice.text()).startsWith("An unexpected error occurred. Reference: ");
+    assertThat(notice.text()).doesNotContain("explode");
     assertThat(notice.theme()).isEqualTo("danger");
     assertThat((Map<Object, Object>) drawer.initialData()).containsEntry("name", "boom room");
     // and it is announced, since nothing takes focus

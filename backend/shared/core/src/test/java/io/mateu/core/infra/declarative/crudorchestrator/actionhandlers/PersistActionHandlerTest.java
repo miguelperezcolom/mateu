@@ -19,6 +19,11 @@ class PersistActionHandlerTest {
   @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
   @Mock HttpRequest httpRequest;
 
+  @org.junit.jupiter.api.BeforeEach
+  void mayWrite() {
+    CrudMocks.allowWrites(orchestrator);
+  }
+
   private final PersistActionHandler handler = new PersistActionHandler();
 
   @Test

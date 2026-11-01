@@ -60,6 +60,13 @@ public class MateuHelidonRoutes {
   @Inject Instance<YamlAppLoader> yamlAppLoader;
   @Inject Config config;
 
+  /**
+   * Whether the app requires an authenticated caller (a JAX-RS application with
+   * {@code @LoginConfig}, or {@value HelidonSeIdentity#REQUIRED_PROPERTY}): then the routes served
+   * here, outside Jersey's login check, refuse — or hand over to Jersey — an unauthenticated call.
+   */
+  private volatile boolean authenticationRequired;
+
   void register(
       @Observes
           @Priority(Interceptor.Priority.LIBRARY_BEFORE + 10)
@@ -80,6 +87,7 @@ public class MateuHelidonRoutes {
         config.getOptionalValue(ClientErrorLog.ENABLED_PROPERTY, Boolean.class).orElse(true);
     boolean mcp =
         config.getOptionalValue(McpEndpoint.ENABLED_PROPERTY, Boolean.class).orElse(false);
+    authenticationRequired = HelidonSeIdentity.authenticationRequired(config, beanManager);
 
     routing.addFilter(
         (chain, req, res) -> {
@@ -199,6 +207,12 @@ public class MateuHelidonRoutes {
               res.next();
               return;
             }
+            if (unauthenticated(req)) {
+              // the app requires a login and nobody authenticated here: Jersey answers it — its
+              // login check applies there (the stream is then buffered, never unauthenticated)
+              res.next();
+              return;
+            }
             stream(req, res, uiIdsByBaseUrl.get(baseUrl), baseUrl);
           });
     }
@@ -207,6 +221,10 @@ public class MateuHelidonRoutes {
       routing.post(
           McpEndpoint.PATH,
           (req, res) -> {
+            if (unauthenticated(req)) {
+              res.status(Status.UNAUTHORIZED_401).send();
+              return;
+            }
             var endpoint = new McpEndpoint(service.get());
             String response =
                 endpoint.handle(
@@ -235,7 +253,8 @@ public class MateuHelidonRoutes {
               generatedUis(beanManager).keySet()),
           service::get,
           routeRegistry::get,
-          yamlAppLoader::get);
+          yamlAppLoader::get,
+          this::unauthenticated);
     }
   }
 
@@ -249,6 +268,20 @@ public class MateuHelidonRoutes {
       Supplier<MateuService> service,
       Supplier<RouteRegistry> routeRegistry,
       Supplier<YamlAppLoader> yamlAppLoader) {
+    yamlMountRoutes(routing, mounts, service, routeRegistry, yamlAppLoader, req -> false);
+  }
+
+  /**
+   * As above, refusing (401) the API calls {@code unauthenticated} says no one logged in for — the
+   * app requires a login and these routes run outside Jersey's check.
+   */
+  static void yamlMountRoutes(
+      HttpRouting.Builder routing,
+      List<YamlMounts.Mount> mounts,
+      Supplier<MateuService> service,
+      Supplier<RouteRegistry> routeRegistry,
+      Supplier<YamlAppLoader> yamlAppLoader,
+      java.util.function.Predicate<ServerRequest> unauthenticated) {
     for (var mount : mounts) {
       routing.get(mount.spaPath(), (req, res) -> index(res, mount));
       routing.get(
@@ -309,7 +342,15 @@ public class MateuHelidonRoutes {
               }
             });
       }
-      routing.post(mount.apiPrefix() + "/v3/*", (req, res) -> run(req, res, mount, service.get()));
+      routing.post(
+          mount.apiPrefix() + "/v3/*",
+          (req, res) -> {
+            if (unauthenticated.test(req)) {
+              res.status(Status.UNAUTHORIZED_401).send();
+              return;
+            }
+            run(req, res, mount, service.get());
+          });
     }
   }
 
@@ -381,6 +422,11 @@ public class MateuHelidonRoutes {
    * MateuForbiddenExceptionMapper} does — 403 with the public message. These routes run on
    * Helidon's own routing, which that mapper does not cover: a refusal surfaced as a 500.
    */
+  /** The app requires a login and Helidon security authenticated nobody for this request. */
+  private boolean unauthenticated(ServerRequest req) {
+    return authenticationRequired && HelidonSeIdentity.principalOf(req) == null;
+  }
+
   private static boolean refused(ServerResponse res, Throwable t) {
     for (var cause = t; cause != null; cause = cause.getCause()) {
       if (cause instanceof io.mateu.core.application.security.MateuForbiddenException) {

@@ -65,7 +65,10 @@ public final class AdvertisedActions {
     }
     // the check builds the view's lazy tree: the request has to be there first
     io.mateu.core.domain.RequestBound.bind(view, httpRequest);
-    return ClassLiterals.of(view.getClass()).contains(id) || of(view, httpRequest).contains(id);
+    // an id a response to this view handed out (a dialog's confirm, an undo toast), or one the
+    // view's declarations / components name. NOT any string literal of its class file: that let a
+    // label or log text equal to a public method's name make the method callable (IssuedActions)
+    return IssuedActions.issued(view, id) || of(view, httpRequest).contains(id);
   }
 
   /** Every action id {@code view} advertises for this request (never throws). */

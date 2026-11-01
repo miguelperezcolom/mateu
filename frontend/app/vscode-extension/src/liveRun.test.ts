@@ -1,7 +1,43 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { frameworkOf, isHotCodeReplaced, liveRunPlan, portOf, reloadUrlOf } from './liveRun'
+import {
+    desktopFound, desktopLinkOf, desktopOpenCommandOf, desktopProbeOf, frameworkOf, isHotCodeReplaced, liveRunPlan,
+    portOf, reloadUrlOf,
+} from './liveRun'
+
+describe('the Mateu desktop app as where a live run opens', () => {
+    it('hands it the hub add link — the same the IntelliJ plugin and a phone use', () => {
+        const link = desktopLinkOf('http://localhost:8080/app')
+        expect(link).toBe('mateu://add?u=http%3A%2F%2Flocalhost%3A8080%2Fapp')
+        // the corpus the desktop app parses links with accepts it (allowLoopbackHttp)
+        const corpus = JSON.parse(readFileSync(join(__dirname, '../../../../conformance/client/hub-links.json'), 'utf8'))
+        expect(corpus.links.find((c: { input: string }) => c.input === 'mateu://add?u=http%3A%2F%2Flocalhost%3A8080').result)
+            .toEqual({ kind: 'add', baseUrl: 'http://localhost:8080' })
+    })
+    it('asks each OS where the desktop app is (macOS by bundle id: the phone app claims mateu:// too)', () => {
+        expect(desktopProbeOf('darwin')?.at(-1)).toContain("URLForApplicationWithBundleIdentifier('io.mateu.desktop')")
+        expect(desktopProbeOf('win32')).toEqual(['reg', 'query', 'HKCR\\mateu\\shell\\open\\command', '/ve'])
+        expect(desktopProbeOf('linux')).toEqual(['xdg-mime', 'query', 'default', 'x-scheme-handler/mateu'])
+        expect(desktopProbeOf('aix')).toBeUndefined()
+    })
+    it('reads the answer', () => {
+        expect(desktopFound('darwin', 0, '/Applications/Mateu.app\n')).toBe(true)
+        expect(desktopFound('darwin', 0, '\n')).toBe(false)
+        expect(desktopFound('linux', 0, 'mateu.desktop')).toBe(true)
+        expect(desktopFound('linux', 0, '')).toBe(false)
+        expect(desktopFound('win32', 0, '')).toBe(true)
+        expect(desktopFound('win32', 1, 'ERROR')).toBe(false)
+        expect(desktopFound('aix', 0, 'x')).toBe(false)
+    })
+    it('opens the link with the desktop app, not with whatever claims the scheme', () => {
+        const link = 'mateu://add?u=x'
+        expect(desktopOpenCommandOf('darwin', link)).toEqual(['open', '-b', 'io.mateu.desktop', link])
+        expect(desktopOpenCommandOf('win32', link)).toEqual(['rundll32', 'url.dll,FileProtocolHandler', link])
+        expect(desktopOpenCommandOf('linux', link)).toEqual(['xdg-open', link])
+        expect(desktopOpenCommandOf('aix', link)).toBeUndefined()
+    })
+})
 
 const springPom = '<project><build><plugins><plugin><artifactId>spring-boot-maven-plugin</artifactId></plugin></plugins></build></project>'
 

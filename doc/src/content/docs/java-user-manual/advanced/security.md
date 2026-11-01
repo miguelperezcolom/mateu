@@ -252,7 +252,7 @@ Anything else — a library class, a service or repository bean, an interface �
 **Actions.** An `actionId` only runs a method that is an action:
 
 - a method marked `@Action`, `@Button`, `@Toolbar`, `@ListToolbarButton`, `@ViewToolbarButton`, `@Fab`, `@GroupAction`, `@WizardCompletionAction`, `@RestAction` or `@Menu` (any visibility but `private`, directly or through a composed annotation);
-- a method whose id the view itself **advertises** — writes as a string literal in its own code (a `confirmActionId("doArchive")` of the dialog one of its actions returns, a `Button.builder().actionId("go")`), or names in one of its declarations: a component it holds or supplies (a fluent `Button`, a `MetricCard`, a map marker, an `EntityHeader` fact, a toolbar or header button, a menu `Rule` leaf, an `AppHeaderAction`), its triggers and subscriptions (`@Trigger`, `@SubscribeTo`, a `TriggersSupplier`), `@OnRowSelected`, `@AutoSave`, `@AppShortcut`, a `@Section` affordance (`addAction`/`editAction`/`viewMoreAction`), its `ActionSupplier` list, or the YAML layout bound to it. The method must not be plumbing: not a getter/setter, not `toString`/`equals`/…, not a framework callback such as `search` or `handleAction`;
+- a method whose id the view itself **advertises** — an id a response to that view handed to the client (the `confirmActionId("doArchive")` of a dialog one of its actions returned, the action of an undo toast, a command, the `ColumnAction` of a listing row it served), or one it names in one of its declarations: a component it holds or supplies (a fluent `Button`, a `MetricCard`, a map marker, an `EntityHeader` fact, a toolbar or header button, a menu `Rule` leaf, an `AppHeaderAction`), its triggers and subscriptions (`@Trigger`, `@SubscribeTo`, a `TriggersSupplier`), `@OnRowSelected`, `@AutoSave`, `@AppShortcut`, a `@Section` affordance (`addAction`/`editAction`/`viewMoreAction`), its `ActionSupplier` list, or the YAML layout bound to it. The method must not be plumbing: not a getter/setter, not `toString`/`equals`/…, not a framework callback such as `search` or `handleAction`;
 - an id a `ComponentAdapter` declares in its `AdaptedView`;
 - a field marked as an action, or holding a function (`Runnable`, `Callable`, `Supplier`, `Function`, `Consumer`).
 
@@ -264,7 +264,21 @@ values of the loaded record whatever the request carries; on a create, the field
 form showed read-only or hid (`@HiddenInCreate`) keep the values of a fresh creation form (a
 `@GeneratedValue` stays the one generated for the form). `@EyesOnly` / `@ReadOnlyUnless` fields are
 never written from the wire on any view. The optimistic-lock `@Version` is the client's copy on
-purpose — the save compares it.
+purpose — the save compares it — but the record is always saved from the STORED version: a version
+ahead of it (a crafted `999`) is not adopted, and a version column is never editable in place.
+
+**A CRUD's writes are refused, not only undrawn.** What hides a CRUD's affordance also refuses the
+write behind it when a request forces it — HTTP 403 and one WARN: `@ReadOnly` (on the crud or its
+view class) refuses every write; `@NotCreatable` / `@NotEditable` / `@NotDeletable`, a capability
+the listing does not implement (`canCreate()` / `canEdit()` / `canDelete()`) and a `display()`
+toggle that is `off` or `disabled` refuse `create` / `save` (and `update-row`) / `delete`. A refused
+write is not advertised either. The ids of a bulk delete reach your store as its declared id type
+(a `long` id arrives as a `Long`, not as the `Integer` JSON produced). The .NET and Python backends
+apply the same gate (`[ReadOnly]` / `@read_only`, the `CanX` switches, `Display`).
+
+**A `nested-form-action-<field>-<method>`** must name a field of the view: a prefix naming no
+field is refused (it used to fall back to the view's own method), and a validated nested button is
+re-checked against the whole page like any other `validationRequired` action.
 
 `private` methods, fields that are not actions, and injected dependencies are never reachable. `@EyesOnly` and `@DisabledUnless` on an action are enforced **when it is invoked**, not only when the button is drawn; a refused action answers HTTP 403, and so does an `actionId` that names nothing at all (a CRUD included): one WARN line, no stack trace.
 
@@ -278,11 +292,16 @@ it to every user who could open that view, whether or not a button for it was dr
 
 **The mode.** Since 3.0-alpha.426 strict mode is **on by default**: an action is what is
 *declared* as one — marked, or advertised by the view (the list above). A public method nobody
-marked and nothing on the view names answers HTTP 403. What needs a marker is an id only a previous
-*response* named — an undo toast's action (`Message.undoable(…, "restore", …)`), a method only
-another backend or a test dispatches: mark it `@Action` (it adds nothing to the screen). Row actions
-(`action-on-row-<method>`) must be marked too (`@ListToolbarButton`, `@Action`…): the old inference
-"a method taking the clicked row is a row action" is off.
+marked and nothing on the view names answers HTTP 403. An id a previous *response* to the view
+handed out — the confirm of a dialog it returned, an undo toast's action
+(`Message.undoable(…, "restore", …)`), the `ColumnAction` of a row it served — is accepted back
+(the server remembers the action ids it emitted for each view class; a restart forgets them, so a
+dialog left open across a restart is refused — mark its handler `@Action` to accept it always). A
+mere string literal in the view's code no longer advertises anything: a label or log text equal to
+a public method's name made that method callable. A method only another backend or a test
+dispatches needs `@Action`. Row actions (`action-on-row-<method>`) are accepted once a served row
+offered them, or when marked (`@ListToolbarButton`, `@Action`…): the old inference "a method taking
+the clicked row is a row action" is off.
 
 `mateu.actions.strict=false` (in `application.properties`, as a JVM system property, or
 `MATEU_ACTIONS_STRICT=false`) brings back the old convention, for an app that has not been
@@ -300,6 +319,10 @@ migrated yet. Strict is the recommended setting for anything exposed to the inte
 | `io.mateu.uidl.UserFacingException` (anywhere in the cause chain) | its title (default "Error") and message, as written |
 | a Bean Validation `ConstraintViolationException` | "Validation error" and the constraint messages |
 | anything else | "Something went wrong — An unexpected error occurred. Reference: `3f9c1a0b7d42`" |
+
+The same applies to the error banner a CRUD edit drawer shows when a save fails: a
+`UserFacingException` or a validation refusal as written, anything else the generic text and its
+reference — never the raw message of a store exception.
 
 In the last case the exception — class, message and stack trace — is logged at `ERROR` under that
 same reference, so a user reporting it gives support the exact log line. An exception's message is
@@ -321,6 +344,23 @@ puts the raw exception class and message back in the toast. The .NET (`Mateu.Uid
 `System.ComponentModel.DataAnnotations.ValidationException`) and Python (`mateu_ui.uidl.UserFacingException`,
 pydantic `ValidationError`) backends apply the same boundary with the same texts — and an exception
 there is now a toast instead of a framework HTTP 500.
+
+**Proxied REST sources stay on the server.** A source declared `proxy: true` is called by the
+server from its own catalogue, so the browser receives only what it needs to ask for it (its name,
+`proxy`, the field mapping and paths): its request **headers and body template are never sent** —
+not in `AppDto.restSources`, not in a response, not in a bundle's `manifest.json` — so a key
+written there (even literally) does not reach the browser. And `__restfetch__` proxies only sources
+declared `proxy: true`: a direct source is the browser's to call, and asking the server to proxy it
+answers 403. Same rule in the .NET and Python backends.
+
+**Helidon MP: the routes served outside Jersey.** The streamed actions (`/mateu/v3/sse/**`), MCP and
+the YAML mounts run on the Helidon routing, outside the JAX-RS login check. They see the caller
+Helidon security authenticated (its `SecurityContext`), and when the app requires a login (a JAX-RS
+application annotated `@LoginConfig`, or `mateu.helidon.authentication-required=true`) an
+unauthenticated call is not served there: a streamed action falls through to Jersey (authenticated,
+buffered), MCP and the YAML mounts answer 401. On Quarkus, `/mateu/mcp` now runs after HTTP
+security, so the app's `quarkus.http.auth.permission` policies apply to it and its tools see the
+caller.
 
 **Data is not a template.** Texts the renderers show (titles, labels, texts, KPIs) may contain `${state.x}` expressions, which come from the definition. Values are data and are never evaluated: put them in the state and reference them, or escape a value you concatenate into such a text with `Templates.literal(value)`. HTML that a renderer shows (a `Text`, a header, an html column) is sanitized: scripts and inline event handlers (`onclick=…`) are removed — trigger behaviour with actions, not inline JavaScript.
 

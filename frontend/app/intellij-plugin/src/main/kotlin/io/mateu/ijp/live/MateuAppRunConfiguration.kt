@@ -34,7 +34,7 @@ import javax.swing.JComponent
 
 /**
  * The **Mateu App** run configuration: this project's Mateu UI started in development mode (live
- * reload) and opened where [LaunchTarget] says — the browser, this IDE's Mateu tool window, the
+ * reload) and opened where [LaunchTarget] says — the browser, the Mateu desktop app (a separate IntelliJ), the
  * Mateu app on an Android emulator / iOS simulator, or a phone through a QR code. Run starts it;
  * Debug also attaches the debugger to the app's JVM (HotSwap re-renders the open screen).
  */
