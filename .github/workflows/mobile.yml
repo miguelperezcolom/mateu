@@ -35,7 +35,7 @@ on:
         required: true
 
 permissions:
-  contents: write # gh release upload
+  contents: read
 
 concurrency:
   group: mobile-${{ github.event.release.tag_name || inputs.tag || github.ref }}
@@ -43,6 +43,8 @@ concurrency:
 
 jobs:
   android:
+    permissions:
+      contents: write # gh release upload
     if: github.event_name == 'pull_request' || startsWith(github.event.release.tag_name || inputs.tag, 'v')
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -150,6 +152,8 @@ jobs:
   # reaches builds of that version: a NATIVE change (a new native module, permissions, the SDK) needs
   # a store build instead (frontend/app/react-native/RELEASE.md).
   ota:
+    permissions:
+      contents: read
     if: startsWith(github.event.release.tag_name || inputs.tag, 'v')
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -187,5 +191,7 @@ jobs:
           # the update's app config carries the release (app.config.ts): the hub's compatibility
           # check then knows the updated app renders UIs on it
           export MATEU_VERSION="${TAG#v}"
-          npx --yes eas-cli@16 update --channel production --environment production \
+          # a pinned eas-cli, installed without running any package's lifecycle scripts
+          npm install --no-save --ignore-scripts --no-audit --no-fund eas-cli@16.32.0
+          ./node_modules/.bin/eas update --channel production --environment production \
             --message "Mateu $MATEU_VERSION" --non-interactive
