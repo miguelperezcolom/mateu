@@ -69,10 +69,10 @@ const badgeClassOf = (color) => BADGE_CLASSES[toneOf(color) || 'contrast'] || BA
 // (data-* below say which board, column and card), and each card's ⋯ menu moves it from the keyboard;
 // the move is painted at once (a pending move, core/kanban.mjs) and the chain kanbanCardMoved runs
 // the action. A LIVE board (rowsSource) draws its cards from the items the page loaded (ctx.data).
-export function kanbanAtomOf(m, interp = (x) => x, ctx = null) {
-  const key = kanbanKeyOf(m)
+export function kanbanAtomOf(m, interp = (x) => x, ctx = null, id = '') {
+  const key = kanbanKeyOf(m, id)
   const movable = !!m.moveActionId
-  const columns = kanbanColumnsOnScreen(m, (ctx && ctx.data) || {})
+  const columns = kanbanColumnsOnScreen(m, (ctx && ctx.data) || {}, id)
   const titleOf = (col) => interp(str(col.title || col.id))
   return {
     isKanban: true,
@@ -94,11 +94,13 @@ export function kanbanAtomOf(m, interp = (x) => x, ctx = null) {
           const { row, ...plain } = card
           const act = route ? { clickable: true, plain: false, actionId: '', parameters: {}, route }
             : clickable(card.actionId, { ...(row || {}), _clickedCard: plain })
+          // a LIVE card's texts are DATA (a row's values): never evaluated, whatever `${…}` they hold
+          const text = (v) => (row ? str(v) : interp(str(v)))
           return {
             cardId: str(card.id),
-            title: interp(str(card.title)),
-            description: interp(str(card.description)),
-            badge: interp(str(card.badge)),
+            title: text(card.title),
+            description: text(card.description),
+            badge: text(card.badge),
             hasBadge: !!card.badge,
             badgeClass: badgeClassOf(card.color),
             cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},

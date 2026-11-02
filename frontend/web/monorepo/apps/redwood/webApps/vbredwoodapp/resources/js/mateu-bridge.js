@@ -6622,7 +6622,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       // ── display components with their own projection (core/display.mjs) ──
-      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp, ctx), container); return }
+      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp, ctx, node.id), container); return }
       if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
       if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
       if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }
@@ -7899,8 +7899,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function nestedListingKeyOf(node) {
     const md = (node && node.metadata) || {}
     const columns = leafColumnsOf(md.columns || []).map((c) => (c && (c.metadata ? c.metadata.id || c.id : c.id)) || '')
-    return 'nestedListing-' + stableHashOf(JSON.stringify([md.rowsSource || null, columns, md.title || '', md.rowRoute || '']))
+    // the component's own id tells two IDENTICAL listings apart (same source, columns and title: they
+    // shared rows and selection); a generated UUID is left out, it may change between loads
+    const id = node && typeof node.id === 'string' && node.id && !UUID.test(node.id) ? node.id : ''
+    return 'nestedListing-' + stableHashOf(JSON.stringify([md.rowsSource || null, columns, md.title || '', md.rowRoute || '', id]))
   }
+
+  /** The parameter a nested listing's toolbar button carries to name its listing (never sent). */
+  const NESTED_LISTING_PARAM = '__mateuNestedListing'
 
   /** The OnLoad action that loads a nested listing's rows (answered in the browser, restSources.mjs). */
   const NESTED_LISTING_ACTION = '__nestedlisting__:'
@@ -7968,7 +7974,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         label: interpolate(String(b.label || b.actionId), state),
         chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
         disabled: !!b.disabled,
-        parameters: {},
+        // names its listing, so two nested listings with the same toolbar id each send their own
+        // selection (withNestedSelection); stripped before the request leaves
+        parameters: { [NESTED_LISTING_PARAM]: key },
         route: '',
         surfaceId: '',
         fromNested: false,
@@ -8511,11 +8519,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * selected"): its marked rows as crud_selected_items, as Vaadin sends them. Any other action, or
    * a page with no such listing, leaves the state untouched.
    */
-  function withNestedSelection(componentState, host, actionId) {
+  function withNestedSelection(componentState, host, actionId, nestedKey) {
     const tree = host && host.tree
     if (!tree || !actionId) return componentState
-    const owner = nestedListingNodesOf(tree).find((n) => ((n.metadata && n.metadata.toolbar) || [])
-      .some((b) => ((b && b.metadata) || b || {}).actionId === actionId))
+    const declares = (n) => ((n.metadata && n.metadata.toolbar) || [])
+      .some((b) => ((b && b.metadata) || b || {}).actionId === actionId)
+    const nested = nestedListingNodesOf(tree)
+    // the listing whose toolbar was pressed (its button names it); without a name, the first that declares it
+    const owner = (nestedKey && nested.find((n) => nestedListingKeyOf(n) === nestedKey && declares(n))) || nested.find(declares)
     if (!owner) return componentState
     const key = nestedListingKeyOf(owner)
     const rows = (((host.data || {})[key] || {}).page || {}).content || []
@@ -11802,11 +11813,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The OnLoad action that loads a live board's items (answered in the browser, restSources.mjs). */
   const KANBAN_ACTION = '__kanban__:'
 
-  /** Where a live board's items are kept (ctx.data[key]) — from what it IS, not its position. */
-  function kanbanKeyOf(md) {
+  const GENERATED_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+  /** Where a live board's items are kept (ctx.data[key]) — from what it IS, not its position; the
+   *  component's own id tells two otherwise identical boards apart (a generated UUID is left out). */
+  function kanbanKeyOf(md, id = '') {
     const m = md || {}
-    return 'kanban-' + stableHashOf(JSON.stringify([m.rowsSource || null, (m.columns || []).map((c) => c && c.id), m.columnField || '']))
+    const given = id || m.id || ''
+    const own = typeof given === 'string' && given && !GENERATED_ID.test(given) ? given : ''
+    return 'kanban-' + stableHashOf(JSON.stringify([m.rowsSource || null, (m.columns || []).map((c) => c && c.id), m.columnField || '', m.moveActionId || '', own]))
   }
+  const keyOfNode = (n) => kanbanKeyOf(n.metadata, n.id)
 
   /** The Kanban nodes of a tree. */
   function kanbanNodesOf(tree) {
@@ -11822,7 +11839,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The load actions of a context's live boards. */
   function kanbanTriggersOf(ctx) {
-    return kanbanNodesOf(ctx && ctx.tree).filter((n) => n.metadata.rowsSource).map((n) => KANBAN_ACTION + kanbanKeyOf(n.metadata))
+    return kanbanNodesOf(ctx && ctx.tree).filter((n) => n.metadata.rowsSource).map((n) => KANBAN_ACTION + keyOfNode(n))
   }
 
   const valueAt = (row, path) => String(path).split('.').reduce((v, k) => (v != null && typeof v === 'object' ? v[k] : undefined), row)
@@ -11971,26 +11988,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return at < 0 ? (cardMiddles || []).length : at
   }
 
-  // The moves on screen whose action has not answered yet, by board key: the projection paints them at
-  // once (optimistic) and the chain drops them when the action answers — failed = the card is back.
+  // The moves on screen whose action has not answered yet, by board key, in the order they were made:
+  // the projection paints them at once (optimistic) and the chain drops EACH when its action answers —
+  // failed = that card is back. A second move made before the first answered no longer erases it.
   const pendingKanbanMoves = new Map()
-  function setPendingKanbanMove(key, move) {
-    if (move) pendingKanbanMoves.set(key, move)
+  function addPendingKanbanMove(key, move) {
+    if (!move) return
+    pendingKanbanMoves.set(key, [...(pendingKanbanMoves.get(key) || []), move])
+  }
+  function dropPendingKanbanMove(key, move) {
+    const left = (pendingKanbanMoves.get(key) || []).filter((m) => m !== move)
+    if (left.length) pendingKanbanMoves.set(key, left)
     else pendingKanbanMoves.delete(key)
   }
+  /** Kept for callers of the single-move shape: a move replaces the board's pending ones, null clears them. */
+  function setPendingKanbanMove(key, move) {
+    if (move) pendingKanbanMoves.set(key, [move])
+    else pendingKanbanMoves.delete(key)
+  }
+  function pendingKanbanMovesOf(key) {
+    return pendingKanbanMoves.get(key) || []
+  }
   function pendingKanbanMoveOf(key) {
-    return pendingKanbanMoves.get(key) || null
+    const all = pendingKanbanMovesOf(key)
+    return all.length ? all[all.length - 1] : null
   }
 
   /** The board's columns as they are on screen: the live items (or the declared cards), plus a pending move. */
-  function kanbanColumnsOnScreen(md, data) {
-    const key = kanbanKeyOf(md)
+  function kanbanColumnsOnScreen(md, data, id = '') {
+    const key = kanbanKeyOf(md, id)
     const loaded = data && data[key]
     const columns = md.rowsSource
       ? kanbanCardsFromRows(md, (loaded && loaded.items) || [])
       : (md.columns || []).map((c) => ({ ...c, cards: c.cards || [] }))
-    const pending = pendingKanbanMoveOf(key)
-    return pending ? kanbanMovedColumns(columns, pending) : columns
+    return pendingKanbanMovesOf(key).reduce((cols, move) => kanbanMovedColumns(cols, move), columns)
   }
 
   /**
@@ -11999,10 +12030,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * parameters (the card's item + where it went), and the action that reads a live board again.
    */
   function kanbanMovePlanOf(ctx, key, move) {
-    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => keyOfNode(n) === key)
     const md = node && node.metadata
     if (!md || !md.moveActionId) return null
-    const columns = kanbanColumnsOnScreen(md, (ctx && ctx.data) || {})
+    const columns = kanbanColumnsOnScreen(md, (ctx && ctx.data) || {}, node.id)
     if (!kanbanIsRealMove(columns, move)) return null
     const from = columns.find((c) => c.id === move.fromColumnId)
     const card = from && (from.cards || []).find((c) => c.id === move.cardId)
@@ -12092,10 +12123,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // (data-* below say which board, column and card), and each card's ⋯ menu moves it from the keyboard;
   // the move is painted at once (a pending move, core/kanban.mjs) and the chain kanbanCardMoved runs
   // the action. A LIVE board (rowsSource) draws its cards from the items the page loaded (ctx.data).
-  function kanbanAtomOf(m, interp = (x) => x, ctx = null) {
-    const key = kanbanKeyOf(m)
+  function kanbanAtomOf(m, interp = (x) => x, ctx = null, id = '') {
+    const key = kanbanKeyOf(m, id)
     const movable = !!m.moveActionId
-    const columns = kanbanColumnsOnScreen(m, (ctx && ctx.data) || {})
+    const columns = kanbanColumnsOnScreen(m, (ctx && ctx.data) || {}, id)
     const titleOf = (col) => interp(str(col.title || col.id))
     return {
       isKanban: true,
@@ -12117,11 +12148,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             const { row, ...plain } = card
             const act = route ? { clickable: true, plain: false, actionId: '', parameters: {}, route }
               : clickable(card.actionId, { ...(row || {}), _clickedCard: plain })
+            // a LIVE card's texts are DATA (a row's values): never evaluated, whatever `${…}` they hold
+            const text = (v) => (row ? str(v) : interp(str(v)))
             return {
               cardId: str(card.id),
-              title: interp(str(card.title)),
-              description: interp(str(card.description)),
-              badge: interp(str(card.badge)),
+              title: text(card.title),
+              description: text(card.description),
+              badge: text(card.badge),
               hasBadge: !!card.badge,
               badgeClass: badgeClassOf(card.color),
               cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
@@ -20485,7 +20518,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   async function kanbanAnswerOf(ctx, actionId, opts = {}) {
     const key = String(actionId).slice(KANBAN_ACTION.length)
-    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+    const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata, n.id) === key)
     const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
     if (!node || !node.metadata.rowsSource) return restIncrement([])
     const src = node.metadata.rowsSource
@@ -25349,7 +25382,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // in Vaadin; the drawer's do not (they act on ITS record)
     // …and an action on the toolbar of a listing NESTED in the page (a record's documents) carries
     // the rows marked on THAT listing
-    if (!overlay) componentState = withNestedSelection(componentState, host, id)
+    const nestedKey = parameters && parameters[NESTED_LISTING_PARAM]
+    if (nestedKey) {
+      parameters = { ...parameters }
+      delete parameters[NESTED_LISTING_PARAM]
+    }
+    if (!overlay) componentState = withNestedSelection(componentState, host, id, nestedKey)
     if (!overlay && listing && listing.rowsSelectionEnabled) {
       componentState = withListingSelection(componentState, listing, listingRows, listingSelection)
       if ((listing.selectionRequired || []).indexOf(id) >= 0 && !componentState.crud_selected_items.length) {
@@ -28077,6 +28115,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installKanbans,
     setKanbanMoveSink,
     setPendingKanbanMove,
+    addPendingKanbanMove,
+    dropPendingKanbanMove,
     kanbanMovePlanOf,
     kanbanMoveFailed,
     setKeysActionSink,

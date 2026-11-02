@@ -554,7 +554,7 @@ export function nestedListingAnswerOf(ctx, actionId, opts = {}) {
  */
 export async function kanbanAnswerOf(ctx, actionId, opts = {}) {
   const key = String(actionId).slice(KANBAN_ACTION.length)
-  const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+  const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata, n.id) === key)
   const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
   if (!node || !node.metadata.rowsSource) return restIncrement([])
   const src = node.metadata.rowsSource

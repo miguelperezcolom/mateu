@@ -936,7 +936,7 @@ test('a live kanban: its items load from its source into the host data, by the b
   reset()
   const { kanbanKeyOf, KANBAN_ACTION } = await import('./core/kanban.mjs')
   const md = { type: 'Kanban', columns: [{ id: 'backlog' }], rowsSource: { url: 'https://api.example.com/tasks', itemsPath: 'content' } }
-  const key = kanbanKeyOf(md)
+  const key = kanbanKeyOf(md, 'board')
   const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'host', children: [{ type: 'ClientSide', id: 'board', metadata: md, children: [] }] }, state: {}, data: {} }
   const f = stubFetch({ content: [{ id: 1, status: 'backlog' }] })
   const inc = await restAnswerOf(ctx, KANBAN_ACTION + key, {}, { fetchImpl: f })
@@ -945,7 +945,7 @@ test('a live kanban: its items load from its source into the host data, by the b
   // a proxied source goes through __restfetch__ by the board's id
   const proxied = { ...ctx, tree: { ...ctx.tree, children: [{ ...ctx.tree.children[0], metadata: { ...md, rowsSource: { ...md.rowsSource, proxy: true } } }] } }
   const asked = []
-  const pinc = await restAnswerOf(proxied, KANBAN_ACTION + kanbanKeyOf({ ...md, rowsSource: { ...md.rowsSource, proxy: true } }), {},
+  const pinc = await restAnswerOf(proxied, KANBAN_ACTION + kanbanKeyOf({ ...md, rowsSource: { ...md.rowsSource, proxy: true } }, 'board'), {},
     { server: async (params) => { asked.push(params); return { appData: { _restfetch: { content: [{ id: 2, status: 'backlog' }] } } } } })
   assert.deepEqual(asked, [{ _sourceKind: 'rows', _sourceId: 'board' }])
   assert.equal(Object.values(pinc.fragments[0].data)[0].items[0].id, 2)

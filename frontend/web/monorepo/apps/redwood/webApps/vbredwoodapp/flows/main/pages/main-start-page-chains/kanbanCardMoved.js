@@ -40,7 +40,7 @@ define([
         if (next.island) $application.variables.mateuIsland = next.island;
       };
 
-      bridge.setPendingKanbanMove(key, move);
+      bridge.addPendingKanbanMove(key, move);
       paint();
 
       let increment = null;
@@ -57,7 +57,7 @@ define([
         $application.variables.mateuRegistry = reg;
       }
       if (bridge.kanbanMoveFailed(increment)) {
-        bridge.setPendingKanbanMove(key, null);
+        bridge.dropPendingKanbanMove(key, move);
         paint();
         bridge.announce(bridge.chromeText('kanbanMoveFailed'), { politeness: 'assertive' });
         return;
@@ -72,7 +72,7 @@ define([
           // the move went through: the board keeps it painted until the next load
         }
       }
-      bridge.setPendingKanbanMove(key, null);
+      bridge.dropPendingKanbanMove(key, move);
       paint();
     }
   }

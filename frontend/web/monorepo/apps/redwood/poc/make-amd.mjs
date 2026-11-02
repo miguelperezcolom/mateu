@@ -220,6 +220,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installKanbans,
     setKanbanMoveSink,
     setPendingKanbanMove,
+    addPendingKanbanMove,
+    dropPendingKanbanMove,
     kanbanMovePlanOf,
     kanbanMoveFailed,
     setKeysActionSink,
