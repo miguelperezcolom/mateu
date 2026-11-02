@@ -32,12 +32,51 @@ public record RunActionRqDto(
      * reuses its cached structure. Null for clients that don't cache (old clients / cache miss),
      * which always get the full structure. See {@code ServerSideComponentDto.structureHash}.
      */
-    String knownStructureHash) {
+    String knownStructureHash,
+    /**
+     * Set when the request comes from a micro frontend embedded with a chrome ({@code NONE}, {@code
+     * COMPACT} or {@code PAGE}): the answer is a block inside another page, not the window, so the
+     * server sends no window commands ({@code SetWindowTitle}, {@code SetFavicon}, {@code
+     * PushStateToHistory}). Null for a top-level request (and for every older client).
+     */
+    String embeddedChrome) {
 
   public RunActionRqDto {
     componentState =
         componentState != null ? Collections.unmodifiableMap(componentState) : Map.of();
     appState = appState != null ? Collections.unmodifiableMap(appState) : Map.of();
+  }
+
+  /** The request as it was before {@code embeddedChrome}: a top-level one. */
+  public RunActionRqDto(
+      Map<String, Object> componentState,
+      Map<String, Object> appState,
+      Map<String, Object> parameters,
+      String initiatorComponentId,
+      String consumedRoute,
+      String actionId,
+      String route,
+      String serverSideType,
+      String serverSideComponentRoute,
+      String knownStructureHash) {
+    this(
+        componentState,
+        appState,
+        parameters,
+        initiatorComponentId,
+        consumedRoute,
+        actionId,
+        route,
+        serverSideType,
+        serverSideComponentRoute,
+        knownStructureHash,
+        null);
+  }
+
+  /** Whether the request comes from a micro frontend embedded without the window's chrome. */
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  public boolean embedded() {
+    return embeddedChrome != null && !embeddedChrome.isBlank();
   }
 
   public Map<String, Object> componentState() {
@@ -65,6 +104,7 @@ public record RunActionRqDto(
         + serverSideType
         + ", serverSideComponentRoute="
         + serverSideComponentRoute
+        + (embedded() ? ", embeddedChrome=" + embeddedChrome : "")
         + ", initiatorComponentId="
         + initiatorComponentId
         + ", componentState="

@@ -23,7 +23,7 @@ import { ojIconOf, interpolate, mediatorOf } from './reduceContexts.mjs'
 import { callMateu } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
 import { sanitizeHtml } from './richtext.mjs'
-import { safeHref } from './core/display.mjs'
+import { safeHref, embeddedChromeOf } from './core/display.mjs'
 import { isPathMode, currentMount, pathOfRoute } from './mount.mjs'
 
 const CONTAINERS = new Set([
@@ -147,6 +147,8 @@ export function headerWidgetsOf(reg) {
         appState: md.appState || null,
         // the host resolved it (resolve = SERVER): the answer to its first load is already here
         resolved: md.resolved && typeof md.resolved === 'object' ? md.resolved : null,
+        // EMBEDDED (MicroFrontend.chrome): its requests say so (a header widget applies no commands)
+        chrome: embeddedChromeOf(md.chrome),
       })
       return
     }
@@ -211,6 +213,7 @@ export function startRemoteWidget(item, onHtml, deps = {}) {
     initiatorComponentId: item.id,
     componentState: (rt.ctx && rt.ctx.state) || {},
     appState: Object.assign({}, appState(), item.appState || {}),
+    ...(item.chrome ? { embeddedChrome: item.chrome } : {}),
     ...extra,
   }, { quiet: true, idempotent: true })
 

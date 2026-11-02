@@ -185,7 +185,8 @@ public final class SearchableSelection {
                   original.route(),
                   original.serverSideType(),
                   original.serverSideComponentRoute(),
-                  original.knownStructureHash()));
+                  original.knownStructureHash(),
+                  original.embeddedChrome()));
       var item = selector.selected(rowRequest);
       if (item != null) {
         out.add(item);

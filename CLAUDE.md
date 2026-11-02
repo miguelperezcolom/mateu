@@ -313,6 +313,13 @@ IntelliJ `AppContext.enter`) and everything after the first paint still goes to 
   `none`, app strategies by name — token exchange is the app's), `CorrelationIdProvider`
   (`X-Mateu-Correlation-Id`), `FragmentCacheStore` (in-memory LRU), `MicroFrontendResolutionListener`;
   logger `io.mateu.microfrontends`, one line per fragment. All uidl types in `io.mateu.uidl.remote`.
+- **Embedded chrome (`MicroFrontend.chrome` NONE|COMPACT|PAGE, 2026-11-02)**: a block of the page,
+  not a page — renderers drop SetWindowTitle/SetFavicon/PushStateToHistory from inside it (web
+  `embeddedChrome.ts`: `mateu-ux[embedded-chrome]`, checked in `ConnectedElement.applyCommand`, header
+  `crumbsOf`/`render`; Redwood `transport.mjs`/`content.mjs`), its requests carry
+  `RunActionRqDto.embeddedChrome` and `RunActionUseCase` strips those commands from every answer
+  (`EmbeddedWindowCommands`). NONE = no page header, COMPACT = actions only, PAGE = no breadcrumb.
+  Java only (ports: not yet). Tests `EmbeddedMicroFrontendSyncTest`, vitest `embeddedChrome.test.ts`.
 - **What is embedded**: the remote's fragments + restSources only (commands, messages, banners,
   appState/appData stripped). Client caches (`routeStructureCache`, `staticViewCache`, RN snapshots)
   strip `resolved` (`withoutResolvedMicroFrontends`) — never persisted/replayed.
