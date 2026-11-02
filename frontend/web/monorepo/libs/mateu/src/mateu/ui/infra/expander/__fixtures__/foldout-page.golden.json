@@ -54,7 +54,8 @@
             "subtitle" : null,
             "icon" : null,
             "open" : false,
-            "width" : null
+            "width" : null,
+            "autoOpen" : true
           } ],
           "headerTitle" : null,
           "badges" : [ ],

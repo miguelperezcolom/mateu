@@ -1422,8 +1422,8 @@ def test_foldout_archetype_slots_overview_and_panels():
     (foldout,) = page_children(doc)
     assert foldout["metadata"]["type"] == "FoldoutLayout"
     assert foldout["metadata"]["panels"] == [
-        {"title": "Guests", "subtitle": "2 adults", "icon": "users", "open": True, "width": None},
-        {"title": "Payments", "subtitle": None, "icon": None, "open": False, "width": None},
+        {"title": "Guests", "subtitle": "2 adults", "icon": "users", "open": True, "width": None, "autoOpen": None},
+        {"title": "Payments", "subtitle": None, "icon": None, "open": False, "width": None, "autoOpen": None},
     ]
     # Header band: title from @title, chips flattened to text.
     assert foldout["metadata"]["headerTitle"] == "Booking"
@@ -1446,6 +1446,30 @@ def test_foldout_archetype_slots_overview_and_panels():
     assert p0["slot"] == "panel-0"
     assert p0["metadata"]["text"] == "Ada, Alan"
     assert p1["slot"] == "panel-1"
+
+
+def test_foldout_panel_auto_open_travels_only_when_set():
+    """``auto_open`` = the author left ``open`` undecided: the renderers open the panel while it fits
+    (conformance/client/foldout-auto.json). Unset, the wire carries null (Java omits it)."""
+    import json
+
+    from mateu_ui.uidl.components import FoldoutLayout, FoldoutPanel
+
+    mapper = SyncHandler(MateuRegistry()).mapper
+    wire = json.loads(
+        mapper.map_component(
+            FoldoutLayout(
+                panels=(
+                    FoldoutPanel(title="Works", open=True),
+                    FoldoutPanel(title="Loans", open=False, auto_open=True),
+                )
+            )
+        ).model_dump_json(by_alias=True)
+    )
+    works, loans = wire["metadata"]["panels"]
+    assert works["autoOpen"] is None
+    assert loans["autoOpen"] is True
+    assert loans["open"] is False
 
 
 def test_foldout_horizontal_orientation_travels_on_the_wire():

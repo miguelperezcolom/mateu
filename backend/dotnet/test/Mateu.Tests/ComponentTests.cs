@@ -882,6 +882,27 @@ public class ComponentTests
     }
 
     [Fact]
+    public void Foldout_panel_auto_open_rides_the_wire_only_when_set()
+    {
+        // AutoOpen = the author left Open undecided: open while it fits the row (every renderer runs
+        // conformance/client/foldout-auto.json). Unset (the default) leaves the key off the wire.
+        var foldout = ComponentMapper.Map(new FoldoutLayout
+        {
+            Panels =
+            [
+                new FoldoutPanel { Title = "Works", Open = true },
+                new FoldoutPanel { Title = "Loans", Open = false, AutoOpen = true },
+            ],
+        });
+        var meta = Assert.IsType<FoldoutLayoutMetadataDto>(foldout.Metadata);
+        Assert.Null(meta.Panels[0].AutoOpen);
+        Assert.True(meta.Panels[1].AutoOpen);
+        var json = JsonSerializer.Serialize(foldout.Metadata, Mateu.AspNetCore.MateuExtensions.Json);
+        Assert.Contains("\"title\":\"Works\",\"subtitle\":null,\"icon\":null,\"open\":true,\"width\":null}", json);
+        Assert.Contains("\"title\":\"Loans\",\"subtitle\":null,\"icon\":null,\"open\":false,\"width\":null,\"autoOpen\":true}", json);
+    }
+
+    [Fact]
     public void Heatmap_emits_cells_with_iso_dates()
     {
         var json = RenderView(typeof(Dash));

@@ -4,6 +4,7 @@ import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/Fo
 import FoldoutNavigation from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutNavigation";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { onActivate } from '@infra/a11y/activate.ts'
+import { foldoutOpenStates } from '@infra/ui/foldoutGeometry.ts'
 
 /**
  * Redwood-style foldout: a fixed overview panel on the left plus lateral fold-out panels.
@@ -66,13 +67,37 @@ export class MateuFoldout extends LitElement {
         }
     }
 
+    // Panels the user opened/folded by hand: they win over the auto rule until the page changes.
+    private toggled = new Set<number>()
+    private resizeObserver?: ResizeObserver
+
+    // autoOpen panels (no `open:` authored) open while they fit the row (foldoutOpenStates); the
+    // rest follow `open`. Re-run on resize; a hand-toggled panel keeps the user's choice.
+    private applyAutoOpen() {
+        if (!this.panels.some(p => p.autoOpen === true)) return
+        const remPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+        const states = foldoutOpenStates(
+            this.panels.map(p => ({ open: p.open === true, autoOpen: p.autoOpen, width: p.width })),
+            this.clientWidth || null,
+            { overviewPx: 22 * remPx, stripPx: 3 * remPx, defaultPanelPx: 22 * remPx, remPx })
+        const next = new Set([...this.openPanels].filter(i => this.toggled.has(i) || this.panels[i]?.autoOpen !== true))
+        states.forEach((open, i) => { if (open && !this.toggled.has(i)) next.add(i) })
+        if (next.size !== this.openPanels.size || [...next].some(i => !this.openPanels.has(i))) this.openPanels = next
+    }
+
     connectedCallback() {
         super.connectedCallback()
         window.addEventListener('popstate', this._onPopState)
+        if (typeof ResizeObserver !== 'undefined') {
+            this.resizeObserver = new ResizeObserver(() => this.applyAutoOpen())
+            this.resizeObserver.observe(this)
+        }
     }
 
     disconnectedCallback() {
         window.removeEventListener('popstate', this._onPopState)
+        this.resizeObserver?.disconnect()
+        this.resizeObserver = undefined
         super.disconnectedCallback()
     }
 
@@ -81,6 +106,8 @@ export class MateuFoldout extends LitElement {
     protected willUpdate() {
         if (!this.initialized && this.panels.length) {
             this.openPanels = new Set(this.panels.map((p, i) => p.open ? i : -1).filter(i => i >= 0))
+            this.toggled = new Set()
+            this.applyAutoOpen()
             const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''))
             if (hash.startsWith('expand=')) {
                 // Deep-linked extended view: restore the expanded panel on load.
@@ -151,6 +178,7 @@ export class MateuFoldout extends LitElement {
     }
 
     private toggle(index: number) {
+        this.toggled.add(index)
         const next = new Set(this.openPanels)
         if (next.has(index)) {
             next.delete(index)

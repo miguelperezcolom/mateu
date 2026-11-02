@@ -53,7 +53,7 @@ import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, value
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
 import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl, remoteOriginOf } from './elements.mjs'
 import { foldoutOf } from './core/archetypes.mjs'
-import { foldedPanelIndexes, isPanelFolded, unfoldPanel, resetFoldoutFolds, wirePanelIndexOf, foldoutPanelKey } from './foldouts.mjs'
+import { foldedPanelIndexes, isPanelFolded, unfoldPanel, resetFoldoutFolds, wirePanelIndexOf, foldoutPanelKey, fitAutoPanels, panelWheelIsNative } from './foldouts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let pass = 0
@@ -358,6 +358,41 @@ test('foldout: the open=false panels start folded, unfolding one keeps it unfold
   assert.deepEqual(foldedPanelIndexes(null), [])
   assert.equal(isPanelFolded(foldout, 9), false)
   resetFoldoutFolds()
+})
+
+test('foldout: an autoOpen panel (no `open:` authored) is open while it fits the row', () => {
+  // the museum exhibition: The works declared open, Loans and Budget left to the renderer
+  const foldout = foldoutOf(reduceContexts(empty(), { fragments: [{ targetComponentId: HOST_ID, component: {
+    type: 'ServerSide', id: 'x', serverSideType: 'Exhibition', children: [{ metadata: { type: 'FoldoutLayout', panels: [
+      { title: 'The works', open: true }, { title: 'Loans', open: false, autoOpen: true }, { title: 'Budget', open: false, autoOpen: true },
+    ] }, children: [] }] } }] }).contexts[HOST_ID])
+  resetFoldoutFolds()
+  assert.deepEqual(foldout.panels.map((p) => p.autoOpen), [false, true, true])
+  // a 1408px row: Loans fits, Budget does not (25rem overview + 22rem panels + 4rem strips)
+  fitAutoPanels(foldout, 1408)
+  assert.deepEqual(foldedPanelIndexes(foldout), [2])
+  // a phone: only what the author declared open
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [1, 2])
+  // unfolding one by hand wins over the fit until a new page
+  assert.equal(unfoldPanel(foldout, 1), true)
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [2])
+  resetFoldoutFolds()
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [1, 2])
+  resetFoldoutFolds()
+})
+
+test('foldout: a vertical wheel over a panel taller than the row scrolls the panel while it has room', () => {
+  const panel = (scrollTop) => ({ scrollHeight: 1572, clientHeight: 854, scrollTop })
+  assert.equal(panelWheelIsNative(panel(0), 0, 100), true, 'down, room below')
+  assert.equal(panelWheelIsNative(panel(718), 0, 100), false, 'at the bottom: the layout takes it')
+  assert.equal(panelWheelIsNative(panel(0), 0, -100), false, 'up at the top')
+  assert.equal(panelWheelIsNative(panel(300), 0, -100), true, 'up, room above')
+  assert.equal(panelWheelIsNative(panel(300), 200, 50), false, 'a horizontal gesture pages the row')
+  assert.equal(panelWheelIsNative({ scrollHeight: 854, clientHeight: 854, scrollTop: 0 }, 0, 100), false, 'nothing to scroll')
+  assert.equal(panelWheelIsNative(null, 0, 100), false)
 })
 
 test("foldout: the layout's selectedPanel counts the overview as panel 0", () => {

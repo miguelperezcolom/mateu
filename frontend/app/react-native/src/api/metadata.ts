@@ -41,6 +41,10 @@ export interface FoldoutPanelInfo {
   subtitle?: string;
   icon?: string;
   open?: boolean;
+  /** CSS width of the open panel (e.g. "40rem"). */
+  width?: string;
+  /** The author wrote no `open:`: open while it fits, else folded (`open` is ignored). */
+  autoOpen?: boolean;
 }
 
 // Overview travels as the child with slot=="overview"; panel contents as slot=="panel-N".
