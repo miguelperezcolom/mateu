@@ -170,14 +170,12 @@
     {
       "name": "method call on a string", "expr": "state.name.toUpperCase()", "expected": "ANA",
       "overrides": {
-        "rn": { "expected": { "$error": true }, "why": "no method calls on the native renderers (only a regex's .test, which the server emits)" },
         "intellij": { "expected": { "$error": true }, "why": "no method calls on the native renderers (only a regex's .test, which the server emits)" }
       }
     },
     {
       "name": "includes on an array", "expr": "state.tags.includes('a')", "expected": true,
       "overrides": {
-        "rn": { "expected": { "$error": true }, "why": "no method calls on the native renderers" },
         "intellij": { "expected": { "$error": true }, "why": "no method calls on the native renderers" }
       }
     },
@@ -200,7 +198,6 @@
       "name": "global allow-list", "expr": "Math.max(1, state.age)", "expected": 30,
       "overrides": {
         "redwood": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" },
-        "rn": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" },
         "intellij": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" }
       }
     },
