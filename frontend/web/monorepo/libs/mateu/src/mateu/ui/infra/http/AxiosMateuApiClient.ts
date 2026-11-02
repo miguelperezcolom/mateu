@@ -360,7 +360,10 @@ export class AxiosMateuApiClient implements MateuApiClient {
             actionId,
             // ETag of the structure the client already has for this route: lets the server omit the
             // component and reply with only state/data when it still matches (phase b).
-            knownStructureHash: options.knownStructureHash
+            knownStructureHash: options.knownStructureHash,
+            // an embedded micro frontend says so: its server sends no window commands (only when set,
+            // so a top-level request keeps the shape it always had)
+            ...(options.embeddedChrome ? { embeddedChrome: options.embeddedChrome } : {}),
         }
         const idempotent = isIdempotentAction(actionId, options.idempotent)
         const send = () => this.post(uri, payload, options.timeoutMillis, options.isStale)

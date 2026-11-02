@@ -5336,6 +5336,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const blocks = []
     let plain = null
     let elementOrdinal = 0
+    // an embedded MicroFrontend's chrome (opts.chrome) applies to ITS page: the first Page visited
+    let embeddedPageSeen = false
     // the wire node being projected (editor mode only): what an atom or a block made now came from
     let editorNode = ''
     const stampNode = (o) => {
@@ -5950,10 +5952,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Page') {
-        // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar)
-        const pageTitle = interp(m.title || '')
+        // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar) — as far
+        // as an EMBEDDED MicroFrontend's chrome keeps them, on its own page (the first one met):
+        // NONE draws neither, COMPACT only the toolbar, PAGE both (opts.chrome, embeddedChromeOf)
+        const chrome = !embeddedPageSeen ? opts.chrome : null
+        embeddedPageSeen = true
+        const pageTitle = chrome === 'NONE' || chrome === 'COMPACT' ? '' : interp(m.title || '')
         if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
-        const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
+        const toolbar = chrome === 'NONE' ? [] : (m.toolbar || []).filter((b) => b && b.actionId)
         if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
         for (const child of kidsOf(node)) visit(child, container)
         return
@@ -6885,8 +6891,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const ctx = contexts && contexts[a.islandId]
         if (!ctx || !ctx.tree) return [a]
         const crud = findByType(ctx.tree, 'Crud')
+        // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
+        const chrome = (a.subresource && a.subresource.chrome) || null
         if (!crud) {
-          const inner = islandContentOf(ctx)
+          const inner = islandContentOf(ctx, chrome ? { chrome } : {})
           // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
           // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
           const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
@@ -6903,7 +6911,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           isGrid: true,
           isSubresourceGrid: true,
           fieldId: a.islandId,
-          label: md.title || '',
+          // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
+          label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
           columns: wire.map((c) => (c.dataType === 'status'
             ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
             : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
@@ -13121,9 +13130,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
       // the host resolved it (resolve = SERVER): the answer to its load is already here
       resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
+      // EMBEDDED (MicroFrontend.chrome): a block of this page, not a page — see embeddedChromeOf
+      chrome: embeddedChromeOf(m.chrome),
       surface: true,
       lazy: false,
     }
+  }
+
+  /** The chromes a MicroFrontend can be embedded with (MicroFrontend.chrome / EmbeddedChrome). */
+  const EMBEDDED_CHROMES = ['NONE', 'COMPACT', 'PAGE']
+
+  /** A MicroFrontend's `chrome` when it is a known one, else null (a top-level micro frontend, as
+   *  before). Any value makes it EMBEDDED: it never names the window, pushes history or sets the
+   *  favicon, and draws no breadcrumb; NONE also drops its page's title and toolbar, COMPACT its
+   *  title (the toolbar stays), PAGE keeps both. */
+  function embeddedChromeOf(chrome) {
+    const c = typeof chrome === 'string' ? chrome.toUpperCase() : ''
+    return EMBEDDED_CHROMES.includes(c) ? c : null
+  }
+
+  /** The commands that name or move the WINDOW: never applied from an embedded island — the window
+   *  (its title, the address bar, the favicon) belongs to the page that embeds it. */
+  const WINDOW_COMMANDS = ['SetWindowTitle', 'SetFavicon', 'PushStateToHistory']
+
+  /** The increment without its window commands (an embedded island's answer: an older remote that
+   *  does not read `embeddedChrome` still sends them). The same object when it carries none. */
+  function withoutWindowCommands(increment) {
+    if (!increment || !Array.isArray(increment.commands)) return increment
+    const kept = increment.commands.filter((c) => !(c && WINDOW_COMMANDS.includes(c.type)))
+    return kept.length === increment.commands.length ? increment : { ...increment, commands: kept }
   }
   /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
    *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
@@ -21593,12 +21628,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       componentState: componentState || (ctx && ctx.state) || {},
       serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
       initiatorComponentId: initiator,
+      // an EMBEDDED MicroFrontend (chrome) says so on every request: its server sends no window commands
+      ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...extra,
     }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
       .then((inc) => {
         release()
         if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
-        return inc
+        // …and whatever an older remote still sends, the window is not the island's to name
+        return outbound.embeddedChrome ? withoutWindowCommands(inc) : inc
       }, (e) => { release(); throw e })
   }
 
@@ -21667,6 +21705,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
         consumedRoute: outbound.consumedRoute || '',
         serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
+        ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
         ...bodyExtra,
         route: bare ? `/${bare}` : '',
         actionId,
@@ -21899,15 +21938,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
     if (sub.baseUrl) base = sub.baseUrl
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
-    const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
+    const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
+      // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
+      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}) }
     // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
     // its actions and triggers still go to ITS baseUrl (outbound, below)
-    let next = reduceContexts(reg, sub.resolved || await loadRoute(base, sub.route, sub.id, {
+    const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
       ...extra,
       consumedRoute: sub.consumedRoute,
       serverSideType: sub.serverSideType,
       componentState: sub.componentState || {},
-    }))
+      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
+    })
+    let next = reduceContexts(reg, sub.chrome ? withoutWindowCommands(answer) : answer)
     next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
     for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
       const ctx = next.contexts[sub.id]
@@ -21916,7 +21959,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const increment = await runMateuAction(base, ctx, sub.route, triggerActionId, componentState, extra)
       if (increment) next = reduceContexts(next, increment)
     }
+    // an embedded island leaves the window as the HOST named it: its load does not take the host's
+    // title (nor its history push) away from the chains that apply them after loading the blocks
+    if (sub.chrome) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
     return next
+  }
+
+  /** The window effects of the registry an embedded island was loaded into: what the HOST's answer
+   *  said about the window (its title, its history push), kept across the island's own answers. */
+  function hostWindowEffectsOf(reg) {
+    const effects = (reg && reg.effects) || {}
+    return { docTitle: effects.docTitle == null ? null : effects.docTitle, urlPush: effects.urlPush == null ? null : effects.urlPush }
   }
 
   /**
@@ -22482,6 +22535,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           appState: md.appState || null,
           // the host resolved it (resolve = SERVER): the answer to its first load is already here
           resolved: md.resolved && typeof md.resolved === 'object' ? md.resolved : null,
+          // EMBEDDED (MicroFrontend.chrome): its requests say so (a header widget applies no commands)
+          chrome: embeddedChromeOf(md.chrome),
         })
         return
       }
@@ -22546,6 +22601,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       initiatorComponentId: item.id,
       componentState: (rt.ctx && rt.ctx.state) || {},
       appState: Object.assign({}, appState(), item.appState || {}),
+      ...(item.chrome ? { embeddedChrome: item.chrome } : {}),
       ...extra,
     }, { quiet: true, idempotent: true })
 

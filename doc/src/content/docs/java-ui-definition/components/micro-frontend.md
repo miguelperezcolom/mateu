@@ -32,6 +32,7 @@ MicroFrontend.builder()
 | `cssClasses` | String | — | CSS class names |
 | `resolve` | `Resolve` | `CLIENT` | Who asks the remote for the first paint: the renderer (`CLIENT`) or the host while it builds the view (`SERVER`). Experimental |
 | `timeoutMs` | Integer | the remote's | How long the host waits for it, with `resolve = SERVER`. Experimental |
+| `chrome` | `EmbeddedChrome` | — (top-level) | Makes it a block of this page instead of a page of its own: `NONE`, `COMPACT` or `PAGE` (see [Embedded: no page chrome](#embedded-no-page-chrome)). Experimental |
 
 ## Example: embedding a remote section
 
@@ -50,6 +51,42 @@ MicroFrontend.builder()
 - different teams own different parts of the UI
 - you want to embed a Mateu UI into a larger shell application
 - you need lazy-loading of independently deployed UI modules
+
+## Embedded: no page chrome (`chrome`)
+
+Without `chrome`, an embedded UI behaves as if it were the whole page: its header draws a breadcrumb
+from the host's menu and address, and every load renames the browser tab (and may push history or
+set the favicon) — the host page's own title loses. When the remote is just a **block** of the page
+(a widget, a section of an intranet page), set `chrome`:
+
+```java
+MicroFrontend.builder()
+    .baseUrl("/tools")
+    .route("/tools/list")
+    .chrome(EmbeddedChrome.COMPACT)
+    .build()
+```
+
+Any value makes it **embedded**:
+
+- the window stays the host page's: no `SetWindowTitle`, `SetFavicon` or `PushStateToHistory` from
+  the remote is applied, and a navigation inside it does not touch the address bar;
+- every request it sends (its load, its actions, its triggers) carries `embeddedChrome`, and a Mateu
+  server answering such a request sends none of those commands at all;
+- it draws no breadcrumb of its own.
+
+And it keeps as much of its page header as the value says:
+
+| `chrome` | Page header of the remote |
+|---|---|
+| `NONE` | none: no title, no actions — only the content |
+| `COMPACT` | only its actions (the toolbar), without the title |
+| `PAGE` | title and actions, without a breadcrumb |
+
+It works the same with `resolve = SERVER`: the host asks the remote as embedded, and the island keeps
+its chrome for every later interaction (which go from the browser straight to the remote). In YAML,
+`chrome: NONE` on a `MicroFrontend`. Both web renderers (Vaadin and Redwood) implement it; the .NET
+and Python ports do not have the option yet.
 
 ## Resolving it in the server (`resolve = SERVER`)
 

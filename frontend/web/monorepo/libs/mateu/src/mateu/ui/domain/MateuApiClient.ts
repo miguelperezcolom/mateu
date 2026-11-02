@@ -42,6 +42,12 @@ export interface RunActionOptions {
      * staleViewGuard.ts.
      */
     isStale?: () => boolean
+    /**
+     * Sent by an EMBEDDED micro frontend (`MicroFrontend.chrome`): NONE, COMPACT or PAGE. Travels as
+     * the request's `embeddedChrome`, so the remote's server sends no window commands (title,
+     * history, favicon) — the window belongs to the host page. Undefined for a top-level request.
+     */
+    embeddedChrome?: string
 }
 
 export interface MateuApiClient {

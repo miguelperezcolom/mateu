@@ -1,6 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import MicroFrontend from "@mateu/shared/apiClients/dtos/componentmetadata/MicroFrontend";
 import { html, nothing } from "lit";
+import { chromeOf } from "@infra/ui/embeddedChrome.ts";
 
 /**
  * A STABLE id for the embedded micro-frontend's mateu-ux, derived from what it points at (base url +
@@ -34,6 +35,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
                   serverSideType="${metadata.serverSideType}"
                   .appState="${metadata.appState}"
                   .preloaded="${metadata.resolved}"
+                  embedded-chrome="${chromeOf(metadata.chrome) ?? nothing}"
                   style="${component.style}" class="${component.cssClasses}"
                   slot="${component.slot??nothing}"
         ></mateu-ux>

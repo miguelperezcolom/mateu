@@ -2086,6 +2086,9 @@
     }, {
       "name" : "timeoutMs",
       "type" : "integer"
+    }, {
+      "name" : "chrome",
+      "type" : "NONE | COMPACT | PAGE"
     } ]
   }, {
     "type" : "NotFound",
