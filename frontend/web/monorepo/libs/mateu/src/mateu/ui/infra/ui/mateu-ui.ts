@@ -7,7 +7,7 @@ import './mateu-debug-overlay'
 import {Subscription} from "rxjs";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
-import {installHistoryIndex, notePopState, stay} from "@infra/ui/historyIndex.ts";
+import {installHistoryIndex, isListingEntry, notePopState, stay} from "@infra/ui/historyIndex.ts";
 import {registerNeutralNotifier} from "@infra/notify/neutralNotifier.ts";
 import {mountConnectivityBanner} from "@infra/ui/mateu-connectivity-banner.ts";
 import {installAnnouncer} from "@infra/a11y/announcer.ts";
@@ -16,7 +16,7 @@ import {loadBundleManifest} from "@infra/http/bundleStore.ts";
 import {installClientErrorReporting} from "@infra/http/clientErrorReporter.ts";
 import {mirrorThemeAttribute} from "@infra/theme/themeScope.ts";
 import {nanoid} from "nanoid";
-import { nextHistoryUrl, routeTargetUrl, isScreenChange } from './navigationUrl'
+import { nextHistoryUrl, routeTargetUrl, isScreenChange, isListingMove } from './navigationUrl'
 import { keyed } from 'lit/directives/keyed.js'
 import { applyUiLanguage } from '@infra/ui/chromeTexts.ts'
 import { installLiveReload } from '@infra/dev/liveReload.ts'
@@ -24,7 +24,7 @@ import { installPrintSupport } from '@infra/ui/documents.ts'
 import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
 import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
 import { routeQueryOf } from '@infra/ui/routeQuery.ts'
-import { announceUrlChange } from '@infra/ui/urlChanges.ts'
+import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
 import { startTabSessionClaim } from '@infra/http/tabSession.ts'
 
 // A duplicated tab copied this tab's sessionStorage, its UI session id included: find out FIRST
@@ -173,6 +173,13 @@ export class MateuUi extends LitElement {
                 return
             }
             const w = e.target as Window
+            // Between two states of the listing on screen: the listing searches again on its own;
+            // rebuilding the screen would re-mount the app and reload the route for a page change.
+            if (isListingMove(moved.from, isListingEntry(e.state), w.location)) {
+                this._lastUrl = w.location.href
+                announceUrlChange()
+                return
+            }
             // Back/forward to another screen is a fresh load: rebuild the tree instead of letting
             // the top-level ux keep a nested screen whose URL it never knew (see isScreenChange).
             if (isScreenChange(this._lastUrl, w.location)) {
@@ -212,9 +219,14 @@ export class MateuUi extends LitElement {
         }
 
         this.addEventListener('url-update-requested', this.routeChangedListener)
+        // a listing writes its page/sort/filters into the URL itself: follow it, or the "stay" of a
+        // refused Back and the screen-change test compare with a URL the user already left
+        window.addEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
         this.addEventListener('navigate-to-requested', this.navigateToRequestedListener)
         this.addEventListener('action-requested', this.unclaimedActionListener)
     }
+
+    urlChangedListener = () => { this._lastUrl = window.location.href }
 
     // an action that reached the ROOT was claimed by nobody: say so instead of losing it silently
     unclaimedActionListener = (e: Event) => {
@@ -228,6 +240,7 @@ export class MateuUi extends LitElement {
         this._themeMirrorDisposer?.()
         this.upstreamSubscription?.unsubscribe()
         this.removeEventListener('url-update-requested', this.routeChangedListener)
+        window.removeEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
         this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
         this.removeEventListener('action-requested', this.unclaimedActionListener)
     }

@@ -102,6 +102,7 @@ export class MateuFilterBar extends LitElement {
     private openPanel = () => {
         if (this.panelOpened || this.filters.length === 0) return
         this.panelOpened = true
+        this.panelSession++
         this.attachOutsideClick((e: Event) => {
             if (!e.composedPath().includes(this)) this.closePanel()
         })
@@ -115,10 +116,13 @@ export class MateuFilterBar extends LitElement {
 
     // ── applying/removing conditions ─────────────────────────────────────────
 
-    private requestSearch() {
+    /** Counts panel openings: the toggles of one opening are one run (one history entry). */
+    private panelSession = 0
+
+    private requestSearch(history?: 'replace') {
         this.closePanel()
         this.dispatchEvent(new CustomEvent('search-requested', {
-            detail: {},
+            detail: history ? { history } : {},
             bubbles: true,
             composed: true
         }))
@@ -213,7 +217,7 @@ export class MateuFilterBar extends LitElement {
         return values
     }
 
-    private applyView(view: SavedView) {
+    private applyView(view: SavedView, history?: 'replace') {
         // clear everything first (one reset event), then set the view's values, then search
         const fieldIds = this.allFilterKeys()
         const cleared: Record<string, any> = {}
@@ -227,7 +231,7 @@ export class MateuFilterBar extends LitElement {
         Object.entries(view.values).forEach(([key, value]) => this.emitValueChanged(key, value))
         this.viewsOpened = false
         this.detachOutsideClick()
-        this.requestSearch()
+        this.requestSearch(history)
     }
 
     private saveCurrentView(input: HTMLInputElement) {
@@ -246,7 +250,8 @@ export class MateuFilterBar extends LitElement {
         // wait a tick so the host finishes wiring its listeners
         setTimeout(() => {
             const anySet = !!this.state.searchText || this.filters.some(field => this.isSet(field))
-            if (!anySet) this.applyView(view)
+            // the page the user opened, with its default view on: not a step in the history
+            if (!anySet) this.applyView(view, 'replace')
         }, 0)
     }
 
@@ -386,9 +391,10 @@ export class MateuFilterBar extends LitElement {
                 ? selected.filter(v => v !== value)
                 : [...selected, value]
             this.emitValueChanged(field.fieldId, next.length > 0 ? next : undefined)
-            // search right away but keep the panel open so several values can be picked in a row
+            // search right away but keep the panel open so several values can be picked in a row —
+            // one history entry for the whole run (the listing folds the next picks into it)
             this.dispatchEvent(new CustomEvent('search-requested', {
-                detail: {},
+                detail: { burst: `${field.fieldId}:${this.panelSession}` },
                 bubbles: true,
                 composed: true
             }))

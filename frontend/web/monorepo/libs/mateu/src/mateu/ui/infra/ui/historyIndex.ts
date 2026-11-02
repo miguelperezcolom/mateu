@@ -14,17 +14,25 @@
  */
 
 const KEY = '__mateuIdx'
+/** Same value as listingUrlScope.LISTING_ENTRY (kept here so this module imports nothing). */
+const LISTING = '__mateuListing'
 
 type Win = Pick<Window, 'history' | 'location'>
 
 let installedOn: Win | undefined
-let current = { idx: 0, href: '' }
+type Entry = { idx: number, href: string, listing?: boolean }
+
+let current: Entry = { idx: 0, href: '' }
 let swallow = 0
 
 const indexOf = (state: unknown): number | undefined => {
     const v = state && typeof state === 'object' ? (state as Record<string, unknown>)[KEY] : undefined
     return typeof v === 'number' ? v : undefined
 }
+
+/** Whether a listing wrote this entry (its filters, page, sort). */
+export const isListingEntry = (state: unknown): boolean =>
+    !!state && typeof state === 'object' && (state as Record<string, unknown>)[LISTING] === true
 
 const withIndex = (state: unknown, idx: number) =>
     ({ ...(state && typeof state === 'object' ? (state as object) : {}), [KEY]: idx })
@@ -37,16 +45,16 @@ export const installHistoryIndex = (win: Win = window): void => {
     const push = h.pushState.bind(h)
     const replace = h.replaceState.bind(h)
     const existing = indexOf(h.state)
-    current = { idx: existing ?? 0, href: win.location.href }
+    current = { idx: existing ?? 0, href: win.location.href, listing: isListingEntry(h.state) }
     if (existing === undefined) replace(withIndex(h.state, 0), '')
     h.pushState = (state: unknown, unused: string, url?: string | URL | null) => {
         const idx = current.idx + 1
         push(withIndex(state, idx), unused, url)
-        current = { idx, href: win.location.href }
+        current = { idx, href: win.location.href, listing: isListingEntry(state) }
     }
     h.replaceState = (state: unknown, unused: string, url?: string | URL | null) => {
         replace(withIndex(state, current.idx), unused, url)
-        current = { idx: current.idx, href: win.location.href }
+        current = { idx: current.idx, href: win.location.href, listing: isListingEntry(state) }
     }
 }
 
@@ -54,10 +62,10 @@ export const installHistoryIndex = (win: Win = window): void => {
  * A popstate happened: where the user came FROM (index + URL) and where they are now. `null` when
  * this popstate is the echo of our own {@link stay} and must be ignored.
  */
-export const notePopState = (state: unknown, win: Win = window): { from: { idx: number, href: string }, to?: number } | null => {
+export const notePopState = (state: unknown, win: Win = window): { from: Entry, to?: number } | null => {
     const from = current
     const to = indexOf(state)
-    current = { idx: to ?? current.idx, href: win.location.href }
+    current = { idx: to ?? current.idx, href: win.location.href, listing: isListingEntry(state) }
     if (swallow > 0) {
         swallow--
         return null

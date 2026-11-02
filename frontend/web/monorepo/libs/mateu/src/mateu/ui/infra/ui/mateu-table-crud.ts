@@ -1,4 +1,4 @@
-import { URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
+import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
 import { hasSelection, requiresSelection, SELECTION_CHANGED_EVENT } from "@infra/ui/selectionGate";
 import { byLine } from './listingLines'
 import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
@@ -41,6 +41,7 @@ import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
 import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.ts';
 import { IDS_PARAM, SEARCH_ALIAS, SEARCH_PARAM } from '@infra/ui/idSetFilter.ts';
+import { LISTING_ENTRY, listingUrlPrefix, ownParams, ownQueryText, registerListing, unregisterListing, withOwnParams } from '@infra/ui/listingUrlScope.ts';
 import { sortDirectionOf } from '@infra/ui/sortDirection.ts';
 import { isListingOwnLoad } from '@infra/http/localRequests.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
@@ -488,6 +489,7 @@ export class MateuTableCrud extends LitElement {
         this.addEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
         window.addEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
         window.addEventListener('popstate', this._onPopState)
+        registerListing(this)
     }
 
     // the URL moved under this listing: updated() compares it with the one it applied
@@ -505,6 +507,7 @@ export class MateuTableCrud extends LitElement {
         this.removeEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
         window.removeEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
         window.removeEventListener('popstate', this._onPopState)
+        unregisterListing(this)
     }
 
     /**
@@ -567,13 +570,28 @@ export class MateuTableCrud extends LitElement {
         return isListingOwnLoad('search', !!rows?.length) || undefined
     }
 
-    search = () => {
+    search = (e?: Event) => this._runSearch(e)
+
+    /** The filter bar's search (Enter, a chip, Apply, a toggle): page 0, the URL, the rows. */
+    private _runSearch(e?: Event) {
         this.beginLoading()
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state = { ...this.state, size: this._pageSizeOf(metadata), page: 0, crud_selected_items: [] }
         // the selection was just reset: selection-gated toolbar buttons (here and in the page header)
         this.dispatchEvent(new CustomEvent(SELECTION_CHANGED_EVENT, { bubbles: true, composed: true }))
-        this._syncStateToUrl(metadata)
+        // the filter bar says how this search goes into the history: `replace` (a default view
+        // applied on opening — the page the user opened, not a step), or a `burst` (several picks
+        // in one multi-select panel — one entry for the run)
+        const detail = (e as CustomEvent | undefined)?.detail as { history?: string, burst?: string } | undefined
+        const write = this._urlWrite
+        if (detail?.history === 'replace') this._urlWrite = 'replace'
+        this._burst = detail?.burst
+        try {
+            this._syncStateToUrl(metadata)
+        } finally {
+            this._urlWrite = write
+            this._burst = undefined
+        }
         // This is what the filter bar calls — Enter on the search box, a chip added or removed,
         // Apply on a range. A listing reading an external endpoint has no server `search` action to
         // dispatch to (a definition-only page has no view model at all), so the request went nowhere
@@ -611,25 +629,32 @@ export class MateuTableCrud extends LitElement {
         ])
     }
 
+    /** This listing's query keys (bare; prefixed in the URL when another listing owns the bare ones). */
+    private _ownKeys(metadata: Crud): string[] {
+        return [...this._filterIds(metadata), 'page', 'sort']
+    }
+
+    /** Path + this listing's own params: what it compares to tell its URL moved (not another listing's). */
+    private _ownUrl(metadata: Crud): string {
+        const prefix = listingUrlPrefix(this, this.id)
+        const own = ownQueryText(window.location.search, prefix, this._ownKeys(metadata))
+        return own ? `${window.location.pathname}?${own}` : window.location.pathname
+    }
+
     private _syncStateToUrl(metadata: Crud) {
         const filterIds = this._filterIds(metadata)
-        const params = new URLSearchParams(window.location.search)
-
-        filterIds.forEach(id => params.delete(id))
-        // a link may say ?q= for the search text; once the listing owns the URL it writes searchText
-        params.delete(SEARCH_ALIAS)
-        params.delete('page')
-        params.delete('sort')
+        const prefix = listingUrlPrefix(this, this.id)
+        const values: Record<string, string> = {}
 
         filterIds.forEach(id => {
             const value = this.state[id]
             if (value !== undefined && value !== null && value !== '') {
-                params.set(id, String(value))
+                values[id] = String(value)
             }
         })
 
         const page = this.state.page as number | undefined
-        if (page && page > 0) params.set('page', String(page))
+        if (page && page > 0) values.page = String(page)
 
         const sort = this.state.sort as Array<{fieldId: string, direction: string}> | undefined
         if (sort && sort.length > 0) {
@@ -637,20 +662,39 @@ export class MateuTableCrud extends LitElement {
                 .filter(s => s.fieldId && s.direction)
                 .map(s => `${s.fieldId}:${s.direction}`)
                 .join(',')
-            if (sortStr) params.set('sort', sortStr)
+            if (sortStr) values.sort = sortStr
         }
 
-        const search = params.toString()
+        // a link may say ?q= for the search text; once the listing owns the URL it writes searchText
+        const base = new URLSearchParams(window.location.search)
+        if (prefix === '') base.delete(SEARCH_ALIAS)
+        const search = withOwnParams(base.toString(), prefix, this._ownKeys(metadata), values)
         const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname
-        if (window.location.pathname + window.location.search !== newUrl) {
+        const here = window.location.pathname + window.location.search
+        if (here !== newUrl) {
             // A page, a sort, a filter or a search the user asked for is a history entry: Back
             // returns to the previous one (the listing re-reads the URL — see updated()), as the
-            // filters doc promises. Re-stating what the URL already asked for, on a load, is not.
-            if (this._urlWrite === 'replace') history.replaceState(history.state, '', newUrl)
-            else history.pushState(history.state, '', newUrl)
+            // filters doc promises. Re-stating what the URL already asked for, on a load, is not;
+            // nor is the next pick of a run of multi-select toggles (one entry for the run).
+            // The entry says it is the listing's: mateu-ui leaves a Back between two of them to
+            // the listing (which re-searches) instead of rebuilding the whole screen.
+            const entry = { ...(history.state ?? {}), [LISTING_ENTRY]: true }
+            const folds = this._burst !== undefined && this._burst === this._lastBurst && this._lastWrittenUrl === here
+            if (this._urlWrite === 'replace' || folds) history.replaceState(entry, '', newUrl)
+            else history.pushState(entry, '', newUrl)
+            this._lastWrittenUrl = window.location.pathname + window.location.search
+            // the shell follows the address bar (mateu-ui._lastUrl)
+            announceUrlChange()
         }
-        this._appliedUrl = window.location.pathname + window.location.search
+        this._lastBurst = this._burst
+        this._appliedUrl = this._ownUrl(metadata)
     }
+
+    /** The run of toggles the current search belongs to (a multi-select panel), if any. */
+    private _burst: string | undefined = undefined
+    private _lastBurst: string | undefined = undefined
+    /** The URL this listing's last history write left: a toggle run only folds into its own entry. */
+    private _lastWrittenUrl: string | undefined = undefined
 
     /** How the next URL write goes: `push` for the user's own changes, `replace` while (re)loading. */
     private _urlWrite: 'push' | 'replace' = 'push'
@@ -663,11 +707,14 @@ export class MateuTableCrud extends LitElement {
 
     /** The URL's params, with the ?q= alias read as the search text it stands for. */
     private _urlParams(): URLSearchParams {
-        const params = new URLSearchParams(window.location.search)
-        if (params.has(SEARCH_ALIAS) && !params.has(SEARCH_PARAM)) {
-            params.set(SEARCH_PARAM, params.get(SEARCH_ALIAS) ?? '')
+        const metadata = (this.component as ClientSideComponent | undefined)?.metadata as Crud | undefined
+        const prefix = listingUrlPrefix(this, this.id)
+        const params = ownParams(window.location.search, prefix,
+            metadata ? this._ownKeys(metadata) : [SEARCH_PARAM, IDS_PARAM, 'page', 'sort'])
+        const all = new URLSearchParams(window.location.search)
+        if (prefix === '' && all.has(SEARCH_ALIAS) && !params.has(SEARCH_PARAM)) {
+            params.set(SEARCH_PARAM, all.get(SEARCH_ALIAS) ?? '')
         }
-        params.delete(SEARCH_ALIAS)
         return params
     }
 
@@ -928,15 +975,17 @@ export class MateuTableCrud extends LitElement {
             && !this.awaitingRows && listingSearchesOnLoad(this)) this.beginLoading()
         // Not only when the component changed: the same listing reached again with another query
         // can come back as the very same component object (an unchanged parent binds nothing new).
+        // Its OWN params only: another listing on the page writing its keys is not "the URL moved".
         const loc = (globalThis as { window?: { location?: Location } }).window?.location
-        const queryMoved = !!loc && this._appliedUrl !== undefined
-            && loc.pathname + loc.search !== this._appliedUrl
+        const crud = this.component?.metadata as Crud | undefined
+        const queryMoved = !!loc && !!crud && this._appliedUrl !== undefined
+            && this._ownUrl(crud) !== this._appliedUrl
             && loc.pathname === this._appliedUrl.split('?')[0]
         if (_changedProperties.has("component") || queryMoved) {
             const initKey = MateuTableCrud._initKeyOf(this.component)
             const metadata = this.component?.metadata as Crud
             const location = (globalThis as { window?: { location?: Location } }).window?.location
-            const urlNow = location ? location.pathname + location.search : undefined
+            const urlNow = location && metadata ? this._ownUrl(metadata) : undefined
             // The same listing reached again with another query — the assistant opening it with
             // ?status=Cancelled or ?ids=A,B while it was already on screen, a link, back/forward:
             // the URL now asks for different filters than the ones this listing applied, so it
