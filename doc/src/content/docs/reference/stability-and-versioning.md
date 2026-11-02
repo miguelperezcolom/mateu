@@ -239,7 +239,7 @@ same concepts.
 - `io.mateu.uidl.data.Calendar`: `dayActionId`, `days`, `view`, `views`
 - `io.mateu.uidl.data.CalendarEvent`: `endDate`, `endTime`, `startTime`
 - `io.mateu.uidl.data.FieldLink`: `presentation`
-- `io.mateu.uidl.data.FoldoutPanel`: `summary`
+- `io.mateu.uidl.data.FoldoutPanel`: `autoOpen`, `summary`
 - `io.mateu.uidl.data.GridColumn`: `tones`
 - `io.mateu.uidl.data.HeroSection`: `overline`, `tone`
 - `io.mateu.uidl.data.Kanban`: `card`, `cardColors`, `cardRoute`, `columnField`, `moveActionId`, `orderField`, `rowsSource`

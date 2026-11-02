@@ -18,7 +18,8 @@
           "subtitle" : null,
           "icon" : null,
           "open" : false,
-          "width" : null
+          "width" : null,
+          "autoOpen" : true
         }, {
           "title" : "Profile",
           "subtitle" : null,

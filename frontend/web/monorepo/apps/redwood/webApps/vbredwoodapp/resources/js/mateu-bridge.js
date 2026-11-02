@@ -3041,6 +3041,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // HEADER (read from the live content by index, refreshes without re-stamping)
         headerLabel: (panel.title || '') + (panel.subtitle ? ' · ' + panel.subtitle : ''),
         open: panel.open !== false,
+        // no `open:` authored: open while it fits the row (poc/foldouts.mjs foldoutOpenStates)
+        autoOpen: panel.autoOpen === true,
         // EXPLICIT width from the wire (FoldoutPanel.width): the markup pins the panel to that
         // size — without it, the foldout's responsive engine distributes as it likes and the
         // cockpit cards overlap
@@ -6024,14 +6026,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       // FOLDOUT INSIDE A TAB (the page one is painted by oj-sp-foldout-layout, foldoutOf): the
       // overview in its place and each panel as a collapsible panel — its title and, when open, its
-      // content; the panels open by default (open) are respected
+      // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
+      // authored) opens — stacked, it never runs out of row
       if (t === 'FoldoutLayout' && tabScope) {
         const bySlot = {}
         for (const child of node.children || []) bySlot[child.slot || ''] = child
         if (bySlot.overview) visit(bySlot.overview, container)
         ;(m.panels || []).forEach((panel, i) => {
           const key = 'fold:' + (node.id || 'foldout') + ':' + i
-          const expanded = panelExpanded(key, panel.open !== false)
+          const expanded = panelExpanded(key, panel.autoOpen === true || panel.open !== false)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
           const content = bySlot['panel-' + i]
           if (expanded && content) visit(content, container)
@@ -15753,6 +15756,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // selection unfolds it: selecting the strip — click, keyboard focus, page dot — unfolds the panel
   // and brings it into view. Open panels are not touched. Unfolded panels stay unfolded while the page is the same (an action re-projects the
   // foldout); a navigation starts over, as a fresh page does on the web renderer.
+  //
+  // A panel with autoOpen (a YAML panel whose author wrote no `open:`) is open while it fits the row
+  // and folded otherwise — foldoutOpenStates, the rule of conformance/client/foldout-auto.json, run
+  // against the layout's width on every paint and on resize. Unfolding one by hand wins until the page
+  // changes.
 
 
   const FOLDED_CLASS = 'mateu-foldout-folded'
@@ -15760,6 +15768,66 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const PANEL_CONTAINER = 'oj-sp-foldout-layout-panel-container'
 
   const unfolded = new Set()
+  // keys of the autoOpen panels that do NOT fit the row right now (recomputed from the layout width)
+  const autoFolded = new Set()
+
+  // Redwood's measures (main-start-page.html / app.css): the 25rem overview, a 4rem folded strip;
+  // a panel without a wire width is counted at 22rem, the web renderers' default column
+  const REDWOOD_FIT = { overviewPx: 400, stripPx: 64, defaultPanelPx: 352, remPx: 16, gapPx: 0 }
+
+  /** A panel's CSS width in px: px / rem / em / a bare number / % of the row; else null. */
+  function foldoutWidthPx(width, available, remPx = 16) {
+    const m = /^(\d+(?:\.\d+)?)(px|rem|em|%)?$/.exec(String(width ?? '').trim())
+    if (!m) return null
+    const n = Number.parseFloat(m[1])
+    if (m[2] === 'rem' || m[2] === 'em') return n * remPx
+    if (m[2] === '%') return n * available / 100
+    return n
+  }
+
+  /**
+   * Which panels are open on first paint (conformance/client/foldout-auto.json, the same rule as
+   * libs/mateu foldoutGeometry.ts): an autoOpen panel opens while it fits `available` px, in
+   * declaration order; any other follows `open`. The overview, the panels declared open and every
+   * folded strip are counted first; each auto panel then takes its width in place of its strip.
+   * An unknown width (null / <= 0) opens every auto panel.
+   */
+  function foldoutOpenStates(panels, available, options = {}) {
+    const list = panels || []
+    const o = { overviewPx: 400, stripPx: 48, defaultPanelPx: 352, remPx: 16, gapPx: 0, ...options }
+    const auto = (p) => p?.autoOpen === true
+    if (available == null || available <= 0) return list.map((p) => auto(p) || p?.open !== false)
+    const widthOf = (p) => foldoutWidthPx(p?.width, available, o.remPx) ?? o.defaultPanelPx
+    let used = o.overviewPx
+    for (const p of list) used += o.gapPx + (!auto(p) && p?.open !== false ? widthOf(p) : o.stripPx)
+    return list.map((p) => {
+      if (!auto(p)) return p?.open !== false
+      const grown = used - o.stripPx + widthOf(p)
+      if (grown > available) return false
+      used = grown
+      return true
+    })
+  }
+
+  /** Re-decides the autoOpen panels against the layout's width (px). */
+  function fitAutoPanels(foldout, available) {
+    autoFolded.clear()
+    const panels = (foldout && foldout.panels) || []
+    foldoutOpenStates(panels, available, REDWOOD_FIT).forEach((open, i) => {
+      if (!open && panels[i]?.autoOpen === true) autoFolded.add(foldoutPanelKey(panels[i], i))
+    })
+  }
+
+  /** The layout's width in px (oj-sp-foldout-layout is an inline element: clientWidth reads 0). */
+  function rowWidthOf(layout) {
+    const width = layout?.getBoundingClientRect?.().width ?? 0
+    return width > 0 ? width : null
+  }
+
+  /** A panel that may be folded: declared `open: false`, or autoOpen. */
+  function foldable(panel) {
+    return panel?.open === false || panel?.autoOpen === true
+  }
 
   /** The identity of a wire panel across re-projections of the same page: position + title. */
   function foldoutPanelKey(panel, index) {
@@ -15769,12 +15837,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** A new page: every `open: false` panel starts folded again. */
   function resetFoldoutFolds() {
     unfolded.clear()
+    autoFolded.clear()
   }
 
   /** Whether the wire panel `index` of the projection is folded right now. */
   function isPanelFolded(foldout, index) {
     const panel = ((foldout && foldout.panels) || [])[index]
-    return !!panel && panel.open === false && !unfolded.has(foldoutPanelKey(panel, index))
+    if (!panel || unfolded.has(foldoutPanelKey(panel, index))) return false
+    return panel.autoOpen === true ? autoFolded.has(foldoutPanelKey(panel, index)) : panel.open === false
   }
 
   /** The indexes (wire order) of the panels folded right now. */
@@ -15826,15 +15896,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (containers.length < panels.length + offset) return false
     layout.__mateuFoldout = foldout
     wireSelection(layout)
+    if (panels.some((p) => p?.autoOpen === true)) fitAutoPanels(foldout, rowWidthOf(layout))
     panels.forEach((panel, i) => {
       const container = containers[i + offset]
       const element = container && panelOf(container)
       if (!element) return
       const folded = isPanelFolded(foldout, i)
       element.classList.toggle(FOLDED_CLASS, folded)
-      if (panel.open === false) container.setAttribute('aria-expanded', folded ? 'false' : 'true')
+      if (foldable(panel)) container.setAttribute('aria-expanded', folded ? 'false' : 'true')
       if (folded) container.setAttribute('title', chromeText('foldoutUnfold', { title: panel.title || '' }))
-      else if (panel.open === false) container.removeAttribute('title')
+      else if (foldable(panel)) container.removeAttribute('title')
     })
     return true
   }
@@ -15843,6 +15914,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function wireSelection(layout) {
     if (layout.__mateuFoldWired) return
     layout.__mateuFoldWired = true
+    // the row's width decides the autoOpen panels: re-fit when it changes (a window resize, the
+    // navigation drawer opening)
+    if (typeof ResizeObserver !== 'undefined') {
+      let last = rowWidthOf(layout)
+      new ResizeObserver(() => {
+        const width = rowWidthOf(layout)
+        if (width === last) return
+        last = width
+        const foldout = layout.__mateuFoldout
+        if ((foldout?.panels || []).some((p) => p?.autoOpen === true)) applyFoldoutFolds(layout, foldout)
+      }).observe(layout.parentElement || layout) // an inline element's own box never resizes
+    }
     layout.addEventListener('selectedPanelChanged', (e) => {
       const foldout = layout.__mateuFoldout
       const index = wirePanelIndexOf(e && e.detail ? e.detail.value : layout.selectedPanel, foldout)
@@ -15858,11 +15941,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
+  /**
+   * Whether a vertical wheel over an open panel is the PANEL's own scroll: Spectra's layout fixes every
+   * panel to the row height and takes the wheel for its carousel, so a panel taller than the window
+   * (a grid of cards) could not be read to the end — app.css lets the open panel scroll inside, and
+   * this keeps the wheel for it while it still has room that way.
+   */
+  function panelWheelIsNative(container, deltaX, deltaY) {
+    if (!container || Math.abs(deltaY) <= Math.abs(deltaX)) return false
+    const room = deltaY > 0 ? container.scrollHeight - container.clientHeight - container.scrollTop : container.scrollTop
+    return room > 1
+  }
+
+  let panelScrollInstalled = false
+
+  /** Leaves a vertical wheel over a scrollable open panel to the panel (once per document). */
+  function installFoldoutPanelScroll() {
+    if (panelScrollInstalled || typeof document === 'undefined') return
+    panelScrollInstalled = true
+    document.addEventListener('wheel', (event) => {
+      const target = event.target
+      const container = target && target.closest ? target.closest('#' + LAYOUT_ID + ' .' + PANEL_CONTAINER) : null
+      if (panelWheelIsNative(container, event.deltaX, event.deltaY)) event.stopPropagation()
+    }, { capture: true, passive: true })
+  }
+
   /** Applies the folds once VB has painted the foldout. `fresh` = a new page (folds start over). */
   function applyFoldoutFoldsSoon(foldout, { fresh = false, frames = 60 } = {}) {
     if (fresh) resetFoldoutFolds()
     if (!foldout || typeof document === 'undefined') return
-    if (!(foldout.panels || []).some((p) => p && p.open === false)) return
+    installFoldoutPanelScroll()
+    if (!(foldout.panels || []).some(foldable)) return
     let left = frames
     const tick = () => {
       if (applyFoldoutFolds(document.getElementById(LAYOUT_ID), foldout)) return

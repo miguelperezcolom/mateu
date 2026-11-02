@@ -692,6 +692,7 @@ Mateu.Uidl.FoldoutPanel ctor()
 Mateu.Uidl.FoldoutPanel property Mateu.Uidl.IComponent Content { get;init; }
 Mateu.Uidl.FoldoutPanel property Mateu.Uidl.IComponent Summary { get;init; }
 Mateu.Uidl.FoldoutPanel property System.Boolean Open { get;init; }
+Mateu.Uidl.FoldoutPanel property System.Boolean? AutoOpen { get;init; }
 Mateu.Uidl.FoldoutPanel property System.String Icon { get;init; }
 Mateu.Uidl.FoldoutPanel property System.String Subtitle { get;init; }
 Mateu.Uidl.FoldoutPanel property System.String Title { get;init; }

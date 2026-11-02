@@ -1129,6 +1129,9 @@
     }, {
       "name" : "summary",
       "type" : "Component"
+    }, {
+      "name" : "autoOpen",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "Form",

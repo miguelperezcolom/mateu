@@ -24,6 +24,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   actions. Without `chrome`, nothing changes. Wire: `MicroFrontend.chrome` and
   `RunActionRqDto.embeddedChrome`, both optional.
 
+- **A foldout panel whose author did not decide is open while it fits** (YAML, all renderers). A
+  `FoldoutPanel` with no `open:` now reaches the wire as `autoOpen: true` (`FoldoutPanel.autoOpen`,
+  `@Experimental`; .NET `AutoOpen`, Python `auto_open`) instead of a silent `open: false`: the
+  renderer opens such panels in declaration order while the row has room for each (its `width`,
+  else 22rem, after the overview, the panels declared open and a strip per other panel), folds the
+  rest, re-decides on resize, and a hand toggle wins until the next page. A museum exhibition at
+  1600px used to show "Loans" and "Budget and visitors" folded beside empty space. `open: true/false`
+  and every Java panel are unchanged. One rule in libs/mateu, Redwood, React Native and IntelliJ,
+  pinned by `conformance/client/foldout-auto.json`; the browser expander applies the same default.
 - **A crud's edit and creation forms render the editor's own `@Button`s** (Java). They sit under the
   form — in the drawer's bottom row, before Cancel/Save — and are the actions that only make sense
   while editing (insert a medium into the text, translate it, refresh a preview). Like save, they
@@ -35,6 +44,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   refused (403). They used to be dropped: the form showed only Cancel/Save, and an editor method
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
+
+- **Redwood: a foldout panel taller than the window can be read to the end.** Spectra fixes every
+  panel to the row's height and takes the wheel for its carousel, so "The works" of a museum
+  exhibition (a grid of cards) was cut at the bottom with no way to reach its last rows. An open panel
+  now scrolls inside, and the wheel over it scrolls the panel while it has room before paging the row
+  (`poc/foldouts.mjs` `installFoldoutPanelScroll`). The Vaadin shell already grew the panels.
 
 - **Redwood: a field's help (`@Help`, a `DescriptionSupplier`) is shown.** The server sends it as the
   field's `description` and Vaadin draws it as helper text under the field; Redwood dropped it. It is

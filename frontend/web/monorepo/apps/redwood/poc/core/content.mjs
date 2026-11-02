@@ -1083,14 +1083,15 @@ export function islandContentOf(ctx, opts = {}) {
     }
     // FOLDOUT INSIDE A TAB (the page one is painted by oj-sp-foldout-layout, foldoutOf): the
     // overview in its place and each panel as a collapsible panel — its title and, when open, its
-    // content; the panels open by default (open) are respected
+    // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
+    // authored) opens — stacked, it never runs out of row
     if (t === 'FoldoutLayout' && tabScope) {
       const bySlot = {}
       for (const child of node.children || []) bySlot[child.slot || ''] = child
       if (bySlot.overview) visit(bySlot.overview, container)
       ;(m.panels || []).forEach((panel, i) => {
         const key = 'fold:' + (node.id || 'foldout') + ':' + i
-        const expanded = panelExpanded(key, panel.open !== false)
+        const expanded = panelExpanded(key, panel.autoOpen === true || panel.open !== false)
         atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
         const content = bySlot['panel-' + i]
         if (expanded && content) visit(content, container)
