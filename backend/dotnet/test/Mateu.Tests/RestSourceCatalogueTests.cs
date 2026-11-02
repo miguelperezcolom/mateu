@@ -49,8 +49,29 @@ public class SuppliedSourcesView : IRestSourceSupplier
     ];
 }
 
+/// <summary>A listing AND a live board, both proxied ROWS sources: the board's fetch names its id.</summary>
+public class TwoRowsSourcesView : IRestSourceSupplier
+{
+    public IReadOnlyList<DeclaredRestSource> DeclaredRestSources() =>
+    [
+        new(RestSourceKind.Rows, "listing", new RestDataSource { Url = "https://api.example.com/listing", Proxy = true }),
+        new(RestSourceKind.Rows, "board", new RestDataSource { Url = "https://api.example.com/board", Proxy = true }),
+    ];
+}
+
 public class RestSourceCatalogueTests
 {
+    [Fact]
+    public void A_rows_fetch_names_its_source_when_a_page_has_two()
+    {
+        // the one NAMED first (mirrors Java RestSourceResolver): the board got the listing's rows
+        var view = new TwoRowsSourcesView();
+        Assert.Equal("https://api.example.com/board",
+            ReflectionMapper.ResolveRestSource(typeof(TwoRowsSourcesView), view, "rows", "board")!.Url);
+        Assert.Equal("https://api.example.com/listing",
+            ReflectionMapper.ResolveRestSource(typeof(TwoRowsSourcesView), view, "rows", "")!.Url);
+    }
+
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private static readonly string Dir = Path.Combine(AppContext.BaseDirectory, "catalogue-specs");
 

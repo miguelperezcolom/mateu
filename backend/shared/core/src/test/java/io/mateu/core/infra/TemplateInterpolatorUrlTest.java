@@ -62,6 +62,14 @@ class TemplateInterpolatorUrlTest {
         .isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> url("https://${state.host}/people", Map.of("host", "evil")))
         .isInstanceOf(IllegalArgumentException.class);
+    // every other spelling that reads the state is refused too, not only `state.`
+    for (var spelling :
+        java.util.List.of(
+            "${String(state.host)}", "${(state.host)}", "${state['host']}", "${host}")) {
+      assertThatThrownBy(() -> url(spelling + "/p", Map.of("host", "http://evil")))
+          .as(spelling)
+          .isInstanceOf(IllegalArgumentException.class);
+    }
   }
 
   @Test

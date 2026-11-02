@@ -220,7 +220,66 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   re-rendering on a YAML edit, an IDE reload or a restart. The meaning of each event is a shared
   corpus, `conformance/client/live-reload.json`, run by the web, React Native and IntelliJ suites.
 
+### Fixed (security — final independent review)
+
+- **A `@ReadOnly` `EditableView`/`AutoEditableView` refuses writes, not only its Edit button** (H1).
+  The `/edit` route and the `edit`/`save` actions answer 403 when a request names them; they used to
+  run, and a forced `save` persisted. `AutoEditableView.save` re-checks the editor's bean-validation
+  constraints on the server, as a CRUD save does.
+- **The structure cache no longer stores a page's values** (H2). The server's structure ETag covers
+  the structure only — a page whose values changed (an edited record, a clock) gets the small
+  state-only answer, with its values on the fragment state —, and the browser persists only the
+  structure: the values a page was opened with stay in the tab's memory, so another tab, a reload or
+  another user of the browser never sees them painted. Signing in or out clears the cache.
+- **The unsupported-component placeholder shows the wire type name as text** (H3): a name carrying
+  markup (an agent push, a foreign remote) used to become live HTML in its shadow root. An untrusted
+  definition's `Element` with a name that is not a plain tag name becomes an empty `div`.
+- **An action id a response handed out is remembered per caller** (Java strict mode): the confirm
+  of a dialog only an admin could open is no longer callable by everybody once one admin opened it.
+  Kept for eight hours.
+- `nested-form-action-<field>` with no method part answers 403 instead of a server error; a 403
+  inside a drawer save is not turned into the drawer's error banner.
+- A composed `rowRoute` (`people/${row.id}`) percent-encodes each value on the web too, and
+  `/\host` counts as another site in `rowRoute`, documents and Redwood's leave-the-mount rule.
+- The desktop app no longer migrates a pre-per-UI refresh token to whatever issuer the manifest names
+  now (it is deleted: one more sign-in), and forgets a refresh token the provider answers
+  `invalid_grant` to.
+- The mobile `ota` job publishes only for a published release, never for a manual re-run of an
+  older tag (which would have downgraded every phone).
+- A route's `fixedParams` now also win on the PROXIED REST leg (they were applied only when
+  hydrating the view model), and only a `${secret.X}` may choose a proxied url's origin — any other
+  expression (`String(state.x)`, `state['x']`, a bare name) is refused (Java, .NET, Python).
+- Helidon MP: the streamed actions, MCP and YAML mounts see the roles and scopes of Helidon
+  security's subject; an app authenticating with a JAX-RS filter at `@Priority(AUTHENTICATION)`
+  requires a login there (`mateu.helidon.authentication-required=false` opts out) and a streamed
+  action carrying credentials is handed to Jersey, where the filter's identity applies.
+- .NET/Python inline YAML partials as source before applying access keys and `${i18n}`: a section
+  guarded by `eyesOnly:` inside a partial reached every caller.
+
+### Fixed (behaviour — final independent review)
+- Constraints inside an `@Inline` nested form are validated with the page, by the client and by
+  the server's re-check (they were checked by neither).
+- .NET/Python: the structure hash no longer includes the page's values or random nested ids, and a
+  proxied rows fetch is answered by the source its id names (a listing next to a live board).
+- React Native: REST source templates evaluate `String(x)`, `Number(x)`, `encodeURIComponent(x)`
+  (encoded once), `Math.*` and string/list methods, and send a money value's amount — demo-starwars
+  searches sent nothing on the phone. RN now runs the source-template corpus.
+
+- `?sort=name:asc` / `desc` is read by the server (it failed the search) and by Redwood (it was
+  dropped), like Vaadin.
+- Kanban: a move the server REFUSED (a handler that threw answers an error message) puts the card
+  back on Vaadin, React Native and IntelliJ, and only a failure of the move itself does; a live board
+  reads its source again after a server-side move. IntelliJ reads a proxied call's
+  `_restfetchError` (a failed delete said "Deleted").
+- Vaadin: the window title no longer follows a form opened in a drawer or a dialog.
+
 ### Documentation
+
+- Corrected: the drawer error banner text, the proxied-leg expression subset, Redwood's rich text
+  and header expressions, the structure cache, Kanban failures and live re-reads, `rowRoute`
+  escaping, YAML `HorizontalLayout` spacing, the OTA job, read-only editable views, strict mode per
+  caller, and `mateu.helidon.authentication-required` (now in the configuration table, with the
+  custom JAX-RS filter case).
 
 - Desktop installers are built on CI only; their build never uses `File.deleteRecursively()` (CLAUDE.md, CONTRIBUTING.md) (#1007).
 

@@ -19,22 +19,41 @@ import java.util.concurrent.ConcurrentHashMap;
  * server actually emitted it as an action id — an overlay (dialog, drawer), a message or a command
  * of a response to that view.
  *
- * <p>Process-wide and bounded (ids per class, classes): the ids are developer-written constants,
- * not per-user data, so sharing them across sessions reveals nothing. A server restart forgets
- * them, so a dialog left open across a restart answers 403 to its confirm — the method can be
- * marked {@code @Action} to accept it regardless.
+ * <p>Remembered PER CALLER (the identity the host framework authenticated — name and every grant —,
+ * else the anonymous one), with a time to live, and bounded (callers × classes, ids each). In
+ * strict mode reachability IS the authorisation: an id handed to an administrator (the confirm of a
+ * dialog only an {@code @EyesOnly(roles = "admin")} button opens) must not become callable by
+ * everybody else — it did while the ids were process-wide (final review M3). A server restart, or
+ * the time to live, forgets them, so a dialog left open that long answers 403 to its confirm — the
+ * method can be marked {@code @Action} to accept it regardless.
  */
 public final class IssuedActions {
 
-  private static final int MAX_CLASSES = 4096;
+  private static final int MAX_KEYS = 4096;
   private static final int MAX_IDS_PER_CLASS = 512;
+  private static final long TTL_MILLIS = java.util.concurrent.TimeUnit.HOURS.toMillis(8);
 
-  private static final Map<String, Set<String>> ISSUED = new ConcurrentHashMap<>();
+  /** An id set and when it was last written. */
+  private record Issued(Set<String> ids, long[] touched) {}
+
+  /** (caller, view class) → issued ids; the least recently used key goes first when full. */
+  private static final Map<String, Issued> ISSUED =
+      java.util.Collections.synchronizedMap(
+          new java.util.LinkedHashMap<>(256, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, Issued> eldest) {
+              return size() > MAX_KEYS;
+            }
+          });
 
   private IssuedActions() {}
 
-  /** Records the action ids {@code increment} hands out on behalf of {@code view}. */
-  public static void record(Object view, UIIncrementDto increment) {
+  /**
+   * Records the action ids {@code increment} hands out on behalf of {@code view}, for the caller of
+   * {@code httpRequest}.
+   */
+  public static void record(
+      Object view, UIIncrementDto increment, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     if (view == null || increment == null) {
       return;
     }
@@ -59,27 +78,71 @@ public final class IssuedActions {
     if (ids.isEmpty()) {
       return;
     }
-    var key = TreeActionHarvester.ownerClassOf(view).getName();
-    if (!ISSUED.containsKey(key) && ISSUED.size() >= MAX_CLASSES) {
-      return;
-    }
-    var known = ISSUED.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
+    var key = keyOf(view, httpRequest);
+    var now = System.currentTimeMillis();
+    var known =
+        ISSUED.computeIfAbsent(
+            key, k -> new Issued(ConcurrentHashMap.newKeySet(), new long[] {now}));
+    known.touched()[0] = now;
     for (var id : ids) {
-      if (known.size() >= MAX_IDS_PER_CLASS) {
+      if (known.ids().size() >= MAX_IDS_PER_CLASS) {
         break;
       }
-      known.add(id);
+      known.ids().add(id);
     }
   }
 
-  /** Whether a response to {@code view}'s class has handed {@code id} to the client. */
-  public static boolean issued(Object view, String id) {
+  /**
+   * Whether a response to {@code view}'s class has handed {@code id} to THIS caller (the one of
+   * {@code httpRequest}), within the time to live.
+   */
+  public static boolean issued(
+      Object view, String id, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     if (view == null || id == null) {
       return false;
     }
-    var key = TreeActionHarvester.ownerClassOf(view).getName();
+    var key = keyOf(view, httpRequest);
     var known = ISSUED.get(key);
-    return known != null && known.contains(id);
+    if (known == null) {
+      return false;
+    }
+    if (System.currentTimeMillis() - known.touched()[0] > TTL_MILLIS) {
+      ISSUED.remove(key);
+      return false;
+    }
+    return known.ids().contains(id);
+  }
+
+  /**
+   * The caller (every grant of the identity, not only its name: the same user with another role is
+   * another caller) and the view class. Hashed, so a key never holds the identity itself.
+   */
+  private static String keyOf(Object view, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var identity = io.mateu.core.infra.security.IdentityResolver.resolve(httpRequest);
+    var caller =
+        String.join(
+            "\u0001",
+            String.valueOf(identity.name()),
+            sorted(identity.roles()),
+            sorted(identity.groups()),
+            sorted(identity.scopes()),
+            sorted(identity.permissions()));
+    return TreeActionHarvester.ownerClassOf(view).getName() + "#" + sha256(caller);
+  }
+
+  private static String sorted(java.util.List<String> values) {
+    return String.join(",", new java.util.TreeSet<>(values));
+  }
+
+  private static String sha256(String text) {
+    try {
+      return java.util.HexFormat.of()
+          .formatHex(
+              java.security.MessageDigest.getInstance("SHA-256")
+                  .digest(text.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+    } catch (java.security.NoSuchAlgorithmException e) {
+      return Integer.toHexString(text.hashCode());
+    }
   }
 
   // data → ListingData → Page → rows → row → ColumnActionGroup → array → ColumnAction is 7 deep

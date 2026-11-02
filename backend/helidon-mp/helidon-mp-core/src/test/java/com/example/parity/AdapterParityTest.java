@@ -57,7 +57,9 @@ class AdapterParityTest {
   @Test
   void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow() {
     contract.anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(
-        java.util.Map.of(AdapterParityITFoundation.PARITY_ROLES_HEADER, "admin"));
+        // a credential (Authorization), as a real JAX-RS filter reads it: the streamed leg, served
+        // on the Helidon routing, hands such a call to Jersey, where the filter runs
+        java.util.Map.of("Authorization", "Parity admin"));
   }
 
   @Test

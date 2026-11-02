@@ -50,6 +50,9 @@ def test_client_state_cannot_choose_the_origin():
         url("${state.base}/people", {"base": "http://169.254.169.254"})
     with pytest.raises(ValueError):
         url("https://${state.host}/people", {"host": "evil"})
+    for spelling in ("${String(state.host)}", "${(state.host)}", "${state['host']}", "${host}"):
+        with pytest.raises(ValueError):
+            url(spelling + "/p", {"host": "http://evil"})
 
 
 def test_a_dot_segment_is_refused_in_the_path_but_not_in_the_query():

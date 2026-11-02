@@ -25,6 +25,12 @@ export const isUnsupportedType = (
     type: ComponentMetadataType | undefined
 ): boolean => type != undefined && supported != undefined && !supported.has(type)
 
+/** The placeholder's text: a wire type name is clamped (it is not ours to size the page by). */
+export const unsupportedText = (type: string, renderer: string): string => {
+    const clamp = (s: string) => (s.length > 80 ? s.slice(0, 80) + '…' : s)
+    return `⚠ Component “${clamp(type)}” is not supported by the “${clamp(renderer)}” renderer yet.`
+}
+
 // HTMLElement does not exist under plain node (vitest); use a no-op base there so this module
 // stays importable from unit tests. The element is only defined when customElements exists.
 const Base = (typeof HTMLElement !== 'undefined' ? HTMLElement : class {}) as typeof HTMLElement
@@ -42,6 +48,8 @@ export class MateuUnsupported extends Base {
         if (!this.shadowRoot) {
             this.attachShadow({ mode: 'open' })
         }
+        // The type comes off the wire (an agent push, a remote's answer): it is TEXT, never markup —
+        // a name like `<img src=x onerror=…>` used to become a live element in this shadow root.
         this.shadowRoot!.innerHTML = `
             <style>
                 :host { display: block; }
@@ -58,10 +66,10 @@ export class MateuUnsupported extends Base {
                     margin: 2px 0;
                 }
             </style>
-            <div class="mateu-unsupported" role="note">
-                ⚠ Component “${type}” is not supported by the “${renderer}” renderer yet.
-            </div>
+            <div class="mateu-unsupported" role="note"></div>
         `
+        this.shadowRoot!.querySelector('.mateu-unsupported')!.textContent =
+            unsupportedText(type, renderer)
     }
 }
 

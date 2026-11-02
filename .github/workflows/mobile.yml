@@ -154,11 +154,14 @@ jobs:
   ota:
     permissions:
       contents: read
-    if: startsWith(github.event.release.tag_name || inputs.tag, 'v')
+    # Only a PUBLISHED release ships an over-the-air update: a manual re-run of an older tag
+    # (workflow_dispatch, to rebuild its APK) would republish OLD JS over the newer release, and
+    # expo-updates serves the latest published update — every phone on that runtime would downgrade.
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      TAG: ${{ github.event.release.tag_name }}
       HAS_EXPO: ${{ secrets.EXPO_TOKEN != '' }}
     defaults:
       run:

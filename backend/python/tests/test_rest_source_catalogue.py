@@ -108,6 +108,25 @@ class RuntimeForm(RestSourceSupplier):
         ]
 
 
+@ui("cat-two-rows")
+class TwoRowsForm(RestSourceSupplier):
+    """A listing AND a live board, both proxied ROWS sources: the board's fetch names its id."""
+
+    def declared_rest_sources(self):
+        return [
+            DeclaredRestSource(
+                RestSourceKind.ROWS,
+                RestDataSource(url="https://api.example.com/listing", proxy=True),
+                id="listing",
+            ),
+            DeclaredRestSource(
+                RestSourceKind.ROWS,
+                RestDataSource(url="https://api.example.com/board", proxy=True),
+                id="board",
+            ),
+        ]
+
+
 def handler(tmp_specs: Path | None = None) -> SyncHandler:
     registry = MateuRegistry(MODULE)
     sources = None
@@ -265,6 +284,16 @@ def test_a_runtime_view_declares_its_proxy_sources(fetched):
     assert "__restfetch__" in [a["id"] for a in component(handler(), RuntimeForm)["actions"]]
     restfetch(handler(), RuntimeForm, "options", "city")
     assert fetched[0].full_url == "https://cities.example.com/list"
+
+
+def test_a_rows_fetch_names_its_source_when_a_page_has_two(fetched):
+    # the one NAMED first (mirrors Java RestSourceResolver): the board did get the listing's rows
+    restfetch(handler(), TwoRowsForm, "rows", "board")
+    restfetch(handler(), TwoRowsForm, "rows", "")
+    assert [r.full_url for r in fetched] == [
+        "https://api.example.com/board",
+        "https://api.example.com/listing",
+    ]
 
 
 def test_a_direct_source_is_never_proxied(fetched):

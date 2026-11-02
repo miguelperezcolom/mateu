@@ -68,7 +68,14 @@ class MateuAuthService(private val project: Project) : TokenProvider {
         val key = sessionKey()
         sessions.accessToken(key)?.let { return it }
         val refresh = sessions.refreshToken(key) ?: return null
-        val tokens = runCatching { OidcDeviceFlow(oidcConfig()).refresh(refresh) }.getOrNull() ?: return null
+        val tokens = try {
+            OidcDeviceFlow(oidcConfig()).refresh(refresh)
+        } catch (revoked: OidcDeviceFlow.RefreshTokenRevoked) {
+            sessions.storeRefreshToken(key, null)
+            null
+        } catch (e: Exception) {
+            null
+        } ?: return null
         sessions.rememberAccessToken(key, tokens.accessToken)
         tokens.refreshToken?.let { sessions.storeRefreshToken(key, it) }
         return tokens.accessToken

@@ -51,15 +51,17 @@ class OidcSessions(private val secrets: SecretStore) {
 
     /**
      * The stored refresh token of this session. Before per-UI sessions, the refresh token was keyed by
-     * the backend alone ([legacyRefreshAccount]); one found there was obtained for the provider the
-     * project was configured with, which is this key's — it is moved here once and the old entry removed.
+     * the backend alone ([legacyRefreshAccount]), with no record of the provider that issued it. It
+     * is NOT moved to this key: the key's issuer is whatever the backend's manifest names NOW, and a
+     * re-pointed (or compromised) backend naming another issuer would have received the old
+     * provider's refresh token (final review M12). It is deleted instead — one more sign-in.
      */
     fun refreshToken(key: SessionKey): String? {
         secrets.get(key.refreshAccount)?.ifBlank { null }?.let { return it }
-        val legacy = secrets.get(legacyRefreshAccount(key.backend))?.ifBlank { null } ?: return null
-        secrets.set(key.refreshAccount, legacy)
-        secrets.set(legacyRefreshAccount(key.backend), null)
-        return legacy
+        if (secrets.get(legacyRefreshAccount(key.backend)) != null) {
+            secrets.set(legacyRefreshAccount(key.backend), null)
+        }
+        return null
     }
 
     fun storeRefreshToken(key: SessionKey, token: String?) = secrets.set(key.refreshAccount, token?.ifBlank { null })

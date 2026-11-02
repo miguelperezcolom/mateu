@@ -86,7 +86,8 @@ class StructureHashDigestTest {
   }
 
   static String expected(ServerSideComponentDto component) throws Exception {
-    var tree = CANONICAL.valueToTree(component.withId(null).withStructureHash(null));
+    var tree =
+        CANONICAL.valueToTree(component.withId(null).withStructureHash(null).withInitialData(null));
     // the instance ids (UUIDs) of nested components are not structure either
     tree.findParents("id").stream()
         .map(com.fasterxml.jackson.databind.node.ObjectNode.class::cast)

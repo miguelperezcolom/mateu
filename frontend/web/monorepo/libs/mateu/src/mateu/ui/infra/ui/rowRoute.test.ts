@@ -11,6 +11,24 @@ describe('isExternalRoute', () => {
             expect(isExternalRoute(own as string), String(own)).toBe(false)
         }
     })
+
+    it('a backslash spelling of another host is another host (final review M15)', () => {
+        for (const ext of ['/\\evil.com', '\\\\evil.com', '\\/evil.com']) {
+            expect(isExternalRoute(ext), ext).toBe(true)
+        }
+    })
+})
+
+describe('a composed rowRoute (final review M15)', () => {
+    it('percent-encodes each value, so it cannot leave the mount or add a query', () => {
+        expect(rowRouteOf('people/${row.id}', { id: '../../admin' })).toBe('people/..%2F..%2Fadmin')
+        expect(rowRouteOf('people/${row.id}', { id: 'x?y=1#z' })).toBe('people/x%3Fy%3D1%23z')
+        expect(rowRouteOf('people/${row.id}/notes/${row.n}', { id: 'a b', n: 3 })).toBe('people/a%20b/notes/3')
+    })
+
+    it('an ordinary id is unchanged', () => {
+        expect(rowRouteOf('people/${row.id}', { id: 42 })).toBe('people/42')
+    })
 })
 
 describe('a rowRoute that is a whole URL', () => {

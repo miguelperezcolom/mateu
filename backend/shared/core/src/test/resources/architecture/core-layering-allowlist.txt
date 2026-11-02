@@ -18,6 +18,8 @@
 # CrudFieldHandlerHelper, for every handler that used to resolve it itself; RowVisibilityTriggers
 # reads the row's fields and state like its sibling handlers (AllEditableFieldsProvider,
 # FormViewModel.toMap) — reviewed.
+# Issued actions per caller (final review M3, 2026-11-02): IssuedActions keys the ids a response
+# handed out by the caller, read through IdentityResolver like AgentCaller — reviewed.
 application -> infra: io/mateu/core/application/agentpush/AgentCaller.java
 application -> infra: io/mateu/core/application/agentpush/AgentPush.java
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
@@ -120,6 +122,7 @@ domain -> infra: io/mateu/core/domain/out/fragmentmapper/UIFragmentAssembler.jav
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentTreeSupplierMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ConstraintValidationMapper.java
+domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/IssuedActions.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ListingDescriptorBuilder.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/StateMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/TreeActionHarvester.java

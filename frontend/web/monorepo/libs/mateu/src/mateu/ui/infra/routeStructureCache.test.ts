@@ -7,6 +7,7 @@ import {
     putCachedStructure,
     setStructureCacheEnabled,
     structureCacheKey,
+    structureOf,
 } from './routeStructureCache.ts'
 
 // the vitest environment is plain node: back localStorage with a Map
@@ -19,9 +20,16 @@ vi.stubGlobal('localStorage', {
 })
 
 beforeEach(() => {
+    clearStructureCache()
     localStorage.clear()
     setStructureCacheEnabled(true)
 })
+
+/** The module as a NEW tab (or a reload) sees it: only what storage kept. */
+const inAFreshTab = async () => {
+    vi.resetModules()
+    return await import('./routeStructureCache.ts')
+}
 
 const comp = (id: string): Component => ({
     type: ComponentType.ServerSide,
@@ -126,6 +134,48 @@ describe('routeStructureCache', () => {
 
     it('clears the whole cache', () => {
         putCachedStructure(key('/a'), comp('a'))
+        clearStructureCache()
+        expect(getCachedStructure(key('/a'))).toBeUndefined()
+    })
+
+    it('never persists the values the page was opened with (final review H2)', async () => {
+        const page = { ...comp('a'), initialData: { name: 'OLD-SECRET-VALUE' } } as Component
+        putCachedStructure(key('/a'), page, 'h1')
+        expect(localStorage.getItem('mateu-route-structure-cache') ?? '').not.toContain('OLD-SECRET-VALUE')
+        // a revisit in the same tab paints it as before, values included
+        const cached = getCachedStructure(key('/a'))
+        expect((cached?.component as { initialData?: unknown }).initialData).toEqual({ name: 'OLD-SECRET-VALUE' })
+        expect(cached?.hash).toBe('h1')
+        // another tab, a reload, another user of the browser: nothing to paint
+        const fresh = await inAFreshTab()
+        expect(fresh.getCachedStructure(key('/a'))).toBeUndefined()
+    })
+
+    it("drops an island's values too", async () => {
+        const island = { ...comp('island'), initialData: { iban: 'ES00-SECRET' } } as Component
+        putCachedStructure(key('/a'), { ...comp('a'), children: [island] } as Component, 'h1')
+        expect(localStorage.getItem('mateu-route-structure-cache') ?? '').not.toContain('ES00-SECRET')
+        expect((await inAFreshTab()).getCachedStructure(key('/a'))).toBeUndefined()
+    })
+
+    it('a structure that carries no values survives a reload, with its ETag', async () => {
+        putCachedStructure(key('/a'), comp('a'), 'h1')
+        const cached = (await inAFreshTab()).getCachedStructure(key('/a'))
+        expect(cached?.component.id).toBe('a')
+        expect(cached?.hash).toBe('h1')
+    })
+
+    it('structureOf leaves the input untouched', () => {
+        const page = { ...comp('a'), initialData: { name: 'Ada' } } as Component
+        const { component, valued } = structureOf(page)
+        expect(valued).toBe(true)
+        expect((component as { initialData?: unknown }).initialData).toBeUndefined()
+        expect((page as { initialData?: unknown }).initialData).toEqual({ name: 'Ada' })
+        expect(structureOf(comp('b')).valued).toBe(false)
+    })
+
+    it('clearing forgets this tab\'s copy too', () => {
+        putCachedStructure(key('/a'), { ...comp('a'), initialData: { n: 1 } } as Component, 'h1')
         clearStructureCache()
         expect(getCachedStructure(key('/a'))).toBeUndefined()
     })

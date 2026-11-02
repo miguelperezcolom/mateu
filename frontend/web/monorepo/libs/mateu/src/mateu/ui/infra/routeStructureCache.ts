@@ -15,7 +15,8 @@ import type Component from "@mateu/shared/apiClients/dtos/Component";
 const KEY = 'mateu-route-structure-cache'
 // Bump to hard-invalidate every cached structure when this module's shape (or the structural
 // wire contract) changes in a way old entries can no longer be trusted through.
-const CACHE_VERSION = 1
+// 2: stored entries no longer carry the page's values (initialData); older ones did, so they go.
+const CACHE_VERSION = 2
 const MAX_ENTRIES = 50
 
 interface Entry {
@@ -26,6 +27,11 @@ interface Entry {
     // so the server can omit the structure when it still matches. undefined against old backends.
     hash?: string
 }
+
+// The full components (values included) this TAB has seen, by key. A revisit within the tab paints
+// them exactly as before — the page's seed lets its OnLoad fetch the record before the server
+// answers —, but they never reach storage, where another user of the browser would find them.
+const inMemory = new Map<string, { component: Component, hash: string | undefined }>()
 
 /** A cache hit: the cached structure plus the server ETag to echo on revalidation. */
 export interface CachedStructure {
@@ -99,18 +105,57 @@ export const structureCacheKey = (parts: {
 /** The cached STRUCTURE (+ its ETag) for a route, or undefined on miss / version mismatch / disabled. */
 export const getCachedStructure = (key: string): CachedStructure | undefined => {
     if (!enabled) return undefined
+    const remembered = inMemory.get(key)
+    if (remembered) return remembered
     const entry = readAll()[key]
     if (!entry || entry.v !== CACHE_VERSION) return undefined
     return { component: entry.component, hash: entry.hash }
 }
 
+/**
+ * The STRUCTURE of a component, without the values it carries: the page's own seed
+ * (`initialData`, the instance's state — a record's fields, a user's data) and that of every
+ * island nested in it are dropped, and so is a remote's answer the host embedded (per request,
+ * often per user). `valued` says whether anything was dropped.
+ */
+export const structureOf = (component: Component): { component: Component, valued: boolean } => {
+    let valued = false
+    const strip = (value: unknown): unknown => {
+        if (Array.isArray(value)) return value.map(strip)
+        if (!value || typeof value !== 'object') return value
+        const out: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+            if (k === 'initialData') {
+                if (v != null && !(typeof v === 'object' && Object.keys(v as object).length === 0)) {
+                    valued = true
+                }
+                continue
+            }
+            out[k] = strip(v)
+        }
+        return out
+    }
+    const stripped = strip(withoutResolvedMicroFrontends(component)) as Component
+    return { component: stripped, valued }
+}
+
 /** Record the authoritative structure (and its server ETag) for a route, evicting the
- *  least-recently-written entries once the cache is full. */
+ *  least-recently-written entries once the cache is full. Only the STRUCTURE is persisted —
+ *  never the values the page was opened with (see {@link structureOf}); those stay in this tab's
+ *  memory. */
 export const putCachedStructure = (key: string, component: Component, hash?: string): void => {
     if (!enabled) return
     const store = readAll()
-    // a remote's answer the host embedded is per request (often per user): never persisted
-    store[key] = { v: CACHE_VERSION, t: Date.now(), component: withoutResolvedMicroFrontends(component), hash }
+    const structure = structureOf(component)
+    inMemory.delete(key)
+    inMemory.set(key, { component: withoutResolvedMicroFrontends(component), hash })
+    while (inMemory.size > MAX_ENTRIES) inMemory.delete(inMemory.keys().next().value as string)
+    if (structure.valued) {
+        // its values are what made it a prediction worth painting: without them it is not one
+        delete store[key]
+    } else {
+        store[key] = { v: CACHE_VERSION, t: Date.now(), component: structure.component, hash }
+    }
     const keys = Object.keys(store)
     if (keys.length > MAX_ENTRIES) {
         const oldest = keys.sort((a, b) => store[a].t - store[b].t).slice(0, keys.length - MAX_ENTRIES)
@@ -121,6 +166,7 @@ export const putCachedStructure = (key: string, component: Component, hash?: str
 
 /** Wipe the whole cache (exposed for debugging / a hard reset). */
 export const clearStructureCache = (): void => {
+    inMemory.clear()
     try {
         localStorage.removeItem(KEY)
     } catch {

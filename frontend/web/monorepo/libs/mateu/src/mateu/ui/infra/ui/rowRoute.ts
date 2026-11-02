@@ -19,7 +19,16 @@ export function rowRouteOf(
     data?: Record<string, any>,
 ): string | undefined {
     if (!template || row == null) return undefined
-    const route = interpolate(template, state, data, { row })
+    // A template that is ONE placeholder (`${row.url}`) is a whole route or URL, taken as it is. In a
+    // composed one (`people/${row.id}`) every value is a path segment: it is percent-encoded, like
+    // Redwood does, so a value `../../admin` or `x?y=1#z` can neither leave the mount nor add a query.
+    const whole = /^\s*\$\{[^}]*\}\s*$/.test(template)
+    const route = whole
+        ? interpolate(template, state, data, { row })
+        : template.replace(/\$\{[^}]*\}/g, (placeholder) => {
+            const value = interpolate(placeholder, state, data, { row })
+            return value === placeholder ? placeholder : encodeURIComponent(value)
+        })
     // An unresolved template comes back unchanged, and navigating to a literal "${row.id}" would
     // land on a route nobody declared. Better to do nothing than to leave the user somewhere wrong.
     if (!route || route === template || route.includes('${')) return undefined
@@ -68,6 +77,7 @@ export function rowRouteFields(template: string | undefined): string[] {
  */
 export function isExternalRoute(route: string | undefined | null): boolean {
     if (!route) return false
-    const r = route.trim()
+    // a browser reads `/\host` and `\\host` as `//host`: another site, not one of the app's routes
+    const r = route.trim().replace(/\\/g, '/')
     return /^[a-z][a-z0-9+.-]*:/i.test(r) || r.startsWith('//')
 }

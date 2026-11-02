@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import { safeLocalStorage, safeSessionStorage } from '@infra/safeStorage.ts'
+import { clearStructureCache } from '@infra/routeStructureCache.ts'
 
 /**
  * Where the client reads the Bearer token every request carries, and the per-tab session id.
@@ -80,6 +81,8 @@ export const getAuthToken = (): string | null => {
 
 /** Stores (or, with null, clears) the token where {@link authTokenStorage} says. */
 export const setAuthToken = (token: string | null) => {
+    // another identity (or none) may be shown another structure: drop what the previous one cached
+    if (token !== getAuthToken()) clearStructureCache()
     switch (authTokenStorage()) {
         case 'memory':
             memoryToken = token

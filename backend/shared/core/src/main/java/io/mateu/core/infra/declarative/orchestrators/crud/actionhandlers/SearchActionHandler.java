@@ -87,11 +87,7 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
                       : null;
               if (item instanceof Map<?, ?> map && field != null) {
                 var direction = map.get("direction");
-                return new Sort(
-                    field.toString(),
-                    direction == null
-                        ? io.mateu.uidl.data.Direction.ascending
-                        : io.mateu.uidl.data.Direction.valueOf(direction.toString()));
+                return new Sort(field.toString(), io.mateu.uidl.data.Direction.parse(direction));
               }
               return null;
             })

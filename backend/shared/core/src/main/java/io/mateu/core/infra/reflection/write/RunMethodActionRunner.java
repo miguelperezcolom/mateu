@@ -53,6 +53,11 @@ public class RunMethodActionRunner implements ActionRunner {
     var view = instance;
     if (command.actionId().startsWith("nested-form-action-")) {
       var fieldAndMethod = command.actionId().substring("nested-form-action-".length());
+      if (fieldAndMethod.indexOf('-') <= 0 || fieldAndMethod.endsWith("-")) {
+        // no `<field>-<method>` to read: a crafted id, refused like one naming no field (it used to
+        // fail with an index error — a 500 and an ERROR log per request)
+        throw new MateuForbiddenException("not a nested form action: " + command.actionId());
+      }
       var fieldId = fieldAndMethod.substring(0, fieldAndMethod.indexOf('-'));
       methodName = fieldAndMethod.substring(fieldId.length() + 1);
       var field = getFieldByName(instance.getClass(), fieldId);

@@ -23,6 +23,7 @@ internal static class UrlTemplate
 {
     private static readonly Regex Placeholder = new(@"\$\{([^}]+)\}", RegexOptions.Compiled);
     private static readonly Regex AnyPlaceholder = new(@"\$\{[^}]*\}", RegexOptions.Compiled);
+    private static readonly Regex SecretOrigin = new(@"^secret\.[A-Za-z0-9_.-]+$", RegexOptions.Compiled);
 
     /// <summary>The only environment variables a <c>${secret.X}</c> may fall back to.</summary>
     public const string SecretEnvPrefix = "MATEU_SECRET_";
@@ -52,7 +53,8 @@ internal static class UrlTemplate
             var value = valueOf(expr) ?? "";
             if (m.Index < origin)
             {
-                if ((inner ?? expr).Trim().StartsWith("state.", StringComparison.Ordinal))
+                // only configuration may choose the host: any other expression reads the client state somehow
+                if (!SecretOrigin.IsMatch((inner ?? expr).Trim()))
                     throw new ArgumentException("A client state value cannot choose the origin of a URL: " + template);
                 return value;
             }

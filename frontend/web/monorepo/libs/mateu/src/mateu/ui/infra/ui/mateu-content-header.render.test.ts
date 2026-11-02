@@ -47,6 +47,20 @@ afterEach(() => {
     navigated.length = 0
 })
 
+describe('the window title (final review M7)', () => {
+    it("follows the page's templated title, but not a form's inside a drawer or a dialog", async () => {
+        document.title = 'Page'
+        await mount({ title: 'Customer ${state.name}' }, { state: { name: 'Ada' } })
+        expect(document.title).toBe('Customer Ada')
+        for (const host of ['mateu-drawer', 'mateu-dialog']) {
+            const overlay = document.createElement(host)
+            document.body.appendChild(overlay)
+            await mount({ title: 'Edit ${state.name}' }, { state: { name: 'Eva' } }, overlay)
+            expect(document.title, host).toBe('Customer Ada')
+        }
+    })
+})
+
 describe('the header text', () => {
     it('a DATA title (titleIsText: a record named by its toString) is text, never markup', async () => {
         const hostile = '<img src="//attacker.example/beacon"><a href="https://phish.example">Acme</a>'

@@ -131,7 +131,10 @@ public record UserSettings(
 
 ## Making it read-only
 
-Add `@ReadOnly` to hide the Edit button entirely:
+Add `@ReadOnly` to make the view read-only. It is enforced on the server, not only drawn: there
+is no Edit button, and the `/edit` route and the `edit`/`save` actions answer 403 if a request names
+them. (A writable view's `save` re-checks the editor's bean-validation constraints on the server
+too, like a CRUD's.)
 
 ```java
 @Service

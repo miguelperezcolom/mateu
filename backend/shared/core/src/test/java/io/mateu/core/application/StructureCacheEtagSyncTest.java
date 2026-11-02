@@ -29,6 +29,13 @@ class StructureCacheEtagSyncTest {
     private int age = 42;
   }
 
+  /** A page whose VALUES differ on every load (its structure does not). */
+  @UI("/etag-clock")
+  public static class ClockForm {
+    static int loads;
+    public String stamp = "load-" + (++loads);
+  }
+
   @StaticView
   @UI("/static-form")
   public static class StaticForm {
@@ -39,7 +46,7 @@ class StructureCacheEtagSyncTest {
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(EtagForm.class, StaticForm.class);
+    mateu = TestMateu.withUis(EtagForm.class, ClockForm.class, StaticForm.class);
   }
 
   @AfterAll
@@ -120,5 +127,29 @@ class StructureCacheEtagSyncTest {
     var component = componentOf(load("/static-form", hash));
     assertThat(component).isNotNull();
     assertThat(component.staticView()).isTrue();
+  }
+
+  @Test
+  void theHashLeavesThePageStateOut() {
+    // final review H2: the hash covered initialData, so a page whose values changed (a clock, an
+    // edited record) answered FULL on every revisit and the client cached the values themselves
+    var first = componentOf(load("/etag-clock", null));
+    var second = componentOf(load("/etag-clock", null));
+    assertThat(((ClockForm) second.initialData()).stamp)
+        .isNotEqualTo(((ClockForm) first.initialData()).stamp);
+    assertThat(second.structureHash()).isEqualTo(first.structureHash());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void anOmittedStructureSendsThePageSeedOnTheFragmentState() {
+    var hash = componentOf(load("/etag-clock", null)).structureHash();
+    var fragment = load("/etag-clock", hash).fragments().get(0);
+    assertThat(fragment.component()).isNull();
+    assertThat((java.util.Map<String, Object>) fragment.state())
+        .containsKey("stamp")
+        .extractingByKey("stamp")
+        .asString()
+        .startsWith("load-");
   }
 }

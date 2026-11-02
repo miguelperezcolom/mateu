@@ -245,11 +245,26 @@ export class MateuKanban extends LitElement {
         super.connectedCallback()
         // a move answered by the SERVER that fails puts the card back: the failure is announced on
         // the component that sent the action, an ancestor across shadow roots
+        // — `backend-call-failed`, which is also raised for an answer the server REFUSED (a handler
+        // that threw answers 200 with an error message: the error boundary), and only for OUR move:
+        // an unrelated `save` failing must not put the board back. A move that succeeded on a live
+        // board reads its source again, as the REST-action path does (final review M10).
         const host = this.owningComponent()
         if (host) {
-            const failed = () => this.revert()
-            host.addEventListener('backend-failed-event', failed)
-            this.releaseHost = () => host.removeEventListener('backend-failed-event', failed)
+            const ours = (e: Event) => !!this.moveActionId && (e as CustomEvent).detail?.actionId === this.moveActionId
+            const failed = (e: Event) => { if (ours(e)) this.revert() }
+            const succeeded = (e: Event) => {
+                if (!ours(e) || !this.optimistic || !this.rowsSource) return
+                this.load(this.rowsSource)
+                    .then(() => { this.optimistic = undefined })
+                    .catch(() => { /* load() reports its own failure */ })
+            }
+            host.addEventListener('backend-call-failed', failed)
+            host.addEventListener('backend-call-succeeded', succeeded)
+            this.releaseHost = () => {
+                host.removeEventListener('backend-call-failed', failed)
+                host.removeEventListener('backend-call-succeeded', succeeded)
+            }
         }
     }
 

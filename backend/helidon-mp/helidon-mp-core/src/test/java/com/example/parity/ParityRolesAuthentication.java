@@ -30,6 +30,13 @@ public class ParityRolesAuthentication implements ContainerRequestFilter {
   @Override
   public void filter(ContainerRequestContext request) {
     var roles = request.getHeaderString(AdapterParityITFoundation.PARITY_ROLES_HEADER);
+    // or as a credential, the way a real filter reads one: `Authorization: Parity <roles>`
+    var authorization = request.getHeaderString("Authorization");
+    if ((roles == null || roles.isBlank())
+        && authorization != null
+        && authorization.startsWith("Parity ")) {
+      roles = authorization.substring("Parity ".length());
+    }
     if (roles == null || roles.isBlank()) {
       return;
     }

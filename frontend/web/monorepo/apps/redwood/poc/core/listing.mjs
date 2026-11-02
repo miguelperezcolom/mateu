@@ -1562,7 +1562,10 @@ export function listingUrlPagingOf(query) {
       if (n > 0) out.page = n
     } else if (key === 'sort') {
       out.sort = value.split(',').map((x) => {
-        const [field, direction] = x.split(':')
+        const [field, written] = x.split(':')
+        // the short spelling a hand-written or shared link uses (`name:asc`) reads like Vaadin's
+        const direction = { asc: 'ascending', desc: 'descending' }[String(written).toLowerCase()]
+          || String(written).toLowerCase()
         return field && (direction === 'ascending' || direction === 'descending') ? { field, direction } : null
       }).filter(Boolean)
     }

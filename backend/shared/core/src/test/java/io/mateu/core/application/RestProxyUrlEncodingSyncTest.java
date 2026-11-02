@@ -50,7 +50,9 @@ class RestProxyUrlEncodingSyncTest {
           exchange.close();
         });
     upstream.start();
-    mateu = TestMateu.withUisAndBeans(List.of(new PortSecrets()), ProxyEncodingForm.class);
+    mateu =
+        TestMateu.withUisAndBeans(
+            List.of(new PortSecrets(), new PinnedRoutes()), ProxyEncodingForm.class);
   }
 
   /**
@@ -61,6 +63,16 @@ class RestProxyUrlEncodingSyncTest {
     @Override
     public String getSecret(String key) {
       return "UPSTREAM".equals(key) ? "http://127.0.0.1:" + upstream.getAddress().getPort() : null;
+    }
+  }
+
+  /** A route that PINS the id the proxied url reads: the client may not choose it. */
+  static class PinnedRoutes implements io.mateu.uidl.interfaces.RouteEntrySupplier {
+    @Override
+    public List<io.mateu.uidl.data.RouteEntry> routes() {
+      return List.of(
+          new io.mateu.uidl.data.RouteEntry(
+              "proxypinned", null, ProxyEncodingForm.class.getName(), Map.of("id", "7"), Map.of()));
     }
   }
 
@@ -84,5 +96,17 @@ class RestProxyUrlEncodingSyncTest {
     assertThat(received.get(received.size() - 1))
         .isEqualTo("/people/1%2F..%2F..%2Fadmin?q=x%26admin%3Dtrue");
     assertThat((Map<String, Object>) increment.appData()).containsKey("_restfetch");
+  }
+
+  @Test
+  void aFixedRouteParameterWinsOverTheStateAndTheParametersOnTheProxiedLeg() {
+    mateu.run(
+        RunActionRqDto.builder()
+            .route("/proxypinned")
+            .actionId("__restfetch__")
+            .parameters(Map.of("_sourceKind", "action", "_sourceId", "fetchPerson", "id", "999"))
+            .componentState(Map.of("id", "998", "q", "x"))
+            .build());
+    assertThat(received.get(received.size() - 1)).isEqualTo("/people/7?q=x");
   }
 }

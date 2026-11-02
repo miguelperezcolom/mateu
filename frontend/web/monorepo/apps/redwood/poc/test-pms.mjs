@@ -2385,6 +2385,7 @@ test('a server NavigateTo OUTSIDE the mount is a browser path (as on the web ren
   assert.equal(pathLeavingMountOf('/dashboard-demo'), null)
   assert.equal(pathLeavingMountOf('orders'), null)
   assert.equal(pathLeavingMountOf('//evil.example'), null)
+  assert.equal(pathLeavingMountOf('/\\evil.example'), null)
   // a route the app's own menu names (an App @UI("/app") lists '/section1'), and below it
   const menu = [{ label: 'S', route: '/section1', submenus: [{ label: 'T', route: '/section2' }] }, { remote: true, routePrefix: '/billing' }]
   assert.deepEqual(menuRoutesOf(menu), ['/section1', '/section2', '/billing'])

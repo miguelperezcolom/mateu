@@ -23,7 +23,7 @@ new HorizontalLayout(new Text("Left"), new Text("Right"))
 |---|---|---|---|
 | `id` | String | — | Optional component ID |
 | `content` | `List<Component>` | — | Child components placed left to right |
-| `spacing` | boolean | false | Adds gap between children |
+| `spacing` | boolean | false (`true` in YAML) | Adds gap between children |
 | `padding` | boolean | false | Adds inner padding |
 | `margin` | boolean | false | Adds outer margin |
 | `spacingVariant` | `SpacingVariant` | — | Controls spacing size |

@@ -26,6 +26,7 @@ from . import proxy_expression
 
 _PLACEHOLDER = re.compile(r"\$\{([^}]+)\}")
 _ANY_PLACEHOLDER = re.compile(r"\$\{[^}]*\}")
+_SECRET_ORIGIN = re.compile(r"secret\.[A-Za-z0-9_.-]+")
 
 
 #: the only environment variables a ``${secret.X}`` may fall back to
@@ -198,7 +199,9 @@ def interpolate_url(template: str | None, value_of: Callable[[str], str]) -> str
         inner = encode_call_argument(expr)
         value = value_of(expr) or ""
         if m.start() < origin:
-            if (inner if inner is not None else expr).strip().startswith("state."):
+            # only configuration may choose the host: any other expression reads the client state
+            # somehow (`String(state.host)`, `state['host']`, a bare `host`)
+            if not _SECRET_ORIGIN.fullmatch((inner if inner is not None else expr).strip()):
                 raise ValueError(f"A client state value cannot choose the origin of a URL: {template}")
             return value
         before = _ANY_PLACEHOLDER.sub("", template[: m.start()])

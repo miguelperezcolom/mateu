@@ -514,9 +514,17 @@ class AppContext(val session: AppSession) {
             onOk = { increment ->
                 currentComponentState = HashMap()
                 applyIncrement(increment)
-                // OnSuccess triggers (the polling loop) — only if still on the screen that dispatched it
-                polling.actionSucceeded(generation, actionId)
-                onDone?.invoke(true)
+                // A handler that threw is answered with an error message (the server's error
+                // boundary), not an HTTP error: the action FAILED, as on the web — a Kanban move
+                // puts its card back, and no OnSuccess runs (final review M10).
+                val failed = increment.path("messages").any { it.path("variant").asText("") == "error" }
+                if (failed) {
+                    onDone?.invoke(false)
+                } else {
+                    // OnSuccess triggers (the polling loop) — only if still on the screen that dispatched it
+                    polling.actionSucceeded(generation, actionId)
+                    onDone?.invoke(true)
+                }
             },
             onErr = {
                 if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
@@ -616,6 +624,14 @@ class AppContext(val session: AppSession) {
             currentComponentId, currentComponentState, appState,
             extra + mapOf("_sourceKind" to sourceKind, "_sourceId" to sourceId),
         )
+        // The endpoint's failure the server reports in appData._restfetchError THROWS, like the web's
+        // and RN's: read as success it showed "Deleted" for a delete that failed and left a refused
+        // Kanban move where it was dropped (final review M11). Every caller already catches.
+        val failure = increment.path("appData").path("_restfetchError")
+        if (!failure.isMissingNode && !failure.isNull) {
+            val status = failure.path("status").asInt(0)
+            throw IllegalStateException("The request failed" + if (status > 0) " (HTTP $status)" else "")
+        }
         return increment.path("appData").path("_restfetch")
     }
 

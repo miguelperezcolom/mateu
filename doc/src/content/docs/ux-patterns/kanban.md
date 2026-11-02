@@ -47,7 +47,9 @@ The renderer is dependency-free (plain CSS flexbox), themes through the standard
 
 Give the board a `moveActionId` and its cards **move**: drag one to another column, or to another
 place in its own, and the action runs. A line shows where the card will land; the card moves at
-once and goes back to where it was if the action fails. Every card also has a **Move** menu (its
+once and goes back to where it was if the action fails — a transport failure, a 403, or an action
+the server refused by answering an error message (a handler that threw); a failure of another
+action on the same page does not touch the board. Every card also has a **Move** menu (its
 `⋯` button) — up, down, or to another column — so the keyboard and screen readers get the same
 moves, and on a phone (React Native) and in the IntelliJ plugin that menu is the way to move.
 
@@ -117,10 +119,14 @@ over it:
     body: '{"title":"${state.title}","artworkId":"${state.artworkId}","type":"${state.type}","priority":"${state.priority}","status":"${state._toColumnId}","assignee":"${state.assignee}","dueDate":"${state.dueDate}"}'
 ```
 
-After a successful move the board reads its source again. Proxied sources work on both legs: the
+After a successful move a live board (one with `rowsSource`) reads its source again, whether the
+move ran as a REST action or as a server-side action. Proxied sources work on both legs in Java: the
 cards are fetched through the server by the board's `id`, and a proxied write gets the same
-parameters. The same fields exist in the ports (.NET `Kanban { MoveActionId, RowsSource, ColumnField,
-Card, CardColors, CardRoute }`, Python `Kanban(move_action_id=…, rows_source=…, …)`).
+parameters. A card needs an `id` to be moved, and an item whose `columnField` names no column is not
+shown. The same fields exist in the ports (.NET `Kanban { MoveActionId, RowsSource, ColumnField,
+Card, CardColors, CardRoute }`, Python `Kanban(move_action_id=…, rows_source=…, …)`); there a view
+that declares the board's proxied rows (a `RestSourceSupplier` naming it by `id`) gets them by that
+id even next to a listing, but a proxied board on a YAML definition-only page is Java-only.
 
 ## Keeping a manual order (`orderField`)
 
@@ -155,7 +161,7 @@ before. The rule is pinned by a corpus every renderer runs (`conformance/client/
 the ports have it too (.NET `OrderField`, Python `order_field`).
 
 A complete example is the museums demo's conservation board (`demo/demo-museum`,
-`conservation.yaml` on its branch; live at `museums.ec1.mateu.io/conservation`). Its rows source
+`conservation.yaml`; live at `museums.ec1.mateu.io/conservation`). Its rows source
 reads the tasks with `sort=boardOrder`, the board declares `orderField: boardOrder`, and the move
 action PUTs the task's record with `"boardOrder": "${state.boardOrder}"`. The service seeds each
 column 1000 apart and keeps whatever decimal a move writes.
