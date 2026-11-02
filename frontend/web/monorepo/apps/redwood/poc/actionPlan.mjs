@@ -165,6 +165,34 @@ export function routeStateOf(reg, draft) {
   return { ...reg?.contexts?.[HOST_ID]?.state, ...draft }
 }
 
+/**
+ * The last guard before an action leaves for the server: is `actionId` a RouteLink BUTTON of the
+ * screen on display? Then it navigates, whatever surface the click came from — a header painted
+ * from a projection older or newer than the registry (a slow load: the URL already said
+ * /missions/52, the header lagged) handed its id over without the route, and the server answered
+ * the label's echo with 403. `{ navigate: route }`, `{ navigate: null }` when its route cannot be
+ * read yet (nothing to send either), or null when it is a real action.
+ */
+export function routedActionOf(reg, actionId, draft) {
+  const host = reg?.contexts?.[HOST_ID]
+  if (!host?.tree || !actionId) return null
+  let template = null
+  const seen = new Set()
+  const walk = (n) => {
+    if (template != null || !n || typeof n !== 'object' || seen.has(n)) return
+    seen.add(n)
+    if (n.actionId === actionId && typeof n.route === 'string' && n.route.trim()) { template = n.route; return }
+    for (const v of Array.isArray(n) ? n : Object.values(n)) walk(v)
+  }
+  walk(host.tree)
+  if (template == null) return null
+  const click = blockClickOf({ actionId, route: template, state: routeStateOf(reg, draft) })
+  const to = click.navigate || ''
+  // an unresolved placeholder left a gap (`missions//edit`, `missions/`): the record is not there yet
+  const readable = to !== '' && !to.includes('${') && !to.includes('//') && !to.endsWith('/')
+  return { navigate: readable ? to : null }
+}
+
 export function blockClickOf({ actionId, parameters, route, state } = {}) {
   // a RouteLink's route is a template over the screen's state (`missions/${state.id}/edit`): it went
   // out with the literal placeholder wherever the projection had not interpolated it already

@@ -43,7 +43,8 @@ define([
       });
       // …except with HAMBURGER_SECTIONS: the hamburger is for jumping between sections, and once one is chosen
       // it closes (as in Opera); inside the section you navigate through the subheader
-      if ($application.variables.mateuMenuSections) {
+      // the sections' floating panel, and the navigator a phone opens over the page, close on a pick
+      if ($application.variables.mateuMenuSections || $application.variables.mateuNarrow) {
         await Actions.callChain(context, { chain: 'toggleMateuNavDrawer', params: { open: false } });
       }
     }

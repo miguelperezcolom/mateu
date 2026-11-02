@@ -283,6 +283,12 @@ oj-sp-foldout-layout:not(.mateu-foldout-has-nav) .oj-sp-foldout-layout-header-ho
   display: none;
 }
 
+/* The foldout's paging dots float FIXED 8px above the bottom of the window: the end of a panel
+   that reaches it scrolled under them (the last card's text on /exhibitions/1). Room for them. */
+oj-sp-foldout-layout .oj-sp-foldout-panel-content {
+  padding-bottom: 3.5rem;
+}
+
 /* FoldoutLayout.orientation horizontal: the overview is the band across the top, full width. */
 #mateuFoldoutEl.mateu-foldout-overview-top oj-sp-foldout-panel.mateu-foldout-overview {
   display: block;
@@ -1106,6 +1112,9 @@ oj-action-card.mateu-listing-card {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  /* a long title is cut with an ellipsis at the cell's edge (a phone), never clipped mid-letter */
+  max-width: 100%;
+  min-width: 0;
 }
 .mateu-primary-cell-leading {
   width: 1.25rem;
@@ -1117,6 +1126,18 @@ oj-action-card.mateu-listing-card {
 .mateu-primary-cell-text {
   display: inline-flex;
   flex-direction: column;
+  min-width: 0;
+}
+.mateu-primary-cell-text > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Phone width (viewport.mjs): the menu strip folds into the hamburger's navigator, as Spectra's
+   responsive shell does — a sideways-scrolling strip left half the menu off screen. */
+.mateu-subheader-menu.mateu-phone-folded {
+  display: none;
 }
 
 /* Listing FIXED-WIDTH column (@ColumnWidth: width + flexGrow 0 on the wire): oj-table fixes

@@ -129,15 +129,32 @@ export function ganttAtomOf(m, id) {
       Object.assign(task, ganttLabelOf(value))
     }
   }
-  const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
   return {
     ...atom,
     isGantt: true,
     selectParam: '_clickedTaskId',
-    // scale to fit the plan: a months-long project reads by months/weeks
-    majorScale: days > 60 ? 'months' : 'weeks',
-    minorScale: days > 60 ? 'weeks' : 'days',
+    // scale to fit the plan: the axis unit follows the span (ganttScalesOf)
+    ...ganttScalesOf(atom.startDay, atom.endDay),
   }
+}
+
+/**
+ * oj-gantt's axes for a plan from `startDay` to `endDay`: the unit follows the span, by the same
+ * thresholds as the web renderer's ganttScale (libs/mateu ganttGeometry: months counted inclusive —
+ * ≤ 18 → month, ≤ 54 → quarter, ≤ 360 → year, else decade). A six-decade programme drawn by months
+ * and weeks was thousands of ticks narrower than their labels (negative <rect> widths, and one task
+ * on screen); JET has no decade unit, so the longest plans read by years.
+ */
+export function ganttScalesOf(startDay, endDay) {
+  const days = Math.round((Date.parse(endDay) - Date.parse(startDay)) / DAY_MS)
+  if (Number.isNaN(days) || days <= 60) return { majorScale: 'weeks', minorScale: 'days' }
+  const [ya, ma] = String(startDay).split('-').map(Number)
+  const [yb, mb] = String(endDay).split('-').map(Number)
+  const months = (yb - ya) * 12 + (mb - ma) + 1
+  if (months <= 18) return { majorScale: 'months', minorScale: 'weeks' }
+  if (months <= 54) return { majorScale: 'years', minorScale: 'quarters' }
+  // a year and a decade both read by years (JET's coarsest unit); the major band repeats it
+  return { majorScale: 'years', minorScale: 'years' }
 }
 
 /** Redwood's primary ink: the label of a bar drawn OUTSIDE it, on the chart's light background. */

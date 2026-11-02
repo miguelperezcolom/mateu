@@ -240,6 +240,9 @@ export function pageSubtitleOf(ctx) {
   // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
   // listing page shows only the table, so the line was lost — it is the page's subtitle
   if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
+  // a LISTING page (a YAML `type: Listing`, a crud) has no Page/Form: its subtitle travels on the
+  // Crud, beside the title the header already takes from it — it was dropped (/launches)
+  if (!subtitle && !page && ctx?.tree) subtitle = findByType(ctx.tree, 'Crud')?.metadata?.subtitle || ''
   return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
 }
 
@@ -556,7 +559,13 @@ export function parentCrumbOf(reg, route) {
 
 export function summarizeHost(reg, route) {
   const host = reg.contexts[HOST_ID] || {}
-  const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
+  // the page's own node: the tree itself when it IS the Form/Page (a YAML page served as a client
+  // side tree), else its first child (the ServerSide wrapper of a reflected page). Reading only the
+  // child took a YAML page's first COMPONENT for its header, and the title fell back to the menu
+  // label («Launch sites map» for a page titled «Launch sites»)
+  const top = host.tree || {}
+  const topType = (top.metadata || {}).type
+  const pageMetadata = (topType === 'Form' || topType === 'Page' ? top : ((top.children || [])[0] || {})).metadata || {}
   const menu = (reg.shell && reg.shell.menu) || []
   // at ANY depth: in a federated shell the screen being viewed hangs from the
   // pod's group, two levels below, and searching only the first left the title empty
