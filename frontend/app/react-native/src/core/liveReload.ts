@@ -150,3 +150,57 @@ export function followLiveReload(options: {
     if (retryTimer !== undefined) cancel(retryTimer);
   };
 }
+
+/** How many times the manifest is asked while the server is still coming up (1 s, 2 s, 4 s… 30 s). */
+export const MANIFEST_ATTEMPTS = 8;
+
+/**
+ * Finds the dev event stream of the app at `baseUrl` from its manifest — asked AGAIN, with the
+ * reconnect back-off, while the server cannot answer it yet (unreachable, a 5xx while it starts: an IDE
+ * that runs the app and opens the UI at once). A manifest that answers decides: its `devEvents` url is
+ * handed to `onUrl`, a production one (none) stops. Returns the stop function.
+ */
+export function discoverDevEvents(options: {
+  baseUrl: string;
+  manifestPath: string;
+  fetchImpl: typeof fetch;
+  onUrl: (url: string) => void;
+  attempts?: number;
+  schedule?: (fn: () => void, ms: number) => unknown;
+  cancel?: (handle: unknown) => void;
+}): () => void {
+  const schedule = options.schedule ?? ((fn, ms) => setTimeout(fn, ms));
+  const cancel = options.cancel ?? ((h) => clearTimeout(h as ReturnType<typeof setTimeout>));
+  const attempts = options.attempts ?? MANIFEST_ATTEMPTS;
+  let stopped = false;
+  let timer: unknown;
+  let tries = 0;
+  const ask = async () => {
+    if (stopped) return;
+    tries++;
+    let answered = false;
+    let url: string | undefined;
+    try {
+      const fetchImpl = options.fetchImpl;
+      const response = await fetchImpl(options.baseUrl + options.manifestPath, { headers: { Accept: 'application/json' } });
+      // a 4xx is an answer (no manifest: not a dev server); only "not up yet" is asked again
+      if (response.status < 500) {
+        answered = true;
+        url = response.ok ? devEventsUrlOf(options.baseUrl, await response.json()) : undefined;
+      }
+    } catch {
+      answered = false;
+    }
+    if (stopped) return;
+    if (answered) {
+      if (url) options.onUrl(url);
+      return;
+    }
+    if (tries < attempts) timer = schedule(() => void ask(), reconnectDelay(tries));
+  };
+  void ask();
+  return () => {
+    stopped = true;
+    if (timer !== undefined) cancel(timer);
+  };
+}

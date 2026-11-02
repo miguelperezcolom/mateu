@@ -26,7 +26,7 @@ import type { AppShortcut } from '../core/appShellExtras';
 import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
 import { openExternal } from './openExternal';
 import { fetch as streamingFetch } from 'expo/fetch';
-import { devEventsUrlOf, followLiveReload } from '../core/liveReload';
+import { discoverDevEvents, followLiveReload } from '../core/liveReload';
 import { MANIFEST_PATH } from '../hub/manifest';
 
 const Stack = createStackNavigator();
@@ -792,20 +792,23 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     if (!base || session.api.local) return;
     let stop: (() => void) | undefined;
     let cancelled = false;
-    fetch(base + MANIFEST_PATH, { headers: { Accept: 'application/json' } })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((manifest) => {
-        const url = devEventsUrlOf(base, manifest);
-        if (url && !cancelled) {
-          // a browser's own fetch streams; expo/fetch is the one that streams on a device (React
-          // Native's fetch buffers the whole body, and expo/fetch on the web never hands one over)
-          const fetchImpl = Platform.OS === 'web' ? fetch : (streamingFetch as unknown as typeof fetch);
-          stop = followLiveReload({ url, fetchImpl, onAction: () => session.reload() });
-        }
-      })
-      .catch(() => {});
+    // the manifest is asked again while the server is still starting (core/liveReload.ts): opened at
+    // once with "Run Mateu App (Live)", it used to find nothing and leave live reload off
+    const stopDiscovery = discoverDevEvents({
+      baseUrl: base,
+      manifestPath: MANIFEST_PATH,
+      fetchImpl: fetch,
+      onUrl: (url) => {
+        if (cancelled) return;
+        // a browser's own fetch streams; expo/fetch is the one that streams on a device (React
+        // Native's fetch buffers the whole body, and expo/fetch on the web never hands one over)
+        const fetchImpl = Platform.OS === 'web' ? fetch : (streamingFetch as unknown as typeof fetch);
+        stop = followLiveReload({ url, fetchImpl, onAction: () => session.reload() });
+      },
+    });
     return () => {
       cancelled = true;
+      stopDiscovery();
       stop?.();
     };
   }, [session]);
