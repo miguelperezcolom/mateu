@@ -61,17 +61,56 @@ public class ValidationMapper {
     if (isPage(serverSideObject, route)
         || isForm(serverSideObject)
         || serverSideObject.getClass().isRecord()) {
-      getAllFields(serverSideObject.getClass()).stream()
-          .filter(field -> isFillable(field, serverSideObject, httpRequest))
-          .flatMap(field -> getValidations(field).stream())
-          .filter(Objects::nonNull)
-          .forEach(fieldLevelValidations::add);
+      addFieldValidations(serverSideObject, "", httpRequest, fieldLevelValidations, 0);
     }
     return Stream.concat(
             fieldLevelValidations.stream(),
             Arrays.stream(serverSideObject.getClass().getAnnotationsByType(Validation.class))
                 .map(ValidationMapper::mapToValidation))
         .toList();
+  }
+
+  /**
+   * The constraints of {@code instance}'s fields under {@code prefix}, descending into
+   * {@code @Inline} nested forms: their fields render on the page as {@code <field>-<nested>} and
+   * are validated with it (the server re-checks the same in {@link ServerConstraintCheck}).
+   */
+  private static void addFieldValidations(
+      Object instance,
+      String prefix,
+      HttpRequest httpRequest,
+      List<io.mateu.uidl.data.Validation> into,
+      int depth) {
+    for (Field field : getAllFields(instance.getClass())) {
+      if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+          || !isFillable(field, instance, httpRequest)) {
+        continue;
+      }
+      if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Inline.class)) {
+        var nested = nestedValue(field, instance);
+        if (nested != null && !(nested instanceof ValidationSupplier) && depth < 8) {
+          addFieldValidations(nested, prefix + field.getName() + "-", httpRequest, into, depth + 1);
+        }
+        continue;
+      }
+      getValidationsWithFieldPrefix(prefix, field).stream()
+          .filter(Objects::nonNull)
+          .forEach(into::add);
+    }
+  }
+
+  private static Object nestedValue(Field field, Object instance) {
+    try {
+      var value = io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, instance);
+      if (value != null) {
+        return value;
+      }
+      var constructor = field.getType().getDeclaredConstructor();
+      constructor.setAccessible(true);
+      return constructor.newInstance();
+    } catch (Exception | LinkageError e) {
+      return null;
+    }
   }
 
   /**
