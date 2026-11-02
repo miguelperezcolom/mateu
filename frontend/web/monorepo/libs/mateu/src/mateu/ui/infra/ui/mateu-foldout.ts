@@ -75,14 +75,14 @@ export class MateuFoldout extends LitElement {
     // rest follow `open`. Re-run on resize; a hand-toggled panel keeps the user's choice.
     private applyAutoOpen() {
         if (!this.panels.some(p => p.autoOpen === true)) return
-        const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+        const remPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
         const states = foldoutOpenStates(
             this.panels.map(p => ({ open: p.open === true, autoOpen: p.autoOpen, width: p.width })),
             this.clientWidth || null,
             { overviewPx: 22 * remPx, stripPx: 3 * remPx, defaultPanelPx: 22 * remPx, remPx })
         const next = new Set([...this.openPanels].filter(i => this.toggled.has(i) || this.panels[i]?.autoOpen !== true))
         states.forEach((open, i) => { if (open && !this.toggled.has(i)) next.add(i) })
-        if ([...next].sort().join() !== [...this.openPanels].sort().join()) this.openPanels = next
+        if (next.size !== this.openPanels.size || [...next].some(i => !this.openPanels.has(i))) this.openPanels = next
     }
 
     connectedCallback() {

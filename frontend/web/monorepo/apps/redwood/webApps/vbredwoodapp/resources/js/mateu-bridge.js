@@ -15718,9 +15718,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** A panel's CSS width in px: px / rem / em / a bare number / % of the row; else null. */
   function foldoutWidthPx(width, available, remPx = 16) {
-    const m = /^(\d+(?:\.\d+)?)(px|rem|em|%)?$/.exec(String(width == null ? '' : width).trim())
+    const m = /^(\d+(?:\.\d+)?)(px|rem|em|%)?$/.exec(String(width ?? '').trim())
     if (!m) return null
-    const n = parseFloat(m[1])
+    const n = Number.parseFloat(m[1])
     if (m[2] === 'rem' || m[2] === 'em') return n * remPx
     if (m[2] === '%') return n * available / 100
     return n
@@ -15735,14 +15735,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function foldoutOpenStates(panels, available, options = {}) {
     const list = panels || []
-    const o = Object.assign({ overviewPx: 400, stripPx: 48, defaultPanelPx: 352, remPx: 16, gapPx: 0 }, options)
-    const auto = (p) => !!p && p.autoOpen === true
-    if (available == null || !(available > 0)) return list.map((p) => auto(p) || !p || p.open !== false)
-    const widthOf = (p) => { const w = foldoutWidthPx(p && p.width, available, o.remPx); return w == null ? o.defaultPanelPx : w }
+    const o = { overviewPx: 400, stripPx: 48, defaultPanelPx: 352, remPx: 16, gapPx: 0, ...options }
+    const auto = (p) => p?.autoOpen === true
+    if (available == null || available <= 0) return list.map((p) => auto(p) || p?.open !== false)
+    const widthOf = (p) => foldoutWidthPx(p?.width, available, o.remPx) ?? o.defaultPanelPx
     let used = o.overviewPx
-    for (const p of list) used += o.gapPx + (!auto(p) && (!p || p.open !== false) ? widthOf(p) : o.stripPx)
+    for (const p of list) used += o.gapPx + (!auto(p) && p?.open !== false ? widthOf(p) : o.stripPx)
     return list.map((p) => {
-      if (!auto(p)) return !p || p.open !== false
+      if (!auto(p)) return p?.open !== false
       const grown = used - o.stripPx + widthOf(p)
       if (grown > available) return false
       used = grown
@@ -15755,19 +15755,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     autoFolded.clear()
     const panels = (foldout && foldout.panels) || []
     foldoutOpenStates(panels, available, REDWOOD_FIT).forEach((open, i) => {
-      if (!open && panels[i] && panels[i].autoOpen === true) autoFolded.add(foldoutPanelKey(panels[i], i))
+      if (!open && panels[i]?.autoOpen === true) autoFolded.add(foldoutPanelKey(panels[i], i))
     })
   }
 
   /** The layout's width in px (oj-sp-foldout-layout is an inline element: clientWidth reads 0). */
   function rowWidthOf(layout) {
-    const width = layout && layout.getBoundingClientRect ? layout.getBoundingClientRect().width : 0
+    const width = layout?.getBoundingClientRect?.().width ?? 0
     return width > 0 ? width : null
   }
 
   /** A panel that may be folded: declared `open: false`, or autoOpen. */
   function foldable(panel) {
-    return !!panel && (panel.open === false || panel.autoOpen === true)
+    return panel?.open === false || panel?.autoOpen === true
   }
 
   /** The identity of a wire panel across re-projections of the same page: position + title. */
@@ -15837,7 +15837,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (containers.length < panels.length + offset) return false
     layout.__mateuFoldout = foldout
     wireSelection(layout)
-    if (panels.some((p) => p && p.autoOpen === true)) fitAutoPanels(foldout, rowWidthOf(layout))
+    if (panels.some((p) => p?.autoOpen === true)) fitAutoPanels(foldout, rowWidthOf(layout))
     panels.forEach((panel, i) => {
       const container = containers[i + offset]
       const element = container && panelOf(container)
@@ -15864,7 +15864,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (width === last) return
         last = width
         const foldout = layout.__mateuFoldout
-        if (foldout && (foldout.panels || []).some((p) => p && p.autoOpen === true)) applyFoldoutFolds(layout, foldout)
+        if ((foldout?.panels || []).some((p) => p?.autoOpen === true)) applyFoldoutFolds(layout, foldout)
       }).observe(layout.parentElement || layout) // an inline element's own box never resizes
     }
     layout.addEventListener('selectedPanelChanged', (e) => {

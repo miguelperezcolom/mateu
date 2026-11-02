@@ -99,8 +99,8 @@ export class MateuVaadinFoldout extends LitElement {
     // The row's width decides the auto panels; null before the first layout (all auto panels open).
     private _applyOpen() {
         const available = this.clientWidth || null
-        const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
-        const gapPx = parseFloat(getComputedStyle(this).getPropertyValue('--mateu-foldout-gap')) || 0
+        const remPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+        const gapPx = Number.parseFloat(getComputedStyle(this).getPropertyValue('--mateu-foldout-gap')) || 0
         const next = foldoutOpenStates(this.panels, available, {
             overviewPx: 25 * remPx, stripPx: 3 * remPx, defaultPanelPx: 22 * remPx, remPx, gapPx,
         }).map((open, i) => this._toggled[i] ?? open)

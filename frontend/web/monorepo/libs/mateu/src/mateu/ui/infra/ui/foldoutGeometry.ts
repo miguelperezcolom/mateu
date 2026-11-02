@@ -53,7 +53,7 @@ export interface FoldoutFitPanel { open?: boolean | null; autoOpen?: boolean | n
 export function foldoutWidthPx(width: string | null | undefined, available: number, remPx = 16): number | null {
     const m = /^(\d+(?:\.\d+)?)(px|rem|em|%)?$/.exec((width ?? '').trim())
     if (!m) return null
-    const n = parseFloat(m[1])
+    const n = Number.parseFloat(m[1])
     if (m[2] === 'rem' || m[2] === 'em') return n * remPx
     if (m[2] === '%') return n * available / 100
     return n
@@ -74,7 +74,7 @@ export function foldoutOpenStates(
     const list = panels ?? []
     const { overviewPx = 400, stripPx = 48, defaultPanelPx = 352, remPx = 16, gapPx = 0 } = options
     const auto = (p: FoldoutFitPanel | null | undefined) => p?.autoOpen === true
-    if (available == null || !(available > 0)) {
+    if (available == null || available <= 0) {
         return list.map(p => auto(p) || p?.open !== false)
     }
     const widthOf = (p: FoldoutFitPanel) => foldoutWidthPx(p.width, available, remPx) ?? defaultPanelPx
