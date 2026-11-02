@@ -46,8 +46,17 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
         "view", view, createViewComponent(httpRequest, view, orchestrator));
   }
 
-  private Component createViewComponent(HttpRequest httpRequest, Object view, Crud orchestrator) {
+  /**
+   * The record's page: the crud's header and toolbar around the record's own content ({@code
+   * DetailContentSupplier}) or its read-only form. Also what a button of the page answers with when
+   * it re-renders the record in place ({@code ActionOnViewActionHandler}).
+   */
+  public static Component createViewComponent(
+      HttpRequest httpRequest, Object view, Crud orchestrator) {
     Object viewModel = view;
+    // the record's own @Toolbar buttons bubble to the crud: the page advertises them so
+    // (RecordToolbarActions)
+    httpRequest.setAttribute(RecordToolbarActions.RECORD_PAGE, viewModel);
     var toolbar = createViewToolbar(viewModel, orchestrator, httpRequest);
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(viewModel, httpRequest));
@@ -83,7 +92,7 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
     return page;
   }
 
-  private List<UserTrigger> createViewToolbar(
+  private static List<UserTrigger> createViewToolbar(
       Object item, Crud orchestrator, HttpRequest httpRequest) {
     return ViewToolbarBuilder.createViewToolbar(item, orchestrator, httpRequest);
   }

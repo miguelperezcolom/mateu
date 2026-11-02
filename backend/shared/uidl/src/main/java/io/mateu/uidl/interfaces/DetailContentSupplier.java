@@ -15,7 +15,9 @@ import io.mateu.uidl.fluent.Component;
  * <p>Return any fluent {@link Component} — for instance an {@code ItemOverview} (key-info card +
  * tabs). A {@link ComponentTreeSupplier} is expanded in place, so the buttons it draws reach the
  * page's own handlers (a CRUD's {@code "edit"}, {@code "cancel-view"}, {@code
- * "action-on-view-<method>"} of a {@code @ViewToolbarButton}). Return {@code null} to keep the
+ * "action-on-view-<method>"} of a {@code @ViewToolbarButton} or of a {@code @Toolbar} method of the
+ * record). When such a method answers the record ({@code return this}, or the record with messages)
+ * the page is re-rendered in place with it — this content included. Return {@code null} to keep the
  * default read-only form (e.g. only for some records).
  *
  * <pre>{@code
