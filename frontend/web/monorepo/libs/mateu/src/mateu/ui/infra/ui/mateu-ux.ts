@@ -242,6 +242,16 @@ export class MateuUx extends ConnectedElement {
             e.preventDefault()
             e.stopPropagation()
 
+            // The content moved on by itself (a crud's row opening its record in place, a save): what
+            // is on screen is no longer this ux's route, whatever the route attribute says. Forget its
+            // ETag, or a later load of that route (the breadcrumb back to the list) tells the server it
+            // already has the structure, gets a state-only answer and leaves the record on screen, with
+            // the address bar already on the list. This ux's own announcement of a load is not that.
+            if (e.composedPath()[0] !== this) {
+                this.lastAuthoritativeKey = undefined
+                this.currentStructureHash = undefined
+            }
+
             let effectiveRoute = e.detail.route
 
             // A mediator's internal navigation (e.g. the crud's PushStateToHistory "/new") is
