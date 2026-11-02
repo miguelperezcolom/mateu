@@ -10224,6 +10224,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return value
   }
 
+  /** A field's label: the wire's, even when it is EMPTY (`@Label("")` — a field that wants none); its id
+   *  only when the wire sends no label at all. `label || fieldId` drew the raw id ("warnings"). */
+  function fieldLabelOf(f) {
+    return f.label == null ? (f.fieldId || f.id || '') : String(f.label)
+  }
+
   const NUMERIC_TYPES = { integer: true, int: true, long: true, number: true, double: true, float: true, money: true }
 
   /**
@@ -10315,7 +10321,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const rows = nestedRowsOf(value)
     return {
       fieldId: f.fieldId,
-      label: f.label || f.fieldId,
+      label: fieldLabelOf(f),
       required: !!f.required,
       readonly,
       ...EMPTY_WIDGET_FLAGS,
@@ -10522,7 +10528,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       { multi, readonly, singleLabel: multi ? null : d[fieldId + '-label'] })
     return {
       fieldId,
-      label: f.label || fieldId,
+      label: fieldLabelOf(f),
       required: !!f.required,
       readonly,
       editable: !readonly,
@@ -10842,7 +10848,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The date range widget's own flags: its two ends as parts, each with the id its edit carries. */
   function dateRangeWidgetOf(f, value) {
     const ends = dateRangeEndsOf(value)
-    const label = f.label || f.fieldId
+    const label = fieldLabelOf(f)
     // the first end carries the field's label, the second says it is the end of the range
     const part = (end, key) => ({
       fieldId: f.fieldId + '#' + end,
@@ -10864,7 +10870,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
       return {
         fieldId: f.fieldId,
-        label: f.label || f.fieldId,
+        label: fieldLabelOf(f),
         required: !!f.required,
         readonly: !!f.readOnly,
         isLookup: false,
@@ -10899,7 +10905,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const isTextArea = !isSelect && (f.stereotype === 'textarea' || !!RICH_TEXT_STEREOTYPES[f.stereotype])
     return {
       fieldId: f.fieldId,
-      label: f.label || f.fieldId,
+      label: fieldLabelOf(f),
       required: !!f.required,
       readonly: !!f.readOnly,
       isSelect,

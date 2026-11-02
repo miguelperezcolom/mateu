@@ -3842,6 +3842,14 @@ test('rowedit: a nested list is edited on the client — cells, add, up/down, re
   assert.equal(rq.componentState.links, undefined, 'the row is NOT the componentState')
 })
 
+test('a field with @Label("") has no label — never its raw id; with no label on the wire, its id', () => {
+  const md = (label) => ({ type: 'FormField', fieldId: 'warnings', dataType: 'string', label })
+  assert.equal(layoutFieldOf(md(''), { warnings: 'x' }).label, '')
+  assert.equal(layoutFieldOf(md('Warnings'), {}).label, 'Warnings')
+  assert.equal(layoutFieldOf(md(null), {}).label, 'warnings')
+  assert.equal(layoutFieldOf({ ...md(''), dataType: 'date' }, {}).label, '')
+})
+
 test('rowedit: a required multi-select left empty is refused like any required field', () => {
   const reg = blockEditorOpen()
   const row = reg.contexts['blocks-container']

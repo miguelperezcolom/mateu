@@ -161,6 +161,12 @@ export function plainValueOf(value) {
   return value
 }
 
+/** A field's label: the wire's, even when it is EMPTY (`@Label("")` — a field that wants none); its id
+ *  only when the wire sends no label at all. `label || fieldId` drew the raw id ("warnings"). */
+export function fieldLabelOf(f) {
+  return f.label == null ? (f.fieldId || f.id || '') : String(f.label)
+}
+
 export const NUMERIC_TYPES = { integer: true, int: true, long: true, number: true, double: true, float: true, money: true }
 
 /**
@@ -252,7 +258,7 @@ export function nestedListWidgetOf(f, value) {
   const rows = nestedRowsOf(value)
   return {
     fieldId: f.fieldId,
-    label: f.label || f.fieldId,
+    label: fieldLabelOf(f),
     required: !!f.required,
     readonly,
     ...EMPTY_WIDGET_FLAGS,
@@ -459,7 +465,7 @@ export function searchableWidgetOf(f, data, value) {
     { multi, readonly, singleLabel: multi ? null : d[fieldId + '-label'] })
   return {
     fieldId,
-    label: f.label || fieldId,
+    label: fieldLabelOf(f),
     required: !!f.required,
     readonly,
     editable: !readonly,
@@ -779,7 +785,7 @@ export const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
 /** The date range widget's own flags: its two ends as parts, each with the id its edit carries. */
 function dateRangeWidgetOf(f, value) {
   const ends = dateRangeEndsOf(value)
-  const label = f.label || f.fieldId
+  const label = fieldLabelOf(f)
   // the first end carries the field's label, the second says it is the end of the range
   const part = (end, key) => ({
     fieldId: f.fieldId + '#' + end,
@@ -801,7 +807,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
     return {
       fieldId: f.fieldId,
-      label: f.label || f.fieldId,
+      label: fieldLabelOf(f),
       required: !!f.required,
       readonly: !!f.readOnly,
       isLookup: false,
@@ -836,7 +842,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   const isTextArea = !isSelect && (f.stereotype === 'textarea' || !!RICH_TEXT_STEREOTYPES[f.stereotype])
   return {
     fieldId: f.fieldId,
-    label: f.label || f.fieldId,
+    label: fieldLabelOf(f),
     required: !!f.required,
     readonly: !!f.readOnly,
     isSelect,

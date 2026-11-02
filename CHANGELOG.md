@@ -25,6 +25,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Redwood: a field with `@Label("")` shows no label.** Its label fell back to the raw field id
+  whenever it was empty (a `warnings` field read "warnings"); the id is now used only when the wire
+  sends no label at all.
 - **Redwood: a `List<Row>` field's row dialog draws the row's multi-selects and nested lists.** The
   dialog ("Edit block", Prev/Next) skipped every list-typed field of the row, so a
   `@Stereotype(multiSelect) List<String>` whose options come from the row's `OptionsSupplier` (a
