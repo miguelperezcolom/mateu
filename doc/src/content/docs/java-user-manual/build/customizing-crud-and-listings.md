@@ -323,7 +323,12 @@ Only the content changes. The header (title, subtitle, `Status` badges, KPIs) an
 list, Edit, `@Toolbar` and `@ViewToolbarButton` buttons) are still the CRUD's, and the editor and the
 creation form keep their regular forms although they are the same class. A button inside the content
 reaches the CRUD like the toolbar's do: `"edit"`, `"cancel-view"`, or `"action-on-view-<method>"` for
-a `@ViewToolbarButton` method. Return `null` to keep the default form for a given record. The record
+a `@ViewToolbarButton` method or a `@Toolbar` method of the record. When such a method answers the
+record (`return this`, nothing, or `List.of(this, Message.success(...))`), the record page is
+re-rendered in place with it — same header, same toolbar, and its `detailContent` again, so inputs
+drawn there as fluent `FormField`s (bound by id to the record's `@Hidden` fields) keep working
+after the action. A method that answers only messages shows the record reloaded from the store, so
+answer `List.of(this, Message.warning(...))` when the values typed in the page must stay. Return `null` to keep the default form for a given record. The record
 is what `store().findById` (or an overridden `view(id, httpRequest)`) returns, so load there whatever
 else the content needs. The same hook applies to an [editable view](/java-user-manual/build/editable-view/)
 in view mode.

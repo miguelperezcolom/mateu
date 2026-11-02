@@ -55,7 +55,7 @@ final class ViewToolbarBuilder {
             method ->
                 toolbar.add(
                     ToolbarButtons.toolbarButton(
-                        method.getName(),
+                        RecordToolbarActions.actionId(method),
                         getLabel(method),
                         MetaAnnotations.find(method, Toolbar.class))));
     if (!MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {

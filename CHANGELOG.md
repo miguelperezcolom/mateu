@@ -25,6 +25,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **A crud's record page keeps its custom content after one of its own buttons** (Java). On the
+  record page of a crud or a Navigable listing whose record implements `DetailContentSupplier`, a
+  `@Toolbar` method of the record that answered the record (`return this`,
+  `List.of(this, Message.success(...))`) ran against the record on its own, and its answer replaced
+  the page with a bare reflected form of it: no Back to list / Edit, and none of the record's
+  content — blank below the header when its fields are `@Hidden` and its inputs fluent `FormField`s
+  inside `detailContent`. Those buttons now bubble to the crud as `action-on-view-<method>` (like a
+  `@ViewToolbarButton`, keeping the method's `@Action` settings), and an answer of the record — or
+  nothing, or the record with messages, also from a `@ViewToolbarButton` — re-renders the record
+  page in place exactly as the view route draws it, route kept, messages shown. An answer of only
+  messages still shows the record reloaded from the store (return `List.of(this, Message…)` to keep
+  the values typed in the page). `@RestAction` and `Flux`-returning record methods keep their plain
+  ids.
 - **A record page's tab is named after the record, never its id** (Java, web). A definition page
   whose title waits for its record (`title: ${state.name}`) was named by the route's last segment
   until the record landed — `/missions/6` read "6", its Edit page just "Edit" — and on an in-app
