@@ -84,4 +84,20 @@ public class SourceTemplateCorpusTests
         Assert.Contains("state.items.map", messages[1]);
         Assert.DoesNotContain("state.page", string.Join(" ", messages));
     }
+
+    [Theory]
+    [InlineData("${state.base}/people", true)]
+    [InlineData("https://${String(state.host)}/people", true)]
+    [InlineData("https://${host}.example.com/people", true)]
+    [InlineData("${secret.API_BASE}/people/${state.id}", false)]
+    [InlineData("https://${encodeURIComponent(secret.HOST)}/people", false)]
+    [InlineData("https://api.example.com/people?q=${state.q}", false)]
+    [InlineData("/people/${state.id}", false)]
+    public void The_validator_flags_a_url_whose_host_the_client_would_choose(string url, bool flagged)
+    {
+        var listing = "type: Listing\nrowsSource:\n  url: \"" + url + "\"\ncolumns: [{type: GridColumn, id: name}]\n";
+        var messages = UidlValidator.Default.Validate(listing)["warnings"]!.AsArray()
+            .Select(w => w!["message"]!.GetValue<string>());
+        Assert.Equal(flagged, messages.Any(m => m.Contains("chooses the origin")));
+    }
 }

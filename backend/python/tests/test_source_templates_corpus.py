@@ -51,3 +51,79 @@ def test_javascript_semantics_of_the_subset():
     assert _ev("encodeURIComponent('a b!')") == "a%20b!"
     assert _ev("10 / 4") == "2.5"
     assert _ev("null == undefined") == "true"
+
+
+_S = {"s": "Apollo", "n": 1, "tags": ["a", "b", "c"], "price": -2.345}
+
+
+@pytest.mark.parametrize(
+    "expression,expected",
+    [
+        ("1e3", "1000"),
+        ("2.5E-1 * 4", "1"),
+        ("state.n === 1", "true"),
+        ("state.n === '1'", "false"),
+        ("state.n !== '1'", "true"),
+        ("state.n == '1'", "true"),
+        ("null === undefined", "false"),
+        ("state.missing === undefined", "true"),
+        ("true === 1", "false"),
+        ("state.tags === state.tags", "true"),
+        ("state.s[0]", "A"),
+        ("state.s[99]", ""),
+        ("state.s.toLowerCase()", "apollo"),
+        ("state.s.toUpperCase()", "APOLLO"),
+        ("'  x  '.trim()", "x"),
+        ("state.s.includes('pol')", "true"),
+        ("state.s.startsWith('Ap') && !state.s.endsWith('x')", "true"),
+        ("state.s.indexOf('o')", "2"),
+        ("state.s.slice(1, 3)", "po"),
+        ("state.s.slice(-2)", "lo"),
+        ("state.s.slice(4, 1)", ""),
+        ("state.s.substring(3, 1)", "po"),
+        ("state.s.substring(2)", "ollo"),
+        ("'7'.padStart(3, '0')", "007"),
+        ("'7'.padEnd(3)", "7  "),
+        ("'ab'.padStart(5, 'xy')", "xyxab"),
+        ("'abc'.padStart(2)", "abc"),
+        ("state.s.toString()", "Apollo"),
+        ("state.price.toFixed(2)", "-2.35"),
+        ("(1.005).toFixed(2)", "1.00"),
+        ("(3).toFixed()", "3"),
+        ("state.n.toString()", "1"),
+        ("true.toString()", "true"),
+        ("state.tags.join('|')", "a|b|c"),
+        ("state.tags.join()", "a,b,c"),
+        ("state.tags.includes('b')", "true"),
+        ("state.tags.indexOf('c')", "2"),
+        ("state.tags.indexOf('z')", "-1"),
+        ("state.tags.slice(1)", "b,c"),
+        ("state.tags.slice(2, 1)", ""),
+        ("state.tags.toString()", "a,b,c"),
+        ("Math.round(2.5) + Math.round(-2.5)", "1"),
+        ("Math.floor(2.7) + Math.ceil(2.1) + Math.abs(-1)", "6"),
+        ("Math.max(state.missing ?? 0, 1)", "1"),
+        ("Math.min(3, 1, 2)", "1"),
+        ("Math.max(1, 'x')", "NaN"),
+        ("Math.max()", "-Infinity"),
+        ("state.missing?.toLowerCase() ?? 'none'", "none"),
+        ("state.n ? 'y' : state.missing.toLowerCase()", "y"),
+    ],
+)
+def test_the_browser_subset_beyond_the_corpus(expression, expected):
+    assert _ev(expression, _S) == expected
+
+
+@pytest.mark.parametrize(
+    "expression", ["state.s.split(',')", "state.s.replace('a', 'b')", "Math.random()", "state.s.slice(1 2)"]
+)
+def test_a_call_outside_the_allow_list_is_unsupported(expression):
+    assert not proxy_expression.is_supported(expression)
+    with pytest.raises(proxy_expression.Unsupported):
+        proxy_expression.evaluate(expression, _S, None)
+
+
+@pytest.mark.parametrize("expression", ["state.missing.toLowerCase()", "true.trim()", "state.n.toFixed(101)"])
+def test_a_method_of_nothing_or_of_the_wrong_value_is_a_runtime_error(expression):
+    with pytest.raises(ValueError):
+        proxy_expression.evaluate(expression, _S, None)

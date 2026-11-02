@@ -55,11 +55,59 @@ public class ProxyExpressionTests
     [InlineData("'10' < '9'", "true")]
     // loose equality: numbers and booleans by value, strings as text, null == undefined only
     [InlineData("state.n == '3'", "true")]
-    [InlineData("state.t === 1", "true")]
+    [InlineData("state.t == 1", "true")]
     [InlineData("state.s != 'abc'", "false")]
-    [InlineData("state.s !== 'abd'", "true")]
     [InlineData("state.nil == 0", "false")]
-    [InlineData("state.missing === null", "true")]
+    [InlineData("state.missing == null", "true")]
+    // strict equality: the same type and value
+    [InlineData("state.t === 1", "false")]
+    [InlineData("state.n === 3", "true")]
+    [InlineData("state.n === '3'", "false")]
+    [InlineData("state.n !== '3'", "true")]
+    [InlineData("state.s !== 'abd'", "true")]
+    [InlineData("state.s === 'abc'", "true")]
+    [InlineData("state.nil === undefined", "false")]
+    [InlineData("state.missing === undefined", "true")]
+    [InlineData("state.missing === null", "false")]
+    // number literals with an exponent, a string's characters
+    [InlineData("1e3", "1000")]
+    [InlineData("2.5E-1 * 4", "1")]
+    [InlineData("state.s[0]", "a")]
+    [InlineData("state.s[9]", "")]
+    // allow-listed methods and Math
+    [InlineData("state.s.toUpperCase()", "ABC")]
+    [InlineData("'  x '.trim()", "x")]
+    [InlineData("state.s.includes('b')", "true")]
+    [InlineData("state.s.startsWith('ab') && state.s.endsWith('c')", "true")]
+    [InlineData("state.s.indexOf('c')", "2")]
+    [InlineData("state.s.slice(-2)", "bc")]
+    [InlineData("state.s.slice(2, 1)", "")]
+    [InlineData("state.s.substring(2, 0)", "ab")]
+    [InlineData("state.s.substring(1)", "bc")]
+    [InlineData("'7'.padStart(3, '0')", "007")]
+    [InlineData("'7'.padEnd(3)", "7  ")]
+    [InlineData("'abc'.padStart(2)", "abc")]
+    [InlineData("state.s.toString()", "abc")]
+    [InlineData("(2.345).toFixed(2)", "2.35")]
+    [InlineData("(-2.345).toFixed(2)", "-2.35")]
+    [InlineData("(1.005).toFixed(2)", "1.00")]
+    [InlineData("(3).toFixed()", "3")]
+    [InlineData("state.n.toString()", "3")]
+    [InlineData("state.t.toString()", "true")]
+    [InlineData("state.words.join('|')", "a|b")]
+    [InlineData("state.words.join()", "a,b")]
+    [InlineData("state.list.includes(20)", "true")]
+    [InlineData("state.list.indexOf(30)", "2")]
+    [InlineData("state.list.indexOf(99)", "-1")]
+    [InlineData("state.list.slice(1)", "20,30")]
+    [InlineData("state.list.toString()", "10,20,30")]
+    [InlineData("Math.round(2.5) + Math.round(-2.5)", "1")]
+    [InlineData("Math.floor(2.7) + Math.ceil(2.1) + Math.abs(-1)", "6")]
+    [InlineData("Math.max(state.missing ?? 0, 1)", "1")]
+    [InlineData("Math.min(3, 1, 2)", "1")]
+    [InlineData("Math.max(1, 'x')", "NaN")]
+    [InlineData("state.missing?.toLowerCase() ?? 'none'", "none")]
+    [InlineData("state.t ? 'y' : state.missing.toLowerCase()", "y")]
     // || && ?? return a side, not a boolean
     [InlineData("state.empty || 'fallback'", "fallback")]
     [InlineData("state.s || 'fallback'", "abc")]
@@ -145,11 +193,23 @@ public class ProxyExpressionTests
         Assert.Throws<ProxyExpression.UnsupportedException>(() => ProxyExpression.Evaluate(expression, State, null));
     }
 
-    [Fact]
-    public void A_method_call_is_unsupported_once_the_receiver_exists() =>
-        // the validator checks against an EMPTY state, where state.s is undefined and reading through it
-        // is a runtime error, so it does not flag this (the same in Java and Python); evaluated, it is refused
-        Assert.Throws<ProxyExpression.UnsupportedException>(() => ProxyExpression.Evaluate("state.s.toUpperCase()", State, null));
+    [Theory]
+    [InlineData("state.s.split(',')")]
+    [InlineData("state.s.replace('a', 'b')")]
+    [InlineData("Math.random()")]
+    [InlineData("state.s.slice(1 2)")]
+    public void A_call_outside_the_allow_list_is_unsupported(string expression)
+    {
+        Assert.False(ProxyExpression.IsSupported(expression));
+        Assert.Throws<ProxyExpression.UnsupportedException>(() => ProxyExpression.Evaluate(expression, State, null));
+    }
+
+    [Theory]
+    [InlineData("state.missing.toLowerCase()")]
+    [InlineData("state.t.trim()")]
+    [InlineData("state.n.toFixed(101)")]
+    public void A_method_of_nothing_or_of_the_wrong_value_is_a_runtime_error(string expression) =>
+        Assert.Throws<InvalidOperationException>(() => ProxyExpression.Evaluate(expression, State, null));
 
     [Fact]
     public void A_conditional_with_a_decimal_is_not_optional_chaining() =>

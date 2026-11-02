@@ -373,7 +373,10 @@ internal sealed class UidlValidator(JsonObject specsSchema)
                 Resolves(context.Component, text!, "unresolved_component",
                     "Component " + Quote(text!) + " is not in the business component catalogue (components.yaml).", path, value);
             else if (key is "url" or "body" && defName == "RestDataSource")
+            {
                 ProxySafe(text!, path, value);
+                if (key == "url") OriginSafe(text!, path, value);
+            }
             else if (key == "fieldType")
                 Resolves(context.FieldType, text!, "unresolved_field_type",
                     "Field type " + Quote(text!) + " is not in the field type catalogue (types.yaml).", path, value);
@@ -405,6 +408,18 @@ internal sealed class UidlValidator(JsonObject specsSchema)
                         + ": if this source is proxied (proxy: true, or an environment flips it) it is sent empty.",
                         path, at);
             }
+        }
+
+        /// <summary>A url whose HOST a client value would choose: the proxied leg refuses to call it
+        /// (only a <c>${secret.X}</c> may name the origin). Java's UidlValidator.originSafe.</summary>
+        private void OriginSafe(string template, string path, YNode at)
+        {
+            var expr = UrlTemplate.ClientChosenOrigin(template);
+            if (expr is not null)
+                Issue(_warnings, "proxy_unsafe_template",
+                    "${" + expr + "} chooses the origin of the url: only a ${secret.X} may name the host, so if"
+                    + " this source is proxied (proxy: true, or an environment flips it) the call is refused.",
+                    path, at);
         }
 
         private static readonly System.Text.RegularExpressions.Regex ProxyPlaceholder = new(@"\$\{([^}]+)}");

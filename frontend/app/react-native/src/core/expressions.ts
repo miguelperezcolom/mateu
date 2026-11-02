@@ -37,6 +37,9 @@ function tokenize(src: string): Token[] {
     if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[i + 1] ?? ''))) {
       let j = i;
       while (j < src.length && /[0-9.]/.test(src[j])) j++;
+      // an exponent, as in JS: 1e3, 2.5E-2
+      const exp = /^[eE][+-]?[0-9]+/.exec(src.slice(j));
+      if (exp) j += exp[0].length;
       tokens.push({ type: 'num', value: src.slice(i, j) });
       i = j;
       continue;
