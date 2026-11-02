@@ -105,6 +105,14 @@ describe('mateu-vaadin-tree', () => {
         expect(grid.expandedItems.map(r => r.name)).toEqual(['Europe'])
     })
 
+    it('the grid always knows its root size — 0 before the rows land (no "total number of items" warning)', async () => {
+        const { t, grid } = await mount({ rows: [] })
+        expect((grid as any).size).toBe(0)
+        t.rows = ROWS as never
+        await t.updateComplete
+        expect((grid as any).size).toBe(2)
+    })
+
     it('no columns: no tree column at all', async () => {
         const { cols } = await mount({ columns: [] })
         expect(cols()).toEqual([])

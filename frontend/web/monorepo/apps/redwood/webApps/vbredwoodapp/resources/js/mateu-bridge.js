@@ -3094,6 +3094,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // HEADER (read from the live content by index, refreshes without re-stamping)
         headerLabel: (panel.title || '') + (panel.subtitle ? ' · ' + panel.subtitle : ''),
         open: panel.open !== false,
+        // no `open:` authored: open while it fits the row (poc/foldouts.mjs foldoutOpenStates)
+        autoOpen: panel.autoOpen === true,
         // EXPLICIT width from the wire (FoldoutPanel.width): the markup pins the panel to that
         // size — without it, the foldout's responsive engine distributes as it likes and the
         // cockpit cards overlap
@@ -4625,11 +4627,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
       ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
       : b.items || []))
-    const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
-      id: 'step-' + (i + 1),
-      title: interpolate(String(tab.metadata.label || ''), state),
-      items: atomsOf(tab.children || []),
-    }))
+    const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => {
+      const title = interpolate(String(tab.metadata.label || ''), state)
+      // display 'on': without it the rail draws the step oj-disabled — every step, the current one
+      // included, came out the same faint grey and none could be clicked (the web's tabs can)
+      return { id: 'step-' + (i + 1), title, label: title, display: 'on', status: 'none', items: atomsOf(tab.children || []) }
+    })
     const form = templateFormOf(ctx)
     const md = (form && form.metadata) || {}
     const toolbar = md.toolbar || []
@@ -5386,6 +5389,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const blocks = []
     let plain = null
     let elementOrdinal = 0
+    // an embedded MicroFrontend's chrome (opts.chrome) applies to ITS page: the first Page visited
+    let embeddedPageSeen = false
     // the wire node being projected (editor mode only): what an atom or a block made now came from
     let editorNode = ''
     const stampNode = (o) => {
@@ -5768,6 +5773,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             fieldId,
             label: m.label || '',
             value: state[fieldId] == null ? '' : String(state[fieldId]),
+            // its hint while empty («e.g. Mars Sample Return»), like the web renderer's
+            placeholder: m.placeholder ? interp(String(m.placeholder)) : '',
           }, container)
         }
         return
@@ -5998,10 +6005,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Page') {
-        // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar)
-        const pageTitle = interp(m.title || '')
+        // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar) — as far
+        // as an EMBEDDED MicroFrontend's chrome keeps them, on its own page (the first one met):
+        // NONE draws neither, COMPACT only the toolbar, PAGE both (opts.chrome, embeddedChromeOf)
+        const chrome = !embeddedPageSeen ? opts.chrome : null
+        embeddedPageSeen = true
+        const pageTitle = chrome === 'NONE' || chrome === 'COMPACT' ? '' : interp(m.title || '')
         if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
-        const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
+        const toolbar = chrome === 'NONE' ? [] : (m.toolbar || []).filter((b) => b && b.actionId)
         if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
         for (const child of kidsOf(node)) visit(child, container)
         return
@@ -6068,14 +6079,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       // FOLDOUT INSIDE A TAB (the page one is painted by oj-sp-foldout-layout, foldoutOf): the
       // overview in its place and each panel as a collapsible panel — its title and, when open, its
-      // content; the panels open by default (open) are respected
+      // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
+      // authored) opens — stacked, it never runs out of row
       if (t === 'FoldoutLayout' && tabScope) {
         const bySlot = {}
         for (const child of node.children || []) bySlot[child.slot || ''] = child
         if (bySlot.overview) visit(bySlot.overview, container)
         ;(m.panels || []).forEach((panel, i) => {
           const key = 'fold:' + (node.id || 'foldout') + ':' + i
-          const expanded = panelExpanded(key, panel.open !== false)
+          const expanded = panelExpanded(key, panel.autoOpen === true || panel.open !== false)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
           const content = bySlot['panel-' + i]
           if (expanded && content) visit(content, container)
@@ -6932,8 +6944,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const ctx = contexts && contexts[a.islandId]
         if (!ctx || !ctx.tree) return [a]
         const crud = findByType(ctx.tree, 'Crud')
+        // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
+        const chrome = (a.subresource && a.subresource.chrome) || null
         if (!crud) {
-          const inner = islandContentOf(ctx)
+          const inner = islandContentOf(ctx, chrome ? { chrome } : {})
           // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
           // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
           const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
@@ -6950,7 +6964,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           isGrid: true,
           isSubresourceGrid: true,
           fieldId: a.islandId,
-          label: md.title || '',
+          // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
+          label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
           columns: wire.map((c) => (c.dataType === 'status'
             ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
             : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
@@ -7369,6 +7384,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
     // listing page shows only the table, so the line was lost — it is the page's subtitle
     if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
+    // a LISTING page (a YAML `type: Listing`, a crud) has no Page/Form: its subtitle travels on the
+    // Crud, beside the title the header already takes from it — it was dropped (/launches)
+    if (!subtitle && !page && ctx?.tree) subtitle = findByType(ctx.tree, 'Crud')?.metadata?.subtitle || ''
     return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
   }
 
@@ -7685,7 +7703,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
-    const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
+    // the page's own node: the tree itself when it IS the Form/Page (a YAML page served as a client
+    // side tree), else its first child (the ServerSide wrapper of a reflected page). Reading only the
+    // child took a YAML page's first COMPONENT for its header, and the title fell back to the menu
+    // label («Launch sites map» for a page titled «Launch sites»)
+    const top = host.tree || {}
+    const topType = (top.metadata || {}).type
+    const pageMetadata = (topType === 'Form' || topType === 'Page' ? top : ((top.children || [])[0] || {})).metadata || {}
     const menu = (reg.shell && reg.shell.menu) || []
     // at ANY depth: in a federated shell the screen being viewed hangs from the
     // pod's group, two levels below, and searching only the first left the title empty
@@ -8147,7 +8171,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
     // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
     // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
-    const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath
+    // gridLayout = masterDetail with no way into a record of its own (no rowRoute, not navigable):
+    // the clicked row's fields open BESIDE the list, like the web renderer's detail pane — here
+    // Spectra's end drawer (a full-screen sheet on a phone, i.e. stacked), see masterDetailOf
+    const masterDetail = md.gridLayout === 'masterDetail' && !md.rowRoute && !navigable
+    const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath || masterDetail
     const tableClass = (lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4)
       : 'oj-sm-12') + (rowsOpen ? ' ' + ROWS_OPEN_CLASS : '')
     return {
@@ -8192,6 +8220,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // the detail is for lookup listings, where the click had no other destination.
       detailPath: md.detailPath || null,
       navigable,
+      masterDetail,
       // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
       // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
       // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
@@ -8355,6 +8384,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ? (rows || []).filter((r) => selection.except.indexOf(r._rowNumber) < 0)
       : (rows || []).filter((r) => selection.keys.indexOf(r._rowNumber) >= 0)
     return picked.map(rowAsArrived)
+  }
+
+  /**
+   * The detail pane of a `gridLayout = masterDetail` listing for its clicked row: the row's title
+   * (its first column) and every visible column as a label/value pair — what the web renderer's pane
+   * shows. Values are read as the cells paint them (an enum's label, a status' message).
+   */
+  function masterDetailOf(listing, row) {
+    const cols = (listing?.allColumns || listing?.columns || []).filter((c) => c?.id && c.headerText)
+    const objectText = (v) => {
+      if (v.message !== undefined) return v.message
+      return v.label !== undefined ? v.label : JSON.stringify(v)
+    }
+    const valueOf = (c) => {
+      let v = row?.[c.id + LABEL_CELL_SUFFIX]
+      if (v === undefined || v === null) v = row?.[c.id]
+      if (v && typeof v === 'object' && !Array.isArray(v)) v = objectText(v)
+      if (Array.isArray(v)) v = v.map((x) => (x && typeof x === 'object' ? x.label || x.message || '' : x)).join(', ')
+      return v === undefined || v === null ? '' : String(v)
+    }
+    const fields = cols.map((c) => ({ label: String(c.headerText), value: valueOf(c) }))
+    return { title: fields.length ? fields[0].value : '', text: '', fields }
   }
 
   /** A table row as the server sent it: without the cells precomputed for the templates (the
@@ -10379,6 +10430,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       readonly,
       ...EMPTY_WIDGET_FLAGS,
       isNestedList: true,
+      help: fieldHelpOf(f),
+      hasHelp: !!fieldHelpOf(f),
       columns,
       rows: rows.map((row, index) => ({
         key: f.fieldId + '#' + index,
@@ -10521,6 +10574,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // the wire's, clamped to the layout's columns. The template (classic oj-form-layout, with
       // the labels inside) doesn't apply it yet: that needs oj-c-form-layout and its column-span
       colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
+      // the field's hint while it is empty («e.g. Mars Sample Return»), as the web renderer shows it
+      placeholder: md.placeholder ? String(md.placeholder) : '',
       messagesCustom: [],
     }
   }
@@ -10903,9 +10958,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const ends = dateRangeEndsOf(value)
     const label = fieldLabelOf(f)
     // the first end carries the field's label, the second says it is the end of the range
+    const help = fieldHelpOf(f)
     const part = (end, key) => ({
       fieldId: f.fieldId + '#' + end,
       label: key ? chromeText(key) : label,
+      help: key ? '' : help,
       value: ends[end],
       required: !!f.required,
       readonly: !!f.readOnly,
@@ -10913,7 +10970,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { isDateRange: true, rangeParts: [part('from', ''), part('to', 'rangeTo')] }
   }
 
-  function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
+  /** A field's help (`@Help`, a DescriptionSupplier): the wire's `description`, '' when it has none.
+   *  Drawn as the field's Redwood instruction text — JET's `help.instruction`, inline under the field
+   *  like Vaadin's helper text; a widget JET does not own (capture, color, rich text…) draws the same
+   *  text under its value (fieldHelpOf is the ONE place it is read). */
+  function fieldHelpOf(f) {
+    const help = f && f.description
+    return help == null ? '' : String(help).trim()
+  }
+
+  /**
+   * The widget a field gets (flags precomputed for VB's simple bindings), with its help: every copy
+   * of the field templates (the page form, the drawer, the dialog, the row editor, the wizard, the
+   * island) reads `help` / `hasHelp` from here.
+   */
+  function fieldWidgetOf(f, data, opts) {
+    const widget = widgetOf(f, data, opts)
+    const help = fieldHelpOf(f)
+    return { ...widget, help, hasHelp: !!help }
+  }
+
+  function widgetOf(f, data, { lookups, value, textWhenEmpty }) {
     if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
     if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
     // a DATE RANGE: two oj-input-date (from, to), each editing its end (rangeEditOf) — the field was
@@ -11466,15 +11543,32 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         Object.assign(task, ganttLabelOf(value))
       }
     }
-    const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
     return {
       ...atom,
       isGantt: true,
       selectParam: '_clickedTaskId',
-      // scale to fit the plan: a months-long project reads by months/weeks
-      majorScale: days > 60 ? 'months' : 'weeks',
-      minorScale: days > 60 ? 'weeks' : 'days',
+      // scale to fit the plan: the axis unit follows the span (ganttScalesOf)
+      ...ganttScalesOf(atom.startDay, atom.endDay),
     }
+  }
+
+  /**
+   * oj-gantt's axes for a plan from `startDay` to `endDay`: the unit follows the span, by the same
+   * thresholds as the web renderer's ganttScale (libs/mateu ganttGeometry: months counted inclusive —
+   * ≤ 18 → month, ≤ 54 → quarter, ≤ 360 → year, else decade). A six-decade programme drawn by months
+   * and weeks was thousands of ticks narrower than their labels (negative <rect> widths, and one task
+   * on screen); JET has no decade unit, so the longest plans read by years.
+   */
+  function ganttScalesOf(startDay, endDay) {
+    const days = Math.round((Date.parse(endDay) - Date.parse(startDay)) / DAY_MS)
+    if (Number.isNaN(days) || days <= 60) return { majorScale: 'weeks', minorScale: 'days' }
+    const [ya, ma] = String(startDay).split('-').map(Number)
+    const [yb, mb] = String(endDay).split('-').map(Number)
+    const months = (yb - ya) * 12 + (mb - ma) + 1
+    if (months <= 18) return { majorScale: 'months', minorScale: 'weeks' }
+    if (months <= 54) return { majorScale: 'years', minorScale: 'quarters' }
+    // a year and a decade both read by years (JET's coarsest unit); the major band repeats it
+    return { majorScale: 'years', minorScale: 'years' }
   }
 
   /** Redwood's primary ink: the label of a bar drawn OUTSIDE it, on the chart's light background. */
@@ -13089,9 +13183,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
       // the host resolved it (resolve = SERVER): the answer to its load is already here
       resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
+      // EMBEDDED (MicroFrontend.chrome): a block of this page, not a page — see embeddedChromeOf
+      chrome: embeddedChromeOf(m.chrome),
       surface: true,
       lazy: false,
     }
+  }
+
+  /** The chromes a MicroFrontend can be embedded with (MicroFrontend.chrome / EmbeddedChrome). */
+  const EMBEDDED_CHROMES = ['NONE', 'COMPACT', 'PAGE']
+
+  /** A MicroFrontend's `chrome` when it is a known one, else null (a top-level micro frontend, as
+   *  before). Any value makes it EMBEDDED: it never names the window, pushes history or sets the
+   *  favicon, and draws no breadcrumb; NONE also drops its page's title and toolbar, COMPACT its
+   *  title (the toolbar stays), PAGE keeps both. */
+  function embeddedChromeOf(chrome) {
+    const c = typeof chrome === 'string' ? chrome.toUpperCase() : ''
+    return EMBEDDED_CHROMES.includes(c) ? c : null
+  }
+
+  /** The commands that name or move the WINDOW: never applied from an embedded island — the window
+   *  (its title, the address bar, the favicon) belongs to the page that embeds it. */
+  const WINDOW_COMMANDS = ['SetWindowTitle', 'SetFavicon', 'PushStateToHistory']
+
+  /** The increment without its window commands (an embedded island's answer: an older remote that
+   *  does not read `embeddedChrome` still sends them). The same object when it carries none. */
+  function withoutWindowCommands(increment) {
+    if (!increment || !Array.isArray(increment.commands)) return increment
+    const kept = increment.commands.filter((c) => !(c && WINDOW_COMMANDS.includes(c.type)))
+    return kept.length === increment.commands.length ? increment : { ...increment, commands: kept }
   }
   /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
    *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
@@ -15403,6 +15523,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // The phone breakpoint of JET's drawer layout. Below it, oj-drawer-layout (and so Spectra's
+  // oj-sp-data-management-page) stops docking a drawer beside the content and turns it into a
+  // FULL-SCREEN overlay in its z-order container. Two consequences on a DataManagement page:
+  //   - a bottom panel open on load covers the listing on a phone (the page looks empty);
+  //   - a panel still open when the window grows past the breakpoint is reflowed IN the z-order
+  //     container (body level, normal flow) instead of back in the page — a band as tall as the
+  //     panel pushes the whole shell down (measured: 438 px on /loans, 390 → 1600 px).
+  // So the shell keeps the docked panels (end and bottom) closed while the viewport is narrow
+  // (mateuNarrow, bound in main-start-page.html) and docks them again once it is wide: closing them
+  // BEFORE the breakpoint is crossed is what leaves JET nothing to strand. The same flag folds a
+  // MENU_ON_TOP / TABS shell's menu strip into the hamburger's navigator (shell-page.html).
+
+  const NARROW_VIEWPORT_QUERY = '(max-width: 599px)'
+
+  /** Whether a window (default: the global one) is at phone width. false without matchMedia. */
+  function isNarrowViewport(win = typeof window !== 'undefined' ? window : undefined) {
+    return typeof win?.matchMedia === 'function' && !!win.matchMedia(NARROW_VIEWPORT_QUERY).matches
+  }
+
+  /**
+   * Calls `listener(narrow)` now and on every crossing of the breakpoint. Returns the unsubscribe.
+   * A window without matchMedia (tests, an old embedder) is wide and never changes.
+   */
+  function watchNarrowViewport(listener, win = typeof window !== 'undefined' ? window : undefined) {
+    const mq = typeof win?.matchMedia === 'function' ? win.matchMedia(NARROW_VIEWPORT_QUERY) : null
+    listener(!!mq?.matches)
+    if (typeof mq?.addEventListener !== 'function') return () => {}
+    const onChange = (e) => listener(!!e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }
+
+
   // Mounting of third-party WEB COMPONENTS (isElement atom): the wire carries the tag, its
   // attributes and the URL of the module that defines it. It lives outside the reducer because it touches the DOM.
   //
@@ -15656,6 +15809,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // selection unfolds it: selecting the strip — click, keyboard focus, page dot — unfolds the panel
   // and brings it into view. Open panels are not touched. Unfolded panels stay unfolded while the page is the same (an action re-projects the
   // foldout); a navigation starts over, as a fresh page does on the web renderer.
+  //
+  // A panel with autoOpen (a YAML panel whose author wrote no `open:`) is open while it fits the row
+  // and folded otherwise — foldoutOpenStates, the rule of conformance/client/foldout-auto.json, run
+  // against the layout's width on every paint and on resize. Unfolding one by hand wins until the page
+  // changes.
 
 
   const FOLDED_CLASS = 'mateu-foldout-folded'
@@ -15663,6 +15821,66 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const PANEL_CONTAINER = 'oj-sp-foldout-layout-panel-container'
 
   const unfolded = new Set()
+  // keys of the autoOpen panels that do NOT fit the row right now (recomputed from the layout width)
+  const autoFolded = new Set()
+
+  // Redwood's measures (main-start-page.html / app.css): the 25rem overview, a 4rem folded strip;
+  // a panel without a wire width is counted at 22rem, the web renderers' default column
+  const REDWOOD_FIT = { overviewPx: 400, stripPx: 64, defaultPanelPx: 352, remPx: 16, gapPx: 0 }
+
+  /** A panel's CSS width in px: px / rem / em / a bare number / % of the row; else null. */
+  function foldoutWidthPx(width, available, remPx = 16) {
+    const m = /^(\d+(?:\.\d+)?)(px|rem|em|%)?$/.exec(String(width ?? '').trim())
+    if (!m) return null
+    const n = Number.parseFloat(m[1])
+    if (m[2] === 'rem' || m[2] === 'em') return n * remPx
+    if (m[2] === '%') return n * available / 100
+    return n
+  }
+
+  /**
+   * Which panels are open on first paint (conformance/client/foldout-auto.json, the same rule as
+   * libs/mateu foldoutGeometry.ts): an autoOpen panel opens while it fits `available` px, in
+   * declaration order; any other follows `open`. The overview, the panels declared open and every
+   * folded strip are counted first; each auto panel then takes its width in place of its strip.
+   * An unknown width (null / <= 0) opens every auto panel.
+   */
+  function foldoutOpenStates(panels, available, options = {}) {
+    const list = panels || []
+    const o = { overviewPx: 400, stripPx: 48, defaultPanelPx: 352, remPx: 16, gapPx: 0, ...options }
+    const auto = (p) => p?.autoOpen === true
+    if (available == null || available <= 0) return list.map((p) => auto(p) || p?.open !== false)
+    const widthOf = (p) => foldoutWidthPx(p?.width, available, o.remPx) ?? o.defaultPanelPx
+    let used = o.overviewPx
+    for (const p of list) used += o.gapPx + (!auto(p) && p?.open !== false ? widthOf(p) : o.stripPx)
+    return list.map((p) => {
+      if (!auto(p)) return p?.open !== false
+      const grown = used - o.stripPx + widthOf(p)
+      if (grown > available) return false
+      used = grown
+      return true
+    })
+  }
+
+  /** Re-decides the autoOpen panels against the layout's width (px). */
+  function fitAutoPanels(foldout, available) {
+    autoFolded.clear()
+    const panels = (foldout && foldout.panels) || []
+    foldoutOpenStates(panels, available, REDWOOD_FIT).forEach((open, i) => {
+      if (!open && panels[i]?.autoOpen === true) autoFolded.add(foldoutPanelKey(panels[i], i))
+    })
+  }
+
+  /** The layout's width in px (oj-sp-foldout-layout is an inline element: clientWidth reads 0). */
+  function rowWidthOf(layout) {
+    const width = layout?.getBoundingClientRect?.().width ?? 0
+    return width > 0 ? width : null
+  }
+
+  /** A panel that may be folded: declared `open: false`, or autoOpen. */
+  function foldable(panel) {
+    return panel?.open === false || panel?.autoOpen === true
+  }
 
   /** The identity of a wire panel across re-projections of the same page: position + title. */
   function foldoutPanelKey(panel, index) {
@@ -15672,12 +15890,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** A new page: every `open: false` panel starts folded again. */
   function resetFoldoutFolds() {
     unfolded.clear()
+    autoFolded.clear()
   }
 
   /** Whether the wire panel `index` of the projection is folded right now. */
   function isPanelFolded(foldout, index) {
     const panel = ((foldout && foldout.panels) || [])[index]
-    return !!panel && panel.open === false && !unfolded.has(foldoutPanelKey(panel, index))
+    if (!panel || unfolded.has(foldoutPanelKey(panel, index))) return false
+    return panel.autoOpen === true ? autoFolded.has(foldoutPanelKey(panel, index)) : panel.open === false
   }
 
   /** The indexes (wire order) of the panels folded right now. */
@@ -15729,15 +15949,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (containers.length < panels.length + offset) return false
     layout.__mateuFoldout = foldout
     wireSelection(layout)
+    if (panels.some((p) => p?.autoOpen === true)) fitAutoPanels(foldout, rowWidthOf(layout))
     panels.forEach((panel, i) => {
       const container = containers[i + offset]
       const element = container && panelOf(container)
       if (!element) return
       const folded = isPanelFolded(foldout, i)
       element.classList.toggle(FOLDED_CLASS, folded)
-      if (panel.open === false) container.setAttribute('aria-expanded', folded ? 'false' : 'true')
+      if (foldable(panel)) container.setAttribute('aria-expanded', folded ? 'false' : 'true')
       if (folded) container.setAttribute('title', chromeText('foldoutUnfold', { title: panel.title || '' }))
-      else if (panel.open === false) container.removeAttribute('title')
+      else if (foldable(panel)) container.removeAttribute('title')
     })
     return true
   }
@@ -15746,6 +15967,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function wireSelection(layout) {
     if (layout.__mateuFoldWired) return
     layout.__mateuFoldWired = true
+    // the row's width decides the autoOpen panels: re-fit when it changes (a window resize, the
+    // navigation drawer opening)
+    if (typeof ResizeObserver !== 'undefined') {
+      let last = rowWidthOf(layout)
+      new ResizeObserver(() => {
+        const width = rowWidthOf(layout)
+        if (width === last) return
+        last = width
+        const foldout = layout.__mateuFoldout
+        if ((foldout?.panels || []).some((p) => p?.autoOpen === true)) applyFoldoutFolds(layout, foldout)
+      }).observe(layout.parentElement || layout) // an inline element's own box never resizes
+    }
     layout.addEventListener('selectedPanelChanged', (e) => {
       const foldout = layout.__mateuFoldout
       const index = wirePanelIndexOf(e && e.detail ? e.detail.value : layout.selectedPanel, foldout)
@@ -15761,11 +15994,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
+  /**
+   * Whether a vertical wheel over an open panel is the PANEL's own scroll: Spectra's layout fixes every
+   * panel to the row height and takes the wheel for its carousel, so a panel taller than the window
+   * (a grid of cards) could not be read to the end — app.css lets the open panel scroll inside, and
+   * this keeps the wheel for it while it still has room that way.
+   */
+  function panelWheelIsNative(container, deltaX, deltaY) {
+    if (!container || Math.abs(deltaY) <= Math.abs(deltaX)) return false
+    const room = deltaY > 0 ? container.scrollHeight - container.clientHeight - container.scrollTop : container.scrollTop
+    return room > 1
+  }
+
+  let panelScrollInstalled = false
+
+  /** Leaves a vertical wheel over a scrollable open panel to the panel (once per document). */
+  function installFoldoutPanelScroll() {
+    if (panelScrollInstalled || typeof document === 'undefined') return
+    panelScrollInstalled = true
+    document.addEventListener('wheel', (event) => {
+      const target = event.target
+      const container = target && target.closest ? target.closest('#' + LAYOUT_ID + ' .' + PANEL_CONTAINER) : null
+      if (panelWheelIsNative(container, event.deltaX, event.deltaY)) event.stopPropagation()
+    }, { capture: true, passive: true })
+  }
+
   /** Applies the folds once VB has painted the foldout. `fresh` = a new page (folds start over). */
   function applyFoldoutFoldsSoon(foldout, { fresh = false, frames = 60 } = {}) {
     if (fresh) resetFoldoutFolds()
     if (!foldout || typeof document === 'undefined') return
-    if (!(foldout.panels || []).some((p) => p && p.open === false)) return
+    installFoldoutPanelScroll()
+    if (!(foldout.panels || []).some(foldable)) return
     let left = frames
     const tick = () => {
       if (applyFoldoutFolds(document.getElementById(LAYOUT_ID), foldout)) return
@@ -21049,6 +21308,84 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return true
   }
 
+  /**
+   * Where the reader is, kept across an action that re-renders the SAME screen in place (an editor's
+   * @Button answering its edit form: same component id and type, so the form is projected again). The
+   * re-projection re-stamps the form's for-each: for a moment the page is shorter than the window, the
+   * browser clamps the scroll to 0 and the reader — who pressed a button at the bottom of a long form
+   * — lands back at its top. Taken BEFORE the action leaves: the window's scroll (and that of every
+   * scrolled container holding the focus — a drawer's body), and what had the focus (by its
+   * data-action-id / data-field-id: the element itself is replaced). `restore()` puts them back
+   * once the new form is painted: VB binds asynchronously, so it retries over `settle` ms, and gives
+   * up as soon as the reader scrolls, types or clicks — never fighting the user. A navigation is not
+   * this: its screen starts at the top (scrollToTopOnNavigate), and the chain does not restore then
+   * (keepsViewport).
+   */
+  function keepViewport(doc = typeof document !== 'undefined' ? document : null,
+      win = typeof window !== 'undefined' ? window : null) {
+    const none = { restore: () => false, scrollers: [] }
+    if (!doc || !win) return none
+    const root = doc.scrollingElement || doc.documentElement
+    const scrollers = []
+    if (root) scrollers.push({ el: root, top: root.scrollTop, left: root.scrollLeft })
+    const active = doc.activeElement
+    for (let el = active && active.parentElement; el && el !== root && el !== doc.body; el = el.parentElement) {
+      if (el.scrollTop > 0 || el.scrollLeft > 0) scrollers.push({ el, top: el.scrollTop, left: el.scrollLeft })
+    }
+    const focusSelector = focusSelectorOf(active)
+    const restore = ({ settle = 1200, every = 80 } = {}) => {
+      let stopped = false
+      const stop = () => { stopped = true }
+      const events = ['wheel', 'touchstart', 'keydown', 'mousedown']
+      events.forEach((e) => doc.addEventListener(e, stop, { capture: true, passive: true, once: true }))
+      const apply = () => {
+        if (stopped) return
+        for (const s of scrollers) {
+          if (!s.el.isConnected) continue
+          if (s.el.scrollTop !== s.top) s.el.scrollTop = s.top
+          if (s.el.scrollLeft !== s.left) s.el.scrollLeft = s.left
+        }
+        // the focus, only if the action took it away (the pressed button was replaced): never steal it
+        if (focusSelector && (!doc.activeElement || doc.activeElement === doc.body || !doc.activeElement.isConnected)) {
+          const target = doc.querySelector(focusSelector)
+          const focusable = target && (target.querySelector('button, input, textarea, [tabindex]') || target)
+          if (focusable && typeof focusable.focus === 'function') {
+            try { focusable.focus({ preventScroll: true }) } catch (e) { /* not focusable */ }
+          }
+        }
+      }
+      apply()
+      const started = Date.now()
+      const tick = () => {
+        if (stopped) return
+        apply()
+        if (Date.now() - started < settle) win.setTimeout(tick, every)
+        else events.forEach((e) => doc.removeEventListener(e, stop, { capture: true }))
+      }
+      win.setTimeout(tick, every)
+      return true
+    }
+    return { restore, scrollers, focusSelector }
+  }
+
+  /** A selector that finds the focused control again once it is re-stamped: its data-action-id (a
+   *  button) or data-field-id (a field), from the element itself or its nearest owner. '' if none. */
+  function focusSelectorOf(active) {
+    const owner = active && typeof active.closest === 'function' ? active.closest('[data-action-id], [data-field-id]') : null
+    if (!owner) return ''
+    const attr = owner.hasAttribute('data-action-id') ? 'data-action-id' : 'data-field-id'
+    const value = owner.getAttribute(attr)
+    if (!value) return ''
+    return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'
+  }
+
+  /** Does an action's answer keep the reader where they were? Not when it moved to another screen:
+   *  a navigation, a route flip (a row click to its detail), a host replaced by another component —
+   *  those start at the top. An in-place re-render, a state change or an overlay does. */
+  function keepsViewport({ navigate, flipRoute, reRendered } = {}) {
+    return !(navigate && (navigate.route || navigate.url)) && !flipRoute && !reRendered
+  }
+
   /** How long the old screen stays on show once another starts loading (app.css mateu-stale-hide). */
   const STALE_SCREEN_HIDE_MS = 500
 
@@ -21344,12 +21681,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       componentState: componentState || (ctx && ctx.state) || {},
       serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
       initiatorComponentId: initiator,
+      // an EMBEDDED MicroFrontend (chrome) says so on every request: its server sends no window commands
+      ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...extra,
     }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
       .then((inc) => {
         release()
         if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
-        return inc
+        // …and whatever an older remote still sends, the window is not the island's to name
+        return outbound.embeddedChrome ? withoutWindowCommands(inc) : inc
       }, (e) => { release(); throw e })
   }
 
@@ -21418,6 +21758,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
         consumedRoute: outbound.consumedRoute || '',
         serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
+        ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
         ...bodyExtra,
         route: bare ? `/${bare}` : '',
         actionId,
@@ -21650,15 +21991,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
     if (sub.baseUrl) base = sub.baseUrl
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
-    const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
+    const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
+      // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
+      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}) }
     // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
     // its actions and triggers still go to ITS baseUrl (outbound, below)
-    let next = reduceContexts(reg, sub.resolved || await loadRoute(base, sub.route, sub.id, {
+    const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
       ...extra,
       consumedRoute: sub.consumedRoute,
       serverSideType: sub.serverSideType,
       componentState: sub.componentState || {},
-    }))
+      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
+    })
+    let next = reduceContexts(reg, sub.chrome ? withoutWindowCommands(answer) : answer)
     next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
     for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
       const ctx = next.contexts[sub.id]
@@ -21667,7 +22012,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const increment = await runMateuAction(base, ctx, sub.route, triggerActionId, componentState, extra)
       if (increment) next = reduceContexts(next, increment)
     }
+    // an embedded island leaves the window as the HOST named it: its load does not take the host's
+    // title (nor its history push) away from the chains that apply them after loading the blocks
+    if (sub.chrome) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
     return next
+  }
+
+  /** The window effects of the registry an embedded island was loaded into: what the HOST's answer
+   *  said about the window (its title, its history push), kept across the island's own answers. */
+  function hostWindowEffectsOf(reg) {
+    const effects = (reg && reg.effects) || {}
+    return { docTitle: effects.docTitle == null ? null : effects.docTitle, urlPush: effects.urlPush == null ? null : effects.urlPush }
   }
 
   /**
@@ -22233,6 +22588,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           appState: md.appState || null,
           // the host resolved it (resolve = SERVER): the answer to its first load is already here
           resolved: md.resolved && typeof md.resolved === 'object' ? md.resolved : null,
+          // EMBEDDED (MicroFrontend.chrome): its requests say so (a header widget applies no commands)
+          chrome: embeddedChromeOf(md.chrome),
         })
         return
       }
@@ -22297,6 +22654,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       initiatorComponentId: item.id,
       componentState: (rt.ctx && rt.ctx.state) || {},
       appState: Object.assign({}, appState(), item.appState || {}),
+      ...(item.chrome ? { embeddedChrome: item.chrome } : {}),
       ...extra,
     }, { quiet: true, idempotent: true })
 
@@ -25058,6 +25416,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...reg?.contexts?.[HOST_ID]?.state, ...draft }
   }
 
+  /**
+   * The last guard before an action leaves for the server: is `actionId` a RouteLink BUTTON of the
+   * screen on display? Then it navigates, whatever surface the click came from — a header painted
+   * from a projection older or newer than the registry (a slow load: the URL already said
+   * /missions/52, the header lagged) handed its id over without the route, and the server answered
+   * the label's echo with 403. `{ navigate: route }`, `{ navigate: null }` when its route cannot be
+   * read yet (nothing to send either), or null when it is a real action.
+   */
+  function routedActionOf(reg, actionId, draft) {
+    const host = reg?.contexts?.[HOST_ID]
+    if (!host?.tree || !actionId) return null
+    let template = null
+    const seen = new Set()
+    const walk = (n) => {
+      if (template != null || !n || typeof n !== 'object' || seen.has(n)) return
+      seen.add(n)
+      if (n.actionId === actionId && typeof n.route === 'string' && n.route.trim()) { template = n.route; return }
+      for (const v of Array.isArray(n) ? n : Object.values(n)) walk(v)
+    }
+    walk(host.tree)
+    if (template == null) return null
+    const click = blockClickOf({ actionId, route: template, state: routeStateOf(reg, draft) })
+    const to = click.navigate || ''
+    // an unresolved placeholder left a gap (`missions//edit`, `missions/`): the record is not there yet
+    const readable = to !== '' && !to.includes('${') && !to.includes('//') && !to.endsWith('/')
+    return { navigate: readable ? to : null }
+  }
+
   function blockClickOf({ actionId, parameters, route, state } = {}) {
     // a RouteLink's route is a template over the screen's state (`missions/${state.id}/edit`): it went
     // out with the literal placeholder wherever the projection had not interpolated it already
@@ -27720,6 +28106,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
+    masterDetailOf,
     withListingSelection,
     onLoadTriggers,
     // filtros del listado: descriptores ya resueltos a widget, y la config smartFilters de la
@@ -27875,6 +28262,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     isExternalRoute,
     scrollToTopOnNavigate,
     scrollToTopWhenReplaced,
+    keepViewport,
+    focusSelectorOf,
+    keepsViewport,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,
@@ -27906,6 +28296,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     classifyRequestFailure,
     isIdempotentAction,
     connectivity,
+    isNarrowViewport,
+    watchNarrowViewport,
     pendingActions,
     setTransportHooks,
     authHeadersOf,
@@ -28057,6 +28449,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,
+    routedActionOf,
     routeStateOf,
     hostReRendered,
     touchesHost,

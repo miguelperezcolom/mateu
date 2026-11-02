@@ -46,6 +46,7 @@ public class FoldoutLayoutMapper {
               .subtitle(panel.subtitle())
               .icon(panel.icon())
               .open(panel.open())
+              .autoOpen(Boolean.TRUE.equals(panel.autoOpen()) ? Boolean.TRUE : null)
               .width(panel.width())
               .build());
       if (panel.content() != null) {

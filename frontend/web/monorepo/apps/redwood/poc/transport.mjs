@@ -4,7 +4,7 @@
 // tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
-import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf } from './reduceContexts.mjs'
+import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf, withoutWindowCommands } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage } from './navTree.mjs'
@@ -252,12 +252,15 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
     componentState: componentState || (ctx && ctx.state) || {},
     serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
     initiatorComponentId: initiator,
+    // an EMBEDDED MicroFrontend (chrome) says so on every request: its server sends no window commands
+    ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
     ...extra,
   }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
     .then((inc) => {
       release()
       if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
-      return inc
+      // …and whatever an older remote still sends, the window is not the island's to name
+      return outbound.embeddedChrome ? withoutWindowCommands(inc) : inc
     }, (e) => { release(); throw e })
 }
 
@@ -326,6 +329,7 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
       consumedRoute: outbound.consumedRoute || '',
       serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
+      ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...bodyExtra,
       route: bare ? `/${bare}` : '',
       actionId,
@@ -558,15 +562,19 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
   // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
   if (sub.baseUrl) base = sub.baseUrl
   if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
-  const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
+  const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
+    // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
+    ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}) }
   // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
   // its actions and triggers still go to ITS baseUrl (outbound, below)
-  let next = reduceContexts(reg, sub.resolved || await loadRoute(base, sub.route, sub.id, {
+  const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
     ...extra,
     consumedRoute: sub.consumedRoute,
     serverSideType: sub.serverSideType,
     componentState: sub.componentState || {},
-  }))
+    ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
+  })
+  let next = reduceContexts(reg, sub.chrome ? withoutWindowCommands(answer) : answer)
   next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
   for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
     const ctx = next.contexts[sub.id]
@@ -575,7 +583,17 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
     const increment = await runMateuAction(base, ctx, sub.route, triggerActionId, componentState, extra)
     if (increment) next = reduceContexts(next, increment)
   }
+  // an embedded island leaves the window as the HOST named it: its load does not take the host's
+  // title (nor its history push) away from the chains that apply them after loading the blocks
+  if (sub.chrome) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
   return next
+}
+
+/** The window effects of the registry an embedded island was loaded into: what the HOST's answer
+ *  said about the window (its title, its history push), kept across the island's own answers. */
+function hostWindowEffectsOf(reg) {
+  const effects = (reg && reg.effects) || {}
+  return { docTitle: effects.docTitle == null ? null : effects.docTitle, urlPush: effects.urlPush == null ? null : effects.urlPush }
 }
 
 /**

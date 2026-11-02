@@ -22,6 +22,10 @@ define([], () => {
       };
       // the table reads its sort indicator back from the results' fetchParameters: they keep
       // saying what the table ASKED for, so the header still shows (and toggles) the sort
+      // A fetch oj-table ABORTED itself («Aborting stale fetch … a newer request has been issued»)
+      // rejected a promise nobody waits for any more: an uncaught error on every listing load. The
+      // table discards what a stale fetch answers, so it ends quietly, empty, instead.
+      const aborted = (params, e) => (params && params.signal && params.signal.aborted) || (e && e.name === 'AbortError');
       const asAsked = (params, iterable) => ({
         [Symbol.asyncIterator]: () => {
           const it = iterable[Symbol.asyncIterator]();
@@ -29,6 +33,9 @@ define([], () => {
             next: () => it.next().then((r) => {
               if (r && r.value && params) r.value.fetchParameters = params;
               return r;
+            }, (e) => {
+              if (!aborted(params, e)) throw e;
+              return { done: true, value: { data: [], metadata: [], fetchParameters: params } };
             }),
           };
         },

@@ -92,6 +92,9 @@ export class MateuVaadinTree extends LitElement {
         }
     }
 
+    // The grid is also handed the root size: the rows arrive after the first dataProvider call, and
+    // a grid still holding no rows and no `size` two seconds later warns "needs the total number of
+    // items" (crawl: /components, /solar-system).
     private dataProvider = (
         params: { parentItem?: Row },
         callback: (items: Row[], size: number) => void,
@@ -116,6 +119,7 @@ export class MateuVaadinTree extends LitElement {
             <vaadin-grid
                     theme="compact no-row-borders"
                     all-rows-visible
+                    .size="${this.normalized.length}"
                     .dataProvider="${this.dataProvider}"
                     .itemHasChildrenPath="${'children'}"
                     .expandedItems="${this.expandedItems}"

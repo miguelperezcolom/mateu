@@ -194,6 +194,11 @@ public sealed record FoldoutPanel : ComponentBase
     public string? Icon { get; init; }
     public bool Open { get; init; } = true;
 
+    /// <summary>True = the author did not decide: the renderer opens the panel while it fits the row
+    /// (declaration order, after the panels declared open) and folds it otherwise; Open is then
+    /// ignored. Null (default) = Open decides. (Mirrors io.mateu.uidl.data.FoldoutPanel.autoOpen.)</summary>
+    public bool? AutoOpen { get; init; }
+
     /// <summary>Optional CSS length for the expanded panel (e.g. "40rem"); null = renderer default.</summary>
     public string? Width { get; init; }
 

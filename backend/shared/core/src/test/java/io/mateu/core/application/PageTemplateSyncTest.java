@@ -225,6 +225,10 @@ class PageTemplateSyncTest {
     assertThat(foldout.path("metadata").path("panels")).hasSize(2);
     assertThat(foldout.path("metadata").path("panels").path(0).path("title").asText())
         .isEqualTo("Specifications");
+    // Specifications declares `open: true`; Crew declares nothing → auto (open while it fits)
+    assertThat(foldout.path("metadata").path("panels").path(0).has("autoOpen")).isFalse();
+    assertThat(foldout.path("metadata").path("panels").path(1).path("autoOpen").asBoolean())
+        .isTrue();
   }
 
   @Test

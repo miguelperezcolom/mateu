@@ -870,6 +870,11 @@
       "defaultValue": false,
       "description": "se esta cargando OTRA pantalla (onMateuNavigate): la vieja se oculta tras el retardo y la sustituye el esqueleto; una accion dentro de la misma pantalla no lo pone"
     },
+    "mateuNarrow": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "the viewport is at phone width (viewport.mjs): a DataManagement bottom panel stays closed"
+    },
     "mateuOffline": {
       "type": "boolean",
       "defaultValue": false,

@@ -9,7 +9,9 @@ import lombok.Builder;
  * shown in the overview. Closed panels render as a narrow strip with the rotated title; clicking
  * folds them out. {@code open} controls the initial state. {@code width} is an optional CSS length
  * (e.g. {@code "40rem"}) for the expanded panel — null keeps the renderer's default section width,
- * so panels can size to their content (a wide checklist, a narrow property list).
+ * so panels can size to their content (a wide checklist, a narrow property list). {@code autoOpen}
+ * = the author did not decide: the renderer opens the panel when it fits in the row (declaration
+ * order, after the panels declared open), else draws it folded — {@code open} is then ignored.
  */
 @Builder
 public record FoldoutPanel(
@@ -27,8 +29,29 @@ public record FoldoutPanel(
      */
     @Experimental("foldout panel summaries (3.0-alpha.409)") Component summary,
     String style,
-    String cssClasses)
+    String cssClasses,
+    /**
+     * True = the author did not declare {@code open}: the renderer opens the panel while it fits in
+     * the available width (in declaration order) and folds it otherwise. Null/false = {@code open}
+     * decides, as before. A YAML panel without {@code open:} gets {@code autoOpen: true}.
+     */
+    @Experimental("foldout auto-open (3.0-beta.41)") Boolean autoOpen)
     implements Component {
+
+  /** The 3.0-alpha.409 shape (no autoOpen), kept so code compiled against it keeps linking. */
+  public FoldoutPanel(
+      String id,
+      String title,
+      String subtitle,
+      String icon,
+      boolean open,
+      String width,
+      Component content,
+      Component summary,
+      String style,
+      String cssClasses) {
+    this(id, title, subtitle, icon, open, width, content, summary, style, cssClasses, null);
+  }
 
   /** The 3.0-alpha.408 shape (no summary), kept so code compiled against it keeps linking. */
   public FoldoutPanel(
@@ -41,6 +64,6 @@ public record FoldoutPanel(
       Component content,
       String style,
       String cssClasses) {
-    this(id, title, subtitle, icon, open, width, content, null, style, cssClasses);
+    this(id, title, subtitle, icon, open, width, content, null, style, cssClasses, null);
   }
 }

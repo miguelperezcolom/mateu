@@ -49,6 +49,7 @@ export const renderGrid = (
         return html`
         <vaadin-grid style="${component.style}" class="${component.cssClasses}"
                      .itemHasChildrenPath="${'children'}" .dataProvider="${dataProvider}"
+                     .size="${metadata.page?.content?.length ?? 0}"
                      slot="${component.slot??nothing}"
                      all-rows-visible
         >

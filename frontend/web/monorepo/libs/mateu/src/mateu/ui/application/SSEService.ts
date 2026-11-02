@@ -43,7 +43,9 @@ export class SSEService implements Service {
             initiatorComponentId,
             consumedRoute,
             route: '/' + route,
-            actionId
+            actionId,
+            // an embedded micro frontend says so: its server sends no window commands
+            ...(options.embeddedChrome ? { embeddedChrome: options.embeddedChrome } : {}),
         }
 
         if (!background) {

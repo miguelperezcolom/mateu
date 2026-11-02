@@ -6,6 +6,7 @@
 
 import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
+import vm from 'node:vm'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -29,7 +30,7 @@ import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
@@ -44,7 +45,7 @@ import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { nestedListingAtomOf, nestedListingKeyOf, pageListingNodeOf, templateNestsListings, listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf } from './core/listing.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
-import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
+import { listingOf, rowClickOpensRecord, masterDetailOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp, mediatorConsumedRoute, mediatorBaseOf, composeInnerRoute } from './transport.mjs'
@@ -53,7 +54,7 @@ import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, value
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
 import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl, remoteOriginOf } from './elements.mjs'
 import { foldoutOf } from './core/archetypes.mjs'
-import { foldedPanelIndexes, isPanelFolded, unfoldPanel, resetFoldoutFolds, wirePanelIndexOf, foldoutPanelKey } from './foldouts.mjs'
+import { foldedPanelIndexes, isPanelFolded, unfoldPanel, resetFoldoutFolds, wirePanelIndexOf, foldoutPanelKey, fitAutoPanels, panelWheelIsNative } from './foldouts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let pass = 0
@@ -358,6 +359,41 @@ test('foldout: the open=false panels start folded, unfolding one keeps it unfold
   assert.deepEqual(foldedPanelIndexes(null), [])
   assert.equal(isPanelFolded(foldout, 9), false)
   resetFoldoutFolds()
+})
+
+test('foldout: an autoOpen panel (no `open:` authored) is open while it fits the row', () => {
+  // the museum exhibition: The works declared open, Loans and Budget left to the renderer
+  const foldout = foldoutOf(reduceContexts(empty(), { fragments: [{ targetComponentId: HOST_ID, component: {
+    type: 'ServerSide', id: 'x', serverSideType: 'Exhibition', children: [{ metadata: { type: 'FoldoutLayout', panels: [
+      { title: 'The works', open: true }, { title: 'Loans', open: false, autoOpen: true }, { title: 'Budget', open: false, autoOpen: true },
+    ] }, children: [] }] } }] }).contexts[HOST_ID])
+  resetFoldoutFolds()
+  assert.deepEqual(foldout.panels.map((p) => p.autoOpen), [false, true, true])
+  // a 1408px row: Loans fits, Budget does not (25rem overview + 22rem panels + 4rem strips)
+  fitAutoPanels(foldout, 1408)
+  assert.deepEqual(foldedPanelIndexes(foldout), [2])
+  // a phone: only what the author declared open
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [1, 2])
+  // unfolding one by hand wins over the fit until a new page
+  assert.equal(unfoldPanel(foldout, 1), true)
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [2])
+  resetFoldoutFolds()
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [1, 2])
+  resetFoldoutFolds()
+})
+
+test('foldout: a vertical wheel over a panel taller than the row scrolls the panel while it has room', () => {
+  const panel = (scrollTop) => ({ scrollHeight: 1572, clientHeight: 854, scrollTop })
+  assert.equal(panelWheelIsNative(panel(0), 0, 100), true, 'down, room below')
+  assert.equal(panelWheelIsNative(panel(718), 0, 100), false, 'at the bottom: the layout takes it')
+  assert.equal(panelWheelIsNative(panel(0), 0, -100), false, 'up at the top')
+  assert.equal(panelWheelIsNative(panel(300), 0, -100), true, 'up, room above')
+  assert.equal(panelWheelIsNative(panel(300), 200, 50), false, 'a horizontal gesture pages the row')
+  assert.equal(panelWheelIsNative({ scrollHeight: 854, clientHeight: 854, scrollTop: 0 }, 0, 100), false, 'nothing to scroll')
+  assert.equal(panelWheelIsNative(null, 0, 100), false)
 })
 
 test("foldout: the layout's selectedPanel counts the overview as panel 0", () => {
@@ -1495,6 +1531,39 @@ test('clic de fila: sólo abre el registro si el listado lo ofrece (@NotNavigabl
   assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /bridge\.rowClickOpensRecord\(listing\)/)
 })
 
+atest('an oj-table fetch the table aborted ends quietly (crawl: «Aborting stale fetch» uncaught on every listing)', async () => {
+  // the AMD page module, evaluated in a sandbox with a define() that hands its class back
+  const sandbox = { define: (deps, f) => { sandbox.PageModule = f() } }
+  vm.runInNewContext(webApp('flows/main/pages/main-start-page.js'), sandbox)
+  const page = new sandbox.PageModule()
+  const failing = (err) => ({ fetchFirst: () => ({ [Symbol.asyncIterator]: () => ({ next: () => Promise.reject(err) }) }) })
+  const ctrl = new AbortController()
+  ctrl.abort()
+  const stale = Object.assign(new Error('<oj-table>: Aborting stale fetch for performance'), { name: 'AbortError' })
+  const r = await page.serverSorted(failing(stale)).fetchFirst({ signal: ctrl.signal })[Symbol.asyncIterator]().next()
+  assert.equal(r.done, true)
+  assert.equal(r.value.data.length, 0)
+  // any other failure still surfaces
+  await assert.rejects(page.serverSorted(failing(new Error('boom'))).fetchFirst({})[Symbol.asyncIterator]().next(), /boom/)
+})
+
+test('gridLayout masterDetail: a click opens the row\'s fields beside the list (crawl D3, /launches)', () => {
+  const crud = (extra) => ({ tree: { type: 'ServerSide', id: 's', serverSideType: 'X', children: [node({ type: 'Crud', gridLayout: 'masterDetail', ...extra,
+    columns: [node({ type: 'GridColumn', id: 'name', label: 'Mission', dataType: 'string' }),
+      node({ type: 'GridColumn', id: 'status', label: 'Status', dataType: 'status' }),
+      node({ type: 'GridColumn', id: 'date', label: 'Date', dataType: 'string' })] })] },
+  data: { crud: { page: { content: [{ id: '1', name: 'Apollo 11', status: { type: 'SUCCESS', message: 'Launched' }, date: '1969-07-16' }], totalElements: 1 } } }, state: {} })
+  const l = listingOf(crud({}))
+  assert.equal(l.masterDetail, true)
+  assert.notEqual(l.tableClass, listingOf(crud({ gridLayout: 'table' })).tableClass, 'the rows invite the click')
+  const d = masterDetailOf(l, l.rows[0])
+  assert.equal(d.title, 'Apollo 11')
+  assert.deepEqual(d.fields, [{ label: 'Mission', value: 'Apollo 11' }, { label: 'Status', value: 'Launched' }, { label: 'Date', value: '1969-07-16' }])
+  assert.equal(listingOf(crud({ rowRoute: 'launches/${row.id}' })).masterDetail, false, 'a rowRoute opens its record instead')
+  assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /listing\.masterDetail[\s\S]*bridge\.masterDetailOf\(listing, row\)/)
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuRowDetail\.fields \|\| \[\]/)
+})
+
 test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas con clic propio', () => {
   // display columns (and inline editors) carry the class the chain respects
   assert.equal(isDisplayColumn({ id: 'name', actionId: 'view' }), false, 'la columna que abre no es de display')
@@ -1562,7 +1631,7 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
   assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /bridge\.hostReRendered\(lastIncrement, host, hostNow\)/)
 })
 
-import { ganttAtomOf, itemOverviewOf, generalOverviewOf, isRichAtom } from './reduceContexts.mjs'
+import { ganttAtomOf, ganttScalesOf, itemOverviewOf, generalOverviewOf, isRichAtom } from './reduceContexts.mjs'
 import { ganttLabelOf, GANTT_OUTSIDE_LABEL_INK } from './core/boards.mjs'
 import { sanitizeHtml, markdownToHtml } from './richtext.mjs'
 
@@ -1615,6 +1684,12 @@ test('Gantt: una fila por tarea sobre oj-gantt, avance 0..1, selección → _cli
   assert.deepEqual(p.progress, { value: 0.15, svgStyle: { fill: '#304e15' } })
   assert.deepEqual(q.progress, { value: 0.15 })
   assert.equal(g.majorScale, 'months', 'un plan de meses se lee por meses')
+  // the unit follows the span (the web renderer's thresholds): a six-decade programme by years (crawl D6)
+  assert.deepEqual(ganttScalesOf('2026-01-01', '2026-02-10'), { majorScale: 'weeks', minorScale: 'days' })
+  assert.deepEqual(ganttScalesOf('2026-01-01', '2027-06-30'), { majorScale: 'months', minorScale: 'weeks' })
+  assert.deepEqual(ganttScalesOf('2024-01-01', '2027-06-30'), { majorScale: 'years', minorScale: 'quarters' })
+  assert.deepEqual(ganttScalesOf('1961-04-12', '2026-11-02'), { majorScale: 'years', minorScale: 'years' })
+  assert.equal(ganttAtomOf({ tasks: [{ id: 'a', start: '1961-04-12', end: '1961-04-12' }, { id: 'b', start: '2026-01-01', end: '2026-11-02' }] }).minorScale, 'years')
   // the bar's label is READABLE: white only over the dark done fill (≥ 75%), else outside in dark ink
   const [t1, t2] = g.rows.map((r) => r.tasks[0])
   assert.deepEqual(t1.labelPosition, ['end', 'start', 'none'], 'half done: the middle of the bar is light — the label goes outside')
@@ -2129,6 +2204,81 @@ atest('the old screen does not jump to its top before the new one is there', asy
   assert.equal(calls.length, 2)
 })
 
+atest('an in-place re-render keeps the reader where they were: scroll and focus come back, a navigation still starts at the top', async () => {
+  // an editor @Button at the bottom of a long edit form re-renders the form in place (same id and
+  // type): the re-stamped form was briefly shorter than the window, the browser clamped the scroll
+  // to 0 and the reader landed back at the top of the page
+  const listeners = {}
+  const el = (attrs = {}, parent = null) => ({
+    attrs, parentElement: parent, isConnected: true, scrollTop: 0, scrollLeft: 0, focused: 0,
+    hasAttribute: (a) => a in attrs, getAttribute: (a) => attrs[a],
+    closest(sel) { for (let e = this; e; e = e.parentElement) if (sel.split(',').some((s) => s.trim().slice(1, -1) in e.attrs)) return e; return null },
+    querySelector: () => null, focus() { this.focused++; doc.activeElement = this },
+  })
+  const root = el()
+  const body = el({}, root)
+  const drawerBody = el({}, body)
+  const button = el({ 'data-action-id': 'action-on-editor-insert"Medium' }, drawerBody)
+  const inner = el({}, button)
+  const replaced = el({ 'data-action-id': 'action-on-editor-insert"Medium' }, drawerBody)
+  replaced.querySelector = (sel) => (sel.startsWith('button') ? inner2 : null)
+  const inner2 = el({}, replaced)
+  const doc = {
+    scrollingElement: root, documentElement: root, body, activeElement: inner,
+    addEventListener: (e, fn) => { listeners[e] = fn }, removeEventListener: (e) => { delete listeners[e] },
+    querySelector: (sel) => (sel === '[data-action-id="action-on-editor-insert\\"Medium"]' ? replaced : null),
+  }
+  const timers = []
+  const win = { setTimeout: (fn) => { timers.push(fn); return timers.length } }
+  root.scrollTop = 541
+  drawerBody.scrollTop = 120
+  const kept = keepViewport(doc, win)
+  assert.deepEqual(kept.scrollers.map((s) => s.top), [541, 120])
+  assert.equal(kept.focusSelector, '[data-action-id="action-on-editor-insert\\"Medium"]')
+  // the answer is painted: the page jumped to its top and the pressed button was replaced
+  root.scrollTop = 0
+  drawerBody.scrollTop = 0
+  inner.isConnected = false
+  assert.equal(kept.restore(), true)
+  assert.deepEqual([root.scrollTop, drawerBody.scrollTop], [541, 120])
+  assert.equal(doc.activeElement, inner2)
+  // VB binds asynchronously: it keeps putting the position back for a moment…
+  root.scrollTop = 0
+  timers.shift()()
+  assert.equal(root.scrollTop, 541)
+  // …until the reader scrolls, types or clicks: never fighting the user
+  listeners.wheel()
+  root.scrollTop = 30
+  timers.shift()()
+  assert.equal(root.scrollTop, 30)
+  // the focus is never taken from a field the reader is in
+  inner2.focused = 0
+  const field = el({ 'data-field-id': 'body' }, body)
+  doc.activeElement = field
+  const again = keepViewport(doc, win)
+  doc.activeElement = field
+  again.restore()
+  assert.equal(inner2.focused, 0)
+  assert.equal(focusSelectorOf(field), '[data-field-id="body"]')
+  assert.equal(focusSelectorOf(el()), '')
+  assert.equal(focusSelectorOf(null), '')
+  // no DOM (a test, a worker): nothing to keep
+  assert.equal(keepViewport(null, null).restore(), false)
+  // which answers keep it: the same screen re-rendered, a state change, an overlay — not another screen
+  assert.equal(keepsViewport({}), true)
+  assert.equal(keepsViewport({ navigate: {} }), true)
+  assert.equal(keepsViewport({ navigate: { route: '/docs' } }), false)
+  assert.equal(keepsViewport({ navigate: { url: 'https://x' } }), false)
+  assert.equal(keepsViewport({ flipRoute: '/d1' }), false)
+  assert.equal(keepsViewport({ reRendered: true }), false)
+  // the chain takes it before the action leaves and restores it only when keepsViewport says so
+  const here = new URL('.', import.meta.url).pathname
+  const chain = readFileSync(here + '../webApps/vbredwoodapp/flows/main/pages/main-start-page-chains/runMateuAction.js', 'utf8')
+  const sent = chain.search(/bridge\.runMateuAction\(\s*base, transportCtx/)
+  assert.ok(sent > 0 && chain.indexOf('bridge.keepViewport()') > 0 && chain.indexOf('bridge.keepViewport()') < sent)
+  assert.match(chain, /if \(bridge\.keepsViewport\(\{ navigate: effects\.navigate, flipRoute, reRendered \}\)\) viewport\.restore\(\)/)
+})
+
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
 void HOST_ID
 
@@ -2384,7 +2534,7 @@ test('GanttPage → oj-sp-data-management-page: the canvas + detail in the defau
   const page = sectionOf(html, '<oj-sp-data-management-page id="mateuDmPage"', '</oj-sp-data-management-page>')
   assert.match(page, /<div slot="innerEnd"[^>]*>\s*<oj-bind-if[^>]*>\s*<oj-sp-general-drawer-template[\s\S]*on-sp-close="\[\[ \$listeners\.dmEndPanelClosed \]\]"/)
   assert.match(page, /<div slot="innerBottom"[^>]*>\s*<oj-bind-if[^>]*>\s*<oj-sp-bottom-drawer-template[\s\S]*drawer-state="\{\{ \$variables\.mateuDmBottomState \}\}"/)
-  assert.match(page, /end-opened="\[\[ \$application\.variables\.mateuDm\.endOpened \]\]"/)
+  assert.match(page, /end-opened="\[\[ !\$application\.variables\.mateuNarrow && \$application\.variables\.mateuDm && \$application\.variables\.mateuDm\.endOpened \|\| 'none' \]\]"/)
   const pageJson = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
   assert.ok(pageJson.imports.components['oj-sp-data-management-page'])
   assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].chain, 'dmPanelClosed')
@@ -2662,6 +2812,10 @@ test('a page that DECLARES the Guided process template → oj-sp-guided-process 
   // the state (with what was typed) is what the steps' fields show
   const gp = templatedGuidedProcessOf({ state: { name: 'Ebon Hawk' }, data: {}, tree: golden.fragments[0].component })
   assert.deepEqual(gp.steps.map((s) => [s.id, s.title]), [['step-1', 'Identity'], ['step-2', 'Specifications']])
+  // display 'on': without it the rail drew every step disabled — faint, and none clickable (crawl D9)
+  assert.ok(gp.steps.every((s) => s.display === 'on' && s.label === s.title))
+  // the field's placeholder reaches the widget («e.g. …» on the web renderer)
+  assert.equal(typeof gp.steps[0].items.find((a) => a.fieldId === 'name').placeholder, 'string')
   assert.equal(gp.steps[0].items.find((a) => a.fieldId === 'name').value, 'Ebon Hawk')
   assert.deepEqual(gp.primaryAction, { label: 'Register' })
   assert.deepEqual([gp.primaryId, gp.cancelId, gp.cancelRoute], ['create', 'cancel-new', 'starships'])

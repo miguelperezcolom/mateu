@@ -87,6 +87,8 @@
               <oj-bind-if test="[[ $current.data.isText ]]">
                 <oj-input-text
                   label-hint="[[ $current.data.label ]]"
+                  help.instruction="[[ $current.data.help ]]"
+                  placeholder="[[ $current.data.placeholder || '' ]]"
                   value="[[ $current.data.value ]]"
                   required="[[ $current.data.required ]]"
                   readonly="[[ $current.data.readonly ]]"
@@ -96,6 +98,8 @@
               <oj-bind-if test="[[ $current.data.isTextArea ]]">
                 <oj-text-area
                   label-hint="[[ $current.data.label ]]"
+                  help.instruction="[[ $current.data.help ]]"
+                  placeholder="[[ $current.data.placeholder || '' ]]"
                   value="[[ $current.data.value ]]"
                   rows="4"
                   required="[[ $current.data.required ]]"
@@ -106,6 +110,8 @@
               <oj-bind-if test="[[ $current.data.isNumber ]]">
                 <oj-input-number
                   label-hint="[[ $current.data.label ]]"
+                  help.instruction="[[ $current.data.help ]]"
+                  placeholder="[[ $current.data.placeholder || '' ]]"
                   value="[[ $current.data.value ]]"
                   required="[[ $current.data.required ]]"
                   readonly="[[ $current.data.readonly ]]"
@@ -115,6 +121,7 @@
               <oj-bind-if test="[[ $current.data.isDate ]]">
                 <oj-input-date
                   label-hint="[[ $current.data.label ]]"
+                  help.instruction="[[ $current.data.help ]]"
                   value="[[ $current.data.value ]]"
                   required="[[ $current.data.required ]]"
                   readonly="[[ $current.data.readonly ]]"
@@ -124,6 +131,7 @@
               <oj-bind-if test="[[ $current.data.isDateTime ]]">
                 <oj-input-date-time
                   label-hint="[[ $current.data.label ]]"
+                  help.instruction="[[ $current.data.help ]]"
                   value="[[ $current.data.value ]]"
                   required="[[ $current.data.required ]]"
                   readonly="[[ $current.data.readonly ]]"
@@ -133,6 +141,7 @@
               <oj-bind-if test="[[ $current.data.isBoolean ]]">
                 <oj-switch
                   label-hint="[[ $current.data.label ]]"
+                  help.instruction="[[ $current.data.help ]]"
                   value="[[ $current.data.value ]]"
                   readonly="[[ $current.data.readonly ]]"
                   :data-field-id="[[ $current.data.fieldId ]]"
@@ -141,6 +150,7 @@
               <oj-bind-if test="[[ $current.data.isSelect ]]">
                 <oj-select-one
                   label-hint="[[ $current.data.label ]]"
+                  help.instruction="[[ $current.data.help ]]"
                   value="[[ $current.data.value ]]"
                   options="[[ $current.data.options ]]"
                   placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"

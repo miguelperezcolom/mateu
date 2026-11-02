@@ -71,6 +71,9 @@ class FoldoutPanelInfo(Wire):
     open: bool = True
     #: Optional CSS length for the expanded panel (e.g. "40rem"); None = renderer default.
     width: str | None = None
+    #: True = the author left ``open`` undecided: open while it fits the row, else folded (mirrors
+    #: FoldoutPanelInfoDto.autoOpen, omitted there when null).
+    auto_open: bool | None = None
 
 
 class FoldoutNavigation(Wire):

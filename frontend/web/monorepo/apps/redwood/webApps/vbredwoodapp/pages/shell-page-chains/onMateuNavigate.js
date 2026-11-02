@@ -538,7 +538,7 @@ define([
       for (const banner of banners) {
         await Actions.fireDataProviderEvent(context, {
           target: $page.variables.messagesBannerADP,
-          add: { data: banner },
+          add: { data: banner, keys: [banner.id] },
         });
       }
       $application.variables.mateuBannerKeys = banners.map((banner) => banner.id);

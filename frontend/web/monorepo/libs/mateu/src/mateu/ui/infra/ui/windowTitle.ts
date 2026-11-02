@@ -33,8 +33,24 @@ const flush = () => {
     if (text) announce(text)
 }
 
-/** The server named the window (SetWindowTitle): show it now, announce it in a beat. */
+/** The location the page's own (resolved) title was noted for, and that title. */
+let notedFor: string | undefined
+let notedTitle: string | undefined
+
+const here = (): string | undefined =>
+    typeof location !== 'undefined' ? location.pathname + (location.search ?? '') : undefined
+
+/**
+ * The server named the window (SetWindowTitle): show it now, announce it in a beat — unless the
+ * page on screen already named itself for THIS location. On an in-app navigation the shell and the
+ * content answer separately, and the record's data can land between them: the page header then
+ * resolved "Apollo 11" and a later SetWindowTitle carrying the route's fallback ("6", "Missions")
+ * overwrote it for good (the header does not re-render, so nothing named the tab again).
+ */
 export const setServerWindowTitle = (text: string): void => {
+    if (notedTitle && notedFor !== undefined && notedFor === here() && text !== notedTitle) {
+        text = notedTitle
+    }
     apply(text)
     pendingText = text
     if (pendingTimer !== undefined) clearTimeout(pendingTimer)
@@ -49,6 +65,8 @@ export const setServerWindowTitle = (text: string): void => {
 export const notePageTitle = (text: string | undefined): void => {
     const title = (text ?? '').trim()
     if (!title || title.includes('${')) return
+    notedFor = here()
+    notedTitle = title
     if (typeof document !== 'undefined' && document.title === title) return
     apply(title)
     if (pendingTimer !== undefined) pendingText = title
@@ -59,4 +77,6 @@ export const resetWindowTitleForTests = (): void => {
     if (pendingTimer !== undefined) clearTimeout(pendingTimer)
     pendingTimer = undefined
     pendingText = undefined
+    notedFor = undefined
+    notedTitle = undefined
 }

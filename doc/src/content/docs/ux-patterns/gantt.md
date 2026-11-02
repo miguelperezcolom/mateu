@@ -18,7 +18,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 [Java imports](/reference/java-imports/).
 :::
 
-Use the `Gantt` component: one `GanttTask` per row, with a date span, optional progress (rendered as a fill inside the bar) and optional color. The component derives the axis from the tasks' dates, draws month headers and marks today with a vertical line.
+Use the `Gantt` component: one `GanttTask` per row, with a date span, optional progress (rendered as a fill inside the bar) and optional color. The component derives the axis from the tasks' dates, scales its headers to the span (months for a project, then quarters, years and decades for a programme of several decades) and marks today with a vertical line.
 
 ```java
 @Section("Schedule")
@@ -83,8 +83,9 @@ information below.
 
 The canvas lays out **edge to edge** (`PageWidthStyle.EDGE_TO_EDGE`) at every width; the time axis
 scrolls horizontally, and on Redwood the row labels take at most 30% of the width. The scale follows
-the plan's span — weeks over days for short plans, months over weeks for plans longer than two
-months.
+the plan's span — on Redwood weeks over days for short plans, months over weeks for plans longer
+than two months; on Vaadin the header is months up to a year and a half, then quarters, years and,
+past thirty years, decades.
 
 ### What you can configure
 

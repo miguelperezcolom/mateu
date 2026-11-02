@@ -144,7 +144,12 @@ public class AppMenuResolver {
       // render a section-index page instead of letting the frontend show "Not found".
       var group = AppMenuActionableFinder.findGroup(app, route, consumedRoute, httpRequest);
       if (group != null && group.submenu() != null && !group.submenu().isEmpty()) {
-        return Mono.just(buildSectionIndex(group, route));
+        var index = buildSectionIndex(group, route, resolvedRoute);
+        // a built PageView is not a reflected page: without this the tab kept the app's name
+        if (httpRequest.getAttribute("windowTitle") == null) {
+          httpRequest.setAttribute("windowTitle", index.title());
+        }
+        return Mono.just(index);
       }
       return Mono.empty();
     }
@@ -345,21 +350,34 @@ public class AppMenuResolver {
    * lands on a usable page instead of "Not found". Child links are absolutised against the group
    * route; {@link RemoteMenu} children keep their own route.
    */
-  private static Object buildSectionIndex(Menu group, String route) {
+  private static PageView buildSectionIndex(Menu group, String route, String appRoute) {
     var base = route.endsWith("/") ? route.substring(0, route.length() - 1) : route;
     var title =
         group.label() != null && !group.label().isBlank()
             ? group.label()
             : io.mateu.uidl.Humanizer.toUpperCaseFirst(base.substring(base.lastIndexOf('/') + 1));
+    // the mount the entries' mount-relative routes hang from: the app's own route
+    var mount = appRoute == null ? "" : appRoute.replaceAll("/+$", "");
     List<Component> links =
         group.submenu().stream()
             .filter(child -> !(child instanceof MenuSeparator))
             .map(
                 child -> {
+                  // an entry of a data-authored shell names its mount-relative route as written
+                  // ("check-in", no slash): linked under the group it read "/quickAccesscheck-in"
                   String target =
                       (child instanceof RemoteMenu remoteMenu)
                           ? remoteMenu.route()
-                          : base + child.path();
+                          : (child instanceof RouteLink link
+                                  && link.route() != null
+                                  && !link.route().isBlank()
+                                  && !link.route().startsWith("/"))
+                              ? mount + "/" + link.route()
+                              : child instanceof Menu subgroup
+                                  ? base
+                                      + io.mateu.core.domain.out.componentmapper.HomeRouteResolver
+                                          .groupPath(subgroup)
+                                  : base + child.path();
                   return (Component) new Anchor(labelOf(child), target);
                 })
             .toList();

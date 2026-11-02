@@ -28,6 +28,8 @@ define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) =>
             primaryText: event.summary,
             secondaryText: event.message,
           },
+          // VB warns «No keys were specified in the event payload» without them
+          keys: [id],
         },
       });
       if (event.displayMode === 'transient') {

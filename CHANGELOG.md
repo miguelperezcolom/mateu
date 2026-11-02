@@ -13,6 +13,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **An embedded `MicroFrontend` keeps out of the host page's chrome: `chrome(NONE | COMPACT | PAGE)`**
+  (Java, Vaadin and Redwood; experimental). With any value the micro frontend is a block of the page,
+  not a page of its own: the renderers apply no window title, history push or favicon from it, its
+  navigation does not touch the address bar, and it draws no breadcrumb — before, each load renamed
+  the browser tab after the remote, so the host page's title never stuck. Its requests carry
+  `embeddedChrome` and the server answering them strips those commands too (also for `resolve =
+  SERVER`, whose host now asks the remote as embedded and keeps the chrome for later interactions).
+  `NONE` hides the remote page's header, `COMPACT` keeps only its actions, `PAGE` keeps title and
+  actions. Without `chrome`, nothing changes. Wire: `MicroFrontend.chrome` and
+  `RunActionRqDto.embeddedChrome`, both optional.
+
+- **A foldout panel whose author did not decide is open while it fits** (YAML, all renderers). A
+  `FoldoutPanel` with no `open:` now reaches the wire as `autoOpen: true` (`FoldoutPanel.autoOpen`,
+  `@Experimental`; .NET `AutoOpen`, Python `auto_open`) instead of a silent `open: false`: the
+  renderer opens such panels in declaration order while the row has room for each (its `width`,
+  else 22rem, after the overview, the panels declared open and a strip per other panel), folds the
+  rest, re-decides on resize, and a hand toggle wins until the next page. A museum exhibition at
+  1600px used to show "Loans" and "Budget and visitors" folded beside empty space. `open: true/false`
+  and every Java panel are unchanged. One rule in libs/mateu, Redwood, React Native and IntelliJ,
+  pinned by `conformance/client/foldout-auto.json`; the browser expander applies the same default.
 - **A crud's edit and creation forms render the editor's own `@Button`s** (Java). They sit under the
   form — in the drawer's bottom row, before Cancel/Save — and are the actions that only make sense
   while editing (insert a medium into the text, translate it, refresh a preview). Like save, they
@@ -35,6 +55,73 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   counts from the chrome catalogue (`calendarToday`, `calendarMonth`, `calendarWeek`, `calendarDay`,
   `calendarList`, `calendarCreate`, `calendarOneEvent`, `calendarEvents`; es/en). A toolbar label
   the app's Translator did translate is drawn as it came.
+- **Redwood: a foldout panel taller than the window can be read to the end.** Spectra fixes every
+  panel to the row's height and takes the wheel for its carousel, so "The works" of a museum
+  exhibition (a grid of cards) was cut at the bottom with no way to reach its last rows. An open panel
+  now scrolls inside, and the wheel over it scrolls the panel while it has room before paging the row
+  (`poc/foldouts.mjs` `installFoldoutPanelScroll`). The Vaadin shell already grew the panels.
+
+- **Redwood: a field's help (`@Help`, a `DescriptionSupplier`) is shown.** The server sends it as the
+  field's `description` and Vaadin draws it as helper text under the field; Redwood dropped it. It is
+  now the field's Redwood instruction text — JET's `help.instruction`, which the inputs draw under
+  the field (text-like inputs while they have the focus, switches, radios and checkbox sets always)
+  and read to assistive technology — on every field kind and every copy of the field templates: the
+  page form, the crud drawer, the dialog, the wizard, the island and the `List<Row>` row editor. A
+  widget JET does not own (`@Searchable`, file / image capture, colour, rich text, markdown, stars,
+  a nested list in the row editor) draws the same text under its value.
+- **Redwood: an action that re-renders the form in place keeps the scroll position.** An editor's
+  `@Button` at the bottom of a long crud edit form re-renders the form in place (same component id
+  and type); the page jumped back to its top. The scroll (the window's and that of a scrolled
+  container holding the focus) and the focus of the pressed button are now put back once the answer
+  is painted, until the reader scrolls, types or clicks. A navigation, a route flip (a row to its
+  detail) or a host replaced by another component still start at the top.
+- **A record page's tab is named after the record, never its id** (Java, web). A definition page
+  whose title waits for its record (`title: ${state.name}`) was named by the route's last segment
+  until the record landed — `/missions/6` read "6", its Edit page just "Edit" — and on an in-app
+  navigation a late server title could overwrite the record's name for good. The fallback now
+  humanizes the route PATTERN, skipping parameters and numbers (`missions/:id` → "Missions"), and
+  once the page has named itself for a location a later fallback for the same location keeps it.
+- **A menu group's own route opens an index of its entries under a data-authored shell** (Java).
+  The menu gives each group a route derived from its label (`Solar system` → `/solarSystem`); under
+  a `type: AppShell` it answered "Page not found" (the group carries no path, only the menu derived
+  one), while a Java shell already showed the section index. Both now answer the index, it names
+  the window after the group, and a YAML entry is linked at its own mount-relative route.
+- **Web: an identical read in flight is shared, not repeated.** A record page whose route `data:`
+  and a listing over the same record asked the API twice for `/missions/6` within 10 ms;
+  `fetchExternalJson` now hands both callers the one response (each its own copy). Writes are never
+  shared, and nothing is cached once the call settles.
+- **Vaadin: a Gantt spanning decades fits its lane.** The axis drew one header cell per month — about
+  780 for 1961–2026 — which pushed the lane into a long horizontal scroll with one or two bars in
+  view. Its unit now follows the span (months, quarters, years, decades: `ganttScale` /
+  `ganttTicks` in libs/mateu).
+- **Vaadin: card images are named by the card's title** (listing cards, card lists) instead of an
+  empty `alt`, and a tree listing hands its grid the row count, so the browser console no longer
+  warns that the grid "needs the total number of items".
+- **Redwood at phone width and back (live crawl of the demo sites).** A DataManagement page's docked
+  panels stay closed below 600 px — JET turns them into a full-screen sheet there, which hid the
+  listing on load — and dock again once the window is wide; a panel left open across the breakpoint
+  used to stay in JET's z-order container and push the whole shell down by its height (438 px on
+  /loans). A MENU_ON_TOP / TABS shell folds its menu strip into a ☰ navigator at phone width (the strip
+  scrolled sideways with half the entries off screen), and a long listing title ends in an ellipsis.
+- **Redwood: `gridLayout: masterDetail` opens the clicked row's fields beside the list** (an end panel;
+  a full-screen sheet on a phone). The table ignored the declaration and a row click did nothing.
+- **Redwood: a RouteLink button always navigates.** A header painted from a projection that lagged a
+  slow load handed over its id without the route and the action went to the server (403); every
+  action is now checked against the screen's RouteLink buttons before it leaves, and one whose
+  record has not loaded yet sends nothing.
+- **Redwood: a YAML page is headed by its own title and subtitle** (a page served as a client-side
+  tree took the menu label: «Launch sites map» for «Launch sites»), and a listing page shows its
+  subtitle.
+- **Redwood: a YAML guided process can be walked by its steps**: the rail drew every step disabled
+  (faint, not clickable, the current one indistinguishable). Text, number and text-area fields show
+  their `placeholder`.
+- **Redwood: a Gantt's axis unit follows its span** (months up to 18 months, quarters up to 54, then
+  years), as the web renderer's does: a six-decade plan drawn by months and weeks had negative tick
+  widths and one task on screen.
+- **Redwood console noise**: an oj-table fetch the table aborted itself no longer surfaces as an
+  uncaught «Aborting stale fetch»; leaving a DataManagement page no longer fails the navigation chain
+  («Cannot read properties of null (reading 'end')»); banners carry their keys (VB's «No keys were
+  specified» warning); a foldout's last content clears its floating paging dots.
 - **Redwood: a field with `@Label("")` shows no label.** Its label fell back to the raw field id
   whenever it was empty (a `warnings` field read "warnings"); the id is now used only when the wire
   sends no label at all.
