@@ -23,9 +23,24 @@ public final class ExporterContext {
     AVAILABLE.remove();
   }
 
-  /** The formats an exporter is registered for (empty outside a mapping). */
+  /**
+   * The formats an exporter is registered for. A page can also be mapped without going through the
+   * component mapper bean (a view embedded in a menu or a drawer is mapped straight to its page),
+   * so with no mapping in progress the registered exporters are asked directly: otherwise such a
+   * listing loses its Export buttons although the action behind them works. Empty before Mateu has
+   * booted.
+   */
   public static Set<ExportFormat> available() {
     var available = AVAILABLE.get();
-    return available != null ? available : EnumSet.noneOf(ExportFormat.class);
+    if (available != null) {
+      return available;
+    }
+    try {
+      return io.mateu.core.domain.act.ListingExporters.formats(
+          io.mateu.uidl.di.MateuBeanProvider.getSingletonBeans(
+              io.mateu.uidl.interfaces.ListingExporter.class));
+    } catch (RuntimeException notInitialised) {
+      return EnumSet.noneOf(ExportFormat.class);
+    }
   }
 }

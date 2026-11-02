@@ -190,6 +190,19 @@ class CapabilityListingSyncTest {
     }
   }
 
+  @UI("/plain-exportable-books")
+  public static class PlainExportableBooks implements Listing<Book> {
+    @Override
+    public ListingData<Book> search(SearchRequest request, HttpRequest httpRequest) {
+      return all();
+    }
+
+    @Override
+    public boolean csvExportable() {
+      return true;
+    }
+  }
+
   public record BookFilters(String title) {}
 
   @UI("/smart-books")
@@ -332,6 +345,23 @@ class CapabilityListingSyncTest {
   /**
    * A listing promoted to the CRUD mediator keeps the exports it offers (the bridge dropped them).
    */
+  @Test
+  void aListingMappedOutsideTheComponentMapperKeepsItsCsvExport() {
+    // a view embedded in a menu or a drawer goes straight to mapToPageComponent
+    var page =
+        io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToPageComponent(
+            new PlainExportableBooks(), "", "/plain-exportable-books", "", "", null);
+    assertThat(io.mateu.core.domain.out.componentmapper.ExporterContext.available())
+        .contains(io.mateu.uidl.data.ExportFormat.csv);
+    assertThat(
+            io.mateu.core.domain.out.componentmapper.PageListingBuilder.getToolbarButtons(
+                    new PlainExportableBooks(), null)
+                .stream()
+                .map(io.mateu.uidl.data.Button::actionId))
+        .contains("export-csv");
+    assertThat(page).isNotNull();
+  }
+
   @Test
   void aNavigableListingKeepsItsCsvExport() {
     var crudl = listingOf(load(ExportableBooks.class, "/exportable-books"));

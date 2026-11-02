@@ -231,6 +231,12 @@ test('Timeline, Pricing, Org chart, Feature grid, Testimonials, Callout, Comment
   assert.match(calloutAtomOf({ theme: 'success' }).panelClass, /mateu-tone-success/)
   const c = commentsAtomOf({ comments: [{ author: 'A', text: '1', replies: [{ author: 'B', text: '2' }] }] })
   assert.deepEqual(c.comments.map((x) => x.depth), [0, 1])
+  const shown = (avatar) => commentsAtomOf({ comments: [{ author: 'Ana Pérez', avatar, text: '1' }] }).comments[0]
+  // initials or an emoji are shown as they are: fetched as an image, they were a 404 and an empty avatar
+  assert.deepEqual([shown('AP').initials, shown('AP').src], ['AP', ''])
+  assert.deepEqual([shown('🙂').initials, shown('🙂').src], ['🙂', ''])
+  assert.ok(shown('https://x.io/a.png').src.endsWith('a.png'))
+  assert.equal(shown(null).initials, 'AP')
 })
 
 test('Heatmap: a column per week from Monday, levels relative to the maximum', () => {

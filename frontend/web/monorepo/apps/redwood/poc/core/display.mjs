@@ -386,7 +386,9 @@ export function calloutAtomOf(m, interp = (x) => x) {
 export function commentsAtomOf(m, interp = (x) => x) {
   const out = []
   const walk = (c, depth) => {
-    const av = avatarOf({ name: c.author, image: c.avatar })
+    // an avatar is an image URL, or an emoji or initials to show as they are — never a path to fetch
+    const isImage = /^(https?:|data:|\/)/.test(str(c.avatar))
+    const av = avatarOf({ name: c.author, image: isImage ? c.avatar : '', abbreviation: isImage ? '' : c.avatar })
     out.push({
       depth,
       rowStyle: { marginInlineStart: (depth * 2.5) + 'rem' },
