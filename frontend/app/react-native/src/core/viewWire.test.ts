@@ -1,7 +1,14 @@
 // The view controller's wire readers and route texts (viewWire.ts).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './viewWire.ts';
+import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
+
+test('an answer carrying an error message is a failed action (final review M10)', () => {
+  assert.equal(isErrorAnswer({ messages: [{ variant: 'error', text: 'Not allowed' }] }), true);
+  assert.equal(isErrorAnswer({ messages: [{ variant: 'success', text: 'Moved' }] }), false);
+  assert.equal(isErrorAnswer({ fragments: [] }), false);
+  assert.equal(isErrorAnswer(null), false);
+});
 
 test('asArray and str tolerate anything the wire sends', () => {
   assert.deepEqual(asArray([{ a: 1 }]), [{ a: 1 }]);

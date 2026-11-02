@@ -57,6 +57,28 @@ describe('mateu-kanban', () => {
         expect(titlesOf(el)).toEqual([['Write', 'Review'], []])
     })
 
+    it('a move the SERVER refused (an error answer) puts the card back; another action failing does not', async () => {
+        if (!customElements.get('mateu-component')) customElements.define('mateu-component', class extends HTMLElement {})
+        const host = document.createElement('mateu-component')
+        document.body.appendChild(host)
+        const root = host.attachShadow({ mode: 'open' })
+        const el = document.createElement('mateu-kanban') as MateuKanban
+        Object.assign(el, { columns, moveActionId: 'moveTask' })
+        root.appendChild(el)
+        await el.updateComplete
+        const failed = (actionId: string) => root.dispatchEvent(new CustomEvent('backend-call-failed', {
+            detail: { actionId }, bubbles: true, composed: true,
+        }))
+        el.commit({ cardId: 't2', fromColumnId: 'todo', toColumnId: 'todo', toIndex: 0 })
+        await el.updateComplete
+        failed('save')
+        await el.updateComplete
+        expect(titlesOf(el)).toEqual([['Review', 'Write'], []])
+        failed('moveTask')
+        await el.updateComplete
+        expect(titlesOf(el)).toEqual([['Write', 'Review'], []])
+    })
+
     it('a server re-render replaces the moved board with its own', async () => {
         const el = await mount({ columns, moveActionId: 'moveTask' })
         el.commit({ cardId: 't1', fromColumnId: 'todo', toColumnId: 'done', toIndex: 0 })

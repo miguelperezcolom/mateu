@@ -410,8 +410,11 @@ public CrudDisplay display() {
   by default the row after it in an unfiltered search; override it to follow the user's filters.
   Label: `saveAndNextLabel()`.
 - **Error banner** (`errorBanner`, default `on`) — when the save throws, the drawer stays open with
-  the exception's message as a danger banner above the form and the values the user typed, and the
-  message is announced to screen readers. `off` brings back the plain error toast.
+  a danger banner above the form and the values the user typed, and the message is announced to
+  screen readers. The banner says what a `UserFacingException` (or a validation refusal) says, as
+  written; any other exception shows the error boundary's generic text with a reference (the raw
+  message is logged, never shown). A refusal (403) is not a banner: it stays a refusal. `off` brings
+  back the plain error toast.
 - `create` / `delete` — the New and Delete buttons; `disabled` shows them inert (and the server
   refuses them), on top of the capability gates (`canCreate`, `@NotCreatable`…), which still decide
   whether the affordance exists at all.

@@ -103,6 +103,59 @@ function member(value: unknown, key: string): unknown {
   return value == null ? undefined : (value as Ctx)[key];
 }
 
+/** The globals an expression may CALL — side-effect free, the subset of the web evaluator's GLOBALS a
+ *  source template uses (`${String(state.year)}`, `${encodeURIComponent(state.q)}`). */
+const GLOBAL_FUNCTIONS: Record<string, (...args: unknown[]) => unknown> = {
+  String: (v) => String(v),
+  Number: (v) => Number(v),
+  Boolean: (v) => Boolean(v),
+  parseInt: (v, radix) => parseInt(String(v), radix as number | undefined),
+  parseFloat: (v) => parseFloat(String(v)),
+  encodeURIComponent: (v) => encodeURIComponent(String(v)),
+  decodeURIComponent: (v) => decodeURIComponent(String(v)),
+};
+
+/** `Math.x(…)`: read through {@link member}, so only these pure functions are reachable. */
+const MATH: Ctx = Object.freeze({
+  round: Math.round, floor: Math.floor, ceil: Math.ceil, abs: Math.abs, min: Math.min, max: Math.max,
+});
+
+/** Methods of a string or a list an expression may call — pure ones only. */
+const STRING_METHODS = new Set([
+  'toLowerCase', 'toUpperCase', 'trim', 'includes', 'startsWith', 'endsWith', 'slice', 'substring',
+  'indexOf', 'replace', 'split', 'padStart', 'padEnd', 'toString', 'toFixed', 'join',
+]);
+
+/** `value.name(args)`: a regex's `test` (the server's @Pattern condition), a `Math` function or an
+ *  allow-listed method of a string, number or list; anything else throws. */
+function callMethod(value: unknown, name: string, args: unknown[]): unknown {
+  if (value instanceof RegExp && name === 'test') {
+    value.lastIndex = 0;
+    return value.test(String(args[0]));
+  }
+  if (value === MATH && typeof MATH[name] === 'function') {
+    return (MATH[name] as (...a: unknown[]) => unknown)(...args);
+  }
+  const callable = typeof value === 'string' || typeof value === 'number' || Array.isArray(value);
+  if (callable && STRING_METHODS.has(name)) {
+    const fn = (value as unknown as Record<string, unknown>)[name];
+    if (typeof fn === 'function') return (fn as (...a: unknown[]) => unknown).apply(value, args);
+  }
+  throw new Error(`'${name}' is not callable in expressions`);
+}
+
+/** A MONEY value (`{value, currency}`), which lands in a template as its amount. */
+export function isMoney(v: unknown): v is { value: unknown; currency: unknown } {
+  return !!v && typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v;
+}
+
+/** A substituted value as text: nothing for null/undefined, a money value's amount, else String(). */
+export function templateText(v: unknown): string {
+  if (v === null || v === undefined) return '';
+  if (isMoney(v)) return templateText(v.value);
+  return String(v);
+}
+
 class Parser {
   private pos = 0;
   private tokens: Token[];
@@ -228,14 +281,9 @@ class Parser {
         const prop = this.eat();
         if (prop.type !== 'id') throw new Error('expected a property name');
         if (this.isOp('(')) {
-          // the one call an expression may make: a regex's `test` (the server's @Pattern condition)
-          this.eat('(');
-          const arg = this.ternary();
-          this.eat(')');
+          const args = this.callArguments();
           if (short) continue;
-          if (!(value instanceof RegExp) || prop.value !== 'test') throw new Error(`'${prop.value}' is not callable in expressions`);
-          value.lastIndex = 0;
-          value = value.test(String(arg));
+          value = callMethod(value, prop.value, args);
           continue;
         }
         value = short ? undefined : member(value, prop.value);
@@ -254,6 +302,21 @@ class Parser {
     return short ? undefined : value;
   }
 
+  /** `( a, b, … )` — the arguments of a call. */
+  private callArguments(): unknown[] {
+    this.eat('(');
+    const args: unknown[] = [];
+    if (!this.isOp(')')) {
+      args.push(this.ternary());
+      while (this.isOp(',')) {
+        this.eat(',');
+        args.push(this.ternary());
+      }
+    }
+    this.eat(')');
+    return args;
+  }
+
   private primary(): unknown {
     const t = this.peek();
     if (!t) throw new Error('unexpected end of expression');
@@ -265,6 +328,11 @@ class Parser {
       if (t.value === 'true') return true;
       if (t.value === 'false') return false;
       if (t.value === 'null' || t.value === 'undefined') return t.value === 'null' ? null : undefined;
+      // a call of an allow-listed, side-effect-free global (`String(x)`, `encodeURIComponent(x)`)
+      if (this.isOp('(') && Object.prototype.hasOwnProperty.call(GLOBAL_FUNCTIONS, t.value)) {
+        return GLOBAL_FUNCTIONS[t.value](...this.callArguments());
+      }
+      if (t.value === 'Math' && !Object.prototype.hasOwnProperty.call(this.ctx, 'Math')) return MATH;
       // only the context's OWN names: `constructor`, `toString`… must not reach Object.prototype
       return Object.prototype.hasOwnProperty.call(this.ctx, t.value) ? this.ctx[t.value] : undefined;
     }
@@ -294,8 +362,7 @@ export function interpolate(template: string, ctx: Ctx): string {
     const key = i18nKeyOf(expr);
     if (key !== undefined) return key;
     try {
-      const v = evaluateExpression(expr.trim(), ctx);
-      return v === null || v === undefined ? '' : String(v);
+      return templateText(evaluateExpression(expr.trim(), ctx));
     } catch {
       return '';
     }

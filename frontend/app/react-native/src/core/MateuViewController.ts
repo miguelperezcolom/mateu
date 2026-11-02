@@ -5,7 +5,7 @@ import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
 import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
-import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './viewWire.ts';
+import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
 import { setAppLocale } from './money.ts';
 import { externalAuthHeaders } from './restFetch.ts';
@@ -362,6 +362,10 @@ export class MateuViewController {
         parameters: parameters ?? {},
       });
       this.applyIncrement(increment as Json);
+      // The server answers a handler that threw with an error message (its error boundary), not an
+      // HTTP error: that action FAILED, like on the web — its caller (a Kanban move puts the card
+      // back) hears false, and no OnSuccess runs.
+      if (isErrorAnswer(increment)) return false;
       // OnSuccess triggers (the polling loop) — only if we are still on the screen that dispatched it
       this.polling.actionSucceeded(generation, actionId);
       return true;

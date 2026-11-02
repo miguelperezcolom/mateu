@@ -99,3 +99,75 @@ class PartialRegistry:
         if isinstance(root, dict) and isinstance(root.get("content"), list):
             return list(root["content"])
         return [root]
+
+    def compose(self, tree: Any) -> Any:
+        """The tree with its partials inlined as SOURCE — each ``{type: Partial, ref: …}`` node
+        replaced by the partial's own nodes, recursively — the twin of Java's ``YamlPartials``.
+
+        Done before anything else reads a definition, so the access keys (``eyesOnly:``,
+        ``readOnlyUnless:``, ``disabledUnless:``, ``access:``) and ``${i18n.…}`` texts of a partial
+        are seen by the passes that apply them per caller. Built as components, a partial had
+        already lost them: a section guarded in a partial reached every caller. In a list the
+        partial's nodes are spliced; in a one-component slot several are stacked in a
+        ``VerticalLayout``. A ref that resolves to nothing is left for the builder (no content)."""
+        if not _mentions_partial(tree):
+            return tree
+        return self._compose_node(tree, [])
+
+    def _compose_node(self, node: Any, chain: list[str]) -> Any:
+        if isinstance(node, list):
+            out: list[Any] = []
+            for child in node:
+                items = self._items_of(child, chain)
+                if items is None:
+                    out.append(self._compose_node(child, chain))
+                else:
+                    out.extend(items)
+            return out
+        if isinstance(node, dict):
+            out_map: dict[Any, Any] = {}
+            for name, value in node.items():
+                items = self._items_of(value, chain)
+                if items is None:
+                    out_map[name] = self._compose_node(value, chain)
+                elif len(items) == 1:
+                    out_map[name] = items[0]
+                elif items:
+                    out_map[name] = {"type": "VerticalLayout", "content": items}
+            return out_map
+        return node
+
+    def _items_of(self, node: Any, chain: list[str]) -> list[Any] | None:
+        """The composed nodes a partial node stands for; None when ``node`` is not a partial or
+        names nothing (left to the builder); empty for a cycle or a nesting too deep."""
+        if not (isinstance(node, dict) and node.get("type") == "Partial" and node.get("ref")):
+            return None
+        ref = node["ref"]
+        nodes = self.resolve(ref)
+        if not nodes:
+            return None
+        key = self.key(ref)
+        if key in chain or len(chain) >= _MAX_COMPOSE_DEPTH:
+            return []
+        chain.append(key)
+        try:
+            out: list[Any] = []
+            for child in nodes:
+                items = self._items_of(child, chain)
+                out.extend(items if items is not None else [self._compose_node(child, chain)])
+            return out
+        finally:
+            chain.pop()
+
+
+_MAX_COMPOSE_DEPTH = 20
+
+
+def _mentions_partial(node: Any) -> bool:
+    if isinstance(node, dict):
+        if node.get("type") == "Partial":
+            return True
+        return any(_mentions_partial(v) for v in node.values())
+    if isinstance(node, list):
+        return any(_mentions_partial(v) for v in node)
+    return False

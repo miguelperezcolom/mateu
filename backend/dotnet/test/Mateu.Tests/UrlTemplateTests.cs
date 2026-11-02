@@ -42,6 +42,8 @@ public class UrlTemplateTests
     {
         Assert.Throws<ArgumentException>(() => Url("${state.base}/people", new() { ["base"] = "http://169.254.169.254" }));
         Assert.Throws<ArgumentException>(() => Url("https://${state.host}/people", new() { ["host"] = "evil" }));
+        foreach (var spelling in new[] { "${String(state.host)}", "${(state.host)}", "${state['host']}", "${host}" })
+            Assert.Throws<ArgumentException>(() => Url(spelling + "/p", new() { ["host"] = "http://evil" }));
     }
 
     [Fact]

@@ -21,6 +21,10 @@ public abstract class AutoEditableView<T> extends EditableView<T, T> {
     // The editor form bubbles its own state up to this mediator in the action event, so read the
     // edited entity from there (falls back to component state when not embedded/bubbled).
     var entity = httpRequest.getInitiatorState(entityClass());
+    // the editor advertises save as validationRequired: re-check on the server the constraints the
+    // client was told to check (a crafted or non-validating client reached persist with any value)
+    io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
+        entity, httpRequest, false);
     persist(entity, httpRequest);
   }
 

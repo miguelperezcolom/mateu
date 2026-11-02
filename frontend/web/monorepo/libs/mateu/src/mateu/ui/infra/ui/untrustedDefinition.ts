@@ -68,7 +68,8 @@ const isCode = (v: Json): boolean =>
 
 const element = (node: JsonObject): JsonObject => {
     const name = typeof node.name === 'string' ? node.name.trim().toLowerCase() : ''
-    if (BLOCKED_ELEMENTS.has(name) || name.startsWith('mateu-')) {
+    // a name that is not a plain tag name (markup, an absurd length) is not authored content either
+    if (BLOCKED_ELEMENTS.has(name) || name.startsWith('mateu-') || !/^[a-z][a-z0-9-]{0,63}$/.test(name)) {
         return { ...node, name: 'div', attributes: {}, on: {}, content: null, html: false }
     }
     const attributes: Record<string, Json> = {}

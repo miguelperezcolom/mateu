@@ -113,4 +113,95 @@ public sealed class PartialRegistry : ISpecsCache
             return None;
         }
     }
+
+    private const int MaxComposeDepth = 20;
+
+    /// <summary>The tree with its partials inlined as SOURCE — each <c>{type: Partial, ref: …}</c>
+    /// node replaced by the partial's own nodes, recursively — the twin of Java's <c>YamlPartials</c>.
+    /// Done before anything else reads a definition, so the access keys (<c>eyesOnly:</c>,
+    /// <c>readOnlyUnless:</c>, <c>disabledUnless:</c>, <c>access:</c>) and <c>${i18n.…}</c> texts of
+    /// a partial are applied per caller like inline ones: built as components first, a partial had
+    /// already lost them and a section guarded in it reached every caller. In a list the partial's
+    /// nodes are spliced; in a one-component slot several are stacked in a <c>VerticalLayout</c>. A
+    /// ref that resolves to nothing is left for the builder (no content).</summary>
+    public object? Compose(object? tree) => MentionsPartial(tree) ? ComposeNode(tree, []) : tree;
+
+    private static bool MentionsPartial(object? node) => node switch
+    {
+        IDictionary<object, object> map => IsPartialNode(map) || map.Values.Any(MentionsPartial),
+        string => false,
+        IEnumerable<object> seq => seq.Any(MentionsPartial),
+        _ => false,
+    };
+
+    private static bool IsPartialNode(IDictionary<object, object> map) =>
+        map.TryGetValue("type", out var type) && "Partial".Equals(type as string)
+        && map.TryGetValue("ref", out var reference) && reference is string s && !string.IsNullOrWhiteSpace(s);
+
+    private object? ComposeNode(object? node, List<string> chain)
+    {
+        switch (node)
+        {
+            case IDictionary<object, object> map:
+            {
+                var outMap = new Dictionary<object, object>();
+                foreach (var (name, value) in map)
+                {
+                    var items = ItemsOf(value, chain);
+                    if (items is null) outMap[name] = ComposeNode(value, chain)!;
+                    else if (items.Count == 1) outMap[name] = items[0];
+                    else if (items.Count > 1)
+                        outMap[name] = new Dictionary<object, object>
+                        {
+                            ["type"] = "VerticalLayout",
+                            ["content"] = items,
+                        };
+                }
+                return outMap;
+            }
+            case string:
+                return node;
+            case IEnumerable<object> seq:
+            {
+                var outList = new List<object>();
+                foreach (var child in seq)
+                {
+                    var items = ItemsOf(child, chain);
+                    if (items is null) outList.Add(ComposeNode(child, chain)!);
+                    else outList.AddRange(items);
+                }
+                return outList;
+            }
+            default:
+                return node;
+        }
+    }
+
+    /// <summary>The composed nodes a partial node stands for; null when <c>node</c> is not a partial
+    /// or names nothing (left to the builder); empty for a cycle or a nesting too deep.</summary>
+    private List<object>? ItemsOf(object? node, List<string> chain)
+    {
+        if (node is not IDictionary<object, object> map || !IsPartialNode(map)) return null;
+        var reference = (string)map["ref"];
+        var nodes = Resolve(reference);
+        if (nodes.Count == 0) return null;
+        var key = Key(reference);
+        if (chain.Contains(key) || chain.Count >= MaxComposeDepth) return [];
+        chain.Add(key);
+        try
+        {
+            var outList = new List<object>();
+            foreach (var child in nodes)
+            {
+                var items = ItemsOf(child, chain);
+                if (items is null) outList.Add(ComposeNode(child, chain)!);
+                else outList.AddRange(items);
+            }
+            return outList;
+        }
+        finally
+        {
+            chain.RemoveAt(chain.Count - 1);
+        }
+    }
 }

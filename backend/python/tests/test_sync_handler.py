@@ -883,6 +883,19 @@ def test_structure_hash_is_stable_across_identical_loads():
     assert h1 == h2
 
 
+def test_the_structure_hash_ignores_the_page_values_and_random_nested_ids():
+    # values are state, not structure (mirrors Java StructureHashPostProcessor): a page whose values
+    # changed must still get the state-only answer
+    from mateu_ui.core.sync_handler.helpers import ResponseHelpersMixin, _without_instance_ids
+
+    c = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty")))
+    other = c.model_copy(update={"initial_data": {"name": "something else"}})
+    assert ResponseHelpersMixin._structure_hash(c) == ResponseHelpersMixin._structure_hash(other)
+    tree = {"id": "9b2f6a8e-1c3d-4e5f-8a9b-0c1d2e3f4a5b", "children": [{"id": "name"}]}
+    _without_instance_ids(tree)
+    assert tree == {"id": None, "children": [{"id": "name"}]}
+
+
 def test_echoing_the_matching_hash_omits_the_component():
     h = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).structure_hash
     inc = handler().handle(

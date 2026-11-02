@@ -40,15 +40,56 @@ export function interpolateUrlWith(template: string, evaluate: (expr: string) =>
   if (!template || !template.includes('${')) return template;
   const origin = originEnd(template);
   return template.replace(/\$\{([^}]+)\}/g, (_, expr: string, offset: number) => {
-    const v = evaluate(expr.trim());
-    const value = v === null || v === undefined ? '' : String(v);
+    // `${encodeURIComponent(x)}` — how a value had to be written before Mateu encoded it — means
+    // `${x}` encoded ONCE (encoding it again sent `a%252Cb` for `a,b`), like libs/mateu
+    const explicitlyEncoded = encodeCallArgument(expr);
+    const valueExpr = (explicitlyEncoded ?? expr).trim();
+    const value = textOf(evaluate(valueExpr));
     if (offset < origin) {
-      if (/^\s*state\b/.test(expr)) throw new Error('A client state value cannot choose the origin of a URL: ' + template);
-      return value;
+      if (/^\s*state\b/.test(valueExpr)) throw new Error('A client state value cannot choose the origin of a URL: ' + template);
+      return explicitlyEncoded !== undefined ? urlEncode(value) : value;
     }
     const before = template.substring(0, offset).replace(/\$\{[^}]*\}/g, '');
     if (/[?#]/.test(before)) return urlEncode(value);
     if (value === '.' || value === '..') throw new Error('A dot segment is not a valid path value: ' + value);
     return urlEncode(value);
   });
+}
+
+/** A value as the text that lands in a url: nothing for null/undefined, a MONEY value's amount
+ *  (`{value, currency}` — it used to land as `[object Object]`), anything else as String(). */
+function textOf(v: unknown): string {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'object' && !Array.isArray(v) && 'value' in v && 'currency' in v) {
+    return textOf((v as { value: unknown }).value);
+  }
+  return String(v);
+}
+
+const ENCODE_CALL = 'encodeURIComponent';
+
+/** The argument of a whole-expression `encodeURIComponent(x)`, or undefined — libs/mateu's rule. */
+export function encodeCallArgument(expr: string): string | undefined {
+  const e = expr.trim();
+  if (!e.startsWith(ENCODE_CALL)) return undefined;
+  const rest = e.substring(ENCODE_CALL.length).trim();
+  if (!rest.startsWith('(') || !rest.endsWith(')')) return undefined;
+  let depth = 0;
+  let quote = '';
+  for (let i = 0; i < rest.length; i++) {
+    const c = rest[i];
+    if (quote) {
+      if (c === '\\') i++;
+      else if (c === quote) quote = '';
+      continue;
+    }
+    if (c === "'" || c === '"' || c === '`') quote = c;
+    else if (c === '(') depth++;
+    else if (c === ')') {
+      depth--;
+      // the call closes before the end: something follows it
+      if (depth === 0 && i !== rest.length - 1) return undefined;
+    }
+  }
+  return depth === 0 ? rest.substring(1, rest.length - 1) : undefined;
 }

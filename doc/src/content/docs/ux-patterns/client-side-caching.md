@@ -19,13 +19,15 @@ Three layers, from fully automatic to opt-in. They compose: the first paints the
 
 ### 1. Instant structure (automatic)
 
-The first time you open a screen, Mateu remembers its **structure** (the layout: sections, fields, tabs, columns — never the data) in the browser. On a return visit it paints that real structure immediately instead of a blank page or a generic loading skeleton, *and* still sends the normal request in the background. When the server responds, its answer replaces the prediction.
+The first time you open a screen, Mateu remembers its **structure** (the layout: sections, fields, tabs, columns) in the browser. On a return visit it paints that real structure immediately instead of a blank page or a generic loading skeleton, *and* still sends the normal request in the background. When the server responds, its values (and, if the structure changed, its structure) replace the prediction; an identical structure is kept on screen, so the page is not re-mounted.
+
+Only the structure is **stored** (`localStorage`). The values a page was opened with — its own and those of any island in it — stay in the memory of the tab, so a return visit within the tab paints them as before, while a reload, another tab or another person using the same browser finds none; a page that carried values is then simply loaded from the server. Signing in as someone else (or out) clears the cache.
 
 This is **stale-while-revalidate**: the cache is a prediction, the server is the authority. Because only the structure is cached — never the data — you never see stale business data, and a structure that has drifted (a new deployment, a screen that looks different for a different user) corrects itself within that one navigation.
 
 ### 2. Smaller responses (automatic)
 
-On that background request the client tells the server which structure it already holds (an ETag). If nothing changed, the server replies with **only the data** and omits the layout — a much smaller response. So a return visit paints instantly *and* revalidates cheaply. Entirely transparent; there is nothing to configure.
+On that background request the client tells the server which structure it already holds (an ETag). If nothing changed, the server replies with **only the data** and omits the layout — a much smaller response. The ETag covers the structure only, not the page's values: a page whose values changed since the last visit (an edited record, a clock) still gets the small answer, with its fresh values in the state. So a return visit paints instantly *and* revalidates cheaply. Entirely transparent; there is nothing to configure.
 
 ### 3. Skip the round-trip — `@StaticView` (opt-in)
 

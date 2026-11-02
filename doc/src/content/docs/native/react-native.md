@@ -158,9 +158,11 @@ npm run submit:ios         # App Store Connect
 **Store credentials are never in the repository.** Upload them once to EAS
 (`npx eas-cli credentials`: the Play service-account JSON and the App Store Connect API key), or
 provide them on the submitting machine (`EXPO_ASC_API_KEY_PATH`, `EXPO_ASC_KEY_ID`,
-`EXPO_ASC_ISSUER_ID`). **Over-the-air updates**: `npx eas-cli update --channel production`
-publishes a new JS bundle to production installables; `runtimeVersion` follows the app version,
-so an update only reaches binaries it is compatible with. The camera permission is the only
+`EXPO_ASC_ISSUER_ID`). **Over-the-air updates** are published by the `ota` job of
+`mobile.yml` when a release is PUBLISHED (with `EXPO_TOKEN` set) — never on a manual re-run of an
+older tag, which would push old JS over the newer release; `npx eas-cli update --channel production`
+does the same by hand. `runtimeVersion` follows the app version, so an update only reaches binaries
+it is compatible with — bump `expo.version` whenever a release changes native dependencies. The camera permission is the only
 runtime permission requested (for `@PhotoCapture`); the microphone is explicitly not.
 
 ## 5. Look and theming

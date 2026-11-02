@@ -25,11 +25,13 @@ import java.util.regex.Pattern;
  *
  * <p>After an increment is mapped, this stamps every routed {@link ServerSideComponentDto} with a
  * stable content hash of its STRUCTURE (everything but the per-request state/data, which travel on
- * the fragment). The client stores that hash next to its cached structure and echoes it back as
- * {@code RunActionRqDto.knownStructureHash} on the next load of the route. When the echoed hash
- * still matches the freshly-computed one, the component is OMITTED from the response — only
- * state/data travel and the client reuses its cached structure. So a return visit or an in-place
- * re-render sends the full structure once and only the (small) state/data thereafter.
+ * the fragment — the page's own seed, its {@code initialData}, included: a page whose values change
+ * keeps its hash, and when the structure is omitted the seed travels on the fragment's state). The
+ * client stores that hash next to its cached structure and echoes it back as {@code
+ * RunActionRqDto.knownStructureHash} on the next load of the route. When the echoed hash still
+ * matches the freshly-computed one, the component is OMITTED from the response — only state/data
+ * travel and the client reuses its cached structure. So a return visit or an in-place re-render
+ * sends the full structure once and only the (small) state/data thereafter.
  *
  * <p>Safe by construction: a client that sends no hash (old client / cache miss) always receives
  * the full structure, and a hash that no longer matches (permissions changed, a new deploy changed
@@ -82,8 +84,12 @@ public final class StructureHashPostProcessor {
     // each session and then skips the round-trip entirely, so it must always receive the component
     // (carrying staticView=true) to learn that — even when it already holds the structure.
     if (knownStructureHash != null && knownStructureHash.equals(hash) && !component.staticView()) {
-      // The client already holds this exact structure — drop it, keep only state/data.
-      return fragment.withComponent(null);
+      // The client already holds this exact structure — drop it, keep only state/data. The page's
+      // own seed (initialData) is not part of the structure, so its values travel on the fragment
+      // state instead: the client's cached structure carries none.
+      return fragment
+          .withComponent(null)
+          .withState(seedUnder(component.initialData(), fragment.state()));
     }
     return fragment.withComponent(component.withStructureHash(hash));
   }
@@ -103,7 +109,9 @@ public final class StructureHashPostProcessor {
     // serializing to a byte[] first.
     try {
       var digest = MessageDigest.getInstance("SHA-256");
-      JsonNode tree = CANONICAL.valueToTree(component.withId(null).withStructureHash(null));
+      JsonNode tree =
+          CANONICAL.valueToTree(
+              component.withId(null).withStructureHash(null).withInitialData(null));
       withoutInstanceIds(tree);
       try (var out = new DigestOutputStream(OutputStream.nullOutputStream(), digest)) {
         CANONICAL.writeValue(out, tree);
@@ -111,6 +119,47 @@ public final class StructureHashPostProcessor {
       return HexFormat.of().formatHex(digest.digest());
     } catch (IOException | NoSuchAlgorithmException e) {
       throw new IllegalStateException("Cannot compute structure hash", e);
+    }
+  }
+
+  /**
+   * The page's seed under the fragment's state (the state wins, as on the client, where a page's
+   * state is its {@code initialData} overlaid with the fragment's).
+   */
+  @SuppressWarnings("unchecked")
+  static Object seedUnder(Object initialData, Object state) {
+    var seed = asMap(initialData);
+    if (seed == null || seed.isEmpty()) {
+      return state;
+    }
+    var merged = new java.util.LinkedHashMap<Object, Object>(seed);
+    var current = asMap(state);
+    if (state != null && current == null) {
+      return state;
+    }
+    if (current != null) {
+      merged.putAll(current);
+    }
+    return merged;
+  }
+
+  /** The state as a map: a map as it is, the instance (a reflected page's seed) as its fields. */
+  @SuppressWarnings("unchecked")
+  private static java.util.Map<Object, Object> asMap(Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof java.util.Map<?, ?> map) {
+      return (java.util.Map<Object, Object>) map;
+    }
+    if (value instanceof String || value instanceof Number || value instanceof Boolean) {
+      return null;
+    }
+    try {
+      return new java.util.LinkedHashMap<>(
+          io.mateu.core.infra.declarative.FormViewModel.toMap(value));
+    } catch (RuntimeException e) {
+      return null;
     }
   }
 

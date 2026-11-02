@@ -356,6 +356,22 @@ class ActionPipelineSecurityTest {
     assertThat(archived.messages()).extracting(m -> m.text()).contains("archived");
   }
 
+  /**
+   * An id a response handed to ONE caller is not callable by another (final review M3): in strict
+   * mode reachability is the authorisation, so the confirm of a dialog an admin opened must not
+   * become everybody's.
+   */
+  @Test
+  void aHandlerIssuedToOneCallerIsNotCallableByAnother() {
+    io.mateu.core.domain.out.fragmentmapper.mappers.IssuedActionsTestHook.forget();
+    mateu.run(rq(SecApp.class.getName(), "archive"), token("admin"));
+    var archived = mateu.run(rq(SecApp.class.getName(), "doArchive"), token("admin"));
+    assertThat(archived.messages()).extracting(m -> m.text()).contains("archived");
+    // the anonymous caller, and another role, never received it
+    assertRefused(() -> mateu.run(rq(SecApp.class.getName(), "doArchive")));
+    assertRefused(() -> mateu.run(rq(SecApp.class.getName(), "doArchive"), token("user")));
+  }
+
   @Test
   void anUnadvertisedPublicMethodIsRefusedUnlessStrictModeIsTurnedOff() {
     assertRefused(() -> mateu.run(rq(SecApp.class.getName(), "hello")));

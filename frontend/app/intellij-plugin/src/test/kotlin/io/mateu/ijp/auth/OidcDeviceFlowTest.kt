@@ -105,8 +105,18 @@ class OidcDeviceFlowTest : TestCase() {
     }
 
     fun testRefusedRefreshIsNull() {
-        tokenAnswers += 400 to """{"error":"invalid_grant"}"""
+        tokenAnswers += 400 to """{"error":"invalid_request"}"""
         assertNull(flow().refresh("RT"))
+    }
+
+    /** A dead refresh token (`invalid_grant`) is said so, so the caller forgets it. */
+    fun testRevokedRefreshTokenIsReported() {
+        tokenAnswers += 400 to """{"error":"invalid_grant"}"""
+        try {
+            flow().refresh("RT")
+            fail()
+        } catch (_: OidcDeviceFlow.RefreshTokenRevoked) {
+        }
     }
 
     fun testExplicitEndpointsSkipDiscovery() {

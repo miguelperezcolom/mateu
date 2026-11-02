@@ -1071,6 +1071,21 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void The_structure_hash_ignores_the_page_values()
+    {
+        // values are state, not structure (mirrors Java StructureHashPostProcessor): a page whose
+        // values changed must still get the state-only answer
+        var c = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" }));
+        var hashOf = typeof(SyncHandler).GetMethod("StructureHashOf",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        var other = c with { InitialData = new Dictionary<string, object?> { ["name"] = "something else" } };
+        Assert.Equal(hashOf.Invoke(null, [c]), hashOf.Invoke(null, [other]));
+        var nested = c with { Children = [c with { Id = Guid.NewGuid().ToString() }] };
+        var nestedAgain = c with { Children = [c with { Id = Guid.NewGuid().ToString() }] };
+        Assert.Equal(hashOf.Invoke(null, [nested]), hashOf.Invoke(null, [nestedAgain]));
+    }
+
+    [Fact]
     public void Echoing_the_matching_hash_omits_the_component_but_keeps_the_fragment()
     {
         var hash = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StructureHash;

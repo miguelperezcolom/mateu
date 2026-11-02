@@ -81,7 +81,12 @@ final class RestProxyCalls {
     if (source == null) {
       return body(Map.of());
     }
+    // A route's fixedParams win over the client's state and the action's parameters on this leg
+    // too (fixed > client state > path > query > defaults, as on the hydrating path): a pin
+    // enforced only when hydrating the view model would be a suggestion to a proxied url.
+    var fixed = actionInstanceCreator.fixedParamsFor(command.route());
     var state = callState(command.componentState(), params);
+    state.putAll(fixed);
     // SAMPLE mode (opt-in only, see SampleSources): a source carrying sample data answers with it
     // instead of being called — the proxied twin of the browser's short-circuit in
     // fetchExternalJson, so both legs agree. A read gets the sample; a write (and a bulk one)
@@ -102,7 +107,7 @@ final class RestProxyCalls {
     // server-side, needs a single round trip, and sidesteps the client's write-exclusivity guard
     // (which would otherwise drop all but the first of N identical `__restfetch__` actions).
     if (Boolean.parseBoolean(String.valueOf(params.get("_forEachSelectedRow")))) {
-      return forEachSelectedRow(source, state);
+      return forEachSelectedRow(source, state, fixed);
     }
     try {
       return body(performRestCall(source, state));
@@ -111,7 +116,8 @@ final class RestProxyCalls {
     }
   }
 
-  private UIIncrementDto forEachSelectedRow(RestDataSource source, Map<String, Object> state) {
+  private UIIncrementDto forEachSelectedRow(
+      RestDataSource source, Map<String, Object> state, Map<String, Object> fixed) {
     var list = state.get("crud_selected_items") instanceof List<?> l ? l : List.of();
     int failed = 0;
     RestProxyException firstError = null;
@@ -120,6 +126,7 @@ final class RestProxyCalls {
       if (row instanceof Map<?, ?> map) {
         map.forEach((k, v) -> rowState.put(String.valueOf(k), v));
       }
+      rowState.putAll(fixed);
       try {
         performRestCall(source, rowState);
       } catch (RestProxyException e) {

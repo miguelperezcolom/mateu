@@ -9315,7 +9315,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (n > 0) out.page = n
       } else if (key === 'sort') {
         out.sort = value.split(',').map((x) => {
-          const [field, direction] = x.split(':')
+          const [field, written] = x.split(':')
+          // the short spelling a hand-written or shared link uses (`name:asc`) reads like Vaadin's
+          const direction = { asc: 'ascending', desc: 'descending' }[String(written).toLowerCase()]
+            || String(written).toLowerCase()
           return field && (direction === 'ascending' || direction === 'descending') ? { field, direction } : null
         }).filter(Boolean)
       }
@@ -21266,7 +21269,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function pathLeavingMountOf(route, menuRoutes = []) {
     if (!mountPath) return null
     const r = String(route == null ? '' : route)
-    if (r.charAt(0) !== '/' || r.charAt(1) === '/') return null
+    // `/\host` is `//host` to a browser: another site, never a path to load here
+    if (r.charAt(0) !== '/' || r.charAt(1) === '/' || r.charAt(1) === '\\') return null
     const path = r.split(/[?#]/)[0]
     if (path === mountPath || path.startsWith(mountPath + '/')) return null
     const own = (m) => { const p = String(m).split('?')[0].replace(/\/+$/, '') || '/'; return path === p || (p !== '/' && path.startsWith(p + '/')) }

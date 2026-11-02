@@ -13,6 +13,12 @@ export function str(value: unknown): string {
   return value === null || value === undefined ? '' : String(value);
 }
 
+/** Whether an answer reports a failure: the server's error boundary answers an action whose handler
+ *  threw with an error message (HTTP 200), not an HTTP error. */
+export function isErrorAnswer(increment: unknown): boolean {
+  return asArray((increment as Json | null | undefined)?.messages).some((m) => m?.variant === 'error');
+}
+
 /** Navigate a dot path (`profile`, `data.address`) into a JSON value; an empty path is identity. */
 export function getByPath(obj: unknown, path: string): unknown {
   if (!path) return obj;

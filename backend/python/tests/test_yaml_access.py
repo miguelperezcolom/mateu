@@ -236,3 +236,22 @@ def test_an_authorized_caller_gets_the_restricted_catalogue_action(tmp_path):
     buttons = {b.get("actionId"): b for b in _walk(payload, lambda n: n.get("type") == "Button")}
     assert not buttons["purge"].get("disabled")
     h._guard_yaml_access(RunActionRq(route="/tools", action_id="purge"))
+
+
+def test_a_guarded_section_in_a_partial_is_applied_like_an_inline_one(tmp_path):
+    # the access keys and i18n texts of a partial are the page's: inlined as source before the
+    # per-caller passes (Java YamlPartials), never lost by building the partial first
+    (tmp_path / "routes.yaml").write_text("routes:\n  - route: staff\n    layout: staff.yaml\n")
+    (tmp_path / "staff.yaml").write_text(
+        "layout:\n  type: VerticalLayout\n  content:\n"
+        "    - {type: Text, text: Public text}\n"
+        "    - {type: Partial, ref: payroll}\n"
+    )
+    (tmp_path / "partials").mkdir()
+    (tmp_path / "partials" / "payroll.yaml").write_text(
+        "content:\n  - {type: Text, text: Secret salary table, eyesOnly: {roles: [hr]}}\n"
+    )
+    anonymous = wire(handler(tmp_path, roles=()), "/staff")
+    assert "Public text" in anonymous
+    assert "Secret salary table" not in anonymous
+    assert "Secret salary table" in wire(handler(tmp_path, roles=("hr",)), "/staff")
