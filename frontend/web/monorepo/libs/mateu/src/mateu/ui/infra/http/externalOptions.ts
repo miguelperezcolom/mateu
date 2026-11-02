@@ -155,6 +155,33 @@ export async function fetchExternalJson(
         const forBody = (resolveJson && declaresJson(headers)) ? resolveJson : resolve
         init.body = forBody(source.body) ?? source.body
     }
+    // An identical READ already in flight is shared, not repeated: a record page whose route `data:`
+    // and a listing over the same record (a gallery reading its `gallery` array) asked the API twice
+    // for /missions/6 within 10 ms. Each caller gets its own copy — they map and merge it apart.
+    if (method === 'GET' || method === 'HEAD') {
+        const key = method + ' ' + url + ' ' + JSON.stringify(headers)
+        let pending = inFlightReads(fetchImpl).get(key)
+        if (!pending) {
+            pending = readJson(fetchImpl, url, init)
+            inFlightReads(fetchImpl).set(key, pending)
+            const forget = () => { inFlightReads(fetchImpl).delete(key) }
+            pending.then(forget, forget)
+        }
+        return pending.then(json => json === null || typeof json !== 'object' ? json : structuredClone(json))
+    }
+    return readJson(fetchImpl, url, init)
+}
+
+const inFlight = new WeakMap<typeof fetch, Map<string, Promise<unknown>>>()
+
+/** The reads in flight through one fetch implementation (tests pass their own). */
+const inFlightReads = (fetchImpl: typeof fetch): Map<string, Promise<unknown>> => {
+    let reads = inFlight.get(fetchImpl)
+    if (!reads) inFlight.set(fetchImpl, reads = new Map())
+    return reads
+}
+
+async function readJson(fetchImpl: typeof fetch, url: string, init: RequestInit): Promise<unknown> {
     const res = await fetchImpl(url, init)
     if (!res.ok) {
         // keep what the service said about it (its error body) for the user's toast

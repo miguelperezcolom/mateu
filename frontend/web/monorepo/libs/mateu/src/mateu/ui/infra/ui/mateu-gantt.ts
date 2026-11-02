@@ -5,12 +5,13 @@ import GanttTask from "@mateu/shared/apiClients/dtos/componentmetadata/GanttTask
 import { onActivate, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { chromeText } from '@infra/ui/chromeTexts.ts'
-import { ganttGeometry } from '@infra/ui/ganttGeometry.ts'
+import { ganttGeometry, ganttTicks } from '@infra/ui/ganttGeometry.ts'
 
 
 /**
  * Dependency-free Gantt/timeline: one row per task, bars positioned on a shared time axis by
- * percentage, per-task progress fill, month headers and a today marker.
+ * percentage, per-task progress fill, axis headers scaled to the span (months up to decades, see
+ * ganttScale) and a today marker.
  */
 @customElement('mateu-gantt')
 export class MateuGantt extends LitElement {
@@ -60,6 +61,7 @@ export class MateuGantt extends LitElement {
             padding: 0;
         }
         .month {
+            min-width: 0;
             border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.06));
             padding: .45rem 0 .45rem .5rem;
             white-space: nowrap;
@@ -110,23 +112,6 @@ export class MateuGantt extends LitElement {
         ${activatableFocusStyles}
     `
 
-    private months(min: number, max: number) {
-        const months: { label: string, from: number, to: number }[] = []
-        const cursor = new Date(min)
-        cursor.setDate(1)
-        while (cursor.getTime() <= max) {
-            const from = Math.max(cursor.getTime(), min)
-            const next = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
-            const to = Math.min(next.getTime(), max)
-            months.push({
-                label: cursor.toLocaleDateString(undefined, { month: 'short', year: '2-digit' }),
-                from, to
-            })
-            cursor.setMonth(cursor.getMonth() + 1)
-        }
-        return months
-    }
-
     render() {
         const range = ganttGeometry(this.tasks)
         if (!range) {
@@ -139,7 +124,7 @@ export class MateuGantt extends LitElement {
             <div class="frame">
                 <div class="head">${chromeText('task')}</div>
                 <div class="head months">
-                    ${this.months(range.min, range.max).map(month => html`
+                    ${ganttTicks(range.min, range.max).map(month => html`
                         <div class="month" style="width: ${(month.to - month.from) / span * 100}%;">${month.label}</div>
                     `)}
                 </div>

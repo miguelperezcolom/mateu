@@ -39,4 +39,23 @@ describe('window title', () => {
         notePageTitle('${state.name}')
         expect(document.title).toBe('Missions')
     })
+
+    it("a server fallback that lands AFTER the page named itself keeps the page's name (crawl: tab stuck on '6' / 'Edit')", () => {
+        history.replaceState(null, '', '/missions/6')
+        setServerWindowTitle('Space Exploration')
+        notePageTitle('Apollo 11')
+        setServerWindowTitle('Missions')
+        expect(document.title).toBe('Apollo 11')
+        vi.advanceTimersByTime(ANNOUNCE_DELAY_MS)
+        expect(announce).toHaveBeenCalledTimes(1)
+        expect(announce).toHaveBeenCalledWith('Apollo 11')
+    })
+
+    it('on another location the server names the window again', () => {
+        history.replaceState(null, '', '/missions/6')
+        notePageTitle('Apollo 11')
+        history.replaceState(null, '', '/missions')
+        setServerWindowTitle('Missions')
+        expect(document.title).toBe('Missions')
+    })
 })
