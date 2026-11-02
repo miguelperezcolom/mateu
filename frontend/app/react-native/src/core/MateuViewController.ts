@@ -8,7 +8,7 @@ import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
 import { setAppLocale } from './money.ts';
-import { externalAuthHeaders } from './restFetch.ts';
+import { externalAuthHeaders, jsonBodyOf } from './restFetch.ts';
 import { declaresJson, jsonSafeContext } from './jsonTemplate.ts';
 import { resolvedPageTitle } from './windowTitle.ts';
 import { announce, announceLive } from '../a11y/a11y.ts';
@@ -454,7 +454,8 @@ export class MateuViewController {
         if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = bodyOf(target, headers, ctx);
         const res = await fetch(url, init);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        json = await res.json();
+        // a 204 (a DELETE) is a success with nothing to merge, never a parse error
+        json = await jsonBodyOf(res);
       }
       // resultPath: a string (possibly empty = whole response) merges into the state; null/absent
       // (a @RestAction fire-and-toast) merges nothing.
