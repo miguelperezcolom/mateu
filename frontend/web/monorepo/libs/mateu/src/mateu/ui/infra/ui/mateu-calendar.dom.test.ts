@@ -115,4 +115,26 @@ describe('mateu-calendar (DOM)', () => {
         const week = await mount({ view: 'week' })
         expect($(week, '.head .title').textContent).toContain('–')
     })
+
+    describe('in a Spanish UI (<html lang="es">)', () => {
+        beforeEach(() => { document.documentElement.lang = 'es' })
+        afterEach(() => { document.documentElement.lang = '' })
+
+        it('weekdays, title, switcher and day labels are Spanish', async () => {
+            const el = await mount({ views: ['month', 'week', 'day', 'list'], dayActionId: 'openDay' })
+            expect($$(el, '.dow').map(d => d.textContent)).toEqual(['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'])
+            expect($(el, '.head .title').textContent).toBe('marzo de 2026')
+            expect($$(el, '.switcher button').map(b => b.textContent)).toEqual(['Mes', 'Semana', 'Día', 'Lista'])
+            expect($(el, '.switcher').getAttribute('aria-label')).toBe('Vista')
+            expect(cellOf(el, 4).getAttribute('aria-label')).toBe('miércoles, 4 de marzo, 90%, 2 eventos')
+            $$(el, '.switcher button')[1].click()
+            await el.updateComplete
+            expect($$(el, '.dow')[0].textContent).toBe('lun 2')
+        })
+
+        it('an empty list says so in Spanish', async () => {
+            const el = await mount({ view: 'list', events: [] })
+            expect($(el, '.agenda .empty').textContent).toBe('Sin eventos')
+        })
+    })
 })

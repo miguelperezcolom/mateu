@@ -1,4 +1,5 @@
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { uiLocale } from '@infra/ui/uiLocale.ts'
 
 /**
  * The date pickers' i18n in the USER'S locale. Vaadin's default is en-US (M/D/YYYY): in a Spanish
@@ -6,7 +7,7 @@ import { chromeText } from '@infra/ui/chromeTexts.ts'
  * server got null ("the dates are required"). One helper for every picker: vaadin-date-picker,
  * vaadin-date-time-picker, vcf-date-range-picker and the grid's inline date editors.
  *
- * The locale is the UI's — `<html lang>`, which `applyUiLanguage` sets from the server's
+ * The locale is the UI's (libs/mateu uiLocale.ts) — `<html lang>`, which `applyUiLanguage` sets from the server's
  * `AppDto.locale`, else the browser's — refined by `navigator.language` when that one is the same
  * language with a region (`es` + `es-MX`, `en` + `en-GB`). Order (D/M/Y, M/D/Y, Y/M/D), separator
  * and zero padding come from `Intl.DateTimeFormat(locale).formatToParts`; month and weekday names
@@ -24,18 +25,8 @@ export interface DateFormatSpec {
     padMonth: boolean
 }
 
-/** The locale date pickers format and parse in. */
-export const uiLocale = (): string => {
-    const htmlLang = (typeof document !== 'undefined' && document.documentElement?.lang) || ''
-    const browser = (typeof navigator !== 'undefined' && navigator.language) || ''
-    let locale = htmlLang || browser || 'en-US'
-    if (htmlLang && browser && browser.toLowerCase().startsWith(htmlLang.toLowerCase() + '-')) locale = browser
-    try {
-        return Intl.getCanonicalLocales(locale)[0] ?? 'en-US'
-    } catch {
-        return 'en-US'
-    }
-}
+/** The locale date pickers format and parse in: the UI's (shared with the calendar). */
+export { uiLocale }
 
 const specs = new Map<string, DateFormatSpec>()
 

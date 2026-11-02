@@ -4,6 +4,7 @@ import { html, nothing } from "lit";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { formatShortcut } from "@infra/ui/shortcuts.ts";
+import { builtInButtonLabel } from "@infra/ui/builtInButtonLabels.ts";
 import { handleButtonClick, resolvedRoute, routeUnresolved } from "@infra/ui/renderers/buttonRenderer.ts";
 
 /**
@@ -12,7 +13,8 @@ import { handleButtonClick, resolvedRoute, routeUnresolved } from "@infra/ui/ren
  */
 export const renderButton = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
     const metadata = component.metadata as Button
-    const label = interpolate(metadata.label, state, data)
+    // a built-in archetype button whose English label came back untranslated → the UI's language
+    const label = builtInButtonLabel(metadata, interpolate(metadata.label, state, data))
     let theme = '';
     if (metadata.buttonStyle) {
         theme += ' ' + metadata.buttonStyle
