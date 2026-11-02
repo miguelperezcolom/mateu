@@ -19,7 +19,8 @@ import { runMateuAction, loadLookups } from './transport.mjs'
 import { adoptShellSources, fetchGlobalSearch, sourcedNotificationsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { fetchNotifications } from './notify.mjs'
 import { jsonEscape, declaresJson, restAnswerOf as restAnswer, mapItemsToOptions as mapOptions, refreshActionsOf, serviceMessageOf } from './restSources.mjs'
-import { NESTED_LISTING_ACTION, nestedListingKeyOf, nestedListingAtomOf, setNestedSelection, clearNestedSelection, withNestedSelection } from './core/listing.mjs'
+import { NESTED_LISTING_ACTION, NESTED_LISTING_PARAM, nestedListingKeyOf, nestedListingAtomOf, setNestedSelection, clearNestedSelection, withNestedSelection } from './core/listing.mjs'
+import { outboundActionOf } from './actionPlan.mjs'
 import { imageUrlOf } from './inputs.mjs'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -470,6 +471,32 @@ test('a nested listing with row selection: its toolbar is drawn, its table selec
   assert.deepEqual(nestedListingAtomOf(plain, host).selectionMode, { row: 'none' })
   clearNestedSelection(key)
   assert.deepEqual(withNestedSelection({ id: 43 }, host, 'delete-documents').crud_selected_items, [])
+})
+
+test('two nested listings with the same toolbar id: each sends ITS selection, and they never share rows', () => {
+  const photos = { ...docsListing, id: 'photos' }
+  const host = { id: HOST_ID, state: { id: 43 }, data: {},
+    tree: { type: 'ServerSide', id: 'page', children: [{ type: 'ClientSide', id: 'form', metadata: { type: 'Form', template: { type: 'AdvancedCreateEditPage' } }, children: [docsListing, photos] }] } }
+  const docsKey = nestedListingKeyOf(docsListing)
+  const photosKey = nestedListingKeyOf(photos)
+  assert.notEqual(docsKey, photosKey, 'identical listings get their own keys (by component id)')
+  // a generated id is left out of the key (it may change between loads)
+  assert.equal(nestedListingKeyOf({ ...docsListing, id: '0f8fad5b-d9cb-469f-a165-70867728950e' }), nestedListingKeyOf({ ...docsListing, id: '' }))
+  host.data[docsKey] = { page: { content: [{ id: 1, _rowNumber: '1' }] } }
+  host.data[photosKey] = { page: { content: [{ id: 2, _rowNumber: '2' }] } }
+  setNestedSelection(docsKey, { values: () => new Set(['1']) })
+  setNestedSelection(photosKey, { values: () => new Set(['2']) })
+  const photosButton = nestedListingAtomOf(photos, host).toolbar[0]
+  assert.equal(photosButton.parameters[NESTED_LISTING_PARAM], photosKey)
+  // the second listing's button sends the second listing's rows; without a name, the first one's (as before)
+  assert.deepEqual(withNestedSelection({}, host, 'delete-documents', photosKey).crud_selected_items.map((r) => r.id), [2])
+  assert.deepEqual(withNestedSelection({}, host, 'delete-documents').crud_selected_items.map((r) => r.id), [1])
+  // the name never travels: outboundActionOf strips it
+  const plan = outboundActionOf({ contexts: { [HOST_ID]: host } }, 'delete-documents', { parameters: photosButton.parameters })
+  assert.deepEqual(plan.componentState.crud_selected_items.map((r) => r.id), [2])
+  assert.equal(NESTED_LISTING_PARAM in (plan.parameters || {}), false)
+  clearNestedSelection(docsKey)
+  clearNestedSelection(photosKey)
 })
 
 test('the nested listing template: a toolbar of block actions and a selectable table wired to nestedListingSelected', () => {
