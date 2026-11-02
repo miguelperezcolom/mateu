@@ -159,10 +159,22 @@ public class ActionMapper {
     // the flags of the most specific declaration are the ones the client sees.
     var seen = new java.util.HashSet<String>();
     var restricted = restrictedMembers(serverSideObject, httpRequest);
-    return actions.stream()
-        .filter(action -> seen.add(action.id()))
-        .filter(action -> !restricted.contains(memberNameOf(action.id())))
-        .toList();
+    var advertised =
+        actions.stream()
+            .filter(action -> seen.add(action.id()))
+            .filter(action -> !restricted.contains(memberNameOf(action.id())))
+            .toList();
+    // a crud's record page: the record's own @Toolbar buttons bubble to the crud, which re-renders
+    // the page with the record's answer (see RecordToolbarActions)
+    var bubbling =
+        io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.RecordToolbarActions
+            .bubbling(serverSideObject, advertised, httpRequest);
+    if (bubbling.isEmpty()) {
+      return advertised;
+    }
+    var all = new ArrayList<>(advertised);
+    bubbling.stream().filter(action -> seen.add(action.id())).forEach(all::add);
+    return all;
   }
 
   /**

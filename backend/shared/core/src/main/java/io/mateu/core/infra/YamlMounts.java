@@ -255,6 +255,7 @@ public final class YamlMounts {
         mounted,
         rq.serverSideType(),
         rq.serverSideComponentRoute(),
-        rq.knownStructureHash());
+        rq.knownStructureHash(),
+        rq.embeddedChrome());
   }
 }

@@ -53,6 +53,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       wizardCompleted: 'Completed',
       dropHere: 'Drop here',
       noEvents: 'No events',
+      // the calendar (calendar.mjs): view names, CalendarPage's untranslated toolbar labels, counts
+      calendarView: 'View',
+      calendarToday: 'Today',
+      calendarMonth: 'Month',
+      calendarWeek: 'Week',
+      calendarDay: 'Day',
+      calendarList: 'List',
+      calendarCreate: '+ Create',
+      calendarOneEvent: '1 event',
+      calendarEvents: '{count} events',
       hideUnpopulated: 'Hide unpopulated',
       mapUnavailable: 'The map could not be loaded.',
       // ── shell ──
@@ -302,6 +312,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       wizardCompleted: 'Completado',
       dropHere: 'Suelta aquí',
       noEvents: 'Sin eventos',
+      calendarView: 'Vista',
+      calendarToday: 'Hoy',
+      calendarMonth: 'Mes',
+      calendarWeek: 'Semana',
+      calendarDay: 'Día',
+      calendarList: 'Lista',
+      calendarCreate: '+ Crear',
+      calendarOneEvent: '1 evento',
+      calendarEvents: '{count} eventos',
       hideUnpopulated: 'Ocultar vacías',
       mapUnavailable: 'No se ha podido cargar el mapa.',
       menu: 'Menú',
@@ -1113,6 +1132,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // compute dates — and switching view is DOM state (installCalendars): without re-projecting or
   // asking the server. Same rules as libs/mateu calendarModel.ts (ISO dates in UTC, so
   // that no time zone moves a day; the multi-day event on all its days; by start time).
+  // Its words follow the UI's language like the web renderer's: weekday and month names from Intl in
+  // the UI's locale (i18n.mjs uiLocale), the view names and Today/+ Create from the chrome catalogue.
+
 
   const toUtc = (iso) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
   const fromUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
@@ -1135,17 +1157,46 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     .sort((a, b) => (a.e.startTime || '').localeCompare(b.e.startTime || '') || a.i - b.i)
     .map(({ e }) => e)
 
-  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-  const DOWS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const DOWS_LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
   const dayNum = (iso) => Number(iso.slice(8))
-  const monthName = (iso) => MONTHS[Number(iso.slice(5, 7)) - 1]
-  const longDate = (iso) => DOWS_LONG[calWeekday(iso)] + ', ' + monthName(iso) + ' ' + dayNum(iso)
+
+  const calFormatters = new Map()
+  /** An ISO date written in `locale` with Intl `options`, in UTC (no time zone moves a day); a
+   *  malformed locale (a server's "en_GB") falls back to en-US instead of breaking the page. */
+  function calFormat(iso, locale, options) {
+    const key = locale + '|' + JSON.stringify(options)
+    let f = calFormatters.get(key)
+    if (!f) {
+      try { f = new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' }) } catch (e) {
+        f = new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' })
+      }
+      calFormatters.set(key, f)
+    }
+    return f.format(new Date(toUtc(iso)))
+  }
+  /** The seven weekday names, Monday first (2024-01-01 is a Monday). */
+  const calWeekdayNames = (locale) => Array.from({ length: 7 }, (_, i) => calFormat(calAddDays('2024-01-01', i), locale, { weekday: 'short' }))
+  const calLongDate = (iso, locale) => calFormat(iso, locale, { weekday: 'long', day: 'numeric', month: 'long' })
+  const calEventCount = (n) => (n === 1 ? chromeText('calendarOneEvent') : chromeText('calendarEvents', { count: n }))
+
+  /** The chrome key of a view's name. */
+  const CAL_VIEW_KEYS = { month: 'calendarMonth', week: 'calendarWeek', day: 'calendarDay', list: 'calendarList' }
+  const calViewLabel = (v) => (CAL_VIEW_KEYS[v] ? chromeText(CAL_VIEW_KEYS[v]) : v)
+
+  /** CalendarPage's toolbar labels come from the server in English, through the app's Translator:
+   *  when one comes back exactly as Mateu wrote it (the Translator does not know it), it is drawn in
+   *  the UI's language; a translated label is left alone (libs/mateu builtInButtonLabels.ts). */
+  function calBuiltInLabel(actionId, params, label) {
+    const builtIn = actionId === 'switchCalendarView'
+      ? ({ month: ['Month', 'calendarMonth'], week: ['Week', 'calendarWeek'], day: ['Day', 'calendarDay'], list: ['List', 'calendarList'] })[params && params._view]
+      : ({ goCalendarToday: ['Today', 'calendarToday'], createCalendarEvent: ['+ Create', 'calendarCreate'] })[actionId]
+    return Array.isArray(builtIn) && label === builtIn[0] ? chromeText(builtIn[1]) : label
+  }
 
   /** The calendar atom, with the four views precomputed. */
-  function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null) {
+  function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null, locale = uiLocale()) {
     const anchor = m.month || today
+    const longDate = (iso) => calLongDate(iso, locale)
     const events = m.events || []
     const days = {}
     for (const d of m.days || []) if (d && d.date) days[d.date] = d
@@ -1169,7 +1220,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         label: info.label || '',
         cls: 'mateu-cal-cell' + (info.tone && TONES[info.tone] ? ' mateu-cal-' + info.tone : '')
           + (date === today ? ' mateu-cal-today' : '') + (dayAction ? ' mateu-cal-clickable' : ''),
-        ariaLabel: longDate(date) + (info.label ? ', ' + info.label : '') + (evs.length ? ', ' + evs.length + (evs.length > 1 ? ' events' : ' event') : ''),
+        ariaLabel: longDate(date) + (info.label ? ', ' + info.label : '') + (evs.length ? ', ' + calEventCount(evs.length) : ''),
         events: evs.map((e) => chipOf(e, withTime)),
       }
     }
@@ -1186,6 +1237,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .map(({ date, cell }) => ({ date, dateLabel: longDate(date), label: cell.label, cls: cell.cls.replace('mateu-cal-cell', 'mateu-cal-agenda-date'), events: cell.events }))
     const view = ['month', 'week', 'day', 'list'].includes(m.view) ? m.view : 'month'
     const views = (m.views || []).filter((v) => ['month', 'week', 'day', 'list'].includes(v))
+    const dows = calWeekdayNames(locale)
     return {
       isCalendar: true,
       // the Spectra calendar (oj-sp-calendar) that installCalendars mounts over the drawn grid; the
@@ -1197,16 +1249,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       view,
       dayActionId: dayAction,
       hasSwitcher: views.length > 1,
-      viewOptions: views.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })),
+      viewOptions: views.map((v) => ({ value: v, label: calViewLabel(v) })),
       titles: {
-        month: monthName(anchor) + ' ' + anchor.slice(0, 4),
-        week: monthName(week.from).slice(0, 3) + ' ' + dayNum(week.from) + ' – ' + monthName(week.to).slice(0, 3) + ' ' + dayNum(week.to) + ', ' + week.to.slice(0, 4),
-        day: longDate(anchor) + ', ' + anchor.slice(0, 4),
-        list: monthName(anchor) + ' ' + anchor.slice(0, 4),
+        month: calFormat(anchor, locale, { month: 'long', year: 'numeric' }),
+        week: calFormat(week.from, locale, { day: 'numeric', month: 'short' }) + ' – ' + calFormat(week.to, locale, { day: 'numeric', month: 'short', year: 'numeric' }),
+        day: calFormat(anchor, locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        list: calFormat(anchor, locale, { month: 'long', year: 'numeric' }),
       },
-      dows: DOWS,
+      dows,
       monthCells,
-      weekHeads: weekDates.map((d) => DOWS[calWeekday(d)] + ' ' + dayNum(d)),
+      weekHeads: weekDates.map((d) => dows[calWeekday(d)] + ' ' + dayNum(d)),
       weekCells: weekDates.map((d) => cellOf(d, true)),
       dayHead: longDate(anchor),
       dayCells: [cellOf(anchor, true)],
@@ -1262,7 +1314,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const k of kids) {
       const b = k.metadata
       const id = b.actionId || ''
-      nav.buttons.push({ label: String(b.label || ''), actionId: id, params: JSON.stringify(b.parameters || {}) })
+      const label = calBuiltInLabel(id, b.parameters, String(b.label || ''))
+      nav.buttons.push({ label, actionId: id, params: JSON.stringify(b.parameters || {}) })
       if (id === 'previousCalendarMonth') nav.prev = id
       else if (id === 'nextCalendarMonth') nav.next = id
       else if (id === 'goCalendarToday') nav.today = id
@@ -1271,7 +1324,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         nav.views.push(b.parameters._view)
       } else if (id === 'createCalendarEvent') {
         nav.create = id
-        nav.createLabel = String(b.label || '').replace(/^\+\s*/, '')
+        nav.createLabel = label.replace(/^\+\s*/, '')
       } else return null
     }
     return nav.prev && nav.next ? nav : null
@@ -3081,6 +3134,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // HEADER (read from the live content by index, refreshes without re-stamping)
         headerLabel: (panel.title || '') + (panel.subtitle ? ' · ' + panel.subtitle : ''),
         open: panel.open !== false,
+        // no `open:` authored: open while it fits the row (poc/foldouts.mjs foldoutOpenStates)
+        autoOpen: panel.autoOpen === true,
         // EXPLICIT width from the wire (FoldoutPanel.width): the markup pins the panel to that
         // size — without it, the foldout's responsive engine distributes as it likes and the
         // cockpit cards overlap
@@ -5386,6 +5441,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const blocks = []
     let plain = null
     let elementOrdinal = 0
+    // an embedded MicroFrontend's chrome (opts.chrome) applies to ITS page: the first Page visited
+    let embeddedPageSeen = false
     // the wire node being projected (editor mode only): what an atom or a block made now came from
     let editorNode = ''
     const stampNode = (o) => {
@@ -6000,10 +6057,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Page') {
-        // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar)
-        const pageTitle = interp(m.title || '')
+        // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar) — as far
+        // as an EMBEDDED MicroFrontend's chrome keeps them, on its own page (the first one met):
+        // NONE draws neither, COMPACT only the toolbar, PAGE both (opts.chrome, embeddedChromeOf)
+        const chrome = !embeddedPageSeen ? opts.chrome : null
+        embeddedPageSeen = true
+        const pageTitle = chrome === 'NONE' || chrome === 'COMPACT' ? '' : interp(m.title || '')
         if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
-        const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
+        const toolbar = chrome === 'NONE' ? [] : (m.toolbar || []).filter((b) => b && b.actionId)
         if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
         for (const child of kidsOf(node)) visit(child, container)
         return
@@ -6070,14 +6131,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       // FOLDOUT INSIDE A TAB (the page one is painted by oj-sp-foldout-layout, foldoutOf): the
       // overview in its place and each panel as a collapsible panel — its title and, when open, its
-      // content; the panels open by default (open) are respected
+      // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
+      // authored) opens — stacked, it never runs out of row
       if (t === 'FoldoutLayout' && tabScope) {
         const bySlot = {}
         for (const child of node.children || []) bySlot[child.slot || ''] = child
         if (bySlot.overview) visit(bySlot.overview, container)
         ;(m.panels || []).forEach((panel, i) => {
           const key = 'fold:' + (node.id || 'foldout') + ':' + i
-          const expanded = panelExpanded(key, panel.open !== false)
+          const expanded = panelExpanded(key, panel.autoOpen === true || panel.open !== false)
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
           const content = bySlot['panel-' + i]
           if (expanded && content) visit(content, container)
@@ -6934,8 +6996,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const ctx = contexts && contexts[a.islandId]
         if (!ctx || !ctx.tree) return [a]
         const crud = findByType(ctx.tree, 'Crud')
+        // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
+        const chrome = (a.subresource && a.subresource.chrome) || null
         if (!crud) {
-          const inner = islandContentOf(ctx)
+          const inner = islandContentOf(ctx, chrome ? { chrome } : {})
           // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
           // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
           const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
@@ -6952,7 +7016,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           isGrid: true,
           isSubresourceGrid: true,
           fieldId: a.islandId,
-          label: md.title || '',
+          // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
+          label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
           columns: wire.map((c) => (c.dataType === 'status'
             ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
             : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
@@ -13179,9 +13244,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
       // the host resolved it (resolve = SERVER): the answer to its load is already here
       resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
+      // EMBEDDED (MicroFrontend.chrome): a block of this page, not a page — see embeddedChromeOf
+      chrome: embeddedChromeOf(m.chrome),
       surface: true,
       lazy: false,
     }
+  }
+
+  /** The chromes a MicroFrontend can be embedded with (MicroFrontend.chrome / EmbeddedChrome). */
+  const EMBEDDED_CHROMES = ['NONE', 'COMPACT', 'PAGE']
+
+  /** A MicroFrontend's `chrome` when it is a known one, else null (a top-level micro frontend, as
+   *  before). Any value makes it EMBEDDED: it never names the window, pushes history or sets the
+   *  favicon, and draws no breadcrumb; NONE also drops its page's title and toolbar, COMPACT its
+   *  title (the toolbar stays), PAGE keeps both. */
+  function embeddedChromeOf(chrome) {
+    const c = typeof chrome === 'string' ? chrome.toUpperCase() : ''
+    return EMBEDDED_CHROMES.includes(c) ? c : null
+  }
+
+  /** The commands that name or move the WINDOW: never applied from an embedded island — the window
+   *  (its title, the address bar, the favicon) belongs to the page that embeds it. */
+  const WINDOW_COMMANDS = ['SetWindowTitle', 'SetFavicon', 'PushStateToHistory']
+
+  /** The increment without its window commands (an embedded island's answer: an older remote that
+   *  does not read `embeddedChrome` still sends them). The same object when it carries none. */
+  function withoutWindowCommands(increment) {
+    if (!increment || !Array.isArray(increment.commands)) return increment
+    const kept = increment.commands.filter((c) => !(c && WINDOW_COMMANDS.includes(c.type)))
+    return kept.length === increment.commands.length ? increment : { ...increment, commands: kept }
   }
   /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
    *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
@@ -15779,6 +15870,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // selection unfolds it: selecting the strip — click, keyboard focus, page dot — unfolds the panel
   // and brings it into view. Open panels are not touched. Unfolded panels stay unfolded while the page is the same (an action re-projects the
   // foldout); a navigation starts over, as a fresh page does on the web renderer.
+  //
+  // A panel with autoOpen (a YAML panel whose author wrote no `open:`) is open while it fits the row
+  // and folded otherwise — foldoutOpenStates, the rule of conformance/client/foldout-auto.json, run
+  // against the layout's width on every paint and on resize. Unfolding one by hand wins until the page
+  // changes.
 
 
   const FOLDED_CLASS = 'mateu-foldout-folded'
@@ -15786,6 +15882,66 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const PANEL_CONTAINER = 'oj-sp-foldout-layout-panel-container'
 
   const unfolded = new Set()
+  // keys of the autoOpen panels that do NOT fit the row right now (recomputed from the layout width)
+  const autoFolded = new Set()
+
+  // Redwood's measures (main-start-page.html / app.css): the 25rem overview, a 4rem folded strip;
+  // a panel without a wire width is counted at 22rem, the web renderers' default column
+  const REDWOOD_FIT = { overviewPx: 400, stripPx: 64, defaultPanelPx: 352, remPx: 16, gapPx: 0 }
+
+  /** A panel's CSS width in px: px / rem / em / a bare number / % of the row; else null. */
+  function foldoutWidthPx(width, available, remPx = 16) {
+    const m = /^(\d+(?:\.\d+)?)(px|rem|em|%)?$/.exec(String(width ?? '').trim())
+    if (!m) return null
+    const n = Number.parseFloat(m[1])
+    if (m[2] === 'rem' || m[2] === 'em') return n * remPx
+    if (m[2] === '%') return n * available / 100
+    return n
+  }
+
+  /**
+   * Which panels are open on first paint (conformance/client/foldout-auto.json, the same rule as
+   * libs/mateu foldoutGeometry.ts): an autoOpen panel opens while it fits `available` px, in
+   * declaration order; any other follows `open`. The overview, the panels declared open and every
+   * folded strip are counted first; each auto panel then takes its width in place of its strip.
+   * An unknown width (null / <= 0) opens every auto panel.
+   */
+  function foldoutOpenStates(panels, available, options = {}) {
+    const list = panels || []
+    const o = { overviewPx: 400, stripPx: 48, defaultPanelPx: 352, remPx: 16, gapPx: 0, ...options }
+    const auto = (p) => p?.autoOpen === true
+    if (available == null || available <= 0) return list.map((p) => auto(p) || p?.open !== false)
+    const widthOf = (p) => foldoutWidthPx(p?.width, available, o.remPx) ?? o.defaultPanelPx
+    let used = o.overviewPx
+    for (const p of list) used += o.gapPx + (!auto(p) && p?.open !== false ? widthOf(p) : o.stripPx)
+    return list.map((p) => {
+      if (!auto(p)) return p?.open !== false
+      const grown = used - o.stripPx + widthOf(p)
+      if (grown > available) return false
+      used = grown
+      return true
+    })
+  }
+
+  /** Re-decides the autoOpen panels against the layout's width (px). */
+  function fitAutoPanels(foldout, available) {
+    autoFolded.clear()
+    const panels = (foldout && foldout.panels) || []
+    foldoutOpenStates(panels, available, REDWOOD_FIT).forEach((open, i) => {
+      if (!open && panels[i]?.autoOpen === true) autoFolded.add(foldoutPanelKey(panels[i], i))
+    })
+  }
+
+  /** The layout's width in px (oj-sp-foldout-layout is an inline element: clientWidth reads 0). */
+  function rowWidthOf(layout) {
+    const width = layout?.getBoundingClientRect?.().width ?? 0
+    return width > 0 ? width : null
+  }
+
+  /** A panel that may be folded: declared `open: false`, or autoOpen. */
+  function foldable(panel) {
+    return panel?.open === false || panel?.autoOpen === true
+  }
 
   /** The identity of a wire panel across re-projections of the same page: position + title. */
   function foldoutPanelKey(panel, index) {
@@ -15795,12 +15951,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** A new page: every `open: false` panel starts folded again. */
   function resetFoldoutFolds() {
     unfolded.clear()
+    autoFolded.clear()
   }
 
   /** Whether the wire panel `index` of the projection is folded right now. */
   function isPanelFolded(foldout, index) {
     const panel = ((foldout && foldout.panels) || [])[index]
-    return !!panel && panel.open === false && !unfolded.has(foldoutPanelKey(panel, index))
+    if (!panel || unfolded.has(foldoutPanelKey(panel, index))) return false
+    return panel.autoOpen === true ? autoFolded.has(foldoutPanelKey(panel, index)) : panel.open === false
   }
 
   /** The indexes (wire order) of the panels folded right now. */
@@ -15852,15 +16010,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (containers.length < panels.length + offset) return false
     layout.__mateuFoldout = foldout
     wireSelection(layout)
+    if (panels.some((p) => p?.autoOpen === true)) fitAutoPanels(foldout, rowWidthOf(layout))
     panels.forEach((panel, i) => {
       const container = containers[i + offset]
       const element = container && panelOf(container)
       if (!element) return
       const folded = isPanelFolded(foldout, i)
       element.classList.toggle(FOLDED_CLASS, folded)
-      if (panel.open === false) container.setAttribute('aria-expanded', folded ? 'false' : 'true')
+      if (foldable(panel)) container.setAttribute('aria-expanded', folded ? 'false' : 'true')
       if (folded) container.setAttribute('title', chromeText('foldoutUnfold', { title: panel.title || '' }))
-      else if (panel.open === false) container.removeAttribute('title')
+      else if (foldable(panel)) container.removeAttribute('title')
     })
     return true
   }
@@ -15869,6 +16028,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function wireSelection(layout) {
     if (layout.__mateuFoldWired) return
     layout.__mateuFoldWired = true
+    // the row's width decides the autoOpen panels: re-fit when it changes (a window resize, the
+    // navigation drawer opening)
+    if (typeof ResizeObserver !== 'undefined') {
+      let last = rowWidthOf(layout)
+      new ResizeObserver(() => {
+        const width = rowWidthOf(layout)
+        if (width === last) return
+        last = width
+        const foldout = layout.__mateuFoldout
+        if ((foldout?.panels || []).some((p) => p?.autoOpen === true)) applyFoldoutFolds(layout, foldout)
+      }).observe(layout.parentElement || layout) // an inline element's own box never resizes
+    }
     layout.addEventListener('selectedPanelChanged', (e) => {
       const foldout = layout.__mateuFoldout
       const index = wirePanelIndexOf(e && e.detail ? e.detail.value : layout.selectedPanel, foldout)
@@ -15884,11 +16055,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
+  /**
+   * Whether a vertical wheel over an open panel is the PANEL's own scroll: Spectra's layout fixes every
+   * panel to the row height and takes the wheel for its carousel, so a panel taller than the window
+   * (a grid of cards) could not be read to the end — app.css lets the open panel scroll inside, and
+   * this keeps the wheel for it while it still has room that way.
+   */
+  function panelWheelIsNative(container, deltaX, deltaY) {
+    if (!container || Math.abs(deltaY) <= Math.abs(deltaX)) return false
+    const room = deltaY > 0 ? container.scrollHeight - container.clientHeight - container.scrollTop : container.scrollTop
+    return room > 1
+  }
+
+  let panelScrollInstalled = false
+
+  /** Leaves a vertical wheel over a scrollable open panel to the panel (once per document). */
+  function installFoldoutPanelScroll() {
+    if (panelScrollInstalled || typeof document === 'undefined') return
+    panelScrollInstalled = true
+    document.addEventListener('wheel', (event) => {
+      const target = event.target
+      const container = target && target.closest ? target.closest('#' + LAYOUT_ID + ' .' + PANEL_CONTAINER) : null
+      if (panelWheelIsNative(container, event.deltaX, event.deltaY)) event.stopPropagation()
+    }, { capture: true, passive: true })
+  }
+
   /** Applies the folds once VB has painted the foldout. `fresh` = a new page (folds start over). */
   function applyFoldoutFoldsSoon(foldout, { fresh = false, frames = 60 } = {}) {
     if (fresh) resetFoldoutFolds()
     if (!foldout || typeof document === 'undefined') return
-    if (!(foldout.panels || []).some((p) => p && p.open === false)) return
+    installFoldoutPanelScroll()
+    if (!(foldout.panels || []).some(foldable)) return
     let left = frames
     const tick = () => {
       if (applyFoldoutFolds(document.getElementById(LAYOUT_ID), foldout)) return
@@ -21545,12 +21742,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       componentState: componentState || (ctx && ctx.state) || {},
       serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
       initiatorComponentId: initiator,
+      // an EMBEDDED MicroFrontend (chrome) says so on every request: its server sends no window commands
+      ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...extra,
     }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
       .then((inc) => {
         release()
         if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
-        return inc
+        // …and whatever an older remote still sends, the window is not the island's to name
+        return outbound.embeddedChrome ? withoutWindowCommands(inc) : inc
       }, (e) => { release(); throw e })
   }
 
@@ -21619,6 +21819,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
         consumedRoute: outbound.consumedRoute || '',
         serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
+        ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
         ...bodyExtra,
         route: bare ? `/${bare}` : '',
         actionId,
@@ -21851,15 +22052,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
     if (sub.baseUrl) base = sub.baseUrl
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
-    const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
+    const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base,
+      // EMBEDDED (MicroFrontend.chrome): every request it sends says so (runMateuAction)
+      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}) }
     // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
     // its actions and triggers still go to ITS baseUrl (outbound, below)
-    let next = reduceContexts(reg, sub.resolved || await loadRoute(base, sub.route, sub.id, {
+    const answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
       ...extra,
       consumedRoute: sub.consumedRoute,
       serverSideType: sub.serverSideType,
       componentState: sub.componentState || {},
-    }))
+      ...(sub.chrome ? { embeddedChrome: sub.chrome } : {}),
+    })
+    let next = reduceContexts(reg, sub.chrome ? withoutWindowCommands(answer) : answer)
     next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
     for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
       const ctx = next.contexts[sub.id]
@@ -21868,7 +22073,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const increment = await runMateuAction(base, ctx, sub.route, triggerActionId, componentState, extra)
       if (increment) next = reduceContexts(next, increment)
     }
+    // an embedded island leaves the window as the HOST named it: its load does not take the host's
+    // title (nor its history push) away from the chains that apply them after loading the blocks
+    if (sub.chrome) next = { ...next, effects: { ...next.effects, ...hostWindowEffectsOf(reg) } }
     return next
+  }
+
+  /** The window effects of the registry an embedded island was loaded into: what the HOST's answer
+   *  said about the window (its title, its history push), kept across the island's own answers. */
+  function hostWindowEffectsOf(reg) {
+    const effects = (reg && reg.effects) || {}
+    return { docTitle: effects.docTitle == null ? null : effects.docTitle, urlPush: effects.urlPush == null ? null : effects.urlPush }
   }
 
   /**
@@ -22434,6 +22649,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           appState: md.appState || null,
           // the host resolved it (resolve = SERVER): the answer to its first load is already here
           resolved: md.resolved && typeof md.resolved === 'object' ? md.resolved : null,
+          // EMBEDDED (MicroFrontend.chrome): its requests say so (a header widget applies no commands)
+          chrome: embeddedChromeOf(md.chrome),
         })
         return
       }
@@ -22498,6 +22715,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       initiatorComponentId: item.id,
       componentState: (rt.ctx && rt.ctx.state) || {},
       appState: Object.assign({}, appState(), item.appState || {}),
+      ...(item.chrome ? { embeddedChrome: item.chrome } : {}),
       ...extra,
     }, { quiet: true, idempotent: true })
 

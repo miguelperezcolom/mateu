@@ -20,6 +20,7 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.ContentSlot;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.EmbeddedChrome;
 import io.mateu.uidl.data.MicroFrontend;
 import io.mateu.uidl.data.Resolve;
 import io.mateu.uidl.data.VerticalLayout;
@@ -102,7 +103,9 @@ class MicroFrontendServerResolutionSyncTest {
             Anonymous.class,
             Exchanged.class,
             SlotPage.class,
-            DeadSlotPage.class);
+            DeadSlotPage.class,
+            EmbeddedServer.class,
+            EmbeddedSlow.class);
     // warm up: the first resolution pays the cold start (JIT, Jackson's metadata, the first
     // connection); each test clears what it reads
     mateu.sync("/mfe-fast");
@@ -130,8 +133,9 @@ class MicroFrontendServerResolutionSyncTest {
       var value = exchange.getRequestHeaders().getFirst(name);
       if (value != null) headers.put(name, value);
     }
-    REQUESTS.add(headers);
     var request = WIRE.readValue(exchange.getRequestBody(), RunActionRqDto.class);
+    if (request.embeddedChrome() != null) headers.put("embeddedChrome", request.embeddedChrome());
+    REQUESTS.add(headers);
     var remoteName = path.substring(1, path.indexOf('/', 1));
     PATH_HITS.merge(remoteName, 1, Integer::sum);
     try {
@@ -306,6 +310,34 @@ class MicroFrontendServerResolutionSyncTest {
   public static class FastServer extends Page {
     List<Component> parts() {
       return List.of(mfe("fast", Resolve.SERVER, IN_TIME));
+    }
+  }
+
+  @UI("/mfe-embedded")
+  public static class EmbeddedServer extends Page {
+    List<Component> parts() {
+      return List.of(
+          MicroFrontend.builder()
+              .baseUrl(base + "/fast")
+              .route("/embedded-widget")
+              .resolve(Resolve.SERVER)
+              .timeoutMs(IN_TIME)
+              .chrome(EmbeddedChrome.NONE)
+              .build());
+    }
+  }
+
+  @UI("/mfe-embedded-slow")
+  public static class EmbeddedSlow extends Page {
+    List<Component> parts() {
+      return List.of(
+          MicroFrontend.builder()
+              .baseUrl(base + "/slow")
+              .route("/embedded-widget")
+              .resolve(Resolve.SERVER)
+              .timeoutMs(150)
+              .chrome(EmbeddedChrome.PAGE)
+              .build());
     }
   }
 
@@ -497,6 +529,28 @@ class MicroFrontendServerResolutionSyncTest {
             "appState",
             "actionId");
     assertThat(REQUESTS).as("the host asks nobody").isEmpty();
+  }
+
+  @Test
+  void anEmbeddedServerMicroFrontendAsksTheRemoteAsEmbeddedAndKeepsItsChrome() {
+    var microFrontend = onlyMicroFrontend(load("/mfe-embedded"));
+    assertThat(microFrontend.resolved()).isNotNull();
+    // the remote is told, so it sends no window commands at all
+    assertThat(REQUESTS).extracting(r -> r.get("embeddedChrome")).containsExactly("NONE");
+    // and the island keeps it: its LATER requests (sent by the renderer, to the remote) say so too
+    assertThat(microFrontend.chrome()).isEqualTo("NONE");
+    assertThat(microFrontend.resolved().commands())
+        .noneMatch(
+            c ->
+                io.mateu.core.application.runaction.EmbeddedWindowCommands.WINDOW_COMMANDS.contains(
+                    c.type()));
+  }
+
+  @Test
+  void anEmbeddedMicroFrontendDegradedToTheClientKeepsItsChrome() {
+    var microFrontend = onlyMicroFrontend(load("/mfe-embedded-slow"));
+    assertThat(microFrontend.resolved()).isNull();
+    assertThat(microFrontend.chrome()).isEqualTo("PAGE");
   }
 
   @Test

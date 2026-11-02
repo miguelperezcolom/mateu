@@ -11,6 +11,7 @@ import { evaluateExpression } from './rules.mjs'
 import { __setBundleForTests, applyQueryParams, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundle.mjs'
 import { interpolateRestUrl } from './restSources.mjs'
 import { kanbanCardsFromRows, kanbanMovedColumns, kanbanMoveParametersOf } from './core/kanban.mjs'
+import { foldoutOpenStates } from './foldouts.mjs'
 
 const corpusFile = (name) => fileURLToPath(new URL('../../../../../../conformance/client/' + name, import.meta.url))
 const isMarker = (v, key) => !!v && typeof v === 'object' && v[key] === true
@@ -106,11 +107,22 @@ for (const c of kanbanOrder.move) {
   }
 }
 
+// ── which foldout panels open on first paint (conformance/client/foldout-auto.json) ───────────
+const foldoutAuto = JSON.parse(readFileSync(corpusFile('foldout-auto.json'), 'utf8'))
+for (const c of foldoutAuto.cases) {
+  try {
+    assert.deepEqual(foldoutOpenStates(c.panels, c.available, { ...foldoutAuto.defaults, ...c.options }), c.expected)
+    passed++
+  } catch (e) {
+    failures.push(`foldout auto-open: ${c.name}: ${e.message}`)
+  }
+}
+
 const total = expressions.cases.length + routeParams.cases.length + routeParams.syncPaths.length
-  + sourceTemplates.cases.length + kanbanOrder.sort.length + kanbanOrder.move.length
+  + sourceTemplates.cases.length + kanbanOrder.sort.length + kanbanOrder.move.length + foldoutAuto.cases.length
 if (failures.length) {
   console.error(failures.map((f) => '  ✗ ' + f).join('\n'))
   console.error(`${failures.length} of ${total} client conformance cases FAILED`)
   process.exit(1)
 }
-console.log(`${passed} client conformance cases OK (expressions, route params, source templates, kanban order)`)
+console.log(`${passed} client conformance cases OK (expressions, route params, source templates, kanban order, foldout auto-open)`)

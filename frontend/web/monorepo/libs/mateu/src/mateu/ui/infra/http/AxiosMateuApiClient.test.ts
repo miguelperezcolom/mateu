@@ -71,6 +71,16 @@ describe('the request', () => {
         })
     })
 
+    it('an embedded micro frontend marks its request with its chrome; a top-level one sends no such key', async () => {
+        const client = new AxiosMateuApiClient()
+        const sent = answering(client, [200, 200])
+        const { initiator } = initiatorEvents()
+        await run(client, initiator, { options: { embeddedChrome: 'NONE' } })
+        expect(sent[0].data.embeddedChrome).toBe('NONE')
+        await run(client, initiator, { actionId: 'other' })
+        expect('embeddedChrome' in sent[1].data).toBe(false)
+    })
+
     it('an empty route goes to _no_route', async () => {
         const client = new AxiosMateuApiClient()
         const sent = answering(client, [200])

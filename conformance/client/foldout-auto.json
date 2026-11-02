@@ -1,0 +1,123 @@
+{
+  "description": "Which foldout panels are open on first paint. A panel with autoOpen: true (a YAML panel whose author wrote no `open:`) opens while it fits in the available width, in declaration order; any other panel follows `open` (absent = open, false = folded). The overview, the panels declared open and every folded strip are counted first; each auto panel then takes its width in place of its strip. Widths are CSS lengths: px, rem/em (x remPx), a bare number = px, % of the available width; anything else (or none) = defaultPanelPx. An unknown available width (null or <= 0) opens every auto panel. gapPx is added once per section after the overview.",
+  "defaults": {"overviewPx": 400, "stripPx": 48, "defaultPanelPx": 352, "remPx": 16, "gapPx": 0},
+  "cases": [
+    {
+      "name": "the museum exhibition at 1408px: Loans fits, Budget folds",
+      "available": 1408,
+      "panels": [{"open": true}, {"open": false, "autoOpen": true}, {"open": false, "autoOpen": true}],
+      "expected": [true, true, false]
+    },
+    {
+      "name": "the museum exhibition at 1600px wide content: all three fit",
+      "available": 1460,
+      "panels": [{"open": true}, {"open": false, "autoOpen": true}, {"open": false, "autoOpen": true}],
+      "expected": [true, true, true]
+    },
+    {
+      "name": "the museum exhibition at 1280px: Loans still fits",
+      "available": 1200,
+      "panels": [{"open": true}, {"open": false, "autoOpen": true}, {"open": false, "autoOpen": true}],
+      "expected": [true, true, false]
+    },
+    {
+      "name": "a phone: only what was declared open",
+      "available": 358,
+      "panels": [{"open": true}, {"open": false, "autoOpen": true}, {"open": false, "autoOpen": true}],
+      "expected": [true, false, false]
+    },
+    {
+      "name": "explicit states are never touched, whatever the width",
+      "available": 300,
+      "panels": [{"open": true}, {"open": false}, {}],
+      "expected": [true, false, true]
+    },
+    {
+      "name": "explicit states are never touched on a wide row either",
+      "available": 5000,
+      "panels": [{"open": false}, {"open": false, "autoOpen": false}],
+      "expected": [false, false]
+    },
+    {
+      "name": "declaration order: an early wide panel that does not fit lets a later narrow one in",
+      "available": 1000,
+      "panels": [{"autoOpen": true, "width": "40rem"}, {"autoOpen": true, "width": "300px"}],
+      "expected": [false, true]
+    },
+    {
+      "name": "the exact fit opens",
+      "available": 800,
+      "panels": [{"autoOpen": true, "width": "400px"}],
+      "expected": [true]
+    },
+    {
+      "name": "one pixel short folds",
+      "available": 799,
+      "panels": [{"autoOpen": true, "width": "400px"}],
+      "expected": [false]
+    },
+    {
+      "name": "the strips of the other panels are counted before an auto panel opens",
+      "available": 895,
+      "panels": [{"autoOpen": true, "width": "400px"}, {"open": false}, {"open": false, "autoOpen": true, "width": "400px"}],
+      "expected": [false, false, false]
+    },
+    {
+      "name": "with room for the strips the first auto panel opens",
+      "available": 896,
+      "panels": [{"autoOpen": true, "width": "400px"}, {"open": false}, {"open": false, "autoOpen": true, "width": "400px"}],
+      "expected": [true, false, false]
+    },
+    {
+      "name": "units: rem, em, bare px number and percent",
+      "available": 2000,
+      "options": {"overviewPx": 0},
+      "panels": [
+        {"autoOpen": true, "width": "10rem"},
+        {"autoOpen": true, "width": "10em"},
+        {"autoOpen": true, "width": "320"},
+        {"autoOpen": true, "width": "50%"},
+        {"autoOpen": true, "width": " 400px "}
+      ],
+      "expected": [true, true, true, true, false]
+    },
+    {
+      "name": "an unreadable width counts as the default panel width",
+      "available": 752,
+      "panels": [{"autoOpen": true, "width": "calc(20rem + 2px)"}],
+      "expected": [true]
+    },
+    {
+      "name": "an unreadable width counts as the default panel width (one short)",
+      "available": 751,
+      "panels": [{"autoOpen": true, "width": "fit-content"}],
+      "expected": [false]
+    },
+    {
+      "name": "gaps count once per section after the overview",
+      "available": 820,
+      "options": {"gapPx": 16},
+      "panels": [{"autoOpen": true, "width": "400px"}, {"autoOpen": true, "width": "400px"}],
+      "expected": [false, false]
+    },
+    {
+      "name": "gaps: room for one panel and the other's strip",
+      "available": 896,
+      "options": {"gapPx": 16},
+      "panels": [{"autoOpen": true, "width": "400px"}, {"autoOpen": true, "width": "400px"}],
+      "expected": [true, false]
+    },
+    {
+      "name": "an unknown available width opens every auto panel",
+      "available": null,
+      "panels": [{"autoOpen": true}, {"open": false}, {"autoOpen": true}],
+      "expected": [true, false, true]
+    },
+    {
+      "name": "no panels",
+      "available": 1000,
+      "panels": [],
+      "expected": []
+    }
+  ]
+}

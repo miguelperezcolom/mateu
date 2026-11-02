@@ -165,7 +165,13 @@ public record FoldoutNavigationDto(
     string? PreviousActionId, string? NextActionId);
 
 /// <summary>Header info for one foldout panel; its content travels as a slotted component child.</summary>
-public record FoldoutPanelInfoDto(string? Title, string? Subtitle, string? Icon, bool Open, string? Width = null);
+public record FoldoutPanelInfoDto(string? Title, string? Subtitle, string? Icon, bool Open, string? Width = null)
+{
+    /// <summary>True (or omitted): open while it fits the row, else folded — Open is ignored. (Mirrors
+    /// io.mateu.dtos.FoldoutPanelInfoDto.autoOpen.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? AutoOpen { get; init; }
+}
 
 /// <summary>Page hero header. Slotted content travels as component children.</summary>
 public record HeroSectionMetadataDto(string? Title, string? Subtitle, string? Image, string? Height, bool Centered) : ComponentMetadataDto

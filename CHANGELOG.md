@@ -13,6 +13,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **An embedded `MicroFrontend` keeps out of the host page's chrome: `chrome(NONE | COMPACT | PAGE)`**
+  (Java, Vaadin and Redwood; experimental). With any value the micro frontend is a block of the page,
+  not a page of its own: the renderers apply no window title, history push or favicon from it, its
+  navigation does not touch the address bar, and it draws no breadcrumb — before, each load renamed
+  the browser tab after the remote, so the host page's title never stuck. Its requests carry
+  `embeddedChrome` and the server answering them strips those commands too (also for `resolve =
+  SERVER`, whose host now asks the remote as embedded and keeps the chrome for later interactions).
+  `NONE` hides the remote page's header, `COMPACT` keeps only its actions, `PAGE` keeps title and
+  actions. Without `chrome`, nothing changes. Wire: `MicroFrontend.chrome` and
+  `RunActionRqDto.embeddedChrome`, both optional.
+
+- **A foldout panel whose author did not decide is open while it fits** (YAML, all renderers). A
+  `FoldoutPanel` with no `open:` now reaches the wire as `autoOpen: true` (`FoldoutPanel.autoOpen`,
+  `@Experimental`; .NET `AutoOpen`, Python `auto_open`) instead of a silent `open: false`: the
+  renderer opens such panels in declaration order while the row has room for each (its `width`,
+  else 22rem, after the overview, the panels declared open and a strip per other panel), folds the
+  rest, re-decides on resize, and a hand toggle wins until the next page. A museum exhibition at
+  1600px used to show "Loans" and "Budget and visitors" folded beside empty space. `open: true/false`
+  and every Java panel are unchanged. One rule in libs/mateu, Redwood, React Native and IntelliJ,
+  pinned by `conformance/client/foldout-auto.json`; the browser expander applies the same default.
 - **A crud's edit and creation forms render the editor's own `@Button`s** (Java). They sit under the
   form — in the drawer's bottom row, before Cancel/Save — and are the actions that only make sense
   while editing (insert a medium into the text, translate it, refresh a preview). Like save, they
@@ -43,6 +63,35 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the calendar's Today and the optimistic-lock dialog's Reload / Overwrite benefit too). A label an
   app writes itself (`newLabel()` returning «Add a title») is left as it is; with no language, or one
   the catalogue lacks, they stay English. A static bundle's raw render keeps English.
+- **A crud's record page keeps its custom content after one of its own buttons** (Java). On the
+  record page of a crud or a Navigable listing whose record implements `DetailContentSupplier`, a
+  `@Toolbar` method of the record that answered the record (`return this`,
+  `List.of(this, Message.success(...))`) ran against the record on its own, and its answer replaced
+  the page with a bare reflected form of it: no Back to list / Edit, and none of the record's
+  content — blank below the header when its fields are `@Hidden` and its inputs fluent `FormField`s
+  inside `detailContent`. Those buttons now bubble to the crud as `action-on-view-<method>` (like a
+  `@ViewToolbarButton`, keeping the method's `@Action` settings), and an answer of the record — or
+  nothing, or the record with messages, also from a `@ViewToolbarButton` — re-renders the record
+  page in place exactly as the view route draws it, route kept, messages shown. An answer of only
+  messages still shows the record reloaded from the store (return `List.of(this, Message…)` to keep
+  the values typed in the page). `@RestAction` and `Flux`-returning record methods keep their plain
+  ids.
+- **The calendar speaks the UI's language** (Vaadin and Redwood). A Spanish UI showed «noviembre de
+  2026» over a `MON TUE … SUN` header, with `Today · Month · Week · List` in the CalendarPage toolbar:
+  the weekday row was hard-coded English, the other dates used the browser's locale instead of the
+  UI's, and the toolbar's built-in labels reached the screen in English whenever the app's
+  Translator did not know them. Weekday and month names now come from `Intl` in the UI's locale
+  (`<html lang>` set from `AppDto.locale` — the same locale source as the date pickers, now shared
+  in `libs/mateu` `uiLocale.ts`), and the view names, *Today*, *+ Create* and the cells' event
+  counts from the chrome catalogue (`calendarToday`, `calendarMonth`, `calendarWeek`, `calendarDay`,
+  `calendarList`, `calendarCreate`, `calendarOneEvent`, `calendarEvents`; es/en). A toolbar label
+  the app's Translator did translate is drawn as it came.
+- **Redwood: a foldout panel taller than the window can be read to the end.** Spectra fixes every
+  panel to the row's height and takes the wheel for its carousel, so "The works" of a museum
+  exhibition (a grid of cards) was cut at the bottom with no way to reach its last rows. An open panel
+  now scrolls inside, and the wheel over it scrolls the panel while it has room before paging the row
+  (`poc/foldouts.mjs` `installFoldoutPanelScroll`). The Vaadin shell already grew the panels.
+
 - **Redwood: a field's help (`@Help`, a `DescriptionSupplier`) is shown.** The server sends it as the
   field's `description` and Vaadin draws it as helper text under the field; Redwood dropped it. It is
   now the field's Redwood instruction text — JET's `help.instruction`, which the inputs draw under

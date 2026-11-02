@@ -6,9 +6,11 @@ import type { CalendarDay, CalendarViewName } from "@mateu/shared/apiClients/dto
 import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import {
-    agendaOf, datesBetween, dayOf, eventsOn, monthWeeks, periodOf, timeRangeOf, todayIso, toneClassOf,
+    agendaOf, calendarTitleOf, calendarViewLabelOf, datesBetween, dayOf, eventCountOf, eventsOn, longDateOf,
+    monthWeeks, periodOf, timeRangeOf, todayIso, toneClassOf, weekdayNamesOf, weekHeadOf,
 } from '@infra/ui/calendarModel.ts';
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { uiLocale } from '@infra/ui/uiLocale.ts'
 
 /**
  * Dependency-free calendar with four views — the month grid (Mon–Sun), the week (seven columns,
@@ -16,7 +18,9 @@ import { chromeText } from '@infra/ui/chromeTexts.ts'
  * one entry shows a switcher that changes the view in place; `days` put a label and a tone in each
  * date's cell, and `dayActionId` makes the cells clickable (the action gets `_date`). An event with
  * an actionId is clickable and dispatches the standard action-requested event. DS-neutral,
- * dark-mode aware.
+ * dark-mode aware. Its words follow the UI's language: weekday and month names from Intl in the
+ * UI's locale (the one the date pickers use), the switcher and the empty list from the chrome
+ * catalogue.
  */
 @customElement('mateu-calendar')
 export class MateuCalendar extends LitElement {
@@ -171,8 +175,8 @@ export class MateuCalendar extends LitElement {
         const info = dayOf(this.days, date)
         const clickable = !!this.dayActionId
         const evs = eventsOn(this.events, date)
-        const label = new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
-            + (info?.label ? ', ' + info.label : '') + (evs.length ? ', ' + evs.length + ' event' + (evs.length > 1 ? 's' : '') : '')
+        const label = longDateOf(date, uiLocale())
+            + (info?.label ? ', ' + info.label : '') + (evs.length ? ', ' + eventCountOf(evs.length) : '')
         return html`
             <div class="cell ${date === todayIso() ? 'today' : ''} ${toneClassOf(info?.tone)} ${clickable ? 'clickable' : ''}"
                  role="${clickable ? 'button' : nothing}" tabindex="${clickable ? '0' : nothing}"
@@ -188,7 +192,7 @@ export class MateuCalendar extends LitElement {
     }
 
     private renderMonth(anchor: string) {
-        const dows = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        const dows = weekdayNamesOf(uiLocale())
         return html`
             <div class="grid month">
                 ${dows.map(d => html`<div class="dow">${d}</div>`)}
@@ -201,7 +205,7 @@ export class MateuCalendar extends LitElement {
         const dates = datesBetween(from, to)
         return html`
             <div class="grid week">
-                ${dates.map((d) => html`<div class="dow">${new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}</div>`)}
+                ${dates.map((d) => html`<div class="dow">${weekHeadOf(d, uiLocale())}</div>`)}
                 ${dates.map((d) => this.dayCell(d, true, false))}
             </div>`
     }
@@ -209,7 +213,7 @@ export class MateuCalendar extends LitElement {
     private renderDay(anchor: string) {
         return html`
             <div class="grid day">
-                <div class="dow">${new Date(anchor + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+                <div class="dow">${longDateOf(anchor, uiLocale())}</div>
                 ${this.dayCell(anchor, true, false)}
             </div>`
     }
@@ -224,7 +228,7 @@ export class MateuCalendar extends LitElement {
                     const info = dayOf(this.days, date)
                     return html`
                         <div class="date ${toneClassOf(info?.tone)}">
-                            <span>${new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                            <span>${longDateOf(date, uiLocale())}</span>
                             ${info?.label ? html`<span class="label">${info.label}</span>` : nothing}
                         </div>
                         <div class="entries">${events.map((ev) => this.chip(ev, true))}</div>`
@@ -232,28 +236,16 @@ export class MateuCalendar extends LitElement {
             </div>`
     }
 
-    private titleOf(view: CalendarViewName, anchor: string) {
-        const d = new Date(anchor + 'T00:00:00')
-        if (view === 'day') return d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-        if (view === 'week') {
-            const { from, to } = periodOf('week', anchor)
-            const f = new Date(from + 'T00:00:00'), t = new Date(to + 'T00:00:00')
-            return f.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ' – '
-                + t.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
-        }
-        return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
-    }
-
     render() {
         const anchor = this.month || todayIso()
         const view = this.shown || 'month'
         return html`
             <div class="head">
-                <div class="title">${this.titleOf(view, anchor)}</div>
+                <div class="title">${calendarTitleOf(view, anchor, uiLocale())}</div>
                 ${this.views && this.views.length > 1 ? html`
                     <div class="switcher" role="group" aria-label="${chromeText('calendarView')}">
                         ${this.views.map((v) => html`<button type="button" aria-pressed="${v === view ? 'true' : 'false'}"
-                            @click="${() => { this.shown = v }}">${v.charAt(0).toUpperCase() + v.slice(1)}</button>`)}
+                            @click="${() => { this.shown = v }}">${calendarViewLabelOf(v)}</button>`)}
                     </div>` : nothing}
             </div>
             ${view === 'week' ? this.renderWeek(anchor)
