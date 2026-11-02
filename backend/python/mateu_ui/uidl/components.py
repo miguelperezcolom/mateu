@@ -968,14 +968,30 @@ class OrgNode:
         object.__setattr__(self, "children", tuple(self.children))
 
 
+class OrgChartDisplay(Enum):
+    """How an :class:`OrgChart` is presented: ``tree`` — the whole hierarchy at once, top-down;
+    ``focus`` — one node in focus (the chart's ``focus``, else the root) with its chain of
+    ancestors above it and its children below, picking one moves the focus there. EXPERIMENTAL
+    (3.0-beta.38); the Python analogue of ``io.mateu.uidl.data.OrgChartDisplay``."""
+
+    tree = "tree"
+    focus = "focus"
+
+
 @dataclass(frozen=True)
 class OrgChart(Component):
-    """A read-only top-down hierarchy chart: a root node whose children fan out below it."""
+    """A read-only hierarchy chart: a root node whose children fan out below it.
+
+    ``display`` picks the presentation (:class:`OrgChartDisplay`; ``tree`` when None) and
+    ``focus`` is the id of the node a ``focus`` chart opens on (the root when None or unknown).
+    Both are EXPERIMENTAL (3.0-beta.38), like Java's ``OrgChart.display`` / ``focus``."""
 
     root: OrgNode | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    display: OrgChartDisplay | None = None
+    focus: str | None = None
 
 
 @dataclass(frozen=True)
@@ -2267,6 +2283,7 @@ __all__ = [
     "PricingPlan",
     "PricingTable",
     "OrgNode",
+    "OrgChartDisplay",
     "OrgChart",
     "HeatCell",
     "Heatmap",

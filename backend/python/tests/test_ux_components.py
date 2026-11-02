@@ -1746,3 +1746,27 @@ def test_component_tree_supplier_emits_anchor():
         "url": "https://mateu.io/docs",
         "target": "_blank",
     }
+
+
+def test_org_chart_in_focus_carries_display_and_focus_on_the_wire():
+    """``display`` travels as the OrgChartDisplay name and ``focus`` as the node id (3.0-beta.38,
+    Java's ``OrgChartDto(root, display, focus)``); a plain chart leaves both null."""
+    import json
+
+    from mateu_ui.uidl.components import OrgChartDisplay
+
+    mapper = SyncHandler(MateuRegistry()).mapper
+    root = OrgNode(id="ceo", title="Ada", children=(OrgNode(id="cto", title="Alan"),))
+    focused = json.loads(
+        mapper.map_component(
+            OrgChart(id="org", root=root, display=OrgChartDisplay.focus, focus="cto")
+        ).model_dump_json(by_alias=True)
+    )
+    assert focused["metadata"]["type"] == "OrgChart"
+    assert focused["metadata"]["display"] == "focus"
+    assert focused["metadata"]["focus"] == "cto"
+    assert focused["metadata"]["root"]["children"][0]["id"] == "cto"
+
+    plain = json.loads(mapper.map_component(OrgChart(root=root)).model_dump_json(by_alias=True))
+    assert plain["metadata"]["display"] is None
+    assert plain["metadata"]["focus"] is None

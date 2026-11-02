@@ -127,6 +127,7 @@
   "chatRestore": "Restore the width",
   "selectRowsFirst": "You first need to select some rows",
   "kanbanMove": "Move {card}",
+  "orgReports": "Reports",
   "kanbanMoveTo": "Move to {column}",
   "kanbanMoveUp": "Move up",
   "kanbanMoveDown": "Move down",

@@ -860,6 +860,28 @@ public class ComponentTests
     }
 
     [Fact]
+    public void Org_chart_in_focus_carries_display_and_focus_on_the_wire()
+    {
+        // 3.0-beta.38: Display travels as the lowercase OrgChartDisplay name, Focus as the node id
+        // (Java's OrgChartDto(root, display, focus)); a plain chart leaves both null.
+        var root = new OrgNode { Id = "ceo", Title = "Ada", Children = [new OrgNode { Id = "cto", Title = "Alan" }] };
+
+        var focused = ComponentMapper.Map(new OrgChart { Id = "org", Root = root, Display = OrgChartDisplay.Focus, Focus = "cto" });
+        var meta = Assert.IsType<OrgChartMetadataDto>(focused.Metadata);
+        Assert.Equal("focus", meta.Display);
+        Assert.Equal("cto", meta.Focus);
+        var json = JsonSerializer.Serialize(focused.Metadata, Mateu.AspNetCore.MateuExtensions.Json);
+        Assert.StartsWith("{\"type\":\"OrgChart\",\"root\":{\"id\":\"ceo\"", json);
+        Assert.EndsWith(",\"display\":\"focus\",\"focus\":\"cto\"}", json);
+
+        var plain = Assert.IsType<OrgChartMetadataDto>(ComponentMapper.Map(new OrgChart { Root = root }).Metadata);
+        Assert.Null(plain.Display);
+        Assert.Null(plain.Focus);
+        Assert.EndsWith(",\"display\":null,\"focus\":null}",
+            JsonSerializer.Serialize(plain as ComponentMetadataDto, Mateu.AspNetCore.MateuExtensions.Json));
+    }
+
+    [Fact]
     public void Heatmap_emits_cells_with_iso_dates()
     {
         var json = RenderView(typeof(Dash));

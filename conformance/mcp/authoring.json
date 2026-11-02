@@ -539,8 +539,8 @@
         "attributes" : [ "id", "tasks", "onTaskSelectionActionId" ]
       }, {
         "type" : "OrgChart",
-        "description" : "A read-only top-down hierarchy chart (org chart, category tree): a single root OrgNode whose children fan out below it, connected by lines.",
-        "attributes" : [ "id", "root" ]
+        "description" : "A read-only hierarchy chart (org chart, category tree) of a single root OrgNode.",
+        "attributes" : [ "id", "root", "display", "focus" ]
       }, {
         "type" : "PlanningBoard",
         "description" : "A planning board / tape chart: one row per PlanningResource, one column per day between from and to, and colored PlanningBlocks spanning their date ranges on their resource's row — the rooms × days grid every hotel/rental/staffing back-office needs.",

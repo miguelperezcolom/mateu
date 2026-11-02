@@ -8,6 +8,8 @@ export const renderOrgChart = (component: ClientSideComponent) => {
     return html`
         <mateu-org-chart
                 .root="${metadata.root}"
+                .display="${metadata.display}"
+                .focusId="${metadata.focus}"
                 style="${component.style??nothing}"
                 class="${component.cssClasses??nothing}"
                 slot="${component.slot??nothing}"

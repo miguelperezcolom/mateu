@@ -291,6 +291,14 @@ const en = {
     idleSigningOut: 'Signing out…',
     // a diagram (Bpmn) the viewer could not import
     diagramUnavailable: 'This diagram cannot be displayed: {reason}',
+    // org chart in focus (mateu-org-chart, display = focus)
+    orgReports: 'Reports ({count})',
+    orgReportsCount: '{count} reports',
+    orgMoreLevels: '{count} more levels',
+    orgFewerLevels: 'Show fewer levels',
+    orgFocusOn: 'Show {name}',
+    orgFocused: 'Showing {name}',
+    orgHierarchy: 'Hierarchy',
 }
 
 type Catalogue = Record<keyof typeof en, string>
@@ -553,6 +561,13 @@ const es: Catalogue = {
     idleSignOut: 'Cerrar sesión',
     idleSigningOut: 'Cerrando sesión…',
     diagramUnavailable: 'Este diagrama no se puede mostrar: {reason}',
+    orgReports: 'Equipo ({count})',
+    orgReportsCount: '{count} en su equipo',
+    orgMoreLevels: '{count} niveles más',
+    orgFewerLevels: 'Mostrar menos niveles',
+    orgFocusOn: 'Ver {name}',
+    orgFocused: 'Mostrando {name}',
+    orgHierarchy: 'Jerarquía',
 }
 
 const TEXTS: Record<'en' | 'es', Catalogue> = { en, es }

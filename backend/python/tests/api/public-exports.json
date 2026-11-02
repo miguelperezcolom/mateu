@@ -346,6 +346,7 @@
   "Notification",
   "OfferCard",
   "OrgChart",
+  "OrgChartDisplay",
   "OrgNode",
   "Orientation",
   "PageFab",

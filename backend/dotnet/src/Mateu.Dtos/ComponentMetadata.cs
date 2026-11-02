@@ -288,8 +288,9 @@ public record PricingTableMetadataDto(IReadOnlyList<PricingPlanDto> Plans) : Com
 /// <summary>One pricing plan; Featured marks the recommended one.</summary>
 public record PricingPlanDto(string? Id, string? Name, string? Price, string? Period, bool Featured, IReadOnlyList<string> Features, string? CtaLabel, string? ActionId);
 
-/// <summary>Org-chart metadata: a root node with recursive children.</summary>
-public record OrgChartMetadataDto(OrgNodeDto? Root) : ComponentMetadataDto;
+/// <summary>Org-chart metadata: a root node with recursive children. Display: tree|focus (null when
+/// unset); Focus: the node id a focus chart opens on (both experimental, 3.0-beta.38).</summary>
+public record OrgChartMetadataDto(OrgNodeDto? Root, string? Display = null, string? Focus = null) : ComponentMetadataDto;
 
 /// <summary>One org-chart node; Children nest recursively.</summary>
 public record OrgNodeDto(string? Id, string? Title, string? Subtitle, string? Avatar, string? Color, string? ActionId, IReadOnlyList<OrgNodeDto> Children);
