@@ -47,6 +47,18 @@ const wireToMode = (pageWidth: string | undefined | null): ResolvedPageWidth | u
 const metadataOf = (node: Component) =>
     node.type == ComponentType.ClientSide ? (node as ClientSideComponent).metadata : undefined
 
+/**
+ * The children that belong to THIS page. A server-side component directly under another one is the
+ * page's own envelope (and walked); one under a client-side component is an ISLAND — an embedded
+ * view (`@Inline` orchestrator, a component-tree supplier dropped into a form, a micro frontend)
+ * with its own width and type, which say nothing about the host's. Walking into them, a form with
+ * an island holding a Kanban came out `full` and a detail page whose island declared EDGE came out
+ * `edge` (review M16).
+ */
+const ownChildren = (node: Component): Component[] =>
+    (node.children ?? []).filter(child =>
+        child.type != ComponentType.ServerSide || node.type == ComponentType.ServerSide)
+
 /** First page width declared on a Page metadata in the tree, depth-first. */
 const declaredInTree = (node: Component): ResolvedPageWidth | undefined => {
     const metadata = metadataOf(node)
@@ -54,7 +66,7 @@ const declaredInTree = (node: Component): ResolvedPageWidth | undefined => {
         const mode = wireToMode((metadata as PageComponent).pageWidth)
         if (mode) return mode
     }
-    for (const child of node.children ?? []) {
+    for (const child of ownChildren(node)) {
         const mode = declaredInTree(child)
         if (mode) return mode
     }
@@ -70,7 +82,7 @@ export const pageTypeOf = (component: Component): string | undefined => {
         if (metadata?.type == ComponentMetadataType.Page && (metadata as PageComponent).pageType) {
             return (metadata as PageComponent).pageType
         }
-        for (const child of node.children ?? []) {
+        for (const child of ownChildren(node)) {
             const found = find(child)
             if (found) return found
         }
@@ -120,7 +132,7 @@ const isDenseCrud = (node: Component): boolean => {
 }
 
 const contains = (node: Component, predicate: (node: Component) => boolean): boolean =>
-    predicate(node) || (node.children ?? []).some(child => contains(child, predicate))
+    predicate(node) || ownChildren(node).some(child => contains(child, predicate))
 
 /** Whether the page carries a welcome banner (a HeroSection anywhere in the content) — in the
  * Redwood anatomy the accent color strip only shows on pages WITHOUT one. */

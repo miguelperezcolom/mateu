@@ -32,14 +32,26 @@ export const serverSideStyle = (style?: string): string | undefined => {
 }
 
 /**
- * The server's DEFAULT page column (`max-width: 900px` — ComponentTreeSupplier.style(), the crud
- * orchestrators, StyleConstants.CONTAINER) is a reading measure for a FORM. On a page the content
- * view resolved as full or edge (a listing, a board, a foldout) it capped everything at 900px anyway,
- * so the width rules never showed. The default cap becomes `--mateu-page-column-cap`, which the
- * content view sets to `none` for full/edge pages (mateu-ux styles); any other max-width is kept.
+ * The server's DEFAULT page column (`max-width:900px;margin: auto;` — ComponentTreeSupplier.style(),
+ * the crud orchestrators, the .NET/Python envelopes) is a reading measure for a FORM. On a page the
+ * content view resolved as full or edge (a listing, a board, a foldout) it capped everything at
+ * 900px anyway, so the width rules never showed. The default cap becomes `--mateu-page-column-cap`,
+ * which the content view sets to `none` for full/edge pages (mateu-ux styles).
+ *
+ * Only the default, recognised by being EXACTLY that style: a view that asks for a column itself —
+ * `@Style(StyleConstants.CONTAINER)` (which adds `display: block`), any style with more in it, any
+ * other max-width — keeps it on every page.
  */
 export const pageColumnCap = (style: string): string =>
-    style.replace(/max-width\s*:\s*900px/g, 'max-width: var(--mateu-page-column-cap, 900px)')
+    isDefaultPageColumn(style)
+        ? style.replace(/max-width\s*:\s*900px/, 'max-width: var(--mateu-page-column-cap, 900px)')
+        : style
+
+const DEFAULT_PAGE_COLUMN = 'max-width:900px;margin:auto'
+
+/** Whether a style is the server's default page column (whitespace and a final `;` aside). */
+export const isDefaultPageColumn = (style: string | undefined): boolean =>
+    !!style && style.replace(/\s+/g, '').replace(/;+$/, '').toLowerCase() === DEFAULT_PAGE_COLUMN
 
 // An empty state/data map stands for every other one: callers pass a fresh `{}` when there is none.
 const EMPTY = {}

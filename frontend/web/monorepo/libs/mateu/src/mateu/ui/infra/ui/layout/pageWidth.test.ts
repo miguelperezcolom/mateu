@@ -191,3 +191,21 @@ describe('hasWelcomeBanner', () => {
         expect(hasWelcomeBanner(undefined)).toBe(false)
     })
 })
+
+describe('resolvePageWidth stops at islands (review M16)', () => {
+    it('a detail host whose embedded island declares edge-to-edge keeps its own width', () => {
+        const host = serverSide({ pageType: 'detail' }, [page(undefined, [serverSide({ pageWidth: 'edgeToEdge' })])])
+        expect(resolvePageWidth(host)).toBe('fixed')
+    })
+
+    it('a board inside an island does not make the host bleed', () => {
+        const host = serverSide({}, [page(undefined, [serverSide({}, [clientSide(ComponentMetadataType.Kanban)])])])
+        expect(resolvePageWidth(host)).toBe('fixed')
+        // the same board on the host's own page still does
+        expect(resolvePageWidth(serverSide({}, [page(undefined, [clientSide(ComponentMetadataType.Kanban)])]))).toBe('edge')
+    })
+
+    it("the page's own envelope (server-side directly under server-side) is still walked", () => {
+        expect(resolvePageWidth(serverSide({}, [serverSide({}, [page('fullWidth')])]))).toBe('full')
+    })
+})
