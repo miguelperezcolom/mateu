@@ -191,10 +191,10 @@ export class MateuOrgChart extends LitElement {
             box-sizing: border-box;
             padding: .5rem .75rem;
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
-            border-left: 3px solid var(--mateu-org-accent, var(--lumo-primary-color, #1a73e8));
+            border-left: var(--mateu-org-accent-width, 3px) solid var(--mateu-org-accent, var(--lumo-primary-color, #1a73e8));
             border-radius: var(--lumo-border-radius-m, 8px);
             background: var(--lumo-base-color, #fff);
-            box-shadow: 0 1px 2px rgba(0,0,0,.05);
+            box-shadow: var(--lumo-box-shadow-xs, 0 1px 2px rgba(0,0,0,.05));
             text-align: left;
             min-width: 0;
         }
@@ -211,8 +211,8 @@ export class MateuOrgChart extends LitElement {
             width: min(100%, 22rem);
             padding: 1rem 1.25rem;
             border-left-width: 1px;
-            border-top: 4px solid var(--mateu-org-accent, var(--lumo-primary-color, #1a73e8));
-            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            border-top: var(--mateu-org-focus-accent-width, 4px) solid var(--mateu-org-accent, var(--lumo-primary-color, #1a73e8));
+            box-shadow: var(--lumo-box-shadow-s, 0 2px 8px rgba(0,0,0,.08));
         }
         .card.focused:focus-visible {
             outline: 2px solid var(--lumo-primary-color, #3b5bdb);
@@ -221,8 +221,8 @@ export class MateuOrgChart extends LitElement {
         .card.focused .text { align-items: center; }
         .card.focused .title { font-size: var(--lumo-font-size-l, 1.125rem); }
         .card.focused .subtitle { font-size: var(--lumo-font-size-s, .875rem); }
-        .card .avatar { flex: none; font-size: .75rem; font-weight: 600; color: var(--lumo-secondary-text-color, #666); }
-        .card.focused .avatar { width: 3.5rem; height: 3.5rem; font-size: 1.25rem; }
+        .card .avatar { flex: none; font-size: var(--lumo-font-size-xs, .75rem); font-weight: 600; color: var(--lumo-secondary-text-color, #666); }
+        .card.focused .avatar { width: 3.5rem; height: 3.5rem; font-size: var(--lumo-font-size-xl, 1.25rem); }
         /* the whole card moves the focus: a native button stretched over it */
         .hit {
             position: absolute;

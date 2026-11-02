@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-ol.js","assets/rolldown-runtime.js","assets/marked.esm.js","assets/vendor.js","assets/mateu-chat.js","assets/vendor-lit.js","assets/neutralChrome.js","assets/mateu-workflow.js","assets/mateu-form-editor.js","assets/mateu-planning-board.js","assets/mateu-gantt.js","assets/mateu-matrix-grid.js","assets/mateu-signature-pad.js","assets/mateu-camera-capture.js","assets/vendor-chartjs.js","assets/vendor-diagrams.js","assets/mateu-agent-connect-dialog.js","assets/mateu-mobile-qr-dialog.js","assets/vendor-editor.js","assets/vcf-date-range-picker.js","assets/vendor-vaadin.js"])))=>i.map(i=>d[i]);
-/* mateu sources 9db63611ed0ba170 */
+/* mateu sources c18e3b791f63575e */
 import{t as e}from"./rolldown-runtime.js";import{B as t,C as n,O as r,R as i,S as a,T as o,V as s,_ as c,b as l,g as u,h as d,m as f,v as p,y as m}from"./vendor-vaadin.js";import{C as h,E as g,S as _,T as v,_ as y,a as b,f as ee,g as te,h as ne,i as x,j as re,k as S,l as ie,n as ae,o as C,p as w,r as oe,s as se,t as ce,v as le,x as T}from"./vendor-lit.js";import{a as ue,i as E,n as de,o as fe}from"./vendor.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),t.credentials=e.crossOrigin===`use-credentials`?`include`:e.crossOrigin===`anonymous`?`omit`:`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var pe=window.Vaadin=window.Vaadin||{},me=pe.suppressPostFinalizeStylesWarning;pe.suppressPostFinalizeStylesWarning=!0;try{i(`vaadin-card`,S`
         :host(.mateu-section) {
           --vaadin-card-border-width: 0 !important;
@@ -3417,10 +3417,10 @@ ${t}
             box-sizing: border-box;
             padding: .5rem .75rem;
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
-            border-left: 3px solid var(--mateu-org-accent, var(--lumo-primary-color, #1a73e8));
+            border-left: var(--mateu-org-accent-width, 3px) solid var(--mateu-org-accent, var(--lumo-primary-color, #1a73e8));
             border-radius: var(--lumo-border-radius-m, 8px);
             background: var(--lumo-base-color, #fff);
-            box-shadow: 0 1px 2px rgba(0,0,0,.05);
+            box-shadow: var(--lumo-box-shadow-xs, 0 1px 2px rgba(0,0,0,.05));
             text-align: left;
             min-width: 0;
         }
@@ -3437,8 +3437,8 @@ ${t}
             width: min(100%, 22rem);
             padding: 1rem 1.25rem;
             border-left-width: 1px;
-            border-top: 4px solid var(--mateu-org-accent, var(--lumo-primary-color, #1a73e8));
-            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            border-top: var(--mateu-org-focus-accent-width, 4px) solid var(--mateu-org-accent, var(--lumo-primary-color, #1a73e8));
+            box-shadow: var(--lumo-box-shadow-s, 0 2px 8px rgba(0,0,0,.08));
         }
         .card.focused:focus-visible {
             outline: 2px solid var(--lumo-primary-color, #3b5bdb);
@@ -3447,8 +3447,8 @@ ${t}
         .card.focused .text { align-items: center; }
         .card.focused .title { font-size: var(--lumo-font-size-l, 1.125rem); }
         .card.focused .subtitle { font-size: var(--lumo-font-size-s, .875rem); }
-        .card .avatar { flex: none; font-size: .75rem; font-weight: 600; color: var(--lumo-secondary-text-color, #666); }
-        .card.focused .avatar { width: 3.5rem; height: 3.5rem; font-size: 1.25rem; }
+        .card .avatar { flex: none; font-size: var(--lumo-font-size-xs, .75rem); font-weight: 600; color: var(--lumo-secondary-text-color, #666); }
+        .card.focused .avatar { width: 3.5rem; height: 3.5rem; font-size: var(--lumo-font-size-xl, 1.25rem); }
         /* the whole card moves the focus: a native button stretched over it */
         .hit {
             position: absolute;
