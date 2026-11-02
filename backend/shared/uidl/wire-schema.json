@@ -2480,6 +2480,9 @@
     "FoldoutPanelInfoDto" : {
       "type" : "object",
       "properties" : {
+        "autoOpen" : {
+          "type" : "boolean"
+        },
         "icon" : {
           "type" : "string"
         },

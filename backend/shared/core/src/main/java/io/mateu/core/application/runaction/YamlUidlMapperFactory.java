@@ -32,6 +32,11 @@ final class YamlUidlMapperFactory {
    * same default for a specs-only bundle; {@code spacing: false} still turns it off. A {@code
    * VerticalLayout} keeps the record default, like in the ports; the Java fluent default is
    * unchanged.
+   *
+   * <p>Likewise a YAML {@code FoldoutPanel} with neither {@code open:} nor {@code autoOpen:} gets
+   * {@code autoOpen: true}: the author did not decide, so the renderer opens it while it fits (a
+   * primitive {@code open} would otherwise read as false and fold it with room to spare). The
+   * browser expander applies the same default; the Java fluent default is unchanged.
    */
   static com.fasterxml.jackson.databind.Module spacedRowsByDefault() {
     var module = new com.fasterxml.jackson.databind.module.SimpleModule("mateu-yaml-spacing");
@@ -42,27 +47,41 @@ final class YamlUidlMapperFactory {
               com.fasterxml.jackson.databind.DeserializationConfig config,
               com.fasterxml.jackson.databind.BeanDescription description,
               com.fasterxml.jackson.databind.JsonDeserializer<?> deserializer) {
-            if (description.getBeanClass() != io.mateu.uidl.data.HorizontalLayout.class) {
-              return deserializer;
+            if (description.getBeanClass() == io.mateu.uidl.data.HorizontalLayout.class) {
+              return new SpacingDefault(deserializer, "spacing");
             }
-            return new SpacingDefault(deserializer);
+            if (description.getBeanClass() == io.mateu.uidl.data.FoldoutPanel.class) {
+              return new SpacingDefault(deserializer, "autoOpen", "open");
+            }
+            return deserializer;
           }
         });
     return module;
   }
 
-  /** Reads the layout's keys, adds {@code spacing: true} when absent, then builds the record. */
+  /**
+   * Reads the record's keys, adds {@code <key>: true} when none of the given keys is present, then
+   * builds the record.
+   */
   static final class SpacingDefault
       extends com.fasterxml.jackson.databind.deser.std.DelegatingDeserializer {
 
-    SpacingDefault(com.fasterxml.jackson.databind.JsonDeserializer<?> delegate) {
+    private final String key;
+    private final String[] unlessPresent;
+
+    SpacingDefault(
+        com.fasterxml.jackson.databind.JsonDeserializer<?> delegate,
+        String key,
+        String... unlessPresent) {
       super(delegate);
+      this.key = key;
+      this.unlessPresent = unlessPresent;
     }
 
     @Override
     protected com.fasterxml.jackson.databind.JsonDeserializer<?> newDelegatingInstance(
         com.fasterxml.jackson.databind.JsonDeserializer<?> newDelegatee) {
-      return new SpacingDefault(newDelegatee);
+      return new SpacingDefault(newDelegatee, key, unlessPresent);
     }
 
     @Override
@@ -72,8 +91,9 @@ final class YamlUidlMapperFactory {
         throws java.io.IOException {
       com.fasterxml.jackson.databind.JsonNode tree = context.readTree(parser);
       if (tree instanceof com.fasterxml.jackson.databind.node.ObjectNode object
-          && !object.has("spacing")) {
-        object.put("spacing", true);
+          && !object.has(key)
+          && java.util.Arrays.stream(unlessPresent).noneMatch(object::has)) {
+        object.put(key, true);
       }
       var replay = tree.traverse(parser.getCodec());
       replay.nextToken();

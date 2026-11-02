@@ -269,6 +269,7 @@ class ComponentMapperMixin(MixinBase):
                         icon=panel.icon,
                         open=panel.open,
                         width=panel.width,
+                        auto_open=True if panel.auto_open else None,
                     )
                 )
                 if panel.content is not None:

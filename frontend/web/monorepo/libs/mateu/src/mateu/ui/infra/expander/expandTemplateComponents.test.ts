@@ -44,7 +44,7 @@ describe('client-side expander — the IDE page templates\' component shapes, ag
         expect(wire.metadata.overview).toBeUndefined()
         expect(wire.metadata.panels).toEqual([
             { title: 'Operations', open: true, width: '30rem' },
-            { title: 'Notes', open: false },
+            { title: 'Notes', open: false, autoOpen: true },
             { title: 'Profile', open: false },
         ])
         expect(wire.metadata.badges).toEqual(['Confirmed'])
