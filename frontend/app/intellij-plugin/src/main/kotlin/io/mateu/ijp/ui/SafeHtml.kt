@@ -38,12 +38,12 @@ object SafeHtml {
         "ol" to setOf("start"),
     )
 
-    private val SAFE_BROWSE = Regex("^(https?:|mailto:)", RegexOption.IGNORE_CASE)
+    private val SAFE_BROWSE = Regex("^(https?:|mailto:|tel:)", RegexOption.IGNORE_CASE)
     private val SAFE_IMAGE = Regex("^data:image/(png|gif|jpe?g|webp|bmp);", RegexOption.IGNORE_CASE)
     private val TAG = Regex("^<(/?)([a-zA-Z][a-zA-Z0-9]*)((?:[^>\"']|\"[^\"]*\"|'[^']*')*)>")
     private val ATTRIBUTE = Regex("([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s\"'>]+))?")
 
-    /** The url when a click may open it in the OS browser (http(s), mailto), else null. */
+    /** The url when a click may open it in the OS browser (http(s), mailto, tel — the rule every renderer applies to links from data), else null. */
     fun browsableUrl(url: String?): String? {
         val decoded = decodeEntities(url ?: return null).trim()
         if (decoded.isEmpty() || decoded.any { it.code < 0x20 || it.code == 0x7f }) return null

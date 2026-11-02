@@ -56,6 +56,8 @@ class SafeHtmlTest : TestCase() {
         assertEquals("https://example.com", SafeHtml.browsableUrl(" https://example.com "))
         assertEquals("http://example.com", SafeHtml.browsableUrl("http://example.com"))
         assertEquals("mailto:a@example.com", SafeHtml.browsableUrl("mailto:a@example.com"))
+        // a phone number in a row link opens the OS dialler, like on every other renderer
+        assertEquals("tel:+34600000000", SafeHtml.browsableUrl("tel:+34600000000"))
         listOf("file:///etc/passwd", "javascript:x", "smb://host/share", "jar:file:/x!/y", "ftp://x", "/products",
             "", "java\tscript:x", "https://exa\nmple.com", null).forEach { assertNull("$it", SafeHtml.browsableUrl(it)) }
     }
