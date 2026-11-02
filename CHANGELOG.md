@@ -45,6 +45,27 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Web: Back and Forward within a listing search again in place** (review M6). Between two states
+  of a listing (`?page=1 ↔ ?page=2`, a filter, a sort) the whole app was re-mounted and the route
+  reloaded; the listing now marks the history entries it writes and searches again on its own. A
+  run of picks in one multi-select panel is one history entry, a default saved view applied on
+  opening replaces the entry instead of adding one, a refused Back ("unsaved changes") returns to
+  the URL the user was really on, and two listings on one page keep apart in the query string
+  (the second prefixes its keys with its id).
+- **Web: a page's width is its own** (review M16). An embedded island (an `@Inline` view, a
+  component tree in a form, a micro frontend) no longer decides the host page's width — a board in
+  an island made the host bleed, an island's declared edge-to-edge did too. Only the server's
+  DEFAULT 900 px column is lifted on full/edge pages: a view that asks for a column
+  (`@Style(StyleConstants.CONTAINER)`) keeps it. A YAML page draws at the same width whether or not
+  its route seeds it, and a bundle's YAML page takes its page type from its `template:` or its
+  `type: Listing`, as the server does.
+- **Web (Vaadin): small fixes from the final review.** A Kanban `color` that is not a colour (a
+  live row's `red;background:url(…)`) never reaches a `style`; picking a move from a card's menu
+  keeps the keyboard on the card; a select whose value comes as an option keeps a `0`; a list
+  holding both `"25"` and `25` answers the one picked; radio groups send back the option's own
+  (numeric) value; a `mailto:`/`tel:` row route opens on a row click as it does from its link; and
+  the identifier link of a row keeps the app's mount (`/back-office/people/3`).
+
 - **Redwood: date fields write and read dates in the UI's language.** Every `oj-input-date` /
   `oj-input-date-time` (the page form, the crud drawer, the dialog, the `List<Row>` row editor, a
   date range's two ends, the island) and the listing's range filters now carry a converter of their

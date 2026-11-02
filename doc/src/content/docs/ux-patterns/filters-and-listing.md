@@ -231,13 +231,19 @@ This gives three capabilities for free:
 
 - **Saved views** — bookmark any filtered URL; opening it restores filters, page, and sort.
 - **Shareable links** — paste the URL in a chat or email; the recipient lands with the same state.
-- **Browser history** — the back button returns to the previous filter state.
+- **Browser history** — the back button returns to the previous filter state. On the Vaadin
+  shell the listing searches again in place (the page is not reloaded); a run of picks in one
+  multi-select panel is a single step, and a default saved view applied on opening is not a step.
 
 No server-side persistence of views is needed. The browser's native bookmark manager is the saved-views feature.
 
 Whatever opens the listing — a pasted link, the menu, the chat assistant — the URL wins: reaching a
 listing that is already on screen with another query (`/bookings` → `/bookings?status=Cancelled`)
 applies exactly the new query, and URL filters show as normal removable chips.
+
+Two listings on one page (two embedded listings on a record page, a listing in a drawer over
+another) keep apart in the query string: the first keeps the plain keys and every other one
+prefixes them with its id (`?page=2&invoices.status=PAID`), so paging one never pages the other.
 
 ### The id-set filter (`?ids=…`)
 
