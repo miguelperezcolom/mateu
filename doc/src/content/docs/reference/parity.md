@@ -465,7 +465,7 @@ renderers, and its children still render.
 | `Notice` | ✅ | oj-sp-message-banner style band + actions |
 | `Notification` | ✅ | an info band (title — text); action messages show as toasts |
 | `OfferCard` | ✅ |  |
-| `OrgChart` | ✅ | the tree as an indented outline (VB templates cannot recurse) with oj-avatar; nodes with an action are oj-action-cards (_clickedNode) |
+| `OrgChart` | ✅ | Spectra's hierarchy viewer (`oj-sp-hierarchy-viewer`, `oj-sp-hierarchy-card`), whatever the `display`: the `focus` node (else the root) with its chain above and its reports below; picking a manager or a report moves the focus locally (`orgChartFocused`), a card's name runs the node's action (`_clickedNode`, `orgChartCardAction`) |
 | `Page` | ✅ | oj-sp header (title, subtitle, KPIs, toolbar, banners, status badge, peer arrows, timestamp; overline + title placeholder drawn over it) |
 | `PaymentPicker` | ✅ |  |
 | `PlanningBoard` | ✅ | oj-gantt (move, resize, double click, range selection) |

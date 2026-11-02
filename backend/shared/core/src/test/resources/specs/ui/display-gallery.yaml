@@ -93,6 +93,8 @@ layout:
     - type: Timeline
       items: [{id: e1, title: Created, timestamp: "2026-10-01 10:00"}]
     - type: OrgChart
+      display: focus
+      focus: cto
       root:
         id: ceo
         title: CEO

@@ -1081,3 +1081,51 @@ test('a page with the sections index stays as wide as the window: the clipped dr
   const css = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'css', 'app.css'), 'utf8')
   assert.match(css, /\.oj-drawer-layout-middle-section:has\(\.mateu-has-toc\) \{ overflow: clip; min-width: 0; \}/)
 })
+
+test('OrgChart over Spectra\'s hierarchy viewer: the root in focus, a picked person\'s manager, chain and reports', async () => {
+  const { setOrgHierarchyProviderFactory, orgChartAtomOf, orgFocusOf, orgCardActionOf, ORG_CARD_TEMPLATE } = await import('./core/display.mjs')
+  setOrgHierarchyProviderFactory((rows) => ({ rows }))
+  try {
+    const atom = orgChartAtomOf({ root: { id: 'p:rosa', title: 'Rosa Camps', subtitle: 'CEO', actionId: 'open', children: [
+      { id: 'p:elena', title: 'Elena Rodríguez', actionId: 'open', children: [{ id: 'p:carlos', title: 'Carlos Díaz', actionId: 'open' }] },
+      { title: 'Recepción' },
+    ] } })
+    assert.equal(atom.isOrgHierarchy, true)
+    assert.equal(atom.template, ORG_CARD_TEMPLATE)
+    // the root in focus: no manager, no chain, its two reports in the one child view
+    assert.deepEqual(atom.current.rows.map((c) => c.title), ['Rosa Camps'])
+    assert.deepEqual(atom.parent.rows, [])
+    assert.deepEqual(atom.hierarchy.rows, [])
+    assert.equal(atom.childViews.length, 1)
+    assert.equal(atom.childViews[0].template, ORG_CARD_TEMPLATE)
+    assert.deepEqual(atom.childViews[0].data.rows.map((c) => c.title), ['Elena Rodríguez', 'Recepción'])
+    assert.equal(atom.selectedChildView, atom.childViews[0].id)
+    assert.equal(atom.childViews[0].count, 2)
+    // Carlos in focus: Elena is his manager, the chain runs from the top down to her, he heads nobody
+    const carlos = Object.values(atom.byKey).find((c) => c.title === 'Carlos Díaz')
+    const focus = orgFocusOf(atom, carlos.id)
+    assert.deepEqual(focus.current.rows.map((c) => c.title), ['Carlos Díaz'])
+    assert.deepEqual(focus.parent.rows.map((c) => c.title), ['Elena Rodríguez'])
+    assert.deepEqual(focus.hierarchy.rows.map((c) => c.title), ['Rosa Camps', 'Elena Rodríguez'])
+    assert.deepEqual(focus.childViews, [])
+    assert.equal(orgFocusOf(atom, 'nope'), null)
+    // the card: initials for its avatar, a link only when its node has an action, which sends the node
+    assert.deepEqual(carlos.avatar, { initials: 'CD' })
+    assert.equal(carlos.navigation, 'on')
+    const recepcion = Object.values(atom.byKey).find((c) => c.title === 'Recepción')
+    assert.equal(recepcion.navigation, 'off')
+    assert.equal(orgCardActionOf(recepcion), null)
+    // OrgChart.focus opens on that node, by its id; an unknown one falls back to the root
+    const onCarlos = orgChartAtomOf({ focus: 'p:carlos', root: { id: 'p:rosa', title: 'Rosa', children: [
+      { id: 'p:elena', title: 'Elena', children: [{ id: 'p:carlos', title: 'Carlos' }] }] } })
+    assert.deepEqual(onCarlos.current.rows.map((c) => c.title), ['Carlos'])
+    assert.deepEqual(onCarlos.hierarchy.rows.map((c) => c.title), ['Rosa', 'Elena'])
+    assert.deepEqual(orgChartAtomOf({ focus: 'nobody', root: { title: 'Rosa' } }).current.rows.map((c) => c.title), ['Rosa'])
+    const call = orgCardActionOf(carlos)
+    assert.equal(call.actionId, 'open')
+    assert.equal(call.parameters._clickedNode.id, 'p:carlos')
+    assert.equal(call.parameters._clickedNode.children, undefined)
+  } finally {
+    setOrgHierarchyProviderFactory(null)
+  }
+})

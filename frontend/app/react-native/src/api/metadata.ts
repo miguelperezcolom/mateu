@@ -221,6 +221,10 @@ export interface OrgNode {
 export interface OrgChart {
   type?: 'OrgChart';
   root?: OrgNode;
+  /** "tree" (the default; null reads as tree) or "focus" (one node at a time, Redwood's hierarchy viewer). */
+  display?: 'tree' | 'focus' | null;
+  /** The id of the node a focused chart opens on (null or unknown: the root). */
+  focus?: string | null;
 }
 
 export interface HeatCell {

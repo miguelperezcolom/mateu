@@ -547,7 +547,12 @@ class ComponentMapperMixin(MixinBase):
             return self._fluent_client(PricingTableMetadata(plans=plans), c)
         if isinstance(c, fluent.OrgChart):
             return self._fluent_client(
-                OrgChartMetadata(root=self._org_node(c.root) if c.root is not None else None), c
+                OrgChartMetadata(
+                    root=self._org_node(c.root) if c.root is not None else None,
+                    display=c.display.value if c.display is not None else None,
+                    focus=c.focus,
+                ),
+                c,
             )
         if isinstance(c, fluent.Heatmap):
             cells = [

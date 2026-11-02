@@ -152,6 +152,9 @@ class YamlDisplayGallerySyncTest {
     assertThat(first("Map").path("markers").path(0).path("label").asText()).isEqualTo("Palma");
     assertThat(first("OrgChart").path("root").path("children").path(0).path("title").asText())
         .isEqualTo("CTO");
+    // in focus, opening on the CTO: the presentation and the node travel as authored
+    assertThat(first("OrgChart").path("display").asText()).isEqualTo("focus");
+    assertThat(first("OrgChart").path("focus").asText()).isEqualTo("cto");
     assertThat(first("ProgressSteps").path("steps").path(1).path("status").asText())
         .isEqualTo("current");
     assertThat(first("Calendar").path("views")).hasSize(4);

@@ -111,7 +111,7 @@ internal static class ComponentMapper
         PricingTable pt => Dto(pt, new PricingTableMetadataDto(pt.Plans.Select(p => new PricingPlanDto(
             p.Id, p.Name, p.Price, p.Period, p.Featured, p.Features, p.CtaLabel, p.ActionId)).ToList())),
 
-        OrgChart oc => Dto(oc, new OrgChartMetadataDto(MapOrgNode(oc.Root))),
+        OrgChart oc => Dto(oc, new OrgChartMetadataDto(MapOrgNode(oc.Root), LowerName(oc.Display), oc.Focus)),
 
         Heatmap hm => Dto(hm, new HeatmapMetadataDto(hm.Cells.Select(cl =>
             new HeatCellDto(Iso(cl.Date), cl.Value, cl.Label)).ToList())),

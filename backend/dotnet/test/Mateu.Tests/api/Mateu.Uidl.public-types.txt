@@ -279,6 +279,7 @@ Mateu.Uidl.OfferCard
 Mateu.Uidl.OnRowSelectedAttribute
 Mateu.Uidl.Option
 Mateu.Uidl.OrgChart
+Mateu.Uidl.OrgChartDisplay
 Mateu.Uidl.OrgNode
 Mateu.Uidl.Orientation
 Mateu.Uidl.OverlineAttribute

@@ -492,6 +492,8 @@
           "type" : "ClientSide",
           "metadata" : {
             "type" : "OrgChart",
+            "display" : "focus",
+            "focus" : "cto",
             "root" : {
               "id" : "ceo",
               "title" : "CEO",

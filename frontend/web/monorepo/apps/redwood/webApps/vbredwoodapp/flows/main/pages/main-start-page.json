@@ -1045,6 +1045,27 @@
         }
       ]
     },
+    "orgChartFocused": {
+      "chains": [
+        {
+          "chain": "orgChartFocused",
+          "parameters": {
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
+    "orgChartCardAction": {
+      "chains": [
+        {
+          "chain": "orgChartCardAction",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
     "planningClick": {
       "chains": [
         {
@@ -1639,6 +1660,12 @@
       },
       "oj-sp-item-overview": {
         "path": "oj-sp/item-overview/loader"
+      },
+      "oj-sp-hierarchy-viewer": {
+        "path": "oj-sp/hierarchy-viewer/loader"
+      },
+      "oj-sp-hierarchy-card": {
+        "path": "oj-sp/hierarchy-card/loader"
       },
       "oj-sp-input-email": {
         "path": "oj-sp/input-email/loader"

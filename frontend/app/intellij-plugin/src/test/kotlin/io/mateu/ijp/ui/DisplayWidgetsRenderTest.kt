@@ -68,6 +68,40 @@ class DisplayWidgetsRenderTest : RenderTestCase() {
         assertEquals("openGrace", server.actionIds().single())
     }
 
+    fun testOrgChartInFocusShowsAncestorsTheFocusedCardAndItsReportsAndMovesTheFocus() {
+        val ctx = context()
+        val chart = render(ctx, """{"type":"OrgChart","display":"focus","focus":"cto","root":{"id":"ceo","title":"Ada Lovelace","subtitle":"CEO",
+            "children":[{"id":"cto","title":"Grace","subtitle":"CTO","actionId":"openGrace",
+              "children":[{"id":"dev","title":"Linus","children":[{"id":"intern","title":"Tim"}]},{"id":"qa","title":"Margaret"}]},
+              {"id":"cfo","title":"Joan"}]}}""")
+        // opens on `focus`: the root above, Grace in focus, her two reports below
+        assertEquals(listOf("Ada Lovelace", "CEO", "CTO", "Reports (2)", "Linus", "Reports (1)", "Margaret"), texts(chart))
+        assertEquals("Grace", buttons(chart).single().text)
+        // the cards that move the focus: the ancestor and the two children (the focused card does not)
+        assertEquals(listOf("Ada Lovelace, CEO", "Linus", "Margaret"), targets(chart).map { it.accessibleContext.accessibleName })
+        // the focused node's title runs its action, as the tree does
+        button(chart, "Grace").doClick()
+        awaitRequests(1)
+        assertEquals("openGrace", server.actionIds().single())
+        // a child focuses: Linus in focus, the chain root → Grace above him
+        press(targets(chart).first { it.accessibleContext.accessibleName == "Linus" })
+        assertEquals(listOf("Ada Lovelace", "CEO", "CTO", "Linus", "Reports (1)", "Tim"), texts(chart))
+        assertEquals("Grace", buttons(chart).single().text)
+        // an ancestor focuses: back to the root
+        press(targets(chart).first())
+        assertEquals(listOf("Ada Lovelace", "CEO", "Reports (2)", "CTO", "Reports (2)", "Joan"), texts(chart))
+        assertEquals(1, server.requests.size)
+    }
+
+    fun testOrgChartInFocusOpensOnTheRootWhenFocusIsUnknownAndTreeStaysTheDefault() {
+        val focused = render(context(), """{"type":"OrgChart","display":"focus","focus":"nobody","root":{"id":"ceo","title":"Ada",
+            "children":[{"id":"cto","title":"Grace"}]}}""")
+        assertEquals(listOf("Ada", "Reports (1)", "Grace"), texts(focused))
+        val tree = render(context(), """{"type":"OrgChart","display":null,"focus":"cto","root":{"id":"ceo","title":"Ada",
+            "children":[{"id":"cto","title":"Grace"}]}}""")
+        assertEquals(listOf("Ada", "Grace"), texts(tree))
+    }
+
     fun testHeatmapPaintsOneWeekColumnPerWeekOfData() {
         val map = render(context(), """{"type":"Heatmap","cells":[{"date":"2026-10-01","value":1},
             {"date":"2026-10-14","value":8},{"date":"not a date","value":3},{"date":"","value":2}]}""")

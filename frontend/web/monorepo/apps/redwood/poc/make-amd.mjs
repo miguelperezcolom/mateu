@@ -115,6 +115,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     const c = ko && ko.contextFor ? ko.contextFor(el) : null;
     return c && c.$current ? c.$current.data : null;
   });
+  // OrgChart: what the hierarchy viewer reads (the focus, its manager, the chain, the reports)
+  setOrgHierarchyProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: 'id' }));
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -168,6 +170,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     reduceContexts,
     planningActionOf,
     ganttTaskIdAt,
+    // OrgChart over Spectra's hierarchy viewer: a person's data when focused, a card's action
+    orgFocusOf,
+    orgCardActionOf,
     applyDomEffects,
     installAttachmentChips,
     installRules,

@@ -1282,7 +1282,11 @@ Mateu.Uidl.Option property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.O
 Mateu.Uidl.Option property System.String Label { get;init; }
 Mateu.Uidl.Option property System.String Value { get;init; }
 Mateu.Uidl.OrgChart ctor()
+Mateu.Uidl.OrgChart property Mateu.Uidl.OrgChartDisplay? Display { get;init; }
 Mateu.Uidl.OrgChart property Mateu.Uidl.OrgNode Root { get;init; }
+Mateu.Uidl.OrgChart property System.String Focus { get;init; }
+Mateu.Uidl.OrgChartDisplay enum Focus
+Mateu.Uidl.OrgChartDisplay enum Tree
 Mateu.Uidl.OrgNode ctor()
 Mateu.Uidl.OrgNode property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.OrgNode> Children { get;init; }
 Mateu.Uidl.OrgNode property System.String ActionId { get;init; }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Text } from '../ui/Text';
 import { Dialog, Portal } from 'react-native-paper';
 import { BoardCard, BoardColumn, KanbanMove, cardRouteOf, cardsFromRows, itemsOf, moveCard, moveParameters, movesOf } from '../core/kanban';
@@ -12,7 +12,9 @@ import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanCard, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
 import { theme, themed } from '../theme';
-import { buttonA11y } from '../a11y/a11y';
+import { buttonA11y, headingA11y } from '../a11y/a11y';
+import { isPhoneWidth } from '../core/phoneLayout';
+import { initialOrgPath, moreLevelsLabel, orgAncestors, orgChildren, orgDisplay, orgInitials, orgNodeLabel, reportsLabel, visibleAncestors } from './orgChart';
 import { foldoutSummaryOf, heroToneColors } from './patternGaps';
 import { ganttSelection } from './ganttSelection';
 import { ganttLayout, todayDayNumber, todayOffset } from './timeline';
@@ -505,12 +507,123 @@ function OrgNodeRow({ node, depth }: { node: OrgNode; depth: number }) {
 }
 
 export function OrgChartRenderer({ component }: { component: unknown }) {
-  const root = meta(component)['root'] as OrgNode | undefined;
+  const m = meta(component);
+  const root = m['root'] as OrgNode | undefined;
   if (!root) return null;
+  if (orgDisplay(m['display']) === 'focus') return <OrgFocusChart root={root} focus={m['focus']} />;
   return (
     <View style={styles.org}>
       <OrgNodeRow node={root} depth={0} />
     </View>
+  );
+}
+
+// ── OrgChart in focus (display = "focus", Redwood's hierarchy viewer) ─────────
+// One node in focus as a prominent card; its ancestors above (root first; a phone folds all but
+// the direct parent behind "N more levels"); its children below as cards. Tapping an ancestor or a
+// child moves the focus there, locally (the whole tree is in the metadata). A node's action runs
+// from its TITLE (a link), as the tree runs it; the card body focuses.
+function OrgFocusChart({ root, focus }: { root: OrgNode; focus: unknown }) {
+  const { width } = useWindowDimensions();
+  const phone = isPhoneWidth(width);
+  // The focused path (root → … → focused node), reset when the metadata changes.
+  const [state, setState] = useState(() => ({ root, focus, path: initialOrgPath(root, focus), expanded: false }));
+  const current = state.root === root && state.focus === focus
+    ? state
+    : { root, focus, path: initialOrgPath(root, focus), expanded: false };
+  if (current !== state) setState(current);
+  const path = current.path;
+  const focused = path[path.length - 1] ?? root;
+  const moveTo = (next: OrgNode[]) => {
+    setState({ ...current, path: next, expanded: false });
+    const node = next[next.length - 1];
+    if (node) announce(orgNodeLabel(node));
+  };
+  const ancestors = orgAncestors(path);
+  const { hidden, shown } = visibleAncestors(ancestors, phone, current.expanded);
+  const children = orgChildren(focused);
+  const columns = phone ? 1 : width >= 900 ? 3 : 2;
+  return (
+    <View style={styles.orgFocus}>
+      {hidden > 0 && (
+        <TouchableOpacity {...buttonA11y({ expanded: false })} style={styles.orgMore}
+          onPress={() => setState({ ...current, expanded: true })}>
+          <Text style={styles.orgMoreText}>⋮ {moreLevelsLabel(hidden)}</Text>
+        </TouchableOpacity>
+      )}
+      {shown.map((a) => {
+        const index = ancestors.indexOf(a);
+        return (
+          <View key={`a${index}`}>
+            <OrgFocusCard node={a} variant="ancestor" onFocus={() => moveTo(path.slice(0, index + 1))} />
+            <View style={styles.orgConnector} />
+          </View>
+        );
+      })}
+      <OrgFocusCard node={focused} variant="focused" />
+      {children.length > 0 && (
+        <>
+          <Text {...headingA11y(3)} style={styles.orgReports}>{reportsLabel(children.length)}</Text>
+          <View style={styles.orgGrid}>
+            {children.map((c, i) => (
+              <View key={c.id ?? i} style={{ width: columns === 1 ? '100%' : columns === 2 ? '48%' : '31.5%' }}>
+                <OrgFocusCard node={c} variant="child" onFocus={() => moveTo([...path, c])} />
+              </View>
+            ))}
+          </View>
+        </>
+      )}
+    </View>
+  );
+}
+
+function OrgFocusCard({ node, variant, onFocus }: { node: OrgNode; variant: 'ancestor' | 'focused' | 'child'; onFocus?: () => void }) {
+  const controller = useViewController();
+  const big = variant === 'focused';
+  const size = big ? 56 : 36;
+  const accent = node.color ?? theme.primary;
+  const runNode = () => void controller.runAction(node.actionId!);
+  const reports = orgChildren(node).length;
+  const title = node.actionId ? (
+    <TouchableOpacity {...buttonA11y({ role: 'link', label: node.title ?? '' })} onPress={runNode}>
+      <Text style={[big ? styles.orgFocusTitle : styles.orgTitle, styles.orgLink]}>{node.title ?? ''}</Text>
+    </TouchableOpacity>
+  ) : (
+    <Text style={big ? styles.orgFocusTitle : styles.orgTitle}>{node.title ?? ''}</Text>
+  );
+  const body = (
+    <View style={[styles.orgCard, big && styles.orgCardFocused, { borderLeftColor: accent }, big && { borderColor: accent }]}>
+      {isImageAvatar(node.avatar) ? (
+        <Image source={{ uri: node.avatar }} style={{ width: size, height: size, borderRadius: size / 2 }} />
+      ) : (
+        <View style={[styles.orgBadge, { width: size, height: size, borderRadius: size / 2, backgroundColor: accent }]}>
+          <Text style={[styles.orgBadgeText, big && { fontSize: 20 }]}>{orgInitials(node)}</Text>
+        </View>
+      )}
+      <View style={{ flex: 1 }}>
+        {title}
+        {!!node.subtitle && <Text style={styles.orgSubtitle}>{node.subtitle}</Text>}
+        {variant === 'child' && reports > 0 && <Text style={styles.orgSubtitle}>{reportsLabel(reports)}</Text>}
+      </View>
+    </View>
+  );
+  if (!onFocus) return body;
+  // The card body focuses the node; a screen reader reaches the node's action through a custom
+  // action (the nested title link is not separately focusable inside an accessible touchable).
+  return (
+    <TouchableOpacity
+      {...buttonA11y({ label: orgNodeLabel(node), hint: 'Shows this node in focus' })}
+      {...(node.actionId ? {
+        accessibilityActions: [{ name: 'activate' }, { name: 'open', label: node.title ?? 'Open' }],
+        onAccessibilityAction: (e: { nativeEvent: { actionName: string } }) => {
+          if (e.nativeEvent.actionName === 'open') runNode();
+          else onFocus();
+        },
+      } : {})}
+      onPress={onFocus}
+    >
+      {body}
+    </TouchableOpacity>
   );
 }
 
@@ -1376,6 +1489,19 @@ const styles = themed(() => StyleSheet.create({
   orgAvatar: { fontSize: 18 },
   orgTitle: { fontWeight: '600', color: theme.ink },
   orgSubtitle: { fontSize: 12, color: theme.faint },
+  // OrgChart in focus
+  orgFocus: { gap: 8 },
+  orgMore: { alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: theme.background },
+  orgMoreText: { fontSize: 13, fontWeight: '600', color: theme.primary },
+  orgCard: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderWidth: 1, borderColor: theme.border, borderLeftWidth: 3, borderRadius: theme.radiusSm, backgroundColor: theme.white },
+  orgCardFocused: { padding: 16, borderWidth: 2, borderLeftWidth: 4 },
+  orgConnector: { width: 2, height: 12, marginLeft: 27, backgroundColor: theme.border },
+  orgBadge: { alignItems: 'center', justifyContent: 'center' },
+  orgBadgeText: { color: theme.onFill, fontWeight: '700', fontSize: 14 },
+  orgFocusTitle: { fontSize: 18, fontWeight: '700', color: theme.ink },
+  orgLink: { color: theme.primary, textDecorationLine: 'underline' },
+  orgReports: { marginTop: 8, fontSize: 14, fontWeight: '700', color: theme.muted },
+  orgGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   // Heatmap
   heatWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 3 },
   heatCell: { width: 12, height: 12, borderRadius: 2 },
