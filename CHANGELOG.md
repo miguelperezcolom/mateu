@@ -25,6 +25,28 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **A record page's tab is named after the record, never its id** (Java, web). A definition page
+  whose title waits for its record (`title: ${state.name}`) was named by the route's last segment
+  until the record landed — `/missions/6` read "6", its Edit page just "Edit" — and on an in-app
+  navigation a late server title could overwrite the record's name for good. The fallback now
+  humanizes the route PATTERN, skipping parameters and numbers (`missions/:id` → "Missions"), and
+  once the page has named itself for a location a later fallback for the same location keeps it.
+- **A menu group's own route opens an index of its entries under a data-authored shell** (Java).
+  The menu gives each group a route derived from its label (`Solar system` → `/solarSystem`); under
+  a `type: AppShell` it answered "Page not found" (the group carries no path, only the menu derived
+  one), while a Java shell already showed the section index. Both now answer the index, it names
+  the window after the group, and a YAML entry is linked at its own mount-relative route.
+- **Web: an identical read in flight is shared, not repeated.** A record page whose route `data:`
+  and a listing over the same record asked the API twice for `/missions/6` within 10 ms;
+  `fetchExternalJson` now hands both callers the one response (each its own copy). Writes are never
+  shared, and nothing is cached once the call settles.
+- **Vaadin: a Gantt spanning decades fits its lane.** The axis drew one header cell per month — about
+  780 for 1961–2026 — which pushed the lane into a long horizontal scroll with one or two bars in
+  view. Its unit now follows the span (months, quarters, years, decades: `ganttScale` /
+  `ganttTicks` in libs/mateu).
+- **Vaadin: card images are named by the card's title** (listing cards, card lists) instead of an
+  empty `alt`, and a tree listing hands its grid the row count, so the browser console no longer
+  warns that the grid "needs the total number of items".
 - **Redwood: a field with `@Label("")` shows no label.** Its label fell back to the raw field id
   whenever it was empty (a `warnings` field read "warnings"); the id is now used only when the wire
   sends no label at all.

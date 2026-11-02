@@ -23,4 +23,12 @@ class DefinitionWindowTitleTest {
     assertThat(ActionInstanceCreator.humanizedRoute("/customers/:id/edit-notes?x=1"))
         .isEqualTo("Edit notes");
   }
+
+  @Test
+  void aRecordRouteNeverNamesTheWindowByItsId() {
+    // the crawl saw tabs titled "6", "52": the fallback humanized the concrete path
+    assertThat(ActionInstanceCreator.humanizedRoute("missions/:id")).isEqualTo("Missions");
+    assertThat(ActionInstanceCreator.humanizedRoute("/missions/6")).isEqualTo("Missions");
+    assertThat(ActionInstanceCreator.humanizedRoute("missions/:id/edit")).isEqualTo("Edit");
+  }
 }
