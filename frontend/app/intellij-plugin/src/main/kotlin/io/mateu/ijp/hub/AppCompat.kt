@@ -32,8 +32,12 @@ object AppCompat {
     private val RELEASE = Regex("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?(?:[-.]?(alpha|beta|rc|a|b)\\.?(\\d+))?$")
     private val STAGES = mapOf("alpha" to 0, "a" to 0, "beta" to 1, "b" to 1, "rc" to 2)
 
+    /** A run of digits as a number; one too long for an Int is the largest (JS reads it as a big number,
+     *  never as an error — an over-long wireVersion used to throw past the manifest and hang "Opening…"). */
+    private fun num(digits: String): Int = digits.toIntOrNull() ?: if (digits.isNotEmpty() && digits.all(Char::isDigit)) Int.MAX_VALUE else 0
+
     private fun wireOf(v: String?): Pair<Int, Int>? =
-        WIRE.find(v?.trim().orEmpty())?.let { it.groupValues[1].toInt() to (it.groupValues[2].toIntOrNull() ?: 0) }
+        WIRE.find(v?.trim().orEmpty())?.let { num(it.groupValues[1]) to num(it.groupValues[2]) }
 
     /** A Mateu release as comparable numbers (GA above rc), or null when the text names none. */
     fun release(v: String?): List<Int>? {
@@ -42,7 +46,7 @@ object AppCompat {
         val m = RELEASE.matchEntire(text) ?: return null
         val g = m.groupValues
         val stage = if (g[4].isEmpty()) 3 else STAGES.getValue(g[4])
-        return listOf(g[1].toInt(), g[2].toInt(), g[3].toIntOrNull() ?: 0, stage, g[5].toIntOrNull() ?: 0)
+        return listOf(num(g[1]), num(g[2]), num(g[3]), stage, num(g[5]))
     }
 
     /** Negative when [a] is the older release; null when either names no release. */

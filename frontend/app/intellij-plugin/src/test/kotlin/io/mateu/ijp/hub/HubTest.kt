@@ -150,6 +150,14 @@ class HubTest {
     }
 
     @Test
+    fun `an over-long numeric version is compared, never thrown`() {
+        val huge = HubManifest.Manifest("x", wireVersion = "99999999999")
+        // read as a very new wire, like the phone app's JS numbers: the update is required, nothing throws
+        assertTrue(HubManifest.refusal(huge, supportedMajor = 3)!!.contains("newer Mateu"))
+        assertEquals(listOf(Int.MAX_VALUE, 0, 0, 3, 0), AppCompat.release("99999999999.0"))
+    }
+
+    @Test
     fun `an import counts what is already there`() {
         val entries = HubEntries().apply { add("https://a.io") }
         val p = HubFlow.propose(HubLinks.exportLink(listOf("https://a.io", "https://b.io")), entries, server())
