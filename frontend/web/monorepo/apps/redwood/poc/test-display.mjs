@@ -35,6 +35,7 @@ import { ruleSurfacesOf, surfaceOfElement } from './rules.mjs'
 import { kanbanKeyOf, kanbanTriggersOf, kanbanCardsFromRows, kanbanMovedColumns, kanbanIsRealMove, kanbanMoveParametersOf,
   kanbanDropIndexOf, setPendingKanbanMove, kanbanMovePlanOf, kanbanMoveFailed, KANBAN_ACTION } from './core/kanban.mjs'
 import { onLoadTriggers } from './core/reducer.mjs'
+import { fieldHelpOf, fieldWidgetOf, nestedListWidgetOf } from './core/rowEditor.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -1080,6 +1081,56 @@ test('FileList → oj-sp-attachment-chip fed locally; Timeline events → oj-sp-
   const tm = atoms.slice(atoms.indexOf('$current.data.isTimeline'), atoms.indexOf('$current.data.isPricing'))
   assert.match(tm, /<oj-sp-timeline-event-template primary-text="\[\[ \$current\.data\.title \]\]"/)
   assert.match(tm, /on-sp-primary-action="\[\[ \$listeners\.\{\{blockAction\}\} \]\]"/)
+})
+
+test('a field\'s help (@Help → the wire\'s description) reaches every field widget and every copy of the templates', () => {
+  // Redwood never drew it: Vaadin shows it as helper text under the field. It is JET's own
+  // instruction text now (help.instruction), or the same text under a widget JET does not own.
+  const md = (extra) => ({ type: 'FormField', fieldId: 'x', label: 'X', dataType: 'string', description: 'Shown under the field.', ...extra })
+  const kinds = [{}, { stereotype: 'textarea' }, { dataType: 'integer' }, { dataType: 'date' }, { dataType: 'dateTime' },
+    { dataType: 'bool' }, { options: [{ value: 'a', label: 'A' }] }, { stereotype: 'password' }, { stereotype: 'email' },
+    { stereotype: 'link' }, { stereotype: 'money' }, { stereotype: 'radio', options: [{ value: 'a', label: 'A' }] },
+    { dataType: 'integer', stereotype: 'slider' }, { dataType: 'integer', stereotype: 'stars' }, { stereotype: 'color' },
+    { stereotype: 'richText' }, { stereotype: 'markdown' }, { stereotype: 'fileUpload' },
+    { dataType: 'array', stereotype: 'multiSelect', options: [{ value: 'a', label: 'A' }] },
+    { dataType: 'array', stereotype: 'checkbox', options: [{ value: 'a', label: 'A' }] }, { stereotype: 'searchable' }]
+  for (const extra of kinds) {
+    const f = layoutFieldOf(md(extra), {})
+    assert.ok(f, JSON.stringify(extra))
+    assert.deepEqual([f.help, f.hasHelp], ['Shown under the field.', true], JSON.stringify(extra))
+  }
+  // none: an empty instruction (JET draws nothing), never "undefined"
+  const plain = layoutFieldOf(md({ description: undefined }), {})
+  assert.deepEqual([plain.help, plain.hasHelp], ['', false])
+  assert.deepEqual([fieldHelpOf({ description: '  ' }), fieldHelpOf(null)], ['', ''])
+  // a date range: its FIRST end carries it (one instruction for the pair)
+  const range = layoutFieldOf(md({ dataType: 'dateRange', stereotype: 'dateRange' }), {})
+  assert.equal(range.isDateRange, true)
+  assert.deepEqual(range.rangeParts.map((p) => p.help), ['Shown under the field.', ''])
+  // the row editor's fields (rowFieldsOf → fieldWidgetOf) and a nested list carry it too
+  assert.equal(fieldWidgetOf(md({}), {}, { lookups: true, value: 'v' }).help, 'Shown under the field.')
+  const nested = nestedListWidgetOf(md({ dataType: 'array', columns: [{ metadata: { id: 'label', label: 'Label', dataType: 'string' } }] }), [])
+  assert.deepEqual([nested.help, nested.hasHelp], ['Shown under the field.', true])
+  // every copy: each field widget bound to the field's label carries the instruction (the nested
+  // table's cells are not fields), and each widget JET does not own draws the help under its value
+  const here = dirname(fileURLToPath(import.meta.url))
+  const page = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  const fieldTags = page.match(/<(oj-[\w-]+)\s+(?:class="[^"]*"\s+)?label-hint="\[\[ \$current\.data\.label \]\]"\n\s*help\.instruction="\[\[ \$current\.data\.help \]\]"/g) || []
+  const allTags = page.match(/<(oj-[\w-]+)\s+(?:class="[^"]*"\s+)?label-hint="\[\[ \$current\.data\.label \]\]"/g) || []
+  const cells = (page.match(/data\.isCell(Text|Number|Boolean) \]\]/g) || []).length
+  assert.ok(fieldTags.length > 100)
+  assert.equal(fieldTags.length, allTags.length - cells)
+  const count = (re) => (page.match(re) || []).length
+  for (const flag of ['isCapture', 'isColor', 'isRichEditor', 'isMarkupEditor', 'isStars']) {
+    const copies = count(new RegExp('data\\.' + flag + ' \\]\\]', 'g'))
+    assert.ok(copies > 0, flag)
+    const blocks = page.split('<oj-bind-if test="[[ $current.data.' + flag + ' ]]">').slice(1)
+    assert.equal(blocks.filter((b) => b.split('</oj-label-value>')[0].includes('mateu-field-help')).length, copies, flag)
+  }
+  const searchables = page.split('<oj-bind-if test="[[ $current.data.isSearchable ]]">').slice(1)
+  assert.ok(searchables.length > 0)
+  assert.ok(searchables.every((b) => b.split('</oj-label-value>')[0].includes('mateu-field-help')))
+  assert.ok(page.split('<oj-bind-if test="[[ $current.data.isNestedList ]]">')[1].split('</oj-bind-for-each>')[0].includes('mateu-field-help'))
 })
 
 console.log(`\n${passed} display tests OK`)
