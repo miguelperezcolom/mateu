@@ -63,9 +63,12 @@ class MateuAuthService(private val project: Project) : TokenProvider {
         OidcSessions.SessionKey.of(backend, settings.oidcIssuer, settings.oidcClientId)
 
     /** OIDC: exchange the stored refresh token for a new access token (null when there is none / refused). */
-    @Synchronized
     private fun refreshSilently(): String? {
         val key = sessionKey()
+        return sessions.refreshing(key) { refreshLocked(key) }
+    }
+
+    private fun refreshLocked(key: OidcSessions.SessionKey): String? {
         sessions.accessToken(key)?.let { return it }
         val refresh = sessions.refreshToken(key) ?: return null
         val tokens = try {

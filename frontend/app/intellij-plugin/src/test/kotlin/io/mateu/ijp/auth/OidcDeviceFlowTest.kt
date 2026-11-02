@@ -119,6 +119,24 @@ class OidcDeviceFlowTest : TestCase() {
         }
     }
 
+    /** Sign-out asks the provider to revoke (RFC 7009) when it advertises how; never throws. */
+    fun testRevocation() {
+        assertFalse("no revocation_endpoint advertised: nothing to call", flow().revoke("RT"))
+        assertFalse("an unreachable provider", OidcDeviceFlow(OidcConfig(issuer = "http://127.0.0.1:1", clientId = "ide")).revoke("RT"))
+        val revoked = ArrayList<Map<String, String>>()
+        val idp = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        val idpBase = "http://127.0.0.1:${idp.address.port}"
+        idp.createContext("/.well-known/openid-configuration") { send(it, 200, """{"revocation_endpoint":"$idpBase/revoke"}""") }
+        idp.createContext("/revoke") { revoked.add(form(it)); send(it, 200, "{}") }
+        idp.start()
+        try {
+            assertTrue(OidcDeviceFlow(OidcConfig(issuer = idpBase, clientId = "ide")).revoke("RT"))
+            assertEquals(listOf(mapOf("token" to "RT", "token_type_hint" to "refresh_token", "client_id" to "ide")), revoked)
+        } finally {
+            idp.stop(0)
+        }
+    }
+
     fun testExplicitEndpointsSkipDiscovery() {
         val f = OidcDeviceFlow(
             OidcConfig(issuer = null, clientId = "ide", deviceAuthorizationEndpoint = "http://d", tokenEndpoint = "http://t"),

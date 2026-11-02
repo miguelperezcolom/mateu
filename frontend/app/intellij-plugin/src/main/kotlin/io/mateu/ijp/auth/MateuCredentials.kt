@@ -37,5 +37,12 @@ object MateuCredentials {
     }
 
     /** The app-wide OIDC sessions: one per (backend, issuer, client) — every project of the IDE shares them. */
-    val sessions: OidcSessions by lazy { OidcSessions(store) }
+    val sessions: OidcSessions by lazy {
+        OidcSessions(store) { key, token ->
+            // off the caller's thread: signing out never waits for the provider
+            com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread {
+                OidcDeviceFlow(OidcConfig(issuer = key.issuer, clientId = key.clientId)).revoke(token)
+            }
+        }
+    }
 }

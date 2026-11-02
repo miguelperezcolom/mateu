@@ -127,6 +127,24 @@ class OidcDeviceFlow(
         }
     }
 
+    /**
+     * Asks the provider to revoke [refreshToken] (RFC 7009), at the `revocation_endpoint` its discovery
+     * document advertises. False when it advertises none or the call fails: signing out never waits
+     * for it — the token is deleted locally whatever the provider says.
+     */
+    fun revoke(refreshToken: String): Boolean = try {
+        val issuer = config.issuer?.trimEnd('/')?.ifBlank { null }
+        val endpoint = issuer?.let { getJson("$it/.well-known/openid-configuration").path("revocation_endpoint").textOrNull() }
+        if (endpoint == null) {
+            false
+        } else {
+            val (status, _) = postForm(endpoint, mapOf("token" to refreshToken, "token_type_hint" to "refresh_token", "client_id" to config.clientId))
+            status in 200..299
+        }
+    } catch (e: Exception) {
+        false
+    }
+
     /** Exchange a refresh token for a fresh access token; null when the provider refuses it. */
     fun refresh(refreshToken: String, endpoints: Endpoints = endpoints()): Tokens? {
         val form = mutableMapOf(
