@@ -2,6 +2,7 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 import { html, LitElement, nothing, TemplateResult } from "lit";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { isNodeIdStamping, stampNodeId } from "@infra/ui/renderers/nodeIdStamp.ts";
@@ -53,6 +54,22 @@ const DEFAULT_PAGE_COLUMN = 'max-width:900px;margin:auto'
 export const isDefaultPageColumn = (style: string | undefined): boolean =>
     !!style && style.replace(/\s+/g, '').replace(/;+$/, '').toLowerCase() === DEFAULT_PAGE_COLUMN
 
+/**
+ * The style an envelope paints with. A YAML page (its content IS a `Form`) gets the server's default
+ * column only when its ROUTE seeds it (state, data, actions — then it is served wrapped); unseeded it
+ * is served bare and gets none. So one definition drew 900px wide on one route and the page's full
+ * width on another. The definition decides, not the route: a YAML page never takes the default
+ * column; a style it was given on purpose stays.
+ */
+export const envelopeStyleOf = (component: Component): string | undefined => {
+    const style = (component as { style?: string }).style
+    if (!isDefaultPageColumn(style)) return style
+    const only = component.children?.length === 1 ? component.children[0] : undefined
+    const isYamlForm = only?.type == ComponentType.ClientSide
+        && (only as ClientSideComponent).metadata?.type == ComponentMetadataType.Form
+    return isYamlForm ? undefined : style
+}
+
 // An empty state/data map stands for every other one: callers pass a fresh `{}` when there is none.
 const EMPTY = {}
 const orEmpty = (map: object | undefined) => map && Object.keys(map).length > 0 ? map : EMPTY
@@ -82,7 +99,7 @@ export const renderComponent = (container: LitElement, component: Component, bas
                          consumedRoute="${consumedRoute}"
                          baseUrl="${baseUrl}"
                          slot="${component.slot??nothing}"
-                         style="${serverSideStyle(component.style)}"
+                         style="${serverSideStyle(envelopeStyleOf(component))}"
                          class="${component.cssClasses}"
                          .state="${guard([component, seed, orEmpty(state)], () => ({...(seed ?? {}), ...state}))}"
                          .data="${guard([component, orEmpty(data)], () => ({...data}))}"
