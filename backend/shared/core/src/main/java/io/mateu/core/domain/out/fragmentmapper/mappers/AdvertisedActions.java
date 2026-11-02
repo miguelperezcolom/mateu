@@ -54,10 +54,10 @@ public final class AdvertisedActions {
   private AdvertisedActions() {}
 
   /**
-   * Whether {@code view} advertises {@code id}: its own code names it as a string literal (a {@code
-   * confirmActionId("doArchive")} of a dialog an action returns, a fluent button…), or one of its
-   * declarations / components does ({@link #of}). The literal check is static and cheap, so it goes
-   * first; never throws.
+   * Whether {@code view} advertises {@code id} to this caller: a response to the view handed it to
+   * them (a {@code confirmActionId("doArchive")} of a dialog an action returned, an undo toast —
+   * {@link IssuedActions}), or one of its declarations / components names it ({@link #of}); never
+   * throws.
    */
   public static boolean advertises(Object view, HttpRequest httpRequest, String id) {
     if (view == null || id == null || id.isBlank()) {
@@ -68,7 +68,7 @@ public final class AdvertisedActions {
     // an id a response to this view handed out (a dialog's confirm, an undo toast), or one the
     // view's declarations / components name. NOT any string literal of its class file: that let a
     // label or log text equal to a public method's name make the method callable (IssuedActions)
-    return IssuedActions.issued(view, id) || of(view, httpRequest).contains(id);
+    return IssuedActions.issued(view, id, httpRequest) || of(view, httpRequest).contains(id);
   }
 
   /** Every action id {@code view} advertises for this request (never throws). */

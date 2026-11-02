@@ -167,7 +167,8 @@ export function menuRoutesOf(menu) {
 export function pathLeavingMountOf(route, menuRoutes = []) {
   if (!mountPath) return null
   const r = String(route == null ? '' : route)
-  if (r.charAt(0) !== '/' || r.charAt(1) === '/') return null
+  // `/\host` is `//host` to a browser: another site, never a path to load here
+  if (r.charAt(0) !== '/' || r.charAt(1) === '/' || r.charAt(1) === '\\') return null
   const path = r.split(/[?#]/)[0]
   if (path === mountPath || path.startsWith(mountPath + '/')) return null
   const own = (m) => { const p = String(m).split('?')[0].replace(/\/+$/, '') || '/'; return path === p || (p !== '/' && path.startsWith(p + '/')) }

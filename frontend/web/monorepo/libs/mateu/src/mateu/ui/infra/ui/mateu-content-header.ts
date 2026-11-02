@@ -183,7 +183,11 @@ export class MateuContentHeader extends LitElement {
         let node: any = this
         while (node) {
             const tag = node.tagName
-            if (tag === 'VAADIN-DIALOG-OVERLAY' || tag === 'DIALOG' || node.getAttribute?.('role') === 'dialog') return true
+            // a form shown in a Mateu overlay is slotted into the overlay's HOST (its parent is the
+            // mateu-drawer/mateu-dialog element, never the role=dialog panel in its shadow root), so the
+            // hosts count too — or an edit drawer's "Edit ${state.name}" became the window title
+            if (tag === 'VAADIN-DIALOG-OVERLAY' || tag === 'DIALOG' || tag === 'MATEU-DRAWER'
+                || tag === 'MATEU-DIALOG' || node.getAttribute?.('role') === 'dialog') return true
             node = node.parentElement ?? (node.getRootNode?.() as ShadowRoot | undefined)?.host
         }
         return false

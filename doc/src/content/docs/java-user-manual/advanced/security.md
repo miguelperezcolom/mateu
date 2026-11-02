@@ -295,8 +295,10 @@ it to every user who could open that view, whether or not a button for it was dr
 marked and nothing on the view names answers HTTP 403. An id a previous *response* to the view
 handed out — the confirm of a dialog it returned, an undo toast's action
 (`Message.undoable(…, "restore", …)`), the `ColumnAction` of a row it served — is accepted back
-(the server remembers the action ids it emitted for each view class; a restart forgets them, so a
-dialog left open across a restart is refused — mark its handler `@Action` to accept it always). A
+(the server remembers the action ids it emitted for each view class AND each caller — the identity
+the host framework authenticated, all its grants —, so a confirm handed to an administrator is not
+callable by anybody else; a restart, or eight hours, forgets them, so a dialog left open that long
+is refused — mark its handler `@Action` to accept it always, and gate it like any action). A
 mere string literal in the view's code no longer advertises anything: a label or log text equal to
 a public method's name made that method callable. A method only another backend or a test
 dispatches needs `@Action`. Row actions (`action-on-row-<method>`) are accepted once a served row
@@ -358,7 +360,11 @@ the YAML mounts run on the Helidon routing, outside the JAX-RS login check. They
 Helidon security authenticated (its `SecurityContext`), and when the app requires a login (a JAX-RS
 application annotated `@LoginConfig`, or `mateu.helidon.authentication-required=true`) an
 unauthenticated call is not served there: a streamed action falls through to Jersey (authenticated,
-buffered), MCP and the YAML mounts answer 401. On Quarkus, `/mateu/mcp` now runs after HTTP
+buffered), MCP and the YAML mounts answer 401. An app that authenticates with its **own JAX-RS
+`ContainerRequestFilter`** (no `@LoginConfig`) must set `mateu.helidon.authentication-required=true`:
+Mateu cannot detect that filter, and those routes would run anonymous. The principal those routes
+see carries a name but no roles, so a role-gated (`@EyesOnly(roles…)`, `access:`) page refuses a
+streamed action there — serve it through Jersey (no `sse`) if it needs roles. On Quarkus, `/mateu/mcp` now runs after HTTP
 security, so the app's `quarkus.http.auth.permission` policies apply to it and its tools see the
 caller.
 

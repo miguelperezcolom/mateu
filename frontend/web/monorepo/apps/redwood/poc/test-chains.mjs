@@ -549,6 +549,9 @@ test('a listing keeps its page and sort in the URL, with the Vaadin contract (ba
   assert.deepEqual(listingUrlPagingOf('genre=Poetry&page=2&sort=title:descending,year:ascending'),
     { page: 2, sort: [{ field: 'title', direction: 'descending' }, { field: 'year', direction: 'ascending' }] })
   assert.deepEqual(listingUrlPagingOf(''), { page: 0, sort: [] })
+  // the short spelling of a hand-written or shared link, like Vaadin (final review A18)
+  assert.deepEqual(listingUrlPagingOf('sort=title:asc,year:DESC'),
+    { page: 0, sort: [{ field: 'title', direction: 'ascending' }, { field: 'year', direction: 'descending' }] })
   const search = webApp('flows/main/pages/main-start-page-chains/runMateuSearch.js')
   // every search writes the URL — as a NEW history entry: Back returns to the previous page/filters
   // (it used to replaceState, and Back left the listing — Fable review A8)

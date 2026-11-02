@@ -45,6 +45,9 @@ class OidcDeviceFlow(
 
     class OidcException(message: String) : RuntimeException(message)
 
+    /** The provider answered that the refresh token is no longer good (`invalid_grant`): drop it. */
+    class RefreshTokenRevoked : RuntimeException("The refresh token is no longer valid.")
+
     /** Explicit endpoints win; otherwise they come from `{issuer}/.well-known/openid-configuration`. */
     fun endpoints(): Endpoints {
         val device = config.deviceAuthorizationEndpoint?.ifBlank { null }
@@ -132,6 +135,9 @@ class OidcDeviceFlow(
             "client_id" to config.clientId,
         )
         val (status, body) = postForm(endpoints.token, form)
+        // a dead token (revoked, expired, rotated elsewhere) is said so, so the caller forgets it
+        // instead of posting it again on every request
+        if (status in 400..401 && body.path("error").asText("") == "invalid_grant") throw RefreshTokenRevoked()
         if (status !in 200..299) return null
         return tokensOf(body).let { if (it.refreshToken == null) it.copy(refreshToken = refreshToken) else it }
     }

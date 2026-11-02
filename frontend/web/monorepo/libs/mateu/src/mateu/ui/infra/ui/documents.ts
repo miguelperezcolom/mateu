@@ -57,7 +57,8 @@ export const OBJECT_URL_TTL_MS = 60_000
 export function documentUrl(url: string | undefined, baseUrl?: string): string | undefined {
     if (!url) return undefined
     if (/^https?:\/\//i.test(url)) return url
-    if (!url.startsWith('/') || url.startsWith('//')) return undefined
+    // a browser reads `/\host` (and `\\host`) as `//host`: another site, not a path of this one
+    if (!url.startsWith('/') || url.replace(/\\/g, '/').startsWith('//')) return undefined
     if (baseUrl && /^https?:\/\//i.test(baseUrl)) {
         try {
             return new URL(url, new URL(baseUrl).origin).toString()

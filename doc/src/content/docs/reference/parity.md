@@ -340,7 +340,7 @@ of each type and fail on a placeholder — not a string match on the source.
 | Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
 | Date picker | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
 | Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ |
-| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ radio, multi-select, checkboxes, toggle, number (`oj-input-number`), money/`Amount` (`oj-sp-input-currency`), email/link (`oj-sp-input-email`/`-url`), textarea, dates, lookups, file/image/signature/photo, slider (`oj-slider`), stars (`oj-rating-gauge`), color, rich text (own editor: HTML, legacy Quill Delta read), markdown/html read-only | ✅ | ✅ |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ radio, multi-select, checkboxes, toggle, number (`oj-input-number`), money/`Amount` (`oj-sp-input-currency`), email/link (`oj-sp-input-email`/`-url`), textarea, dates, lookups, file/image/signature/photo, slider (`oj-slider`), stars (`oj-rating-gauge`), color, rich text (Spectra `oj-sp-input-rich-text-2`, CKEditor-based: HTML, legacy Quill Delta read), markdown/html read-only | ✅ | ✅ |
 | Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on every surface: the page, embedded islands and the open drawer/dialog | ✅ (shared engine) | ✅ (no-eval engine) |
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
 | FABs, header badges, KPIs, charts | ✅ | ✅ header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, funnel, several series); page and app `@Fab`s stacked above the shell FAB | ✅ (FABs as header buttons) | ✅ |
@@ -727,7 +727,8 @@ is honoured with two edges:
   the catalogue like the web: listing `rowsSource`, field `optionsSource`, route `data:` and
   `restAction`s, resolved by `ref` against `AppDto.restSources` / the bundle manifest, direct or
   proxied (`__restfetch__`), with sample data under the same opt-in rule and column `tones`. Its
-  `${…}` interpolation covers dotted paths only, not the web's full expression language.
+  `${…}` interpolation evaluates the same expression language as the web (`content.mjs`), over
+  `state` and `data` (not `appState`).
 
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).

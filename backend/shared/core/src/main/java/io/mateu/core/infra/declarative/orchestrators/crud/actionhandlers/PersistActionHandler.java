@@ -71,8 +71,11 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
           httpRequest);
     } catch (RuntimeException failure) {
       // drawer mode: a failed save keeps the drawer open and shows WHY inside it (the Redwood
-      // create-edit-drawer error banner), with the values the user typed
-      if (orchestrator.editInDrawer() && orchestrator.display().errorBanner().shown()) {
+      // create-edit-drawer error banner), with the values the user typed. A refusal (403) is not a
+      // failed save to explain in the form: it stays a refusal, as it is on .NET.
+      if (orchestrator.editInDrawer()
+          && orchestrator.display().errorBanner().shown()
+          && io.mateu.core.application.security.MateuForbiddenException.find(failure) == null) {
         var banner = errorBanner(persistAction, failure, httpRequest, orchestrator);
         if (banner != null) {
           return banner;

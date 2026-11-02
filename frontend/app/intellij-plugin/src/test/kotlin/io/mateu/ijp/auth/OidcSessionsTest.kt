@@ -70,13 +70,15 @@ class OidcSessionsTest : TestCase() {
         assertEquals("r-space", sessions.refreshToken(space))
     }
 
-    fun testALegacyRefreshTokenMovesToTheUisSessionOnce() {
+    fun testALegacyRefreshTokenIsDroppedNeverSentToTheIssuerTheManifestNamesNow() {
+        // it carries no record of its issuer: moving it under today's issuer could hand it to another
+        // provider (a re-pointed or compromised backend) — final review M12
         val legacy = OidcSessions.legacyRefreshAccount("https://museums.example.com")
         assertEquals("refresh_token@https://museums.example.com", legacy)
         store.set(legacy, "pre-per-ui")
-        assertEquals("pre-per-ui", sessions.refreshToken(museums))
-        assertNull("moved, not copied", store.get(legacy))
-        assertEquals("pre-per-ui", store.get(museums.refreshAccount))
+        assertNull(sessions.refreshToken(museums))
+        assertNull("deleted", store.get(legacy))
+        assertNull(store.get(museums.refreshAccount))
     }
 
     fun testBlankTokensAreNotStored() {

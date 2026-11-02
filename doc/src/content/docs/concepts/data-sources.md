@@ -124,10 +124,14 @@ for `Sample Return` as `Sample%20Return`. A call that is only *part* of an expre
 (`${encodeURIComponent(a) + ',' + b}`) is not recognised: that result is encoded again where it
 lands.
 
-**On the proxied leg** the server is not a JavaScript engine. It resolves `state.x`, a nested
-`state.x.y`, `secret.X`, a literal (`'x'`, `0`, `true`), a fallback `a ?? b` and
-`encodeURIComponent(x)`; anything else (a ternary, `?.[0]`) resolves to empty. A source that needs
-more runs direct.
+**On the proxied leg** the server is not a JavaScript engine, but it evaluates the same small
+expression language as the browser (`ProxyExpression`: paths, `secret.X`, literals, `??`, `?.`,
+ternaries, arithmetic, comparisons, `encodeURIComponent(x)`, `String(x)`, `Number(x)`,
+`JSON.stringify(x)`), pinned by the corpus
+`conformance/client/source-templates.json`. Two differences remain: `${appState.x}` and `${data.x}`
+are browser-only (absent on the proxied leg), and an expression outside that subset renders empty
+(and is logged) rather than guessed — the validator warns about it for a proxied source
+(`proxy_unsafe_template`). A source that needs more runs direct.
 
 **Money values.** A `dataType: money` field holds `{value, currency, locale}`. In a template it lands
 as its **amount** — `${state.budget}` → `12500000` — and its currency is `${state.budget.currency}`:

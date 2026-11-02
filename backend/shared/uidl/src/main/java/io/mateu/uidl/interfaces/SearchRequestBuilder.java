@@ -50,7 +50,7 @@ public final class SearchRequestBuilder {
                     new Sort(
                         (String)
                             (map.get("fieldId") != null ? map.get("fieldId") : map.get("field")),
-                        Direction.valueOf((String) map.get("direction"))))
+                        Direction.parse(map.get("direction"))))
             .toList());
   }
 

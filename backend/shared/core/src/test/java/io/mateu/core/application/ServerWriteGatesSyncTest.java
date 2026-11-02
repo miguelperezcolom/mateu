@@ -378,4 +378,15 @@ class ServerWriteGatesSyncTest {
         .isTrue();
     assertThat(CALLS).isEmpty();
   }
+
+  @Test
+  void aPrefixedIdWithNoMethodSegmentIsRefusedNotAServerError() {
+    for (var id :
+        List.of("nested-form-action-guest", "nested-form-action-guest-", "nested-form-action-")) {
+      assertThat(refused(() -> run("/gates-nested", NestedView.class, id, Map.of("guest", "x"))))
+          .as(id)
+          .isTrue();
+    }
+    assertThat(CALLS).isEmpty();
+  }
 }

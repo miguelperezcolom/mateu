@@ -196,7 +196,8 @@ public class RunActionUseCase {
                                     .doOnNext(
                                         increment ->
                                             io.mateu.core.domain.out.fragmentmapper.mappers
-                                                .IssuedActions.record(instance, increment)))))
+                                                .IssuedActions.record(
+                                                instance, increment, command.httpRequest())))))
         // the micro frontends this server resolves (resolve = SERVER, content slots), in order:
         // a stream's increments must not overtake each other while one waits for its remotes
         .concatMap(increment -> resolveMicroFrontends(increment, command))

@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getT
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 
+import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.core.infra.declarative.orchestrators.DetailContent;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
@@ -28,6 +29,7 @@ public abstract class EditableView<V, E> extends MultiView {
   @Override
   protected OrchestrationResult resolveInternalRoute(String route, HttpRequest httpRequest) {
     if (route.endsWith("/edit")) {
+      checkEditable();
       var editor = editor(httpRequest);
       httpRequest.setAttribute("edit", true);
       return new OrchestrationResult("edit", editor, buildEditorComponent(editor, httpRequest));
@@ -40,8 +42,12 @@ public abstract class EditableView<V, E> extends MultiView {
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
     return switch (actionId) {
-      case "edit" -> navigate("/edit", httpRequest, null);
+      case "edit" -> {
+        checkEditable();
+        yield navigate("/edit", httpRequest, null);
+      }
       case "save" -> {
+        checkEditable();
         save(httpRequest);
         yield navigate(
             "/view",
@@ -104,8 +110,22 @@ public abstract class EditableView<V, E> extends MultiView {
             && rq.serverSideComponentRoute().contains(marker));
   }
 
+  /**
+   * A read-only view ({@link #readOnly()}) does not only hide its Edit button: the edit route and
+   * the {@code edit}/{@code save} actions are refused (403 + one WARN) when a request names them,
+   * like a CRUD's write gates ({@code CrudWriteGate}).
+   */
+  private void checkEditable() {
+    if (readOnly()) {
+      throw new MateuForbiddenException("edit: " + getClass().getName() + " is read-only");
+    }
+  }
+
   @Override
   public List<Action> actions(HttpRequest httpRequest) {
+    if (readOnly()) {
+      return List.of(Action.builder().id("cancel-edit").build());
+    }
     return List.of(
         Action.builder().id("edit").build(),
         Action.builder().id("save").validationRequired(true).build(),
