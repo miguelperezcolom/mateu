@@ -25,6 +25,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Redwood: date fields write and read dates in the UI's language.** Every `oj-input-date` /
+  `oj-input-date-time` (the page form, the crud drawer, the dialog, the `List<Row>` row editor, a
+  date range's two ends, the island) and the listing's range filters now carry a converter of their
+  own in the UI locale — the page's language refined by the browser's region, the rule the Vaadin
+  date pickers follow (#1004) — instead of JET's default one, which used whatever locale JET booted
+  with: a Spanish interface could show a typed 15/2/2041 back as 2/15/2041 and read 5/2 as May 2nd.
+  The range filters' «From»/«To» and the renderer's own Add / Add selected / Search / Done / Yes / No
+  are chrome texts now (they were fixed English, or fixed Spanish).
+- **A crud's built-in buttons speak the UI's language** (Java; Vaadin and Redwood alike). New, Save,
+  Save and next, Cancel, Delete, Edit, Add another, Back to list, Import, History and the drawer's
+  New / Edit title were English in a Spanish UI — «Save» next to Redwood's own «Cancelar». They pass
+  through the app's `Translator` (so an app can still translate or rename them), and when it leaves
+  them as they are, Mateu's own words come out in the request's language (`Translator.locale`, else
+  the browser's `Accept-Language` — the language the client draws its chrome in) from a small
+  catalogue of its own (`BuiltInTexts`, Spanish for now; the wizard's Save / Save and close / Skip,
+  the calendar's Today and the optimistic-lock dialog's Reload / Overwrite benefit too). A label an
+  app writes itself (`newLabel()` returning «Add a title») is left as it is; with no language, or one
+  the catalogue lacks, they stay English. A static bundle's raw render keeps English.
 - **Redwood: a field's help (`@Help`, a `DescriptionSupplier`) is shown.** The server sends it as the
   field's `description` and Vaadin draws it as helper text under the field; Redwood dropped it. It is
   now the field's Redwood instruction text — JET's `help.instruction`, which the inputs draw under

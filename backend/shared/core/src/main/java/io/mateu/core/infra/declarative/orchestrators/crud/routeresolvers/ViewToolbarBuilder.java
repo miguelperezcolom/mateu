@@ -59,7 +59,11 @@ final class ViewToolbarBuilder {
                         getLabel(method),
                         MetaAnnotations.find(method, Toolbar.class))));
     if (!MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {
-      toolbar.add(new Button(orchestrator.backToListLabel(), "cancel-view"));
+      toolbar.add(
+          new Button(
+              io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                  orchestrator.backToListLabel(), httpRequest),
+              "cancel-view"));
     }
     // No "Add another" here: the view of an EXISTING record is not the place to start another one
     // (the listing's New is). It belongs to the create flow — the toast a successful create answers
@@ -68,7 +72,11 @@ final class ViewToolbarBuilder {
     if (!viewReadOnly(item, orchestrator)
         && orchestrator.canEdit()
         && !hiddenByEntity(finalEntity, "edit", httpRequest)) {
-      toolbar.add(new Button(orchestrator.editLabel(), "edit"));
+      toolbar.add(
+          new Button(
+              io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                  orchestrator.editLabel(), httpRequest),
+              "edit"));
     }
     return toolbar;
   }

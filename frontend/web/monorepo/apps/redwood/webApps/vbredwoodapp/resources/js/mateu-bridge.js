@@ -1,7 +1,7 @@
 /* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet) => {
+define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset', 'ojs/ojconverter-datetime'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet, DateTimeConverter) => {
   'use strict';
   // The renderer's OWN words (its chrome: the shell, the chat panel, error bands, paging, empty
   // states…) in the interface's language. The app's texts come from the server; these are the few the
@@ -27,8 +27,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       loading: 'Loading',
       search: 'Search…',
       noData: 'No data',
+      rangeFrom: 'From',
       rangeTo: 'To',
       new: 'New',
+      add: 'Add',
+      addSelected: 'Add selected',
+      done: 'Done',
+      yes: 'Yes',
+      no: 'No',
       confirm: 'Confirm',
       cancel: 'Cancel',
       save: 'Save',
@@ -271,8 +277,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       loading: 'Cargando',
       search: 'Buscar…',
       noData: 'Sin datos',
+      rangeFrom: 'Desde',
       rangeTo: 'Hasta',
       new: 'Nuevo',
+      add: 'Añadir',
+      addSelected: 'Añadir los seleccionados',
+      done: 'Hecho',
+      yes: 'Sí',
+      no: 'No',
       confirm: 'Confirmar',
       cancel: 'Cancelar',
       save: 'Guardar',
@@ -545,6 +557,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return explicitLanguage
       || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
       || (typeof navigator !== 'undefined' && navigator.language) || 'en'
+  }
+
+  // ── dates ─────────────────────────────────────────────────────────────────────────────────────
+  // The date fields (oj-input-date / oj-input-date-time: forms, drawers, the row editor, a date
+  // range's ends, the listing's range filters) carry a converter of their OWN in the UI's locale,
+  // the rule the Vaadin renderer follows (apps/vaadin dateLocale.ts, #1004). Without one, JET's
+  // default converter writes and reads dates in whatever locale JET resolved while booting, and a
+  // Spanish interface could show a typed 15/2/2041 back as 2/15/2041 (and read 5/2 as May 2nd).
+
+  /** The locale dates are written and read in: the UI's (uiLocale), refined by the browser's when
+   *  that one is the same language with a region (`es` + `es-MX`), canonical; 'en-US' when unusable. */
+  function dateLocale() {
+    const ui = String(uiLocale() || '')
+    const browser = (typeof navigator !== 'undefined' && navigator.language) || ''
+    let locale = ui || browser || 'en-US'
+    if (ui && browser && browser.toLowerCase().startsWith(ui.toLowerCase() + '-')) locale = browser
+    try {
+      return Intl.getCanonicalLocales(locale.replace(/_/g, '-'))[0] || 'en-US'
+    } catch (e) {
+      return 'en-US'
+    }
+  }
+
+  /** The options of a date field's JET IntlDateTimeConverter: numeric day, month and four-digit
+   *  year in the locale's order (15/2/2041 in es, 2/15/2041 in en-US); `dateTime` adds the time. */
+  function dateConverterOptions(kind, locale) {
+    const options = { locale: locale || dateLocale(), year: 'numeric', month: 'numeric', day: 'numeric' }
+    return kind === 'dateTime' ? { ...options, hour: '2-digit', minute: '2-digit' } : options
   }
 
   function intl(locale, options) {
@@ -5288,6 +5328,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return converterFactory ? converterFactory(spec) : spec
   }
 
+  // one converter per (kind, locale): a re-projection hands the date field the SAME instance, so
+  // JET does not see a new converter (and re-format the field) on every keystroke elsewhere
+  const dateConverters = new Map()
+  /** The converter of a date field (`date`) or a date-time one (`dateTime`), in the UI's locale
+   *  (i18n dateLocale): an IntlDateTimeConverter in the app, its specification in Node. */
+  function dateConverterOf(kind) {
+    const options = dateConverterOptions(kind)
+    const key = (kind === 'dateTime' ? 'dateTime' : 'date') + '|' + options.locale + '|' + (converterFactory ? 'f' : '')
+    if (!dateConverters.has(key)) dateConverters.set(key, converterOf({ type: 'datetime', options }))
+    return dateConverters.get(key)
+  }
+
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
     // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
@@ -5676,7 +5728,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             isEmpty: rows.length === 0,
             rowEditable,
             addActionId: rowEditable ? fieldId + '_add' : '',
-            addLabel: 'Add',
+            addLabel: chromeText('add'),
           }, container)
           return
         }
@@ -6191,7 +6243,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           isEmpty: rows.length === 0,
           rowEditable: false,
           addActionId: '',
-          addLabel: 'Add',
+          addLabel: chromeText('add'),
           paged: paging.paged,
           pageText: paging.rangeText,
           pager: pagerButtonsOf(gridKey + ':page', paging.page - 1, paging.page + 1, paging.prevDisabled, paging.nextDisabled),
@@ -9284,7 +9336,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //     fieldId): the editor of each filter's value.
 
   const KEYWORD_FILTER = 'keyword'
-  const BOOL_CHOICES = [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]
+  /** A boolean filter's two choices, in the interface's language. */
+  const boolChoices = () => [{ value: 'true', label: chromeText('yes') }, { value: 'false', label: chromeText('no') }]
 
   /** The editor of a filter's value, in oj-dynamic's vocabulary (what the popup opens). */
   function smartFilterValueMetadataOf(f) {
@@ -9296,13 +9349,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const componentType = numeric ? 'oj-input-number'
         : f.inputType === 'datetime-local' ? 'oj-input-date-time' : 'oj-input-date'
       const type = numeric ? 'number' : 'string'
+      // a date end writes and reads dates in the UI's locale (oj-dynamic builds the converter from
+      // this description: module path + class + options), like every other date field
+      const converter = numeric ? undefined : {
+        path: 'ojs/ojconverter-datetime',
+        name: 'IntlDateTimeConverter',
+        options: dateConverterOptions(f.inputType === 'datetime-local' ? 'dateTime' : 'date'),
+      }
+      const end = (key) => ({ type, componentType, labelHint: chromeText(key), ...(converter ? { converter } : {}) })
       return {
         type: 'object',
         labelHint,
-        properties: {
-          gte: { type, componentType, labelHint: 'Desde' },
-          lte: { type, componentType, labelHint: 'Hasta' },
-        },
+        properties: { gte: end('rangeFrom'), lte: end('rangeTo') },
       }
     }
     const options = (f.options || []).map((o) => ({ value: String(o.value), label: o.label }))
@@ -9310,7 +9368,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return { type: 'array', items: { type: 'string' }, componentType: 'oj-checkboxset', labelHint, options }
     }
     if (f.isOptions) return { type: 'string', componentType: 'oj-select-single', labelHint, options }
-    if (f.isBool) return { type: 'string', componentType: 'oj-select-single', labelHint, options: BOOL_CHOICES }
+    if (f.isBool) return { type: 'string', componentType: 'oj-select-single', labelHint, options: boolChoices() }
     if (f.inputType === 'number') return { type: 'number', componentType: 'oj-input-number', labelHint }
     return { type: 'string', componentType: 'oj-input-text', labelHint }
   }
@@ -10582,7 +10640,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // the button dispatches like any host block (hostBlockAction: actionId + parameters)
       actionId: 'codesearch-' + fieldId,
       parameters: {},
-      addLabel: multi ? 'Add' : 'Search',
+      addLabel: multi ? chromeText('add') : chromeText('askSearch'),
       isSelect: false,
       isLookup: false,
       lookupActionId: '',
@@ -10655,7 +10713,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       paging: listing.paging,
       pickActionId: SEARCHABLE_PICK_ACTION,
       addActionId: SEARCHABLE_ADD_ACTION,
-      addLabel: (addButton && addButton.label) || 'Add selected',
+      addLabel: (addButton && addButton.label) || chromeText('addSelected'),
     }
   }
 
@@ -10901,6 +10959,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       value: ends[end],
       required: !!f.required,
       readonly: !!f.readOnly,
+      converter: dateConverterOf('date'),
     })
     return { isDateRange: true, rangeParts: [part('from', ''), part('to', 'rangeTo')] }
   }
@@ -10986,7 +11045,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
       isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
       isEmail: false, isUrl: false, currency: '',
-      converter: null, captureMode: '', accept: '',
+      // a date field writes and reads dates in the UI's locale, not in the one JET booted with
+      converter: isDate ? dateConverterOf('date') : isDateTime ? dateConverterOf('dateTime') : null,
+      captureMode: '', accept: '',
     }
   }
 
@@ -24662,7 +24723,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuWizardForwardId: forward ? forward.actionId : '',
       mateuFormActions: [],
       // never null: the component reads primaryAction.label unconditionally
-      mateuWizardPrimary: forward ? { label: forward.label, disabled: false } : { label: 'Done', disabled: true },
+      mateuWizardPrimary: forward ? { label: forward.label, disabled: false } : { label: chromeText('done'), disabled: true },
       mateuWizardShownStep: keepStep ? (wizardProjection.currentStep || '') : '',
     }
   }
@@ -27644,8 +27705,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pill.__mateuFade = setTimeout(() => { pill.style.opacity = '0' }, 1800)
   }
 
-  // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
-  setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
+  // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale);
+  // un campo fecha: IntlDateTimeConverter en el locale de la UI (i18n dateConverterOptions)
+  setConverterFactory((spec) => spec.type === 'datetime'
+    ? new DateTimeConverter.IntlDateTimeConverter(spec.options)
+    : new NumberConverter.IntlNumberConverter(spec.options));
   // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
   // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
   setColumnPrefsReader(() => readColumnPrefs(listingScope()));

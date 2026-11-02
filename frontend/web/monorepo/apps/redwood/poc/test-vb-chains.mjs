@@ -72,6 +72,7 @@ const modules = {
   'oj-dynamic/providers/JsonMetadataProvider': class JsonMetadataProvider { constructor(options) { this.options = options } },
   'ojs/ojarraydataprovider': FakeADP,
   'ojs/ojconverter-number': { IntlNumberConverter: class { constructor(options) { this.options = options } } },
+  'ojs/ojconverter-datetime': { IntlDateTimeConverter: class { constructor(options) { this.options = options } } },
   'ojs/ojarraytreedataprovider': FakeADP,
   'ojs/ojflattenedtreedataproviderview': class { getExpandedObservable() { return null } },
   'ojs/ojrowdatagridprovider': { RowDataGridProvider: class {} },
@@ -101,6 +102,7 @@ async function sourceBridge() {
     require: modules.require, ArrayDataProvider: FakeADP, NumberConverter: modules['ojs/ojconverter-number'],
     ArrayTreeDataProvider: FakeADP, FlattenedTreeDataProviderView: modules['ojs/ojflattenedtreedataproviderview'],
     RowDataGridProvider: modules['ojs/ojrowdatagridprovider'], KeySet: modules['ojs/ojkeyset'],
+    DateTimeConverter: modules['ojs/ojconverter-datetime'],
   })
   // sloppy-mode Function so `with` resolves the module names; the wiring itself is strict-safe
   const api = new Function('scope', 'with (scope) { return (() => {\n' + wiring + '\n})() }')(scope)

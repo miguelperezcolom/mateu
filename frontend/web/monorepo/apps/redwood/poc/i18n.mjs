@@ -22,8 +22,14 @@ export const CHROME_TEXTS = {
     loading: 'Loading',
     search: 'Search…',
     noData: 'No data',
+    rangeFrom: 'From',
     rangeTo: 'To',
     new: 'New',
+    add: 'Add',
+    addSelected: 'Add selected',
+    done: 'Done',
+    yes: 'Yes',
+    no: 'No',
     confirm: 'Confirm',
     cancel: 'Cancel',
     save: 'Save',
@@ -266,8 +272,14 @@ export const CHROME_TEXTS = {
     loading: 'Cargando',
     search: 'Buscar…',
     noData: 'Sin datos',
+    rangeFrom: 'Desde',
     rangeTo: 'Hasta',
     new: 'Nuevo',
+    add: 'Añadir',
+    addSelected: 'Añadir los seleccionados',
+    done: 'Hecho',
+    yes: 'Sí',
+    no: 'No',
     confirm: 'Confirmar',
     cancel: 'Cancelar',
     save: 'Guardar',
@@ -540,6 +552,34 @@ export function uiLocale() {
   return explicitLanguage
     || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
     || (typeof navigator !== 'undefined' && navigator.language) || 'en'
+}
+
+// ── dates ─────────────────────────────────────────────────────────────────────────────────────
+// The date fields (oj-input-date / oj-input-date-time: forms, drawers, the row editor, a date
+// range's ends, the listing's range filters) carry a converter of their OWN in the UI's locale,
+// the rule the Vaadin renderer follows (apps/vaadin dateLocale.ts, #1004). Without one, JET's
+// default converter writes and reads dates in whatever locale JET resolved while booting, and a
+// Spanish interface could show a typed 15/2/2041 back as 2/15/2041 (and read 5/2 as May 2nd).
+
+/** The locale dates are written and read in: the UI's (uiLocale), refined by the browser's when
+ *  that one is the same language with a region (`es` + `es-MX`), canonical; 'en-US' when unusable. */
+export function dateLocale() {
+  const ui = String(uiLocale() || '')
+  const browser = (typeof navigator !== 'undefined' && navigator.language) || ''
+  let locale = ui || browser || 'en-US'
+  if (ui && browser && browser.toLowerCase().startsWith(ui.toLowerCase() + '-')) locale = browser
+  try {
+    return Intl.getCanonicalLocales(locale.replace(/_/g, '-'))[0] || 'en-US'
+  } catch (e) {
+    return 'en-US'
+  }
+}
+
+/** The options of a date field's JET IntlDateTimeConverter: numeric day, month and four-digit
+ *  year in the locale's order (15/2/2041 in es, 2/15/2041 in en-US); `dateTime` adds the time. */
+export function dateConverterOptions(kind, locale) {
+  const options = { locale: locale || dateLocale(), year: 'numeric', month: 'numeric', day: 'numeric' }
+  return kind === 'dateTime' ? { ...options, hour: '2-digit', minute: '2-digit' } : options
 }
 
 function intl(locale, options) {

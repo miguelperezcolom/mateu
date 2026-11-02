@@ -91,10 +91,18 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     var toolbar = new ArrayList<UserTrigger>();
     orchestrator.addButtonsToList(toolbar, httpRequest);
     if (orchestrator.behaviourSource() instanceof UploadEnabled) {
-      toolbar.add(new Button(orchestrator.importLabel(), "import"));
+      toolbar.add(
+          new Button(
+              io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                  orchestrator.importLabel(), httpRequest),
+              "import"));
     }
     if (orchestrator.behaviourSource() instanceof Auditable) {
-      toolbar.add(new Button(orchestrator.historyLabel(), "history"));
+      toolbar.add(
+          new Button(
+              io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                  orchestrator.historyLabel(), httpRequest),
+              "history"));
     }
     // export the listing (Listing.csvExportable/excelExportable/pdfExportable): an AutoCrud is a
     // Listing and ExportActionRunner answers it; a button only when an exporter writes the format
@@ -104,13 +112,18 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     var display = orchestrator.display();
     if (!notCreatable(orchestrator) && orchestrator.canCreate() && display.create().shown()) {
       toolbar.add(
-          new Button(orchestrator.newLabel(), "new")
+          new Button(
+                  io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                      orchestrator.newLabel(), httpRequest),
+                  "new")
               .toBuilder().disabled(!display.create().enabled()).build());
     }
     if (!notDeletable(orchestrator) && orchestrator.canDelete() && display.delete().shown()) {
       toolbar.add(
           Button.builder()
-              .label(orchestrator.deleteLabel())
+              .label(
+                  io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                      orchestrator.deleteLabel(), httpRequest))
               .actionId("delete")
               .variant(ButtonVariant.error)
               .disabled(!display.delete().enabled())

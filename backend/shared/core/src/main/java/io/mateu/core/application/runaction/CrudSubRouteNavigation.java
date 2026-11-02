@@ -106,21 +106,37 @@ public class CrudSubRouteNavigation {
     var targets = new LinkedHashMap<String, String>();
     switch (kind) {
       case "view" -> {
-        toolbar.add(new Button(crud.backToListLabel(), "cancel-view"));
+        toolbar.add(
+            new Button(
+                io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                    crud.backToListLabel(), command.httpRequest()),
+                "cancel-view"));
         targets.put("cancel-view", listRoute);
         if (crud.canEdit()
             && !crud.readOnly()
             && !MetaAnnotations.isPresent(crudClass, NotEditable.class)) {
-          toolbar.add(new Button(crud.editLabel(), "edit"));
+          toolbar.add(
+              new Button(
+                  io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                      crud.editLabel(), command.httpRequest()),
+                  "edit"));
           targets.put("edit", listRoute + "/" + id + "/edit");
         }
       }
       case "edit" -> {
-        buttons.add(new Button(crud.cancelLabel(), "cancel-edit"));
+        buttons.add(
+            new Button(
+                io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                    crud.cancelLabel(), command.httpRequest()),
+                "cancel-edit"));
         targets.put("cancel-edit", listRoute + "/" + id);
       }
       default -> {
-        buttons.add(new Button(crud.cancelLabel(), "cancel-new"));
+        buttons.add(
+            new Button(
+                io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                    crud.cancelLabel(), command.httpRequest()),
+                "cancel-new"));
         targets.put("cancel-new", listRoute);
       }
     }

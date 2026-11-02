@@ -92,7 +92,9 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
       // the toast confirming it offers to start the next one (the crud's "new"). Not on the view
       // of an existing record, where it used to sit next to Edit.
       message
-          .undoLabel(orchestrator.addAnotherLabel())
+          .undoLabel(
+              io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                  orchestrator.addAnotherLabel(), httpRequest))
           .undoActionId("new")
           .undoParameters(Map.of())
           .duration(10000);
