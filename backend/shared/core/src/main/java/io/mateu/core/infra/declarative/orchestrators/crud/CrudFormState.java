@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import io.mateu.core.infra.declarative.orchestrators.RoutedPage;
 import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
@@ -20,8 +21,11 @@ public final class CrudFormState {
   public static Map<String, Object> of(HttpRequest httpRequest) {
     var rq = httpRequest.runActionRq();
     if (rq.parameters() != null && rq.parameters().get("initiatorState") instanceof Map<?, ?> s) {
-      return (Map<String, Object>) s;
+      // without the page's whereabouts (RoutedPage): internal, not one of the form's values
+      return RoutedPage.without((Map<String, Object>) s);
     }
-    return rq.componentState() != null ? (Map<String, Object>) rq.componentState() : Map.of();
+    return rq.componentState() != null
+        ? RoutedPage.without((Map<String, Object>) rq.componentState())
+        : Map.of();
   }
 }

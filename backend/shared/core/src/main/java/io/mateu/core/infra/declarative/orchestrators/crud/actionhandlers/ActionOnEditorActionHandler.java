@@ -8,13 +8,17 @@ import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.domain.ComponentState;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
+import io.mateu.core.infra.declarative.FormViewModel;
+import io.mateu.core.infra.declarative.orchestrators.RoutedPage;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate;
+import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.CrudFormComponentBuilder;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.EditorButtons;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -22,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 /**
@@ -31,9 +36,10 @@ import java.util.concurrent.Callable;
  *
  * <p>When the method answers the editor ({@code return this}), nothing, messages, or a list of
  * those ({@code List.of(this, Message.success(...))}), the form stays where it is — in edit (or
- * creation) mode, with its Cancel/Save — and only takes the editor's new values: a state fragment
- * on the routed form page, the drawer re-sent in place in edit-in-drawer mode. The user then saves
- * as usual. Any other answer (a navigation, a dialog, a download…) decides what happens itself.
+ * creation) mode, with its Cancel/Save — and takes the editor's new values: the routed form page
+ * re-rendered in place (see {@link #routedFormFragment}), the drawer re-sent in place in
+ * edit-in-drawer mode. The user then saves as usual. Any other answer (a navigation, a dialog, a
+ * download…) decides what happens itself.
  */
 public class ActionOnEditorActionHandler implements CrudOrchestratorActionHandler {
 
@@ -55,6 +61,7 @@ public class ActionOnEditorActionHandler implements CrudOrchestratorActionHandle
     httpRequest.setAttribute(ValidationMapper.FOR_CREATION_FORM, isCreation);
     Class<?> formClass = isCreation ? orchestrator.creationFormClass() : orchestrator.editorClass();
     Object editor = toView(httpRequest, formClass);
+    var before = FormViewModel.toMap(editor);
 
     var result = invoke(name, editor, isCreation, httpRequest);
 
@@ -77,17 +84,50 @@ public class ActionOnEditorActionHandler implements CrudOrchestratorActionHandle
               orchestrator,
               httpRequest));
     } else {
-      responses.add(
-          new UIFragmentDto(
-              CrudTargetComponentId.form(httpRequest, isCreation),
-              null,
-              ComponentState.getState(refreshed, httpRequest),
-              null,
-              UIFragmentActionDto.Replace,
-              null));
+      responses.add(routedFormFragment(isCreation, refreshed, orchestrator, httpRequest));
+      if (!Objects.equals(before, FormViewModel.toMap(refreshed))) {
+        // the form now holds values nobody saved: leaving it asks first, as after typing them
+        responses.add(UICommand.markAsDirty());
+      }
     }
     responses.addAll(messagesIn(result));
     return responses;
+  }
+
+  /**
+   * The routed edit / creation page, re-rendered IN PLACE with the editor's new values: under the
+   * id and route the page itself says it has ({@link RoutedPage}), so it reaches the page however
+   * the crud is hosted — its app's home, a menu entry of another app… Re-rendered rather than only
+   * re-stated so what the editor COMPUTES from its values (a preview, a {@code Callable<Component>}
+   * field, a button's visibility) follows them too. The client takes a component of the same type
+   * and id as an in-place re-render: state merged, still in edit mode, nothing re-loaded.
+   *
+   * <p>A page that does not say where it is (rendered by an older server) gets the values only,
+   * aimed at the id derived from the action's initiator.
+   */
+  private static UIFragmentDto routedFormFragment(
+      boolean isCreation, Object refreshed, Crud orchestrator, HttpRequest httpRequest) {
+    var pageId = RoutedPage.id(httpRequest);
+    if (pageId == null) {
+      return new UIFragmentDto(
+          CrudTargetComponentId.form(httpRequest, isCreation),
+          null,
+          ComponentState.getState(refreshed, httpRequest),
+          null,
+          UIFragmentActionDto.Replace,
+          null);
+    }
+    httpRequest.setAttribute("selectedItem", refreshed);
+    var page =
+        orchestrator.wrapView(
+            isCreation ? "new" : "edit",
+            refreshed,
+            CrudFormComponentBuilder.build(isCreation, httpRequest, refreshed, orchestrator),
+            pageId,
+            RoutedPage.route(httpRequest),
+            httpRequest);
+    return new UIFragmentDto(
+        pageId, page, page.initialData(), null, UIFragmentActionDto.Replace, null);
   }
 
   private static Object invoke(

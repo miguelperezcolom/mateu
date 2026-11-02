@@ -177,7 +177,7 @@ same concepts.
 
 | Module | Package | Public types | Stable | Experimental | Deprecated | Internal |
 |---|---|---:|---:|---:|---:|---:|
-| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators` | 3 | 2 | 0 | 0 | 1 |
+| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators` | 4 | 2 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.calendar` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.collectiondetail` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 14 | 4 | 0 | 0 | 10 |
@@ -208,7 +208,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1026** | **833** | **90** | **45** | **58** |
+| **Total** | | **1027** | **833** | **90** | **45** | **59** |
 
 **Experimental types** (the whole type and its members):
 
