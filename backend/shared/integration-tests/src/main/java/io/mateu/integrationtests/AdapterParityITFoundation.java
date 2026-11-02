@@ -228,6 +228,18 @@ public class AdapterParityITFoundation {
         .then()
         .statusCode(200)
         .body(containsString("admin action ran"));
+    // the same caller on the STREAMED leg (a LongTask on a role-gated page): the roles reach it
+    // there too — on Helidon that leg runs outside Jersey and saw a name-only principal (refused)
+    given()
+        .headers(headers)
+        .contentType(ContentType.JSON)
+        .accept("text/event-stream")
+        .body(action("adminAction"))
+        .when()
+        .post("/restricted/mateu/v3/sse/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("admin action ran"));
   }
 
   /**

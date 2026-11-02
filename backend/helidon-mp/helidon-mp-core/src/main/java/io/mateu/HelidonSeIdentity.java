@@ -20,9 +20,10 @@ import org.eclipse.microprofile.config.Config;
  *   <li>the caller is the principal Helidon security attached to the request (its {@code
  *       SecurityContext}, when helidon-security protects the web server), else nobody;
  *   <li>when the application requires authentication — a JAX-RS application annotated
- *       {@code @LoginConfig}, or {@value #REQUIRED_PROPERTY}{@code =true} — an unauthenticated call
- *       is not served here: a streamed action falls through to Jersey (which authenticates it, at
- *       the price of buffering the stream), MCP and the YAML mounts answer 401.
+ *       {@code @LoginConfig}, a JAX-RS authentication filter, or {@value #REQUIRED_PROPERTY}{@code
+ *       =true} — an unauthenticated call is not served here: a streamed action falls through to
+ *       Jersey (which authenticates it, at the price of buffering the stream), MCP and the YAML
+ *       mounts answer 401.
  * </ul>
  */
 final class HelidonSeIdentity {
@@ -51,13 +52,88 @@ final class HelidonSeIdentity {
       if (principal instanceof java.util.Optional<?> optional) {
         principal = optional.orElse(null);
       }
-      return principal instanceof Principal p ? p : null;
+      if (!(principal instanceof Principal p)) {
+        return null;
+      }
+      return withGrants(p, security, type);
     } catch (ClassNotFoundException e) {
       return null; // no helidon-security on the classpath
     } catch (ReflectiveOperationException | RuntimeException e) {
       LOG.fine("Could not read the Helidon security context: " + e);
       return null;
     }
+  }
+
+  /**
+   * A Helidon {@code Principal} carries only a name: its roles and scopes are GRANTS of the
+   * request's subject. Without them an {@code @EyesOnly(roles)} / {@code access:} refused, on these
+   * routes, a caller {@code /sync} let through. So the principal handed to Mateu carries the
+   * subject's roles ({@code Security.getRoles}) and its {@code scope} grants; one with none is
+   * returned as it is.
+   */
+  private static Principal withGrants(Principal principal, Object security, Class<?> type) {
+    try {
+      var user = type.getMethod("user").invoke(security);
+      var subject = user instanceof java.util.Optional<?> optional ? optional.orElse(null) : user;
+      if (subject == null) {
+        return principal;
+      }
+      var subjectType = Class.forName("io.helidon.security.Subject");
+      var securityType = Class.forName("io.helidon.security.Security");
+      var roles = new java.util.ArrayList<String>();
+      if (securityType.getMethod("getRoles", subjectType).invoke(null, subject)
+          instanceof java.util.Collection<?> names) {
+        names.forEach(name -> roles.add(String.valueOf(name)));
+      }
+      var scopes = new java.util.ArrayList<String>();
+      if (subjectType.getMethod("grantsByType", String.class).invoke(subject, "scope")
+          instanceof java.util.Collection<?> grants) {
+        for (var grant : grants) {
+          scopes.add(String.valueOf(grant.getClass().getMethod("getName").invoke(grant)));
+        }
+      }
+      if (roles.isEmpty() && scopes.isEmpty()) {
+        return principal;
+      }
+      return new io.mateu.core.infra.security.AuthenticatedPrincipal(
+          new io.mateu.uidl.security.CallerIdentity(
+              principal.getName(), roles, java.util.List.of(), scopes, java.util.List.of()));
+    } catch (ReflectiveOperationException | RuntimeException e) {
+      LOG.fine("Could not read the grants of the Helidon subject: " + e);
+      return principal;
+    }
+  }
+
+  /**
+   * Whether the application authenticates in JAX-RS itself: a {@code ContainerRequestFilter} bean
+   * at {@code @Priority(Priorities.AUTHENTICATION)} or {@code AUTHORIZATION} (or earlier). Its
+   * identity exists only inside Jersey, so the routes served on the Helidon routing cannot see it:
+   * a streamed action falls through to Jersey, and MCP / the YAML mounts require a login unless
+   * {@value #REQUIRED_PROPERTY}{@code =false} says the filter lets anonymous callers in.
+   */
+  static boolean jaxRsAuthenticates(BeanManager beanManager) {
+    return jaxRsAuthenticationFilter(beanManager) != null;
+  }
+
+  static Class<?> jaxRsAuthenticationFilter(BeanManager beanManager) {
+    try {
+      var filterType = Class.forName("jakarta.ws.rs.container.ContainerRequestFilter");
+      for (var bean : beanManager.getBeans(Object.class, Any.Literal.INSTANCE)) {
+        var type = bean.getBeanClass();
+        if (type == null || !filterType.isAssignableFrom(type)) {
+          continue;
+        }
+        var priority = type.getAnnotation(jakarta.annotation.Priority.class);
+        if (priority != null && priority.value() <= 2000) {
+          return type;
+        }
+      }
+    } catch (ClassNotFoundException e) {
+      return null;
+    } catch (RuntimeException e) {
+      LOG.fine("Could not scan the beans for a JAX-RS authentication filter: " + e);
+    }
+    return null;
   }
 
   /** Whether the application requires an authenticated caller for its Mateu endpoints. */
@@ -77,6 +153,18 @@ final class HelidonSeIdentity {
       }
     } catch (RuntimeException e) {
       LOG.fine("Could not scan the beans for @LoginConfig: " + e);
+    }
+    var filter = jaxRsAuthenticationFilter(beanManager);
+    if (filter != null) {
+      LOG.info(
+          "Mateu: "
+              + filter.getName()
+              + " authenticates in JAX-RS, so the routes served on the Helidon routing (MCP, YAML"
+              + " mounts) require a login; set "
+              + REQUIRED_PROPERTY
+              + "=false if it lets anonymous callers in, or protect them with Helidon security or"
+              + " a PrincipalResolver bean");
+      return true;
     }
     return false;
   }

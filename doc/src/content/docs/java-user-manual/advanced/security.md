@@ -357,14 +357,18 @@ answers 403. Same rule in the .NET and Python backends.
 
 **Helidon MP: the routes served outside Jersey.** The streamed actions (`/mateu/v3/sse/**`), MCP and
 the YAML mounts run on the Helidon routing, outside the JAX-RS login check. They see the caller
-Helidon security authenticated (its `SecurityContext`), and when the app requires a login (a JAX-RS
-application annotated `@LoginConfig`, or `mateu.helidon.authentication-required=true`) an
-unauthenticated call is not served there: a streamed action falls through to Jersey (authenticated,
-buffered), MCP and the YAML mounts answer 401. An app that authenticates with its **own JAX-RS
-`ContainerRequestFilter`** (no `@LoginConfig`) must set `mateu.helidon.authentication-required=true`:
-Mateu cannot detect that filter, and those routes would run anonymous. The principal those routes
-see carries a name but no roles, so a role-gated (`@EyesOnly(roles…)`, `access:`) page refuses a
-streamed action there — serve it through Jersey (no `sse`) if it needs roles. On Quarkus, `/mateu/mcp` now runs after HTTP
+Helidon security authenticated (its `SecurityContext`) — with the subject's **roles and `scope`
+grants** — or the identity your `PrincipalResolver` beans resolve. When the app requires a login
+(a JAX-RS application annotated `@LoginConfig`, a JAX-RS **authentication filter** — a
+`ContainerRequestFilter` bean at `@Priority(Priorities.AUTHENTICATION)` or `AUTHORIZATION` — or
+`mateu.helidon.authentication-required=true`) an unauthenticated call is not served there: a
+streamed action falls through to Jersey (authenticated, buffered), MCP and the YAML mounts answer
+401. An app whose filter lets anonymous callers in sets `mateu.helidon.authentication-required=false`.
+A filter's identity exists only inside Jersey, so a streamed action that brings credentials
+(`Authorization` or a cookie) the filter would read, and that Helidon security did not authenticate,
+is also handed to Jersey: it runs with the filter's roles, buffered. To keep it streaming, protect
+the routes with Helidon security or resolve the caller with a `PrincipalResolver` bean.
+On Quarkus, `/mateu/mcp` now runs after HTTP
 security, so the app's `quarkus.http.auth.permission` policies apply to it and its tools see the
 caller.
 

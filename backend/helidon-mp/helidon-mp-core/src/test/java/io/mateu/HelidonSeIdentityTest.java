@@ -133,4 +133,48 @@ class HelidonSeIdentityTest {
     var broken = fake(BeanManager.class, java.util.Map.of("getBeans", new IllegalStateException()));
     assertFalse(HelidonSeIdentity.authenticationRequired(config(null), broken));
   }
+
+  @jakarta.annotation.Priority(jakarta.ws.rs.Priorities.AUTHENTICATION)
+  static class AuthFilter implements jakarta.ws.rs.container.ContainerRequestFilter {
+    @Override
+    public void filter(jakarta.ws.rs.container.ContainerRequestContext request) {}
+  }
+
+  static class LoggingFilter implements jakarta.ws.rs.container.ContainerRequestFilter {
+    @Override
+    public void filter(jakarta.ws.rs.container.ContainerRequestContext request) {}
+  }
+
+  @Test
+  void aJaxRsAuthenticationFilterMeansTheAppAuthenticatesInJersey() {
+    assertTrue(HelidonSeIdentity.jaxRsAuthenticates(beansOf(PlainBean.class, AuthFilter.class)));
+    // a filter at the default (USER) priority is not an authentication filter
+    assertFalse(HelidonSeIdentity.jaxRsAuthenticates(beansOf(LoggingFilter.class)));
+    // so the Helidon-routed MCP / YAML mounts require a login, unless declared otherwise
+    assertTrue(HelidonSeIdentity.authenticationRequired(config(null), beansOf(AuthFilter.class)));
+    assertFalse(HelidonSeIdentity.authenticationRequired(config(false), beansOf(AuthFilter.class)));
+  }
+
+  @Test
+  void theSubjectsRolesAndScopesTravelWithThePrincipal() {
+    var subject =
+        io.helidon.security.Subject.builder()
+            .principal(io.helidon.security.Principal.create("leia"))
+            .addGrant(io.helidon.security.Role.create("admin"))
+            .addGrant(io.helidon.security.Grant.builder().type("scope").name("orders.read").build())
+            .build();
+    var answers = new java.util.HashMap<String, Object>();
+    answers.put("isAuthenticated", true);
+    answers.put("userPrincipal", Optional.of(subject.principal()));
+    answers.put("user", Optional.of(subject));
+    var request = requestWith(contextHolding(fake(SecurityContext.class, answers)));
+
+    var principal = HelidonSeIdentity.principalOf(request);
+
+    var identity = ((io.mateu.core.infra.security.AuthenticatedPrincipal) principal).identity();
+    org.junit.jupiter.api.Assertions.assertEquals("leia", identity.name());
+    org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("admin"), identity.roles());
+    org.junit.jupiter.api.Assertions.assertEquals(
+        java.util.List.of("orders.read"), identity.scopes());
+  }
 }
