@@ -2,7 +2,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, query, state } from 'lit/decorators.js';
 import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutPanelInfo";
 import FoldoutNavigation from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutNavigation";
-import { foldoutSectionStyle, mergeOpenStates, visibleSections, wheelToRow, VerticalScroller } from "@infra/ui/foldoutGeometry.ts";
+import { foldoutOpenStates, foldoutSectionStyle, visibleSections, wheelToRow, VerticalScroller } from "@infra/ui/foldoutGeometry.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
@@ -73,10 +73,13 @@ export class MateuVaadinFoldout extends LitElement {
     @state()
     private _more = false
 
-    // Open/closed per panel: from the wire (open=false → strip), then what the user toggles.
+    // Open/closed per panel: from the wire (open=false → strip; autoOpen → open while it fits the
+    // row, foldoutOpenStates), then what the user toggles — a toggle wins for that panel until
+    // another set of panels arrives (a navigation).
     @state()
     private _open: boolean[] = []
     private _openKey = ''
+    private _toggled: (boolean | undefined)[] = []
 
     // Which sections are in view (overview first): the filled paging dots.
     @state()
@@ -84,15 +87,32 @@ export class MateuVaadinFoldout extends LitElement {
 
     protected willUpdate(changed: Map<string, unknown>) {
         if (changed.has('panels')) {
-            const merged = mergeOpenStates(this._open, this._openKey, this.panels)
-            this._open = merged.states
-            this._openKey = merged.key
+            const key = (this.panels ?? []).map(p => p?.title ?? '').join('\u0001')
+            if (key !== this._openKey) {
+                this._openKey = key
+                this._toggled = []
+            }
+            this._applyOpen()
+        }
+    }
+
+    // The row's width decides the auto panels; null before the first layout (all auto panels open).
+    private _applyOpen() {
+        const available = this.clientWidth || null
+        const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+        const gapPx = parseFloat(getComputedStyle(this).getPropertyValue('--mateu-foldout-gap')) || 0
+        const next = foldoutOpenStates(this.panels, available, {
+            overviewPx: 25 * remPx, stripPx: 3 * remPx, defaultPanelPx: 22 * remPx, remPx, gapPx,
+        }).map((open, i) => this._toggled[i] ?? open)
+        if (next.join() !== this._open.join()) {
+            this._open = next
         }
     }
 
     private _toggle(index: number) {
         const next = [...this._open]
         next[index] = !(next[index] ?? true)
+        this._toggled[index] = next[index]
         this._open = next
         // the row changed width: re-measure once the strip/panel has been laid out
         requestAnimationFrame(() => this._syncPin())
@@ -259,6 +279,7 @@ export class MateuVaadinFoldout extends LitElement {
     // Fills the column height down to the viewport bottom regardless of any chrome above the foldout
     // (the foldout page has no definite-height ancestor to inherit from), so no gap is left below.
     private _fit = () => {
+        this._applyOpen()
         const top = this.getBoundingClientRect().top
         const base = Math.max(240, window.innerHeight - top)
         this.style.setProperty('--mateu-foldout-fill', `${base}px`)
@@ -714,7 +735,7 @@ export class MateuVaadinFoldout extends LitElement {
                             </section>
                         `
                     }
-                    const foldable = panel.open === false
+                    const foldable = panel.open === false || panel.autoOpen === true
                     return html`
                     <section class="section${alt}" part="section panel" data-node-id="${panel.id ?? nothing}"
                              style="${this._sectionStyle(panel, index)}">
