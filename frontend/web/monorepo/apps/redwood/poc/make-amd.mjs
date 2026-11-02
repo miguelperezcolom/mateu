@@ -33,7 +33,7 @@ const CORE_PIECES = [...readFileSync(join(here, 'reduceContexts.mjs'), 'utf8')
 export const MODULES = [
   'i18n.mjs', 'oracleCdn.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
-  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'versionSkew.mjs', 'a11y.mjs', 'elements.mjs', 'foldouts.mjs',
+  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'versionSkew.mjs', 'a11y.mjs', 'viewport.mjs', 'elements.mjs', 'foldouts.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'historyIndex.mjs', 'shellFlows.mjs', 'drawers.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'toc.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'untrusted.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'agentPush.mjs', 'theme.mjs', 'qr.mjs',
@@ -314,6 +314,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
+    masterDetailOf,
     withListingSelection,
     onLoadTriggers,
     // filtros del listado: descriptores ya resueltos a widget, y la config smartFilters de la
@@ -469,6 +470,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     isExternalRoute,
     scrollToTopOnNavigate,
     scrollToTopWhenReplaced,
+    keepViewport,
+    focusSelectorOf,
+    keepsViewport,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,
@@ -500,6 +504,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     classifyRequestFailure,
     isIdempotentAction,
     connectivity,
+    isNarrowViewport,
+    watchNarrowViewport,
     pendingActions,
     setTransportHooks,
     authHeadersOf,
@@ -651,6 +657,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,
+    routedActionOf,
     routeStateOf,
     hostReRendered,
     touchesHost,

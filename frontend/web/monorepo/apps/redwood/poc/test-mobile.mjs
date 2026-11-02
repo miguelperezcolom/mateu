@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { encodeQr, qrDataCodewords, qrDataUri, qrSvg, mobileAddUrl, mobileQrModelOf, MOBILE_QR_PHONE_QUERY, isPhoneLike } from './qr.mjs'
 import { reduceContexts } from './reduceContexts.mjs'
+import { NARROW_VIEWPORT_QUERY, isNarrowViewport, watchNarrowViewport } from './viewport.mjs'
 import { CHROME_TEXTS } from './i18n.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -123,6 +124,28 @@ test('shell: App.mobileQr reaches the registry, the header button and the dialog
   assert.ok(page.variables.mateuMobileQrModel)
   assert.equal(JSON.parse(webApp('app-flow.json')).variables.mateuMobileQr.type, 'boolean')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /mateuMobileQr = !!\(reg\.shell && reg\.shell\.mobileQr\)/)
+})
+
+test('phone width: a DataManagement bottom panel stays closed, and is docked again once wide (crawl D1/D2)', () => {
+  const listeners = new Set()
+  let matches = true
+  const win = { matchMedia: (q) => { assert.equal(q, NARROW_VIEWPORT_QUERY); return { get matches() { return matches }, addEventListener: (_, f) => listeners.add(f), removeEventListener: (_, f) => listeners.delete(f) } } }
+  assert.equal(isNarrowViewport(win), true)
+  assert.equal(isNarrowViewport({}), false, 'no matchMedia → wide')
+  const seen = []
+  const off = watchNarrowViewport((n) => seen.push(n), win)
+  matches = false; listeners.forEach((f) => f({ matches: false }))
+  assert.deepEqual(seen, [true, false], 'now, then every crossing')
+  off()
+  assert.equal(listeners.size, 0)
+  const html = webApp('flows/main/pages/main-start-page.html')
+  // closed BEFORE JET reflows it: open across the breakpoint it stayed in the z-order container (a 438 px band)
+  assert.match(html, /bottom-opened="\[\[ !\$application\.variables\.mateuNarrow && /)
+  assert.equal(JSON.parse(webApp('app-flow.json')).variables.mateuNarrow.type, 'boolean')
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.watchNarrowViewport\(/)
+  // leaving the page nulls mateuDm while its inner bindings still evaluate: none may read through null (D4)
+  const unguarded = html.split('\n').filter((l) => /variables\.mateuDm\./.test(l) && !/variables\.mateuDm && /.test(l))
+  assert.deepEqual(unguarded, [], 'every mateuDm.x binding is guarded')
 })
 
 console.log(`\n${passed} tests mobile OK`)

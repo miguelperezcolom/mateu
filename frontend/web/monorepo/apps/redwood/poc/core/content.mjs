@@ -777,6 +777,8 @@ export function islandContentOf(ctx, opts = {}) {
           fieldId,
           label: m.label || '',
           value: state[fieldId] == null ? '' : String(state[fieldId]),
+          // its hint while empty («e.g. Mars Sample Return»), like the web renderer's
+          placeholder: m.placeholder ? interp(String(m.placeholder)) : '',
         }, container)
       }
       return

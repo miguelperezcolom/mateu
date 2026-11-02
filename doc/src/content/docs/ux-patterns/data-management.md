@@ -48,6 +48,9 @@ and the docked panels; the grid and the Gantt are whatever components you hand i
 - An open end panel is a fixed track beside the content (default `22rem`); below **48rem** of
   available width it stacks **under** the content instead.
 - The bottom panel caps its height at its `size` (default `16rem`) and scrolls.
+- **Redwood at phone width** (below 600 px): the docked panels start closed, because JET turns a
+  docked drawer into a full-screen sheet there and it would hide the content; they dock again when
+  the window is wide.
 
 ## What you can configure
 
