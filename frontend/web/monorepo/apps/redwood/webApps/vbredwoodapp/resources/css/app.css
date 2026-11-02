@@ -1162,6 +1162,13 @@ oj-action-card.mateu-listing-card {
   max-width: 100%;
 }
 
+/* A field's help (@Help) under a widget JET does not own (searchable, capture, color, rich text,
+   stars, a nested list): the same instruction text the JET inputs draw with help.instruction */
+.mateu-field-help {
+  margin-top: 0.25rem;
+  white-space: pre-line;
+}
+
 /* @Searchable: the ids as chips (with ✕) and the button that opens their selector */
 .mateu-searchable {
   display: flex;

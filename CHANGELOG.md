@@ -40,6 +40,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   now scrolls inside, and the wheel over it scrolls the panel while it has room before paging the row
   (`poc/foldouts.mjs` `installFoldoutPanelScroll`). The Vaadin shell already grew the panels.
 
+- **Redwood: a field's help (`@Help`, a `DescriptionSupplier`) is shown.** The server sends it as the
+  field's `description` and Vaadin draws it as helper text under the field; Redwood dropped it. It is
+  now the field's Redwood instruction text — JET's `help.instruction`, which the inputs draw under
+  the field (text-like inputs while they have the focus, switches, radios and checkbox sets always)
+  and read to assistive technology — on every field kind and every copy of the field templates: the
+  page form, the crud drawer, the dialog, the wizard, the island and the `List<Row>` row editor. A
+  widget JET does not own (`@Searchable`, file / image capture, colour, rich text, markdown, stars,
+  a nested list in the row editor) draws the same text under its value.
+- **Redwood: an action that re-renders the form in place keeps the scroll position.** An editor's
+  `@Button` at the bottom of a long crud edit form re-renders the form in place (same component id
+  and type); the page jumped back to its top. The scroll (the window's and that of a scrolled
+  container holding the focus) and the focus of the pressed button are now put back once the answer
+  is painted, until the reader scrolls, types or clicks. A navigation, a route flip (a row to its
+  detail) or a host replaced by another component still start at the top.
 - **A record page's tab is named after the record, never its id** (Java, web). A definition page
   whose title waits for its record (`title: ${state.name}`) was named by the route's last segment
   until the record landed — `/missions/6` read "6", its Edit page just "Edit" — and on an in-app
