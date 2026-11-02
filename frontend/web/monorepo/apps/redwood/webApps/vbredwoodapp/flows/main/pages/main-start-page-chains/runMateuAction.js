@@ -149,7 +149,7 @@ define([
           return;
         }
       }
-
+      const viewport = bridge.keepViewport(); // scroll + focus, restored after an in-place re-render (below)
       const appState = $application.variables.mateuAppState || {};
       // the HOST's actions advertised Action.sse(true) (e.g. opFirma → tablet) go through the
       // /sse endpoint: ALL the stream's increments are applied and the events/toasts of each
@@ -232,9 +232,9 @@ define([
       // load — without this a listing that repaints (e.g. after dropping rows on a DropZone)
       // came back EMPTY, with its columns and not a single row. Reduced separately: lastIncrement
       // is the action's, which the route-flip below reads.
-      {
+      let reRendered = false; {
         const hostNow = reg.contexts[bridge.HOST_ID];
-        const reRendered = bridge.hostReRendered(lastIncrement, host, hostNow);
+        reRendered = bridge.hostReRendered(lastIncrement, host, hostNow);
         if (reRendered) {
           for (const triggerActionId of bridge.onLoadTriggers(hostNow)) {
             const listingNow = bridge.listingOf(hostNow);
@@ -625,6 +625,7 @@ define([
       }).vars);
       vars.mateuDirty = false;
       const committed = staged.commit();
+      if (bridge.keepsViewport({ navigate: effects.navigate, flipRoute, reRendered })) viewport.restore(); // same screen: stay put
       // the oj-tab-bar parses its <ul> on initialization and the for-each's <li>s arrive later: without
       // a refresh it keeps the unstyled list (the navigator's trap); after the commit, which paints them
       for (const barId of committed.has('mateuHostContent') ? bridge.tabBarIdsOf($application.variables.mateuHostContent) : []) {

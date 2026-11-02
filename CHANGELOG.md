@@ -25,6 +25,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Redwood: a field's help (`@Help`, a `DescriptionSupplier`) is shown.** The server sends it as the
+  field's `description` and Vaadin draws it as helper text under the field; Redwood dropped it. It is
+  now the field's Redwood instruction text — JET's `help.instruction`, which the inputs draw under
+  the field (text-like inputs while they have the focus, switches, radios and checkbox sets always)
+  and read to assistive technology — on every field kind and every copy of the field templates: the
+  page form, the crud drawer, the dialog, the wizard, the island and the `List<Row>` row editor. A
+  widget JET does not own (`@Searchable`, file / image capture, colour, rich text, markdown, stars,
+  a nested list in the row editor) draws the same text under its value.
+- **Redwood: an action that re-renders the form in place keeps the scroll position.** An editor's
+  `@Button` at the bottom of a long crud edit form re-renders the form in place (same component id
+  and type); the page jumped back to its top. The scroll (the window's and that of a scrolled
+  container holding the focus) and the focus of the pressed button are now put back once the answer
+  is painted, until the reader scrolls, types or clicks. A navigation, a route flip (a row to its
+  detail) or a host replaced by another component still start at the top.
 - **Redwood: a field with `@Label("")` shows no label.** Its label fell back to the raw field id
   whenever it was empty (a `warnings` field read "warnings"); the id is now used only when the wire
   sends no label at all.

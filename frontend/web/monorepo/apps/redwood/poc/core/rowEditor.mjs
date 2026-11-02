@@ -263,6 +263,8 @@ export function nestedListWidgetOf(f, value) {
     readonly,
     ...EMPTY_WIDGET_FLAGS,
     isNestedList: true,
+    help: fieldHelpOf(f),
+    hasHelp: !!fieldHelpOf(f),
     columns,
     rows: rows.map((row, index) => ({
       key: f.fieldId + '#' + index,
@@ -787,9 +789,11 @@ function dateRangeWidgetOf(f, value) {
   const ends = dateRangeEndsOf(value)
   const label = fieldLabelOf(f)
   // the first end carries the field's label, the second says it is the end of the range
+  const help = fieldHelpOf(f)
   const part = (end, key) => ({
     fieldId: f.fieldId + '#' + end,
     label: key ? chromeText(key) : label,
+    help: key ? '' : help,
     value: ends[end],
     required: !!f.required,
     readonly: !!f.readOnly,
@@ -797,7 +801,27 @@ function dateRangeWidgetOf(f, value) {
   return { isDateRange: true, rangeParts: [part('from', ''), part('to', 'rangeTo')] }
 }
 
-export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
+/** A field's help (`@Help`, a DescriptionSupplier): the wire's `description`, '' when it has none.
+ *  Drawn as the field's Redwood instruction text — JET's `help.instruction`, inline under the field
+ *  like Vaadin's helper text; a widget JET does not own (capture, color, rich text…) draws the same
+ *  text under its value (fieldHelpOf is the ONE place it is read). */
+export function fieldHelpOf(f) {
+  const help = f && f.description
+  return help == null ? '' : String(help).trim()
+}
+
+/**
+ * The widget a field gets (flags precomputed for VB's simple bindings), with its help: every copy
+ * of the field templates (the page form, the drawer, the dialog, the row editor, the wizard, the
+ * island) reads `help` / `hasHelp` from here.
+ */
+export function fieldWidgetOf(f, data, opts) {
+  const widget = widgetOf(f, data, opts)
+  const help = fieldHelpOf(f)
+  return { ...widget, help, hasHelp: !!help }
+}
+
+function widgetOf(f, data, { lookups, value, textWhenEmpty }) {
   if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
   if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
   // a DATE RANGE: two oj-input-date (from, to), each editing its end (rangeEditOf) — the field was

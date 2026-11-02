@@ -29,7 +29,7 @@ import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
@@ -2092,6 +2092,81 @@ atest('the old screen does not jump to its top before the new one is there', asy
   // back/forward keeps the browser's position, as before
   assert.equal(scrollToTopWhenReplaced({ fromUrl: true }, win)(), false)
   assert.equal(calls.length, 2)
+})
+
+atest('an in-place re-render keeps the reader where they were: scroll and focus come back, a navigation still starts at the top', async () => {
+  // an editor @Button at the bottom of a long edit form re-renders the form in place (same id and
+  // type): the re-stamped form was briefly shorter than the window, the browser clamped the scroll
+  // to 0 and the reader landed back at the top of the page
+  const listeners = {}
+  const el = (attrs = {}, parent = null) => ({
+    attrs, parentElement: parent, isConnected: true, scrollTop: 0, scrollLeft: 0, focused: 0,
+    hasAttribute: (a) => a in attrs, getAttribute: (a) => attrs[a],
+    closest(sel) { for (let e = this; e; e = e.parentElement) if (sel.split(',').some((s) => s.trim().slice(1, -1) in e.attrs)) return e; return null },
+    querySelector: () => null, focus() { this.focused++; doc.activeElement = this },
+  })
+  const root = el()
+  const body = el({}, root)
+  const drawerBody = el({}, body)
+  const button = el({ 'data-action-id': 'action-on-editor-insert"Medium' }, drawerBody)
+  const inner = el({}, button)
+  const replaced = el({ 'data-action-id': 'action-on-editor-insert"Medium' }, drawerBody)
+  replaced.querySelector = (sel) => (sel.startsWith('button') ? inner2 : null)
+  const inner2 = el({}, replaced)
+  const doc = {
+    scrollingElement: root, documentElement: root, body, activeElement: inner,
+    addEventListener: (e, fn) => { listeners[e] = fn }, removeEventListener: (e) => { delete listeners[e] },
+    querySelector: (sel) => (sel === '[data-action-id="action-on-editor-insert\\"Medium"]' ? replaced : null),
+  }
+  const timers = []
+  const win = { setTimeout: (fn) => { timers.push(fn); return timers.length } }
+  root.scrollTop = 541
+  drawerBody.scrollTop = 120
+  const kept = keepViewport(doc, win)
+  assert.deepEqual(kept.scrollers.map((s) => s.top), [541, 120])
+  assert.equal(kept.focusSelector, '[data-action-id="action-on-editor-insert\\"Medium"]')
+  // the answer is painted: the page jumped to its top and the pressed button was replaced
+  root.scrollTop = 0
+  drawerBody.scrollTop = 0
+  inner.isConnected = false
+  assert.equal(kept.restore(), true)
+  assert.deepEqual([root.scrollTop, drawerBody.scrollTop], [541, 120])
+  assert.equal(doc.activeElement, inner2)
+  // VB binds asynchronously: it keeps putting the position back for a moment…
+  root.scrollTop = 0
+  timers.shift()()
+  assert.equal(root.scrollTop, 541)
+  // …until the reader scrolls, types or clicks: never fighting the user
+  listeners.wheel()
+  root.scrollTop = 30
+  timers.shift()()
+  assert.equal(root.scrollTop, 30)
+  // the focus is never taken from a field the reader is in
+  inner2.focused = 0
+  const field = el({ 'data-field-id': 'body' }, body)
+  doc.activeElement = field
+  const again = keepViewport(doc, win)
+  doc.activeElement = field
+  again.restore()
+  assert.equal(inner2.focused, 0)
+  assert.equal(focusSelectorOf(field), '[data-field-id="body"]')
+  assert.equal(focusSelectorOf(el()), '')
+  assert.equal(focusSelectorOf(null), '')
+  // no DOM (a test, a worker): nothing to keep
+  assert.equal(keepViewport(null, null).restore(), false)
+  // which answers keep it: the same screen re-rendered, a state change, an overlay — not another screen
+  assert.equal(keepsViewport({}), true)
+  assert.equal(keepsViewport({ navigate: {} }), true)
+  assert.equal(keepsViewport({ navigate: { route: '/docs' } }), false)
+  assert.equal(keepsViewport({ navigate: { url: 'https://x' } }), false)
+  assert.equal(keepsViewport({ flipRoute: '/d1' }), false)
+  assert.equal(keepsViewport({ reRendered: true }), false)
+  // the chain takes it before the action leaves and restores it only when keepsViewport says so
+  const here = new URL('.', import.meta.url).pathname
+  const chain = readFileSync(here + '../webApps/vbredwoodapp/flows/main/pages/main-start-page-chains/runMateuAction.js', 'utf8')
+  const sent = chain.search(/bridge\.runMateuAction\(\s*base, transportCtx/)
+  assert.ok(sent > 0 && chain.indexOf('bridge.keepViewport()') > 0 && chain.indexOf('bridge.keepViewport()') < sent)
+  assert.match(chain, /if \(bridge\.keepsViewport\(\{ navigate: effects\.navigate, flipRoute, reRendered \}\)\) viewport\.restore\(\)/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
