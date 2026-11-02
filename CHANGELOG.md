@@ -25,6 +25,31 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Redwood at phone width and back (live crawl of the demo sites).** A DataManagement page's docked
+  panels stay closed below 600 px — JET turns them into a full-screen sheet there, which hid the
+  listing on load — and dock again once the window is wide; a panel left open across the breakpoint
+  used to stay in JET's z-order container and push the whole shell down by its height (438 px on
+  /loans). A MENU_ON_TOP / TABS shell folds its menu strip into a ☰ navigator at phone width (the strip
+  scrolled sideways with half the entries off screen), and a long listing title ends in an ellipsis.
+- **Redwood: `gridLayout: masterDetail` opens the clicked row's fields beside the list** (an end panel;
+  a full-screen sheet on a phone). The table ignored the declaration and a row click did nothing.
+- **Redwood: a RouteLink button always navigates.** A header painted from a projection that lagged a
+  slow load handed over its id without the route and the action went to the server (403); every
+  action is now checked against the screen's RouteLink buttons before it leaves, and one whose
+  record has not loaded yet sends nothing.
+- **Redwood: a YAML page is headed by its own title and subtitle** (a page served as a client-side
+  tree took the menu label: «Launch sites map» for «Launch sites»), and a listing page shows its
+  subtitle.
+- **Redwood: a YAML guided process can be walked by its steps**: the rail drew every step disabled
+  (faint, not clickable, the current one indistinguishable). Text, number and text-area fields show
+  their `placeholder`.
+- **Redwood: a Gantt's axis unit follows its span** (months up to 18 months, quarters up to 54, then
+  years), as the web renderer's does: a six-decade plan drawn by months and weeks had negative tick
+  widths and one task on screen.
+- **Redwood console noise**: an oj-table fetch the table aborted itself no longer surfaces as an
+  uncaught «Aborting stale fetch»; leaving a DataManagement page no longer fails the navigation chain
+  («Cannot read properties of null (reading 'end')»); banners carry their keys (VB's «No keys were
+  specified» warning); a foldout's last content clears its floating paging dots.
 - **Redwood: a field with `@Label("")` shows no label.** Its label fell back to the raw field id
   whenever it was empty (a `warnings` field read "warnings"); the id is now used only when the wire
   sends no label at all.
