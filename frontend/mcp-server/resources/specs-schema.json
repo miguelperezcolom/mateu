@@ -7302,7 +7302,7 @@
       }
     },
     "OrgChart" : {
-      "description" : "A read-only top-down hierarchy chart (org chart, category tree): a single root OrgNode whose children fan out below it, connected by lines.",
+      "description" : "A read-only hierarchy chart (org chart, category tree) of a single root OrgNode.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7322,6 +7322,12 @@
         "cssClasses" : {
           "type" : "string"
         },
+        "display" : {
+          "$ref" : "#/$defs/OrgChartDisplay"
+        },
+        "focus" : {
+          "type" : "string"
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
@@ -7339,6 +7345,10 @@
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
+    },
+    "OrgChartDisplay" : {
+      "type" : "string",
+      "enum" : [ "tree", "focus" ]
     },
     "OrgNode" : {
       "type" : "object",

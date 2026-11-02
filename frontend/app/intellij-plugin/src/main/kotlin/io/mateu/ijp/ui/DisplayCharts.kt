@@ -168,8 +168,12 @@ fun renderStat(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return tile
 }
 
-/** OrgChart (indented tree on Swing): each node a row, children indented under it. */
+/**
+ * OrgChart: an indented tree on Swing (each node a row, children indented under it), or — with
+ * display = "focus" — one node at a time (Redwood's hierarchy viewer, see [renderOrgFocus]).
+ */
 fun renderOrgChart(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    if (OrgChartModel.isFocus(metadata) && metadata.path("root").isObject) return renderOrgFocus(r, metadata)
     val panel = verticalPanel(2)
     val root = metadata.get("root")
     if (root != null && !root.isNull) orgNodeRow(r, panel, root, 0)
@@ -193,6 +197,103 @@ private fun orgNodeRow(r: ComponentRenderer, panel: JPanel, node: JsonNode, dept
     }
     panel.addStacked(row, 2)
     for (child in node.arr("children")) orgNodeRow(r, panel, child, depth + 1)
+}
+
+/**
+ * OrgChart in focus: the focused node as a prominent card, its ancestors above it (root first —
+ * a desktop has the room for all of them), its children below under "Reports (n)". Clicking an
+ * ancestor or a child card moves the focus there, locally (the whole tree is in the metadata); a
+ * node's action runs from its TITLE (a link), exactly as the tree runs it, while the card focuses.
+ */
+private fun renderOrgFocus(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val panel = verticalPanel(0)
+    fun show(path: List<JsonNode>) {
+        panel.removeAll()
+        val focused = path.last()
+        OrgChartModel.ancestors(path).forEachIndexed { i, ancestor ->
+            panel.addStacked(orgFocusCard(r, ancestor, big = false) { show(path.subList(0, i + 1)) }, 0)
+            panel.addStacked(orgConnector(), 0)
+        }
+        panel.addStacked(orgFocusCard(r, focused, big = true, onFocus = null), 0)
+        val children = OrgChartModel.children(focused)
+        if (children.isNotEmpty()) {
+            panel.add(javax.swing.Box.createVerticalStrut(JBUI.scale(10)))
+            val heading = JBLabel(plain(OrgChartModel.reportsLabel(children.size))).apply { font = font.deriveFont(Font.BOLD) }
+            panel.addStacked(heading, 6)
+            val grid = JPanel(java.awt.GridLayout(0, 2, JBUI.scale(8), JBUI.scale(8)))
+            grid.isOpaque = false
+            for (child in children) grid.add(orgFocusCard(r, child, big = false, showReports = true) { show(path + listOf(child)) })
+            panel.addStacked(grid, 0)
+        }
+        panel.revalidate()
+        panel.repaint()
+    }
+    show(OrgChartModel.initialPath(metadata))
+    return panel
+}
+
+/** The short vertical line between an ancestor's card and the next one down. */
+private fun orgConnector(): JComponent = object : JComponent() {
+    override fun getPreferredSize() = Dimension(JBUI.scale(40), JBUI.scale(12))
+    override fun paintComponent(g: Graphics) {
+        g.color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
+        g.fillRect(JBUI.scale(26), 0, JBUI.scale(2), height)
+    }
+}
+
+/** One node's card: a round initials badge, the title (a link when the node has an action), the subtitle. */
+private fun orgFocusCard(
+    r: ComponentRenderer,
+    node: JsonNode,
+    big: Boolean,
+    showReports: Boolean = false,
+    onFocus: (() -> Unit)?,
+): JComponent {
+    val title = node.text("title")
+    val subtitle = node.text("subtitle")
+    val accent = runCatching { Color.decode(node.text("color")) }.getOrNull() ?: JBUI.CurrentTheme.Link.Foreground.ENABLED
+    val card = JPanel(BorderLayout(JBUI.scale(10), 0))
+    card.isOpaque = false
+    card.border = JBUI.Borders.compound(
+        JBUI.Borders.customLine(accent, if (big) 2 else 1, if (big) 4 else 3, if (big) 2 else 1, if (big) 2 else 1),
+        JBUI.Borders.empty(if (big) 12 else 6, 8),
+    )
+    val size = JBUI.scale(if (big) 48 else 30)
+    val initials = OrgChartModel.initials(title, node.text("avatar"))
+    val badge = object : JComponent() {
+        override fun getPreferredSize() = Dimension(size, size)
+        override fun paintComponent(g: Graphics) {
+            val g2 = g as Graphics2D
+            g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+            g2.color = accent
+            g2.fillOval(0, 0, size - 1, size - 1)
+            g2.color = Color.WHITE
+            g2.font = g2.font.deriveFont(Font.BOLD, (size / 2.6f))
+            val fm = g2.fontMetrics
+            g2.drawString(initials, (size - fm.stringWidth(initials)) / 2, (size - fm.height) / 2 + fm.ascent)
+        }
+    }
+    val badgeBox = JPanel(java.awt.GridBagLayout()).apply { isOpaque = false; add(badge) }
+    card.add(badgeBox, BorderLayout.WEST)
+    val body = verticalPanel(0)
+    val actionId = node.text("actionId")
+    val titleFont = { f: Font -> f.deriveFont(Font.BOLD, if (big) f.size2D + 3f else f.size2D) }
+    if (actionId.isNotBlank()) {
+        val link = com.intellij.ui.components.ActionLink(plain(title)) { r.ctx.runAction(actionId, null) }
+        link.font = titleFont(link.font)
+        link.accessibleName(title)
+        body.addStacked(link, 2)
+    } else {
+        body.addStacked(JBLabel(plain(title)).apply { font = titleFont(font) }, 2)
+    }
+    if (subtitle.isNotBlank()) body.addStacked(JBLabel(plain(subtitle)).apply { foreground = ToneColors.secondaryText() }, 0)
+    val reports = OrgChartModel.children(node).size
+    if (showReports && reports > 0) {
+        body.addStacked(JBLabel(plain(OrgChartModel.reportsLabel(reports))).apply { foreground = ToneColors.secondaryText() }, 0)
+    }
+    card.add(body, BorderLayout.CENTER)
+    if (onFocus != null) card.activatable(OrgChartModel.label(title, subtitle)) { onFocus() }
+    return card
 }
 
 /** Heatmap: a GitHub-style grid of day squares colored by intensity, painted on a canvas. */

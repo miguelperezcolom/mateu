@@ -550,10 +550,26 @@ public sealed record OrgNode
     public IReadOnlyList<OrgNode> Children { get; init; } = [];
 }
 
-/// <summary>A read-only top-down hierarchy chart: a root node whose children fan out below it.</summary>
+/// <summary>How an <see cref="OrgChart"/> is presented: Tree — the whole hierarchy at once,
+/// top-down; Focus — one node in focus (the chart's <c>Focus</c>, else the root) with its chain of
+/// ancestors above it and its children below, picking one moves the focus there. Travels in
+/// lowercase (tree|focus), like Java's OrgChartDisplay. Experimental (3.0-beta.38).</summary>
+public enum OrgChartDisplay
+{
+    Tree,
+    Focus,
+}
+
+/// <summary>A read-only hierarchy chart: a root node whose children fan out below it.</summary>
 public sealed record OrgChart : ComponentBase
 {
     public OrgNode? Root { get; init; }
+    /// <summary>The presentation (<see cref="OrgChartDisplay"/>); null = tree.
+    /// Experimental (3.0-beta.38), like Java's <c>OrgChart.display</c>.</summary>
+    public OrgChartDisplay? Display { get; init; }
+    /// <summary>The id of the node a Focus chart opens on (the root when null or unknown).
+    /// Experimental (3.0-beta.38), like Java's <c>OrgChart.focus</c>.</summary>
+    public string? Focus { get; init; }
 }
 
 /// <summary>One cell of a <see cref="Heatmap"/>: a Date and its Value (drives color intensity).</summary>

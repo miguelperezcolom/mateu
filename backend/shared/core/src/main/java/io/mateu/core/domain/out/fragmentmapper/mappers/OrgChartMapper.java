@@ -11,7 +11,11 @@ public class OrgChartMapper {
 
   public static ClientSideComponentDto mapOrgChartToDto(OrgChart orgChart) {
     return new ClientSideComponentDto(
-        OrgChartDto.builder().root(mapNode(orgChart.root())).build(),
+        OrgChartDto.builder()
+            .root(mapNode(orgChart.root()))
+            .display(orgChart.display() != null ? orgChart.display().name() : null)
+            .focus(orgChart.focus())
+            .build(),
         orgChart.id(),
         List.of(),
         orgChart.style(),

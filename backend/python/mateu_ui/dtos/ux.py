@@ -171,6 +171,10 @@ class OrgChartMetadata(Wire):
 
     type: Literal["OrgChart"] = "OrgChart"
     root: OrgNodeRecord | None = None
+    # tree|focus (the OrgChartDisplay name), None when unset; focus = the node id a focus chart
+    # opens on. Experimental (3.0-beta.38).
+    display: str | None = None
+    focus: str | None = None
 
 
 class HeatCellRecord(Wire):

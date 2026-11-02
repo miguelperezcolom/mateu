@@ -158,6 +158,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatRestore: 'Restore the width',
       selectRowsFirst: 'You first need to select some rows',
       kanbanMove: 'Move {card}',
+      orgReports: 'Reports',
       kanbanMoveTo: 'Move to {column}',
       kanbanMoveUp: 'Move up',
       kanbanMoveDown: 'Move down',
@@ -392,6 +393,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatRestore: 'Ancho normal',
       selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
       kanbanMove: 'Mover {card}',
+      orgReports: 'Equipo',
       kanbanMoveTo: 'Mover a {column}',
       kanbanMoveUp: 'Subir',
       kanbanMoveDown: 'Bajar',
@@ -11969,8 +11971,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // ── OrgChart: the tree as an indented outline (VB templates cannot recurse), oj-avatar per node ──
+  // ── OrgChart: Spectra's hierarchy viewer (oj-sp-hierarchy-viewer + oj-sp-hierarchy-card) ─────────
+  // Redwood's org chart: one person in focus, their manager above (and the levels above that, folded),
+  // their reports below; picking a manager or a report moves the focus there (Spectra animates it, the
+  // renderer hands it the new person's data: the whole tree travels in the atom), and a card's name
+  // runs the node's action. With no provider factory (the tests, a host without JET) the tree is an
+  // indented outline (VB templates cannot recurse), oj-avatar per node.
+
+  /** The ArrayDataProviders the viewer reads (make-amd, keyed by id); null = the outline. */
+  let orgHierarchyProviderFactory = null
+  function setOrgHierarchyProviderFactory(factory) { orgHierarchyProviderFactory = factory }
+
+  /** The slot the viewer draws every card with (its parent, focus and child templates are this one). */
+  const ORG_CARD_TEMPLATE = 'mateuOrgCard'
+
   function orgChartAtomOf(m, interp = (x) => x) {
+    if (orgHierarchyProviderFactory) return orgHierarchyAtomOf(m, interp)
     const nodes = []
     const walk = (node, depth, last) => {
       if (!node) return
@@ -11992,6 +12008,67 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     walk(m.root, 0, true)
     return { isOrgChart: true, nodes: keyed(nodes) }
+  }
+
+  /**
+   * OrgChart for the hierarchy viewer: every node as a card (keyed by its path: 'n0', 'n0-2'…), with
+   * its manager and reports, and the viewer's data with the root in focus.
+   */
+  function orgHierarchyAtomOf(m, interp = (x) => x) {
+    const byKey = {}
+    const walk = (node, key, parentKey) => {
+      if (!node) return
+      const { children, ...self } = node
+      const kids = Array.isArray(children) ? children.filter(Boolean) : []
+      const av = avatarOf({ name: node.title, image: node.avatar })
+      byKey[key] = {
+        id: key,
+        nodeId: node.id == null ? null : String(node.id),
+        title: interp(str(node.title)),
+        subtitle: interp(str(node.subtitle)),
+        avatar: { initials: av.initials, ...(av.src ? { src: av.src } : {}) },
+        navigation: node.actionId ? 'on' : 'off',
+        parentKey: parentKey || null,
+        childKeys: kids.map((_, i) => key + '-' + i),
+        ...clickable(node.actionId, { _clickedNode: self }),
+      }
+      kids.forEach((k, i) => walk(k, key + '-' + i, key))
+    }
+    walk(m.root, 'n0', null)
+    const atom = { isOrgHierarchy: true, template: ORG_CARD_TEMPLATE, byKey }
+    // OrgChart.focus: the node it opens on, by its id (the root when null or unknown). Redwood
+    // presents every chart in focus, whatever its `display`: Spectra's org chart has no tree
+    const focused = m.focus != null ? Object.values(byKey).find((c) => c.nodeId === String(m.focus)) : null
+    const start = focused ? focused.id : 'n0'
+    return { ...atom, ...(byKey[start] ? orgFocusOf(atom, start) : {}) }
+  }
+
+  /**
+   * What the viewer shows with `key` in focus: the person, their manager, the chain from the top
+   * down to that manager, and the view of their reports (none when they head nobody).
+   */
+  function orgFocusOf(atom, key) {
+    const at = atom.byKey || {}
+    const card = at[key]
+    if (!card) return null
+    const chain = []
+    for (let k = card.parentKey; k && at[k]; k = at[k].parentKey) chain.unshift(at[k])
+    const reports = card.childKeys.map((k) => at[k]).filter(Boolean)
+    const provider = orgHierarchyProviderFactory || ((rows) => rows)
+    return {
+      focusKey: key,
+      current: provider([card]),
+      parent: provider(chain.length ? [chain[chain.length - 1]] : []),
+      hierarchy: provider(chain),
+      childViews: reports.length ? [{ id: 'reports', label: chromeText('orgReports'), count: reports.length,
+        template: ORG_CARD_TEMPLATE, data: provider(reports) }] : [],
+      selectedChildView: reports.length ? 'reports' : '',
+    }
+  }
+
+  /** The action a card's name runs ({ actionId, parameters }), or null when its node has none. */
+  function orgCardActionOf(card) {
+    return card && card.actionId ? { actionId: card.actionId, parameters: card.parameters } : null
   }
 
   // ── Heatmap (JET has none): a calendar heatmap — a column per week, a row per weekday ────────────
@@ -12115,7 +12192,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function commentsAtomOf(m, interp = (x) => x) {
     const out = []
     const walk = (c, depth) => {
-      const av = avatarOf({ name: c.author, image: c.avatar })
+      // an avatar is an image URL, or an emoji or initials to show as they are — never a path to fetch
+      const isImage = /^(https?:|data:|\/)/.test(str(c.avatar))
+      const av = avatarOf({ name: c.author, image: isImage ? c.avatar : '', abbreviation: isImage ? '' : c.avatar })
       out.push({
         depth,
         rowStyle: { marginInlineStart: (depth * 2.5) + 'rem' },
@@ -27383,6 +27462,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const c = ko && ko.contextFor ? ko.contextFor(el) : null;
     return c && c.$current ? c.$current.data : null;
   });
+  // OrgChart: what the hierarchy viewer reads (the focus, its manager, the chain, the reports)
+  setOrgHierarchyProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: 'id' }));
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -27436,6 +27517,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     reduceContexts,
     planningActionOf,
     ganttTaskIdAt,
+    // OrgChart over Spectra's hierarchy viewer: a person's data when focused, a card's action
+    orgFocusOf,
+    orgCardActionOf,
     applyDomEffects,
     installAttachmentChips,
     installRules,

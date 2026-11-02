@@ -2198,13 +2198,19 @@
     } ]
   }, {
     "type" : "OrgChart",
-    "description" : "A read-only top-down hierarchy chart (org chart, category tree): a single root OrgNode whose children fan out below it, connected by lines.",
+    "description" : "A read-only hierarchy chart (org chart, category tree) of a single root OrgNode.",
     "attributes" : [ {
       "name" : "id",
       "type" : "string"
     }, {
       "name" : "root",
       "type" : "OrgNode"
+    }, {
+      "name" : "display",
+      "type" : "tree | focus"
+    }, {
+      "name" : "focus",
+      "type" : "string"
     } ]
   }, {
     "type" : "Partial",

@@ -4311,6 +4311,12 @@
         "type" : {
           "const" : "OrgChart"
         },
+        "display" : {
+          "type" : "string"
+        },
+        "focus" : {
+          "type" : "string"
+        },
         "root" : {
           "$ref" : "#/$defs/OrgNodeDto"
         }

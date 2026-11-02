@@ -119,6 +119,42 @@ describe('the route load', () => {
         expect(el.dataset.hasWelcomeBanner).toBe('false')
     })
 
+    it('content that moved on by itself forgets the ETag, so going back to the route brings its structure', async () => {
+        const el = await mount({ route: '/list' })
+        el.applyFragment(fragment(view('List', { structureHash: 'h1' })))
+        await settle(el)
+
+        // the same route reloaded, nothing moved: the server may answer state-only
+        mocks.httpRun.mockClear()
+        el.setAttribute('instant', 'again')
+        await settle(el)
+        expect(call()[15]).toMatchObject({ knownStructureHash: 'h1' })
+
+        // a row opened its record in place (the crud's PushStateToHistory, from the content below)
+        el.fragment = fragment(view('Record', { structureHash: 'h1' }))
+        await settle(el)
+        const child = document.createElement('div')
+        el.shadowRoot!.appendChild(child)
+        child.dispatchEvent(new CustomEvent('route-changed', { detail: { route: '/list/1' }, bubbles: true, composed: true }))
+
+        // the breadcrumb back to /list: its own structure comes back, the record does not stay
+        el.setAttribute('instant', 'back')
+        await settle(el)
+        expect(text(el)).toContain('List')
+        expect(text(el)).not.toContain('Record')
+    })
+
+    it('a load announcing its own route keeps the ETag', async () => {
+        const el = await mount({ route: '/a', top: 'true' })
+        el.applyFragment(fragment(view('A', { structureHash: 'h1' })))
+        await settle(el)
+        el.dispatchEvent(new CustomEvent('route-changed', { detail: { route: '/a' }, bubbles: true, composed: true }))
+        mocks.httpRun.mockClear()
+        el.setAttribute('instant', 'again')
+        await settle(el)
+        expect(call()[15]).toMatchObject({ knownStructureHash: 'h1' })
+    })
+
     it('a state-only answer merges into the content on screen instead of blanking it', async () => {
         const el = await mount({ route: '/a' })
         el.applyFragment(fragment(view('Hello'), { a: 1 }))

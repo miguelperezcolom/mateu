@@ -1346,6 +1346,26 @@
                       </oj-bind-for-each>
                     </div>
                   </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isOrgHierarchy ]]">
+                    <!-- OrgChart: Spectra's hierarchy viewer — the person in focus, their manager above, their
+                         reports below (display.mjs orgFocusOf). Picking a manager or a report moves the focus
+                         (Spectra animates; orgChartFocused hands it that person's data); a card's name runs its
+                         node's action (orgChartCardAction) -->
+                    <oj-sp-hierarchy-viewer class="mateu-org-hierarchy oj-sm-margin-2x-bottom"
+                      current-item-template="[[ $current.data.template ]]" parent-item-template="[[ $current.data.template ]]"
+                      current-item-data="[[ $current.data.current ]]" parent-item-data="[[ $current.data.parent ]]"
+                      parent-hierarchy-item-data="[[ $current.data.hierarchy ]]"
+                      current-child-views="[[ $current.data.childViews ]]" selected-child-view="[[ $current.data.selectedChildView ]]"
+                      on-sp-change-focus-action="[[ $listeners.orgChartFocused ]]">
+                      <template slot="mateuOrgCard" data-oj-as="card">
+                        <oj-sp-hierarchy-card type="[[ card.type ]]" template="[[ card.template ]]" context="[[ card.data ]]"
+                          card-title="[[ card.data.title ]]" card-subtitle="[[ card.data.subtitle ]]" avatar="[[ card.data.avatar ]]"
+                          child-views="[[ card.childviews ]]" selected-child-view="[[ card.selectedChildView ]]"
+                          navigation-action="[[ card.data.navigation ]]"
+                          on-sp-navigation-action="[[ $listeners.orgChartCardAction ]]"></oj-sp-hierarchy-card>
+                      </template>
+                    </oj-sp-hierarchy-viewer>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isOrgChart ]]">
                     <!-- OrgChart: the tree as an outline (VB templates cannot recurse) — oj-avatar per node -->
                     <ul class="mateu-org oj-sm-margin-2x-bottom" role="tree">

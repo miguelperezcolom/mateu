@@ -8092,7 +8092,23 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "display",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "focus",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
+   ]
+  },
+  "OrgChartDisplay": {
+   "enum": [
+    "focus",
+    "tree"
    ]
   },
   "OrgNode": {
