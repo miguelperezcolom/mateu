@@ -393,6 +393,8 @@ export function islandContentOf(ctx, opts = {}) {
   const blocks = []
   let plain = null
   let elementOrdinal = 0
+  // an embedded MicroFrontend's chrome (opts.chrome) applies to ITS page: the first Page visited
+  let embeddedPageSeen = false
   // the wire node being projected (editor mode only): what an atom or a block made now came from
   let editorNode = ''
   const stampNode = (o) => {
@@ -1007,10 +1009,14 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Page') {
-      // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar)
-      const pageTitle = interp(m.title || '')
+      // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar) — as far
+      // as an EMBEDDED MicroFrontend's chrome keeps them, on its own page (the first one met):
+      // NONE draws neither, COMPACT only the toolbar, PAGE both (opts.chrome, embeddedChromeOf)
+      const chrome = !embeddedPageSeen ? opts.chrome : null
+      embeddedPageSeen = true
+      const pageTitle = chrome === 'NONE' || chrome === 'COMPACT' ? '' : interp(m.title || '')
       if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
-      const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
+      const toolbar = chrome === 'NONE' ? [] : (m.toolbar || []).filter((b) => b && b.actionId)
       if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
       for (const child of kidsOf(node)) visit(child, container)
       return
@@ -1077,14 +1083,15 @@ export function islandContentOf(ctx, opts = {}) {
     }
     // FOLDOUT INSIDE A TAB (the page one is painted by oj-sp-foldout-layout, foldoutOf): the
     // overview in its place and each panel as a collapsible panel — its title and, when open, its
-    // content; the panels open by default (open) are respected
+    // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
+    // authored) opens — stacked, it never runs out of row
     if (t === 'FoldoutLayout' && tabScope) {
       const bySlot = {}
       for (const child of node.children || []) bySlot[child.slot || ''] = child
       if (bySlot.overview) visit(bySlot.overview, container)
       ;(m.panels || []).forEach((panel, i) => {
         const key = 'fold:' + (node.id || 'foldout') + ':' + i
-        const expanded = panelExpanded(key, panel.open !== false)
+        const expanded = panelExpanded(key, panel.autoOpen === true || panel.open !== false)
         atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
         const content = bySlot['panel-' + i]
         if (expanded && content) visit(content, container)
@@ -1941,8 +1948,10 @@ export function withSubresources(blocks, contexts) {
       const ctx = contexts && contexts[a.islandId]
       if (!ctx || !ctx.tree) return [a]
       const crud = findByType(ctx.tree, 'Crud')
+      // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
+      const chrome = (a.subresource && a.subresource.chrome) || null
       if (!crud) {
-        const inner = islandContentOf(ctx)
+        const inner = islandContentOf(ctx, chrome ? { chrome } : {})
         // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
         // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
         const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
@@ -1959,7 +1968,8 @@ export function withSubresources(blocks, contexts) {
         isGrid: true,
         isSubresourceGrid: true,
         fieldId: a.islandId,
-        label: md.title || '',
+        // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
+        label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
         columns: wire.map((c) => (c.dataType === 'status'
           ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
           : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),

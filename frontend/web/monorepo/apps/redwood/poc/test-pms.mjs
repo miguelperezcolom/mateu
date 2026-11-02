@@ -30,10 +30,11 @@ import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
+import { setChromeLanguage } from './i18n.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers, notePollingRegistry } from './polling.mjs'
 import { onLoadTriggers, mediatorOf } from './reduceContexts.mjs'
@@ -53,7 +54,7 @@ import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, value
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
 import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl, remoteOriginOf } from './elements.mjs'
 import { foldoutOf } from './core/archetypes.mjs'
-import { foldedPanelIndexes, isPanelFolded, unfoldPanel, resetFoldoutFolds, wirePanelIndexOf, foldoutPanelKey } from './foldouts.mjs'
+import { foldedPanelIndexes, isPanelFolded, unfoldPanel, resetFoldoutFolds, wirePanelIndexOf, foldoutPanelKey, fitAutoPanels, panelWheelIsNative } from './foldouts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let pass = 0
@@ -358,6 +359,41 @@ test('foldout: the open=false panels start folded, unfolding one keeps it unfold
   assert.deepEqual(foldedPanelIndexes(null), [])
   assert.equal(isPanelFolded(foldout, 9), false)
   resetFoldoutFolds()
+})
+
+test('foldout: an autoOpen panel (no `open:` authored) is open while it fits the row', () => {
+  // the museum exhibition: The works declared open, Loans and Budget left to the renderer
+  const foldout = foldoutOf(reduceContexts(empty(), { fragments: [{ targetComponentId: HOST_ID, component: {
+    type: 'ServerSide', id: 'x', serverSideType: 'Exhibition', children: [{ metadata: { type: 'FoldoutLayout', panels: [
+      { title: 'The works', open: true }, { title: 'Loans', open: false, autoOpen: true }, { title: 'Budget', open: false, autoOpen: true },
+    ] }, children: [] }] } }] }).contexts[HOST_ID])
+  resetFoldoutFolds()
+  assert.deepEqual(foldout.panels.map((p) => p.autoOpen), [false, true, true])
+  // a 1408px row: Loans fits, Budget does not (25rem overview + 22rem panels + 4rem strips)
+  fitAutoPanels(foldout, 1408)
+  assert.deepEqual(foldedPanelIndexes(foldout), [2])
+  // a phone: only what the author declared open
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [1, 2])
+  // unfolding one by hand wins over the fit until a new page
+  assert.equal(unfoldPanel(foldout, 1), true)
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [2])
+  resetFoldoutFolds()
+  fitAutoPanels(foldout, 390)
+  assert.deepEqual(foldedPanelIndexes(foldout), [1, 2])
+  resetFoldoutFolds()
+})
+
+test('foldout: a vertical wheel over a panel taller than the row scrolls the panel while it has room', () => {
+  const panel = (scrollTop) => ({ scrollHeight: 1572, clientHeight: 854, scrollTop })
+  assert.equal(panelWheelIsNative(panel(0), 0, 100), true, 'down, room below')
+  assert.equal(panelWheelIsNative(panel(718), 0, 100), false, 'at the bottom: the layout takes it')
+  assert.equal(panelWheelIsNative(panel(0), 0, -100), false, 'up at the top')
+  assert.equal(panelWheelIsNative(panel(300), 0, -100), true, 'up, room above')
+  assert.equal(panelWheelIsNative(panel(300), 200, 50), false, 'a horizontal gesture pages the row')
+  assert.equal(panelWheelIsNative({ scrollHeight: 854, clientHeight: 854, scrollTop: 0 }, 0, 100), false, 'nothing to scroll')
+  assert.equal(panelWheelIsNative(null, 0, 100), false)
 })
 
 test("foldout: the layout's selectedPanel counts the overview as panel 0", () => {
@@ -1203,6 +1239,40 @@ test('calendario Spectra: la barra de un CalendarPage pasa a la barra de oj-sp-c
   assert.equal(items.filter((a) => a.isButtons || a.isRow).length, 0, 'la barra no se pinta aparte')
   assert.equal(JSON.parse(cal.spSpec).nav.next, 'nextCalendarMonth')
   assert.deepEqual(cal.navButtons.map((b) => b.label), ['‹', 'Hoy', '›', 'Month', 'Week', '+ Create'], 'la rejilla de reserva conserva la barra')
+})
+
+test('calendario: sus textos siguen al idioma de la UI (Intl para días y meses, el catálogo para el resto)', () => {
+  const en = calendarAtomOf({ ...calWire, month: '2026-11-02', views: ['month', 'week', 'day', 'list'] }, 'cal', '2026-11-02', null, 'en-US')
+  assert.deepEqual(en.dows, ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+  assert.deepEqual(en.titles, { month: 'November 2026', week: 'Nov 2 – Nov 8, 2026', day: 'Monday, November 2, 2026', list: 'November 2026' })
+  assert.equal(en.weekHeads[0], 'Mon 2')
+  assert.deepEqual(en.viewOptions.map((o) => o.label), ['Month', 'Week', 'Day', 'List'])
+  setChromeLanguage('es')
+  try {
+    const es = calendarAtomOf({ ...calWire, month: '2026-11-02', views: ['month', 'week', 'day', 'list'] }, 'cal', '2026-11-02', null, 'es-ES')
+    assert.deepEqual(es.dows, ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'])
+    assert.equal(es.titles.month, 'noviembre de 2026')
+    assert.equal(es.dayHead, 'lunes, 2 de noviembre')
+    assert.equal(es.weekHeads[6], 'dom 8')
+    assert.deepEqual(es.viewOptions.map((o) => o.label), ['Mes', 'Semana', 'Día', 'Lista'])
+    const busy = calendarAtomOf(calWire, 'cal', '2026-10-28', null, 'es-ES').monthCells.find((c) => c.date === '2026-10-30')
+    assert.match(busy.ariaLabel, /^viernes, 30 de octubre, .*\d eventos?$/)
+    // CalendarPage's toolbar: the labels the app's Translator left in English are drawn in Spanish;
+    // one it translated stays as it came
+    const nav = calendarPageToolbarOf(node({ type: 'HorizontalLayout' }, [
+      node({ type: 'Button', label: '‹', actionId: 'previousCalendarMonth' }),
+      node({ type: 'Button', label: 'Today', actionId: 'goCalendarToday' }),
+      node({ type: 'Button', label: '›', actionId: 'nextCalendarMonth' }),
+      node({ type: 'Button', label: 'Month', actionId: 'switchCalendarView', parameters: { _view: 'month' } }),
+      node({ type: 'Button', label: 'Setmana', actionId: 'switchCalendarView', parameters: { _view: 'week' } }),
+      node({ type: 'Button', label: '+ Create', actionId: 'createCalendarEvent' }),
+    ]))
+    assert.deepEqual(nav.buttons.map((b) => b.label), ['‹', 'Hoy', '›', 'Mes', 'Setmana', '+ Crear'])
+    assert.equal(nav.createLabel, 'Crear')
+    assert.equal(calendarAtomOf(calWire, 'cal', '2026-10-28', null, 'not a locale!').titles.month, 'October 2026', 'a malformed locale falls back to en-US')
+  } finally {
+    setChromeLanguage('')
+  }
 })
 
 test('calendario Spectra: navegar en su barra = la acción de página (‹ › Hoy, vista); un salto sin acción → null', () => {
@@ -2132,6 +2202,81 @@ atest('the old screen does not jump to its top before the new one is there', asy
   // back/forward keeps the browser's position, as before
   assert.equal(scrollToTopWhenReplaced({ fromUrl: true }, win)(), false)
   assert.equal(calls.length, 2)
+})
+
+atest('an in-place re-render keeps the reader where they were: scroll and focus come back, a navigation still starts at the top', async () => {
+  // an editor @Button at the bottom of a long edit form re-renders the form in place (same id and
+  // type): the re-stamped form was briefly shorter than the window, the browser clamped the scroll
+  // to 0 and the reader landed back at the top of the page
+  const listeners = {}
+  const el = (attrs = {}, parent = null) => ({
+    attrs, parentElement: parent, isConnected: true, scrollTop: 0, scrollLeft: 0, focused: 0,
+    hasAttribute: (a) => a in attrs, getAttribute: (a) => attrs[a],
+    closest(sel) { for (let e = this; e; e = e.parentElement) if (sel.split(',').some((s) => s.trim().slice(1, -1) in e.attrs)) return e; return null },
+    querySelector: () => null, focus() { this.focused++; doc.activeElement = this },
+  })
+  const root = el()
+  const body = el({}, root)
+  const drawerBody = el({}, body)
+  const button = el({ 'data-action-id': 'action-on-editor-insert"Medium' }, drawerBody)
+  const inner = el({}, button)
+  const replaced = el({ 'data-action-id': 'action-on-editor-insert"Medium' }, drawerBody)
+  replaced.querySelector = (sel) => (sel.startsWith('button') ? inner2 : null)
+  const inner2 = el({}, replaced)
+  const doc = {
+    scrollingElement: root, documentElement: root, body, activeElement: inner,
+    addEventListener: (e, fn) => { listeners[e] = fn }, removeEventListener: (e) => { delete listeners[e] },
+    querySelector: (sel) => (sel === '[data-action-id="action-on-editor-insert\\"Medium"]' ? replaced : null),
+  }
+  const timers = []
+  const win = { setTimeout: (fn) => { timers.push(fn); return timers.length } }
+  root.scrollTop = 541
+  drawerBody.scrollTop = 120
+  const kept = keepViewport(doc, win)
+  assert.deepEqual(kept.scrollers.map((s) => s.top), [541, 120])
+  assert.equal(kept.focusSelector, '[data-action-id="action-on-editor-insert\\"Medium"]')
+  // the answer is painted: the page jumped to its top and the pressed button was replaced
+  root.scrollTop = 0
+  drawerBody.scrollTop = 0
+  inner.isConnected = false
+  assert.equal(kept.restore(), true)
+  assert.deepEqual([root.scrollTop, drawerBody.scrollTop], [541, 120])
+  assert.equal(doc.activeElement, inner2)
+  // VB binds asynchronously: it keeps putting the position back for a moment…
+  root.scrollTop = 0
+  timers.shift()()
+  assert.equal(root.scrollTop, 541)
+  // …until the reader scrolls, types or clicks: never fighting the user
+  listeners.wheel()
+  root.scrollTop = 30
+  timers.shift()()
+  assert.equal(root.scrollTop, 30)
+  // the focus is never taken from a field the reader is in
+  inner2.focused = 0
+  const field = el({ 'data-field-id': 'body' }, body)
+  doc.activeElement = field
+  const again = keepViewport(doc, win)
+  doc.activeElement = field
+  again.restore()
+  assert.equal(inner2.focused, 0)
+  assert.equal(focusSelectorOf(field), '[data-field-id="body"]')
+  assert.equal(focusSelectorOf(el()), '')
+  assert.equal(focusSelectorOf(null), '')
+  // no DOM (a test, a worker): nothing to keep
+  assert.equal(keepViewport(null, null).restore(), false)
+  // which answers keep it: the same screen re-rendered, a state change, an overlay — not another screen
+  assert.equal(keepsViewport({}), true)
+  assert.equal(keepsViewport({ navigate: {} }), true)
+  assert.equal(keepsViewport({ navigate: { route: '/docs' } }), false)
+  assert.equal(keepsViewport({ navigate: { url: 'https://x' } }), false)
+  assert.equal(keepsViewport({ flipRoute: '/d1' }), false)
+  assert.equal(keepsViewport({ reRendered: true }), false)
+  // the chain takes it before the action leaves and restores it only when keepsViewport says so
+  const here = new URL('.', import.meta.url).pathname
+  const chain = readFileSync(here + '../webApps/vbredwoodapp/flows/main/pages/main-start-page-chains/runMateuAction.js', 'utf8')
+  const sent = chain.search(/bridge\.runMateuAction\(\s*base, transportCtx/)
+  assert.ok(sent > 0 && chain.indexOf('bridge.keepViewport()') > 0 && chain.indexOf('bridge.keepViewport()') < sent)
+  assert.match(chain, /if \(bridge\.keepsViewport\(\{ navigate: effects\.navigate, flipRoute, reRendered \}\)\) viewport\.restore\(\)/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

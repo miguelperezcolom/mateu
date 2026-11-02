@@ -487,6 +487,9 @@ public final class MicroFrontendServerResolver {
         .appState(mapOf(microFrontend.appState()))
         .componentState(Map.of())
         .initiatorComponentId(MicroFrontendIds.of(microFrontend))
+        // an embedded one says so, like every later request its island sends: the remote then
+        // sends no window commands at all (the host strips them from the first paint anyway)
+        .embeddedChrome(microFrontend.embedded() ? microFrontend.chrome() : null)
         .build();
   }
 

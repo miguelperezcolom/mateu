@@ -36,6 +36,12 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   and the order value a moved card takes (`_toOrder`). Run by `kanbanOrder.conformance.test.ts`
   (libs/mateu), `poc/test-conformance.mjs` (Redwood), `src/core/kanbanOrder.conformance.test.ts`
   (React Native) and `KanbanOrderConformanceTest.kt` (IntelliJ).
+- `foldout-auto.json` — which foldout panels are open on first paint: a panel with `autoOpen` (a
+  YAML panel whose author wrote no `open:`) opens while it fits the row, in declaration order, after
+  the overview, the panels declared open and a strip per other panel are counted. Run by
+  `foldoutAuto.conformance.test.ts` (libs/mateu, the reference — used by both web foldouts),
+  `poc/test-conformance.mjs` (Redwood), `src/core/foldoutFit.conformance.test.ts` (React Native) and
+  `FoldoutAutoConformanceTest.kt` (IntelliJ, whose desktop columns never fold today).
 - `live-reload.json` — what a development server's live-reload event (`hello`, `specs-changed`,
   `reload`, `ping`) means for the screen on display: nothing, re-render the page or the app, and the
   boot id to remember (a new one = a restarted server). Run by `liveReload.conformance.test.ts`

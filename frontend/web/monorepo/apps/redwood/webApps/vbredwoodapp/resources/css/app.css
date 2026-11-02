@@ -1162,6 +1162,13 @@ oj-action-card.mateu-listing-card {
   max-width: 100%;
 }
 
+/* A field's help (@Help) under a widget JET does not own (searchable, capture, color, rich text,
+   stars, a nested list): the same instruction text the JET inputs draw with help.instruction */
+.mateu-field-help {
+  margin-top: 0.25rem;
+  white-space: pre-line;
+}
+
 /* @Searchable: the ids as chips (with ✕) and the button that opens their selector */
 .mateu-searchable {
   display: flex;
@@ -2009,6 +2016,14 @@ oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-
 .oj-drawer-layout-middle-section:has(.mateu-has-toc) { overflow: clip; min-width: 0; }
 /* min-width 0: clip, unlike auto, is no scroll container, so these flex items grew to their content's
    min-content (a wide table inside a section) and the page, centred in the wider box, went right */
+
+/* An OPEN foldout panel scrolls inside: Spectra fixes every panel to the row's height (the window),
+   so a panel taller than that (a grid of cards) was cut at the bottom with no way to reach the rest.
+   poc/foldouts.mjs installFoldoutPanelScroll keeps the wheel for the panel while it has room. */
+#mateuFoldoutEl .oj-sp-foldout-layout-panel-container:not(:has(> oj-sp-foldout-panel.mateu-foldout-folded)) {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 /* FOLDED foldout panel (FoldoutPanel.open = false, poc/foldouts.mjs): the component's own panel
    reduced to a strip that shows its title vertically. Its container keeps the layout's click /

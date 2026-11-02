@@ -7144,3 +7144,133 @@ atest('widgets: un MicroFrontend de cabecera resuelto en el host no se pide; sus
   assert.equal(calls[0].base, '/_inbox')
   stopRemoteWidgets()
 })
+
+// ── MicroFrontend EMBEDDED (MicroFrontend.chrome): a block of the page, not a page ──────────────
+import { withSubresources as mfeWithSubresources } from './core/content.mjs'
+import { withoutWindowCommands as mfeWithoutWindowCommands, embeddedChromeOf as mfeChromeOf } from './core/display.mjs'
+
+const mfeWindowCommands = (id) => [
+  { targetComponentId: id, type: 'SetWindowTitle', data: 'Remote title' },
+  { targetComponentId: id, type: 'PushStateToHistory', data: '/remote' },
+  { targetComponentId: id, type: 'SetFavicon', data: '/remote.ico' },
+  { targetComponentId: id, type: 'Announce', data: { text: 'kept' } },
+]
+// a remote Page with a title and a toolbar, answering with the window commands of a top-level page
+const mfePageAnswer = (id) => ({
+  commands: mfeWindowCommands(id),
+  fragments: [{
+    targetComponentId: id,
+    action: 'Replace',
+    component: { type: 'ServerSide', id: 'rp', serverSideType: 'remote.Page', children: [
+      { type: 'ClientSide', id: 'page', metadata: { type: 'Page', title: 'Remote page', toolbar: [{ actionId: 'refresh', label: 'Refresh' }] }, children: [
+        { type: 'ClientSide', id: 't', children: [], metadata: { type: 'Text', text: 'remote body', container: 'p' } },
+      ] },
+    ], actions: [{ id: 'refresh' }], triggers: [{ type: 'OnLoad', actionId: 'refresh' }] },
+    state: {},
+  }],
+})
+// the host page as the chains hold it after its own load: it named the window «Herramientas»
+const mfeHostReg = () => ({ ...empty(), effects: { docTitle: 'Herramientas', urlPush: null } })
+
+test('embedded MicroFrontend: chrome is read from the wire (unknown or absent = top-level)', () => {
+  assert.equal(mfeOf({ baseUrl: '/r', route: '/w', chrome: 'NONE' }).chrome, 'NONE')
+  assert.equal(mfeOf({ baseUrl: '/r', route: '/w', chrome: 'COMPACT' }).chrome, 'COMPACT')
+  assert.equal(mfeOf({ baseUrl: '/r', route: '/w', chrome: 'PAGE' }).chrome, 'PAGE')
+  assert.equal(mfeOf({ baseUrl: '/r', route: '/w' }).chrome, null)
+  assert.equal(mfeChromeOf('SOMETHING'), null)
+  const stripped = mfeWithoutWindowCommands({ commands: mfeWindowCommands('x') })
+  assert.deepEqual(stripped.commands.map((c) => c.type), ['Announce'])
+})
+
+atest('embedded MicroFrontend: its requests carry embeddedChrome, its window commands are never applied, the host title sticks', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  globalThis.fetch = async (url, init) => {
+    const body = JSON.parse(init.body)
+    seen.push({ url: String(url), body })
+    const answer = body.actionId === '' ? mfePageAnswer(body.initiatorComponentId) : { commands: mfeWindowCommands(body.initiatorComponentId), fragments: [] }
+    return { ok: true, status: 200, json: async () => answer, text: async () => JSON.stringify(answer) }
+  }
+  try {
+    const sub = mfeOf({ baseUrl: '/_tools', route: '/tools', chrome: 'NONE' })
+    let reg = await mfeLoadSubresource('https://host', mfeHostReg(), sub, { appState: {} })
+    assert.equal(seen.length, 2, 'the load and its OnLoad trigger')
+    for (const call of seen) assert.equal(call.body.embeddedChrome, 'NONE', 'every request says it is embedded')
+    assert.equal(reg.effects.docTitle, 'Herramientas', 'the host page keeps naming the window')
+    assert.equal(reg.effects.urlPush, null, 'no history push from the island')
+    assert.equal(reg.contexts[sub.id].outbound.embeddedChrome, 'NONE')
+    reg = await mfeRunSurfaceAction(reg, sub.id, 'refresh', {}, { appState: {} })
+    assert.equal(seen[2].body.embeddedChrome, 'NONE', 'a later action too')
+    assert.equal(reg.effects.docTitle, null, 'an action of the island names nothing')
+    assert.equal(reg.effects.urlPush, null)
+    assert.deepEqual(reg.effects.announcements.map((a) => a.text), ['kept'], 'its other commands still apply')
+  } finally { globalThis.fetch = original }
+})
+
+atest('embedded MicroFrontend resolved in the host: its first paint applies no window command either', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  globalThis.fetch = async (url, init) => {
+    seen.push(JSON.parse(init.body))
+    return { ok: true, status: 200, json: async () => ({ fragments: [] }), text: async () => '{"fragments":[]}' }
+  }
+  try {
+    const m = { baseUrl: '/_tools', route: '/tools', chrome: 'PAGE' }
+    const sub = mfeOf({ ...m, resolved: mfePageAnswer(mfeOf(m).id) })
+    const reg = await mfeLoadSubresource('https://host', mfeHostReg(), sub, { appState: {} })
+    assert.equal(reg.effects.docTitle, 'Herramientas')
+    assert.equal(seen.length, 1, 'only its OnLoad trigger goes out')
+    assert.equal(seen[0].embeddedChrome, 'PAGE', 'and says it is embedded')
+  } finally { globalThis.fetch = original }
+})
+
+atest('a top-level MicroFrontend (no chrome) is as before: no marker, its title reaches the window', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  globalThis.fetch = async (url, init) => {
+    const body = JSON.parse(init.body)
+    seen.push(body)
+    const answer = body.actionId === '' ? mfePageAnswer(body.initiatorComponentId) : { commands: mfeWindowCommands(body.initiatorComponentId), fragments: [] }
+    return { ok: true, status: 200, json: async () => answer, text: async () => JSON.stringify(answer) }
+  }
+  try {
+    const sub = mfeOf({ baseUrl: '/_tools', route: '/tools' })
+    const reg = await mfeLoadSubresource('https://host', mfeHostReg(), sub, { appState: {} })
+    assert.ok(seen.every((b) => !('embeddedChrome' in b)))
+    assert.equal(reg.contexts[sub.id].outbound.embeddedChrome, undefined)
+    // what made ec-demo1's host page lose its title: a top-level island names the window
+    assert.equal(reg.effects.docTitle, 'Remote title')
+    assert.equal(reg.effects.urlPush, '/remote')
+  } finally { globalThis.fetch = original }
+})
+
+test('embedded MicroFrontend: NONE draws no title nor toolbar, COMPACT only the toolbar, PAGE both — never a breadcrumb', () => {
+  const painted = (chrome) => {
+    const sub = mfeOf({ baseUrl: '/r', route: '/tools', ...(chrome ? { chrome } : {}) })
+    const reg = reduceContexts(empty(), mfePageAnswer(sub.id))
+    const blocks = mfeWithSubresources([{ items: [{ isSubresource: true, islandId: sub.id, subresource: sub }] }], reg.contexts)
+    const items = blocks.flatMap((b) => b.items)
+    return {
+      title: items.some((a) => a.isText && a.text === 'Remote page'),
+      toolbar: items.some((a) => a.isButtons && a.fromPageToolbar),
+      body: items.some((a) => a.isText && /remote body/.test(a.text || a.html || '')),
+      crumbs: items.some((a) => a.isBreadcrumbs || a.crumbs),
+    }
+  }
+  assert.deepEqual(painted(null), { title: true, toolbar: true, body: true, crumbs: false }, 'top-level: as before')
+  assert.deepEqual(painted('NONE'), { title: false, toolbar: false, body: true, crumbs: false })
+  assert.deepEqual(painted('COMPACT'), { title: false, toolbar: true, body: true, crumbs: false })
+  assert.deepEqual(painted('PAGE'), { title: true, toolbar: true, body: true, crumbs: false })
+})
+
+atest('widgets: an embedded header MicroFrontend says so on its requests', async () => {
+  const calls = []
+  const call = async (base, body) => { calls.push(body); return { fragments: [] } }
+  const { items } = headerWidgetsOf({ ...empty(), shell: { widgets: [] } })
+  void items
+  const item = { id: 'w0', isRemote: true, baseUrl: '/_inbox', route: '/badge', consumedRoute: '', chrome: mfeChromeOf('COMPACT') }
+  const rt = startRemoteWidget(item, () => {}, { call, schedule: () => 0, cancel: () => {} })
+  await rt.loaded
+  assert.equal(calls[0].embeddedChrome, 'COMPACT')
+  stopRemoteWidgets()
+})

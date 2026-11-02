@@ -48,6 +48,20 @@ the same carousel (`mateu-vaadin-foldout`), and the native renderers show the pa
 A panel declared `open = false` starts folded as a narrow strip with its title; selecting it (click,
 keyboard focus or its page dot) unfolds it.
 
+A panel whose open state was **not decided** — a YAML `FoldoutPanel` with no `open:` (the wire's
+`autoOpen`) — is open while it **fits**: the renderer counts the overview, the panels declared open
+and a strip for every other panel, then opens the undecided ones in declaration order while the row
+still has room for each one's width (`width`, else 22rem), and folds the rest. It re-decides when the
+window is resized; a panel the user unfolds or folds by hand keeps that state until the next page.
+So a wide window shows two or three panels open, a laptop one or two, and a phone only the ones the
+author declared open. The rule is the same in every renderer, pinned by
+`conformance/client/foldout-auto.json`. Java panels (`@Panel`, the fluent builder) always say what
+they want, so they are never automatic.
+
+A panel taller than the window scrolls **inside** on Redwood (Spectra fixes every panel to the row's
+height; the wheel over a panel scrolls it while it has room, then pages the row). On the Vaadin shell
+the panels grow with their content and the page scrolls.
+
 ## What you can configure
 
 **Legend:** ✅ supported · 🟡 partial · ❌ not supported · ➖ not applicable
@@ -67,6 +81,7 @@ keyboard focus or its page dot) unfolds it.
 | Panel icon | `@Panel(icon)` | 🟡 | Spectra's panel has no icon; Mateu draws a decorative one beside the title |
 | Panel width | `FoldoutPanel.width` (fluent) | ✅ | |
 | Starts folded | `@Panel(open = false)` | ✅ | |
+| Open while it fits | YAML `FoldoutPanel` with no `open:` (`autoOpen`) | ✅ | folds when the row runs out of room; re-decided on resize |
 | Summary on the folded strip | `panelSummary(field)` / `FoldoutPanel.summary` | 🟡 | a line Mateu draws under the title, not the panel's `summary` slot |
 | Panel actions | — (only the overview has Edit) | ❌ | put buttons inside the panel content |
 | Recommendation area | — | ❌ | |
@@ -207,6 +222,10 @@ content:
   - {type: FoldoutPanel, title: Specifications, open: true, content: {type: FormField, id: length, label: Length, readOnly: true}}
   - {type: FoldoutPanel, title: Crew & cargo, summary: {type: Text, text: "Crew ${state.crew}"}, content: {type: FormField, id: crew, label: Crew, readOnly: true}}
 ```
+
+`open: true` keeps a panel open and `open: false` starts it folded, whatever the width. A panel with
+**no `open:`** (Crew & cargo above) is open while it fits the row and folded otherwise — see
+[Responsive behaviour](#responsive-behaviour). `autoOpen: true` says the same explicitly.
 
 ## Redwood parameter and slot reference
 

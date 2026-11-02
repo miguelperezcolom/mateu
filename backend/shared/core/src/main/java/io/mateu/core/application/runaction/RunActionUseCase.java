@@ -241,7 +241,10 @@ public class RunActionUseCase {
                             command)
                         : mapToUiIncrement(
                             Text.builder().text("Not found.").style("color: red;").build(),
-                            command)));
+                            command)))
+        // an embedded micro frontend (MicroFrontend.chrome) is a block of another page: whatever
+        // produced them, the window's commands (title, history, favicon) are not its to send
+        .map(increment -> EmbeddedWindowCommands.strip(increment, command.httpRequest()));
   }
 
   /**

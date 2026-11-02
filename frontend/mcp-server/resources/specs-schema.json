@@ -3643,6 +3643,10 @@
         }
       }
     },
+    "EmbeddedChrome" : {
+      "type" : "string",
+      "enum" : [ "NONE", "COMPACT", "PAGE" ]
+    },
     "EmbeddedView" : {
       "description" : "Embeds a routed view (a @UI/@Route model view — e.g. a Wizard) as an INDEPENDENT server-side component: it renders inside the host tree but routes its OWN actions back to itself (its step navigation, saves, etc.), unlike ModelViewComponent, which renders the view inline and lets its actions bubble to the host.",
       "type" : "object",
@@ -4212,6 +4216,9 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "autoOpen" : {
+          "type" : "boolean"
         },
         "note" : {
           "type" : "string",
@@ -6858,6 +6865,9 @@
         },
         "timeoutMs" : {
           "type" : "integer"
+        },
+        "chrome" : {
+          "$ref" : "#/$defs/EmbeddedChrome"
         },
         "note" : {
           "type" : "string",

@@ -313,6 +313,9 @@ function expandFoldout(node: FluentNode): Component {
             icon: panel.icon,
             open: Boolean(panel.open),
             width: panel.width,
+            // no `open:` authored = the author did not decide: open while it fits (the server's
+            // YAML default, YamlUidlMapperFactory); absent on the wire otherwise (NON_NULL)
+            autoOpen: panel.autoOpen === true || (panel.autoOpen === undefined && panel.open === undefined) ? true : undefined,
             // the editor selects a panel from the canvas by its node id (editor preview only)
             id: isNodeIdStamping() && typeof panel.id === 'string' ? panel.id : undefined,
         }).filter(([, v]) => v !== undefined))

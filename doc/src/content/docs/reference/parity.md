@@ -460,7 +460,7 @@ renderers, and its children still render.
 | `MessageList` | ✅ | oj-avatar + name, time and text per message |
 | `Meter` | ✅ | oj-progress-bar |
 | `MetricCard` | ✅ | an oj-sp-scoreboard card exactly as Spectra draws it (pure KPI: value, trend, timeframe, description — no icon), the whole card drills in |
-| `MicroFrontend` | ✅ | loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it |
+| `MicroFrontend` | ✅ | loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it; with a chrome (embedded) it applies no window title/history/favicon, marks its requests (embeddedChrome) and keeps none (NONE), only the toolbar (COMPACT) or all (PAGE) of its page header |
 | `NotFound` | ✅ |  |
 | `Notice` | ✅ | oj-sp-message-banner style band + actions |
 | `Notification` | ✅ | an info band (title — text); action messages show as toasts |

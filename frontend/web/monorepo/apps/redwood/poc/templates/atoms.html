@@ -142,7 +142,7 @@
                           <span class="oj-typography-subheading-sm mateu-cal-title" data-for="day"><oj-bind-text value="[[ $current.data.titles.day ]]"></oj-bind-text></span>
                           <span class="oj-typography-subheading-sm mateu-cal-title" data-for="list"><oj-bind-text value="[[ $current.data.titles.list ]]"></oj-bind-text></span>
                           <oj-bind-if test="[[ $current.data.hasSwitcher ]]">
-                            <oj-buttonset-one data-cal-switch="true" chroming="outlined" value="[[ $current.data.view ]]" aria-label="View">
+                            <oj-buttonset-one data-cal-switch="true" chroming="outlined" value="[[ $current.data.view ]]" :aria-label="[[ $application.translations.appBundle.calendarView ]]">
                               <oj-bind-for-each data="[[ $current.data.viewOptions ]]">
                                 <template>
                                   <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
@@ -1028,6 +1028,7 @@
                     <oj-bind-if test="[[ $current.data.isInput ]]">
                       <oj-input-text class="oj-form-control-max-width-md"
                         label-hint="[[ $current.data.label ]]"
+                        help.instruction="[[ $current.data.help ]]"
                         placeholder="[[ $current.data.placeholder || '' ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
@@ -1047,6 +1048,7 @@
                               <oj-input-text
                                   on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
                                   label-hint="[[ $current.data.label ]]"
+                                  help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
@@ -1058,6 +1060,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   label-hint="[[ $current.data.label ]]"
+                                  help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
@@ -1072,28 +1075,33 @@
                             <oj-bind-if test="[[ $current.data.isSearchable ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
-                                <div slot="value" class="mateu-searchable" :data-field-id="[[ $current.data.fieldId ]]">
-                                  <oj-bind-for-each data="[[ $current.data.chips ]]">
-                                    <template>
-                                      <span class="mateu-searchable-chip">
-                                        <span class="mateu-searchable-chip-text"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
-                                        <oj-bind-if test="[[ $current.data.removable ]]">
-                                          <oj-button display="icons" chroming="borderless" class="mateu-searchable-remove"
-                                            on-oj-action="[[ $listeners.searchableChipRemoved ]]">
-                                            <span slot="startIcon" class="oj-ux-ico-close"></span>
-                                            <oj-bind-text value="[[ $current.data.removeLabel ]]"></oj-bind-text>
-                                          </oj-button>
-                                        </oj-bind-if>
-                                      </span>
-                                    </template>
-                                  </oj-bind-for-each>
-                                  <oj-bind-if test="[[ $current.data.editable ]]">
-                                    <oj-button chroming="borderless" class="mateu-searchable-add"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.{{blockAction}} ]]">
-                                      <span slot="startIcon" class="oj-ux-ico-search"></span>
-                                      <oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text>
-                                    </oj-button>
+                                <div slot="value">
+                                  <div class="mateu-searchable" :data-field-id="[[ $current.data.fieldId ]]">
+                                    <oj-bind-for-each data="[[ $current.data.chips ]]">
+                                      <template>
+                                        <span class="mateu-searchable-chip">
+                                          <span class="mateu-searchable-chip-text"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                                          <oj-bind-if test="[[ $current.data.removable ]]">
+                                            <oj-button display="icons" chroming="borderless" class="mateu-searchable-remove"
+                                              on-oj-action="[[ $listeners.searchableChipRemoved ]]">
+                                              <span slot="startIcon" class="oj-ux-ico-close"></span>
+                                              <oj-bind-text value="[[ $current.data.removeLabel ]]"></oj-bind-text>
+                                            </oj-button>
+                                          </oj-bind-if>
+                                        </span>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ $current.data.editable ]]">
+                                      <oj-button chroming="borderless" class="mateu-searchable-add"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.{{blockAction}} ]]">
+                                        <span slot="startIcon" class="oj-ux-ico-search"></span>
+                                        <oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-if test="[[ $current.data.hasHelp ]]">
+                                    <div class="mateu-field-help oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.help ]]"></oj-bind-text></div>
                                   </oj-bind-if>
                                 </div>
                               </oj-label-value>
@@ -1102,6 +1110,7 @@
                               <oj-text-area
                                   rows="3"
                                   label-hint="[[ $current.data.label ]]"
+                                  help.instruction="[[ $current.data.help ]]"
                                   placeholder="[[ $current.data.placeholder || '' ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
@@ -1113,6 +1122,7 @@
                             <oj-bind-if test="[[ $current.data.isDate ]]">
                               <oj-input-date
                                   label-hint="[[ $current.data.label ]]"
+                                  help.instruction="[[ $current.data.help ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
@@ -1123,6 +1133,7 @@
                             <oj-bind-if test="[[ $current.data.isDateTime ]]">
                               <oj-input-date-time
                                   label-hint="[[ $current.data.label ]]"
+                                  help.instruction="[[ $current.data.help ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
@@ -1135,6 +1146,7 @@
                                   options="[[ $current.data.options ]]"
                                   placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
                                   label-hint="[[ $current.data.label ]]"
+                                  help.instruction="[[ $current.data.help ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
@@ -1147,6 +1159,7 @@
                             <oj-bind-if test="[[ $current.data.isBoolean ]]">
                               <oj-switch
                                   label-hint="[[ $current.data.label ]]"
+                                  help.instruction="[[ $current.data.help ]]"
                                   value="[[ $current.data.value ]]"
                                   readonly="[[ $current.data.readonly ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
