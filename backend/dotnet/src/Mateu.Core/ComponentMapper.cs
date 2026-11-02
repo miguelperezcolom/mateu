@@ -436,7 +436,8 @@ internal static class ComponentMapper
         for (var i = 0; i < f.Panels.Count; i++)
         {
             var panel = f.Panels[i];
-            infos.Add(new FoldoutPanelInfoDto(panel.Title, panel.Subtitle, panel.Icon, panel.Open, panel.Width));
+            infos.Add(new FoldoutPanelInfoDto(panel.Title, panel.Subtitle, panel.Icon, panel.Open, panel.Width)
+                { AutoOpen = panel.AutoOpen == true ? true : null });
             if (panel.Content is not null)
                 children.Add(Map(panel.Content) with { Slot = $"panel-{i}" });
             // the folded strip's digest (the Redwood foldout-panel summary slot)

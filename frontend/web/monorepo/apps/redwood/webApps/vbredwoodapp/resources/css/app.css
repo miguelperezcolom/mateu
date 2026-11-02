@@ -2010,6 +2010,14 @@ oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-
 /* min-width 0: clip, unlike auto, is no scroll container, so these flex items grew to their content's
    min-content (a wide table inside a section) and the page, centred in the wider box, went right */
 
+/* An OPEN foldout panel scrolls inside: Spectra fixes every panel to the row's height (the window),
+   so a panel taller than that (a grid of cards) was cut at the bottom with no way to reach the rest.
+   poc/foldouts.mjs installFoldoutPanelScroll keeps the wheel for the panel while it has room. */
+#mateuFoldoutEl .oj-sp-foldout-layout-panel-container:not(:has(> oj-sp-foldout-panel.mateu-foldout-folded)) {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 /* FOLDED foldout panel (FoldoutPanel.open = false, poc/foldouts.mjs): the component's own panel
    reduced to a strip that shows its title vertically. Its container keeps the layout's click /
    focus / page-dot selection, which unfolds it. !important: a panel with a wire width carries

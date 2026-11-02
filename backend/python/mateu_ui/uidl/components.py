@@ -439,6 +439,10 @@ class FoldoutPanel(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: True = the author left ``open`` undecided: the renderer opens the panel while it fits the row
+    #: (declaration order, after the panels declared open) and folds it otherwise; ``open`` is then
+    #: ignored. None (default) = ``open`` decides (mirrors io.mateu.uidl.data.FoldoutPanel.autoOpen).
+    auto_open: bool | None = None
 
 
 @dataclass(frozen=True)

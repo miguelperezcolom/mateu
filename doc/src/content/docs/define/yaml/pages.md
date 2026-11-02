@@ -197,7 +197,7 @@ filled with the record's data (`${state.x}`) — is the **page**.
 
 | `template.type` | Redwood template | Fields | Slots |
 |---|---|---|---|
-| `FoldoutPage` | `oj-sp-foldout-layout` (as a page) | `orientation` (`vertical`/`horizontal`) | `overview` (always in view); the form's `content` is the panels — `FoldoutPanel`s with `title`, `summary` (what the folded strip shows), `open` |
+| `FoldoutPage` | `oj-sp-foldout-layout` (as a page) | `orientation` (`vertical`/`horizontal`) | `overview` (always in view); the form's `content` is the panels — `FoldoutPanel`s with `title`, `summary` (what the folded strip shows), `open` (no `open:` = open while it fits the row, folded when it does not) |
 | `GeneralOverviewPage` | `oj-sp-general-overview-page` | — | `info` (the complementary side panel); the form's `content` is `main`. The header — title, `recordSwitcher`, `kpis` (contextual info), timestamp, toolbar — is the form's |
 | `GuidedProcessPage` | `oj-sp-guided-process` | `steps` (`GuidedProcessStep`: `id`, `title`, `description`, `content`) | — (the steps hold the content). The form's title/subtitle are the process's; its toolbar's primary is the process's primary action, its cancel the way out. All steps are ONE form: moving between them keeps what was typed, no round trip |
 | `HeroSearchPage` | `oj-sp-hero-search-page` | `backgroundColor` (other renderers' hero) | the form's `content` is the results (a searchable `Listing`); the form's title and subtitle are the hero's. On Redwood the page opens as the landing hero and turns into the collection view on the first search |

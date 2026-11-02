@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Image, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Text } from '../ui/Text';
 import { Dialog, Portal } from 'react-native-paper';
@@ -21,6 +21,7 @@ import { ganttLayout, todayDayNumber, todayOffset } from './timeline';
 import { addOnTotal, addOnToggleA11y, fmtAmount, heroHeight, ledgerAmount, toggleAddOn } from './displayModels';
 import { factAction } from './factAction';
 import { calloutColors, comparisonDelta, displayIcon, meterModel, noticeLook, paletteColor, PALETTE, processDotColor, statTrend, stepLook, taskProgressBackground } from './displayTones';
+import { foldoutOpenStates } from '../core/foldoutFit';
 import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerCtaLabel, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights } from './displayFigures';
 
 type Dict = Record<string, unknown>;
@@ -33,7 +34,15 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
   const panels = (meta(component)['panels'] as FoldoutPanelInfo[]) ?? [];
   const children = childrenOf(component);
   const overview = children.find((c) => slotOf(c) === 'overview');
-  const [open, setOpen] = useState<Record<number, boolean>>(() => initiallyFlagged(panels, (p) => p.open));
+  // open=true/false as declared; autoOpen (no `open:` authored) while it fits the window's width,
+  // the rule every renderer shares (core/foldoutFit.ts) — a phone keeps only the declared ones open.
+  // A tap wins for that panel.
+  const { width } = useWindowDimensions();
+  const fitted = useMemo(() => foldoutOpenStates(
+    panels.map((p) => ({ open: p.open === true, autoOpen: p.autoOpen, width: p.width })), width), [panels, width]);
+  const [toggled, setToggled] = useState<Record<number, boolean>>({});
+  const open: Record<number, boolean> = Object.fromEntries(fitted.map((o, i) => [i, toggled[i] ?? o]));
+  const setOpen = (next: Record<number, boolean>) => setToggled({ ...toggled, ...next });
   return (
     <View style={styles.foldout}>
       {!!overview && (

@@ -6585,6 +6585,11 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "auto_open",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },

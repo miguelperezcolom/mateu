@@ -103,6 +103,8 @@ export function foldoutOf(ctx, { parent = null } = {}) {
       // HEADER (read from the live content by index, refreshes without re-stamping)
       headerLabel: (panel.title || '') + (panel.subtitle ? ' · ' + panel.subtitle : ''),
       open: panel.open !== false,
+      // no `open:` authored: open while it fits the row (poc/foldouts.mjs foldoutOpenStates)
+      autoOpen: panel.autoOpen === true,
       // EXPLICIT width from the wire (FoldoutPanel.width): the markup pins the panel to that
       // size — without it, the foldout's responsive engine distributes as it likes and the
       // cockpit cards overlap
