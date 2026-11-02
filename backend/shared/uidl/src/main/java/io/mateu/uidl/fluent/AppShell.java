@@ -95,7 +95,12 @@ public record AppShell(
      * The palette's entity search fed by a REST source — the twin of {@code GlobalSearchSupplier}.
      */
     @Experimental("YAML app shell extras (3.0 beta)")
-        io.mateu.uidl.data.AppGlobalSearchSource globalSearch)
+        io.mateu.uidl.data.AppGlobalSearchSource globalSearch,
+    /**
+     * The AI assistant chat — the data twin of {@code @AI} (YAML {@code ai: {sse, mcp, upload,
+     * followLabel, followingLabel}}). Null: the class.
+     */
+    @Experimental("AI chat panel and MCP wiring") io.mateu.uidl.data.AppAiChat ai)
     implements Component, PageMainContent {
 
   public AppShell {
@@ -112,6 +117,93 @@ public record AppShell(
         variant != null ? variant : hasRemoteMenu(menu) ? AppVariant.MENU_ON_TOP : AppVariant.TABS;
     layout = layout != null ? layout : AppLayout.SINGLE_SLOT;
     route = route != null ? route : "";
+  }
+
+  /**
+   * The shell as it was before {@code ai} (the data twin of {@code @AI}) joined it.
+   *
+   * @deprecated use the canonical constructor or {@code AppShell.builder()} instead
+   */
+  @Deprecated(since = "3.0-beta.37", forRemoval = true)
+  public AppShell(
+      String clientSideComponentId,
+      String route,
+      String homeRoute,
+      String homeBaseUrl,
+      String homeServerSideType,
+      String homeUriPrefix,
+      String homeConsumedRoute,
+      String serverSideType,
+      String favicon,
+      String pageTitle,
+      String title,
+      String subtitle,
+      List<Actionable> menu,
+      AppVariant variant,
+      AppLayout layout,
+      List<Component> widgets,
+      boolean drawerClosed,
+      String style,
+      String cssClasses,
+      String logo,
+      String accentColor,
+      io.mateu.uidl.annotations.BackLink backLink,
+      List<Action> actions,
+      Boolean themeToggle,
+      Boolean commandCenter,
+      Boolean chromeless,
+      Boolean accessKeys,
+      List<io.mateu.uidl.data.AppShortcutEntry> shortcuts,
+      List<io.mateu.uidl.data.HeaderValue> headerValues,
+      Boolean liveUpdates,
+      Integer idleTimeoutMinutes,
+      Integer idleWarningSeconds,
+      String idleSignOutUrl,
+      Boolean mobileQr,
+      List<io.mateu.uidl.data.AppContextSelector> contextSelectors,
+      List<io.mateu.uidl.data.AppHeaderAction> headerActions,
+      io.mateu.uidl.data.AppNotificationsSource notifications,
+      io.mateu.uidl.data.AppGlobalSearchSource globalSearch) {
+    this(
+        clientSideComponentId,
+        route,
+        homeRoute,
+        homeBaseUrl,
+        homeServerSideType,
+        homeUriPrefix,
+        homeConsumedRoute,
+        serverSideType,
+        favicon,
+        pageTitle,
+        title,
+        subtitle,
+        menu,
+        variant,
+        layout,
+        widgets,
+        drawerClosed,
+        style,
+        cssClasses,
+        logo,
+        accentColor,
+        backLink,
+        actions,
+        themeToggle,
+        commandCenter,
+        chromeless,
+        accessKeys,
+        shortcuts,
+        headerValues,
+        liveUpdates,
+        idleTimeoutMinutes,
+        idleWarningSeconds,
+        idleSignOutUrl,
+        mobileQr,
+        contextSelectors,
+        headerActions,
+        notifications,
+        globalSearch,
+        null);
   }
 
   private static boolean hasRemoteMenu(List<Actionable> menu) {

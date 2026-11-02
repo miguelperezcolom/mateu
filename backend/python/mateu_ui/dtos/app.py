@@ -46,6 +46,12 @@ class AppMetadata(Wire):
     logout_url: str | None = None
     #: SSE chat endpoint (@ai); when set the renderer shows the floating AI chat.
     sse_url: str | None = None
+    #: The text of the chat panel's Follow mode button (@ai(follow_label)); None = the renderer's
+    #: own, in the user's language (mirrors AppDto.followLabel).
+    follow_label: str | None = None
+    #: The Follow mode button's text while it is on (@ai(following_label)); None = the renderer's
+    #: own (mirrors AppDto.followingLabel).
+    following_label: str | None = None
     context_selectors: list["AppContextSelector"] = Field(default_factory=list)
     #: Header action buttons next to the context selectors (the app class implements
     #: AppActionsSupplier); an entry with children renders as a dropdown.

@@ -4,7 +4,7 @@ import {nanoid} from "nanoid";
 import MenuOption, { ListingDescriptor } from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import { chatNavigationOf, chatRouteOfClick } from "./chatLinks";
 import { navigateToRoute } from "./rowRoute";
-import {neutralButtonStyles, iconMicrophone} from "./neutralChrome";
+import {neutralButtonStyles, iconMicrophone, iconRobot} from "./neutralChrome";
 import {projectCurrentScreen} from "./screenContext";
 import {handleSessionExpired} from "@infra/http/sessionGuard.ts";
 import {ChatAnswer, ChatProgress, classifyChatPayload, formatToolDuration, isEmptyUsage, SseParser} from "./chatStream";
@@ -13,7 +13,8 @@ import {componentRenderer, HeaderIconButton} from "@infra/ui/renderers/Component
 import {icon} from "@infra/ui/renderers/neutralIcon.ts";
 import {chatText} from "./chatTexts";
 import {CHAT_MIC_ARIA_KEYSHORTCUTS, chatMicTitle, isChatMicShortcut} from "./chatShortcut";
-import {CHAT_WIDE_VW, CHAT_WIDTH, CHAT_WIDTH_STEP, clampChatWidth, dragChatWidth, loadChatWidth, saveChatWidth} from "./chatPanel";
+import {CHAT_WIDE_VW, CHAT_WIDTH, CHAT_WIDTH_STEP, clampChatWidth, dragChatWidth, loadChatFollow, loadChatWidth, saveChatFollow, saveChatWidth} from "./chatPanel";
+import {deferAgentEvent, DeferredAgentAction, isViewMovingAgentEvent} from "./chatFollow";
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { CLOSE_REQUESTED } from './chatEvents'
@@ -27,7 +28,8 @@ import { sessionId } from '@infra/http/authToken.ts'
 export const chatHeaderButton = (button: HeaderIconButton) =>
     componentRenderer.get()?.renderHeaderIconButton?.(button) ?? html`
         <button class="chat-header-btn ${button.cssClasses ?? ''}" @click="${button.onClick}"
-                title="${button.title ?? button.label}" aria-label="${button.label}">
+                title="${button.title ?? button.label}" aria-label="${button.label}"
+                aria-pressed="${button.pressed === undefined ? nothing : String(button.pressed)}">
             ${icon(button.icon, 'width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem);')}
         </button>`
 
@@ -37,6 +39,8 @@ export interface ChatMessageItem {
     time?: string;
     userName?: string;
     userColorIndex?: number;
+    /** What the agent asked to show while follow mode was off: buttons under the answer. */
+    deferred?: DeferredAgentAction[];
 }
 
 /** Avatar colors by userColorIndex (index 1 = user, 2 = agent, see addMessage). */
@@ -123,6 +127,23 @@ export class MateuChat extends LitElement {
     expanded = false;
 
     private toggleExpanded = () => { this.expanded = !this.expanded; };
+
+    /** Follow mode (the robot "Follow" button): on, the agent's navigations and generated screens open as they
+     *  arrive; off, they wait on the answer as buttons (chatFollow.ts). Remembered per browser. */
+    @state()
+    follow: boolean = loadChatFollow();
+
+    private toggleFollow = () => { this.follow = saveChatFollow(!this.follow); };
+
+    /** The Follow mode button's text while it is OFF, the app's own wording (@AI(followLabel),
+     *  YAML ai.followLabel); blank: the localised "Follow" / "Seguir". */
+    @property()
+    followLabel: string | undefined = undefined;
+
+    /** The Follow mode button's text while it is ON (its default state), the app's own wording
+     *  (@AI(followingLabel), YAML ai.followingLabel); blank: "Following" / "Siguiendo". */
+    @property()
+    followingLabel: string | undefined = undefined;
 
     /** The panel's brand (@App(askLabel)); blank → the localised "Assistant". */
     @property()
@@ -610,6 +631,25 @@ export class MateuChat extends LitElement {
      */
     private onAgentEvent(name: string, detail: unknown) {
         if (name === CLOSE_REQUESTED && !this.closable) return;
+        if (!this.follow && isViewMovingAgentEvent(name)) {
+            this.deferOnLastAnswer(deferAgentEvent(name, detail));
+            return;
+        }
+        this.applyAgentEventNow(name, detail);
+    }
+
+    /** Holds a view-moving event back on the latest answer, as a button (follow mode off). */
+    private deferOnLastAnswer(action: DeferredAgentAction) {
+        let idx = this.items.length - 1;
+        while (idx >= 0 && this.items[idx].userColorIndex !== 2) idx--;
+        if (idx < 0) idx = this.addMessage('', 'agent');
+        this.items = this.items.map((item, i) =>
+            i === idx ? { ...item, deferred: [...(item.deferred ?? []), action] } : item
+        );
+        this.scrollBottom();
+    }
+
+    private applyAgentEventNow(name: string, detail: unknown) {
         applyAgentEvent(this, name, detail, {
             onRenderFailed: (e: unknown) => this.addMessage(chromeTextf('chatGeneratedScreenFailed', { error: e instanceof Error ? e.message : String(e) }), 'agent'),
         });
@@ -680,6 +720,15 @@ export class MateuChat extends LitElement {
                     ${icon('vaadin:comments-o', '', 'chat-title-icon')}
                     <h2 class="chat-title">${this.label?.trim() || chatText('title')}</h2>
                     <div class="chat-header-actions">
+                        <button type="button" class="nbtn chat-follow ${this.follow ? 'following' : ''}"
+                                aria-pressed="${this.follow ? 'true' : 'false'}"
+                                title="${chatText(this.follow ? 'followOn' : 'followOff')}"
+                                @click="${this.toggleFollow}">
+                            ${iconRobot}
+                            <span>${this.follow
+                                ? (this.followingLabel?.trim() || chatText('following'))
+                                : (this.followLabel?.trim() || chatText('follow'))}</span>
+                        </button>
                         ${chatHeaderButton({
                             icon: this.expanded ? 'vaadin:compress' : 'vaadin:expand-full',
                             label: chatText(this.expanded ? 'restore' : 'expand'),
@@ -710,6 +759,15 @@ export class MateuChat extends LitElement {
                                         <span class="message-time">${item.time}</span>
                                     </div>
                                     <mateu-markdown class="message-text" .content="${item.text ?? ''}"></mateu-markdown>
+                                    ${item.deferred?.length ? html`
+                                        <div class="chat-deferred">
+                                            ${item.deferred.map(action => html`
+                                                <button type="button" class="chat-deferred-action"
+                                                        @click="${() => this.applyAgentEventNow(action.name, action.detail)}">
+                                                    ${icon(action.name === 'render-screen' ? 'vaadin:viewport' : 'vaadin:arrow-right', 'width: 1em; height: 1em;')}
+                                                    <span>${action.label}</span>
+                                                </button>`)}
+                                        </div>` : nothing}
                                     ${index === this.items.length - 1 && this.loading ? this.renderToolSteps() : nothing}
                                 </div>
                             </div>
@@ -897,6 +955,43 @@ export class MateuChat extends LitElement {
             background: var(--lumo-contrast-5pct, rgba(0, 0, 0, .05));
             color: var(--lumo-body-text-color, #1a1a1a);
         }
+        .chat-header-btn[aria-pressed="true"] {
+            color: var(--lumo-primary-text-color, #1676f3);
+        }
+        /* Follow mode: a "Follow" pill with a robot — outlined when off, filled with the primary
+           colour when on. Lumo tokens with neutral fallbacks, like the rest of the
+           panel's chrome (neutralChrome.ts). */
+        .chat-header-actions > .chat-follow {
+            margin-inline-end: var(--lumo-space-xs, .25rem);
+        }
+        .chat-header-actions > .nbtn.chat-follow {
+            height: var(--lumo-size-s, 1.875rem);
+            padding: 0 var(--lumo-space-m, .875rem) 0 var(--lumo-space-s, .625rem);
+            border: 1px solid var(--lumo-contrast-50pct, rgba(25, 39, 52, .5));
+            border-radius: 999px;
+            background: transparent;
+            color: var(--lumo-body-text-color, #1a1a1a);
+            font-weight: 500;
+        }
+        .chat-header-actions > .nbtn.chat-follow:hover {
+            background: var(--lumo-contrast-5pct, rgba(0, 0, 0, .05));
+        }
+        .chat-header-actions > .nbtn.chat-follow.following {
+            border-color: var(--lumo-primary-color, #1676f3);
+            background: var(--lumo-primary-color, #1676f3);
+            color: var(--lumo-primary-contrast-color, #fff);
+        }
+        .chat-header-actions > .nbtn.chat-follow.following:hover {
+            filter: brightness(1.08);
+        }
+        .chat-header-actions > .nbtn.chat-follow:focus-visible {
+            outline: 2px solid var(--lumo-primary-color-50pct, rgba(22, 118, 243, .5));
+            outline-offset: 2px;
+        }
+        .chat-header-actions > .nbtn.chat-follow svg {
+            width: 1.1em;
+            height: 1.1em;
+        }
         .chat-header-btn:focus-visible {
             outline: 2px solid var(--lumo-primary-color-50pct, rgba(22, 118, 243, .5));
             outline-offset: 1px;
@@ -1025,6 +1120,36 @@ export class MateuChat extends LitElement {
 
         .message-text > :last-child {
             margin-bottom: 0;
+        }
+
+        /* Follow mode off: what the agent asked to show, waiting for the user's click. */
+        .chat-deferred {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+        .chat-deferred-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.7rem;
+            border: 1px solid var(--lumo-primary-color-50pct, rgba(22, 118, 243, .5));
+            border-radius: 999px;
+            background: var(--lumo-primary-color-10pct, rgba(22, 118, 243, .1));
+            color: var(--lumo-primary-text-color, #1676f3);
+            font: inherit;
+            font-size: var(--lumo-font-size-xs, .8125rem);
+            cursor: pointer;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+        .chat-deferred-action:hover {
+            background: var(--lumo-primary-color-50pct, rgba(22, 118, 243, .2));
+        }
+        .chat-deferred-action:focus-visible {
+            outline: 2px solid var(--lumo-primary-color-50pct, rgba(22, 118, 243, .5));
+            outline-offset: 1px;
         }
 
         .input-bar {

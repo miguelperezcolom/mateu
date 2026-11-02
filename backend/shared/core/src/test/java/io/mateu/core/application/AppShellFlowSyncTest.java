@@ -91,6 +91,13 @@ class AppShellFlowSyncTest {
     assertThat(app.accessKeys()).isTrue();
     assertThat(app.mobileQr()).isTrue();
     assertThat(app.chromeless()).isFalse();
+    // ai: — the data twin of @AI: the chat, its MCP endpoint and the Follow mode button's labels
+    assertThat(app.sseUrl()).isEqualTo("/api/ai/chat");
+    assertThat(app.mcpUrl()).isEqualTo("/api/ai/mcp");
+    assertThat(app.uploadUrl()).isNull();
+    assertThat(app.followLabel()).isEqualTo("Seguir al copiloto");
+    assertThat(app.followingLabel()).isEqualTo("Siguiendo al copiloto");
+    assertThat(app.requiredCapabilities()).contains("sse");
     var shell = (ClientSideComponentDto) increment.fragments().get(0).component();
     assertThat(shell.children()).hasSize(1);
     assertThat(((ClientSideComponentDto) shell.children().get(0)).slot()).isEqualTo("widgets");
@@ -111,6 +118,7 @@ class AppShellFlowSyncTest {
     var bare = AppShell.builder().build();
     assertThat(bare.actions()).isEmpty();
     assertThat(bare.themeToggle()).isNull();
+    assertThat(bare.ai()).isNull();
   }
 
   private static void maybeWriteGolden(UIIncrementDto increment) throws Exception {

@@ -41,6 +41,10 @@ export default interface App extends ComponentMetadata {
     sseUrl: string | undefined
     mcpUrl: string | undefined
     uploadUrl: string | undefined
+    /** @AI(followLabel) / YAML ai.followLabel: the Follow mode button's text while off; absent = the renderer's own */
+    followLabel?: string
+    /** @AI(followingLabel) / YAML ai.followingLabel: its text while on; absent = the renderer's own */
+    followingLabel?: string
     fabs: Fab[] | undefined
     themeToggle: boolean
     contextSelectors: AppContextSelector[] | undefined

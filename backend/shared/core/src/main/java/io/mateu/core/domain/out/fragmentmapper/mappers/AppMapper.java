@@ -87,6 +87,8 @@ public final class AppMapper {
             .sseUrl(getSseUrl(app))
             .mcpUrl(getMcpUrl(app))
             .uploadUrl(getUploadUrl(app))
+            .followLabel(getFollowLabel(app))
+            .followingLabel(getFollowingLabel(app))
             .fabs(getAppFabs(app))
             .themeToggle(getThemeToggle(app))
             .contextSelectors(getContextSelectors(app, httpRequest))
@@ -590,33 +592,48 @@ public final class AppMapper {
     return notBlank(value) ? value.trim() : null;
   }
 
-  private static String getMcpUrl(AppShell app) {
-    if (app.serverSideType() == null) return null;
-    var appClass = forName(app.serverSideType());
-    if (MetaAnnotations.isPresent(appClass, AI.class)) {
-      var mcp = MetaAnnotations.find(appClass, AI.class).mcp();
-      return mcp.isBlank() ? null : mcp;
+  /** The app's AI chat settings: the shell's own ({@code ai:} in YAML) else {@code @AI}. */
+  private static AiSettings aiOf(AppShell app) {
+    if (app.ai() != null) {
+      var ai = app.ai();
+      return new AiSettings(ai.sse(), ai.mcp(), ai.upload(), ai.followLabel(), ai.followingLabel());
     }
-    return null;
+    if (app.serverSideType() == null) return AiSettings.NONE;
+    var appClass = forName(app.serverSideType());
+    if (!MetaAnnotations.isPresent(appClass, AI.class)) return AiSettings.NONE;
+    var ai = MetaAnnotations.find(appClass, AI.class);
+    return new AiSettings(ai.sse(), ai.mcp(), ai.upload(), ai.followLabel(), ai.followingLabel());
+  }
+
+  private record AiSettings(
+      String sse, String mcp, String upload, String followLabel, String followingLabel) {
+    static final AiSettings NONE = new AiSettings(null, null, null, null, null);
+  }
+
+  private static String trimmedOrNull(String value) {
+    return value == null || value.isBlank() ? null : value.trim();
+  }
+
+  private static String getMcpUrl(AppShell app) {
+    return trimmedOrNull(aiOf(app).mcp());
   }
 
   private static String getUploadUrl(AppShell app) {
-    if (app.serverSideType() == null) return null;
-    var appClass = forName(app.serverSideType());
-    if (MetaAnnotations.isPresent(appClass, AI.class)) {
-      var upload = MetaAnnotations.find(appClass, AI.class).upload();
-      return upload.isBlank() ? null : upload;
-    }
-    return null;
+    return trimmedOrNull(aiOf(app).upload());
+  }
+
+  private static String getFollowLabel(AppShell app) {
+    return trimmedOrNull(aiOf(app).followLabel());
+  }
+
+  private static String getFollowingLabel(AppShell app) {
+    return trimmedOrNull(aiOf(app).followingLabel());
   }
 
   private static String getSseUrl(AppShell app) {
-    if (app.serverSideType() == null) return null;
-    var appClass = forName(app.serverSideType());
-    if (MetaAnnotations.isPresent(appClass, AI.class)) {
-      return MetaAnnotations.find(appClass, AI.class).sse();
-    }
-    return null;
+    var ai = aiOf(app);
+    if (app.ai() != null) return trimmedOrNull(ai.sse());
+    return ai.sse();
   }
 
   private static List<ComponentDto> mapWidgets(

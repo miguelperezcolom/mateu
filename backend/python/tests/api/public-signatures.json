@@ -3713,6 +3713,16 @@
      "sse",
      "POSITIONAL_OR_KEYWORD",
      false
+    ],
+    [
+     "follow_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "following_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },

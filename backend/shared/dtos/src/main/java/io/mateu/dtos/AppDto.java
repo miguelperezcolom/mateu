@@ -36,6 +36,16 @@ public record AppDto(
     String sseUrl,
     String mcpUrl,
     String uploadUrl,
+    /**
+     * The text of the chat panel's Follow mode button while it is off ({@code @AI(followLabel)},
+     * YAML {@code ai.followLabel}); null = the renderer's own ("Follow", "Seguir").
+     */
+    String followLabel,
+    /**
+     * The text of the Follow mode button while it is on ({@code @AI(followingLabel)}, YAML {@code
+     * ai.followingLabel}); null = the renderer's own ("Following", "Siguiendo").
+     */
+    String followingLabel,
     List<FabDto> fabs,
     boolean themeToggle,
     List<AppContextSelectorDto> contextSelectors,

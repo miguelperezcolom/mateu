@@ -120,7 +120,7 @@ in the same change.
 | Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | ✅ | ✅ |
 | Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData; Python: a field holding a routed view + `Inline()`) | ✅ | ✅ | ✅ |
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
-| AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
+| AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`, `followLabel`, `followingLabel`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
 | Federation (remote menus + `MicroFrontend` islands) | ✅ | ✅ | ✅ |
 | [Micro frontends resolved in the server](/java-ui-definition/components/micro-frontend/#resolving-it-in-the-server-resolve--server) (`resolve = SERVER`: the host asks the remote while building the view and embeds its fragments; remote registry, identity strategies, fragment cache decided by the remote, correlation id) and [`@ContentSlot`](/java-ui-definition/components/content-slot/) (.NET `[ContentSlot]` + `Mateu.Core/MicroFrontends`, Python `ContentSlot()` + `core/microfrontends.py`; slot keys checked at registration instead of compile time). Ports: no YAML `ContentSlot` builder, no `mateu.remotes.*` properties — remotes are configured with the server options | ✅ | 🟡 | 🟡 |

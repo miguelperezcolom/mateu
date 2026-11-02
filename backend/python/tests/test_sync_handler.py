@@ -197,7 +197,7 @@ _LAST_PAGEABLE: list = []
 
 
 @app("Test App")
-@ai("/ai/chat")
+@ai("/ai/chat", follow_label=" Copilot ", following_label="Following the copilot")
 @remote_menu("Payments", "https://payments.example.com", explode=True)
 class TestApp(AppActionsSupplier):
     @menu_item("Things")
@@ -1433,6 +1433,14 @@ def test_micro_frontend_component_mounts_a_remote_island():
 def test_app_metadata_carries_the_sse_chat_url():
     inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
     assert '"sseUrl": "/ai/chat"' in render(inc)
+
+
+def test_app_metadata_carries_the_chats_follow_labels_trimmed():
+    # @ai(follow_label): the app's wording for the chat's Follow mode button (Java's
+    # @AI(followLabel)); absent = the renderer's own ("Follow" / "Seguir").
+    inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
+    assert '"followLabel": "Copilot"' in render(inc)
+    assert '"followingLabel": "Following the copilot"' in render(inc)
 
 
 def test_preexisting_lookup_and_searchable_values_resolve_their_labels():

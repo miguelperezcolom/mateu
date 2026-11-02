@@ -85,7 +85,10 @@ class AppSyncTest {
   @Logo("/img/logo.png")
   @FavIcon("/img/fav.ico")
   @App(value = AppVariant.MENU_ON_TOP, layout = AppLayout.SPLIT, themeToggle = true)
-  @AI(sse = "http://localhost:9999/ai/stream")
+  @AI(
+      sse = "http://localhost:9999/ai/stream",
+      followLabel = " Copilot ",
+      followingLabel = "Following the copilot")
   public static class ShopApp {
     @Menu
     @Label("Catálogo")
@@ -308,6 +311,18 @@ class AppSyncTest {
     // "_no_home_route" sentinel and only Redwood applied the rule, client-side).
     assertThat(appOf("/tabsapp").homeRoute()).isEqualTo("/tabsapp/alpha");
     assertThat(appOf("/shop").homeRoute()).isNotEqualTo("_no_home_route").startsWith("/shop/");
+  }
+
+  @Test
+  void theChatsFollowModeButtonCarriesTheAppsOwnLabels() {
+    // @AI(followLabel / followingLabel): the app's wording for the chat's Follow mode button, off
+    // and on, trimmed; an app that gives none leaves them to the renderer's own ("Follow" /
+    // "Following", "Seguir" / "Siguiendo").
+    assertThat(appOf("/shop").sseUrl()).isEqualTo("http://localhost:9999/ai/stream");
+    assertThat(appOf("/shop").followLabel()).isEqualTo("Copilot");
+    assertThat(appOf("/shop").followingLabel()).isEqualTo("Following the copilot");
+    assertThat(appOf("/supplier").followLabel()).isNull();
+    assertThat(appOf("/supplier").followingLabel()).isNull();
   }
 
   @Test

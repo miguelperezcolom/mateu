@@ -27,6 +27,8 @@ Mateu.Core.RouteEntry property System.String Route { get;init; }
 Mateu.Core.RouteEntry property System.String ViewModel { get;init; }
 Mateu.Core.RouteEntry static method Mateu.Core.RouteEntry Of(System.String, System.String)
 Mateu.Uidl.AIAttribute ctor(System.String)
+Mateu.Uidl.AIAttribute property System.String FollowLabel { get;set; }
+Mateu.Uidl.AIAttribute property System.String FollowingLabel { get;set; }
 Mateu.Uidl.AIAttribute property System.String Sse { get; }
 Mateu.Uidl.Access ctor(System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null)
 Mateu.Uidl.Access method System.Boolean Restricts()

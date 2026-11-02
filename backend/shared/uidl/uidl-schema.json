@@ -449,6 +449,26 @@
         }
       }
     },
+    "AppAiChat" : {
+      "type" : "object",
+      "properties" : {
+        "sse" : {
+          "type" : "string"
+        },
+        "mcp" : {
+          "type" : "string"
+        },
+        "upload" : {
+          "type" : "string"
+        },
+        "followLabel" : {
+          "type" : "string"
+        },
+        "followingLabel" : {
+          "type" : "string"
+        }
+      }
+    },
     "AppContextSelector" : {
       "type" : "object",
       "properties" : {
@@ -692,6 +712,9 @@
         },
         "globalSearch" : {
           "$ref" : "#/$defs/AppGlobalSearchSource"
+        },
+        "ai" : {
+          "$ref" : "#/$defs/AppAiChat"
         },
         "note" : {
           "type" : "string",

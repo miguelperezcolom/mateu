@@ -33,6 +33,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   1600px used to show "Loans" and "Budget and visitors" folded beside empty space. `open: true/false`
   and every Java panel are unchanged. One rule in libs/mateu, Redwood, React Native and IntelliJ,
   pinned by `conformance/client/foldout-auto.json`; the browser expander applies the same default.
+
+- **Follow mode in the AI chat panel** (web; Java, YAML, .NET, Python). A robot button in the chat
+  header lets the user choose whether the view follows the assistant. On (the default, as before) it
+  reads **Following** («Siguiendo»), filled, and the agent's `navigation-requested` and
+  `render-screen` move the content as they arrive; off it reads **Follow** («Seguir»), outlined, and
+  they wait on the reply as buttons the user clicks when they want to see them, so the screen no
+  longer changes under them with every agent action. Other agent events keep applying; the choice is
+  remembered per browser. Both texts are the app's to set: `@AI(followingLabel, followLabel)`,
+  `[AI(FollowingLabel, FollowLabel)]`, `@ai(following_label, follow_label)` (`AppDto.followingLabel`
+  / `followLabel`).
+- **The AI chat in a YAML app shell** (Java). `type: AppShell` takes an `ai:` block — `sse`, `mcp`,
+  `upload`, `followingLabel`, `followLabel` — the data twin of `@AI` (`io.mateu.uidl.data.AppAiChat`,
+  `AppShell.ai`), so a data-authored app gets the assistant without a Java class. The pre-`ai`
+  `AppShell` constructor stays, deprecated.
 - **A crud's edit and creation forms render the editor's own `@Button`s** (Java). They sit under the
   form — in the drawer's bottom row, before Cancel/Save — and are the actions that only make sense
   while editing (insert a medium into the text, translate it, refresh a preview). Like save, they

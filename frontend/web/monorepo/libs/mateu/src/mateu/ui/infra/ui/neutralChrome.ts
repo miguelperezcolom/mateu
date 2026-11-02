@@ -79,3 +79,13 @@ export const iconMicrophone = icon(svg`
 export const iconClose = icon(svg`
     <line x1="18" y1="6" x2="6" y2="18"></line>
     <line x1="6" y1="6" x2="18" y2="18"></line>`);
+
+/** A robot: the assistant (the chat's Follow mode button). */
+export const iconRobot = icon(svg`
+    <line x1="12" y1="2.5" x2="12" y2="6"></line>
+    <rect x="4" y="6" width="16" height="13" rx="3"></rect>
+    <line x1="2" y1="11" x2="2" y2="14"></line>
+    <line x1="22" y1="11" x2="22" y2="14"></line>
+    <circle cx="9" cy="11.5" r="1"></circle>
+    <circle cx="15" cy="11.5" r="1"></circle>
+    <line x1="9.5" y1="15.5" x2="14.5" y2="15.5"></line>`);
