@@ -34,7 +34,9 @@ never scrolls sideways). On a phone, prefer `list` or `cards` explicitly.
 the identifier column (or the first one) as its title, `Status` columns as badges, the `@Line(2)`
 and later columns as secondary lines, the remaining columns (up to six) as label/value pairs, and
 the row actions as buttons. Clicking a card does what clicking a table row does. In the Redwood
-renderer `list`, `masterDetail` and `tree` still render as a table; `cards` renders as cards.
+renderer `list` and `tree` still render as a table and `cards` renders as cards; `masterDetail`
+renders the table, and a click on a row (when it has no `rowRoute` and is not navigable) opens its
+fields in a panel beside it — a full-screen sheet on a phone.
 
 ---
 

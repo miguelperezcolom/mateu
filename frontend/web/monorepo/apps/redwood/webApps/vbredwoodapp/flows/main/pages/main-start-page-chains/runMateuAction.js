@@ -29,8 +29,7 @@ define([
     async run(context, { actionId, parameters, event, increment }) {
       const { $application, $page } = context;
 
-      // Marking the pressed control is done by the transport hooks at document level
-      // (bridge.trackPressedControls): that way it covers ALL the chains, not just this one.
+      // the pressed control is marked by the transport hooks (bridge.trackPressedControls), for ALL chains
       try {
         return await this.dispatch(context, { actionId, parameters, event, increment });
       } catch (e) {
@@ -50,9 +49,10 @@ define([
       if (!id && event && event.target && event.target.dataset) {
         id = event.target.dataset.actionId;
       }
-      if (!id) {
-        return;
-      }
+      if (!id) return;
+      // a RouteLink button ALWAYS navigates, from any surface (its id is the label's echo: 403)
+      const routed = bridge.routedActionOf($application.variables.mateuRegistry, id, $page.variables.mateuDraft);
+      if (routed) return routed.navigate ? Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: routed.navigate, force: true } }) : undefined;
       // a LEAVE action (Cancel…) with unsaved changes asks as the menu does; «stay» sends nothing
       if (!bridge.confirmLeaveAction(id, $application.variables, undefined, parameters)) return;
       // «go to parent» without a back button: the automatic trail put it there, and it is a

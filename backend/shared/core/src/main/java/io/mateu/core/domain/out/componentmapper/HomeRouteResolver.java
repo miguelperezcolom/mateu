@@ -77,7 +77,7 @@ public class HomeRouteResolver {
     if (!"".equals(token)) {
       token = "/" + token;
       for (Actionable actionable : actionables) {
-        if (token.equals(actionable.path()) && actionable instanceof Menu menu) {
+        if (actionable instanceof Menu menu && token.equals(groupPath(menu))) {
           var remaining = Arrays.stream(route.split("/")).skip(1).collect(Collectors.joining("/"));
           if (remaining.isBlank()) {
             return Optional.of(menu);
@@ -88,6 +88,18 @@ public class HomeRouteResolver {
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * The segment a group answers at: its path, or — a group authored as data ({@code type: Menu}
+   * with only a {@code label}) has none — its label camel-cased, exactly what the menu sends
+   * (AppMenuDtoBuilder.getPath: "Solar system" → {@code /solarSystem}). Matching only the declared
+   * path left every data-authored group route "Page not found".
+   */
+  public static String groupPath(Menu menu) {
+    var path =
+        menu.path() != null ? menu.path() : io.mateu.uidl.Humanizer.toCamelCase(menu.label());
+    return path == null || path.startsWith("/") ? path : "/" + path;
   }
 
   static String getHomeUriPrefix(Optional<? extends Actionable> selectedOption) {

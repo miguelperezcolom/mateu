@@ -729,6 +729,16 @@ test('a hero among other content is content: the welcome page is a hero over its
   assert.equal(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles, node({ type: 'Notice', text: 'n' })]), state: {}, data: {} }), null)
 })
 
+test('a YAML page served as a client-side tree is headed by ITS title and subtitle, not the menu label (crawl D10)', () => {
+  const shell = { menu: [{ route: '/sites-map', label: 'Launch sites map' }, { route: '/launches', label: 'Launches' }] }
+  const form = node({ type: 'Form', title: 'Launch sites', subtitle: 'Where the missions left from' }, [node({ type: 'Map' }), node({ type: 'Crud' })])
+  assert.equal(summarizeHost({ contexts: { [HOST_ID]: { tree: form, state: {} } }, shell }, '/sites-map').title, 'Launch sites')
+  // a listing page: its subtitle rides the Crud, beside its title
+  const crud = node({ type: 'Crud', title: 'Launches', subtitle: 'When, on what and from where' })
+  assert.equal(pageSubtitleOf({ tree: crud, state: {}, data: {} }), 'When, on what and from where')
+  assert.equal(pageSubtitleOf({ tree: form, state: {}, data: {} }), 'Where the missions left from')
+})
+
 test('a composed page (no Page, no Crud title) takes its header title from its window title', () => {
   const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: 'x' })])] }
   const reg = { contexts: { [HOST_ID]: { tree, state: {} } }, shell: { menu: [] }, effects: { docTitle: 'Sales dashboard' } }

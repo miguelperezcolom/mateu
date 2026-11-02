@@ -407,6 +407,8 @@ export function layoutFieldOf(md, state, data, columns = 1) {
     // the wire's, clamped to the layout's columns. The template (classic oj-form-layout, with
     // the labels inside) doesn't apply it yet: that needs oj-c-form-layout and its column-span
     colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
+    // the field's hint while it is empty («e.g. Mars Sample Return»), as the web renderer shows it
+    placeholder: md.placeholder ? String(md.placeholder) : '',
     messagesCustom: [],
   }
 }

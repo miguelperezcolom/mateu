@@ -1345,7 +1345,7 @@ export class MateuTableCrud extends LitElement {
                                 ? dispatchRowAction(e, 'action-on-row-select', item)
                                 : handleCardClick(e.target as HTMLElement, 'view', item))}"
                         >
-                            ${imageCols.length ? html`<img src="${item[imageCols[0].id] ?? ''}" alt="" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: var(--lumo-border-radius-m, 8px);" />` : nothing}
+                            ${imageCols.length ? html`<img src="${item[imageCols[0].id] ?? ''}" alt="${titleCol ? String(item[titleCol.id] ?? '') : ''}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: var(--lumo-border-radius-m, 8px);" />` : nothing}
                             ${titleCol ? html`<div class="crud-card-title">${item[titleCol.id] ?? ''}</div>` : nothing}
                             <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs); padding: var(--lumo-space-s) 0;">
                                 ${dataCols.map(col => html`

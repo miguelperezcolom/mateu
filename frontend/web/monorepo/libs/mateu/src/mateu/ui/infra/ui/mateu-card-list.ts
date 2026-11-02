@@ -99,7 +99,7 @@ export class MateuCardList extends LitElement {
         }
         if (item.title) {
             return html`<div class="neutral-card">
-                ${item.image?html`<img class="card-media" src="${item.image}" alt="" />`:nothing}
+                ${item.image?html`<img class="card-media" src="${item.image}" alt="${item.title ?? ''}" />`:nothing}
                 <div class="card-body">
                     <div class="card-head">
                         ${item.title?html`<span class="card-title">${item.title}</span>`:nothing}
