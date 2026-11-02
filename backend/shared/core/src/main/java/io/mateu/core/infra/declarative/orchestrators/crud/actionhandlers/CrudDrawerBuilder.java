@@ -69,7 +69,8 @@ final class CrudDrawerBuilder {
     children.add(form);
     return Drawer.builder()
         .id(DRAWER_ID)
-        .headerTitle(headerTitle)
+        // the crud's New / Edit (newLabel / editLabel), in the UI's language when it is the default
+        .headerTitle(io.mateu.core.infra.declarative.BuiltInTexts.translate(headerTitle, rq))
         .width(orchestrator.editDrawerWidth())
         .content(formComponent(editor, form, children, initialData, rq))
         .initialData(initialData)

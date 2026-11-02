@@ -1,6 +1,6 @@
 import { HOST_ID, collectFields } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES } from './atoms.mjs'
-import { converterOf, interpolate } from './content.mjs'
+import { converterOf, dateConverterOf, interpolate } from './content.mjs'
 import { ROW_LINES_FIELD, findByType, isBlank, listingOf, withoutDefaultSizing } from './listing.mjs'
 import { chromeText, chromeLanguage } from '../i18n.mjs'
 import { evaluateExpression, evaluateTemplate, valueChangeActionOf } from '../rules.mjs'
@@ -480,7 +480,7 @@ export function searchableWidgetOf(f, data, value) {
     // the button dispatches like any host block (hostBlockAction: actionId + parameters)
     actionId: 'codesearch-' + fieldId,
     parameters: {},
-    addLabel: multi ? 'Add' : 'Search',
+    addLabel: multi ? chromeText('add') : chromeText('askSearch'),
     isSelect: false,
     isLookup: false,
     lookupActionId: '',
@@ -553,7 +553,7 @@ export function searchPickerOf(reg) {
     paging: listing.paging,
     pickActionId: SEARCHABLE_PICK_ACTION,
     addActionId: SEARCHABLE_ADD_ACTION,
-    addLabel: (addButton && addButton.label) || 'Add selected',
+    addLabel: (addButton && addButton.label) || chromeText('addSelected'),
   }
 }
 
@@ -799,6 +799,7 @@ function dateRangeWidgetOf(f, value) {
     value: ends[end],
     required: !!f.required,
     readonly: !!f.readOnly,
+    converter: dateConverterOf('date'),
   })
   return { isDateRange: true, rangeParts: [part('from', ''), part('to', 'rangeTo')] }
 }
@@ -884,7 +885,9 @@ function widgetOf(f, data, { lookups, value, textWhenEmpty }) {
     isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
     isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
     isEmail: false, isUrl: false, currency: '',
-    converter: null, captureMode: '', accept: '',
+    // a date field writes and reads dates in the UI's locale, not in the one JET booted with
+    converter: isDate ? dateConverterOf('date') : isDateTime ? dateConverterOf('dateTime') : null,
+    captureMode: '', accept: '',
   }
 }
 

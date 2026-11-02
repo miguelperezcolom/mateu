@@ -30,7 +30,8 @@ import { hexColorOf } from './inputs.mjs'
 import { reprojectedContentOf } from './reproject.mjs'
 import { chatTurnsOf } from './displayDom.mjs'
 import { REDWOOD_COVERAGE } from './coverage.mjs'
-import { setChromeLanguage, CHROME_TEXTS } from './i18n.mjs'
+import { setChromeLanguage, CHROME_TEXTS, dateLocale, dateConverterOptions } from './i18n.mjs'
+import { smartFilterValueMetadataOf } from './core/listing.mjs'
 import { ruleSurfacesOf, surfaceOfElement } from './rules.mjs'
 import { kanbanKeyOf, kanbanTriggersOf, kanbanCardsFromRows, kanbanMovedColumns, kanbanIsRealMove, kanbanMoveParametersOf,
   kanbanDropIndexOf, setPendingKanbanMove, kanbanMovePlanOf, kanbanMoveFailed, KANBAN_ACTION } from './core/kanban.mjs'
@@ -895,6 +896,54 @@ test('display chrome in the interface language (English by default)', () => {
     assert.equal(gridPageOf([1, 2], 10, 0).rangeText, '1–2 de 2')
   } finally { setChromeLanguage('') }
   for (const k of Object.keys(CHROME_TEXTS.en)) assert.ok(k in CHROME_TEXTS.es, 'es lacks ' + k)
+})
+
+test('a date field writes and reads dates in the UI locale: its own converter, not the one JET booted with', () => {
+  // a Spanish UI showed a typed 15/2/2041 back as 2/15/2041 (JET's default converter, en-US)
+  setChromeLanguage('es-ES')
+  try {
+    assert.equal(dateLocale(), 'es-ES')
+    assert.deepEqual(dateConverterOptions('date'), { locale: 'es-ES', year: 'numeric', month: 'numeric', day: 'numeric' })
+    assert.deepEqual(dateConverterOptions('dateTime'),
+      { locale: 'es-ES', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    // the page form, the drawer, the row editor (one widget resolution): in Node the converter is its spec
+    const date = fieldWidgetOf({ type: 'FormField', fieldId: 'd', label: 'D', dataType: 'date' }, {}, { value: '2041-02-15' })
+    assert.equal(date.isDate, true)
+    assert.deepEqual(date.converter, { type: 'datetime', options: dateConverterOptions('date') })
+    const dateTime = fieldWidgetOf({ type: 'FormField', fieldId: 't', label: 'T', dataType: 'dateTime' }, {}, {})
+    assert.deepEqual(dateTime.converter, { type: 'datetime', options: dateConverterOptions('dateTime') })
+    // the same instance on every projection: JET does not re-format the field on unrelated changes
+    assert.equal(fieldWidgetOf({ type: 'FormField', fieldId: 'e', label: 'E', dataType: 'date' }, {}, {}).converter, date.converter)
+    assert.equal(fieldWidgetOf({ type: 'FormField', fieldId: 's', label: 'S', dataType: 'string' }, {}, {}).converter, null)
+    // a date range: both ends
+    const range = layoutFieldOf({ type: 'FormField', fieldId: 'r', label: 'R', dataType: 'dateRange', stereotype: 'dateRange' }, {})
+    assert.deepEqual(range.rangeParts.map((p) => p.converter), [date.converter, date.converter])
+    // a listing's range filter: oj-dynamic builds the converter from module + class + options; its ends are chrome
+    const filter = smartFilterValueMetadataOf({ label: 'Fecha', isRange: true, inputType: 'date' })
+    assert.deepEqual(filter.properties.gte.converter,
+      { path: 'ojs/ojconverter-datetime', name: 'IntlDateTimeConverter', options: dateConverterOptions('date') })
+    assert.deepEqual([filter.properties.gte.labelHint, filter.properties.lte.labelHint], ['Desde', 'Hasta'])
+    assert.equal(smartFilterValueMetadataOf({ label: 'N', isRange: true, inputType: 'number' }).properties.gte.converter, undefined)
+  } finally { setChromeLanguage('') }
+  setChromeLanguage('en')
+  try {
+    assert.match(dateLocale(), /^en(-|$)/)
+    assert.deepEqual(smartFilterValueMetadataOf({ label: 'D', isRange: true, inputType: 'date' }).properties.lte.labelHint, 'To')
+  } finally { setChromeLanguage('') }
+  // the page's (or the explicit) language refined by the browser's region; junk → en-US
+  const nav = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  Object.defineProperty(globalThis, 'navigator', { value: { language: 'es-MX' }, configurable: true })
+  try {
+    setChromeLanguage('es')
+    assert.equal(dateLocale(), 'es-MX')
+    setChromeLanguage('en')
+    assert.equal(dateLocale(), 'en')
+    setChromeLanguage('??')
+    assert.equal(dateLocale(), 'en-US')
+  } finally {
+    setChromeLanguage('')
+    if (nav) Object.defineProperty(globalThis, 'navigator', nav); else delete globalThis.navigator
+  }
 })
 
 test('a page of only buttons paints them; under fields the generic form does', () => {

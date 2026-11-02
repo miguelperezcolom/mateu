@@ -45,7 +45,7 @@ public class CrudFormComponentBuilder {
     // The creation form and the edit form hide different fields, and the validations that travel
     // with the page are built separately from its content — see ValidationMapper.FOR_CREATION_FORM.
     httpRequest.setAttribute(ValidationMapper.FOR_CREATION_FORM, isCreation);
-    var buttons = buildToolbar(isCreation, orchestrator);
+    var buttons = buildToolbar(isCreation, orchestrator, httpRequest);
     // the edit drawer's "Save and next" (CrudDisplay.saveAndNext, the Redwood
     // spPrimaryActionAndNext): saves and moves the drawer on to the next row
     var saveAndNext =
@@ -57,7 +57,9 @@ public class CrudFormComponentBuilder {
       buttons.add(
           buttons.size() - 1,
           Button.builder()
-              .label(orchestrator.saveAndNextLabel())
+              .label(
+                  io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                      orchestrator.saveAndNextLabel(), httpRequest))
               .actionId("save-and-next")
               .disabled(!orchestrator.display().saveAndNext().enabled())
               .build());
@@ -111,18 +113,25 @@ public class CrudFormComponentBuilder {
     return builder.build();
   }
 
-  private static List<UserTrigger> buildToolbar(boolean isCreation, Crud orchestrator) {
+  private static List<UserTrigger> buildToolbar(
+      boolean isCreation, Crud orchestrator, HttpRequest httpRequest) {
     List<UserTrigger> buttons = new ArrayList<>();
     if (!isCreation || !MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {
       buttons.add(
-          new Button(orchestrator.cancelLabel(), isCreation ? "cancel-new" : "cancel-edit"));
+          new Button(
+              io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                  orchestrator.cancelLabel(), httpRequest),
+              isCreation ? "cancel-new" : "cancel-edit"));
     }
     // The edit form persists through "save" (Crud.save → the editor's state); "create" would
     // route to saveNew with the CREATION form's (empty) state, silently discarding the edit.
     // Save is the primary action (RDS highlights it; the drawer footer / toolbar renders it
     // as the call-to-action).
     buttons.add(
-        new Button(orchestrator.saveLabel(), isCreation ? "create" : "save")
+        new Button(
+                io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                    orchestrator.saveLabel(), httpRequest),
+                isCreation ? "create" : "save")
             .toBuilder().buttonStyle(ButtonStyle.primary).build());
     return buttons;
   }

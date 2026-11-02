@@ -7,7 +7,7 @@ import { stableHashOf } from './overviews.mjs'
 import { urlOfRoute } from '../mount.mjs'
 import { optionsOf } from './rowEditor.mjs'
 import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
-import { chromeText, chromeLanguage, moneyText } from '../i18n.mjs'
+import { chromeText, chromeLanguage, dateConverterOptions, moneyText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
 /** RENDER helper: first node of the tree with the given metadata.type. */
@@ -1599,7 +1599,8 @@ export function multiValuesOf(value) {
 //     fieldId): the editor of each filter's value.
 
 export const KEYWORD_FILTER = 'keyword'
-export const BOOL_CHOICES = [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]
+/** A boolean filter's two choices, in the interface's language. */
+export const boolChoices = () => [{ value: 'true', label: chromeText('yes') }, { value: 'false', label: chromeText('no') }]
 
 /** The editor of a filter's value, in oj-dynamic's vocabulary (what the popup opens). */
 export function smartFilterValueMetadataOf(f) {
@@ -1611,13 +1612,18 @@ export function smartFilterValueMetadataOf(f) {
     const componentType = numeric ? 'oj-input-number'
       : f.inputType === 'datetime-local' ? 'oj-input-date-time' : 'oj-input-date'
     const type = numeric ? 'number' : 'string'
+    // a date end writes and reads dates in the UI's locale (oj-dynamic builds the converter from
+    // this description: module path + class + options), like every other date field
+    const converter = numeric ? undefined : {
+      path: 'ojs/ojconverter-datetime',
+      name: 'IntlDateTimeConverter',
+      options: dateConverterOptions(f.inputType === 'datetime-local' ? 'dateTime' : 'date'),
+    }
+    const end = (key) => ({ type, componentType, labelHint: chromeText(key), ...(converter ? { converter } : {}) })
     return {
       type: 'object',
       labelHint,
-      properties: {
-        gte: { type, componentType, labelHint: 'Desde' },
-        lte: { type, componentType, labelHint: 'Hasta' },
-      },
+      properties: { gte: end('rangeFrom'), lte: end('rangeTo') },
     }
   }
   const options = (f.options || []).map((o) => ({ value: String(o.value), label: o.label }))
@@ -1625,7 +1631,7 @@ export function smartFilterValueMetadataOf(f) {
     return { type: 'array', items: { type: 'string' }, componentType: 'oj-checkboxset', labelHint, options }
   }
   if (f.isOptions) return { type: 'string', componentType: 'oj-select-single', labelHint, options }
-  if (f.isBool) return { type: 'string', componentType: 'oj-select-single', labelHint, options: BOOL_CHOICES }
+  if (f.isBool) return { type: 'string', componentType: 'oj-select-single', labelHint, options: boolChoices() }
   if (f.inputType === 'number') return { type: 'number', componentType: 'oj-input-number', labelHint }
   return { type: 'string', componentType: 'oj-input-text', labelHint }
 }

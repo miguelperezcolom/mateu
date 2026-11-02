@@ -13,7 +13,7 @@ import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOn
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
-import { chromeText, moneyNumberText } from '../i18n.mjs'
+import { chromeText, dateConverterOptions, moneyNumberText } from '../i18n.mjs'
 import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
@@ -345,6 +345,18 @@ export let converterFactory = null
 export function setConverterFactory(factory) { converterFactory = factory }
 export function converterOf(spec) {
   return converterFactory ? converterFactory(spec) : spec
+}
+
+// one converter per (kind, locale): a re-projection hands the date field the SAME instance, so
+// JET does not see a new converter (and re-format the field) on every keystroke elsewhere
+const dateConverters = new Map()
+/** The converter of a date field (`date`) or a date-time one (`dateTime`), in the UI's locale
+ *  (i18n dateLocale): an IntlDateTimeConverter in the app, its specification in Node. */
+export function dateConverterOf(kind) {
+  const options = dateConverterOptions(kind)
+  const key = (kind === 'dateTime' ? 'dateTime' : 'date') + '|' + options.locale + '|' + (converterFactory ? 'f' : '')
+  if (!dateConverters.has(key)) dateConverters.set(key, converterOf({ type: 'datetime', options }))
+  return dateConverters.get(key)
 }
 
 export function islandContentOf(ctx, opts = {}) {
@@ -737,7 +749,7 @@ export function islandContentOf(ctx, opts = {}) {
           isEmpty: rows.length === 0,
           rowEditable,
           addActionId: rowEditable ? fieldId + '_add' : '',
-          addLabel: 'Add',
+          addLabel: chromeText('add'),
         }, container)
         return
       }
@@ -1257,7 +1269,7 @@ export function islandContentOf(ctx, opts = {}) {
         isEmpty: rows.length === 0,
         rowEditable: false,
         addActionId: '',
-        addLabel: 'Add',
+        addLabel: chromeText('add'),
         paged: paging.paged,
         pageText: paging.rangeText,
         pager: pagerButtonsOf(gridKey + ':page', paging.page - 1, paging.page + 1, paging.prevDisabled, paging.nextDisabled),

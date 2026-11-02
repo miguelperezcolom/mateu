@@ -175,7 +175,7 @@ export function wizardVarsOf(host, wizardProjection, summaryActions, { keepStep 
     mateuWizardForwardId: forward ? forward.actionId : '',
     mateuFormActions: [],
     // never null: the component reads primaryAction.label unconditionally
-    mateuWizardPrimary: forward ? { label: forward.label, disabled: false } : { label: 'Done', disabled: true },
+    mateuWizardPrimary: forward ? { label: forward.label, disabled: false } : { label: chromeText('done'), disabled: true },
     mateuWizardShownStep: keepStep ? (wizardProjection.currentStep || '') : '',
   }
 }

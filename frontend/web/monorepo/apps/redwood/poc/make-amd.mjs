@@ -67,11 +67,14 @@ const body = MODULES.map(strip).join('\n\n').replace("'@@MATEU_REDWOOD_VERSION@@
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet) => {
+define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset', 'ojs/ojconverter-datetime'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet, DateTimeConverter) => {
   'use strict';
 ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
-  // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
-  setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
+  // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale);
+  // un campo fecha: IntlDateTimeConverter en el locale de la UI (i18n dateConverterOptions)
+  setConverterFactory((spec) => spec.type === 'datetime'
+    ? new DateTimeConverter.IntlDateTimeConverter(spec.options)
+    : new NumberConverter.IntlNumberConverter(spec.options));
   // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
   // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
   setColumnPrefsReader(() => readColumnPrefs(listingScope()));
