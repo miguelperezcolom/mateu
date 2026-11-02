@@ -147,7 +147,7 @@ export function ganttAtomOf(m, id) {
  */
 export function ganttScalesOf(startDay, endDay) {
   const days = Math.round((Date.parse(endDay) - Date.parse(startDay)) / DAY_MS)
-  if (!(days > 60)) return { majorScale: 'weeks', minorScale: 'days' }
+  if (Number.isNaN(days) || days <= 60) return { majorScale: 'weeks', minorScale: 'days' }
   const [ya, ma] = String(startDay).split('-').map(Number)
   const [yb, mb] = String(endDay).split('-').map(Number)
   const months = (yb - ya) * 12 + (mb - ma) + 1

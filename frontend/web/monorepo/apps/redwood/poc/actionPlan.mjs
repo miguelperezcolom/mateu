@@ -174,8 +174,8 @@ export function routeStateOf(reg, draft) {
  * read yet (nothing to send either), or null when it is a real action.
  */
 export function routedActionOf(reg, actionId, draft) {
-  const host = reg && reg.contexts && reg.contexts[HOST_ID]
-  if (!host || !host.tree || !actionId) return null
+  const host = reg?.contexts?.[HOST_ID]
+  if (!host?.tree || !actionId) return null
   let template = null
   const seen = new Set()
   const walk = (n) => {
@@ -187,7 +187,10 @@ export function routedActionOf(reg, actionId, draft) {
   walk(host.tree)
   if (template == null) return null
   const click = blockClickOf({ actionId, route: template, state: routeStateOf(reg, draft) })
-  return { navigate: click.navigate && !click.navigate.includes('${') && !/\/\/|\/$/.test(click.navigate) ? click.navigate : null }
+  const to = click.navigate || ''
+  // an unresolved placeholder left a gap (`missions//edit`, `missions/`): the record is not there yet
+  const readable = to !== '' && !to.includes('${') && !to.includes('//') && !to.endsWith('/')
+  return { navigate: readable ? to : null }
 }
 
 export function blockClickOf({ actionId, parameters, route, state } = {}) {

@@ -7321,10 +7321,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
     // a LISTING page (a YAML `type: Listing`, a crud) has no Page/Form: its subtitle travels on the
     // Crud, beside the title the header already takes from it — it was dropped (/launches)
-    if (!subtitle && !page && ctx && ctx.tree) {
-      const crud = findByType(ctx.tree, 'Crud')
-      subtitle = crud && crud.metadata ? crud.metadata.subtitle || '' : ''
-    }
+    if (!subtitle && !page && ctx?.tree) subtitle = findByType(ctx.tree, 'Crud')?.metadata?.subtitle || ''
     return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
   }
 
@@ -8330,11 +8327,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * shows. Values are read as the cells paint them (an enum's label, a status' message).
    */
   function masterDetailOf(listing, row) {
-    const cols = ((listing && (listing.allColumns || listing.columns)) || []).filter((c) => c && c.id && c.headerText)
+    const cols = (listing?.allColumns || listing?.columns || []).filter((c) => c?.id && c.headerText)
+    const objectText = (v) => {
+      if (v.message !== undefined) return v.message
+      return v.label !== undefined ? v.label : JSON.stringify(v)
+    }
     const valueOf = (c) => {
-      let v = row ? row[c.id + LABEL_CELL_SUFFIX] : undefined
-      if (v === undefined || v === null) v = row ? row[c.id] : undefined
-      if (v && typeof v === 'object' && !Array.isArray(v)) v = v.message !== undefined ? v.message : (v.label !== undefined ? v.label : JSON.stringify(v))
+      let v = row?.[c.id + LABEL_CELL_SUFFIX]
+      if (v === undefined || v === null) v = row?.[c.id]
+      if (v && typeof v === 'object' && !Array.isArray(v)) v = objectText(v)
       if (Array.isArray(v)) v = v.map((x) => (x && typeof x === 'object' ? x.label || x.message || '' : x)).join(', ')
       return v === undefined || v === null ? '' : String(v)
     }
@@ -11471,7 +11472,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function ganttScalesOf(startDay, endDay) {
     const days = Math.round((Date.parse(endDay) - Date.parse(startDay)) / DAY_MS)
-    if (!(days > 60)) return { majorScale: 'weeks', minorScale: 'days' }
+    if (Number.isNaN(days) || days <= 60) return { majorScale: 'weeks', minorScale: 'days' }
     const [ya, ma] = String(startDay).split('-').map(Number)
     const [yb, mb] = String(endDay).split('-').map(Number)
     const months = (yb - ya) * 12 + (mb - ma) + 1
@@ -15423,7 +15424,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Whether a window (default: the global one) is at phone width. false without matchMedia. */
   function isNarrowViewport(win = typeof window !== 'undefined' ? window : undefined) {
-    return !!(win && typeof win.matchMedia === 'function' && win.matchMedia(NARROW_VIEWPORT_QUERY).matches)
+    return typeof win?.matchMedia === 'function' && !!win.matchMedia(NARROW_VIEWPORT_QUERY).matches
   }
 
   /**
@@ -15431,16 +15432,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * A window without matchMedia (tests, an old embedder) is wide and never changes.
    */
   function watchNarrowViewport(listener, win = typeof window !== 'undefined' ? window : undefined) {
-    const mq = win && typeof win.matchMedia === 'function' ? win.matchMedia(NARROW_VIEWPORT_QUERY) : null
-    listener(!!(mq && mq.matches))
-    if (!mq) return () => {}
+    const mq = typeof win?.matchMedia === 'function' ? win.matchMedia(NARROW_VIEWPORT_QUERY) : null
+    listener(!!mq?.matches)
+    if (typeof mq?.addEventListener !== 'function') return () => {}
     const onChange = (e) => listener(!!e.matches)
-    if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange)
-    else if (typeof mq.addListener === 'function') mq.addListener(onChange)
-    return () => {
-      if (typeof mq.removeEventListener === 'function') mq.removeEventListener('change', onChange)
-      else if (typeof mq.removeListener === 'function') mq.removeListener(onChange)
-    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
   }
 
 
@@ -25108,8 +25105,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * read yet (nothing to send either), or null when it is a real action.
    */
   function routedActionOf(reg, actionId, draft) {
-    const host = reg && reg.contexts && reg.contexts[HOST_ID]
-    if (!host || !host.tree || !actionId) return null
+    const host = reg?.contexts?.[HOST_ID]
+    if (!host?.tree || !actionId) return null
     let template = null
     const seen = new Set()
     const walk = (n) => {
@@ -25121,7 +25118,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     walk(host.tree)
     if (template == null) return null
     const click = blockClickOf({ actionId, route: template, state: routeStateOf(reg, draft) })
-    return { navigate: click.navigate && !click.navigate.includes('${') && !/\/\/|\/$/.test(click.navigate) ? click.navigate : null }
+    const to = click.navigate || ''
+    // an unresolved placeholder left a gap (`missions//edit`, `missions/`): the record is not there yet
+    const readable = to !== '' && !to.includes('${') && !to.includes('//') && !to.endsWith('/')
+    return { navigate: readable ? to : null }
   }
 
   function blockClickOf({ actionId, parameters, route, state } = {}) {

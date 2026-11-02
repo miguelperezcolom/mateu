@@ -639,11 +639,15 @@ export function selectedRowsOf(rows, selection) {
  * shows. Values are read as the cells paint them (an enum's label, a status' message).
  */
 export function masterDetailOf(listing, row) {
-  const cols = ((listing && (listing.allColumns || listing.columns)) || []).filter((c) => c && c.id && c.headerText)
+  const cols = (listing?.allColumns || listing?.columns || []).filter((c) => c?.id && c.headerText)
+  const objectText = (v) => {
+    if (v.message !== undefined) return v.message
+    return v.label !== undefined ? v.label : JSON.stringify(v)
+  }
   const valueOf = (c) => {
-    let v = row ? row[c.id + LABEL_CELL_SUFFIX] : undefined
-    if (v === undefined || v === null) v = row ? row[c.id] : undefined
-    if (v && typeof v === 'object' && !Array.isArray(v)) v = v.message !== undefined ? v.message : (v.label !== undefined ? v.label : JSON.stringify(v))
+    let v = row?.[c.id + LABEL_CELL_SUFFIX]
+    if (v === undefined || v === null) v = row?.[c.id]
+    if (v && typeof v === 'object' && !Array.isArray(v)) v = objectText(v)
     if (Array.isArray(v)) v = v.map((x) => (x && typeof x === 'object' ? x.label || x.message || '' : x)).join(', ')
     return v === undefined || v === null ? '' : String(v)
   }

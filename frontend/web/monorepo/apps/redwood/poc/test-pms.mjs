@@ -6,6 +6,7 @@
 
 import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
+import vm from 'node:vm'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -1461,16 +1462,17 @@ test('clic de fila: sólo abre el registro si el listado lo ofrece (@NotNavigabl
 })
 
 atest('an oj-table fetch the table aborted ends quietly (crawl: «Aborting stale fetch» uncaught on every listing)', async () => {
-  let Module = null
-  new Function('define', webApp('flows/main/pages/main-start-page.js'))((deps, f) => { Module = f() })
-  const page = new Module()
+  // the AMD page module, evaluated in a sandbox with a define() that hands its class back
+  const sandbox = { define: (deps, f) => { sandbox.PageModule = f() } }
+  vm.runInNewContext(webApp('flows/main/pages/main-start-page.js'), sandbox)
+  const page = new sandbox.PageModule()
   const failing = (err) => ({ fetchFirst: () => ({ [Symbol.asyncIterator]: () => ({ next: () => Promise.reject(err) }) }) })
   const ctrl = new AbortController()
   ctrl.abort()
   const stale = Object.assign(new Error('<oj-table>: Aborting stale fetch for performance'), { name: 'AbortError' })
   const r = await page.serverSorted(failing(stale)).fetchFirst({ signal: ctrl.signal })[Symbol.asyncIterator]().next()
   assert.equal(r.done, true)
-  assert.deepEqual(r.value.data, [])
+  assert.equal(r.value.data.length, 0)
   // any other failure still surfaces
   await assert.rejects(page.serverSorted(failing(new Error('boom'))).fetchFirst({})[Symbol.asyncIterator]().next(), /boom/)
 })

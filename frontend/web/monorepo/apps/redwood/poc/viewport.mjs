@@ -14,7 +14,7 @@ export const NARROW_VIEWPORT_QUERY = '(max-width: 599px)'
 
 /** Whether a window (default: the global one) is at phone width. false without matchMedia. */
 export function isNarrowViewport(win = typeof window !== 'undefined' ? window : undefined) {
-  return !!(win && typeof win.matchMedia === 'function' && win.matchMedia(NARROW_VIEWPORT_QUERY).matches)
+  return typeof win?.matchMedia === 'function' && !!win.matchMedia(NARROW_VIEWPORT_QUERY).matches
 }
 
 /**
@@ -22,14 +22,10 @@ export function isNarrowViewport(win = typeof window !== 'undefined' ? window : 
  * A window without matchMedia (tests, an old embedder) is wide and never changes.
  */
 export function watchNarrowViewport(listener, win = typeof window !== 'undefined' ? window : undefined) {
-  const mq = win && typeof win.matchMedia === 'function' ? win.matchMedia(NARROW_VIEWPORT_QUERY) : null
-  listener(!!(mq && mq.matches))
-  if (!mq) return () => {}
+  const mq = typeof win?.matchMedia === 'function' ? win.matchMedia(NARROW_VIEWPORT_QUERY) : null
+  listener(!!mq?.matches)
+  if (typeof mq?.addEventListener !== 'function') return () => {}
   const onChange = (e) => listener(!!e.matches)
-  if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange)
-  else if (typeof mq.addListener === 'function') mq.addListener(onChange)
-  return () => {
-    if (typeof mq.removeEventListener === 'function') mq.removeEventListener('change', onChange)
-    else if (typeof mq.removeListener === 'function') mq.removeListener(onChange)
-  }
+  mq.addEventListener('change', onChange)
+  return () => mq.removeEventListener('change', onChange)
 }

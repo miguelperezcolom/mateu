@@ -242,10 +242,7 @@ export function pageSubtitleOf(ctx) {
   if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
   // a LISTING page (a YAML `type: Listing`, a crud) has no Page/Form: its subtitle travels on the
   // Crud, beside the title the header already takes from it — it was dropped (/launches)
-  if (!subtitle && !page && ctx && ctx.tree) {
-    const crud = findByType(ctx.tree, 'Crud')
-    subtitle = crud && crud.metadata ? crud.metadata.subtitle || '' : ''
-  }
+  if (!subtitle && !page && ctx?.tree) subtitle = findByType(ctx.tree, 'Crud')?.metadata?.subtitle || ''
   return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
 }
 
