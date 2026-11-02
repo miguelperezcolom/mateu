@@ -2623,7 +2623,7 @@
     <div id="mateuRowEditorForm" class="oj-flex">
       <oj-bind-for-each data="[[ $variables.mateuRowEditor.fields ]]">
         <template>
-          <div class="oj-flex-item oj-sm-12 oj-md-6 oj-sm-padding-2x-horizontal oj-sm-padding-1x-bottom">
+          <div :class="[[ ($current.data.isNestedList ? 'oj-flex-item oj-sm-12' : 'oj-flex-item oj-sm-12 oj-md-6') + ' oj-sm-padding-2x-horizontal oj-sm-padding-1x-bottom' ]]">
           <!-- read-only and still without a value (the line and the total of a new room:
                the server sets them): its label and «—», as text — no box, no focus -->
           <oj-bind-if test="[[ $current.data.isEmptyReadonly ]]">
@@ -2702,6 +2702,68 @@
               options="[[ $current.data.options ]]"
               placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
               on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-select-one>
+          </oj-bind-if>
+          <!-- a NESTED list of the row (a block's links): a small table edited on the client — each
+               cell's id is <field>#<index>#<column> (mateuRowFieldEdited folds it into the field),
+               the buttons carry data-nested-op (mateuListAction edits the draft, no request) -->
+          <oj-bind-if test="[[ $current.data.isNestedList ]]">
+            <div class="mateu-row-nested" role="group" :aria-label="[[ $current.data.label ]]">
+              <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-padding-1x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+              <oj-bind-for-each data="[[ $current.data.rows ]]">
+                <template>
+                  <div class="oj-flex oj-sm-align-items-flex-end oj-sm-flex-wrap-nowrap oj-sm-padding-1x-bottom mateu-row-nested-row">
+                    <oj-bind-for-each data="[[ $current.data.cells ]]">
+                      <template>
+                        <div class="oj-flex-item oj-sm-padding-1x-end">
+                          <oj-bind-if test="[[ $current.data.isCellText ]]">
+                            <oj-input-text class="oj-form-control-full-width"
+                              label-hint="[[ $current.data.label ]]"
+                              value="[[ $current.data.value ]]"
+                              readonly="[[ $current.data.readonly ]]"
+                              :data-field-id="[[ $current.data.fieldId ]]"
+                              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-input-text>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.isCellNumber ]]">
+                            <oj-input-number class="oj-form-control-full-width"
+                              label-hint="[[ $current.data.label ]]"
+                              value="[[ $current.data.value ]]"
+                              readonly="[[ $current.data.readonly ]]"
+                              :data-field-id="[[ $current.data.fieldId ]]"
+                              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-input-number>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.isCellBoolean ]]">
+                            <oj-switch
+                              label-hint="[[ $current.data.label ]]"
+                              value="[[ $current.data.value ]]"
+                              readonly="[[ $current.data.readonly ]]"
+                              :data-field-id="[[ $current.data.fieldId ]]"
+                              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-switch>
+                          </oj-bind-if>
+                        </div>
+                      </template>
+                    </oj-bind-for-each>
+                    <oj-bind-if test="[[ $current.data.editable ]]">
+                      <div class="oj-flex oj-sm-flex-wrap-nowrap">
+                        <oj-button display="icons" chroming="borderless" disabled="[[ !$current.data.canUp ]]"
+                          data-nested-op="up" :data-field-id="[[ $current.data.fieldId ]]" :data-row-index="[[ $current.data.index ]]"
+                          on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-arrow-up"></span><oj-bind-text value="[[ $application.translations.appBundle.kanbanMoveUp ]]"></oj-bind-text></oj-button>
+                        <oj-button display="icons" chroming="borderless" disabled="[[ !$current.data.canDown ]]"
+                          data-nested-op="down" :data-field-id="[[ $current.data.fieldId ]]" :data-row-index="[[ $current.data.index ]]"
+                          on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-arrow-down"></span><oj-bind-text value="[[ $application.translations.appBundle.kanbanMoveDown ]]"></oj-bind-text></oj-button>
+                        <oj-button display="icons" chroming="borderless"
+                          data-nested-op="remove" :data-field-id="[[ $current.data.fieldId ]]" :data-row-index="[[ $current.data.index ]]"
+                          on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
+                      </div>
+                    </oj-bind-if>
+                  </div>
+                </template>
+              </oj-bind-for-each>
+              <oj-bind-if test="[[ !$current.data.readonly ]]">
+                <oj-button chroming="outlined" class="oj-button-sm"
+                  data-nested-op="add" :data-field-id="[[ $current.data.fieldId ]]"
+                  on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $application.translations.appBundle.new ]]"></oj-bind-text></oj-button>
+              </oj-bind-if>
+            </div>
           </oj-bind-if>
           <!-- @fields-extra mateuRowFieldChanged -->
           <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->

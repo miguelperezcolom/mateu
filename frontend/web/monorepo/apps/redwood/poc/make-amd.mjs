@@ -341,6 +341,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     listActionRequestOf,
     rowEditorOf,
     rowValueChangeActionOf,
+    // a nested list in the row editor (a block's links): a cell's edit and its add/remove/up/down
+    rowNestedEditOf,
+    rowNestedOpOf,
+    rowStateOf,
     rowFieldsOf,
     validateRow,
     // validationRequired de las acciones del host (el next de un wizard): obligatorios vacíos

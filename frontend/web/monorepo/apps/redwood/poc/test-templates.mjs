@@ -164,9 +164,18 @@ test('a dateRange form field is drawn as its two ends, and an edit of one end ke
   const empty = layoutFieldOf({ fieldId: 'w', dataType: 'dateRange', stereotype: 'dateRange', label: 'Window' }, {}, {})
   assert.deepEqual(empty.rangeParts.map((p) => p.value), [null, null])
   // the chains fold an end's edit back into the field
-  for (const chain of ['hostInputChanged', 'mateuFieldEdited', 'islandFieldEdited']) {
+  for (const chain of ['hostInputChanged', 'mateuFieldEdited', 'islandFieldEdited', 'mateuRowFieldEdited']) {
     assert.match(webApp(`flows/main/pages/main-start-page-chains/${chain}.js`), /bridge\.rangeEditOf\(/, chain)
   }
+})
+
+test('the row editor dialog draws a nested list (cells folded into the field, buttons edit the draft)', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  const dialog = page.slice(page.indexOf('<oj-dialog id="mateuRowEditor"'), page.indexOf('</oj-dialog>', page.indexOf('<oj-dialog id="mateuRowEditor"')))
+  assert.match(dialog, /isNestedList/)
+  for (const op of ['add', 'remove', 'up', 'down']) assert.match(dialog, new RegExp(`data-nested-op="${op}"`), op)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowFieldEdited.js'), /bridge\.rowNestedEditOf\(/)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/mateuListAction.js'), /bridge\.rowNestedOpOf\(/)
 })
 
 test('an Image keeps its style and cssClasses', () => {
