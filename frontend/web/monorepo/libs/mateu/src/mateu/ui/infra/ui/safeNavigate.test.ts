@@ -87,4 +87,12 @@ describe('safeNavigate', () => {
         expect(open).not.toHaveBeenCalled()
         expect(console.warn).toHaveBeenCalled()
     })
+
+    it('opens a mailto:/tel: URL in place, as the same value in a link does', () => {
+        expect(safeNavigate('mailto:ana@example.com', { newTab: true })).toBe(true)
+        expect(assign).toHaveBeenCalledWith('mailto:ana@example.com')
+        expect(safeNavigate('tel:+34600111222')).toBe(true)
+        expect(assign).toHaveBeenLastCalledWith('tel:+34600111222')
+        expect(open).not.toHaveBeenCalled()
+    })
 })

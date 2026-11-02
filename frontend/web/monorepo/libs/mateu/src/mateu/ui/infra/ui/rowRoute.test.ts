@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { isExternalRoute, navigateToRoute, rowRouteOf } from './rowRoute'
+import { appRouteHref, isExternalRoute, navigateToRoute, rowRouteOf } from './rowRoute'
 
 describe('isExternalRoute', () => {
     it('a whole URL leaves the app; a route of the app does not', () => {
@@ -66,5 +66,24 @@ describe('a rowRoute that is a whole URL', () => {
         for (const t of ['route-changed', 'navigate-to-requested']) from.addEventListener(t, () => events.push(t))
         navigateToRoute(from, 'missions/6')
         expect(events).toEqual(['route-changed', 'navigate-to-requested'])
+    })
+})
+
+describe('appRouteHref (the identifier link of a rowRoute)', () => {
+    afterEach(() => { document.body.innerHTML = '' })
+
+    it('keeps a non-root mount in the link', () => {
+        const ui = document.createElement('mateu-ui') as HTMLElement & { baseUrl?: string, pathPrefix?: string }
+        ui.baseUrl = '/back-office'
+        ui.pathPrefix = '/back-office'
+        const cell = document.createElement('span')
+        ui.appendChild(cell)
+        document.body.appendChild(ui)
+        expect(appRouteHref(cell, 'people/3')).toBe('/back-office/people/3')
+        expect(appRouteHref(cell, '/people/3')).toBe('/back-office/people/3')
+    })
+
+    it('is the bare route without a mateu-ui around', () => {
+        expect(appRouteHref(document.createElement('span'), 'people/3')).toBe('/people/3')
     })
 })

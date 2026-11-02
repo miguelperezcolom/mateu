@@ -1,6 +1,6 @@
 import { numericCommitValue } from '@components/fieldValue'
 import { datePickerI18n } from "../fields/dateLocale.ts";
-import { isExternalRoute, navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
+import { appRouteHref, isExternalRoute, navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { html, LitElement, nothing } from "lit";
@@ -494,7 +494,8 @@ export const columnRenderer = (item: any,
             >${uuidAwareText(cellValue)}</a>`
         }
         if (route && !external) {
-            const href = '/' + route.replace(/^\/+/, '')
+            // under the app's mount (a non-root app's link must not drop it)
+            const href = appRouteHref(container, route)
             return html`<a href="${href}" title="${cellValue}"
                 @click="${(e: MouseEvent) => {
                     // Let the browser have the gestures that mean "somewhere else": a modified click
