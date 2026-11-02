@@ -107,6 +107,10 @@ const bareFormPageTypeOf = (component: Component): string | undefined => {
     return template ? (TEMPLATE_PAGE_TYPES[template] ?? 'form') : 'form'
 }
 
+/** The kind of page a YAML `template:` stands for (PageTypeResolver.ofTemplate), or undefined. */
+export const templatePageType = (templateType: string | undefined): string | undefined =>
+    templateType ? TEMPLATE_PAGE_TYPES[templateType] : undefined
+
 const TEMPLATE_PAGE_TYPES: Record<string, string> = {
     CollectionDetailPage: 'collection',
     DataManagementPage: 'collection',

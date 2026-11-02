@@ -11,6 +11,7 @@
 // Server-only fields the renderer does not require (wireVersion, appData/appState) are omitted — see
 // the render-parity note in design/phase6-client-side-expander.md.
 
+import { templatePageType } from '@infra/ui/layout/pageWidth.ts'
 import { humanizeFieldId } from '../ui/humanize.ts'
 import { withoutAccessKeys } from './accessKeys.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
@@ -69,6 +70,20 @@ const PAGE_TYPES = ['landing', 'collection', 'detail', 'form', 'process', 'dashb
 export function declaredPageType(spec: DefinitionSpec): string | undefined {
     const raw = typeof spec.pageType === 'string' ? spec.pageType.trim().toLowerCase() : ''
     return PAGE_TYPES.includes(raw) ? raw : undefined
+}
+
+/**
+ * The page type a definition's SHAPE says when it declares none — the server's
+ * `SeededYamlPage.declaredPageType`: a `Form` filling a `template:` is that template's kind of page,
+ * a `type: Listing` page is a collection. Without it a bundle shipped the page as a form page.
+ */
+export function shapePageType(layout: FluentNode | undefined): string | undefined {
+    const node = layout as { type?: unknown, template?: { type?: unknown } } | undefined
+    if (node?.type === 'Form') {
+        const template = typeof node.template?.type === 'string' ? node.template.type : undefined
+        return templatePageType(template)
+    }
+    return node?.type === 'Listing' ? 'collection' : undefined
 }
 
 /** What the route entry adds to its definition when it is expanded (the route, not the screen, owns
@@ -207,7 +222,7 @@ function withBehaviour(spec: DefinitionSpec, component: Component, ctx: Expansio
     // behaviour carries it on its root and stays unwrapped — the visual editor's canvas maps a click
     // to a definition node through that unwrapped tree. (The server wraps instead —
     // SeededYamlPage — since its bare ClientSide DTO has no such field; Redwood reads the wrapper.)
-    const pageType = declaredPageType(spec)
+    const pageType = declaredPageType(spec) ?? shapePageType(layoutOf(spec))
     if (!actions.length && !triggers.length) {
         return pageType ? ({ ...component, pageType } as unknown as Component) : component
     }
