@@ -18,7 +18,7 @@ type Json = Record<string, unknown>;
 export interface FlowContext {
   state?: Json;
   parameters?: Json;
-  data?: Json;
+  data?: unknown;
   appState?: Json;
   appData?: Json;
 }

@@ -85,11 +85,20 @@ export function UiSession({
   /** A UI ahead of this app (compat.ts `recommended`): it opens, with this note above it. */
   const [compatNotice, setCompatNotice] = useState<string | null>(null);
 
-  /** Can THIS app render that manifest's UI? Stops at the update screen when it cannot (true). */
-  const applyCompat = (m: UiManifest): boolean => {
+  /**
+   * Can THIS app render that manifest's UI? Stops at the update screen when it cannot (true). From
+   * the BACKGROUND refresh of a UI already on screen it never stops it: the user may be half-way
+   * through a form — the screen stays, with the message above it, and the next open asks for the
+   * update (the fresh manifest is the one kept).
+   */
+  const applyCompat = (m: UiManifest, background = false): boolean => {
     const app = appSide();
     const compat = appCompatibility(m, app);
     const message = compat.reason ? compatMessage(compat.reason, { ...m, name: m.name ?? entry.name }, app, hubLang()) : null;
+    if (compat.status === 'required' && background) {
+      setCompatNotice(message);
+      return false;
+    }
     if (compat.status === 'required') {
       setPhase({ name: 'update', reason: message!, canUpdate: compat.reason !== 'olderWire' });
       return true;
@@ -123,7 +132,7 @@ export function UiSession({
           .then(async (fresh) => {
             if (!fresh.ok) return;
             await manifestOf(fresh, entry);
-            if (alive) applyCompat(fresh.manifest);
+            if (alive) applyCompat(fresh.manifest, true);
           })
           .catch(() => undefined);
       } else {
