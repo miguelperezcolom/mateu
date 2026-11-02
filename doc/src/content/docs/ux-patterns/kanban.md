@@ -124,7 +124,9 @@ move ran as a REST action or as a server-side action. Proxied sources work on bo
 cards are fetched through the server by the board's `id`, and a proxied write gets the same
 parameters. A card needs an `id` to be moved, and an item whose `columnField` names no column is not
 shown. The same fields exist in the ports (.NET `Kanban { MoveActionId, RowsSource, ColumnField,
-Card, CardColors, CardRoute }`, Python `Kanban(move_action_id=…, rows_source=…, …)`).
+Card, CardColors, CardRoute }`, Python `Kanban(move_action_id=…, rows_source=…, …)`); there a view
+that declares the board's proxied rows (a `RestSourceSupplier` naming it by `id`) gets them by that
+id even next to a listing, but a proxied board on a YAML definition-only page is Java-only.
 
 ## Keeping a manual order (`orderField`)
 

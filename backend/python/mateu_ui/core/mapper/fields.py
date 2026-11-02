@@ -632,11 +632,14 @@ class FieldMapperMixin(MixinBase):
         ``@rest_data``) or the method (``@rest_action``) — with a catalogue reference resolved on
         the SERVER, never from a client-supplied url (so the proxy can't be turned into an open
         relay). Used by the ``__restfetch__`` reserved action."""
-        for k, i, src in self._declared_sources(cls, instance):
-            if k != kind:
-                continue
-            if kind in ("rows", "data") or i == id or camel_case(i) == id:
+        of_kind = [(i, src) for k, i, src in self._declared_sources(cls, instance) if k == kind]
+        # the one NAMED first: a page can hold a listing AND a live kanban, both rows (mirrors Java
+        # RestSourceResolver) — the first rows source answered for the board's rows too
+        for i, src in of_kind:
+            if id and (i == id or camel_case(i) == id):
                 return self._resolved(src)
+        if kind in ("rows", "data") and of_kind:
+            return self._resolved(of_kind[0][1])
         return None
 
     def link_of(self, f, instance) -> NavLinkRecord | None:

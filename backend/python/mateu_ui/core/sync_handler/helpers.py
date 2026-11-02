@@ -13,6 +13,7 @@ from decimal import Decimal
 from enum import Enum
 import hashlib
 import json
+import re
 from typing import Any
 
 from mateu_ui.dtos import (
@@ -110,9 +111,14 @@ class ResponseHelpersMixin(MixinBase):
         # structure) and the hash slot must not feed itself. Nested/structural ids are kept. The
         # client only ever echoes the server's hash, so blanking id here is symmetric. sort_keys
         # gives a canonical order at every nesting level.
-        data = component.model_copy(update={"id": "", "structure_hash": None}).model_dump(
-            by_alias=True, mode="json"
-        )
+        # The page's seed (initial_data) is its STATE, not its structure — hashed, a page whose
+        # values changed never got the state-only answer — and so is the random id of every nested
+        # component that names none: both are dropped (mirrors Java StructureHashPostProcessor). The
+        # fragment state already carries the seed, so a stripped component loses nothing.
+        data = component.model_copy(
+            update={"id": "", "structure_hash": None, "initial_data": None}
+        ).model_dump(by_alias=True, mode="json")
+        _without_instance_ids(data)
         canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -295,3 +301,18 @@ class ResponseHelpersMixin(MixinBase):
             log.warning("convert_value(%r -> %s) failed, the field keeps its value (%s)", raw, target, e)
             return None
 
+
+_INSTANCE_ID = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+
+
+def _without_instance_ids(node: Any) -> None:
+    """Drops every UUID-valued ``id`` from the tree, in place."""
+    if isinstance(node, dict):
+        value = node.get("id")
+        if isinstance(value, str) and _INSTANCE_ID.fullmatch(value):
+            node["id"] = None
+        for child in node.values():
+            _without_instance_ids(child)
+    elif isinstance(node, list):
+        for child in node:
+            _without_instance_ids(child)
