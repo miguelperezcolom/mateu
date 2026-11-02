@@ -143,6 +143,23 @@ test.describe('capability listing — search, filters, sort, paging and the URL'
         await expect(page.getByText('Book 20').first()).toBeVisible()
     })
 
+    test('back and forward between two pages of the listing search again in place (no re-mount)', async ({ page }) => {
+        await page.goto('/capability-books')
+        await expect(page.locator('vaadin-grid')).toHaveCount(1)
+        // a mark on the grid element: a re-mount of the app would draw a new one without it
+        await page.locator('vaadin-grid').evaluate((el) => { (el as unknown as Record<string, unknown>).__kept = true })
+        await page.getByRole('button', { name: /next page/i }).click()
+        await expect(page).toHaveURL(/page=1/)
+        await page.goBack()
+        await expect(page).not.toHaveURL(/page=1/)
+        await expectIds(page, ['B-01', 'B-02', 'B-03', 'B-04', 'B-05', 'B-06', 'B-07', 'B-08', 'B-09', 'B-10'])
+        expect(await page.locator('vaadin-grid').evaluate((el) => (el as unknown as Record<string, unknown>).__kept)).toBe(true)
+        await page.goForward()
+        await expect(page).toHaveURL(/page=1/)
+        await expectIds(page, ['B-11', 'B-12', 'B-13', 'B-14', 'B-15', 'B-16', 'B-17', 'B-18', 'B-19', 'B-20'])
+        expect(await page.locator('vaadin-grid').evaluate((el) => (el as unknown as Record<string, unknown>).__kept)).toBe(true)
+    })
+
     test('a deep link to a record opens the record, not the listing', async ({ page }) => {
         await page.goto('/capability-books/B-07')
         await expect(page.getByText('Book 07').first()).toBeVisible()
