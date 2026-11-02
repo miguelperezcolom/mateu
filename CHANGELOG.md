@@ -45,6 +45,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **The calendar speaks the UI's language** (Vaadin and Redwood). A Spanish UI showed «noviembre de
+  2026» over a `MON TUE … SUN` header, with `Today · Month · Week · List` in the CalendarPage toolbar:
+  the weekday row was hard-coded English, the other dates used the browser's locale instead of the
+  UI's, and the toolbar's built-in labels reached the screen in English whenever the app's
+  Translator did not know them. Weekday and month names now come from `Intl` in the UI's locale
+  (`<html lang>` set from `AppDto.locale` — the same locale source as the date pickers, now shared
+  in `libs/mateu` `uiLocale.ts`), and the view names, *Today*, *+ Create* and the cells' event
+  counts from the chrome catalogue (`calendarToday`, `calendarMonth`, `calendarWeek`, `calendarDay`,
+  `calendarList`, `calendarCreate`, `calendarOneEvent`, `calendarEvents`; es/en). A toolbar label
+  the app's Translator did translate is drawn as it came.
 - **Redwood: a foldout panel taller than the window can be read to the end.** Spectra fixes every
   panel to the row's height and takes the wheel for its carousel, so "The works" of a museum
   exhibition (a grid of cards) was cut at the bottom with no way to reach its last rows. An open panel

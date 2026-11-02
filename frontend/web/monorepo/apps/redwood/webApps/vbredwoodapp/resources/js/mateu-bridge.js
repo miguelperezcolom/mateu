@@ -47,6 +47,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       wizardCompleted: 'Completed',
       dropHere: 'Drop here',
       noEvents: 'No events',
+      // the calendar (calendar.mjs): view names, CalendarPage's untranslated toolbar labels, counts
+      calendarView: 'View',
+      calendarToday: 'Today',
+      calendarMonth: 'Month',
+      calendarWeek: 'Week',
+      calendarDay: 'Day',
+      calendarList: 'List',
+      calendarCreate: '+ Create',
+      calendarOneEvent: '1 event',
+      calendarEvents: '{count} events',
       hideUnpopulated: 'Hide unpopulated',
       mapUnavailable: 'The map could not be loaded.',
       // ── shell ──
@@ -290,6 +300,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       wizardCompleted: 'Completado',
       dropHere: 'Suelta aquí',
       noEvents: 'Sin eventos',
+      calendarView: 'Vista',
+      calendarToday: 'Hoy',
+      calendarMonth: 'Mes',
+      calendarWeek: 'Semana',
+      calendarDay: 'Día',
+      calendarList: 'Lista',
+      calendarCreate: '+ Crear',
+      calendarOneEvent: '1 evento',
+      calendarEvents: '{count} eventos',
       hideUnpopulated: 'Ocultar vacías',
       mapUnavailable: 'No se ha podido cargar el mapa.',
       menu: 'Menú',
@@ -1073,6 +1092,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // compute dates — and switching view is DOM state (installCalendars): without re-projecting or
   // asking the server. Same rules as libs/mateu calendarModel.ts (ISO dates in UTC, so
   // that no time zone moves a day; the multi-day event on all its days; by start time).
+  // Its words follow the UI's language like the web renderer's: weekday and month names from Intl in
+  // the UI's locale (i18n.mjs uiLocale), the view names and Today/+ Create from the chrome catalogue.
+
 
   const toUtc = (iso) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
   const fromUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
@@ -1095,17 +1117,46 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     .sort((a, b) => (a.e.startTime || '').localeCompare(b.e.startTime || '') || a.i - b.i)
     .map(({ e }) => e)
 
-  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-  const DOWS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const DOWS_LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
   const dayNum = (iso) => Number(iso.slice(8))
-  const monthName = (iso) => MONTHS[Number(iso.slice(5, 7)) - 1]
-  const longDate = (iso) => DOWS_LONG[calWeekday(iso)] + ', ' + monthName(iso) + ' ' + dayNum(iso)
+
+  const calFormatters = new Map()
+  /** An ISO date written in `locale` with Intl `options`, in UTC (no time zone moves a day); a
+   *  malformed locale (a server's "en_GB") falls back to en-US instead of breaking the page. */
+  function calFormat(iso, locale, options) {
+    const key = locale + '|' + JSON.stringify(options)
+    let f = calFormatters.get(key)
+    if (!f) {
+      try { f = new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' }) } catch (e) {
+        f = new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' })
+      }
+      calFormatters.set(key, f)
+    }
+    return f.format(new Date(toUtc(iso)))
+  }
+  /** The seven weekday names, Monday first (2024-01-01 is a Monday). */
+  const calWeekdayNames = (locale) => Array.from({ length: 7 }, (_, i) => calFormat(calAddDays('2024-01-01', i), locale, { weekday: 'short' }))
+  const calLongDate = (iso, locale) => calFormat(iso, locale, { weekday: 'long', day: 'numeric', month: 'long' })
+  const calEventCount = (n) => (n === 1 ? chromeText('calendarOneEvent') : chromeText('calendarEvents', { count: n }))
+
+  /** The chrome key of a view's name. */
+  const CAL_VIEW_KEYS = { month: 'calendarMonth', week: 'calendarWeek', day: 'calendarDay', list: 'calendarList' }
+  const calViewLabel = (v) => (CAL_VIEW_KEYS[v] ? chromeText(CAL_VIEW_KEYS[v]) : v)
+
+  /** CalendarPage's toolbar labels come from the server in English, through the app's Translator:
+   *  when one comes back exactly as Mateu wrote it (the Translator does not know it), it is drawn in
+   *  the UI's language; a translated label is left alone (libs/mateu builtInButtonLabels.ts). */
+  function calBuiltInLabel(actionId, params, label) {
+    const builtIn = actionId === 'switchCalendarView'
+      ? ({ month: ['Month', 'calendarMonth'], week: ['Week', 'calendarWeek'], day: ['Day', 'calendarDay'], list: ['List', 'calendarList'] })[params && params._view]
+      : ({ goCalendarToday: ['Today', 'calendarToday'], createCalendarEvent: ['+ Create', 'calendarCreate'] })[actionId]
+    return Array.isArray(builtIn) && label === builtIn[0] ? chromeText(builtIn[1]) : label
+  }
 
   /** The calendar atom, with the four views precomputed. */
-  function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null) {
+  function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null, locale = uiLocale()) {
     const anchor = m.month || today
+    const longDate = (iso) => calLongDate(iso, locale)
     const events = m.events || []
     const days = {}
     for (const d of m.days || []) if (d && d.date) days[d.date] = d
@@ -1129,7 +1180,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         label: info.label || '',
         cls: 'mateu-cal-cell' + (info.tone && TONES[info.tone] ? ' mateu-cal-' + info.tone : '')
           + (date === today ? ' mateu-cal-today' : '') + (dayAction ? ' mateu-cal-clickable' : ''),
-        ariaLabel: longDate(date) + (info.label ? ', ' + info.label : '') + (evs.length ? ', ' + evs.length + (evs.length > 1 ? ' events' : ' event') : ''),
+        ariaLabel: longDate(date) + (info.label ? ', ' + info.label : '') + (evs.length ? ', ' + calEventCount(evs.length) : ''),
         events: evs.map((e) => chipOf(e, withTime)),
       }
     }
@@ -1146,6 +1197,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .map(({ date, cell }) => ({ date, dateLabel: longDate(date), label: cell.label, cls: cell.cls.replace('mateu-cal-cell', 'mateu-cal-agenda-date'), events: cell.events }))
     const view = ['month', 'week', 'day', 'list'].includes(m.view) ? m.view : 'month'
     const views = (m.views || []).filter((v) => ['month', 'week', 'day', 'list'].includes(v))
+    const dows = calWeekdayNames(locale)
     return {
       isCalendar: true,
       // the Spectra calendar (oj-sp-calendar) that installCalendars mounts over the drawn grid; the
@@ -1157,16 +1209,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       view,
       dayActionId: dayAction,
       hasSwitcher: views.length > 1,
-      viewOptions: views.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })),
+      viewOptions: views.map((v) => ({ value: v, label: calViewLabel(v) })),
       titles: {
-        month: monthName(anchor) + ' ' + anchor.slice(0, 4),
-        week: monthName(week.from).slice(0, 3) + ' ' + dayNum(week.from) + ' – ' + monthName(week.to).slice(0, 3) + ' ' + dayNum(week.to) + ', ' + week.to.slice(0, 4),
-        day: longDate(anchor) + ', ' + anchor.slice(0, 4),
-        list: monthName(anchor) + ' ' + anchor.slice(0, 4),
+        month: calFormat(anchor, locale, { month: 'long', year: 'numeric' }),
+        week: calFormat(week.from, locale, { day: 'numeric', month: 'short' }) + ' – ' + calFormat(week.to, locale, { day: 'numeric', month: 'short', year: 'numeric' }),
+        day: calFormat(anchor, locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        list: calFormat(anchor, locale, { month: 'long', year: 'numeric' }),
       },
-      dows: DOWS,
+      dows,
       monthCells,
-      weekHeads: weekDates.map((d) => DOWS[calWeekday(d)] + ' ' + dayNum(d)),
+      weekHeads: weekDates.map((d) => dows[calWeekday(d)] + ' ' + dayNum(d)),
       weekCells: weekDates.map((d) => cellOf(d, true)),
       dayHead: longDate(anchor),
       dayCells: [cellOf(anchor, true)],
@@ -1222,7 +1274,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const k of kids) {
       const b = k.metadata
       const id = b.actionId || ''
-      nav.buttons.push({ label: String(b.label || ''), actionId: id, params: JSON.stringify(b.parameters || {}) })
+      const label = calBuiltInLabel(id, b.parameters, String(b.label || ''))
+      nav.buttons.push({ label, actionId: id, params: JSON.stringify(b.parameters || {}) })
       if (id === 'previousCalendarMonth') nav.prev = id
       else if (id === 'nextCalendarMonth') nav.next = id
       else if (id === 'goCalendarToday') nav.today = id
@@ -1231,7 +1284,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         nav.views.push(b.parameters._view)
       } else if (id === 'createCalendarEvent') {
         nav.create = id
-        nav.createLabel = String(b.label || '').replace(/^\+\s*/, '')
+        nav.createLabel = label.replace(/^\+\s*/, '')
       } else return null
     }
     return nav.prev && nav.next ? nav : null

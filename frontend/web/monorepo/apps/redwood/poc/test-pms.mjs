@@ -34,6 +34,7 @@ import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, i
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
+import { setChromeLanguage } from './i18n.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers, notePollingRegistry } from './polling.mjs'
 import { onLoadTriggers, mediatorOf } from './reduceContexts.mjs'
@@ -1238,6 +1239,40 @@ test('calendario Spectra: la barra de un CalendarPage pasa a la barra de oj-sp-c
   assert.equal(items.filter((a) => a.isButtons || a.isRow).length, 0, 'la barra no se pinta aparte')
   assert.equal(JSON.parse(cal.spSpec).nav.next, 'nextCalendarMonth')
   assert.deepEqual(cal.navButtons.map((b) => b.label), ['‹', 'Hoy', '›', 'Month', 'Week', '+ Create'], 'la rejilla de reserva conserva la barra')
+})
+
+test('calendario: sus textos siguen al idioma de la UI (Intl para días y meses, el catálogo para el resto)', () => {
+  const en = calendarAtomOf({ ...calWire, month: '2026-11-02', views: ['month', 'week', 'day', 'list'] }, 'cal', '2026-11-02', null, 'en-US')
+  assert.deepEqual(en.dows, ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+  assert.deepEqual(en.titles, { month: 'November 2026', week: 'Nov 2 – Nov 8, 2026', day: 'Monday, November 2, 2026', list: 'November 2026' })
+  assert.equal(en.weekHeads[0], 'Mon 2')
+  assert.deepEqual(en.viewOptions.map((o) => o.label), ['Month', 'Week', 'Day', 'List'])
+  setChromeLanguage('es')
+  try {
+    const es = calendarAtomOf({ ...calWire, month: '2026-11-02', views: ['month', 'week', 'day', 'list'] }, 'cal', '2026-11-02', null, 'es-ES')
+    assert.deepEqual(es.dows, ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'])
+    assert.equal(es.titles.month, 'noviembre de 2026')
+    assert.equal(es.dayHead, 'lunes, 2 de noviembre')
+    assert.equal(es.weekHeads[6], 'dom 8')
+    assert.deepEqual(es.viewOptions.map((o) => o.label), ['Mes', 'Semana', 'Día', 'Lista'])
+    const busy = calendarAtomOf(calWire, 'cal', '2026-10-28', null, 'es-ES').monthCells.find((c) => c.date === '2026-10-30')
+    assert.match(busy.ariaLabel, /^viernes, 30 de octubre, .*\d eventos?$/)
+    // CalendarPage's toolbar: the labels the app's Translator left in English are drawn in Spanish;
+    // one it translated stays as it came
+    const nav = calendarPageToolbarOf(node({ type: 'HorizontalLayout' }, [
+      node({ type: 'Button', label: '‹', actionId: 'previousCalendarMonth' }),
+      node({ type: 'Button', label: 'Today', actionId: 'goCalendarToday' }),
+      node({ type: 'Button', label: '›', actionId: 'nextCalendarMonth' }),
+      node({ type: 'Button', label: 'Month', actionId: 'switchCalendarView', parameters: { _view: 'month' } }),
+      node({ type: 'Button', label: 'Setmana', actionId: 'switchCalendarView', parameters: { _view: 'week' } }),
+      node({ type: 'Button', label: '+ Create', actionId: 'createCalendarEvent' }),
+    ]))
+    assert.deepEqual(nav.buttons.map((b) => b.label), ['‹', 'Hoy', '›', 'Mes', 'Setmana', '+ Crear'])
+    assert.equal(nav.createLabel, 'Crear')
+    assert.equal(calendarAtomOf(calWire, 'cal', '2026-10-28', null, 'not a locale!').titles.month, 'October 2026', 'a malformed locale falls back to en-US')
+  } finally {
+    setChromeLanguage('')
+  }
 })
 
 test('calendario Spectra: navegar en su barra = la acción de página (‹ › Hoy, vista); un salto sin acción → null', () => {
