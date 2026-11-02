@@ -72,6 +72,12 @@ export function fitAutoPanels(foldout, available) {
   })
 }
 
+/** The layout's width in px (oj-sp-foldout-layout is an inline element: clientWidth reads 0). */
+function rowWidthOf(layout) {
+  const width = layout && layout.getBoundingClientRect ? layout.getBoundingClientRect().width : 0
+  return width > 0 ? width : null
+}
+
 /** A panel that may be folded: declared `open: false`, or autoOpen. */
 function foldable(panel) {
   return !!panel && (panel.open === false || panel.autoOpen === true)
@@ -144,7 +150,7 @@ export function applyFoldoutFolds(layout, foldout) {
   if (containers.length < panels.length + offset) return false
   layout.__mateuFoldout = foldout
   wireSelection(layout)
-  if (panels.some((p) => p && p.autoOpen === true)) fitAutoPanels(foldout, layout.clientWidth || null)
+  if (panels.some((p) => p && p.autoOpen === true)) fitAutoPanels(foldout, rowWidthOf(layout))
   panels.forEach((panel, i) => {
     const container = containers[i + offset]
     const element = container && panelOf(container)
@@ -165,13 +171,14 @@ function wireSelection(layout) {
   // the row's width decides the autoOpen panels: re-fit when it changes (a window resize, the
   // navigation drawer opening)
   if (typeof ResizeObserver !== 'undefined') {
-    let last = layout.clientWidth
+    let last = rowWidthOf(layout)
     new ResizeObserver(() => {
-      if (layout.clientWidth === last) return
-      last = layout.clientWidth
+      const width = rowWidthOf(layout)
+      if (width === last) return
+      last = width
       const foldout = layout.__mateuFoldout
       if (foldout && (foldout.panels || []).some((p) => p && p.autoOpen === true)) applyFoldoutFolds(layout, foldout)
-    }).observe(layout)
+    }).observe(layout.parentElement || layout) // an inline element's own box never resizes
   }
   layout.addEventListener('selectedPanelChanged', (e) => {
     const foldout = layout.__mateuFoldout
