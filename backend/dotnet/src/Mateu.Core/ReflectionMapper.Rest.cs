@@ -132,9 +132,12 @@ internal sealed partial class ReflectionMapper
         if (instance is not IRestSourceSupplier supplier || RestSourceKinds.FromWire(kind) is not { } wanted)
             return null;
         var wantedId = id ?? "";
-        var match = (supplier.DeclaredRestSources() ?? [])
-            .FirstOrDefault(d => d?.Source is not null && d.Kind == wanted
-                                 && (wanted is RestSourceKind.Rows or RestSourceKind.Data || d.Id == wantedId));
+        var ofKind = (supplier.DeclaredRestSources() ?? [])
+            .Where(d => d?.Source is not null && d.Kind == wanted).ToList();
+        // the one NAMED first: a page can hold a listing AND a live kanban, both rows (mirrors Java
+        // RestSourceResolver) — the first rows source answered for the board's rows too
+        var match = ofKind.FirstOrDefault(d => d!.Id == wantedId)
+                    ?? ofKind.FirstOrDefault(_ => wanted is RestSourceKind.Rows or RestSourceKind.Data);
         return match is null ? null : MateuCatalogs.ToDto(match.Source);
     }
 

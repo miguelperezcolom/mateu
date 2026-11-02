@@ -30,6 +30,9 @@ public final class TemplateInterpolator {
 
   private static final String ENCODE_CALL = "encodeURIComponent";
 
+  /** The only expression an origin placeholder may hold: a configured secret. */
+  private static final Pattern SECRET_ORIGIN = Pattern.compile("secret\\.[A-Za-z0-9_.-]+");
+
   private static final Pattern NUMBER = Pattern.compile("-?\\d+(\\.\\d+)?");
 
   private TemplateInterpolator() {}
@@ -109,7 +112,11 @@ public final class TemplateInterpolator {
       var value = explicitlyEncoded != null ? jsText(resolved) : text(resolved);
       String replacement;
       if (matcher.start() < originEnd) {
-        if (valueExpr.startsWith("state.")) {
+        // Only configuration may choose the host: a `${secret.X}`. Any other expression in the
+        // origin reads the client state somehow — `${String(state.host)}`, `${(state.host)}`,
+        // `${state['host']}`, a bare `${host}` (bare names read the state) — and the SERVER would
+        // fetch a host the client picked.
+        if (!SECRET_ORIGIN.matcher(valueExpr.trim()).matches()) {
           throw new IllegalArgumentException(
               "A client state value cannot choose the origin of a URL: " + template);
         }

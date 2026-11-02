@@ -95,6 +95,14 @@ public final class ServerConstraintCheck {
       } catch (Exception e) {
         continue;
       }
+      // an @Inline nested form's fields are the page's fields (`guest-name`): the client validates
+      // them with the page, so the server checks them with the page too
+      if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Inline.class)) {
+        if (value != null && !(value instanceof ValidationSupplier)) {
+          violations.addAll(check(value, httpRequest, forCreationForm));
+        }
+        continue;
+      }
       for (String message : violatedMessages(field, value)) {
         violations.add(
             FieldMetadataExtractor.getLabel(field, instance, httpRequest) + ": " + message);

@@ -67,6 +67,16 @@ public class MateuHelidonRoutes {
    */
   private volatile boolean authenticationRequired;
 
+  /**
+   * Whether the app authenticates in JAX-RS (a filter at {@code @Priority(AUTHENTICATION)}): its
+   * identity — roles included — exists only inside Jersey, so a streamed action Helidon security
+   * did not authenticate is handed to Jersey rather than run here as nobody.
+   */
+  private volatile boolean jaxRsAuthentication;
+
+  /** Whether the app resolves callers itself ({@code PrincipalResolver} beans), on any route. */
+  private volatile boolean principalResolvers;
+
   void register(
       @Observes
           @Priority(Interceptor.Priority.LIBRARY_BEFORE + 10)
@@ -88,6 +98,11 @@ public class MateuHelidonRoutes {
     boolean mcp =
         config.getOptionalValue(McpEndpoint.ENABLED_PROPERTY, Boolean.class).orElse(false);
     authenticationRequired = HelidonSeIdentity.authenticationRequired(config, beanManager);
+    jaxRsAuthentication = HelidonSeIdentity.jaxRsAuthenticates(beanManager);
+    principalResolvers =
+        !beanManager
+            .getBeans(io.mateu.uidl.security.PrincipalResolver.class, Any.Literal.INSTANCE)
+            .isEmpty();
 
     routing.addFilter(
         (chain, req, res) -> {
@@ -207,9 +222,15 @@ public class MateuHelidonRoutes {
               res.next();
               return;
             }
-            if (unauthenticated(req)) {
-              // the app requires a login and nobody authenticated here: Jersey answers it — its
-              // login check applies there (the stream is then buffered, never unauthenticated)
+            if (unauthenticated(req)
+                || (jaxRsAuthentication
+                    && !principalResolvers
+                    && carriesCredentials(req)
+                    && HelidonSeIdentity.principalOf(req) == null)) {
+              // the app requires a login, or authenticates in JAX-RS and the caller brings
+              // credentials nobody read here: Jersey answers it — its login check and its identity
+              // (roles included) apply there; the stream is then buffered, never run as nobody.
+              // A caller with no credentials is nobody in Jersey too, and keeps the live stream.
               res.next();
               return;
             }
@@ -424,7 +445,9 @@ public class MateuHelidonRoutes {
    */
   /** The app requires a login and Helidon security authenticated nobody for this request. */
   private boolean unauthenticated(ServerRequest req) {
-    return authenticationRequired && HelidonSeIdentity.principalOf(req) == null;
+    return authenticationRequired
+        && !principalResolvers
+        && HelidonSeIdentity.principalOf(req) == null;
   }
 
   private static boolean refused(ServerResponse res, Throwable t) {
@@ -456,6 +479,11 @@ public class MateuHelidonRoutes {
         out.flush();
       }
     }
+  }
+
+  /** Credentials a JAX-RS authentication filter reads: an Authorization header or a cookie. */
+  private static boolean carriesCredentials(ServerRequest req) {
+    return header(req, "Authorization") != null || header(req, "Cookie") != null;
   }
 
   private static String header(ServerRequest req, String name) {

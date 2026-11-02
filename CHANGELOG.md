@@ -205,8 +205,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `invalid_grant` to.
 - The mobile `ota` job publishes only for a published release, never for a manual re-run of an
   older tag (which would have downgraded every phone).
+- A route's `fixedParams` now also win on the PROXIED REST leg (they were applied only when
+  hydrating the view model), and only a `${secret.X}` may choose a proxied url's origin — any other
+  expression (`String(state.x)`, `state['x']`, a bare name) is refused (Java, .NET, Python).
+- Helidon MP: the streamed actions, MCP and YAML mounts see the roles and scopes of Helidon
+  security's subject; an app authenticating with a JAX-RS filter at `@Priority(AUTHENTICATION)`
+  requires a login there (`mateu.helidon.authentication-required=false` opts out) and a streamed
+  action carrying credentials is handed to Jersey, where the filter's identity applies.
+- .NET/Python inline YAML partials as source before applying access keys and `${i18n}`: a section
+  guarded by `eyesOnly:` inside a partial reached every caller.
 
 ### Fixed (behaviour — final independent review)
+- Constraints inside an `@Inline` nested form are validated with the page, by the client and by
+  the server's re-check (they were checked by neither).
+- .NET/Python: the structure hash no longer includes the page's values or random nested ids, and a
+  proxied rows fetch is answered by the source its id names (a listing next to a live board).
+- React Native: REST source templates evaluate `String(x)`, `Number(x)`, `encodeURIComponent(x)`
+  (encoded once), `Math.*` and string/list methods, and send a money value's amount — demo-starwars
+  searches sent nothing on the phone. RN now runs the source-template corpus.
 
 - `?sort=name:asc` / `desc` is read by the server (it failed the search) and by Redwood (it was
   dropped), like Vaadin.

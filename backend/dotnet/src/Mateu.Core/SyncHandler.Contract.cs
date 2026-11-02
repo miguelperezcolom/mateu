@@ -86,8 +86,34 @@ internal sealed partial class SyncHandler
         // hashes the same: the top-level id is a fresh Guid every request (an instance id, not
         // structure) and the hash slot must not feed itself. Nested/structural ids are kept. The
         // client only ever echoes the server's hash, so nulling id here is symmetric.
-        var normalized = component with { Id = "", StructureHash = null };
-        var json = JsonSerializer.SerializeToUtf8Bytes<ComponentDto>(normalized, WebJson);
+        // The page's seed (InitialData) is its STATE, not its structure — hashed, a page whose
+        // values changed never got the state-only answer — and so is the random id of every nested
+        // component that names none: both are dropped (mirrors Java StructureHashPostProcessor).
+        // The fragment state already carries the seed, so a stripped component loses nothing.
+        var normalized = component with { Id = "", StructureHash = null, InitialData = null! };
+        var tree = JsonSerializer.SerializeToNode<ComponentDto>(normalized, WebJson);
+        WithoutInstanceIds(tree);
+        var json = System.Text.Encoding.UTF8.GetBytes(tree?.ToJsonString() ?? "null");
         return Convert.ToHexString(SHA256.HashData(json)).ToLowerInvariant();
+    }
+
+    private static readonly Regex InstanceId =
+        new("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
+
+    /// <summary>Drops every GUID-valued <c>id</c> from the tree, in place.</summary>
+    private static void WithoutInstanceIds(System.Text.Json.Nodes.JsonNode? node)
+    {
+        switch (node)
+        {
+            case System.Text.Json.Nodes.JsonObject obj:
+                if (obj["id"] is System.Text.Json.Nodes.JsonValue id
+                    && id.TryGetValue<string>(out var text) && InstanceId.IsMatch(text))
+                    obj["id"] = null;
+                foreach (var (_, child) in obj.ToList()) WithoutInstanceIds(child);
+                break;
+            case System.Text.Json.Nodes.JsonArray array:
+                foreach (var child in array) WithoutInstanceIds(child);
+                break;
+        }
     }
 }

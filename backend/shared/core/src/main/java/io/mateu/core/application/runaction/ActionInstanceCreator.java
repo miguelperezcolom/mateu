@@ -248,6 +248,18 @@ public class ActionInstanceCreator {
         .orElse(false);
   }
 
+  /** The {@code fixedParams} the entry answering {@code route} pins (empty when none answers). */
+  java.util.Map<String, Object> fixedParamsFor(String route) {
+    if (route == null) {
+      return java.util.Map.of();
+    }
+    return routeRegistry
+        .match(stripQuery(route))
+        .map(match -> match.entry() == null ? null : match.entry().fixedParams())
+        .<java.util.Map<String, Object>>map(java.util.Map::copyOf)
+        .orElse(java.util.Map.of());
+  }
+
   private boolean isAuthoredHere(String route) {
     return route != null && routeRegistry.match(stripQuery(route)).isPresent();
   }
