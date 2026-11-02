@@ -1,6 +1,7 @@
 import { html, nothing, TemplateResult } from 'lit'
 import type { FieldLabel, FieldValue } from '../fieldEvents'
 import type { MateuField } from '../mateu-field'
+import { asSelectValue, selectValueChanged } from './select'
 
 /** The radio stereotype, with inline or remote options. */
 
@@ -14,8 +15,8 @@ export function renderRadioField(host: MateuField, value: FieldValue, label: Fie
         <vaadin-radio-group
                 id="${host.field.fieldId}"
                 label="${label}"
-                @value-changed="${host.valueChanged}"
-                .value="${value}"
+                @value-changed="${selectValueChanged(host, host.data[host.id]?.content)}"
+                .value="${asSelectValue(value)}"
                 .helperText="${host.helperText()}"
                 theme="horizontal"
                 ?autofocus="${host.field.wantsFocus}"
@@ -23,7 +24,7 @@ export function renderRadioField(host: MateuField, value: FieldValue, label: Fie
                 data-colspan="${host.field.colspan}"
         >
             ${host.data[host.id]?.content?.map((option: any) => html`
-                <vaadin-radio-button value="${option.value}" label="${option.label}" ?checked="${option && value && option.value === value}">
+                <vaadin-radio-button value="${option.value}" label="${option.label}" ?checked="${option && value != null && value !== '' && String(option.value) === String(value)}">
                     ${option.description || option.image || option.icon?html`
                         <label slot="label">
                             <vaadin-horizontal-layout theme="spacing">
@@ -49,8 +50,8 @@ export function renderRadioField(host: MateuField, value: FieldValue, label: Fie
         <vaadin-radio-group
                 id="${host.field.fieldId}"
                 label="${label}"
-                @value-changed="${host.valueChanged}"
-                .value="${value}"
+                @value-changed="${selectValueChanged(host, host.field.options)}"
+                .value="${asSelectValue(value)}"
                 .helperText="${host.helperText()}"
                 ?autofocus="${host.field.wantsFocus}"
                 required="${host.field.required || nothing}"

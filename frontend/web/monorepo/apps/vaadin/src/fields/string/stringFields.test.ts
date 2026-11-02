@@ -163,6 +163,27 @@ describe('string fields', () => {
         expect(draw(renderRadioField(h, 'a', 'R')).querySelectorAll('vaadin-radio-button').length).toBe(2)
         expect(h.requestRemoteOptions).toHaveBeenCalledWith('search-f')
     })
+
+    it('a radio group of numeric options shows a numeric value and sends back the option\'s own value', () => {
+        const valueChanged = vi.fn()
+        const h = host({ stereotype: 'radio', options: [{ value: 1, label: 'One' }, { value: 2, label: 'Two' }] }, { valueChanged })
+        const group = draw(renderRadioField(h, 2, 'R')).querySelector('vaadin-radio-group') as HTMLElement & { value: unknown }
+        expect(group.value).toBe('2')
+        group.dispatchEvent(new CustomEvent('value-changed', { detail: { value: '1' } }))
+        expect(valueChanged.mock.calls[0][0].detail.value).toBe(1)
+    })
+
+    it('a select whose value comes as an option keeps a 0', () => {
+        const h = host({ stereotype: 'select', options: [{ value: 0, label: 'Zero' }, { value: 1, label: 'One' }] })
+        const select = draw(renderStringField(h, 'f', { value: 0, label: 'Zero' } as never, 'S', 'S')).querySelector('vaadin-select') as HTMLElement & { value: unknown }
+        expect(select.value).toBe('0')
+    })
+
+    it('a list holding "25" and 25 answers the one picked', async () => {
+        const { optionValueOf } = await import('./select')
+        expect(optionValueOf([{ value: 25 }, { value: '25' }], '25')).toBe('25')
+        expect(optionValueOf([{ value: 25 }], '25')).toBe(25)
+    })
 })
 
 describe('every field render function draws nothing without a field', () => {
