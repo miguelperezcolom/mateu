@@ -305,4 +305,27 @@ public class YamlAccessTests
         Assert.True(registry.Grants("open", a => a is null));
         Assert.False(registry.Grants("wipe", a => a is null));
     }
+
+    /// <summary>A partial's access keys are the page's: inlined as source before the per-caller
+    /// passes (Java <c>YamlPartials</c>), never lost by building the partial first.</summary>
+    [Fact]
+    public void A_guarded_section_in_a_partial_is_applied_like_an_inline_one()
+    {
+        var dir = Directory.CreateTempSubdirectory("yaml-partial-access-").FullName;
+        File.WriteAllText(Path.Combine(dir, "routes.yaml"), "routes:\n  - route: staff\n    definition: staff.yaml\n");
+        File.WriteAllText(Path.Combine(dir, "staff.yaml"),
+            "layout:\n  type: VerticalLayout\n  content:\n    - {type: Text, text: Public text}\n    - {type: Partial, ref: payroll}\n");
+        Directory.CreateDirectory(Path.Combine(dir, "partials"));
+        File.WriteAllText(Path.Combine(dir, "partials", "payroll.yaml"),
+            "content:\n  - {type: Text, text: Secret salary table, eyesOnly: {roles: [hr]}}\n");
+        SyncHandler For(params string[] roles) =>
+            new(new MateuRegistry(typeof(Access).Assembly),
+                identity: () => roles.Length == 0 ? null : new Identity(Roles: roles),
+                specsDir: dir);
+
+        var anonymous = Json(For().Handle(new RunActionRqDto { Route = "/staff" }));
+        Assert.Contains("Public text", anonymous);
+        Assert.DoesNotContain("Secret salary table", anonymous);
+        Assert.Contains("Secret salary table", Json(For("hr").Handle(new RunActionRqDto { Route = "/staff" })));
+    }
 }

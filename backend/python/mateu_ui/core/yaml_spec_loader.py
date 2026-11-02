@@ -216,6 +216,9 @@ class YamlSpecLoader:
             return None
         except OSError:
             return None
+        # partials inlined as SOURCE first, so their access keys and i18n texts are applied per
+        # caller like inline ones (mirrors Java YamlPartials)
+        data = self.partials.compose(data)
         model_view, layout, delta = parse_spec_tree(data, self.partials, self.field_types)
         # A spec that depends on who asks or in which language keeps its source tree, so it can be
         # re-derived per request (load_spec_for); everything else is shared as-is.

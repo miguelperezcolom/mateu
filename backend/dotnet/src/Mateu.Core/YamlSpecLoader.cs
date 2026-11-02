@@ -173,7 +173,9 @@ internal sealed class YamlSpecLoader : ISpecsCache
         }
         try
         {
-            var root = YamlComponentBuilder.Deserialize(File.ReadAllText(path));
+            // partials inlined as SOURCE first, so their access keys and i18n texts are applied per
+            // caller like inline ones (mirrors Java YamlPartials)
+            var root = _partials.Compose(YamlComponentBuilder.Deserialize(File.ReadAllText(path)));
             var (modelView, layout, delta) = YamlComponentBuilder.ParsePageNode(root, _partials, _fieldTypes);
             if (layout is null && delta.IsEmpty) return None;
             // A spec that depends on who asks or in which language keeps its source tree, so it can
