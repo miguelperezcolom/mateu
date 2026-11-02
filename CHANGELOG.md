@@ -25,6 +25,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Redwood: a `List<Row>` field's row dialog draws the row's multi-selects and nested lists.** The
+  dialog ("Edit block", Prev/Next) skipped every list-typed field of the row, so a
+  `@Stereotype(multiSelect) List<String>` whose options come from the row's `OptionsSupplier` (a
+  block's audience: departments, hotels, job titles) and a nested `List<Child>` (a quick-links
+  block's `List<Link>`) could not be edited at all. A multiple choice is now an `oj-select-many`
+  (an `oj-checkboxset` for `checkbox` / `choice`) with the options the server sends inline; a nested
+  list is a small table of the child's fields with add / remove / move up / move down, edited on the
+  client — its rows live in the row's draft and travel with the row on Save, and the form's Save
+  persists them. The end of a date range edited in the dialog is folded back into its field (it was
+  kept under `<field>#from` / `#to`). Still not edited in the dialog: a list with neither options
+  nor columns (a `List<Integer>`), and a nested child's own non-simple fields (selects, dates,
+  nested lists — its cells are text inputs, a number or a switch only when the column's inline editor
+  type says so).
 - **An editor's `@Button` (and a `@ViewToolbarButton`) updates its crud page however the crud is
   hosted** (Java). The answer aimed at an id derived from the component that sent the action
   (`"ux_" + initiator − "_app" + "_cs_edit"` / `"_cs_view"`), which only names the page when the crud

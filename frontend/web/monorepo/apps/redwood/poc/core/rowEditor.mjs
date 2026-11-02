@@ -166,8 +166,11 @@ export const NUMERIC_TYPES = { integer: true, int: true, long: true, number: tru
 /**
  * The fields of the row's form, each resolved to the widget it gets (flags
  * PRECOMPUTED: VB's CSP does not evaluate expressions) with its value, its options and its
- * errors (JET messagesCustom). Nested lists (e.g. the children's ages) are not
- * edited here.
+ * errors (JET messagesCustom). A multiple choice (a List with options — the row's own
+ * OptionsSupplier's, inline) is a select-many / checkbox set; a nested List<Child> (a grid field)
+ * is a small editable table (nestedListWidgetOf). Both used to be dropped, so a block's links and
+ * its audience could not be edited. A list with neither options nor columns (a List<Integer>) is
+ * still not edited here.
  */
 export function rowFieldsOf(ctx, values, errors) {
   if (!ctx || !ctx.tree) return []
@@ -177,10 +180,23 @@ export function rowFieldsOf(ctx, values, errors) {
   for (const f of collectFields(ctx.tree)) {
     if (!f.dataType || seen[f.fieldId]) continue
     seen[f.fieldId] = true
-    if (f.dataType === 'array' || (f.columns || []).length) continue
-    const raw = plainValueOf(state[f.fieldId])
+    if ((f.columns || []).length) {
+      const nested = nestedListWidgetOf(f, state[f.fieldId])
+      if (nested) out.push(nested)
+      continue
+    }
+    if (f.dataType === 'array' && !optionsOf(f, ctx.data).length) continue
+    const raw = f.dataType === 'array' ? state[f.fieldId] : plainValueOf(state[f.fieldId])
     const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
     const error = errors && errors[f.fieldId]
+    if (widget.isMultiSelect || widget.isCheckboxSet) {
+      out.push({
+        ...widget,
+        value: Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(',')),
+        messagesCustom: error ? [{ severity: 'error', summary: error, detail: '' }] : [],
+      })
+      continue
+    }
     // a READ-ONLY field that is still empty (the «Line» and «Total» of a new room, which
     // the server sets) is painted as its label and «—», text that does not take focus: a readonly
     // oj-input-number with no value is a 20px dotted box that looks like a broken control (and, as the first
@@ -200,6 +216,137 @@ export function rowFieldsOf(ctx, values, errors) {
     })
   }
   return out
+}
+
+// ── NESTED LIST inside the row editor (a block's List<Link>) ──────────────────────────────────
+//
+// The row's form carries a nested List<Child> as a grid FormField (columns, one per child field,
+// plus the `_select` Edit button). In the dialog it is a small table edited ON THE CLIENT: each
+// cell an input whose id is `<field>#<index>#<column>`, and add / remove / up / down buttons
+// (data-nested-op). The edited list lives in the row's draft as an array of plain rows and travels
+// with the row on Save (initiatorState) — the server pours it into the List<Child> like any other
+// value. Vaadin opens a nested editor per row; a table of the child's simple fields covers the
+// usual child (a link: label, url) without a dialog over the dialog.
+
+/** The editable columns of a nested grid: its child's fields, not the `_select` Edit button. */
+export function nestedColumnsOf(field) {
+  return (field.columns || [])
+    .map((c) => (c && c.metadata) || c || {})
+    .filter((c) => c.id && !String(c.id).startsWith('_') && c.stereotype !== 'button')
+    // the column's dataType is coarse (most types read `string`); an inline editor's type is finer
+    .map((c) => ({ id: c.id, label: c.label || c.id, dataType: CELL_TYPES[c.editorType] || c.dataType || 'string' }))
+}
+
+const CELL_TYPES = { integer: 'integer', number: 'number', boolean: 'boolean' }
+
+/** The rows of a nested list as the table edits them (an array of objects; anything else → []). */
+export function nestedRowsOf(value) {
+  return Array.isArray(value) ? value.map((r) => (r && typeof r === 'object' ? r : {})) : []
+}
+
+/** The widget of a nested list: its columns and, per row, its cells and its buttons. */
+export function nestedListWidgetOf(f, value) {
+  const columns = nestedColumnsOf(f)
+  if (!columns.length) return null
+  const readonly = !!f.readOnly
+  const rows = nestedRowsOf(value)
+  return {
+    fieldId: f.fieldId,
+    label: f.label || f.fieldId,
+    required: !!f.required,
+    readonly,
+    ...EMPTY_WIDGET_FLAGS,
+    isNestedList: true,
+    columns,
+    rows: rows.map((row, index) => ({
+      key: f.fieldId + '#' + index,
+      fieldId: f.fieldId,
+      index: String(index),
+      editable: !readonly,
+      canUp: !readonly && index > 0,
+      canDown: !readonly && index < rows.length - 1,
+      cells: columns.map((c) => {
+        const isNumber = !!NUMERIC_TYPES[c.dataType]
+        const isBoolean = c.dataType === 'bool' || c.dataType === 'boolean'
+        const raw = plainValueOf(row[c.id])
+        return {
+          fieldId: f.fieldId + '#' + index + '#' + c.id,
+          label: c.label,
+          readonly,
+          // its own flag names: a cell is not a field widget (the page's widget copies are counted)
+          isCellNumber: isNumber,
+          isCellBoolean: isBoolean,
+          isCellText: !isNumber && !isBoolean,
+          // a text cell edits a string (an oj-input-text refuses a number value)
+          value: isBoolean ? !!raw : (raw == null || raw === '' ? null : (isNumber ? Number(raw) : String(raw))),
+        }
+      }),
+    })),
+    value: rows,
+    messagesCustom: [],
+  }
+}
+
+/** The widget flags all off: what a widget with its own template (the nested table) starts from. */
+const EMPTY_WIDGET_FLAGS = {
+  isText: false, isTextArea: false, isNumber: false, isDate: false, isDateTime: false, isBoolean: false,
+  isSelect: false, isLookup: false, lookupActionId: '', options: [],
+  isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
+  isSlider: false, isStars: false, isColor: false, isRichEditor: false, isMarkupEditor: false, markupKind: '',
+  isEmail: false, isUrl: false, currency: '', converter: null, captureMode: '', accept: '', min: 0, max: 0, step: 1,
+}
+
+const NESTED_CELL = /^(.+)#(\d+)#([^#]+)$/
+
+/** The state of the open row editor's row (`<list>-container`), or {} when none is open. */
+export function rowStateOf(reg, opts = {}) {
+  const editor = rowEditorOf(reg, opts)
+  const ctx = editor && reg.contexts[editor.id]
+  return (ctx && ctx.state) || {}
+}
+
+/** A nested list's current rows: the draft's (already edited) or else the row's state's. */
+function currentNestedRows(reg, fieldId, draft, opts) {
+  if (draft && fieldId in draft) return nestedRowsOf(draft[fieldId])
+  return nestedRowsOf(rowStateOf(reg, opts)[fieldId])
+}
+
+/**
+ * The edit of one CELL of a nested list (its input's id is `<field>#<index>#<column>`) as the
+ * field's new value — `{fieldId, value: rows}`, the other rows and cells kept — or null when the
+ * id is not a nested cell (the edit is the field's own).
+ */
+export function rowNestedEditOf(reg, cellId, draft, value, opts = {}) {
+  const m = NESTED_CELL.exec(String(cellId || ''))
+  if (!m) return null
+  const [, fieldId, idx, column] = m
+  const rows = currentNestedRows(reg, fieldId, draft, opts).slice()
+  const index = Number(idx)
+  if (index < 0 || index >= rows.length) return null
+  rows[index] = { ...rows[index], [column]: value == null || value === '' ? null : value }
+  return { fieldId, value: rows }
+}
+
+/**
+ * A button of a nested list (`add`, `remove`, `up`, `down`, with the row's index) as the field's
+ * new value — `{fieldId, value: rows}` — or null for an unknown op. A new row is empty, with a
+ * `_rowNumber` past the others' (the server keys rows by it).
+ */
+export function rowNestedOpOf(reg, fieldId, op, index, draft, opts = {}) {
+  if (!fieldId) return null
+  const rows = currentNestedRows(reg, fieldId, draft, opts).slice()
+  const i = Number(index)
+  if (op === 'add') {
+    const next = rows.reduce((max, r) => (Number.isFinite(Number(r._rowNumber)) ? Math.max(max, Number(r._rowNumber)) : max), -1) + 1
+    rows.push({ _rowNumber: next })
+  } else if (op === 'remove' && i >= 0 && i < rows.length) {
+    rows.splice(i, 1)
+  } else if (op === 'up' && i > 0 && i < rows.length) {
+    [rows[i - 1], rows[i]] = [rows[i], rows[i - 1]]
+  } else if (op === 'down' && i >= 0 && i < rows.length - 1) {
+    [rows[i], rows[i + 1]] = [rows[i + 1], rows[i]]
+  } else return null
+  return { fieldId, value: rows }
 }
 
 /** What is painted instead of a value that doesn't exist yet (read-only). */

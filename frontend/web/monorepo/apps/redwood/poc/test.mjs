@@ -63,7 +63,7 @@ import {
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf, columnSizingOf, finishColumnSizing, isCompactColumn, estimateTextPx, withoutDefaultSizing,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, smartFilterDropdownRowsOf, dropdownRowsFor, suggestionsProviderOf, setMetadataProviderFactory, KEYWORD_FILTER,
-  listActionOf, listActionRequestOf, rowEditorOf, rowValueChangeActionOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
+  listActionOf, listActionRequestOf, rowEditorOf, rowValueChangeActionOf, rowFieldsOf, rowNestedEditOf, rowNestedOpOf, rowStateOf, validateRow, pendingLookupsOf, lookupRequestOf,
   isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
   wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf, confirmationDefaultsOf,
@@ -3784,6 +3784,72 @@ test('rowedit (edición): los otros editores — New guest (select de opciones, 
   assert.ok(p.methodCode.isLookup)
   assert.ok(p.amount.isNumber && p.amount.required)
   assert.ok(p.paymentId.readonly)
+})
+
+// a page form with a List<Block> whose row carries every kind of field (backend
+// RowEditorFieldKindsSyncTest dumps both fixtures): the editor of its first block, open
+const blockEditorOpen = () => reduceContexts(reduceContexts(empty(), fx('rowedit-block-kinds-load')), fx('rowedit-block-kinds'))
+
+test('rowedit: the dialog draws every kind of the row — simple ones, a multi-select with the row\'s options, a nested list', () => {
+  const editor = rowEditorOf(blockEditorOpen())
+  assert.equal(editor.title, 'Edit block')
+  const byId = Object.fromEntries(editor.fields.map((f) => [f.fieldId, f]))
+  assert.deepEqual(Object.keys(byId), ['type', 'title', 'limit', 'pinned', 'from', 'sectionId', 'links', 'departments'])
+  assert.ok(byId.type.isSelect && byId.title.isText && byId.limit.isNumber && byId.pinned.isBoolean && byId.from.isDate)
+  assert.ok(byId.sectionId.isSelect && byId.sectionId.options.some((o) => o.value === 'news'))
+  // the audience narrowing: a multi-select whose options the ROW's OptionsSupplier sent inline
+  assert.ok(byId.departments.isMultiSelect && !byId.departments.isText)
+  assert.deepEqual(byId.departments.options, [{ value: 'SALES', label: 'Sales' }, { value: 'OPS', label: 'Operations' }])
+  assert.deepEqual(byId.departments.value, ['OPS'])
+  // the quick links: a table of the child's fields (no `_select` Edit column), one row per link
+  const links = byId.links
+  assert.ok(links.isNestedList && !links.isText && !links.isSelect)
+  assert.deepEqual(links.columns.map((c) => c.id), ['label', 'url'])
+  assert.equal(links.rows.length, 1)
+  assert.deepEqual(links.rows[0].cells.map((c) => [c.fieldId, c.value, c.isCellText]),
+    [['links#0#label', 'Intranet', true], ['links#0#url', 'https://intranet.example', true]])
+  assert.ok(links.rows[0].editable && !links.rows[0].canUp && !links.rows[0].canDown)
+})
+
+test('rowedit: a nested list is edited on the client — cells, add, up/down, remove — and travels with the row on Save', () => {
+  const reg = blockEditorOpen()
+  assert.equal(rowStateOf(reg).title, 'Shortcuts')
+  let draft = {}
+  const put = (edit) => { assert.ok(edit); draft = { ...draft, [edit.fieldId]: edit.value } }
+  put(rowNestedOpOf(reg, 'links', 'add', null, draft))
+  assert.deepEqual(draft.links.map((r) => r._rowNumber), [0, 1], 'a new row keyed past the others')
+  put(rowNestedEditOf(reg, 'links#1#label', draft, 'Wiki'))
+  put(rowNestedEditOf(reg, 'links#1#url', draft, 'https://wiki.example'))
+  put(rowNestedOpOf(reg, 'links', 'up', '1', draft))
+  assert.deepEqual(draft.links.map((r) => r.label), ['Wiki', 'Intranet'])
+  // the dialog re-drawn from the draft shows the edited rows
+  const links = rowEditorOf(reg, { rowDraft: draft }).fields.find((f) => f.fieldId === 'links')
+  assert.deepEqual(links.rows.map((r) => r.cells.map((c) => c.value)), [['Wiki', 'https://wiki.example'], ['Intranet', 'https://intranet.example']])
+  assert.ok(!links.rows[0].canUp && links.rows[0].canDown && links.rows[1].canUp && !links.rows[1].canDown)
+  put(rowNestedOpOf(reg, 'links', 'down', '0', draft))
+  put(rowNestedOpOf(reg, 'links', 'remove', '0', draft))
+  assert.deepEqual(draft.links.map((r) => r.label), ['Wiki'])
+  // not nested cells / unknown ops: nothing to fold
+  assert.equal(rowNestedEditOf(reg, 'title', draft, 'x'), null)
+  assert.equal(rowNestedEditOf(reg, 'links#7#label', draft, 'x'), null, 'a row that does not exist')
+  assert.equal(rowNestedOpOf(reg, 'links', 'explode', '0', draft), null)
+  // Save: the container's state, the row with its nested list and its multi-select in initiatorState
+  const rq = listActionRequestOf(reg, 'blocks_save', { rowDraft: { ...draft, departments: ['SALES', 'OPS'] } })
+  assert.equal(rq.verb, 'save')
+  assert.deepEqual(rq.parameters.initiatorState.links, [{ _rowNumber: 1, label: 'Wiki', url: 'https://wiki.example' }])
+  assert.deepEqual(rq.parameters.initiatorState.departments, ['SALES', 'OPS'])
+  assert.equal(rq.parameters.initiatorState.title, 'Shortcuts')
+  assert.equal(rq.componentState.links, undefined, 'the row is NOT the componentState')
+})
+
+test('rowedit: a required multi-select left empty is refused like any required field', () => {
+  const reg = blockEditorOpen()
+  const row = reg.contexts['blocks-container']
+  const required = { ...row, tree: JSON.parse(JSON.stringify(row.tree)) }
+  const f = collectFields(required.tree).find((x) => x.fieldId === 'departments')
+  f.required = true
+  assert.deepEqual(validateRow(required, { departments: [] }), { departments: 'Required' })
+  assert.deepEqual(validateRow(required, {}), {}, 'its value from the row (OPS) counts')
 })
 
 // ── Shell "ask" FAB: neutral (Search with the magnifier), or the @App(askLabel, askIcon) brand ──
