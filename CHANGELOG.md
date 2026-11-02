@@ -13,6 +13,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **An embedded `MicroFrontend` keeps out of the host page's chrome: `chrome(NONE | COMPACT | PAGE)`**
+  (Java, Vaadin and Redwood; experimental). With any value the micro frontend is a block of the page,
+  not a page of its own: the renderers apply no window title, history push or favicon from it, its
+  navigation does not touch the address bar, and it draws no breadcrumb — before, each load renamed
+  the browser tab after the remote, so the host page's title never stuck. Its requests carry
+  `embeddedChrome` and the server answering them strips those commands too (also for `resolve =
+  SERVER`, whose host now asks the remote as embedded and keeps the chrome for later interactions).
+  `NONE` hides the remote page's header, `COMPACT` keeps only its actions, `PAGE` keeps title and
+  actions. Without `chrome`, nothing changes. Wire: `MicroFrontend.chrome` and
+  `RunActionRqDto.embeddedChrome`, both optional.
+
 - **A crud's edit and creation forms render the editor's own `@Button`s** (Java). They sit under the
   form — in the drawer's bottom row, before Cancel/Save — and are the actions that only make sense
   while editing (insert a medium into the text, translate it, refresh a preview). Like save, they

@@ -36,6 +36,7 @@ import { trustDeclaredRemotes } from '@infra/http/credentialScope.ts'
 import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/documents.ts'
 import { setServerWindowTitle } from '@infra/ui/windowTitle.ts'
 import { literalText } from '@infra/ui/interpolation.ts'
+import { isSuppressedWindowCommand } from '@infra/ui/embeddedChrome.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -246,6 +247,11 @@ export default abstract class ConnectedElement extends LitElement {
     abstract manageActionRequestedEvent(event: CustomEvent):void
 
     applyCommand(command: UICommand) {
+
+        // inside an EMBEDDED micro frontend (MicroFrontend.chrome) the window — its title, the
+        // address bar, the favicon — is the host page's: an older remote still sends those
+        // commands, and the host's own title must be the one that sticks
+        if (isSuppressedWindowCommand(command.type, this)) return
 
         if ('SetWindowTitle' == command.type) {
             // the page title as plain text: the server's literal escapes resolved (`\${` → `${`) and

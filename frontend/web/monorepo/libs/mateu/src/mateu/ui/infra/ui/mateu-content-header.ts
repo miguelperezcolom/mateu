@@ -26,6 +26,7 @@ import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import '@infra/ui/mateu-record-switcher.ts'
 import { factActionStyles, renderFactAction } from '@infra/ui/factAction.ts'
+import { embeddingChromeOf, ownEmbeddedChromeOf } from '@infra/ui/embeddedChrome.ts'
 
 export { possiblyHtml } from './interpolation'
 
@@ -52,6 +53,27 @@ export const neutralButtonClass = (button: Button): string => {
 export { isNavButton, isBackButton, isCancelButton } from './toolbarButtonKinds'
 
 type Box = Pick<DOMRect, 'top' | 'bottom' | 'right' | 'height'>
+
+/**
+ * The header of an embedded micro frontend's page with chrome COMPACT: only its actions (the
+ * toolbar, the header widgets, the record navigation) — no title, subtitle, avatar, facts or badges.
+ */
+export const compactHeader = (metadata: Form | undefined): Form | undefined => {
+    if (!metadata || (metadata.level ?? 0) !== 0) return metadata
+    return {
+        ...metadata,
+        title: undefined,
+        subtitle: undefined,
+        avatar: undefined,
+        kpis: [],
+        badges: [],
+        breadcrumbs: [],
+        switcher: undefined,
+        timestamp: undefined,
+        overline: undefined,
+        titlePlaceholder: undefined,
+    } as unknown as Form
+}
 
 /**
  * Whether the header's action cluster does NOT fit (pure, so it is testable without layout): it ran
@@ -176,6 +198,8 @@ export class MateuContentHeader extends LitElement {
         const title = metadata?.title
         if (!title || metadata?.titleIsText || (metadata?.level ?? 0) !== 0) return
         if (!String(title).includes('${') || this._inDialog()) return
+        // an embedded micro frontend's page never names the window: the host page does
+        if (embeddingChromeOf(this)) return
         notePageTitle(plainText(interpolate(title, this.state, this.data)))
     }
 
@@ -399,6 +423,10 @@ export class MateuContentHeader extends LitElement {
      * the page or the shell says `@NoBreadcrumbs`.
      */
     private crumbsOf(metadata: Form, level: number): Crumb[] {
+        // inside an EMBEDDED micro frontend (MicroFrontend.chrome) there is no trail: the automatic
+        // one would trace the HOST's menu and address, and a declared one the remote's own routes,
+        // which this page cannot navigate to
+        if (embeddingChromeOf(this)) return []
         if (metadata?.breadcrumbs && metadata.breadcrumbs.length > 0) {
             return metadata.breadcrumbs.map(b => ({ text: interpolate(b.text, this.state, this.data), route: b.link || undefined }))
         }
@@ -432,7 +460,15 @@ export class MateuContentHeader extends LitElement {
     }
 
     render(): TemplateResult {
-        const metadata = this.metadata as Form | undefined
+        const ownChrome = ownEmbeddedChromeOf(this)
+        // an embedded micro frontend's page with chrome NONE draws no header at all
+        if (ownChrome === 'NONE' && ((this.metadata as Form | undefined)?.level ?? 0) === 0) {
+            this.toggleAttribute('data-empty', true)
+            return html``
+        }
+        const metadata = ownChrome === 'COMPACT'
+            ? compactHeader(this.metadata as Form | undefined)
+            : this.metadata as Form | undefined
         if (!metadata) return html``
         const peerNav = metadata.peerNav && (metadata.peerNav.prevRoute || metadata.peerNav.nextRoute)
             ? metadata.peerNav : undefined

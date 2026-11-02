@@ -129,7 +129,7 @@ export const REDWOOD_COVERAGE = {
   Stepper: { status: 'full', note: 'a numbered step header per child, its content below' },
   Result: { status: 'full', note: 'oj-panel with the icon of its type, message, links and the what-next action' },
   Directory: { status: 'full', note: 'a column per group with its links (in-app routes navigate inside the shell)' },
-  MicroFrontend: { status: 'full', note: 'loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it' },
+  MicroFrontend: { status: 'full', note: 'loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it; with a chrome (embedded) it applies no window title/history/favicon, marks its requests (embeddedChrome) and keeps none (NONE), only the toolbar (COMPACT) or all (PAGE) of its page header' },
 }
 
 export const STATUS_MARK = { full: '✅', layout: '✅ layout', partial: '🟡', part: '↳', none: '—' }

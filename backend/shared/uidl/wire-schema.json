@@ -3999,6 +3999,9 @@
         "baseUrl" : {
           "type" : "string"
         },
+        "chrome" : {
+          "type" : "string"
+        },
         "consumedRoute" : {
           "type" : "string"
         },
@@ -5260,6 +5263,9 @@
           }
         },
         "consumedRoute" : {
+          "type" : "string"
+        },
+        "embeddedChrome" : {
           "type" : "string"
         },
         "initiatorComponentId" : {

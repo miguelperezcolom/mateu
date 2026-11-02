@@ -22,6 +22,7 @@ import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideCo
 import {nanoid} from "nanoid";
 import type UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {applyPreloaded} from "@infra/ui/preloadedIncrement.ts";
+import { embeddingChromeOf } from "@infra/ui/embeddedChrome.ts";
 import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
@@ -252,6 +253,10 @@ export class MateuUx extends ConnectedElement {
                 this.currentStructureHash = undefined
             }
 
+            // an EMBEDDED micro frontend (MicroFrontend.chrome) moves in place: the address bar
+            // is the host page's
+            if (embeddingChromeOf(this)) return
+
             let effectiveRoute = e.detail.route
 
             // A mediator's internal navigation (e.g. the crud's PushStateToHistory "/new") is
@@ -366,6 +371,7 @@ export class MateuUx extends ConnectedElement {
             return
         }
         if (e.type == 'server-side-action-requested') {
+                const embedded = embeddingChromeOf(this)
                 let selectedService = service
                 if (detail.sse) {
                     selectedService = sseService
@@ -387,7 +393,12 @@ export class MateuUx extends ConnectedElement {
                     // Per-action transport knobs declared on the wire (@Action), plus the structure
                     // ETag for a route load (phase b of the client structure cache).
                     {timeoutMillis: detail.timeoutMillis, idempotent: detail.idempotent,
-                        knownStructureHash: detail.knownStructureHash,
+                        // an embed moves in place, so the route it loads may not be what is on
+                        // screen: it never claims to hold a structure
+                        knownStructureHash: embedded ? undefined : detail.knownStructureHash,
+                        // an EMBEDDED micro frontend (MicroFrontend.chrome) says so on every
+                        // request: its server then sends no window commands
+                        embeddedChrome: embedded,
                         // its answer dies silently if this ux has moved on to another view by then
                         // (a route load: also if a newer route load superseded it)
                         isStale: staleCheck(this.viewGeneration,

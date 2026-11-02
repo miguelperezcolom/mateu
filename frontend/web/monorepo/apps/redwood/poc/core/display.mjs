@@ -1224,9 +1224,35 @@ export function microFrontendOf(m) {
     appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
     // the host resolved it (resolve = SERVER): the answer to its load is already here
     resolved: m.resolved && typeof m.resolved === 'object' ? m.resolved : null,
+    // EMBEDDED (MicroFrontend.chrome): a block of this page, not a page — see embeddedChromeOf
+    chrome: embeddedChromeOf(m.chrome),
     surface: true,
     lazy: false,
   }
+}
+
+/** The chromes a MicroFrontend can be embedded with (MicroFrontend.chrome / EmbeddedChrome). */
+export const EMBEDDED_CHROMES = ['NONE', 'COMPACT', 'PAGE']
+
+/** A MicroFrontend's `chrome` when it is a known one, else null (a top-level micro frontend, as
+ *  before). Any value makes it EMBEDDED: it never names the window, pushes history or sets the
+ *  favicon, and draws no breadcrumb; NONE also drops its page's title and toolbar, COMPACT its
+ *  title (the toolbar stays), PAGE keeps both. */
+export function embeddedChromeOf(chrome) {
+  const c = typeof chrome === 'string' ? chrome.toUpperCase() : ''
+  return EMBEDDED_CHROMES.includes(c) ? c : null
+}
+
+/** The commands that name or move the WINDOW: never applied from an embedded island — the window
+ *  (its title, the address bar, the favicon) belongs to the page that embeds it. */
+export const WINDOW_COMMANDS = ['SetWindowTitle', 'SetFavicon', 'PushStateToHistory']
+
+/** The increment without its window commands (an embedded island's answer: an older remote that
+ *  does not read `embeddedChrome` still sends them). The same object when it carries none. */
+export function withoutWindowCommands(increment) {
+  if (!increment || !Array.isArray(increment.commands)) return increment
+  const kept = increment.commands.filter((c) => !(c && WINDOW_COMMANDS.includes(c.type)))
+  return kept.length === increment.commands.length ? increment : { ...increment, commands: kept }
 }
 /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
  *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
