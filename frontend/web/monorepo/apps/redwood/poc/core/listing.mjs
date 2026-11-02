@@ -418,7 +418,11 @@ export function listingBaseOf(ctx, opts = {}) {
   const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
   // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
   // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
-  const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath
+  // gridLayout = masterDetail with no way into a record of its own (no rowRoute, not navigable):
+  // the clicked row's fields open BESIDE the list, like the web renderer's detail pane — here
+  // Spectra's end drawer (a full-screen sheet on a phone, i.e. stacked), see masterDetailOf
+  const masterDetail = md.gridLayout === 'masterDetail' && !md.rowRoute && !navigable
+  const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath || masterDetail
   const tableClass = (lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4)
     : 'oj-sm-12') + (rowsOpen ? ' ' + ROWS_OPEN_CLASS : '')
   return {
@@ -463,6 +467,7 @@ export function listingBaseOf(ctx, opts = {}) {
     // the detail is for lookup listings, where the click had no other destination.
     detailPath: md.detailPath || null,
     navigable,
+    masterDetail,
     // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
     // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
     // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
@@ -626,6 +631,24 @@ export function selectedRowsOf(rows, selection) {
     ? (rows || []).filter((r) => selection.except.indexOf(r._rowNumber) < 0)
     : (rows || []).filter((r) => selection.keys.indexOf(r._rowNumber) >= 0)
   return picked.map(rowAsArrived)
+}
+
+/**
+ * The detail pane of a `gridLayout = masterDetail` listing for its clicked row: the row's title
+ * (its first column) and every visible column as a label/value pair — what the web renderer's pane
+ * shows. Values are read as the cells paint them (an enum's label, a status' message).
+ */
+export function masterDetailOf(listing, row) {
+  const cols = ((listing && (listing.allColumns || listing.columns)) || []).filter((c) => c && c.id && c.headerText)
+  const valueOf = (c) => {
+    let v = row ? row[c.id + LABEL_CELL_SUFFIX] : undefined
+    if (v === undefined || v === null) v = row ? row[c.id] : undefined
+    if (v && typeof v === 'object' && !Array.isArray(v)) v = v.message !== undefined ? v.message : (v.label !== undefined ? v.label : JSON.stringify(v))
+    if (Array.isArray(v)) v = v.map((x) => (x && typeof x === 'object' ? x.label || x.message || '' : x)).join(', ')
+    return v === undefined || v === null ? '' : String(v)
+  }
+  const fields = cols.map((c) => ({ label: String(c.headerText), value: valueOf(c) }))
+  return { title: fields.length ? fields[0].value : '', text: '', fields }
 }
 
 /** A table row as the server sent it: without the cells precomputed for the templates (the

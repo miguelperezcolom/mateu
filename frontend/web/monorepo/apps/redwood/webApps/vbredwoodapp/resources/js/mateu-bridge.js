@@ -4572,11 +4572,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
       ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
       : b.items || []))
-    const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
-      id: 'step-' + (i + 1),
-      title: interpolate(String(tab.metadata.label || ''), state),
-      items: atomsOf(tab.children || []),
-    }))
+    const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => {
+      const title = interpolate(String(tab.metadata.label || ''), state)
+      // display 'on': without it the rail draws the step oj-disabled — every step, the current one
+      // included, came out the same faint grey and none could be clicked (the web's tabs can)
+      return { id: 'step-' + (i + 1), title, label: title, display: 'on', status: 'none', items: atomsOf(tab.children || []) }
+    })
     const form = templateFormOf(ctx)
     const md = (form && form.metadata) || {}
     const toolbar = md.toolbar || []
@@ -5715,6 +5716,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             fieldId,
             label: m.label || '',
             value: state[fieldId] == null ? '' : String(state[fieldId]),
+            // its hint while empty («e.g. Mars Sample Return»), like the web renderer's
+            placeholder: m.placeholder ? interp(String(m.placeholder)) : '',
           }, container)
         }
         return
@@ -7316,6 +7319,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
     // listing page shows only the table, so the line was lost — it is the page's subtitle
     if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
+    // a LISTING page (a YAML `type: Listing`, a crud) has no Page/Form: its subtitle travels on the
+    // Crud, beside the title the header already takes from it — it was dropped (/launches)
+    if (!subtitle && !page && ctx && ctx.tree) {
+      const crud = findByType(ctx.tree, 'Crud')
+      subtitle = crud && crud.metadata ? crud.metadata.subtitle || '' : ''
+    }
     return subtitle ? interpolate(String(subtitle), ctx.state || {}, { data: ctx.data || {} }) : ''
   }
 
@@ -7632,7 +7641,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
-    const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
+    // the page's own node: the tree itself when it IS the Form/Page (a YAML page served as a client
+    // side tree), else its first child (the ServerSide wrapper of a reflected page). Reading only the
+    // child took a YAML page's first COMPONENT for its header, and the title fell back to the menu
+    // label («Launch sites map» for a page titled «Launch sites»)
+    const top = host.tree || {}
+    const topType = (top.metadata || {}).type
+    const pageMetadata = (topType === 'Form' || topType === 'Page' ? top : ((top.children || [])[0] || {})).metadata || {}
     const menu = (reg.shell && reg.shell.menu) || []
     // at ANY depth: in a federated shell the screen being viewed hangs from the
     // pod's group, two levels below, and searching only the first left the title empty
@@ -8094,7 +8109,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
     // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
     // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
-    const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath
+    // gridLayout = masterDetail with no way into a record of its own (no rowRoute, not navigable):
+    // the clicked row's fields open BESIDE the list, like the web renderer's detail pane — here
+    // Spectra's end drawer (a full-screen sheet on a phone, i.e. stacked), see masterDetailOf
+    const masterDetail = md.gridLayout === 'masterDetail' && !md.rowRoute && !navigable
+    const rowsOpen = !!md.rowRoute || navigable || !!md.detailPath || masterDetail
     const tableClass = (lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4)
       : 'oj-sm-12') + (rowsOpen ? ' ' + ROWS_OPEN_CLASS : '')
     return {
@@ -8139,6 +8158,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // the detail is for lookup listings, where the click had no other destination.
       detailPath: md.detailPath || null,
       navigable,
+      masterDetail,
       // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
       // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
       // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
@@ -8302,6 +8322,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ? (rows || []).filter((r) => selection.except.indexOf(r._rowNumber) < 0)
       : (rows || []).filter((r) => selection.keys.indexOf(r._rowNumber) >= 0)
     return picked.map(rowAsArrived)
+  }
+
+  /**
+   * The detail pane of a `gridLayout = masterDetail` listing for its clicked row: the row's title
+   * (its first column) and every visible column as a label/value pair — what the web renderer's pane
+   * shows. Values are read as the cells paint them (an enum's label, a status' message).
+   */
+  function masterDetailOf(listing, row) {
+    const cols = ((listing && (listing.allColumns || listing.columns)) || []).filter((c) => c && c.id && c.headerText)
+    const valueOf = (c) => {
+      let v = row ? row[c.id + LABEL_CELL_SUFFIX] : undefined
+      if (v === undefined || v === null) v = row ? row[c.id] : undefined
+      if (v && typeof v === 'object' && !Array.isArray(v)) v = v.message !== undefined ? v.message : (v.label !== undefined ? v.label : JSON.stringify(v))
+      if (Array.isArray(v)) v = v.map((x) => (x && typeof x === 'object' ? x.label || x.message || '' : x)).join(', ')
+      return v === undefined || v === null ? '' : String(v)
+    }
+    const fields = cols.map((c) => ({ label: String(c.headerText), value: valueOf(c) }))
+    return { title: fields.length ? fields[0].value : '', text: '', fields }
   }
 
   /** A table row as the server sent it: without the cells precomputed for the templates (the
@@ -10468,6 +10506,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // the wire's, clamped to the layout's columns. The template (classic oj-form-layout, with
       // the labels inside) doesn't apply it yet: that needs oj-c-form-layout and its column-span
       colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
+      // the field's hint while it is empty («e.g. Mars Sample Return»), as the web renderer shows it
+      placeholder: md.placeholder ? String(md.placeholder) : '',
       messagesCustom: [],
     }
   }
@@ -11413,15 +11453,32 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         Object.assign(task, ganttLabelOf(value))
       }
     }
-    const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
     return {
       ...atom,
       isGantt: true,
       selectParam: '_clickedTaskId',
-      // scale to fit the plan: a months-long project reads by months/weeks
-      majorScale: days > 60 ? 'months' : 'weeks',
-      minorScale: days > 60 ? 'weeks' : 'days',
+      // scale to fit the plan: the axis unit follows the span (ganttScalesOf)
+      ...ganttScalesOf(atom.startDay, atom.endDay),
     }
+  }
+
+  /**
+   * oj-gantt's axes for a plan from `startDay` to `endDay`: the unit follows the span, by the same
+   * thresholds as the web renderer's ganttScale (libs/mateu ganttGeometry: months counted inclusive —
+   * ≤ 18 → month, ≤ 54 → quarter, ≤ 360 → year, else decade). A six-decade programme drawn by months
+   * and weeks was thousands of ticks narrower than their labels (negative <rect> widths, and one task
+   * on screen); JET has no decade unit, so the longest plans read by years.
+   */
+  function ganttScalesOf(startDay, endDay) {
+    const days = Math.round((Date.parse(endDay) - Date.parse(startDay)) / DAY_MS)
+    if (!(days > 60)) return { majorScale: 'weeks', minorScale: 'days' }
+    const [ya, ma] = String(startDay).split('-').map(Number)
+    const [yb, mb] = String(endDay).split('-').map(Number)
+    const months = (yb - ya) * 12 + (mb - ma) + 1
+    if (months <= 18) return { majorScale: 'months', minorScale: 'weeks' }
+    if (months <= 54) return { majorScale: 'years', minorScale: 'quarters' }
+    // a year and a decade both read by years (JET's coarsest unit); the major band repeats it
+    return { majorScale: 'years', minorScale: 'years' }
   }
 
   /** Redwood's primary ink: the label of a bar drawn OUTSIDE it, on the chart's light background. */
@@ -15347,6 +15404,43 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const steps = wizard.querySelector('.oj-sp-guided-process-step-container')
       if (steps && steps.contains(target) && guidedProcessWheelIsNative(steps)) event.stopPropagation()
     }, { capture: true, passive: true })
+  }
+
+
+  // The phone breakpoint of JET's drawer layout. Below it, oj-drawer-layout (and so Spectra's
+  // oj-sp-data-management-page) stops docking a drawer beside the content and turns it into a
+  // FULL-SCREEN overlay in its z-order container. Two consequences on a DataManagement page:
+  //   - a bottom panel open on load covers the listing on a phone (the page looks empty);
+  //   - a panel still open when the window grows past the breakpoint is reflowed IN the z-order
+  //     container (body level, normal flow) instead of back in the page — a band as tall as the
+  //     panel pushes the whole shell down (measured: 438 px on /loans, 390 → 1600 px).
+  // So the shell keeps the docked panels (end and bottom) closed while the viewport is narrow
+  // (mateuNarrow, bound in main-start-page.html) and docks them again once it is wide: closing them
+  // BEFORE the breakpoint is crossed is what leaves JET nothing to strand. The same flag folds a
+  // MENU_ON_TOP / TABS shell's menu strip into the hamburger's navigator (shell-page.html).
+
+  const NARROW_VIEWPORT_QUERY = '(max-width: 599px)'
+
+  /** Whether a window (default: the global one) is at phone width. false without matchMedia. */
+  function isNarrowViewport(win = typeof window !== 'undefined' ? window : undefined) {
+    return !!(win && typeof win.matchMedia === 'function' && win.matchMedia(NARROW_VIEWPORT_QUERY).matches)
+  }
+
+  /**
+   * Calls `listener(narrow)` now and on every crossing of the breakpoint. Returns the unsubscribe.
+   * A window without matchMedia (tests, an old embedder) is wide and never changes.
+   */
+  function watchNarrowViewport(listener, win = typeof window !== 'undefined' ? window : undefined) {
+    const mq = win && typeof win.matchMedia === 'function' ? win.matchMedia(NARROW_VIEWPORT_QUERY) : null
+    listener(!!(mq && mq.matches))
+    if (!mq) return () => {}
+    const onChange = (e) => listener(!!e.matches)
+    if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange)
+    else if (typeof mq.addListener === 'function') mq.addListener(onChange)
+    return () => {
+      if (typeof mq.removeEventListener === 'function') mq.removeEventListener('change', onChange)
+      else if (typeof mq.removeListener === 'function') mq.removeListener(onChange)
+    }
   }
 
 
@@ -25005,6 +25099,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...reg?.contexts?.[HOST_ID]?.state, ...draft }
   }
 
+  /**
+   * The last guard before an action leaves for the server: is `actionId` a RouteLink BUTTON of the
+   * screen on display? Then it navigates, whatever surface the click came from — a header painted
+   * from a projection older or newer than the registry (a slow load: the URL already said
+   * /missions/52, the header lagged) handed its id over without the route, and the server answered
+   * the label's echo with 403. `{ navigate: route }`, `{ navigate: null }` when its route cannot be
+   * read yet (nothing to send either), or null when it is a real action.
+   */
+  function routedActionOf(reg, actionId, draft) {
+    const host = reg && reg.contexts && reg.contexts[HOST_ID]
+    if (!host || !host.tree || !actionId) return null
+    let template = null
+    const seen = new Set()
+    const walk = (n) => {
+      if (template != null || !n || typeof n !== 'object' || seen.has(n)) return
+      seen.add(n)
+      if (n.actionId === actionId && typeof n.route === 'string' && n.route.trim()) { template = n.route; return }
+      for (const v of Array.isArray(n) ? n : Object.values(n)) walk(v)
+    }
+    walk(host.tree)
+    if (template == null) return null
+    const click = blockClickOf({ actionId, route: template, state: routeStateOf(reg, draft) })
+    return { navigate: click.navigate && !click.navigate.includes('${') && !/\/\/|\/$/.test(click.navigate) ? click.navigate : null }
+  }
+
   function blockClickOf({ actionId, parameters, route, state } = {}) {
     // a RouteLink's route is a template over the screen's state (`missions/${state.id}/edit`): it went
     // out with the literal placeholder wherever the projection had not interpolated it already
@@ -27667,6 +27786,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     toggleSelectionKey,
     selectedRowsOf,
     rowAsArrived,
+    masterDetailOf,
     withListingSelection,
     onLoadTriggers,
     // filtros del listado: descriptores ya resueltos a widget, y la config smartFilters de la
@@ -27853,6 +27973,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     classifyRequestFailure,
     isIdempotentAction,
     connectivity,
+    isNarrowViewport,
+    watchNarrowViewport,
     pendingActions,
     setTransportHooks,
     authHeadersOf,
@@ -28004,6 +28126,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,
+    routedActionOf,
     routeStateOf,
     hostReRendered,
     touchesHost,

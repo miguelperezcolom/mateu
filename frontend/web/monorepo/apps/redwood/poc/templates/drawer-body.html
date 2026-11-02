@@ -87,6 +87,7 @@
               <oj-bind-if test="[[ $current.data.isText ]]">
                 <oj-input-text
                   label-hint="[[ $current.data.label ]]"
+                  placeholder="[[ $current.data.placeholder || '' ]]"
                   value="[[ $current.data.value ]]"
                   required="[[ $current.data.required ]]"
                   readonly="[[ $current.data.readonly ]]"
@@ -96,6 +97,7 @@
               <oj-bind-if test="[[ $current.data.isTextArea ]]">
                 <oj-text-area
                   label-hint="[[ $current.data.label ]]"
+                  placeholder="[[ $current.data.placeholder || '' ]]"
                   value="[[ $current.data.value ]]"
                   rows="4"
                   required="[[ $current.data.required ]]"
@@ -106,6 +108,7 @@
               <oj-bind-if test="[[ $current.data.isNumber ]]">
                 <oj-input-number
                   label-hint="[[ $current.data.label ]]"
+                  placeholder="[[ $current.data.placeholder || '' ]]"
                   value="[[ $current.data.value ]]"
                   required="[[ $current.data.required ]]"
                   readonly="[[ $current.data.readonly ]]"

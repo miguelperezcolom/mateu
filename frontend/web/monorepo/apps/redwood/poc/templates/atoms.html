@@ -1028,6 +1028,7 @@
                     <oj-bind-if test="[[ $current.data.isInput ]]">
                       <oj-input-text class="oj-form-control-max-width-md"
                         label-hint="[[ $current.data.label ]]"
+                        placeholder="[[ $current.data.placeholder || '' ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
@@ -1046,6 +1047,7 @@
                               <oj-input-text
                                   on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
                                   label-hint="[[ $current.data.label ]]"
+                                  placeholder="[[ $current.data.placeholder || '' ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
@@ -1056,6 +1058,7 @@
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
                               <oj-input-number
                                   label-hint="[[ $current.data.label ]]"
+                                  placeholder="[[ $current.data.placeholder || '' ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"
@@ -1099,6 +1102,7 @@
                               <oj-text-area
                                   rows="3"
                                   label-hint="[[ $current.data.label ]]"
+                                  placeholder="[[ $current.data.placeholder || '' ]]"
                                   value="[[ $current.data.value ]]"
                                   required="[[ $current.data.required ]]"
                                   readonly="[[ $current.data.readonly ]]"

@@ -746,11 +746,12 @@ export function templatedGuidedProcessOf(ctx) {
     metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => (b.spSection
     ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || [])
     : b.items || []))
-  const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
-    id: 'step-' + (i + 1),
-    title: interpolate(String(tab.metadata.label || ''), state),
-    items: atomsOf(tab.children || []),
-  }))
+  const steps = (bar.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => {
+    const title = interpolate(String(tab.metadata.label || ''), state)
+    // display 'on': without it the rail draws the step oj-disabled — every step, the current one
+    // included, came out the same faint grey and none could be clicked (the web's tabs can)
+    return { id: 'step-' + (i + 1), title, label: title, display: 'on', status: 'none', items: atomsOf(tab.children || []) }
+  })
   const form = templateFormOf(ctx)
   const md = (form && form.metadata) || {}
   const toolbar = md.toolbar || []

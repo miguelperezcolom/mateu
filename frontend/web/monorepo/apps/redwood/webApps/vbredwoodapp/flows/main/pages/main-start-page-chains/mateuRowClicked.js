@@ -58,6 +58,12 @@ define([
       if (!row || row._group) {
         return; // a GROUP row (@GroupBy) is presentation only: it neither opens nor navigates
       }
+      // gridLayout = masterDetail: the row's fields open in the detail pane beside the list
+      if (listing && listing.masterDetail) {
+        $application.variables.mateuRowDetail = bridge.masterDetailOf(listing, row);
+        $application.variables.mateuRowDetailOpen = true;
+        return;
+      }
       // Row DETAILS (@Details) in a query listing: the click opens them in their panel instead
       // of asking for a 'view' that leads nowhere. A navigable row still opens the record.
       if (listing && listing.detailPath && !listing.navigable) {
