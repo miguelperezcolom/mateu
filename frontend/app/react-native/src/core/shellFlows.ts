@@ -9,7 +9,39 @@
  * libs/mateu shellFlows.ts.
  */
 
+import { interpolateUrl } from './expressions.ts';
+
 type Json = Record<string, unknown>;
+
+/** What a declared flow's commands read their `${…}` from: the page's state (the call's own
+ *  parameters over it), data and the app's. */
+export interface FlowContext {
+  state?: Json;
+  parameters?: Json;
+  data?: Json;
+  appState?: Json;
+  appData?: Json;
+}
+
+/**
+ * A flow's command as it runs: a `NavigateTo` whose destination holds `${…}` (`orders/${state.id}`) is
+ * interpolated against the page — each value percent-encoded by position, like a REST url — before it
+ * navigates. Any other command, or one without placeholders, as it is. The web's
+ * libs/mateu flowRunner.ts resolveFlowCommand: one rule.
+ */
+export function resolveFlowCommand<C extends { type?: unknown; data?: unknown }>(command: C, context?: FlowContext): C {
+  if (!context || command?.type !== 'NavigateTo' || typeof command.data !== 'string' || !command.data.includes('${')) {
+    return command;
+  }
+  const state = { ...(context.state ?? {}), ...(context.parameters ?? {}) };
+  const route = interpolateUrl(command.data, {
+    state,
+    data: context.data ?? {},
+    appState: context.appState ?? {},
+    appData: context.appData ?? {},
+  });
+  return { ...command, data: route };
+}
 
 export interface ShellAction {
   id?: string;

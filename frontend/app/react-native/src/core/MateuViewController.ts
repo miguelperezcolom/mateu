@@ -17,7 +17,7 @@ import type { FileDownloadData } from './documents.ts';
 import { isTimedOnLoad, PollingScheduler } from './polling.ts';
 import { isFormRoute, mediatorMove, serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
-import { isClientRunnable, resolveAction, type ShellAction } from './shellFlows.ts';
+import { isClientRunnable, resolveAction, resolveFlowCommand, type ShellAction } from './shellFlows.ts';
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 
 /** Diagnostics only in development builds (a release build must not log user data). */
@@ -320,7 +320,9 @@ export class MateuViewController {
       if (resolved!.commands && resolved!.commands.length) {
         this.flowDepth++;
         try {
-          for (const cmd of resolved!.commands) this.handleCommand(cmd as Json);
+          // a NavigateTo of the flow lands on the record it names (`orders/${state.id}`), like on the web
+          const flowContext = { state: this.currentComponentState, parameters, data: this.view.data, appState: this.session.appState };
+          for (const cmd of resolved!.commands) this.handleCommand(resolveFlowCommand(cmd as Json, flowContext));
         } finally {
           this.flowDepth--;
         }

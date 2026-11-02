@@ -4,6 +4,7 @@ import {
   actionEffects,
   getActionCatalogue,
   inAppRoute,
+  resolveFlowCommand,
   isClientRunnable,
   isRuleLeaf,
   menuLeafEffects,
@@ -112,4 +113,17 @@ test('the tab bar / global search offer the screen leaves depth-first; separator
     { label: 'Nothing' },
   ] as any[]);
   assert.deepEqual(leaves.map((l: any) => l.label), ['Home', 'Orders', 'Remote', 'Deep']);
+});
+
+test('a flow NavigateTo with placeholders lands on the record it names, each value encoded (the web\'s resolveFlowCommand)', () => {
+  const ctx = { state: { id: 7, name: 'a/b' }, parameters: { id: 9 } };
+  assert.deepEqual(resolveFlowCommand({ type: 'NavigateTo', data: 'orders/${state.id}' }, ctx), { type: 'NavigateTo', data: 'orders/9' });
+  assert.equal(resolveFlowCommand({ type: 'NavigateTo', data: 'q/${state.name}' }, ctx).data, 'q/a%2Fb');
+  // no placeholders, another command or no context: as it is
+  const plain = { type: 'NavigateTo', data: 'orders' };
+  assert.equal(resolveFlowCommand(plain, ctx), plain);
+  const other = { type: 'RunAction', data: { actionId: '${x}' } };
+  assert.equal(resolveFlowCommand(other, ctx), other);
+  const raw = { type: 'NavigateTo', data: 'orders/${state.id}' };
+  assert.equal(resolveFlowCommand(raw), raw);
 });
