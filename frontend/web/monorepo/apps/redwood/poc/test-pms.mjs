@@ -6,6 +6,7 @@
 
 import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
+import vm from 'node:vm'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -43,7 +44,7 @@ import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { nestedListingAtomOf, nestedListingKeyOf, pageListingNodeOf, templateNestsListings, listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf } from './core/listing.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
-import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
+import { listingOf, rowClickOpensRecord, masterDetailOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp, mediatorConsumedRoute, mediatorBaseOf, composeInnerRoute } from './transport.mjs'
@@ -1460,6 +1461,39 @@ test('clic de fila: sólo abre el registro si el listado lo ofrece (@NotNavigabl
   assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /bridge\.rowClickOpensRecord\(listing\)/)
 })
 
+atest('an oj-table fetch the table aborted ends quietly (crawl: «Aborting stale fetch» uncaught on every listing)', async () => {
+  // the AMD page module, evaluated in a sandbox with a define() that hands its class back
+  const sandbox = { define: (deps, f) => { sandbox.PageModule = f() } }
+  vm.runInNewContext(webApp('flows/main/pages/main-start-page.js'), sandbox)
+  const page = new sandbox.PageModule()
+  const failing = (err) => ({ fetchFirst: () => ({ [Symbol.asyncIterator]: () => ({ next: () => Promise.reject(err) }) }) })
+  const ctrl = new AbortController()
+  ctrl.abort()
+  const stale = Object.assign(new Error('<oj-table>: Aborting stale fetch for performance'), { name: 'AbortError' })
+  const r = await page.serverSorted(failing(stale)).fetchFirst({ signal: ctrl.signal })[Symbol.asyncIterator]().next()
+  assert.equal(r.done, true)
+  assert.equal(r.value.data.length, 0)
+  // any other failure still surfaces
+  await assert.rejects(page.serverSorted(failing(new Error('boom'))).fetchFirst({})[Symbol.asyncIterator]().next(), /boom/)
+})
+
+test('gridLayout masterDetail: a click opens the row\'s fields beside the list (crawl D3, /launches)', () => {
+  const crud = (extra) => ({ tree: { type: 'ServerSide', id: 's', serverSideType: 'X', children: [node({ type: 'Crud', gridLayout: 'masterDetail', ...extra,
+    columns: [node({ type: 'GridColumn', id: 'name', label: 'Mission', dataType: 'string' }),
+      node({ type: 'GridColumn', id: 'status', label: 'Status', dataType: 'status' }),
+      node({ type: 'GridColumn', id: 'date', label: 'Date', dataType: 'string' })] })] },
+  data: { crud: { page: { content: [{ id: '1', name: 'Apollo 11', status: { type: 'SUCCESS', message: 'Launched' }, date: '1969-07-16' }], totalElements: 1 } } }, state: {} })
+  const l = listingOf(crud({}))
+  assert.equal(l.masterDetail, true)
+  assert.notEqual(l.tableClass, listingOf(crud({ gridLayout: 'table' })).tableClass, 'the rows invite the click')
+  const d = masterDetailOf(l, l.rows[0])
+  assert.equal(d.title, 'Apollo 11')
+  assert.deepEqual(d.fields, [{ label: 'Mission', value: 'Apollo 11' }, { label: 'Status', value: 'Launched' }, { label: 'Date', value: '1969-07-16' }])
+  assert.equal(listingOf(crud({ rowRoute: 'launches/${row.id}' })).masterDetail, false, 'a rowRoute opens its record instead')
+  assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /listing\.masterDetail[\s\S]*bridge\.masterDetailOf\(listing, row\)/)
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuRowDetail\.fields \|\| \[\]/)
+})
+
 test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas con clic propio', () => {
   // display columns (and inline editors) carry the class the chain respects
   assert.equal(isDisplayColumn({ id: 'name', actionId: 'view' }), false, 'la columna que abre no es de display')
@@ -1527,7 +1561,7 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
   assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /bridge\.hostReRendered\(lastIncrement, host, hostNow\)/)
 })
 
-import { ganttAtomOf, itemOverviewOf, generalOverviewOf, isRichAtom } from './reduceContexts.mjs'
+import { ganttAtomOf, ganttScalesOf, itemOverviewOf, generalOverviewOf, isRichAtom } from './reduceContexts.mjs'
 import { ganttLabelOf, GANTT_OUTSIDE_LABEL_INK } from './core/boards.mjs'
 import { sanitizeHtml, markdownToHtml } from './richtext.mjs'
 
@@ -1580,6 +1614,12 @@ test('Gantt: una fila por tarea sobre oj-gantt, avance 0..1, selección → _cli
   assert.deepEqual(p.progress, { value: 0.15, svgStyle: { fill: '#304e15' } })
   assert.deepEqual(q.progress, { value: 0.15 })
   assert.equal(g.majorScale, 'months', 'un plan de meses se lee por meses')
+  // the unit follows the span (the web renderer's thresholds): a six-decade programme by years (crawl D6)
+  assert.deepEqual(ganttScalesOf('2026-01-01', '2026-02-10'), { majorScale: 'weeks', minorScale: 'days' })
+  assert.deepEqual(ganttScalesOf('2026-01-01', '2027-06-30'), { majorScale: 'months', minorScale: 'weeks' })
+  assert.deepEqual(ganttScalesOf('2024-01-01', '2027-06-30'), { majorScale: 'years', minorScale: 'quarters' })
+  assert.deepEqual(ganttScalesOf('1961-04-12', '2026-11-02'), { majorScale: 'years', minorScale: 'years' })
+  assert.equal(ganttAtomOf({ tasks: [{ id: 'a', start: '1961-04-12', end: '1961-04-12' }, { id: 'b', start: '2026-01-01', end: '2026-11-02' }] }).minorScale, 'years')
   // the bar's label is READABLE: white only over the dark done fill (≥ 75%), else outside in dark ink
   const [t1, t2] = g.rows.map((r) => r.tasks[0])
   assert.deepEqual(t1.labelPosition, ['end', 'start', 'none'], 'half done: the middle of the bar is light — the label goes outside')
@@ -2349,7 +2389,7 @@ test('GanttPage → oj-sp-data-management-page: the canvas + detail in the defau
   const page = sectionOf(html, '<oj-sp-data-management-page id="mateuDmPage"', '</oj-sp-data-management-page>')
   assert.match(page, /<div slot="innerEnd"[^>]*>\s*<oj-bind-if[^>]*>\s*<oj-sp-general-drawer-template[\s\S]*on-sp-close="\[\[ \$listeners\.dmEndPanelClosed \]\]"/)
   assert.match(page, /<div slot="innerBottom"[^>]*>\s*<oj-bind-if[^>]*>\s*<oj-sp-bottom-drawer-template[\s\S]*drawer-state="\{\{ \$variables\.mateuDmBottomState \}\}"/)
-  assert.match(page, /end-opened="\[\[ \$application\.variables\.mateuDm\.endOpened \]\]"/)
+  assert.match(page, /end-opened="\[\[ !\$application\.variables\.mateuNarrow && \$application\.variables\.mateuDm && \$application\.variables\.mateuDm\.endOpened \|\| 'none' \]\]"/)
   const pageJson = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
   assert.ok(pageJson.imports.components['oj-sp-data-management-page'])
   assert.equal(pageJson.eventListeners.dmBottomStateChanged.chains[0].chain, 'dmPanelClosed')
@@ -2627,6 +2667,10 @@ test('a page that DECLARES the Guided process template → oj-sp-guided-process 
   // the state (with what was typed) is what the steps' fields show
   const gp = templatedGuidedProcessOf({ state: { name: 'Ebon Hawk' }, data: {}, tree: golden.fragments[0].component })
   assert.deepEqual(gp.steps.map((s) => [s.id, s.title]), [['step-1', 'Identity'], ['step-2', 'Specifications']])
+  // display 'on': without it the rail drew every step disabled — faint, and none clickable (crawl D9)
+  assert.ok(gp.steps.every((s) => s.display === 'on' && s.label === s.title))
+  // the field's placeholder reaches the widget («e.g. …» on the web renderer)
+  assert.equal(typeof gp.steps[0].items.find((a) => a.fieldId === 'name').placeholder, 'string')
   assert.equal(gp.steps[0].items.find((a) => a.fieldId === 'name').value, 'Ebon Hawk')
   assert.deepEqual(gp.primaryAction, { label: 'Register' })
   assert.deepEqual([gp.primaryId, gp.cancelId, gp.cancelRoute], ['create', 'cancel-new', 'starships'])

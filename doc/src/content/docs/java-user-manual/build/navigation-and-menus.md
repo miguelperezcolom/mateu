@@ -103,6 +103,11 @@ public class NestedApp {
 
 `NestedApp` becomes a menu section header. `Page1` and `Page2` appear under it.
 
+A group has a route of its own (`/nestedApp`; a `type: Menu` of a YAML shell gets its label
+camel-cased, `Solar system` → `/solarSystem`). Opening it — typed, bookmarked or from the menu —
+shows an **index of the group's entries**, titled with the group's label, rather than "Page not
+found".
+
 Route nesting (a sub-route that renders inside a parent screen's slot) is declared as data in
 [`routes.yaml`](/concepts/routes-and-mounts/#nested-routes-a-sub-route-in-a-parents-slot)
 with `children:`, not by an annotation.

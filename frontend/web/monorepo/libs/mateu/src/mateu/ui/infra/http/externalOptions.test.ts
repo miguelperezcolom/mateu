@@ -133,6 +133,41 @@ describe('fetchExternalJson', () => {
         expect(called).toBe(1)
         registerExternalJsonMock(null)
     })
+
+    it('an identical read in flight is shared — each caller gets its own copy (crawl: /missions/6 fetched twice)', async () => {
+        let called = 0
+        const fetchImpl = (async () => { called++; return { ok: true, status: 200, text: async () => '{"id":"6","gallery":[1]}' } }) as unknown as typeof fetch
+        const [page, gallery] = await Promise.all([
+            fetchExternalJson({ url: 'https://api/missions/6' } as RestDataSource, (t) => t, fetchImpl),
+            fetchExternalJson({ url: 'https://api/missions/6' } as RestDataSource, (t) => t, fetchImpl),
+        ])
+        expect(called).toBe(1)
+        expect(page).toEqual(gallery)
+        expect(page).not.toBe(gallery)
+        // once settled, the next read asks again (it is a dedupe, never a cache)
+        await fetchExternalJson({ url: 'https://api/missions/6' } as RestDataSource, (t) => t, fetchImpl)
+        expect(called).toBe(2)
+    })
+
+    it('writes are never shared, and a failed read fails every waiter and is forgotten', async () => {
+        let called = 0
+        const ok = (async () => { called++; return { ok: true, status: 200, text: async () => '{}' } }) as unknown as typeof fetch
+        await Promise.all([
+            fetchExternalJson({ url: 'https://api/x', method: 'POST' } as RestDataSource, (t) => t, ok),
+            fetchExternalJson({ url: 'https://api/x', method: 'POST' } as RestDataSource, (t) => t, ok),
+        ])
+        expect(called).toBe(2)
+        let failing = 0
+        const down = (async () => { failing++; return { ok: false, status: 503, text: async () => '' } }) as unknown as typeof fetch
+        const both = await Promise.allSettled([
+            fetchExternalJson({ url: 'https://api/y' } as RestDataSource, (t) => t, down),
+            fetchExternalJson({ url: 'https://api/y' } as RestDataSource, (t) => t, down),
+        ])
+        expect(both.map(r => r.status)).toEqual(['rejected', 'rejected'])
+        expect(failing).toBe(1)
+        await expect(fetchExternalJson({ url: 'https://api/y' } as RestDataSource, (t) => t, down)).rejects.toThrow()
+        expect(failing).toBe(2)
+    })
 })
 
 describe('client-side auth provider (direct path)', () => {

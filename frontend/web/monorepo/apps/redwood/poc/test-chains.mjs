@@ -12,7 +12,7 @@ import {
   generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
   overlayVarsOf, EMPTY_OVERLAY,
 } from './pageProjection.mjs'
-import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, routeStateOf, refusedFieldsOf } from './actionPlan.mjs'
+import { outboundActionOf, routedActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, routeStateOf, refusedFieldsOf } from './actionPlan.mjs'
 import { validationErrorsOf, isSseAction } from './core/rowEditor.mjs'
 import { sameRowsSameProvider } from './core/content.mjs'
 import { evaluateExpression } from './rules.mjs'
@@ -489,6 +489,19 @@ test('Redwood is light only: a stored dark choice and an OS that prefers dark st
     globalThis.localStorage = saved.localStorage
     globalThis.matchMedia = saved.matchMedia
   }
+})
+
+test('a RouteLink button never leaves as a server action, whatever surface sent its id (crawl D5: 403 on /missions/52)', () => {
+  const reg = (state) => ({ contexts: { __root__: { state, tree: { type: 'ServerSide', children: [{ type: 'Form', metadata: { toolbar: [
+    { type: 'Button', actionId: 'edit', label: 'Edit', route: 'missions/${state.id}/edit' },
+    { type: 'Button', actionId: 'allMissions', label: 'All missions', route: 'missions' },
+    { type: 'Button', actionId: 'launch', label: 'Launch' }] } }] } } } })
+  assert.deepEqual(routedActionOf(reg({ id: 52 }), 'edit'), { navigate: 'missions/52/edit' })
+  assert.deepEqual(routedActionOf(reg({}), 'allMissions'), { navigate: 'missions' })
+  assert.deepEqual(routedActionOf(reg({}), 'edit'), { navigate: null }, 'its record not loaded yet: nothing is sent')
+  assert.equal(routedActionOf(reg({ id: 52 }), 'launch'), null, 'a real action still runs')
+  assert.equal(routedActionOf(null, 'edit'), null)
+  assert.match(readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'runMateuAction.js'), 'utf8'), /bridge\.routedActionOf\(/)
 })
 
 test('a display-block click: a RouteLink button navigates, any other runs its action', () => {

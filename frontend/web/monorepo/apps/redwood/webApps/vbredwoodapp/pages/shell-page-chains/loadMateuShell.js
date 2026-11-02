@@ -225,6 +225,13 @@ define([
       bridge.connectivity.subscribe((online) => {
         $application.variables.mateuOffline = !online;
       });
+      // phone width: JET turns a docked drawer into a full-screen overlay (viewport.mjs)
+      bridge.watchNarrowViewport((narrow) => {
+        if ($application.variables.mateuNarrow === narrow) return;
+        $application.variables.mateuNarrow = narrow;
+        // the navigator a phone opened over a MENU_ON_TOP / TABS shell has no place once it is wide
+        if (!narrow && !$application.variables.mateuMenuDrawerMode && !$application.variables.mateuMenuSections) $application.variables.mateuNavDrawerOpen = false;
+      });
       const boot = await bridge.bootstrapShell(base);
       // a @UI that is NOT an App (a page, a crud): no menu or route of its own — its home is the
       // mount's «fresh» load (bridge.bootstrapHasApp / setMountWithoutApp)

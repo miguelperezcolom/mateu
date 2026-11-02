@@ -13,7 +13,7 @@
            Cloud), and its glyph says what it does: ☰ with the menu closed, ✕ with it open.
            HAMBURGER_SECTIONS: the menu is a FLOATING panel over the subheader and the content
            (mateuSectionsOverlay, below); HAMBURGUER_MENU: the usual persistent navigator. -->
-      <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode || $application.variables.mateuMenuSections ]]">
+      <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode || $application.variables.mateuMenuSections || ($application.variables.mateuNarrow && ($application.variables.mateuMenuSubheader || $application.variables.mateuMenuTopbar)) ]]">
         <oj-button id="mateuHamburger" chroming="borderless" display="icons"
           :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-hamburger mateu-hamburger-open oj-sm-margin-2x-end' : 'mateu-hamburger oj-sm-margin-2x-end' ]]"
           :aria-controls="[[ $application.variables.mateuMenuSections ? 'mateuSectionsOverlay' : 'mateuNavDrawer' ]]"
@@ -29,7 +29,7 @@
       </oj-bind-if>
       <!-- TABS with groups: TOP-LEVEL options visible in the header, no hamburger;
            the groups open an oj-menu (MENU_ON_TOP goes in the subheader, further down) -->
-      <oj-bind-if test="[[ $application.variables.mateuMenuTopbar ]]">
+      <oj-bind-if test="[[ $application.variables.mateuMenuTopbar && !$application.variables.mateuNarrow ]]">
         <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
           <template>
             <oj-bind-if test="[[ !$current.data.hasChildren ]]">
@@ -274,7 +274,7 @@
           <button type="button" class="mateu-subheader-title"
             on-click="[[ $listeners.subheaderTitleClicked ]]"><oj-bind-text value="[[ $functions.subheaderTitleOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) ]]"></oj-bind-text></button>
         </oj-bind-if>
-        <div class="mateu-subheader-menu">
+        <div :class="[[ $application.variables.mateuNarrow && !$application.variables.mateuMenuSections ? 'mateu-subheader-menu mateu-phone-folded' : 'mateu-subheader-menu' ]]">
           <oj-bind-for-each data="[[ $functions.subheaderItemsOf($application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) ]]">
             <template>
               <oj-bind-if test="[[ !$current.data.hasChildren ]]">

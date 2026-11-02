@@ -326,6 +326,8 @@ describe('row actions in the shared layouts', () => {
         const { root, actions } = await mount(crud({ gridLayout: 'cards', columns: cols }), [{ ...actionRows[0], photo: '/p.png' }])
         const card = root.querySelector('.crud-card') as HTMLElement
         expect(card.querySelector('img')?.getAttribute('src')).toBe('/p.png')
+        // the photograph is named by the card's title (crawl: every card image read alt="")
+        expect(card.querySelector('img')?.getAttribute('alt')).toBe('A1')
         expect(card.querySelector('.crud-card-title')?.textContent).toBe('A1')
         const buttons = Array.from(card.querySelectorAll('button')) as HTMLButtonElement[]
         buttons[1].click()

@@ -60,6 +60,7 @@ describe('mateu-card-list (DOM)', () => {
         expect(cards[0].querySelector('.card-title')!.textContent).toBe('Room 101')
         expect(cards[0].querySelector('.card-subtitle')!.textContent).toBe('Double')
         expect(cards[0].querySelector('img')!.getAttribute('src')).toBe('/r101.jpg')
+        expect(cards[0].querySelector('img')!.getAttribute('alt')).toBe('Room 101')
         expect(cards[0].querySelector('[theme^=badge]')!.textContent).toBe('Free')
         expect(cards[0].textContent).toContain('Sea view')
         expect(cards[1].querySelector('img')).toBeNull()

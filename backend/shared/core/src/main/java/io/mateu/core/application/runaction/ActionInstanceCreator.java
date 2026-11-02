@@ -324,7 +324,14 @@ public class ActionInstanceCreator {
             : command.componentState();
     var title = definitionTitle(layout, state);
     if (title == null) {
-      title = humanizedRoute(command.route());
+      // the route's PATTERN, not the path: `missions/:id` names the window "Missions", never the
+      // id ("6") — the record's own name follows from the browser once its data is in
+      title =
+          humanizedRoute(
+              routeRegistry
+                  .match(stripQuery(command.route()))
+                  .map(m -> m.entry().route())
+                  .orElse(command.route()));
     }
     if (title != null && !title.isBlank()) {
       httpRequest.setAttribute("windowTitle", title);
@@ -367,7 +374,11 @@ public class ActionInstanceCreator {
     return null;
   }
 
-  /** The route's last literal segment, humanized ({@code orders/:id/edit-notes} → Edit notes). */
+  /**
+   * The route's last literal segment, humanized ({@code orders/:id/edit-notes} → Edit notes, {@code
+   * orders/:id} → Orders). Parameters are skipped, and so is a segment that is only digits: a
+   * concrete path ({@code /orders/42}) must not name the window "42".
+   */
   static String humanizedRoute(String route) {
     if (route == null) {
       return null;
@@ -375,7 +386,10 @@ public class ActionInstanceCreator {
     var segments = stripQuery(route).split("/");
     for (int i = segments.length - 1; i >= 0; i--) {
       var segment = segments[i];
-      if (!segment.isBlank() && !segment.startsWith(":") && !segment.startsWith("{")) {
+      if (!segment.isBlank()
+          && !segment.startsWith(":")
+          && !segment.startsWith("{")
+          && !segment.matches("\\d+")) {
         return io.mateu.uidl.Humanizer.toUpperCaseFirst(segment);
       }
     }
