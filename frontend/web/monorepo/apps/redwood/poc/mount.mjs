@@ -210,6 +210,84 @@ export function scrollToTopOnNavigate({ fromUrl, liveState } = {}, win = typeof 
   return true
 }
 
+/**
+ * Where the reader is, kept across an action that re-renders the SAME screen in place (an editor's
+ * @Button answering its edit form: same component id and type, so the form is projected again). The
+ * re-projection re-stamps the form's for-each: for a moment the page is shorter than the window, the
+ * browser clamps the scroll to 0 and the reader — who pressed a button at the bottom of a long form
+ * — lands back at its top. Taken BEFORE the action leaves: the window's scroll (and that of every
+ * scrolled container holding the focus — a drawer's body), and what had the focus (by its
+ * data-action-id / data-field-id: the element itself is replaced). `restore()` puts them back
+ * once the new form is painted: VB binds asynchronously, so it retries over `settle` ms, and gives
+ * up as soon as the reader scrolls, types or clicks — never fighting the user. A navigation is not
+ * this: its screen starts at the top (scrollToTopOnNavigate), and the chain does not restore then
+ * (keepsViewport).
+ */
+export function keepViewport(doc = typeof document !== 'undefined' ? document : null,
+    win = typeof window !== 'undefined' ? window : null) {
+  const none = { restore: () => false, scrollers: [] }
+  if (!doc || !win) return none
+  const root = doc.scrollingElement || doc.documentElement
+  const scrollers = []
+  if (root) scrollers.push({ el: root, top: root.scrollTop, left: root.scrollLeft })
+  const active = doc.activeElement
+  for (let el = active && active.parentElement; el && el !== root && el !== doc.body; el = el.parentElement) {
+    if (el.scrollTop > 0 || el.scrollLeft > 0) scrollers.push({ el, top: el.scrollTop, left: el.scrollLeft })
+  }
+  const focusSelector = focusSelectorOf(active)
+  const restore = ({ settle = 1200, every = 80 } = {}) => {
+    let stopped = false
+    const stop = () => { stopped = true }
+    const events = ['wheel', 'touchstart', 'keydown', 'mousedown']
+    events.forEach((e) => doc.addEventListener(e, stop, { capture: true, passive: true, once: true }))
+    const apply = () => {
+      if (stopped) return
+      for (const s of scrollers) {
+        if (!s.el.isConnected) continue
+        if (s.el.scrollTop !== s.top) s.el.scrollTop = s.top
+        if (s.el.scrollLeft !== s.left) s.el.scrollLeft = s.left
+      }
+      // the focus, only if the action took it away (the pressed button was replaced): never steal it
+      if (focusSelector && (!doc.activeElement || doc.activeElement === doc.body || !doc.activeElement.isConnected)) {
+        const target = doc.querySelector(focusSelector)
+        const focusable = target && (target.querySelector('button, input, textarea, [tabindex]') || target)
+        if (focusable && typeof focusable.focus === 'function') {
+          try { focusable.focus({ preventScroll: true }) } catch (e) { /* not focusable */ }
+        }
+      }
+    }
+    apply()
+    const started = Date.now()
+    const tick = () => {
+      if (stopped) return
+      apply()
+      if (Date.now() - started < settle) win.setTimeout(tick, every)
+      else events.forEach((e) => doc.removeEventListener(e, stop, { capture: true }))
+    }
+    win.setTimeout(tick, every)
+    return true
+  }
+  return { restore, scrollers, focusSelector }
+}
+
+/** A selector that finds the focused control again once it is re-stamped: its data-action-id (a
+ *  button) or data-field-id (a field), from the element itself or its nearest owner. '' if none. */
+export function focusSelectorOf(active) {
+  const owner = active && typeof active.closest === 'function' ? active.closest('[data-action-id], [data-field-id]') : null
+  if (!owner) return ''
+  const attr = owner.hasAttribute('data-action-id') ? 'data-action-id' : 'data-field-id'
+  const value = owner.getAttribute(attr)
+  if (!value) return ''
+  return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'
+}
+
+/** Does an action's answer keep the reader where they were? Not when it moved to another screen:
+ *  a navigation, a route flip (a row click to its detail), a host replaced by another component —
+ *  those start at the top. An in-place re-render, a state change or an overlay does. */
+export function keepsViewport({ navigate, flipRoute, reRendered } = {}) {
+  return !(navigate && (navigate.route || navigate.url)) && !flipRoute && !reRendered
+}
+
 /** How long the old screen stays on show once another starts loading (app.css mateu-stale-hide). */
 export const STALE_SCREEN_HIDE_MS = 500
 
