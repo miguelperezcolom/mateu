@@ -1,3 +1,4 @@
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { interpolate } from './interpolation.ts'
 import { safeNavigate } from './safeNavigate.ts'
 import { routeTargetUrl } from './navigationUrl.ts'
@@ -51,6 +52,15 @@ export function navigateToRoute(from: HTMLElement, route: string): void {
     for (const type of ['route-changed', 'navigate-to-requested']) {
         from.dispatchEvent(new CustomEvent(type, { detail: { route }, bubbles: true, composed: true }))
     }
+}
+
+/**
+ * A button that navigates inside the app leaves the screen, so it asks about unsaved changes like a
+ * menu click or a breadcrumb. A whole URL opens in another tab and loses nothing.
+ */
+export function leaveToRoute(from: HTMLElement, route: string): void {
+    if (!isExternalRoute(route) && !dirtyGuard.confirmLeave()) return
+    navigateToRoute(from, route)
 }
 
 /**

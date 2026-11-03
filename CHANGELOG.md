@@ -45,6 +45,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **A YAML page can ask before losing unsaved changes** (`confirmOnNavigationIfDirty: true`, the twin of
+  `@ConfirmOnNavigationIfDirty`): until now a menu click or a previous/next arrow discarded what was typed
+  on any page without a class behind it. A REST action that succeeds settles the changes when it declares
+  `validationRequired` or a `successRoute`. A button with a route now asks too, on Vaadin as on Redwood.
+  The space and museum editing pages declare it. Java and the
+  web and Redwood renderers; not in the .NET and Python YAML builders yet.
 - **A page's previous/next arrows, the remaining cases.** On Vaadin a drawer's arrows read a relative
   `peerNav` route against the current URL; they now navigate inside the app and close the drawer. On
   Redwood a page foldout that is not a declared `FoldoutPage` lost the page's `peerNav` (it owns the

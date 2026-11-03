@@ -1,0 +1,11 @@
+type: Form
+title: Guarded
+confirmOnNavigationIfDirty: true
+content:
+  - {type: FormField, id: title, label: Title, dataType: string}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {url: "https://api.example/things", method: POST}
+      successMessage: Saved

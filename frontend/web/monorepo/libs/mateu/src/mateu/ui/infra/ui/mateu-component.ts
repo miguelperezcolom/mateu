@@ -57,6 +57,7 @@ const hasEntries = (state: Record<string, any> | undefined): boolean => {
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 import {evaluateExpression, interpolate, interpolateAndEvaluate, templateResolver} from "@infra/ui/interpolation.ts";
 import {navigateToRoute} from "@infra/ui/rowRoute.ts";
+import { restActionSettlesTheForm } from "./restActionSettles";
 import {fetchExternalJson, getByPath} from "@infra/http/externalOptions.ts";
 import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestActionDto.ts";
 import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
@@ -699,6 +700,10 @@ export class MateuComponent extends ComponentElement {
         // and the bulk path (once, after every row). A successRoute still holding ${ (an id the
         // response never supplied) is left alone; pointed back at the listing it reloads it.
         const announce = () => {
+            if (restActionSettlesTheForm(rest, (this.component as ServerSideComponent | undefined)?.actions?.find((a) => a.id === actionId))) {
+                this.formerState = { ...this.state }
+                this.dispatchEvent(new CustomEvent('clean', { detail: { reason: 'load' }, bubbles: true, composed: true }))
+            }
             // after the answer merged into the state, the call's parameters still over it
             const msg = interpolate(rest.successMessage, { ...this.state, ...(call.parameters ?? {}) }, this.data)
             if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)

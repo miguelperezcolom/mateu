@@ -2,6 +2,7 @@
 # the edit page through a partial.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: New task
 toolbar:
   - {type: Button, actionId: cancel-new, label: Cancel, actionable: {type: RouteLink, route: tasks}}

@@ -14,6 +14,7 @@ import { componentRenderer, ComponentRenderer } from './renderers/ComponentRende
 import { BasicComponentRenderer } from './renderers/BasicComponentRenderer'
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { publishShellMenu } from './breadcrumbTrail'
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 
 /**
  * The page header as a user meets it: overline, title (or its placeholder), subtitle, timestamp,
@@ -183,6 +184,19 @@ describe('the toolbar', () => {
             { data: { 'save.hidden': true, 'back.hidden': true } })
         expect(root.querySelector('[data-action-id="s"]')).toBeNull()
         expect(root.querySelector('.back-chevron')).toBeNull()
+    })
+
+    it('a button with a route asks about unsaved changes first', async () => {
+        const { root, events } = await mount({ title: 'X', toolbar: [{ id: 'b', actionId: 'backToList', label: 'Back', route: 'orders' }] })
+        dirtyGuard.markDirty()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        ;(root.querySelector('[data-action-id="b"]') as HTMLButtonElement).click()
+        expect(confirm).toHaveBeenCalledTimes(1)
+        expect(events.find(e => e.type === 'navigate-to-requested')).toBeUndefined()
+        confirm.mockReturnValue(true)
+        ;(root.querySelector('[data-action-id="b"]') as HTMLButtonElement).click()
+        expect(events.find(e => e.type === 'navigate-to-requested')?.detail.route).toBe('orders')
+        confirm.mockRestore()
     })
 
     it('a button with a route navigates on the client', async () => {

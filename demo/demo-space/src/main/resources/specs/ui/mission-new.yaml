@@ -3,6 +3,7 @@
 # step-by-step way to the same record see the wizard, plan.yaml.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: New mission
 titlePlaceholder: New mission…
 subtitle: Add a mission to the dataset

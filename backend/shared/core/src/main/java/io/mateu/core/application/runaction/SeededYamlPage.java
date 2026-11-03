@@ -46,11 +46,17 @@ record SeededYamlPage(
     String pageType)
     implements ComponentTreeSupplier,
         io.mateu.core.domain.out.componentmapper.DeclaredPageType,
+        io.mateu.core.domain.out.componentmapper.DeclaredDirtyGuard,
         StateSupplier,
         ActionSupplier,
         RestSourceSupplier,
         TriggersSupplier,
         io.mateu.uidl.interfaces.ValidationSupplier {
+
+  @Override
+  public boolean confirmOnNavigationIfDirty() {
+    return layout instanceof io.mateu.uidl.fluent.Form form && form.confirmOnNavigationIfDirty();
+  }
 
   SeededYamlPage(
       Component layout,

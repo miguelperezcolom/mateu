@@ -38,6 +38,8 @@ routes:
     layout: about.yaml
 
   # A definition-only page that declares its own actions: the write half of the DSL.
+  - route: yaml-guarded
+    definition: yaml-guarded.yaml
   - route: yaml-write
     definition: yaml-write.yaml
     state:

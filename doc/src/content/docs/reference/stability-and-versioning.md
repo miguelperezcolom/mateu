@@ -260,7 +260,7 @@ same concepts.
 - `io.mateu.uidl.data.RouteLink`: `presentation`
 - `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`, `updateHeaderValue`
 - `io.mateu.uidl.fluent.AppShell`: `accessKeys`, `contextSelectors`, `globalSearch`, `headerActions`, `headerValues`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`, `notifications`, `shortcuts`
-- `io.mateu.uidl.fluent.Form`: `badges`, `banners`, `fabs`, `kpis`, `overline`, `peerNav`, `recordSwitcher`, `template`, `timestamp`, `titlePlaceholder`
+- `io.mateu.uidl.fluent.Form`: `badges`, `banners`, `confirmOnNavigationIfDirty`, `fabs`, `kpis`, `overline`, `peerNav`, `recordSwitcher`, `template`, `timestamp`, `titlePlaceholder`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`
 

@@ -1,6 +1,7 @@
 # A new conservation task — it lands in the backlog unless a status is picked.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: New conservation task
 toolbar:
   - type: Button

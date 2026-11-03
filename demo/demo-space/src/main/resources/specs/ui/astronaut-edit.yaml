@@ -5,6 +5,7 @@
 # /api/astronauts/{id}/portrait. The seeded portraits stay linked from the NASA Image Library.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: Edit ${state.name}
 subtitle: Astronaut
 avatar: {type: Avatar, name: "${state.name}", image: "${state.thumbnail}"}
