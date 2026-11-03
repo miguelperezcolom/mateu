@@ -122,8 +122,10 @@ over it:
 After a successful move a live board (one with `rowsSource`) reads its source again, whether the
 move ran as a REST action or as a server-side action. Proxied sources work on both legs in Java: the
 cards are fetched through the server by the board's `id`, and a proxied write gets the same
-parameters. A card needs an `id` to be moved, and an item whose `columnField` names no column is not
-shown. The same fields exist in the ports (.NET `Kanban { MoveActionId, RowsSource, ColumnField,
+parameters. A card needs an `id` to be moved — the move action names the card by it (in a `card`
+template, `id: "${row.id}"`) —, and an item whose
+`columnField` names no declared column is **not shown** on any renderer: declare every status the
+source can return, or a catch-all column, if those items must stay visible. The same fields exist in the ports (.NET `Kanban { MoveActionId, RowsSource, ColumnField,
 Card, CardColors, CardRoute }`, Python `Kanban(move_action_id=…, rows_source=…, …)`); there a view
 that declares the board's proxied rows (a `RestSourceSupplier` naming it by `id`) gets them by that
 id even next to a listing, but a proxied board on a YAML definition-only page is Java-only.
@@ -165,6 +167,12 @@ A complete example is the museums demo's conservation board (`demo/demo-museum`,
 reads the tasks with `sort=boardOrder`, the board declares `orderField: boardOrder`, and the move
 action PUTs the task's record with `"boardOrder": "${state.boardOrder}"`. The service seeds each
 column 1000 apart and keeps whatever decimal a move writes.
+
+**Quoted or not.** The placeholder is replaced by the value's text, so the body decides the JSON
+type: `"rank": ${state.rank}` sends a **number** (`"rank": 1.5`), `"rank": "${state.rank}"` a
+**string** (`"rank": "1.5"`). Use the one your endpoint accepts — the demo quotes it because its
+service parses the field from text. Unquoted needs a value on every move (an empty value would make
+the body invalid JSON); `_toOrder` always has one.
 
 ## When to use it
 

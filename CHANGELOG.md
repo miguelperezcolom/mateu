@@ -45,6 +45,34 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **The proxied leg evaluates a source template like the browser** (Java, .NET, Python, Redwood,
+  React Native). `${1e3}` was empty on the server, `===`/`!==` compared loosely (`n=1 === '1'` was
+  true), `${state.q[0]}` and any method call (`.toLowerCase()`) rendered empty: the server's
+  `ProxyExpression` now reads exponents, indexes strings, compares strictly, and runs
+  `Math.round/floor/ceil/abs/min/max` and the pure string/number/list methods (`toLowerCase`,
+  `toUpperCase`, `trim`, `includes`, `startsWith`, `endsWith`, `indexOf`, `slice`, `substring`,
+  `padStart`, `padEnd`, `toFixed`, `join`, `toString`). Redwood and React Native gained what they
+  lacked of it; 11 new `source-templates.json` cases run on every leg. **Behaviour change**: a
+  proxied `===` is strict now, as it always was in the browser.
+- **`proxy_unsafe_template` also flags a url whose host a client value would choose**
+  (`${state.base}/x`, `https://${host}/x`): only a `${secret.X}` may name the origin, so the proxied
+  leg refuses the call (Java, .NET and Python validators).
+- **.NET and Python: `forEachSelectedRow` on a proxied source runs once per selected row** on the
+  server, like Java — a failed row answers "N of M failed" with what the service said — and the
+  action's parameters (a kanban move's `_toColumnId`) reach `${state.x}` on the ports' proxied leg.
+  React Native's bulk call used to run once with the page state there.
+- **CRUD write gates agree in Java, .NET and Python.** Java refuses a forced "Save and next" the
+  crud's display disables (403, not "not handled"); Python's `Crud` gains `can_create()`,
+  `can_edit()` and `can_delete()` (they take New/Delete/Edit away and refuse the writes) and refuses
+  a forced `new`, `/new`, `edit`, `/{id}/edit` or disabled `save-and-next` with a 403 instead of an
+  empty answer; .NET refuses New and `/new` when `CanCreate` is false (the creation form used to open
+  and only its save was refused), Edit and `/{id}/edit` when `CanEdit` is false.
+- **.NET and Python: a deep link to a dotted id is a route** (`/people/ana.perez`, `/versions/1.2`):
+  a file is an asset extension, as Java's `SpaFallback` reads it — any dot used to mean a file (404).
+- **.NET `Dev = false` and Python `live_reload=False` win over `MATEU_DEV=true`.** .NET still mapped
+  the dev endpoints, and Python's manifest advertised `devEvents` it did not serve (the apps retried
+  the 404 every 30 s). A Python 403's error message has duration 0 like every error (it sent 5000).
+
 - **Redwood: date fields write and read dates in the UI's language.** Every `oj-input-date` /
   `oj-input-date-time` (the page form, the crud drawer, the dialog, the `List<Row>` row editor, a
   date range's two ends, the island) and the listing's range filters now carry a converter of their
@@ -284,6 +312,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - Desktop installers are built on CI only; their build never uses `File.deleteRecursively()` (CLAUDE.md, CONTRIBUTING.md) (#1007).
 
 - The museums conservation board is the reference example of `orderField` (#1008).
+
+
+### Corrections (to earlier entries)
+
+- The entry that gave Python `canX()` gates was premature: Python's `Crud` had no `can_create` /
+  `can_edit` / `can_delete` until the entry above.
+- "A static bundle has no hash at all" (structure ETag): exported entries do carry a structure hash;
+  what a bundle has no use for is the server's omission of an unchanged structure.
 
 ## [3.0-beta.35] — 2026-11-01
 

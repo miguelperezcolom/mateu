@@ -55,6 +55,11 @@ carries — menu labels, button labels, field labels, section titles, page title
 sit inside a longer text: `"${i18n.orders.title} (${state.count})"` — the `i18n` part is resolved
 first and the rest is left to the client.
 
+A [partial](/define/yaml/partials/) is translated like the page that uses it: the server inlines the
+partial into the definition first and translates the whole tree, so a `${i18n.…}` inside a shared
+`type: Partial` follows each request's language — in Java, .NET and Python, in pages and (Java) in
+an app shell.
+
 ## Which language
 
 The request's locale is what the app's `Translator.locale(HttpRequest)` answers — by default the
