@@ -39,7 +39,10 @@ public static class MateuExtensions
     {
         var options = new MateuOptions();
         configure(options);
-        if (options.Dev ?? DevSpecs.Enabled) DevSpecs.Enable(true);
+        // an explicit Dev = false wins over MATEU_DEV=true (it used to be read as "not set", so the
+        // dev endpoints were mapped and advertised anyway); unset follows the environment
+        if (options.Dev is false) DevSpecs.Enable(false);
+        else if (options.Dev ?? DevSpecs.Enabled) DevSpecs.Enable(true);
         services.AddSingleton(options);
         services.AddHttpContextAccessor();
         var registry0 = new MateuRegistry(assemblies);
@@ -558,7 +561,7 @@ public static class MateuExtensions
             // error message increment (403 on the sync endpoint), the method never ran.
             Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
                 rq.Route, rq.ActionId, e.Message);
-            return UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 5000)]);
+            return UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 0)]);
         }
         var correlationId = Activity.Current?.TraceId.ToString() ?? ctx.TraceIdentifier;
         var cause = MateuErrors.Unwrap(e);

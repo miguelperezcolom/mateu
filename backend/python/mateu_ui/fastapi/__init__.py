@@ -47,7 +47,7 @@ CORRELATION_HEADER = "X-Mateu-Correlation-Id"
 
 _FORBIDDEN_BODY = {
     "messages": [
-        {"variant": "error", "position": "middle", "title": "", "text": "Forbidden", "duration": 5000}
+        {"variant": "error", "position": "middle", "title": "", "text": "Forbidden", "duration": 0}
     ]
 }
 
@@ -606,7 +606,11 @@ def add_mateu(
     if mcp_on:
         app.add_api_route(f"{prefix}/mateu/mcp", mcp_endpoint, methods=["POST"])
 
-    if dev_specs.enabled() if live_reload is None else live_reload:
+    if live_reload is False:
+        # an explicit False wins over MATEU_DEV=true: the manifest stopped advertising devEvents
+        # it did not serve (the natives retried that 404 every 30 s)
+        dev_specs.enable(False)
+    elif dev_specs.enabled() if live_reload is None else live_reload:
         dev_specs.enable(True)
         _add_dev_endpoints(app)
 
