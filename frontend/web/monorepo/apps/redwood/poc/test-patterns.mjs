@@ -637,7 +637,7 @@ test('header extras wiring: both page headers bind them, the arrows navigate lik
   assert.equal(listeners.headerPreviousItem.chains[0].parameters.actionId, '__peerPrev')
   assert.equal(listeners.headerNextItem.chains[0].parameters.actionId, '__peerNext')
   const run = webApp('flows/main/pages/main-start-page-chains/runMateuAction.js')
-  assert.match(run, /id === '__peerPrev' \? header\.prevRoute : header\.nextRoute[\s\S]*'navigation-requested'/)
+  assert.match(run, /id === '__peerPrev' \? header\.prevRoute : header\.nextRoute[\s\S]*requestPeerNavigation/)
   // the default header (before any page) carries every field the bindings read
   const def = JSON.parse(webApp('app-flow.json')).variables.mateuPageHeader.defaultValue
   assert.deepEqual([def.badge, def.timestamp, def.overline, def.previousItem.display, def.nextItem.display], [null, '', '', 'disabled', 'disabled'])

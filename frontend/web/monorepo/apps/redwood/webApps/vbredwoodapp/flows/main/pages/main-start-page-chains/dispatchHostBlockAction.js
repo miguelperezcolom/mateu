@@ -32,6 +32,7 @@ define([
       if (ctaId && ctas && ctas[ctaId]) ({ actionId, route } = ctas[ctaId]);
       const click = bridge.blockClickOf({ actionId, parameters, route, state: bridge.routeStateOf(context.$application.variables.mateuRegistry, context.$page?.variables.mateuDraft) });
       if (click.navigate) {
+        if (bridge.leftMountFor({ route: click.navigate }, context.$application.variables.mateuRegistry)) return; // another @UI's path loads in the browser
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: click.navigate, force: true } });
         return;
       }

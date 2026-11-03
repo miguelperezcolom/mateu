@@ -45,6 +45,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **A page's previous/next arrows, the remaining cases.** On Vaadin a drawer's arrows read a relative
+  `peerNav` route against the current URL; they now navigate inside the app and close the drawer. On
+  Redwood a page foldout that is not a declared `FoldoutPage` lost the page's `peerNav` (it owns the
+  header, so nothing drew it): it now fills the layout's own arrows; and an arrow or a route button
+  naming another mount's path loads it in the browser.
 - **Redwood**: a subheader with more options than fit no longer runs past the edge of the window: what doesn't fit goes into a «More» menu at its end, as on the web renderer.
 - **Redwood: a tree listing (`gridLayout: tree`) folds.** It drew every level always open, with the
   names indented and no way to close a branch; now each parent has a chevron, as on Vaadin. Folding

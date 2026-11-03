@@ -471,6 +471,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    requestPeerNavigation,
     openExternalRoute,
     isExternalRoute,
     scrollToTopOnNavigate,

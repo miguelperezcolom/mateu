@@ -18,6 +18,7 @@ import { notePageTitle } from './windowTitle'
 import { plainText } from './navTree'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { navigateToRoute } from './rowRoute'
+import { peerRouteLeavesApp } from './peerNavigation'
 import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } from './breadcrumbTrail'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -453,12 +454,8 @@ export class MateuContentHeader extends LitElement {
         navigateToRoute(this, route)
     }
 
-    /**
-     * A relative peer route is a place of this app, reached like a breadcrumb. `/x` is a path of the
-     * site, possibly another mount this app knows nothing about: only a browser load gets there.
-     */
     private goToPeer(route: string) {
-        if (route.startsWith('/')) safeNavigate(route)
+        if (peerRouteLeavesApp(route)) safeNavigate(route)
         else this.goToCrumb(route)
     }
 
