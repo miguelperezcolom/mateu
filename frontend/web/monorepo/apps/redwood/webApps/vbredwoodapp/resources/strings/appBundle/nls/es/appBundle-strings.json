@@ -5,6 +5,8 @@
   "loading": "Cargando",
   "search": "Buscar…",
   "noData": "Sin datos",
+  "treeExpand": "Desplegar",
+  "treeCollapse": "Plegar",
   "rangeFrom": "Desde",
   "rangeTo": "Hasta",
   "new": "Nuevo",

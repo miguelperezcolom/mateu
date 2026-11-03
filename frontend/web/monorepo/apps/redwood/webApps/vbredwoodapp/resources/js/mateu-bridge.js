@@ -27,6 +27,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       loading: 'Loading',
       search: 'Search…',
       noData: 'No data',
+      treeExpand: 'Expand',
+      treeCollapse: 'Collapse',
       rangeFrom: 'From',
       rangeTo: 'To',
       new: 'New',
@@ -288,6 +290,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       loading: 'Cargando',
       search: 'Buscar…',
       noData: 'Sin datos',
+      treeExpand: 'Desplegar',
+      treeCollapse: 'Plegar',
       rangeFrom: 'Desde',
       rangeTo: 'Hasta',
       new: 'Nuevo',
@@ -5386,6 +5390,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const uiState = {}
   function setUiValue(key, value) { uiState[key] = value }
   function uiValueOf(key, fallback) { return key in uiState ? uiState[key] : fallback }
+  function clearUiValues(prefix) { for (const key of Object.keys(uiState)) if (key.startsWith(prefix)) delete uiState[key] }
 
   // ── node ids for the visual editor (editor / preview mode ONLY) ──
   // The IDE's visual editor paints a definition in this app (an iframe) and has to map a click back
@@ -6304,11 +6309,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const flat = tree
           ? flattenTreeRows(raw, (key) => !!uiValueOf(gridKey + ':open:' + key, false)).map((r) => ({
             ...r,
-            __indentStyle: { paddingInlineStart: (r.__depth * 1.5) + 'rem' },
-            __toggleIcon: r.__hasChildren ? (r.__expanded ? 'oj-ux-ico-chevron-down' : 'oj-ux-ico-chevron-right') : '',
-            __toggleLabel: r.__expanded ? 'Collapse' : 'Expand',
-            __uiKey: gridKey + ':open:' + r.__treeKey,
-            __uiValue: !r.__expanded,
+            ...treeDisclosureOf({ depth: r.__depth, hasChildren: r.__hasChildren, expanded: r.__expanded,
+              uiKey: gridKey + ':open:' + r.__treeKey, uiValue: !r.__expanded }),
           }))
           : raw
         // PAGING: Grid.size rows per page (client side, the rows travel inline)
@@ -8169,9 +8171,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // what each cell PAINTS (labels, badges, clipped/abbreviated text), before group rows are
     // interleaved: the content a compact column is sized to (columnSizingOf)
     // TREE (gridLayout: tree): the rows nest under `children`; the table draws them flattened, each
-    // level indented under its parent (always expanded, like the shared neutral tree of the web lib)
+    // level indented under its parent, its first column carrying the disclosure. Every row starts
+    // open, like Vaadin's tree; what is closed is client state (no round trip)
     const tree = md.gridLayout === 'tree'
-    const content = tree ? treeRowsOf(page.content || [], tableColumns) : (page.content || [])
+    const content = tree ? treeRowsOf(page.content || [], tableColumns, TREE_KEY + (crudNode.id || 'crud') + ':') : (page.content || [])
     const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(content, md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
     const footers = aggregateFootersOf(md, (ctx.data || {}).crud) || {}
     // the columns sized by the DEFAULT rule (they declare no width/flexGrow): id → their compact
@@ -8219,10 +8222,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         def.field = c.id + UUID_CELL_SUFFIX
         def.template = 'cellUuid'
       }
-      // the tree column (the first one) reads its indented text (treeRowsOf)
-      if (tree && colIndex === 0 && !def.template && def.field === c.id) {
+      // the tree column (the first one) reads its text and draws the disclosure (treeRowsOf); a tree
+      // has no order of its own to change: a flat sort would tear children from their parents
+      const treeColumn = tree && colIndex === 0 && !def.template && def.field === c.id
+      if (treeColumn) {
         def.field = c.id + TREE_CELL_SUFFIX
+        def.template = 'cellTreeToggle'
       }
+      if (tree) def.sortable = 'disabled'
       const align = alignOf(c)
       if (align && !def.template) {
         def.className = 'oj-helper-text-align-' + align
@@ -8245,6 +8252,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // (after the cell's field is final: it is what the content is read from)
       const sizing = columnSizingOf(c, cellRows, def.field, footers[c.id])
       Object.assign(def, sizing.def)
+      // the cell's text is measured without what the disclosure adds before it
+      if (treeColumn && sizing.kind !== 'declared') {
+        const extra = treeCellExtraPx(cellRows)
+        if (sizing.kind === 'fit') { sizing.px += extra; def.width = sizing.px + 'px' } else def.minWidth = (sizing.px + extra) + 'px'
+      }
       if (sizing.kind !== 'declared') defaultSized.push(c.id)
       if (sizing.kind === 'fit') fitColumns[c.id] = sizing.px
       // WHOLE-ROW CLICK: a cell with its own click (editor, buttons, link, menu, component,
@@ -8604,36 +8616,64 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The field the first column of a tree listing paints: its text indented by the row's depth. */
   const TREE_CELL_SUFFIX = '__treeCell'
-  const TREE_INDENT = '\u00a0\u00a0\u00a0\u00a0'
+  /** The client-state keys of a tree listing's CLOSED rows. */
+  const TREE_KEY = 'listing-tree:'
+  const TREE_LEVEL_PX = 24
+  const TREE_TOGGLE_PX = 38
+
+  function treeCellExtraPx(rows) {
+    return TREE_TOGGLE_PX + TREE_LEVEL_PX * rows.reduce((deepest, r) => Math.max(deepest, r._treeDepth || 0), 0)
+  }
+
+  const treeSearchOf = (searchText, filters) => JSON.stringify([searchText || '', filters || {}])
+  // a listing opens with no search: the first one the user runs is already a new one
+  let treeSearchShown = treeSearchOf()
+  /**
+   * A new search or filter opens the tree again: a row closed before could hide the match the user is
+   * now looking for (the server keeps the branches that lead to one). Paging is not a new search.
+   */
+  function openTreeRowsOnNewSearch(searchText, filters) {
+    const search = treeSearchOf(searchText, filters)
+    if (search !== treeSearchShown) clearUiValues(TREE_KEY)
+    treeSearchShown = search
+  }
 
   /**
    * A tree listing's rows (each nesting its next level under `children`) as the FLAT rows a table
-   * draws: depth first, each parent before its children, `_treeDepth` stamped and the first column's
-   * text indented by it in `<id>__treeCell` (VB CSP: the template cannot indent). A row keeps its
-   * `_rowNumber` — the table's key — unless it has none or another row has it already (REST children
-   * carry none; a server may number each level from 0): then it is keyed by its path, `<parent>/<i>`.
+   * draws: depth first, each parent before its children — unless it is closed, which hides them —,
+   * `_treeDepth` stamped, the first column's text in `<id>__treeCell` and the disclosure precomputed
+   * (VB CSP: treeDisclosureOf). A row keeps its `_rowNumber` — the table's key — unless it has none or
+   * another row has it already (REST children carry none; a server may number each level from 0): then
+   * it is keyed by its path, `<parent>/<i>`. What remembers a closed row is the row's IDENTITY under
+   * its parent (identifier column, `id`, else its position), so it survives a refetch and a new page.
    * The `children` themselves are dropped from the flat row: they are rows of their own now.
    */
-  function treeRowsOf(rows, columns) {
-    const firstCol = (columns || []).map((c) => (c && c.metadata) || c).find(Boolean)
-    const first = firstCol && firstCol.id
+  function treeRowsOf(rows, columns, keyPrefix = TREE_KEY) {
+    const cols = (columns || []).map((c) => (c && c.metadata) || c).filter(Boolean)
+    const first = cols[0] && cols[0].id
+    const identifier = (cols.find((c) => c.identifier) || {}).id
     const out = []
     const seen = new Set()
-    const walk = (items, depth, parentKey) => (items || []).forEach((row, i) => {
+    const walk = (items, depth, parentKey, parentIdentity) => (items || []).forEach((row, i) => {
       if (!row || typeof row !== 'object') return
       const { children, ...rest } = row
       let key = rest._rowNumber
       if (key == null || seen.has(String(key))) key = parentKey == null ? '_row:' + i : parentKey + '/' + i
       seen.add(String(key))
+      const own = rest[identifier] ?? rest.id ?? i
+      const identity = parentIdentity == null ? String(own) : parentIdentity + '/' + own
+      const uiKey = keyPrefix + identity
+      const hasChildren = Array.isArray(children) && children.length > 0
+      const expanded = hasChildren && !uiValueOf(uiKey, false)
       const flat = { ...rest, _rowNumber: key, _treeDepth: depth }
       if (first) {
         const v = rest[first]
-        flat[first + TREE_CELL_SUFFIX] = TREE_INDENT.repeat(depth) + (v == null ? '' : typeof v === 'object' ? (v.message || v.label || '') : String(v))
+        flat[first + TREE_CELL_SUFFIX] = v == null ? '' : typeof v === 'object' ? (v.message || v.label || '') : String(v)
       }
-      out.push(flat)
-      if (Array.isArray(children)) walk(children, depth + 1, key)
+      out.push({ ...flat, __hasChildren: hasChildren, ...treeDisclosureOf({ depth, hasChildren, expanded, uiKey, uiValue: expanded, name: first ? flat[first + TREE_CELL_SUFFIX] : '' }) })
+      if (expanded) walk(children, depth + 1, key, identity)
     })
-    walk(rows, 0, null)
+    walk(rows, 0, null, null)
     return out
   }
 
@@ -13167,6 +13207,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   // ── Grid paging & tree (the Grid component) ────────────────────────────────────────────────────
+  /**
+   * What the cellTreeToggle template reads off a tree row (VB CSP: precomputed): the indentation, the
+   * chevron, its label and the client-state key + value a press writes. A leaf is indented by the
+   * toggle's width as well, so a level's names line up whether they have children or not.
+   */
+  function treeDisclosureOf({ depth, hasChildren, expanded, uiKey, uiValue, name }) {
+    const label = chromeText(expanded ? 'treeCollapse' : 'treeExpand')
+    return {
+      __indentStyle: { paddingInlineStart: hasChildren ? (depth * 1.5) + 'rem' : 'calc(' + (depth * 1.5) + 'rem + var(--mateu-tree-toggle))' },
+      __toggleIcon: hasChildren ? (expanded ? 'oj-ux-ico-chevron-down' : 'oj-ux-ico-chevron-right') : '',
+      __toggleLabel: name ? label + ' ' + name : label,
+      __uiKey: uiKey,
+      __uiValue: uiValue,
+    }
+  }
+
   /** A tree's rows flattened depth-first with their depth; collapsed nodes hide their children. */
   function flattenTreeRows(rows, isExpanded = () => true, childrenKey = 'children', depth = 0, path = '') {
     const out = []
@@ -28649,6 +28705,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // tree rows) and its re-projection, content menus, MessageInput, and their DOM installers
     setUiValue,
     uiValueOf,
+    openTreeRowsOnNewSearch,
     reprojectedContentOf,
     menuChoiceOf,
     dispatchOf,

@@ -14,7 +14,7 @@ import {
 } from './restSources.mjs'
 import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
-import { pageSwitcherOf, reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOOKUP_LOADED, statusBadgeRows, selectedRowsOf, optionsOf } from './reduceContexts.mjs'
+import { openTreeRowsOnNewSearch, setUiValue, pageSwitcherOf, reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOOKUP_LOADED, statusBadgeRows, selectedRowsOf, optionsOf } from './reduceContexts.mjs'
 import { runMateuAction, loadLookups } from './transport.mjs'
 import { adoptShellSources, fetchGlobalSearch, sourcedNotificationsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { fetchNotifications } from './notify.mjs'
@@ -259,8 +259,31 @@ test('tree listing over a rowsSource: the children survive the projection and dr
   assert.deepEqual(listing.rows.map((r) => r.customer), ['Voyager', 'RTG', 'Thermocouple', 'Juno'], 'parent before children')
   assert.deepEqual(listing.rows.map((r) => r._treeDepth), [0, 1, 2, 0])
   assert.equal(listing.columns[0].field, 'customer__treeCell')
-  assert.equal(listing.rows[2].customer__treeCell, '\u00a0'.repeat(8) + 'Thermocouple')
+  assert.equal(listing.columns[0].template, 'cellTreeToggle')
+  assert.deepEqual(listing.columns.map((c) => c.sortable), ['disabled', 'disabled'], 'a flat sort would tear a tree apart')
+  assert.equal(listing.rows[2].customer__treeCell, 'Thermocouple')
+  assert.deepEqual(listing.rows.map((r) => r.__hasChildren), [true, true, false, false])
+  assert.equal(listing.rows[0].__toggleLabel, 'Collapse Voyager')
+  assert.equal(listing.rows[2].__indentStyle.paddingInlineStart, 'calc(3rem + var(--mateu-tree-toggle))', 'a leaf lines up with the names of its level')
   assert.equal(new Set(listing.rows.map((r) => String(r._rowNumber))).size, 4, 'every row has its own key')
+  // closing a row hides what hangs from it, with no round trip; opening it brings them back
+  const rtg = listing.rows[1]
+  setUiValue(rtg.__uiKey, rtg.__uiValue)
+  const closed = listingOf(reg.contexts[HOST_ID])
+  assert.deepEqual(closed.rows.map((r) => r.customer), ['Voyager', 'RTG', 'Juno'])
+  assert.equal(closed.rows[1].__toggleIcon, 'oj-ux-ico-chevron-right')
+  assert.equal(closed.rows[1].__toggleLabel, 'Expand RTG')
+  setUiValue(closed.rows[1].__uiKey, closed.rows[1].__uiValue)
+  assert.equal(listingOf(reg.contexts[HOST_ID]).rows.length, 4)
+  // ...and a closed row outlives a page or a refetch, but not a new search: it could hide the match
+  setUiValue(rtg.__uiKey, rtg.__uiValue)
+  openTreeRowsOnNewSearch('', {})
+  assert.equal(listingOf(reg.contexts[HOST_ID]).rows.length, 3, 'the same search keeps it closed')
+  openTreeRowsOnNewSearch('europa', {})
+  assert.equal(listingOf(reg.contexts[HOST_ID]).rows.length, 4, 'a new search opens the tree')
+  // the disclosure must exist in the LISTING's own table (#mateuTable), or the column paints as plain text
+  const listingTable = readFileSync(new URL('./templates/listing-body.html', import.meta.url), 'utf8').split('id="mateuTable"')[1].split('</oj-table>')[0]
+  assert.match(listingTable, /slot="cellTreeToggle"[\s\S]*\$listeners\.listingTreeToggled/)
   // a plain listing over the same source drops them, as before
   const flat = listingCtx({ url: '/api/tree' }, { pageSize: 50, filters: [] })
   const flatInc = await restAnswerOf(flat, 'search', { page: 0 }, { fetchImpl: stubFetch(tree) })

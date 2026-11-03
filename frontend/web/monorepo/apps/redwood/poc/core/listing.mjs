@@ -1,8 +1,8 @@
 import { applyColumnPrefs } from '../prefs.mjs'
 import { walkWithinSurface } from './tree.mjs'
 import { dragMimeOf } from './atoms.mjs'
-import { buttonRouteOf, columnPrefsReader, islandContentOf, interpolate, isExternalRoute, rowRouteOf, dataProviderFactory } from './content.mjs'
-import { safeHref } from './display.mjs'
+import { buttonRouteOf, clearUiValues, columnPrefsReader, islandContentOf, interpolate, isExternalRoute, rowRouteOf, dataProviderFactory, uiValueOf } from './content.mjs'
+import { safeHref, treeDisclosureOf } from './display.mjs'
 import { stableHashOf } from './overviews.mjs'
 import { urlOfRoute } from '../mount.mjs'
 import { optionsOf } from './rowEditor.mjs'
@@ -340,9 +340,10 @@ export function listingBaseOf(ctx, opts = {}) {
   // what each cell PAINTS (labels, badges, clipped/abbreviated text), before group rows are
   // interleaved: the content a compact column is sized to (columnSizingOf)
   // TREE (gridLayout: tree): the rows nest under `children`; the table draws them flattened, each
-  // level indented under its parent (always expanded, like the shared neutral tree of the web lib)
+  // level indented under its parent, its first column carrying the disclosure. Every row starts
+  // open, like Vaadin's tree; what is closed is client state (no round trip)
   const tree = md.gridLayout === 'tree'
-  const content = tree ? treeRowsOf(page.content || [], tableColumns) : (page.content || [])
+  const content = tree ? treeRowsOf(page.content || [], tableColumns, TREE_KEY + (crudNode.id || 'crud') + ':') : (page.content || [])
   const cellRows = labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(content, md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || [])
   const footers = aggregateFootersOf(md, (ctx.data || {}).crud) || {}
   // the columns sized by the DEFAULT rule (they declare no width/flexGrow): id → their compact
@@ -390,10 +391,14 @@ export function listingBaseOf(ctx, opts = {}) {
       def.field = c.id + UUID_CELL_SUFFIX
       def.template = 'cellUuid'
     }
-    // the tree column (the first one) reads its indented text (treeRowsOf)
-    if (tree && colIndex === 0 && !def.template && def.field === c.id) {
+    // the tree column (the first one) reads its text and draws the disclosure (treeRowsOf); a tree
+    // has no order of its own to change: a flat sort would tear children from their parents
+    const treeColumn = tree && colIndex === 0 && !def.template && def.field === c.id
+    if (treeColumn) {
       def.field = c.id + TREE_CELL_SUFFIX
+      def.template = 'cellTreeToggle'
     }
+    if (tree) def.sortable = 'disabled'
     const align = alignOf(c)
     if (align && !def.template) {
       def.className = 'oj-helper-text-align-' + align
@@ -416,6 +421,11 @@ export function listingBaseOf(ctx, opts = {}) {
     // (after the cell's field is final: it is what the content is read from)
     const sizing = columnSizingOf(c, cellRows, def.field, footers[c.id])
     Object.assign(def, sizing.def)
+    // the cell's text is measured without what the disclosure adds before it
+    if (treeColumn && sizing.kind !== 'declared') {
+      const extra = treeCellExtraPx(cellRows)
+      if (sizing.kind === 'fit') { sizing.px += extra; def.width = sizing.px + 'px' } else def.minWidth = (sizing.px + extra) + 'px'
+    }
     if (sizing.kind !== 'declared') defaultSized.push(c.id)
     if (sizing.kind === 'fit') fitColumns[c.id] = sizing.px
     // WHOLE-ROW CLICK: a cell with its own click (editor, buttons, link, menu, component,
@@ -775,36 +785,64 @@ export const PRIMARY_CELL_SUFFIX = '__primary'
 
 /** The field the first column of a tree listing paints: its text indented by the row's depth. */
 export const TREE_CELL_SUFFIX = '__treeCell'
-const TREE_INDENT = '\u00a0\u00a0\u00a0\u00a0'
+/** The client-state keys of a tree listing's CLOSED rows. */
+const TREE_KEY = 'listing-tree:'
+const TREE_LEVEL_PX = 24
+const TREE_TOGGLE_PX = 38
+
+function treeCellExtraPx(rows) {
+  return TREE_TOGGLE_PX + TREE_LEVEL_PX * rows.reduce((deepest, r) => Math.max(deepest, r._treeDepth || 0), 0)
+}
+
+const treeSearchOf = (searchText, filters) => JSON.stringify([searchText || '', filters || {}])
+// a listing opens with no search: the first one the user runs is already a new one
+let treeSearchShown = treeSearchOf()
+/**
+ * A new search or filter opens the tree again: a row closed before could hide the match the user is
+ * now looking for (the server keeps the branches that lead to one). Paging is not a new search.
+ */
+export function openTreeRowsOnNewSearch(searchText, filters) {
+  const search = treeSearchOf(searchText, filters)
+  if (search !== treeSearchShown) clearUiValues(TREE_KEY)
+  treeSearchShown = search
+}
 
 /**
  * A tree listing's rows (each nesting its next level under `children`) as the FLAT rows a table
- * draws: depth first, each parent before its children, `_treeDepth` stamped and the first column's
- * text indented by it in `<id>__treeCell` (VB CSP: the template cannot indent). A row keeps its
- * `_rowNumber` — the table's key — unless it has none or another row has it already (REST children
- * carry none; a server may number each level from 0): then it is keyed by its path, `<parent>/<i>`.
+ * draws: depth first, each parent before its children — unless it is closed, which hides them —,
+ * `_treeDepth` stamped, the first column's text in `<id>__treeCell` and the disclosure precomputed
+ * (VB CSP: treeDisclosureOf). A row keeps its `_rowNumber` — the table's key — unless it has none or
+ * another row has it already (REST children carry none; a server may number each level from 0): then
+ * it is keyed by its path, `<parent>/<i>`. What remembers a closed row is the row's IDENTITY under
+ * its parent (identifier column, `id`, else its position), so it survives a refetch and a new page.
  * The `children` themselves are dropped from the flat row: they are rows of their own now.
  */
-export function treeRowsOf(rows, columns) {
-  const firstCol = (columns || []).map((c) => (c && c.metadata) || c).find(Boolean)
-  const first = firstCol && firstCol.id
+export function treeRowsOf(rows, columns, keyPrefix = TREE_KEY) {
+  const cols = (columns || []).map((c) => (c && c.metadata) || c).filter(Boolean)
+  const first = cols[0] && cols[0].id
+  const identifier = (cols.find((c) => c.identifier) || {}).id
   const out = []
   const seen = new Set()
-  const walk = (items, depth, parentKey) => (items || []).forEach((row, i) => {
+  const walk = (items, depth, parentKey, parentIdentity) => (items || []).forEach((row, i) => {
     if (!row || typeof row !== 'object') return
     const { children, ...rest } = row
     let key = rest._rowNumber
     if (key == null || seen.has(String(key))) key = parentKey == null ? '_row:' + i : parentKey + '/' + i
     seen.add(String(key))
+    const own = rest[identifier] ?? rest.id ?? i
+    const identity = parentIdentity == null ? String(own) : parentIdentity + '/' + own
+    const uiKey = keyPrefix + identity
+    const hasChildren = Array.isArray(children) && children.length > 0
+    const expanded = hasChildren && !uiValueOf(uiKey, false)
     const flat = { ...rest, _rowNumber: key, _treeDepth: depth }
     if (first) {
       const v = rest[first]
-      flat[first + TREE_CELL_SUFFIX] = TREE_INDENT.repeat(depth) + (v == null ? '' : typeof v === 'object' ? (v.message || v.label || '') : String(v))
+      flat[first + TREE_CELL_SUFFIX] = v == null ? '' : typeof v === 'object' ? (v.message || v.label || '') : String(v)
     }
-    out.push(flat)
-    if (Array.isArray(children)) walk(children, depth + 1, key)
+    out.push({ ...flat, __hasChildren: hasChildren, ...treeDisclosureOf({ depth, hasChildren, expanded, uiKey, uiValue: expanded, name: first ? flat[first + TREE_CELL_SUFFIX] : '' }) })
+    if (expanded) walk(children, depth + 1, key, identity)
   })
-  walk(rows, 0, null)
+  walk(rows, 0, null, null)
   return out
 }
 
