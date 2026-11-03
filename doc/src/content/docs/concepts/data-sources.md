@@ -104,8 +104,9 @@ visibly rather than quietly calling an endpoint nobody declared.
 ## Values in a url, a header or a body: `${…}`
 
 A source's `url`, `headers` and `body` take `${…}` placeholders — `${state.x}` (the screen's state),
-`${appState.x}`, `${secret.X}` (proxy only) — and every leg resolves them the same way: the browser
-(Vaadin and Redwood) on a direct call, the Mateu server (Java, .NET, Python) on a proxied one.
+`${appState.x}`, `${secret.X}` (proxy only) — and every leg resolves them the same way: the client
+(Vaadin and Redwood in the browser, the React Native app, the IntelliJ plugin) on a direct call, the
+Mateu server (Java, .NET, Python) on a proxied one.
 
 **In a url, Mateu encodes each value where it lands — do not encode it yourself.** A value in the
 path is encoded as one segment (`/` → `%2F`; a `.` or `..` value is refused), a value after the `?`
@@ -125,13 +126,25 @@ for `Sample Return` as `Sample%20Return`. A call that is only *part* of an expre
 lands.
 
 **On the proxied leg** the server is not a JavaScript engine, but it evaluates the same small
-expression language as the browser (`ProxyExpression`: paths, `secret.X`, literals, `??`, `?.`,
-ternaries, arithmetic, comparisons, `encodeURIComponent(x)`, `String(x)`, `Number(x)`,
-`JSON.stringify(x)`), pinned by the corpus
-`conformance/client/source-templates.json`. Two differences remain: `${appState.x}` and `${data.x}`
-are browser-only (absent on the proxied leg), and an expression outside that subset renders empty
-(and is logged) rather than guessed — the validator warns about it for a proxied source
-(`proxy_unsafe_template`). A source that needs more runs direct.
+expression language as the browser (`ProxyExpression`): paths and `a[i]` (a string's characters
+too), `secret.X`, literals (`1e3` included), `??`, `?.`, ternaries, arithmetic, comparisons, `==`
+(loose) and `===` (strict, as in JavaScript), `encodeURIComponent(x)`, `String(x)`, `Number(x)`,
+`JSON.stringify(x)`, `Math.round/floor/ceil/abs/min/max`, and the pure methods of a string, number
+or list — `toLowerCase`, `toUpperCase`, `trim`, `includes`, `startsWith`, `endsWith`, `indexOf`,
+`slice`, `substring`, `padStart`, `padEnd`, `toFixed`, `join`, `toString`. It is pinned by the corpus
+`conformance/client/source-templates.json`, which every leg runs. Two differences remain:
+
+- **`${appState.x}`, `${data.x}` and `${appData.x}` are browser-only.** The proxied call is made
+  from the component state (and the action's parameters) the request carries; the app state and
+  the page's data are the browser's, so on a proxied source they render **empty**. Put what a
+  proxied url needs in the screen's state (or a route parameter), or keep that source direct.
+- An expression **outside the subset** (another method, `split`, `replace`, an arrow function)
+  renders empty and is logged rather than guessed.
+
+The validator warns about both for a source that may be proxied (`proxy_unsafe_template`), and also
+about a url whose **host** a client value would choose (`${state.base}/people`, `https://${host}/…`):
+only a `${secret.X}` may name the origin, so the proxied leg refuses that call. A source that needs
+more runs direct.
 
 **Money values.** A `dataType: money` field holds `{value, currency, locale}`. In a template it lands
 as its **amount** — `${state.budget}` → `12500000` — and its currency is `${state.budget.currency}`:
@@ -193,14 +206,19 @@ What the client receives of a proxied source is only what it needs to ask for it
 `proxy` flag and the reading rules (`itemsPath`, `fields`, `totalPath`…). Its **headers and body
 template never leave the server** — not in the app's catalogue, not in a screen, not in a bundle's
 `manifest.json` — so neither a secret placeholder nor an internal header is visible in the browser.
-The server, in turn, only proxies sources declared `proxy: true`: asking it to relay a direct source
-is refused.
+The server, in turn, only proxies sources declared `proxy: true`: a `__restfetch__` (the reserved
+action a renderer sends for a proxied call) naming a direct source is refused with a 403, in Java,
+.NET and Python — relaying it would run a server-side call, `${secret.X}` resolved, the author never
+asked for.
 
 The expressions in a proxied source's url, headers and body are evaluated by the server with the
-same rules the browser uses for a direct one (arithmetic, `??`, `?.`, `[]`, `String`, `Number`,
-`encodeURIComponent`, `JSON.stringify`; lists render as `a,b`), in Java, .NET and Python alike —
-pinned by the shared corpus `conformance/client/source-templates.json`. An expression outside that
-subset renders empty and the validator warns `proxy_unsafe_template`.
+same rules the browser uses for a direct one (the subset listed under "Values in a url, a header or
+a body" above; lists render as `a,b`), in Java, .NET and Python alike — pinned by the shared corpus
+`conformance/client/source-templates.json`. The action's parameters reach `${state.x}` as on the
+direct leg (a kanban move's `_toColumnId`), a bulk action (`forEachSelectedRow`) makes one call per
+selected row on the server, each row merged over the state, and — in Java — a route's `fixedParams`
+win over the client's state on this leg too. An expression outside that subset renders empty and the
+validator warns `proxy_unsafe_template`.
 
 ## When a call fails
 

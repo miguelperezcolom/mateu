@@ -108,6 +108,8 @@ public class UiServingTests
 
         Assert.Contains("<mateu-ui", await http.GetStringAsync("/ui-probe"));
         Assert.Contains("<mateu-ui", await http.GetStringAsync("/ui-probe/7/edit")); // any depth
+        // a record whose id has a dot is a route, not a file (Java's SpaFallback)
+        Assert.Contains("<mateu-ui", await http.GetStringAsync("/ui-probe/ana.perez"));
 
         var js = await http.GetAsync("/assets/mateu-vaadin.js");
         Assert.Equal(HttpStatusCode.OK, js.StatusCode);
@@ -174,7 +176,10 @@ public class UiServingTests
             await using var _ = web;
             Assert.Contains("<mateu-ui", await http.GetStringAsync("/"));
             Assert.Equal(HttpStatusCode.OK, (await http.GetAsync("/assets/index.css")).StatusCode);
-            Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync("/META-INF/MANIFEST.MF")).StatusCode);
+            // the jar's other entries are never served: a path that is not an asset is a route (the
+            // page answers it, as on Java), an asset outside static/ is a 404
+            Assert.DoesNotContain("Manifest-Version", await http.GetStringAsync("/META-INF/MANIFEST.MF"));
+            Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync("/META-INF/missing.js")).StatusCode);
         }
         finally
         {
@@ -225,6 +230,11 @@ public class UiServingTests
         Assert.False(UiPage.SpaCandidate("/mateu/v3/x"));
         Assert.False(UiPage.SpaCandidate("/"));
         Assert.False(UiPage.SpaCandidate("/a.js"));
+        // a record whose id has a dot (a username, a version) is a route, not a file (Java's SpaFallback)
+        Assert.True(UiPage.SpaCandidate("/people/ana.perez"));
+        Assert.True(UiPage.SpaCandidate("/versions/1.2"));
+        Assert.False(UiPage.SpaCandidate("/assets/x.CSS"));
+        Assert.False(UiPage.SpaCandidate("/f.woff2?v=1"));
         Assert.True(UiPage.AcceptsHtml(null));
         Assert.True(UiPage.AcceptsHtml("text/html,*/*"));
         Assert.False(UiPage.AcceptsHtml("application/json"));

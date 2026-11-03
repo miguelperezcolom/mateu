@@ -360,6 +360,8 @@ def test_the_fastapi_endpoint_answers_a_denied_action_with_403():
     )
     assert response.status_code == 403
     assert "Forbidden" in response.text
+    # an ERROR message stays until dismissed in every backend (duration 0), the refusal too
+    assert [m["duration"] for m in response.json()["messages"]] == [0]
     assert CALLS.get("approve", 0) == before
     ok = TestClient(app).post("/mateu/v3/sync/sec-probe", json={"route": "sec-probe", "actionId": "go"})
     assert ok.status_code == 200 and "went" in ok.text

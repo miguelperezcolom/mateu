@@ -95,6 +95,10 @@ def test_the_page_is_served_at_the_mount_and_its_deep_links_aimed_at_the_mount(v
     deep = c.get("/ui-probe", headers={"accept": "text/html,application/xhtml+xml"})
     assert deep.status_code == 200 and "<mateu-ui" in deep.text
     assert c.get("/ui-probe/7/edit").status_code == 200  # any depth
+    # a record whose id has a dot (a username, a version) is a route, not a file (Java's SpaFallback)
+    dotted = c.get("/ui-probe/ana.perez", headers={"accept": "text/html"})
+    assert dotted.status_code == 200 and "<mateu-ui" in dotted.text
+    assert c.get("/ui-probe/missing.js", headers={"accept": "text/html"}).status_code == 404
 
 
 def test_the_renderers_assets_are_served_at_the_origin_root(vaadin_static):
@@ -144,7 +148,10 @@ def test_the_renderer_jar_itself_can_be_served(vaadin_static, tmp_path):
     c = client(str(jar))
     assert "<mateu-ui" in c.get("/").text
     assert c.get("/assets/index.css").status_code == 200
-    assert c.get("/META-INF/MANIFEST.MF").status_code == 404  # only the renderer's own files
+    # only the renderer's own files: a path that is not an asset is a route (the page answers it,
+    # as on Java), an asset outside static/ is a 404
+    assert "Manifest-Version" not in c.get("/META-INF/MANIFEST.MF").text
+    assert c.get("/META-INF/missing.js").status_code == 404
 
 
 def test_the_renderer_comes_from_the_environment_when_not_passed(vaadin_static, monkeypatch):
@@ -182,6 +189,8 @@ def test_mount_ui_mirrors_javas_index_page():
     assert ui_page.mount_ui("<html>no markers</html>", "") == "<html>no markers</html>"
     assert ui_page.spa_candidate("/orders/7") and not ui_page.spa_candidate("/mateu/v3/x")
     assert not ui_page.spa_candidate("/") and not ui_page.spa_candidate("/a.js")
+    assert ui_page.spa_candidate("/people/ana.perez") and ui_page.spa_candidate("/versions/1.2")
+    assert not ui_page.spa_candidate("/assets/x.CSS") and not ui_page.spa_candidate("/f.woff2?v=1")
     assert ui_page.accepts_html(None) and ui_page.accepts_html("text/html,*/*")
     assert not ui_page.accepts_html("application/json")
     assert ui_page.cache_control_for("/version_123/x.js") == ui_page.IMMUTABLE_CACHE_CONTROL

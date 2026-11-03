@@ -63,6 +63,17 @@ public final class CrudWriteGate {
     }
   }
 
+  /**
+   * Refuses (403 + WARN) a "Save and next" the crud's display turns off or disables — a disabled
+   * button is inert, and an action forced past it is refused like any other the page does not
+   * offer.
+   */
+  public static void checkSaveAndNext(Crud<?, ?, ?, ?, ?, ?> crud) {
+    if (!displayOf(crud).saveAndNext().enabled()) {
+      throw refused("save and next", crud);
+    }
+  }
+
   /** Refuses (403 + WARN) a delete the crud does not offer. */
   public static void checkDelete(Crud<?, ?, ?, ?, ?, ?> crud) {
     if (!mayDelete(crud)) {

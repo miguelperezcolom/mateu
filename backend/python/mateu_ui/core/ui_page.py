@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import mimetypes
 import os
+import re
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -200,14 +201,32 @@ def rewrite_oracle_cdn(html: str, mirror: str | None) -> str:
     return html.replace(ORACLE_CDN, mirror).replace(ORACLE_CDN_PRECONNECT, f'href="{origin}"')
 
 
+#: Java's ``SpaFallback.ASSET_EXTENSIONS``: a path whose last segment ends in one of them is a FILE;
+#: any other path — ``/people/ana.perez``, ``/versions/1.2`` — is a route, dots and all (any dot
+#: used to make it a file, so a deep link to a dotted id was a 404)
+_ASSET = re.compile(
+    r"\.(?:js|mjs|cjs|map|css|html?|json|webmanifest|xml|txt|csv|pdf|png|jpe?g|gif|webp|avif|svg|ico"
+    r"|bmp|tiff?|woff2?|ttf|otf|eot|mp4|webm|ogg|mp3|wav|m4a|wasm|zip|gz|br|ya?ml|md|bcmap)$",
+    re.IGNORECASE,
+)
+
+
+def is_asset(path: str | None) -> bool:
+    """Java's ``SpaFallback.isAsset``: the last segment ends in an asset's extension."""
+    if not path:
+        return False
+    bare = path.split("?", 1)[0]
+    return bool(_ASSET.search(bare.rsplit("/", 1)[-1]))
+
+
 def spa_candidate(path: str) -> bool:
-    """Java's ``SpaFallback.candidate``: a deep link the page may answer — not the root itself, no
-    file extension, never the API (``/mateu/…``) and never a PWA file of a nested mount
+    """Java's ``SpaFallback.candidate``: a deep link the page may answer — not the root itself, not
+    an asset (:func:`is_asset`), never the API (``/mateu/…``) and never a PWA file of a nested mount
     (``/crm/mateu/v3/pwa/…``)."""
     return (
         bool(path)
         and path != "/"
-        and "." not in path
+        and not is_asset(path)
         and not path.startswith("/mateu")
         and not pwa.is_endpoint(path)
     )

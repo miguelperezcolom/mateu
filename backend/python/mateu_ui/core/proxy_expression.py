@@ -8,14 +8,18 @@ turn a working ``${(state.page ?? 0) * 20}`` into an empty value. Pinned by the 
 
 Supported: literals (numbers, ``'…'``/``"…"``, ``true false null undefined``), the roots ``state``
 and ``secret`` (any other bare name reads the state), member access ``a.b``, ``a?.b``, ``a[i]``,
-``a?.[i]``, unary ``! - +``, ``* / % + -``, comparisons, ``== != === !==``, ``&& || ??``, ``?:``,
-parentheses and the calls ``encodeURIComponent``, ``String``, ``Number``, ``JSON.stringify``.
+``a?.[i]``, unary ``! - +``, ``* / % + -``, comparisons, ``== !=`` (loose) and ``=== !==`` (strict),
+``&& || ??``, ``?:``, parentheses, number literals with an exponent (``1e3``), a string's characters
+(``s[0]``), the calls ``encodeURIComponent``, ``String``, ``Number``, ``JSON.stringify``,
+``Math.round/floor/ceil/abs/min/max`` and the pure methods in :data:`METHODS` of a string, number or
+list (``state.code.toLowerCase()``).
 ``data``, ``appState`` and ``appData`` exist only in the browser: here they are undefined.
 Anything else raises :class:`Unsupported`. Never evaluates code.
 """
 
 from __future__ import annotations
 
+import decimal
 import json
 import math
 import urllib.parse
@@ -77,6 +81,15 @@ def _tokenize(s: str) -> list[str]:
             j = i
             while j < len(s) and (s[j].isdigit() or s[j] == "."):
                 j += 1
+            # an exponent, as in JS: 1e3, 2.5E-2
+            if j < len(s) and s[j] in "eE":
+                k = j + 1
+                if k < len(s) and s[k] in "+-":
+                    k += 1
+                if k < len(s) and s[k].isdigit():
+                    while k < len(s) and s[k].isdigit():
+                        k += 1
+                    j = k
             out.append(s[i:j])
             i = j
             continue
@@ -180,6 +193,27 @@ def _loose_equals(left: Any, right: Any) -> bool:
     if isinstance(left, (int, float, bool)) or isinstance(right, (int, float, bool)):
         return _to_number(left) == _to_number(right)
     return text(left) == text(right)
+
+
+def _is_number(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _strict_equals(left: Any, right: Any) -> bool:
+    """``===``: the same JavaScript type and value (objects by identity; NaN never equal)."""
+    if left is UNDEFINED or right is UNDEFINED:
+        return left is right
+    if left is None or right is None:
+        return left is None and right is None
+    if _is_number(left) and _is_number(right):
+        return float(left) == float(right)
+    if isinstance(left, str) and isinstance(right, str):
+        return left == right
+    if isinstance(left, bool) and isinstance(right, bool):
+        return left == right
+    if _is_number(left) or isinstance(left, (str, bool)):
+        return False
+    return left is right
 
 
 def _compare(left: Any, right: Any) -> int:
@@ -312,6 +346,8 @@ class _Parser:
             if member != "stringify":
                 raise Unsupported(f"JSON.{member} is not supported in ${{{self.src}}}")
             return self.call("JSON.stringify")
+        if t == "Math":
+            return _MATH
         if t == "state":
             return UNDEFINED if self.skip else self.state
         if t == "secret":
@@ -345,10 +381,13 @@ class _Parser:
                 name = self.next()
                 if name.startswith(_STRING) or not (name[0].isalpha() or name[0] in "_$"):
                     raise Unsupported(f"a member name was expected in ${{{self.src}}}")
+                calls = self.peek() == "("
                 if t == "?." and _absent(value):
+                    if calls:
+                        self.skipping(True, self.arguments)
                     value = UNDEFINED
                     continue
-                value = self.member(value, name)
+                value = self.call_method(value, name, self.arguments()) if calls else self.member(value, name)
             elif t in ("[", "?.["):
                 self.next()
                 key = self.expression(0)
@@ -358,7 +397,10 @@ class _Parser:
                     continue
                 value = self.member(value, key)
             elif t == "(":
-                raise Unsupported("only encodeURIComponent, String, Number and JSON.stringify can be called")
+                raise Unsupported(
+                    "only encodeURIComponent, String, Number, JSON.stringify, Math functions and"
+                    " allow-listed string/number/list methods can be called"
+                )
             else:
                 return value
 
@@ -382,9 +424,180 @@ class _Parser:
             except ValueError:
                 return UNDEFINED
             return obj[i] if 0 <= i < len(obj) else UNDEFINED
-        if isinstance(obj, str) and name == "length":
-            return float(len(obj))
+        if isinstance(obj, str):
+            if name == "length":
+                return float(len(obj))
+            try:
+                i = int(name)
+            except ValueError:
+                return UNDEFINED
+            return obj[i] if 0 <= i < len(obj) and name.isdigit() else UNDEFINED
         return UNDEFINED
+
+    def arguments(self) -> list:
+        """``(a, b, …)`` after a callee: the arguments, evaluated (skipped in an untaken branch)."""
+        self.expect("(")
+        args: list = []
+        if self.peek() == ")":
+            self.next()
+            return args
+        while True:
+            args.append(self.expression(0))
+            t = self.next()
+            if t == ")":
+                return args
+            if t != ",":
+                raise Unsupported(f"expected ',' or ')' but found '{t}' in ${{{self.src}}}")
+
+    def call_method(self, value: Any, name: str, args: list) -> Any:
+        """``value.name(args)``, with JavaScript's meaning, for the allow-listed methods only."""
+        if value is _MATH:
+            if name not in _MATH_FUNCTIONS:
+                raise Unsupported(f"Math.{name} is not supported in ${{{self.src}}}")
+            return UNDEFINED if self.skip else _math(name, args)
+        if name not in METHODS:
+            raise Unsupported(f"'{name}' cannot be called in ${{{self.src}}}")
+        if self.skip:
+            return UNDEFINED
+        if _absent(value):
+            raise ValueError(f"cannot call '{name}' of {text(value)}")
+        a0 = args[0] if args else UNDEFINED
+        a1 = args[1] if len(args) > 1 else UNDEFINED
+        if isinstance(value, str):
+            return _string_method(value, name, a0, a1)
+        if isinstance(value, bool):
+            if name == "toString":
+                return text(value)
+            raise ValueError(f"'{name}' is not callable on a boolean")
+        if isinstance(value, (int, float)):
+            return _number_method(float(value), name, a0)
+        if isinstance(value, (list, tuple)):
+            return _list_method(list(value), name, a0, a1)
+        raise ValueError(f"'{name}' is not callable on {text(value)}")
+
+
+class _MathScope:
+    """``Math``: only its pure rounding / min / max functions are reachable."""
+
+
+_MATH = _MathScope()
+_MATH_FUNCTIONS = frozenset({"round", "floor", "ceil", "abs", "min", "max"})
+
+#: the methods of a string, number or list an expression may call — pure ones only (Java's
+#: ``ProxyExpression.METHODS``)
+METHODS = frozenset({
+    "toLowerCase", "toUpperCase", "trim", "includes", "startsWith", "endsWith", "slice", "substring",
+    "indexOf", "padStart", "padEnd", "toString", "toFixed", "join",
+})
+
+
+def _to_integer(v: Any) -> int:
+    """JavaScript's ToIntegerOrInfinity, clamped to the int32 range (NaN → 0)."""
+    d = _to_number(v)
+    if math.isnan(d):
+        return 0
+    return int(max(-2147483648.0, min(2147483647.0, d)))
+
+
+def _slice_range(length: int, start: Any, end: Any) -> tuple[int, int]:
+    """``slice(start, end)``'s range: a negative index counts from the end, then clamped."""
+    s = 0 if start is UNDEFINED else _to_integer(start)
+    e = length if end is UNDEFINED else _to_integer(end)
+    lo = max(length + s, 0) if s < 0 else min(s, length)
+    hi = max(length + e, 0) if e < 0 else min(e, length)
+    return lo, hi
+
+
+def _pad(s: str, length: Any, filler: Any, start: bool) -> str:
+    target = _to_integer(length)
+    fill = " " if filler is UNDEFINED else text(filler)
+    if target <= len(s) or fill == "":
+        return s
+    if target > 10_000:
+        raise ValueError("pad length")
+    padding = (fill * (target // len(fill) + 1))[: target - len(s)]
+    return padding + s if start else s + padding
+
+
+def _string_method(s: str, name: str, a0: Any, a1: Any) -> Any:
+    if name == "toLowerCase":
+        return s.lower()
+    if name == "toUpperCase":
+        return s.upper()
+    if name == "trim":
+        return s.strip()
+    if name == "includes":
+        return text(a0) in s
+    if name == "startsWith":
+        return s.startswith(text(a0))
+    if name == "endsWith":
+        return s.endswith(text(a0))
+    if name == "indexOf":
+        return float(s.find(text(a0)))
+    if name == "slice":
+        lo, hi = _slice_range(len(s), a0, a1)
+        return s[lo:hi] if lo < hi else ""
+    if name == "substring":
+        lo = max(0, min(_to_integer(a0), len(s)))
+        hi = len(s) if a1 is UNDEFINED else max(0, min(_to_integer(a1), len(s)))
+        return s[min(lo, hi):max(lo, hi)]
+    if name in ("padStart", "padEnd"):
+        return _pad(s, a0, a1, name == "padStart")
+    if name == "toString":
+        return s
+    raise ValueError(f"'{name}' is not a string method")
+
+
+def _number_method(d: float, name: str, a0: Any) -> Any:
+    if name == "toString":
+        return _number(d)
+    if name == "toFixed":
+        digits = 0 if a0 is UNDEFINED else _to_integer(a0)
+        if digits < 0 or digits > 100:
+            raise ValueError("toFixed digits")
+        if math.isnan(d) or math.isinf(d):
+            return _number(d)
+        # the EXACT value the double holds, rounded half away from zero (JavaScript's rule)
+        exact = decimal.Decimal(d).quantize(decimal.Decimal(1).scaleb(-digits), rounding=decimal.ROUND_HALF_UP)
+        return format(exact, "f")
+    raise ValueError(f"'{name}' is not a number method")
+
+
+def _list_method(items: list, name: str, a0: Any, a1: Any) -> Any:
+    if name == "join":
+        return ("," if a0 is UNDEFINED else text(a0)).join(text(x) for x in items)
+    if name == "includes":
+        return any(_strict_equals(x, a0) for x in items)
+    if name == "indexOf":
+        return float(next((i for i, x in enumerate(items) if _strict_equals(x, a0)), -1))
+    if name == "slice":
+        lo, hi = _slice_range(len(items), a0, a1)
+        return items[lo:hi] if lo < hi else []
+    if name == "toString":
+        return text(items)
+    raise ValueError(f"'{name}' is not a list method")
+
+
+def _math(name: str, args: list) -> float:
+    a0 = args[0] if args else UNDEFINED
+    if name == "round":
+        d = _to_number(a0)
+        return d if math.isnan(d) or math.isinf(d) else float(math.floor(d + 0.5))
+    if name == "floor":
+        d = _to_number(a0)
+        return d if math.isnan(d) or math.isinf(d) else float(math.floor(d))
+    if name == "ceil":
+        d = _to_number(a0)
+        return d if math.isnan(d) or math.isinf(d) else float(math.ceil(d))
+    if name == "abs":
+        return abs(_to_number(a0))
+    acc = math.inf if name == "min" else -math.inf
+    for a in args:
+        d = _to_number(a)
+        if math.isnan(d):
+            return math.nan
+        acc = min(acc, d) if name == "min" else max(acc, d)
+    return acc
 
 
 def _apply(op: str, left: Any, right: Any) -> Any:
@@ -394,10 +607,14 @@ def _apply(op: str, left: Any, right: Any) -> Any:
         return left if truthy(left) else right
     if op == "&&":
         return right if truthy(left) else left
-    if op in ("==", "==="):
+    if op == "==":
         return _loose_equals(left, right)
-    if op in ("!=", "!=="):
+    if op == "!=":
         return not _loose_equals(left, right)
+    if op == "===":
+        return _strict_equals(left, right)
+    if op == "!==":
+        return not _strict_equals(left, right)
     if op == "<":
         return _compare(left, right) < 0
     if op == "<=":

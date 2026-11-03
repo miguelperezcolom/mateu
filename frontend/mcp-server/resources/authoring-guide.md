@@ -69,6 +69,13 @@ content:
 - Any component may carry a `note:` — a sentence of design intent. Nothing renders it; write one
   wherever the person asked for behaviour the layout cannot express.
 - Texts may use `${state.x}`, `${data.x}` and `${i18n.key}` expressions.
+- A source's `url`, `headers` and `body` take `${…}` too; Mateu percent-encodes each value where it
+  lands, so do not wrap it in `encodeURIComponent`. A `proxy: true` source is filled by the SERVER:
+  it sees `state` (and `secret.X`) but not `data`/`appState`/`appData`, only a `${secret.X}` may
+  name the host, and it evaluates a subset of JavaScript (paths, `??`, `?.`, ternaries, arithmetic,
+  comparisons, `String`/`Number`/`encodeURIComponent`, `Math.*`, and pure string/list methods such as
+  `toLowerCase()`, `slice()`, `join()`). The validator warns **`proxy_unsafe_template`** for a
+  placeholder outside that, which would be sent empty or refused once the source is proxied.
 
 ## Other file kinds
 

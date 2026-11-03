@@ -75,8 +75,12 @@ internal sealed partial class SyncHandler
         // the WRITES the crud does not offer are refused (403), not only undrawn (mirrors Java's
         // CrudWriteGate): a [ReadOnly] crud, CanCreate/CanEdit/CanDelete narrowed, a Disabled/Off
         // Create or Delete — a crafted request used to create, save and delete anyway
-        if (rq.ActionId is "create" or "save" or "save-and-next" or "update-row" or "delete")
+        // — and so are the ways INTO a write: New / Edit and the /new, /{id}/edit routes (a create
+        // the crud does not allow used to open its form and only refuse the save)
+        if (rq.ActionId is "create" or "save" or "save-and-next" or "update-row" or "delete" or "new" or "edit")
             EnsureWriteAllowed(crud, crudType, rq.ActionId);
+        else if (string.IsNullOrEmpty(rq.ActionId) && mode is "new" or "edit")
+            EnsureWriteAllowed(crud, crudType, mode);
 
         return rq.ActionId switch
         {
@@ -215,8 +219,10 @@ internal sealed partial class SyncHandler
         var readOnly = crudType.Find<ReadOnlyAttribute>() is not null;
         var allowed = !readOnly && actionId switch
         {
-            "create" => Can("CanCreate") && display.Create.Enabled(),
+            "create" or "new" => Can("CanCreate") && display.Create.Enabled(),
             "delete" => Can("CanDelete") && display.Delete.Enabled(),
+            // a Disabled/Off "Save and next" cannot be forced either (Java's checkSaveAndNext)
+            "save-and-next" => Can("CanEdit") && display.SaveAndNext.Enabled(),
             _ => Can("CanEdit"),
         };
         if (!allowed)

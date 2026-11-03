@@ -169,10 +169,26 @@ internal static class UiPage
             .Replace(OracleCdnPreconnect, "href=\"" + origin + "\"", StringComparison.Ordinal);
     }
 
+    /// <summary>Java's <c>SpaFallback.ASSET_EXTENSIONS</c>: a path whose last segment ends in one of
+    /// them is a FILE; any other path — <c>/people/ana.perez</c>, <c>/versions/1.2</c> — is a route,
+    /// dots and all (any dot used to make it a file, so a deep link to a dotted id was a 404).</summary>
+    private static readonly System.Text.RegularExpressions.Regex Asset = new(
+        @"\.(?:js|mjs|cjs|map|css|html?|json|webmanifest|xml|txt|csv|pdf|png|jpe?g|gif|webp|avif|svg|ico|bmp|tiff?|woff2?|ttf|otf|eot|mp4|webm|ogg|mp3|wav|m4a|wasm|zip|gz|br|ya?ml|md|bcmap)$",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>Java's <c>SpaFallback.isAsset</c>: the last segment ends in an asset's extension.</summary>
+    public static bool IsAsset(string? path)
+    {
+        if (string.IsNullOrEmpty(path)) return false;
+        var query = path.IndexOf('?');
+        var bare = query < 0 ? path : path[..query];
+        return Asset.IsMatch(bare[(bare.LastIndexOf('/') + 1)..]);
+    }
+
     /// <summary>Java's <c>SpaFallback.candidate</c>: a deep link the page may answer — not the root
-    /// itself, no file extension, and never the API (<c>/mateu/…</c>).</summary>
+    /// itself, not an asset (<see cref="IsAsset"/>), and never the API (<c>/mateu/…</c>).</summary>
     public static bool SpaCandidate(string? path) =>
-        !string.IsNullOrEmpty(path) && path != "/" && !path.Contains('.') && !path.StartsWith("/mateu", StringComparison.Ordinal);
+        !string.IsNullOrEmpty(path) && path != "/" && !IsAsset(path) && !path.StartsWith("/mateu", StringComparison.Ordinal);
 
     /// <summary>Java's <c>SpaFallback.acceptsHtml</c>: a browser navigation (or no preference) — a data
     /// fetch asking for JSON (or <c>*/*</c>) is never answered with the page.</summary>

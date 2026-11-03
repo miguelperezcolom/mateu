@@ -475,6 +475,9 @@ public final class UidlValidator {
             value);
       } else if (("url".equals(key) || "body".equals(key)) && "RestDataSource".equals(defName)) {
         proxySafe(text, path, value);
+        if ("url".equals(key)) {
+          originSafe(text, path, value);
+        }
       } else if ("fieldType".equals(key)) {
         resolves(
             context.fieldType(),
@@ -529,6 +532,27 @@ public final class UidlValidator {
               path,
               at.getStartMark());
         }
+      }
+    }
+
+    /**
+     * A url whose HOST a client value would choose ({@code ${state.host}/x}, {@code
+     * https://${String(state.h)}/x}): the proxied leg refuses to call it (only a {@code
+     * ${secret.X}} may name the origin), so the source would fail as soon as it is proxied.
+     */
+    private void originSafe(String template, String path, Node at) {
+      var expr = io.mateu.core.domain.UrlOrigin.clientChosen(template);
+      if (expr != null) {
+        issue(
+            warnings,
+            "proxy_unsafe_template",
+            "${"
+                + expr
+                + "} chooses the origin of the url: only a ${secret.X} may name the host, so if"
+                + " this source is proxied (proxy: true, or an environment flips it) the call is"
+                + " refused.",
+            path,
+            at.getStartMark());
       }
     }
 

@@ -197,7 +197,6 @@
     {
       "name": "global allow-list", "expr": "Math.max(1, state.age)", "expected": 30,
       "overrides": {
-        "redwood": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" },
         "intellij": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" }
       }
     },
