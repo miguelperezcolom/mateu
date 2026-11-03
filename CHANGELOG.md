@@ -47,6 +47,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 - **Redwood: a foldout panel shows a scroll bar only when its content does not fit.** The room left for
   the paging dots overflowed every panel by a constant 32px, whatever it held and however tall the window.
+- **Redwood: saving a record no longer wipes a select nobody touched.** `oj-select-one` drops a value that
+  is not among its options (a loan's closed exhibition, when the choices are the open and planned ones) and
+  that counted as an edit, so saving sent the field empty. The value now survives, as on Vaadin; the field
+  still shows blank, because the options do not hold it.
 - **Redwood**: a subheader with more options than fit no longer runs past the edge of the window: what doesn't fit goes into a «More» menu at its end, as on the web renderer.
 - **Redwood: a tree listing (`gridLayout: tree`) folds.** It drew every level always open, with the
   names indented and no way to close a branch; now each parent has a chevron, as on Vaadin. Folding
