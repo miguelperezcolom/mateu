@@ -405,7 +405,17 @@ class CrudMapperMixin(MixinBase):
             display = target.display()
         except Exception:  # noqa: BLE001 - a crud without a no-arg constructor: defaults
             return CrudDisplay.defaults()
-        return display if isinstance(display, CrudDisplay) else CrudDisplay.defaults()
+        display = display if isinstance(display, CrudDisplay) else CrudDisplay.defaults()
+        # can_create() / can_delete() False take the button away (Java's CrudWriteGate.mayX)
+        from dataclasses import replace
+
+        from mateu_ui.uidl import Toggle
+
+        if not _capable(target, "can_create"):
+            display = replace(display, create=Toggle.off)
+        if not _capable(target, "can_delete"):
+            display = replace(display, delete=Toggle.off)
+        return display
 
     def map_listing(self, cls, route: str) -> ServerSideComponent:
         """A capability Listing view: columns from the Row type, and every further feature only
@@ -738,6 +748,18 @@ class CrudMapperMixin(MixinBase):
                 for r in instance.rules()
             )
         return rules
+
+
+def _capable(crud, gate: str) -> bool:
+    """``crud.can_create()`` / ``can_edit()`` / ``can_delete()`` — True when the crud does not
+    answer it (an object that is not a Crud); a gate that fails to run denies (fail closed)."""
+    method = getattr(crud, gate, None)
+    if not callable(method):
+        return True
+    try:
+        return bool(method())
+    except Exception:  # noqa: BLE001 - a broken gate denies rather than writes
+        return False
 
 
 def _unwrap_optional(t):

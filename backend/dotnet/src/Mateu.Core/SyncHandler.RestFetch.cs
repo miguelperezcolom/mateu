@@ -35,24 +35,89 @@ internal sealed partial class SyncHandler
                     $"__restfetch__: {kind}/{id} is not a proxied source (Proxy = true)");
             else if (source is not null)
             {
-                var (body, status, detail) = await FetchProxyAsync(source, rq.ComponentState, cancellationToken).ConfigureAwait(false);
+                var state = CallState(rq);
+                // Bulk (forEachSelectedRow): the loop runs HERE, once per selected listing row, each
+                // row merged over the state so `.../people/${state.id}` resolves to that row's id —
+                // one round trip, the secret stays server-side (Java's RestProxyCalls.forEachSelectedRow)
+                if (StateString(GetState(rq.Parameters, "_forEachSelectedRow")) is "true" or "True")
+                    return await ForEachSelectedRowAsync(source, state, cancellationToken).ConfigureAwait(false);
+                var (body, status, detail) = await FetchProxyAsync(source, state, cancellationToken).ConfigureAwait(false);
                 if (status is { } failed)
-                {
-                    var error = new Dictionary<string, object?>
-                    {
-                        ["status"] = failed,
-                        ["message"] = "Request failed" + (failed > 0 ? $" (HTTP {failed})" : ""),
-                    };
-                    // what the service said (its error body): the renderer shows it instead
-                    if (detail is not null) error["detail"] = detail;
-                    return new UIIncrementDto([], [], [], [], false,
-                        new Dictionary<string, object?> { ["_restfetchError"] = error }, null);
-                }
+                    return RestFetchError(failed, "Request failed" + StatusSuffix(failed), detail);
                 json = body ?? new Dictionary<string, object?>();
             }
         }
         return new UIIncrementDto([], [], [], [], false,
             new Dictionary<string, object?> { ["_restfetch"] = json }, null);
+    }
+
+    /// <summary>The proxy's own routing keys: what to call, never a value to interpolate.</summary>
+    private static readonly HashSet<string> RoutingParameters = ["_sourceKind", "_sourceId", "_forEachSelectedRow"];
+
+    /// <summary>The state a proxied call interpolates with: the component state with the action's
+    /// parameters over it — a kanban move's <c>_cardId</c>/<c>_toColumnId</c> reach
+    /// <c>${state._toColumnId}</c> as on the browser's direct leg (Java's RestProxyCalls.callState).</summary>
+    private static Dictionary<string, object?> CallState(RunActionRqDto rq)
+    {
+        var state = new Dictionary<string, object?>(rq.ComponentState ?? []);
+        if (rq.Parameters is not null)
+            foreach (var (key, value) in rq.Parameters)
+                if (!RoutingParameters.Contains(key)) state[key] = value;
+        return state;
+    }
+
+    private async Task<UIIncrementDto> ForEachSelectedRowAsync(
+        RestDataSourceDto source, Dictionary<string, object?> state, CancellationToken cancellationToken)
+    {
+        var rows = new List<object?>();
+        switch (GetState(state, "crud_selected_items"))
+        {
+            case JsonElement { ValueKind: JsonValueKind.Array } array:
+                rows.AddRange(array.EnumerateArray().Select(e => (object?)e));
+                break;
+            case System.Collections.IEnumerable list and not string:
+                rows.AddRange(list.Cast<object?>());
+                break;
+        }
+        var failedCount = 0;
+        (int Status, string? Detail)? first = null;
+        foreach (var row in rows)
+        {
+            var rowState = new Dictionary<string, object?>(state);
+            switch (row)
+            {
+                case JsonElement { ValueKind: JsonValueKind.Object } el:
+                    foreach (var p in el.EnumerateObject()) rowState[p.Name] = p.Value;
+                    break;
+                case IDictionary<string, object?> map:
+                    foreach (var (k, v) in map) rowState[k] = v;
+                    break;
+            }
+            var (_, status, detail) = await FetchProxyAsync(source, rowState, cancellationToken).ConfigureAwait(false);
+            if (status is { } failed)
+            {
+                failedCount++;
+                first ??= (failed, detail);
+            }
+        }
+        // a failed row must not read as success: surface it rather than reload as if all were done
+        if (first is { } error)
+            return RestFetchError(error.Status, $"{failedCount} of {rows.Count} failed" + StatusSuffix(error.Status), error.Detail);
+        // the rows are gone; the client reloads the listing (successRoute), so no body is needed
+        return new UIIncrementDto([], [], [], [], false,
+            new Dictionary<string, object?> { ["_restfetch"] = new Dictionary<string, object?>() }, null);
+    }
+
+    private static string StatusSuffix(int status) => status > 0 ? $" (HTTP {status})" : "";
+
+    /// <summary>A failed proxied call (Java's restFetchError, same texts): <c>{status, message}</c>
+    /// plus what the service said, which the renderer shows instead.</summary>
+    private static UIIncrementDto RestFetchError(int status, string message, string? detail)
+    {
+        var error = new Dictionary<string, object?> { ["status"] = status, ["message"] = message };
+        if (detail is not null) error["detail"] = detail;
+        return new UIIncrementDto([], [], [], [], false,
+            new Dictionary<string, object?> { ["_restfetchError"] = error }, null);
     }
 
     /// <summary>Fetch a resolved source server-side (url/headers/body interpolated). Answers the

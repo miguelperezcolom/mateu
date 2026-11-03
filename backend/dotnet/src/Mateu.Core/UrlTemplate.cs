@@ -36,6 +36,23 @@ internal static class UrlTemplate
     /// <summary>All but the RFC 3986 unreserved characters percent-encoded (UTF-8, upper-case hex).</summary>
     public static string Encode(string? value) => string.IsNullOrEmpty(value) ? "" : Uri.EscapeDataString(value);
 
+    /// <summary>The first placeholder in the ORIGIN of <paramref name="template"/> that is not
+    /// configuration (a <c>${secret.X}</c>) — a value the client would choose the host with, which
+    /// <see cref="Interpolate"/> refuses — or null. The validator's <c>proxy_unsafe_template</c>
+    /// (Java's <c>UrlOrigin.clientChosen</c>).</summary>
+    public static string? ClientChosenOrigin(string? template)
+    {
+        if (string.IsNullOrEmpty(template) || !template.Contains("${")) return null;
+        var origin = OriginEnd(template);
+        foreach (Match m in Placeholder.Matches(template))
+        {
+            if (m.Index >= origin) break;
+            var expr = m.Groups[1].Value.Trim();
+            if (!SecretOrigin.IsMatch((EncodeCallArgument(expr) ?? expr).Trim())) return expr;
+        }
+        return null;
+    }
+
     /// <summary>Interpolate <paramref name="template"/>, resolving each <c>${expr}</c> with
     /// <paramref name="valueOf"/> and encoding it by position. Throws <see cref="ArgumentException"/>
     /// when a value is refused.</summary>

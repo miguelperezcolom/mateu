@@ -145,4 +145,42 @@ class UidlValidatorTest {
     // what the server does evaluate is not flagged
     assertThat(String.join(" ", messages)).doesNotContain("state.page");
   }
+
+  @Test
+  void aUrlWhoseHostTheClientWouldChooseIsFlagged() {
+    for (var url :
+        List.of(
+            "${state.base}/people",
+            "https://${String(state.host)}/people",
+            "https://${host}.example.com/people")) {
+      var listing =
+          "type: Listing\nrowsSource:\n  url: \""
+              + url
+              + "\"\ncolumns: [{type: GridColumn, id: name}]\n";
+      var messages = new ArrayList<String>();
+      validate(listing)
+          .get("warnings")
+          .forEach(
+              w -> {
+                if ("proxy_unsafe_template".equals(w.get("code").asText())) {
+                  messages.add(w.get("message").asText());
+                }
+              });
+      assertThat(messages).as(url).anyMatch(m -> m.contains("chooses the origin"));
+    }
+    for (var url :
+        List.of(
+            "${secret.API_BASE}/people/${state.id}",
+            "https://${encodeURIComponent(secret.HOST)}/people",
+            "https://api.example.com/people?q=${state.q}",
+            "/people/${state.id}")) {
+      var listing =
+          "type: Listing\nrowsSource:\n  url: \""
+              + url
+              + "\"\ncolumns: [{type: GridColumn, id: name}]\n";
+      var all = new ArrayList<String>();
+      validate(listing).get("warnings").forEach(w -> all.add(w.get("message").asText()));
+      assertThat(all).as(url).noneMatch(m -> m.contains("chooses the origin"));
+    }
+  }
 }

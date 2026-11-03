@@ -33,8 +33,10 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
     var saveAndNext = SAVE_AND_NEXT.equals(actionId);
-    if (saveAndNext && !orchestrator.display().saveAndNext().enabled()) {
-      return null;
+    if (saveAndNext) {
+      // off or disabled: refused (403), not answered "not handled" as if the action did not exist
+      io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate.checkSaveAndNext(
+          orchestrator);
     }
     var persistAction = saveAndNext ? "save" : actionId;
     // a crud that may not create / edit refuses the write itself (403), not only its button

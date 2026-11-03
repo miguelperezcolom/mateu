@@ -184,6 +184,23 @@ def _origin_end(t: str) -> int:
     return 0
 
 
+def client_chosen_origin(template: str | None) -> str | None:
+    """The first placeholder in the ORIGIN of ``template`` that is not configuration (a
+    ``${secret.X}``) — a value the client would choose the host with, which :func:`interpolate_url`
+    refuses — or None. The validator's ``proxy_unsafe_template`` (Java's ``UrlOrigin.clientChosen``)."""
+    if not template or "${" not in template:
+        return None
+    origin = _origin_end(template)
+    for m in _PLACEHOLDER.finditer(template):
+        if m.start() >= origin:
+            break
+        expr = m.group(1).strip()
+        inner = encode_call_argument(expr)
+        if not _SECRET_ORIGIN.fullmatch((inner if inner is not None else expr).strip()):
+            return expr
+    return None
+
+
 def interpolate_url(template: str | None, value_of: Callable[[str], str]) -> str:
     """Interpolate ``template`` resolving each ``${expr}`` with ``value_of(expr)`` (already a string;
     unknown → ""), encoding by position. Raises ``ValueError`` when a value is refused."""

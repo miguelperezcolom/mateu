@@ -373,6 +373,10 @@ seed a screen without taking the choice away from the user. **Fixed** parameters
 the server over everything, *including the component state the client sends back* — because route
 resolution also runs in the browser, and a parameter pinned only there would be a suggestion rather
 than a constraint: a query string or a doctored state could widen the scope the route was pinned to.
+That includes the state a **proxied REST source** is interpolated with: in Java the server puts the
+route's fixed parameters over the client's state (and the action's parameters, and each row of a
+bulk call) before it calls the endpoint. The .NET and Python ports do not apply `fixedParams` on
+that leg yet — pin such a value in a `${secret.X}` or on the server instead.
 
 :::caution
 A `fixedParam` is a routing constraint, not an authorisation check. It stops a request from

@@ -240,3 +240,22 @@ def test_a_source_template_the_server_cannot_evaluate_is_flagged():
     assert "${data.id}" in messages[0] and "only the browser has" in messages[0]
     assert "state.items.map" in messages[1]
     assert "state.page" not in " ".join(messages)
+
+
+@pytest.mark.parametrize(
+    "url,flagged",
+    [
+        ("${state.base}/people", True),
+        ("https://${String(state.host)}/people", True),
+        ("https://${host}.example.com/people", True),
+        ("${secret.API_BASE}/people/${state.id}", False),
+        ("https://${encodeURIComponent(secret.HOST)}/people", False),
+        ("https://api.example.com/people?q=${state.q}", False),
+        ("/people/${state.id}", False),
+    ],
+)
+def test_a_url_whose_host_the_client_would_choose_is_flagged(url, flagged):
+    # Java UidlValidatorTest.aUrlWhoseHostTheClientWouldChooseIsFlagged
+    listing = f'type: Listing\nrowsSource:\n  url: "{url}"\ncolumns: [{{type: GridColumn, id: name}}]\n'
+    messages = [w["message"] for w in validate(listing)["warnings"]]
+    assert any("chooses the origin" in m for m in messages) == flagged

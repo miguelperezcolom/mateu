@@ -16,10 +16,13 @@ import java.util.function.Function;
  * roots {@code state} and {@code secret} (any other bare name reads the state, so {@code
  * searchText}/{@code page}/{@code size} work as in the browser), member access {@code a.b}, {@code
  * a?.b}, {@code a[i]}, {@code a?.[i]}, unary {@code ! - +}, {@code * / % + -}, comparisons, {@code
- * == != === !==}, {@code && || ??}, the conditional {@code ?:}, parentheses, and the calls {@code
- * encodeURIComponent(x)}, {@code String(x)}, {@code Number(x)}, {@code JSON.stringify(x)}. {@code
- * data}, {@code appState} and {@code appData} exist only in the browser: on the server they are
- * absent (undefined), and the validator says so for a proxied source.
+ * == !=} (loose) and {@code === !==} (strict), {@code && || ??}, the conditional {@code ?:},
+ * parentheses, number literals with an exponent ({@code 1e3}), a string's characters ({@code
+ * s[0]}), the calls {@code encodeURIComponent(x)}, {@code String(x)}, {@code Number(x)}, {@code
+ * JSON.stringify(x)}, {@code Math.round/floor/ceil/abs/min/max}, and the pure methods in {@link
+ * #METHODS} of a string, number or list ({@code state.code.toLowerCase()}). {@code data}, {@code
+ * appState} and {@code appData} exist only in the browser: on the server they are absent
+ * (undefined), and the validator says so for a proxied source.
  *
  * <p>Anything else is {@link Unsupported}: the caller renders the placeholder empty (as before) and
  * logs it, rather than guessing. Never evaluates code: there is no assignment, no arbitrary call,
@@ -136,6 +139,15 @@ public final class ProxyExpression {
           || (c == '.' && i + 1 < s.length() && Character.isDigit(s.charAt(i + 1)))) {
         int j = i;
         while (j < s.length() && (Character.isDigit(s.charAt(j)) || s.charAt(j) == '.')) j++;
+        // an exponent, as in JS: 1e3, 2.5E-2
+        if (j < s.length() && (s.charAt(j) == 'e' || s.charAt(j) == 'E')) {
+          int k = j + 1;
+          if (k < s.length() && (s.charAt(k) == '+' || s.charAt(k) == '-')) k++;
+          if (k < s.length() && Character.isDigit(s.charAt(k))) {
+            while (k < s.length() && Character.isDigit(s.charAt(k))) k++;
+            j = k;
+          }
+        }
         out.add(s.substring(i, j));
         i = j;
         continue;
@@ -300,6 +312,7 @@ public final class ProxyExpression {
         }
         yield call("JSON.stringify");
       }
+      case "Math" -> MATH;
       case "state" -> skip ? UNDEFINED : state;
       case "secret" -> new SecretScope();
       default -> {
@@ -339,11 +352,13 @@ public final class ProxyExpression {
         if (name.startsWith("\u0000") || !Character.isJavaIdentifierStart(name.charAt(0))) {
           throw new Unsupported("a member name was expected in ${" + src + "}");
         }
+        boolean calls = "(".equals(peek());
         if ("?.".equals(t) && (value == null || value == UNDEFINED)) {
+          if (calls) skipping(true, this::arguments);
           value = UNDEFINED;
           continue;
         }
-        value = member(value, name);
+        value = calls ? callMethod(value, name, arguments()) : member(value, name);
       } else if ("[".equals(t) || "?.[".equals(t)) {
         next();
         var key = expression(0);
@@ -355,7 +370,8 @@ public final class ProxyExpression {
         value = member(value, key);
       } else if ("(".equals(t)) {
         throw new Unsupported(
-            "only encodeURIComponent, String, Number and JSON.stringify can be called");
+            "only encodeURIComponent, String, Number, JSON.stringify, Math functions and"
+                + " allow-listed string/number/list methods can be called");
       } else {
         return value;
       }
@@ -388,10 +404,201 @@ public final class ProxyExpression {
         return UNDEFINED;
       }
     }
-    if (obj instanceof String s && "length".equals(name)) {
-      return (double) s.length();
+    if (obj instanceof String s) {
+      if ("length".equals(name)) return (double) s.length();
+      try {
+        int i = Integer.parseInt(name);
+        return i >= 0 && i < s.length() ? String.valueOf(s.charAt(i)) : UNDEFINED;
+      } catch (NumberFormatException e) {
+        return UNDEFINED;
+      }
     }
     return UNDEFINED;
+  }
+
+  /** {@code (a, b, …)} after a callee: the arguments, evaluated (skipped in an untaken branch). */
+  private List<Object> arguments() {
+    expect("(");
+    var args = new ArrayList<Object>();
+    if (")".equals(peek())) {
+      next();
+      return args;
+    }
+    while (true) {
+      args.add(expression(0));
+      var t = next();
+      if (")".equals(t)) return args;
+      if (!",".equals(t)) {
+        throw new Unsupported("expected ',' or ')' but found '" + t + "' in ${" + src + "}");
+      }
+    }
+  }
+
+  /** {@code Math}: only its pure rounding / min / max functions are reachable. */
+  private static final Object MATH = new Object();
+
+  private static final java.util.Set<String> MATH_FUNCTIONS =
+      java.util.Set.of("round", "floor", "ceil", "abs", "min", "max");
+
+  /** The methods of a string, number or list an expression may call — pure ones only. */
+  public static final java.util.Set<String> METHODS =
+      java.util.Set.of(
+          "toLowerCase",
+          "toUpperCase",
+          "trim",
+          "includes",
+          "startsWith",
+          "endsWith",
+          "slice",
+          "substring",
+          "indexOf",
+          "padStart",
+          "padEnd",
+          "toString",
+          "toFixed",
+          "join");
+
+  /** {@code value.name(args)}, with JavaScript's meaning, for the allow-listed methods only. */
+  private Object callMethod(Object value, String name, List<Object> args) {
+    if (value == MATH) {
+      if (!MATH_FUNCTIONS.contains(name)) {
+        throw new Unsupported("Math." + name + " is not supported in ${" + src + "}");
+      }
+      return skip ? UNDEFINED : math(name, args);
+    }
+    if (!METHODS.contains(name)) {
+      throw new Unsupported("'" + name + "' cannot be called in ${" + src + "}");
+    }
+    if (skip) return UNDEFINED;
+    if (value == null || value == UNDEFINED) {
+      throw new IllegalStateException("cannot call '" + name + "' of " + text(value));
+    }
+    Object a0 = args.isEmpty() ? UNDEFINED : args.get(0);
+    Object a1 = args.size() < 2 ? UNDEFINED : args.get(1);
+    if (value instanceof String s) return stringMethod(s, name, a0, a1);
+    if (value instanceof Number n) return numberMethod(n, name, a0);
+    if (value instanceof List<?> list) return listMethod(list, name, a0, a1);
+    if (value instanceof Boolean b && "toString".equals(name)) return String.valueOf(b);
+    throw new IllegalStateException("'" + name + "' is not callable on " + text(value));
+  }
+
+  private static Object stringMethod(String s, String name, Object a0, Object a1) {
+    return switch (name) {
+      case "toLowerCase" -> s.toLowerCase(java.util.Locale.ROOT);
+      case "toUpperCase" -> s.toUpperCase(java.util.Locale.ROOT);
+      case "trim" -> s.strip();
+      case "includes" -> s.contains(text(a0));
+      case "startsWith" -> s.startsWith(text(a0));
+      case "endsWith" -> s.endsWith(text(a0));
+      case "indexOf" -> (double) s.indexOf(text(a0));
+      case "slice" -> {
+        int[] r = sliceRange(s.length(), a0, a1);
+        yield r[0] < r[1] ? s.substring(r[0], r[1]) : "";
+      }
+      case "substring" -> {
+        int from = clamp(toInteger(a0), s.length());
+        int to = a1 == UNDEFINED ? s.length() : clamp(toInteger(a1), s.length());
+        yield s.substring(Math.min(from, to), Math.max(from, to));
+      }
+      case "padStart" -> pad(s, a0, a1, true);
+      case "padEnd" -> pad(s, a0, a1, false);
+      case "toString" -> s;
+      default -> throw new IllegalStateException("'" + name + "' is not a string method");
+    };
+  }
+
+  private static Object numberMethod(Number n, String name, Object a0) {
+    return switch (name) {
+      case "toString" -> text(n.doubleValue());
+      case "toFixed" -> {
+        long digits = a0 == UNDEFINED ? 0 : toInteger(a0);
+        if (digits < 0 || digits > 100) throw new IllegalStateException("toFixed digits");
+        yield new java.math.BigDecimal(n.doubleValue())
+            .setScale((int) digits, java.math.RoundingMode.HALF_UP)
+            .toPlainString();
+      }
+      default -> throw new IllegalStateException("'" + name + "' is not a number method");
+    };
+  }
+
+  private static Object listMethod(List<?> list, String name, Object a0, Object a1) {
+    return switch (name) {
+      case "join" -> {
+        var sep = a0 == UNDEFINED ? "," : text(a0);
+        var parts = new ArrayList<String>();
+        for (var item : list) parts.add(text(item));
+        yield String.join(sep, parts);
+      }
+      case "includes" -> list.stream().anyMatch(item -> strictEquals(item, a0));
+      case "indexOf" -> {
+        double found = -1;
+        for (int i = 0; i < list.size() && found < 0; i++) {
+          if (strictEquals(list.get(i), a0)) found = i;
+        }
+        yield found;
+      }
+      case "slice" -> {
+        int[] r = sliceRange(list.size(), a0, a1);
+        yield r[0] < r[1] ? new ArrayList<Object>(list.subList(r[0], r[1])) : new ArrayList<>();
+      }
+      case "toString" -> text(list);
+      default -> throw new IllegalStateException("'" + name + "' is not a list method");
+    };
+  }
+
+  private static Object math(String name, List<Object> args) {
+    Object a0 = args.isEmpty() ? UNDEFINED : args.get(0);
+    return switch (name) {
+      case "round" -> {
+        double d = toNumber(a0);
+        yield Double.isNaN(d) || Double.isInfinite(d) ? d : Math.floor(d + 0.5);
+      }
+      case "floor" -> Math.floor(toNumber(a0));
+      case "ceil" -> Math.ceil(toNumber(a0));
+      case "abs" -> Math.abs(toNumber(a0));
+      default -> minMax("min".equals(name), args);
+    };
+  }
+
+  private static double minMax(boolean min, List<Object> args) {
+    double acc = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+    for (var a : args) {
+      double d = toNumber(a);
+      if (Double.isNaN(d)) return Double.NaN;
+      acc = min ? Math.min(acc, d) : Math.max(acc, d);
+    }
+    return acc;
+  }
+
+  /** JavaScript's ToIntegerOrInfinity, clamped to the int range (NaN → 0). */
+  private static long toInteger(Object v) {
+    double d = toNumber(v);
+    if (Double.isNaN(d)) return 0;
+    return (long) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, d));
+  }
+
+  private static int clamp(long i, int length) {
+    return (int) Math.max(0, Math.min(i, length));
+  }
+
+  /** {@code slice(start, end)}'s range: a negative index counts from the end, then clamped. */
+  private static int[] sliceRange(int length, Object start, Object end) {
+    long s = start == UNDEFINED ? 0 : toInteger(start);
+    long e = end == UNDEFINED ? length : toInteger(end);
+    int from = (int) (s < 0 ? Math.max(length + s, 0) : Math.min(s, length));
+    int to = (int) (e < 0 ? Math.max(length + e, 0) : Math.min(e, length));
+    return new int[] {from, to};
+  }
+
+  private static String pad(String s, Object length, Object filler, boolean start) {
+    long target = toInteger(length);
+    var fill = filler == UNDEFINED ? " " : text(filler);
+    if (target <= s.length() || fill.isEmpty()) return s;
+    if (target > 10_000) throw new IllegalStateException("pad length");
+    var padding = new StringBuilder();
+    while (padding.length() < target - s.length()) padding.append(fill);
+    padding.setLength((int) (target - s.length()));
+    return start ? padding + s : s + padding;
   }
 
   /** The server's secrets, reachable only as {@code secret.KEY} / {@code secret['KEY']}. */
@@ -404,8 +611,10 @@ public final class ProxyExpression {
       case "??" -> (l == null || l == UNDEFINED) ? r : l;
       case "||" -> truthy(l) ? l : r;
       case "&&" -> truthy(l) ? r : l;
-      case "==", "===" -> looseEquals(l, r);
-      case "!=", "!==" -> !looseEquals(l, r);
+      case "==" -> looseEquals(l, r);
+      case "!=" -> !looseEquals(l, r);
+      case "===" -> strictEquals(l, r);
+      case "!==" -> !strictEquals(l, r);
       case "<" -> compare(l, r) < 0;
       case "<=" -> compare(l, r) <= 0;
       case ">" -> compare(l, r) > 0;
@@ -459,6 +668,17 @@ public final class ProxyExpression {
       return toNumber(l) == toNumber(r);
     }
     return text(l).equals(text(r));
+  }
+
+  /** {@code ===}: the same JavaScript type and value (objects by identity; NaN never equal). */
+  private static boolean strictEquals(Object l, Object r) {
+    if (l == UNDEFINED || r == UNDEFINED) return l == r;
+    if (l == null || r == null) return l == r;
+    if (l instanceof Number a && r instanceof Number b) return a.doubleValue() == b.doubleValue();
+    if (l instanceof String a && r instanceof String b) return a.equals(b);
+    if (l instanceof Boolean a && r instanceof Boolean b) return a.equals(b);
+    if (l instanceof Number || l instanceof String || l instanceof Boolean) return false;
+    return l == r;
   }
 
   private static int compare(Object l, Object r) {

@@ -131,6 +131,21 @@ class Crud(Generic[T]):
 
         return CrudDisplay.defaults()
 
+    def can_create(self) -> bool:
+        """Whether the user may create records here (Java's ``Crud.canCreate()``). False drops the
+        New button and refuses a forced ``new``/``create`` (403)."""
+        return True
+
+    def can_edit(self) -> bool:
+        """Whether the user may edit records here (Java's ``Crud.canEdit()``). False refuses a
+        forced ``edit``/``save``/``save-and-next``/``update-row`` and the ``/{id}/edit`` route (403)."""
+        return True
+
+    def can_delete(self) -> bool:
+        """Whether the user may delete records here (Java's ``Crud.canDelete()``). False drops the
+        Delete button and refuses a forced ``delete`` (403)."""
+        return True
+
     def save_and_next_label(self) -> str:
         """The edit drawer's "Save and next" label."""
         return "Save and next"

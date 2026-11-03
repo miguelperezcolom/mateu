@@ -14,6 +14,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import urllib.error  # noqa: E402
 import urllib.request  # noqa: E402
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
@@ -123,6 +124,20 @@ class TwoRowsForm(RestSourceSupplier):
                 RestSourceKind.ROWS,
                 RestDataSource(url="https://api.example.com/board", proxy=True),
                 id="board",
+            ),
+        ]
+
+
+@ui("cat-bulk-delete")
+class BulkDeleteForm(RestSourceSupplier):
+    """A proxied per-row write: a bulk action runs it once per selected row (forEachSelectedRow)."""
+
+    def declared_rest_sources(self):
+        return [
+            DeclaredRestSource(
+                RestSourceKind.ACTION,
+                RestDataSource(url="https://api.example.com/people/${state.id}", method="DELETE", proxy=True),
+                id="delete",
             ),
         ]
 
@@ -294,6 +309,52 @@ def test_a_rows_fetch_names_its_source_when_a_page_has_two(fetched):
         "https://api.example.com/board",
         "https://api.example.com/listing",
     ]
+
+
+def _bulk(h: SyncHandler, rows: list, **parameters):
+    return h.handle(
+        RunActionRq(
+            server_side_type=type_name(BulkDeleteForm),
+            action_id="__restfetch__",
+            component_state={"crud_selected_items": rows},
+            parameters={"_sourceKind": "action", "_sourceId": "delete", "_forEachSelectedRow": True, **parameters},
+        )
+    )
+
+
+def test_a_bulk_proxied_write_runs_once_per_selected_row(fetched):
+    # Java RestProxyCalls.forEachSelectedRow: each row over the state, one round trip
+    inc = _bulk(handler(), [{"id": "a b"}, {"id": "7"}])
+    assert inc.app_data == {"_restfetch": {}}
+    assert [(r.get_method(), r.full_url) for r in fetched] == [
+        ("DELETE", "https://api.example.com/people/a%20b"),
+        ("DELETE", "https://api.example.com/people/7"),
+    ]
+
+
+def test_a_failed_row_of_a_bulk_write_is_reported(monkeypatch):
+    def fake_urlopen(req, timeout=None):
+        if req.full_url.endswith("/2"):
+            raise urllib.error.HTTPError(req.full_url, 409, "Conflict", {}, io.BytesIO(b'{"message":"in use"}'))
+        return _Response(b"")
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    inc = _bulk(handler(), [{"id": "1"}, {"id": "2"}, {"id": "3"}])
+    assert inc.app_data == {
+        "_restfetchError": {"status": 409, "message": "1 of 3 failed (HTTP 409)", "detail": "in use"}
+    }
+
+
+def test_the_action_parameters_reach_a_proxied_template(fetched):
+    # a kanban move's _toColumnId etc. reach ${state.x} on the proxied leg, as on the direct one
+    handler().handle(
+        RunActionRq(
+            server_side_type=type_name(BulkDeleteForm),
+            action_id="__restfetch__",
+            parameters={"_sourceKind": "action", "_sourceId": "delete", "id": "9"},
+        )
+    )
+    assert fetched[0].full_url == "https://api.example.com/people/9"
 
 
 def test_a_direct_source_is_never_proxied(fetched):
