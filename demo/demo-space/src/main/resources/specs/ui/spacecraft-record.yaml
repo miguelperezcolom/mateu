@@ -6,6 +6,11 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: Form
 title: ${state.name}
 subtitle: Spacecraft · ${state.type}
+peerNav:
+  prevLabel: Previous spacecraft
+  prevRoute: "${state.previousId ? 'spacecraft/' + state.previousId : ''}"
+  nextLabel: Next spacecraft
+  nextRoute: "${state.nextId ? 'spacecraft/' + state.nextId : ''}"
 toolbar:
   - {type: Button, actionId: backToList, label: Back, actionable: {type: RouteLink, route: spacecraft}}
 template:

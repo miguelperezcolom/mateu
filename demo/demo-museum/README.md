@@ -65,7 +65,7 @@ anchor: one value, aliased by each entry.)
 | Edit with Save / Delete (proxied PUT / DELETE), timestamp in the header | `/artworks/:id/edit` | `artwork-edit.yaml` |
 | **CollectionDetailPage** — list + detail, selection in the URL; a partial shared by two pages | `/artists`, `/artists/:id` | `artists.yaml`, `artist.yaml`, `partials/artists-list.yaml` |
 | **Master-detail** listing | `/museums` | `museums.yaml` |
-| **GeneralOverviewPage** — record switcher fed by a REST source, previous/next arrows, KPIs, info slot, an embedded listing filtered by the record | `/museums/:id` | `museum.yaml` |
+| **GeneralOverviewPage** — record switcher fed by a REST source, previous/next arrows (`peerNav`, from the API's `previousId`/`nextId`), KPIs, info slot, an embedded listing filtered by the record | `/museums/:id` | `museum.yaml` |
 | **Map** — the three museums on OpenStreetMap | `/map` | `map.yaml` |
 | **Tree** — museum → department → gallery, a listing in tree layout over a REST source | `/collection` | `collection.yaml` |
 | Listing filtered by a REST-fed select | `/departments` | `departments.yaml` |

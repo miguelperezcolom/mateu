@@ -157,6 +157,13 @@ fabs:
 content: [...]
 ```
 
+A `peerNav` route is an app route, relative to the mount; one starting with `/` is a path of the site
+(another mount, say), which the browser loads. When a neighbour can be missing, say so in
+the expression and that side is disabled, or left out where the template has no disabled state:
+`nextRoute: "${state.nextId ? 'customers/' + state.nextId : ''}"`. Which record comes next is the
+data's business: have the endpoint return the ids beside each record, in the list's own order, rather
+than computing `id + 1`. The demos do this (`previousId` and `nextId`).
+
 - **Dynamic values use the idioms every YAML text already has**: `${state.x}` and `${data.x}`
   (the route's `data:` source feeds `data`), interpolated by the renderer. A badge whose text
   interpolates to blank is hidden — the same switch a `@BadgeInHeader` String field gives.

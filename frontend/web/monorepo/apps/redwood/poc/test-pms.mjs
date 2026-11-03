@@ -2623,6 +2623,25 @@ test('ItemOverview → oj-sp-item-overview-page: the key panel in oj-sp-item-ove
   // its edit action is the page's primary when that primary edits
   assert.match(page, /edit: \$application\.variables\.mateuPageHeader\.itemEdit/)
   assert.match(page, /on-sp-edit="\[\[ \$listeners\.headerPrimary \]\]"/)
+  // the page's peer arrows are the template's own previous/next (they navigate like the header's)
+  const pageTag = page.slice(0, page.indexOf('<oj-sp-item-overview slot='))
+  assert.match(pageTag, /bidirectionalNavigation: !!/, 'our display options replace the defaults, which turn it on')
+  assert.match(pageTag, /previous-item="\[\[ \$application\.variables\.mateuPageHeader\.prevRoute \?/, 'this template has no disabled side: without a route, no arrow')
+  assert.match(pageTag, /next-item="\[\[ \$application\.variables\.mateuPageHeader\.nextRoute \?/)
+  assert.match(pageTag, /on-sp-previous="\[\[ \$listeners\.headerPreviousItem \]\]"/)
+  assert.match(pageTag, /on-sp-next="\[\[ \$listeners\.headerNextItem \]\]"/)
+})
+
+test('both general overview pages draw the header peer arrows through the template\'s own previous/next', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const pages = html.split('<oj-sp-general-overview-page').slice(1).map((p) => p.slice(0, p.indexOf('>\n')))
+  assert.equal(pages.length, 2)
+  for (const page of pages) {
+    assert.match(page, /previous-item="\[\[ \$application\.variables\.mateuPageHeader\.previousItem \]\]"/)
+    assert.match(page, /next-item="\[\[ \$application\.variables\.mateuPageHeader\.nextItem \]\]"/)
+    assert.match(page, /on-sp-previous-item="\[\[ \$listeners\.headerPreviousItem \]\]"/)
+    assert.match(page, /on-sp-next-item="\[\[ \$listeners\.headerNextItem \]\]"/)
+  }
 })
 
 test('a nested listing is drawn as picture cards or a table, its first page only', () => {

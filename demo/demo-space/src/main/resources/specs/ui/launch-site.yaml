@@ -16,6 +16,11 @@ recordSwitcher:
   searchable: true
   optionsSource: {ref: space-site-options}
   route: launch-sites/${state._record}
+peerNav:
+  prevLabel: Previous launch site
+  prevRoute: "${state.previousId ? 'launch-sites/' + state.previousId : ''}"
+  nextLabel: Next launch site
+  nextRoute: "${state.nextId ? 'launch-sites/' + state.nextId : ''}"
 toolbar:
   - {type: Button, actionId: backToList, label: Back, actionable: {type: RouteLink, route: launch-sites}}
   - {type: Button, label: Edit, buttonStyle: primary, actionable: {type: RouteLink, route: "launch-sites/${state.id}/edit"}}
