@@ -17,7 +17,7 @@ import { interpolate, literalText, possiblyHtml } from './interpolation'
 import { notePageTitle } from './windowTitle'
 import { plainText } from './navTree'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
-import { navigateToRoute } from './rowRoute'
+import { leaveToRoute, navigateToRoute } from './rowRoute'
 import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } from './breadcrumbTrail'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -233,7 +233,7 @@ export class MateuContentHeader extends LitElement {
         // model behind it. The `${state.x}` template is resolved against the page state.
         const route = button.route ? interpolate(button.route, this.state, this.data) : undefined
         if (route && !route.includes('${')) {
-            navigateToRoute(this, route)
+            leaveToRoute(this, route)
             return
         }
         // A ROUTED listing renders its toolbar HERE (not in the crud), so a "Delete selected" acts on

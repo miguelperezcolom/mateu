@@ -48,7 +48,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **A YAML page can ask before losing unsaved changes** (`confirmOnNavigationIfDirty: true`, the twin of
   `@ConfirmOnNavigationIfDirty`): until now a menu click or a previous/next arrow discarded what was typed
   on any page without a class behind it. A REST action that succeeds settles the changes when it declares
-  `validationRequired` or a `successRoute`. The space and museum editing pages declare it. Java and the
+  `validationRequired` or a `successRoute`. A button with a route now asks too, on Vaadin as on Redwood.
+  The space and museum editing pages declare it. Java and the
   web and Redwood renderers; not in the .NET and Python YAML builders yet.
 - **Redwood**: a subheader with more options than fit no longer runs past the edge of the window: what doesn't fit goes into a «More» menu at its end, as on the web renderer.
 - **Redwood: a tree listing (`gridLayout: tree`) folds.** It drew every level always open, with the
