@@ -45,6 +45,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **A page's previous/next arrows, the remaining cases.** On Vaadin a drawer's arrows read a relative
+  `peerNav` route against the current URL; they now navigate inside the app and close the drawer. On
+  Redwood a page foldout that is not a declared `FoldoutPage` lost the page's `peerNav` (it owns the
+  header, so nothing drew it): it now fills the layout's own arrows; and an arrow or a route button
+  naming another mount's path loads it in the browser.
 - **Redwood: a foldout panel shows a scroll bar only when its content does not fit.** The room left for
   the paging dots overflowed every panel by a constant 32px, whatever it held and however tall the window.
 - **Redwood: saving a record no longer wipes a select nobody touched.** `oj-select-one` drops a value that

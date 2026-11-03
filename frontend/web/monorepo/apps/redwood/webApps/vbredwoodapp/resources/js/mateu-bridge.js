@@ -3210,7 +3210,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const header = foldoutHeaderOf(md)
     if (!owns) return header
     if (declared) return foldoutPageHeaderOf(header, templateFormOf(ctx), (ctx && ctx.state) || {})
-    return foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+    const out = foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+    // the wire's own navigation (FoldoutLayout.navigation) keeps the arrows it declared
+    if (out.previousStep || out.nextStep) return out
+    const state = (ctx && ctx.state) || {}
+    return withPeerArrows(out, pageHeaderNodeOf(ctx.tree), state, (b) => ({ actionId: '', route: buttonRouteOf(b.route, state) || '' }))
   }
 
   /** Where a page foldout's go-to-parent leads: its back button, else the trail's parent; null with neither. */
@@ -21502,6 +21506,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return true
   }
 
+  /** A header arrow (`peerNav`): another mount's path loads in the browser, anything else navigates
+   *  inside the app like a breadcrumb. */
+  function requestPeerNavigation(route, reg, doc = typeof document !== 'undefined' ? document : null) {
+    if (leftMountFor({ route }, reg)) return
+    if (doc) doc.dispatchEvent(new CustomEvent('navigation-requested', { detail: { route }, bubbles: true, composed: true }))
+  }
+
   /** The route part (no query) of the browser path — what to compare a route against. */
   function currentRoutePathOf(location) {
     if (!location) return ''
@@ -28574,6 +28585,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    requestPeerNavigation,
     openExternalRoute,
     isExternalRoute,
     scrollToTopOnNavigate,

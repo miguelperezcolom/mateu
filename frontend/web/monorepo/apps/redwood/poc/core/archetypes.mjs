@@ -173,7 +173,11 @@ function foldoutOwnHeaderOf(ctx, md, { owns, declared, parent }) {
   const header = foldoutHeaderOf(md)
   if (!owns) return header
   if (declared) return foldoutPageHeaderOf(header, templateFormOf(ctx), (ctx && ctx.state) || {})
-  return foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+  const out = foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+  // the wire's own navigation (FoldoutLayout.navigation) keeps the arrows it declared
+  if (out.previousStep || out.nextStep) return out
+  const state = (ctx && ctx.state) || {}
+  return withPeerArrows(out, pageHeaderNodeOf(ctx.tree), state, (b) => ({ actionId: '', route: buttonRouteOf(b.route, state) || '' }))
 }
 
 /** Where a page foldout's go-to-parent leads: its back button, else the trail's parent; null with neither. */

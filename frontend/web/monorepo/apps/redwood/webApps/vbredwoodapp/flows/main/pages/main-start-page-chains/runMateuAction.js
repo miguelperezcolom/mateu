@@ -82,11 +82,7 @@ define([
       if (id === '__peerPrev' || id === '__peerNext') {
         const header = $application.variables.mateuPageHeader || {};
         const peerRoute = id === '__peerPrev' ? header.prevRoute : header.nextRoute;
-        if (peerRoute) {
-          document.dispatchEvent(new CustomEvent('navigation-requested', {
-            detail: { route: peerRoute }, bubbles: true, composed: true,
-          }));
-        }
+        if (peerRoute) bridge.requestPeerNavigation(peerRoute, $application.variables.mateuRegistry);
         return;
       }
 

@@ -103,6 +103,16 @@ describe('peer navigation', () => {
         prev.click()
         expect(navigated).toEqual(['/guests/1'])
     })
+
+    it('a relative route is a place of the app, not of the current URL: it navigates there and the drawer goes', async () => {
+        const { drawer, root } = await open({ headerTitle: 'X', peerNav: { nextLabel: 'Bob', nextRoute: 'guests/2' } })
+        const asked: string[] = []
+        drawer.addEventListener('navigate-to-requested', (e) => asked.push((e as CustomEvent).detail.route))
+        ;(root.querySelector('[aria-label="Bob"]') as HTMLButtonElement).click()
+        expect(navigated).toEqual([])
+        expect(asked).toEqual(['guests/2'])
+        expect((drawer as unknown as { opened: boolean }).opened).toBe(false)
+    })
 })
 
 describe('the guided-process pager', () => {

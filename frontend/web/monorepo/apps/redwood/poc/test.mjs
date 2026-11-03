@@ -6987,6 +6987,19 @@ test('FoldoutPage (YAML): the form toolbar becomes the layout header — back = 
   // no toolbar: the header stays as the wire said
   assert.deepEqual(foldoutPageHeaderOf(foldoutHeaderOf({}), { metadata: {} }).overviewActions, [])
 })
+test('a page foldout owns the header, so it carries the page\'s peerNav on its arrows; a declared navigation wins', () => {
+  const foldout = (md = {}) => ({ type: 'ClientSide', id: 'f', children: [], metadata: { type: 'FoldoutLayout', panels: [], ...md } })
+  const pageOf = (child) => ({ type: 'ServerSide', id: 'h', children: [{ type: 'ClientSide', id: 'p', children: [child], metadata: { type: 'Form', title: 'Booking', peerNav: { nextLabel: 'Next one', nextRoute: 'bookings/${state.nextId}' } } }], metadata: { type: 'ServerSide' } })
+  const header = (tree) => foldoutOf({ tree, state: { nextId: 7 } }).header
+  const h = header(pageOf(foldout()))
+  assert.equal(h.nextStep.label, 'Next one')
+  assert.deepEqual(h.ctas.next, { actionId: '', route: 'bookings/7' })
+  assert.ok(!h.previousStep)
+  const declared = header(pageOf(foldout({ navigation: { nextActionId: 'goNext' } })))
+  assert.equal(declared.nextStep.id, 'goNext')
+  assert.equal(declared.ctas.next, undefined)
+})
+
 test('FoldoutPage (YAML): a peerNav fills the layout\'s own arrows; a side without a route stays disabled', () => {
   const form = { metadata: { peerNav: {
     prevLabel: 'Previous craft', prevRoute: "${state.previousId ? 'spacecraft/' + state.previousId : ''}",
