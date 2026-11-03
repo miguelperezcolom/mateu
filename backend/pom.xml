@@ -199,7 +199,7 @@
                               <groupId>org.apache.groovy</groupId>
                               <artifactId>groovy-jsr223</artifactId>
                               <!-- 5.x: the 4.x line cannot read the class files of the newest JDKs -->
-                              <version>5.0.6</version>
+                              <version>6.0.0</version>
                           </dependency>
                       </dependencies>
                       <executions>
