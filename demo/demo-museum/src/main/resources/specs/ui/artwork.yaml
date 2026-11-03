@@ -9,6 +9,11 @@ badges:
 kpis:
   - {label: Museum, value: "${state.museumName}"}
   - {label: Gallery, value: "${state.gallery}"}
+peerNav:
+  prevLabel: Previous artwork
+  prevRoute: "${state.previousId ? 'artworks/' + state.previousId : ''}"
+  nextLabel: Next artwork
+  nextRoute: "${state.nextId ? 'artworks/' + state.nextId : ''}"
 toolbar:
   - type: Button
     actionId: backToList

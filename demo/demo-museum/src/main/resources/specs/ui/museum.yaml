@@ -18,9 +18,9 @@ kpis:
   - {label: Departments, value: "${state.departmentCount}"}
 peerNav:
   prevLabel: Previous museum
-  prevRoute: "${state.id > 1 ? 'museums/' + (Number(state.id) - 1) : ''}"
+  prevRoute: "${state.previousId ? 'museums/' + state.previousId : ''}"
   nextLabel: Next museum
-  nextRoute: "${state.id < 3 ? 'museums/' + (Number(state.id) + 1) : ''}"
+  nextRoute: "${state.nextId ? 'museums/' + state.nextId : ''}"
 toolbar:
   - type: Button
     label: Its artworks

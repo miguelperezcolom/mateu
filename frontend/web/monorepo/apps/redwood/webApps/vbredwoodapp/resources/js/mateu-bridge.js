@@ -3278,6 +3278,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return { id, label, display: 'on', ...(i === 0 && b.buttonStyle === 'primary' && /^edit\b/i.test(label) ? { icon: 'oj-ux-ico-edit' } : {}) }
       })
     }
+    return withPeerArrows(out, form, state, target)
+  }
+
+  /** A page's `peerNav:` on the foldout's own arrows (a side without a route stays disabled): the
+   *  routes ride `ctas`, as the other controls that navigate. */
+  function withPeerArrows(header, form, state, target) {
+    const peers = form && form.metadata && form.metadata.peerNav
+    if (!peers) return header
+    const route = (r) => (r ? target({ route: r }).route : '')
+    const prev = route(peers.prevRoute)
+    const next = route(peers.nextRoute)
+    if (!prev && !next) return header
+    const text = (t, fallback) => interpolate(String(t == null ? '' : t), state) || chromeText(fallback)
+    const out = { ...header, hasNavigation: true, bidirectional: true, ctas: { ...header.ctas } }
+    if (prev) {
+      out.ctas.previous = { actionId: '', route: prev }
+      out.previousStep = { id: prev, label: text(peers.prevLabel, 'previousItem') }
+    }
+    if (next) {
+      out.ctas.next = { actionId: '', route: next }
+      out.nextStep = { id: next, label: text(peers.nextLabel, 'nextItem') }
+    }
     return out
   }
 

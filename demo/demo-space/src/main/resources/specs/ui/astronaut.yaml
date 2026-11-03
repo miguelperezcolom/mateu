@@ -7,6 +7,11 @@ title: ${state.name}
 subtitle: ${state.summary}
 badges:
   - {label: "${state.status}", color: contrast}
+peerNav:
+  prevLabel: Previous astronaut
+  prevRoute: "${state.previousId ? 'astronauts/' + state.previousId : ''}"
+  nextLabel: Next astronaut
+  nextRoute: "${state.nextId ? 'astronauts/' + state.nextId : ''}"
 toolbar:
   - {type: Button, actionId: backToList, label: Back to the astronauts, actionable: {type: RouteLink, route: astronauts}}
   - {type: Button, label: Edit, buttonStyle: primary, actionable: {type: RouteLink, route: "astronauts/${state.id}/edit"}}

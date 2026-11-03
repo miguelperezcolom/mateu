@@ -49,6 +49,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   names indented and no way to close a branch; now each parent has a chevron, as on Vaadin. Folding
   makes no round trip, a click elsewhere on the row still opens the record, and a new search or filter
   opens the tree again so a folded branch never hides a match. A tree's columns no longer offer a sort.
+- **A page's previous/next arrows work everywhere.** On Vaadin a relative `peerNav` route was read
+  against the current URL (`/astronauts/astronauts/9`); the arrows now navigate inside the app, like
+  a breadcrumb, and ask about unsaved changes. On Redwood `peerNav` was ignored by the Item Overview,
+  General Overview and `FoldoutPage` templates; it now fills their own previous/next.
+- **Web**: browser Back to a listing from a record opened from it left the grey rows for ever on Vaadin: the tab's structure cache handed out the objects on screen, whose OnLoad had already fired, so the search never ran. It now stores and hands out copies.
 - **A menu entry whose route is its group's route opens its page, not the group's index** (Java,
   YAML and `@Menu` shells). The group «Launches» answers at a route derived from its label
   (`/launches`); its entry «All launches» names `route: launches` explicitly. Opening `/launches`
