@@ -30,7 +30,7 @@ import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor, requestPeerNavigation } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
@@ -2397,6 +2397,12 @@ test('a server NavigateTo OUTSIDE the mount is a browser path (as on the web ren
   assert.equal(leftMountFor({ route: '/section1' }, { shell: { menu } }, win), false)
   assert.equal(leftMountFor({ url: 'https://x' }, null, win), false)
   assert.deepEqual(assigned, ['/products'])
+  // a header arrow: a path of another mount loads; a route of the app is asked for, once
+  const asked = []
+  const doc = { dispatchEvent: (e) => asked.push(e.detail.route) }
+  requestPeerNavigation('/section1', { shell: { menu } }, doc)
+  requestPeerNavigation('orders/2', { shell: { menu } }, doc)
+  assert.deepEqual(asked, ['/section1', 'orders/2'])
   // the root mount and hash mode: every route is the app's
   setMount('')
   assert.equal(pathLeavingMountOf('/products'), null)

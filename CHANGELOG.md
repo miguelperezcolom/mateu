@@ -51,6 +51,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `validationRequired` or a `successRoute`. A button with a route now asks too, on Vaadin as on Redwood.
   The space and museum editing pages declare it. Java and the
   web and Redwood renderers; not in the .NET and Python YAML builders yet.
+- **A page's previous/next arrows, the remaining cases.** On Vaadin a drawer's arrows read a relative
+  `peerNav` route against the current URL; they now navigate inside the app and close the drawer. On
+  Redwood a page foldout that is not a declared `FoldoutPage` lost the page's `peerNav` (it owns the
+  header, so nothing drew it): it now fills the layout's own arrows; and an arrow or a route button
+  naming another mount's path loads it in the browser.
+- **Redwood: a foldout panel shows a scroll bar only when its content does not fit.** The room left for
+  the paging dots overflowed every panel by a constant 32px, whatever it held and however tall the window.
+- **Redwood: saving a record no longer wipes a select nobody touched.** `oj-select-one` drops a value that
+  is not among its options (a loan's closed exhibition, when the choices are the open and planned ones) and
+  that counted as an edit, so saving sent the field empty. The value now survives, as on Vaadin; the field
+  still shows blank, because the options do not hold it.
 - **Redwood**: a subheader with more options than fit no longer runs past the edge of the window: what doesn't fit goes into a «More» menu at its end, as on the web renderer.
 - **Redwood: a tree listing (`gridLayout: tree`) folds.** It drew every level always open, with the
   names indented and no way to close a branch; now each parent has a chevron, as on Vaadin. Folding

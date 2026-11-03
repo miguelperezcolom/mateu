@@ -388,6 +388,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     confirmLeaveAction,
     tracksUnsavedChanges,
     fieldEditLeavesUnsavedChanges,
+    selectDroppedItsValue,
     // unsaved changes SCOPED per overlay (the page's mateuDirty + each open overlay's own), and
     // what a navigation does with them: one question, then every overlay closes
     topOverlayContextOf,
@@ -471,6 +472,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    requestPeerNavigation,
     openExternalRoute,
     isExternalRoute,
     scrollToTopOnNavigate,

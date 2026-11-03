@@ -5325,7 +5325,7 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
 }
 
 // ── leave actions with unsaved changes (BUGS-MATEU #7) ────────────────────────────────────────
-import { isLeaveAction, isConflictDialogAnswer, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction, fieldEditLeavesUnsavedChanges } from './shellFlows.mjs'
+import { selectDroppedItsValue, isLeaveAction, isConflictDialogAnswer, confirmLeaveAction, tracksUnsavedChanges, screenActionIdsOf, isWizardStepAction, fieldEditLeavesUnsavedChanges } from './shellFlows.mjs'
 {
   test('isLeaveAction: the ids the server styles as leave actions (FormMapper) and the crud\'s, no business «cancelX»', () => {
     for (const id of ['cancel', 'cancel-new', 'cancel-create', 'cancel-edit', 'cancel-view', 'back', 'backToList']) assert.equal(isLeaveAction(id), true, id)
@@ -5384,6 +5384,16 @@ import { isLeaveAction, isConflictDialogAnswer, confirmLeaveAction, tracksUnsave
     assert.equal(tracksUnsavedChanges(undefined), false)
     // the owner may sit below the context's root (a crud mediator wrapping its form)
     assert.equal(tracksUnsavedChanges({ tree: { children: [{ children: [{ confirmOnNavigationIfDirty: true }] }] } }), true)
+  })
+
+  test('a select that empties itself is no edit; one the user empties, or changes, is', () => {
+    const inside = { id: 'inner' }
+    const select = (active) => ({ tagName: 'OJ-SELECT-ONE', ownerDocument: { activeElement: active }, contains: (e) => e === inside })
+    assert.equal(selectDroppedItsValue({ target: select(null), detail: { value: null } }), true)
+    assert.equal(selectDroppedItsValue({ target: select(inside), detail: { value: null } }), false)
+    assert.equal(selectDroppedItsValue({ target: select(null), detail: { value: 2 } }), false)
+    assert.equal(selectDroppedItsValue({ target: { tagName: 'OJ-INPUT-TEXT' }, detail: { value: null } }), false)
+    assert.equal(selectDroppedItsValue(null), false)
   })
 
   test('fieldEditLeavesUnsavedChanges: the context that owns the edit decides — host, top overlay or island', () => {
@@ -6977,6 +6987,19 @@ test('FoldoutPage (YAML): the form toolbar becomes the layout header — back = 
   // no toolbar: the header stays as the wire said
   assert.deepEqual(foldoutPageHeaderOf(foldoutHeaderOf({}), { metadata: {} }).overviewActions, [])
 })
+test('a page foldout owns the header, so it carries the page\'s peerNav on its arrows; a declared navigation wins', () => {
+  const foldout = (md = {}) => ({ type: 'ClientSide', id: 'f', children: [], metadata: { type: 'FoldoutLayout', panels: [], ...md } })
+  const pageOf = (child) => ({ type: 'ServerSide', id: 'h', children: [{ type: 'ClientSide', id: 'p', children: [child], metadata: { type: 'Form', title: 'Booking', peerNav: { nextLabel: 'Next one', nextRoute: 'bookings/${state.nextId}' } } }], metadata: { type: 'ServerSide' } })
+  const header = (tree) => foldoutOf({ tree, state: { nextId: 7 } }).header
+  const h = header(pageOf(foldout()))
+  assert.equal(h.nextStep.label, 'Next one')
+  assert.deepEqual(h.ctas.next, { actionId: '', route: 'bookings/7' })
+  assert.ok(!h.previousStep)
+  const declared = header(pageOf(foldout({ navigation: { nextActionId: 'goNext' } })))
+  assert.equal(declared.nextStep.id, 'goNext')
+  assert.equal(declared.ctas.next, undefined)
+})
+
 test('FoldoutPage (YAML): a peerNav fills the layout\'s own arrows; a side without a route stays disabled', () => {
   const form = { metadata: { peerNav: {
     prevLabel: 'Previous craft', prevRoute: "${state.previousId ? 'spacecraft/' + state.previousId : ''}",

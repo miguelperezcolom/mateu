@@ -191,6 +191,13 @@ export function leftMountFor(navigate, reg, win = typeof window !== 'undefined' 
   return true
 }
 
+/** A header arrow (`peerNav`): another mount's path loads in the browser, anything else navigates
+ *  inside the app like a breadcrumb. */
+export function requestPeerNavigation(route, reg, doc = typeof document !== 'undefined' ? document : null) {
+  if (leftMountFor({ route }, reg)) return
+  if (doc) doc.dispatchEvent(new CustomEvent('navigation-requested', { detail: { route }, bubbles: true, composed: true }))
+}
+
 /** The route part (no query) of the browser path — what to compare a route against. */
 export function currentRoutePathOf(location) {
   if (!location) return ''
