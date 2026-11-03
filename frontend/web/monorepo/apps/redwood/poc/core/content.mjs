@@ -12,7 +12,7 @@ import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, stat
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
-import { iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
+import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 import { chromeText, dateConverterOptions, moneyNumberText } from '../i18n.mjs'
 import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
@@ -326,6 +326,7 @@ export function panelExpanded(key, fallback) { return key in panelState ? panelS
 export const uiState = {}
 export function setUiValue(key, value) { uiState[key] = value }
 export function uiValueOf(key, fallback) { return key in uiState ? uiState[key] : fallback }
+export function clearUiValues(prefix) { for (const key of Object.keys(uiState)) if (key.startsWith(prefix)) delete uiState[key] }
 
 // ── node ids for the visual editor (editor / preview mode ONLY) ──
 // The IDE's visual editor paints a definition in this app (an iframe) and has to map a click back
@@ -1244,11 +1245,8 @@ export function islandContentOf(ctx, opts = {}) {
       const flat = tree
         ? flattenTreeRows(raw, (key) => !!uiValueOf(gridKey + ':open:' + key, false)).map((r) => ({
           ...r,
-          __indentStyle: { paddingInlineStart: (r.__depth * 1.5) + 'rem' },
-          __toggleIcon: r.__hasChildren ? (r.__expanded ? 'oj-ux-ico-chevron-down' : 'oj-ux-ico-chevron-right') : '',
-          __toggleLabel: r.__expanded ? 'Collapse' : 'Expand',
-          __uiKey: gridKey + ':open:' + r.__treeKey,
-          __uiValue: !r.__expanded,
+          ...treeDisclosureOf({ depth: r.__depth, hasChildren: r.__hasChildren, expanded: r.__expanded,
+            uiKey: gridKey + ':open:' + r.__treeKey, uiValue: !r.__expanded }),
         }))
         : raw
       // PAGING: Grid.size rows per page (client side, the rows travel inline)

@@ -1493,6 +1493,17 @@
         }
       ]
     },
+    "listingTreeToggled": {
+      "chains": [
+        {
+          "chain": "listingTreeToggled",
+          "parameters": {
+            "key": "{{ $current.row.__uiKey }}",
+            "value": "{{ $current.row.__uiValue }}"
+          }
+        }
+      ]
+    },
     "gridTreeToggled": {
       "chains": [
         {

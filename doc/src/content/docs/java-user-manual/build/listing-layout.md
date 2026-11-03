@@ -34,7 +34,8 @@ never scrolls sideways). On a phone, prefer `list` or `cards` explicitly.
 the identifier column (or the first one) as its title, `Status` columns as badges, the `@Line(2)`
 and later columns as secondary lines, the remaining columns (up to six) as label/value pairs, and
 the row actions as buttons. Clicking a card does what clicking a table row does. In the Redwood
-renderer `list` and `tree` still render as a table and `cards` renders as cards; `masterDetail`
+renderer `list` still renders as a table, `tree` as a table whose rows fold (see
+[Tree layout](#tree-layout-hierarchical-rows)) and `cards` as cards; `masterDetail`
 renders the table, and a click on a row (when it has no `rowRoute` and is not navigable) opens its
 fields in a panel beside it — a full-screen sheet on a phone.
 
@@ -198,6 +199,11 @@ public class CatalogTree implements Listing<CategoryRow>, Searchable {
 To let users **edit** a node in place, make the CRUD `@SplitCrud` so selecting a row opens its editor in a detail pane. That full pattern — including heterogeneous trees whose nodes edit with different forms, and grouping nodes that are not openable (`viewable = false`) — is documented in [Tree CRUD](/ux-patterns/tree-crud/).
 
 ---
+
+Every row starts open and folds from the chevron in its first column, with no round trip; a click
+anywhere else on the row still opens the record when the listing has a `rowRoute`. A new search or
+filter opens the tree again, so a folded branch never hides a match, and paging keeps what is
+folded. A tree has no sortable columns: a flat sort would tear children from their parents.
 
 ## Fixing the content height (cards and table)
 

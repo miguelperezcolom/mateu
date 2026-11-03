@@ -1834,7 +1834,11 @@ oj-sp-guided-process.mateu-wizard-completed .oj-sp-guided-process-step-count {
 
 .mateu-carousel-pager { gap: 2px; }
 .mateu-grid-pager { gap: 2px; margin-block-start: 4px; }
+/* the disclosure's width (the small oj-button + the gap): a leaf is indented by it to line up */
+:root { --mateu-tree-toggle: 2.375rem; }
 .mateu-tree-cell { display: inline-flex; align-items: center; gap: 2px; }
+/* the toggle takes no height of its own: a row with children is as tall as a leaf */
+.mateu-tree-cell > oj-button { margin-block: -6px; }
 
 .mateu-rich-text-field { display: block; border: 1px solid var(--oj-core-border-color, #ccc); border-radius: var(--oj-core-border-radius-md, 6px);
   background: var(--oj-core-bg-color-content, #fff); }

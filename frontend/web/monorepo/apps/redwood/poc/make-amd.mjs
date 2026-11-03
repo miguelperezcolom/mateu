@@ -616,6 +616,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // tree rows) and its re-projection, content menus, MessageInput, and their DOM installers
     setUiValue,
     uiValueOf,
+    openTreeRowsOnNewSearch,
     reprojectedContentOf,
     menuChoiceOf,
     dispatchOf,

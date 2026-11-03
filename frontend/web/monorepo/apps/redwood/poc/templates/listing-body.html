@@ -2033,6 +2033,16 @@
       <template slot="cellClip">
         <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]" :data-mateu-hover="[[ ($current.data && $current.data.hover) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
       </template>
+      <!-- a tree listing (gridLayout: tree): the first column carries the indentation and the
+           disclosure; the rest of the cell still opens the record -->
+      <template slot="cellTreeToggle">
+        <span class="mateu-tree-cell" :style="[[ $current.row.__indentStyle ]]">
+          <oj-bind-if test="[[ $current.row.__hasChildren ]]">
+            <oj-button display="icons" chroming="borderless" class="oj-button-sm" on-oj-action="[[ $listeners.listingTreeToggled ]]"><span slot="startIcon" :class="[[ $current.row.__toggleIcon ]]"></span><oj-bind-text value="[[ $current.row.__toggleLabel ]]"></oj-bind-text></oj-button>
+          </oj-bind-if>
+          <oj-bind-text value="[[ $current.data ]]"></oj-bind-text>
+        </span>
+      </template>
       <!-- MULTI-LINE ROWS (@Line): the technical column __rowLines (1px) paints the row's extra
            lines — secondary «Label: value» pairs — in an absolute block that
            takes the WHOLE width of the row, in the gap the mateu-lines-N table reserves
