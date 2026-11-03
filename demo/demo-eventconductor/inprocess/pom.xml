@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
     <groupId>io.mateu.demo</groupId>
@@ -18,7 +18,7 @@
         <java.version>21</java.version>
         <!-- Needs mateu.ui.modules (after 3.0-alpha.406): build the backend first, see demo/README.md -->
         <mateu.version>0.0.1-MATEU</mateu.version>
-        <eventconductor.version>2.25.1</eventconductor.version>
+        <eventconductor.version>2.37.0</eventconductor.version>
     </properties>
 
     <dependencyManagement>
