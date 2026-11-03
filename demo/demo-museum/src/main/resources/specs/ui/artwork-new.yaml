@@ -5,6 +5,7 @@
 # options from a REST source), toggle, checkbox, image, link.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: New artwork
 titlePlaceholder: New artwork…
 subtitle: Add a work to one of the collections

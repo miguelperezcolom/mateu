@@ -42,6 +42,13 @@ class YamlDeclaredActionsSyncTest {
   }
 
   @Test
+  void aPageDeclaresThatLeavingItWithUnsavedChangesAsks() {
+    var guarded = mateu.sync("/yaml-guarded").fragments().get(0).component();
+    assertThat(((ServerSideComponentDto) guarded).confirmOnNavigationIfDirty()).isTrue();
+    assertThat(page().confirmOnNavigationIfDirty()).isFalse();
+  }
+
+  @Test
   void aRequiredFieldIsValidatedLikeAJavaOne() {
     // a classless page sent no validations at all: its required fields wore the required dot and
     // the action ran with them empty

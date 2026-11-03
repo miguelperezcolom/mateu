@@ -2,6 +2,7 @@
 # and Delete — each a REST call the server makes with the write key.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: ${state.title}
 overline: ${state.missionName}
 subtitle: Task · ${state.phase}

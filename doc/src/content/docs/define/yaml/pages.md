@@ -129,6 +129,7 @@ and shapes may still change before they are declared stable.
 | `badges` | list of `{label, color}` chips | `@BadgeInHeader` / `HeaderBadgesSupplier` |
 | `kpis` | list of `{label, value}` key facts | `@KPI` |
 | `peerNav` | `{prevLabel, prevRoute, nextLabel, nextRoute}` | `PeerNavigationSupplier` |
+| `confirmOnNavigationIfDirty` | `true`: ask before leaving with unsaved changes | `@ConfirmOnNavigationIfDirty` |
 | `recordSwitcher` | `{label, value, type, searchable, disabled, options \| optionsSource, route \| actionId}` | `RecordSwitcherSupplier` |
 | `banners` | list of `{theme, title, description, closeable, timeoutSeconds}` | `@Banner` / `BannerSupplier` |
 | `fabs` | list of `{icon, label, actionId, order, buttonStyle}` | `@Fab` methods on the page |
@@ -156,6 +157,10 @@ fabs:
   - {icon: "vaadin:plus", label: New order, actionId: newOrder}
 content: [...]
 ```
+
+A page that edits should declare `confirmOnNavigationIfDirty: true`: without it, a menu click or a
+previous/next arrow discards what was typed, with no warning. A REST action that succeeds settles
+those changes when it declares `validationRequired` or a `successRoute`, so saving never asks.
 
 A `peerNav` route is an app route, relative to the mount; one starting with `/` is a path of the site
 (another mount, say), which the browser loads. When a neighbour can be missing, say so in

@@ -4072,6 +4072,9 @@
         "template" : {
           "$ref" : "#/$defs/FormTemplate"
         },
+        "confirmOnNavigationIfDirty" : {
+          "type" : "boolean"
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."

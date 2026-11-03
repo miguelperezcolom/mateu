@@ -4,6 +4,7 @@
 # museum-service fills both in, and the new loan starts as `requested`.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: Request a loan
 subtitle: Borrow a work from another museum for one of your exhibitions
 toolbar:

@@ -3,6 +3,7 @@
 # them blank, so this form shows the image but does not edit it.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: Edit ${state.title}
 subtitle: ${state.museumName}
 timestamp: Image ${state.imageCredit}

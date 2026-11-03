@@ -4,6 +4,7 @@
 # when the body leaves the list out. The works are on the exhibition's page.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: Edit ${state.title}
 subtitle: ${state.museumName}
 toolbar:
