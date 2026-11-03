@@ -49,6 +49,17 @@ public class SuppliedSourcesView : IRestSourceSupplier
     ];
 }
 
+/// <summary>A proxied per-row write: a bulk action runs it once per selected row (forEachSelectedRow).</summary>
+[UI("bulk-delete-sources"), Title("Bulk")]
+public class BulkDeleteSourcesView : IRestSourceSupplier
+{
+    public IReadOnlyList<DeclaredRestSource> DeclaredRestSources() =>
+    [
+        new(RestSourceKind.Action, "delete",
+            new RestDataSource { Url = "https://api.example.com/people/${state.id}", Method = "DELETE", Proxy = true }),
+    ];
+}
+
 /// <summary>A listing AND a live board, both proxied ROWS sources: the board's fetch names its id.</summary>
 public class TwoRowsSourcesView : IRestSourceSupplier
 {
@@ -246,6 +257,68 @@ public class RestSourceCatalogueTests
         // nothing to call: the misconfiguration is surfaced (as on Java), not read as an empty success
         Assert.Equal("{\"status\":0,\"message\":\"Request failed\"}",
             JsonSerializer.Serialize(((Dictionary<string, object?>)increment.AppData!)["_restfetchError"]));
+    }
+
+    private sealed class ScriptedHttp(Func<HttpRequestMessage, HttpStatusCode> answer) : HttpMessageHandler
+    {
+        public readonly List<string> Calls = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            Calls.Add(request.Method + " " + request.RequestUri!.AbsoluteUri);
+            var status = answer(request);
+            return Task.FromResult(new HttpResponseMessage(status)
+            {
+                Content = new StringContent((int)status >= 400 ? "{\"message\":\"in use\"}" : ""),
+            });
+        }
+    }
+
+    private static RunActionRqDto Bulk(params string[] ids) => new()
+    {
+        Route = "bulk-delete-sources", ConsumedRoute = "bulk-delete-sources", ActionId = "__restfetch__",
+        ComponentState = new()
+        {
+            ["crud_selected_items"] = JsonSerializer.SerializeToElement(ids.Select(id => new { id }).ToArray()),
+        },
+        Parameters = new()
+        {
+            ["_sourceKind"] = "action", ["_sourceId"] = "delete",
+            ["_forEachSelectedRow"] = JsonSerializer.SerializeToElement(true),
+        },
+    };
+
+    [Fact]
+    public async Task A_bulk_proxied_write_runs_once_per_selected_row()
+    {
+        // Java RestProxyCalls.forEachSelectedRow: each row over the state, one round trip
+        var http = new ScriptedHttp(_ => HttpStatusCode.NoContent);
+        var increment = await Handler(RestSourceCatalog.Empty, new HttpClient(http)).HandleAsync(Bulk("a b", "7"));
+        Assert.Equal(["DELETE https://api.example.com/people/a%20b", "DELETE https://api.example.com/people/7"], http.Calls);
+        Assert.Equal("{}", Fetched(increment));
+    }
+
+    [Fact]
+    public async Task A_failed_row_of_a_bulk_write_is_reported()
+    {
+        var http = new ScriptedHttp(rq => rq.RequestUri!.ToString().EndsWith("/2") ? HttpStatusCode.Conflict : HttpStatusCode.OK);
+        var increment = await Handler(RestSourceCatalog.Empty, new HttpClient(http)).HandleAsync(Bulk("1", "2", "3"));
+        Assert.Equal(3, http.Calls.Count);
+        Assert.Equal("{\"status\":409,\"message\":\"1 of 3 failed (HTTP 409)\",\"detail\":\"in use\"}",
+            JsonSerializer.Serialize(((Dictionary<string, object?>)increment.AppData!)["_restfetchError"]));
+    }
+
+    [Fact]
+    public async Task The_action_parameters_reach_a_proxied_template()
+    {
+        // a kanban move's _toColumnId etc. reach ${state.x} on the proxied leg, as on the direct one
+        var http = new ScriptedHttp(_ => HttpStatusCode.OK);
+        await Handler(RestSourceCatalog.Empty, new HttpClient(http)).HandleAsync(new RunActionRqDto
+        {
+            Route = "bulk-delete-sources", ConsumedRoute = "bulk-delete-sources", ActionId = "__restfetch__",
+            Parameters = new() { ["_sourceKind"] = "action", ["_sourceId"] = "delete", ["id"] = "9" },
+        });
+        Assert.Equal(["DELETE https://api.example.com/people/9"], http.Calls);
     }
 
     [Fact]

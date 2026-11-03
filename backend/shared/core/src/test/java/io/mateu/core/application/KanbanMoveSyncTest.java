@@ -58,7 +58,12 @@ class KanbanMoveSyncTest {
     // a plain public method: the board naming it is what advertises it
     public Object moveTask(HttpRequest httpRequest) {
       var rq = httpRequest.runActionRq();
-      moves.add(rq != null && rq.parameters() != null ? rq.parameters() : Map.of());
+      var parameters = rq != null && rq.parameters() != null ? rq.parameters() : Map.of();
+      if ("frozen".equals(parameters.get("_toColumnId"))) {
+        // a move the handler refuses: the renderers put the card back on an error answer
+        throw new io.mateu.uidl.UserFacingException("That column is frozen");
+      }
+      moves.add((Map<String, Object>) parameters);
       return null;
     }
   }
@@ -140,6 +145,30 @@ class KanbanMoveSyncTest {
         .containsEntry("_fromColumnId", "todo")
         .containsEntry("_toColumnId", "done")
         .containsEntry("_toIndex", 0);
+  }
+
+  @Test
+  void aMoveTheHandlerRefusesAnswersAnErrorTheRenderersReadAsAFailedMove() {
+    moves.clear();
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("kanban-move")
+                .serverSideType(BoardPage.class.getName())
+                .actionId("moveTask")
+                .parameters(
+                    Map.of("_cardId", "t1", "_fromColumnId", "todo", "_toColumnId", "frozen"))
+                .componentState(Map.of())
+                .build());
+    assertThat(moves).isEmpty();
+    // Vaadin / React Native / IntelliJ roll the card back on an ERROR message in the answer
+    assertThat(increment.messages())
+        .singleElement()
+        .satisfies(
+            m -> {
+              assertThat(String.valueOf(m.variant())).isEqualTo("error");
+              assertThat(m.text()).isEqualTo("That column is frozen");
+            });
   }
 
   @Test

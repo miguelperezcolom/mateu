@@ -121,6 +121,17 @@ def test_the_dev_endpoints_do_not_exist_without_dev_mode():
     assert client.post(dev_specs.RELOAD_PATH).status_code in (404, 405)
 
 
+def test_an_explicit_live_reload_false_wins_over_mateu_dev(monkeypatch):
+    # MATEU_DEV=true used to keep the manifest advertising devEvents the app did not serve
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("MATEU_DEV", "true")
+    client = TestClient(_app(live_reload=False))
+    assert not dev_specs.enabled()
+    assert client.get(dev_specs.EVENTS_PATH).status_code == 404
+    assert "devEvents" not in client.get("/mateu/v3/manifest").json()
+
+
 def test_the_dev_endpoints_in_dev_mode(tmp_path, monkeypatch):
     import asyncio
 

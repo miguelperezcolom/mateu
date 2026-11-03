@@ -85,6 +85,21 @@ def _restfetch_error(status: int, detail: str | None = None) -> UIIncrement:
     return UIIncrement(app_data={"_restfetchError": error})
 
 
+#: the proxy's own routing keys: what to call, never a value to interpolate
+_ROUTING_PARAMETERS = frozenset({"_sourceKind", "_sourceId", "_forEachSelectedRow"})
+
+
+def _call_state(rq: RunActionRq) -> dict:
+    """The state a proxied call interpolates with: the component state with the action's parameters
+    over it — a kanban move's ``_cardId``/``_toColumnId`` reach ``${state._toColumnId}`` as on the
+    browser's direct leg (Java's RestProxyCalls.callState)."""
+    state = dict(rq.component_state or {})
+    for key, value in (rq.parameters or {}).items():
+        if key not in _ROUTING_PARAMETERS:
+            state[key] = value
+    return state
+
+
 def _declares_json(headers: dict | None) -> bool:
     """Whether the request declares a JSON body (a ``Content-Type`` naming json) — then the values
     interpolated into the body are JSON-escaped (Java's TemplateInterpolator.declaresJson)."""
@@ -139,11 +154,41 @@ class ProxyHandlerMixin(MixinBase):
                     f"Forbidden: __restfetch__ {kind}/{source_id} is not a proxied source"
                 )
             elif source is not None:
+                state = _call_state(rq)
+                if str(rq.parameters.get("_forEachSelectedRow")).lower() == "true":
+                    return self._for_each_selected_row(source, state)
                 try:
-                    json_obj = self._fetch_proxy(source, rq.component_state)
+                    json_obj = self._fetch_proxy(source, state)
                 except ProxyError as e:
                     return _restfetch_error(e.status, e.detail)
         return UIIncrement(app_data={"_restfetch": json_obj})
+
+    def _for_each_selected_row(self, source, state: dict) -> UIIncrement:
+        """Bulk (``forEachSelectedRow``): the loop runs HERE, once per selected listing row, each row
+        merged over the state so ``.../people/${state.id}`` resolves to that row's id — one round
+        trip, the secret stays server-side (Java's RestProxyCalls.forEachSelectedRow)."""
+        rows = state.get("crud_selected_items")
+        rows = rows if isinstance(rows, list) else []
+        failed = 0
+        first: ProxyError | None = None
+        for row in rows:
+            row_state = dict(state)
+            if isinstance(row, dict):
+                row_state.update({str(k): v for k, v in row.items()})
+            try:
+                self._fetch_proxy(source, row_state)
+            except ProxyError as e:
+                failed += 1
+                first = first or e
+        if first is not None:
+            # a failed row must not read as success: surface it rather than reload as if all done
+            suffix = f" (HTTP {first.status})" if first.status > 0 else ""
+            error: dict[str, Any] = {"status": first.status, "message": f"{failed} of {len(rows)} failed{suffix}"}
+            if first.detail:
+                error["detail"] = first.detail
+            return UIIncrement(app_data={"_restfetchError": error})
+        # the rows are gone; the client reloads the listing (successRoute), so no body is needed
+        return UIIncrement(app_data={"_restfetch": {}})
 
     def _fetch_proxy(self, source, state: dict) -> Any:
         """Fetch a resolved source server-side (url/headers/body interpolated) and return its JSON

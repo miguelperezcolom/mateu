@@ -140,7 +140,10 @@ in the same change.
 | [Proxied source templates](/concepts/data-sources/#proxy-mode) evaluated with the browser's expression subset (corpus `conformance/client/source-templates.json`), the validator's `proxy_unsafe_template` warning, and a proxied source's headers/body never sent to the client | ✅ | ✅ | ✅ |
 | [The service's message on a failed REST call](/concepts/data-sources/#when-a-call-fails), on the direct and the proxied leg | ✅ | ✅ | ✅ |
 | Hub manifest version fields for the [apps' compatibility check](/ux-patterns/mobile-app/) (`wireVersion`, `mateuVersion` on a release) and `devEvents` in development mode ([live reload on desktop and phone](/java-user-manual/build/live-reload/)) | ✅ | ✅ | ✅ |
-| Access keys and `${i18n.…}` inside a YAML `type: Partial` applied on the server like inline content (Java pinned by `YamlPartialAccessSyncTest`; not yet checked or pinned in the ports) | ✅ | 🟡 | 🟡 |
+| Access keys and `${i18n.…}` inside a YAML `type: Partial` applied on the server like inline content — the partial is inlined as source before the per-caller passes, in pages and (Java) in a `type: AppShell` (Java `YamlPartialAccessSyncTest` + `YamlShellPartialAccessSyncTest`, .NET `YamlAccessTests`, Python `test_yaml_access.py`) | ✅ | ✅ | ✅ |
+| Proxied REST leg: the browser's expression subset (`ProxyExpression`, corpus `source-templates.json`), the action's parameters over the state, `forEachSelectedRow` one call per row, a refused direct source (403); a route's `fixedParams` over the state on that leg is Java-only | ✅ | 🟡 | 🟡 |
+| Deep links to a dotted id (`/people/ana.perez`): a FILE is an asset extension, anything else is a route (Java `SpaFallback.ASSET_EXTENSIONS`, .NET `UiPage.IsAsset`, Python `ui_page.is_asset`) | ✅ | ✅ | ✅ |
+| CRUD write gates: a forced write, New/Edit or `/new`·`/{id}/edit` the crud does not offer is refused (403) — `canCreate/canEdit/canDelete` (.NET `CanX`, Python `can_x()`), read-only, display toggles incl. a disabled Save and next | ✅ | ✅ | ✅ |
 
 Import wizard on .NET/Python: same step flow (upload/paste → auto-mapped column grid with a
 select-editable target-field cell → per-line validation report → typed import + result counts)

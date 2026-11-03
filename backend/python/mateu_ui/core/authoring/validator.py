@@ -25,7 +25,7 @@ from typing import Any
 import yaml
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
-from .. import proxy_expression
+from .. import proxy_expression, url_template
 
 #: Largest definition accepted (UTF-8 bytes); the same limit in every implementation.
 MAX_YAML_BYTES = 262_144
@@ -385,6 +385,8 @@ class _Run:
             )
         elif key in ("url", "body") and def_name == "RestDataSource":
             self.proxy_safe(text, path, value)
+            if key == "url":
+                self.origin_safe(text, path, value)
         elif key == "fieldType":
             self.resolves(
                 ctx.field_type, text, "unresolved_field_type",
@@ -426,6 +428,20 @@ class _Run:
                     path,
                     at.start_mark,
                 )
+
+    def origin_safe(self, template: str, path: str, at: Node) -> None:
+        """A url whose HOST a client value would choose: the proxied leg refuses to call it (only a
+        ``${secret.X}`` may name the origin). Java's UidlValidator.originSafe."""
+        expr = url_template.client_chosen_origin(template)
+        if expr is not None:
+            self.issue(
+                self.warnings,
+                "proxy_unsafe_template",
+                "${" + expr + "} chooses the origin of the url: only a ${secret.X} may name the host, so if"
+                " this source is proxied (proxy: true, or an environment flips it) the call is refused.",
+                path,
+                at.start_mark,
+            )
 
     def resolves(
         self, known: Predicate | None, name: str, code: str, message: str, path: str, at: Node

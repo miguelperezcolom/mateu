@@ -30,9 +30,6 @@ public final class TemplateInterpolator {
 
   private static final String ENCODE_CALL = "encodeURIComponent";
 
-  /** The only expression an origin placeholder may hold: a configured secret. */
-  private static final Pattern SECRET_ORIGIN = Pattern.compile("secret\\.[A-Za-z0-9_.-]+");
-
   private static final Pattern NUMBER = Pattern.compile("-?\\d+(\\.\\d+)?");
 
   private TemplateInterpolator() {}
@@ -116,7 +113,7 @@ public final class TemplateInterpolator {
         // origin reads the client state somehow — `${String(state.host)}`, `${(state.host)}`,
         // `${state['host']}`, a bare `${host}` (bare names read the state) — and the SERVER would
         // fetch a host the client picked.
-        if (!SECRET_ORIGIN.matcher(valueExpr.trim()).matches()) {
+        if (!io.mateu.core.domain.UrlOrigin.isConfigured(valueExpr)) {
           throw new IllegalArgumentException(
               "A client state value cannot choose the origin of a URL: " + template);
         }
@@ -306,29 +303,7 @@ public final class TemplateInterpolator {
    * leading placeholder (a configured base), or 0 for a relative template.
    */
   static int originEnd(String template) {
-    int scheme = template.indexOf("://");
-    int firstPlaceholder = template.indexOf("${");
-    if (scheme >= 0 && (firstPlaceholder < 0 || scheme < firstPlaceholder)) {
-      int i = scheme + 3;
-      while (i < template.length()) {
-        if (template.startsWith("${", i)) {
-          int close = template.indexOf('}', i);
-          i = close < 0 ? template.length() : close + 1;
-          continue;
-        }
-        char c = template.charAt(i);
-        if (c == '/' || c == '?' || c == '#') {
-          return i;
-        }
-        i++;
-      }
-      return template.length();
-    }
-    if (template.startsWith("${")) {
-      int close = template.indexOf('}');
-      return close < 0 ? template.length() : close + 1;
-    }
-    return 0;
+    return io.mateu.core.domain.UrlOrigin.end(template);
   }
 
   /** Whether a literal {@code ?} or {@code #} (outside placeholders) precedes {@code index}. */

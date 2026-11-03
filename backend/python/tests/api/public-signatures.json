@@ -693,6 +693,9 @@
   "Crud": {
    "class": [],
    "members": {
+    "can_create": [],
+    "can_delete": [],
+    "can_edit": [],
     "csv_exportable": [],
     "delete": [
      [
@@ -1715,6 +1718,9 @@
   "HeroSearch": {
    "class": [],
    "members": {
+    "can_create": [],
+    "can_delete": [],
+    "can_edit": [],
     "csv_exportable": [],
     "delete": [
      [

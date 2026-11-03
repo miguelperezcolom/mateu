@@ -178,11 +178,31 @@ public class LiveReloadTests : IDisposable
         Assert.Contains("\"type\":\"reload\"", line);
     }
 
-    private static async Task<WebApplication> Start()
+    [Fact]
+    public async Task An_explicit_Dev_false_wins_over_MATEU_DEV()
+    {
+        // it used to be read as "not set": the dev endpoints were mapped (and advertised) anyway
+        var before = Environment.GetEnvironmentVariable("MATEU_DEV");
+        Environment.SetEnvironmentVariable("MATEU_DEV", "true");
+        try
+        {
+            DevSpecs.Enable(false);
+            await using var app = await Start(o => o.Dev = false);
+            Assert.False(DevSpecs.Enabled);
+            using var http = new HttpClient { BaseAddress = new Uri(Address(app)) };
+            Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync(DevSpecs.EventsPath)).StatusCode);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("MATEU_DEV", before);
+        }
+    }
+
+    private static async Task<WebApplication> Start(Action<MateuOptions>? configure = null)
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
-        builder.Services.AddMateu(typeof(LiveReloadTests).Assembly);
+        builder.Services.AddMateu(configure ?? (_ => { }), typeof(LiveReloadTests).Assembly);
         var app = builder.Build();
         app.MapMateu();
         await app.StartAsync();

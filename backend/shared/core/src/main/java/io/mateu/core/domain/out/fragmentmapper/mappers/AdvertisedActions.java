@@ -26,8 +26,10 @@ import lombok.extern.slf4j.Slf4j;
  * subscriptions, {@code @OnRowSelected}, {@code @AutoSave}), every {@code actionId}/{@code
  * *ActionId} of the components it holds or supplies (a fluent tree, a {@code Callable} island, a
  * header, a toolbar, a menu rule leaf, an app header action) and its {@code @AppShortcut}s — the
- * same rule the .NET and Python ports apply. An id only a previous RESPONSE named (an undo toast's
- * action) is not derivable from the view: that handler has to be marked ({@code @Action}).
+ * same rule the .NET and Python ports apply. An id only a previous RESPONSE named (a dialog's
+ * confirm, an undo toast's action, a served row's column action) is not derivable from the view: it
+ * is advertised to the caller that response went to, for a while ({@link IssuedActions}, per caller
+ * with a TTL) — a handler that must stay callable beyond that is marked ({@code @Action}).
  *
  * <p>Computed only when an action names an unmarked method, so the cost is paid by that path alone.
  */

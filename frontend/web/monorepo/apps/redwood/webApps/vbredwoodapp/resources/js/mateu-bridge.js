@@ -16943,12 +16943,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     toUpperCase: (t) => String(t == null ? '' : t).toUpperCase(),
     trim: (t) => String(t == null ? '' : t).trim(),
     toString: (t) => String(t),
+    // the rest of the pure string / list / number methods the server's proxied leg evaluates too
+    // (ProxyExpression.METHODS), so a REST source template means the same on both legs
+    slice: (t, a) => (typeof t === 'string' || Array.isArray(t) ? t.slice(a[0], a[1]) : undefined),
+    substring: (t, a) => String(t == null ? '' : t).substring(a[0], a[1]),
+    padStart: (t, a) => String(t == null ? '' : t).padStart(a[0], a[1]),
+    padEnd: (t, a) => String(t == null ? '' : t).padEnd(a[0], a[1]),
+    join: (t, a) => (Array.isArray(t) ? t.join(a[0]) : undefined),
+    toFixed: (t, a) => (typeof t === 'number' ? t.toFixed(a[0]) : undefined),
     test: (t, a) => {
       if (!(t instanceof RegExp)) throw new TypeError('test is only a method of a regex')
       t.lastIndex = 0
       return t.test(String(a[0]))
     },
   }
+
+  // `Math.x(…)`: only these pure functions are reachable.
+  const RULE_MATH = Object.freeze({
+    round: Math.round, floor: Math.floor, ceil: Math.ceil, abs: Math.abs, min: Math.min, max: Math.max,
+  })
 
   // Properties an expression may never read: the routes from a value back to `Function` (the same
   // set as the web and React Native evaluators).
@@ -16979,6 +16992,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(src[i + 1]))) {
         let j = i
         while (j < src.length && /[0-9.]/.test(src[j])) j++
+        // an exponent, as in JS: 1e3, 2.5E-2
+        const exp = /^[eE][+-]?[0-9]+/.exec(src.slice(j))
+        if (exp) j += exp[0].length
         tokens.push({ t: 'num', v: Number(src.slice(i, j)) }); i = j; continue
       }
       if (c === '"' || c === "'") {
@@ -17108,6 +17124,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (take('(')) {
             const a = args()
             if (short) continue
+            if (v === RULE_MATH) {
+              if (!Object.prototype.hasOwnProperty.call(RULE_MATH, name)) throw new TypeError('Math.' + name + ' is not callable here')
+              v = RULE_MATH[name](...a)
+              continue
+            }
             // only known string/array methods: nothing the state carries is ever called
             if (!Object.prototype.hasOwnProperty.call(METHODS, name)) throw new TypeError(name + ' is not callable here')
             v = METHODS[name](v, a)
@@ -17147,6 +17168,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (tok.v === 'undefined') return undefined
         // only the scope's OWN names: `constructor`, `toString`… must not reach Object.prototype
         if (Object.prototype.hasOwnProperty.call(scope, tok.v)) return scope[tok.v]
+        if (tok.v === 'Math') return RULE_MATH
         // a call of an allowed global function (encodeURIComponent(…))
         if (Object.prototype.hasOwnProperty.call(RULE_GLOBAL_FUNCTIONS, tok.v) && take('(')) {
           return RULE_GLOBAL_FUNCTIONS[tok.v](...args())
