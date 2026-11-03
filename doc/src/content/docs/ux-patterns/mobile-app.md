@@ -266,6 +266,8 @@ another.
 - **HTTPS only.** The app refuses plain-HTTP UIs (a development build can allow `localhost`).
 - **Adding requires confirmation**, showing the **domain** prominently next to the manifest's name
   and icon. A QR can come from anyone; this is the phishing protection.
+- **Signing out** of a UI is in its drawer, or on the hub's top bar when its shell has no drawer; it
+  signs you out of that UI only.
 - **Mateu never validates tokens.** The app signs in with OIDC (Authorization Code + PKCE, in the
   system browser) against the issuer the manifest names, keeps one session per UI and sends
   `Authorization: Bearer` on every call. The *host application's* framework (Spring Security,

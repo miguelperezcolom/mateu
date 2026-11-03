@@ -97,6 +97,12 @@ tar -xzf mateu-desktop-<version>-linux.tar.gz
 links (`xdg-mime default <name>.desktop x-scheme-handler/mateu`). Running a newer bundle's
 `install.sh` upgrades in place, keeping the settings and the workspace.
 
+**A link asks before anything is looked up.** A `mateu://add?u=…` link can come from any web page, so
+the app first shows the address it names and asks whether to look it up — nothing is sent to that address
+(no manifest, no walk up a page's path) until you say yes; then the usual confirm step shows the UI's
+name and sign-in. A server on this machine is never followed to another address (no redirects from
+`localhost`, `127.x`, `[::1]`), and an address that answers without a Mateu manifest is not added.
+
 ## Signing in
 
 A UI that declares a sign-in in its manifest (`auth`: the OpenID Connect issuer and client, the same
@@ -105,12 +111,17 @@ the [phone app](/native/react-native/#3-signing-in-to-a-secured-backend) uses) i
 server: the app shows a short code and opens the provider's page in the browser, you sign in there and
 confirm the code, and the app gets its tokens. The access token stays in memory; the refresh token is
 kept in the operating system's credential store (Keychain, Windows Credential Manager, KWallet/libsecret,
-through IntelliJ's PasswordSafe) and renews the access token before you notice.
+through IntelliJ's PasswordSafe) and renews the access token when the backend answers 401 — once per UI
+for the whole app, even with several windows open on it. A refresh token the provider no longer accepts
+(`invalid_grant`) is deleted, and you are asked to sign in again.
 
 **One sign-in per UI.** Each UI of your list keeps its own session (keyed by its address, its provider
 and its client): switching to another UI and back finds you still signed in, a token of one UI is never
 sent to another UI or to another provider, **Sign out** signs you out of the open UI only, and removing
-a UI from the list deletes what was stored to sign in to it.
+a UI from the list deletes what was stored to sign in to it. Both also ask the provider to **revoke** the
+refresh token when its discovery document names a `revocation_endpoint` (RFC 7009) — the token is deleted
+locally whatever the provider answers. A UI whose manifest moves to another provider or client starts a
+new session, and the token stored for the old one is deleted when the new one is stored.
 
 At the identity provider, the client needs the **device grant** switched on — in Keycloak, *Clients ▸
 your client ▸ Capability config ▸ OAuth 2.0 Device Authorization Grant*. A client set up for the phone

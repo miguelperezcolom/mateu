@@ -131,6 +131,12 @@ a registry edit — no republishing:
   reads its own block and ignores the others'.
 - From there on, everything works as usual — the registry is only consulted at boot.
 
+The registry gate applies to builds bound to a registry. The hub apps (phone and desktop) and a build
+bound to a fixed URL check each UI's own manifest instead (`wireVersion`, `mateuVersion`), with one
+rule shared by both apps (`conformance/client/app-compat.json`): when a UI is added, when it is opened
+and — on the phone — when its manifest is refreshed in the background. See
+[the compatibility check](/ux-patterns/mobile-app/).
+
 **React Native wiring** (`src/core/AppRegistry.ts` + the boot gate in `App.tsx`): the registry
 coordinates live in the installable's `app.json` under `expo.extra` —
 
