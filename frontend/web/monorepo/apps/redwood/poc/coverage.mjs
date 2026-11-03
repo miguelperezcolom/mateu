@@ -91,7 +91,7 @@ export const REDWOOD_COVERAGE = {
   Chart: { status: 'full', note: 'oj-chart: bar, line, pie, doughnut, radar/polar area, scatter; several series' },
   TrendChart: { status: 'full', note: 'oj-chart line/area' },
   Gantt: { status: 'full', note: 'oj-gantt: a row per task, progress fill, task click → onTaskSelectionActionId' },
-  Kanban: { status: 'full', note: 'JET has no board: oj-panel columns, cards as oj-action-card when they act (_clickedCard)' },
+  Kanban: { status: 'full', note: "JET has no board: oj-panel columns, cards as oj-action-card when they act (_clickedCard); cards move by drag or each card's ⋯ Move menu, every move painted until its action answers (two quick moves both stay), a live board loads from `rowsSource`; a live card's texts are its row's data, never evaluated" },
   Timeline: { status: 'full', note: 'oj-timeline is deprecated: a Redwood list with markers whose events are Spectra\'s oj-sp-timeline-event-template; an item\'s action is its template action menu (_clickedItem)' },
   Calendar: { status: 'full', note: "Spectra's oj-sp-calendar (fed locally: ArrayDataProvider): month/week/day/list, a CalendarPage's ‹ › Today/views/Create run from its toolbar, per-date tone+label and clickable dates on its cells; the Redwood-token grid stays as fallback" },
   PricingTable: { status: 'full', note: 'oj-panel plans (the featured one highlighted), CTA oj-button' },
