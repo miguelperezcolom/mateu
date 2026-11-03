@@ -35,6 +35,7 @@ from ..naming import camel_case
 from ..reflection import class_flag, view_fields
 from ..registry import normalize
 from ..export import FORMATS
+from ..mapper.crud import _capable
 from ._base import MixinBase
 from ._common import (
     RunActionRq,
@@ -86,23 +87,28 @@ class CrudHandlerMixin(MixinBase):
             return self.crud_search(crud, element, rq)
         # Crud.display(): a disabled (or off) New / Delete cannot be forced from the client either
         display = self.mapper._crud_display(crud_type, crud)
-        if aid == "new" and not display.create.enabled():
-            return UIIncrement.of()
         # the WRITES a crud does not offer are refused (403), not only undrawn — a read-only crud
-        # (@read_only on the crud class), a disabled/off create or delete — mirrors Java's
-        # CrudWriteGate: a crafted request used to create, save and delete anyway
+        # (@read_only on the crud class), can_create/can_edit/can_delete() False, a disabled/off
+        # create, delete or "Save and next" — mirrors Java's CrudWriteGate: a crafted request used
+        # to create, save and delete anyway, and a forced new / save-and-next answered nothing
         read_only_crud = bool(class_flag(crud_type, "__mateu_read_only__", False))
-        if aid in ("create", "save", SAVE_AND_NEXT, "delete", "update-row") and (
-            read_only_crud
-            or (aid == "create" and not display.create.enabled())
-            or (aid == "delete" and not display.delete.enabled())
-        ):
+        may_create = not read_only_crud and display.create.enabled()
+        may_edit = not read_only_crud and _capable(crud, "can_edit")
+        may_delete = not read_only_crud and display.delete.enabled()
+        refused = (
+            (aid in ("new", "create") and not may_create)
+            or (aid in ("save", SAVE_AND_NEXT, "update-row") and not may_edit)
+            or (aid == SAVE_AND_NEXT and not display.save_and_next.enabled())
+            or (aid == "delete" and not may_delete)
+            or (aid == "edit" and not may_edit)
+            or (aid in (None, "") and mode == "new" and not may_create)
+            or (aid in (None, "") and mode == "edit" and not may_edit)
+        )
+        if refused:
             from ..action_guard import MateuForbiddenException
 
-            raise MateuForbiddenException(f"Forbidden: {aid} on {crud_type.__name__}")
+            raise MateuForbiddenException(f"Forbidden: {aid or mode} on {crud_type.__name__}")
         if aid in ("create", "save", SAVE_AND_NEXT):
-            if aid == SAVE_AND_NEXT and not display.save_and_next.enabled():
-                return UIIncrement.of()
             return self.crud_save(crud, element, id_, rq, base_route)
         if aid == "update-row":
             return self.update_row(crud, element, rq)
@@ -365,9 +371,15 @@ class CrudHandlerMixin(MixinBase):
         return None if raw is None else str(raw)
 
     def render_entity(self, crud_type, element, entity, mode, route, rq: RunActionRq | None = None) -> UIIncrement:
+        crud = crud_type()
         return self.fragment_response(
             self.record_title(element, entity),
-            self.mapper.map_entity_form(crud_type, element, entity, mode, route),
+            # can_edit() / can_create() False: the view page offers no Edit / Add another
+            self.mapper.map_entity_form(
+                crud_type, element, entity, mode, route,
+                can_edit=_capable(crud, "can_edit") and not class_flag(crud_type, "__mateu_read_only__", False),
+                can_create=self.mapper._crud_display(crud_type, crud).create.enabled(),
+            ),
             rq,
             self.lookup_labels(element, entity, crud_type()),
         )

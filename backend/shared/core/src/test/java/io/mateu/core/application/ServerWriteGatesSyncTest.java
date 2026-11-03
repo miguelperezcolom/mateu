@@ -138,6 +138,90 @@ class ServerWriteGatesSyncTest {
     }
   }
 
+  /** "Save and next" shown but disabled: forcing it is refused like any write the page bars. */
+  @UI("/gates-save-next")
+  @Title("Save and next disabled")
+  public static class SaveAndNextDisabledCrud extends DrawerCrud {
+    @Override
+    public CrudDisplay display() {
+      return CrudDisplay.defaults().toBuilder().saveAndNext(Toggle.disabled).build();
+    }
+  }
+
+  /** The capability gates as overridable methods (not annotations). */
+  @UI("/gates-canx")
+  @Title("canX")
+  public static class CanXCrud extends OpenCrud {
+    @Override
+    public boolean canCreate() {
+      return false;
+    }
+
+    @Override
+    public boolean canEdit() {
+      return false;
+    }
+
+    @Override
+    public boolean canDelete() {
+      return false;
+    }
+  }
+
+  /**
+   * @ReadOnly on the ENTITY, not on the crud.
+   */
+  @ReadOnly
+  public static class LockedItem implements Identifiable {
+    String id;
+    String name;
+
+    public LockedItem() {}
+
+    LockedItem(String id, String name) {
+      this.id = id;
+      this.name = name;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+  }
+
+  static final List<LockedItem> LOCKED = new ArrayList<>();
+
+  @UI("/gates-entity-readonly")
+  @Title("Entity read only")
+  public static class EntityReadOnlyCrud extends AutoCrud<LockedItem> {
+    @Override
+    public CrudStore<LockedItem> store() {
+      return new CrudStore<>() {
+        @Override
+        public Optional<LockedItem> findById(String id) {
+          return LOCKED.stream().filter(r -> r.id.equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(LockedItem entity) {
+          LOCKED.removeIf(r -> r.id.equals(entity.id));
+          LOCKED.add(entity);
+          return entity.id;
+        }
+
+        @Override
+        public List<LockedItem> findAll() {
+          return LOCKED;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {
+          LOCKED.removeIf(r -> ids.contains(r.id));
+        }
+      };
+    }
+  }
+
   /** A form whose unmarked method shares its name with a string literal of the class. */
   @UI("/gates-literal")
   public static class LiteralView {
@@ -180,6 +264,9 @@ class ServerWriteGatesSyncTest {
             ReadOnlyCrud.class,
             DisplayCrud.class,
             DrawerCrud.class,
+            SaveAndNextDisabledCrud.class,
+            CanXCrud.class,
+            EntityReadOnlyCrud.class,
             LiteralView.class,
             NestedView.class);
   }
@@ -194,6 +281,9 @@ class ServerWriteGatesSyncTest {
     ITEMS.clear();
     ITEMS.add(new Item("1", "one", 1));
     ITEMS.add(new Item("2", "two", 1));
+    LOCKED.clear();
+    LOCKED.add(new LockedItem("1", "one"));
+    LOCKED.add(new LockedItem("2", "two"));
     CALLS.clear();
   }
 
@@ -306,6 +396,75 @@ class ServerWriteGatesSyncTest {
                         Map.of("id", "9", "name", "nine"))))
         .isTrue();
     assertThat(ITEMS).hasSize(2);
+  }
+
+  @Test
+  void aDisabledSaveAndNextIsRefusedIfForced() {
+    assertThat(
+            refused(
+                () ->
+                    run(
+                        "/gates-save-next",
+                        SaveAndNextDisabledCrud.class,
+                        "save-and-next",
+                        Map.of("id", "1", "name", "changed", "version", 1))))
+        .isTrue();
+    assertThat(nameOf("1")).isEqualTo("one");
+  }
+
+  @Test
+  void canXOverridesRefuseEveryWrite() {
+    assertThat(refused(() -> run("/gates-canx", CanXCrud.class, "delete", selecting("2"))))
+        .isTrue();
+    assertThat(
+            refused(
+                () -> run("/gates-canx", CanXCrud.class, "create", Map.of("id", "9", "name", "x"))))
+        .isTrue();
+    assertThat(
+            refused(
+                () ->
+                    run(
+                        "/gates-canx",
+                        CanXCrud.class,
+                        "save",
+                        Map.of("id", "1", "name", "changed", "version", 1))))
+        .isTrue();
+    assertThat(refused(() -> run("/gates-canx", CanXCrud.class, "new", Map.of()))).isTrue();
+    assertThat(ITEMS).hasSize(2);
+    assertThat(nameOf("1")).isEqualTo("one");
+  }
+
+  @Test
+  void aReadOnlyEntityRefusesEveryWrite() {
+    var route = "/gates-entity-readonly";
+    assertThat(refused(() -> run(route, EntityReadOnlyCrud.class, "delete", selecting("2"))))
+        .isTrue();
+    assertThat(
+            refused(
+                () -> run(route, EntityReadOnlyCrud.class, "save", Map.of("id", "1", "name", "x"))))
+        .isTrue();
+    assertThat(
+            refused(
+                () ->
+                    run(route, EntityReadOnlyCrud.class, "create", Map.of("id", "9", "name", "x"))))
+        .isTrue();
+    assertThat(LOCKED).extracting(i -> i.name).containsExactly("one", "two");
+  }
+
+  @Test
+  void anInlineRowUpdateIsGatedLikeASave() {
+    Map<String, Object> edited = Map.of("_editedRow", Map.of("id", "1", "name", "x", "version", 1));
+    assertThat(
+            refused(
+                () -> run("/gates-annotated", AnnotatedCrud.class, "update-row", Map.of(), edited)))
+        .isTrue();
+    assertThat(
+            refused(
+                () -> run("/gates-readonly", ReadOnlyCrud.class, "update-row", Map.of(), edited)))
+        .isTrue();
+    assertThat(refused(() -> run("/gates-canx", CanXCrud.class, "update-row", Map.of(), edited)))
+        .isTrue();
+    assertThat(nameOf("1")).isEqualTo("one");
   }
 
   // ── A14: ids as JSON gave them ─────────────────────────────────────────────────────────────

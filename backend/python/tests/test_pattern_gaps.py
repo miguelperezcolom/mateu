@@ -319,8 +319,9 @@ def test_create_disabled_and_delete_off_shape_the_listing_toolbar():
     new = next(b for b in buttons(inc) if b.get("actionId") == "new")
     assert new["disabled"] is True
     assert not any(b.get("actionId") == "delete" for b in buttons(inc))
-    # and the server refuses them too
-    assert run(LockedRoomsCrud, "/rooms-locked", "new").fragments == []
+    # and the server refuses them too (403, like Java's CrudWriteGate — it used to answer nothing)
+    assert _forbidden(lambda: run(LockedRoomsCrud, "/rooms-locked", "new"))
+    assert _forbidden(lambda: run(LockedRoomsCrud, "/rooms-locked/new"))
 
 
 def test_the_edit_drawer_offers_save_and_next():
@@ -416,6 +417,59 @@ def test_a_read_only_crud_refuses_every_write():
     )
     assert _forbidden(
         lambda: run(ReadOnlyRoomsCrud, "/rooms-read-only/r1/edit", "save", {"id": "r1", "name": "X"})
+    )
+    assert [r.name for r in ROOMS] == ["Ocean view", "Garden", "Attic"]
+
+
+@ui("/rooms-no-next")
+@title("Rooms (no next)")
+@edit_in_drawer
+class SaveAndNextDisabledCrud(_RoomStore, Crud[Room]):
+    element_type = Room
+
+    def display(self):
+        return dataclasses.replace(CrudDisplay.defaults(), save_and_next=Toggle.disabled)
+
+
+def test_a_disabled_save_and_next_is_refused_if_forced():
+    _rooms_reset()
+    assert _forbidden(
+        lambda: run(SaveAndNextDisabledCrud, "/rooms-no-next/r1/edit", "save-and-next", {"id": "r1", "name": "X"})
+    )
+    assert ROOMS[0].name == "Ocean view"
+
+
+@ui("/rooms-canx")
+@title("Rooms (canX)")
+class CanXRoomsCrud(_RoomStore, Crud[Room]):
+    element_type = Room
+
+    def can_create(self):
+        return False
+
+    def can_edit(self):
+        return False
+
+    def can_delete(self):
+        return False
+
+
+def test_can_x_overrides_take_the_buttons_away_and_refuse_every_write():
+    # Java's Crud.canCreate/canEdit/canDelete(): the CHANGELOG's "canX() … Python" now holds
+    _rooms_reset()
+    listing = run(CanXRoomsCrud, "/rooms-canx")
+    assert not any(b.get("actionId") in ("new", "delete") for b in buttons(listing))
+    view = run(CanXRoomsCrud, "/rooms-canx/r1")
+    assert not any(b.get("actionId") == "edit" for b in buttons(view))
+    state = {"crud_selected_items": [{"id": "r2"}]}
+    assert _forbidden(lambda: run(CanXRoomsCrud, "/rooms-canx", "delete", state))
+    assert _forbidden(lambda: run(CanXRoomsCrud, "/rooms-canx", "new"))
+    assert _forbidden(lambda: run(CanXRoomsCrud, "/rooms-canx", "create", {"id": "r9", "name": "Nine"}))
+    assert _forbidden(lambda: run(CanXRoomsCrud, "/rooms-canx/r1/edit", "save", {"id": "r1", "name": "X"}))
+    assert _forbidden(lambda: run(CanXRoomsCrud, "/rooms-canx/r1", "edit"))
+    assert _forbidden(lambda: run(CanXRoomsCrud, "/rooms-canx/r1/edit"))
+    assert _forbidden(
+        lambda: run(CanXRoomsCrud, "/rooms-canx", "update-row", parameters={"_editedRow": {"id": "r1", "name": "X"}})
     )
     assert [r.name for r in ROOMS] == ["Ocean view", "Garden", "Attic"]
 
