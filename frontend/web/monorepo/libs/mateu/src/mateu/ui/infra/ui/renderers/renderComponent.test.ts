@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pageColumnCap, serverSideStyle } from './renderComponent'
+import { envelopeStyleOf, pageColumnCap, serverSideStyle } from './renderComponent'
 
 describe('serverSideStyle (a centred column takes the width it is given)', () => {
     it('gives a centred, capped column a full width so it can shrink to the viewport', () => {
@@ -9,11 +9,29 @@ describe('serverSideStyle (a centred column takes the width it is given)', () =>
     it('lets a full or edge page lift the DEFAULT 900px column, and keeps any other cap', () => {
         expect(serverSideStyle('max-width:900px;margin: auto;')).toContain('max-width: var(--mateu-page-column-cap, 900px)')
         expect(serverSideStyle('max-width: 40rem; margin: auto;')).toContain('max-width: 40rem')
-        expect(pageColumnCap('max-width:900px;margin: auto;display: block;')).toBe('max-width: var(--mateu-page-column-cap, 900px);margin: auto;display: block;')
+        // a column the view ASKED for (@Style(StyleConstants.CONTAINER)) is not the default: kept
+        expect(pageColumnCap('max-width:900px;margin: auto;display: block;')).toBe('max-width:900px;margin: auto;display: block;')
+        expect(pageColumnCap('max-width:900px;margin: auto;')).toBe('max-width: var(--mateu-page-column-cap, 900px);margin: auto;')
+        expect(pageColumnCap(' max-width : 900px ; margin : auto ')).toContain('var(--mateu-page-column-cap, 900px)')
     })
     it('leaves any other style alone', () => {
         expect(serverSideStyle(undefined)).toBeUndefined()
         expect(serverSideStyle('flex: 1;')).toBe('flex: 1;')
         expect(serverSideStyle('width: 20rem; max-width: 900px; margin: auto;')).toBe('width: 20rem; max-width: 900px; margin: auto;')
+    })
+})
+
+describe('envelopeStyleOf (a YAML page draws the same on every route)', () => {
+    const DEFAULT = 'max-width:900px;margin: auto;'
+    const envelope = (style: string | undefined, childType: string) => ({
+        type: 'ServerSide', style, children: [{ type: 'ClientSide', metadata: { type: childType } }],
+    }) as never
+
+    it('a seeded YAML page (a Form in the default envelope) takes no default column, like an unseeded one', () => {
+        expect(envelopeStyleOf(envelope(DEFAULT, 'Form'))).toBeUndefined()
+    })
+    it('any other envelope keeps its style', () => {
+        expect(envelopeStyleOf(envelope(DEFAULT, 'Page'))).toBe(DEFAULT)
+        expect(envelopeStyleOf(envelope('max-width:40rem;margin: auto;', 'Form'))).toBe('max-width:40rem;margin: auto;')
     })
 })

@@ -1,3 +1,4 @@
+import { cssColorOf } from './cssColor'
 import { ifDefined } from 'lit/directives/if-defined.js'
 import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
@@ -476,6 +477,10 @@ export class MateuKanban extends LitElement {
         e.stopPropagation()
         this.menuFor = undefined
         this.commit(move)
+        // the card is drawn again in its new place: the keyboard stays on it (its move button)
+        // instead of falling to the page (review LOW)
+        this.updateComplete.then(() =>
+            (this.renderRoot.querySelector(`[data-move-for="${CSS.escape(move.cardId ?? '')}"]`) as HTMLElement | null)?.focus())
     }
 
     render() {
@@ -493,7 +498,7 @@ export class MateuKanban extends LitElement {
         const visible = cards.filter(c => c.id !== this.dragging?.cardId || !target)
         return html`
             <div class="column ${target ? 'drop-here' : ''}" data-column-id="${column.id ?? ''}"
-                 style="${column.color ? `--mateu-kanban-accent: ${column.color};` : ''}"
+                 style="${cssColorOf(column.color) ? `--mateu-kanban-accent: ${cssColorOf(column.color)};` : ''}"
                  @dragover="${(e: DragEvent) => this.onDragOver(e, column)}"
                  @drop="${(e: DragEvent) => this.onDrop(e, column)}">
                 <div class="column-head">
@@ -517,7 +522,7 @@ export class MateuKanban extends LitElement {
                  class="card ${clickable ? 'clickable' : ''} ${movable ? 'movable' : ''} ${this.dragging?.cardId === card.id ? 'dragging' : ''}"
                  data-card-id="${card.id ?? ''}"
                  draggable="${movable ? 'true' : 'false'}"
-                 style="${card.color ? `--mateu-kanban-card-accent: ${card.color};` : ''}"
+                 style="${cssColorOf(card.color) ? `--mateu-kanban-card-accent: ${cssColorOf(card.color)};` : ''}"
                  @dragstart="${(e: DragEvent) => this.onDragStart(e, card, column)}"
                  @dragend="${() => this.onDragEnd()}"
                  @click="${() => this.clickCard(card)}" @keydown="${onActivate(() => this.clickCard(card))}">

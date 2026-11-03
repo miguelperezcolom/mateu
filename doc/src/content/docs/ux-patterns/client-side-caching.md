@@ -19,7 +19,7 @@ Three layers, from fully automatic to opt-in. They compose: the first paints the
 
 ### 1. Instant structure (automatic)
 
-The first time you open a screen, Mateu remembers its **structure** (the layout: sections, fields, tabs, columns) in the browser. On a return visit it paints that real structure immediately instead of a blank page or a generic loading skeleton, *and* still sends the normal request in the background. When the server responds, its values (and, if the structure changed, its structure) replace the prediction; an identical structure is kept on screen, so the page is not re-mounted.
+The first time you open a screen, Mateu remembers its **structure** (the layout: sections, fields, tabs, columns) in the browser. On a return visit it paints that real structure immediately instead of a blank page or a generic loading skeleton, *and* still sends the normal request in the background. When the server responds, its values (and, if the structure changed, its structure) replace the prediction; an identical structure is kept on screen, so the page is not re-mounted. A micro frontend the server resolved (`resolve = SERVER`) is never cached with the page: the host asks the remote again on every visit, and how long its answer may be reused is the remote's to say (`@CacheableFragment`, `FragmentCachePolicySupplier`).
 
 Only the structure is **stored** (`localStorage`). The values a page was opened with — its own and those of any island in it — stay in the memory of the tab, so a return visit within the tab paints them as before, while a reload, another tab or another person using the same browser finds none; a page that carried values is then simply loaded from the server. Signing in as someone else (or out) clears the cache.
 

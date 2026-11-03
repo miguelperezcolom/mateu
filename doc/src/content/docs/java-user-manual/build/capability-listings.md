@@ -162,7 +162,7 @@ columns:
   - {type: GridColumn, id: imageTitle, label: Title, identifier: true}
 ```
 
-A template that is a single placeholder (`${row.imageLarge}`) takes the value as it is; a value inside a longer template is percent-encoded as a path segment (on every renderer), so `../../admin` or `x?y=1` cannot leave the mount or add a query. Only `http`, `https`, `mailto` and `tel` URLs are opened — a `javascript:` or `data:` value goes nowhere, the same rule as every other link that comes from data. In a table, the identifier column becomes an ordinary link to the URL with `target="_blank"`.
+A template that is a single placeholder (`${row.imageLarge}`) takes the value as it is; a value inside a longer template is percent-encoded as a path segment (on every renderer), so `../../admin` or `x?y=1` cannot leave the mount or add a query. Only `http`, `https`, `mailto` and `tel` URLs are opened — a `javascript:` or `data:` value goes nowhere, the same rule as every other link that comes from data. In a table, the identifier column becomes an ordinary link to the URL with `target="_blank"`. A `mailto:` or `tel:` value opens the mail or phone app, from a click on the row and from its link alike. For an app route, the identifier link's address includes the app's mount (`/back-office/people/3` on an app mounted at `/back-office`), so opening it in a new tab lands on the same record.
 
 ---
 

@@ -1,5 +1,6 @@
 import { interpolate } from './interpolation.ts'
 import { safeNavigate } from './safeNavigate.ts'
+import { routeTargetUrl } from './navigationUrl.ts'
 
 /**
  * A listing's `rowRoute`: where a row click goes.
@@ -50,6 +51,37 @@ export function navigateToRoute(from: HTMLElement, route: string): void {
     for (const type of ['route-changed', 'navigate-to-requested']) {
         from.dispatchEvent(new CustomEvent(type, { detail: { route }, bubbles: true, composed: true }))
     }
+}
+
+/**
+ * The `href` of an app route as the address bar will show it once {@link navigateToRoute} follows
+ * it: resolved by the page's top-level `mateu-ui` (its mount path and base url), so on an app
+ * mounted at `/back-office` the link reads `/back-office/people/3`, not `/people/3` (which is
+ * another app, or nothing). Without a `mateu-ui` around, `/<route>`.
+ */
+export function appRouteHref(from: Element, route: string): string {
+    const ui = closestAcrossShadows(from, 'mateu-ui') as (Element & { baseUrl?: string, pathPrefix?: string }) | undefined
+    const fallback = '/' + route.replace(/^\/+/, '')
+    if (!ui || typeof window === 'undefined') return fallback
+    try {
+        const url = routeTargetUrl(route.startsWith('/') ? route : '/' + route, ui.baseUrl, ui.pathPrefix, window.location.origin)
+        return url.pathname + url.search + url.hash
+    } catch {
+        return fallback
+    }
+}
+
+const closestAcrossShadows = (from: Element, selector: string): Element | undefined => {
+    let node: Node | null = from
+    while (node) {
+        if (node instanceof Element) {
+            const hit = node.closest(selector)
+            if (hit) return hit
+        }
+        const root: Node = (node as Element).getRootNode?.() ?? node
+        node = root instanceof ShadowRoot ? root.host : null
+    }
+    return undefined
 }
 
 /**

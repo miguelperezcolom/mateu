@@ -8,5 +8,5 @@
 export const URL_CHANGED_EVENT = 'mateu-url-changed'
 
 export const announceUrlChange = () => {
-    if (typeof window !== 'undefined') window.dispatchEvent(new Event(URL_CHANGED_EVENT))
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') window.dispatchEvent(new Event(URL_CHANGED_EVENT))
 }

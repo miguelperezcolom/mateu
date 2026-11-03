@@ -91,7 +91,9 @@ export const asSelectValue = (value: unknown): unknown =>
 /** …and what the control picks goes back as the option's OWN value (25, not "25"). */
 export const optionValueOf = (options: { value?: unknown }[] | undefined, picked: unknown): unknown => {
     if (picked == null || picked === '') return picked
-    const hit = options?.find(option => option.value != null && String(option.value) === String(picked))
+    // the option that IS the pick first (a list holding both "25" and 25 answers the one picked)
+    const hit = options?.find(option => option.value === picked)
+        ?? options?.find(option => option.value != null && String(option.value) === String(picked))
     return hit ? hit.value : picked
 }
 
@@ -169,9 +171,10 @@ export function renderSelectField(host: MateuField, value: FieldValue, label: Fi
     } else {
         options = host.field.options
     }
+    // a value that comes as an option ({value, label}) is its value — also when that is 0 or ''
     let realValue = value
-    if (value && value.value) {
-        realValue = value.value
+    if (value && typeof value === 'object' && 'value' in (value as object)) {
+        realValue = (value as { value: unknown }).value
     }
     return html`
         <vaadin-select

@@ -45,6 +45,22 @@ describe('mateu-kanban', () => {
         expect(sent[0].parameters).toEqual({ _cardId: 't1', _fromColumnId: 'todo', _toColumnId: 'done', _toIndex: 0 })
     })
 
+    it('keeps the keyboard on the moved card after a pick from its menu', async () => {
+        const el = await mount({ columns, moveActionId: 'moveTask' })
+        ;(el.shadowRoot!.querySelector('[data-move-for="t1"]') as HTMLElement).click()
+        await el.updateComplete
+        ;(el.shadowRoot!.querySelectorAll('.menu [role=menuitem]')[1] as HTMLElement).click()
+        await el.updateComplete
+        await el.updateComplete
+        expect((el.shadowRoot!.activeElement as HTMLElement | null)?.getAttribute('data-move-for')).toBe('t1')
+    })
+
+    it('never writes a colour that is not one into a style', async () => {
+        const el = await mount({ columns: [{ id: 'c', title: 'C', color: 'red;background:url(x)', cards: [{ id: 'k', title: 'K', color: 'tomato' }] }] })
+        expect(el.shadowRoot!.querySelector('.column')!.getAttribute('style')).toBe('')
+        expect(el.shadowRoot!.querySelector('.card')!.getAttribute('style')).toContain('--mateu-kanban-card-accent: tomato')
+    })
+
     it('puts the card back when the move action fails', async () => {
         const el = await mount({ columns, moveActionId: 'moveTask' })
         let settled: ((ok: boolean) => void) | undefined

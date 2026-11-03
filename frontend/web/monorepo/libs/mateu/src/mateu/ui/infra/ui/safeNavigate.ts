@@ -61,6 +61,13 @@ const refuse = (url: unknown) => {
  * Returns false when the URL was refused.
  */
 export const safeNavigate = (url: unknown, options: { newTab?: boolean } = {}): boolean => {
+    // mailto:/tel: — what the same value as an <a href> opens (safeHref): the mail or phone app,
+    // the page stays. A row click used to refuse what the row's own link opened.
+    const contact = contactHref(url)
+    if (contact) {
+        window.location.assign(contact)
+        return true
+    }
     const safe = resolveSafeUrl(url)
     if (!safe) {
         refuse(url)
@@ -75,6 +82,12 @@ export const safeNavigate = (url: unknown, options: { newTab?: boolean } = {}): 
 }
 
 const HREF_SCHEMES = new Set(['http', 'https', 'mailto', 'tel'])
+
+/** A `mailto:` / `tel:` URL (as safeHref reads it), else undefined. */
+const contactHref = (url: unknown): string | undefined => {
+    const href = typeof url === 'string' ? safeHref(url) : undefined
+    return href && /^(mailto|tel):/i.test(href) ? href : undefined
+}
 
 /**
  * The value to put in an `<a href>` built from server data, or `undefined` when it must not be a

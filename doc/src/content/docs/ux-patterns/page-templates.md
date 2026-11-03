@@ -56,9 +56,14 @@ Three notes on how to read the table:
   page, which never bleeds and gets full width instead; a **collection** or **dashboard** page
   (listings, boards, search pages, KPI pages) → full width; a form, process or landing page →
   fixed; a dense datagrid (inline editing, compact) → full width; anything else → fixed. A YAML
-  page with no envelope is a form page, or the kind of page its `template:` stands for. On a
-  fixed page a form keeps its 900 px reading column; a full or edge page lifts that column and
-  takes the whole width it resolved to. On the Vaadin shell all three modes
+  page is a form page, or the kind of page its `template:` stands for, or a collection when it is
+  a `type: Listing` page — whether or not its route seeds it. Only the page's OWN content
+  counts: an embedded island (an `@Inline` view, a micro frontend) keeps its width and type to
+  itself, so a board inside one does not make the host page bleed. On a fixed page a form keeps
+  the server's default 900 px reading column; a full or edge page lifts that default and takes
+  the whole width it resolved to. A column the view asks for itself
+  (`@Style(StyleConstants.CONTAINER)`, any other `max-width`) is kept on every page, and a YAML
+  page never takes the default column. On the Vaadin shell all three modes
   render: *fixed* caps the content column at 1392 px centered, *full width* is fluid with margins
   that grow from 24 px to 96 px on wide screens, and
   *edge to edge* drops the shell gutters for the content while the page header keeps its own

@@ -34,6 +34,8 @@ const crud = (over: Record<string, any> = {}): any => ({
     _filterIds: (MateuTableCrud.prototype as any)._filterIds,
     _restoreUrlFiltersIfMissing: (MateuTableCrud.prototype as any)._restoreUrlFiltersIfMissing,
     _urlParams: (MateuTableCrud.prototype as any)._urlParams,
+    _ownKeys: (MateuTableCrud.prototype as any)._ownKeys,
+    _ownUrl: (MateuTableCrud.prototype as any)._ownUrl,
     _syncStateToUrl: (MateuTableCrud.prototype as any)._syncStateToUrl,
     ...over,
 })

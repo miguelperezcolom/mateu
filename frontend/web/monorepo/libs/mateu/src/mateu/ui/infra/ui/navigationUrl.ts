@@ -98,3 +98,23 @@ export const routeTargetUrl = (
     }
     return new URL(baseUrl + route)
 }
+
+/**
+ * Whether a back/forward only moves between two states of the listing on screen — same path, and
+ * at least one of the two entries written by the listing (its filters, page, sort): the listing
+ * re-reads the URL and searches again (mateu-table-crud `updated`), so the screen is NOT rebuilt.
+ * Rebuilding it (isScreenChange) re-mounted the whole app and reloaded the route on every
+ * `?page=1 ↔ ?page=2`.
+ */
+export const isListingMove = (
+    from: { href: string, listing?: boolean },
+    toListing: boolean,
+    current: { pathname: string },
+): boolean => {
+    if (!from.listing && !toListing) return false
+    try {
+        return new URL(from.href).pathname === current.pathname
+    } catch {
+        return false
+    }
+}
