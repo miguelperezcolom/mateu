@@ -18,16 +18,21 @@ import org.junit.jupiter.api.Test;
  * it answered "Page not found" (crawl of the live demos: /hardware, /solarSystem, /explore,
  * /operations).
  *
- * <p>Fixture {@code mount-home/card-menus/specs/ui}.
+ * <p>Fixtures {@code mount-home/card-menus/specs/ui} and {@code
+ * mount-home/route-vs-group/specs/ui}.
  */
 class YamlMenuGroupRouteSyncTest {
 
   private static UIIncrementDto contentOf(String route) {
+    return contentOf("card-menus", route);
+  }
+
+  private static UIIncrementDto contentOf(String fixture, String route) {
     var thread = Thread.currentThread();
     var previous = thread.getContextClassLoader();
     thread.setContextClassLoader(
         new MountHomeSyncTest.SpecsOverlay(
-            "card-menus", YamlMenuGroupRouteSyncTest.class.getClassLoader()));
+            fixture, YamlMenuGroupRouteSyncTest.class.getClassLoader()));
     try (var mateu = TestMateu.withUis()) {
       return mateu.run(
           RunActionRqDto.builder().route(route).consumedRoute("").actionId("").build());
@@ -95,5 +100,34 @@ class YamlMenuGroupRouteSyncTest {
   @Test
   void aRouteNoEntryClaimsIsStillNotFound() {
     assertThat(all(contentOf("/nowhere-at-all"), io.mateu.dtos.NotFoundDto.class)).isNotEmpty();
+  }
+
+  /**
+   * A leaf naming the group's derived route explicitly — the space demo's «Launches › All launches»
+   * ({@code route: launches}) inside the group «Launches» (derived {@code /launches}): the route is
+   * that entry's page, not the group's index. The breadcrumb already said «Launches › All launches»
+   * while the content showed the index.
+   */
+  @Test
+  void aLeafClaimingTheGroupsRouteWinsOverTheSectionIndex() {
+    var increment = contentOf("route-vs-group", "/launches");
+    assertThat(all(increment, io.mateu.dtos.NotFoundDto.class)).isEmpty();
+    assertThat(all(increment, io.mateu.dtos.AnchorDto.class)).as("no section index").isEmpty();
+    assertThat(all(increment, io.mateu.dtos.TextDto.class))
+        .extracting(t -> ((io.mateu.dtos.TextDto) t).text())
+        .contains("All launches listing");
+  }
+
+  /** With no leaf claiming it, the same shape of group route still answers its index. */
+  @Test
+  void aGroupRouteNoLeafClaimsStillAnswersItsIndex() {
+    var increment = contentOf("route-vs-group", "/fleet");
+    assertThat(all(increment, io.mateu.dtos.PageDto.class))
+        .singleElement()
+        .extracting(p -> ((io.mateu.dtos.PageDto) p).title())
+        .isEqualTo("Fleet");
+    assertThat(all(increment, io.mateu.dtos.AnchorDto.class))
+        .extracting(a -> ((io.mateu.dtos.AnchorDto) a).url())
+        .containsExactly("/calendar");
   }
 }

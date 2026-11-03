@@ -1,0 +1,8 @@
+type: Routes
+routes:
+  - route: ""
+    layout: shell.yaml
+  - route: launches
+    layout: launches.yaml
+  - route: calendar
+    layout: calendar.yaml

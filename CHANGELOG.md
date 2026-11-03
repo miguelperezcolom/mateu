@@ -45,6 +45,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **A menu entry whose route is its group's route opens its page, not the group's index** (Java,
+  YAML and `@Menu` shells). The group «Launches» answers at a route derived from its label
+  (`/launches`); its entry «All launches» names `route: launches` explicitly. Opening `/launches`
+  showed the group's section index (Launch calendar, All launches, …) while the breadcrumb already
+  said «Launches › All launches» — on the space demo, also for «Missions › All missions». An
+  explicit leaf route now wins over a group's derived one: the section index is only served when no
+  entry of the menu claims that route, so group routes nobody claims keep their index. .NET and
+  Python serve no group index and already resolved the leaf.
 - **Web: Back and Forward within a listing search again in place** (review M6). Between two states
   of a listing (`?page=1 ↔ ?page=2`, a filter, a sort) the whole app was re-mounted and the route
   reloaded; the listing now marks the history entries it writes and searches again on its own. A

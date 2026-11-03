@@ -143,7 +143,13 @@ public class AppMenuResolver {
       // The route may point at a menu group (children but no page of its own, e.g. /workflow):
       // render a section-index page instead of letting the frontend show "Not found".
       var group = AppMenuActionableFinder.findGroup(app, route, consumedRoute, httpRequest);
-      if (group != null && group.submenu() != null && !group.submenu().isEmpty()) {
+      if (group != null
+          && group.submenu() != null
+          && !group.submenu().isEmpty()
+          // a leaf naming this very route explicitly («Launches › All launches», route
+          // `launches`) wins over the group's DERIVED route: empty, so the caller resolves the
+          // route as that entry's page, as for any other entry
+          && !AppMenuActionableFinder.isClaimedByLeaf(app, route, consumedRoute, httpRequest)) {
         var index = buildSectionIndex(group, route, resolvedRoute);
         // a built PageView is not a reflected page: without this the tab kept the app's name
         if (httpRequest.getAttribute("windowTitle") == null) {
