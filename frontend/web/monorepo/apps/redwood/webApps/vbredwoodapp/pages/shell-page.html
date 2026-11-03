@@ -368,6 +368,19 @@
               </oj-bind-if>
             </template>
           </oj-bind-for-each>
+          <!-- what doesn't fit: every leaf is an option here, and subheaderOverflow.mjs leaves those it hid above -->
+          <oj-menu-button id="mateuSubheaderMore" chroming="borderless" class="mateu-subheader-item" style="display:none">
+            <oj-bind-text value="[[ $application.translations.appBundle.subheaderMore ]]"></oj-bind-text>
+            <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]">
+              <oj-bind-for-each data="[[ $functions.subheaderItemsOf($application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) ]]">
+                <template>
+                  <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+                    <oj-option :value="[[ $current.data.id ]]" :disabled="[[ !!$current.data.disabled ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                  </oj-bind-if>
+                </template>
+              </oj-bind-for-each>
+            </oj-menu>
+          </oj-menu-button>
         </div>
       </nav>
     </oj-bind-if>

@@ -37,7 +37,7 @@ export const MODULES = [
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'historyIndex.mjs', 'shellFlows.mjs', 'drawers.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'toc.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'untrusted.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'agentPush.mjs', 'theme.mjs', 'qr.mjs',
-  'editorPreview.mjs', 'embedded.mjs',
+  'editorPreview.mjs', 'embedded.mjs', 'subheaderOverflow.mjs',
   'liveReload.mjs',
 ]
 // the renderer's own version, sent in X-Mateu-Renderer (versionSkew.mjs): package.json's, stamped here
