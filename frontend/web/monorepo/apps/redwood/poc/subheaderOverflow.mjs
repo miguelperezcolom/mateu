@@ -24,7 +24,7 @@ export function overflowedOf(items, available, moreWidth) {
 const HIDDEN = 'mateu-subheader-overflowed'
 const ACTIVE = 'mateu-nav-active'
 
-function fit(menu, more) {
+export function fit(menu, more) {
   // an open menu's list is moved out of the button by JET: found once, and kept
   more.__mateuList = more.__mateuList || more.querySelector('oj-menu')
   const items = [...menu.children].filter((el) => el !== more && el.classList.contains('mateu-subheader-item'))
