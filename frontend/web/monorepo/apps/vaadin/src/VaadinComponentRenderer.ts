@@ -127,8 +127,8 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
         return renderVaadinToolbarButton(button, label, onClick)
     }
 
-    renderPeerNav(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult {
-        return renderVaadinPeerNav(peerNav)
+    renderPeerNav(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }, navigate: (route: string) => void): TemplateResult {
+        return renderVaadinPeerNav(peerNav, navigate)
     }
 
     // Icon port → vaadin-icon (the core `icon()` helper delegates here; core stays @vaadin-free).

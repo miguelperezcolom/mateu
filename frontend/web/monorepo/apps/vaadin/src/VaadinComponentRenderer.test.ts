@@ -2,7 +2,6 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { html, LitElement, render, type TemplateResult } from 'lit'
 import { componentRenderer } from '@infra/ui/renderers/ComponentRenderer.ts'
-import * as navigation from '@infra/ui/safeNavigate.ts'
 import { VaadinComponentRenderer } from './VaadinComponentRenderer'
 
 /**
@@ -275,8 +274,8 @@ describe('the renderer hooks the shared chrome calls', () => {
     })
 
     it('peer navigation: arrows named by their labels navigate, a missing side is disabled', () => {
-        const nav = vi.spyOn(navigation, 'safeNavigate').mockImplementation(() => true as never)
-        const out = mountTemplate(renderer.renderPeerNav({ prevLabel: 'Employee 1', prevRoute: '/e/1' }))
+        const nav = vi.fn()
+        const out = mountTemplate(renderer.renderPeerNav({ prevLabel: 'Employee 1', prevRoute: 'e/1' }, nav))
         const prev = out.querySelector('.peer-nav-prev') as HTMLElement
         const next = out.querySelector('.peer-nav-next') as HTMLElement
         expect(prev.getAttribute('aria-label')).toBe('Employee 1')
@@ -284,7 +283,7 @@ describe('the renderer hooks the shared chrome calls', () => {
         expect(next.hasAttribute('disabled')).toBe(true)
         prev.click()
         next.click()
-        expect(nav.mock.calls).toEqual([['/e/1']])
+        expect(nav.mock.calls).toEqual([['e/1']])
     })
 
     it('icons with no Vaadin glyph map to the closest one', () => {

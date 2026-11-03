@@ -42,7 +42,7 @@ export interface ComponentRenderer {
      * The previous/next peer-object arrows in the page header (the Redwood "next/previous object"
      * element). Absent → mateu-content-header renders its default vaadin-button arrows.
      */
-    renderPeerNav?(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult
+    renderPeerNav?(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }, navigate: (route: string) => void): TemplateResult
 
     /**
      * The record/context switcher in the page header (the Redwood selectObject/selectContext
