@@ -25,6 +25,23 @@ docker buildx build --platform linux/amd64 -f deploy/demos/demo-vaadin-webflux.D
 
 ```
 
+## The space and museum demos
+`demo/demo-space` and `demo/demo-museum` each ship a Vaadin image and a static Redwood one, tagged with
+the Mateu release in `<mateu.version>`, which must already be on Maven Central. Their APIs are separate
+repos (`space-service`, `museum-service`), tagged with the short commit; deploy those first when the
+demo's sources need something new from them. `clean` wipes `target/`, so push each image right after
+its build:
+```bash
+(cd demo/demo-space && mvn -B -ntp clean package -DskipTests)
+docker buildx build --platform linux/amd64 -f deploy/demos/demo-space.Dockerfile -t miguelperezcolom/demo-space:$V --push .
+(cd demo/demo-space && mvn -B -ntp clean package -DskipTests -Predwood-bundle -Dmateu.bundle.environment=public)
+docker buildx build --platform linux/amd64 -f deploy/demos/demo-space-redwood.Dockerfile -t miguelperezcolom/demo-space-redwood:$V --push .
+```
+Same for the museum. The container in these deployments is called `app`
+(`kubectl set image deploy/space-service app=…`; with a wrong name it fails, and `rollout status` still
+says «successfully rolled out» about the old image). Their databases live in memory: restarting a
+service re-seeds it, which also clears what a test wrote.
+
 ## Deploy
 ```bash
 K="kubectl --context <cluster-context>"
