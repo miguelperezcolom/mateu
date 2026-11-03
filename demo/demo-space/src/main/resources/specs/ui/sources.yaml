@@ -274,6 +274,21 @@ sources:
         "owner":"${state.owner}","priority":"${state.priority}","dueDate":"${state.dueDate}",
         "estimateDays":"${state.estimateDays}","progress":"${state.progress}","description":"${state.description}"}
 
+  - name: space-task-board
+    description: Every task, for the board (in board order)
+    source:
+      url: http://localhost:8122/api/tasks?size=200&sort=boardOrder
+      itemsPath: content
+
+  - name: space-task-move
+    description: Move a task on the board — its new status (and the progress it implies) and board order
+    source:
+      url: http://localhost:8122/api/tasks/${state._cardId}/move?status=${state._toColumnId}&boardOrder=${state._toOrder}
+      method: POST
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SPACE_WRITE_KEY}
+
   - name: space-task-delete
     description: Delete a task
     source:

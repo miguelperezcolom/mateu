@@ -52,7 +52,7 @@ catalogue itself never changes between environments (see `doc/…/deploy/environ
 | **GuidedProcessPage** — the wizard *Plan a mission* (five steps, one form, creates on the last) | `plan` | ✅ (steps as tabs) | ✅ `oj-sp-guided-process` |
 | **DataManagementPage**: compact striped listing, docked end + bottom panels | `mission-control` | ✅ | ✅ |
 | **Gantt** (mission durations) and **Timeline** (milestones, each opening its mission) in a **TabLayout** | `timeline` | ✅ | ✅ |
-| **Kanban** board of tasks, a card opening its task | `board` | ✅ | ✅ |
+| **Kanban** board of tasks, live: drag a card and the move is saved (`orderField` keeps its place), a card opening its task | `board` | ✅ | ✅ |
 | Create / edit / delete a task: header **badges**, **kpis**, overline, slider, combobox, shared fields via a **Partial** | `tasks/new`, `tasks/:id` | 🟡 mission select blank (bug 2) | ✅ |
 | **Calendar**: launches coloured by outcome, UTC times, day labels, month/week/day/list views, an event opening its mission | `calendar` | ✅ | ✅ |
 | **Map**: launch pads as markers, active ones in green, the sites listed under it | `sites-map` | ✅ | ✅ |
@@ -84,7 +84,7 @@ live API. 🟡 = renders, with the defect noted.
 - **Writes** are `restAction`s over proxied sources. Their JSON bodies interpolate the form state;
   the API reads that leniently (empty string = null, id lists from `"[5, 11]"`, a money value or a
   date range from their printed form) — see space-service's README.
-- **Charts, KPIs, the Kanban, the Calendar, the Map, the Gantt and the Timeline carry their data**:
+- **Charts, KPIs, the Calendar, the Map, the Gantt and the Timeline carry their data**:
   in YAML none of them reads a REST source. `scripts/snapshot.py` copies it from the API into the
   pages, between `# >>> generated:` markers (and writes `partials/crew-field.yaml`, the crew
   multi-select's options). Re-run it after changing the API's seed:
@@ -92,11 +92,11 @@ live API. 🟡 = renders, with the defect noted.
 
 ## What YAML cannot express (yet)
 
-- **Live data for charts, boards, calendars, maps, Gantt and timelines** — only listings, option
+- **Live data for charts, calendars, maps, Gantt and timelines** — only listings, the Kanban, option
   fields and the shell's sources read REST. Hence the snapshot script.
-- **A click that carries its item into a YAML action.** A Kanban card, a calendar event and a timeline
-  item each have their own `actionId`, so the snapshot gives each its own action (`open-task-12` →
-  `Navigate tasks/12`). A **map marker** has only the map's `markerActionId` (the marker id arrives
+- **A click that carries its item into a YAML action.** A calendar event and a timeline item each have
+  their own `actionId`, so the snapshot gives each its own action (`open-mission-6` → `Navigate
+  missions/6`; a live Kanban card has `cardRoute` instead). A **map marker** has only the map's `markerActionId` (the marker id arrives
   as `_markerId`, and a `Navigate` step cannot read it), so the sites are also listed under the map.
 - **Paging months on a Calendar** — the ‹ Today › toolbar belongs to the Java `CalendarPage`
   archetype; the YAML page shows five memorable months as tabs instead.
