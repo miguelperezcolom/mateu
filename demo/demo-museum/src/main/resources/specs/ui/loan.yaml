@@ -13,6 +13,11 @@ kpis:
 # a create-and-edit page: Redwood's Advanced create and edit template (the header's Save; the
 # documents list below is the page's CONTENT, not the page's own listing)
 template: {type: AdvancedCreateEditPage}
+peerNav:
+  prevLabel: Previous loan
+  prevRoute: "${state.previousId ? 'loans/' + state.previousId : ''}"
+  nextLabel: Next loan
+  nextRoute: "${state.nextId ? 'loans/' + state.nextId : ''}"
 toolbar:
   - type: Button
     actionId: backToList

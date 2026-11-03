@@ -15,6 +15,14 @@ toolbar:
   - type: Button
     label: All missions
     actionable: {type: RouteLink, route: missions}
+  # this template's banner has no previous/next arrows, so peers are two of its actions (Redwood folds
+  # the secondary ones into its ⋯ menu); at either end of the list the action goes back to the list
+  - type: Button
+    label: Previous mission
+    actionable: {type: RouteLink, route: "${state.previousId ? 'missions/' + state.previousId : 'missions'}"}
+  - type: Button
+    label: Next mission
+    actionable: {type: RouteLink, route: "${state.nextId ? 'missions/' + state.nextId : 'missions'}"}
 template:
   type: MultimediaContentPage
   backgroundColor: dark-ocean

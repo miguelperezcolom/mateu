@@ -264,13 +264,15 @@ describe('the toolbar', () => {
 
 describe('peer navigation', () => {
     it('previous/next arrows go to the neighbour record; a side without a route is disabled', async () => {
-        const { root } = await mount({ title: 'Employee', peerNav: { nextLabel: 'Bob', nextRoute: '/employees/${state.next}' } }, { state: { next: '3' } })
+        const { root, events } = await mount({ title: 'Employee', peerNav: { nextLabel: 'Bob', nextRoute: 'employees/${state.next}' } }, { state: { next: '3' } })
         const prev = root.querySelector('.peer-nav-prev') as HTMLButtonElement
         const next = root.querySelector('.peer-nav-next') as HTMLButtonElement
         expect(prev.disabled).toBe(true)
         expect(next.getAttribute('aria-label')).toBe('Bob')
         next.click()
-        expect(navigated).toEqual(['/employees/3'])
+        // an app route: a browser load would read a relative one against the current page's path
+        expect(events.find(e => e.type === 'navigate-to-requested')?.detail.route).toBe('employees/3')
+        expect(navigated).toEqual([])
     })
 
     it('with no route on either side there are no arrows', async () => {

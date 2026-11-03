@@ -387,7 +387,7 @@ export class MateuContentHeader extends LitElement {
             prevRoute: declared.prevRoute ? this.peerRoute(declared.prevRoute) : declared.prevRoute,
             nextRoute: declared.nextRoute ? this.peerRoute(declared.nextRoute) : declared.nextRoute,
         }
-        const custom = componentRenderer.get()?.renderPeerNav?.(peerNav)
+        const custom = componentRenderer.get()?.renderPeerNav?.(peerNav, (route) => this.goToCrumb(route))
         if (custom) return custom
         return html`
             <div style="display: flex; gap: var(--lumo-space-xs, .25rem); align-items: center;" class="peer-nav">
@@ -395,12 +395,12 @@ export class MateuContentHeader extends LitElement {
                         title="${peerNav.prevLabel ?? chromeText('previous')}"
                         aria-label="${peerNav.prevLabel ?? chromeText('previous')}"
                         ?disabled="${!peerNav.prevRoute}"
-                        @click="${() => { if (peerNav.prevRoute) safeNavigate(peerNav.prevRoute) }}">‹</button>
+                        @click="${() => { if (peerNav.prevRoute) this.goToCrumb(peerNav.prevRoute) }}">‹</button>
                 <button class="mtb tertiary peer-nav-next"
                         title="${peerNav.nextLabel ?? chromeText('next')}"
                         aria-label="${peerNav.nextLabel ?? chromeText('next')}"
                         ?disabled="${!peerNav.nextRoute}"
-                        @click="${() => { if (peerNav.nextRoute) safeNavigate(peerNav.nextRoute) }}">›</button>
+                        @click="${() => { if (peerNav.nextRoute) this.goToCrumb(peerNav.nextRoute) }}">›</button>
             </div>
         `
     }

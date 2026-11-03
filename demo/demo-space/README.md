@@ -77,6 +77,10 @@ live API. 🟡 = renders, with the defect noted.
   sort (`${state.…}`), and `totalPath: totalElements` tells the renderer the server did the work.
 - **A record page** names the source that fetches it on its route (`data: space-mission`); the id
   comes from the path.
+- **Previous/next on a record** is a `peerNav` over the `previousId` and `nextId` the API returns with
+  each record, in the list's default order. A record chosen from a filtered list still steps through
+  the whole list. `missions/:id` has them as two actions, because its banner has no arrows (Redwood
+  folds them into its ⋯ menu), and `bodies/:id` has none: its list is beside it.
 - **Writes** are `restAction`s over proxied sources. Their JSON bodies interpolate the form state;
   the API reads that leniently (empty string = null, id lists from `"[5, 11]"`, a money value or a
   date range from their printed form) — see space-service's README.

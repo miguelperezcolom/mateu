@@ -6977,6 +6977,25 @@ test('FoldoutPage (YAML): the form toolbar becomes the layout header — back = 
   // no toolbar: the header stays as the wire said
   assert.deepEqual(foldoutPageHeaderOf(foldoutHeaderOf({}), { metadata: {} }).overviewActions, [])
 })
+test('FoldoutPage (YAML): a peerNav fills the layout\'s own arrows; a side without a route stays disabled', () => {
+  const form = { metadata: { peerNav: {
+    prevLabel: 'Previous craft', prevRoute: "${state.previousId ? 'spacecraft/' + state.previousId : ''}",
+    nextLabel: 'Next craft', nextRoute: "${state.nextId ? 'spacecraft/' + state.nextId : ''}",
+  } } }
+  const both = foldoutPageHeaderOf(foldoutHeaderOf({}), form, { previousId: 4, nextId: 6 })
+  assert.deepEqual([both.hasNavigation, both.bidirectional], [true, true])
+  assert.deepEqual(both.previousStep, { id: 'spacecraft/4', label: 'Previous craft' })
+  assert.deepEqual(both.nextStep, { id: 'spacecraft/6', label: 'Next craft' })
+  assert.deepEqual(both.ctas.previous, { actionId: '', route: 'spacecraft/4' })
+  assert.deepEqual(both.ctas.next, { actionId: '', route: 'spacecraft/6' })
+  // the last record: the arrow back works, the one forward has nothing to go to
+  const last = foldoutPageHeaderOf(foldoutHeaderOf({}), form, { previousId: 4, nextId: null })
+  assert.equal(last.nextStep, null)
+  assert.equal(last.ctas.next, undefined)
+  assert.equal(last.bidirectional, true)
+  // no peers at all: no arrows
+  assert.equal(foldoutPageHeaderOf(foldoutHeaderOf({}), form, {}).bidirectional, false)
+})
 test('page foldout (Java): the page toolbar becomes the layout header — back or the trail parent = go-to-parent, the rest = overview actions', () => {
   const toolbar = [
     { actionId: 'cancel-view', label: 'Back to list' },
