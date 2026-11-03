@@ -7,7 +7,7 @@
         <groupId>io.helidon.applications</groupId>
         <artifactId>helidon-mp</artifactId>
         <!-- the Helidon line the adapter (backend/helidon-mp/helidon-mp-core) is built against -->
-        <version>4.5.5</version>
+        <version>4.5.6</version>
         <relativePath/>
     </parent>
     <groupId>io.mateu.e2e</groupId>
