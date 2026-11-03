@@ -179,4 +179,20 @@ describe('routeStructureCache', () => {
         clearStructureCache()
         expect(getCachedStructure(key('/a'))).toBeUndefined()
     })
+
+    it('hands out a copy: what the screen writes on a component never reaches the next visit', () => {
+        const trigger = { type: 'OnLoad', actionId: 'search' } as Record<string, unknown>
+        const component = { type: ComponentType.ServerSide, triggers: [trigger] } as unknown as Component
+        putCachedStructure('key', component, 'hash')
+
+        // the first render of the answer itself, and of a seed: each fires its OnLoad (claimOnLoadFiring)
+        trigger.triggered = true
+        const seed = getCachedStructure('key')!.component as unknown as { triggers: Record<string, unknown>[] }
+        expect(seed.triggers[0].triggered).toBeUndefined()
+        seed.triggers[0].triggered = true
+
+        const revisit = getCachedStructure('key')!
+        expect((revisit.component as unknown as { triggers: Record<string, unknown>[] }).triggers[0].triggered).toBeUndefined()
+        expect(revisit.hash).toBe('hash')
+    })
 })

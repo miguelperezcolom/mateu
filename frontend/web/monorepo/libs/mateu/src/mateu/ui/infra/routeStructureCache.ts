@@ -106,7 +106,10 @@ export const structureCacheKey = (parts: {
 export const getCachedStructure = (key: string): CachedStructure | undefined => {
     if (!enabled) return undefined
     const remembered = inMemory.get(key)
-    if (remembered) return remembered
+    // A copy, every time: what is painted gets written on (an OnLoad trigger records that it fired).
+    // Painting the remembered objects again, a revisit found its OnLoad already fired, and a listing
+    // waited for ever for the rows it was going to ask for.
+    if (remembered) return { component: structuredClone(remembered.component), hash: remembered.hash }
     const entry = readAll()[key]
     if (!entry || entry.v !== CACHE_VERSION) return undefined
     return { component: entry.component, hash: entry.hash }
@@ -148,7 +151,7 @@ export const putCachedStructure = (key: string, component: Component, hash?: str
     const store = readAll()
     const structure = structureOf(component)
     inMemory.delete(key)
-    inMemory.set(key, { component: withoutResolvedMicroFrontends(component), hash })
+    inMemory.set(key, { component: structuredClone(withoutResolvedMicroFrontends(component)), hash })
     while (inMemory.size > MAX_ENTRIES) inMemory.delete(inMemory.keys().next().value as string)
     if (structure.valued) {
         // its values are what made it a prediction worth painting: without them it is not one
