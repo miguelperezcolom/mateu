@@ -36,6 +36,8 @@ sources:
   space-task-create: {baseUrl: "https://space-api.ec1.mateu.io"}
   space-task-update: {baseUrl: "https://space-api.ec1.mateu.io"}
   space-task-delete: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-task-board: {baseUrl: "https://space-api.ec1.mateu.io"}
+  space-task-move: {baseUrl: "https://space-api.ec1.mateu.io"}
   space-budgets: {baseUrl: "https://space-api.ec1.mateu.io"}
   space-search: {baseUrl: "https://space-api.ec1.mateu.io"}
   space-global-search: {baseUrl: "https://space-api.ec1.mateu.io"}
