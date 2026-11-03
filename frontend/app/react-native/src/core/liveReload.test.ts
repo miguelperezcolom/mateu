@@ -138,3 +138,20 @@ test('the manifest is asked again while the server is starting; an answer decide
   await flush();
   assert.equal(tries, 3);
 });
+
+test('stopping the manifest lookup cancels the next ask (the real timers)', async () => {
+  let tries = 0;
+  const stop = discoverDevEvents({ baseUrl: 'http://localhost:1', manifestPath: '/m', onUrl: () => assert.fail('no url'),
+    fetchImpl: (async () => { tries++; throw new Error('down'); }) as unknown as typeof fetch });
+  await new Promise((r) => setTimeout(r, 10));
+  stop();
+  await new Promise((r) => setTimeout(r, 1200));
+  assert.equal(tries, 1, 'the retry scheduled after the first failure never ran');
+  // stopped before the first answer: the answer is ignored
+  let found = 0;
+  const stopEarly = discoverDevEvents({ baseUrl: 'http://x', manifestPath: '/m', onUrl: () => found++,
+    fetchImpl: (async () => new Response(JSON.stringify({ devEvents: '/mateu/dev/events' }), { status: 200 })) as unknown as typeof fetch });
+  stopEarly();
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(found, 0);
+});
