@@ -45,6 +45,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Redwood: a foldout panel shows a scroll bar only when its content does not fit.** The room left for
+  the paging dots overflowed every panel by a constant 32px, whatever it held and however tall the window.
 - **Redwood: saving a record no longer wipes a select nobody touched.** `oj-select-one` drops a value that
   is not among its options (a loan's closed exhibition, when the choices are the open and planned ones) and
   that counted as an edit, so saving sent the field empty. The value now survives, as on Vaadin; the field

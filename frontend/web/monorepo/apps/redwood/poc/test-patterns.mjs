@@ -994,3 +994,9 @@ test('spectra drawer: the panel paints the three templates around ONE generated 
     assert.ok(webApp('resources/js/mateu-bridge.js').includes('    ' + name + ',\n'), name)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installDrawerGuard\(\)/)
 })
+
+test('the room for a foldout\'s paging dots stays inside the panel: outside it, every panel scrolled', () => {
+  const rule = webApp('resources/css/app.css').match(/oj-sp-foldout-layout \.oj-sp-foldout-panel-content \{[^}]*\}/)[0]
+  assert.match(rule, /padding-bottom: 3\.5rem/)
+  assert.match(rule, /box-sizing: border-box/)
+})
