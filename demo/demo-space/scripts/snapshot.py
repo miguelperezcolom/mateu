@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 Writes the DATA of the demo's visual pages from space-service: the dashboard's KPIs and charts, the
-budget charts, the task board, the launch calendar, the launch-site map, the mission Gantt and
+budget charts, the launch calendar, the launch-site map, the mission Gantt and
 timeline, and the crew multi-select's options.
 
-Why a snapshot: in a YAML page a Chart, a Kanban, a Calendar, a Map, a Gantt and a Timeline carry
-their data inline — none of them reads a REST source (only listings, option fields and the shell's
+Why a snapshot: in a YAML page a Chart, a Calendar, a Map, a Gantt and a Timeline carry their data
+inline — none of them reads a REST source (only listings, the Kanban, option fields and the shell's
 search/inbox do). So the data is copied from the API into the pages here, and the pages say so.
 Everything else in the demo reads the API live.
 
@@ -93,7 +93,6 @@ def main():
     missions = rows("/api/missions?sort=launchDate")
     launches = rows("/api/launches?sort=launchDate")
     sites = rows("/api/launch-sites?sort=name")
-    tasks = rows("/api/tasks?sort=dueDate")
     astronauts = rows("/api/astronauts?sort=name")
 
     # ── the dashboard: KPI band + charts ─────────────────────────────────────────────────────────
@@ -126,19 +125,6 @@ def main():
                     stats["budgetByProgram"], "Budget (M USD)", style=zone(36)),
     ]
     region("budget.yaml", "charts", [f"- {y(c)}" for c in budget_charts])
-
-    # ── the task board ───────────────────────────────────────────────────────────────────────────
-    colours = {"BACKLOG": "#8a8f98", "IN_PROGRESS": "#1676f3", "TESTING": "#e8a33d", "DONE": "#2e9e5b"}
-    priority = {"CRITICAL": "error", "HIGH": "warning", "MEDIUM": "contrast", "LOW": "success"}
-    columns = []
-    for status in ("BACKLOG", "IN_PROGRESS", "TESTING", "DONE"):
-        cards = [{"id": f"task-{t['id']}", "title": t["title"],
-                  "description": f"{t['missionName']} · {t['owner']} · due {t['dueDate']}",
-                  "badge": human(t["priority"]), "color": priority.get(t["priority"]),
-                  "actionId": f"open-task-{t['id']}"} for t in tasks if t["status"] == status]
-        columns.append({"id": status, "title": f"{human(status)} ({len(cards)})", "color": colours[status], "cards": cards})
-    region("board.yaml", "board", ["- type: Kanban", "  columns:"] + [f"    - {y(c)}" for c in columns])
-    region("board.yaml", "actions", [f"- {y({'id': f'open-task-{t['id']}', 'steps': [{'type': 'Navigate', 'route': f'tasks/{t['id']}'}]})}" for t in tasks])
 
     # ── the launch calendar ──────────────────────────────────────────────────────────────────────
     outcome = {"SUCCESS": "#2e9e5b", "FAILURE": "#d93025", "PARTIAL_FAILURE": "#e8a33d", "SCHEDULED": "#1676f3"}
@@ -197,7 +183,7 @@ def main():
 
     region("plan.yaml", "crew-field", [f"- {y(field)}"])
 
-    print(f"snapshot from {API}: {len(kpis)} KPIs, {len(charts) + len(budget_charts)} charts, {len(tasks)} cards, "
+    print(f"snapshot from {API}: {len(kpis)} KPIs, {len(charts) + len(budget_charts)} charts, "
           f"{len(events)} launches, {len(markers)} sites, {len(tasks_g)} Gantt bars, {len(items)} milestones, "
           f"{len(astronauts)} crew options")
 
