@@ -11,7 +11,7 @@
 // Server-only fields the renderer does not require (wireVersion, appData/appState) are omitted — see
 // the render-parity note in design/phase6-client-side-expander.md.
 
-import { templatePageType } from '@infra/ui/layout/pageWidth.ts'
+import { templatePageType } from '../ui/layout/templatePageTypes.ts'
 import { humanizeFieldId } from '../ui/humanize.ts'
 import { withoutAccessKeys } from './accessKeys.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'

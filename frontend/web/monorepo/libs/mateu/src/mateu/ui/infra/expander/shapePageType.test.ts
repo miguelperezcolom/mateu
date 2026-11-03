@@ -13,8 +13,8 @@ describe('shapePageType', () => {
         expect(shapePageType(undefined)).toBeUndefined()
     })
     it('a declared pageType still wins, and the derived one reaches the page', () => {
-        const expanded = expandDefinition({ pageType: 'form', layout: { type: 'Listing', id: 'l' } } as never) as never as { fragments: { component: { pageType?: string } }[] }
-        const derived = expandDefinition({ layout: { type: 'Listing', id: 'l' } } as never) as never as { fragments: { component: { pageType?: string } }[] }
+        const expanded = expandDefinition({ pageType: 'form', layout: { type: 'Listing', id: 'l' } } as never, '') as never as { fragments: { component: { pageType?: string } }[] }
+        const derived = expandDefinition({ layout: { type: 'Listing', id: 'l' } } as never, '') as never as { fragments: { component: { pageType?: string } }[] }
         expect(JSON.stringify(expanded)).toContain('"pageType":"form"')
         expect(JSON.stringify(derived)).toContain('"pageType":"collection"')
     })

@@ -6,6 +6,9 @@ import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMeta
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
+import { templatePageType } from "./templatePageTypes.ts";
+
+export { templatePageType }
 
 /** Resolved page-width mode — the values the renderer paints (data-page-width). */
 export type ResolvedPageWidth = 'fixed' | 'full' | 'edge'
@@ -104,25 +107,7 @@ const bareFormPageTypeOf = (component: Component): string | undefined => {
     const metadata = node ? metadataOf(node) : undefined
     if (metadata?.type != ComponentMetadataType.Form) return undefined
     const template = (metadata as unknown as { template?: { type?: string } }).template?.type
-    return template ? (TEMPLATE_PAGE_TYPES[template] ?? 'form') : 'form'
-}
-
-/** The kind of page a YAML `template:` stands for (PageTypeResolver.ofTemplate), or undefined. */
-export const templatePageType = (templateType: string | undefined): string | undefined =>
-    templateType ? TEMPLATE_PAGE_TYPES[templateType] : undefined
-
-const TEMPLATE_PAGE_TYPES: Record<string, string> = {
-    CollectionDetailPage: 'collection',
-    DataManagementPage: 'collection',
-    DashboardLandingPage: 'dashboard',
-    WelcomePage: 'landing',
-    HeroSearchPage: 'landing',
-    ItemOverviewPage: 'detail',
-    GeneralOverviewPage: 'detail',
-    FoldoutPage: 'detail',
-    MultimediaContentPage: 'detail',
-    GuidedProcessPage: 'process',
-    AdvancedCreateEditPage: 'form',
+    return template ? (templatePageType(template) ?? 'form') : 'form'
 }
 
 /** A crud is dense when it edits inline (editable columns) or packs its rows (compact). */
