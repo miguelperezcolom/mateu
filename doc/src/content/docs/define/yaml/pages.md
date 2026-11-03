@@ -157,7 +157,8 @@ fabs:
 content: [...]
 ```
 
-A `peerNav` route is an app route, relative to the mount. When a neighbour can be missing, say so in
+A `peerNav` route is an app route, relative to the mount; one starting with `/` is a path of the site
+(another mount, say), which the browser loads. When a neighbour can be missing, say so in
 the expression and that side is disabled, or left out where the template has no disabled state:
 `nextRoute: "${state.nextId ? 'customers/' + state.nextId : ''}"`. Which record comes next is the
 data's business: have the endpoint return the ids beside each record, in the list's own order, rather

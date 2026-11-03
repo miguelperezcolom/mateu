@@ -275,6 +275,13 @@ describe('peer navigation', () => {
         expect(navigated).toEqual([])
     })
 
+    it('a path of the site may be another mount: the browser loads it, the app does not try', async () => {
+        const { root, events } = await mount({ title: 'Requisition', peerNav: { nextLabel: 'Welcome', nextRoute: '/arch/welcome' } })
+        ;(root.querySelector('.peer-nav-next') as HTMLButtonElement).click()
+        expect(navigated).toEqual(['/arch/welcome'])
+        expect(events.find(e => e.type === 'navigate-to-requested')).toBeUndefined()
+    })
+
     it('with no route on either side there are no arrows', async () => {
         const { root } = await mount({ title: 'Employee', peerNav: { prevLabel: 'A' } })
         expect(root.querySelector('.peer-nav')).toBeNull()
