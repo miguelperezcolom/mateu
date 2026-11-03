@@ -28,6 +28,9 @@ define([
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
         return;
       }
+      if (bridge.selectDroppedItsValue(event)) {
+        return;
+      }
       if (!fieldId) {
         return;
       }
