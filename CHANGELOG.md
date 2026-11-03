@@ -45,6 +45,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Redwood**: a subheader with more options than fit no longer runs past the edge of the window: what doesn't fit goes into a «More» menu at its end, as on the web renderer.
 - **Redwood: a tree listing (`gridLayout: tree`) folds.** It drew every level always open, with the
   names indented and no way to close a branch; now each parent has a chevron, as on Vaadin. Folding
   makes no round trip, a click elsewhere on the row still opens the record, and a new search or filter
