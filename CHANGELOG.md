@@ -45,6 +45,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Web**: browser Back to a listing from a record opened from it left the grey rows for ever on Vaadin: the tab's structure cache handed out the objects on screen, whose OnLoad had already fired, so the search never ran. It now stores and hands out copies.
 - **A menu entry whose route is its group's route opens its page, not the group's index** (Java,
   YAML and `@Menu` shells). The group «Launches» answers at a route derived from its label
   (`/launches`); its entry «All launches» names `route: launches` explicitly. Opening `/launches`
