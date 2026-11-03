@@ -167,6 +167,14 @@ object KanbanModel {
      * — and, with an `orderField`, the card's new order value as `_toOrder` and over the item's own field.
      */
     @Suppress("UNCHECKED_CAST")
+    /** What a card's own action gets on a click: its row as it came (keys starting with `_` included —
+     *  they are the row's), and `_clickedCard`; never the four keys of a move. */
+    fun clickParameters(mapper: com.fasterxml.jackson.databind.ObjectMapper, card: Card): Map<String, Any?> {
+        @Suppress("UNCHECKED_CAST")
+        val row = card.row?.let { mapper.convertValue(it, Map::class.java) as Map<String, Any?> } ?: emptyMap()
+        return row + mapOf("_clickedCard" to mapOf("id" to card.id, "title" to card.title))
+    }
+
     fun moveParameters(
         mapper: com.fasterxml.jackson.databind.ObjectMapper,
         card: Card?,

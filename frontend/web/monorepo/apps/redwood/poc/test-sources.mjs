@@ -19,7 +19,8 @@ import { runMateuAction, loadLookups } from './transport.mjs'
 import { adoptShellSources, fetchGlobalSearch, sourcedNotificationsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { fetchNotifications } from './notify.mjs'
 import { jsonEscape, declaresJson, restAnswerOf as restAnswer, mapItemsToOptions as mapOptions, refreshActionsOf, serviceMessageOf } from './restSources.mjs'
-import { NESTED_LISTING_ACTION, nestedListingKeyOf, nestedListingAtomOf, setNestedSelection, clearNestedSelection, withNestedSelection } from './core/listing.mjs'
+import { NESTED_LISTING_ACTION, NESTED_LISTING_PARAM, nestedListingKeyOf, nestedListingAtomOf, setNestedSelection, clearNestedSelection, withNestedSelection } from './core/listing.mjs'
+import { outboundActionOf } from './actionPlan.mjs'
 import { imageUrlOf } from './inputs.mjs'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -472,6 +473,32 @@ test('a nested listing with row selection: its toolbar is drawn, its table selec
   assert.deepEqual(withNestedSelection({ id: 43 }, host, 'delete-documents').crud_selected_items, [])
 })
 
+test('two nested listings with the same toolbar id: each sends ITS selection, and they never share rows', () => {
+  const photos = { ...docsListing, id: 'photos' }
+  const host = { id: HOST_ID, state: { id: 43 }, data: {},
+    tree: { type: 'ServerSide', id: 'page', children: [{ type: 'ClientSide', id: 'form', metadata: { type: 'Form', template: { type: 'AdvancedCreateEditPage' } }, children: [docsListing, photos] }] } }
+  const docsKey = nestedListingKeyOf(docsListing)
+  const photosKey = nestedListingKeyOf(photos)
+  assert.notEqual(docsKey, photosKey, 'identical listings get their own keys (by component id)')
+  // a generated id is left out of the key (it may change between loads)
+  assert.equal(nestedListingKeyOf({ ...docsListing, id: '0f8fad5b-d9cb-469f-a165-70867728950e' }), nestedListingKeyOf({ ...docsListing, id: '' }))
+  host.data[docsKey] = { page: { content: [{ id: 1, _rowNumber: '1' }] } }
+  host.data[photosKey] = { page: { content: [{ id: 2, _rowNumber: '2' }] } }
+  setNestedSelection(docsKey, { values: () => new Set(['1']) })
+  setNestedSelection(photosKey, { values: () => new Set(['2']) })
+  const photosButton = nestedListingAtomOf(photos, host).toolbar[0]
+  assert.equal(photosButton.parameters[NESTED_LISTING_PARAM], photosKey)
+  // the second listing's button sends the second listing's rows; without a name, the first one's (as before)
+  assert.deepEqual(withNestedSelection({}, host, 'delete-documents', photosKey).crud_selected_items.map((r) => r.id), [2])
+  assert.deepEqual(withNestedSelection({}, host, 'delete-documents').crud_selected_items.map((r) => r.id), [1])
+  // the name never travels: outboundActionOf strips it
+  const plan = outboundActionOf({ contexts: { [HOST_ID]: host } }, 'delete-documents', { parameters: photosButton.parameters })
+  assert.deepEqual(plan.componentState.crud_selected_items.map((r) => r.id), [2])
+  assert.equal(NESTED_LISTING_PARAM in (plan.parameters || {}), false)
+  clearNestedSelection(docsKey)
+  clearNestedSelection(photosKey)
+})
+
 test('the nested listing template: a toolbar of block actions and a selectable table wired to nestedListingSelected', () => {
   const tpl = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'templates', 'atoms.html'), 'utf8')
   assert.match(tpl, /hasToolbar[\s\S]*?\$listeners\.\{\{blockAction\}\}/)
@@ -909,7 +936,7 @@ test('a live kanban: its items load from its source into the host data, by the b
   reset()
   const { kanbanKeyOf, KANBAN_ACTION } = await import('./core/kanban.mjs')
   const md = { type: 'Kanban', columns: [{ id: 'backlog' }], rowsSource: { url: 'https://api.example.com/tasks', itemsPath: 'content' } }
-  const key = kanbanKeyOf(md)
+  const key = kanbanKeyOf(md, 'board')
   const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'host', children: [{ type: 'ClientSide', id: 'board', metadata: md, children: [] }] }, state: {}, data: {} }
   const f = stubFetch({ content: [{ id: 1, status: 'backlog' }] })
   const inc = await restAnswerOf(ctx, KANBAN_ACTION + key, {}, { fetchImpl: f })
@@ -918,7 +945,7 @@ test('a live kanban: its items load from its source into the host data, by the b
   // a proxied source goes through __restfetch__ by the board's id
   const proxied = { ...ctx, tree: { ...ctx.tree, children: [{ ...ctx.tree.children[0], metadata: { ...md, rowsSource: { ...md.rowsSource, proxy: true } } }] } }
   const asked = []
-  const pinc = await restAnswerOf(proxied, KANBAN_ACTION + kanbanKeyOf({ ...md, rowsSource: { ...md.rowsSource, proxy: true } }), {},
+  const pinc = await restAnswerOf(proxied, KANBAN_ACTION + kanbanKeyOf({ ...md, rowsSource: { ...md.rowsSource, proxy: true } }, 'board'), {},
     { server: async (params) => { asked.push(params); return { appData: { _restfetch: { content: [{ id: 2, status: 'backlog' }] } } } } })
   assert.deepEqual(asked, [{ _sourceKind: 'rows', _sourceId: 'board' }])
   assert.equal(Object.values(pinc.fragments[0].data)[0].items[0].id, 2)

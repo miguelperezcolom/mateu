@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { decideLiveReload, devEventsUrlOf, followLiveReload, parseDevEvents, reconnectDelay } from './liveReload.ts';
+import { decideLiveReload, devEventsUrlOf, discoverDevEvents, followLiveReload, parseDevEvents, reconnectDelay } from './liveReload.ts';
 
 const corpus = JSON.parse(readFileSync(
   fileURLToPath(new URL('../../../../../conformance/client/live-reload.json', import.meta.url)), 'utf8',
@@ -103,4 +103,55 @@ test('stopping aborts the stream and nothing fires afterwards', async () => {
   await new Promise((r) => setImmediate(r));
   assert.equal(aborted, true);
   assert.deepEqual(actions, []);
+});
+
+test('the manifest is asked again while the server is starting; an answer decides; a 4xx is an answer', async () => {
+  const timers: (() => void)[] = [];
+  const schedule = (fn: () => void) => { timers.push(fn); return timers.length; };
+  const answers: (Response | Error)[] = [new Error('connection refused'), new Response('', { status: 503 }),
+    new Response(JSON.stringify({ name: 'x', devEvents: '/mateu/dev/events' }), { status: 200 })];
+  const asked: string[] = [];
+  const fetchImpl = (async (url: string) => { asked.push(url); const a = answers.shift()!; if (a instanceof Error) throw a; return a; }) as unknown as typeof fetch;
+  const found: string[] = [];
+  discoverDevEvents({ baseUrl: 'http://localhost:8080', manifestPath: '/mateu/v3/manifest', fetchImpl, onUrl: (u) => found.push(u), schedule });
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+  await flush();
+  assert.equal(timers.length, 1, 'unreachable: asked again later');
+  timers.shift()!(); await flush();
+  assert.equal(timers.length, 1, 'a 5xx while it starts: asked again');
+  timers.shift()!(); await flush();
+  assert.deepEqual(found, ['http://localhost:8080/mateu/dev/events']);
+  assert.equal(timers.length, 0);
+  assert.equal(asked.length, 3);
+  // a production server (no devEvents) or a 404: one answer, no retry
+  const once: (() => void)[] = [];
+  discoverDevEvents({ baseUrl: 'https://x.io', manifestPath: '/m', fetchImpl: (async () => new Response('', { status: 404 })) as unknown as typeof fetch,
+    onUrl: () => assert.fail('no url'), schedule: (fn) => { once.push(fn); return 1; } });
+  await flush();
+  assert.equal(once.length, 0);
+  // bounded: a server that never comes up is asked `attempts` times
+  let tries = 0;
+  const pending: (() => void)[] = [];
+  discoverDevEvents({ baseUrl: 'http://localhost:1', manifestPath: '/m', attempts: 3, onUrl: () => {},
+    fetchImpl: (async () => { tries++; throw new Error('down'); }) as unknown as typeof fetch, schedule: (fn) => { pending.push(fn); return 1; } });
+  for (let i = 0; i < 5; i++) { await flush(); pending.shift()?.(); }
+  await flush();
+  assert.equal(tries, 3);
+});
+
+test('stopping the manifest lookup cancels the next ask (the real timers)', async () => {
+  let tries = 0;
+  const stop = discoverDevEvents({ baseUrl: 'http://localhost:1', manifestPath: '/m', onUrl: () => assert.fail('no url'),
+    fetchImpl: (async () => { tries++; throw new Error('down'); }) as unknown as typeof fetch });
+  await new Promise((r) => setTimeout(r, 10));
+  stop();
+  await new Promise((r) => setTimeout(r, 1200));
+  assert.equal(tries, 1, 'the retry scheduled after the first failure never ran');
+  // stopped before the first answer: the answer is ignored
+  let found = 0;
+  const stopEarly = discoverDevEvents({ baseUrl: 'http://x', manifestPath: '/m', onUrl: () => found++,
+    fetchImpl: (async () => new Response(JSON.stringify({ devEvents: '/mateu/dev/events' }), { status: 200 })) as unknown as typeof fetch });
+  stopEarly();
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(found, 0);
 });

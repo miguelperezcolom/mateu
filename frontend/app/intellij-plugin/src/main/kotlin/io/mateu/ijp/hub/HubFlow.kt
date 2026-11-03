@@ -27,6 +27,19 @@ object HubFlow {
         data class Refused(val reason: String, val updatable: Boolean = false) : Proposal
     }
 
+    /**
+     * What a link or address names, read WITHOUT the network — what the hub shows before it asks
+     * anything of that server. A `mateu://` link the OS handed over is a request from a web page, not
+     * from the user: nothing is fetched (no manifest, no walk up a page's path) until the user says
+     * yes to THIS address. Null when there is nothing to look up (the proposal refuses it anyway).
+     */
+    fun addressOf(raw: String?, options: HubLinks.Options = HubLinks.Options()): String? =
+        when (val link = HubLinks.parse(raw, options)) {
+            is HubLinks.Link.Add -> link.baseUrl
+            is HubLinks.Link.Import -> null
+            is HubLinks.Link.Invalid -> (HubLinks.normalizeBaseUrl(raw, options) as? HubLinks.BaseUrl.Ok)?.baseUrl
+        }
+
     fun propose(
         raw: String?,
         entries: HubEntries,
@@ -55,9 +68,12 @@ object HubFlow {
         }
     }
 
+    /** Said when the server answers but publishes no Mateu manifest: any web server (a port on this machine) would pass. */
+    const val NOT_A_MATEU_UI = "This address answers, but it is not a Mateu UI (it publishes no Mateu manifest)."
+
     private fun one(baseUrl: String, route: String?, fetched: HubManifest.Fetch, entries: HubEntries): Proposal = when (fetched) {
         is HubManifest.Fetch.Failed -> Proposal.Refused(fetched.reason)
-        is HubManifest.Fetch.Ok -> HubManifest.refusal(fetched.manifest)?.let {
+        is HubManifest.Fetch.Ok -> if (fetched.missing) Proposal.Refused(NOT_A_MATEU_UI) else HubManifest.refusal(fetched.manifest)?.let {
             Proposal.Refused(it, updatable = fetched.manifest.bundle == null && HubManifest.compat(fetched.manifest).reason == AppCompat.Reason.NEWER_WIRE)
         }
             ?: Proposal.AddOne(baseUrl, HubLinks.sanitizeRoute(route), fetched.manifest, entries.findByBaseUrl(baseUrl))

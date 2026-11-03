@@ -34,15 +34,30 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
     lateinit var paint: () -> Unit
     lateinit var load: () -> Unit
 
+    /** The moved card's Move button gets the focus back: repainting the board rebuilt every card, and
+     *  a keyboard user who moved one from its menu was left with the focus nowhere. */
+    fun focusCard(cardId: String) {
+        fun find(c: java.awt.Container): javax.swing.JComponent? {
+            for (child in c.components) {
+                if (child is javax.swing.JComponent && child.getClientProperty(CARD_MOVE_KEY) == cardId) return child
+                if (child is java.awt.Container) find(child)?.let { return it }
+            }
+            return null
+        }
+        javax.swing.SwingUtilities.invokeLater { find(board)?.requestFocusInWindow() }
+    }
+
     fun commit(move: KanbanModel.Move) {
         val card = shown.firstOrNull { it.id == move.fromColumnId }?.cards?.firstOrNull { it.id == move.cardId } ?: return
         val before = shown
         shown = KanbanModel.moveCard(shown, move)
         paint()
+        focusCard(move.cardId)
         r.ctx.runAction(moveActionId, KanbanModel.moveParameters(r.ctx.mapper, card, move, metadata.text("orderField"), shown), onDone = { ok ->
             if (!ok) {
                 shown = before
                 paint()
+                focusCard(move.cardId)
                 announce(board, "The card could not be moved; it is back where it was")
             } else if (rowsSource != null) {
                 load()
@@ -66,8 +81,8 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
             return
         }
         if (card.actionId.isNotBlank()) {
-            val params = KanbanModel.moveParameters(r.ctx.mapper, card, KanbanModel.Move(card.id, "", "", 0))
-                .filterKeys { !it.startsWith("_") } + mapOf("_clickedCard" to mapOf("id" to card.id, "title" to card.title))
+            // the card's row as it came (its own `_` keys too), without the keys of a MOVE — a click is not one
+            val params = KanbanModel.clickParameters(r.ctx.mapper, card)
             r.ctx.runAction(card.actionId, params)
         }
     }
@@ -116,6 +131,7 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
                         isFocusable = true
                         accessibleName("Move ${card.title}")
                         toolTipText = plainTip("Move ${card.title}")
+                        putClientProperty(CARD_MOVE_KEY, card.id)
                         addActionListener { movePopup(card, column.id).show(this, 0, height) }
                     }
                     titleRow.add(more, java.awt.BorderLayout.EAST)
@@ -274,3 +290,6 @@ fun renderResourceGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
     restyle()
     return grid
 }
+
+/** The client property naming the card a Move button belongs to (focus after a move). */
+private const val CARD_MOVE_KEY = "mateu.kanbanCardId"

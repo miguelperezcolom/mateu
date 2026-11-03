@@ -52,6 +52,32 @@ object LiveReload {
     /** The wait before reconnecting after [failures] failed attempts: 1 s, doubling, capped at 30 s. */
     fun reconnectDelayMillis(failures: Int): Long = minOf(30_000L, 1000L shl (maxOf(1, failures) - 1).coerceAtMost(5))
 
+    /** How many times the manifest is asked while the server is still coming up. */
+    const val MANIFEST_ATTEMPTS = 8
+
+    /**
+     * The dev events url of [baseUrl] from its manifest, asked again with [reconnectDelayMillis] while
+     * the server cannot answer yet (unreachable, a 5xx). An answer decides: a manifest's `devEvents`, or
+     * null for a production one or a 4xx. Null too once [attempts] are spent or [stopped].
+     */
+    fun discoverEventsUrl(
+        baseUrl: String,
+        stopped: () -> Boolean,
+        attempts: Int = MANIFEST_ATTEMPTS,
+        sleep: (Long) -> Unit = { Thread.sleep(it) },
+        get: (String) -> Pair<Int, String>,
+    ): String? {
+        for (attempt in 1..attempts) {
+            if (stopped()) return null
+            val answer = runCatching { get(baseUrl.trimEnd('/') + HubManifest.PATH) }.getOrNull()
+            if (answer != null && answer.first < 500) {
+                return if (answer.first in 200..299) runCatching { eventsUrlOf(baseUrl, ObjectMapper().readTree(answer.second)) }.getOrNull() else null
+            }
+            if (attempt < attempts) sleep(reconnectDelayMillis(attempt))
+        }
+        return null
+    }
+
     /** A running follower; [stop] ends it (idempotent). */
     class Follower internal constructor(private val thread: Thread, private val closer: () -> Unit) {
         @Volatile internal var stopped = false
@@ -72,10 +98,9 @@ object LiveReload {
         var connection: HttpURLConnection? = null
         lateinit var follower: Follower
         val thread = Thread({
-            val url = runCatching {
-                val (status, body) = HubManifest.HTTP.get(baseUrl.trimEnd('/') + HubManifest.PATH)
-                if (status in 200..299) eventsUrlOf(baseUrl, ObjectMapper().readTree(body)) else null
-            }.getOrNull() ?: return@Thread
+            // the manifest is asked again while the server is still starting (unreachable, a 5xx): the IDE
+            // runs the app and opens its UI at once, and one early look used to leave live reload off
+            val url = discoverEventsUrl(baseUrl, { follower.stopped }) { HubManifest.HTTP.get(it) } ?: return@Thread
             var bootId: String? = null
             var failures = 0
             val mapper = ObjectMapper()

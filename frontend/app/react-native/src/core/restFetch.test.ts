@@ -5,6 +5,7 @@ import {
   fetchExternalJson,
   getByPath,
   getRestSource,
+  jsonBodyOf,
   mapItemsToOptions,
   mapItemsToRows,
   registerExternalAuthProvider,
@@ -183,4 +184,13 @@ test('sign out: drops the tokens and tells every listener, even when logout thro
   assert.equal(await reauthenticateWithProvider(false), false, 'non-interactive never opens the login');
   setTokenProvider(undefined);
   assert.equal(await reauthenticateWithProvider(), false);
+});
+
+test('an empty REST answer (204 / 205 / blank) is null — a success with nothing to merge, never a parse error', async () => {
+  const answer = (status: number, body: string) => ({ status, json: async () => JSON.parse(body), text: async () => body });
+  assert.equal(await jsonBodyOf(answer(204, '')), null);
+  assert.equal(await jsonBodyOf(answer(205, '')), null);
+  assert.equal(await jsonBodyOf(answer(200, '  ')), null);
+  assert.deepEqual(await jsonBodyOf(answer(200, '{"a":1}')), { a: 1 });
+  assert.deepEqual(await jsonBodyOf({ status: 200, json: async () => [1] }), [1]);
 });

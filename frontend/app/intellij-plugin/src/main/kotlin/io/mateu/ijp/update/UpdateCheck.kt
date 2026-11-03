@@ -118,6 +118,30 @@ class UpdateCheck(
     }
 }
 
+/** The largest plugin archive the updater accepts (the plugin is a few tens of MB): a feed pointing at
+ *  something bigger, or a server that never stops sending, does not fill the disk. */
+const val MAX_DOWNLOAD_BYTES: Long = 512L * 1024 * 1024
+
+/** Copies [input] to [target], failing (and deleting what was written) past [max] bytes. */
+fun copyBounded(input: java.io.InputStream, target: Path, max: Long) {
+    var total = 0L
+    try {
+        Files.newOutputStream(target, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE).use { out ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val n = input.read(buffer)
+                if (n < 0) break
+                total += n
+                check(total <= max) { "the download is larger than $max bytes" }
+                out.write(buffer, 0, n)
+            }
+        }
+    } catch (e: Exception) {
+        Files.deleteIfExists(target)
+        throw e
+    }
+}
+
 /** java.net.http, following redirects (GitHub's release downloads answer 302 to a CDN). */
 class HttpUpdateTransport(
     private val client: HttpClient = HttpClient.newBuilder()
@@ -134,11 +158,13 @@ class HttpUpdateTransport(
 
     override fun download(url: String, target: Path) {
         Files.createDirectories(target.parent)
-        val response = client.send(
-            request(url, Duration.ofMinutes(10)),
-            HttpResponse.BodyHandlers.ofFile(target, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE),
-        )
-        check(response.statusCode() in 200..299) { "the plugin download answered HTTP ${response.statusCode()} ($url)" }
+        val response = client.send(request(url, Duration.ofMinutes(10)), HttpResponse.BodyHandlers.ofInputStream())
+        response.body().use { input ->
+            check(response.statusCode() in 200..299) { "the plugin download answered HTTP ${response.statusCode()} ($url)" }
+            val declared = response.headers().firstValueAsLong("Content-Length").orElse(-1)
+            check(declared <= MAX_DOWNLOAD_BYTES) { "the plugin download is larger than $MAX_DOWNLOAD_BYTES bytes ($url)" }
+            copyBounded(input, target, MAX_DOWNLOAD_BYTES)
+        }
     }
 
     private fun request(url: String, timeout: Duration): HttpRequest =

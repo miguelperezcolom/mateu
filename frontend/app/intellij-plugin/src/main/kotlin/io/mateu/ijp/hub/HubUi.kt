@@ -362,8 +362,25 @@ object HubAdd {
         }
     }
 
-    /** A `mateu://` link the OS handed over: the same flow, with the link pre-filled, on the EDT. */
+    /**
+     * A `mateu://` link the OS handed over: any web page can send one, so the hub asks BEFORE it calls
+     * that address (its manifest, a walk up a page's path) — then the same flow, on the EDT.
+     */
     fun fromLink(project: Project, link: String, store: HubStore, onOpen: (HubEntry, String?) -> Unit) {
-        ApplicationManager.getApplication().invokeLater { run(project, link, store, onOpen) }
+        ApplicationManager.getApplication().invokeLater {
+            val address = HubFlow.addressOf(link, hubOptions())
+            if (address != null && store.list.findByBaseUrl(address) == null) {
+                val look = Messages.showYesNoDialog(
+                    project,
+                    "A link asks to add the UI at\n$address\n\nLook it up? Nothing is sent to that address until you say yes.",
+                    "Add a UI",
+                    "Look It Up",
+                    "Cancel",
+                    Messages.getQuestionIcon(),
+                )
+                if (look != Messages.YES) return@invokeLater
+            }
+            run(project, link, store, onOpen)
+        }
     }
 }

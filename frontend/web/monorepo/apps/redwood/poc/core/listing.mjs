@@ -94,8 +94,14 @@ export function nestedListingNodesOf(tree) {
 export function nestedListingKeyOf(node) {
   const md = (node && node.metadata) || {}
   const columns = leafColumnsOf(md.columns || []).map((c) => (c && (c.metadata ? c.metadata.id || c.id : c.id)) || '')
-  return 'nestedListing-' + stableHashOf(JSON.stringify([md.rowsSource || null, columns, md.title || '', md.rowRoute || '']))
+  // the component's own id tells two IDENTICAL listings apart (same source, columns and title: they
+  // shared rows and selection); a generated UUID is left out, it may change between loads
+  const id = node && typeof node.id === 'string' && node.id && !UUID.test(node.id) ? node.id : ''
+  return 'nestedListing-' + stableHashOf(JSON.stringify([md.rowsSource || null, columns, md.title || '', md.rowRoute || '', id]))
 }
+
+/** The parameter a nested listing's toolbar button carries to name its listing (never sent). */
+export const NESTED_LISTING_PARAM = '__mateuNestedListing'
 
 /** The OnLoad action that loads a nested listing's rows (answered in the browser, restSources.mjs). */
 export const NESTED_LISTING_ACTION = '__nestedlisting__:'
@@ -163,7 +169,9 @@ export function nestedListingAtomOf(node, ctx) {
       label: interpolate(String(b.label || b.actionId), state),
       chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       disabled: !!b.disabled,
-      parameters: {},
+      // names its listing, so two nested listings with the same toolbar id each send their own
+      // selection (withNestedSelection); stripped before the request leaves
+      parameters: { [NESTED_LISTING_PARAM]: key },
       route: '',
       surfaceId: '',
       fromNested: false,
@@ -706,11 +714,14 @@ export function clearNestedSelection(key) {
  * selected"): its marked rows as crud_selected_items, as Vaadin sends them. Any other action, or
  * a page with no such listing, leaves the state untouched.
  */
-export function withNestedSelection(componentState, host, actionId) {
+export function withNestedSelection(componentState, host, actionId, nestedKey) {
   const tree = host && host.tree
   if (!tree || !actionId) return componentState
-  const owner = nestedListingNodesOf(tree).find((n) => ((n.metadata && n.metadata.toolbar) || [])
-    .some((b) => ((b && b.metadata) || b || {}).actionId === actionId))
+  const declares = (n) => ((n.metadata && n.metadata.toolbar) || [])
+    .some((b) => ((b && b.metadata) || b || {}).actionId === actionId)
+  const nested = nestedListingNodesOf(tree)
+  // the listing whose toolbar was pressed (its button names it); without a name, the first that declares it
+  const owner = (nestedKey && nested.find((n) => nestedListingKeyOf(n) === nestedKey && declares(n))) || nested.find(declares)
   if (!owner) return componentState
   const key = nestedListingKeyOf(owner)
   const rows = (((host.data || {})[key] || {}).page || {}).content || []

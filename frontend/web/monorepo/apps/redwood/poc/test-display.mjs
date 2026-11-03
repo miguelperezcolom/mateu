@@ -34,7 +34,7 @@ import { setChromeLanguage, CHROME_TEXTS, dateLocale, dateConverterOptions } fro
 import { smartFilterValueMetadataOf } from './core/listing.mjs'
 import { ruleSurfacesOf, surfaceOfElement } from './rules.mjs'
 import { kanbanKeyOf, kanbanTriggersOf, kanbanCardsFromRows, kanbanMovedColumns, kanbanIsRealMove, kanbanMoveParametersOf,
-  kanbanDropIndexOf, setPendingKanbanMove, kanbanMovePlanOf, kanbanMoveFailed, KANBAN_ACTION } from './core/kanban.mjs'
+  kanbanDropIndexOf, setPendingKanbanMove, addPendingKanbanMove, dropPendingKanbanMove, kanbanMovePlanOf, kanbanMoveFailed, KANBAN_ACTION } from './core/kanban.mjs'
 import { onLoadTriggers } from './core/reducer.mjs'
 import { fieldHelpOf, fieldWidgetOf, nestedListWidgetOf } from './core/rowEditor.mjs'
 
@@ -185,6 +185,31 @@ test('Kanban: a live board draws its cards from the loaded items, a pending move
   assert.equal(plan.reloadActionId, KANBAN_ACTION + key)
   assert.equal(kanbanMovePlanOf(ctx, key, { cardId: '1', fromColumnId: 'backlog', toColumnId: 'backlog', toIndex: 0 }), null, 'dropped where it was')
   assert.equal(kanbanMovePlanOf(ctx, 'other', { cardId: '1', fromColumnId: 'backlog', toColumnId: 'done', toIndex: 0 }), null)
+})
+
+test('Kanban: two moves before either answers both stay painted; a live card\'s data is never evaluated; identical boards keep apart', () => {
+  const md = { id: 'b1', moveActionId: 'move', columnField: 'status', rowsSource: { url: 'https://api.example.com/t' },
+    card: { title: '${row.title}' }, columns: [{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }] }
+  const key = kanbanKeyOf(md)
+  const items = [{ id: 1, title: '${state.secret}', status: 'a' }, { id: 2, title: 'Two', status: 'a' }]
+  const ctx = { tree: { type: 'ServerSide', id: 'host', children: [] }, data: { [key]: { items } }, state: { secret: 'leaked' } }
+  const interp = (x) => String(x).split('${state.secret}').join('leaked')
+  // the row's text is shown as it is — the page's interpolation never runs over data
+  assert.equal(kanbanAtomOf(md, interp, ctx).columns[0].cards[0].title, '${state.secret}')
+  const first = { cardId: '1', fromColumnId: 'a', toColumnId: 'b', toIndex: 0 }
+  const second = { cardId: '2', fromColumnId: 'a', toColumnId: 'b', toIndex: 1 }
+  addPendingKanbanMove(key, first)
+  addPendingKanbanMove(key, second)
+  const ids = () => kanbanAtomOf(md, (x) => x, ctx).columns.map((c) => c.cards.map((x) => x.cardId))
+  assert.deepEqual(ids(), [[], ['1', '2']])
+  // the first answers (failed or not): only ITS move is dropped
+  dropPendingKanbanMove(key, first)
+  assert.deepEqual(ids(), [['1'], ['2']])
+  dropPendingKanbanMove(key, second)
+  assert.deepEqual(ids(), [['1', '2'], []])
+  // the same board twice on a page: their own keys, by component id; a generated id is left out
+  assert.notEqual(kanbanKeyOf(md, 'b1'), kanbanKeyOf(md, 'b2'))
+  assert.equal(kanbanKeyOf({ ...md, id: undefined }, '0f8fad5b-d9cb-469f-a165-70867728950e'), kanbanKeyOf({ ...md, id: undefined }))
 })
 
 test('Kanban: moves, positions and failures read like the web (kanbanModel.ts)', () => {

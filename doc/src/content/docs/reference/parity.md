@@ -452,7 +452,7 @@ renderers, and its children still render.
 | `HorizontalLayout` | ✅ | oj-flex row |
 | `Icon` | ✅ | the Redwood icon font (oj-ux-ico-*), an emoji as text |
 | `Image` | ✅ | JET has no image component: an <img>; relative sources are served by the backend |
-| `Kanban` | ✅ | JET has no board: oj-panel columns, cards as oj-action-card when they act (_clickedCard) |
+| `Kanban` | ✅ | JET has no board: oj-panel columns, cards as oj-action-card when they act (_clickedCard); cards move by drag or each card's ⋯ Move menu, every move painted until its action answers (two quick moves both stay), a live board loads from `rowsSource`; a live card's texts are its row's data, never evaluated |
 | `Ledger` | ✅ |  |
 | `Map` | ✅ | Leaflet + OSM tiles (JET has no street map; oj-sp-map has no markers API and its tiles are Oracle Maps): markers, fit, markerActionId |
 | `Markdown` | ✅ | formatted (headings, lists, quotes, code, tables, bold, italics, links, allowed inline HTML) as allowlist-sanitized HTML |
@@ -582,7 +582,7 @@ native renderer — 90 rendered, 11 layout containers, 6 parts of another compon
 | `Heatmap` | ✅ |  |
 | `HeroSection` | ✅ |  |
 | `Image` | ✅ |  |
-| `Kanban` | ✅ |  |
+| `Kanban` | ✅ | live boards from `rowsSource`; a card moves from its "Move to…" picker (no drag on touch); a refused move puts it back |
 | `Ledger` | ✅ |  |
 | `Map` | ✅ |  |
 | `Markdown` | ✅ |  |

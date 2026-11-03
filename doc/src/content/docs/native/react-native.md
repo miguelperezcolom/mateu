@@ -79,8 +79,13 @@ provider is a registry edit — not a store release:
 ```
 
 - `parameters` are seeded into the `appState` of every request.
-- `requiredRendererVersion` gates the boot: an older installable shows **Update required**, tries
-  an over-the-air update (EAS Update) and falls back to `storeUrl`.
+- `requiredRendererVersion` gates the boot of a registry-bound build: an older installable shows
+  **Update required**, tries an over-the-air update (EAS Update) and falls back to `storeUrl`.
+  The hub (and a fixed build bound to a URL) checks the UI itself instead: its manifest's
+  `wireVersion` / `mateuVersion` against the app, when a UI is added, opened and refreshed in the
+  background — see [the compatibility check](/ux-patterns/mobile-app/). A refresh that finds the UI
+  now needs a newer app never closes the screen on display: it says so above it, and the next open
+  asks for the update.
 - `auth` turns sign-in on — next section.
 
 ## 3. Signing in to a secured backend
@@ -94,8 +99,9 @@ it on **every** Mateu request (and on the AI chat), from a pluggable **token pro
   Authorization Code flow with **PKCE** in the system browser (`expo-auth-session`), keeps the
   tokens in the **keychain / keystore** (`expo-secure-store`; `localStorage` on web), refreshes the
   access token before it expires, and shows a **Sign in** screen before the first screen
-  (`"loginOnStart": false` signs in only when a request comes back 401). A **Sign out** entry
-  appears at the bottom of the drawer. Works with any standards-compliant provider (Keycloak,
+  (`"loginOnStart": false` signs in only when a request comes back 401). **Sign out** is at the
+  bottom of the drawer, and on the hub's top bar for a UI whose shell has no drawer (bottom tabs, no
+  menu). Works with any standards-compliant provider (Keycloak,
   Entra ID, Auth0 — add `"audience"` —, Okta, Cognito…): it only needs the issuer's discovery
   document.
 - **Your own login** — register any provider: `setTokenProvider({ getToken, refresh, login, logout })`

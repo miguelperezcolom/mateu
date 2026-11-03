@@ -100,4 +100,26 @@ class LiveReloadTest : TestCase() {
             server.stop(0)
         }
     }
+
+    fun testTheManifestIsAskedAgainWhileTheServerStarts() {
+        val answers = ArrayDeque<Any>(listOf(java.io.IOException("refused"), 503 to "", 200 to """{"devEvents":"/mateu/dev/events"}"""))
+        val slept = ArrayList<Long>()
+        val url = LiveReload.discoverEventsUrl("http://localhost:8080", { false }, sleep = { slept.add(it) }) {
+            when (val a = answers.removeFirst()) {
+                is Exception -> throw a
+                else -> @Suppress("UNCHECKED_CAST") (a as Pair<Int, String>)
+            }
+        }
+        assertEquals("http://localhost:8080/mateu/dev/events", url)
+        assertEquals(listOf(1000L, 2000L), slept)
+        // a production manifest or a 404 answers at once: no retry
+        var asked = 0
+        assertNull(LiveReload.discoverEventsUrl("https://x.io", { false }, sleep = { fail("no wait") }) { asked++; 404 to "" })
+        assertEquals(1, asked)
+        // bounded, and a stop ends it
+        var tries = 0
+        assertNull(LiveReload.discoverEventsUrl("http://localhost:1", { false }, attempts = 3, sleep = {}) { tries++; throw java.io.IOException("down") })
+        assertEquals(3, tries)
+        assertNull(LiveReload.discoverEventsUrl("http://localhost:1", { true }, sleep = {}) { fail("stopped"); 200 to "" })
+    }
 }

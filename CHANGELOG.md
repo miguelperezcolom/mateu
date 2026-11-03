@@ -321,6 +321,37 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `_restfetchError` (a failed delete said "Deleted").
 - Vaadin: the window title no longer follows a form opened in a drawer or a dialog.
 
+### Fixed (natives and Redwood — final review, remaining items)
+
+- **Desktop: a link asks before the hub calls its address** (M13). A `mateu://add?u=…` link can come
+  from any web page: the app now shows the address and asks before it fetches the manifest or walks
+  up a page's path. A local port is never followed to another address (no redirects from loopback),
+  and an address that answers without a Mateu manifest (a 404/405 from any web server) is no longer
+  added as a UI.
+- **Redwood: two nested listings with the same toolbar action each send their own selection** (M17).
+  A nested listing's toolbar button names its listing; two identical listings get their own keys
+  (by component id; a generated UUID is left out), so they no longer share rows or selection.
+- **Redwood live boards**: a card's texts are its row's data and are never evaluated as `${…}`; a
+  second move made before the first answered no longer erases it (each pending move is dropped when
+  ITS action answers); two identical boards on one page keep their own items.
+- **React Native: a flow's `NavigateTo` interpolates its destination** (`orders/${state.id}`, each
+  value percent-encoded), like the web's `resolveFlowCommand` (M4). An empty REST answer (a 204
+  delete) is a success with nothing to merge, not a parse error (A21). A background manifest refresh
+  that finds the UI now needs a newer app no longer unmounts the screen on display: it says so above
+  it, and the next open asks for the update.
+- **Desktop sign-in**: signing out or removing a UI asks the provider to revoke the refresh token
+  (RFC 7009, when its discovery names a `revocation_endpoint`); a token stored under an earlier
+  provider or client is deleted when the new one is stored; the issuer's host is compared
+  case-insensitively; a refresh runs once per session for the whole app (it was per project).
+- **Desktop**: an over-long numeric `wireVersion` is compared instead of throwing (it hung
+  "Opening…"); the updater's plugin download is bounded (512 MB) and its staging folder is deleted
+  without following links (the `/Applications` class of bug, #1000 — the CI guard now covers the
+  plugin's sources too); `tel:` row links open; a card click keeps its row's own `_` keys; the focus
+  stays on a card moved from the keyboard.
+- **Live reload on the phone and the desktop app** asks the manifest again, with the reconnect
+  back-off, while the server is still starting — opened together with "Run Mateu App (Live)", it
+  used to find nothing and stay off.
+
 ### Documentation
 
 - Corrected: the drawer error banner text, the proxied-leg expression subset, Redwood's rich text

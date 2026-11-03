@@ -170,7 +170,7 @@ web, on the desktop and in the mobile app from the IDE:
 | Open in | What happens once the app answers |
 |---|---|
 | **Web (browser)** | the default browser opens it — the web renderer |
-| **Desktop (Mateu app)** | the [Mateu desktop app](/native/desktop-app/) — a **separate** IntelliJ with its own window — gets `mateu://add?u=http://localhost:<port>`, confirms it and opens the UI with the IntelliJ renderer. Your IDE's settings are not touched. Not installed? A notification offers the download and *Open in this IDE instead* (the **Mateu** tool window of your IDE) |
+| **Desktop (Mateu app)** | the [Mateu desktop app](/native/desktop-app/) — a **separate** IntelliJ with its own window — gets `mateu://add?u=http%3A%2F%2Flocalhost%3A<port>` (the address percent-encoded), asks whether to look that address up — the first time, as for any link — then confirms the UI and opens it with the IntelliJ renderer. Your IDE's settings are not touched. Not installed? A notification offers the download and *Open in this IDE instead* (the **Mateu** tool window of your IDE) |
 | **Android emulator** | `adb shell am start` opens `mateu://add?u=http://10.0.2.2:<port>` in the Mateu app on the running emulator |
 | **iOS simulator** | `xcrun simctl openurl booted mateu://add?u=http://localhost:<port>` (macOS) |
 | **Phone (QR code)** | the app listens on the network and a dialog shows the QR of `https://mateu.io/add?u=http://<lan ip>:<port>` |

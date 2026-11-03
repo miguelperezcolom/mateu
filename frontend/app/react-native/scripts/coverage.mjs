@@ -99,7 +99,7 @@ export const RN_COVERAGE = {
   Chart: { status: 'full' },
   TrendChart: { status: 'full' },
   Gantt: { status: 'full' },
-  Kanban: { status: 'full' },
+  Kanban: { status: 'full', note: 'live boards from `rowsSource`; a card moves from its "Move to…" picker (no drag on touch); a refused move puts it back' },
   Timeline: { status: 'full' },
   Calendar: { status: 'full', note: 'month / week / day / list' },
   PricingTable: { status: 'full' },

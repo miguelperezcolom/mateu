@@ -155,10 +155,18 @@ object HubManifest {
     }
 
     val HTTP = Get { url ->
-        val client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build()
+        // a server on THIS machine is never followed elsewhere: a redirect from a local port is not a UI
+        val client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(redirectsFor(url)).build()
         val rq = HttpRequest.newBuilder(URI.create(url)).header("Accept", "application/json").timeout(Duration.ofSeconds(10)).GET().build()
         val rs = client.send(rq, HttpResponse.BodyHandlers.ofString())
         rs.statusCode() to rs.body()
+    }
+
+    /** NEVER for a loopback address (localhost, 127.x, [::1]); the usual same-scheme-or-safer rule elsewhere. */
+    fun redirectsFor(url: String): HttpClient.Redirect {
+        val host = Regex("^https?://([^/?#]+)", RegexOption.IGNORE_CASE).find(url)?.groupValues?.get(1)?.lowercase()
+            ?.replace(Regex(":\\d+$"), "") ?: return HttpClient.Redirect.NEVER
+        return if (HubLinks.isLoopbackHost(host)) HttpClient.Redirect.NEVER else HttpClient.Redirect.NORMAL
     }
 
     /** Fetches + validates the manifest. Network errors are `offline`. */

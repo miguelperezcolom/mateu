@@ -7,11 +7,17 @@ import { stableHashOf } from './overviews.mjs'
 /** The OnLoad action that loads a live board's items (answered in the browser, restSources.mjs). */
 export const KANBAN_ACTION = '__kanban__:'
 
-/** Where a live board's items are kept (ctx.data[key]) — from what it IS, not its position. */
-export function kanbanKeyOf(md) {
+const GENERATED_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Where a live board's items are kept (ctx.data[key]) — from what it IS, not its position; the
+ *  component's own id tells two otherwise identical boards apart (a generated UUID is left out). */
+export function kanbanKeyOf(md, id = '') {
   const m = md || {}
-  return 'kanban-' + stableHashOf(JSON.stringify([m.rowsSource || null, (m.columns || []).map((c) => c && c.id), m.columnField || '']))
+  const given = id || m.id || ''
+  const own = typeof given === 'string' && given && !GENERATED_ID.test(given) ? given : ''
+  return 'kanban-' + stableHashOf(JSON.stringify([m.rowsSource || null, (m.columns || []).map((c) => c && c.id), m.columnField || '', m.moveActionId || '', own]))
 }
+const keyOfNode = (n) => kanbanKeyOf(n.metadata, n.id)
 
 /** The Kanban nodes of a tree. */
 export function kanbanNodesOf(tree) {
@@ -27,7 +33,7 @@ export function kanbanNodesOf(tree) {
 
 /** The load actions of a context's live boards. */
 export function kanbanTriggersOf(ctx) {
-  return kanbanNodesOf(ctx && ctx.tree).filter((n) => n.metadata.rowsSource).map((n) => KANBAN_ACTION + kanbanKeyOf(n.metadata))
+  return kanbanNodesOf(ctx && ctx.tree).filter((n) => n.metadata.rowsSource).map((n) => KANBAN_ACTION + keyOfNode(n))
 }
 
 const valueAt = (row, path) => String(path).split('.').reduce((v, k) => (v != null && typeof v === 'object' ? v[k] : undefined), row)
@@ -176,26 +182,40 @@ export function kanbanDropIndexOf(pointerY, cardMiddles) {
   return at < 0 ? (cardMiddles || []).length : at
 }
 
-// The moves on screen whose action has not answered yet, by board key: the projection paints them at
-// once (optimistic) and the chain drops them when the action answers — failed = the card is back.
+// The moves on screen whose action has not answered yet, by board key, in the order they were made:
+// the projection paints them at once (optimistic) and the chain drops EACH when its action answers —
+// failed = that card is back. A second move made before the first answered no longer erases it.
 const pendingKanbanMoves = new Map()
-export function setPendingKanbanMove(key, move) {
-  if (move) pendingKanbanMoves.set(key, move)
+export function addPendingKanbanMove(key, move) {
+  if (!move) return
+  pendingKanbanMoves.set(key, [...(pendingKanbanMoves.get(key) || []), move])
+}
+export function dropPendingKanbanMove(key, move) {
+  const left = (pendingKanbanMoves.get(key) || []).filter((m) => m !== move)
+  if (left.length) pendingKanbanMoves.set(key, left)
   else pendingKanbanMoves.delete(key)
 }
+/** Kept for callers of the single-move shape: a move replaces the board's pending ones, null clears them. */
+export function setPendingKanbanMove(key, move) {
+  if (move) pendingKanbanMoves.set(key, [move])
+  else pendingKanbanMoves.delete(key)
+}
+export function pendingKanbanMovesOf(key) {
+  return pendingKanbanMoves.get(key) || []
+}
 export function pendingKanbanMoveOf(key) {
-  return pendingKanbanMoves.get(key) || null
+  const all = pendingKanbanMovesOf(key)
+  return all.length ? all[all.length - 1] : null
 }
 
 /** The board's columns as they are on screen: the live items (or the declared cards), plus a pending move. */
-export function kanbanColumnsOnScreen(md, data) {
-  const key = kanbanKeyOf(md)
+export function kanbanColumnsOnScreen(md, data, id = '') {
+  const key = kanbanKeyOf(md, id)
   const loaded = data && data[key]
   const columns = md.rowsSource
     ? kanbanCardsFromRows(md, (loaded && loaded.items) || [])
     : (md.columns || []).map((c) => ({ ...c, cards: c.cards || [] }))
-  const pending = pendingKanbanMoveOf(key)
-  return pending ? kanbanMovedColumns(columns, pending) : columns
+  return pendingKanbanMovesOf(key).reduce((cols, move) => kanbanMovedColumns(cols, move), columns)
 }
 
 /**
@@ -204,10 +224,10 @@ export function kanbanColumnsOnScreen(md, data) {
  * parameters (the card's item + where it went), and the action that reads a live board again.
  */
 export function kanbanMovePlanOf(ctx, key, move) {
-  const node = kanbanNodesOf(ctx && ctx.tree).find((n) => kanbanKeyOf(n.metadata) === key)
+  const node = kanbanNodesOf(ctx && ctx.tree).find((n) => keyOfNode(n) === key)
   const md = node && node.metadata
   if (!md || !md.moveActionId) return null
-  const columns = kanbanColumnsOnScreen(md, (ctx && ctx.data) || {})
+  const columns = kanbanColumnsOnScreen(md, (ctx && ctx.data) || {}, node.id)
   if (!kanbanIsRealMove(columns, move)) return null
   const from = columns.find((c) => c.id === move.fromColumnId)
   const card = from && (from.cards || []).find((c) => c.id === move.cardId)

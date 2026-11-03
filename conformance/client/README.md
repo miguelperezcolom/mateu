@@ -48,6 +48,18 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   (libs/mateu, the reference), `src/core/liveReload.test.ts` (React Native) and `LiveReloadTest.kt`
   (IntelliJ).
 
+- `hub-links.json` — what a hub link or a scanned code means (`mateu://add|import`,
+  `https://mateu.io/add`, a pasted address): the UI(s) it adds, the route, or why it is refused.
+  Generated from the phone app's `src/hub/links.ts` (`HUB_LINKS_WRITE=true node --test
+  src/hub/links.conformance.test.ts`), run by that test (React Native, the reference) and
+  `HubLinksConformanceTest.kt` (IntelliJ).
+- `source-templates.json` — a REST source's url / body template against a state: the url each `${…}`
+  makes (values percent-encoded by position, encoded once, money sent as its amount, allow-listed
+  calls such as `encodeURIComponent` / `String` / `Math.*`). Run by
+  `sourceTemplates.conformance.test.ts` (libs/mateu, the reference), `poc/test-conformance.mjs`
+  (Redwood) and `src/core/sourceTemplates.conformance.test.ts` (React Native); the servers' proxied
+  leg pins the same rules in their own url-template tests.
+
 ## Expected values
 
 - A plain JSON value is compared deeply (numbers numerically: IntelliJ computes in doubles).

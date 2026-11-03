@@ -112,9 +112,23 @@ class UpdateStaging(
             }
         }
 
+        /** Deletes [path] and what is under it WITHOUT following links: a link inside is removed, never
+         *  what it points to (Kotlin's File.deleteRecursively() follows them — the bug that once
+         *  emptied /Applications from an installer build, #1000). */
         internal fun deleteRecursively(path: Path) {
-            if (!Files.exists(path)) return
-            path.toFile().deleteRecursively()
+            if (!Files.exists(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) return
+            Files.walkFileTree(path, object : java.nio.file.SimpleFileVisitor<Path>() {
+                override fun visitFile(file: Path, attrs: java.nio.file.attribute.BasicFileAttributes): java.nio.file.FileVisitResult {
+                    Files.delete(file)
+                    return java.nio.file.FileVisitResult.CONTINUE
+                }
+
+                override fun postVisitDirectory(dir: Path, exc: java.io.IOException?): java.nio.file.FileVisitResult {
+                    if (exc != null) throw exc
+                    Files.delete(dir)
+                    return java.nio.file.FileVisitResult.CONTINUE
+                }
+            })
         }
     }
 }

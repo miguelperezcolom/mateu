@@ -50,4 +50,13 @@ class KanbanModelTest : TestCase() {
         assertEquals("open", declared[0].cards[0].actionId)
         assertNull(declared[0].cards[0].row)
     }
+
+    fun testAClickSendsTheCardsRowWithItsOwnUnderscoreKeysButNoMoveKeys() {
+        val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+        val card = KanbanModel.Card("7", "Varnish", row = mapper.readTree("""{"id":7,"_version":3,"title":"Varnish"}"""))
+        val params = KanbanModel.clickParameters(mapper, card)
+        assertEquals(3, params["_version"])
+        assertEquals(mapOf("id" to "7", "title" to "Varnish"), params["_clickedCard"])
+        listOf("_cardId", "_fromColumnId", "_toColumnId", "_toIndex").forEach { assertFalse(it, params.containsKey(it)) }
+    }
 }

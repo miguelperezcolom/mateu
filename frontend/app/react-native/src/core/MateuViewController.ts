@@ -8,7 +8,7 @@ import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
 import { setAppLocale } from './money.ts';
-import { externalAuthHeaders } from './restFetch.ts';
+import { externalAuthHeaders, jsonBodyOf } from './restFetch.ts';
 import { declaresJson, jsonSafeContext } from './jsonTemplate.ts';
 import { resolvedPageTitle } from './windowTitle.ts';
 import { announce, announceLive } from '../a11y/a11y.ts';
@@ -17,7 +17,7 @@ import type { FileDownloadData } from './documents.ts';
 import { isTimedOnLoad, PollingScheduler } from './polling.ts';
 import { isFormRoute, mediatorMove, serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
-import { isClientRunnable, resolveAction, type ShellAction } from './shellFlows.ts';
+import { isClientRunnable, resolveAction, resolveFlowCommand, type ShellAction } from './shellFlows.ts';
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 
 /** Diagnostics only in development builds (a release build must not log user data). */
@@ -320,7 +320,9 @@ export class MateuViewController {
       if (resolved!.commands && resolved!.commands.length) {
         this.flowDepth++;
         try {
-          for (const cmd of resolved!.commands) this.handleCommand(cmd as Json);
+          // a NavigateTo of the flow lands on the record it names (`orders/${state.id}`), like on the web
+          const flowContext = { state: this.currentComponentState, parameters, data: this.view.data, appState: this.session.appState };
+          for (const cmd of resolved!.commands) this.handleCommand(resolveFlowCommand(cmd as Json, flowContext));
         } finally {
           this.flowDepth--;
         }
@@ -452,7 +454,8 @@ export class MateuViewController {
         if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = bodyOf(target, headers, ctx);
         const res = await fetch(url, init);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        json = await res.json();
+        // a 204 (a DELETE) is a success with nothing to merge, never a parse error
+        json = await jsonBodyOf(res);
       }
       // resultPath: a string (possibly empty = whole response) merges into the state; null/absent
       // (a @RestAction fire-and-toast) merges nothing.

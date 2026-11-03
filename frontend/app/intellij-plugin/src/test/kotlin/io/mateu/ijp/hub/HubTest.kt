@@ -133,6 +133,31 @@ class HubTest {
     }
 
     @Test
+    fun `a link's address is read without the network, and a server with no manifest is not a UI`() {
+        // what the confirm-before-lookup dialog shows: nothing asked of any server
+        assertEquals("https://acme.com/crm", HubFlow.addressOf("mateu://add?u=acme.com/crm&r=orders"))
+        assertEquals("https://acme.com/crm/orders", HubFlow.addressOf("acme.com/crm/orders"))
+        assertNull(HubFlow.addressOf("WIFI:S:home;T:WPA;P:x;;"))
+        assertNull(HubFlow.addressOf(HubLinks.exportLink(listOf("https://a.io", "https://b.io"))))
+        // any web server answering 404 / 405 for the manifest (a port on this machine) is refused
+        val http = server("https://old.io/mateu/v3/manifest" to (404 to ""))
+        assertEquals(HubFlow.Proposal.Refused(HubFlow.NOT_A_MATEU_UI), HubFlow.propose("mateu://add?u=old.io", HubEntries(), http))
+        // a local port is never followed elsewhere
+        assertEquals(java.net.http.HttpClient.Redirect.NEVER, HubManifest.redirectsFor("http://localhost:8080/mateu/v3/manifest"))
+        assertEquals(java.net.http.HttpClient.Redirect.NEVER, HubManifest.redirectsFor("http://127.0.0.1/mateu/v3/manifest"))
+        assertEquals(java.net.http.HttpClient.Redirect.NEVER, HubManifest.redirectsFor("http://[::1]:9/mateu/v3/manifest"))
+        assertEquals(java.net.http.HttpClient.Redirect.NORMAL, HubManifest.redirectsFor("https://acme.com/mateu/v3/manifest"))
+    }
+
+    @Test
+    fun `an over-long numeric version is compared, never thrown`() {
+        val huge = HubManifest.Manifest("x", wireVersion = "99999999999")
+        // read as a very new wire, like the phone app's JS numbers: the update is required, nothing throws
+        assertTrue(HubManifest.refusal(huge, supportedMajor = 3)!!.contains("newer Mateu"))
+        assertEquals(listOf(Int.MAX_VALUE, 0, 0, 3, 0), AppCompat.release("99999999999.0"))
+    }
+
+    @Test
     fun `an import counts what is already there`() {
         val entries = HubEntries().apply { add("https://a.io") }
         val p = HubFlow.propose(HubLinks.exportLink(listOf("https://a.io", "https://b.io")), entries, server())

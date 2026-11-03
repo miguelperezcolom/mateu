@@ -120,4 +120,30 @@ class UpdateStagingTest {
         val f = Files.writeString(tmp.resolve("abc.txt"), "abc")
         assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", UpdateStaging.sha256(f))
     }
+
+    @Test
+    fun `deleting a staging folder removes a link inside it, never what the link points to`() {
+        val outside = Files.createDirectories(tmp.resolve("outside"))
+        val keep = Files.writeString(outside.resolve("keep.txt"), "keep")
+        val dir = Files.createDirectories(tmp.resolve("doomed/sub"))
+        Files.writeString(dir.resolve("a.txt"), "a")
+        Files.createSymbolicLink(tmp.resolve("doomed/link"), outside)
+        UpdateStaging.deleteRecursively(tmp.resolve("doomed"))
+        assertFalse(Files.exists(tmp.resolve("doomed")))
+        assertTrue("the link's target survives", Files.exists(keep))
+    }
+
+    @Test
+    fun `a download past the bound fails and leaves no partial file`() {
+        val target = tmp.resolve("big.zip")
+        try {
+            copyBounded(java.io.ByteArrayInputStream(ByteArray(10_000)), target, 4_096)
+            fail("a download past the bound must fail")
+        } catch (e: IllegalStateException) {
+            assertTrue(e.message!!.contains("larger than"))
+        }
+        assertFalse(Files.exists(target))
+        copyBounded(java.io.ByteArrayInputStream(ByteArray(100)), target, 4_096)
+        assertEquals(100L, Files.size(target))
+    }
 }
