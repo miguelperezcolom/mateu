@@ -39,5 +39,24 @@ final class AppMenuActionableFinder {
     return HomeRouteResolver.getSelectedGroup(cleanRoute, app.menu(), resolvedRoute).orElse(null);
   }
 
+  /**
+   * Whether a leaf of the app's menu names this route as its own (see {@link
+   * HomeRouteResolver#isClaimedByLeafRoute}): then the route is that entry's page, not the section
+   * index of a group whose derived route happens to be the same.
+   */
+  static boolean isClaimedByLeaf(
+      AppShell app, String route, String consumedRoute, HttpRequest httpRequest) {
+    var resolvedRoute =
+        httpRequest.getAttribute("resolvedRoute") != null
+            ? (String) httpRequest.getAttribute("resolvedRoute")
+            : app.route();
+    var cleanRoute = route;
+    if (consumedRoute != null && route.startsWith(consumedRoute)) {
+      cleanRoute = route.substring(consumedRoute.length());
+    }
+    return HomeRouteResolver.isClaimedByLeafRoute(cleanRoute, app.menu(), resolvedRoute)
+        || HomeRouteResolver.isClaimedByLeafRoute(route, app.menu(), resolvedRoute);
+  }
+
   private AppMenuActionableFinder() {}
 }

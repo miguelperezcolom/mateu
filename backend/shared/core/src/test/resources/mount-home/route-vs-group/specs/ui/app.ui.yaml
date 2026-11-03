@@ -1,0 +1,6 @@
+# Fixture for YamlMenuGroupRouteSyncTest: a leaf whose explicit route is the derived route of the
+# group that holds it (the space demo's «Launches › All launches», route `launches`).
+type: UI
+basePath: /
+routes:
+  - routes.yaml

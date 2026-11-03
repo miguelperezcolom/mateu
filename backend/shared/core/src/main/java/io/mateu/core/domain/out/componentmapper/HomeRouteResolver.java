@@ -4,6 +4,7 @@ import static io.mateu.core.domain.ComponentState.setResolvedPath;
 
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.RemoteMenu;
+import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.Actionable;
@@ -88,6 +89,66 @@ public class HomeRouteResolver {
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * Whether a LEAF of the menu names {@code route} as its own, explicitly: a {@link RouteLink}
+   * whose {@code route} is exactly it ({@code {type: RouteLink, label: All launches, route:
+   * launches}}), at whatever depth it sits. A group's route is only derived (from its path or its
+   * label), so when a leaf claims the same route — «Launches › All launches» going to {@code
+   * /launches} — the leaf's page wins and the group's section index is not served there.
+   *
+   * <p>Both sides are compared mount-relative: an entry may spell its route with the app's own
+   * route in front ({@code /covnav/reports}, the shape of a {@code @Menu String} field) or without
+   * it ({@code reports}, the YAML shape). External URLs never claim an in-app route, and a {@link
+   * RemoteMenu} is not descended into (what lies below it is the remote's to declare).
+   */
+  public static boolean isClaimedByLeafRoute(
+      String route, Collection<? extends Actionable> actionables, String appRoute) {
+    if (route == null || actionables == null) {
+      return false;
+    }
+    var target = mountRelative(route, appRoute);
+    return !target.isEmpty() && leafClaims(target, actionables, appRoute);
+  }
+
+  private static boolean leafClaims(
+      String target, Collection<? extends Actionable> actionables, String appRoute) {
+    for (Actionable actionable : actionables) {
+      if (actionable instanceof Menu menu) {
+        if (menu.submenu() != null && leafClaims(target, menu.submenu(), appRoute)) {
+          return true;
+        }
+      } else if (actionable instanceof RouteLink link
+          && link.route() != null
+          && !link.route().isBlank()
+          && !link.route().contains("://")
+          && !link.route().startsWith("//")
+          && target.equals(mountRelative(link.route(), appRoute))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** The route without query, surrounding slashes and the app's own route in front. */
+  private static String mountRelative(String route, String appRoute) {
+    var path = route;
+    var query = path.indexOf('?');
+    if (query >= 0) {
+      path = path.substring(0, query);
+    }
+    path = path.replaceAll("^/+", "").replaceAll("/+$", "");
+    var mount = appRoute == null ? "" : appRoute.replaceAll("^/+", "").replaceAll("/+$", "");
+    if (!mount.isEmpty()) {
+      if (path.equals(mount)) {
+        return "";
+      }
+      if (path.startsWith(mount + "/")) {
+        return path.substring(mount.length() + 1);
+      }
+    }
+    return path;
   }
 
   /**

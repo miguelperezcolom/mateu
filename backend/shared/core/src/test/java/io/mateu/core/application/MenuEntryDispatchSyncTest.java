@@ -51,11 +51,28 @@ class MenuEntryDispatchSyncTest {
     @Menu String stock = "/covnav/reports/stock";
   }
 
+  /** A launches group whose «All launches» entry names the group's own route. */
+  @SuppressWarnings("unused")
+  public static class LaunchesGroup implements Submenu {
+    @Menu String calendar = "/covnav/launches/calendar";
+
+    @Menu String all = "/covnav/launches";
+  }
+
+  /** The page the «All launches» entry goes to: the group's own route. */
+  @UI("/covnav/launches")
+  @Title("All launches")
+  public static class AllLaunchesPage {
+    public String message = "all launches";
+  }
+
   @SuppressWarnings("unused")
   @UI("/covnav")
   @Title("Nav app")
   public static class NavApp {
     @Menu ReportsGroup reports;
+
+    @Menu LaunchesGroup launches;
 
     @Menu Supplier<Object> supplied = GreetingPage::new;
 
@@ -68,7 +85,7 @@ class MenuEntryDispatchSyncTest {
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(NavApp.class);
+    mateu = TestMateu.withUis(NavApp.class, AllLaunchesPage.class);
   }
 
   @AfterAll
@@ -157,5 +174,17 @@ class MenuEntryDispatchSyncTest {
     var increment = click("/covnav/nowhere");
     var notFound = all(increment.fragments().get(0).component(), NotFoundDto.class);
     assertThat(notFound).singleElement().extracting(NotFoundDto::backRoute).isEqualTo("/covnav");
+  }
+
+  /**
+   * An entry naming its group's route explicitly ({@code @Menu String all = "/covnav/launches"} in
+   * the {@code launches} group) wins over the group's derived route: the page, not the index.
+   */
+  @Test
+  void aLeafClaimingTheGroupsRouteWinsOverTheSectionIndex() {
+    var increment = click("/covnav/launches");
+    var component = increment.fragments().get(0).component();
+    assertThat(all(component, AnchorDto.class)).as("no section index").isEmpty();
+    assertThat(content(increment).serverSideType()).isEqualTo(AllLaunchesPage.class.getName());
   }
 }

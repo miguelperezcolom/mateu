@@ -1,0 +1,13 @@
+type: AppShell
+title: Space
+homeRoute: calendar
+menu:
+  - type: Menu
+    label: Launches
+    submenu:
+      - {type: RouteLink, label: Launch calendar, route: calendar}
+      - {type: RouteLink, label: All launches, route: launches}
+  - type: Menu
+    label: Fleet
+    submenu:
+      - {type: RouteLink, label: Launch calendar, route: calendar}
