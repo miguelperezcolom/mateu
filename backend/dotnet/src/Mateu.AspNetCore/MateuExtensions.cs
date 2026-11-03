@@ -353,8 +353,7 @@ public static class MateuExtensions
     {
         // the PWA's files are its endpoint's alone: never a renderer file, never the page
         if (Pwa.IsEndpoint(path)) return null;
-        var last = path[(path.LastIndexOf('/') + 1)..];
-        if (path != "/" && last.Contains('.'))
+        if (path != "/" && UiPage.IsAsset(path))
         {
             var file = renderer.Read(path);
             return file is null ? null : (UiPage.ContentTypeOf(path), file, UiPage.CacheControlFor(path));

@@ -730,7 +730,7 @@ class MateuUiMiddleware:
     def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
         """``(content type, body, cache control)`` for what this middleware would serve at ``path``,
         or None when the request is not ours."""
-        if path != "/" and "." in path.rsplit("/", 1)[-1]:
+        if path != "/" and ui_page.is_asset(path):
             body = self.renderer.read(path)
             if body is None:
                 return None
