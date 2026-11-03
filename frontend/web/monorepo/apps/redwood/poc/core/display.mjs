@@ -1089,6 +1089,22 @@ export function componentHtmlOf(node, interp = (x) => x) {
 }
 
 // ── Grid paging & tree (the Grid component) ────────────────────────────────────────────────────
+/**
+ * What the cellTreeToggle template reads off a tree row (VB CSP: precomputed): the indentation, the
+ * chevron, its label and the client-state key + value a press writes. A leaf is indented by the
+ * toggle's width as well, so a level's names line up whether they have children or not.
+ */
+export function treeDisclosureOf({ depth, hasChildren, expanded, uiKey, uiValue, name }) {
+  const label = chromeText(expanded ? 'treeCollapse' : 'treeExpand')
+  return {
+    __indentStyle: { paddingInlineStart: hasChildren ? (depth * 1.5) + 'rem' : 'calc(' + (depth * 1.5) + 'rem + var(--mateu-tree-toggle))' },
+    __toggleIcon: hasChildren ? (expanded ? 'oj-ux-ico-chevron-down' : 'oj-ux-ico-chevron-right') : '',
+    __toggleLabel: name ? label + ' ' + name : label,
+    __uiKey: uiKey,
+    __uiValue: uiValue,
+  }
+}
+
 /** A tree's rows flattened depth-first with their depth; collapsed nodes hide their children. */
 export function flattenTreeRows(rows, isExpanded = () => true, childrenKey = 'children', depth = 0, path = '') {
   const out = []

@@ -45,6 +45,7 @@ define([
         sort: $application.variables.mateuListingSort || [],
       });
       $application.variables.mateuLastSearchText = searchText == null ? '' : searchText;
+      bridge.openTreeRowsOnNewSearch(searchText, $application.variables.mateuFilterValues);
       const route = $application.variables.mateuSelectedRoute;
       const increment = await bridge.runMateuAction(base, host, route, 'search', componentState, { appState: $application.variables.mateuAppState || {} });
       const reg = bridge.reduceContexts(before, increment);

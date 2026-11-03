@@ -45,6 +45,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **Redwood: a tree listing (`gridLayout: tree`) folds.** It drew every level always open, with the
+  names indented and no way to close a branch; now each parent has a chevron, as on Vaadin. Folding
+  makes no round trip, a click elsewhere on the row still opens the record, and a new search or filter
+  opens the tree again so a folded branch never hides a match. A tree's columns no longer offer a sort.
 - **A menu entry whose route is its group's route opens its page, not the group's index** (Java,
   YAML and `@Menu` shells). The group «Launches» answers at a route derived from its label
   (`/launches`); its entry «All launches» names `route: launches` explicitly. Opening `/launches`

@@ -5,6 +5,8 @@
   "loading": "Loading",
   "search": "Search…",
   "noData": "No data",
+  "treeExpand": "Expand",
+  "treeCollapse": "Collapse",
   "rangeFrom": "From",
   "rangeTo": "To",
   "new": "New",
