@@ -126,6 +126,26 @@ describe('a direct @RestAction', () => {
     })
 })
 
+describe('a save settles the unsaved changes', () => {
+    const cleansAfter = async (action: Record<string, unknown>) => {
+        fetchExternalJson.mockResolvedValue({})
+        const el = await mount([action], { name: 'typed' })
+        const cleans: unknown[] = []
+        el.addEventListener('clean', (e) => cleans.push((e as CustomEvent).detail))
+        run(el, action.id as string)
+        await flush()
+        return cleans
+    }
+    const source = { url: '/api/x', method: 'PUT' }
+    it('one that validated the form, or moves on, leaves nothing unsaved', async () => {
+        expect(await cleansAfter({ id: 'save', validationRequired: true, restAction: { source } })).toHaveLength(1)
+        expect(await cleansAfter({ id: 'send', restAction: { source, successRoute: 'loans' } })).toHaveLength(1)
+    })
+    it('an upload beside a half-edited form does not', async () => {
+        expect(await cleansAfter({ id: 'upload', restAction: { source } })).toHaveLength(0)
+    })
+})
+
 describe('a proxied @RestAction', () => {
     it('goes through the server reserved action and merges what it answers', async () => {
         const el = await mount([

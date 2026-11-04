@@ -70,7 +70,9 @@ public class ComponentTreeSupplierMapper {
         ValidationMapper.mapValidations(componentTreeSupplier, route, httpRequest),
         null,
         null,
-        false,
+        componentTreeSupplier
+                instanceof io.mateu.core.domain.out.componentmapper.DeclaredDirtyGuard guard
+            && guard.confirmOnNavigationIfDirty(),
         EmitsMapper.emitsName(componentTreeSupplier),
         PageWidthResolver.wirePageWidth(componentTreeSupplier),
         PageTypeResolver.wirePageType(componentTreeSupplier),

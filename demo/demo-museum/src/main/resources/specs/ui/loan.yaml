@@ -2,6 +2,7 @@
 # badge, contextual facts (kpis) and a progress strip of where the loan is.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: ${state.artworkTitle}
 subtitle: ${state.fromMuseumName} → ${state.toMuseumName}
 overline: Loan ${state.id}

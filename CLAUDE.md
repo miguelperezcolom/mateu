@@ -384,6 +384,7 @@ supplies it.
 - **GOTCHA: `dataType: decimal` does not exist** (integer, string, number, date, time, dateTime, bool,
   array, file, status, money, component, menu, range, action, actionGroup). An unparseable definition
   does not report itself — same silent `"Not found."`.
+- **A page that edits declares `confirmOnNavigationIfDirty: true` (2026-11-03)**: without it a menu click or a peer arrow discards what was typed, silently. `SeededYamlPage` → `DeclaredDirtyGuard` → `ServerSideComponentDto`; a successful REST action settles the changes when it declares `validationRequired` or `successRoute` (`restActionSettles.ts`; Redwood's reducer clears `mateuDirty` on any answered action). GOTCHA: `oj-select-one` EMPTIES ITSELF when its value is not among the options, and announces it as an ordinary `internal` change — `selectDroppedItsValue` (Redwood) keeps that from being an edit, or saving wipes the field.
 - **`Listing.rowRoute`** (`people/${row.id}`) is the way IN to a record: a listing without a view model
   could only offer `gridLayout: masterDetail`, a pane painted from the fetched row — not addressable,
   not shareable, gone on reload. It navigates with the shared `route-changed`+`navigate-to-requested`

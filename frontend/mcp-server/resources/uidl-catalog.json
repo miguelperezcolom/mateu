@@ -1199,6 +1199,9 @@
     }, {
       "name" : "template",
       "type" : "FormTemplate"
+    }, {
+      "name" : "confirmOnNavigationIfDirty",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "FormEditor",

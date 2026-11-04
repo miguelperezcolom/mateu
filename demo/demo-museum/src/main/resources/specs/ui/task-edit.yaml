@@ -1,6 +1,7 @@
 # One conservation task: move it along the board (status), re-prioritise, re-assign.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: ${state.title}
 subtitle: ${state.artworkTitle} · ${state.museumName}
 badges:

@@ -1,6 +1,7 @@
 # Edit a launch site: text, numbers for the coordinates, a yes/no toggle and a textarea.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: Edit ${state.name}
 subtitle: Launch site
 toolbar:

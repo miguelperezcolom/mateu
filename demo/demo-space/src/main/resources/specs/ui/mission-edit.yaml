@@ -6,6 +6,7 @@
 # number, boolean (toggle), image and link.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
+confirmOnNavigationIfDirty: true
 title: Edit ${state.name}
 subtitle: Mission
 timestamp: ${state.launchDate}

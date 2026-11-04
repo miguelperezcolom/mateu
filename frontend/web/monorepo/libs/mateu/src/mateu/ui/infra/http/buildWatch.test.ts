@@ -4,6 +4,7 @@ import {
     observeMateuResponse, STALE_SCREEN,
 } from './buildWatch'
 import { classifyRequestFailure } from './requestPolicy'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 describe('backend key', () => {
     it('is the absolute URL up to the /mateu/ segment', () => {
@@ -93,11 +94,12 @@ describe('transport hooks', () => {
         const failure = classifyRequestFailure(error, { online: true })
         expect(failure.kind).toBe('forbidden')
         expect(failure.reload).toBe(true)
-        expect(failure.message).toContain('Reload')
+        // in the language of the machine that runs the test
+        expect(failure.message).toBe(chromeText('staleScreen'))
     })
     it('an unmarked refusal keeps the forbidden text', () => {
         const failure = classifyRequestFailure({ response: { status: 403, data: 'Forbidden' } }, { online: true })
         expect(failure.reload).toBeUndefined()
-        expect(failure.message).not.toContain('Reload')
+        expect(failure.message).not.toBe(chromeText('staleScreen'))
     })
 })

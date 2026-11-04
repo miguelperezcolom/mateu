@@ -6,7 +6,7 @@ import { interpolate } from "@infra/ui/interpolation.ts";
 import { formatShortcut } from "@infra/ui/shortcuts.ts";
 import { builtInButtonLabel } from "@infra/ui/builtInButtonLabels.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
-import { navigateToRoute } from "@infra/ui/rowRoute.ts";
+import { leaveToRoute } from "@infra/ui/rowRoute.ts";
 
 export const handleButtonClick = (event: Event, button: Button) => {
     const el = event.currentTarget as HTMLElement
@@ -17,7 +17,7 @@ export const handleButtonClick = (event: Event, button: Button) => {
     // that has nothing behind it.
     const route = el.dataset.route
     if (route) {
-        navigateToRoute(el, route)
+        leaveToRoute(el, route)
         return
     }
     if (button.route) {

@@ -9,6 +9,9 @@ import { interpolateNested } from "@infra/ui/interpolation.ts";
 import { FocusTrap, trapFocus } from "@infra/a11y/focusTrap.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { peerRouteLeavesApp } from './peerNavigation'
+import { navigateLikeMenu } from './breadcrumbTrail'
+import { navigateToRoute } from './rowRoute'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { hasOverlayInside } from '@infra/ui/overlayStack.ts'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
@@ -107,7 +110,13 @@ export class MateuDrawer extends ComponentElement {
     /** Leaves for another record (the peer arrows) — the same question as closing. */
     private peerNavigate(route: string | undefined) {
         if (!route || !dirtyGuard.confirmDiscard(this)) return
-        safeNavigate(route)
+        if (peerRouteLeavesApp(route)) {
+            safeNavigate(route)
+            return
+        }
+        // a place of this app: the page behind changes, so the drawer over it goes
+        if (!navigateLikeMenu(route)) navigateToRoute(this, route)
+        this.close()
     }
 
     close = () => {

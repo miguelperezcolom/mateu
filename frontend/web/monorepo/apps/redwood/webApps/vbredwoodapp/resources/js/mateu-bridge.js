@@ -3210,7 +3210,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const header = foldoutHeaderOf(md)
     if (!owns) return header
     if (declared) return foldoutPageHeaderOf(header, templateFormOf(ctx), (ctx && ctx.state) || {})
-    return foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+    const out = foldoutToolbarHeaderOf(header, pageToolbarOf(ctx), parent)
+    // the wire's own navigation (FoldoutLayout.navigation) keeps the arrows it declared
+    if (out.previousStep || out.nextStep) return out
+    const state = (ctx && ctx.state) || {}
+    return withPeerArrows(out, pageHeaderNodeOf(ctx.tree), state, (b) => ({ actionId: '', route: buttonRouteOf(b.route, state) || '' }))
   }
 
   /** Where a page foldout's go-to-parent leads: its back button, else the trail's parent; null with neither. */
@@ -17898,6 +17902,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
+   * Did a select empty itself, rather than the user emptying it? oj-select-one drops a value that is not
+   * among its options and announces it like any other change (`updatedFrom: internal`): a loan's closed
+   * exhibition, which the open-and-planned choices leave out. Taken for an edit, saving the record, untouched,
+   * wiped the field. Whoever empties a select has focus in it.
+   */
+  function selectDroppedItsValue(event) {
+    const target = event && event.target
+    if (!target || target.tagName !== 'OJ-SELECT-ONE' || !event.detail || event.detail.value != null) return false
+    const active = target.ownerDocument && target.ownerDocument.activeElement
+    return !(active && (active === target || target.contains(active)))
+  }
+
+  /**
    * THE rule for «an edit leaves unsaved changes» (mateuDirty), the same as Vaadin's: mateu-component
    * dispatches `dirty` only when the component owning the field asks before it is left
    * (`confirmOnNavigationIfDirty`). A search box, a filter or a plain form never makes the menu, back,
@@ -21487,6 +21504,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!path || !win || !win.location) return false
     win.location.assign(path)
     return true
+  }
+
+  /** A header arrow (`peerNav`): another mount's path loads in the browser, anything else navigates
+   *  inside the app like a breadcrumb. */
+  function requestPeerNavigation(route, reg, doc = typeof document !== 'undefined' ? document : null) {
+    if (leftMountFor({ route }, reg)) return
+    if (doc) doc.dispatchEvent(new CustomEvent('navigation-requested', { detail: { route }, bubbles: true, composed: true }))
   }
 
   /** The route part (no query) of the browser path — what to compare a route against. */
@@ -28477,6 +28501,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     confirmLeaveAction,
     tracksUnsavedChanges,
     fieldEditLeavesUnsavedChanges,
+    selectDroppedItsValue,
     // unsaved changes SCOPED per overlay (the page's mateuDirty + each open overlay's own), and
     // what a navigation does with them: one question, then every overlay closes
     topOverlayContextOf,
@@ -28560,6 +28585,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    requestPeerNavigation,
     openExternalRoute,
     isExternalRoute,
     scrollToTopOnNavigate,

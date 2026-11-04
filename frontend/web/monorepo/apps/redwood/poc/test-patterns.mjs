@@ -637,7 +637,7 @@ test('header extras wiring: both page headers bind them, the arrows navigate lik
   assert.equal(listeners.headerPreviousItem.chains[0].parameters.actionId, '__peerPrev')
   assert.equal(listeners.headerNextItem.chains[0].parameters.actionId, '__peerNext')
   const run = webApp('flows/main/pages/main-start-page-chains/runMateuAction.js')
-  assert.match(run, /id === '__peerPrev' \? header\.prevRoute : header\.nextRoute[\s\S]*'navigation-requested'/)
+  assert.match(run, /id === '__peerPrev' \? header\.prevRoute : header\.nextRoute[\s\S]*requestPeerNavigation/)
   // the default header (before any page) carries every field the bindings read
   const def = JSON.parse(webApp('app-flow.json')).variables.mateuPageHeader.defaultValue
   assert.deepEqual([def.badge, def.timestamp, def.overline, def.previousItem.display, def.nextItem.display], [null, '', '', 'disabled', 'disabled'])
@@ -993,4 +993,16 @@ test('spectra drawer: the panel paints the three templates around ONE generated 
   for (const name of ['installDrawerGuard', 'noteDrawerUnsaved', 'drawerHasUnsavedChanges', 'withListingPeers'])
     assert.ok(webApp('resources/js/mateu-bridge.js').includes('    ' + name + ',\n'), name)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installDrawerGuard\(\)/)
+})
+
+test('the room for a foldout\'s paging dots stays inside the panel: outside it, every panel scrolled', () => {
+  const rule = webApp('resources/css/app.css').match(/oj-sp-foldout-layout \.oj-sp-foldout-panel-content \{[^}]*\}/)[0]
+  assert.match(rule, /padding-bottom: 3\.5rem/)
+  assert.match(rule, /box-sizing: border-box/)
+})
+
+test('a primary cell\'s image is as big as on the web renderer: at 1.25rem, initials could not be read', () => {
+  const rule = webApp('resources/css/app.css').match(/\.mateu-primary-cell-leading \{[^}]*\}/)[0]
+  assert.match(rule, /width: 2rem/)
+  assert.match(rule, /height: 2rem/)
 })

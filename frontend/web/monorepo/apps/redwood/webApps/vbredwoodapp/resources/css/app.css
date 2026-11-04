@@ -287,6 +287,9 @@ oj-sp-foldout-layout:not(.mateu-foldout-has-nav) .oj-sp-foldout-layout-header-ho
    that reaches it scrolled under them (the last card's text on /exhibitions/1). Room for them. */
 oj-sp-foldout-layout .oj-sp-foldout-panel-content {
   padding-bottom: 3.5rem;
+  /* Spectra stretches this box to the panel: outside the height, that room overflowed every panel
+     by a constant 32px, so each one showed a scroll bar however little it held. */
+  box-sizing: border-box;
 }
 
 /* FoldoutLayout.orientation horizontal: the overview is the band across the top, full width. */
@@ -1117,8 +1120,8 @@ oj-action-card.mateu-listing-card {
   min-width: 0;
 }
 .mateu-primary-cell-leading {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;

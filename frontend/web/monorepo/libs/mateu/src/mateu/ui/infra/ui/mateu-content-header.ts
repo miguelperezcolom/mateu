@@ -17,7 +17,8 @@ import { interpolate, literalText, possiblyHtml } from './interpolation'
 import { notePageTitle } from './windowTitle'
 import { plainText } from './navTree'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
-import { navigateToRoute } from './rowRoute'
+import { leaveToRoute, navigateToRoute } from './rowRoute'
+import { peerRouteLeavesApp } from './peerNavigation'
 import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } from './breadcrumbTrail'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -233,7 +234,7 @@ export class MateuContentHeader extends LitElement {
         // model behind it. The `${state.x}` template is resolved against the page state.
         const route = button.route ? interpolate(button.route, this.state, this.data) : undefined
         if (route && !route.includes('${')) {
-            navigateToRoute(this, route)
+            leaveToRoute(this, route)
             return
         }
         // A ROUTED listing renders its toolbar HERE (not in the crud), so a "Delete selected" acts on
@@ -453,12 +454,8 @@ export class MateuContentHeader extends LitElement {
         navigateToRoute(this, route)
     }
 
-    /**
-     * A relative peer route is a place of this app, reached like a breadcrumb. `/x` is a path of the
-     * site, possibly another mount this app knows nothing about: only a browser load gets there.
-     */
     private goToPeer(route: string) {
-        if (route.startsWith('/')) safeNavigate(route)
+        if (peerRouteLeavesApp(route)) safeNavigate(route)
         else this.goToCrumb(route)
     }
 
