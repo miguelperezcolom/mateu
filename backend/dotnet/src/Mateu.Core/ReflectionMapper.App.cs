@@ -163,6 +163,10 @@ internal sealed partial class ReflectionMapper
             TotalMenuOptions = TotalMenuOptions(items),
             ServerSideType = appType.FullName!,
             SseUrl = appType.Find<AIAttribute>()?.Sse,
+            FollowLabel = appType.Find<AIAttribute>()?.FollowLabel?.Trim() is { Length: > 0 } followLabel
+                ? followLabel : null,
+            FollowingLabel = appType.Find<AIAttribute>()?.FollowingLabel?.Trim() is { Length: > 0 } followingLabel
+                ? followingLabel : null,
             ContextSelectors = MapContextSelectors(appType),
             ContextActions = MapContextActions(appType),
             NotificationsEnabled = typeof(INotificationsSupplier).IsAssignableFrom(appType),

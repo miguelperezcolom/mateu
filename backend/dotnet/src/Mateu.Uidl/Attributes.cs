@@ -411,6 +411,15 @@ public sealed class AIAttribute(string sse) : Attribute
 {
     /// <summary>URL of the SSE chat endpoint.</summary>
     public string Sse { get; } = sse;
+
+    /// <summary>The text of the chat panel's Follow mode button while it is OFF (the toggle that
+    /// decides whether the view follows the assistant or stays where the user is). Empty = the
+    /// renderer's own, in the user's language ("Follow", "Seguir"). (Java's <c>@AI(followLabel)</c>.)</summary>
+    public string FollowLabel { get; set; } = "";
+
+    /// <summary>The text of the Follow mode button while it is ON (its default state). Empty = the
+    /// renderer's own ("Following", "Siguiendo"). (Java's <c>@AI(followingLabel)</c>.)</summary>
+    public string FollowingLabel { get; set; } = "";
 }
 
 /// <summary>A menu entry on an [App] class: a parameterless method returning the target view instance.</summary>

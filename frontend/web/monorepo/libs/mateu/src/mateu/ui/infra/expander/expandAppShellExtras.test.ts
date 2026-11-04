@@ -30,4 +30,22 @@ describe('client-side expander — app shortcuts, header values, idle warning', 
         expect(app.headerValues).toEqual([{ id: 'businessDate', label: 'Business date', value: '12 Oct 2026' }])
         expect(app.liveUpdates).toBe(false)
     })
+
+    // Same fixture values as mount-home/shell-flows/specs/ui/shell.yaml (AppShellFlowSyncTest).
+    it('reads the ai block like the server: trimmed, and blank is absent', () => {
+        const metadataOf = (ai?: unknown) => (expandAppShell({
+            type: 'AppShell', title: 'E2', ai,
+            menu: [{ type: 'RouteLink', label: 'Home', route: 'home' }],
+        }).fragments![0] as any).component.metadata
+        const app = metadataOf({
+            sse: '/api/ai/chat', mcp: '/api/ai/mcp', upload: ' ',
+            followLabel: 'Seguir al copiloto', followingLabel: ' Siguiendo al copiloto ',
+        })
+        expect(app.sseUrl).toBe('/api/ai/chat')
+        expect(app.mcpUrl).toBe('/api/ai/mcp')
+        expect(app.uploadUrl).toBeNull()
+        expect(app.followLabel).toBe('Seguir al copiloto')
+        expect(app.followingLabel).toBe('Siguiendo al copiloto')
+        expect(metadataOf().sseUrl).toBeNull()
+    })
 })

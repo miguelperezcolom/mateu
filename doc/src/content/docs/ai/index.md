@@ -40,15 +40,38 @@ That is all that is required on the Java side.
 
 ## MCP tools and file uploads
 
-`@AI` has two optional attributes beyond `sse`:
+`@AI` has these optional attributes beyond `sse`:
 
 - `mcp` — path (or absolute URL) of the app's MCP endpoint. The chat forwards it with every message so the agent can operate **this** app through its tools.
 - `upload` — path (or absolute URL) where the chat POSTs attached files (multipart). When set, the chat panel shows an **attach** button; each upload is saved server-side (its URL travels to the frontend as `ChatDto.uploadUrl`) and the assistant reads it — your endpoint decides where it is stored and how the agent reaches it (e.g. through a filesystem MCP server). Empty (the default) = no file attachments.
+
+- `followingLabel` / `followLabel` — the text of the chat's [Follow mode](#follow-mode) button while it is on / off. Empty (the default) = «Following» / «Follow» («Siguiendo» / «Seguir»), in the user's language.
 
 ```java
 @UI("")
 @AI(sse = "/api/ai/chat", mcp = "/api/ai/mcp", upload = "/api/ai/upload")
 public class MyApp { ... }
+```
+
+### In YAML
+
+A data-authored app shell (`type: AppShell`) declares the same settings in an `ai:` block — the data
+twin of `@AI`, and it wins over an `@AI` on the shell's class:
+
+```yaml
+# specs/ui/app.yaml
+type: AppShell
+title: Bookings
+ai:
+  sse: /api/ai/chat
+  mcp: /api/ai/mcp
+  upload: /api/ai/upload
+  followingLabel: Siguiendo al copiloto   # optional, Follow mode on
+  followLabel: Seguir al copiloto         # optional, Follow mode off
+menu:
+  - type: RouteLink
+    label: Bookings
+    route: bookings
 ```
 
 ## How it works
@@ -184,6 +207,35 @@ data: Tienes 3 reservas.
 Usage objects whose counters are all zero are ignored (older agents sent them as placeholders while working). The token bar shows the last usage received; it is not summed across replies.
 
 There is no end-of-stream sentinel (no `[DONE]`): the reply is finished when the server closes the stream. If the stream closes without any text, the chat shows a warning suggesting the LLM is not configured.
+
+### Follow mode
+
+The robot button in the chat header is Follow mode. It is on by default: it reads **Following**
+(**Siguiendo** in Spanish), filled with the primary colour, while the view follows the assistant;
+turned off it reads **Follow** (**Seguir**), outlined:
+
+- **On** (the default): a `navigation-requested` or `render-screen` the agent streams is applied as it
+  arrives — the content moves to the screen the agent opened.
+- **Off**: the user stays where they are. Those two events are held back on the reply as buttons
+  («Open /bookings», «Show the generated screen») and applied only when the user clicks them, with the
+  same checks as if they had arrived live. Events that do not move the view (a page's own
+  `@SubscribeTo` events, `close-requested`) keep applying.
+
+The choice is remembered per browser (`localStorage` key `mateu-chat-follow`). Your endpoint does not
+need to know about it: it streams the same events either way. It applies to the chat's stream; the
+live UI push channel (MCP "drive a live UI") is not affected.
+
+The button's texts are the app's to choose, one per state:
+
+| | On | Off |
+|---|---|---|
+| Java | `@AI(followingLabel = "…")` | `@AI(followLabel = "…")` |
+| YAML (`type: AppShell`) | `ai.followingLabel` | `ai.followLabel` |
+| C# | `[AI("…", FollowingLabel = "…")]` | `[AI("…", FollowLabel = "…")]` |
+| Python | `@ai("…", following_label="…")` | `@ai("…", follow_label="…")` |
+
+They travel as `AppDto.followingLabel` / `AppDto.followLabel`; a blank one keeps the renderer's own,
+in the user's language.
 
 Mateu also forwards the current JWT and session-id as request headers so your endpoint can authenticate and personalise responses.
 

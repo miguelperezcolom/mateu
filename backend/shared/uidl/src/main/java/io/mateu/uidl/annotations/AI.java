@@ -31,4 +31,19 @@ public @interface AI {
    * read it. Empty = no file attachments.
    */
   String upload() default "";
+
+  /**
+   * The text of the chat panel's Follow mode button while it is OFF — the toggle that decides
+   * whether the view follows the assistant (its navigations and generated screens open as they
+   * arrive) or stays where the user is (they wait in the conversation as buttons). Empty = the
+   * renderer's own, in the user's language ("Follow", "Seguir").
+   */
+  String followLabel() default "";
+
+  /**
+   * The text of the Follow mode button while it is ON (the default state), e.g. {@code
+   * followingLabel = "Following the copilot"}. Empty = the renderer's own, in the user's language
+   * ("Following", "Siguiendo").
+   */
+  String followingLabel() default "";
 }

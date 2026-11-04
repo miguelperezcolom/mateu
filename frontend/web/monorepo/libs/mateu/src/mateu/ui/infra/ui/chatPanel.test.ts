@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CHAT_WIDTH, CHAT_WIDTH_KEY, clampChatWidth, dragChatWidth, loadChatWidth, saveChatWidth } from './chatPanel'
+import { CHAT_FOLLOW_KEY, CHAT_WIDTH, CHAT_WIDTH_KEY, clampChatWidth, dragChatWidth, loadChatFollow, loadChatWidth, saveChatFollow, saveChatWidth } from './chatPanel'
 import { chatText } from './chatTexts'
 
 const memory = () => {
@@ -41,6 +41,26 @@ describe('the chat panel width', () => {
         expect(dragChatWidth(460, 460, 400)).toBe(400)
         expect(dragChatWidth(460, 900, 800, true)).toBe(560)
         expect(dragChatWidth(460, 460, 2000)).toBe(720)
+    })
+})
+
+describe('the chat panel follow mode', () => {
+    it('is on unless the user turned it off, and is remembered per browser', () => {
+        const store = memory()
+        expect(loadChatFollow(store)).toBe(true)
+        expect(saveChatFollow(false, store)).toBe(false)
+        expect(store.getItem(CHAT_FOLLOW_KEY)).toBe('off')
+        expect(loadChatFollow(store)).toBe(false)
+        saveChatFollow(true, store)
+        expect(loadChatFollow(store)).toBe(true)
+        store.setItem(CHAT_FOLLOW_KEY, 'garbage')
+        expect(loadChatFollow(store)).toBe(true)
+    })
+
+    it('never fails when the storage is blocked or full', () => {
+        expect(loadChatFollow(broken)).toBe(true)
+        expect(saveChatFollow(false, broken)).toBe(false)
+        expect(loadChatFollow(undefined)).toBe(true)
     })
 })
 

@@ -425,7 +425,15 @@ export function shellHeaderExtras(shell: FluentNode): Record<string, unknown> {
         }))
     const notifications = shell.notifications as Record<string, unknown> | undefined
     const globalSearch = shell.globalSearch as Record<string, unknown> | undefined
+    // `ai:`, the data twin of @AI, read like AppMapper: trimmed, blank = absent.
+    const ai = (shell.ai ?? {}) as Record<string, unknown>
+    const aiText = (key: string) => (typeof ai[key] === 'string' && ai[key].trim() ? ai[key].trim() : null)
     return {
+        sseUrl: aiText('sse'),
+        mcpUrl: aiText('mcp'),
+        uploadUrl: aiText('upload'),
+        followLabel: aiText('followLabel'),
+        followingLabel: aiText('followingLabel'),
         contextSelectors,
         contextActions: objects(shell.headerActions).map(headerAction),
         notificationsEnabled: !!notifications?.source,

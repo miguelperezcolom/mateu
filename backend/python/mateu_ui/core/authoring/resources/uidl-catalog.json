@@ -202,6 +202,9 @@
     }, {
       "name" : "globalSearch",
       "type" : "AppGlobalSearchSource"
+    }, {
+      "name" : "ai",
+      "type" : "AppAiChat"
     } ]
   }, {
     "type" : "AppState",

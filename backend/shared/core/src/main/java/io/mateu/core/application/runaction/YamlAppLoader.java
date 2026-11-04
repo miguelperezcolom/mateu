@@ -42,8 +42,10 @@ import lombok.extern.slf4j.Slf4j;
  * fields, {@code AppActionsSupplier}, {@code NotificationsSupplier} and {@code
  * GlobalSearchSupplier}.
  *
- * <p><b>Not carried yet</b>: SSE/MCP/upload URLs and app-level FABs — read reflectively from the
- * app class.
+ * <p>{@code ai:} ({@code sse}, {@code mcp}, {@code upload}, {@code followLabel}, {@code
+ * followingLabel}) is the data twin of {@code @AI}: the assistant chat and its Follow mode button.
+ *
+ * <p><b>Not carried yet</b>: app-level FABs — read reflectively from the app class.
  */
 @Slf4j
 @Named
@@ -301,6 +303,11 @@ public class YamlAppLoader implements io.mateu.core.infra.dev.SpecsCache {
       builder.globalSearch(
           mapper.treeToValue(
               root.get("globalSearch"), io.mateu.uidl.data.AppGlobalSearchSource.class));
+    }
+
+    // The assistant chat (the data twin of @AI): its endpoints and the Follow mode button's labels.
+    if (root.hasNonNull("ai")) {
+      builder.ai(mapper.treeToValue(root.get("ai"), io.mateu.uidl.data.AppAiChat.class));
     }
 
     if (root.has("widgets") && root.get("widgets").isArray()) {

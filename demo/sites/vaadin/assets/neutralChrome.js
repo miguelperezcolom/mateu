@@ -46,4 +46,11 @@ import{E as e,k as t}from"./vendor-lit.js";var n=t`
     <path d="M5 10v1a7 7 0 0 0 14 0v-1"></path>
     <line x1="12" y1="18" x2="12" y2="22"></line>`);r(e`
     <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>`);export{n as a,a as i,o as n,s as r,i as t};
+    <line x1="6" y1="6" x2="18" y2="18"></line>`);var c=r(e`
+    <line x1="12" y1="2.5" x2="12" y2="6"></line>
+    <rect x="4" y="6" width="16" height="13" rx="3"></rect>
+    <line x1="2" y1="11" x2="2" y2="14"></line>
+    <line x1="22" y1="11" x2="22" y2="14"></line>
+    <circle cx="9" cy="11.5" r="1"></circle>
+    <circle cx="15" cy="11.5" r="1"></circle>
+    <line x1="9.5" y1="15.5" x2="14.5" y2="15.5"></line>`);export{c as a,a as i,o as n,n as o,s as r,i as t};

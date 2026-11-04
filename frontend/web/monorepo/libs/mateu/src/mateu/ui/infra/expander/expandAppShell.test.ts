@@ -21,6 +21,12 @@ const shell: FluentNode = {
     commandCenter: true,
     accessKeys: true,
     mobileQr: true,
+    ai: {
+        sse: '/api/ai/chat',
+        mcp: '/api/ai/mcp',
+        followLabel: 'Seguir al copiloto',
+        followingLabel: ' Siguiendo al copiloto ',
+    },
     actions: [
         { id: 'newOrder', steps: [{ type: 'MarkClean' }, { type: 'Navigate', route: 'orders/new' }] },
         { id: 'announce', steps: [{ type: 'Emit', event: 'order-started' }] },

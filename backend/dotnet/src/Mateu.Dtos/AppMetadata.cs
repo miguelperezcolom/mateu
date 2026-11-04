@@ -35,6 +35,14 @@ public record AppMetadataDto(
     /// <summary>SSE chat endpoint ([AI]); when set the renderer shows the floating AI chat.</summary>
     public string? SseUrl { get; init; }
 
+    /// <summary>The text of the chat panel's Follow mode button while it is off ([AI(FollowLabel)]);
+    /// null = the renderer's own, in the user's language. (Mirrors AppDto.followLabel.)</summary>
+    public string? FollowLabel { get; init; }
+
+    /// <summary>The text of the Follow mode button while it is on ([AI(FollowingLabel)]); null = the
+    /// renderer's own. (Mirrors AppDto.followingLabel.)</summary>
+    public string? FollowingLabel { get; init; }
+
     public IReadOnlyList<AppContextSelectorDto> ContextSelectors { get; init; } = [];
 
     /// <summary>Header action buttons next to the context selectors (the app class implements

@@ -452,14 +452,20 @@ def remote_menu(label: str, base_url: str, route: str = "", explode: bool = Fals
     return deco
 
 
-def ai(sse: str) -> Callable[[type], type]:
+def ai(sse: str, follow_label: str = "", following_label: str = "") -> Callable[[type], type]:
     """AI chat on the app: a floating button opens a chat panel that streams its answers from the
     given Server-Sent-Events endpoint. The endpoint is yours to implement — the panel POSTs
     ``{message, sessionId, menuContext?}`` with ``Accept: text/event-stream`` and renders the
-    ``data:`` chunks as the streamed reply. The Python analogue of Java's ``@AI``."""
+    ``data:`` chunks as the streamed reply. The Python analogue of Java's ``@AI``.
+
+    ``follow_label`` / ``following_label`` are the texts of the panel's Follow mode button (whether
+    the view follows the assistant or stays put) while it is off / on; empty = the renderer's own,
+    in the user's language ("Follow" / "Following", "Seguir" / "Siguiendo")."""
 
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_ai_sse__", sse)
+        setattr(cls, "__mateu_ai_follow_label__", follow_label)
+        setattr(cls, "__mateu_ai_following_label__", following_label)
         return cls
 
     return deco

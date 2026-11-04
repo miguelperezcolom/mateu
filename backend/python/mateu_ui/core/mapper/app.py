@@ -125,6 +125,8 @@ class AppMapperMixin(MixinBase):
         items = self._apply_mount_routing(items, mount, app_ssn)
         home = items[0] if items else None
         sse_url = getattr(cls, "__mateu_ai_sse__", None)
+        follow_label = (getattr(cls, "__mateu_ai_follow_label__", "") or "").strip() or None
+        following_label = (getattr(cls, "__mateu_ai_following_label__", "") or "").strip() or None
         context_selectors = self.map_context_selectors(cls)
         context_actions = self.map_context_actions(cls)
         notifications_enabled = issubclass(cls, NotificationsSupplier)
@@ -166,6 +168,8 @@ class AppMapperMixin(MixinBase):
             home_server_side_type=app_ssn,
             server_side_type=type_name(cls),
             sse_url=sse_url,
+            follow_label=follow_label,
+            following_label=following_label,
             context_selectors=context_selectors,
             context_actions=context_actions,
             # Notification inbox: the app class implements NotificationsSupplier → the shell

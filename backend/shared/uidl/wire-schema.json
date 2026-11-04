@@ -382,6 +382,12 @@
         "favicon" : {
           "type" : "string"
         },
+        "followLabel" : {
+          "type" : "string"
+        },
+        "followingLabel" : {
+          "type" : "string"
+        },
         "generatedAccentStrip" : {
           "type" : "string"
         },

@@ -20,6 +20,10 @@ const KEYS = {
     answering: 'chatAnswering',
     callingTool: 'chatCallingTool',
     agentError: 'chatAgentError',
+    follow: 'chatFollow',
+    following: 'chatFollowing',
+    followOn: 'chatFollowOn',
+    followOff: 'chatFollowOff',
 } as const satisfies Record<string, ChromeTextKey>
 
 export type ChatTextKey = keyof typeof KEYS

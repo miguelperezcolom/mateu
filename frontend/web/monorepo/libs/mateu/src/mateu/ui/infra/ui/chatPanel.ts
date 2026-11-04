@@ -58,3 +58,29 @@ export const dragChatWidth = (startWidth: number, startX: number, x: number, rtl
 
 /** One keyboard step on the edge (←/→), in pixels; Home/End go to the bounds. */
 export const CHAT_WIDTH_STEP = 24
+
+/**
+ * Follow mode: whether the view follows the assistant — its navigations and generated screens open
+ * as they arrive (on, the default) or wait in the conversation for the user to open them (off).
+ * Remembered per browser, like the width.
+ */
+export const CHAT_FOLLOW_KEY = 'mateu-chat-follow'
+
+/** Whether follow mode is on for this user; on unless they turned it off. Never throws. */
+export const loadChatFollow = (store: WidthStore = defaultStore()): boolean => {
+    try {
+        return store?.getItem(CHAT_FOLLOW_KEY) !== 'off'
+    } catch {
+        return true
+    }
+}
+
+/** Remembers follow mode. Never throws: a full or blocked storage just forgets. */
+export const saveChatFollow = (on: boolean, store: WidthStore = defaultStore()): boolean => {
+    try {
+        store?.setItem(CHAT_FOLLOW_KEY, on ? 'on' : 'off')
+    } catch {
+        // nothing to do: the choice still applies to this page
+    }
+    return on
+}
