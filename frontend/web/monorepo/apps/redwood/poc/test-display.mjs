@@ -570,6 +570,12 @@ test('richText: HTML as it is, a legacy Quill Delta converted; the editor stores
 
 test('field widgets: slider, stars, colour and the rich text editor', () => {
   const md = (extra) => ({ type: 'FormField', fieldId: 'x', label: 'X', dataType: 'integer', ...extra })
+  // the options a source brought live in data[fieldId]: they fill the select, they are not its value
+  const options = { content: [{ value: 3, label: 'Cleveland' }, { value: 1, label: 'The Met' }] }
+  const unset = layoutFieldOf(md({ dataType: 'string', stereotype: 'select', required: true }), {}, { x: options })
+  assert.equal(unset.value, null)
+  assert.equal(unset.options.length, 2)
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'select' }), { x: 1 }, { x: options }).value, 1)
   const slider = layoutFieldOf(md({ stereotype: 'slider', sliderMin: 10, sliderMax: 50, step: 5 }), { x: '20' })
   assert.deepEqual([slider.isSlider, slider.min, slider.max, slider.step, slider.value], [true, 10, 50, 5, 20])
   const stars = layoutFieldOf(md({ stereotype: 'stars' }), { x: 4 })

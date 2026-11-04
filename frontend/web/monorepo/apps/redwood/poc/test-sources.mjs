@@ -846,6 +846,13 @@ test('in memory: sort by several keys, numbers numerically, text case-insensitiv
   assert.equal(sortRestRows(rows, null), rows)
 })
 
+test('a repeated identifier keeps its rows apart: oj-table draws one row per key', () => {
+  const md = { pageSize: 10, columns: [col('day', { identifier: true }), col('museum')] }
+  const page = restListingPage(md, [{ day: 'Jan 1', museum: 'Met' }, { day: 'Jan 1', museum: 'SMK' }, { day: 'Jan 2', museum: 'Met' }, { day: 'Jan 1', museum: 'CMA' }], null, {}, false)
+  assert.deepEqual(page.content.map((r) => r._rowNumber), ['Jan 1', 'Jan 1#1', 'Jan 2', 'Jan 1#2'])
+  assert.deepEqual(page.content.map((r) => r.museum), ['Met', 'SMK', 'Met', 'CMA'])
+})
+
 test('in memory: a page with no identifier column numbers its rows; no page size shows them all', () => {
   const md = { columns: [col('name')], filters: [] }
   const page = restListingPage(md, [{ name: 'x' }, { name: 'y' }], null, {}, false)
