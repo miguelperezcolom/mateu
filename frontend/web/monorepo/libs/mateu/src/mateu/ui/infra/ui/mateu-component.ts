@@ -411,7 +411,13 @@ export class MateuComponent extends ComponentElement {
         if (e instanceof CustomEvent) {
             const detail = e.detail as {
                 value: any,
-                fieldId: string
+                fieldId: string,
+                seed?: boolean
+            }
+            if (e.type == 'value-changed' && detail.seed) {
+                this.seedFieldValue(detail.fieldId, detail.value)
+                this.formerState = { ...this.formerState, [detail.fieldId]: detail.value }
+                return
             }
             if (e.type == 'value-changed') {
                 const newState = {...this.state}

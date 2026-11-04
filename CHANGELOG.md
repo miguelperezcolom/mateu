@@ -13,6 +13,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+### Fixed
+
+- **A field's `initialValue` no longer overwrites a loaded record (Vaadin).** A field declaring one
+  announced it as an edit when it mounted, and edits are defended against what arrives later, so a
+  YAML page with `data:` showed the default instead of the record, and saving it wrote the default
+  to the API (a `DONE` task saved as `BACKLOG`). It also marked the untouched page as dirty.
 - **Redwood tables no longer lose rows (Redwood).** A listing fed by a REST source keyed its rows by
   the identifier column, which may repeat (a day, a task's title), and `oj-table` drew one row per
   key: `/visits` showed 10 of its 25 rows. A repeat now gets its occurrence in the key.
