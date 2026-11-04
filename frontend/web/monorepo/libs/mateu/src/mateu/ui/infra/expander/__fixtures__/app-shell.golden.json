@@ -101,9 +101,11 @@
         "cssClasses" : null,
         "home" : null,
         "rootRoute" : "",
-        "sseUrl" : null,
-        "mcpUrl" : null,
+        "sseUrl" : "/api/ai/chat",
+        "mcpUrl" : "/api/ai/mcp",
         "uploadUrl" : null,
+        "followLabel" : "Seguir al copiloto",
+        "followingLabel" : "Siguiendo al copiloto",
         "fabs" : [ ],
         "themeToggle" : true,
         "contextSelectors" : [ ],
@@ -122,7 +124,7 @@
         "generatedAccentStrip" : null,
         "restSources" : [ ],
         "appDataSource" : null,
-        "requiredCapabilities" : [ "command-center" ],
+        "requiredCapabilities" : [ "command-center", "sse" ],
         "components" : [ ],
         "backRoute" : null,
         "backLabel" : null,
@@ -191,9 +193,10 @@
         "idleSession" : null,
         "notificationsSource" : null,
         "notificationsReadSource" : null,
-        "globalSearchSource" : null
+        "globalSearchSource" : null,
+        "agentPush" : false
       },
-      "id" : "844d426c-5efc-4bbf-8515-a90c7d1292d9",
+      "id" : "90438744-c792-4680-8598-fdb328e326ec",
       "children" : [ {
         "type" : "ClientSide",
         "metadata" : {
@@ -204,7 +207,7 @@
           "size" : null,
           "noMargins" : false
         },
-        "id" : "86b3ac6b-ee4f-4aae-97a4-f20c92839dd3",
+        "id" : "023113cf-eec2-42e9-8d76-a094da02054e",
         "children" : [ ],
         "style" : null,
         "cssClasses" : null,

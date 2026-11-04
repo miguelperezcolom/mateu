@@ -124,7 +124,7 @@ public record AppShell(
    *
    * @deprecated use the canonical constructor or {@code AppShell.builder()} instead
    */
-  @Deprecated(since = "3.0-beta.37", forRemoval = true)
+  @Deprecated(since = "3.0-beta.50", forRemoval = true)
   public AppShell(
       String clientSideComponentId,
       String route,
