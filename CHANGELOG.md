@@ -45,6 +45,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   invoked on its own answered a bare page of the editor without them.
 ### Fixed
 
+- **An avatar can be an address relative to the site.** The comment thread, the org chart and the
+  testimonials of the Vaadin renderer took anything not starting with `http` or `data:` for initials, and
+  wrote a path like `/photos/a` in the circle; now it draws the image.
+- **Redwood: a primary column's image is 2rem, as on Vaadin.** At 1.25rem, initials could not be read.
 - **A YAML page can ask before losing unsaved changes** (`confirmOnNavigationIfDirty: true`, the twin of
   `@ConfirmOnNavigationIfDirty`): until now a menu click or a previous/next arrow discarded what was typed
   on any page without a class behind it. A REST action that succeeds settles the changes when it declares

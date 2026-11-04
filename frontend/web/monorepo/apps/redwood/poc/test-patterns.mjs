@@ -1000,3 +1000,9 @@ test('the room for a foldout\'s paging dots stays inside the panel: outside it, 
   assert.match(rule, /padding-bottom: 3\.5rem/)
   assert.match(rule, /box-sizing: border-box/)
 })
+
+test('a primary cell\'s image is as big as on the web renderer: at 1.25rem, initials could not be read', () => {
+  const rule = webApp('resources/css/app.css').match(/\.mateu-primary-cell-leading \{[^}]*\}/)[0]
+  assert.match(rule, /width: 2rem/)
+  assert.match(rule, /height: 2rem/)
+})
