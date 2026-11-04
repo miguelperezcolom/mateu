@@ -254,10 +254,17 @@ export class MateuField extends LitElement {
             // it as an edit is what let an untouched form start writing to itself.
             if (e.detail.value !== undefined
                 && !isNoOpCommit(e.detail.value, this.state[this.field!.fieldId])) {
+                const value = this.convert(e.detail.value)
+                const fieldId = this.field!.fieldId
+                // The control taking up the field's declared initial value, over a state that has
+                // nothing for it, is the form filling itself in, not somebody editing it.
+                const seed = !(this.state && fieldId in this.state)
+                    && this.field?.initialValue != null && String(value) === String(this.field.initialValue)
                 this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                     detail: {
-                        value: this.convert(e.detail.value),
-                        fieldId: this.field?.fieldId
+                        value,
+                        fieldId,
+                        ...(seed ? { seed: true } : {}),
                     },
                     bubbles: true,
                     composed: true

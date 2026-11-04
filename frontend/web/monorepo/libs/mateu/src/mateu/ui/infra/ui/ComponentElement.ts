@@ -66,6 +66,12 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
      *  older copy, must not undo them. An island that answered `new State(this)` used to snap back
      *  to its initial state whenever its host page refreshed a moment later. */
     private _serverSaid = new Set<string>()
+    /**
+     * The initial values fields announced as they mounted. They are defaults: a parent re-binding
+     * an older state must not lose them, and whatever loads later replaces them. Defended like an
+     * edit, a default beat the record the route had just fetched (a DONE task saved as BACKLOG).
+     */
+    private _seeded = new Map<string, unknown>()
 
     /** `serverSideType` of the view this element last rendered — the stable identity of a view
      *  across renders (ids are fresh uuids). Tells a re-render of the same view apart from a
@@ -357,6 +363,11 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
      * there — still takes the parent's value, and a server-computed field still updates on screen.
      */
     protected _keepEditedFieldValues(changed: PropertyValues, viewChanged: boolean) {
+        if (viewChanged) this._seeded.clear()
+        else if (changed.has('state') && this._seeded.size > 0) {
+            const missing = [...this._seeded].filter(([fieldId]) => !(this.state && fieldId in this.state))
+            if (missing.length > 0) this.state = { ...this.state, ...Object.fromEntries(missing) }
+        }
         if (viewChanged || !changed.has('state')
             || (this._locallyEdited.size === 0 && this._serverSaid.size === 0)) return
         // Our own change (a fragment merge, or the keystroke that just happened) is authoritative.
@@ -385,6 +396,13 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
      * Records that the user changed a field, and that this element's `state` is the authoritative
      * copy from here until the server says otherwise. Called by the subclass that owns the form.
      */
+    protected seedFieldValue(fieldId: string, value: unknown) {
+        if (this.state && fieldId in this.state) return
+        this._seeded.set(fieldId, value)
+        this.state = { ...this.state, [fieldId]: value }
+        this._lastOwnState = this.state
+    }
+
     protected adoptEditedState(fieldId: string, next: Record<string, any>) {
         this._locallyEdited.add(fieldId)
         this.state = next

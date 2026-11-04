@@ -1,7 +1,12 @@
 import type { nothing } from 'lit'
 
 /** The detail of the `value-changed` event a field dispatches when its value changes. */
-export type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
+export type ValueChangedDetail = {
+    value: unknown
+    fieldId: string | undefined
+    /** The field taking up its declared initial value as it mounted: a default, not an edit. */
+    seed?: boolean
+}
 
 /** A file already attached to a file field, as it travels in the state. */
 export interface FileLike {
