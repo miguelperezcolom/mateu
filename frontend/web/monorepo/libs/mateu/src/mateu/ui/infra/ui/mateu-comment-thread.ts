@@ -1,5 +1,6 @@
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, property } from 'lit/decorators.js';
+import { isImageAddress } from "./avatarAddress";
 import Comment from "@mateu/shared/apiClients/dtos/componentmetadata/Comment";
 
 /**
@@ -35,7 +36,7 @@ export class MateuCommentThread extends LitElement {
     `
 
     private renderComment(comment: Comment): TemplateResult {
-        const isImg = comment.avatar && (comment.avatar.startsWith('http') || comment.avatar.startsWith('data:'))
+        const isImg = isImageAddress(comment.avatar)
         return html`
             <div class="comment">
                 <span class="avatar">${comment.avatar ? (isImg ? html`<img src="${comment.avatar}" alt="">` : comment.avatar) : (comment.author?.[0] ?? '?')}</span>

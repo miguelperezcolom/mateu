@@ -6,6 +6,7 @@ import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { announce } from '@infra/a11y/announcer.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts';
+import { isImageAddress } from "./avatarAddress";
 import { focusView, initialFocus, initialsOf, isFocusDisplay, MAX_VISIBLE_ANCESTORS, visibleAncestors } from '@infra/ui/orgChartModel.ts';
 
 /**
@@ -292,7 +293,7 @@ export class MateuOrgChart extends LitElement {
 
     private renderNode(node: OrgNode): TemplateResult {
         const avatar = node.avatar
-        const isImg = avatar && (avatar.startsWith('http') || avatar.startsWith('data:'))
+        const isImg = isImageAddress(avatar)
         return html`
             <li>
                 <div role=${ifDefined(buttonRole(!!node.actionId))} tabindex=${ifDefined(tabStop(!!node.actionId))} class="node ${node.actionId ? 'clickable' : ''}"
@@ -333,7 +334,7 @@ export class MateuOrgChart extends LitElement {
 
     private renderAvatar(node: OrgNode) {
         const avatar = node.avatar
-        if (avatar && (avatar.startsWith('http') || avatar.startsWith('data:'))) {
+        if (isImageAddress(avatar)) {
             return html`<span class="avatar"><img src="${avatar}" alt=""></span>`
         }
         return html`<span class="avatar" aria-hidden="true">${avatar || initialsOf(node.title)}</span>`

@@ -1,5 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
+import { isImageAddress } from "./avatarAddress";
 import Testimonial from "@mateu/shared/apiClients/dtos/componentmetadata/Testimonial";
 
 /**
@@ -45,7 +46,7 @@ export class MateuTestimonials extends LitElement {
         return html`
             <div class="grid">
                 ${this.items.map(item => {
-                    const isImg = item.avatar && (item.avatar.startsWith('http') || item.avatar.startsWith('data:'))
+                    const isImg = isImageAddress(item.avatar)
                     return html`
                         <div class="card">
                             ${item.rating ? html`<div class="stars">${this.stars(item.rating)}</div>` : nothing}
