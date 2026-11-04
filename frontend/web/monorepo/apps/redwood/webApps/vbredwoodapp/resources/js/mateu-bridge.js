@@ -10696,7 +10696,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable' || isExtraLayoutField(md))) return null
     const s = state || {}
     const d = data || {}
-    const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
+    // data[fieldId] may be the field's OPTIONS ({content: [...]}), never its value: handed to a required
+    // oj-select-one, JET answered with the first option and the form saved it unasked.
+    const fromData = d[fieldId] && Array.isArray(d[fieldId].content) ? undefined : d[fieldId]
+    const raw = s[fieldId] != null ? s[fieldId] : fromData
     const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
     let value = raw == null || raw === '' ? null : raw
     // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
@@ -20708,10 +20711,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function restListingPage(md, fetched, total, state, serverPaged) {
     const columnIds = restColumnIdsOf(md)
     const identifier = restIdentifierOf(md)
-    const rows = fetched.map((row, index) => ({
-      ...row,
-      _rowNumber: identifier != null && row[identifier] != null ? String(row[identifier]) : '_row:' + index,
-    }))
+    // The key must be unique or oj-table draws one row per key. An identifier column names the row
+    // for people (a day, a task's title) and may repeat, so a repeat gets its occurrence.
+    const repeats = new Map()
+    const keyOf = (row, index) => {
+      if (identifier == null || row[identifier] == null) return '_row:' + index
+      const value = String(row[identifier])
+      const seen = repeats.get(value) || 0
+      repeats.set(value, seen + 1)
+      return seen ? value + '#' + seen : value
+    }
+    const rows = fetched.map((row, index) => ({ ...row, _rowNumber: keyOf(row, index) }))
     const st = state || {}
     const page = Number(st.page || 0)
     const serverAnswered = serverPaged && total != null
