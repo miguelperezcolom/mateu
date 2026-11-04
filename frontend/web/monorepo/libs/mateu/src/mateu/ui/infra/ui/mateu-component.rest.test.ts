@@ -63,6 +63,39 @@ afterEach(() => {
     vi.restoreAllMocks()
 })
 
+describe('a field announcing its initial value as it mounts', () => {
+    const seed = (el: any, fieldId: string, value: unknown) =>
+        el.valueChangedListener(new CustomEvent('value-changed', { detail: { fieldId, value, seed: true } }))
+
+    it('fills the state, and the record the route loads afterwards replaces it', async () => {
+        const dirty = vi.fn()
+        fetchExternalJson.mockResolvedValue({ status: 'DONE', title: 'Close the review' })
+        const el = await mount([{ id: '__restdata__', restAction: { source: { url: '/tasks/13' }, resultPath: '' } }], { id: '13' })
+        el.addEventListener('dirty', dirty)
+        seed(el, 'status', 'BACKLOG')
+        expect(el.state.status).toBe('BACKLOG')
+        run(el, '__restdata__')
+        await flush()
+        await el.updateComplete
+        expect(el.state).toMatchObject({ status: 'DONE', title: 'Close the review' })
+        expect(dirty).not.toHaveBeenCalled()
+    })
+
+    it('survives a parent re-binding an older state, which is what a new form would save', async () => {
+        const el = await mount([], { id: '13' })
+        seed(el, 'status', 'BACKLOG')
+        el.state = { id: '13' }
+        await el.updateComplete
+        expect(el.state.status).toBe('BACKLOG')
+    })
+
+    it('leaves alone a value the state already has', async () => {
+        const el = await mount([], { status: 'DONE' })
+        seed(el, 'status', 'BACKLOG')
+        expect(el.state.status).toBe('DONE')
+    })
+})
+
 describe('a direct @RestAction', () => {
     it('fetches with the live state, merges the answer, toasts and follows the route', async () => {
         fetchExternalJson.mockResolvedValue({ result: { id: 42, status: 'sent' } })

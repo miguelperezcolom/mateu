@@ -60,6 +60,23 @@ describe('a select whose source gives numeric values', () => {
         expect(changes.at(-1)?.value).toBe(7)
     })
 
+    it('taking up its initial value is a seed, and a pick after it is not', async () => {
+        const options = [{ value: 'BACKLOG', label: 'Backlog' }, { value: 'DONE', label: 'Done' }]
+        const el = document.createElement('mateu-field') as MateuField
+        el.field = field({ stereotype: 'select', options, initialValue: 'BACKLOG' }) as never
+        el.state = {}
+        el.data = {}
+        const changes: any[] = []
+        el.addEventListener('value-changed', (e) => changes.push((e as CustomEvent).detail))
+        document.body.appendChild(el)
+        await el.updateComplete
+        const select = el.shadowRoot!.querySelector('vaadin-select')!
+        fire(select, 'value-changed', { value: 'BACKLOG' })
+        expect(changes.at(-1)).toMatchObject({ value: 'BACKLOG', seed: true })
+        fire(select, 'value-changed', { value: 'DONE' })
+        expect(changes.at(-1).seed).toBeUndefined()
+    })
+
     it('inline numeric options behave the same', async () => {
         const options = [{ value: 1, label: 'One' }, { value: 2, label: 'Two' }]
         const el = document.createElement('mateu-field') as MateuField
