@@ -2,7 +2,10 @@
 #
 # - On every PR that touches doc/: build it and fail on build errors or on any internal link or
 #   image that does not resolve in the built site (scripts/check-links.mjs).
-# - On master and on every framework release: build and deploy to Netlify (production).
+# - On master: build and check it (no deploy).
+# - On every framework release, and when run by hand (Actions › Docs › Run workflow): build and deploy
+#   to Netlify (production). Not on every master push: each production deploy costs Netlify credits
+#   (15 each), and deploying every docs change used up the month's plan in three weeks (2026-11-05).
 #
 # Why this exists: mateu.io is hosted on Netlify, but production deploys stopped tracking master
 # around 2026-08-14 (the PR deploy previews show "Deploy Preview canceled", and master commits get no
@@ -96,8 +99,8 @@ jobs:
       # Only once Maven Central SERVES it: a release is published minutes to hours before its
       # artifacts reach Central, and a snippet naming a version Central does not have fails for
       # everyone who copies it. Not served after the wait → no pin: the version plugin then shows
-      # Central's latest, and the "Point the examples at …" PR (a push to master touching doc/)
-      # redeploys the site once the release is there.
+      # Central's latest until the next deploy (the next release, or a manual run of this workflow
+      # once the release is on Central).
       - name: Pin the version shown in the snippets to the release being published
         if: github.event_name == 'release'
         run: |
@@ -114,8 +117,10 @@ jobs:
       - name: Check internal links and images
         run: npm run check-links
         working-directory: doc
+      # Releases and manual runs only (see the header): a push to master is built and checked, and
+      # reaches mateu.io with the next release — or now, with Actions › Docs › Run workflow.
       - name: Deploy to Netlify (production)
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

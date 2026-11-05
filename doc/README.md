@@ -40,4 +40,6 @@ doc/
 ## Publishing
 
 `.github/workflows/docs.yml` builds the site on every PR that touches `doc/` (failing on build errors
-and broken internal links) and deploys it to Netlify on every push to `master` and every release.
+and broken internal links) and on every push to `master`, and deploys it to Netlify on every release
+and when run by hand (Actions › Docs › Run workflow, or `gh workflow run docs.yml --ref master`). A
+push to `master` is not deployed by itself: each production deploy costs Netlify credits.
