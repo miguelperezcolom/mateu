@@ -267,7 +267,7 @@ const styles = themed(() => StyleSheet.create({
   panelTitle: { fontWeight: '600', color: theme.ink },
   panelBody: { paddingHorizontal: 16, paddingBottom: 16 },
   link: { color: theme.primary, textDecorationLine: 'underline' },
-  progressText: { fontSize: 13, color: theme.muted, marginBottom: 4 },
+  progressText: { fontSize: 14, color: theme.muted, marginBottom: 4 },
   progressTrack: { height: 6, borderRadius: 3, backgroundColor: theme.divider, marginBottom: 8 },
   dialog: { backgroundColor: theme.surface, borderRadius: theme.radiusLg, padding: 24, gap: 16, marginVertical: 12, elevation: 3, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
   dialogTitle: { color: theme.ink },

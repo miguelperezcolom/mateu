@@ -312,7 +312,7 @@ const styles = themed(() => StyleSheet.create({
   sheetTitle: { fontSize: 22, color: theme.ink, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8 },
   sheetItem: { paddingHorizontal: 12 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8, gap: 16 },
-  sheetEntryName: { fontSize: 18, color: theme.ink },
+  sheetEntryName: { fontSize: 16, color: theme.ink },
   emptyIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.primaryContainer, marginBottom: theme.spacing.sm },
   emptyButton: { marginTop: theme.spacing.md, alignSelf: 'stretch', maxWidth: 340 },
 }));

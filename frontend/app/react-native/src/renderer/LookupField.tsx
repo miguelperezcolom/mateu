@@ -132,10 +132,10 @@ const styles = themed(() => StyleSheet.create({
   search: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14 },
   spinner: { marginTop: 8 },
   list: { marginTop: 8 },
-  empty: { padding: 12, color: theme.faint, fontStyle: 'italic', fontSize: 13 },
+  empty: { padding: 12, color: theme.faint, fontStyle: 'italic', fontSize: 14 },
   option: { paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.divider },
   optionSelected: { fontWeight: '700', color: theme.primary },
   optionDescription: { fontSize: 12, color: theme.faint, marginTop: 2 },
   clear: { padding: 10, alignItems: 'center' },
-  clearText: { color: theme.danger, fontWeight: '600', fontSize: 13 },
+  clearText: { color: theme.danger, fontWeight: '600', fontSize: 14 },
 }));

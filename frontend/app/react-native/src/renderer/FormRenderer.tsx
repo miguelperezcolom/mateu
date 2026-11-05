@@ -10,7 +10,7 @@ import { Text as PaperText } from 'react-native-paper';
 import { MateuButton } from '../ui/controls';
 import { buttonA11y } from '../a11y/a11y';
 import { useButtonPress } from './useButtonPress';
-import { InsideVerticalScroll } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, useFitsContent } from './ScrollContext';
 
 interface ButtonDto {
   actionId?: string;
@@ -27,6 +27,7 @@ interface Props {
 }
 
 export function FormRenderer({ component, metadata, state }: Props) {
+  const fits = useFitsContent();
   const controller = useViewController();
 
   // a YAML page's header texts are templates over its state (`title: ${state.name}`)
@@ -55,7 +56,7 @@ export function FormRenderer({ component, metadata, state }: Props) {
   const renderChild = (child: unknown) => <ComponentRenderer component={child} state={state} />;
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, fits && FIT_CONTENT]}>
       {(title || subtitle || toolbar.length > 0 || (declared.length > 0 && !readOnly)) && (
         <View style={styles.header}>
           {!!title && <PaperText variant="headlineSmall" style={styles.title} accessibilityRole="header">{title}</PaperText>}

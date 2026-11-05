@@ -128,7 +128,7 @@ const styles = themed(() => StyleSheet.create({
   search: { margin: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, fontSize: 14, color: theme.ink },
   option: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.divider },
   optionSelected: { backgroundColor: theme.infoBg },
-  optionLabel: { fontSize: 15, color: theme.ink },
+  optionLabel: { fontSize: 16, color: theme.ink },
   optionLabelSelected: { fontWeight: '700' },
   optionDescription: { fontSize: 12, color: theme.muted, marginTop: 2 },
   check: { fontSize: 16, color: theme.primary, marginLeft: 8 },

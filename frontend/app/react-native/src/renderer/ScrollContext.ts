@@ -7,3 +7,11 @@ import { createContext, useContext } from 'react';
  */
 export const InsideVerticalScroll = createContext(false);
 export const useInsideVerticalScroll = (): boolean => useContext(InsideVerticalScroll);
+
+/**
+ * Inside a dialog, a screen is as tall as what it holds. Everywhere else its root fills the space it
+ * is given (`flex: 1`), which in a box with no height of its own would collapse to nothing.
+ */
+export const FitsContent = createContext(false);
+export const FIT_CONTENT = { flexGrow: 0, flexShrink: 1 } as const;
+export const useFitsContent = (): boolean => useContext(FitsContent);

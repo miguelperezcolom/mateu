@@ -168,5 +168,5 @@ const styles = themed(() => StyleSheet.create({
   scanner: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
   frame: { width: 240, height: 240, borderWidth: 3, borderColor: '#FFFFFF', borderRadius: 24 },
   scanHint: { position: 'absolute', bottom: 40, left: 24, right: 24, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 24, paddingVertical: 12, paddingHorizontal: 16 },
-  scanHintText: { color: '#FFFFFF', fontSize: 15, textAlign: 'center' },
+  scanHintText: { color: '#FFFFFF', fontSize: 16, textAlign: 'center' },
 }));

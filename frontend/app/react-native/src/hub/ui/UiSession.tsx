@@ -18,7 +18,7 @@ import { appCompatibility, compatMessage, hubLang } from '../compat';
 import { fetchManifest, type ManifestFetch, type UiManifest } from '../manifest';
 import { allowInsecure, metaStore, secretStore, uiStore } from '../storage';
 import { uiSecretKeys, type HubEntry } from '../uiStore';
-import { hubBarSignsOut, uiSessionId } from '../uiSession';
+import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
 import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 import { UpdateAppButton } from './UpdateApp';
 
@@ -67,12 +67,15 @@ export function UiSession({
   visible,
   onHome,
   onSwitch,
+  onLive,
 }: {
   entry: HubEntry;
   route: string;
   visible: boolean;
   onHome: () => void;
   onSwitch: () => void;
+  /** Tells the hub this UI's session, for what a link has to ask it. */
+  onLive?: (id: string, session: MateuSession) => void;
 }) {
   const [phase, setPhase] = useState<Phase>({ name: 'manifest' });
   // the UI's own top bar hosts the hub's actions (session.hub.claimBar): then the hub shows no bar of its own
@@ -197,20 +200,23 @@ export function UiSession({
 
   const signOutHere = async () => {
     await provider?.logout();
+    setSessionId(await rotateUiSessionId(secretStore, entry.id));
     setPhase({ name: 'signin' });
   };
 
   const onSession = useCallback(
     (session: MateuSession) => {
       session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed };
+      onLive?.(entry.id, session);
       if (provider) {
         session.signOut = async () => {
           await provider.logout();
+          setSessionId(await rotateUiSessionId(secretStore, entry.id));
           setPhase({ name: 'signin' });
         };
       }
     },
-    [onHome, onSwitch, entry.name, provider],
+    [onHome, onSwitch, entry.name, provider, entry.id, onLive],
   );
 
   // the last screens, shown at once on the next open — never for a UI that signs in: what a

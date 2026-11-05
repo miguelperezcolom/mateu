@@ -68,6 +68,21 @@ export interface StoredTokens {
 }
 
 /** From a token-endpoint answer (`expires_in` in seconds; expo-auth-session's `expiresIn`). */
+/**
+ * Where to send the browser so the identity provider ends its own session too (OpenID Connect
+ * RP-initiated logout). Without it the system browser keeps the provider's cookie, and "sign in" on a
+ * shared phone comes back as the previous person, with no password asked. Undefined when the provider
+ * offers no such endpoint or there is no id token to name the session.
+ */
+export function endSessionUrl(endpoint: string | undefined, clientId: string, idToken: string | undefined, redirectUri: string): string | undefined {
+  if (!endpoint || !idToken) return undefined;
+  const separator = endpoint.includes('?') ? '&' : '?';
+  const query = [['id_token_hint', idToken], ['client_id', clientId], ['post_logout_redirect_uri', redirectUri]]
+    .map(([k, v]) => `${k}=${encodeURIComponent(v!)}`)
+    .join('&');
+  return `${endpoint}${separator}${query}`;
+}
+
 export function tokensFromResponse(
   r: { accessToken: string; refreshToken?: string; idToken?: string; expiresIn?: number; issuedAt?: number },
   previous?: StoredTokens | null,

@@ -24,6 +24,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   dialogs, bottom tabs are Material's navigation bar, tab strips scroll when their labels would be
   cut, and a list's title, toolbar and search scroll away with its rows.
 - **Android Back from a UI's first screen goes to My UIs** instead of leaving the hub app.
+- **Signing out of a UI on the phone app ends the identity provider's session too** and draws a new
+  session id. Register `mateu://auth` as a post-logout redirect at the provider.
+- **A hidden UI on the phone app neither polls nor opens the sign-in browser,** and a refused sign-in
+  does not reopen it for a minute. A link to a running UI asks before discarding unsaved edits.
+- **A wire `Dialog` is a Material dialog sized to its content on the phone app;** a `Drawer` stays a sheet.
+  Text follows the Material type scale.
 - **The Android build drops permissions it never used:** `SYSTEM_ALERT_WINDOW`, external storage and
   biometrics.
 

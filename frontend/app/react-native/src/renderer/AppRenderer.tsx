@@ -336,7 +336,7 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
               }}
             >
               <Text style={styles.contextLabel}>{selector.label ?? selector.fieldName}</Text>
-              <Text style={[styles.contextValue, !current && styles.contextValueUnset]}>{current ? currentLabel : 'Not set'} {open ? '▾' : '▸'}</Text>
+              <View style={styles.bellRight}><Text style={[styles.contextValue, !current && styles.contextValueUnset]}>{current ? currentLabel : 'Not set'}</Text><Icon source={open ? 'chevron-up' : 'chevron-down'} size={20} color={theme.muted} /></View>
             </TouchableOpacity>
             {open && searchable && (
               <TextInput
@@ -1196,7 +1196,7 @@ const styles = themed(() => StyleSheet.create({
   error: { color: theme.danger, padding: 16, fontSize: 14 },
   stackHost: { flex: 1, backgroundColor: theme.surface },
   appFabStack: { position: 'absolute', right: FAB_MARGIN, bottom: FAB_MARGIN, gap: 12, alignItems: 'flex-end', zIndex: 50 },
-  appBar: { backgroundColor: theme.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  appBar: { backgroundColor: theme.surface },
   appBarTitle: { fontWeight: '600' },
   backBar: { flexDirection: 'row', alignItems: 'center', paddingRight: 16, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider, backgroundColor: theme.surface },
   backTitle: { flex: 1, color: theme.ink },
@@ -1210,7 +1210,7 @@ const styles = themed(() => StyleSheet.create({
   menuGroupLabel: { color: theme.muted, fontSize: 12, fontWeight: '600', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, letterSpacing: 0.5 },
   menuItem: { minHeight: theme.minTouch, justifyContent: 'center', paddingVertical: 10, paddingRight: 20, marginHorizontal: 8, borderRadius: theme.radiusPill },
   menuItemSelected: { backgroundColor: theme.infoBg },
-  menuItemText: { color: theme.ink, fontSize: 15 },
+  menuItemText: { color: theme.ink, fontSize: 16 },
   menuItemTextSelected: { color: theme.info, fontWeight: '700' },
   separator: { marginVertical: 8, marginHorizontal: 28 },
   // card menus (display: "cards" groups)
@@ -1223,20 +1223,20 @@ const styles = themed(() => StyleSheet.create({
   menuCardDescription: { color: theme.muted, fontSize: 12, marginTop: 2 },
   menuCardActions: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, paddingBottom: 10, gap: 6 },
   menuCardAction: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusPill, paddingHorizontal: 12, paddingVertical: 8, minHeight: 36, justifyContent: 'center' },
-  menuCardActionText: { color: theme.info, fontSize: 13, fontWeight: '600' },
+  menuCardActionText: { color: theme.info, fontSize: 14, fontWeight: '600' },
   contextRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch },
-  contextLabel: { color: theme.muted, fontSize: 13, fontWeight: '600' },
+  contextLabel: { color: theme.muted, fontSize: 14, fontWeight: '600' },
   contextValue: { color: theme.ink, fontSize: 14, fontWeight: '700' },
   contextValueUnset: { color: theme.muted, fontWeight: '400' },
   contextOption: { paddingVertical: 10, paddingLeft: 32, paddingRight: 20, minHeight: theme.minTouch, justifyContent: 'center' },
-  contextSearch: { marginHorizontal: 20, marginBottom: 4, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 15 },
+  contextSearch: { marginHorizontal: 20, marginBottom: 4, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 16 },
   contextOptionText: { color: theme.ink, fontSize: 14 },
   contextOptionSelected: { fontWeight: '700', color: theme.info },
   // notification bell (drawer inbox)
   bellRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bellBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: theme.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   bellBadgeText: { color: theme.onFill, fontSize: 11, fontWeight: '700' },
-  bellEmpty: { color: theme.muted, fontSize: 13, paddingLeft: 32, paddingVertical: 8 },
+  bellEmpty: { color: theme.muted, fontSize: 14, paddingLeft: 32, paddingVertical: 8 },
   bellEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 10, paddingLeft: 20, paddingRight: 20, minHeight: theme.minTouch },
   bellDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'transparent', marginTop: 5 },
   bellDotUnread: { backgroundColor: theme.primary },
@@ -1247,10 +1247,10 @@ const styles = themed(() => StyleSheet.create({
   bellEntryWhen: { color: theme.faint, fontSize: 12 },
   bellEntryText: { color: theme.muted, fontSize: 12, marginTop: 1 },
   bellMarkAll: { paddingVertical: 10, paddingLeft: 32, minHeight: theme.minTouch, justifyContent: 'center' },
-  bellMarkAllText: { color: theme.info, fontSize: 13, fontWeight: '600' },
+  bellMarkAllText: { color: theme.info, fontSize: 14, fontWeight: '600' },
   bellMarkAllDisabled: { color: theme.disabled },
   // global search (drawer command palette)
-  globalSearchInput: { marginHorizontal: 16, marginBottom: 8, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 15 },
+  globalSearchInput: { marginHorizontal: 16, marginBottom: 8, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 16 },
   globalSearchResults: { marginBottom: 4 },
   globalSearchHit: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 20, minHeight: theme.minTouch },
   globalSearchHitBody: { flex: 1, minWidth: 0 },

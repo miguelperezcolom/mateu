@@ -8,6 +8,8 @@ import { stubNativePackages } from '../../scripts/test/native-packages.mjs';
 
 stubNativePackages(['expo-auth-session', 'expo-web-browser']);
 
+import { endSessionUrl } from './oidcConfig.ts';
+
 type Json = Record<string, any>;
 const idp = {
   discoveries: 0,
@@ -214,4 +216,11 @@ test('logout without revocation endpoint (or without a session) is local only', 
   const empty = new OidcTokenProvider(config, memoryStore());
   await empty.logout();
   assert.equal(idp.discoveries, 0);
+});
+
+test('sign-out also ends the identity provider\'s session, in the browser that holds its cookie', async () => {
+  const url = endSessionUrl('https://idp/logout', 'app', 'the id token', 'mateu://auth');
+  assert.equal(url, 'https://idp/logout?id_token_hint=the%20id%20token&client_id=app&post_logout_redirect_uri=mateu%3A%2F%2Fauth');
+  assert.equal(endSessionUrl(undefined, 'app', 'x', 'r'), undefined);
+  assert.equal(endSessionUrl('https://idp/logout', 'app', undefined, 'r'), undefined);
 });

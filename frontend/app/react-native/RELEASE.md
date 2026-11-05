@@ -95,7 +95,8 @@ npx eas-cli submit --platform android --profile production  # Play "internal" tr
 - Android: `adb shell am start -a android.intent.action.VIEW -d "https://mateu.io/add?u=..."`;
   `adb shell pm get-app-links io.mateu.app` must show `mateu.io: verified`.
 - The OIDC redirect is `mateu://auth` for every UI: each company registers that redirect URI for the
-  `clientId` its manifest names.
+  `clientId` its manifest names, as a valid redirect AND as a post-logout redirect (sign-out also ends the
+  provider's session, in the browser, when it offers an `end_session_endpoint`).
 
 ## 4. Reviewer notes (paste into App Store Connect "Notes" / Play "App access")
 

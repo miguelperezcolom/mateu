@@ -721,13 +721,16 @@ export function NotFoundRenderer({ metadata }: { metadata: Dict }) {
   return (
     <View style={styles.outcome}>
       <View style={[styles.outcomeIcon, { backgroundColor: theme.infoBg }]}>
-        <Text style={[styles.outcomeGlyph, { color: theme.info }]}>🔍</Text>
+        <MIcon name="magnify" size={32} color={theme.info} />
       </View>
       <Text style={styles.outcomeTitle} {...headingA11y()}>{str(metadata['title']) || 'Not found'}</Text>
       <Text style={styles.outcomeMessage}>{str(metadata['message']) || 'The page you are looking for does not exist.'}</Text>
       {!!backRoute && (
         <TouchableOpacity {...buttonA11y({ role: 'link' })} onPress={() => navigate(backRoute)}>
-          <Text style={styles.link}>← {str(metadata['backLabel']) || 'Go back'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <MIcon name="arrow-left" size={18} color={theme.primary} />
+            <Text style={styles.link}>{str(metadata['backLabel']) || 'Go back'}</Text>
+          </View>
         </TouchableOpacity>
       )}
     </View>
@@ -990,7 +993,7 @@ const styles = themed(() => StyleSheet.create({
   link: { color: theme.info, fontSize: 14 },
   placeholder: { color: theme.faint, fontStyle: 'italic', padding: 12, textAlign: 'center' },
   empty: { color: theme.faint, padding: 16 },
-  partLabel: { fontWeight: '600', color: theme.muted, fontSize: 13, textTransform: 'uppercase' },
+  partLabel: { fontWeight: '600', color: theme.muted, fontSize: 14, textTransform: 'uppercase' },
   hr: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border, marginVertical: 6 },
   vr: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: theme.border, marginHorizontal: 4 },
   chevron: { color: theme.muted, fontSize: 16, paddingHorizontal: 6 },
@@ -1002,7 +1005,7 @@ const styles = themed(() => StyleSheet.create({
   avatarText: { color: theme.onFill, fontWeight: '700' },
   avatarRing: { borderWidth: 2, borderColor: theme.white },
   avatarOverlap: { marginLeft: -10 },
-  icon: { fontSize: 18, color: theme.ink },
+  icon: { fontSize: 16, color: theme.ink },
   // breadcrumbs
   crumbSep: { color: theme.faint },
   crumbCurrent: { color: theme.ink, fontWeight: '600', fontSize: 14 },
@@ -1018,9 +1021,9 @@ const styles = themed(() => StyleSheet.create({
   sheet: { backgroundColor: theme.white, borderTopLeftRadius: 14, borderTopRightRadius: 14, paddingBottom: 24, paddingTop: 8 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, gap: 8 },
   sheetBack: { fontSize: 22, color: theme.info, paddingRight: 8 },
-  sheetTitle: { fontSize: 15, fontWeight: '600', color: theme.ink },
+  sheetTitle: { fontSize: 16, fontWeight: '600', color: theme.ink },
   sheetItem: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
-  sheetItemText: { fontSize: 15, color: theme.ink },
+  sheetItemText: { fontSize: 16, color: theme.ink },
   tooltip: { marginTop: 4, backgroundColor: theme.ink, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 6, alignSelf: 'flex-start' },
   tooltipText: { color: theme.onFill, fontSize: 12 },
   dirGroup: { gap: 2, marginBottom: 8 },
@@ -1029,8 +1032,8 @@ const styles = themed(() => StyleSheet.create({
   gridBox: { borderWidth: 1, borderColor: theme.divider, borderRadius: theme.radiusSm },
   gridRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   gridHead: { backgroundColor: theme.background },
-  th: { fontWeight: '600', color: theme.muted, fontSize: 13, padding: 8 },
-  td: { color: theme.ink, fontSize: 13, padding: 8 },
+  th: { fontWeight: '600', color: theme.muted, fontSize: 14, padding: 8 },
+  td: { color: theme.ink, fontSize: 14, padding: 8 },
   // stepper
   stepRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   stepDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: theme.info, alignItems: 'center', justifyContent: 'center' },
@@ -1050,15 +1053,15 @@ const styles = themed(() => StyleSheet.create({
   outcomeImage: { width: '100%', height: 160 },
   outcomeIcon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   outcomeGlyph: { fontSize: 28, fontWeight: '700' },
-  outcomeTitle: { fontSize: 20, fontWeight: '600', color: theme.ink, textAlign: 'center' },
+  outcomeTitle: { fontSize: 22, fontWeight: '600', color: theme.ink, textAlign: 'center' },
   outcomeMessage: { fontSize: 14, color: theme.muted, textAlign: 'center', maxWidth: 420 },
   // overlays in place
   notification: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, backgroundColor: theme.background, borderRadius: theme.radiusMd, padding: 12 },
   consent: { backgroundColor: theme.ink, borderRadius: theme.radiusMd, padding: 14 },
-  consentText: { color: theme.onFill, fontSize: 13 },
-  consentLink: { color: theme.onFill, textDecorationLine: 'underline', fontSize: 13 },
+  consentText: { color: theme.onFill, fontSize: 14 },
+  consentLink: { color: theme.onFill, textDecorationLine: 'underline', fontSize: 14 },
   consentBtn: { backgroundColor: theme.white, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 6 },
-  consentBtnText: { color: theme.ink, fontWeight: '600', fontSize: 13 },
+  consentBtnText: { color: theme.ink, fontWeight: '600', fontSize: 14 },
   // element
   elementImage: { width: '100%', height: 180 },
   customElement: { borderWidth: 1, borderStyle: 'dashed', borderColor: theme.border, borderRadius: theme.radiusSm, padding: 8 },

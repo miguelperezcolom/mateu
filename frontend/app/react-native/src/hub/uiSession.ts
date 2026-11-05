@@ -19,6 +19,13 @@ export async function uiSessionId(store: KeyValueStore, uiId: string, make: () =
   return id;
 }
 
+/** Sign-out: whoever signs in next on this phone is not the same session to the server. */
+export async function rotateUiSessionId(store: KeyValueStore, uiId: string, make: () => string = () => randomUuid()): Promise<string> {
+  const id = make();
+  await store.set(uiSecretKeys(uiId).sessionId, id).catch(() => {});
+  return id;
+}
+
 /**
  * Whether the hub's own top bar offers "Sign out" for the open UI: when the UI signs in and is on
  * screen. A UI whose app shell has a drawer CLAIMS the bar (the drawer has its own entry) and the bar

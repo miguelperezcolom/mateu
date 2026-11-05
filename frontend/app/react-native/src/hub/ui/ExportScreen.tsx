@@ -69,5 +69,5 @@ const styles = themed(() => StyleSheet.create({
   center: { alignItems: 'center' },
   qr: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: theme.radiusMd, minHeight: 272, minWidth: 272, alignItems: 'center', justifyContent: 'center' },
   wide: { alignSelf: 'stretch' },
-  domain: { fontSize: 15, color: theme.ink, paddingVertical: 2 },
+  domain: { fontSize: 16, color: theme.ink, paddingVertical: 2 },
 }));

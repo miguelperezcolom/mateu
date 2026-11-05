@@ -133,6 +133,7 @@ export class MateuViewController {
   /** Periodic refresh: timed OnLoad + OnSuccess triggers, tied to the screen (generation). */
   private readonly polling = new PollingScheduler(
     (actionId) => {
+      if (!this.session.onScreen) return; // a UI the hub keeps hidden: it refreshes when it is back
       if (actionId === 'search') this.seedSearchState();
       // Like every trigger, silent: a failure logs, never a toast. runAction shows no busy
       // indicator here, so `background` needs no extra handling on this renderer.

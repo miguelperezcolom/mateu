@@ -77,6 +77,9 @@ export class MateuApiClient {
    */
   private readonly credentialsFor: (url: string) => boolean;
 
+  /** Whether a 401 may open the sign-in browser: a hub UI that is not on screen may not. */
+  mayPrompt: () => boolean = () => true;
+
   constructor(baseUrl: string, sessionId: string, auth?: TokenProvider | null, credentialsFor?: (url: string) => boolean) {
     this.baseUrl = baseUrl;
     this.sessionId = sessionId;
@@ -200,7 +203,7 @@ export class MateuApiClient {
   /** One re-authentication + retry on a 401 — only against a url trusted with the credentials. */
   private async withReauth(url: string, doFetch: () => Promise<Response>): Promise<Response> {
     const response = await doFetch();
-    if (response.status === 401 && this.carriesCredentials(url) && (await handleSessionExpired(this.auth))) {
+    if (response.status === 401 && this.carriesCredentials(url) && (await handleSessionExpired(this.auth, this.mayPrompt()))) {
       await response.text().catch(() => '');
       return doFetch();
     }
@@ -278,7 +281,7 @@ export class MateuApiClient {
     let response = await doFetch();
     // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
     // (only against a backend trusted with the credentials: an anonymous island's 401 is not ours to fix)
-    if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth))) {
+    if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth, this.mayPrompt()))) {
       response = await doFetch();
     }
     const text = await response.text();

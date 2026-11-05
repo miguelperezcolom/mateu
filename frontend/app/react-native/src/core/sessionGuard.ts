@@ -20,6 +20,9 @@ export type SessionExpiredHandler = () => boolean | Promise<boolean>;
 let handler: SessionExpiredHandler | undefined;
 let inFlight: Promise<boolean> | undefined;
 const ownFlights = new Map<TokenProvider, Promise<boolean>>();
+/** After a refused or cancelled sign-in, the browser does not open again by itself for a while. */
+const LOGIN_COOL_DOWN_MS = 60_000;
+const lastFailedLogin = new WeakMap<TokenProvider, number>();
 
 /** Register (or clear, with undefined) the re-auth handler. */
 export const onSessionExpired = (h: SessionExpiredHandler | undefined): void => {
@@ -41,14 +44,22 @@ const reauthenticate = async (): Promise<boolean> => {
  * Invoked by the API client on a 401. Returns true when the app re-authenticated and the caller
  * should retry once; false (nobody re-authenticates, it declined, or it threw) to fail normally.
  */
-export const handleSessionExpired = (own?: TokenProvider | null): Promise<boolean> => {
+export const handleSessionExpired = (own?: TokenProvider | null, mayPrompt: boolean = true, now: () => number = Date.now): Promise<boolean> => {
   // A client with its OWN provider (a hub UI session) re-authenticates against it only — never the
   // global handler/provider, which belong to another UI (or to none). Single flight per provider.
   if (own !== undefined) {
     if (!own) return Promise.resolve(false);
     let flight = ownFlights.get(own);
     if (!flight) {
-      flight = reauthenticateProvider(own, true).finally(() => ownFlights.delete(own));
+      // only the UI on screen may open a browser: a hidden one's poll must not jump over what the
+      // user is doing, nor a server answering 401 open it on every action
+      const interactive = mayPrompt && now() - (lastFailedLogin.get(own) ?? -Infinity) >= LOGIN_COOL_DOWN_MS;
+      flight = reauthenticateProvider(own, interactive)
+        .then((ok) => {
+          if (!ok && interactive) lastFailedLogin.set(own, now());
+          return ok;
+        })
+        .finally(() => ownFlights.delete(own));
       ownFlights.set(own, flight);
     }
     return flight;

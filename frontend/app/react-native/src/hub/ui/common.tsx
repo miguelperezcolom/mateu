@@ -153,11 +153,11 @@ export const hubStyles = themed(() => StyleSheet.create({
   barTitle: { fontSize: 22, fontWeight: '400', color: theme.ink },
   body: { padding: theme.spacing.md, gap: theme.spacing.md },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg, gap: theme.spacing.sm },
-  title: { fontSize: 18, fontWeight: '700', color: theme.ink, textAlign: 'center' },
-  text: { fontSize: 15, color: theme.muted, textAlign: 'center', maxWidth: 340 },
+  title: { fontSize: 16, fontWeight: '700', color: theme.ink, textAlign: 'center' },
+  text: { fontSize: 16, color: theme.muted, textAlign: 'center', maxWidth: 340 },
   label: { fontSize: 14, fontWeight: '600', color: theme.ink },
   error: { color: theme.danger, fontSize: 14 },
-  card: { backgroundColor: theme.surface, borderRadius: 12, padding: theme.spacing.md, gap: theme.spacing.sm },
+  card: { borderRadius: 12, padding: theme.spacing.md, gap: theme.spacing.sm },
 }));
 
 const styles = themed(() => StyleSheet.create({
@@ -166,7 +166,7 @@ const styles = themed(() => StyleSheet.create({
   initialsText: { color: theme.onFill, fontWeight: '700' },
   button: { borderRadius: 20 },
   buttonContent: { minHeight: theme.minTouch, paddingHorizontal: 8 },
-  buttonLabel: { fontSize: 15, letterSpacing: 0.1 },
+  buttonLabel: { fontSize: 16, letterSpacing: 0.1 },
   notice: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', borderRadius: 12, padding: 12 },
   noticeText: { flex: 1, fontSize: 14 },
 }));

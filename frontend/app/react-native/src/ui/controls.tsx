@@ -89,7 +89,7 @@ export function SelectBox({ checked, label, onToggle, style, disabled }: { check
       aria-checked={checked}
       onAccessibilityTap={onToggle}
     >
-      <Checkbox.Android status={checked ? 'checked' : 'unchecked'} onPress={onToggle} disabled={disabled} color={theme.primary} uncheckedColor={theme.muted} />
+      <Checkbox.Android hitSlop={6} status={checked ? 'checked' : 'unchecked'} onPress={onToggle} disabled={disabled} color={theme.primary} uncheckedColor={theme.muted} />
     </View>
   );
 }

@@ -210,12 +210,12 @@ const styles = themed(() => StyleSheet.create({
   monthCell: { flex: 1, minHeight: 58, padding: 3, borderTopWidth: 1, borderLeftWidth: 1, borderColor: theme.divider, gap: 2 },
   monthCellEmpty: { backgroundColor: theme.background },
   dayNumber: { fontSize: 12, fontWeight: '700', color: theme.ink },
-  dayLabel: { fontSize: 10, fontWeight: '600' },
-  more: { fontSize: 10, color: theme.muted },
+  dayLabel: { fontSize: 11, fontWeight: '600' },
+  more: { fontSize: 11, color: theme.muted },
   // day headers (week, day, list)
   dayHeader: { padding: 6, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.divider, alignItems: 'flex-start' },
   dayHeaderDow: { fontSize: 11, color: theme.muted, textTransform: 'uppercase' },
-  dayHeaderNumber: { fontSize: 18, fontWeight: '700', color: theme.ink },
+  dayHeaderNumber: { fontSize: 16, fontWeight: '700', color: theme.ink },
   // week
   weekStrip: { flexDirection: 'row', gap: 6 },
   weekCol: { width: WEEK_COL_W, gap: 4 },
@@ -231,6 +231,6 @@ const styles = themed(() => StyleSheet.create({
   chipCompact: { paddingHorizontal: 3, paddingVertical: 1, borderLeftWidth: 2 },
   chipTime: { fontSize: 11, color: theme.muted },
   chipTitle: { fontWeight: '600', color: theme.ink },
-  chipTitleCompact: { fontSize: 10, fontWeight: '500' },
+  chipTitleCompact: { fontSize: 11, fontWeight: '500' },
   empty: { color: theme.faint, fontStyle: 'italic' },
 }));

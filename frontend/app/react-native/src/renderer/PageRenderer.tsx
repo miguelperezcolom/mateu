@@ -14,7 +14,7 @@ import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
-import { InsideVerticalScroll } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, useFitsContent } from './ScrollContext';
 
 interface ButtonDto {
   actionId?: string;
@@ -71,7 +71,7 @@ function Banners({ metadata, state }: { metadata: Record<string, unknown>; state
               {!!banner.description && <Text style={styles.bannerText}>{interpolate(banner.description, { state })}</Text>}
             </View>
             {banner.hasCloseButton && (
-              <IconButton icon="close" size={18} style={styles.bannerClose} accessibilityLabel="Dismiss notice" onPress={() => setDismissed((d) => [...d, i])} />
+              <IconButton icon="close" size={18} hitSlop={8} style={styles.bannerClose} accessibilityLabel="Dismiss notice" onPress={() => setDismissed((d) => [...d, i])} />
             )}
           </View>
         );
@@ -81,6 +81,7 @@ function Banners({ metadata, state }: { metadata: Record<string, unknown>; state
 }
 
 export function PageRenderer({ component, metadata, state, data }: Props) {
+  const fits = useFitsContent();
   const controller = useViewController();
   const runAction = (actionId: string) => void controller.runAction(actionId);
   const ctx = { state, data, appState: controller.session.appState };
@@ -110,7 +111,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const pressButton = useButtonPress();
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, fits && FIT_CONTENT]}>
       {(!!title || !!subtitle || toolbar.length > 0 || !!switcher || !!extras.overline || !!extras.placeholder || !!extras.peers) && (
         <View style={styles.header}>
           {!!extras.overline && <Text style={styles.overline}>{extras.overline}</Text>}
@@ -237,15 +238,15 @@ const styles = themed(() => StyleSheet.create({
   body: { padding: 16, paddingBottom: 24 },
   banners: { paddingHorizontal: 16, paddingTop: 12, gap: 8 },
   banner: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: theme.radiusMd, borderLeftWidth: 4, padding: 12, gap: 8 },
-  bannerTitle: { fontWeight: '700', fontSize: 13, color: theme.ink, marginBottom: 2 },
-  bannerText: { fontSize: 13, color: theme.ink },
+  bannerTitle: { fontWeight: '700', fontSize: 14, color: theme.ink, marginBottom: 2 },
+  bannerText: { fontSize: 14, color: theme.ink },
   bannerClose: { margin: -6 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
   badgeText: { fontSize: 11, fontWeight: '600', color: theme.ink },
   kpis: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 10 },
   kpi: { alignItems: 'flex-start' },
-  kpiText: { fontSize: 20, fontWeight: '700', color: theme.ink },
+  kpiText: { fontSize: 22, fontWeight: '700', color: theme.ink },
   kpiTitle: { fontSize: 11, color: theme.faint },
   fabStack: { position: 'absolute', right: 16, bottom: 24, gap: 12, alignItems: 'flex-end' },
   bottomBar: {

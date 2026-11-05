@@ -6,7 +6,7 @@ import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { loadFailureMessage } from '../core/uxRules';
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
-import { InsideVerticalScroll } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, useFitsContent } from './ScrollContext';
 import { ComponentRenderer } from './ComponentRenderer';
 import { firstComponentFragment } from '../core/chatStream';
 import { theme, themed } from '../theme';
@@ -28,6 +28,8 @@ interface Props {
   target?: NavTarget;
   /** An inline ServerSide node to mount (embedded islands, overlay contents). */
   serverSideNode?: unknown;
+  /** The whole content of a dialog or drawer: a bare layout scrolls and has margins, unlike an island inside a page. */
+  overlaid?: boolean;
   /** Opener navigation context for overlay contents: seeds the controller's route/serverSideType
    *  so a ClientSide overlay (e.g. a conflict dialog) dispatches actions on the initiator. */
   overlayOpener?: OverlayOpenerContext;
@@ -49,8 +51,9 @@ interface Props {
  * increment application. The controller is exposed through [useViewController] so every renderer
  * in the subtree shares the same live component state and action pipeline.
  */
-export function MateuViewHost({ session, target, serverSideNode, overlayOpener, preview, onOpenDetail, onStackNavigate, silent, onController }: Props) {
+export function MateuViewHost({ session, target, serverSideNode, overlaid, overlayOpener, preview, onOpenDetail, onStackNavigate, silent, onController }: Props) {
   const controller = useMemo(() => new MateuViewController(session), [session]);
+  const fits = useFitsContent();
   const [view, setView] = useState<RenderedView>(controller.rendered);
 
   useEffect(() => {
@@ -127,16 +130,16 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
   );
 
   const body = (
-    <View style={styles.host} key={view.version}>
+    <View style={fits ? FIT_CONTENT : styles.host} key={view.version}>
       {view.loading && (
         <View style={styles.loadingOverlay} pointerEvents="none">
           <ActivityIndicator color={theme.primary} accessibilityLabel="Loading" />
         </View>
       )}
-      {serverSideNode || selfScrolling ? (
+      {(serverSideNode && !overlaid) || selfScrolling ? (
         content
       ) : (
-        <ScrollView style={styles.host} contentContainerStyle={styles.scrollBody} keyboardShouldPersistTaps="handled">
+        <ScrollView style={fits ? FIT_CONTENT : styles.host} contentContainerStyle={styles.scrollBody} keyboardShouldPersistTaps="handled">
           <InsideVerticalScroll.Provider value>
           {content}
           </InsideVerticalScroll.Provider>
@@ -169,9 +172,9 @@ const styles = themed(() => StyleSheet.create({
   scrollBody: { padding: 16, paddingBottom: 24 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   error: { color: theme.danger, padding: 16, fontSize: 14 },
-  failureTitle: { fontSize: 18, fontWeight: '700', color: theme.ink, textAlign: 'center', marginBottom: 8 },
+  failureTitle: { fontSize: 16, fontWeight: '700', color: theme.ink, textAlign: 'center', marginBottom: 8 },
   failureDetail: { fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 20, maxWidth: 320 },
   retryButton: { backgroundColor: theme.primary, paddingHorizontal: 24, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
-  retryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 15 },
+  retryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 16 },
   loadingOverlay: { position: 'absolute', top: 8, right: 8, zIndex: 10 },
 }));

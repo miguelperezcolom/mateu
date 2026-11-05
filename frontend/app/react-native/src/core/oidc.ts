@@ -2,7 +2,7 @@ import * as AuthSession from 'expo-auth-session';
 import { appScheme } from './appScheme.ts';
 import * as WebBrowser from 'expo-web-browser';
 import type { TokenProvider } from './auth.ts';
-import { isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
+import { endSessionUrl, isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
 import type { KeyValueStore } from './sessionId.ts';
 
 // On web the identity provider redirects back into a popup; this closes it and hands the result
@@ -125,6 +125,8 @@ export class OidcTokenProvider implements TokenProvider {
       extraParams: this.extraParams(),
     });
     const result = await request.promptAsync(discovery);
+    // the provider said no (access denied, a misconfigured client): that is not the user cancelling
+    if (result.type === 'error') throw new Error(result.error?.description ?? result.error?.message ?? result.params?.['error'] ?? 'The sign-in was refused.');
     if (result.type !== 'success' || !result.params['code']) return false;
     const res = await AuthSession.exchangeCodeAsync(
       {
@@ -140,7 +142,9 @@ export class OidcTokenProvider implements TokenProvider {
   }
 
   async logout(): Promise<void> {
+    await this.load();
     const token = this.tokens?.refreshToken ?? this.tokens?.accessToken;
+    const idToken = this.tokens?.idToken;
     await this.save(null);
     if (!token) return;
     try {
@@ -148,6 +152,10 @@ export class OidcTokenProvider implements TokenProvider {
       if (discovery.revocationEndpoint) {
         await AuthSession.revokeAsync({ clientId: this.config.clientId, token }, discovery);
       }
+      // the provider's own session, in the browser that holds its cookie
+      const redirectUri = oidcRedirectUri();
+      const url = endSessionUrl(discovery.endSessionEndpoint, this.config.clientId, idToken, redirectUri);
+      if (url) await WebBrowser.openAuthSessionAsync(url, redirectUri);
     } catch {
       // best effort: the local session is gone either way
     }

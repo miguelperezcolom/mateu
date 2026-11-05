@@ -9,7 +9,7 @@ import { useViewController } from './MateuViewHost';
 import { SavedView } from './savedViews';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, getByPath, mapItemsToRows } from '../core/restFetch';
-import { useInsideVerticalScroll } from './ScrollContext';
+import { FIT_CONTENT, useFitsContent, useInsideVerticalScroll } from './ScrollContext';
 import { restListingPage } from '../core/restListing';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
@@ -92,6 +92,7 @@ interface Props {
 // never be reached — announced as a checkbox with its state and the row it selects.
 
 export function CrudRenderer({ component, metadata, state, data }: Props) {
+  const fits = useFitsContent();
   const controller = useViewController();
   const nestedInScroll = useInsideVerticalScroll();
 
@@ -581,7 +582,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   );
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, fits && FIT_CONTENT]}>
       {!headerInList && listHeader}
 
       {showsPreSearch(preSearch, searched) ? (
@@ -1147,31 +1148,31 @@ const styles = themed(() => StyleSheet.create({
   searchIcon: { marginHorizontal: 0 },
   searchInput: { flex: 1, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#E9EBF0', borderRadius: theme.radiusPill, elevation: 0, minHeight: 48 },
   searchInputText: { fontSize: 16, minHeight: 0 },
-  filterCount: { position: 'absolute', top: 4, right: 2, minWidth: 16, height: 16, borderRadius: 8, overflow: 'hidden', backgroundColor: theme.primary, color: theme.onPrimary, fontSize: 10, fontWeight: '700', textAlign: 'center', lineHeight: 16 },
+  filterCount: { position: 'absolute', top: 4, right: 2, minWidth: 16, height: 16, borderRadius: 8, overflow: 'hidden', backgroundColor: theme.primary, color: theme.onPrimary, fontSize: 11, fontWeight: '700', textAlign: 'center', lineHeight: 16 },
   dialog: { backgroundColor: theme.surface, borderRadius: theme.radiusLg },
   tableHeader: { flexDirection: 'row', backgroundColor: theme.background, borderBottomWidth: 1, borderBottomColor: theme.border },
   headerCell: { width: CELL_WIDTH, padding: 10 },
   columnsBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 8 },
   columnsBtn: { paddingHorizontal: 10, paddingVertical: 4, minHeight: 36, justifyContent: 'center' },
-  columnsBtnText: { color: theme.info, fontSize: 13, fontWeight: '600' },
+  columnsBtnText: { color: theme.info, fontSize: 14, fontWeight: '600' },
   columnsBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: 24 },
   columnsSheet: { backgroundColor: theme.white, borderRadius: theme.radiusSm, padding: 16, maxHeight: '80%' },
   columnsTitle: { fontSize: 16, fontWeight: '600', color: theme.ink, marginBottom: 8 },
   columnsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 },
   columnsCheck: { fontSize: 16, color: theme.ink },
   columnsLabel: { fontSize: 14, color: theme.ink },
-  columnsLabelDim: { color: theme.faint, fontSize: 13, paddingVertical: 6 },
+  columnsLabelDim: { color: theme.faint, fontSize: 14, paddingVertical: 6 },
   viewApply: { flex: 1 },
   viewSaveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
   viewNameInput: { flex: 1, backgroundColor: theme.surface },
-  headerText: { fontWeight: '600', fontSize: 13, color: theme.ink },
+  headerText: { fontWeight: '600', fontSize: 14, color: theme.ink },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.divider },
   tableRowCells: { flexDirection: 'row' },
   cardWrap: {},
   btnDestructive: { borderColor: theme.danger, backgroundColor: theme.white },
   btnDestructiveText: { color: theme.danger, fontWeight: '600' },
   cell: { width: CELL_WIDTH, padding: 10, justifyContent: 'center' },
-  cellText: { fontSize: 13, color: theme.ink },
+  cellText: { fontSize: 14, color: theme.ink },
   actionCell: { width: 80 },
   paginationBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.divider, backgroundColor: theme.surface, gap: 8 },
   paginationInfo: { flex: 1, textAlign: 'center', color: theme.muted },
@@ -1188,7 +1189,7 @@ const styles = themed(() => StyleSheet.create({
   filterChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.white },
   filterChipOn: { backgroundColor: theme.primary, borderColor: theme.primary },
-  filterChipOnText: { color: theme.onFill, fontSize: 13 },
+  filterChipOnText: { color: theme.onFill, fontSize: 14 },
   filterButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 4 },
   emptyState: { alignItems: 'center', padding: 40 },
   preSearch: { padding: 12, gap: 12 },
@@ -1201,7 +1202,7 @@ const styles = themed(() => StyleSheet.create({
   cardLine: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 2 },
   cardLabel: { fontSize: 11, color: theme.faint, minWidth: 90 },
   cardPrimary: { fontSize: 16, fontWeight: '600', color: theme.ink },
-  cardValue: { fontSize: 13, color: theme.ink, flex: 1 },
+  cardValue: { fontSize: 14, color: theme.ink, flex: 1 },
   // Material's three-line list item: 88dp (8 + headline 24 + supporting 20 + 6 + chip 22 + 8)
   listRow: { flex: 1, paddingLeft: 16, paddingRight: 4, paddingVertical: 8, minHeight: 72, justifyContent: 'center' },
   listRowSelectable: { paddingLeft: 4 },
@@ -1223,16 +1224,16 @@ const styles = themed(() => StyleSheet.create({
   checkboxCell: { width: 40, alignItems: 'center', justifyContent: 'center' },
   checkboxCard: { position: 'absolute', top: 18, left: 20, zIndex: 2 },
   checkboxList: { paddingLeft: 8, justifyContent: 'center' },
-  checkboxText: { fontSize: 18, color: theme.primary },
+  checkboxText: { fontSize: 16, color: theme.primary },
   cardLineSelectable: { paddingLeft: 40 },
   listRowWrap: { flexDirection: 'row', alignItems: 'stretch', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   // groups + totals
   groupTableRow: { backgroundColor: theme.infoBg },
-  groupCellText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  groupCellText: { fontSize: 14, fontWeight: '700', color: theme.ink },
   totalsTableRow: { backgroundColor: theme.background, borderTopWidth: 1, borderTopColor: theme.border },
-  totalsCellText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  totalsCellText: { fontSize: 14, fontWeight: '700', color: theme.ink },
   groupBand: { backgroundColor: theme.infoBg, paddingHorizontal: 12, paddingVertical: 8, marginTop: 8 },
-  groupBandText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  groupBandText: { fontSize: 14, fontWeight: '700', color: theme.ink },
   totalsBand: { backgroundColor: theme.background, borderTopWidth: 1, borderTopColor: theme.border, paddingHorizontal: 12, paddingVertical: 8 },
-  totalsBandText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  totalsBandText: { fontSize: 14, fontWeight: '700', color: theme.ink },
 }));

@@ -70,8 +70,8 @@ const styles = themed(() => StyleSheet.create({
     backgroundColor: theme.white, padding: theme.spacing.sm,
   },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  title: { fontSize: 13, fontWeight: '700', color: theme.muted, marginBottom: theme.spacing.xs },
-  empty: { fontSize: 13, color: theme.faint, paddingVertical: theme.spacing.sm },
+  title: { fontSize: 14, fontWeight: '700', color: theme.muted, marginBottom: theme.spacing.xs },
+  empty: { fontSize: 14, color: theme.faint, paddingVertical: theme.spacing.sm },
   row: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: theme.spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.divider,
@@ -82,5 +82,5 @@ const styles = themed(() => StyleSheet.create({
   label: { fontSize: 14, color: theme.ink, fontWeight: '600' },
   description: { fontSize: 12, color: theme.muted },
   open: { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.xs },
-  openText: { fontSize: 13, color: theme.info, textDecorationLine: 'underline' },
+  openText: { fontSize: 14, color: theme.info, textDecorationLine: 'underline' },
 }));
