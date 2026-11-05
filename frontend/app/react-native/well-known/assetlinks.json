@@ -7,9 +7,8 @@
       "namespace": "android_app",
       "package_name": "io.mateu.app",
       "sha256_cert_fingerprints": [
-        "61:A6:25:82:B6:38:1C:68:34:59:46:30:6C:49:A4:6C:AA:7E:FE:6C:F1:71:35:D6:96:C8:83:15:74:57:07:02",
-        "TODO_PLAY_APP_SIGNING_SHA256 (Play Console > Setup > App integrity > App signing key)",
-        "TODO_EAS_UPLOAD_KEY_SHA256 (eas credentials -p android) - only needed for internal APKs"
+        "B3:1F:FC:DA:EA:48:A6:5D:37:A2:EF:D6:53:CE:62:71:5A:2B:FF:A5:71:C5:C9:8E:33:E3:30:40:C5:AD:D1:0D",
+        "61:A6:25:82:B6:38:1C:68:34:59:46:30:6C:49:A4:6C:AA:7E:FE:6C:F1:71:35:D6:96:C8:83:15:74:57:07:02"
       ]
     }
   }

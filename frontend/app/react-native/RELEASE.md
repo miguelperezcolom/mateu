@@ -10,10 +10,10 @@ React Native renderer. Without a registry in `app.json` (`expo.extra.mateuRegist
 | What | Where it goes |
 |---|---|
 | ✅ Apple Developer Program membership (team `2V77LVXCM8`), App ID `io.mateu.app` (Associated Domains), App Store Connect app record | — |
-| Google Play developer account (25 $ once), Play Console app for `io.mateu.app` | — |
+| ✅ Google Play developer account (personal: production needs a closed test with ≥12 testers for 14 days), Play Console app for `io.mateu.app` | — |
 | ✅ **Apple Team ID** `2V77LVXCM8` | `well-known/apple-app-site-association`, published from `doc/public/.well-known/` at `https://mateu.io/.well-known/apple-app-site-association` (`Content-Type: application/json` via `doc/public/_headers`, no redirect) |
-| ⚠️ **Decide the signing key at the first Play upload**: choose "use an existing key" and import the GitHub APK key (`~/.mateu-secrets/android`, Play's PEPK tool). Then the Play certificate is `61:A6:…:07:02`, assetlinks is already right and people on the sideloaded APK can update. Let Google generate one instead and App Links fail until its SHA-256 is added, and those people must uninstall first | Play Console › Setup › App integrity |
-| 🟡 **Android signing SHA-256**: the GitHub APK key is in (`61:A6:…:07:02`, keystore in the owner's `~/.mateu-secrets/android`). **TODO**: the Play App Signing key once the Play app exists (+ the EAS upload key for internal APKs) | `well-known/assetlinks.json` AND `doc/public/.well-known/assetlinks.json` (the published one: real fingerprints only, never a TODO) |
+| ✅ **Play App Signing key** (decided 2026-11-05 at the first upload): Google generated it, `B3:1F:FC:…:D1:0D`. Play-installed apps carry it; the GitHub APKs keep `61:A6:…:07:02`, so a sideloaded install must be uninstalled before installing from Play (different signatures). The local `.aab` is signed with the GitHub key, which Play takes as the upload key | Play Console › Setup › App integrity |
+| ✅ **Android signing SHA-256**: both are in: Play App Signing `B3:1F:…:D1:0D` and the GitHub APK key `61:A6:…:07:02` (keystore in the owner's `~/.mateu-secrets/android`) | `well-known/assetlinks.json` AND `doc/public/.well-known/assetlinks.json` (the published one: real fingerprints only, never a TODO) |
 | `https://mateu.io/add` landing page: it exists, but its store buttons are `href="#"` and it says the app is not in the stores yet — set them the day the app is live | `doc/src/pages/add.astro` |
 | ✅ App Store id `6829227403` (App Store Connect app record created, SKU `mateu-app`) | `src/hub/ui/UiSession.tsx` → `STORE_URL` |
 | ✅ `https://demo.mateu.io/counter` is up, public, with no login (checked 2026-10-31; it is the preinstalled "Try a demo" entry the reviewer uses) | demo deployment |
