@@ -151,7 +151,9 @@ On your identity provider (Keycloak, Entra ID, Okta, Auth0…):
 1. Create a **public** client (no client secret, since a mobile app can't keep one) with the
    `clientId` your manifest names.
 2. Allow PKCE (S256).
-3. Register the redirect URI **`mateu://auth`**. It is the same for every UI in the hub.
+3. Register **`mateu://auth`** as a redirect URI and as a post-logout redirect URI. It is the same for
+   every UI in the hub. Signing out also ends the provider's own session, so the next person on a
+   shared phone is asked for a password.
 4. Allow the scopes the manifest lists.
 
 The tokens are kept in the Keychain or the Android Keystore, separately for each UI, and refreshed

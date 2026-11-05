@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Appbar } from 'react-native-paper';
 import { Text } from '../../ui/Text';
@@ -18,7 +18,7 @@ import { appCompatibility, compatMessage, hubLang } from '../compat';
 import { fetchManifest, type ManifestFetch, type UiManifest } from '../manifest';
 import { allowInsecure, metaStore, secretStore, uiStore } from '../storage';
 import { uiSecretKeys, type HubEntry } from '../uiStore';
-import { hubBarSignsOut, uiSessionId } from '../uiSession';
+import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
 import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 import { UpdateAppButton } from './UpdateApp';
 
@@ -67,12 +67,15 @@ export function UiSession({
   visible,
   onHome,
   onSwitch,
+  onLive,
 }: {
   entry: HubEntry;
   route: string;
   visible: boolean;
   onHome: () => void;
   onSwitch: () => void;
+  /** Tells the hub this UI's session, for what a link has to ask it. */
+  onLive?: (id: string, session: MateuSession) => void;
 }) {
   const [phase, setPhase] = useState<Phase>({ name: 'manifest' });
   // the UI's own top bar hosts the hub's actions (session.hub.claimBar): then the hub shows no bar of its own
@@ -82,6 +85,9 @@ export function UiSession({
   /** A static UI (no server): the bundle it runs from. */
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const gainedSignIn = useRef(false);
+  // the way back of the screen on view, when the UI's shell keeps this bar (tabs, no menu)
+  const [screenBack, setScreenBack] = useState<(() => void) | null>(null);
   /** A UI ahead of this app (compat.ts `recommended`): it opens, with this note above it. */
   const [compatNotice, setCompatNotice] = useState<string | null>(null);
 
@@ -133,6 +139,12 @@ export function UiSession({
             if (!fresh.ok) return;
             await manifestOf(fresh, entry);
             if (alive) applyCompat(fresh.manifest, true);
+            // the UI started asking for a sign-in since it was added: the cached manifest did not say
+            // so, and every request of this session would answer 401 until it was reopened
+            if (alive && fresh.manifest.auth && !entry.manifest?.auth && !gainedSignIn.current) {
+              gainedSignIn.current = true; // once: what is stored is what the next attempt reads
+              setAttempt((a) => a + 1);
+            }
           })
           .catch(() => undefined);
       } else {
@@ -174,31 +186,39 @@ export function UiSession({
     };
   }, [phase, provider]);
 
+  const signingIn = useRef(false);
   const signIn = async () => {
+    if (signingIn.current) return; // a second tap must not open a second browser
+    signingIn.current = true;
     try {
       if (await provider!.login()) setPhase({ name: 'ready' });
       else setPhase({ name: 'signin', error: 'Sign-in was cancelled.' });
     } catch (e) {
       setPhase({ name: 'signin', error: e instanceof Error ? e.message : String(e) });
+    } finally {
+      signingIn.current = false;
     }
   };
 
   const signOutHere = async () => {
     await provider?.logout();
+    setSessionId(await rotateUiSessionId(secretStore, entry.id));
     setPhase({ name: 'signin' });
   };
 
   const onSession = useCallback(
     (session: MateuSession) => {
-      session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed };
+      session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed, hostBack: (back) => setScreenBack(() => back) };
+      onLive?.(entry.id, session);
       if (provider) {
         session.signOut = async () => {
           await provider.logout();
+          setSessionId(await rotateUiSessionId(secretStore, entry.id));
           setPhase({ name: 'signin' });
         };
       }
     },
-    [onHome, onSwitch, entry.name, provider],
+    [onHome, onSwitch, entry.name, provider, entry.id, onLive],
   );
 
   // the last screens, shown at once on the next open — never for a UI that signs in: what a
@@ -277,7 +297,12 @@ export function UiSession({
       {/* the hub's bar — unless the UI's own top bar hosts its actions (an app shell with a menu) */}
       {!(barClaimed && phase.name === 'ready' && !!sessionId) && (
       <Appbar.Header statusBarHeight={0} style={{ backgroundColor: color ?? theme.surface }}>
-        <Appbar.BackAction onPress={onHome} accessibilityLabel="My UIs" color={ink} testID="hub-home" />
+        {/* with a record open, the bar's arrow goes back to the list it came from; else to My UIs */}
+        {screenBack ? (
+          <Appbar.BackAction onPress={screenBack} accessibilityLabel="Back" color={ink} />
+        ) : (
+          <Appbar.BackAction onPress={onHome} accessibilityLabel="My UIs" color={ink} testID="hub-home" />
+        )}
         <Appbar.Content
           title={name}
           titleStyle={[styles.barName, { color: ink }]}

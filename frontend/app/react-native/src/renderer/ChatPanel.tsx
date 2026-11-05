@@ -1,6 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { MateuSession } from '../core/MateuSession';
 import { theme, themed } from '../theme';
@@ -190,7 +192,7 @@ export function ChatPanel({
           <View style={styles.header}>
             <Text style={styles.title}>Assistant</Text>
             <TouchableOpacity {...buttonA11y({ label: 'Close assistant' })} onPress={onClose}>
-              <Text style={styles.close}>✕</Text>
+              <MIcon name="close" color={theme.ink} />
             </TouchableOpacity>
           </View>
           <ScrollView ref={scroll} style={styles.messages} contentContainerStyle={{ padding: 12, gap: 8 }}>
@@ -220,7 +222,7 @@ export function ChatPanel({
                     onPress={() => setAttachments((list) => list.filter((x) => x.path !== a.path))}
                     hitSlop={theme.hitSlop}
                   >
-                    <Text style={styles.chipRemove}>✕</Text>
+                    <MIcon name="close" size={16} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -242,7 +244,7 @@ export function ChatPanel({
               editable={!busy}
             />
             <TouchableOpacity {...buttonA11y({ label: 'Send message', disabled: !canSend })} style={styles.send} onPress={() => void send()} disabled={!canSend}>
-              <Text style={styles.sendText}>➤</Text>
+              <MIcon name="send" size={20} color={theme.onPrimary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -256,7 +258,7 @@ const styles = themed(() => StyleSheet.create({
   sheet: { backgroundColor: theme.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, height: '75%' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: theme.divider },
   title: { fontSize: 16, fontWeight: '600', color: theme.ink },
-  close: { fontSize: 18, color: theme.muted, paddingHorizontal: 8 },
+  close: { fontSize: 16, color: theme.muted, paddingHorizontal: 8 },
   messages: { flex: 1 },
   hint: { color: theme.faint, fontStyle: 'italic', textAlign: 'center', marginTop: 24 },
   bubble: { maxWidth: '85%', borderRadius: 12, padding: 10 },
@@ -264,7 +266,7 @@ const styles = themed(() => StyleSheet.create({
   agentBubble: { alignSelf: 'flex-start', backgroundColor: theme.divider },
   userText: { color: theme.onFill, fontSize: 14 },
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
-  progress: { color: theme.muted, fontSize: 13, fontStyle: 'italic' },
+  progress: { color: theme.muted, fontSize: 14, fontStyle: 'italic' },
   usage: { color: theme.faint, fontSize: 11, alignSelf: 'flex-end' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 10, paddingTop: 8 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '100%', borderRadius: theme.radiusPill, backgroundColor: theme.divider, paddingHorizontal: 10, paddingVertical: 4 },

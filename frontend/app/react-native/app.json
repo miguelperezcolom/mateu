@@ -11,8 +11,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "io.mateu.app",
       "associatedDomains": [
-        "applinks:mateu.io",
-        "applinks:www.mateu.io"
+        "applinks:mateu.io"
       ],
       "infoPlist": {
         "NSCameraUsageDescription": "Mateu uses the camera to scan the QR codes that add apps to your list, and for photo fields in those apps.",
@@ -30,7 +29,13 @@
         "android.permission.CAMERA"
       ],
       "blockedPermissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"
       ],
       "intentFilters": [
         {
@@ -40,11 +45,6 @@
             {
               "scheme": "https",
               "host": "mateu.io",
-              "pathPrefix": "/add"
-            },
-            {
-              "scheme": "https",
-              "host": "www.mateu.io",
               "pathPrefix": "/add"
             }
           ],
@@ -101,7 +101,8 @@
         }
       ],
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "./plugins/with-async-storage-size"
     ],
     "extra": {
       "mateuRegistryUrl": "",

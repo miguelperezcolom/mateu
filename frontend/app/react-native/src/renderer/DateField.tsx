@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { theme, themed } from '../theme';
 import { OutlinedTrigger } from '../ui/controls';
@@ -80,11 +82,11 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
             <TouchableOpacity {...buttonA11y()} activeOpacity={1} style={styles.calendar} onPress={() => {}}>
               <View style={styles.monthBar}>
                 <TouchableOpacity {...buttonA11y({ label: 'Previous month' })} style={styles.monthNav} onPress={() => shiftMonth(-1)}>
-                  <Text style={styles.monthNavText}>‹</Text>
+                  <MIcon name="chevron-left" color={theme.ink} />
                 </TouchableOpacity>
                 <Text style={styles.monthTitle}>{MONTHS[cursor.m - 1]} {cursor.y}</Text>
                 <TouchableOpacity {...buttonA11y({ label: 'Next month' })} style={styles.monthNav} onPress={() => shiftMonth(1)}>
-                  <Text style={styles.monthNavText}>›</Text>
+                  <MIcon name="chevron-right" color={theme.ink} />
                 </TouchableOpacity>
               </View>
               <View style={styles.weekRow}>
@@ -157,14 +159,14 @@ const styles = themed(() => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 32 },
   calendar: { backgroundColor: theme.surface, borderRadius: theme.radiusLg, padding: 20, maxWidth: 360, alignSelf: 'center', width: '100%' },
   monthBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  monthNav: { paddingHorizontal: 14, paddingVertical: 4 },
-  monthNavText: { fontSize: 20, color: theme.primary },
-  monthTitle: { fontSize: 15, fontWeight: '600', color: theme.ink },
+  monthNav: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  monthNavText: { fontSize: 22, color: theme.primary },
+  monthTitle: { fontSize: 16, fontWeight: '600', color: theme.ink },
   weekRow: { flexDirection: 'row' },
   weekdayText: { fontWeight: '600', color: theme.faint, fontSize: 11, textAlign: 'center' },
   dayCell: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
   dayTouch: { borderRadius: 16 },
-  dayText: { fontSize: 13, color: theme.ink },
+  dayText: { fontSize: 14, color: theme.ink },
   todayCell: { borderWidth: 1, borderColor: theme.primary, borderRadius: 16 },
   selectedCell: { backgroundColor: theme.primary, borderRadius: 16 },
   selectedText: { color: theme.onFill, fontWeight: '600' },
@@ -173,5 +175,5 @@ const styles = themed(() => StyleSheet.create({
   timeInput: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 6, fontSize: 14 },
   footer: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   footerButton: { paddingHorizontal: 12, paddingVertical: 8 },
-  footerText: { color: theme.primary, fontWeight: '600', fontSize: 13 },
+  footerText: { color: theme.primary, fontWeight: '600', fontSize: 14 },
 }));

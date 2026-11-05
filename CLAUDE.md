@@ -98,6 +98,14 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             white circle. Mateu's face: assets/icon.png (iOS), adaptive-icon.png + monochrome-icon.png
                             (Android 13 themed icons), splash.png; derived from doc/public/favicon.png (235px — no
                             vector exists; upscaled with blur+threshold for clean edges)
+                            BOARDS DRAG (2026-11-05, src/renderer/KanbanRenderer.tsx): long press lifts a card, edge
+                            auto-scroll, geometry pure in core/kanban.ts; each column scrolls on its own and the board
+                            fills the rest of the screen. Press feedback: src/ui/Touchable.tsx (ripple on Android) is
+                            the drop-in for TouchableOpacity; wire icon tokens → Material: src/ui/wireIcons.ts (checked
+                            against the font by its test); confirmations: src/ui/ConfirmHost.tsx (own Modal: a Paper
+                            Portal opens BEHIND a native Modal). A shell's catalogue is registered by AppRenderer during
+                            render: SessionContent loads the shell without a controller. A source with `totalPath` pages
+                            on the server (CrudRenderer `restTotalPath`). adb gotcha: quote a link, `&` ends the command
                             HUB LIST: each row's actions (move up/down, remove) open in a bottom sheet from its ⋮ button
                             or a long press (HomeScreen EntrySheet); the top bar's pencil still shows them on every row
                             ONE BAR (2026-10-30): an app shell with a drawer claims the hub's bar

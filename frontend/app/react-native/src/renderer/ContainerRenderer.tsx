@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
+import { drawsNothing, segmentsFit } from './patternGaps';
 import { Text } from '../ui/Text';
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
@@ -53,6 +55,7 @@ export function SubSectionRenderer({ component, state }: { component: unknown; s
 
 export function CardRenderer({ component, state }: { component: unknown; state: Dict }) {
   const m = meta(component);
+  if (drawsNothing(component)) return null;
   const title = m['title'];
   return (
     <Card mode="outlined" style={styles.card}>
@@ -73,9 +76,10 @@ export function TabsRenderer({ component, state }: { component: unknown; state: 
   // @Tab(open=true) marks the initially-selected tab (first-declared wins, else index 0)
   const [selected, setSelected] = useState(() => Math.max(0, tabs.findIndex((t) => meta(t)['active'] === true)));
   const active = tabs[selected] as Dict | undefined;
+  const { width } = useWindowDimensions();
   return (
     <View>
-      {tabs.length <= 4 ? (
+      {segmentsFit(tabs.map((t) => interpolate((meta(t)['label'] as string) ?? '', { state })), width) ? (
         // a handful of tabs: Material segmented buttons (each a tab with its selected state)
         <SegmentedButtons
           style={styles.segments}
@@ -264,7 +268,7 @@ const styles = themed(() => StyleSheet.create({
   panelTitle: { fontWeight: '600', color: theme.ink },
   panelBody: { paddingHorizontal: 16, paddingBottom: 16 },
   link: { color: theme.primary, textDecorationLine: 'underline' },
-  progressText: { fontSize: 13, color: theme.muted, marginBottom: 4 },
+  progressText: { fontSize: 14, color: theme.muted, marginBottom: 4 },
   progressTrack: { height: 6, borderRadius: 3, backgroundColor: theme.divider, marginBottom: 8 },
   dialog: { backgroundColor: theme.surface, borderRadius: theme.radiusLg, padding: 24, gap: 16, marginVertical: 12, elevation: 3, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
   dialogTitle: { color: theme.ink },

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Switch, TouchableOpacity, View, StyleSheet, ScrollView } from 'react-native';
+import { Modal, View, StyleSheet, ScrollView } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { HelperText, Switch as PaperSwitch, Text as PaperText } from 'react-native-paper';
 import { MateuButton, OutlinedDecimalInput, OutlinedInput, OutlinedTrigger } from '../ui/controls';
 import { Text, TextInput } from '../ui/Text';
@@ -750,24 +752,34 @@ function OptionsField({ label, required, error, options, value, editable, onChan
           onPress={() => editable && setOpen(!open)}
           activeOpacity={editable ? 0.7 : 1}
         >
-          <Text style={!selected ? styles.placeholder : undefined}>{shown} ▾</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={!selected ? styles.placeholder : undefined}>{shown}</Text>
+            <MIcon name="menu-down" />
+          </View>
         </TouchableOpacity>
       )}
-      {open && (
-        <View style={styles.dropdown}>
-          <ScrollView style={{ maxHeight: 200 }}>
-            {options.map((opt) => (
-              <TouchableOpacity {...buttonA11y({ selected: opt.value === value })}
-                key={opt.value}
-                style={[styles.dropdownItem, opt.value === value && styles.dropdownItemSelected]}
-                onPress={() => { onChange(opt.value); setOpen(false); }}
-              >
-                <Text style={opt.value === value ? styles.dropdownTextSelected : undefined}>{opt.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+      {/* a bottom sheet, Material's way on a phone: a list opened in place pushed the whole form down */}
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
+        <View style={styles.sheetBackdrop}>
+          <TouchableOpacity {...buttonA11y({ label: 'Close' })} style={styles.sheetDismiss} onPress={() => setOpen(false)} />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            {!!label && <PaperText variant="titleMedium" style={styles.sheetTitle} accessibilityRole="header">{label}</PaperText>}
+            <ScrollView>
+              {options.map((opt) => (
+                <TouchableOpacity {...buttonA11y({ selected: opt.value === value })}
+                  key={opt.value}
+                  style={[styles.sheetRow, opt.value === value && styles.dropdownItemSelected]}
+                  onPress={() => { onChange(opt.value); setOpen(false); }}
+                >
+                  <Text style={[styles.sheetRowText, opt.value === value ? styles.dropdownTextSelected : undefined]}>{opt.label}</Text>
+                  {opt.value === value && <MIcon name="check" size={20} color={theme.primary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }
@@ -826,7 +838,7 @@ function TreeSelectField({ label, options, leavesOnly, value, editable, onChange
                       onPress={() => setOpenNodes(isOpen ? openNodes.filter((n) => n !== opt.value) : [...openNodes, opt.value])}
                       style={{ paddingRight: 6 }}
                     >
-                      <Text>{isOpen ? '▾' : '▸'}</Text>
+                      <MIcon name={isOpen ? 'chevron-up' : 'chevron-down'} size={20} />
                     </TouchableOpacity>
                   ) : null}
                   <TouchableOpacity {...buttonA11y()}
@@ -859,11 +871,11 @@ const styles = themed(() => StyleSheet.create({
   dropdownItemSelected: { backgroundColor: theme.primaryContainer },
   dropdownTextSelected: { color: theme.onPrimaryContainer, fontWeight: '600' },
   plainText: { fontSize: 14, color: theme.ink, paddingVertical: 6 },
-  readOnlyValue: { fontSize: 15, color: theme.ink, paddingVertical: 6 },
+  readOnlyValue: { fontSize: 16, color: theme.ink, paddingVertical: 6 },
   readOnlyEmpty: { color: theme.faint },
   // Property-list rows (@Section(propertyList=true))
   propertyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, paddingVertical: 7, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border },
-  propertyRowLabel: { fontSize: 13, color: theme.faint },
+  propertyRowLabel: { fontSize: 14, color: theme.faint },
   propertyRowValue: { flex: 1, fontSize: 14, color: theme.ink, fontWeight: '500', textAlign: 'right' },
   // Bulleted list field (@BulletedList)
   bulletedField: { gap: 2, paddingVertical: 2 },
@@ -899,16 +911,23 @@ const styles = themed(() => StyleSheet.create({
     shadowRadius: 4,
     zIndex: 100,
   },
+  sheetBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.32)' },
+  sheetDismiss: { flex: 1 },
+  sheet: { maxHeight: '70%', backgroundColor: theme.surface, borderTopLeftRadius: theme.radiusLg, borderTopRightRadius: theme.radiusLg, paddingBottom: 24 },
+  sheetHandle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 12, marginBottom: 12 },
+  sheetTitle: { color: theme.ink, paddingHorizontal: 24, paddingBottom: 8 },
+  sheetRow: { minHeight: 56, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  sheetRowText: { flex: 1, color: theme.ink, fontSize: 16 },
   dropdownItem: { paddingHorizontal: 16, paddingVertical: 14, minHeight: 48, justifyContent: 'center' },
   gridBox: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, overflow: 'hidden' },
   gridRow: { flexDirection: 'row', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: theme.divider },
   gridRowAlt: { backgroundColor: theme.background },
   gridHeader: { backgroundColor: theme.divider },
   gridHeaderText: { fontWeight: '600', color: theme.ink },
-  gridCell: { flex: 1, fontSize: 13, color: theme.ink, paddingHorizontal: 4 },
-  gridEmpty: { padding: 12, fontSize: 13, color: theme.faint, fontStyle: 'italic' },
+  gridCell: { flex: 1, fontSize: 14, color: theme.ink, paddingHorizontal: 4 },
+  gridEmpty: { padding: 12, fontSize: 14, color: theme.faint, fontStyle: 'italic' },
   gridAdd: { padding: 10, alignItems: 'center' },
-  gridAddText: { color: theme.primary, fontWeight: '600', fontSize: 13 },
+  gridAddText: { color: theme.primary, fontWeight: '600', fontSize: 14 },
   rowFormBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
   rowFormCard: { backgroundColor: theme.surface, borderRadius: theme.radiusLg, padding: 24, maxHeight: '80%' },
   rowFormButtons: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },

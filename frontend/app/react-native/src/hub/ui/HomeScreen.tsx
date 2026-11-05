@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../../ui/Touchable';
 import { Appbar, Divider, FAB, Icon, IconButton, List, Searchbar, TouchableRipple } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { headingA11y, modalA11y } from '../../a11y/a11y';
@@ -311,7 +312,7 @@ const styles = themed(() => StyleSheet.create({
   sheetTitle: { fontSize: 22, color: theme.ink, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8 },
   sheetItem: { paddingHorizontal: 12 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8, gap: 16 },
-  sheetEntryName: { fontSize: 18, color: theme.ink },
+  sheetEntryName: { fontSize: 16, color: theme.ink },
   emptyIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.primaryContainer, marginBottom: theme.spacing.sm },
   emptyButton: { marginTop: theme.spacing.md, alignSelf: 'stretch', maxWidth: 340 },
 }));

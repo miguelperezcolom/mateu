@@ -1,10 +1,11 @@
 import * as Linking from 'expo-linking';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, StyleSheet, View, BackHandler } from 'react-native';
 import { announce } from '../a11y/a11y';
 import { theme, themed } from '../theme';
 import { fromExpoDevLink, parseHubLink, type HubLink, type ParseOptions } from './links';
 import type { UiManifest } from './manifest';
+import type { MateuSession } from '../core/MateuSession';
 import { allowInsecure, appVersion, extraLinkHosts, metaStore, uiStore } from './storage';
 import { ScreenSnapshots } from '../core/screenSnapshots';
 import { bundleKey } from './bundleCache';
@@ -81,6 +82,39 @@ export function HubApp() {
     announce('My UIs');
   }, []);
 
+  // Android's Back from a UI's first screen goes to where the user came from, the list, not out of
+  // the app (a running session stays as it was, hidden). Registered ONCE, at mount, so it stays last in
+  // line: a drawer, a dialog or a pushed screen register later and answer first. On the list itself
+  // it declines, and Android leaves the app, as everywhere.
+  const onList = useRef(true);
+  onList.current = screen.name === 'home';
+  const goHomeRef = useRef(goHome);
+  goHomeRef.current = goHome;
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (onList.current) return false;
+      goHomeRef.current();
+      return true;
+    });
+    return () => sub.remove();
+  }, []);
+
+  // the sessions on the phone, for what a link has to ask them
+  const liveSessions = useRef(new Map<string, MateuSession>());
+  const onLive = useCallback((id: string, session: MateuSession) => {
+    liveSessions.current.set(id, session);
+  }, []);
+  // A link to another screen of a running UI replaces that session: typed edits ask first, and
+  // keeping them resumes the UI as it was.
+  const openLinked = useCallback(
+    async (entry: HubEntry, route?: string) => {
+      const live = liveSessions.current.get(entry.id);
+      const keep = !!route && !!live?.hasUnsavedChanges() && !(await live.confirmDiscard());
+      open(entry, keep ? undefined : route);
+    },
+    [open],
+  );
+
   const handleLink = useCallback(
     (link: HubLink, source: 'scan' | 'link' | 'typed') => {
       if (link.kind === 'invalid') {
@@ -96,10 +130,10 @@ export function HubApp() {
       }
       const existing = uiStore.findByBaseUrl(link.baseUrl);
       // already trusted: a link just opens it (at its route); a new one always goes through confirm
-      if (existing && source === 'link') open(existing, link.route);
+      if (existing && source === 'link') void openLinked(existing, link.route);
       else setScreen({ name: 'confirm', baseUrl: link.baseUrl, route: link.route, probe: link.probe });
     },
-    [open],
+    [openLinked],
   );
 
   const handleUrl = useCallback(
@@ -242,6 +276,7 @@ export function HubApp() {
             visible={screen.name === 'ui' && activeId === s.id}
             onHome={goHome}
             onSwitch={() => setSwitcherOpen(true)}
+            onLive={onLive}
           />
         );
       })}

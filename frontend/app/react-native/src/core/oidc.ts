@@ -2,7 +2,7 @@ import * as AuthSession from 'expo-auth-session';
 import { appScheme } from './appScheme.ts';
 import * as WebBrowser from 'expo-web-browser';
 import type { TokenProvider } from './auth.ts';
-import { isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
+import { endSessionUrl, isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
 import type { KeyValueStore } from './sessionId.ts';
 
 // On web the identity provider redirects back into a popup; this closes it and hands the result
@@ -26,6 +26,12 @@ export function oidcRedirectUri(): string {
  * back to an interactive login. Works against any standards-compliant provider (Keycloak, Entra
  * ID, Auth0, Okta, Cognito…) — it only needs the issuer's discovery document.
  */
+/** Whether a failed refresh means the identity provider refused the token. */
+export const isRefusedRefresh = (e: unknown): boolean => {
+  const code = String((e as { code?: unknown })?.code ?? '');
+  return code === 'invalid_grant' || code === 'invalid_client' || code === 'unauthorized_client';
+};
+
 export class OidcTokenProvider implements TokenProvider {
   private tokens: StoredTokens | null = null;
   private loaded = false;
@@ -99,9 +105,10 @@ export class OidcTokenProvider implements TokenProvider {
       );
       await this.save(tokensFromResponse(res, this.tokens));
       return true;
-    } catch {
-      // refresh token expired or revoked: the session is over
-      await this.save(null);
+    } catch (e) {
+      // Only the identity provider saying no ends the session (expired or revoked). No network, a
+      // timeout or a server error says nothing about it: the tokens stay for the next attempt.
+      if (isRefusedRefresh(e)) await this.save(null);
       return false;
     }
   }
@@ -118,6 +125,8 @@ export class OidcTokenProvider implements TokenProvider {
       extraParams: this.extraParams(),
     });
     const result = await request.promptAsync(discovery);
+    // the provider said no (access denied, a misconfigured client): that is not the user cancelling
+    if (result.type === 'error') throw new Error(result.error?.description ?? result.error?.message ?? result.params?.['error'] ?? 'The sign-in was refused.');
     if (result.type !== 'success' || !result.params['code']) return false;
     const res = await AuthSession.exchangeCodeAsync(
       {
@@ -133,7 +142,9 @@ export class OidcTokenProvider implements TokenProvider {
   }
 
   async logout(): Promise<void> {
+    await this.load();
     const token = this.tokens?.refreshToken ?? this.tokens?.accessToken;
+    const idToken = this.tokens?.idToken;
     await this.save(null);
     if (!token) return;
     try {
@@ -141,6 +152,10 @@ export class OidcTokenProvider implements TokenProvider {
       if (discovery.revocationEndpoint) {
         await AuthSession.revokeAsync({ clientId: this.config.clientId, token }, discovery);
       }
+      // the provider's own session, in the browser that holds its cookie
+      const redirectUri = oidcRedirectUri();
+      const url = endSessionUrl(discovery.endSessionEndpoint, this.config.clientId, idToken, redirectUri);
+      if (url) await WebBrowser.openAuthSessionAsync(url, redirectUri);
     } catch {
       // best effort: the local session is gone either way
     }

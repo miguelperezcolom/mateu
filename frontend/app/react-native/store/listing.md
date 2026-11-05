@@ -1,8 +1,8 @@
 # Store listing — Mateu (App Store + Google Play)
 
-Ready-to-paste texts for both stores, in English (primary) and Spanish. Limits are the stores'
+Google Play wants phone screenshots at 9:16 (`android/` is 1080x1920). Ready-to-paste texts for both stores, in English (primary) and Spanish. Limits are the stores'
 (characters, counted with spaces). Reviewer notes and privacy answers: `../RELEASE.md` §4–§5.
-Privacy policy URL (both stores): **https://mateu.io/privacy**. Support / marketing URL: **https://mateu.io**.
+Privacy policy URL (both stores): **https://mateu.io/privacy/**. Support / marketing URL: **https://mateu.io**.
 
 ## English (en-US)
 
@@ -31,7 +31,7 @@ Privacy policy URL (both stores): **https://mateu.io/privacy**. Support / market
 > • Move your list to another phone with one QR code (addresses only, never sign-ins).
 > • Light and dark themes, large text and screen readers supported.
 >
-> Privacy first: the Mateu app collects nothing — no account, no analytics, no tracking. What you enter goes to your organisation's server only.
+> Privacy first: no account, no analytics, no tracking. What you enter goes to your organisation's server only.
 >
 > Want to try it? The list comes with a demo app you can open without an account.
 >
@@ -69,7 +69,7 @@ Privacy policy URL (both stores): **https://mateu.io/privacy**. Support / market
 > • Pasa tu lista a otro móvil con un solo código QR (solo direcciones, nunca inicios de sesión).
 > • Temas claro y oscuro, texto grande y lectores de pantalla.
 >
-> Privacidad ante todo: la app Mateu no recoge nada —ni cuenta, ni analítica, ni seguimiento—. Lo que introduces va solo al servidor de tu organización.
+> Privacidad ante todo: sin cuenta, sin analítica, sin seguimiento. Lo que introduces va solo al servidor de tu organización.
 >
 > ¿Quieres probarla? La lista trae una app de demostración que puedes abrir sin cuenta.
 >

@@ -11,8 +11,57 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **Cards drag on the phone app.** On a kanban board a long press lifts a card; it follows the finger
+  and the board scrolls near the edges. Dropping it runs the board's move action, as on the web.
+  The Move menu stays, for screen readers and for whoever prefers it.
+
+### Changed
+
+- **The phone app follows Material 3 more closely.** Controls ripple on Android, the drawer has
+  Material icons (`vaadin:*` tokens are mapped) and section headers, confirmations are Material
+  dialogs, bottom tabs are Material's navigation bar, tab strips scroll when their labels would be
+  cut, and a list's title, toolbar and search scroll away with its rows.
+- **Android Back from a UI's first screen goes to My UIs** instead of leaving the hub app.
+- **Signing out of a UI on the phone app ends the identity provider's session too** and draws a new
+  session id. Register `mateu://auth` as a post-logout redirect at the provider.
+- **A hidden UI on the phone app neither polls nor opens the sign-in browser,** and a refused sign-in
+  does not reopen it for a minute. A link to a running UI asks before discarding unsaved edits.
+- **Menu entries naming one view of a listing work on the phone app** (`reservas?vista=LLEGADAS_HOY`):
+  the route's query seeds the listing's search, as on the web. Every tab of a TABS shell showed the same list.
+- **A routed listing's toolbar shows once on the phone app** (the page's header shows it, the listing's
+  copy stands down, and a button repeated in the page toolbar is one button).
+- **An embedded island behind a mediator keeps what its host seeded on the phone app** (an `@Inline`
+  `EditableView`'s `stayId`): sent on its loads, its reloads and its actions, and its LongTask streams.
+  The front office's passport scan never reached the stay, and its progress never moved.
+- **On the phone app,** a record's back bar no longer shows the raw route, a TABS shell's top bar hosts
+  the screen's way back instead of stacking a second bar, a card around nothing is not drawn, a
+  `@Notice` interpolates `${state.x}`, Redwood's `oj-ux-ico-*` icons draw as Material icons, and a
+  wizard's progress is one compact row.
+- **A wire `Dialog` is a Material dialog sized to its content on the phone app;** a `Drawer` stays a sheet.
+  Text follows the Material type scale.
+- **The Android build drops permissions it never used:** `SYSTEM_ALERT_WINDOW`, external storage and
+  biometrics.
+
 ### Fixed
 
+- **A listing's page header sends each toolbar button once.** A button declared
+  `@ListToolbarButton` + `@Toolbar` (the documented way to give a bulk button its look) reached the
+  page toolbar through both annotations and was sent twice; the listing's copy, which carries the
+  selection guard, is the one kept.
+- **A server-paged REST listing no longer stops at its first page (phone app).** A source with a
+  `totalPath` was fetched once and paged on the device: 77 astronauts showed as "20 total".
+- **Tree listings open on the phone app.** Rows lost their `children`, so only the roots showed.
+- **Picture columns show pictures on the phone app** in cards, list rows and tables, not the url.
+- **A data-authored shell's inbox, search and context pickers work on the phone app.** Their REST
+  sources were never read. The shell's source catalogue is now known before its first screen, which
+  also stops listings failing on a url that was not resolved yet.
+- **A failed REST listing says so on the phone app,** with Try again, rather than "No data"; offline
+  errors read in plain words.
+- **On the phone app, page templates that own their header no longer repeat the title,** banners
+  interpolate `${state.x}`, buttons read on dark bands, and a refused save no longer names fields by
+  their ids.
 - **A field's `initialValue` no longer overwrites a loaded record (Vaadin).** A field declaring one
   announced it as an edit when it mounted, and edits are defended against what arrives later, so a
   YAML page with `data:` showed the default instead of the record, and saving it wrote the default

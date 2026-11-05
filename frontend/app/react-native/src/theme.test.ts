@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { theme } from './theme.ts';
+import { stateLayerOn, theme } from './theme.ts';
 
 /** WCAG 2.x relative luminance / contrast ratio. */
 const luminance = (hex: string): number => {
@@ -95,4 +95,11 @@ test('a themed stylesheet is rebuilt when the scheme changes', async () => {
   assert.notEqual(styles.box.backgroundColor, light);
   applyTheme('light');
   assert.equal(styles.box.backgroundColor, light);
+});
+
+test('a press paints a translucent state layer, so the label under it still reads', () => {
+  assert.match(stateLayerOn(), /^rgba\(\d+,\d+,\d+,0\.12\)$/);
+  assert.equal(stateLayerOn('#111215'), 'rgba(255,255,255,0.24)'); // over a dark fill, white
+  assert.equal(stateLayerOn('#F5F6F8'), 'rgba(0,0,0,0.12)'); // over a light one, black
+  assert.match(stateLayerOn('transparent'), /,0\.12\)$/); // not a colour to read: the scheme's ink
 });

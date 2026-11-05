@@ -1,5 +1,7 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -13,12 +15,12 @@ const CELL_W = 72;
 const LABEL_W = 140;
 const LINE_H = 36;
 
-const TONE_BG: Record<Tone, string> = {
+const TONE_BG: Record<Tone, string> = themed(() => ({
   info: theme.infoBg, success: theme.successBg, warning: theme.warningBg, danger: theme.dangerBg, neutral: theme.background,
-};
-const TONE_INK: Record<Tone, string> = {
+}));
+const TONE_INK: Record<Tone, string> = themed(() => ({
   info: theme.info, success: theme.success, warning: theme.warning, danger: theme.danger, neutral: theme.ink,
-};
+}));
 
 /**
  * Matrix grid (wire `MatrixGrid`): a FIXED left column with the row labels next to a horizontal
@@ -81,7 +83,10 @@ export function MatrixGridRenderer({ metadata }: { metadata: Record<string, unkn
             style={[styles.line, styles.section]}
             onPress={() => setCollapsed((prev) => toggleSection(prev, line.key))}
           >
-            <Text numberOfLines={1} style={styles.sectionText}>{line.collapsed ? '▸' : '▾'} {line.title}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <MIcon name={line.collapsed ? 'chevron-right' : 'chevron-down'} size={18} />
+              <Text numberOfLines={1} style={styles.sectionText}>{line.title}</Text>
+            </View>
           </TouchableOpacity>
         ) : (
           <View key={line.key} style={[styles.line, styles.label]}>
@@ -191,15 +196,15 @@ const styles = themed(() => StyleSheet.create({
   headerText: { fontSize: 12, fontWeight: '700', color: theme.muted, textAlign: 'center' },
   line: { height: LINE_H, justifyContent: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   section: { backgroundColor: theme.background, paddingHorizontal: 8 },
-  sectionText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  sectionText: { fontSize: 14, fontWeight: '700', color: theme.ink },
   label: { paddingHorizontal: 8, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: theme.divider },
-  labelText: { fontSize: 13, color: theme.ink },
+  labelText: { fontSize: 14, color: theme.ink },
   cell: { width: CELL_W, paddingHorizontal: 4 },
-  cellText: { fontSize: 13, color: theme.ink, textAlign: 'right' },
+  cellText: { fontSize: 14, color: theme.ink, textAlign: 'right' },
   bold: { fontWeight: '700' },
   link: { color: theme.info, textDecorationLine: 'underline' },
   input: {
     height: LINE_H - 8, borderWidth: 1, borderColor: theme.info, borderRadius: theme.radiusSm, paddingHorizontal: 4,
-    fontSize: 13, textAlign: 'right', color: theme.ink,
+    fontSize: 14, textAlign: 'right', color: theme.ink,
   },
 }));

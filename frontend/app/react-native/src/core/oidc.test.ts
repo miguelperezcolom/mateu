@@ -8,6 +8,8 @@ import { stubNativePackages } from '../../scripts/test/native-packages.mjs';
 
 stubNativePackages(['expo-auth-session', 'expo-web-browser']);
 
+import { endSessionUrl } from './oidcConfig.ts';
+
 type Json = Record<string, any>;
 const idp = {
   discoveries: 0,
@@ -62,7 +64,7 @@ mock.module('expo-web-browser', {
   namedExports: { maybeCompleteAuthSession: () => { idp.completedAuthSession++; } },
 });
 
-const { OidcTokenProvider, oidcRedirectUri } = await import('./oidc.ts');
+const { OidcTokenProvider, oidcRedirectUri, isRefusedRefresh } = await import('./oidc.ts');
 
 const config = { issuer: 'https://idp/realms/x', clientId: 'mateu-app', scopes: ['openid'], audience: 'api' };
 
@@ -130,11 +132,19 @@ test('an expiring token is refreshed first; the new token is stored and the old 
 
 test('a revoked refresh token ends the session: the stored tokens are removed and no token is offered', async () => {
   const store = memoryStore({ 'mateu.oidc.tokens': stored({ accessToken: 'old', refreshToken: 'rt1', expiresAt: Date.now() - 1 }) });
-  idp.refreshAnswer = new Error('invalid_grant');
+  idp.refreshAnswer = Object.assign(new Error('The refresh token is invalid'), { code: 'invalid_grant' });
   const p = new OidcTokenProvider(config, store);
   assert.equal(await p.getToken(), null);
   assert.equal(store.data.has('mateu.oidc.tokens'), false);
   assert.equal(await p.isSignedIn(), false);
+});
+
+test('a refresh that fails for any other reason (no network, a server error) keeps the session', async () => {
+  const store = memoryStore({ 'mateu.oidc.tokens': stored({ accessToken: 'old', refreshToken: 'rt1', expiresAt: Date.now() - 1000 }) });
+  idp.refreshAnswer = new Error('Network request failed');
+  const p = new OidcTokenProvider(config, store);
+  assert.equal(await p.refresh(), false);
+  assert.equal(store.data.has('mateu.oidc.tokens'), true);
 });
 
 test('refresh without a refresh token is refused without calling the IdP', async () => {
@@ -207,3 +217,17 @@ test('logout without revocation endpoint (or without a session) is local only', 
   await empty.logout();
   assert.equal(idp.discoveries, 0);
 });
+
+test('sign-out also ends the identity provider\'s session, in the browser that holds its cookie', async () => {
+  const url = endSessionUrl('https://idp/logout', 'app', 'the id token', 'mateu://auth');
+  assert.equal(url, 'https://idp/logout?id_token_hint=the%20id%20token&client_id=app&post_logout_redirect_uri=mateu%3A%2F%2Fauth');
+  assert.equal(endSessionUrl(undefined, 'app', 'x', 'r'), undefined);
+  assert.equal(endSessionUrl('https://idp/logout', 'app', undefined, 'r'), undefined);
+});
+
+test('only the identity provider\'s refusal ends a session', () => {
+  assert.equal(isRefusedRefresh({ code: 'invalid_grant' }), true);
+  assert.equal(isRefusedRefresh(new Error('Network request failed')), false);
+  assert.equal(isRefusedRefresh(undefined), false);
+});
+

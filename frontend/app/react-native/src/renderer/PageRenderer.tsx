@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { interpolate } from '../core/expressions';
 import { PageBanner } from '../core/MateuViewController';
@@ -13,6 +14,8 @@ import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
+import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, useFitsContent } from './ScrollContext';
+import { uniqueButtons } from './patternGaps';
 
 interface ButtonDto {
   actionId?: string;
@@ -69,7 +72,7 @@ function Banners({ metadata, state }: { metadata: Record<string, unknown>; state
               {!!banner.description && <Text style={styles.bannerText}>{interpolate(banner.description, { state })}</Text>}
             </View>
             {banner.hasCloseButton && (
-              <IconButton icon="close" size={18} style={styles.bannerClose} accessibilityLabel="Dismiss notice" onPress={() => setDismissed((d) => [...d, i])} />
+              <IconButton icon="close" size={18} hitSlop={8} style={styles.bannerClose} accessibilityLabel="Dismiss notice" onPress={() => setDismissed((d) => [...d, i])} />
             )}
           </View>
         );
@@ -79,13 +82,18 @@ function Banners({ metadata, state }: { metadata: Record<string, unknown>; state
 }
 
 export function PageRenderer({ component, metadata, state, data }: Props) {
+  const fits = useFitsContent();
   const controller = useViewController();
   const runAction = (actionId: string) => void controller.runAction(actionId);
   const ctx = { state, data, appState: controller.session.appState };
 
-  const title = interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
-  const subtitle = interpolate((metadata['subtitle'] as string) ?? '', ctx);
-  const toolbar = (metadata['toolbar'] as ButtonDto[]) ?? [];
+  // a page template that owns the header (WelcomePage, HeroSearchPage…) draws its title in its own
+  // banner: the wire still names it, for the window title, and `noHeader` says not to repeat it
+  const noHeader = metadata['noHeader'] === true;
+  const title = noHeader ? '' : interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
+  const subtitle = noHeader ? '' : interpolate((metadata['subtitle'] as string) ?? '', ctx);
+  // the same button twice (a listing's toolbar folded in more than once) is one button
+  const toolbar = uniqueButtons((metadata['toolbar'] as ButtonDto[]) ?? []);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
   const badges = (metadata['badges'] as { text?: string; color?: string }[]) ?? [];
   const kpis = (metadata['kpis'] as { title?: string; text?: string }[]) ?? [];
@@ -105,7 +113,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const pressButton = useButtonPress();
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, fits && FIT_CONTENT]}>
       {(!!title || !!subtitle || toolbar.length > 0 || !!switcher || !!extras.overline || !!extras.placeholder || !!extras.peers) && (
         <View style={styles.header}>
           {!!extras.overline && <Text style={styles.overline}>{extras.overline}</Text>}
@@ -178,12 +186,16 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         // a page that is just a listing (an AutoCrud's page) IS the listing: edge to edge, scrolling
         // by itself — inside the padded body it was an inset panel and its list a virtualized list
         // nested in a ScrollView
-        <ComponentRenderer component={children[0]} state={state} data={data} />
+        <PageShowsToolbar.Provider value={toolbar.length > 0}>
+          <ComponentRenderer component={children[0]} state={state} data={data} />
+        </PageShowsToolbar.Provider>
       ) : (
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          <InsideVerticalScroll.Provider value><PageShowsToolbar.Provider value={toolbar.length > 0}>
           {children.map((child, i) => (
             <ComponentRenderer key={i} component={child} state={state} data={data} />
           ))}
+          </PageShowsToolbar.Provider></InsideVerticalScroll.Provider>
         </ScrollView>
       )}
 
@@ -230,15 +242,15 @@ const styles = themed(() => StyleSheet.create({
   body: { padding: 16, paddingBottom: 24 },
   banners: { paddingHorizontal: 16, paddingTop: 12, gap: 8 },
   banner: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: theme.radiusMd, borderLeftWidth: 4, padding: 12, gap: 8 },
-  bannerTitle: { fontWeight: '700', fontSize: 13, color: theme.ink, marginBottom: 2 },
-  bannerText: { fontSize: 13, color: theme.ink },
+  bannerTitle: { fontWeight: '700', fontSize: 14, color: theme.ink, marginBottom: 2 },
+  bannerText: { fontSize: 14, color: theme.ink },
   bannerClose: { margin: -6 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
   badgeText: { fontSize: 11, fontWeight: '600', color: theme.ink },
   kpis: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 10 },
   kpi: { alignItems: 'flex-start' },
-  kpiText: { fontSize: 20, fontWeight: '700', color: theme.ink },
+  kpiText: { fontSize: 22, fontWeight: '700', color: theme.ink },
   kpiTitle: { fontSize: 11, color: theme.faint },
   fabStack: { position: 'absolute', right: 16, bottom: 24, gap: 12, alignItems: 'flex-end' },
   bottomBar: {

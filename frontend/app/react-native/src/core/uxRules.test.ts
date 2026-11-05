@@ -67,6 +67,8 @@ test('RN-15 the drawer marks the current destination, tolerant of slashes', () =
 
 test('RN-05 a failed load is explained in plain language with a way forward', () => {
   assert.equal(loadFailureMessage('Failed to fetch').title, "Can't reach the server");
+  // what a phone without a connection answers: never shown as it comes
+  assert.equal(loadFailureMessage('fetch failed: java.net.UnknownHostException: Unable to resolve host "a.b": No address associated with hostname').title, "Can't reach the server");
   assert.equal(loadFailureMessage('Network request failed').title, "Can't reach the server");
   assert.match(loadFailureMessage('HTTP 503').title, /server/);
   assert.match(loadFailureMessage('Request failed with status 401').title, /access/);

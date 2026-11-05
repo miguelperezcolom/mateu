@@ -3,7 +3,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions.t
 import { applyClientRules } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
-import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
@@ -85,6 +85,22 @@ export class MateuViewController {
   private actionValidationRequired: Record<string, boolean> = {};
   private actionRowsSelectedRequired: Record<string, boolean> = {};
   private actionConfirmation: Record<string, ConfirmationDialogTexts> = {};
+  /**
+   * What an action sends as its state: the view's own, over what its mediator's host seeded (an
+   * island's `stayId`) — the server rebuilds the mediator from it, and without it answered as if no
+   * stay were open (the passport scan then belonged to nobody). Edits always win.
+   */
+  private actionState(): Json {
+    return this.mediatorConsumed !== undefined && Object.keys(this.mediatorSeed).length
+      ? { ...this.mediatorSeed, ...this.currentComponentState }
+      : this.currentComponentState;
+  }
+
+  /** The state a mediator's host seeded it with, sent on loads of the mediator's own routes. */
+  private mediatorSeed: Json = {};
+  private mediatorConsumed: string | undefined = undefined;
+  /** Streamed actions the mediator this view came through declared (see the MEDIATOR hop). */
+  private inheritedSse: Record<string, boolean> = {};
   /** Actions answered as a STREAM of increments (`ActionDto.sse` — a LongTask). */
   private actionSse: Record<string, boolean> = {};
   private actionBubble: Record<string, boolean> = {};
@@ -133,6 +149,7 @@ export class MateuViewController {
   /** Periodic refresh: timed OnLoad + OnSuccess triggers, tied to the screen (generation). */
   private readonly polling = new PollingScheduler(
     (actionId) => {
+      if (!this.session.onScreen) return; // a UI the hub keeps hidden: it refreshes when it is back
       if (actionId === 'search') this.seedSearchState();
       // Like every trigger, silent: a failure logs, never a toast. runAction shows no busy
       // indicator here, so `background` needs no extra handling on this renderer.
@@ -218,7 +235,8 @@ export class MateuViewController {
         fromSnapshot = true;
       }
       const increment = await timed(`load ${route || '/'}`, () =>
-        this.session.api.navigate(route, consumedRoute, serverSideType, this.session.appState));
+        this.session.api.navigate(route, consumedRoute, serverSideType, this.session.appState,
+          (consumedRoute ?? '') === this.mediatorConsumed ? { ...this.mediatorSeed } : {}));
       enter();
       this.freshScreen = true;
       this.applyIncrement(increment as Json);
@@ -290,10 +308,12 @@ export class MateuViewController {
         this.fieldErrors = errors;
         // the version bump remounts the field tree — render against the EDITED state
         this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
-        const summary = errorSummary(errors);
+        // the message is under each field, by its label: a summary here could only name the fields
+        // by their ids (`missionId: Cannot be empty`), which mean nothing to whoever is filling it in
+        const summary = 'Check the marked fields.';
         this.session.notify('There are validation errors', summary, 'warning');
         // A toast is a visual affordance: a screen-reader user gets no indication that the save
-        // was refused, let alone why. Speak it.
+        // was refused. Speak it (each field's name carries its error, src/a11y).
         announce(`There are validation errors. ${summary}`);
         return false;
       }
@@ -344,7 +364,7 @@ export class MateuViewController {
             actionId,
             serverSideType: this.resolveActionTarget(actionId) || null,
             initiatorComponentId: this.currentComponentId,
-            componentState: this.currentComponentState,
+            componentState: this.actionState(),
             appState: this.session.appState,
             parameters: parameters ?? {},
           },
@@ -359,7 +379,7 @@ export class MateuViewController {
         actionId,
         serverSideType: this.resolveActionTarget(actionId) || null,
         initiatorComponentId: this.currentComponentId,
-        componentState: this.currentComponentState,
+        componentState: this.actionState(),
         appState: this.session.appState,
         parameters: parameters ?? {},
       });
@@ -504,7 +524,7 @@ export class MateuViewController {
       actionId: '__restfetch__',
       serverSideType: this.currentServerSideType || null,
       initiatorComponentId: this.currentComponentId,
-      componentState: this.currentComponentState,
+      componentState: this.actionState(),
       appState: this.session.appState,
       parameters: { _sourceKind: sourceKind, _sourceId: sourceId, ...extra },
     })) as Json;
@@ -550,7 +570,7 @@ export class MateuViewController {
     this.actionValidationRequired = flags.validationRequired;
     this.actionRowsSelectedRequired = flags.rowsSelectedRequired;
     this.actionConfirmation = flags.confirmation;
-    this.actionSse = flags.sse;
+    this.actionSse = { ...this.inheritedSse, ...flags.sse };
     this.actionBubble = flags.bubble;
     this.actionRestData = flags.restData;
     this.currentValidations = asArray(sscNode['validations']);
@@ -832,7 +852,15 @@ export class MateuViewController {
         if (firstMeta['type'] === 'App' && firstMeta['mockSources'] === true) this.session.sources.setSampleMode(true);
         if (firstIsApp) {
           // Crud MEDIATOR shell: don't render the App chrome — navigate to its home route.
+          // What the mediator says of its actions holds for the view it hands over to: an embedded
+          // editable view advertises its LongTask (`sse`) on the mediator, and the view's own answer
+          // may not repeat it — the scan then went as a plain request and its progress never moved.
+          this.inheritedSse = actionFlagsOf(component['actions']).sse;
           const { route: homeRoute, consumedRoute: homeConsumed, serverSideType: homeSst } = appHomeOf(firstMeta);
+          // …and so does what the host seeded it with (an island's `stayId`): the web's inner view
+          // sends it on its first load and on every reload of the mediator's own routes
+          this.mediatorSeed = serverSideState(component, state);
+          this.mediatorConsumed = homeConsumed ?? '';
           if (homeRoute || homeSst) void this.navigate(homeRoute, homeConsumed, homeSst);
           return;
         }
@@ -914,7 +942,7 @@ export class MateuViewController {
   }
 
   seedSearchState(): void {
-    seedSearchDefaults(this.currentComponentState);
+    seedSearchFromRoute(this.currentComponentState, this.currentRoute);
   }
 
   private handleCommand(cmd: Json): void {
@@ -936,14 +964,14 @@ export class MateuViewController {
       case 'NavigateTo': {
         const href = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['href']);
         if (!href) break;
-        const navTarget = { label: trimSlashes(href), route: href, consumedRoute: '', serverSideType: '' };
+        const navTarget = { label: '', route: href, consumedRoute: '', serverSideType: '' }; // a route is no title: the screen shows its own
         if (this.stackNavigator) {
           // a screen already on the stack is gone back to; a saved form gives its place to the record
           this.stackNavigator(navTarget, isFormRoute(this.currentRoute) && !isFormRoute(href));
         } else if (this.detailOpener) {
           this.detailOpener(navTarget);
         } else {
-          this.session.openView({ label: trimSlashes(href), route: href, consumedRoute: '', serverSideType: '' });
+          this.session.openView({ label: '', route: href, consumedRoute: '', serverSideType: '' });
         }
         break;
       }

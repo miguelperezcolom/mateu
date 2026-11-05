@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
@@ -106,19 +107,19 @@ export function DashboardLayoutRenderer({ component, state }: { component: unkno
 const styles = themed(() => StyleSheet.create({
   metricCard: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 12, gap: 4, flex: 1 },
   metricHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  metricTitle: { fontSize: 13, color: theme.muted, flexShrink: 1 },
+  metricTitle: { fontSize: 14, color: theme.muted, flexShrink: 1 },
   metricIcon: { fontSize: 14, color: theme.faint },
   metricValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   metricValue: { fontSize: 28, fontWeight: '700', lineHeight: 32, color: theme.ink },
-  metricUnit: { fontSize: 15, color: theme.muted },
+  metricUnit: { fontSize: 16, color: theme.muted },
   metricTimeframe: { fontSize: 12, color: theme.muted },
-  metricTrend: { fontSize: 13 },
+  metricTrend: { fontSize: 14 },
   metricDescription: { fontSize: 12, color: theme.faint },
   scoreboard: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   scoreboardItem: { flexGrow: 1, flexBasis: 140 },
   panelCard: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 16, gap: 8 },
   panelCardHeader: { gap: 2 },
   panelCardTitle: { fontSize: 16, fontWeight: '700' },
-  panelCardSubtitle: { fontSize: 13, color: theme.muted },
+  panelCardSubtitle: { fontSize: 14, color: theme.muted },
   dashboard: { gap: 12 },
 }));

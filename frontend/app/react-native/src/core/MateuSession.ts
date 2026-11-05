@@ -110,6 +110,15 @@ export class MateuSession {
 
   /** Host hook: whether the screen on show has unsaved changes (its controller tracks them). */
   hasUnsavedChanges: () => boolean = () => false;
+  /** A hub keeps every opened UI mounted: only the one on screen answers Android's Back, polls, or opens a browser. */
+  private ownOnScreen = true;
+  private readonly storesFromSession?: MateuSession;
+  get onScreen(): boolean {
+    return this.storesFromSession ? this.storesFromSession.onScreen : this.ownOnScreen;
+  }
+  set onScreen(value: boolean) {
+    this.ownOnScreen = value;
+  }
 
   /** Host hook: an @Action(confirmationRequired) question — resolve true to run the action. */
   confirmAction: (texts: ConfirmationDialogTexts) => Promise<boolean> = async () => true;
@@ -120,7 +129,14 @@ export class MateuSession {
   /** Host hook (hub sessions): the shell offers "My UIs" / "Switch UI" entries when set. */
   /** The Mateu hub app around this UI. `claimBar(true)`: the app's own top bar hosts the hub's
    *  actions (switch UI), so the hub hides its bar — one bar, not two stacked. */
-  hub?: { goHome: () => void; openSwitcher: () => void; uiName: string; claimBar?: (claimed: boolean) => void };
+  hub?: {
+    goHome: () => void;
+    openSwitcher: () => void;
+    uiName: string;
+    claimBar?: (claimed: boolean) => void;
+    /** A shell that keeps the hub's bar (tabs, no menu) hands it the way back of the screen on view. */
+    hostBack?: (back: (() => void) | null) => void;
+  };
 
   // ── the assistant chat (App.sseUrl / the Chat component): what the shell lets it do ──
 
@@ -155,9 +171,11 @@ export class MateuSession {
     auth?: TokenProvider | null,
     storesFrom?: MateuSession,
   ) {
+    this.storesFromSession = storesFrom;
     this.credentials = storesFrom?.credentials ?? new CredentialScope(baseUrl);
     this.appContextKeys = storesFrom?.appContextKeys ?? new Set<string>();
     this.api = new MateuApiClient(baseUrl, sessionId, auth, (url) => this.credentials.mayCarryCredentials(url));
+    this.api.mayPrompt = () => this.onScreen;
     this.appState = appState;
     const own = auth !== undefined;
     this.sources = storesFrom?.sources ?? (own ? new RestSourceCatalogue() : sharedRestSources);

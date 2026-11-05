@@ -5,7 +5,7 @@ import { factAction, FACT_ACTION_GLYPH } from './factAction.ts';
 test('a fact with an action runs it with its parameters, named by its own label', () => {
   assert.deepEqual(
     factAction({ label: 'EMPRESA', actionId: 'changeCompany', icon: 'vaadin:pencil', actionLabel: 'Cambiar empresa', parameters: { stayId: 'S-1' } }),
-    { actionId: 'changeCompany', parameters: { stayId: 'S-1' }, label: 'Cambiar empresa', glyph: FACT_ACTION_GLYPH },
+    { actionId: 'changeCompany', parameters: { stayId: 'S-1' }, label: 'Cambiar empresa', glyph: FACT_ACTION_GLYPH, icon: 'pencil-outline' },
   );
 });
 

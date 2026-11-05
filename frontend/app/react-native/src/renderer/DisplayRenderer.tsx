@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Image, ImageBackground, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
-import { Dialog, Portal } from 'react-native-paper';
-import { BoardCard, BoardColumn, KanbanMove, cardRouteOf, cardsFromRows, itemsOf, moveCard, moveParameters, movesOf } from '../core/kanban';
+import { ThemeProvider, useTheme, type MD3Theme } from 'react-native-paper';
 import { fetchExternalJson } from '../core/restFetch';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { isExternalRoute } from '../core/rowOpen';
@@ -67,7 +68,7 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
                   </View>
                 )}
               </View>
-              <Text style={styles.foldoutChevron}>{open[i] ? '▾' : '▸'}</Text>
+              <MIcon name={open[i] ? 'chevron-up' : 'chevron-down'} size={22} />
             </TouchableOpacity>
             {!!open[i] && !!content && (
               <View style={styles.foldoutBody}>
@@ -82,8 +83,25 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
 }
 
 // ── HeroSection ───────────────────────────────────────────────────────────────
+const onBandTheme = (base: MD3Theme, band: string): MD3Theme => ({
+  ...base,
+  colors: {
+    ...base.colors,
+    primary: '#FFFFFF',
+    onPrimary: band,
+    secondaryContainer: 'rgba(255,255,255,0.18)',
+    onSecondaryContainer: '#FFFFFF',
+    outline: 'rgba(255,255,255,0.75)',
+    onSurface: '#FFFFFF',
+    onSurfaceVariant: '#FFFFFF',
+  },
+});
+
 export function HeroSectionRenderer({ component, state }: { component: unknown; state: Dict }) {
-  const m = meta(component) as unknown as HeroSection;
+  const raw = meta(component) as unknown as HeroSection;
+  // a record's banner is a template over its state (`title: ${state.name}`, `image: ${state.photo}`)
+  const hero = (t?: string | null) => (t ? interpolate(t, { state }) : t);
+  const m = { ...raw, overline: hero(raw.overline), title: hero(raw.title), subtitle: hero(raw.subtitle), image: hero(raw.image) };
   const children = childrenOf(component);
   const centered = m.centered !== false;
   const onImage = !!m.image;
@@ -92,12 +110,16 @@ export function HeroSectionRenderer({ component, state }: { component: unknown; 
   const tone = heroToneColors(m.tone);
   const titleInk = !onImage && tone ? { color: tone.title } : null;
   const subtitleInk = !onImage && tone ? { color: tone.subtitle } : null;
+  // on a dark band or a photo the app's accent does not read (blue on blue): the buttons take the
+  // band's own contrast — a filled one is light, an outlined one has light ink and outline
+  const paper = useTheme<MD3Theme>();
+  const onBand = onImage || !!tone;
 
   const content = (
     <View style={[styles.heroContent, { alignItems: centered ? 'center' : 'flex-start' }]}>
       {!!m.overline && (
         // HeroSectionDto.overline: a short quiet line above the title.
-        <Text style={[styles.heroSubtitle, { fontSize: 13, fontWeight: '500' }, onImage && styles.heroTextOnImage, subtitleInk, { textAlign: centered ? 'center' : 'left' }]}>
+        <Text style={[styles.heroSubtitle, { fontSize: 14, fontWeight: '500' }, onImage && styles.heroTextOnImage, subtitleInk, { textAlign: centered ? 'center' : 'left' }]}>
           {m.overline}
         </Text>
       )}
@@ -113,9 +135,11 @@ export function HeroSectionRenderer({ component, state }: { component: unknown; 
       )}
       {children.length > 0 && (
         <View style={[styles.heroCtas, { justifyContent: centered ? 'center' : 'flex-start' }]}>
+          <ThemeProvider theme={onBand ? onBandTheme(paper, tone?.background ?? '#000000') : paper}>
           {children.map((child, i) => (
             <ComponentRenderer key={i} component={child} state={state} />
           ))}
+          </ThemeProvider>
         </View>
       )}
     </View>
@@ -240,127 +264,8 @@ export function GanttRenderer({ component }: { component: unknown }) {
   );
 }
 
-// ── Kanban (horizontal scroll of columns, each a stack of cards) ──────────────
-export function KanbanRenderer({ component }: { component: unknown }) {
-  const controller = useViewController();
-  const m = meta(component);
-  const declared = (m['columns'] as KanbanColumn[]) ?? [];
-  const moveActionId = m['moveActionId'] as string | undefined;
-  const rowsSource = m['rowsSource'] as Record<string, unknown> | undefined;
-  const cardRoute = m['cardRoute'] as string | undefined;
-  const [live, setLive] = useState<BoardColumn[] | undefined>(undefined);
-  // the board right after a move, until the action answers (put back when it fails)
-  const [optimistic, setOptimistic] = useState<BoardColumn[] | undefined>(undefined);
-  const [picking, setPicking] = useState<{ cardId: string; columnId: string; title: string } | undefined>(undefined);
-  const [reload, setReload] = useState(0);
-  // the server re-rendered the board: it is the truth now
-  useEffect(() => { setOptimistic(undefined); }, [declared]);
-  // a LIVE board reads its source (proxied by the board id, or direct) — again after every move
-  const sourceKey = rowsSource ? JSON.stringify(rowsSource) : '';
-  useEffect(() => {
-    if (!rowsSource) return;
-    let cancelled = false;
-    const sources = controller.session.sources;
-    const resolved = sources.resolve(rowsSource) as { itemsPath?: string };
-    const ctx = { state: controller.currentComponentState, appState: controller.session.appState };
-    const json = sources.viaProxy(rowsSource)
-      ? controller.fetchViaProxy('rows', String((component as Dict)?.['id'] ?? 'kanban'))
-      : fetchExternalJson(rowsSource, (t) => interpolate(String(t ?? ''), ctx), (t) => interpolateUrl(String(t ?? ''), ctx), sources);
-    json
-      .then((j) => {
-        if (cancelled) return;
-        setLive(cardsFromRows({
-          columns: declared, columnField: m['columnField'] as string | undefined,
-          card: m['card'] as KanbanCard | undefined,
-          cardColors: m['cardColors'] as Record<string, string> | undefined,
-          orderField: m['orderField'] as string | undefined,
-        }, itemsOf(j, resolved.itemsPath)));
-        setOptimistic(undefined);
-      })
-      .catch((e) => console.warn('mateu: kanban items fetch failed', e));
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceKey, reload]);
-
-  const shown: BoardColumn[] = optimistic ?? live ?? declared;
-  const commit = async (move: KanbanMove) => {
-    setPicking(undefined);
-    const card = shown.find((c) => c.id === move.fromColumnId)?.cards?.find((c) => c.id === move.cardId);
-    if (!moveActionId || !card) return;
-    const after = moveCard(shown, move);
-    setOptimistic(after);
-    const ok = await controller.runAction(moveActionId, moveParameters(card, move, m['orderField'] as string | undefined, after));
-    if (!ok) {
-      setOptimistic(undefined);
-      announce('The card could not be moved; it is back where it was');
-    } else if (rowsSource) {
-      setReload((r) => r + 1);
-    }
-  };
-  const open = (card: BoardCard) => {
-    const route = cardRouteOf(cardRoute, card);
-    if (route) {
-      if (isExternalRoute(route)) openExternal(route.startsWith('//') ? 'https:' + route : route);
-      else controller.session.openView({ label: '', route, consumedRoute: '', serverSideType: '' });
-      return;
-    }
-    if (card.actionId) {
-      const { row, ...plain } = card;
-      void controller.runAction(card.actionId, { ...(row ?? {}), _clickedCard: plain });
-    }
-  };
-  return (
-    <>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.kanbanBoard}>
-      {shown.map((col, i) => (
-        <View key={col.id ?? i} style={styles.kanbanColumn}>
-          <View style={[styles.kanbanHead, { borderBottomColor: col.color ?? theme.border }]}>
-            <Text style={styles.kanbanTitle} numberOfLines={1}>{col.title ?? ''}</Text>
-            <Text style={styles.kanbanCount}>{col.cards?.length ?? 0}</Text>
-          </View>
-          {(col.cards ?? []).map((card, j) => {
-            const movable = !!moveActionId && !!card.id && !!col.id;
-            const pick = () => setPicking({ cardId: card.id!, columnId: col.id!, title: card.title ?? '' });
-            const body = (
-              <View style={[styles.kanbanCard, { borderLeftColor: card.color ?? 'transparent' }]}>
-                <Text style={[styles.kanbanCardTitle, movable && styles.kanbanCardTitleMovable]}>{card.title ?? ''}</Text>
-                {!!card.description && <Text style={styles.kanbanCardDesc}>{card.description}</Text>}
-                {!!card.badge && <Text style={styles.kanbanBadge}>{card.badge}</Text>}
-                {movable && (
-                  <TouchableOpacity {...buttonA11y({ label: `Move ${card.title ?? ''}` })} style={styles.kanbanMove} onPress={pick}>
-                    <Text style={styles.kanbanMoveText}>⋯</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            );
-            const acts = !!card.actionId || !!cardRouteOf(cardRoute, card);
-            return acts || movable ? (
-              <TouchableOpacity {...buttonA11y()} key={card.id ?? j} disabled={!acts && !movable}
-                onPress={acts ? () => open(card) : undefined} onLongPress={movable ? pick : undefined}>
-                {body}
-              </TouchableOpacity>
-            ) : <View key={card.id ?? j}>{body}</View>;
-          })}
-        </View>
-      ))}
-    </ScrollView>
-    {/* "Move…": the touch (and screen reader) way of dragging a card — up/down or to another column */}
-    <Portal>
-      <Dialog visible={!!picking} onDismiss={() => setPicking(undefined)}>
-        <Dialog.Title>{`Move ${picking?.title ?? ''}`}</Dialog.Title>
-        <Dialog.Content>
-          {picking && movesOf(shown, picking.cardId, picking.columnId).map((item) => (
-            <TouchableOpacity {...buttonA11y({ label: item.label })} key={item.label} style={styles.kanbanMoveRow}
-              onPress={() => void commit(item.move)}>
-              <Text>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </Dialog.Content>
-      </Dialog>
-    </Portal>
-    </>
-  );
-}
+// ── Kanban: see KanbanRenderer.tsx ───────────────────────────────────────────
+export { KanbanRenderer } from './KanbanRenderer';
 
 // ── Timeline (vertical rail of dots with title / timestamp / description) ─────
 export function TimelineRenderer({ component }: { component: unknown }) {
@@ -401,6 +306,29 @@ export function TimelineRenderer({ component }: { component: unknown }) {
 // ── ProgressSteps (mobile: a compact vertical stepper) ────────────────────────
 export function ProgressStepsRenderer({ component }: { component: unknown }) {
   const steps = (meta(component)['steps'] as Step[]) ?? [];
+  // Bullets in a row, the current step named under them: on a phone a vertical list of seven steps
+  // pushed the step's form below the fold. A wizard that asks for its rail (`vertical`) keeps it.
+  if (meta(component)['vertical'] !== true && steps.length > 1) {
+    const current = Math.max(0, steps.findIndex((s) => String(s.status ?? '').toLowerCase() === 'current'));
+    return (
+      <View style={styles.stepsCompact} accessibilityRole="progressbar" accessibilityLabel={`${current + 1} / ${steps.length}: ${steps[current]?.title ?? ''}`}>
+        <View style={styles.stepsCompactRow}>
+          {steps.map((s, i) => {
+            const look = stepLook(s.status, i);
+            return (
+              <React.Fragment key={s.id ?? i}>
+                {i > 0 && <View style={[styles.stepsCompactLine, { backgroundColor: look.lineColor }]} />}
+                <View style={[styles.stepsCompactDot, { backgroundColor: look.dotColor, borderColor: look.borderColor }]}>
+                  <Text style={[styles.stepsCompactDotText, { color: look.textColor }]}>{look.glyph}</Text>
+                </View>
+              </React.Fragment>
+            );
+          })}
+        </View>
+        <Text style={styles.stepsCompactTitle} numberOfLines={1}>{`${current + 1}/${steps.length} · ${steps[current]?.title ?? ''}`}</Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.steps}>
       {steps.map((s, i) => {
@@ -606,7 +534,7 @@ function OrgFocusCard({ node, variant, onFocus }: { node: OrgNode; variant: 'anc
         <Image source={{ uri: node.avatar }} style={{ width: size, height: size, borderRadius: size / 2 }} />
       ) : (
         <View style={[styles.orgBadge, { width: size, height: size, borderRadius: size / 2, backgroundColor: accent }]}>
-          <Text style={[styles.orgBadgeText, big && { fontSize: 20 }]}>{orgInitials(node)}</Text>
+          <Text style={[styles.orgBadgeText, big && { fontSize: 22 }]}>{orgInitials(node)}</Text>
         </View>
       )}
       <View style={{ flex: 1 }}>
@@ -747,7 +675,7 @@ export function FaqRenderer({ component }: { component: unknown }) {
         <View key={i} style={styles.faqItem}>
           <TouchableOpacity {...buttonA11y()} style={styles.faqQ} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
             <Text style={styles.faqQText}>{it.question ?? ''}</Text>
-            <Text style={styles.faqChevron}>{open[i] ? '⌄' : '›'}</Text>
+            <MIcon name={open[i] ? 'chevron-up' : 'chevron-down'} size={22} />
           </TouchableOpacity>
           {open[i] && <Text style={styles.faqA}>{it.answer ?? ''}</Text>}
         </View>
@@ -856,7 +784,7 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
       {items.map((it, i) => (
         <TouchableOpacity {...buttonA11y()} key={it.id ?? i} style={styles.checkItem} onPress={() => toggle(it, i)}>
           <View style={[styles.checkBox, done[i] && styles.checkBoxDone]}>
-            {done[i] && <Text style={styles.checkMark}>✓</Text>}
+            {done[i] && <MIcon name="check" size={16} color={theme.onPrimary} />}
           </View>
           <Text style={[styles.checkLabel, done[i] && styles.checkLabelDone]}>{it.label ?? ''}</Text>
         </TouchableOpacity>
@@ -901,7 +829,7 @@ export function EntityHeaderRenderer({ component }: { component: unknown }) {
                         style={styles.entityFactAction}
                         onPress={() => void controller.runAction(action.actionId, action.parameters)}
                       >
-                        <Text style={styles.entityFactActionGlyph}>{action.glyph}</Text>
+                        {action.icon ? <MIcon name={action.icon} size={20} color={theme.primary} /> : <Text style={styles.entityFactActionGlyph}>{action.glyph}</Text>}
                       </TouchableOpacity>
                     )}
                   </View>
@@ -1017,7 +945,9 @@ export function NoticeRenderer({ component, state, renderComponent }: {
   const noIcon = m['noIcon'] === true;
   const slim = m['slim'] === true;
   const children = ((component as Record<string, unknown>)['children'] as unknown[]) ?? [];
-  const { hasText, shows } = noticeShows(m['text'], children.length);
+  // a declarative @Notice says `${state.field}`: the field's value is the text, and no value hides it
+  const text = typeof m['text'] === 'string' ? interpolate(m['text'] as string, { state: state ?? controller.currentComponentState }) : m['text'];
+  const { hasText, shows } = noticeShows(text, children.length);
   if (!shows) return null;
   return (
     <View style={[styles.notice, slim && styles.noticeSlim, { backgroundColor: colors.bg }]}>
@@ -1027,7 +957,7 @@ export function NoticeRenderer({ component, state, renderComponent }: {
         </View>
       )}
       <View style={[styles.noticeBody, m['inlineContent'] === true && styles.noticeBodyInline]}>
-        {hasText && <Text style={[styles.noticeText, { color: colors.ink }]}>{(m['text'] as string) ?? ''}</Text>}
+        {hasText && <Text style={[styles.noticeText, { color: colors.ink }]}>{(text as string) ?? ''}</Text>}
         {children.map((child, i) => (
           <View key={i}>{renderComponent?.(child, state ?? {}, () => {}) as React.ReactNode}</View>
         ))}
@@ -1406,9 +1336,9 @@ const styles = themed(() => StyleSheet.create({
   heroCtas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   // EmptyState
   emptyState: { alignItems: 'center', justifyContent: 'center', gap: 6, padding: 24 },
-  emptyIcon: { fontSize: 30, opacity: 0.6 },
+  emptyIcon: { fontSize: 32, opacity: 0.6 },
   emptyTitle: { fontWeight: '600', color: theme.ink },
-  emptyDescription: { fontSize: 13, color: theme.muted, textAlign: 'center' },
+  emptyDescription: { fontSize: 14, color: theme.muted, textAlign: 'center' },
   emptyBtn: { marginTop: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, backgroundColor: theme.background, borderWidth: 1, borderColor: theme.border },
   emptyBtnText: { color: theme.primary, fontSize: 14 },
   // Skeleton
@@ -1427,26 +1357,13 @@ const styles = themed(() => StyleSheet.create({
   ganttLabelRow: { height: GANTT_ROW_H, justifyContent: 'center' },
   ganttLabel: { fontSize: 12, color: theme.ink },
   ganttHeader: { height: GANTT_HEADER_H },
-  ganttMonth: { position: 'absolute', top: 2, fontSize: 10, color: theme.faint },
+  ganttMonth: { position: 'absolute', top: 2, fontSize: 11, color: theme.faint },
   ganttRow: { height: GANTT_ROW_H, justifyContent: 'center' },
   ganttBar: { position: 'absolute', height: 18, borderRadius: 4, overflow: 'hidden', justifyContent: 'center' },
   ganttProgress: { height: '100%', backgroundColor: 'rgba(0,0,0,0.25)' },
   ganttToday: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: theme.danger },
   ganttEmpty: { fontSize: 12, color: theme.faint, fontStyle: 'italic' },
   // Kanban
-  kanbanBoard: { gap: 12, paddingBottom: 4 },
-  kanbanColumn: { width: 220, gap: 8, backgroundColor: theme.background, borderRadius: 12, padding: 10 },
-  kanbanHead: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 6, borderBottomWidth: 2 },
-  kanbanTitle: { fontWeight: '600', flex: 1, color: theme.ink },
-  kanbanCount: { fontSize: 12, color: theme.muted, backgroundColor: theme.border, borderRadius: 999, paddingHorizontal: 8, overflow: 'hidden' },
-  kanbanCard: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderLeftWidth: 3, borderRadius: 8, padding: 10, gap: 4 },
-  kanbanCardTitle: { fontWeight: '600', color: theme.ink },
-  kanbanCardDesc: { fontSize: 12, color: theme.muted },
-  kanbanCardTitleMovable: { paddingRight: 28 },
-  kanbanMove: { position: 'absolute', top: 4, right: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  kanbanMoveText: { fontSize: 18, color: theme.muted },
-  kanbanMoveRow: { paddingVertical: 12 },
-  kanbanBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '600', color: theme.primary, backgroundColor: 'rgba(26,115,232,0.1)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 1, overflow: 'hidden' },
   // Timeline
   timeline: {},
   timelineRow: { flexDirection: 'row', gap: 10 },
@@ -1461,10 +1378,16 @@ const styles = themed(() => StyleSheet.create({
   timelineDesc: { color: theme.muted, marginTop: 2 },
   // ProgressSteps (vertical on mobile)
   steps: {},
+  stepsCompact: { gap: 8, paddingVertical: 4 },
+  stepsCompactRow: { flexDirection: 'row', alignItems: 'center' },
+  stepsCompactDot: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  stepsCompactDotText: { fontWeight: '700', fontSize: 11 },
+  stepsCompactLine: { flex: 1, height: 2, marginHorizontal: 2 },
+  stepsCompactTitle: { fontWeight: '600', color: theme.ink, fontSize: 16 },
   stepRow: { flexDirection: 'row', gap: 10 },
   stepRail: { alignItems: 'center', width: 32 },
   stepDot: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  stepDotText: { fontWeight: '700', fontSize: 13 },
+  stepDotText: { fontWeight: '700', fontSize: 14 },
   stepLine: { flex: 1, width: 2, marginVertical: 2, minHeight: 10 },
   stepBody: { flex: 1, paddingBottom: 18, paddingTop: 4 },
   stepTitle: { fontWeight: '600', color: theme.ink },
@@ -1474,7 +1397,7 @@ const styles = themed(() => StyleSheet.create({
   statTile: { padding: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 12, backgroundColor: theme.white, gap: 2, minWidth: 150 },
   statLabel: { fontSize: 12, color: theme.muted },
   statValue: { fontSize: 28, fontWeight: '700', color: theme.ink },
-  statUnit: { fontSize: 15, fontWeight: '500', color: theme.faint },
+  statUnit: { fontSize: 16, fontWeight: '500', color: theme.faint },
   statFoot: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4, gap: 8 },
   statDelta: { fontSize: 12, fontWeight: '600' },
   statSpark: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, height: 26 },
@@ -1485,7 +1408,7 @@ const styles = themed(() => StyleSheet.create({
   planCardFeatured: { borderColor: theme.primary, borderWidth: 2 },
   planBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '700', color: theme.onFill, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   planName: { fontWeight: '600', color: theme.muted },
-  planPrice: { fontSize: 30, fontWeight: '800', color: theme.ink },
+  planPrice: { fontSize: 32, fontWeight: '800', color: theme.ink },
   planPeriod: { fontSize: 14, fontWeight: '500', color: theme.faint },
   planFeature: { color: theme.ink, fontSize: 14 },
   planCta: { marginTop: 6, borderRadius: 8, paddingVertical: 12, alignItems: 'center', backgroundColor: theme.divider },
@@ -1495,19 +1418,19 @@ const styles = themed(() => StyleSheet.create({
   // OrgChart (indented tree)
   org: { gap: 6 },
   orgRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderLeftWidth: 3, paddingLeft: 8, paddingVertical: 6, backgroundColor: theme.background, borderRadius: theme.radiusSm },
-  orgAvatar: { fontSize: 18 },
+  orgAvatar: { fontSize: 16 },
   orgTitle: { fontWeight: '600', color: theme.ink },
   orgSubtitle: { fontSize: 12, color: theme.faint },
   // OrgChart in focus
   orgFocus: { gap: 8 },
   orgMore: { alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: theme.background },
-  orgMoreText: { fontSize: 13, fontWeight: '600', color: theme.primary },
+  orgMoreText: { fontSize: 14, fontWeight: '600', color: theme.primary },
   orgCard: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderWidth: 1, borderColor: theme.border, borderLeftWidth: 3, borderRadius: theme.radiusSm, backgroundColor: theme.white },
   orgCardFocused: { padding: 16, borderWidth: 2, borderLeftWidth: 4 },
   orgConnector: { width: 2, height: 12, marginLeft: 27, backgroundColor: theme.border },
   orgBadge: { alignItems: 'center', justifyContent: 'center' },
   orgBadgeText: { color: theme.onFill, fontWeight: '700', fontSize: 14 },
-  orgFocusTitle: { fontSize: 18, fontWeight: '700', color: theme.ink },
+  orgFocusTitle: { fontSize: 16, fontWeight: '700', color: theme.ink },
   orgLink: { color: theme.primary, textDecorationLine: 'underline' },
   orgReports: { marginTop: 8, fontSize: 14, fontWeight: '700', color: theme.muted },
   orgGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -1534,13 +1457,13 @@ const styles = themed(() => StyleSheet.create({
   featureCard: { padding: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 12, backgroundColor: theme.white, gap: 4 },
   featureIcon: { fontSize: 24 },
   featureTitle: { fontWeight: '700', color: theme.ink },
-  featureDesc: { color: theme.muted, fontSize: 13 },
+  featureDesc: { color: theme.muted, fontSize: 14 },
   // Testimonials
   testimonials: { gap: 10 },
   testimonialCard: { padding: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 12, backgroundColor: theme.white, gap: 6 },
   testimonialStars: { color: theme.warning, letterSpacing: 1 },
   testimonialQuote: { fontStyle: 'italic', color: theme.ink, lineHeight: 20 },
-  testimonialAuthor: { color: theme.muted, fontSize: 13 },
+  testimonialAuthor: { color: theme.muted, fontSize: 14 },
   // Faq
   faq: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' },
   faqItem: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
@@ -1566,7 +1489,7 @@ const styles = themed(() => StyleSheet.create({
   // FileList
   fileList: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' },
   fileRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
-  fileIcon: { fontSize: 20 },
+  fileIcon: { fontSize: 22 },
   fileName: { flex: 1, fontWeight: '500', color: theme.ink },
   fileSize: { color: theme.faint, fontSize: 12 },
   // Checklist
@@ -1579,7 +1502,7 @@ const styles = themed(() => StyleSheet.create({
   checkItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
   checkBox: { width: 20, height: 20, borderRadius: 5, borderWidth: 2, borderColor: theme.border, alignItems: 'center', justifyContent: 'center' },
   checkBoxDone: { backgroundColor: theme.success, borderColor: theme.success },
-  checkMark: { color: theme.onFill, fontSize: 13, fontWeight: '700' },
+  checkMark: { color: theme.onFill, fontSize: 14, fontWeight: '700' },
   checkLabel: { color: theme.ink, flex: 1 },
   checkLabelDone: { color: theme.faint, textDecorationLine: 'line-through' },
   // ComparisonCard
@@ -1588,22 +1511,22 @@ const styles = themed(() => StyleSheet.create({
   cmpRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cmpSide: { flex: 1, alignItems: 'center' },
   cmpLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: theme.faint },
-  cmpValue: { fontSize: 26, fontWeight: '800', color: theme.ink, marginTop: 2 },
+  cmpValue: { fontSize: 28, fontWeight: '800', color: theme.ink, marginTop: 2 },
   cmpMid: { alignItems: 'center', gap: 4 },
-  cmpArrow: { fontSize: 18, color: theme.faint },
+  cmpArrow: { fontSize: 16, color: theme.faint },
   cmpDelta: { fontWeight: '700', fontSize: 12, borderRadius: 999, paddingVertical: 2, paddingHorizontal: 8, overflow: 'hidden' },
   // Shared chip (badge palette)
-  uxChip: { color: theme.onFill, fontSize: 10, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden', alignSelf: 'flex-start' },
+  uxChip: { color: theme.onFill, fontSize: 11, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden', alignSelf: 'flex-start' },
   // EntityHeader
   entityHeader: { flexDirection: 'row', gap: 16, padding: 16, borderWidth: 1, borderColor: theme.border, borderRadius: 14, backgroundColor: theme.background },
   entityLeft: { flex: 1, gap: 4 },
   entityTitleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
-  entityTitle: { fontSize: 18, fontWeight: '700', color: theme.ink },
-  entitySubtitle: { color: theme.muted, fontSize: 13 },
+  entityTitle: { fontSize: 16, fontWeight: '700', color: theme.ink },
+  entitySubtitle: { color: theme.muted, fontSize: 14 },
   entityFacts: { flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
   entityFact: { gap: 1 },
-  entityFactLabel: { fontSize: 10, fontWeight: '700', color: theme.faint, letterSpacing: 0.6 },
-  entityFactValue: { fontSize: 13, fontWeight: '500', color: theme.ink },
+  entityFactLabel: { fontSize: 11, fontWeight: '700', color: theme.faint, letterSpacing: 0.6 },
+  entityFactValue: { fontSize: 14, fontWeight: '500', color: theme.ink },
   entityFactValueRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   entityFactAction: { paddingHorizontal: 4, paddingVertical: 2, borderRadius: 6 },
   entityFactActionGlyph: { fontSize: 14, color: theme.primary },
@@ -1619,20 +1542,20 @@ const styles = themed(() => StyleSheet.create({
   meterCaption: { fontSize: 12, color: theme.faint },
   // TaskProgress
   taskProgress: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10, padding: 12, borderRadius: 12 },
-  taskProgressIcon: { fontSize: 18 },
+  taskProgressIcon: { fontSize: 16 },
   taskProgressLabel: { flex: 1, color: theme.ink, fontWeight: '500', minWidth: 120 },
   taskProgressPills: { flexDirection: 'row', gap: 4 },
   taskProgressPill: { fontSize: 11, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden' },
   taskProgressPillDone: { backgroundColor: theme.success, color: theme.onFill },
   taskProgressPillTodo: { borderWidth: 1, borderColor: theme.faint, color: theme.muted },
   taskProgressBtn: { backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
-  taskProgressBtnText: { color: theme.onFill, fontWeight: '600', fontSize: 13 },
+  taskProgressBtnText: { color: theme.onFill, fontWeight: '600', fontSize: 14 },
   // Notice
   notice: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
   noticeSlim: { paddingVertical: 3, paddingHorizontal: 8, gap: 6 },
   noticeIcon: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   noticeIconText: { color: theme.onFill, fontSize: 11, fontWeight: '700' },
-  noticeText: { fontWeight: '600', fontSize: 13 },
+  noticeText: { fontWeight: '600', fontSize: 14 },
   noticeBody: { flex: 1, gap: 4 },
   noticeBodyInline: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   noticeBtn: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
@@ -1647,10 +1570,10 @@ const styles = themed(() => StyleSheet.create({
   statusListFrameless: { borderWidth: 0, borderRadius: 0 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
   statusRowCompact: { gap: 8, paddingVertical: 5, paddingHorizontal: 10 },
-  statusIcon: { fontSize: 18 },
+  statusIcon: { fontSize: 16 },
   statusAvatar: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(26,115,232,.12)' },
   statusAvatarCompact: { width: 24, height: 24, borderRadius: 12 },
-  statusAvatarText: { color: theme.primary, fontWeight: '600', fontSize: 10, letterSpacing: 0.3 },
+  statusAvatarText: { color: theme.primary, fontWeight: '600', fontSize: 11, letterSpacing: 0.3 },
   statusBody: { flex: 1, gap: 1 },
   statusTitle: { fontWeight: '600', color: theme.ink },
   statusDesc: { fontSize: 12, color: theme.faint },
@@ -1659,9 +1582,9 @@ const styles = themed(() => StyleSheet.create({
   // TaskQueue
   taskQueue: { gap: 14 },
   taskQueueGroup: { gap: 8 },
-  taskQueueGroupLabel: { fontSize: 10, fontWeight: '700', color: theme.faint, letterSpacing: 0.8 },
+  taskQueueGroupLabel: { fontSize: 11, fontWeight: '700', color: theme.faint, letterSpacing: 0.8 },
   queueCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 10, padding: 10, gap: 4, backgroundColor: theme.white },
-  queueCardSelected: { borderColor: theme.primary, borderWidth: 2, backgroundColor: 'rgba(26,115,232,0.08)' },
+  queueCardSelected: { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.primaryContainer },
   queueCardTitle: { fontWeight: '600', color: theme.ink },
   queueCardFoot: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
   queueCardCaption: { fontSize: 12, color: theme.faint, fontVariant: ['tabular-nums'] },
@@ -1669,23 +1592,23 @@ const styles = themed(() => StyleSheet.create({
   resourceGrid: { flexDirection: 'row', flexWrap: 'wrap', margin: -4 },
   resourceCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 10, padding: 10, gap: 4, backgroundColor: theme.white, minHeight: 88 },
   resourceCardAccent: { borderColor: theme.primary, borderWidth: 2 },
-  resourceCardSelected: { backgroundColor: 'rgba(26,115,232,0.08)' },
+  resourceCardSelected: { backgroundColor: theme.primaryContainer },
   resourceCardDisabled: { opacity: 0.45 },
-  resourceTag: { alignSelf: 'flex-start', fontSize: 8, fontWeight: '800', color: theme.onFill, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden', letterSpacing: 0.5 },
-  resourceTitle: { fontSize: 17, fontWeight: '700', color: theme.ink },
+  resourceTag: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '800', color: theme.onFill, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden', letterSpacing: 0.5 },
+  resourceTitle: { fontSize: 16, fontWeight: '700', color: theme.ink },
   resourceSubtitle: { fontSize: 12, color: theme.faint },
   resourceNote: { fontSize: 11 },
   // OfferCard
   offerCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 14, overflow: 'hidden', backgroundColor: theme.white },
   offerCardAccent: { borderColor: theme.primary, borderWidth: 2 },
   offerImage: { width: '100%', aspectRatio: 16 / 9 },
-  offerTag: { alignSelf: 'flex-start', fontSize: 10, fontWeight: '800', color: theme.onFill, backgroundColor: theme.ink, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', letterSpacing: 0.5 },
+  offerTag: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '800', color: theme.onFill, backgroundColor: theme.ink, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', letterSpacing: 0.5 },
   offerTagFloating: { position: 'absolute', top: 10, left: 10 },
   offerBody: { padding: 14, gap: 6 },
-  offerTitle: { fontSize: 17, fontWeight: '700', color: theme.ink },
-  offerSubtitle: { fontSize: 13, color: theme.muted },
+  offerTitle: { fontSize: 16, fontWeight: '700', color: theme.ink },
+  offerSubtitle: { fontSize: 14, color: theme.muted },
   offerFeatures: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  offerFeature: { fontSize: 12, color: theme.ink, borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  offerFeature: { fontSize: 12, color: theme.ink, borderWidth: 1, borderColor: theme.border, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   offerCurrentLabel: { color: theme.faint, fontWeight: '500', marginTop: 4 },
   offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
   offerCtaAdded: { backgroundColor: theme.success },
@@ -1698,7 +1621,7 @@ const styles = themed(() => StyleSheet.create({
   addOnGrid: { gap: 8 },
   addOnCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, padding: 12, gap: 6, backgroundColor: theme.white },
   addOnCardHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  addOnIcon: { fontSize: 20 },
+  addOnIcon: { fontSize: 22 },
   addOnTitle: { fontWeight: '600', color: theme.ink },
   addOnDesc: { fontSize: 12, color: theme.faint },
   addOnToggle: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
@@ -1706,26 +1629,26 @@ const styles = themed(() => StyleSheet.create({
   addOnToggleText: { color: theme.primary, fontWeight: '700', fontSize: 16 },
   addOnToggleTextAdded: { color: theme.onFill },
   addOnPrice: { color: theme.primary, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  addOnIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 13 },
+  addOnIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 14 },
   // Ledger
   ledger: { gap: 6 },
   ledgerRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
   ledgerConcept: { flex: 1, color: theme.ink },
   ledgerAmount: { color: theme.ink, fontWeight: '600', fontVariant: ['tabular-nums'] },
   ledgerAmountNegative: { color: theme.danger },
-  ledgerIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 13 },
-  ledgerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#d4d4d8', marginVertical: 4 },
+  ledgerIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 14 },
+  ledgerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: theme.divider, marginVertical: 4 },
   ledgerTotalLabel: { fontWeight: '700', color: theme.ink },
-  ledgerTotal: { fontSize: 18, fontWeight: '800', color: theme.ink, fontVariant: ['tabular-nums'] },
+  ledgerTotal: { fontSize: 16, fontWeight: '800', color: theme.ink, fontVariant: ['tabular-nums'] },
   // PaymentPicker
   paymentPicker: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
   paymentMethods: { flexDirection: 'row', gap: 6 },
-  paymentMethod: { borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  paymentMethodSelected: { borderColor: theme.primary, borderWidth: 2, backgroundColor: 'rgba(26,115,232,0.08)' },
+  paymentMethod: { borderWidth: 1, borderColor: theme.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+  paymentMethodSelected: { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.primaryContainer },
   paymentMethodText: { color: theme.ink, fontWeight: '500' },
   paymentMethodTextSelected: { color: theme.primary, fontWeight: '700' },
   paymentContext: { backgroundColor: 'rgba(18,183,106,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, gap: 1 },
-  paymentContextLabel: { fontSize: 9, fontWeight: '700', color: theme.success, letterSpacing: 0.6 },
+  paymentContextLabel: { fontSize: 11, fontWeight: '700', color: theme.success, letterSpacing: 0.6 },
   paymentContextValue: { fontWeight: '700', color: theme.ink, fontVariant: ['tabular-nums'] },
   paymentConfirm: { marginLeft: 'auto', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 11 },
   paymentConfirmText: { color: theme.onFill, fontWeight: '700' },
@@ -1739,5 +1662,5 @@ const styles = themed(() => StyleSheet.create({
   processCounters: { flexDirection: 'row', gap: 10 },
   processCounter: { fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] },
   processBtn: { borderWidth: 1, borderColor: theme.warning, backgroundColor: 'rgba(240,171,0,0.12)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
-  processBtnText: { color: '#8a6100', fontWeight: '600', fontSize: 12 },
+  processBtnText: { color: theme.warning, fontWeight: '600', fontSize: 12 },
 }));

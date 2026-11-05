@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Modal, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, FlatList, Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
-import { buttonActionId, effectiveListingLayout, rowCheckboxLabel } from '../core/uxRules';
+import { buttonActionId, effectiveListingLayout, loadFailureMessage, rowCheckboxLabel } from '../core/uxRules';
 import { splitCreateAction } from '../core/phoneLayout';
 import { canMove, dropOn, moveToLabel, zoneLabel, type MountedDropZone } from './dragDrop';
 import { useViewController } from './MateuViewHost';
 import { SavedView } from './savedViews';
 import { interpolate, interpolateUrl } from '../core/expressions';
-import { fetchExternalJson, mapItemsToRows } from '../core/restFetch';
+import { fetchExternalJson, getByPath, mapItemsToRows } from '../core/restFetch';
+import { FIT_CONTENT, useFitsContent, useInsideVerticalScroll, usePageShowsToolbar } from './ScrollContext';
+import { routeQueryOf } from '../core/componentContext';
 import { restListingPage } from '../core/restListing';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
@@ -41,7 +44,10 @@ import {
   extractListing,
   cellTone,
   firstRowAction as firstRowActionOf,
+  cardLayoutOf,
+  isImageColumn,
   listRowModel,
+  pictureUrlOf,
   nextSort,
   normalizeCrudData,
   pagingOf,
@@ -87,7 +93,9 @@ interface Props {
 // never be reached — announced as a checkbox with its state and the row it selects.
 
 export function CrudRenderer({ component, metadata, state, data }: Props) {
+  const fits = useFitsContent();
   const controller = useViewController();
+  const nestedInScroll = useInsideVerticalScroll();
 
   const title = (metadata['title'] as string) ?? '';
   const subtitle = (metadata['subtitle'] as string) ?? '';
@@ -96,7 +104,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const columns = flattenColumnGroups((metadata['columns'] as ColumnMeta[]) ?? []);
   // The listing's create action (`new`) is its screen's primary action: a Material extended FAB
   // ("+ New") instead of one more pill in the action row; the other toolbar buttons stay there.
-  const { create: createButton, rest: toolbar } = splitCreateAction((metadata['toolbar'] as ButtonDto[]) ?? []);
+  // a routed listing's toolbar is shown by its page (the web's rule): not twice
+  const pageShowsToolbar = usePageShowsToolbar();
+  const { create: createButton, rest: toolbar } = splitCreateAction(pageShowsToolbar ? [] : ((metadata['toolbar'] as ButtonDto[]) ?? []));
   // the FAB floats above the pagination bar (measured), the list scrolls clear of it
   const [paginationHeight, setPaginationHeight] = useState(0);
   const fabClearance = createButton ? { paddingBottom: CREATE_FAB_CLEARANCE } : undefined;
@@ -159,13 +169,29 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     // rows reads (`${state.id}` per row)
     ...rowRouteFields(metadata['rowRoute']),
   ].filter((f): f is string => typeof f === 'string' && !!f))];
-  const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
+  // the pager numbers its pages with the size the listing was served at: every request names it, the
+  // first too (written later, the url would change and ask a second time)
+  if (metadata['rowsSource'] && controller.session.sources.serverTotalPath(metadata['rowsSource'] as Record<string, unknown>) && Number(metadata['pageSize'] ?? 0) > 0) {
+    controller.currentComponentState['size'] ??= Number(metadata['pageSize']);
+  }
+  const restState = () => ({ ...state, ...controller.currentComponentState });
+  const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state: restState(), appState: controller.session.appState });
   const rowsUrl = rowsResolved ? restResolve(rowsResolved.url) : '';
   const [restRows, setRestRows] = useState<Record<string, unknown>[]>([]);
-  // The REST listing is fetched WHOLE (RN does not honour totalPath, and a source answered from its
-  // SAMPLE cannot honour `${state.page}` either): search, filters, sort and page apply in memory over
-  // the component state — the web's mateu-table-crud unpaged path.
+  // A source declaring a `totalPath` pages on the SERVER: each page, search, filter or sort is one
+  // request (the url's `${state.page}`, `${state.size}`…) and the rows are what it answers. Any other
+  // is fetched WHOLE (and so is one answered from its SAMPLE, which cannot honour `${state.page}`):
+  // search, filters, sort and page apply in memory over the component state — the two paths of the
+  // web's mateu-table-crud.
   const restPageSize = Number(metadata['pageSize'] ?? 0) || 0;
+  const restTotalPath = rowsSource ? controller.session.sources.serverTotalPath(rowsSource as Record<string, unknown>) : undefined;
+  const [restRequest, setRestRequest] = useState(0);
+  // the rows could not be fetched: saying "No data" would be saying something false
+  const [restError, setRestError] = useState<string | null>(null);
+  // a page on its way: a second tap on Next would skip one
+  const [restLoading, setRestLoading] = useState(false);
+  // what asks the source again (server-paged) or re-slices what is here (fetched whole)
+  const refreshRest = () => (restTotalPath ? setRestRequest((n) => n + 1) : showRestPage(restRows));
   const showRestPage = (rows: Record<string, unknown>[]) =>
     setLiveData({
       page: restListingPage(rows, {
@@ -178,24 +204,46 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   useEffect(() => {
     if (!rowsSource || !rowsResolved) return;
     let cancelled = false;
+    setRestError(null);
+    setRestLoading(true);
     // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToRows.
     // A sampled source (sample mode) is never proxied: fetchExternalJson answers it from the sample.
     const jsonPromise = controller.session.sources.viaProxy(rowsSource as Record<string, unknown>)
       ? controller.fetchViaProxy('rows', String(component['id'] ?? 'crud'))
-      : fetchExternalJson(rowsSource, restResolve, (t) => interpolateUrl(String(t ?? ''), { state, appState: controller.session.appState }), controller.session.sources);
+      : fetchExternalJson(rowsSource, restResolve, (t) => interpolateUrl(String(t ?? ''), { state: restState(), appState: controller.session.appState }), controller.session.sources);
     jsonPromise
       .then((json) => {
         if (cancelled) return;
-        const rows = mapItemsToRows(json, rowsResolved.itemsPath, columnIds) as Record<string, unknown>[];
+        const sources = controller.session.sources;
+        const rows = mapItemsToRows(json, rowsResolved.itemsPath, columnIds, (id) => sources.pathOfField(rowsSource as Record<string, unknown>, id)) as Record<string, unknown>[];
+        setRestLoading(false);
         setRestRows(rows);
         setSearched(true);
-        showRestPage(rows);
+        // new rows: a selection made on the page before must not be what a bulk action deletes
+        if (selectedRows.length > 0) syncSelection([]);
+        if (restTotalPath) {
+          const total = Number(getByPath(json, restTotalPath));
+          setLiveData({ page: {
+            content: rows,
+            totalElements: Number.isFinite(total) ? total : rows.length,
+            pageSize: restPageSize || rows.length || 1,
+            pageNumber: Number(controller.currentComponentState['page'] ?? 0) || 0,
+          } });
+        } else {
+          showRestPage(rows);
+        }
       })
-      .catch((e) => console.warn('mateu: external rows fetch failed', e));
+      .catch((e) => {
+        console.warn('mateu: external rows fetch failed', e);
+        if (!cancelled) {
+          setRestLoading(false);
+          setRestError(e instanceof Error ? e.message : String(e));
+        }
+      });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowsUrl]);
+  }, [rowsUrl, restRequest]);
 
   const listing = extractListing<ListingData>(liveData);
   const { rows: rawRows, totalElements, pageSize, pageNumber, totalPages, hasPrevious, hasNext } = pagingOf(liveData);
@@ -207,7 +255,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
   const [searchText, setSearchText] = useState('');
   const filters = (metadata['filters'] as FilterFieldMeta[]) ?? [];
-  const [filterValues, setFilterValues] = useState<Record<string, unknown>>({});
+  // a filter the route names (a menu entry for one view of the listing, a shared link) starts set
+  const [filterValues, setFilterValues] = useState<Record<string, unknown>>(() => {
+    const query = routeQueryOf(controller.currentRoute);
+    return Object.fromEntries(filters.filter((f) => f.fieldId && query[f.fieldId] !== undefined).map((f) => [f.fieldId!, query[f.fieldId!]]));
+  });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const activeFilters = activeFilterCount(filterValues);
 
@@ -217,7 +269,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (!rowsSource) controller.seedSearchState();
     applySearchToState(controller.currentComponentState, effectiveSearchText, values ?? filterValues);
     if (rowsSource) {
-      showRestPage(restRows);
+      // a new search starts from the first page; what was on page 3 is not what was asked for
+      controller.currentComponentState['page'] = 0;
+      refreshRest();
       return;
     }
     void controller.runAction('search');
@@ -235,7 +289,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (!rowsSource) controller.seedSearchState();
     const current = Number(controller.currentComponentState['page'] ?? 0);
     controller.currentComponentState['page'] = Math.max(0, current + delta);
-    if (rowsSource) return showRestPage(restRows);
+    if (rowsSource) return refreshRest();
     void controller.runAction('search');
   };
 
@@ -246,9 +300,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     const next = nextSort(sortState, field);
     setSortState(next);
     if (!rowsSource) controller.seedSearchState();
-    controller.currentComponentState['sort'] = next ? [next] : [];
+    // `fieldId` too: what a source's url template reads (`${state.sort?.[0]?.fieldId}`)
+    controller.currentComponentState['sort'] = next ? [{ ...next, fieldId: next.field }] : [];
     controller.currentComponentState['page'] = 0;
-    if (rowsSource) return showRestPage(restRows);
+    if (rowsSource) return refreshRest();
     void controller.runAction('search');
   };
   const sortMark = (field: string) => sortMarkOf(sortState, field);
@@ -343,6 +398,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
   const allColDefs = columnDefsOf(columns, rowOpen);
 
+
   // Per-user column personalization (show/hide) — session-scoped (see columnPrefs). The first column
   // (identity / row-open) is protected and never hideable. `colDefs` is what the table actually renders.
   const columnScope = String((metadata['id'] as string) ?? (metadata['title'] as string) ?? '');
@@ -355,6 +411,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     controller.session.columnPrefs.set(columnScope, next);
   };
   const colDefs = allColDefs.filter((c) => !hiddenCols.includes(c.fieldId));
+  const cardLayout = cardLayoutOf(colDefs);
 
   // Saved views: named snapshots of {searchText + filters}; one may be the default (auto-applied once).
   const [viewsOpen, setViewsOpen] = useState(false);
@@ -426,8 +483,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (dragType && dropOn(zone, dragType, selectedRows)) syncSelection([]);
   };
 
-  return (
-    <View style={styles.root}>
+  // The title, the toolbar and the search scroll away with the rows on a list or cards, so the
+  // phone's screen goes to the rows (Material's scrolling content), instead of leaving them half of it.
+  // Where the listing's rows do not scroll by themselves (a table, an embedded listing) they stay put.
+  const headerInList = !nestedInScroll && rawRows.length > 0 && (gridLayout === 'cards' || gridLayout === 'list') && !showsPreSearch(preSearch, searched);
+  const listHeader = (
+    <>
       {(!!title || !!subtitle || toolbar.length > 0 || showMove) && (
         <View style={styles.header}>
           {!!title && <PaperText variant="headlineSmall" style={styles.title} accessibilityRole="header">{title}</PaperText>}
@@ -524,11 +585,25 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         />
       )}
 
+    </>
+  );
+
+  return (
+    <View style={[styles.root, fits && FIT_CONTENT]}>
+      {!headerInList && listHeader}
+
       {showsPreSearch(preSearch, searched) ? (
         <View style={styles.preSearch}>
           {(preSearch ?? []).map((c, i) => (
             <ComponentRenderer key={i} component={c} state={state} />
           ))}
+        </View>
+      ) : restError ? (
+        <View style={styles.emptyState} accessibilityRole="alert">
+          <IconButton icon="cloud-off-outline" size={36} iconColor={theme.faint} disabled importantForAccessibility="no" />
+          <PaperText variant="titleMedium" style={styles.emptyStateText}>{loadFailureMessage(restError).title}</PaperText>
+          <PaperText variant="bodyMedium" style={styles.emptyStateText}>{loadFailureMessage(restError).detail}</PaperText>
+          <MateuButton label="Try again" icon="refresh" onPress={() => setRestRequest((n) => n + 1)} />
         </View>
       ) : rawRows.length === 0 ? (
         <View style={styles.emptyState}>
@@ -539,6 +614,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         // Cards: one card per row — the mobile-first layout
         <>
           <FlatList
+                scrollEnabled={!nestedInScroll}
+                ListHeaderComponent={headerInList ? listHeader : undefined}
+                keyboardShouldPersistTaps="handled"
             data={displayRows}
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={fabClearance}
@@ -552,7 +630,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 <Card mode="outlined" style={styles.cardRow}>
                 <TouchableRipple {...rowA11y(item)} borderless style={styles.cardRipple} onPress={() => handleRowPress(item)}>
                 <View>
-                  {colDefs.map((col, i) => {
+                  {(() => {
+                    const picture = cardLayout.picture ? pictureUrlOf(item[cardLayout.picture.fieldId]) : undefined;
+                    return picture ? <Image source={{ uri: picture }} style={styles.cardPicture} accessibilityIgnoresInvertColors importantForAccessibility="no" accessibilityElementsHidden /> : null;
+                  })()}
+                  <View style={styles.cardBody}>
+                  {cardLayout.columns.map((col, i) => {
                     const tip = cellTooltipText(item, col.tooltipPath);
                     const lineStyle = [styles.cardLine, rowsSelectionEnabled && i === 0 && styles.cardLineSelectable];
                     const tone = i > 0 ? cellTone(item[col.fieldId], col) : null;
@@ -583,6 +666,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       <View key={col.fieldId} style={lineStyle}>{content}</View>
                     );
                   })}
+                  </View>
                 </View>
                 </TouchableRipple>
                 </Card>
@@ -612,6 +696,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         // List: compact single-line rows (first column primary, the rest secondary)
         <>
           <FlatList
+                scrollEnabled={!nestedInScroll}
+                ListHeaderComponent={headerInList ? listHeader : undefined}
+                keyboardShouldPersistTaps="handled"
             data={displayRows}
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={fabClearance}
@@ -667,8 +754,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         </>
       ) : gridLayout === 'tree' ? (
         // Tree: hierarchical rows carrying a self-referential `children` list
-        <ScrollView>
-          <TreeRows rows={rawRows} colDefs={colDefs} depth={0} onPress={handleRowPress} />
+        <ScrollView scrollEnabled={!nestedInScroll}>
+          <TreeRows rows={rawRows} colDefs={colDefs} depth={0} onPress={handleRowPress} opens={!!rowOpen}
+            expandAll={String(state['searchText'] ?? '').trim() !== ''} />
         </ScrollView>
       ) : (
         <ScrollView horizontal>
@@ -698,6 +786,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             {/* Rows: tapping one opens its detail (link action / primary row action).
                 Group header rows (groupBy) are presentation-only — no press, no selection. */}
             <FlatList
+                scrollEnabled={!nestedInScroll}
               data={displayRows}
               keyExtractor={(_, i) => String(i)}
               contentContainerStyle={fabClearance}
@@ -728,7 +817,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     {colDefs.map((col) => {
                       const tip = cellTooltipText(item, col.tooltipPath);
                       const tone = cellTone(item[col.fieldId], col);
-                      const content = tone
+                      const tablePicture = isImageColumn(col) ? pictureUrlOf(item[col.fieldId]) : undefined;
+                      const content = isImageColumn(col)
+                        ? (tablePicture ? <Image source={{ uri: tablePicture }} style={styles.listLeading} accessibilityIgnoresInvertColors importantForAccessibility="no" accessibilityElementsHidden /> : null)
+                        : tone
                         ? <StatusChip label={cellText(item[col.fieldId], col.valueLabels, col)} tone={tone} />
                         : <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId], col.valueLabels, col)}</Text>;
                       if (col.display) return renderDisplayCell(col, item, styles.cell, content);
@@ -793,11 +885,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
       {totalElements > pageSize && pageSize > 0 && (
         <View style={styles.paginationBar} onLayout={(e) => setPaginationHeight(e.nativeEvent.layout.height)}>
-          <IconButton icon="chevron-left" mode="outlined" accessibilityLabel="Previous page" disabled={!hasPrevious} onPress={() => hasPrevious && changePage(-1)} />
+          <IconButton icon="chevron-left" mode="outlined" accessibilityLabel="Previous page" disabled={!hasPrevious || restLoading} onPress={() => hasPrevious && changePage(-1)} />
           <PaperText variant="bodyMedium" style={styles.paginationInfo}>
             Page {pageNumber + 1} of {totalPages} · {totalElements} total
           </PaperText>
-          <IconButton icon="chevron-right" mode="outlined" accessibilityLabel="Next page" disabled={!hasNext} onPress={() => hasNext && changePage(1)} />
+          <IconButton icon="chevron-right" mode="outlined" accessibilityLabel="Next page" disabled={!hasNext || restLoading} onPress={() => hasNext && changePage(1)} />
         </View>
       )}
 
@@ -892,39 +984,44 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
 /** Hierarchical rows (GridLayout.tree): indentation + expand carets; the caret is its own tap
  *  target so selectable group rows can still expand (same rule as the tree select). */
-function TreeRows({ rows, colDefs, depth, onPress }: {
+function TreeRows({ rows, colDefs, depth, onPress, expandAll, opens }: {
   rows: Record<string, unknown>[];
   colDefs: { fieldId: string; label: string; valueLabels?: Record<string, string> | null }[];
   depth: number;
   onPress: (row: Record<string, unknown>) => void;
+  /** While searching: what is left is the way to a match, so it shows open. */
+  expandAll?: boolean;
+  /** The row has somewhere to go when pressed (a rowRoute, a view action). */
+  opens?: boolean;
 }) {
-  const [openRows, setOpenRows] = useState<number[]>([]);
+  // a lone root (the Sun, one company) says nothing closed: it opens by itself
+  const [openRows, setOpenRows] = useState<number[]>(() => (depth === 0 && rows.length === 1 ? [0] : []));
   return (
     <View>
       {rows.map((row, i) => {
         const children = Array.isArray(row['children']) ? (row['children'] as Record<string, unknown>[]) : [];
-        const open = openRows.includes(i);
+        const open = !!expandAll || openRows.includes(i);
+        const name = cellText(row[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels);
+        const supporting = colDefs.slice(1).map((c) => cellText(row[c.fieldId], c.valueLabels, c as never)).filter(Boolean).join(' · ');
+        const toggle = () => setOpenRows(openRows.includes(i) ? openRows.filter((n) => n !== i) : [...openRows, i]);
         return (
           <View key={i}>
-            <View style={[styles.listRow, { paddingLeft: 12 + depth * 20, flexDirection: 'row', alignItems: 'center' }]}>
+            <View style={[styles.treeRow, { paddingLeft: 4 + depth * 20 }]}>
               {children.length > 0 ? (
-                <TouchableOpacity {...buttonA11y()}
-                  style={styles.treeCaret}
-                  onPress={() => setOpenRows(open ? openRows.filter((n) => n !== i) : [...openRows, i])}
-                >
-                  <Text>{open ? '▾' : '▸'}</Text>
-                </TouchableOpacity>
+                <IconButton icon={open ? 'chevron-down' : 'chevron-right'} size={22} style={styles.treeCaret} onPress={toggle}
+                  accessibilityLabel={`${open ? 'Collapse' : 'Expand'} ${name}`} accessibilityState={{ expanded: open }} />
               ) : (
                 <View style={styles.treeCaret} />
               )}
-              <TouchableOpacity {...buttonA11y()} style={{ flex: 1 }} onPress={() => onPress(row)}>
-                <Text style={styles.cardPrimary} numberOfLines={1}>
-                  {cellText(row[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels)}
-                </Text>
-              </TouchableOpacity>
+              <TouchableRipple {...buttonA11y({ label: name })} style={styles.treeLabel} onPress={() => (opens ? onPress(row) : children.length > 0 ? toggle() : undefined)}>
+                <View>
+                  <PaperText variant="titleMedium" style={styles.listHeadline} numberOfLines={1}>{name}</PaperText>
+                  {!!supporting && <PaperText variant="bodyMedium" style={styles.listSecondary} numberOfLines={1}>{supporting}</PaperText>}
+                </View>
+              </TouchableRipple>
             </View>
             {open && children.length > 0 && (
-              <TreeRows rows={children} colDefs={colDefs} depth={depth + 1} onPress={onPress} />
+              <TreeRows rows={children} colDefs={colDefs} depth={depth + 1} onPress={onPress} expandAll={expandAll} opens={opens} />
             )}
           </View>
         );
@@ -1058,31 +1155,31 @@ const styles = themed(() => StyleSheet.create({
   searchIcon: { marginHorizontal: 0 },
   searchInput: { flex: 1, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#E9EBF0', borderRadius: theme.radiusPill, elevation: 0, minHeight: 48 },
   searchInputText: { fontSize: 16, minHeight: 0 },
-  filterCount: { position: 'absolute', top: 4, right: 2, minWidth: 16, height: 16, borderRadius: 8, overflow: 'hidden', backgroundColor: theme.primary, color: theme.onPrimary, fontSize: 10, fontWeight: '700', textAlign: 'center', lineHeight: 16 },
+  filterCount: { position: 'absolute', top: 4, right: 2, minWidth: 16, height: 16, borderRadius: 8, overflow: 'hidden', backgroundColor: theme.primary, color: theme.onPrimary, fontSize: 11, fontWeight: '700', textAlign: 'center', lineHeight: 16 },
   dialog: { backgroundColor: theme.surface, borderRadius: theme.radiusLg },
   tableHeader: { flexDirection: 'row', backgroundColor: theme.background, borderBottomWidth: 1, borderBottomColor: theme.border },
   headerCell: { width: CELL_WIDTH, padding: 10 },
   columnsBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 8 },
   columnsBtn: { paddingHorizontal: 10, paddingVertical: 4, minHeight: 36, justifyContent: 'center' },
-  columnsBtnText: { color: theme.info, fontSize: 13, fontWeight: '600' },
+  columnsBtnText: { color: theme.info, fontSize: 14, fontWeight: '600' },
   columnsBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: 24 },
   columnsSheet: { backgroundColor: theme.white, borderRadius: theme.radiusSm, padding: 16, maxHeight: '80%' },
   columnsTitle: { fontSize: 16, fontWeight: '600', color: theme.ink, marginBottom: 8 },
   columnsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 },
   columnsCheck: { fontSize: 16, color: theme.ink },
   columnsLabel: { fontSize: 14, color: theme.ink },
-  columnsLabelDim: { color: theme.faint, fontSize: 13, paddingVertical: 6 },
+  columnsLabelDim: { color: theme.faint, fontSize: 14, paddingVertical: 6 },
   viewApply: { flex: 1 },
   viewSaveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
   viewNameInput: { flex: 1, backgroundColor: theme.surface },
-  headerText: { fontWeight: '600', fontSize: 13, color: theme.ink },
+  headerText: { fontWeight: '600', fontSize: 14, color: theme.ink },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.divider },
   tableRowCells: { flexDirection: 'row' },
   cardWrap: {},
   btnDestructive: { borderColor: theme.danger, backgroundColor: theme.white },
   btnDestructiveText: { color: theme.danger, fontWeight: '600' },
   cell: { width: CELL_WIDTH, padding: 10, justifyContent: 'center' },
-  cellText: { fontSize: 13, color: theme.ink },
+  cellText: { fontSize: 14, color: theme.ink },
   actionCell: { width: 80 },
   paginationBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.divider, backgroundColor: theme.surface, gap: 8 },
   paginationInfo: { flex: 1, textAlign: 'center', color: theme.muted },
@@ -1099,18 +1196,20 @@ const styles = themed(() => StyleSheet.create({
   filterChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.white },
   filterChipOn: { backgroundColor: theme.primary, borderColor: theme.primary },
-  filterChipOnText: { color: theme.onFill, fontSize: 13 },
+  filterChipOnText: { color: theme.onFill, fontSize: 14 },
   filterButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 4 },
   emptyState: { alignItems: 'center', padding: 40 },
   preSearch: { padding: 12, gap: 12 },
   emptyStateIcon: { fontSize: 32, marginBottom: 8 },
   emptyStateText: { fontSize: 14, color: theme.faint },
   cardRow: { marginHorizontal: 16, marginTop: 10, borderRadius: theme.radiusMd, backgroundColor: theme.surface, borderColor: theme.border },
-  cardRipple: { padding: 16, borderRadius: theme.radiusMd },
+  cardRipple: { borderRadius: theme.radiusMd, overflow: 'hidden' },
+  cardBody: { padding: 16 },
+  cardPicture: { width: '100%', aspectRatio: 16 / 9, backgroundColor: theme.divider },
   cardLine: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 2 },
   cardLabel: { fontSize: 11, color: theme.faint, minWidth: 90 },
   cardPrimary: { fontSize: 16, fontWeight: '600', color: theme.ink },
-  cardValue: { fontSize: 13, color: theme.ink, flex: 1 },
+  cardValue: { fontSize: 14, color: theme.ink, flex: 1 },
   // Material's three-line list item: 88dp (8 + headline 24 + supporting 20 + 6 + chip 22 + 8)
   listRow: { flex: 1, paddingLeft: 16, paddingRight: 4, paddingVertical: 8, minHeight: 72, justifyContent: 'center' },
   listRowSelectable: { paddingLeft: 4 },
@@ -1121,7 +1220,9 @@ const styles = themed(() => StyleSheet.create({
   listSecondary: { color: theme.muted },
   listChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   listChevron: { margin: 0 },
-  treeCaret: { width: 24, alignItems: 'center' },
+  treeRow: { flexDirection: 'row', alignItems: 'center', minHeight: 56, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  treeCaret: { width: 40, height: 40, margin: 0, alignItems: 'center', justifyContent: 'center' },
+  treeLabel: { flex: 1, minHeight: 56, justifyContent: 'center', paddingRight: 16 },
   editHeaderCell: { width: 44 },
   editPencilCell: { width: 44, alignItems: 'center', justifyContent: 'center' },
   editPencilCard: { position: 'absolute', top: 14, right: 22, zIndex: 2, margin: 0 },
@@ -1130,16 +1231,16 @@ const styles = themed(() => StyleSheet.create({
   checkboxCell: { width: 40, alignItems: 'center', justifyContent: 'center' },
   checkboxCard: { position: 'absolute', top: 18, left: 20, zIndex: 2 },
   checkboxList: { paddingLeft: 8, justifyContent: 'center' },
-  checkboxText: { fontSize: 18, color: theme.primary },
+  checkboxText: { fontSize: 16, color: theme.primary },
   cardLineSelectable: { paddingLeft: 40 },
   listRowWrap: { flexDirection: 'row', alignItems: 'stretch', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
   // groups + totals
   groupTableRow: { backgroundColor: theme.infoBg },
-  groupCellText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  groupCellText: { fontSize: 14, fontWeight: '700', color: theme.ink },
   totalsTableRow: { backgroundColor: theme.background, borderTopWidth: 1, borderTopColor: theme.border },
-  totalsCellText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  totalsCellText: { fontSize: 14, fontWeight: '700', color: theme.ink },
   groupBand: { backgroundColor: theme.infoBg, paddingHorizontal: 12, paddingVertical: 8, marginTop: 8 },
-  groupBandText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  groupBandText: { fontSize: 14, fontWeight: '700', color: theme.ink },
   totalsBand: { backgroundColor: theme.background, borderTopWidth: 1, borderTopColor: theme.border, paddingHorizontal: 12, paddingVertical: 8 },
-  totalsBandText: { fontSize: 13, fontWeight: '700', color: theme.ink },
+  totalsBandText: { fontSize: 14, fontWeight: '700', color: theme.ink },
 }));

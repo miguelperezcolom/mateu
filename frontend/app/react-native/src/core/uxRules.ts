@@ -83,7 +83,7 @@ export function bootFailureOf(increment: unknown): string | null {
 
 export function loadFailureMessage(raw: string | null | undefined): { title: string; detail: string } {
   const text = (raw ?? '').trim();
-  if (/failed to fetch|network request failed|networkerror|load failed|ECONNREFUSED|ERR_CONNECTION/i.test(text)) {
+  if (/failed to fetch|fetch failed|network request failed|networkerror|load failed|ECONNREFUSED|ERR_CONNECTION|UnknownHost|unable to resolve host|no address associated|SocketException|ConnectException|SSLException/i.test(text)) {
     return {
       title: "Can't reach the server",
       detail: 'Check your connection and try again. If it keeps failing, the service may be down.',

@@ -1,7 +1,9 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
 import { theme, themed } from '../theme';
-import { Image, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, PanResponder, StyleSheet, View } from 'react-native';
+import { RadioButton } from 'react-native-paper';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { buttonA11y } from '../a11y/a11y';
 import { decimalDraft, moneyText } from '../core/uxRules';
@@ -36,9 +38,7 @@ export function RadioField({ options, value, editable, onChange }: {
             disabled={!editable}
             onPress={() => onChange(opt.value)}
           >
-            <View style={[styles.radioOuter, on && styles.radioOuterOn]}>
-              {on && <View style={styles.radioInner} />}
-            </View>
+            <RadioButton.Android value={opt.value} status={on ? 'checked' : 'unchecked'} disabled={!editable} onPress={() => onChange(opt.value)} color={theme.primary} uncheckedColor={theme.muted} />
             <Text style={styles.radioLabel}>{opt.label}</Text>
           </TouchableOpacity>
         );
@@ -165,7 +165,7 @@ export function StarsField({ value, editable, onChange }: {
 
 // ── color ────────────────────────────────────────────────────────────────────────────────────
 
-const PALETTE = [theme.danger, theme.warning, '#fdd835', theme.success, theme.info, '#8e24aa', '#6d4c41', '#546e7a', '#000000', theme.white];
+const paletteOf = () => [theme.danger, theme.warning, '#fdd835', theme.success, theme.info, '#8e24aa', '#6d4c41', '#546e7a', '#000000', theme.white];
 
 export function ColorField({ value, editable, onChange }: {
   value: string;
@@ -187,7 +187,7 @@ export function ColorField({ value, editable, onChange }: {
       </View>
       {editable && (
         <View style={styles.chips}>
-          {PALETTE.map((c) => (
+          {paletteOf().map((c) => (
             <TouchableOpacity {...buttonA11y()} key={c} style={[styles.colorOption, { backgroundColor: c }]} onPress={() => onChange(c)} />
           ))}
         </View>
@@ -337,28 +337,25 @@ export function BadgeChip({ label, on }: { label: string; on: boolean }) {
 
 const styles = themed(() => StyleSheet.create({
   radioGroup: { gap: 8 },
-  radioRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: theme.faint, alignItems: 'center', justifyContent: 'center' },
-  radioOuterOn: { borderColor: theme.primary },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: theme.primary },
+  radioRow: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 48 },
   radioLabel: { fontSize: 14, color: theme.ink },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.white },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, minHeight: 32, justifyContent: 'center', borderRadius: 16, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.white },
   chipOn: { backgroundColor: theme.primary, borderColor: theme.primary },
-  chipText: { fontSize: 13, color: theme.ink },
-  chipOnText: { fontSize: 13, color: theme.onFill },
+  chipText: { fontSize: 14, color: theme.ink },
+  chipOnText: { fontSize: 14, color: theme.onFill },
   sliderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sliderBound: { fontSize: 11, color: theme.faint },
   sliderTrack: { flex: 1, height: 28, justifyContent: 'center' },
   sliderFill: { position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: theme.primary },
   sliderThumb: { position: 'absolute', marginLeft: -8, width: 16, height: 16, borderRadius: 8, backgroundColor: theme.primary },
-  sliderValue: { minWidth: 32, textAlign: 'right', fontSize: 13, fontWeight: '600', color: theme.ink },
+  sliderValue: { minWidth: 32, textAlign: 'right', fontSize: 14, fontWeight: '600', color: theme.ink },
   stepperRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  stepperButton: { width: 36, height: 36, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.background },
-  stepperButtonText: { fontSize: 18, color: theme.ink },
-  stepperValue: { minWidth: 40, textAlign: 'center', fontSize: 15, fontWeight: '600', color: theme.ink },
+  stepperButton: { width: 48, height: 48, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.background },
+  stepperButtonText: { fontSize: 16, color: theme.ink },
+  stepperValue: { minWidth: 40, textAlign: 'center', fontSize: 16, fontWeight: '600', color: theme.ink },
   starsRow: { flexDirection: 'row', gap: 4 },
-  star: { fontSize: 26, color: theme.border },
+  star: { fontSize: 28, color: theme.border },
   starOn: { color: theme.warning },
   colorRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   colorSwatch: { width: 36, height: 36, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
@@ -367,8 +364,8 @@ const styles = themed(() => StyleSheet.create({
   imagePreview: { width: '100%', height: 160, borderRadius: theme.radiusSm, backgroundColor: theme.background },
   imageButtons: { flexDirection: 'row', gap: 8, marginTop: 8 },
   imageButton: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.background },
-  imageButtonText: { fontSize: 13, color: theme.ink },
-  imageDeleteText: { fontSize: 13, color: theme.danger },
+  imageButtonText: { fontSize: 14, color: theme.ink },
+  imageDeleteText: { fontSize: 14, color: theme.danger },
   emptyText: { color: theme.faint },
   link: { color: theme.primary, textDecorationLine: 'underline', fontSize: 14 },
   mdHeading: { fontWeight: '700', color: theme.ink, marginTop: 8, marginBottom: 4 },

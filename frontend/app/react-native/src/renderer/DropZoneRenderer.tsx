@@ -56,6 +56,6 @@ const styles = themed(() => StyleSheet.create({
     gap: theme.spacing.xs,
     marginVertical: theme.spacing.xs,
   },
-  title: { fontSize: 15, fontWeight: '700', color: theme.ink, fontFamily: theme.fontFamily },
-  subtitle: { fontSize: 13, color: theme.muted, fontFamily: theme.fontFamily },
+  title: { fontSize: 16, fontWeight: '700', color: theme.ink, fontFamily: theme.fontFamily },
+  subtitle: { fontSize: 14, color: theme.muted, fontFamily: theme.fontFamily },
 }));

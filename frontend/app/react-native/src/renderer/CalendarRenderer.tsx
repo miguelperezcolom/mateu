@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -10,12 +11,13 @@ import {
   WEEKDAY_HEADERS, type CalendarEventMeta, type CalendarMeta, type CalendarView, type Tone,
 } from './calendar';
 
-const TONE_BG: Record<Tone, string> = {
+// read when drawn: `theme` changes with the scheme, and a table built at import stayed light in dark mode
+const toneBg = (tone: Tone): string => ({
   info: theme.infoBg, success: theme.successBg, warning: theme.warningBg, danger: theme.dangerBg, neutral: theme.background,
-};
-const TONE_INK: Record<Tone, string> = {
+})[tone];
+const toneInk = (tone: Tone): string => ({
   info: theme.info, success: theme.success, warning: theme.warning, danger: theme.danger, neutral: theme.muted,
-};
+})[tone];
 
 const WEEK_COL_W = 128;
 const MONTH_CELL_EVENTS = 2;
@@ -53,13 +55,13 @@ export function CalendarRenderer({ component }: { component: unknown }) {
 
   const toneStyle = (date: string) => {
     const { tone } = dayInfo(meta, date);
-    return tone ? { backgroundColor: TONE_BG[tone] } : null;
+    return tone ? { backgroundColor: toneBg(tone) } : null;
   };
 
   const dayLabel = (date: string) => {
     const { label, tone } = dayInfo(meta, date);
     return label ? (
-      <Text numberOfLines={1} style={[styles.dayLabel, { color: tone ? TONE_INK[tone] : theme.muted }]}>{label}</Text>
+      <Text numberOfLines={1} style={[styles.dayLabel, { color: tone ? toneInk(tone) : theme.muted }]}>{label}</Text>
     ) : null;
   };
 
@@ -208,12 +210,12 @@ const styles = themed(() => StyleSheet.create({
   monthCell: { flex: 1, minHeight: 58, padding: 3, borderTopWidth: 1, borderLeftWidth: 1, borderColor: theme.divider, gap: 2 },
   monthCellEmpty: { backgroundColor: theme.background },
   dayNumber: { fontSize: 12, fontWeight: '700', color: theme.ink },
-  dayLabel: { fontSize: 10, fontWeight: '600' },
-  more: { fontSize: 10, color: theme.muted },
+  dayLabel: { fontSize: 11, fontWeight: '600' },
+  more: { fontSize: 11, color: theme.muted },
   // day headers (week, day, list)
   dayHeader: { padding: 6, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.divider, alignItems: 'flex-start' },
   dayHeaderDow: { fontSize: 11, color: theme.muted, textTransform: 'uppercase' },
-  dayHeaderNumber: { fontSize: 18, fontWeight: '700', color: theme.ink },
+  dayHeaderNumber: { fontSize: 16, fontWeight: '700', color: theme.ink },
   // week
   weekStrip: { flexDirection: 'row', gap: 6 },
   weekCol: { width: WEEK_COL_W, gap: 4 },
@@ -229,6 +231,6 @@ const styles = themed(() => StyleSheet.create({
   chipCompact: { paddingHorizontal: 3, paddingVertical: 1, borderLeftWidth: 2 },
   chipTime: { fontSize: 11, color: theme.muted },
   chipTitle: { fontWeight: '600', color: theme.ink },
-  chipTitleCompact: { fontSize: 10, fontWeight: '500' },
+  chipTitleCompact: { fontSize: 11, fontWeight: '500' },
   empty: { color: theme.faint, fontStyle: 'italic' },
 }));

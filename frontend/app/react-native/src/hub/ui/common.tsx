@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { askConfirm } from '../../ui/ConfirmHost';
 import { Image } from 'expo-image';
 import { Appbar, Button, Icon, Surface } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { theme, themed } from '../../theme';
 
-/** A yes/no question: native Alert on iOS/Android, window.confirm on web (same as the dirty guard). */
+/** A yes/no question: a Material dialog on iOS/Android, window.confirm on web (same as the dirty guard). */
 export function confirmDialog(title: string, message: string, okLabel: string, destructive = false): Promise<boolean> {
   return new Promise((resolve) => {
     if (Platform.OS === 'web') {
       resolve(typeof window !== 'undefined' && window.confirm(`${title}\n\n${message}`));
       return;
     }
-    Alert.alert(title, message, [
-      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-      { text: okLabel, style: destructive ? 'destructive' : 'default', onPress: () => resolve(true) },
-    ]);
+    void askConfirm({ title, message, confirmLabel: okLabel, destructive }).then(resolve);
   });
 }
 
@@ -155,11 +153,11 @@ export const hubStyles = themed(() => StyleSheet.create({
   barTitle: { fontSize: 22, fontWeight: '400', color: theme.ink },
   body: { padding: theme.spacing.md, gap: theme.spacing.md },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg, gap: theme.spacing.sm },
-  title: { fontSize: 18, fontWeight: '700', color: theme.ink, textAlign: 'center' },
-  text: { fontSize: 15, color: theme.muted, textAlign: 'center', maxWidth: 340 },
+  title: { fontSize: 16, fontWeight: '700', color: theme.ink, textAlign: 'center' },
+  text: { fontSize: 16, color: theme.muted, textAlign: 'center', maxWidth: 340 },
   label: { fontSize: 14, fontWeight: '600', color: theme.ink },
   error: { color: theme.danger, fontSize: 14 },
-  card: { backgroundColor: theme.surface, borderRadius: 12, padding: theme.spacing.md, gap: theme.spacing.sm },
+  card: { borderRadius: 12, padding: theme.spacing.md, gap: theme.spacing.sm },
 }));
 
 const styles = themed(() => StyleSheet.create({
@@ -168,7 +166,7 @@ const styles = themed(() => StyleSheet.create({
   initialsText: { color: theme.onFill, fontWeight: '700' },
   button: { borderRadius: 20 },
   buttonContent: { minHeight: theme.minTouch, paddingHorizontal: 8 },
-  buttonLabel: { fontSize: 15, letterSpacing: 0.1 },
+  buttonLabel: { fontSize: 16, letterSpacing: 0.1 },
   notice: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', borderRadius: 12, padding: 12 },
   noticeText: { flex: 1, fontSize: 14 },
 }));

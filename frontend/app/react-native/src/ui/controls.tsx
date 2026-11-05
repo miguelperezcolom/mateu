@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Button, Checkbox, HelperText, Icon, Text, TextInput } from 'react-native-paper';
 import { decimalDraft } from '../core/uxRules';
-import { theme, themed } from '../theme';
+import { stateLayerOn, theme, themed } from '../theme';
 import { buttonLook, toneColors, toneOf } from './looks';
 
 export interface MateuButtonProps {
@@ -57,6 +57,11 @@ export function MateuButton({ label, onPress, buttonStyle, color, disabled, acce
   );
 }
 
+/** A Material icon in the theme's ink, unless told otherwise; decoration: the control names itself. */
+export function MIcon({ name, size = 24, color }: { name: string; size?: number; color?: string }) {
+  return <Icon source={name} size={size} color={color ?? theme.muted} />;
+}
+
 /** A status value as a tonal chip (success / warning / danger / info / neutral). Not a control —
  *  it reads as its text, so screen readers hear the value, not "button". */
 export function StatusChip({ label, tone, style }: { label: string; tone?: string | null; style?: StyleProp<ViewStyle> }) {
@@ -84,7 +89,7 @@ export function SelectBox({ checked, label, onToggle, style, disabled }: { check
       aria-checked={checked}
       onAccessibilityTap={onToggle}
     >
-      <Checkbox.Android status={checked ? 'checked' : 'unchecked'} onPress={onToggle} disabled={disabled} color={theme.primary} uncheckedColor={theme.muted} />
+      <Checkbox.Android hitSlop={6} status={checked ? 'checked' : 'unchecked'} onPress={onToggle} disabled={disabled} color={theme.primary} uncheckedColor={theme.muted} />
     </View>
   );
 }
@@ -165,6 +170,7 @@ export function OutlinedTrigger({ label, required, value, placeholder, icon = 'm
         accessibilityState={{ disabled: !!disabled, ...(expanded !== undefined ? { expanded } : {}) }}
         disabled={disabled}
         onPress={onPress}
+        android_ripple={{ color: stateLayerOn() }}
       >
         {/* drawn like Paper's outlined field (label in the notch), but as plain views: a read-only
             native input wraps a long value onto a second line inside a narrow column */}
@@ -199,7 +205,7 @@ const styles = themed(() =>
     input: { backgroundColor: theme.surface, fontSize: 16 },
     outline: { borderRadius: 8 },
     helper: { paddingHorizontal: 4 },
-    trigger: { flexDirection: 'row', alignItems: 'center', minHeight: 50, marginTop: 6, paddingLeft: 16, paddingRight: 12, borderWidth: 1, borderColor: theme.border, borderRadius: 8, backgroundColor: theme.surface, gap: 8 },
+    trigger: { flexDirection: 'row', alignItems: 'center', minHeight: 50, marginTop: 6, paddingLeft: 16, paddingRight: 12, borderWidth: 1, borderColor: theme.scheme === 'dark' ? '#8D9199' : '#73777F', borderRadius: theme.radiusSm, backgroundColor: theme.surface, gap: 8 },
     triggerDisabled: { opacity: 0.6 },
     triggerValue: { flex: 1, color: theme.ink },
     triggerLabel: { position: 'absolute', top: -9, left: 10, paddingHorizontal: 4, backgroundColor: theme.surface, color: theme.muted, maxWidth: '85%' },

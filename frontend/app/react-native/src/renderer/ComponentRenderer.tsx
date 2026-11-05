@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
@@ -479,7 +480,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
 
 const styles = themed(() => StyleSheet.create({
   centered: { alignSelf: 'center', margin: 20 },
-  error: { color: theme.danger, padding: 8, fontSize: 13 },
+  error: { color: theme.danger, padding: 8, fontSize: 14 },
   text: { fontSize: 14, color: theme.ink, flexShrink: 1 },
   heading: { fontWeight: '700', color: theme.ink, paddingTop: 8, paddingBottom: 8 },
   separator: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border, width: '100%', marginVertical: 8 },

@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { recordTiming } from '../core/timing';
-import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { toastLifetime } from '../core/toastLifetime';
+import { askConfirm } from '../ui/ConfirmHost';
+import { FitsContent } from '../renderer/ScrollContext';
 import { useAppContext } from '../context/AppContext';
 import { bootFailureOf, loadFailureMessage } from '../core/uxRules';
 import { theme, themed } from '../theme';
-import { IconButton, Snackbar, Text as PaperText } from 'react-native-paper';
+import { IconButton, Snackbar, Surface, Text as PaperText } from 'react-native-paper';
 import { MateuButton } from '../ui/controls';
 import { AppRenderer } from '../renderer/AppRenderer';
 import { MateuViewHost } from '../renderer/MateuViewHost';
@@ -22,6 +25,8 @@ import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
  * its modal layers stay hidden.
  */
 export function SessionContent({ initialRoute, visible = true }: { initialRoute: string; visible?: boolean }) {
+  const { session } = useAppContext();
+  session.onScreen = visible;
   return (
     <>
       <MateuRoot initialRoute={initialRoute} />
@@ -88,7 +93,7 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
   );
 }
 
-/** Dirty guard (@ConfirmOnNavigationIfDirty): native Alert on iOS/Android, window.confirm on web. */
+/** Dirty guard (@ConfirmOnNavigationIfDirty): a Material dialog on iOS/Android, window.confirm on web. */
 function DirtyGuardHost() {
   const { session } = useAppContext();
   useEffect(() => {
@@ -98,10 +103,7 @@ function DirtyGuardHost() {
           resolve(window.confirm('There are unsaved changes. Discard them?'));
           return;
         }
-        Alert.alert('Unsaved changes', 'Discard your changes?', [
-          { text: 'Keep editing', style: 'cancel', onPress: () => resolve(false) },
-          { text: 'Discard', style: 'destructive', onPress: () => resolve(true) },
-        ]);
+        void askConfirm({ title: 'Unsaved changes', message: 'Discard your changes?', confirmLabel: 'Discard', cancelLabel: 'Keep editing', destructive: true }).then(resolve);
       });
     // @Action(confirmationRequired): the declared question, with the declared button labels natively
     session.confirmAction = (t) =>
@@ -110,10 +112,7 @@ function DirtyGuardHost() {
           resolve(window.confirm(`${t.header}\n\n${t.message}`));
           return;
         }
-        Alert.alert(t.header, t.message, [
-          { text: t.denialText, style: 'cancel', onPress: () => resolve(false) },
-          { text: t.confirmationText, style: t.destructive ? 'destructive' : 'default', onPress: () => resolve(true) },
-        ], { cancelable: true, onDismiss: () => resolve(false) });
+        void askConfirm({ title: t.header, message: t.message, confirmLabel: t.confirmationText, cancelLabel: t.denialText, destructive: t.destructive }).then(resolve);
       });
   }, [session]);
   return null;
@@ -160,9 +159,40 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
   const content = overlayContentWithData({ ...meta, initialData: top.state });
   const title = interpolate(top.title, { state: top.state });
 
+  const hostOf = (fit: boolean) =>
+    content ? (
+      <FitsContent.Provider value={fit}>
+        <MateuViewHost
+          key={`${overlayIdOf(top.component)}#${top.revision}#${overlays.length}`}
+          session={session}
+          serverSideNode={content}
+          overlaid
+          overlayOpener={top.opener}
+        />
+      </FitsContent.Provider>
+    ) : null;
+  const closeButton = <IconButton icon="close" accessibilityLabel={title ? `Close ${title}` : 'Close'} onPress={() => session.closeTopOverlay()} />;
+
+  // A Dialog is Material's dialog, as tall as what it says: a two-line question used to take half the screen.
+  if (meta['type'] === 'Dialog') {
+    return (
+      <Modal {...modalA11y(title || 'Dialog')} accessibilityViewIsModal animationType="fade" transparent statusBarTranslucent onRequestClose={() => session.closeTopOverlay()}>
+        <View style={styles.dialogBackdrop}>
+          <Surface elevation={3} style={styles.dialog}>
+            <View style={styles.overlayHeader}>
+              <PaperText variant="headlineSmall" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
+              {closeButton}
+            </View>
+            {hostOf(true)}
+          </Surface>
+        </View>
+      </Modal>
+    );
+  }
+
   return (
-    // a drawer/dialog: screen readers stop at its edge, and its ✕ is a named button (it was
-    // announced as bare text, unreachable as a control)
+    // a drawer: screen readers stop at its edge, and its ✕ is a named button (it was announced as
+    // bare text, unreachable as a control)
     <Modal {...modalA11y(title || 'Dialog')} accessibilityViewIsModal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
       <View style={styles.overlayBackdrop}>
         {/* a Material bottom sheet: drag handle, title, close */}
@@ -170,16 +200,9 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
           <View style={styles.overlayHandle} />
           <View style={styles.overlayHeader}>
             <PaperText variant="titleLarge" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
-            <IconButton icon="close" accessibilityLabel={title ? `Close ${title}` : 'Close'} onPress={() => session.closeTopOverlay()} />
+            {closeButton}
           </View>
-          {content ? (
-            <MateuViewHost
-              key={`${overlayIdOf(top.component)}#${top.revision}#${overlays.length}`}
-              session={session}
-              serverSideNode={content}
-              overlayOpener={top.opener}
-            />
-          ) : null}
+          {hostOf(false)}
         </View>
       </View>
     </Modal>
@@ -294,19 +317,21 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
   }
 
   // No app shell: the root route IS a single view — host it directly.
-  return <MateuViewHost session={session} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
+  return <MateuViewHost session={session} onController={(c) => { session.hasUnsavedChanges = () => c.trackDirty && c.dirty; }} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
 }
 
 const styles = themed(() => StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: theme.background },
-  errorTitle: { fontSize: 20, fontWeight: '600', color: theme.ink, textAlign: 'center', marginBottom: 8 },
-  errorDetail: { fontSize: 15, color: theme.muted, textAlign: 'center', marginBottom: 24, maxWidth: 320 },
+  errorTitle: { fontSize: 22, fontWeight: '600', color: theme.ink, textAlign: 'center', marginBottom: 8 },
+  errorDetail: { fontSize: 16, color: theme.muted, textAlign: 'center', marginBottom: 24, maxWidth: 320 },
   errorTechnical: { fontSize: 12, color: theme.faint, textAlign: 'center', marginTop: 16 },
   toastHost: { position: 'absolute', bottom: 88, left: 0, right: 0, gap: 8 },
   toastWrapper: { position: 'relative' },
   toast: { borderRadius: 4 },
   toastError: { backgroundColor: theme.danger },
-  overlayBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  overlayBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)', justifyContent: 'flex-end' },
+  dialogBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  dialog: { width: '100%', maxWidth: 560, maxHeight: '85%', borderRadius: theme.radiusLg, paddingTop: 12, paddingBottom: 8, overflow: 'hidden', backgroundColor: theme.surface },
   overlaySheet: { backgroundColor: theme.surface, borderTopLeftRadius: theme.radiusLg, borderTopRightRadius: theme.radiusLg, maxHeight: '88%', minHeight: '50%', overflow: 'hidden' },
   overlayHandle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 10 },
   overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: 24, paddingRight: 8, paddingTop: 4, paddingBottom: 4 },

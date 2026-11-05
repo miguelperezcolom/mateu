@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppState, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppState, Modal, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { fetch as streamingFetch } from 'expo/fetch';
 import { theme, themed } from '../theme';
@@ -278,17 +279,17 @@ const styles = themed(() => StyleSheet.create({
   flex: { flex: 1 },
   values: { paddingHorizontal: 20, paddingBottom: 8, gap: 2 },
   valueRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  valueLabel: { color: theme.muted, fontSize: 13 },
-  valueText: { color: theme.ink, fontSize: 13, fontWeight: '700' },
+  valueLabel: { color: theme.muted, fontSize: 14 },
+  valueText: { color: theme.ink, fontSize: 14, fontWeight: '700' },
   quick: { paddingBottom: 8 },
-  quickInput: { marginHorizontal: 16, marginBottom: 4, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 15 },
+  quickInput: { marginHorizontal: 16, marginBottom: 4, backgroundColor: theme.scheme === 'dark' ? '#2A2C31' : '#ECEEF2', borderRadius: theme.radiusPill, paddingHorizontal: 18, minHeight: 44, color: theme.ink, fontSize: 16 },
   quickRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, minHeight: theme.minTouch },
   quickLabel: { color: theme.ink, fontSize: 14 },
   quickCode: { color: theme.info, fontSize: 12, fontWeight: '700' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', padding: 24 },
   dialog: { backgroundColor: theme.white, borderRadius: theme.radiusMd, padding: 20, gap: 12 },
-  dialogTitle: { fontSize: 18, fontWeight: '700', color: theme.ink },
-  dialogText: { fontSize: 15, color: theme.ink },
+  dialogTitle: { fontSize: 16, fontWeight: '700', color: theme.ink },
+  dialogText: { fontSize: 16, color: theme.ink },
   dialogButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' },
   primary: { backgroundColor: theme.primary, borderRadius: theme.radiusSm, minHeight: theme.minTouch, paddingHorizontal: 16, justifyContent: 'center' },
   primaryText: { color: theme.onPrimary, fontWeight: '700' },

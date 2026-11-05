@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Switch as PaperSwitch } from 'react-native-paper';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -39,7 +41,7 @@ export function RecordMergeRenderer({ metadata }: { metadata: Record<string, unk
       {!!merge.title && <Text {...headingA11y(3)} style={styles.title}>{merge.title}</Text>}
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Show only differences</Text>
-        <Switch
+        <PaperSwitch
           accessibilityLabel="Show only differences"
           accessibilityRole="switch"
           value={differencesOnly}
@@ -126,7 +128,7 @@ export function RecordMergeRenderer({ metadata }: { metadata: Record<string, unk
 
 const styles = themed(() => StyleSheet.create({
   root: { gap: 8, paddingVertical: 4 },
-  title: { fontSize: 17, fontWeight: '700', color: theme.ink },
+  title: { fontSize: 16, fontWeight: '700', color: theme.ink },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: theme.minTouch },
   switchLabel: { color: theme.ink, fontSize: 14 },
   card: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusMd, padding: 10, backgroundColor: theme.white },
@@ -143,11 +145,11 @@ const styles = themed(() => StyleSheet.create({
   empty: { color: theme.faint, fontStyle: 'italic' },
   picked: { fontWeight: '700' },
   input: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 8, paddingVertical: 6, color: theme.ink, fontSize: 14 },
-  resultTitle: { marginTop: 8, fontWeight: '700', color: theme.ink, fontSize: 15 },
+  resultTitle: { marginTop: 8, fontWeight: '700', color: theme.ink, fontSize: 16 },
   resultRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, paddingVertical: 2 },
-  resultLabel: { color: theme.muted, fontSize: 13 },
-  resultValue: { color: theme.ink, fontSize: 13, flexShrink: 1, textAlign: 'right' },
-  summary: { color: theme.muted, fontSize: 13, marginTop: 4 },
+  resultLabel: { color: theme.muted, fontSize: 14 },
+  resultValue: { color: theme.ink, fontSize: 14, flexShrink: 1, textAlign: 'right' },
+  summary: { color: theme.muted, fontSize: 14, marginTop: 4 },
   mergeButton: { backgroundColor: theme.primary, borderRadius: theme.radiusSm, minHeight: theme.minTouch, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, marginTop: 4 },
-  mergeText: { color: theme.onPrimary, fontWeight: '700', fontSize: 15 },
+  mergeText: { color: theme.onPrimary, fontWeight: '700', fontSize: 16 },
 }));

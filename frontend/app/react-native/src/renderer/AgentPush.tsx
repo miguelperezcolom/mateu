@@ -1,5 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, AppState, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, AppState, Modal, StyleSheet, View } from 'react-native';
+import { FAB } from 'react-native-paper';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { theme, themed } from '../theme';
 import { announceLive, buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
@@ -82,9 +84,7 @@ export function ConnectAiEntry({ meta, asFab = false }: { meta: AgentPushMeta; a
   return (
     <>
       {asFab ? (
-        <TouchableOpacity {...buttonA11y({ label: entry.label })} style={[styles.fab, entry.connected && styles.fabConnected]} onPress={() => setOpen(true)}>
-          <Text style={styles.fabText}>{entry.connected ? '🔗' : 'AI'}</Text>
-        </TouchableOpacity>
+        <FAB icon={entry.connected ? 'link-variant' : 'robot-outline'} accessibilityLabel={entry.label} onPress={() => setOpen(true)} />
       ) : (
         <TouchableOpacity {...buttonA11y({ label: entry.label })} style={styles.row} onPress={() => setOpen(true)}>
           <View style={[styles.dot, entry.connected && styles.dotConnected]} importantForAccessibility="no" />
@@ -209,17 +209,14 @@ const styles = themed(() => StyleSheet.create({
   dotConnected: { backgroundColor: theme.success, borderColor: theme.success },
   rowText: { color: theme.ink, fontSize: 14, fontWeight: '600', flexShrink: 1 },
   rowTextConnected: { color: theme.success },
-  fab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: theme.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
-  fabConnected: { backgroundColor: theme.success },
-  fabText: { color: theme.onFill, fontWeight: '700', fontSize: 15 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', padding: 24 },
   dialog: { backgroundColor: theme.white, borderRadius: theme.radiusMd, padding: 20, gap: 12 },
-  title: { fontSize: 18, fontWeight: '700', color: theme.ink },
-  text: { fontSize: 15, color: theme.ink },
+  title: { fontSize: 16, fontWeight: '700', color: theme.ink },
+  text: { fontSize: 16, color: theme.ink },
   muted: { fontSize: 14, color: theme.muted },
-  label: { fontSize: 13, color: theme.muted, fontWeight: '600' },
+  label: { fontSize: 14, color: theme.muted, fontWeight: '600' },
   agents: { gap: 2 },
-  agent: { fontSize: 15, color: theme.ink, fontWeight: '600' },
+  agent: { fontSize: 16, color: theme.ink, fontWeight: '600' },
   codeBox: { alignItems: 'center', gap: 6, paddingVertical: 8 },
   code: { fontSize: 32, fontWeight: '800', letterSpacing: 4, color: theme.ink, fontFamily: theme.fontFamily },
   countdown: { fontSize: 14, color: theme.muted },

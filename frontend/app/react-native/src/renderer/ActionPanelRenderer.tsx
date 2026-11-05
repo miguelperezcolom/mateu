@@ -1,5 +1,8 @@
 import React from 'react';
-import { Modal, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Switch as PaperSwitch } from 'react-native-paper';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -51,13 +54,13 @@ export function ActionPanelRenderer({ metadata, state }: { metadata: Record<stri
               <View style={styles.header}>
                 <Text {...headingA11y(2)} style={styles.title}>{label}</Text>
                 <TouchableOpacity {...buttonA11y({ label: 'Close' })} style={styles.close} onPress={close}>
-                  <Text style={styles.closeText}>✕</Text>
+                  <MIcon name="close" color={theme.ink} />
                 </TouchableOpacity>
               </View>
               {!!meta.hideUnpopulatedToggle && (
                 <View style={styles.toggleRow}>
                   <Text style={styles.toggleLabel}>Hide unpopulated</Text>
-                  <Switch
+                  <PaperSwitch
                     accessibilityLabel="Hide unpopulated"
                     accessibilityRole="switch"
                     value={hideUnpopulated}
@@ -125,20 +128,20 @@ const styles = themed(() => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider,
   },
-  title: { flex: 1, fontSize: 17, fontWeight: '600', color: theme.ink },
+  title: { flex: 1, fontSize: 16, fontWeight: '600', color: theme.ink },
   close: { padding: theme.spacing.sm },
   closeText: { fontSize: 16, color: theme.muted },
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs,
   },
-  toggleLabel: { fontSize: 13, color: theme.muted },
+  toggleLabel: { fontSize: 14, color: theme.muted },
   body: { padding: theme.spacing.md, gap: theme.spacing.md },
   category: { gap: 2 },
-  categoryTitle: { fontSize: 13, fontWeight: '700', color: theme.muted, textTransform: 'uppercase', marginBottom: 4 },
+  categoryTitle: { fontSize: 14, fontWeight: '700', color: theme.muted, textTransform: 'uppercase', marginBottom: 4 },
   action: { paddingVertical: 8 },
   actionText: { fontSize: 14, color: theme.info },
   populated: { fontWeight: '700' },
   disabled: { color: theme.faint },
-  more: { fontSize: 13, color: theme.primary },
+  more: { fontSize: 14, color: theme.primary },
 }));
