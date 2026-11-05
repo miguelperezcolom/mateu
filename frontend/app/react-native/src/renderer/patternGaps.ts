@@ -211,3 +211,15 @@ export function pageHeaderExtrasOf(metadata: Record<string, unknown> | null | un
     peers: prev || next ? { prev, next } : null,
   };
 }
+
+/**
+ * Whether a tab strip can be Material segmented buttons: at most four, and every label readable in
+ * its equal share of the width (about 8 dp per character at the label's size, plus the segment's
+ * padding). Otherwise the labels would be cut ("The w…", "The e…") and the scrollable tab bar is the
+ * right control.
+ */
+export function segmentsFit(labels: string[], windowWidth: number): boolean {
+  if (labels.length === 0 || labels.length > 4) return false;
+  const share = (windowWidth - 32) / labels.length;
+  return labels.every((l) => l.length * 8 + 24 <= share);
+}

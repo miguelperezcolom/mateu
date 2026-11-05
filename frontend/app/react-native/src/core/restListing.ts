@@ -69,10 +69,17 @@ export function filterRestRows(rows: Row[], columnIds: string[], filters: RestFi
   const searchText = String(state?.['searchText'] ?? '').trim().toLowerCase();
   const declared = (filters ?? []).filter((f) => f?.fieldId);
   if (searchText === '' && declared.length === 0) return rows;
-  return rows.filter((row) => {
-    if (searchText !== '' && !columnIds.some((id) => String(row[id] ?? '').toLowerCase().includes(searchText))) return false;
-    return declared.every((f) => matchesFilter(row, f, state ?? {}));
-  });
+  const matches = (row: Row): boolean =>
+    (searchText === '' || columnIds.some((id) => String(row[id] ?? '').toLowerCase().includes(searchText)))
+    && declared.every((f) => matchesFilter(row, f, state ?? {}));
+  // A tree row stays when it matches or when something below it does (then with only those
+  // branches), which is what the server's tree search answers too.
+  const kept = (row: Row): Row | undefined => {
+    if (matches(row)) return row;
+    const children = Array.isArray(row['children']) ? (row['children'] as Row[]).map(kept).filter((c): c is Row => !!c) : [];
+    return children.length > 0 ? { ...row, children } : undefined;
+  };
+  return rows.map(kept).filter((r): r is Row => !!r);
 }
 
 /** The listing's sort state (`[{field|fieldId, direction}]`) applied in order: numbers numerically,

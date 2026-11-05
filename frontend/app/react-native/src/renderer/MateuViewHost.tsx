@@ -5,6 +5,7 @@ import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { loadFailureMessage } from '../core/uxRules';
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
+import { InsideVerticalScroll } from './ScrollContext';
 import { ComponentRenderer } from './ComponentRenderer';
 import { firstComponentFragment } from '../core/chatStream';
 import { theme, themed } from '../theme';
@@ -135,7 +136,9 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
         content
       ) : (
         <ScrollView style={styles.host} contentContainerStyle={styles.scrollBody} keyboardShouldPersistTaps="handled">
+          <InsideVerticalScroll.Provider value>
           {content}
+          </InsideVerticalScroll.Provider>
         </ScrollView>
       )}
     </View>

@@ -43,6 +43,8 @@ import { interpolate } from '../core/expressions';
 import { platformStore } from '../core/secureStore';
 import { useAppContext } from '../context/AppContext';
 import { theme, themed } from '../theme';
+import { Icon as PaperIcon } from 'react-native-paper';
+import { materialIconOf } from '../ui/wireIcons';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { openExternal } from './openExternal';
 
@@ -180,6 +182,8 @@ export function iconText(icon: string): string {
 
 export function IconRenderer({ metadata }: { metadata: Dict }) {
   const icon = str(metadata['icon']);
+  const material = materialIconOf(icon);
+  if (material) return <PaperIcon source={material} size={20} color={theme.ink} />;
   return (
     <Text style={styles.icon} accessibilityLabel={icon.split(':').pop()}>
       {iconText(icon)}

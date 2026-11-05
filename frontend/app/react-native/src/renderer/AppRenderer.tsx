@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
-import { Appbar, Divider, Drawer as PaperDrawer, FAB, IconButton, Text as PaperText } from 'react-native-paper';
+import { Appbar, Divider, Drawer as PaperDrawer, FAB, Icon, IconButton, Text as PaperText } from 'react-native-paper';
 import { navigationTheme, useThemeControl } from '../ui/MateuTheme';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
@@ -15,11 +15,14 @@ import type { MateuViewController } from '../core/MateuViewController';
 import { ChatPanel } from './ChatPanel';
 import { MateuViewHost } from './MateuViewHost';
 import { theme, themed } from '../theme';
+import { materialIconOf } from '../ui/wireIcons';
 import { buttonA11y } from '../a11y/a11y';
+import { MateuButton } from '../ui/controls';
 import { cardsOf, isCardsGroup } from './menuCards';
 import { canSignOut, signOut } from '../core/auth';
 import { isRuleLeaf, menuLeafEffects, navigableMenuLeaves, type ShellAction } from '../core/shellFlows';
 import { fetchExternalJson } from '../core/restFetch';
+import { contextOptionsOf, markReadVars, notificationsOf, runAppSource, searchHitsOf, type AppSourceHost } from '../core/appSources';
 import { interpolate } from '../core/expressions';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
@@ -57,6 +60,8 @@ interface AppContextSelector {
   fieldName: string;
   label?: string;
   options?: { value: unknown; label?: string }[];
+  /** A data-authored shell's `optionsSource:`: the app fetches the options itself. */
+  optionsSource?: Record<string, unknown> | null;
 }
 
 interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
@@ -79,7 +84,11 @@ interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   menu?: MenuItem[];
   contextSelectors?: AppContextSelector[];
   notificationsEnabled?: boolean;
+  /** A data-authored shell's inbox: REST sources instead of the app class's supplier. */
+  notificationsSource?: Record<string, unknown> | null;
+  notificationsReadSource?: Record<string, unknown> | null;
   globalSearchEnabled?: boolean;
+  globalSearchSource?: Record<string, unknown> | null;
   /** The shell's declared actions; a flow carries its steps lowered to `commands`. */
   actions?: ShellAction[];
   /** The app's ACTION catalogue: named client-runnable actions, resolved after the owner's. */
@@ -242,6 +251,18 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
   const { api, appState, session } = useAppContext();
   // the app's @AppContext values are the user's context: an untrusted island is not given them
   for (const selector of selectors) session.appContextKeys.add(selector.fieldName);
+  // a data-authored shell's pickers read their options from their REST source, once
+  const [sourced, setSourced] = useState<Record<string, { value: unknown; label?: string }[]>>({});
+  React.useEffect(() => {
+    for (const selector of selectors) {
+      const source = selector.optionsSource;
+      if (!source) continue;
+      runAppSource(appSourceHost(api, session.sources, appState, appMeta), 'contextOptions', source, {}, selector.fieldName)
+        .then((json) => setSourced((s) => ({ ...s, [selector.fieldName]: contextOptionsOf(json, source, session.sources) })))
+        .catch((e) => console.warn('mateu: context options fetch failed', e));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectors]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   // server results replacing the loaded options while a remote search is active
@@ -289,7 +310,8 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
   if (selectors.length === 0) return null;
   return (
     <View>
-      {selectors.map((selector) => {
+      {selectors.map((declaredSelector) => {
+        const selector = sourced[declaredSelector.fieldName] ? { ...declaredSelector, options: sourced[declaredSelector.fieldName] } : declaredSelector;
         const current = appState[selector.fieldName] != null ? String(appState[selector.fieldName]) : '';
         const currentLabel =
           selector.options?.find((o) => String(o.value) === current)?.label ?? (current || '—');
@@ -355,6 +377,19 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
 /** Dispatches an APP-LEVEL action (the same rail as the @AppContext pickers' remote search:
  *  route = the app's root/home route, serverSideType = the app class) and returns the response's
  *  fragments. Used by the notification bell (_notifications-*) and the global search. */
+const appSourceHost = (
+  api: import('../api/MateuApiClient').MateuApiClient,
+  sources: AppSourceHost['sources'],
+  appState: Record<string, unknown>,
+  appMeta: AppMeta,
+): AppSourceHost => ({
+  api: api as unknown as AppSourceHost['api'],
+  sources,
+  appState,
+  rootRoute: appMeta.rootRoute,
+  serverSideType: appMeta.serverSideType ?? null,
+});
+
 async function runAppLevelAction(
   api: import('../api/MateuApiClient').MateuApiClient,
   appState: Record<string, unknown>,
@@ -385,12 +420,18 @@ async function runAppLevelAction(
  * marks that id read and navigates to the entry's route; "Mark all read" sends {ids:"all"}.
  */
 function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
-  const { api, appState } = useAppContext();
+  const { api, appState, session } = useAppContext();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const source = appMeta.notificationsSource ?? undefined;
 
   const refresh = React.useCallback(async () => {
     try {
+      if (source) {
+        const host = appSourceHost(api, session.sources, appState, appMeta);
+        setNotifications(notificationsOf(await runAppSource(host, 'notifications', source, {}), source, session.sources) as AppNotification[]);
+        return;
+      }
       const fragments = await runAppLevelAction(api, appState, appMeta, '_notifications-list', {}, 'notification-bell');
       for (const fragment of fragments) {
         const list = fragment.data?.['_notifications'];
@@ -402,10 +443,19 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
     } catch {
       // inbox unavailable: keep whatever list we had
     }
-  }, [api, appState, appMeta]);
+  }, [api, appState, appMeta, source, session.sources]);
 
   const markRead = async (ids: string[] | 'all') => {
     try {
+      if (source) {
+        // a source with no way to mark read keeps it local: the entry stops being unread here
+        const read = appMeta.notificationsReadSource;
+        const all = ids === 'all';
+        const list = all ? notifications.map((n) => n.id) : ids;
+        if (read) await runAppSource(appSourceHost(api, session.sources, appState, appMeta), 'notificationsRead', read, markReadVars(list, all));
+        setNotifications((current) => current.map((n) => (all || list.includes(n.id) ? { ...n, unread: false } : n)));
+        return;
+      }
       const fragments = await runAppLevelAction(api, appState, appMeta, '_notifications-read', { ids }, 'notification-bell');
       for (const fragment of fragments) {
         const list = fragment.data?.['_notifications'];
@@ -436,26 +486,28 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
 
   return (
     <View>
-      <TouchableOpacity
-        {...buttonA11y({ label: unread > 0 ? `Notifications, ${unread} unread` : 'Notifications', expanded: open })}
-        style={styles.contextRow}
+      <PaperDrawer.Item
+        label="Notifications"
+        icon="bell-outline"
+        accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+        accessibilityState={{ expanded: open }}
+        right={() => (
+          <View style={styles.bellRight}>
+            {unread > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>{unread > 99 ? '99+' : unread}</Text>
+              </View>
+            )}
+            <Icon source={open ? 'chevron-up' : 'chevron-down'} size={22} color={theme.muted} />
+          </View>
+        )}
         onPress={() => {
           const next = !open;
           setOpen(next);
           // the count from the last fetch may be stale — refetch each time the panel opens
           if (next) void refresh();
         }}
-      >
-        <Text style={styles.contextLabel}>Notifications</Text>
-        <View style={styles.bellRight}>
-          {unread > 0 && (
-            <View style={styles.bellBadge}>
-              <Text style={styles.bellBadgeText}>{unread > 99 ? '99+' : unread}</Text>
-            </View>
-          )}
-          <Text style={styles.contextValue}>{open ? '▾' : '▸'}</Text>
-        </View>
-      </TouchableOpacity>
+      />
       {open && (
         <View>
           {notifications.length === 0 && <Text style={styles.bellEmpty}>No notifications</Text>}
@@ -492,12 +544,19 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
  * either navigates through the same path as a menu click.
  */
 function GlobalSearchBox({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
-  const { api, appState } = useAppContext();
+  const { api, appState, session } = useAppContext();
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<GlobalSearchHit[]>([]);
   const searchTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const remoteSearch = (text: string) => {
+    const source = appMeta.globalSearchSource;
+    if (source) {
+      runAppSource(appSourceHost(api, session.sources, appState, appMeta), 'globalSearch', source, { searchText: text })
+        .then((json) => setHits(searchHitsOf(json, source, session.sources) as GlobalSearchHit[]))
+        .catch(() => setHits([]));
+      return;
+    }
     runAppLevelAction(api, appState, appMeta, '_globalsearch', { searchText: text }, 'cmd-palette')
       .then((fragments) => {
         for (const fragment of fragments) {
@@ -645,9 +704,13 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       const hasSubmenus = item.submenus && item.submenus.length > 0;
       if (hasSubmenus && depth === 0) {
         return (
-          <PaperDrawer.Section key={i} title={item.label ?? ''} showDivider={false}>
+          // A group is a section of the drawer, not one more destination: a divider and a quiet
+          // header (Material's section label), so it never reads like the entries it holds.
+          <View key={i} style={styles.drawerSection}>
+            <Divider style={styles.drawerSectionDivider} />
+            <PaperText variant="titleSmall" style={styles.drawerSectionTitle} accessibilityRole="header">{item.label ?? ''}</PaperText>
             {renderItems(item.submenus!, depth + 1)}
-          </PaperDrawer.Section>
+          </View>
         );
       }
       // "You are here": the current destination carries the active indicator (Nielsen #1,
@@ -658,6 +721,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
         <PaperDrawer.Item
           key={i}
           label={item.label ?? ''}
+          icon={materialIconOf(item.icon)}
           active={selected}
           onPress={() => onNavigate(item)}
           accessibilityLabel={item.label ?? undefined}
@@ -678,12 +742,8 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
         // The Mateu hub app: the drawer top is where the user jumps back to their list of UIs or
         // to another UI (design/mobile-app-hub.md §4, "switch between UIs").
         <View style={styles.hubRow}>
-          <TouchableOpacity {...buttonA11y({ label: 'My UIs' })} style={styles.hubButton} onPress={hub.goHome}>
-            <Text style={styles.hubButtonText}>‹ My UIs</Text>
-          </TouchableOpacity>
-          <TouchableOpacity {...buttonA11y({ label: 'Switch UI' })} style={styles.hubButton} onPress={hub.openSwitcher}>
-            <Text style={styles.hubButtonText}>⇄ Switch</Text>
-          </TouchableOpacity>
+          <MateuButton label="My UIs" icon="arrow-left" buttonStyle="tertiary" accessibilityLabel="My UIs" onPress={hub.goHome} />
+          <MateuButton label="Switch" icon="swap-horizontal" buttonStyle="tertiary" accessibilityLabel="Switch UI" onPress={hub.openSwitcher} />
         </View>
       )}
       <PaperText variant="titleLarge" style={styles.sidebarTitle} accessibilityRole="header">{appMeta.title ?? 'Mateu'}</PaperText>
@@ -1103,8 +1163,9 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
 const styles = themed(() => StyleSheet.create({
   hubRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8, paddingTop: 4, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ddd', marginBottom: 8 },
-  hubButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 },
-  hubButtonText: { color: theme.primary, fontWeight: '600', fontSize: 15 },
+  drawerSection: { marginTop: 8 },
+  drawerSectionDivider: { marginHorizontal: 28, marginBottom: 8 },
+  drawerSectionTitle: { color: theme.muted, paddingHorizontal: 28, paddingVertical: 12 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: theme.danger, padding: 16, fontSize: 14 },
   stackHost: { flex: 1, backgroundColor: theme.surface },

@@ -133,6 +133,8 @@ export interface ColDef {
   label: string;
   dataType: string;
   stereotype: string;
+  /** The column that names the row (GridColumn.identifier): a card's title. */
+  identifier?: boolean;
   aggregate: string;
   sortable: boolean;
   sortingProperty: string;
@@ -162,6 +164,7 @@ export function columnDefsOf(
         label: (cm['label'] as string) ?? col.label ?? col.id ?? '',
         dataType: (cm['dataType'] as string) ?? '',
         stereotype: (cm['stereotype'] as string) ?? '',
+        identifier: cm['identifier'] === true,
         aggregate: (cm['aggregate'] as string) ?? '',
         sortable: cm['sortable'] === true,
         sortingProperty: (cm['sortingProperty'] as string) ?? '',
@@ -203,6 +206,26 @@ const isBooleanColumn = (col: Pick<ColDef, 'dataType'>, value: unknown): boolean
   typeof value === 'boolean' || col.dataType === 'bool' || col.dataType === 'boolean';
 
 /** One row of the phone LIST layout (Material list item): headline, supporting text, chips. */
+const PICTURE_URL = /^(https?:\/\/|data:image\/)/i;
+
+/** The url in a cell, when the value can be drawn as a picture. */
+export const pictureUrlOf = (value: unknown): string | undefined =>
+  typeof value === 'string' && PICTURE_URL.test(value) ? value : undefined;
+
+/** A column whose cells are pictures (`stereotype: image`): drawn, never printed as a url. */
+export const isImageColumn = (col: { stereotype?: string }): boolean => col.stereotype === 'image';
+
+/**
+ * What a listing CARD shows, the rule of the web's mateu-table-crud: the first picture column on
+ * top, the identifier column (else the first other one) as the title, the rest as label + value.
+ */
+export function cardLayoutOf<C extends { stereotype?: string; identifier?: boolean }>(cols: C[]): { picture?: C; columns: C[] } {
+  const picture = cols.find(isImageColumn);
+  const others = cols.filter((c) => !isImageColumn(c));
+  const title = others.find((c) => c.identifier) ?? others[0];
+  return { picture, columns: title ? [title, ...others.filter((c) => c !== title)] : others };
+}
+
 export interface ListRowModel {
   /** The first column: what the row IS. */
   headline: string;
@@ -222,17 +245,19 @@ export interface ListRowModel {
  */
 export function listRowModel(
   row: Dict,
-  cols: Pick<ColDef, 'fieldId' | 'label' | 'dataType' | 'stereotype' | 'valueLabels' | 'tones' | 'leadingPath' | 'captionPath'>[],
-  text: (value: unknown, col: (typeof cols)[number]) => string,
+  allCols: Pick<ColDef, 'fieldId' | 'label' | 'dataType' | 'stereotype' | 'valueLabels' | 'tones' | 'leadingPath' | 'captionPath'>[],
+  text: (value: unknown, col: (typeof allCols)[number]) => string,
 ): ListRowModel {
+  // a picture column is the row's leading picture: a url among the values tells nobody anything
+  const pictureCol = allCols.find(isImageColumn);
+  const cols = allCols.filter((c) => !isImageColumn(c));
   const [first, ...rest] = cols;
   const headline = first ? text(row[first.fieldId], first) : '';
   const supporting: string[] = [];
   // a primary first column: its caption leads the supporting text, its picture leads the row
   const caption = first?.captionPath ? row[first.captionPath] : undefined;
   if (caption != null && String(caption) !== '') supporting.push(String(caption));
-  const picture = first?.leadingPath ? row[first.leadingPath] : undefined;
-  const leading = typeof picture === 'string' && /^(https?:\/\/|data:image\/)/i.test(picture) ? picture : undefined;
+  const leading = pictureUrlOf(first?.leadingPath ? row[first.leadingPath] : undefined) ?? pictureUrlOf(pictureCol ? row[pictureCol.fieldId] : undefined);
   const chips: { label: string; tone: string }[] = [];
   for (const col of rest) {
     const value = row[col.fieldId];

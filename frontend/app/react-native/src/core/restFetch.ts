@@ -71,13 +71,18 @@ export function mapItemsToOptions(
 }
 
 /** Shape a JSON response into listing rows: navigate `itemsPath` to the array, then read each
- *  column by its id as a dot path from each item (a row is an object keyed by column id). */
-export function mapItemsToRows(json: unknown, itemsPath: string | undefined, columnIds: string[]): Json[] {
+ *  column by its id as a dot path from each item (a row is an object keyed by column id), or by the
+ *  path the source's `fields` map names for it (`pathOf`). */
+export function mapItemsToRows(json: unknown, itemsPath: string | undefined, columnIds: string[], pathOf: (id: string) => string = (id) => id): Json[] {
   const arr = getByPath(json, itemsPath);
   if (!Array.isArray(arr)) return [];
   return arr.map((item) => {
     const row: Json = {};
-    for (const id of columnIds) row[id] = getByPath(item, id);
+    for (const id of columnIds) row[id] = getByPath(item, pathOf(id));
+    // a tree listing's rows carry what hangs from them (GridLayout.tree): `children` is no column,
+    // and mapping a row to its columns alone left every tree showing only its roots
+    const children = item != null && typeof item === 'object' ? (item as Json)['children'] : undefined;
+    if (Array.isArray(children)) row['children'] = mapItemsToRows(children, undefined, columnIds, pathOf);
     return row;
   });
 }
@@ -186,6 +191,23 @@ export class RestSourceCatalogue {
         ? source['sample']
         : (this.get(String(ref))?.['sample'] ?? from['sample']),
     };
+  }
+
+  /** Where a field lives in the items of a source named by `ref` (its `fields` map), else the name. */
+  pathOfField(source: Json | undefined, field: string): string {
+    const fields = this.get(source?.['ref'] as string | undefined)?.['fields'] as Record<string, string> | undefined;
+    return fields?.[field] || field;
+  }
+
+  /**
+   * Where a source says the server's total is: a source that declares it pages on the server, so a
+   * listing asks for one page at a time. Absent — or answered from its sample, which is the whole
+   * collection — the rows are fetched whole and paged on the device.
+   */
+  serverTotalPath(source: Json | undefined): string | undefined {
+    if (!source || this.isSampled(source)) return undefined;
+    const entry = this.get(source['ref'] as string | undefined);
+    return (entry?.['totalPath'] as string | undefined) || (source['totalPath'] as string | undefined) || undefined;
   }
 
   /** Turns sample mode on (or off — only tests do that). */

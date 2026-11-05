@@ -1,8 +1,9 @@
 /**
  * The pure half of a kanban board on React Native: a LIVE board's cards from the items of its
  * rowsSource, what a move does to the columns and what the move action receives. The same rules as
- * the web's libs/mateu kanbanModel.ts and Redwood's poc/core/kanban.mjs. On a phone a card does not
- * drag: its "Move…" picker offers the moves (up/down in its column, or to another column).
+ * the web's libs/mateu kanbanModel.ts and Redwood's poc/core/kanban.mjs. On a phone a card drags
+ * after a long press (where it lands: `dropTargetOf`); its "Move…" picker offers the same moves to a
+ * screen reader, or to whoever prefers it (up/down in its column, or to another column).
  */
 import type { KanbanCard, KanbanColumn } from '../api/metadata';
 
@@ -181,4 +182,62 @@ export function cardRouteOf(template: string | undefined, card: BoardCard): stri
   if (!template || !card.row) return undefined;
   const route = rowText(template, card.row);
   return route && !route.includes('${') ? route : undefined;
+}
+
+// ── Dragging a card: where it lands ─────────────────────────────────────────────────────────────
+
+/** A column as it is on screen, in the board's coordinates (x already accounts for the sideways scroll). */
+export interface ColumnGeometry {
+  id: string;
+  x: number;
+  width: number;
+  /** Where the column's card list starts, in the board's coordinates. */
+  listTop: number;
+  /** How far the card list is scrolled. */
+  scrollY: number;
+  /** Each card inside the list's content, in order. */
+  cards: { id: string; y: number; height: number }[];
+}
+
+export interface DropTarget {
+  columnId: string;
+  /** The position AFTER the dragged card left its place: what `KanbanMove.toIndex` means. */
+  index: number;
+  /** Where to draw the insertion line, in the list's content. */
+  lineY: number;
+}
+
+/**
+ * Where a card held at (x, y) would land: the column under the finger (the nearest one over a gap
+ * or past the last), before the first card whose middle is below the finger. The dragged card does
+ * not count: it is leaving its place.
+ */
+export function dropTargetOf(columns: ColumnGeometry[], x: number, y: number, draggedId: string): DropTarget | undefined {
+  if (columns.length === 0) return undefined;
+  const distance = (c: ColumnGeometry) => (x < c.x ? c.x - x : x > c.x + c.width ? x - (c.x + c.width) : 0);
+  const column = columns.reduce((best, c) => (distance(c) < distance(best) ? c : best));
+  const cards = column.cards.filter((c) => c.id !== draggedId);
+  const inList = y - column.listTop + column.scrollY;
+  let index = cards.findIndex((c) => inList < c.y + c.height / 2);
+  if (index < 0) index = cards.length;
+  const last = cards[cards.length - 1];
+  const lineY = index < cards.length ? cards[index]!.y - 4 : last ? last.y + last.height + 4 : 0;
+  return { columnId: column.id, index, lineY };
+}
+
+/**
+ * How fast to scroll while a card is held near an edge of the scrollable area (dp per tick): nothing
+ * away from the edges, up to `max` right at them, negative towards the start.
+ */
+export function edgeScrollStep(position: number, start: number, end: number, margin = 64, max = 14): number {
+  if (position < start + margin) return -Math.ceil(max * Math.min(1, (start + margin - position) / margin));
+  if (position > end - margin) return Math.ceil(max * Math.min(1, (position - (end - margin)) / margin));
+  return 0;
+}
+
+/** The move a drop means, or undefined when the card ends up where it was. */
+export function moveOfDrop(columns: BoardColumn[], cardId: string, fromColumnId: string, target: DropTarget): KanbanMove | undefined {
+  const index = columns.find((c) => c.id === fromColumnId)?.cards?.findIndex((c) => c.id === cardId) ?? -1;
+  if (target.columnId === fromColumnId && target.index === index) return undefined;
+  return { cardId, fromColumnId, toColumnId: target.columnId, toIndex: target.index };
 }

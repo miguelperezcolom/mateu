@@ -7,7 +7,8 @@ import { canMove, dropOn, moveToLabel, zoneLabel, type MountedDropZone } from '.
 import { useViewController } from './MateuViewHost';
 import { SavedView } from './savedViews';
 import { interpolate, interpolateUrl } from '../core/expressions';
-import { fetchExternalJson, mapItemsToRows } from '../core/restFetch';
+import { fetchExternalJson, getByPath, mapItemsToRows } from '../core/restFetch';
+import { useInsideVerticalScroll } from './ScrollContext';
 import { restListingPage } from '../core/restListing';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
@@ -41,7 +42,10 @@ import {
   extractListing,
   cellTone,
   firstRowAction as firstRowActionOf,
+  cardLayoutOf,
+  isImageColumn,
   listRowModel,
+  pictureUrlOf,
   nextSort,
   normalizeCrudData,
   pagingOf,
@@ -88,6 +92,7 @@ interface Props {
 
 export function CrudRenderer({ component, metadata, state, data }: Props) {
   const controller = useViewController();
+  const nestedInScroll = useInsideVerticalScroll();
 
   const title = (metadata['title'] as string) ?? '';
   const subtitle = (metadata['subtitle'] as string) ?? '';
@@ -159,13 +164,20 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     // rows reads (`${state.id}` per row)
     ...rowRouteFields(metadata['rowRoute']),
   ].filter((f): f is string => typeof f === 'string' && !!f))];
-  const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
+  const restState = () => ({ ...state, ...controller.currentComponentState });
+  const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state: restState(), appState: controller.session.appState });
   const rowsUrl = rowsResolved ? restResolve(rowsResolved.url) : '';
   const [restRows, setRestRows] = useState<Record<string, unknown>[]>([]);
-  // The REST listing is fetched WHOLE (RN does not honour totalPath, and a source answered from its
-  // SAMPLE cannot honour `${state.page}` either): search, filters, sort and page apply in memory over
-  // the component state — the web's mateu-table-crud unpaged path.
+  // A source declaring a `totalPath` pages on the SERVER: each page, search, filter or sort is one
+  // request (the url's `${state.page}`, `${state.size}`…) and the rows are what it answers. Any other
+  // is fetched WHOLE (and so is one answered from its SAMPLE, which cannot honour `${state.page}`):
+  // search, filters, sort and page apply in memory over the component state — the two paths of the
+  // web's mateu-table-crud.
   const restPageSize = Number(metadata['pageSize'] ?? 0) || 0;
+  const restTotalPath = rowsSource ? controller.session.sources.serverTotalPath(rowsSource as Record<string, unknown>) : undefined;
+  const [restRequest, setRestRequest] = useState(0);
+  // what asks the source again (server-paged) or re-slices what is here (fetched whole)
+  const refreshRest = () => (restTotalPath ? setRestRequest((n) => n + 1) : showRestPage(restRows));
   const showRestPage = (rows: Record<string, unknown>[]) =>
     setLiveData({
       page: restListingPage(rows, {
@@ -178,24 +190,37 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   useEffect(() => {
     if (!rowsSource || !rowsResolved) return;
     let cancelled = false;
+    // the pager numbers its pages with the size the listing was served at: every request names it
+    if (restTotalPath && restPageSize > 0) controller.currentComponentState['size'] = restPageSize;
     // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToRows.
     // A sampled source (sample mode) is never proxied: fetchExternalJson answers it from the sample.
     const jsonPromise = controller.session.sources.viaProxy(rowsSource as Record<string, unknown>)
       ? controller.fetchViaProxy('rows', String(component['id'] ?? 'crud'))
-      : fetchExternalJson(rowsSource, restResolve, (t) => interpolateUrl(String(t ?? ''), { state, appState: controller.session.appState }), controller.session.sources);
+      : fetchExternalJson(rowsSource, restResolve, (t) => interpolateUrl(String(t ?? ''), { state: restState(), appState: controller.session.appState }), controller.session.sources);
     jsonPromise
       .then((json) => {
         if (cancelled) return;
-        const rows = mapItemsToRows(json, rowsResolved.itemsPath, columnIds) as Record<string, unknown>[];
+        const sources = controller.session.sources;
+        const rows = mapItemsToRows(json, rowsResolved.itemsPath, columnIds, (id) => sources.pathOfField(rowsSource as Record<string, unknown>, id)) as Record<string, unknown>[];
         setRestRows(rows);
         setSearched(true);
-        showRestPage(rows);
+        if (restTotalPath) {
+          const total = Number(getByPath(json, restTotalPath));
+          setLiveData({ page: {
+            content: rows,
+            totalElements: Number.isFinite(total) ? total : rows.length,
+            pageSize: restPageSize || rows.length || 1,
+            pageNumber: Number(controller.currentComponentState['page'] ?? 0) || 0,
+          } });
+        } else {
+          showRestPage(rows);
+        }
       })
       .catch((e) => console.warn('mateu: external rows fetch failed', e));
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowsUrl]);
+  }, [rowsUrl, restRequest]);
 
   const listing = extractListing<ListingData>(liveData);
   const { rows: rawRows, totalElements, pageSize, pageNumber, totalPages, hasPrevious, hasNext } = pagingOf(liveData);
@@ -217,7 +242,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (!rowsSource) controller.seedSearchState();
     applySearchToState(controller.currentComponentState, effectiveSearchText, values ?? filterValues);
     if (rowsSource) {
-      showRestPage(restRows);
+      // a new search starts from the first page; what was on page 3 is not what was asked for
+      controller.currentComponentState['page'] = 0;
+      refreshRest();
       return;
     }
     void controller.runAction('search');
@@ -235,7 +262,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (!rowsSource) controller.seedSearchState();
     const current = Number(controller.currentComponentState['page'] ?? 0);
     controller.currentComponentState['page'] = Math.max(0, current + delta);
-    if (rowsSource) return showRestPage(restRows);
+    if (rowsSource) return refreshRest();
     void controller.runAction('search');
   };
 
@@ -246,9 +273,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     const next = nextSort(sortState, field);
     setSortState(next);
     if (!rowsSource) controller.seedSearchState();
-    controller.currentComponentState['sort'] = next ? [next] : [];
+    // `fieldId` too: what a source's url template reads (`${state.sort?.[0]?.fieldId}`)
+    controller.currentComponentState['sort'] = next ? [{ ...next, fieldId: next.field }] : [];
     controller.currentComponentState['page'] = 0;
-    if (rowsSource) return showRestPage(restRows);
+    if (rowsSource) return refreshRest();
     void controller.runAction('search');
   };
   const sortMark = (field: string) => sortMarkOf(sortState, field);
@@ -343,6 +371,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
   const allColDefs = columnDefsOf(columns, rowOpen);
 
+
   // Per-user column personalization (show/hide) — session-scoped (see columnPrefs). The first column
   // (identity / row-open) is protected and never hideable. `colDefs` is what the table actually renders.
   const columnScope = String((metadata['id'] as string) ?? (metadata['title'] as string) ?? '');
@@ -355,6 +384,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     controller.session.columnPrefs.set(columnScope, next);
   };
   const colDefs = allColDefs.filter((c) => !hiddenCols.includes(c.fieldId));
+  const cardLayout = cardLayoutOf(colDefs);
 
   // Saved views: named snapshots of {searchText + filters}; one may be the default (auto-applied once).
   const [viewsOpen, setViewsOpen] = useState(false);
@@ -539,6 +569,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         // Cards: one card per row — the mobile-first layout
         <>
           <FlatList
+                scrollEnabled={!nestedInScroll}
             data={displayRows}
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={fabClearance}
@@ -552,7 +583,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 <Card mode="outlined" style={styles.cardRow}>
                 <TouchableRipple {...rowA11y(item)} borderless style={styles.cardRipple} onPress={() => handleRowPress(item)}>
                 <View>
-                  {colDefs.map((col, i) => {
+                  {(() => {
+                    const picture = cardLayout.picture ? pictureUrlOf(item[cardLayout.picture.fieldId]) : undefined;
+                    return picture ? <Image source={{ uri: picture }} style={styles.cardPicture} accessibilityIgnoresInvertColors importantForAccessibility="no" accessibilityElementsHidden /> : null;
+                  })()}
+                  <View style={styles.cardBody}>
+                  {cardLayout.columns.map((col, i) => {
                     const tip = cellTooltipText(item, col.tooltipPath);
                     const lineStyle = [styles.cardLine, rowsSelectionEnabled && i === 0 && styles.cardLineSelectable];
                     const tone = i > 0 ? cellTone(item[col.fieldId], col) : null;
@@ -583,6 +619,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       <View key={col.fieldId} style={lineStyle}>{content}</View>
                     );
                   })}
+                  </View>
                 </View>
                 </TouchableRipple>
                 </Card>
@@ -612,6 +649,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         // List: compact single-line rows (first column primary, the rest secondary)
         <>
           <FlatList
+                scrollEnabled={!nestedInScroll}
             data={displayRows}
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={fabClearance}
@@ -667,8 +705,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         </>
       ) : gridLayout === 'tree' ? (
         // Tree: hierarchical rows carrying a self-referential `children` list
-        <ScrollView>
-          <TreeRows rows={rawRows} colDefs={colDefs} depth={0} onPress={handleRowPress} />
+        <ScrollView scrollEnabled={!nestedInScroll}>
+          <TreeRows rows={rawRows} colDefs={colDefs} depth={0} onPress={handleRowPress} opens={!!rowOpen}
+            expandAll={String(state['searchText'] ?? '').trim() !== ''} />
         </ScrollView>
       ) : (
         <ScrollView horizontal>
@@ -698,6 +737,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             {/* Rows: tapping one opens its detail (link action / primary row action).
                 Group header rows (groupBy) are presentation-only — no press, no selection. */}
             <FlatList
+                scrollEnabled={!nestedInScroll}
               data={displayRows}
               keyExtractor={(_, i) => String(i)}
               contentContainerStyle={fabClearance}
@@ -728,7 +768,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     {colDefs.map((col) => {
                       const tip = cellTooltipText(item, col.tooltipPath);
                       const tone = cellTone(item[col.fieldId], col);
-                      const content = tone
+                      const tablePicture = isImageColumn(col) ? pictureUrlOf(item[col.fieldId]) : undefined;
+                      const content = isImageColumn(col)
+                        ? (tablePicture ? <Image source={{ uri: tablePicture }} style={styles.listLeading} accessibilityIgnoresInvertColors importantForAccessibility="no" accessibilityElementsHidden /> : null)
+                        : tone
                         ? <StatusChip label={cellText(item[col.fieldId], col.valueLabels, col)} tone={tone} />
                         : <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId], col.valueLabels, col)}</Text>;
                       if (col.display) return renderDisplayCell(col, item, styles.cell, content);
@@ -892,39 +935,44 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
 /** Hierarchical rows (GridLayout.tree): indentation + expand carets; the caret is its own tap
  *  target so selectable group rows can still expand (same rule as the tree select). */
-function TreeRows({ rows, colDefs, depth, onPress }: {
+function TreeRows({ rows, colDefs, depth, onPress, expandAll, opens }: {
   rows: Record<string, unknown>[];
   colDefs: { fieldId: string; label: string; valueLabels?: Record<string, string> | null }[];
   depth: number;
   onPress: (row: Record<string, unknown>) => void;
+  /** While searching: what is left is the way to a match, so it shows open. */
+  expandAll?: boolean;
+  /** The row has somewhere to go when pressed (a rowRoute, a view action). */
+  opens?: boolean;
 }) {
-  const [openRows, setOpenRows] = useState<number[]>([]);
+  // a lone root (the Sun, one company) says nothing closed: it opens by itself
+  const [openRows, setOpenRows] = useState<number[]>(() => (depth === 0 && rows.length === 1 ? [0] : []));
   return (
     <View>
       {rows.map((row, i) => {
         const children = Array.isArray(row['children']) ? (row['children'] as Record<string, unknown>[]) : [];
-        const open = openRows.includes(i);
+        const open = !!expandAll || openRows.includes(i);
+        const name = cellText(row[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels);
+        const supporting = colDefs.slice(1).map((c) => cellText(row[c.fieldId], c.valueLabels, c as never)).filter(Boolean).join(' · ');
+        const toggle = () => setOpenRows(openRows.includes(i) ? openRows.filter((n) => n !== i) : [...openRows, i]);
         return (
           <View key={i}>
-            <View style={[styles.listRow, { paddingLeft: 12 + depth * 20, flexDirection: 'row', alignItems: 'center' }]}>
+            <View style={[styles.treeRow, { paddingLeft: 4 + depth * 20 }]}>
               {children.length > 0 ? (
-                <TouchableOpacity {...buttonA11y()}
-                  style={styles.treeCaret}
-                  onPress={() => setOpenRows(open ? openRows.filter((n) => n !== i) : [...openRows, i])}
-                >
-                  <Text>{open ? '▾' : '▸'}</Text>
-                </TouchableOpacity>
+                <IconButton icon={open ? 'chevron-down' : 'chevron-right'} size={22} style={styles.treeCaret} onPress={toggle}
+                  accessibilityLabel={`${open ? 'Collapse' : 'Expand'} ${name}`} accessibilityState={{ expanded: open }} />
               ) : (
                 <View style={styles.treeCaret} />
               )}
-              <TouchableOpacity {...buttonA11y()} style={{ flex: 1 }} onPress={() => onPress(row)}>
-                <Text style={styles.cardPrimary} numberOfLines={1}>
-                  {cellText(row[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels)}
-                </Text>
-              </TouchableOpacity>
+              <TouchableRipple {...buttonA11y({ label: name })} style={styles.treeLabel} onPress={() => (opens ? onPress(row) : children.length > 0 ? toggle() : undefined)}>
+                <View>
+                  <PaperText variant="titleMedium" style={styles.listHeadline} numberOfLines={1}>{name}</PaperText>
+                  {!!supporting && <PaperText variant="bodyMedium" style={styles.listSecondary} numberOfLines={1}>{supporting}</PaperText>}
+                </View>
+              </TouchableRipple>
             </View>
             {open && children.length > 0 && (
-              <TreeRows rows={children} colDefs={colDefs} depth={depth + 1} onPress={onPress} />
+              <TreeRows rows={children} colDefs={colDefs} depth={depth + 1} onPress={onPress} expandAll={expandAll} opens={opens} />
             )}
           </View>
         );
@@ -1106,7 +1154,9 @@ const styles = themed(() => StyleSheet.create({
   emptyStateIcon: { fontSize: 32, marginBottom: 8 },
   emptyStateText: { fontSize: 14, color: theme.faint },
   cardRow: { marginHorizontal: 16, marginTop: 10, borderRadius: theme.radiusMd, backgroundColor: theme.surface, borderColor: theme.border },
-  cardRipple: { padding: 16, borderRadius: theme.radiusMd },
+  cardRipple: { borderRadius: theme.radiusMd, overflow: 'hidden' },
+  cardBody: { padding: 16 },
+  cardPicture: { width: '100%', aspectRatio: 16 / 9, backgroundColor: theme.divider },
   cardLine: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 2 },
   cardLabel: { fontSize: 11, color: theme.faint, minWidth: 90 },
   cardPrimary: { fontSize: 16, fontWeight: '600', color: theme.ink },
@@ -1121,7 +1171,9 @@ const styles = themed(() => StyleSheet.create({
   listSecondary: { color: theme.muted },
   listChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   listChevron: { margin: 0 },
-  treeCaret: { width: 24, alignItems: 'center' },
+  treeRow: { flexDirection: 'row', alignItems: 'center', minHeight: 56, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  treeCaret: { width: 40, height: 40, margin: 0, alignItems: 'center', justifyContent: 'center' },
+  treeLabel: { flex: 1, minHeight: 56, justifyContent: 'center', paddingRight: 16 },
   editHeaderCell: { width: 44 },
   editPencilCell: { width: 44, alignItems: 'center', justifyContent: 'center' },
   editPencilCard: { position: 'absolute', top: 14, right: 22, zIndex: 2, margin: 0 },

@@ -13,6 +13,7 @@ import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
+import { InsideVerticalScroll } from './ScrollContext';
 
 interface ButtonDto {
   actionId?: string;
@@ -83,8 +84,11 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const runAction = (actionId: string) => void controller.runAction(actionId);
   const ctx = { state, data, appState: controller.session.appState };
 
-  const title = interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
-  const subtitle = interpolate((metadata['subtitle'] as string) ?? '', ctx);
+  // a page template that owns the header (WelcomePage, HeroSearchPage…) draws its title in its own
+  // banner: the wire still names it, for the window title, and `noHeader` says not to repeat it
+  const noHeader = metadata['noHeader'] === true;
+  const title = noHeader ? '' : interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
+  const subtitle = noHeader ? '' : interpolate((metadata['subtitle'] as string) ?? '', ctx);
   const toolbar = (metadata['toolbar'] as ButtonDto[]) ?? [];
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
   const badges = (metadata['badges'] as { text?: string; color?: string }[]) ?? [];
@@ -181,9 +185,11 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         <ComponentRenderer component={children[0]} state={state} data={data} />
       ) : (
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          <InsideVerticalScroll.Provider value>
           {children.map((child, i) => (
             <ComponentRenderer key={i} component={child} state={state} data={data} />
           ))}
+          </InsideVerticalScroll.Provider>
         </ScrollView>
       )}
 

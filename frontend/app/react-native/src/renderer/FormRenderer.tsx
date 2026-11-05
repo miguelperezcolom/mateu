@@ -9,6 +9,7 @@ import { Text as PaperText } from 'react-native-paper';
 import { MateuButton } from '../ui/controls';
 import { buttonA11y } from '../a11y/a11y';
 import { useButtonPress } from './useButtonPress';
+import { InsideVerticalScroll } from './ScrollContext';
 
 interface ButtonDto {
   actionId?: string;
@@ -28,8 +29,11 @@ export function FormRenderer({ component, metadata, state }: Props) {
   const controller = useViewController();
 
   // a YAML page's header texts are templates over its state (`title: ${state.name}`)
-  const title = interpolate((metadata['title'] as string) ?? '', { state });
-  const subtitle = interpolate((metadata['subtitle'] as string) ?? '', { state });
+  // …unless a page template owns the header (WelcomePage, HeroSearchPage…): it draws them in its own
+  // banner, the wire still names them for the window title, and `noHeader` says not to repeat them
+  const noHeader = metadata['noHeader'] === true;
+  const title = noHeader ? '' : interpolate((metadata['title'] as string) ?? '', { state });
+  const subtitle = noHeader ? '' : interpolate((metadata['subtitle'] as string) ?? '', { state });
   const readOnly = Boolean(metadata['readOnly']);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
   // Header buttons. A form expanded on the device (a static bundle's raw definition) also carries
@@ -72,9 +76,11 @@ export function FormRenderer({ component, metadata, state }: Props) {
       )}
 
       <ScrollView contentContainerStyle={styles.fields} keyboardShouldPersistTaps="handled">
+        <InsideVerticalScroll.Provider value>
         {children.map((child, i) => (
           <View key={i}>{renderChild(child)}</View>
         ))}
+        </InsideVerticalScroll.Provider>
       </ScrollView>
 
       {!readOnly && buttons.length > 0 && (

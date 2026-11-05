@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView, View, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { segmentsFit } from './patternGaps';
 import { Text } from '../ui/Text';
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
@@ -73,9 +74,10 @@ export function TabsRenderer({ component, state }: { component: unknown; state: 
   // @Tab(open=true) marks the initially-selected tab (first-declared wins, else index 0)
   const [selected, setSelected] = useState(() => Math.max(0, tabs.findIndex((t) => meta(t)['active'] === true)));
   const active = tabs[selected] as Dict | undefined;
+  const { width } = useWindowDimensions();
   return (
     <View>
-      {tabs.length <= 4 ? (
+      {segmentsFit(tabs.map((t) => interpolate((meta(t)['label'] as string) ?? '', { state })), width) ? (
         // a handful of tabs: Material segmented buttons (each a tab with its selected state)
         <SegmentedButtons
           style={styles.segments}
