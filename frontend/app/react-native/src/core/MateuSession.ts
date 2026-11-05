@@ -110,6 +110,8 @@ export class MateuSession {
 
   /** Host hook: whether the screen on show has unsaved changes (its controller tracks them). */
   hasUnsavedChanges: () => boolean = () => false;
+  /** A hub keeps every opened UI mounted: only the one on screen answers Android's Back. */
+  onScreen = true;
 
   /** Host hook: an @Action(confirmationRequired) question — resolve true to run the action. */
   confirmAction: (texts: ConfirmationDialogTexts) => Promise<boolean> = async () => true;

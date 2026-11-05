@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, AppState, Modal, StyleSheet, View } from 'react-native';
+import { FAB } from 'react-native-paper';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { theme, themed } from '../theme';
@@ -83,9 +84,7 @@ export function ConnectAiEntry({ meta, asFab = false }: { meta: AgentPushMeta; a
   return (
     <>
       {asFab ? (
-        <TouchableOpacity {...buttonA11y({ label: entry.label })} style={[styles.fab, entry.connected && styles.fabConnected]} onPress={() => setOpen(true)}>
-          <Text style={styles.fabText}>{entry.connected ? '🔗' : 'AI'}</Text>
-        </TouchableOpacity>
+        <FAB icon={entry.connected ? 'link-variant' : 'robot-outline'} accessibilityLabel={entry.label} onPress={() => setOpen(true)} />
       ) : (
         <TouchableOpacity {...buttonA11y({ label: entry.label })} style={styles.row} onPress={() => setOpen(true)}>
           <View style={[styles.dot, entry.connected && styles.dotConnected]} importantForAccessibility="no" />
@@ -210,9 +209,6 @@ const styles = themed(() => StyleSheet.create({
   dotConnected: { backgroundColor: theme.success, borderColor: theme.success },
   rowText: { color: theme.ink, fontSize: 14, fontWeight: '600', flexShrink: 1 },
   rowTextConnected: { color: theme.success },
-  fab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: theme.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
-  fabConnected: { backgroundColor: theme.success },
-  fabText: { color: theme.onFill, fontWeight: '700', fontSize: 15 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', padding: 24 },
   dialog: { backgroundColor: theme.white, borderRadius: theme.radiusMd, padding: 20, gap: 12 },
   title: { fontSize: 18, fontWeight: '700', color: theme.ink },

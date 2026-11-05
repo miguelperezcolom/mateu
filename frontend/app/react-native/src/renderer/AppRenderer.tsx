@@ -176,6 +176,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
   React.useEffect(() => {
     if (stack.length === 0) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (!appSession.onScreen) return false; // a UI the hub keeps hidden: its stack is not what Back means
       void pop();
       return true;
     });
@@ -1187,7 +1188,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 }
 
 const styles = themed(() => StyleSheet.create({
-  hubRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8, paddingTop: 4, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ddd', marginBottom: 8 },
+  hubRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8, paddingTop: 4, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider, marginBottom: 8 },
   drawerSection: { marginTop: 8 },
   drawerSectionDivider: { marginHorizontal: 28, marginBottom: 8 },
   drawerSectionTitle: { color: theme.muted, paddingHorizontal: 28, paddingVertical: 12 },

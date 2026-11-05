@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Switch, View, StyleSheet, ScrollView } from 'react-native';
+import { Modal, View, StyleSheet, ScrollView } from 'react-native';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { HelperText, Switch as PaperSwitch, Text as PaperText } from 'react-native-paper';
@@ -758,21 +758,28 @@ function OptionsField({ label, required, error, options, value, editable, onChan
           </View>
         </TouchableOpacity>
       )}
-      {open && (
-        <View style={styles.dropdown}>
-          <ScrollView style={{ maxHeight: 200 }}>
-            {options.map((opt) => (
-              <TouchableOpacity {...buttonA11y({ selected: opt.value === value })}
-                key={opt.value}
-                style={[styles.dropdownItem, opt.value === value && styles.dropdownItemSelected]}
-                onPress={() => { onChange(opt.value); setOpen(false); }}
-              >
-                <Text style={opt.value === value ? styles.dropdownTextSelected : undefined}>{opt.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+      {/* a bottom sheet, Material's way on a phone: a list opened in place pushed the whole form down */}
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
+        <View style={styles.sheetBackdrop}>
+          <TouchableOpacity {...buttonA11y({ label: 'Close' })} style={styles.sheetDismiss} onPress={() => setOpen(false)} />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            {!!label && <PaperText variant="titleMedium" style={styles.sheetTitle} accessibilityRole="header">{label}</PaperText>}
+            <ScrollView>
+              {options.map((opt) => (
+                <TouchableOpacity {...buttonA11y({ selected: opt.value === value })}
+                  key={opt.value}
+                  style={[styles.sheetRow, opt.value === value && styles.dropdownItemSelected]}
+                  onPress={() => { onChange(opt.value); setOpen(false); }}
+                >
+                  <Text style={[styles.sheetRowText, opt.value === value ? styles.dropdownTextSelected : undefined]}>{opt.label}</Text>
+                  {opt.value === value && <MIcon name="check" size={20} color={theme.primary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }
@@ -904,6 +911,13 @@ const styles = themed(() => StyleSheet.create({
     shadowRadius: 4,
     zIndex: 100,
   },
+  sheetBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.32)' },
+  sheetDismiss: { flex: 1 },
+  sheet: { maxHeight: '70%', backgroundColor: theme.surface, borderTopLeftRadius: theme.radiusLg, borderTopRightRadius: theme.radiusLg, paddingBottom: 24 },
+  sheetHandle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 12, marginBottom: 12 },
+  sheetTitle: { color: theme.ink, paddingHorizontal: 24, paddingBottom: 8 },
+  sheetRow: { minHeight: 56, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  sheetRowText: { flex: 1, color: theme.ink, fontSize: 16 },
   dropdownItem: { paddingHorizontal: 16, paddingVertical: 14, minHeight: 48, justifyContent: 'center' },
   gridBox: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, overflow: 'hidden' },
   gridRow: { flexDirection: 'row', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: theme.divider },

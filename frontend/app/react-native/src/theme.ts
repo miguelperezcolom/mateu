@@ -144,6 +144,17 @@ export function mix(a: string, b: string, weight: number): string {
   return toHex([0, 1, 2].map((i) => x[i] + (y[i] - x[i]) * weight) as RGB);
 }
 
+/**
+ * Material's state layer: what a press paints over a control, translucent so its label still reads.
+ * The content colour at 12%: over a fill (`background`), whichever of white or ink reads on it;
+ * otherwise the scheme's ink.
+ */
+export function stateLayerOn(background?: unknown): string {
+  const fill = typeof background === 'string' ? parseHex(background) : null;
+  const base = fill ? (luminance(background as string) < 0.4 ? [255, 255, 255] : [0, 0, 0]) : parseHex(theme.ink) ?? [0, 0, 0];
+  return `rgba(${base[0]},${base[1]},${base[2]},${fill && base[0] === 255 ? 0.24 : 0.12})`;
+}
+
 export function luminance(color: string): number {
   const rgb = parseHex(color) ?? [0, 0, 0];
   const [r, g, b] = rgb.map((v) => v / 255).map((x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4));

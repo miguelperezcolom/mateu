@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Switch as PaperSwitch } from 'react-native-paper';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
@@ -40,7 +41,7 @@ export function RecordMergeRenderer({ metadata }: { metadata: Record<string, unk
       {!!merge.title && <Text {...headingA11y(3)} style={styles.title}>{merge.title}</Text>}
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Show only differences</Text>
-        <Switch
+        <PaperSwitch
           accessibilityLabel="Show only differences"
           accessibilityRole="switch"
           value={differencesOnly}

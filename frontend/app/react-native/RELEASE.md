@@ -12,11 +12,12 @@ React Native renderer. Without a registry in `app.json` (`expo.extra.mateuRegist
 | ✅ Apple Developer Program membership (team `2V77LVXCM8`), App ID `io.mateu.app` (Associated Domains), App Store Connect app record | — |
 | Google Play developer account (25 $ once), Play Console app for `io.mateu.app` | — |
 | ✅ **Apple Team ID** `2V77LVXCM8` | `well-known/apple-app-site-association`, published from `doc/public/.well-known/` at `https://mateu.io/.well-known/apple-app-site-association` (`Content-Type: application/json` via `doc/public/_headers`, no redirect) |
+| ⚠️ **Decide the signing key at the first Play upload**: choose "use an existing key" and import the GitHub APK key (`~/.mateu-secrets/android`, Play's PEPK tool). Then the Play certificate is `61:A6:…:07:02`, assetlinks is already right and people on the sideloaded APK can update. Let Google generate one instead and App Links fail until its SHA-256 is added, and those people must uninstall first | Play Console › Setup › App integrity |
 | 🟡 **Android signing SHA-256**: the GitHub APK key is in (`61:A6:…:07:02`, keystore in the owner's `~/.mateu-secrets/android`). **TODO**: the Play App Signing key once the Play app exists (+ the EAS upload key for internal APKs) | `well-known/assetlinks.json` AND `doc/public/.well-known/assetlinks.json` (the published one: real fingerprints only, never a TODO) |
-| `https://mateu.io/add` landing page (store badges + the QR again, for phones without the app) | mateu.io site |
+| `https://mateu.io/add` landing page: it exists, but its store buttons are `href="#"` and it says the app is not in the stores yet — set them the day the app is live | `doc/src/pages/add.astro` |
 | ✅ App Store id `6829227403` (App Store Connect app record created, SKU `mateu-app`) | `src/hub/ui/UiSession.tsx` → `STORE_URL` |
 | ✅ `https://demo.mateu.io/counter` is up, public, with no login (checked 2026-10-31; it is the preinstalled "Try a demo" entry the reviewer uses) | demo deployment |
-| ✅ Privacy policy: **https://mateu.io/privacy** (`doc/src/pages/privacy.astro` — keep it in step with §5) | store listings |
+| ✅ Privacy policy: **https://mateu.io/privacy/** (use the trailing slash in the consoles: without it, a redirect) (`doc/src/pages/privacy.astro` — keep it in step with §5) | store listings |
 | Bundle id: `io.mateu.app` on iOS and Android (decided 2026-10-12; it cannot change after the first store release) | `app.json` |
 | EAS: `eas login` as `miguelperezcolom` (the `owner` in app.json); project id already set | — |
 
@@ -106,9 +107,9 @@ npx eas-cli submit --platform android --profile production  # Play "internal" tr
 > entry, "Try a demo" (https://demo.mateu.io/counter): tap it to open a working demo app. You can
 > also tap "Type an address" and enter `demo.mateu.io/counter`.
 >
-> The app does not download or execute code. Each server sends a declarative description of its
-> screens (JSON), which the app renders with its own native components — the same model as other
-> enterprise thin clients. Apps that require sign-in use the organisation's own identity provider
+> The app does not execute code sent by those servers. Each server sends a declarative description
+> of its screens (JSON), which the app renders with its own native components — the same model as
+> other enterprise thin clients. The app's own JavaScript is updated through Expo EAS Update. Apps that require sign-in use the organisation's own identity provider
 > (OpenID Connect in the system browser); the app never sees passwords.
 >
 > The camera is used only to scan QR codes (and, inside an app, for photo fields the app asks for).
@@ -117,17 +118,21 @@ Play "App access": *All functionality is available without special access* (the 
 
 ## 5. Privacy answers
 
-The app itself collects **nothing**: no analytics, no crash reporting SDK, no advertising id, no
-tracking, no Mateu account. Everything a user enters goes to the server of the UI they opened —
-that organisation is the controller of that data, under its own privacy policy.
+The app has no analytics, no crash reporting SDK, no advertising id, no tracking and no Mateu account.
+Everything a user enters goes to the server of the UI they opened — that organisation is the controller
+of that data, under its own privacy policy. The ONE thing that leaves for a service we chose:
+**expo-updates asks Expo's servers (`u.expo.dev`) for a new version on every launch**, sending a random
+per-install id (EAS Client ID, kept in the app's storage), the platform and runtime version, and, as with
+any request, the IP address. Each UI's server also receives a random per-UI session id (`X-Session-Id`).
 
-**Apple App Privacy ("nutrition label")**: *Data Not Collected*. (Apple defines "collect" as
-transmitting off the device in a way the developer or its partners can access; the developer here
-operates no server the app reports to.) **Tracking**: No. No `NSUserTrackingUsageDescription`.
+**Apple App Privacy ("nutrition label")**: same fact, same answer: *Device ID, App Functionality, not
+linked to the user*, for the update check. **Tracking**: No. No `NSUserTrackingUsageDescription`.
 `ITSAppUsesNonExemptEncryption = false` (only standard HTTPS/TLS) is set in `app.json`.
 Privacy manifest: no required-reason APIs beyond those Expo modules declare themselves.
 
-**Google Play Data safety**: *No data collected*, *No data shared*. Data is encrypted in transit:
+**Google Play Data safety**: declare *Device or other IDs → collected, required, purpose App functionality*
+(the update check above), processed by a service provider, so not "shared" in Play's sense; check Expo's
+own store-privacy guidance when filling it in. Nothing else. Data is encrypted in transit:
 Yes (HTTPS; plain http is refused outside development builds). Users can request deletion: removing
 a UI from the list (or uninstalling) deletes everything the app stored for it; there is no account to
 delete. Permissions: `CAMERA` (QR scanning, photo fields), `INTERNET`. Audio recording is blocked.
@@ -143,7 +148,8 @@ English and Spanish, within each store's limits): `store/listing.md`.
 
 
 - Name: **Mateu**. Subtitle (iOS): "Your business apps, native". Category: Business / Productivity.
-- Screenshots: run `e2e/rn-hub-probe.mjs` with `SHOTS=<dir>` for the flows on a phone viewport (web
-  rendering — use device screenshots for the actual listing).
+- Screenshots: `store/android/` has the phone screenshots, the 512 px icon and the feature graphic Google
+  Play asks for, captured from a release build on an emulator. `e2e/rn-hub-probe.mjs` with `SHOTS=<dir>`
+  covers the flows on a phone viewport for checks (web rendering, not for the listing).
 - Age rating: 4+ / Everyone (no user-generated content inside the app itself; the content is the
   organisation's).

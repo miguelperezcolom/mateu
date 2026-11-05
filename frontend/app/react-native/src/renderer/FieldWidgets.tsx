@@ -2,6 +2,7 @@ import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
 import { theme, themed } from '../theme';
 import { Image, PanResponder, StyleSheet, View } from 'react-native';
+import { RadioButton } from 'react-native-paper';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { buttonA11y } from '../a11y/a11y';
@@ -37,9 +38,7 @@ export function RadioField({ options, value, editable, onChange }: {
             disabled={!editable}
             onPress={() => onChange(opt.value)}
           >
-            <View style={[styles.radioOuter, on && styles.radioOuterOn]}>
-              {on && <View style={styles.radioInner} />}
-            </View>
+            <RadioButton.Android value={opt.value} status={on ? 'checked' : 'unchecked'} disabled={!editable} onPress={() => onChange(opt.value)} color={theme.primary} uncheckedColor={theme.muted} />
             <Text style={styles.radioLabel}>{opt.label}</Text>
           </TouchableOpacity>
         );
@@ -166,7 +165,7 @@ export function StarsField({ value, editable, onChange }: {
 
 // ── color ────────────────────────────────────────────────────────────────────────────────────
 
-const PALETTE = [theme.danger, theme.warning, '#fdd835', theme.success, theme.info, '#8e24aa', '#6d4c41', '#546e7a', '#000000', theme.white];
+const paletteOf = () => [theme.danger, theme.warning, '#fdd835', theme.success, theme.info, '#8e24aa', '#6d4c41', '#546e7a', '#000000', theme.white];
 
 export function ColorField({ value, editable, onChange }: {
   value: string;
@@ -188,7 +187,7 @@ export function ColorField({ value, editable, onChange }: {
       </View>
       {editable && (
         <View style={styles.chips}>
-          {PALETTE.map((c) => (
+          {paletteOf().map((c) => (
             <TouchableOpacity {...buttonA11y()} key={c} style={[styles.colorOption, { backgroundColor: c }]} onPress={() => onChange(c)} />
           ))}
         </View>
@@ -339,9 +338,6 @@ export function BadgeChip({ label, on }: { label: string; on: boolean }) {
 const styles = themed(() => StyleSheet.create({
   radioGroup: { gap: 8 },
   radioRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: theme.faint, alignItems: 'center', justifyContent: 'center' },
-  radioOuterOn: { borderColor: theme.primary },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: theme.primary },
   radioLabel: { fontSize: 14, color: theme.ink },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.white },

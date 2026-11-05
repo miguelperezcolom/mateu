@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { askConfirm } from '../../ui/ConfirmHost';
 import { Image } from 'expo-image';
 import { Appbar, Button, Icon, Surface } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { theme, themed } from '../../theme';
 
-/** A yes/no question: native Alert on iOS/Android, window.confirm on web (same as the dirty guard). */
+/** A yes/no question: a Material dialog on iOS/Android, window.confirm on web (same as the dirty guard). */
 export function confirmDialog(title: string, message: string, okLabel: string, destructive = false): Promise<boolean> {
   return new Promise((resolve) => {
     if (Platform.OS === 'web') {
       resolve(typeof window !== 'undefined' && window.confirm(`${title}\n\n${message}`));
       return;
     }
-    Alert.alert(title, message, [
-      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-      { text: okLabel, style: destructive ? 'destructive' : 'default', onPress: () => resolve(true) },
-    ]);
+    void askConfirm({ title, message, confirmLabel: okLabel, destructive }).then(resolve);
   });
 }
 

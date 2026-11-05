@@ -31,7 +31,7 @@ Privacy policy URL (both stores): **https://mateu.io/privacy**. Support / market
 > • Move your list to another phone with one QR code (addresses only, never sign-ins).
 > • Light and dark themes, large text and screen readers supported.
 >
-> Privacy first: the Mateu app collects nothing — no account, no analytics, no tracking. What you enter goes to your organisation's server only.
+> Privacy first: no account, no analytics, no tracking. What you enter goes to your organisation's server only.
 >
 > Want to try it? The list comes with a demo app you can open without an account.
 >
@@ -69,7 +69,7 @@ Privacy policy URL (both stores): **https://mateu.io/privacy**. Support / market
 > • Pasa tu lista a otro móvil con un solo código QR (solo direcciones, nunca inicios de sesión).
 > • Temas claro y oscuro, texto grande y lectores de pantalla.
 >
-> Privacidad ante todo: la app Mateu no recoge nada —ni cuenta, ni analítica, ni seguimiento—. Lo que introduces va solo al servidor de tu organización.
+> Privacidad ante todo: sin cuenta, sin analítica, sin seguimiento. Lo que introduces va solo al servidor de tu organización.
 >
 > ¿Quieres probarla? La lista trae una app de demostración que puedes abrir sin cuenta.
 >

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { recordTiming } from '../core/timing';
-import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { toastLifetime } from '../core/toastLifetime';
+import { askConfirm } from '../ui/ConfirmHost';
 import { useAppContext } from '../context/AppContext';
 import { bootFailureOf, loadFailureMessage } from '../core/uxRules';
 import { theme, themed } from '../theme';
@@ -23,6 +24,8 @@ import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
  * its modal layers stay hidden.
  */
 export function SessionContent({ initialRoute, visible = true }: { initialRoute: string; visible?: boolean }) {
+  const { session } = useAppContext();
+  session.onScreen = visible;
   return (
     <>
       <MateuRoot initialRoute={initialRoute} />
@@ -89,7 +92,7 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
   );
 }
 
-/** Dirty guard (@ConfirmOnNavigationIfDirty): native Alert on iOS/Android, window.confirm on web. */
+/** Dirty guard (@ConfirmOnNavigationIfDirty): a Material dialog on iOS/Android, window.confirm on web. */
 function DirtyGuardHost() {
   const { session } = useAppContext();
   useEffect(() => {
@@ -99,10 +102,7 @@ function DirtyGuardHost() {
           resolve(window.confirm('There are unsaved changes. Discard them?'));
           return;
         }
-        Alert.alert('Unsaved changes', 'Discard your changes?', [
-          { text: 'Keep editing', style: 'cancel', onPress: () => resolve(false) },
-          { text: 'Discard', style: 'destructive', onPress: () => resolve(true) },
-        ]);
+        void askConfirm({ title: 'Unsaved changes', message: 'Discard your changes?', confirmLabel: 'Discard', cancelLabel: 'Keep editing', destructive: true }).then(resolve);
       });
     // @Action(confirmationRequired): the declared question, with the declared button labels natively
     session.confirmAction = (t) =>
@@ -111,10 +111,7 @@ function DirtyGuardHost() {
           resolve(window.confirm(`${t.header}\n\n${t.message}`));
           return;
         }
-        Alert.alert(t.header, t.message, [
-          { text: t.denialText, style: 'cancel', onPress: () => resolve(false) },
-          { text: t.confirmationText, style: t.destructive ? 'destructive' : 'default', onPress: () => resolve(true) },
-        ], { cancelable: true, onDismiss: () => resolve(false) });
+        void askConfirm({ title: t.header, message: t.message, confirmLabel: t.confirmationText, cancelLabel: t.denialText, destructive: t.destructive }).then(resolve);
       });
   }, [session]);
   return null;

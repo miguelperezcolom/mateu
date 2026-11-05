@@ -73,7 +73,7 @@ export function appCompatibility(ui: UiSide, app: AppSide): Compat {
   const ours = wireOf(app.wire);
   if (theirs && ours && theirs[0] > ours[0]) return { status: 'required', reason: 'newerWire' };
   if (theirs && ours && theirs[0] < ours[0]) return { status: 'required', reason: 'olderWire' };
-  if (ui.minAppVersion && compareVersionStrings(app.appVersion, ui.minAppVersion) < 0) {
+  if (ui.minAppVersion && app.appVersion !== '0.0.0' && compareVersionStrings(app.appVersion, ui.minAppVersion) < 0) {
     return { status: 'required', reason: 'minAppVersion' };
   }
   if (theirs && ours && theirs[1] > ours[1]) return { status: 'recommended', reason: 'newerMinor' };

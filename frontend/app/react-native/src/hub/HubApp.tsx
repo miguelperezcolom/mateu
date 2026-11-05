@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, StyleSheet, View, BackHandler } from 'react-native';
 import { announce } from '../a11y/a11y';
 import { theme, themed } from '../theme';
 import { fromExpoDevLink, parseHubLink, type HubLink, type ParseOptions } from './links';
@@ -79,6 +79,23 @@ export function HubApp() {
     setSwitcherOpen(false);
     setScreen({ name: 'home' });
     announce('My UIs');
+  }, []);
+
+  // Android's Back from a UI's first screen goes to where the user came from, the list, not out of
+  // the app (a running session stays as it was, hidden). Registered ONCE, at mount, so it stays last in
+  // line: a drawer, a dialog or a pushed screen register later and answer first. On the list itself
+  // it declines, and Android leaves the app, as everywhere.
+  const onList = useRef(true);
+  onList.current = screen.name === 'home';
+  const goHomeRef = useRef(goHome);
+  goHomeRef.current = goHome;
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (onList.current) return false;
+      goHomeRef.current();
+      return true;
+    });
+    return () => sub.remove();
   }, []);
 
   const handleLink = useCallback(

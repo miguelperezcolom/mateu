@@ -11,8 +11,36 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **Cards drag on the phone app.** On a kanban board a long press lifts a card; it follows the finger
+  and the board scrolls near the edges. Dropping it runs the board's move action, as on the web.
+  The Move menu stays, for screen readers and for whoever prefers it.
+
+### Changed
+
+- **The phone app follows Material 3 more closely.** Controls ripple on Android, the drawer has
+  Material icons (`vaadin:*` tokens are mapped) and section headers, confirmations are Material
+  dialogs, bottom tabs are Material's navigation bar, tab strips scroll when their labels would be
+  cut, and a list's title, toolbar and search scroll away with its rows.
+- **Android Back from a UI's first screen goes to My UIs** instead of leaving the hub app.
+- **The Android build drops permissions it never used:** `SYSTEM_ALERT_WINDOW`, external storage and
+  biometrics.
+
 ### Fixed
 
+- **A server-paged REST listing no longer stops at its first page (phone app).** A source with a
+  `totalPath` was fetched once and paged on the device: 77 astronauts showed as "20 total".
+- **Tree listings open on the phone app.** Rows lost their `children`, so only the roots showed.
+- **Picture columns show pictures on the phone app** in cards, list rows and tables, not the url.
+- **A data-authored shell's inbox, search and context pickers work on the phone app.** Their REST
+  sources were never read. The shell's source catalogue is now known before its first screen, which
+  also stops listings failing on a url that was not resolved yet.
+- **A failed REST listing says so on the phone app,** with Try again, rather than "No data"; offline
+  errors read in plain words.
+- **On the phone app, page templates that own their header no longer repeat the title,** banners
+  interpolate `${state.x}`, buttons read on dark bands, and a refused save no longer names fields by
+  their ids.
 - **A field's `initialValue` no longer overwrites a loaded record (Vaadin).** A field declaring one
   announced it as an edit when it mounted, and edits are defended against what arrives later, so a
   YAML page with `data:` showed the default instead of the record, and saving it wrote the default

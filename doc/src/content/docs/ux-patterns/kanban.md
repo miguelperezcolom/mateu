@@ -51,7 +51,8 @@ once and goes back to where it was if the action fails — a transport failure, 
 the server refused by answering an error message (a handler that threw); a failure of another
 action on the same page does not touch the board. Every card also has a **Move** menu (its
 `⋯` button) — up, down, or to another column — so the keyboard and screen readers get the same
-moves, and on a phone (React Native) and in the IntelliJ plugin that menu is the way to move.
+moves, and in the IntelliJ plugin that menu is the way to move. On a phone (React Native) a long
+press lifts the card, and the board scrolls by itself near its edges.
 
 The action receives `_cardId`, `_fromColumnId`, `_toColumnId` and `_toIndex` (the card's position
 in the target column, counted after it left its old place):

@@ -46,7 +46,7 @@ function CardBody({ card, movable, onPick, style }: { card: BoardCard; movable: 
       {!!card.description && <Text style={styles.cardDesc}>{card.description}</Text>}
       {!!card.badge && <Text style={styles.badge}>{card.badge}</Text>}
       {movable && onPick && (
-        <IconButton icon="dots-horizontal" size={20} style={styles.move} iconColor={theme.muted}
+        <IconButton icon="dots-horizontal" size={20} style={styles.move} iconColor={theme.muted} hitSlop={6}
           accessibilityLabel={`Move ${card.title ?? ''}`} onPress={onPick} />
       )}
     </View>
@@ -129,9 +129,11 @@ export function KanbanRenderer({ component }: { component: unknown }) {
   const [boardTop, setBoardTop] = useState<number | undefined>(undefined);
   const window = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const measureBoard = () => board.current?.measureInWindow((x, y) => {
+  // where the board is, for the drag; its height is decided once, or a scrolled page would resize it
+  // under the finger at the moment of the long press
+  const measureBoard = (andHeight: boolean) => board.current?.measureInWindow((x, y) => {
     boardOrigin.current = { x, y };
-    setBoardTop(y);
+    if (andHeight) setBoardTop(y);
   });
   const height = Math.max(MIN_BOARD_HEIGHT, window.height - (boardTop ?? 0) - insets.bottom - 8);
 
@@ -204,7 +206,7 @@ export function KanbanRenderer({ component }: { component: unknown }) {
   };
 
   const lift = (card: BoardCard, columnId: string, width: number, e: { x: number; y: number; absoluteX: number; absoluteY: number }) => {
-    measureBoard();
+    measureBoard(false);
     grab.current = { x: e.x, y: e.y, startX: e.absoluteX, startY: e.absoluteY, moved: false };
     finger.current = { x: e.absoluteX, y: e.absoluteY };
     dragRef.current = { card, columnId, width };
@@ -237,13 +239,20 @@ export function KanbanRenderer({ component }: { component: unknown }) {
     }
   };
   useEffect(() => () => { if (ticker.current) clearInterval(ticker.current); }, []);
+  // the card being dragged is gone (a live update, another user's move): its gesture went with it, so
+  // no callback will ever end the drag, and the board would stay frozen
+  const draggedId = drag?.card.id;
+  useEffect(() => {
+    if (draggedId && !shown.some((c) => c.cards?.some((x) => x.id === draggedId))) finish(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draggedId, shown]);
   // the gestures live as long as their card: they reach the latest closures through this
   const handlers = useRef({ lift, follow, finish });
   handlers.current = { lift, follow, finish };
 
   return (
     <>
-    <View ref={board} style={[styles.board, { height }]} onLayout={(e) => { boardWidth.current = e.nativeEvent.layout.width; measureBoard(); }}>
+    <View ref={board} style={[styles.board, { height }]} onLayout={(e) => { boardWidth.current = e.nativeEvent.layout.width; measureBoard(true); }}>
       <ScrollView ref={horizontal} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.columns} scrollEnabled={!drag}
         scrollEventThrottle={16} onScroll={(e) => { if (!drag) scrollX.current = e.nativeEvent.contentOffset.x; }}
         onContentSizeChange={(w) => { contentWidth.current = w; }}>
@@ -296,7 +305,7 @@ export function KanbanRenderer({ component }: { component: unknown }) {
         <Dialog.Title>{`Move ${picking?.title ?? ''}`}</Dialog.Title>
         <Dialog.Content>
           {picking && movesOf(shown, picking.cardId, picking.columnId).map((item) => (
-            <TouchableOpacity {...buttonA11y({ label: item.label })} key={item.label} style={styles.moveRow}
+            <TouchableOpacity {...buttonA11y({ label: item.label })} key={`${item.move.toColumnId}:${item.move.toIndex}`} style={styles.moveRow}
               onPress={() => void commit(item.move)}>
               <Text>{item.label}</Text>
             </TouchableOpacity>
@@ -343,7 +352,14 @@ function BoardCardItem({ card, columnId, movable, acts, dragged, onOpen, onPick,
         width.current = e.nativeEvent.layout.width;
         onMeasured({ y: e.nativeEvent.layout.y, height: e.nativeEvent.layout.height });
       }}>
-        {acts ? <TouchableOpacity {...buttonA11y()} onPress={() => onOpen(card)}>{body}</TouchableOpacity> : body}
+        {acts ? (
+          // a touchable swallows what is inside it for a screen reader, ⋯ included: Move is its action
+          <TouchableOpacity {...buttonA11y()} onPress={() => onOpen(card)}
+            accessibilityActions={movable ? [{ name: 'activate' }, { name: 'move', label: 'Move' }] : undefined}
+            onAccessibilityAction={(e) => { if (e.nativeEvent.actionName === 'move') onPick(); else onOpen(card); }}>
+            {body}
+          </TouchableOpacity>
+        ) : body}
       </View>
     </GestureDetector>
   );
@@ -356,7 +372,7 @@ const styles = themed(() => StyleSheet.create({
   columnTarget: { backgroundColor: theme.primaryContainer },
   head: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 6, marginBottom: 8, borderBottomWidth: 2 },
   title: { fontWeight: '600', flex: 1, color: theme.ink },
-  count: { fontSize: 12, color: theme.ink, backgroundColor: theme.border, borderRadius: 999, paddingHorizontal: 8, overflow: 'hidden' },
+  count: { fontSize: 12, color: theme.onPrimaryContainer, backgroundColor: theme.primaryContainer, borderRadius: 999, paddingHorizontal: 8, overflow: 'hidden' },
   list: { flex: 1 },
   listContent: { gap: 8, paddingBottom: 8, flexGrow: 1 },
   card: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderLeftWidth: 4, borderRadius: theme.radiusMd, padding: 12, gap: 4 },

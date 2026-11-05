@@ -26,6 +26,12 @@ export function oidcRedirectUri(): string {
  * back to an interactive login. Works against any standards-compliant provider (Keycloak, Entra
  * ID, Auth0, Okta, Cognito…) — it only needs the issuer's discovery document.
  */
+/** Whether a failed refresh means the identity provider refused the token. */
+export const isRefusedRefresh = (e: unknown): boolean => {
+  const code = String((e as { code?: unknown })?.code ?? '');
+  return code === 'invalid_grant' || code === 'invalid_client' || code === 'unauthorized_client';
+};
+
 export class OidcTokenProvider implements TokenProvider {
   private tokens: StoredTokens | null = null;
   private loaded = false;
@@ -99,9 +105,10 @@ export class OidcTokenProvider implements TokenProvider {
       );
       await this.save(tokensFromResponse(res, this.tokens));
       return true;
-    } catch {
-      // refresh token expired or revoked: the session is over
-      await this.save(null);
+    } catch (e) {
+      // Only the identity provider saying no ends the session (expired or revoked). No network, a
+      // timeout or a server error says nothing about it: the tokens stay for the next attempt.
+      if (isRefusedRefresh(e)) await this.save(null);
       return false;
     }
   }

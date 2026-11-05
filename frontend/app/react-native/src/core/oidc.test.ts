@@ -130,11 +130,19 @@ test('an expiring token is refreshed first; the new token is stored and the old 
 
 test('a revoked refresh token ends the session: the stored tokens are removed and no token is offered', async () => {
   const store = memoryStore({ 'mateu.oidc.tokens': stored({ accessToken: 'old', refreshToken: 'rt1', expiresAt: Date.now() - 1 }) });
-  idp.refreshAnswer = new Error('invalid_grant');
+  idp.refreshAnswer = Object.assign(new Error('The refresh token is invalid'), { code: 'invalid_grant' });
   const p = new OidcTokenProvider(config, store);
   assert.equal(await p.getToken(), null);
   assert.equal(store.data.has('mateu.oidc.tokens'), false);
   assert.equal(await p.isSignedIn(), false);
+});
+
+test('a refresh that fails for any other reason (no network, a server error) keeps the session', async () => {
+  const store = memoryStore({ 'mateu.oidc.tokens': stored({ accessToken: 'old', refreshToken: 'rt1', expiresAt: Date.now() - 1000 }) });
+  idp.refreshAnswer = new Error('Network request failed');
+  const p = new OidcTokenProvider(config, store);
+  assert.equal(await p.refresh(), false);
+  assert.equal(store.data.has('mateu.oidc.tokens'), true);
 });
 
 test('refresh without a refresh token is refused without calling the IdP', async () => {

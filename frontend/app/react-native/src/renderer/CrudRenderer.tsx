@@ -165,6 +165,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     // rows reads (`${state.id}` per row)
     ...rowRouteFields(metadata['rowRoute']),
   ].filter((f): f is string => typeof f === 'string' && !!f))];
+  // the pager numbers its pages with the size the listing was served at: every request names it, the
+  // first too (written later, the url would change and ask a second time)
+  if (metadata['rowsSource'] && controller.session.sources.serverTotalPath(metadata['rowsSource'] as Record<string, unknown>) && Number(metadata['pageSize'] ?? 0) > 0) {
+    controller.currentComponentState['size'] ??= Number(metadata['pageSize']);
+  }
   const restState = () => ({ ...state, ...controller.currentComponentState });
   const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state: restState(), appState: controller.session.appState });
   const rowsUrl = rowsResolved ? restResolve(rowsResolved.url) : '';
@@ -179,6 +184,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const [restRequest, setRestRequest] = useState(0);
   // the rows could not be fetched: saying "No data" would be saying something false
   const [restError, setRestError] = useState<string | null>(null);
+  // a page on its way: a second tap on Next would skip one
+  const [restLoading, setRestLoading] = useState(false);
   // what asks the source again (server-paged) or re-slices what is here (fetched whole)
   const refreshRest = () => (restTotalPath ? setRestRequest((n) => n + 1) : showRestPage(restRows));
   const showRestPage = (rows: Record<string, unknown>[]) =>
@@ -194,8 +201,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (!rowsSource || !rowsResolved) return;
     let cancelled = false;
     setRestError(null);
-    // the pager numbers its pages with the size the listing was served at: every request names it
-    if (restTotalPath && restPageSize > 0) controller.currentComponentState['size'] = restPageSize;
+    setRestLoading(true);
     // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToRows.
     // A sampled source (sample mode) is never proxied: fetchExternalJson answers it from the sample.
@@ -207,8 +213,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         if (cancelled) return;
         const sources = controller.session.sources;
         const rows = mapItemsToRows(json, rowsResolved.itemsPath, columnIds, (id) => sources.pathOfField(rowsSource as Record<string, unknown>, id)) as Record<string, unknown>[];
+        setRestLoading(false);
         setRestRows(rows);
         setSearched(true);
+        // new rows: a selection made on the page before must not be what a bulk action deletes
+        if (selectedRows.length > 0) syncSelection([]);
         if (restTotalPath) {
           const total = Number(getByPath(json, restTotalPath));
           setLiveData({ page: {
@@ -223,7 +232,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       })
       .catch((e) => {
         console.warn('mateu: external rows fetch failed', e);
-        if (!cancelled) setRestError(e instanceof Error ? e.message : String(e));
+        if (!cancelled) {
+          setRestLoading(false);
+          setRestError(e instanceof Error ? e.message : String(e));
+        }
       });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -865,11 +877,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
       {totalElements > pageSize && pageSize > 0 && (
         <View style={styles.paginationBar} onLayout={(e) => setPaginationHeight(e.nativeEvent.layout.height)}>
-          <IconButton icon="chevron-left" mode="outlined" accessibilityLabel="Previous page" disabled={!hasPrevious} onPress={() => hasPrevious && changePage(-1)} />
+          <IconButton icon="chevron-left" mode="outlined" accessibilityLabel="Previous page" disabled={!hasPrevious || restLoading} onPress={() => hasPrevious && changePage(-1)} />
           <PaperText variant="bodyMedium" style={styles.paginationInfo}>
             Page {pageNumber + 1} of {totalPages} · {totalElements} total
           </PaperText>
-          <IconButton icon="chevron-right" mode="outlined" accessibilityLabel="Next page" disabled={!hasNext} onPress={() => hasNext && changePage(1)} />
+          <IconButton icon="chevron-right" mode="outlined" accessibilityLabel="Next page" disabled={!hasNext || restLoading} onPress={() => hasNext && changePage(1)} />
         </View>
       )}
 

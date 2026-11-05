@@ -5,7 +5,7 @@
  */
 import React, { forwardRef } from 'react';
 import { Platform, Pressable, StyleSheet, type PressableProps, type StyleProp, type View, type ViewStyle } from 'react-native';
-import { mix, theme } from '../theme';
+import { stateLayerOn } from '../theme';
 
 export interface TouchableProps extends Omit<PressableProps, 'style'> {
   style?: StyleProp<ViewStyle>;
@@ -15,12 +15,13 @@ export interface TouchableProps extends Omit<PressableProps, 'style'> {
 
 export const TouchableOpacity = forwardRef<View, TouchableProps>(function Touchable({ style, activeOpacity: _ignored, ...props }, ref) {
   const flat = StyleSheet.flatten(style) as ViewStyle | undefined;
-  const rounded = !!flat && (!!flat.borderRadius || !!flat.borderTopLeftRadius);
+  // clipped to its shape, unless it casts a shadow: clipping would cut the shadow
+  const rounded = !!flat && !flat.elevation && (!!flat.borderRadius || !!flat.borderTopLeftRadius);
   if (Platform.OS === 'android') {
     return (
       <Pressable
         ref={ref}
-        android_ripple={{ color: mix(theme.surface, theme.ink, 0.14), foreground: true }}
+        android_ripple={{ color: stateLayerOn(flat?.backgroundColor), foreground: true }}
         style={rounded ? [flat, styles.clip] : flat}
         {...props}
       />

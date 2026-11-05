@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Switch as PaperSwitch } from 'react-native-paper';
 import { MIcon } from '../ui/controls';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
@@ -59,7 +60,7 @@ export function ActionPanelRenderer({ metadata, state }: { metadata: Record<stri
               {!!meta.hideUnpopulatedToggle && (
                 <View style={styles.toggleRow}>
                   <Text style={styles.toggleLabel}>Hide unpopulated</Text>
-                  <Switch
+                  <PaperSwitch
                     accessibilityLabel="Hide unpopulated"
                     accessibilityRole="switch"
                     value={hideUnpopulated}

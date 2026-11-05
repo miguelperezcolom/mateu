@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Appbar } from 'react-native-paper';
 import { Text } from '../../ui/Text';
@@ -82,6 +82,7 @@ export function UiSession({
   /** A static UI (no server): the bundle it runs from. */
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const gainedSignIn = useRef(false);
   /** A UI ahead of this app (compat.ts `recommended`): it opens, with this note above it. */
   const [compatNotice, setCompatNotice] = useState<string | null>(null);
 
@@ -133,6 +134,12 @@ export function UiSession({
             if (!fresh.ok) return;
             await manifestOf(fresh, entry);
             if (alive) applyCompat(fresh.manifest, true);
+            // the UI started asking for a sign-in since it was added: the cached manifest did not say
+            // so, and every request of this session would answer 401 until it was reopened
+            if (alive && fresh.manifest.auth && !entry.manifest?.auth && !gainedSignIn.current) {
+              gainedSignIn.current = true; // once: what is stored is what the next attempt reads
+              setAttempt((a) => a + 1);
+            }
           })
           .catch(() => undefined);
       } else {
@@ -174,12 +181,17 @@ export function UiSession({
     };
   }, [phase, provider]);
 
+  const signingIn = useRef(false);
   const signIn = async () => {
+    if (signingIn.current) return; // a second tap must not open a second browser
+    signingIn.current = true;
     try {
       if (await provider!.login()) setPhase({ name: 'ready' });
       else setPhase({ name: 'signin', error: 'Sign-in was cancelled.' });
     } catch (e) {
       setPhase({ name: 'signin', error: e instanceof Error ? e.message : String(e) });
+    } finally {
+      signingIn.current = false;
     }
   };
 

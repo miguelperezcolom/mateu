@@ -15,6 +15,7 @@ import { useColorScheme } from 'react-native';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider, type MD3Theme } from 'react-native-paper';
 import { DarkTheme as NavDark, DefaultTheme as NavLight, type Theme as NavTheme } from '@react-navigation/native';
 import { applyTheme, mix, theme, type Scheme } from '../theme';
+import { ConfirmHost } from './ConfirmHost';
 
 interface ThemeControl {
   dark: boolean;
@@ -53,6 +54,15 @@ export function paperTheme(): MD3Theme {
       onSurfaceVariant: theme.muted,
       outline: theme.scheme === 'dark' ? '#8D9199' : '#73777F',
       outlineVariant: theme.border,
+      // the roles a Snackbar, a chip or a disabled control read: left alone they stay Paper's purple
+      onSecondary: theme.surface,
+      tertiary: theme.primary,
+      onTertiary: theme.onPrimary,
+      tertiaryContainer: theme.primaryContainer,
+      onTertiaryContainer: theme.onPrimaryContainer,
+      inverseSurface: theme.scheme === 'dark' ? '#E4E5E9' : '#2E3036',
+      inverseOnSurface: theme.scheme === 'dark' ? '#2E3036' : '#F1F2F4',
+      inversePrimary: theme.scheme === 'dark' ? mix(theme.primary, '#000000', 0.25) : mix(theme.primary, '#FFFFFF', 0.55),
       error: theme.danger,
       onError: theme.onFill,
       errorContainer: theme.dangerBg,
@@ -109,7 +119,7 @@ export function MateuThemeProvider({ children }: { children: () => React.ReactNo
 
   return (
     <ThemeControlContext.Provider value={control}>
-      <PaperProvider theme={paper}>{children()}</PaperProvider>
+      <PaperProvider theme={paper}>{children()}<ConfirmHost /></PaperProvider>
     </ThemeControlContext.Provider>
   );
 }
