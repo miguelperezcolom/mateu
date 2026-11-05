@@ -2,7 +2,12 @@
 #
 # - On every PR that touches doc/: build it and fail on build errors or on any internal link or
 #   image that does not resolve in the built site (scripts/check-links.mjs).
-# - On master and on every framework release: build and deploy to Netlify (production).
+# - On master: build and check it (no deploy).
+# - Once a day (06:00 UTC) and when run by hand (Actions › Docs › Run workflow): build master and
+#   deploy it to Netlify (production). Not per push or per release: each production deploy costs 15
+#   Netlify credits, and deploying on every docs change and every release (73 releases in three
+#   weeks) used up the month's plan by 2026-11-05. A day's releases reach the site the next morning;
+#   the snippets show the newest version Maven Central serves at build time.
 #
 # Why this exists: mateu.io is hosted on Netlify, but production deploys stopped tracking master
 # around 2026-08-14 (the PR deploy previews show "Deploy Preview canceled", and master commits get no
@@ -24,8 +29,8 @@ on:
     paths:
       - 'doc/**'
       - '.github/workflows/docs.yml'
-  release:
-    types: [published]
+  schedule:
+    - cron: '0 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -71,10 +76,7 @@ jobs:
 
   build:
     needs: changes
-    # Framework releases only (tag vX.Y…); the desktop installer releases don't touch the docs.
-    if: >-
-      needs.changes.outputs.relevant == 'true' &&
-      (github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v'))
+    if: needs.changes.outputs.relevant == 'true'
     timeout-minutes: 50
     runs-on: ubuntu-latest
     steps:
@@ -93,29 +95,16 @@ jobs:
       - name: Install
         run: npm ci --ignore-scripts
         working-directory: doc
-      # Only once Maven Central SERVES it: a release is published minutes to hours before its
-      # artifacts reach Central, and a snippet naming a version Central does not have fails for
-      # everyone who copies it. Not served after the wait → no pin: the version plugin then shows
-      # Central's latest, and the "Point the examples at …" PR (a push to master touching doc/)
-      # redeploys the site once the release is there.
-      - name: Pin the version shown in the snippets to the release being published
-        if: github.event_name == 'release'
-        run: |
-          V="${GITHUB_REF_NAME#v}"
-          url="https://repo1.maven.org/maven2/io/mateu/mateu-bom/$V/mateu-bom-$V.pom"
-          for _ in $(seq 1 20); do   # up to ~20 minutes
-            if curl -fsSIL "$url" > /dev/null; then echo "MATEU_VERSION=$V" >> "$GITHUB_ENV"; exit 0; fi
-            sleep 60
-          done
-          echo "::warning::$V is not on Maven Central yet; the snippets show Central's latest release until the next deploy."
       - name: Build
         run: npm run build
         working-directory: doc
       - name: Check internal links and images
         run: npm run check-links
         working-directory: doc
+      # The daily run and manual runs only (see the header): a push to master is built and checked,
+      # and reaches mateu.io the next morning — or now, with Actions › Docs › Run workflow.
       - name: Deploy to Netlify (production)
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
@@ -136,10 +125,10 @@ jobs:
   # `npm run check:snippets` in doc/). Needs no `npm ci`: the script uses Node built-ins only. The
   # Java leg installs uidl + core (no tests, no javadoc) and compiles ~1400 samples in one javac run;
   # the Python leg is one mypy run; the C# leg one `dotnet build` of a generated project referencing
-  # backend/dotnet/src. Not on releases: the samples were checked on the PR that changed them.
+  # backend/dotnet/src. Not on the daily deploy: the samples were checked on the PR that changed them.
   snippets:
     needs: changes
-    if: needs.changes.outputs.snippets == 'true' && github.event_name != 'release'
+    if: needs.changes.outputs.snippets == 'true' && github.event_name != 'schedule'
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
