@@ -1,5 +1,6 @@
 import React from 'react';
-import { Animated, PanResponder, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, PanResponder, ScrollView, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { PlanningBlock, PlanningBoard, PlanningResource } from '../api/metadata';
 import { useViewController } from './MateuViewHost';

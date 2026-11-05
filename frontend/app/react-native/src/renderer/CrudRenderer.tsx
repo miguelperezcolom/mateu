@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Modal, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, FlatList, Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
-import { buttonActionId, effectiveListingLayout, rowCheckboxLabel } from '../core/uxRules';
+import { buttonActionId, effectiveListingLayout, loadFailureMessage, rowCheckboxLabel } from '../core/uxRules';
 import { splitCreateAction } from '../core/phoneLayout';
 import { canMove, dropOn, moveToLabel, zoneLabel, type MountedDropZone } from './dragDrop';
 import { useViewController } from './MateuViewHost';
@@ -176,6 +177,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const restPageSize = Number(metadata['pageSize'] ?? 0) || 0;
   const restTotalPath = rowsSource ? controller.session.sources.serverTotalPath(rowsSource as Record<string, unknown>) : undefined;
   const [restRequest, setRestRequest] = useState(0);
+  // the rows could not be fetched: saying "No data" would be saying something false
+  const [restError, setRestError] = useState<string | null>(null);
   // what asks the source again (server-paged) or re-slices what is here (fetched whole)
   const refreshRest = () => (restTotalPath ? setRestRequest((n) => n + 1) : showRestPage(restRows));
   const showRestPage = (rows: Record<string, unknown>[]) =>
@@ -190,6 +193,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   useEffect(() => {
     if (!rowsSource || !rowsResolved) return;
     let cancelled = false;
+    setRestError(null);
     // the pager numbers its pages with the size the listing was served at: every request names it
     if (restTotalPath && restPageSize > 0) controller.currentComponentState['size'] = restPageSize;
     // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
@@ -217,7 +221,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           showRestPage(rows);
         }
       })
-      .catch((e) => console.warn('mateu: external rows fetch failed', e));
+      .catch((e) => {
+        console.warn('mateu: external rows fetch failed', e);
+        if (!cancelled) setRestError(e instanceof Error ? e.message : String(e));
+      });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowsUrl, restRequest]);
@@ -456,8 +463,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (dragType && dropOn(zone, dragType, selectedRows)) syncSelection([]);
   };
 
-  return (
-    <View style={styles.root}>
+  // The title, the toolbar and the search scroll away with the rows on a list or cards, so the
+  // phone's screen goes to the rows (Material's scrolling content), instead of leaving them half of it.
+  // Where the listing's rows do not scroll by themselves (a table, an embedded listing) they stay put.
+  const headerInList = !nestedInScroll && rawRows.length > 0 && (gridLayout === 'cards' || gridLayout === 'list') && !showsPreSearch(preSearch, searched);
+  const listHeader = (
+    <>
       {(!!title || !!subtitle || toolbar.length > 0 || showMove) && (
         <View style={styles.header}>
           {!!title && <PaperText variant="headlineSmall" style={styles.title} accessibilityRole="header">{title}</PaperText>}
@@ -554,11 +565,25 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         />
       )}
 
+    </>
+  );
+
+  return (
+    <View style={styles.root}>
+      {!headerInList && listHeader}
+
       {showsPreSearch(preSearch, searched) ? (
         <View style={styles.preSearch}>
           {(preSearch ?? []).map((c, i) => (
             <ComponentRenderer key={i} component={c} state={state} />
           ))}
+        </View>
+      ) : restError ? (
+        <View style={styles.emptyState} accessibilityRole="alert">
+          <IconButton icon="cloud-off-outline" size={36} iconColor={theme.faint} disabled importantForAccessibility="no" />
+          <PaperText variant="titleMedium" style={styles.emptyStateText}>{loadFailureMessage(restError).title}</PaperText>
+          <PaperText variant="bodyMedium" style={styles.emptyStateText}>{loadFailureMessage(restError).detail}</PaperText>
+          <MateuButton label="Try again" icon="refresh" onPress={() => setRestRequest((n) => n + 1)} />
         </View>
       ) : rawRows.length === 0 ? (
         <View style={styles.emptyState}>
@@ -570,6 +595,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         <>
           <FlatList
                 scrollEnabled={!nestedInScroll}
+                ListHeaderComponent={headerInList ? listHeader : undefined}
+                keyboardShouldPersistTaps="handled"
             data={displayRows}
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={fabClearance}
@@ -650,6 +677,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         <>
           <FlatList
                 scrollEnabled={!nestedInScroll}
+                ListHeaderComponent={headerInList ? listHeader : undefined}
+                keyboardShouldPersistTaps="handled"
             data={displayRows}
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={fabClearance}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppState, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppState, Modal, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { fetch as streamingFetch } from 'expo/fetch';
 import { theme, themed } from '../theme';

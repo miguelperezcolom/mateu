@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';

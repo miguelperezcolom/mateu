@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, AppState, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, AppState, Modal, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { theme, themed } from '../theme';
 import { announceLive, buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';

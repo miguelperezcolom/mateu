@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, namedEventOf, orchestratorOf,
+  actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, namedEventOf, orchestratorOf,
   ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf,
 } from './componentContext.ts';
 
@@ -76,7 +76,6 @@ test('field errors: first failure per field, the default message, summary text',
     (c) => c === 'yes',
   );
   assert.deepEqual(errors, { name: 'Required', age: 'Invalid value' });
-  assert.equal(errorSummary(errors), 'name: Required; age: Invalid value');
 });
 
 test('named events: payload or detail, objects stamped with __source, others untouched', () => {

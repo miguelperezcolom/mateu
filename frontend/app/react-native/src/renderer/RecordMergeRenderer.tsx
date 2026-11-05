@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';

@@ -1,5 +1,7 @@
 import React from 'react';
-import { Modal, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -51,7 +53,7 @@ export function ActionPanelRenderer({ metadata, state }: { metadata: Record<stri
               <View style={styles.header}>
                 <Text {...headingA11y(2)} style={styles.title}>{label}</Text>
                 <TouchableOpacity {...buttonA11y({ label: 'Close' })} style={styles.close} onPress={close}>
-                  <Text style={styles.closeText}>✕</Text>
+                  <MIcon name="close" color={theme.ink} />
                 </TouchableOpacity>
               </View>
               {!!meta.hideUnpopulatedToggle && (

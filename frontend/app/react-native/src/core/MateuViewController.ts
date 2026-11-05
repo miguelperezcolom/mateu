@@ -3,7 +3,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions.t
 import { applyClientRules } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
-import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
@@ -290,10 +290,12 @@ export class MateuViewController {
         this.fieldErrors = errors;
         // the version bump remounts the field tree — render against the EDITED state
         this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
-        const summary = errorSummary(errors);
+        // the message is under each field, by its label: a summary here could only name the fields
+        // by their ids (`missionId: Cannot be empty`), which mean nothing to whoever is filling it in
+        const summary = 'Check the marked fields.';
         this.session.notify('There are validation errors', summary, 'warning');
         // A toast is a visual affordance: a screen-reader user gets no indication that the save
-        // was refused, let alone why. Speak it.
+        // was refused. Speak it (each field's name carries its error, src/a11y).
         announce(`There are validation errors. ${summary}`);
         return false;
       }

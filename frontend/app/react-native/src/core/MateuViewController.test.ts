@@ -137,7 +137,8 @@ test('validation: a required action with failing conditions is NOT sent, errors 
   assert.equal(calls.filter((x) => x.actionId === 'save').length, 0);
   assert.deepEqual(c.fieldErrors, { name: 'Required', age: 'Adults only' });
   assert.equal(notes.at(-1)!.variant, 'warning');
-  assert.match(announced.at(-1)!, /name: Required; age: Adults only/);
+  assert.match(announced.at(-1)!, /There are validation errors/);
+  assert.doesNotMatch(announced.at(-1)!, /age:/); // a field's id means nothing to whoever is filling it in
   c.putState('name', 'Ana');
   c.putState('age', 30);
   await c.runAction('save');

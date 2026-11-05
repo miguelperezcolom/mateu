@@ -1,6 +1,8 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useRef, useState } from 'react';
-import { Image, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, PanResponder, StyleSheet, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import Svg, { Polyline } from 'react-native-svg';
 import { captureRef } from 'react-native-view-shot';
@@ -157,7 +159,7 @@ export function PhotoCaptureField({ value, editable, onChange }: {
     <View>
       {value
         ? <Image source={{ uri: value }} style={styles.preview} resizeMode="contain" />
-        : <View style={styles.placeholderBox}><Text style={styles.placeholderIcon}>📷</Text></View>}
+        : <View style={styles.placeholderBox}><MIcon name="camera-outline" size={32} /></View>}
       {editable && (
         <View style={styles.actions}>
           <TouchableOpacity {...buttonA11y()} style={[styles.button, styles.primary]} onPress={open}>

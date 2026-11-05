@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { theme, themed } from '../theme';
 import { OutlinedTrigger } from '../ui/controls';
@@ -80,11 +82,11 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
             <TouchableOpacity {...buttonA11y()} activeOpacity={1} style={styles.calendar} onPress={() => {}}>
               <View style={styles.monthBar}>
                 <TouchableOpacity {...buttonA11y({ label: 'Previous month' })} style={styles.monthNav} onPress={() => shiftMonth(-1)}>
-                  <Text style={styles.monthNavText}>‹</Text>
+                  <MIcon name="chevron-left" color={theme.ink} />
                 </TouchableOpacity>
                 <Text style={styles.monthTitle}>{MONTHS[cursor.m - 1]} {cursor.y}</Text>
                 <TouchableOpacity {...buttonA11y({ label: 'Next month' })} style={styles.monthNav} onPress={() => shiftMonth(1)}>
-                  <Text style={styles.monthNavText}>›</Text>
+                  <MIcon name="chevron-right" color={theme.ink} />
                 </TouchableOpacity>
               </View>
               <View style={styles.weekRow}>

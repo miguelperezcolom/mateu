@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { interpolate } from '../core/expressions';
 import { ComponentRenderer } from './ComponentRenderer';

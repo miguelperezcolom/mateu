@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -10,12 +11,13 @@ import {
   WEEKDAY_HEADERS, type CalendarEventMeta, type CalendarMeta, type CalendarView, type Tone,
 } from './calendar';
 
-const TONE_BG: Record<Tone, string> = {
+// read when drawn: `theme` changes with the scheme, and a table built at import stayed light in dark mode
+const toneBg = (tone: Tone): string => ({
   info: theme.infoBg, success: theme.successBg, warning: theme.warningBg, danger: theme.dangerBg, neutral: theme.background,
-};
-const TONE_INK: Record<Tone, string> = {
+})[tone];
+const toneInk = (tone: Tone): string => ({
   info: theme.info, success: theme.success, warning: theme.warning, danger: theme.danger, neutral: theme.muted,
-};
+})[tone];
 
 const WEEK_COL_W = 128;
 const MONTH_CELL_EVENTS = 2;
@@ -53,13 +55,13 @@ export function CalendarRenderer({ component }: { component: unknown }) {
 
   const toneStyle = (date: string) => {
     const { tone } = dayInfo(meta, date);
-    return tone ? { backgroundColor: TONE_BG[tone] } : null;
+    return tone ? { backgroundColor: toneBg(tone) } : null;
   };
 
   const dayLabel = (date: string) => {
     const { label, tone } = dayInfo(meta, date);
     return label ? (
-      <Text numberOfLines={1} style={[styles.dayLabel, { color: tone ? TONE_INK[tone] : theme.muted }]}>{label}</Text>
+      <Text numberOfLines={1} style={[styles.dayLabel, { color: tone ? toneInk(tone) : theme.muted }]}>{label}</Text>
     ) : null;
   };
 

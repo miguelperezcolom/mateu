@@ -1,7 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
 import { theme, themed } from '../theme';
-import { Image, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, PanResponder, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { buttonA11y } from '../a11y/a11y';
 import { decimalDraft, moneyText } from '../core/uxRules';

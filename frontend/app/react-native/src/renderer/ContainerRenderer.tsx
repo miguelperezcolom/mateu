@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { ScrollView, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { segmentsFit } from './patternGaps';
 import { Text } from '../ui/Text';
 import { ComponentRenderer } from './ComponentRenderer';

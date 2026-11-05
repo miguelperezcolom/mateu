@@ -57,6 +57,11 @@ export function MateuButton({ label, onPress, buttonStyle, color, disabled, acce
   );
 }
 
+/** A Material icon in the theme's ink, unless told otherwise; decoration: the control names itself. */
+export function MIcon({ name, size = 24, color }: { name: string; size?: number; color?: string }) {
+  return <Icon source={name} size={size} color={color ?? theme.muted} />;
+}
+
 /** A status value as a tonal chip (success / warning / danger / info / neutral). Not a control —
  *  it reads as its text, so screen readers hear the value, not "button". */
 export function StatusChip({ label, tone, style }: { label: string; tone?: string | null; style?: StyleProp<ViewStyle> }) {

@@ -6,7 +6,8 @@
  * that picker too. The geometry and the move are pure: src/core/kanban.ts.
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, Vibration, View } from 'react-native';
+import { Animated, Platform, ScrollView, StyleSheet, useWindowDimensions, Vibration, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Dialog, IconButton, Portal } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../../ui/Touchable';
 import { Icon, List } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { headingA11y, modalA11y } from '../../a11y/a11y';

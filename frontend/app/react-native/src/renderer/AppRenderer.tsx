@@ -1,11 +1,12 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
-import { Appbar, Divider, Drawer as PaperDrawer, FAB, Icon, IconButton, Text as PaperText } from 'react-native-paper';
+import { CommonActions, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { Appbar, BottomNavigation, Divider, Drawer as PaperDrawer, FAB, Icon, IconButton, Text as PaperText } from 'react-native-paper';
 import { navigationTheme, useThemeControl } from '../ui/MateuTheme';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { BackHandler, Image, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { BackHandler, Image, Platform, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
@@ -896,6 +897,13 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     session.openView(target);
   }, [preview, session]);
 
+  // The shell's REST source catalogue, known BEFORE any child renders: the drawer's inbox and search
+  // and the first screen's listing name their sources by `ref`. (A shell loaded here never goes
+  // through a view controller, which registers it otherwise; a listing then fetched "undefined".)
+  React.useMemo(() => {
+    if ((appMeta as { restSources?: unknown }).restSources !== undefined) session.sources.register((appMeta as { restSources?: unknown }).restSources);
+  }, [session, (appMeta as { restSources?: unknown }).restSources]);
+
   // A menu leaf with rules RUNS them: a RunAction naming a flow the shell declares applies its
   // lowered commands here (no server round-trip); any other id is an app-level server action.
   // The catalogue is app-wide: register it so every screen's controller resolves ids against it.
@@ -1067,11 +1075,28 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   if (variant === 'TABS' && menuItems.length > 0) {
     return guard(
       <NavigationContainer theme={navTheme} ref={tabsNav}>
-        <Tab.Navigator screenOptions={{ headerShown: false }}>
+        <Tab.Navigator
+          screenOptions={{ headerShown: false }}
+          // Material's navigation bar, with its active indicator: the navigator keeps deciding what is shown
+          tabBar={({ navigation, state, descriptors, insets }) => (
+            <BottomNavigation.Bar
+              navigationState={state}
+              safeAreaInsets={insets}
+              onTabPress={({ route, preventDefault }) => {
+                const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+                if (event.defaultPrevented) preventDefault();
+                else navigation.dispatch({ ...CommonActions.navigate(route.name, route.params), target: state.key });
+              }}
+              renderIcon={({ route, focused, color }) => descriptors[route.key]?.options.tabBarIcon?.({ focused, color, size: 24 }) ?? null}
+              getLabelText={({ route }) => route.name}
+            />
+          )}
+        >
           {menuItems.map((item, i) => (
             <Tab.Screen
               key={i}
               name={item.label ?? `Tab${i}`}
+              options={{ tabBarIcon: ({ color, size }) => <Icon source={materialIconOf(item.icon) ?? 'circle-small'} color={color} size={size} /> }}
               listeners={({ navigation }) => ({
                 tabPress: () => {
                   setPreview(null);

@@ -11,7 +11,9 @@
  * read-only. The decisions that can be made without React live in wireWidgets.ts / diagrams.ts.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Modal, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import Svg, { Circle, G, Polygon, Polyline, Rect, Text as SvgText } from 'react-native-svg';
 import { ComponentRenderer } from './ComponentRenderer';
@@ -214,7 +216,7 @@ export function BreadcrumbsRenderer({ metadata }: { metadata: Dict }) {
       {crumbs.map((c, i) => (
         <View key={i} style={styles.row}>
           <BreadcrumbRenderer metadata={c} />
-          <Text style={styles.crumbSep}> › </Text>
+          <MIcon name="chevron-right" size={16} />
         </View>
       ))}
       {!!current && <Text style={styles.crumbCurrent}>{current}</Text>}
@@ -233,7 +235,7 @@ export function DetailsRenderer({ metadata, state, data }: { metadata: Dict; sta
         <View style={styles.flex1}>
           {summary && typeof summary === 'object' ? <ComponentRenderer component={summary} state={state} data={data} /> : <Text style={styles.bold}>{str(summary)}</Text>}
         </View>
-        <Text style={styles.chevron}>{open ? '▾' : '▸'}</Text>
+        <MIcon name={open ? 'chevron-up' : 'chevron-down'} size={20} />
       </TouchableOpacity>
       {open && !!metadata['content'] && (
         <View style={styles.panelBody}>
@@ -258,7 +260,7 @@ function OptionsSheet({ title, options, onClose }: { title: string; options: Men
           <View style={styles.sheetHeader}>
             {stack.length > 1 && (
               <TouchableOpacity {...buttonA11y({ label: 'Back' })} onPress={() => setStack(stack.slice(0, -1))}>
-                <Text style={styles.sheetBack}>‹</Text>
+                <MIcon name="arrow-left" />
               </TouchableOpacity>
             )}
             <Text style={styles.sheetTitle}>{top.title}</Text>
@@ -283,7 +285,7 @@ function OptionsSheet({ title, options, onClose }: { title: string; options: Men
                 }}
               >
                 <Text style={[styles.sheetItemText, o.disabled && styles.disabledText]}>{o.label}</Text>
-                {!!o.submenus?.length && <Text style={styles.chevron}>›</Text>}
+                {!!o.submenus?.length && <MIcon name="chevron-right" size={20} />}
               </TouchableOpacity>
             ),
           )}
@@ -498,7 +500,7 @@ export function CarouselRenderer({ component, metadata, state, data }: { compone
       <View style={[styles.row, styles.carouselNav]}>
         {metadata['nav'] === true && (
           <TouchableOpacity {...buttonA11y({ label: 'Previous slide' })} onPress={() => go(index - 1)}>
-            <Text style={styles.carouselArrow}>‹</Text>
+            <MIcon name="chevron-left" color={theme.ink} />
           </TouchableOpacity>
         )}
         {metadata['dots'] !== false &&
@@ -509,7 +511,7 @@ export function CarouselRenderer({ component, metadata, state, data }: { compone
           ))}
         {metadata['nav'] === true && (
           <TouchableOpacity {...buttonA11y({ label: 'Next slide' })} onPress={() => go(index + 1)}>
-            <Text style={styles.carouselArrow}>›</Text>
+            <MIcon name="chevron-right" color={theme.ink} />
           </TouchableOpacity>
         )}
       </View>
@@ -660,7 +662,7 @@ export function ChatRenderer({ metadata }: { metadata: Dict }) {
   return (
     <>
       <TouchableOpacity {...buttonA11y({ label: 'Open chat' })} style={styles.primaryBtn} onPress={() => setOpen(true)}>
-        <Text style={styles.primaryBtnText}>💬 Open chat</Text>
+        <Text style={styles.primaryBtnText}>Open chat</Text>
       </TouchableOpacity>
       {/* mounted while hidden: the conversation survives closing it */}
       <ChatPanel session={session} sseUrl={sseUrl} uploadUrl={str(metadata['uploadUrl']) || null} visible={open} onClose={() => setOpen(false)} />
@@ -670,13 +672,13 @@ export function ChatRenderer({ metadata }: { metadata: Dict }) {
 
 // ── Outcome pages ──────────────────────────────────────────────────────────────
 
-const TONES: Record<string, { fg: string; bg: string }> = {
+const TONES: Record<string, { fg: string; bg: string }> = themed(() => ({
   success: { fg: theme.success, bg: theme.successBg },
   info: { fg: theme.info, bg: theme.infoBg },
   warning: { fg: theme.warning, bg: theme.warningBg },
   danger: { fg: theme.danger, bg: theme.dangerBg },
   muted: { fg: theme.muted, bg: theme.divider },
-};
+}));
 
 export function ResultRenderer({ metadata }: { metadata: Dict }) {
   const controller = useViewController();

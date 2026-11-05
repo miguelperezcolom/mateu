@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -23,7 +25,7 @@ export function MapRenderer({ metadata }: { metadata: Record<string, unknown> })
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>🗺 Map</Text>
+      <View style={styles.titleRow}><MIcon name="map-outline" size={20} /><Text style={styles.title}>Map</Text></View>
       {rows.length === 0 && <Text style={styles.empty}>No location</Text>}
       {rows.map((row) => {
         const body = (
@@ -67,6 +69,7 @@ const styles = themed(() => StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border, borderRadius: theme.radiusMd,
     backgroundColor: theme.white, padding: theme.spacing.sm,
   },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   title: { fontSize: 13, fontWeight: '700', color: theme.muted, marginBottom: theme.spacing.xs },
   empty: { fontSize: 13, color: theme.faint, paddingVertical: theme.spacing.sm },
   row: {

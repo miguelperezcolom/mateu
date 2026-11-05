@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Image, ImageBackground, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { ThemeProvider, useTheme, type MD3Theme } from 'react-native-paper';
 import { fetchExternalJson } from '../core/restFetch';
@@ -66,7 +68,7 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
                   </View>
                 )}
               </View>
-              <Text style={styles.foldoutChevron}>{open[i] ? '▾' : '▸'}</Text>
+              <MIcon name={open[i] ? 'chevron-up' : 'chevron-down'} size={22} />
             </TouchableOpacity>
             {!!open[i] && !!content && (
               <View style={styles.foldoutBody}>
@@ -96,7 +98,10 @@ const onBandTheme = (base: MD3Theme, band: string): MD3Theme => ({
 });
 
 export function HeroSectionRenderer({ component, state }: { component: unknown; state: Dict }) {
-  const m = meta(component) as unknown as HeroSection;
+  const raw = meta(component) as unknown as HeroSection;
+  // a record's banner is a template over its state (`title: ${state.name}`, `image: ${state.photo}`)
+  const hero = (t?: string | null) => (t ? interpolate(t, { state }) : t);
+  const m = { ...raw, overline: hero(raw.overline), title: hero(raw.title), subtitle: hero(raw.subtitle), image: hero(raw.image) };
   const children = childrenOf(component);
   const centered = m.centered !== false;
   const onImage = !!m.image;
@@ -647,7 +652,7 @@ export function FaqRenderer({ component }: { component: unknown }) {
         <View key={i} style={styles.faqItem}>
           <TouchableOpacity {...buttonA11y()} style={styles.faqQ} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
             <Text style={styles.faqQText}>{it.question ?? ''}</Text>
-            <Text style={styles.faqChevron}>{open[i] ? '⌄' : '›'}</Text>
+            <MIcon name={open[i] ? 'chevron-up' : 'chevron-down'} size={22} />
           </TouchableOpacity>
           {open[i] && <Text style={styles.faqA}>{it.answer ?? ''}</Text>}
         </View>
@@ -756,7 +761,7 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
       {items.map((it, i) => (
         <TouchableOpacity {...buttonA11y()} key={it.id ?? i} style={styles.checkItem} onPress={() => toggle(it, i)}>
           <View style={[styles.checkBox, done[i] && styles.checkBoxDone]}>
-            {done[i] && <Text style={styles.checkMark}>✓</Text>}
+            {done[i] && <MIcon name="check" size={16} color={theme.onPrimary} />}
           </View>
           <Text style={[styles.checkLabel, done[i] && styles.checkLabelDone]}>{it.label ?? ''}</Text>
         </TouchableOpacity>

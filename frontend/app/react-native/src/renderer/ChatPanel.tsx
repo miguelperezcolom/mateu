@@ -1,6 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { MateuSession } from '../core/MateuSession';
 import { theme, themed } from '../theme';
@@ -190,7 +192,7 @@ export function ChatPanel({
           <View style={styles.header}>
             <Text style={styles.title}>Assistant</Text>
             <TouchableOpacity {...buttonA11y({ label: 'Close assistant' })} onPress={onClose}>
-              <Text style={styles.close}>✕</Text>
+              <MIcon name="close" color={theme.ink} />
             </TouchableOpacity>
           </View>
           <ScrollView ref={scroll} style={styles.messages} contentContainerStyle={{ padding: 12, gap: 8 }}>
@@ -220,7 +222,7 @@ export function ChatPanel({
                     onPress={() => setAttachments((list) => list.filter((x) => x.path !== a.path))}
                     hitSlop={theme.hitSlop}
                   >
-                    <Text style={styles.chipRemove}>✕</Text>
+                    <MIcon name="close" size={16} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -242,7 +244,7 @@ export function ChatPanel({
               editable={!busy}
             />
             <TouchableOpacity {...buttonA11y({ label: 'Send message', disabled: !canSend })} style={styles.send} onPress={() => void send()} disabled={!canSend}>
-              <Text style={styles.sendText}>➤</Text>
+              <MIcon name="send" size={20} color={theme.onPrimary} />
             </TouchableOpacity>
           </View>
         </View>

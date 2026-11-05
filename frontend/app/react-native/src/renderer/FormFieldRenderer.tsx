@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Switch, TouchableOpacity, View, StyleSheet, ScrollView } from 'react-native';
+import { Modal, Switch, View, StyleSheet, ScrollView } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { HelperText, Switch as PaperSwitch, Text as PaperText } from 'react-native-paper';
 import { MateuButton, OutlinedDecimalInput, OutlinedInput, OutlinedTrigger } from '../ui/controls';
 import { Text, TextInput } from '../ui/Text';
@@ -750,7 +752,10 @@ function OptionsField({ label, required, error, options, value, editable, onChan
           onPress={() => editable && setOpen(!open)}
           activeOpacity={editable ? 0.7 : 1}
         >
-          <Text style={!selected ? styles.placeholder : undefined}>{shown} ▾</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={!selected ? styles.placeholder : undefined}>{shown}</Text>
+            <MIcon name="menu-down" />
+          </View>
         </TouchableOpacity>
       )}
       {open && (
@@ -826,7 +831,7 @@ function TreeSelectField({ label, options, leavesOnly, value, editable, onChange
                       onPress={() => setOpenNodes(isOpen ? openNodes.filter((n) => n !== opt.value) : [...openNodes, opt.value])}
                       style={{ paddingRight: 6 }}
                     >
-                      <Text>{isOpen ? '▾' : '▸'}</Text>
+                      <MIcon name={isOpen ? 'chevron-up' : 'chevron-down'} size={20} />
                     </TouchableOpacity>
                   ) : null}
                   <TouchableOpacity {...buttonA11y()}

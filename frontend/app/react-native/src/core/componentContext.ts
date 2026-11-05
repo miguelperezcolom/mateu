@@ -130,10 +130,6 @@ export function fieldErrorsOf(validations: Json[], holds: (condition: string) =>
   return errors;
 }
 
-/** The validation toast's summary: "field: message; …". */
-export const errorSummary = (errors: Record<string, string>): string =>
-  Object.entries(errors).map(([f, m]) => `${f}: ${m}`).join('; ');
-
 /** A DispatchEvent/CloseModal command's event: its name and payload, an object payload stamped
  *  with the emitter's __source (legacy non-object payloads keep their shape). Null without a name. */
 export function namedEventOf(cmdData: Json | null | undefined, emitsName: string): { eventName: string; payload: unknown } | null {

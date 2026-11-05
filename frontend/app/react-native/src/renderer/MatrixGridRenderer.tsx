@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
@@ -13,12 +14,12 @@ const CELL_W = 72;
 const LABEL_W = 140;
 const LINE_H = 36;
 
-const TONE_BG: Record<Tone, string> = {
+const TONE_BG: Record<Tone, string> = themed(() => ({
   info: theme.infoBg, success: theme.successBg, warning: theme.warningBg, danger: theme.dangerBg, neutral: theme.background,
-};
-const TONE_INK: Record<Tone, string> = {
+}));
+const TONE_INK: Record<Tone, string> = themed(() => ({
   info: theme.info, success: theme.success, warning: theme.warning, danger: theme.danger, neutral: theme.ink,
-};
+}));
 
 /**
  * Matrix grid (wire `MatrixGrid`): a FIXED left column with the row labels next to a horizontal

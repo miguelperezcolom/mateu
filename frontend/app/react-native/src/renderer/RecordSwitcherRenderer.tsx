@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { FlatList, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, View } from 'react-native';
+import { MIcon } from '../ui/controls';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { filterSwitcherOptions, switcherCurrentLabel, switcherPick, type RecordSwitcher, type SwitcherOption } from './patternGaps';
@@ -46,7 +48,7 @@ export function RecordSwitcherRenderer({ switcher }: { switcher: RecordSwitcher 
       >
         {!!hint && <Text style={styles.hint}>{hint}</Text>}
         <Text style={styles.value} numberOfLines={1}>{current}</Text>
-        <Text style={styles.chevron}>▾</Text>
+        <MIcon name="menu-down" />
       </TouchableOpacity>
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
         <View style={styles.backdrop}>
@@ -54,7 +56,7 @@ export function RecordSwitcherRenderer({ switcher }: { switcher: RecordSwitcher 
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{hint || 'Switch'}</Text>
               <TouchableOpacity {...buttonA11y({ label: 'Close' })} onPress={() => setOpen(false)}>
-                <Text style={styles.close}>✕</Text>
+                <MIcon name="close" color={theme.ink} />
               </TouchableOpacity>
             </View>
             {switcher.searchable && (
@@ -87,7 +89,7 @@ export function RecordSwitcherRenderer({ switcher }: { switcher: RecordSwitcher 
                       </Text>
                       {!!item.description && <Text style={styles.optionDescription}>{item.description}</Text>}
                     </View>
-                    {selected && <Text style={styles.check}>✓</Text>}
+                    {selected && <MIcon name="check" size={20} color={theme.primary} />}
                   </TouchableOpacity>
                 );
               }}

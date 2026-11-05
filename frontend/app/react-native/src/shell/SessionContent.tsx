@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { recordTiming } from '../core/timing';
-import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, View } from 'react-native';
+import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { toastLifetime } from '../core/toastLifetime';
 import { useAppContext } from '../context/AppContext';
