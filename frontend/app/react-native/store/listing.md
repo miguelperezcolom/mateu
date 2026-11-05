@@ -1,8 +1,8 @@
 # Store listing — Mateu (App Store + Google Play)
 
-Ready-to-paste texts for both stores, in English (primary) and Spanish. Limits are the stores'
+Google Play wants phone screenshots at 9:16 (`android/` is 1080x1920). Ready-to-paste texts for both stores, in English (primary) and Spanish. Limits are the stores'
 (characters, counted with spaces). Reviewer notes and privacy answers: `../RELEASE.md` §4–§5.
-Privacy policy URL (both stores): **https://mateu.io/privacy**. Support / marketing URL: **https://mateu.io**.
+Privacy policy URL (both stores): **https://mateu.io/privacy/**. Support / marketing URL: **https://mateu.io**.
 
 ## English (en-US)
 
