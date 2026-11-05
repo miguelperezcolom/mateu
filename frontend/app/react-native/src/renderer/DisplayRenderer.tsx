@@ -306,6 +306,29 @@ export function TimelineRenderer({ component }: { component: unknown }) {
 // ── ProgressSteps (mobile: a compact vertical stepper) ────────────────────────
 export function ProgressStepsRenderer({ component }: { component: unknown }) {
   const steps = (meta(component)['steps'] as Step[]) ?? [];
+  // Bullets in a row, the current step named under them: on a phone a vertical list of seven steps
+  // pushed the step's form below the fold. A wizard that asks for its rail (`vertical`) keeps it.
+  if (meta(component)['vertical'] !== true && steps.length > 1) {
+    const current = Math.max(0, steps.findIndex((s) => String(s.status ?? '').toLowerCase() === 'current'));
+    return (
+      <View style={styles.stepsCompact} accessibilityRole="progressbar" accessibilityLabel={`${current + 1} / ${steps.length}: ${steps[current]?.title ?? ''}`}>
+        <View style={styles.stepsCompactRow}>
+          {steps.map((s, i) => {
+            const look = stepLook(s.status, i);
+            return (
+              <React.Fragment key={s.id ?? i}>
+                {i > 0 && <View style={[styles.stepsCompactLine, { backgroundColor: look.lineColor }]} />}
+                <View style={[styles.stepsCompactDot, { backgroundColor: look.dotColor, borderColor: look.borderColor }]}>
+                  <Text style={[styles.stepsCompactDotText, { color: look.textColor }]}>{look.glyph}</Text>
+                </View>
+              </React.Fragment>
+            );
+          })}
+        </View>
+        <Text style={styles.stepsCompactTitle} numberOfLines={1}>{`${current + 1}/${steps.length} · ${steps[current]?.title ?? ''}`}</Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.steps}>
       {steps.map((s, i) => {
@@ -806,7 +829,7 @@ export function EntityHeaderRenderer({ component }: { component: unknown }) {
                         style={styles.entityFactAction}
                         onPress={() => void controller.runAction(action.actionId, action.parameters)}
                       >
-                        <Text style={styles.entityFactActionGlyph}>{action.glyph}</Text>
+                        {action.icon ? <MIcon name={action.icon} size={20} color={theme.primary} /> : <Text style={styles.entityFactActionGlyph}>{action.glyph}</Text>}
                       </TouchableOpacity>
                     )}
                   </View>
@@ -922,7 +945,9 @@ export function NoticeRenderer({ component, state, renderComponent }: {
   const noIcon = m['noIcon'] === true;
   const slim = m['slim'] === true;
   const children = ((component as Record<string, unknown>)['children'] as unknown[]) ?? [];
-  const { hasText, shows } = noticeShows(m['text'], children.length);
+  // a declarative @Notice says `${state.field}`: the field's value is the text, and no value hides it
+  const text = typeof m['text'] === 'string' ? interpolate(m['text'] as string, { state: state ?? controller.currentComponentState }) : m['text'];
+  const { hasText, shows } = noticeShows(text, children.length);
   if (!shows) return null;
   return (
     <View style={[styles.notice, slim && styles.noticeSlim, { backgroundColor: colors.bg }]}>
@@ -932,7 +957,7 @@ export function NoticeRenderer({ component, state, renderComponent }: {
         </View>
       )}
       <View style={[styles.noticeBody, m['inlineContent'] === true && styles.noticeBodyInline]}>
-        {hasText && <Text style={[styles.noticeText, { color: colors.ink }]}>{(m['text'] as string) ?? ''}</Text>}
+        {hasText && <Text style={[styles.noticeText, { color: colors.ink }]}>{(text as string) ?? ''}</Text>}
         {children.map((child, i) => (
           <View key={i}>{renderComponent?.(child, state ?? {}, () => {}) as React.ReactNode}</View>
         ))}
@@ -1353,6 +1378,12 @@ const styles = themed(() => StyleSheet.create({
   timelineDesc: { color: theme.muted, marginTop: 2 },
   // ProgressSteps (vertical on mobile)
   steps: {},
+  stepsCompact: { gap: 8, paddingVertical: 4 },
+  stepsCompactRow: { flexDirection: 'row', alignItems: 'center' },
+  stepsCompactDot: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  stepsCompactDotText: { fontWeight: '700', fontSize: 11 },
+  stepsCompactLine: { flex: 1, height: 2, marginHorizontal: 2 },
+  stepsCompactTitle: { fontWeight: '600', color: theme.ink, fontSize: 16 },
   stepRow: { flexDirection: 'row', gap: 10 },
   stepRail: { alignItems: 'center', width: 32 },
   stepDot: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },

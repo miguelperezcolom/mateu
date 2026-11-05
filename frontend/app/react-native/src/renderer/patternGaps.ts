@@ -223,3 +223,35 @@ export function segmentsFit(labels: string[], windowWidth: number): boolean {
   const share = (windowWidth - 32) / labels.length;
   return labels.every((l) => l.length * 8 + 24 <= share);
 }
+
+/** A toolbar without repeats: the same action with the same label is one button. */
+export function uniqueButtons<T extends { actionId?: string; id?: string; label?: string; route?: string }>(buttons: T[]): T[] {
+  const seen = new Set<string>();
+  return buttons.filter((b) => {
+    const key = `${b.actionId ?? b.id ?? ''}|${b.label ?? ''}|${b.route ?? ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+const CONTAINERS = new Set(['VerticalLayout', 'HorizontalLayout', 'FormLayout', 'FormRow', 'FormSection', 'FormSubSection', 'Container', 'Div', 'Card']);
+
+/**
+ * Whether a node draws nothing at all: a custom field with no content, or a container (a card with
+ * no title among them) holding only such nodes. A card around nothing was an empty outlined box.
+ */
+export function drawsNothing(node: unknown): boolean {
+  const n = node as { metadata?: Record<string, unknown>; children?: unknown[] } | null;
+  const m = n?.metadata ?? {};
+  const children = Array.isArray(n?.children) ? n!.children! : [];
+  if (m['type'] === 'CustomField') return !m['content'] && children.every(drawsNothing);
+  if (!CONTAINERS.has(String(m['type']))) return false;
+  if (m['title'] || m['label']) return false;
+  // a card's content, header and footer are nodes too: what they hold decides
+  for (const slot of ['content', 'header', 'footer']) {
+    const v = m[slot];
+    if (v && (typeof v !== 'object' || !drawsNothing(v))) return false;
+  }
+  return children.every(drawsNothing);
+}

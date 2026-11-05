@@ -24,10 +24,23 @@ const VAADIN_TO_MATERIAL: Record<string, string> = {
   records: 'file-cabinet', refresh: 'refresh', 'road': 'road-variant', rocket: 'rocket-launch-outline', scale: 'scale-balance', search: 'magnify', server: 'server', share: 'share-variant-outline', shield: 'shield-outline', shop: 'storefront-outline', sign: 'draw', 'sign-in': 'login', 'sign-out': 'logout', sitemap: 'sitemap-outline', 'sliders': 'tune', spinner: 'loading', stamp: 'stamper', star: 'star', 'star-o': 'star-outline', stethoscope: 'stethoscope', 'stock': 'chart-line-variant', storage: 'database-outline', sun: 'white-balance-sunny', 'sun-o': 'white-balance-sunny', table: 'table', tablet: 'tablet', tag: 'tag-outline', tags: 'tag-multiple-outline', tasks: 'format-list-checks', taxi: 'taxi', 'time-forward': 'clock-fast', 'time-backward': 'history', tools: 'tools', train: 'train', trash: 'trash-can-outline', tree: 'file-tree-outline', trending: 'trending-up', trophy: 'trophy-outline', truck: 'truck-outline', umbrella: 'umbrella-outline', unlink: 'link-variant-off', unlock: 'lock-open-outline', upload: 'upload', 'upload-alt': 'upload', user: 'account-outline', 'user-card': 'card-account-details-outline', 'user-check': 'account-check-outline', 'user-clock': 'account-clock-outline', 'user-heart': 'account-heart-outline', 'user-star': 'account-star-outline', users: 'account-multiple-outline', wallet: 'wallet-outline', warning: 'alert-outline', 'workplace': 'domain', wrench: 'wrench-outline',
 };
 
+const REDWOOD_TO_MATERIAL: Record<string, string> = {
+  'tablet-portrait': 'tablet', tablet: 'tablet', 'mobile-phone': 'cellphone', edit: 'pencil-outline', 'edit-pencil': 'pencil-outline',
+  'credit-card': 'credit-card-outline', 'money-bills': 'cash', wallet: 'wallet-outline', bed: 'bed-outline', 'key': 'key-outline',
+  wifi: 'wifi', 'user-avatar': 'account-outline', users: 'account-multiple-outline', calendar: 'calendar', 'calendar-clock': 'calendar-clock',
+  'check': 'check', 'checkmark': 'check', close: 'close', plus: 'plus', 'add-create-page': 'plus', search: 'magnify', home: 'home-outline',
+  settings: 'cog-outline', 'trash': 'trash-can-outline', 'information': 'information-outline', 'warning': 'alert-outline', 'mail': 'email-outline',
+  'phone': 'phone-outline', 'location': 'map-marker-outline', 'building': 'office-building-outline', 'gift': 'gift-outline', 'signature': 'draw',
+  'qr-code': 'qrcode', 'scan': 'barcode-scan', 'camera': 'camera-outline', 'chart-bar': 'chart-bar', 'dashboard': 'view-dashboard-outline',
+};
+
 /** The Material Community Icons name of a wire icon token, or undefined when there is none. */
 export function materialIconOf(token: string | null | undefined): string | undefined {
   const value = (token ?? '').trim();
   if (!value) return undefined;
+  // Redwood's icon font: oj-ux-ico-<name>
+  const redwood = /^oj-ux-ico-([a-z0-9-]+)$/i.exec(value);
+  if (redwood) return REDWOOD_TO_MATERIAL[redwood[1]!.toLowerCase()] ?? VAADIN_TO_MATERIAL[redwood[1]!.toLowerCase()];
   const colon = value.indexOf(':');
   if (colon < 0) return undefined;
   const set = value.slice(0, colon).toLowerCase();
@@ -36,4 +49,4 @@ export function materialIconOf(token: string | null | undefined): string | undef
   return VAADIN_TO_MATERIAL[name];
 }
 
-export const wireIconNames = (): string[] => Object.values(VAADIN_TO_MATERIAL);
+export const wireIconNames = (): string[] => [...Object.values(VAADIN_TO_MATERIAL), ...Object.values(REDWOOD_TO_MATERIAL)];

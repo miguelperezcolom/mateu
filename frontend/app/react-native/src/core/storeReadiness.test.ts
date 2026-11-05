@@ -83,3 +83,33 @@ test('a session id is drawn once and kept; a store that fails still answers one'
   const broken = { get: async () => { throw new Error('no'); }, set: async () => {}, remove: async () => {} };
   assert.equal(typeof (await uiSessionId(broken, 'y', () => 'z')), 'string');
 });
+
+test('a toolbar folded in twice shows each button once', async () => {
+  const { uniqueButtons } = await import('../renderer/patternGaps.ts');
+  const b = [{ actionId: 'walkIn', label: 'Walk-in' }, { actionId: 'seed', label: 'Seed' }, { actionId: 'walkIn', label: 'Walk-in' }];
+  assert.deepEqual(uniqueButtons(b).map((x) => x.actionId), ['walkIn', 'seed']);
+});
+
+test('a card around nothing is not drawn; one with a title or content is', async () => {
+  const { drawsNothing } = await import('../renderer/patternGaps.ts');
+  const empty = { metadata: { type: 'CustomField', label: 'Recognition', content: null }, children: [] };
+  const card = (extra = {}, children: unknown[] = [empty]) => ({ metadata: { type: 'Card', ...extra }, children: [{ metadata: { type: 'VerticalLayout' }, children }] });
+  assert.equal(drawsNothing(card()), true);
+  assert.equal(drawsNothing(card({ title: 'Historial' })), false);
+  assert.equal(drawsNothing(card({}, [{ metadata: { type: 'Text', text: 'x' } }])), false);
+});
+
+test('a fact\'s action icon is Material, Redwood\'s token included, never the token as text', async () => {
+  const { factAction } = await import('../renderer/factAction.ts');
+  assert.equal(factAction({ actionId: 'a', icon: 'oj-ux-ico-tablet-portrait' })?.icon, 'tablet');
+  assert.equal(factAction({ actionId: 'a', icon: 'vaadin:money' })?.icon, 'cash');
+  assert.equal(factAction({ actionId: 'a', icon: 'something-unknown' })?.icon, 'pencil-outline');
+  assert.equal(factAction({ actionId: 'a', icon: '💳' })?.glyph, '💳');
+});
+
+test('a card whose content slot holds nothing is not drawn either', async () => {
+  const { drawsNothing } = await import('../renderer/patternGaps.ts');
+  const empty = { metadata: { type: 'CustomField', content: null }, children: [] };
+  assert.equal(drawsNothing({ metadata: { type: 'Card', content: { metadata: { type: 'VerticalLayout' }, children: [empty] } }, children: [] }), true);
+  assert.equal(drawsNothing({ metadata: { type: 'Card', content: { metadata: { type: 'Text', text: 'x' } } }, children: [] }), false);
+});

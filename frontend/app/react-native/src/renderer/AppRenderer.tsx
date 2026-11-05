@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { CommonActions, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { CommonActions, NavigationContainer, createNavigationContainerRef, useIsFocused } from '@react-navigation/native';
 import { Appbar, BottomNavigation, Divider, Drawer as PaperDrawer, FAB, Icon, IconButton, Text as PaperText } from 'react-native-paper';
 import { navigationTheme, useThemeControl } from '../ui/MateuTheme';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -185,10 +185,12 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
 
   // A shell with a top bar hosts the way back IN that bar (its menu button becomes a back arrow):
   // one bar, not a second one stacked under it. Without a bar (tabs, no menu) the screen draws its own.
+  // …and only the screen on view hands it over: a tab in the background keeps its stack to itself
+  const focused = useIsFocused();
   React.useEffect(() => {
-    if (!hostBack) return;
+    if (!hostBack || !focused) return;
     hostBack(stack.length > 0 ? () => void pop() : null);
-  }, [hostBack, stack.length, pop]);
+  }, [hostBack, stack.length, pop, focused]);
   React.useEffect(() => () => hostBack?.(null), [hostBack]);
 
   return (
@@ -1090,6 +1092,10 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
               }}
               renderIcon={({ route, focused, color }) => descriptors[route.key]?.options.tabBarIcon?.({ focused, color, size: 24 }) ?? null}
               getLabelText={({ route }) => route.name}
+              // one line, as Material's navigation bar: a long label is cut, never wrapped under its neighbours
+              renderLabel={({ route, color }) => (
+                <PaperText variant="labelMedium" numberOfLines={1} style={{ color, textAlign: 'center' }}>{route.name}</PaperText>
+              )}
             />
           )}
         >
@@ -1111,6 +1117,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
                     consumedRoute={item.consumedRoute ?? ''}
                     serverSideType={item.serverSideType ?? ''}
                     bottomInset={bottomInset}
+                    hostBack={session.hub?.hostBack}
                     onPopToRoot={(popToRoot) => (tabRoots.current[i] = popToRoot)}
                   />,
                 )

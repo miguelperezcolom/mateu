@@ -28,6 +28,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   session id. Register `mateu://auth` as a post-logout redirect at the provider.
 - **A hidden UI on the phone app neither polls nor opens the sign-in browser,** and a refused sign-in
   does not reopen it for a minute. A link to a running UI asks before discarding unsaved edits.
+- **Menu entries naming one view of a listing work on the phone app** (`reservas?vista=LLEGADAS_HOY`):
+  the route's query seeds the listing's search, as on the web. Every tab of a TABS shell showed the same list.
+- **A routed listing's toolbar shows once on the phone app** (the page's header shows it, the listing's
+  copy stands down, and a button repeated in the page toolbar is one button).
+- **An embedded island behind a mediator keeps what its host seeded on the phone app** (an `@Inline`
+  `EditableView`'s `stayId`): sent on its loads, its reloads and its actions, and its LongTask streams.
+  The front office's passport scan never reached the stay, and its progress never moved.
+- **On the phone app,** a record's back bar no longer shows the raw route, a TABS shell's top bar hosts
+  the screen's way back instead of stacking a second bar, a card around nothing is not drawn, a
+  `@Notice` interpolates `${state.x}`, Redwood's `oj-ux-ico-*` icons draw as Material icons, and a
+  wizard's progress is one compact row.
 - **A wire `Dialog` is a Material dialog sized to its content on the phone app;** a `Drawer` stays a sheet.
   Text follows the Material type scale.
 - **The Android build drops permissions it never used:** `SYSTEM_ALERT_WINDOW`, external storage and

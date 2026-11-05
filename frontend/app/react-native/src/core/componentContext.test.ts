@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, namedEventOf, orchestratorOf,
+  actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, routeQueryOf, seedSearchFromRoute, namedEventOf, orchestratorOf,
   ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf,
 } from './componentContext.ts';
 
@@ -103,4 +103,13 @@ test('messages as toasts: no text no toast, info default, undo with its label an
     title: 'T', text: 'Deleted', variant: 'warning', duration: 4000, undo: { label: 'Undo', actionId: 'restore', parameters: { id: 1 } },
   });
   assert.deepEqual(toastOf({ text: 'D', duration: -1, undoActionId: 'r', undoLabel: 'Revert' })!.undo, { label: 'Revert', actionId: 'r', parameters: {} });
+});
+
+test('a route\'s query seeds a listing\'s search, under what the user set', () => {
+  assert.deepEqual(routeQueryOf('reservas?vista=LLEGADAS_HOY&page=2&q=ana%20b'), { vista: 'LLEGADAS_HOY', page: 2, searchText: 'ana b' });
+  assert.deepEqual(routeQueryOf('reservas'), {});
+  assert.deepEqual(routeQueryOf('x?page=-1&bad=%E0%A4%A&=v'), {});
+  const s: Record<string, unknown> = { vista: 'IN_HOUSE' };
+  seedSearchFromRoute(s, 'reservas?vista=LLEGADAS_HOY&hotel=MRU01');
+  assert.deepEqual(s, { vista: 'IN_HOUSE', hotel: 'MRU01', page: 0, size: 10, sort: [], searchText: '' });
 });

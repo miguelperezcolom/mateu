@@ -9,7 +9,8 @@ import { useViewController } from './MateuViewHost';
 import { SavedView } from './savedViews';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, getByPath, mapItemsToRows } from '../core/restFetch';
-import { FIT_CONTENT, useFitsContent, useInsideVerticalScroll } from './ScrollContext';
+import { FIT_CONTENT, useFitsContent, useInsideVerticalScroll, usePageShowsToolbar } from './ScrollContext';
+import { routeQueryOf } from '../core/componentContext';
 import { restListingPage } from '../core/restListing';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
@@ -103,7 +104,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const columns = flattenColumnGroups((metadata['columns'] as ColumnMeta[]) ?? []);
   // The listing's create action (`new`) is its screen's primary action: a Material extended FAB
   // ("+ New") instead of one more pill in the action row; the other toolbar buttons stay there.
-  const { create: createButton, rest: toolbar } = splitCreateAction((metadata['toolbar'] as ButtonDto[]) ?? []);
+  // a routed listing's toolbar is shown by its page (the web's rule): not twice
+  const pageShowsToolbar = usePageShowsToolbar();
+  const { create: createButton, rest: toolbar } = splitCreateAction(pageShowsToolbar ? [] : ((metadata['toolbar'] as ButtonDto[]) ?? []));
   // the FAB floats above the pagination bar (measured), the list scrolls clear of it
   const [paginationHeight, setPaginationHeight] = useState(0);
   const fabClearance = createButton ? { paddingBottom: CREATE_FAB_CLEARANCE } : undefined;
@@ -252,7 +255,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
   const [searchText, setSearchText] = useState('');
   const filters = (metadata['filters'] as FilterFieldMeta[]) ?? [];
-  const [filterValues, setFilterValues] = useState<Record<string, unknown>>({});
+  // a filter the route names (a menu entry for one view of the listing, a shared link) starts set
+  const [filterValues, setFilterValues] = useState<Record<string, unknown>>(() => {
+    const query = routeQueryOf(controller.currentRoute);
+    return Object.fromEntries(filters.filter((f) => f.fieldId && query[f.fieldId] !== undefined).map((f) => [f.fieldId!, query[f.fieldId!]]));
+  });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const activeFilters = activeFilterCount(filterValues);
 

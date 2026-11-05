@@ -14,7 +14,8 @@ import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom } from '../core/uxRules';
 import { useButtonPress } from './useButtonPress';
-import { FIT_CONTENT, InsideVerticalScroll, useFitsContent } from './ScrollContext';
+import { FIT_CONTENT, InsideVerticalScroll, PageShowsToolbar, useFitsContent } from './ScrollContext';
+import { uniqueButtons } from './patternGaps';
 
 interface ButtonDto {
   actionId?: string;
@@ -91,7 +92,8 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const noHeader = metadata['noHeader'] === true;
   const title = noHeader ? '' : interpolate((metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '', ctx);
   const subtitle = noHeader ? '' : interpolate((metadata['subtitle'] as string) ?? '', ctx);
-  const toolbar = (metadata['toolbar'] as ButtonDto[]) ?? [];
+  // the same button twice (a listing's toolbar folded in more than once) is one button
+  const toolbar = uniqueButtons((metadata['toolbar'] as ButtonDto[]) ?? []);
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
   const badges = (metadata['badges'] as { text?: string; color?: string }[]) ?? [];
   const kpis = (metadata['kpis'] as { title?: string; text?: string }[]) ?? [];
@@ -184,14 +186,16 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         // a page that is just a listing (an AutoCrud's page) IS the listing: edge to edge, scrolling
         // by itself — inside the padded body it was an inset panel and its list a virtualized list
         // nested in a ScrollView
-        <ComponentRenderer component={children[0]} state={state} data={data} />
+        <PageShowsToolbar.Provider value={toolbar.length > 0}>
+          <ComponentRenderer component={children[0]} state={state} data={data} />
+        </PageShowsToolbar.Provider>
       ) : (
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-          <InsideVerticalScroll.Provider value>
+          <InsideVerticalScroll.Provider value><PageShowsToolbar.Provider value={toolbar.length > 0}>
           {children.map((child, i) => (
             <ComponentRenderer key={i} component={child} state={state} data={data} />
           ))}
-          </InsideVerticalScroll.Provider>
+          </PageShowsToolbar.Provider></InsideVerticalScroll.Provider>
         </ScrollView>
       )}
 

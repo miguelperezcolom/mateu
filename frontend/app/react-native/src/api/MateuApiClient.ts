@@ -348,6 +348,7 @@ export class MateuApiClient {
     consumedRoute: string,
     serverSideType: string,
     appState: Record<string, unknown>,
+    componentState: Record<string, unknown> = {},
   ): Promise<unknown> {
     return this.runAction({
       route,
@@ -357,7 +358,7 @@ export class MateuApiClient {
       actionId: '',
       serverSideType: serverSideType || null,
       initiatorComponentId: 'ux_main',
-      componentState: {},
+      componentState,
       appState,
       parameters: {},
     });

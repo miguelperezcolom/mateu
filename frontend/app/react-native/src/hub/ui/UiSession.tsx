@@ -86,6 +86,8 @@ export function UiSession({
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
   const gainedSignIn = useRef(false);
+  // the way back of the screen on view, when the UI's shell keeps this bar (tabs, no menu)
+  const [screenBack, setScreenBack] = useState<(() => void) | null>(null);
   /** A UI ahead of this app (compat.ts `recommended`): it opens, with this note above it. */
   const [compatNotice, setCompatNotice] = useState<string | null>(null);
 
@@ -206,7 +208,7 @@ export function UiSession({
 
   const onSession = useCallback(
     (session: MateuSession) => {
-      session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed };
+      session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed, hostBack: (back) => setScreenBack(() => back) };
       onLive?.(entry.id, session);
       if (provider) {
         session.signOut = async () => {
@@ -295,7 +297,12 @@ export function UiSession({
       {/* the hub's bar — unless the UI's own top bar hosts its actions (an app shell with a menu) */}
       {!(barClaimed && phase.name === 'ready' && !!sessionId) && (
       <Appbar.Header statusBarHeight={0} style={{ backgroundColor: color ?? theme.surface }}>
-        <Appbar.BackAction onPress={onHome} accessibilityLabel="My UIs" color={ink} testID="hub-home" />
+        {/* with a record open, the bar's arrow goes back to the list it came from; else to My UIs */}
+        {screenBack ? (
+          <Appbar.BackAction onPress={screenBack} accessibilityLabel="Back" color={ink} />
+        ) : (
+          <Appbar.BackAction onPress={onHome} accessibilityLabel="My UIs" color={ink} testID="hub-home" />
+        )}
         <Appbar.Content
           title={name}
           titleStyle={[styles.barName, { color: ink }]}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
-import { segmentsFit } from './patternGaps';
+import { drawsNothing, segmentsFit } from './patternGaps';
 import { Text } from '../ui/Text';
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
@@ -55,6 +55,7 @@ export function SubSectionRenderer({ component, state }: { component: unknown; s
 
 export function CardRenderer({ component, state }: { component: unknown; state: Dict }) {
   const m = meta(component);
+  if (drawsNothing(component)) return null;
   const title = m['title'];
   return (
     <Card mode="outlined" style={styles.card}>

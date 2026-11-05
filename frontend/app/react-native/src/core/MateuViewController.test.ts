@@ -61,8 +61,8 @@ function harness(answers: Json[] = []) {
   (session as any).api = {
     baseUrl: 'http://srv',
     initialLoad: (route: string) => { calls.push({ kind: 'initialLoad', route }); return answer(); },
-    navigate: (route: string, consumedRoute: string, sst: string) => {
-      calls.push({ kind: 'navigate', route, consumedRoute, sst });
+    navigate: (route: string, consumedRoute: string, sst: string, _appState?: Json, componentState?: Json) => {
+      calls.push({ kind: 'navigate', route, consumedRoute, sst, componentState });
       return answer();
     },
     runAction: (rq: Json) => { calls.push({ kind: 'action', ...rq, componentState: { ...rq.componentState } }); return answer(); },
@@ -264,7 +264,7 @@ test('commands: window title is set and announced, navigation opens a view, even
   assert.deepEqual(titles, ['Orders']);
   assert.deepEqual(announced, ['Orders']);
   assert.equal(opened[0].route, '/orders/7/');
-  assert.equal(opened[0].label, 'orders/7');
+  assert.equal(opened[0].label, ''); // a route is no title: the screen shows its own
   assert.deepEqual(events, [{ id: 1, __source: 'orders-list' }, [1]]);
 });
 
@@ -634,4 +634,25 @@ test('a page with no app shell: the REST sources a response names resolve its re
   assert.equal((getRestSource('late')?.['source'] as Json)?.['url'], '/app');
   registerRestSources([]);
   clearReferencedRestSources();
+});
+
+test('an island behind a mediator carries what its host seeded: on its loads, its actions and its streamed ones', async () => {
+  const island = ssc(
+    { serverSideType: 'app.DocumentView', route: '/doc?_embeddedMediator=1', initialData: { stayId: 'st-1' }, actions: [{ id: 'scan', sse: true }] },
+    [{ type: 'ClientSide', metadata: { type: 'App', variant: 'MEDIATOR', homeRoute: '/doc', homeConsumedRoute: '/doc', serverSideType: 'app.DocumentView' } }],
+  );
+  const view = fragment(ssc({ serverSideType: 'app.DocumentView', actions: [{ id: 'scan' }, { id: 'reload' }] }, [{ type: 'ClientSide', metadata: { type: 'Form' } }]), { aviso: 'pending' });
+  const { c, calls, session } = harness([view, {}]);
+  const streamed: Json[] = [];
+  (session as any).api.runActionStream = async (rq: Json) => { streamed.push({ ...rq, componentState: { ...rq.componentState } }); };
+  c.mountServerSide(island);
+  await tick();
+  await tick();
+  const load = calls.find((x) => x.kind === 'navigate')!;
+  assert.deepEqual(load.componentState, { stayId: 'st-1' });
+  await c.runAction('reload');
+  assert.deepEqual(calls.find((x) => x.actionId === 'reload')!.componentState, { stayId: 'st-1', aviso: 'pending' });
+  await c.runAction('scan');
+  assert.equal(streamed.length, 1, 'the mediator declared the scan as a stream');
+  assert.equal(streamed[0]!.componentState.stayId, 'st-1');
 });

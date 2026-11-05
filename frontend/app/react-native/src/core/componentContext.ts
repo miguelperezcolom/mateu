@@ -152,6 +152,46 @@ export function appHomeOf(meta: Json): { route: string; consumedRoute: string; s
 }
 
 /** A listing search's default paging state, seeded where the state has none. */
+/**
+ * A route's query (`reservas?vista=LLEGADAS_HOY`) as values: what a shared link, or a menu entry
+ * pointing at one view of a listing, says about it. `page` is a number; anything that does not
+ * decode is left out.
+ */
+export function routeQueryOf(route: string | null | undefined): Json {
+  const at = (route ?? '').indexOf('?');
+  if (at < 0) return {};
+  const out: Json = {};
+  for (const pair of (route ?? '').slice(at + 1).split('&')) {
+    if (!pair) continue;
+    const eq = pair.indexOf('=');
+    try {
+      const key = decodeURIComponent((eq < 0 ? pair : pair.slice(0, eq)).replace(/\+/g, ' '));
+      const value = eq < 0 ? '' : decodeURIComponent(pair.slice(eq + 1).replace(/\+/g, ' '));
+      if (!key) continue;
+      if (key === 'page') {
+        const n = Number(value);
+        if (Number.isInteger(n) && n >= 0) out['page'] = n;
+      } else if (key === 'q') {
+        out['searchText'] = value;
+      } else {
+        out[key] = value;
+      }
+    } catch {
+      // a malformed escape: that pair says nothing
+    }
+  }
+  return out;
+}
+
+/**
+ * A listing's search state before it asks: the route's query first, under what the user already set
+ * (the web's precedence: client state > query > defaults), then the defaults.
+ */
+export function seedSearchFromRoute(s: Json, route: string | null | undefined): void {
+  for (const [k, v] of Object.entries(routeQueryOf(route))) if (s[k] === undefined) s[k] = v;
+  seedSearchDefaults(s);
+}
+
 export function seedSearchDefaults(s: Json): void {
   if (s['page'] === undefined) s['page'] = 0;
   if (s['size'] === undefined) s['size'] = 10;
