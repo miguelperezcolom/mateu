@@ -354,7 +354,7 @@ function BoardCardItem({ card, columnId, movable, acts, dragged, onOpen, onPick,
       }}>
         {acts ? (
           // a touchable swallows what is inside it for a screen reader, ⋯ included: Move is its action
-          <TouchableOpacity {...buttonA11y()} onPress={() => onOpen(card)}
+          <TouchableOpacity {...buttonA11y()} style={styles.cardPress} onPress={() => onOpen(card)}
             accessibilityActions={movable ? [{ name: 'activate' }, { name: 'move', label: 'Move' }] : undefined}
             onAccessibilityAction={(e) => { if (e.nativeEvent.actionName === 'move') onPick(); else onOpen(card); }}>
             {body}
@@ -376,6 +376,7 @@ const styles = themed(() => StyleSheet.create({
   list: { flex: 1 },
   listContent: { gap: 8, paddingBottom: 8, flexGrow: 1 },
   card: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderLeftWidth: 4, borderRadius: theme.radiusMd, padding: 12, gap: 4 },
+  cardPress: { borderRadius: theme.radiusMd },
   cardLifted: { opacity: 0.35 },
   cardTitle: { fontWeight: '600', color: theme.ink },
   cardTitleMovable: { paddingRight: 32 },
