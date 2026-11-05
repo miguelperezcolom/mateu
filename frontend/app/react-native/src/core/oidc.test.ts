@@ -64,7 +64,7 @@ mock.module('expo-web-browser', {
   namedExports: { maybeCompleteAuthSession: () => { idp.completedAuthSession++; } },
 });
 
-const { OidcTokenProvider, oidcRedirectUri } = await import('./oidc.ts');
+const { OidcTokenProvider, oidcRedirectUri, isRefusedRefresh } = await import('./oidc.ts');
 
 const config = { issuer: 'https://idp/realms/x', clientId: 'mateu-app', scopes: ['openid'], audience: 'api' };
 
@@ -224,3 +224,10 @@ test('sign-out also ends the identity provider\'s session, in the browser that h
   assert.equal(endSessionUrl(undefined, 'app', 'x', 'r'), undefined);
   assert.equal(endSessionUrl('https://idp/logout', 'app', undefined, 'r'), undefined);
 });
+
+test('only the identity provider\'s refusal ends a session', () => {
+  assert.equal(isRefusedRefresh({ code: 'invalid_grant' }), true);
+  assert.equal(isRefusedRefresh(new Error('Network request failed')), false);
+  assert.equal(isRefusedRefresh(undefined), false);
+});
+

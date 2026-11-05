@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { materialIconOf, wireIconNames } from './wireIcons.ts';
 
 test('a vaadin token maps to its Material icon', () => {
@@ -19,8 +20,18 @@ test('an explicit Material name passes through', () => {
   assert.equal(materialIconOf('mdi:rocket'), 'rocket');
 });
 
-test('every icon in the table exists in the font the app ships', () => {
-  const glyphs = JSON.parse(readFileSync(new URL('../../node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json', import.meta.url), 'utf8'));
+// the font's glyph map, wherever npm put it; the pure suite also runs where the app's packages are not installed
+const glyphMap = (() => {
+  try {
+    const at = createRequire(import.meta.url).resolve('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json');
+    return existsSync(at) ? at : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+
+test('every icon in the table exists in the font the app ships', { skip: glyphMap ? false : 'the app\'s packages are not installed here' }, () => {
+  const glyphs = JSON.parse(readFileSync(glyphMap!, 'utf8'));
   const missing = wireIconNames().filter((n) => !(n in glyphs));
   assert.deepEqual(missing, []);
 });
