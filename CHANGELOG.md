@@ -46,6 +46,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **A listing's page header sends each toolbar button once.** A button declared
+  `@ListToolbarButton` + `@Toolbar` (the documented way to give a bulk button its look) reached the
+  page toolbar through both annotations and was sent twice; the listing's copy, which carries the
+  selection guard, is the one kept.
 - **A server-paged REST listing no longer stops at its first page (phone app).** A source with a
   `totalPath` was fetched once and paged on the device: 77 astronauts showed as "20 total".
 - **Tree listings open on the phone app.** Rows lost their `children`, so only the roots showed.

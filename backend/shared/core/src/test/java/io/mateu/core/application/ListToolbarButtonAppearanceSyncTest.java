@@ -148,6 +148,14 @@ class ListToolbarButtonAppearanceSyncTest {
     public Message purgeAll() {
       return new Message("purged");
     }
+
+    /** Placed on the listing toolbar AND painted by @Toolbar: both lists reach this method. */
+    @ListToolbarButton(rowsSelectedRequired = false)
+    @Toolbar(buttonStyle = ButtonStyle.primary)
+    @Label("New job")
+    public Message newJob() {
+      return new Message("created");
+    }
   }
 
   static TestMateu mateu;
@@ -336,6 +344,43 @@ class ListToolbarButtonAppearanceSyncTest {
     // @Action defaults rowsSelectedRequired to false; @ListToolbarButton's true wins (OR)
     assertThat(archive.get("rowsSelectedRequired").asBoolean()).isTrue();
     assertThat(purge.get("rowsSelectedRequired").asBoolean()).isFalse();
+  }
+
+  /**
+   * A button declared {@code @ListToolbarButton} + {@code @Toolbar} used to be sent twice in the
+   * page header (once per annotation), and a phone app drawing the page toolbar showed each one
+   * repeated.
+   */
+  @Test
+  void aBulkButtonPaintedByToolbarIsSentOnceInThePageHeader() {
+    var json =
+        new com.fasterxml.jackson.databind.ObjectMapper()
+            .valueToTree(
+                mateu.run(
+                    RunActionRqDto.builder()
+                        .route("/plain-jobs")
+                        .consumedRoute("/plain-jobs")
+                        .serverSideType(PlainJobsListing.class.getName())
+                        .actionId("")
+                        .initiatorComponentId("c1_app")
+                        .componentState(Map.of())
+                        .build()));
+    var page =
+        json.findParents("pageType").stream()
+            .filter(node -> node.has("toolbar") && node.get("toolbar").isArray())
+            .findFirst()
+            .orElseThrow();
+    var ids = new ArrayList<String>();
+    page.get("toolbar").forEach(button -> ids.add(button.path("actionId").asText()));
+    assertThat(ids).containsOnlyOnce("newJob", "archive", "purgeAll");
+    var newJob =
+        java.util.stream.StreamSupport.stream(page.get("toolbar").spliterator(), false)
+            .filter(button -> "newJob".equals(button.path("actionId").asText()))
+            .findFirst()
+            .orElseThrow();
+    // the listing's copy is kept: it carries the @Toolbar look and the selection guard
+    assertThat(newJob.path("buttonStyle").asText()).isEqualTo("primary");
+    assertThat(newJob.path("rowsSelectedRequired").asBoolean()).isFalse();
   }
 
   // ── regression: the three buttons already in production ─────────────────────

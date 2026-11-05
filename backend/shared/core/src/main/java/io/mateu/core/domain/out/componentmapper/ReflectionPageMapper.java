@@ -70,11 +70,7 @@ public class ReflectionPageMapper {
         .toolbar(
             instance instanceof io.mateu.uidl.interfaces.Listing<?>
                     || instance instanceof io.mateu.uidl.interfaces.ReactiveListing<?>
-                ? java.util.stream.Stream.concat(
-                        getToolbar(instance, httpRequest).stream(),
-                        PageListingBuilder.getToolbarButtons(instance, httpRequest).stream())
-                    .map(trigger -> (io.mateu.uidl.fluent.UserTrigger) trigger)
-                    .toList()
+                ? listingPageToolbar(instance, httpRequest)
                 : io.mateu.core.domain.CrudNavigation.withToolbar(
                     instance, httpRequest, getToolbar(instance, httpRequest)))
         .buttons(
@@ -88,6 +84,30 @@ public class ReflectionPageMapper {
         .content(content)
         .footer(getFooter(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .build();
+  }
+
+  /**
+   * A routed listing's page toolbar: its {@code @Toolbar} buttons, then its listing buttons. A bulk
+   * button is declared {@code @ListToolbarButton} + {@code @Toolbar} (the second only for its
+   * look), so the same method reached both lists and every such button was sent twice; the
+   * listing's copy wins, because it carries the selection guard.
+   */
+  private static java.util.List<io.mateu.uidl.fluent.UserTrigger> listingPageToolbar(
+      Object instance, HttpRequest httpRequest) {
+    var listingButtons = PageListingBuilder.getToolbarButtons(instance, httpRequest);
+    var listingIds =
+        listingButtons.stream()
+            .map(io.mateu.uidl.data.Button::resolvedActionId)
+            .collect(java.util.stream.Collectors.toSet());
+    return java.util.stream.Stream.concat(
+            getToolbar(instance, httpRequest).stream()
+                .filter(
+                    trigger ->
+                        !(trigger instanceof io.mateu.uidl.data.Button button)
+                            || !listingIds.contains(button.resolvedActionId())),
+            listingButtons.stream())
+        .map(trigger -> (io.mateu.uidl.fluent.UserTrigger) trigger)
+        .toList();
   }
 
   /** The {@code @Toolbar} buttons a view model declares (its fields and methods). */
