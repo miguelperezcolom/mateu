@@ -43,6 +43,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Text follows the Material type scale.
 - **The Android build drops permissions it never used:** `SYSTEM_ALERT_WINDOW`, external storage and
   biometrics.
+- **The Android release build is shrunk and obfuscated by R8,** with its resources shrunk too, and it
+  no longer locks the screen to portrait: tablets and foldables rotate (Google Play asks for both).
+- **A phone app built outside EAS asks for the `production` over-the-air updates** (the Play bundle
+  built locally, the GitHub APK). It carried no update channel, so the updates each release publishes
+  never reached it.
 
 ### Fixed
 

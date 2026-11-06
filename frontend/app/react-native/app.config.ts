@@ -31,9 +31,23 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ['distribution', process.env.MATEU_DISTRIBUTION?.trim()],
     ].filter(([, v]) => !!v),
   );
-  const base: ExpoConfig = Object.keys(stamped).length
+  const extended: ExpoConfig = Object.keys(stamped).length
     ? { ...versioned, extra: { ...(versioned.extra ?? {}), ...stamped } }
     : versioned;
+  // Which over-the-air updates the build asks for. EAS Build stamps the channel of its profile
+  // (eas.json) itself; a build made outside EAS — the Play bundle built locally, the GitHub APK —
+  // carries none and would never receive the `production` updates the release workflow publishes
+  // (mobile.yml, job `ota`). Only a hub build asks: a fixed app is somebody else's, with its own updates.
+  const base: ExpoConfig = !process.env.EAS_BUILD && extended.updates?.url && process.env.MATEU_VARIANT !== 'fixed'
+    && process.env.APP_VARIANT !== 'development'
+    ? {
+        ...extended,
+        updates: {
+          ...extended.updates,
+          requestHeaders: { 'expo-channel-name': 'production', ...(extended.updates.requestHeaders ?? {}) },
+        },
+      }
+    : extended;
   if (process.env.APP_VARIANT !== 'development') return base;
 
   const plugins = (base.plugins ?? []).map((p) =>

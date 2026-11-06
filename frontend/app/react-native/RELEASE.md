@@ -49,6 +49,10 @@ appVersion`). A **native** change — a new native module, a permission, an Expo
 under `ios/`/`android/` or in `app.json` plugins — needs a store build (§1) with a bumped
 `expo.version`; publishing it over the air would crash the old binaries, so do not.
 
+A build made OUTSIDE EAS (the local Play bundle, the GitHub APK) gets the `production` channel from
+`app.config.ts` (`updates.requestHeaders`); EAS builds take their profile's channel from `eas.json`.
+Without a channel an install never receives an update.
+
 When a build is made by hand (`eas build`), pass `MATEU_VERSION=<release>` (e.g. `3.0-beta.33`) in
 its environment so the hub knows which release the binary carries; without it the app compares only
 wire versions.
@@ -64,6 +68,10 @@ npx eas-cli build --platform android --profile production  # → .aab for Play
 ```
 
 - `production` auto-increments the build number (`appVersionSource: remote`).
+- Android release builds run R8 (`expo-build-properties` › `enableMinifyInReleaseBuilds`): upload the
+  build's `android/app/build/outputs/mapping/release/mapping.txt` with the bundle (Play Console › the
+  version in the App bundle explorer › Downloads › ReTrace mapping file), or Play's crash reports
+  show obfuscated stacks.
 - The **marketing version** is `expo.version` in `app.json`; it is also what a UI's manifest
   `minAppVersion` is compared against ("Update the app" screen). Bump it for a store release.
 - `runtimeVersion.policy = appVersion`: OTA updates (`eas update --channel production`) only reach
