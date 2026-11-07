@@ -35,6 +35,22 @@ export function splitCreateAction<T extends { actionId?: string | null; id?: str
 }
 
 /**
+ * The ONE pane of a Collection Detail page (`template: CollectionDetailPage`, laid out by the server as
+ * a `collection-detail` row of `collection-detail-list` + `-detail` | `-no-selection`) that a phone
+ * shows: the list while nothing is selected, the detail once something is. Stacked, picking a row
+ * repainted the list on top with the detail below it, so the record seemed not to open. Side by side
+ * from a tablet up (null = lay the row out as usual).
+ */
+export function collectionDetailPane(row: unknown, windowWidth: number): number | null {
+  const n = (row ?? {}) as Json;
+  if (n['id'] !== 'collection-detail' || !isPhoneWidth(windowWidth)) return null;
+  const ids = ((n['children'] as unknown[] | undefined) ?? []).map((c) => ((c ?? {}) as Json)['id']);
+  const detail = ids.indexOf('collection-detail-detail');
+  const pane = detail >= 0 ? detail : ids.indexOf('collection-detail-list');
+  return pane >= 0 ? pane : null;
+}
+
+/**
  * The step rail of a `@WizardProgress(RAIL)` wizard: the row child holding a VERTICAL
  * ProgressSteps (the server composes `[form, rail]` in a HorizontalLayout). -1 when the row is not
  * a wizard rail row.

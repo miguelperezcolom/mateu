@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, splitCreateAction, wizardRailIndex } from './phoneLayout.ts';
+import { collectionDetailPane, compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, splitCreateAction, wizardRailIndex } from './phoneLayout.ts';
 
 test('a form row is ONE column on a phone, the declared columns from a tablet up', () => {
   // iPhone 15 (393pt), a small Android (360dp), a phone in landscape still < 600
@@ -84,4 +84,17 @@ test('a row item that declares where it wraps stacks on a phone: zone columns, t
   assert.equal(declaresWrapPoint('flex: 1 1 24rem; min-width: min(24rem, 100%)'), true);
   assert.equal(declaresWrapPoint('flex: 1'), false);
   assert.equal(declaresWrapPoint(undefined), false);
+});
+
+test('a Collection Detail page shows ONE pane on a phone: the list, or the selected record', () => {
+  const row = (...ids: string[]) => ({ id: 'collection-detail', children: ids.map((id) => ({ id })) });
+  // nothing selected: the list, never the "Pick a body" placeholder
+  assert.equal(collectionDetailPane(row('collection-detail-list', 'collection-detail-no-selection'), 393), 0);
+  // a record selected: its detail alone, not the list again above it
+  assert.equal(collectionDetailPane(row('collection-detail-list', 'collection-detail-detail'), 393), 1);
+  // a tablet keeps both side by side
+  assert.equal(collectionDetailPane(row('collection-detail-list', 'collection-detail-detail'), 820), null);
+  // any other row is laid out as usual
+  assert.equal(collectionDetailPane({ id: 'item-overview', children: [{ id: 'a' }] }, 393), null);
+  assert.equal(collectionDetailPane(null, 393), null);
 });

@@ -47,6 +47,18 @@ export interface OverlayOpenerContext {
  * event bus (@SubscribeTo / UICommand.dispatchEvent / closeModal(eventName)) and the host hooks
  * the React shell wires (toasts, navigation pushes, overlays, window title).
  */
+/**
+ * The way back of a screen with others pushed over its section's first one: `back` steps one screen
+ * back (the arrow), `toStart` returns to the section's first screen at once (a long press on it).
+ */
+/** What a screen reader says about that arrow. */
+export const BACK_HINT = 'Long press to go back to the start of this section';
+
+export interface ScreenBack {
+  back: () => void;
+  toStart: () => void;
+}
+
 export class MateuSession {
   readonly api: MateuApiClient;
   readonly appState: Record<string, unknown>;
@@ -135,7 +147,7 @@ export class MateuSession {
     uiName: string;
     claimBar?: (claimed: boolean) => void;
     /** A shell that keeps the hub's bar (tabs, no menu) hands it the way back of the screen on view. */
-    hostBack?: (back: (() => void) | null) => void;
+    hostBack?: (back: ScreenBack | null) => void;
   };
 
   // ── the assistant chat (App.sseUrl / the Chat component): what the shell lets it do ──

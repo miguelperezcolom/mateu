@@ -19,6 +19,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Changed
 
+- **A Collection Detail page shows one pane on a phone.** The list while nothing is selected, the
+  selected record alone once a row is tapped (stacked, the list came back above the record). Tablets
+  keep both side by side.
+- **A long press on the phone app's back arrow goes back to the start of the section**, and picking a
+  menu entry always opens it at its first screen — the one on view too. The menu also opens with a
+  swipe from the left edge while the bar shows the back arrow.
 - **The phone app follows Material 3 more closely.** Controls ripple on Android, the drawer has
   Material icons (`vaadin:*` tokens are mapped) and section headers, confirmations are Material
   dialogs, bottom tabs are Material's navigation bar, tab strips scroll when their labels would be

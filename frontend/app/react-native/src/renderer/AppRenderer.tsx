@@ -10,7 +10,7 @@ import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
-import { NavTarget, declareMenuRemotes, navigationSession } from '../core/MateuSession';
+import { BACK_HINT, NavTarget, ScreenBack, declareMenuRemotes, navigationSession } from '../core/MateuSession';
 import { firstComponentFragment, previewOverlayOf, type ChatScreenSnapshot } from '../core/chatStream';
 import type { MateuViewController } from '../core/MateuViewController';
 import { ChatPanel } from './ChatPanel';
@@ -125,7 +125,7 @@ const screenOf = (c: MateuViewController): ChatScreenSnapshot => ({
   component: c.rendered.component,
 });
 
-function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl, bottomInset = 0, onPopToRoot, hostBack }: { route: string; consumedRoute: string; serverSideType: string; baseUrl?: string; bottomInset?: number; onPopToRoot?: (popToRoot: () => void) => void; hostBack?: (back: (() => void) | null) => void }) {
+function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl, bottomInset = 0, onPopToRoot, hostBack }: { route: string; consumedRoute: string; serverSideType: string; baseUrl?: string; bottomInset?: number; onPopToRoot?: (popToRoot: () => void) => void; hostBack?: (back: ScreenBack | null) => void }) {
   const { session: appSession } = useAppContext();
   // a navigation naming another backend (a federated entry, the assistant's navigation-requested)
   // runs against it — with the user's credentials only when the app's own backend named it (its
@@ -158,6 +158,12 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
     if (c && c.trackDirty && c.dirty && !(await session.confirmDiscard())) return;
     setStack((s) => s.slice(0, -1));
   }, [session]);
+  // …or straight back to the section's first screen (a long press on the arrow), through the same guard
+  const popToStart = useCallback(async () => {
+    const c = topController.current;
+    if (c && c.trackDirty && c.dirty && !(await session.confirmDiscard())) return;
+    setStack([]);
+  }, [session]);
 
   // Re-pressing the ACTIVE tab goes back to the tab's own screen (the iOS / Material convention):
   // without it a detail or a NavigateTo pushed over a tab (the starter's "Browse products" CTA)
@@ -189,15 +195,15 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
   const focused = useIsFocused();
   React.useEffect(() => {
     if (!hostBack || !focused) return;
-    hostBack(stack.length > 0 ? () => void pop() : null);
-  }, [hostBack, stack.length, pop, focused]);
+    hostBack(stack.length > 0 ? { back: () => void pop(), toStart: () => void popToStart() } : null);
+  }, [hostBack, stack.length, pop, popToStart, focused]);
   React.useEffect(() => () => hostBack?.(null), [hostBack]);
 
   return (
     <View style={[styles.stackHost, { paddingBottom: bottomInset }]}>
       {stack.length > 0 && !hostBack && (
         <View style={styles.backBar}>
-          <IconButton icon="arrow-left" accessibilityLabel="Back" onPress={() => void pop()} iconColor={theme.ink} />
+          <IconButton icon="arrow-left" accessibilityLabel="Back" accessibilityHint={BACK_HINT} onPress={() => void pop()} onLongPress={() => void popToStart()} iconColor={theme.ink} />
           {!!top.label && <PaperText variant="titleMedium" numberOfLines={1} style={styles.backTitle}>{top.label}</PaperText>}
         </View>
       )}
@@ -836,6 +842,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // bumped when an @AppContext selector changes so the current screen remounts (and thus reloads
   // with the new appState)
   const [contextVersion, setContextVersion] = useState(0);
+  const [menuVisit, setMenuVisit] = useState(0);
   // themeToggle = true on @App: a light/dark switch for the whole renderer (src/ui/MateuTheme.tsx);
   // the app's accent colour (@App(accentColor)) becomes the Material primary
   const { dark, setSchemeOverride, setAccent } = useThemeControl();
@@ -1039,6 +1046,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       consumedRoute: item.consumedRoute ?? '',
       serverSideType: item.serverSideType ?? '',
     });
+    // a menu entry always opens at its first screen — the one on view too, with records pushed over it
+    setMenuVisit((v) => v + 1);
   };
 
   // The app FABs live INSIDE the screen (so the drawer and the tab bar cover them, instead of a FAB
@@ -1047,8 +1056,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   const drawerShell = variant !== 'TABS' && menuItems.length > 0;
   // the drawer shell's top bar is THE bar: it hosts the way back from a pushed screen and, inside
   // the Mateu hub, the hub's "switch UI" — so the hub hides its own (session.hub.claimBar)
-  const [headerBack, setHeaderBack] = useState<(() => void) | null>(null);
-  const hostBack = React.useCallback((back: (() => void) | null) => setHeaderBack(() => back), []);
+  const [headerBack, setHeaderBack] = useState<ScreenBack | null>(null);
+  const hostBack = React.useCallback((back: ScreenBack | null) => setHeaderBack(back), []);
   React.useEffect(() => {
     if (!drawerShell) return;
     session.hub?.claimBar?.(true);
@@ -1065,7 +1074,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   const mainScreen = withOverlays(
     <ContentScreen
-      key={`${currentNav.route}-${currentNav.consumedRoute}-${currentNav.baseUrl ?? ""}-${contextVersion}`}
+      key={`${currentNav.route}-${currentNav.consumedRoute}-${currentNav.baseUrl ?? ""}-${contextVersion}-${menuVisit}`}
       route={currentNav.route}
       consumedRoute={currentNav.consumedRoute}
       serverSideType={currentNav.serverSideType}
@@ -1158,7 +1167,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
             header: ({ navigation }) => (
               <Appbar.Header statusBarHeight={0} style={styles.appBar}>
                 {headerBack ? (
-                  <Appbar.BackAction accessibilityLabel="Back" onPress={headerBack} />
+                  <Appbar.BackAction accessibilityLabel="Back" accessibilityHint={BACK_HINT} onPress={headerBack.back} onLongPress={headerBack.toStart} />
                 ) : (
                   <Appbar.Action icon="menu" accessibilityLabel="Open menu" onPress={() => (navigation as { toggleDrawer: () => void }).toggleDrawer()} />
                 )}
@@ -1176,6 +1185,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
               </Appbar.Header>
             ),
             drawerStyle: { backgroundColor: theme.surface },
+            // the menu is a swipe from the left edge away even while the bar shows the back arrow
+            swipeEnabled: true,
           }}
         >
           <Drawer.Screen name="Main" children={() => mainScreen} />
