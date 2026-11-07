@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { ProgressBar, Text as PaperText } from 'react-native-paper';
 import { rowJustification } from '../core/uxRules';
-import { compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, wizardRailIndex } from '../core/phoneLayout';
+import { collectionDetailPane, compactRail, declaresWrapPoint, formRowColumns, isPhoneWidth, wizardRailIndex } from '../core/phoneLayout';
 import { theme, themed } from '../theme';
 
 interface Props {
@@ -30,6 +30,12 @@ export function LayoutRenderer({ component, state, onStateChange, renderComponen
         ))}
       </View>
     );
+  }
+
+  // A Collection Detail page shows ONE pane on a phone: the list, or the selected record's detail.
+  const pane = direction === 'row' ? collectionDetailPane(component, width) : null;
+  if (pane !== null) {
+    return <View style={styles.column}>{renderComponent(children[pane], state, onStateChange)}</View>;
   }
 
   // A @WizardProgress(RAIL) wizard composes [form, rail]: on a phone the rail stacks ABOVE the form,

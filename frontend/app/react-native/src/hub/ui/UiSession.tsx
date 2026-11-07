@@ -5,7 +5,7 @@ import { Text } from '../../ui/Text';
 import { headingA11y } from '../../a11y/a11y';
 import { MateuAppProvider } from '../../context/AppContext';
 import { OidcTokenProvider } from '../../core/oidc';
-import type { MateuSession } from '../../core/MateuSession';
+import { BACK_HINT, type MateuSession, type ScreenBack } from '../../core/MateuSession';
 import { SessionContent } from '../../shell/SessionContent';
 import { type StaticBundle } from '../../core/staticBundle';
 import { ScreenSnapshots } from '../../core/screenSnapshots';
@@ -87,7 +87,7 @@ export function UiSession({
   const [attempt, setAttempt] = useState(0);
   const gainedSignIn = useRef(false);
   // the way back of the screen on view, when the UI's shell keeps this bar (tabs, no menu)
-  const [screenBack, setScreenBack] = useState<(() => void) | null>(null);
+  const [screenBack, setScreenBack] = useState<ScreenBack | null>(null);
   /** A UI ahead of this app (compat.ts `recommended`): it opens, with this note above it. */
   const [compatNotice, setCompatNotice] = useState<string | null>(null);
 
@@ -208,7 +208,7 @@ export function UiSession({
 
   const onSession = useCallback(
     (session: MateuSession) => {
-      session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed, hostBack: (back) => setScreenBack(() => back) };
+      session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed, hostBack: (back) => setScreenBack(back) };
       onLive?.(entry.id, session);
       if (provider) {
         session.signOut = async () => {
@@ -299,7 +299,7 @@ export function UiSession({
       <Appbar.Header statusBarHeight={0} style={{ backgroundColor: color ?? theme.surface }}>
         {/* with a record open, the bar's arrow goes back to the list it came from; else to My UIs */}
         {screenBack ? (
-          <Appbar.BackAction onPress={screenBack} accessibilityLabel="Back" color={ink} />
+          <Appbar.BackAction onPress={screenBack.back} onLongPress={screenBack.toStart} accessibilityLabel="Back" accessibilityHint={BACK_HINT} color={ink} />
         ) : (
           <Appbar.BackAction onPress={onHome} accessibilityLabel="My UIs" color={ink} testID="hub-home" />
         )}
