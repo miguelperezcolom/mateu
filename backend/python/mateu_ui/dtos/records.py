@@ -276,6 +276,11 @@ class RestAction(Wire):
     source: "RestDataSource"
     success_message: str | None = None
     result_path: str | None = None
+    #: Where the client navigates after a successful call — a TEMPLATE (``people/${state.id}``)
+    #: resolved after the response merges into the state (mirrors RestActionDto.successRoute).
+    success_route: str | None = None
+    #: The call runs once per selected listing row (mirrors RestActionDto.forEachSelectedRow).
+    for_each_selected_row: bool = False
 
 
 class Trigger(Wire):

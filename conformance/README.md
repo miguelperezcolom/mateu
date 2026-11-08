@@ -31,6 +31,11 @@ cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view
 `dialog-placement` (a placed dialog), `crud-hidden-in-edit`/`-new`, `crud-hidden-constraints-edit`/`-new`, `editable-view`/`-edit` and
 `view-toolbar-button`.
 
+A case with a `specs/ui/` directory is a **YAML case**: no fixture type at all. Each runner serves
+that directory as its specs (Java through a classloader overlay on a Mateu booted for the case
+alone, the ports by pointing their specs directory at it) and loads the `request.json` route. The
+first one, `definition-actions`, pins a definition-only page that declares `actions:`.
+
 ## The contract
 
 Each case names a **fixture** that every server implements with the same semantics — same route,

@@ -309,7 +309,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                     // component state) are the page's state: a seeded bare page is wrapped so it
                     // carries them, as Java's SeededYamlPage does (they were dropped: ${state.x} blank)
                     ? FragmentResponse(DefinitionWindowTitle(bare, rq.ComponentState, rq.Route), WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
-                        routeEntry is not null ? rq.ComponentState : null, yamlSpec.TemplatePageType), rq)
+                        routeEntry is not null ? rq.ComponentState : null, yamlSpec.TemplatePageType, yamlSpec, bare), rq)
                     : Error($"Route not found: {rq.Route}");
             type = registry.TypeByName(yamlSpec.ModelView);
         }
@@ -654,21 +654,49 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     private string? DeclaredPageTypeFor(string? route, Type type) =>
         PersonalSpec(route) is { } spec && spec.ModelView == type.FullName ? spec.PageType : null;
 
-    /// <summary>A definition-only page that declares a <c>pageType:</c>: the bare layout carries no
-    /// page type, so it is wrapped in a server-side page that does (mirrors Java's
-    /// ActionInstanceCreator.seedBareLayout → SeededYamlPage). Undeclared → unchanged.</summary>
+    /// <summary>A definition-only page that declares a <c>pageType:</c>, that its route SEEDS, that
+    /// declares <c>actions:</c> or whose layout names catalogue actions: the bare layout carries none
+    /// of that, so it is wrapped in a server-side page that does (mirrors Java's
+    /// ActionInstanceCreator.seedBareLayout → SeededYamlPage). Neither → unchanged.
+    /// <para>The wrapper advertises the DECLARED actions only — never the <c>*</c> wildcard a class
+    /// view advertises, which would claim every id for a server with no behaviour behind it — plus the
+    /// catalogue entries the layout names (OWNER FIRST) and <c>__restfetch__</c> when a declared call
+    /// is proxied; and, like Java's, the client validations of its required fields and the Form's
+    /// <c>confirmOnNavigationIfDirty</c>.</para></summary>
     private static ComponentDto WithDeclaredPageType(
         ComponentDto layout, string? pageType, RunActionRqDto rq, IReadOnlyDictionary<string, object?>? state = null,
-        string? templatePageType = null)
+        string? templatePageType = null, YamlSpecLoader.Spec? spec = null, IComponent? bare = null)
     {
-        if (pageType is null && (state is null || state.Count == 0)) return layout;
-        // wrapped for its seeds: a page that fills a template is the template's kind of page
-        pageType ??= templatePageType;
+        var actions = (spec?.Actions ?? []).Select(a => a.Dto).ToList();
+        if (bare is not null)
+        {
+            // the catalogue entries the layout (or the page's own flows) names but does not declare
+            var named = ActionGuard.TreeActionIds(bare)
+                .Concat(actions.SelectMany(a => a.Commands ?? [])
+                    .Where(c => c.Type == "RunAction" && c.Data is IDictionary<string, object> d && d.ContainsKey("actionId"))
+                    .Select(c => ((IDictionary<string, object>)c.Data!)["actionId"].ToString()!));
+            actions.AddRange(ActionRegistry.ReferencedBy(MateuCatalogs.Actions, named,
+                    actions.Select(a => a.Id).Concat(MateuCatalogs.RefusedActions).Concat(spec?.RefusedActions ?? new HashSet<string>()))
+                .Select(ActionRegistry.ToDto));
+        }
+        var proxied = spec is not null && YamlDeclaredActions.ProxiesAny(spec.Actions);
+        if (pageType is null && (state is null || state.Count == 0) && actions.Count == 0) return layout;
+        if (proxied) actions.Add(new ActionDto("__restfetch__", ValidationRequired: false));
+        // wrapped for its seeds: a page that fills a template is the template's kind of page, a
+        // listing is a collection, anything else a form (Java's PageTypeResolver default)
+        pageType ??= templatePageType ?? (bare is ListingComponent ? "collection" : "form");
         var route = (rq.Route ?? "").Split('?')[0].Trim('/');
         return new ServerSideComponentDto(
             "page_" + System.Text.RegularExpressions.Regex.Replace(route == "" ? "root" : route, "[^A-Za-z0-9_-]", "_"),
-            "", "/" + route, [layout], new Dictionary<string, object?>(state ?? new Dictionary<string, object?>()), [], [], null, null, null)
-        { PageType = pageType };
+            "", string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!, [layout],
+            new Dictionary<string, object?>(state ?? new Dictionary<string, object?>()), actions, [],
+            // ComponentTreeSupplier.style()'s default: the page's reading measure
+            "max-width:900px;margin: auto;", null, null)
+        {
+            PageType = pageType,
+            Validations = YamlDeclaredActions.Validations(bare),
+            ConfirmOnNavigationIfDirty = spec?.ConfirmOnNavigationIfDirty ?? false,
+        };
     }
 
     /// <summary>The <c>layoutDelta:</c> of the route's definition when it is bound to

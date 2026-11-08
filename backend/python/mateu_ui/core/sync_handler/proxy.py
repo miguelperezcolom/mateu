@@ -195,7 +195,6 @@ class ProxyHandlerMixin(MixinBase):
     def _definition_action_source(self, rq: RunActionRq):
         """The resolved source of the definition-only page's declared action ``_sourceId``, or None
         when the route has no such page/action (or the caller is refused it)."""
-        from ..rest_source_registry import source_dto
         from ..translations import locale_of
 
         spec = self.yaml_specs.load_spec_for(rq.route, self.mapper.authorized, locale_of(self.mapper))
@@ -205,9 +204,9 @@ class ProxyHandlerMixin(MixinBase):
         if source_id in spec.refused_actions:
             return None
         action = next((a for a in spec.actions if a.id == source_id), None)
-        if action is None or action.rest_action is None:
+        if action is None or action.source is None:
             return None
-        declared = source_dto(action.rest_action.source)
+        declared = action.source
         return self.rest_sources.resolve(declared) if self.rest_sources is not None else declared
 
     def _for_each_selected_row(self, source, state: dict) -> UIIncrement:

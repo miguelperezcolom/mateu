@@ -311,7 +311,17 @@ public record ConfirmationTextsDto(string? Title, string? Message, string? Confi
 /// (mirrors io.mateu.dtos.RestActionDto): the renderer fetches <c>Source</c> directly, shows
 /// <c>SuccessMessage</c> as a toast on a 2xx response and — when <c>ResultPath</c> is set — merges
 /// the object at that path in the JSON response into the form state.</summary>
-public record RestActionDto(RestDataSourceDto Source, string? SuccessMessage, string? ResultPath);
+public record RestActionDto(RestDataSourceDto Source, string? SuccessMessage, string? ResultPath)
+{
+    /// <summary>Where the client navigates after a successful call — a TEMPLATE (<c>people/${state.id}</c>)
+    /// resolved after the response merges into the state (mirrors io.mateu.dtos.RestActionDto.successRoute).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SuccessRoute { get; init; }
+
+    /// <summary>The call runs once per selected listing row (mirrors RestActionDto.forEachSelectedRow).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool ForEachSelectedRow { get; init; }
+}
 
 /// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received (mirrors
 /// io.mateu.dtos.OnCustomEventTriggerDto). The event travels as <c>eventName</c>, the member every

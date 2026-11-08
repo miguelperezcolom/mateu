@@ -1,0 +1,35 @@
+# A definition-only page that WRITES: no view model anywhere, the buttons name actions the
+# definition itself declares, and each action is something the client runs.
+type: Form
+title: New person
+confirmOnNavigationIfDirty: true
+content:
+  - {type: FormField, id: name, label: Name, dataType: string}
+  - {type: FormField, id: title, label: Title, dataType: string, required: true}
+  - {type: Button, label: Save, actionId: save}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source:
+        url: https://api.example/people
+        method: POST
+        body: '{"name":"${state.name}"}'
+      successMessage: Saved
+      successRoute: people/${state.id}
+  - id: remove
+    restAction:
+      source:
+        url: https://api.example/people/${state.id}
+        method: DELETE
+        proxy: true
+        headers:
+          X-Api-Key: ${secret.WRITE_KEY}
+      successMessage: Deleted
+  - id: back
+    steps:
+      - {type: Navigate, route: people}
+  - id: purge
+    access: {roles: [admin]}
+    restAction:
+      source: {url: "https://api.example/purge", method: DELETE, proxy: true}

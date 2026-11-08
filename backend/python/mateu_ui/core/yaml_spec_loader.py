@@ -49,9 +49,11 @@ class Spec:
     locked_fields: frozenset = field(default_factory=frozenset)
     #: The ``pageType:`` the definition declares (wire name), or None — inferred.
     page_type: str | None = None
-    #: The definition's own ``actions:`` (beside ``layout:``): client-runnable actions — a
-    #: ``restAction`` or ``steps`` — a definition-only page answers with (Java's SeededYamlPage).
+    #: The definition's own ``actions:`` (beside ``layout:``) as :class:`DeclaredAction`\ s — what
+    #: a definition-only page advertises (Java's SeededYamlPage.actions).
     actions: tuple = ()
+    #: A ``type: Form`` definition declaring ``confirmOnNavigationIfDirty: true``.
+    confirm_on_navigation_if_dirty: bool = False
 
     def depends_on_request(self) -> bool:
         return self.source is not None
@@ -188,7 +190,16 @@ class YamlSpecLoader:
                 f"the definition for route '{route}' could not be personalised for the caller"
             ) from e
         return Spec(
-            spec.model_view, layout, delta, None, refused, locked, spec.page_type, spec.actions
+            spec.model_view,
+            layout,
+            delta,
+            None,
+            refused,
+            locked,
+            spec.page_type,
+            # re-read from the caller's copy: a refused action is gone, its texts translated
+            tuple(a for a in declared_actions_of(tree) if a.id not in refused),
+            spec.confirm_on_navigation_if_dirty,
         )
 
     def load_spec(self, route: str | None) -> Spec | None:
@@ -248,19 +259,32 @@ class YamlSpecLoader:
         return Spec(
             model_view, layout, delta, source, page_type=page_type_of(data),
             actions=declared_actions_of(data),
+            confirm_on_navigation_if_dirty=confirms_on_navigation_if_dirty(data),
         )
 
 
 _PAGE_TYPES = ("landing", "collection", "detail", "form", "process", "dashboard")
 
 
+@dataclass(frozen=True)
+class DeclaredAction:
+    """One action a definition declares: what travels (``dto``), plus the request the server keeps
+    for the proxy leg (``source``, whose headers and body never travel when proxied)."""
+
+    dto: Any
+    source: Any = None
+
+    @property
+    def id(self) -> str:
+        return self.dto.id
+
+
 def declared_actions_of(data: Any) -> tuple:
     """The ``actions:`` a definition declares beside its ``layout:`` (Java's
-    ``YamlUidlLoader.actionsOf``) as catalogue actions — the same shape ``actions.yaml`` has: an
-    ``id`` and a ``restAction`` and/or ``steps``. Anything else is dropped with a warning."""
-    from .action_registry import _rest_action, _step, client_runnable_only
-    from mateu_ui.uidl.action_catalog import CatalogAction
-
+    ``YamlUidlLoader.actionsOf``), read into the wire action AS WRITTEN — Java deserialises the
+    whole fluent ``Action`` record: its knobs (``validationRequired``, ``confirmationRequired``,
+    ``shortcut`` …), its ``steps`` lowered to commands and its ``restAction`` with ``successRoute``.
+    An entry with no id is dropped (nothing could name it); a malformed one with a warning."""
     nodes = data.get("actions") if isinstance(data, dict) else None
     if not isinstance(nodes, list):
         return ()
@@ -268,15 +292,153 @@ def declared_actions_of(data: Any) -> tuple:
     for node in nodes:
         if not isinstance(node, dict) or not str(node.get("id") or "").strip():
             continue
-        parsed.append(
-            CatalogAction(
-                id=str(node["id"]).strip(),
-                description=str(node.get("description") or ""),
-                steps=tuple(s for s in (_step(n) for n in node.get("steps") or []) if s is not None),
-                rest_action=_rest_action(node.get("restAction")),
+        try:
+            parsed.append(_declared_action(str(node["id"]).strip(), node))
+        except Exception as e:  # noqa: BLE001 - one malformed action must not cost the page
+            _log.warning("Ignoring an unparseable action in a YAML spec: %s", e)
+    return tuple(parsed)
+
+
+def _declared_action(action_id: str, node: dict) -> DeclaredAction:
+    from mateu_ui.dtos import Action, ConfirmationTextsRecord, CustomEventRecord, RestAction
+
+    from .action_registry import _step, lower
+
+    def flag(n: dict, key: str) -> bool:
+        return str(n.get(key)).lower() == "true"
+
+    def text(n: dict, key: str) -> str | None:
+        value = n.get(key)
+        return str(value) if value is not None and str(value).strip() else None
+
+    rest = node.get("restAction") if isinstance(node.get("restAction"), dict) else None
+    source = _declared_source(rest.get("source")) if rest is not None else None
+    steps = [s for s in (_step(n) for n in node.get("steps") or []) if s is not None]
+    texts = node.get("confirmationTexts")
+    event = node.get("customEvent")
+    dto = Action(
+        id=action_id,
+        validation_required=flag(node, "validationRequired"),
+        confirmation_required=flag(node, "confirmationRequired"),
+        rows_selected_required=flag(node, "rowsSelectedRequired"),
+        bubble=flag(node, "bubble"),
+        background=flag(node, "background"),
+        sse=flag(node, "sse"),
+        idempotent=flag(node, "idempotent"),
+        timeout_millis=int(node.get("timeoutMillis") or 0),
+        shortcut=text(node, "shortcut"),
+        fields_to_validate=text(node, "fieldsToValidate"),
+        href=text(node, "href"),
+        js=text(node, "js"),
+        confirmation_texts=(
+            ConfirmationTextsRecord(
+                title=texts.get("title"),
+                message=texts.get("message"),
+                confirmation_text=texts.get("confirmationText"),
+                denial_text=texts.get("denialText"),
             )
-        )
-    return tuple(client_runnable_only(parsed, "a definition's actions:"))
+            if isinstance(texts, dict)
+            else None
+        ),
+        custom_event=(
+            CustomEventRecord(event_name=str(event.get("eventName") or ""), detail=event.get("detail"))
+            if isinstance(event, dict)
+            else None
+        ),
+        rest_action=(
+            RestAction(
+                source=source if source is not None else _declared_source({}),
+                success_message=rest.get("successMessage"),
+                result_path=rest.get("resultPath"),
+                success_route=text(rest, "successRoute"),
+                for_each_selected_row=flag(rest, "forEachSelectedRow"),
+            )
+            if rest is not None
+            else None
+        ),
+        commands=[lower(s) for s in steps] or None,
+    )
+    return DeclaredAction(dto, source)
+
+
+def _declared_source(node: Any):
+    """A ``source:`` as DECLARED — only the keys written (a bare string is the ref shorthand): what
+    travels is the surface as authored, as Java's record deserialisation keeps it; the catalogue
+    entry it names is resolved by the server only for its own proxy leg."""
+    from mateu_ui.dtos import RestDataSource
+
+    if isinstance(node, str) and node.strip():
+        return RestDataSource(ref=node.strip())
+    if not isinstance(node, dict):
+        return None
+
+    def text(key: str) -> str | None:
+        value = node.get(key)
+        return str(value) if value is not None and str(value).strip() else None
+
+    headers = node.get("headers")
+    return RestDataSource(
+        ref=text("ref"),
+        url=text("url"),
+        method=text("method"),
+        headers={str(k): str(v) for k, v in headers.items()} if isinstance(headers, dict) else None,
+        body=text("body"),
+        items_path=text("itemsPath"),
+        value_path=text("valuePath"),
+        label_path=text("labelPath"),
+        proxy=str(node.get("proxy")).lower() == "true",
+        sample=node.get("sample"),
+    )
+
+
+def confirms_on_navigation_if_dirty(data: Any) -> bool:
+    """Whether the page asks before it is left with unsaved changes: a ``type: Form`` definition
+    declaring ``confirmOnNavigationIfDirty: true`` (Java's SeededYamlPage reads the Form's flag)."""
+    if not isinstance(data, dict):
+        return False
+    layout = data.get("layout")
+    page: dict = layout if isinstance(layout, dict) else data
+    return page.get("type") == "Form" and str(page.get("confirmOnNavigationIfDirty")).lower() == "true"
+
+
+def required_field_validations(layout: Any) -> list:
+    """The checks the browser runs before an action marked ``validationRequired``: one per
+    ``required: true`` field of the definition, with the condition and message a class form's
+    required field gets (Java's ``SeededYamlPage.validations``)."""
+    import dataclasses
+
+    from mateu_ui.dtos import ValidationRecord
+    from mateu_ui.uidl.components import FormField
+
+    from .validation import required_condition
+
+    out: list = []
+    seen: set[int] = set()
+
+    def walk(node: Any) -> None:
+        if node is None or isinstance(node, (str, bytes, int, float, bool)) or id(node) in seen:
+            return
+        seen.add(id(node))
+        if isinstance(node, FormField):
+            if node.required and not node.read_only and node.field_id.strip():
+                out.append(
+                    ValidationRecord(
+                        condition=required_condition(f"state['{node.field_id}']"),
+                        field_id=node.field_id,
+                        message="Cannot be empty",
+                    )
+                )
+            return
+        if isinstance(node, (list, tuple)):
+            for item in node:
+                walk(item)
+            return
+        if dataclasses.is_dataclass(node):
+            for f in dataclasses.fields(node):
+                walk(getattr(node, f.name, None))
+
+    walk(layout)
+    return out
 
 
 def page_type_of(data: Any) -> str | None:

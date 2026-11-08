@@ -78,7 +78,9 @@ def test_the_page_advertises_its_declared_actions_and_never_the_wildcard(tmp_pat
     page_ = component(handler(tmp_path))
     assert page_["type"] == "ServerSide"
     ids = [a["id"] for a in page_["actions"]]
-    assert ids == ["create", "ping", "back"]  # purge refused, `nothing` not client-runnable
+    # purge refused; `nothing` travels as declared (Java reads every entry into a fluent Action);
+    # __restfetch__ because a declared call is proxied (Java's RestSourceSupplier page)
+    assert ids == ["create", "ping", "back", "nothing", "__restfetch__"]
     create = page_["actions"][0]
     assert create["restAction"]["successMessage"] == "Created"
     assert create["restAction"]["source"]["proxy"] is True
@@ -135,3 +137,81 @@ def test_a_direct_rest_action_is_not_proxied_on_request(tmp_path):
     )
     with pytest.raises(MateuForbiddenException):
         handler(tmp_path).handle(rq)
+
+
+def guarded(tmp_path: Path) -> SyncHandler:
+    (tmp_path / "routes.yaml").write_text(
+        "routes:\n  - route: guarded\n    layout: guarded.yaml\n"
+        "  - route: write\n    layout: write.yaml\n    state: {name: Leia}\n"
+    )
+    (tmp_path / "guarded.yaml").write_text(
+        """
+type: Form
+title: Guarded
+confirmOnNavigationIfDirty: true
+content:
+  - {type: FormField, id: title, label: Title, dataType: string}
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {url: "https://api.example/things", method: POST}
+      successMessage: Saved
+"""
+    )
+    (tmp_path / "write.yaml").write_text(
+        """
+layout:
+  type: VerticalLayout
+  content:
+    - {type: FormField, id: name, label: Name}
+    - {type: FormField, id: title, label: Title, required: true}
+actions:
+  - id: save
+    restAction:
+      source: {url: "https://example.test/api/people", method: POST, body: '{"name":"${state.name}"}'}
+      successMessage: Saved
+      successRoute: people/${state.id}
+"""
+    )
+    h = SyncHandler(MateuRegistry(MODULE), rest_sources=RestSourceRegistry(directory=str(tmp_path)))
+    h.routes = RouteRegistry(str(tmp_path))
+    h.yaml_specs = YamlSpecLoader(str(tmp_path), h.routes)
+    return h
+
+
+def load(h: SyncHandler, route: str) -> dict:
+    inc = h.handle(RunActionRq(route=route, consumed_route="_empty"))
+    return inc.model_dump(by_alias=True, mode="json")["fragments"][0]
+
+
+def test_a_page_declares_that_leaving_it_with_unsaved_changes_asks(tmp_path):
+    h = guarded(tmp_path)
+    page_ = load(h, "guarded")["component"]
+    assert page_["confirmOnNavigationIfDirty"] is True
+    assert page_["actions"][0]["validationRequired"] is True
+    assert load(h, "write")["component"]["confirmOnNavigationIfDirty"] is False
+
+
+def test_a_rest_action_keeps_its_success_route_and_its_body_as_templates(tmp_path):
+    save = load(guarded(tmp_path), "write")["component"]["actions"][0]
+    assert save["validationRequired"] is False
+    assert save["restAction"]["successRoute"] == "people/${state.id}"
+    assert "${state.name}" in save["restAction"]["source"]["body"]
+    # only what was declared travels: no default value/label paths added to the surface
+    assert save["restAction"]["source"].get("valuePath") is None
+
+
+def test_a_required_field_is_validated_and_the_state_is_still_seeded(tmp_path):
+    fragment = load(guarded(tmp_path), "write")
+    page_ = fragment["component"]
+    assert [(v["fieldId"], v["message"]) for v in page_["validations"]] == [
+        ("title", "Cannot be empty")
+    ]
+    assert page_["validations"][0]["condition"] == (
+        "state['title'] != null && state['title'] !== '' && (state['title'].length === undefined"
+        " || state['title'].length > 0)"
+    )
+    assert page_["initialData"] == {"name": "Leia"}
+    assert page_["pageType"] == "form"
+    assert page_["route"] == "_empty"

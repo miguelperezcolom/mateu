@@ -101,7 +101,12 @@ public class WireConformanceTests
 
     private static JsonNode Actual(Type view, string? @case = null)
     {
-        var handler = new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly));
+        // A YAML case (a specs/ui/ directory of its own): the handler reads ITS definitions
+        var specs = @case is null ? null : Path.Combine(Corpus, @case, "specs", "ui");
+        var yaml = specs is not null && Directory.Exists(specs);
+        var handler = yaml
+            ? new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly), specsDir: specs)
+            : new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly));
         // A case with a request.json is pinned on that (second) request to its fixture type, not on
         // the first load — identical in the three runners.
         var requestFile = @case is null ? null : Path.Combine(Corpus, @case, "request.json");
@@ -111,7 +116,7 @@ public class WireConformanceTests
             var req = JsonNode.Parse(File.ReadAllText(requestFile))!.AsObject();
             rq = new RunActionRqDto
             {
-                ServerSideType = view.FullName,
+                ServerSideType = yaml ? null : view.FullName,
                 Route = req["route"]?.GetValue<string>() ?? "",
                 ConsumedRoute = req["consumedRoute"]?.GetValue<string>(),
                 ActionId = req["actionId"]?.GetValue<string>() ?? "",
@@ -257,7 +262,12 @@ public class WireConformanceTests
         { "crud-hidden-constraints-edit", typeof(Wire.SeatsCrud) },
         { "crud-hidden-constraints-new", typeof(Wire.SeatsCrud) },
         { "hero-search-filters", typeof(Wire.HeroBooks) },
+        // a YAML case: its own specs/ui/ is the handler's specs directory, no class at all
+        { "definition-actions", typeof(YamlCase) },
     };
+
+    /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>
+    public sealed class YamlCase;
 
     [Fact]
     public void Every_case_of_the_corpus_is_wired()
@@ -284,7 +294,7 @@ public class WireConformanceTests
     public void Dotnet_renders_a_page_for_every_case(string @case, Type view)
     {
         // The floor: whatever the shape differences, the port must answer each case with a page.
-        var fragments = Actual(view)["fragments"] as JsonArray;
+        var fragments = Actual(view, view == typeof(YamlCase) ? @case : null)["fragments"] as JsonArray;
         Assert.True(fragments is { Count: > 0 }, $"'{@case}' produced no fragments");
     }
 
