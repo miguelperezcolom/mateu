@@ -71,6 +71,15 @@
     ]
    ]
   },
+  "AdvancedCreateEditPage": {
+   "class": [
+    [
+     "detail",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Aggregate": {
    "class": [
     [
@@ -621,6 +630,20 @@
     ]
    }
   },
+  "CollectionDetailPage": {
+   "class": [
+    [
+     "list",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_selection",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Colspan": {
    "class": [
     [
@@ -855,6 +878,15 @@
     "style": []
    }
   },
+  "DashboardLandingPage": {
+   "class": [
+    [
+     "kpi",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "DataManagement": {
    "class": [],
    "members": {
@@ -870,6 +902,20 @@
     "toggle_bottom_panel": [],
     "toggle_end_panel": []
    }
+  },
+  "DataManagementPage": {
+   "class": [
+    [
+     "end",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "bottom",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "DateRange": {
    "class": [
@@ -1516,6 +1562,23 @@
     "style": []
    }
   },
+  "FoldoutPage": {
+   "class": [
+    [
+     "overview",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "orientation",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FormTemplate": {
+   "class": []
+  },
   "FragmentCachePolicy": {
    "class": [
     [
@@ -1706,6 +1769,15 @@
     "defaults": []
    }
   },
+  "GeneralOverviewPage": {
+   "class": [
+    [
+     "info",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "GlobalSearchResult": {
    "class": [
     [
@@ -1781,6 +1853,39 @@
     ],
     [
      "hidden_actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "GuidedProcessPage": {
+   "class": [
+    [
+     "steps",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "GuidedProcessStep": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -1914,6 +2019,15 @@
     "save_and_next_label": []
    }
   },
+  "HeroSearchPage": {
+   "class": [
+    [
+     "background_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "HeroTone": {
    "enum": [
     "auto",
@@ -1985,6 +2099,30 @@
     "panel_width": [],
     "style": []
    }
+  },
+  "ItemOverviewPage": {
+   "class": [
+    [
+     "avatar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "photo",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "body",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "KeepAliveHandler": {
    "class": [],
@@ -2689,6 +2827,15 @@
   },
   "Multiline": {
    "class": []
+  },
+  "MultimediaContentPage": {
+   "class": [
+    [
+     "background_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "NavLink": {
    "class": [
@@ -3824,6 +3971,20 @@
     ]
    ]
   },
+  "TemplateImage": {
+   "class": [
+    [
+     "src",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "initials",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Text": {
    "class": [
     [
@@ -4120,6 +4281,15 @@
     "hero_tone": [],
     "style": []
    }
+  },
+  "WelcomePage": {
+   "class": [
+    [
+     "background_color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "Wizard": {
    "class": [],
@@ -5676,6 +5846,11 @@
      "route",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -7205,6 +7380,11 @@
      "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "template",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -7292,6 +7472,11 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "options_columns",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -7549,6 +7734,16 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "wrap",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "full_width",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -9785,6 +9980,79 @@
     ]
    ]
   },
+  "Tab": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "active",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "shortcut",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "TabLayout": {
+   "class": [
+    [
+     "tabs",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group_relationship",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "adaptable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "TaskProgress": {
    "class": [
     [
@@ -9940,6 +10208,11 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "container",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -10105,6 +10378,16 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "full_width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "horizontal_alignment",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

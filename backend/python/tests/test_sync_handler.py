@@ -1240,15 +1240,17 @@ def test_app_header_actions_on_the_wire():
     j = json.loads(render(inc))
     app_meta = j["fragments"][0]["component"]["metadata"]
     assert app_meta["contextActions"] == [
-        {"actionId": "sync", "label": "Sync now", "icon": "refresh", "children": None},
+        {"actionId": "sync", "label": "Sync now", "icon": "refresh", "children": None, "route": None},
         {
             "actionId": None,
             "label": "Export",
             "icon": "download",
             "children": [
-                {"actionId": "exportPdf", "label": "As PDF", "icon": None, "children": None},
-                {"actionId": "exportExcel", "label": "As Excel", "icon": None, "children": None},
+                {"actionId": "exportPdf", "label": "As PDF", "icon": None, "children": None, "route": None},
+                {"actionId": "exportExcel", "label": "As Excel", "icon": None, "children": None, "route": None},
             ],
+            # AppHeaderActionDto.route: set only by a data-authored shell's navigating buttons
+            "route": None,
         },
     ]
 

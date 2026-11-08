@@ -99,7 +99,8 @@ def test_a_button_whose_actionable_is_a_route_link_navigates():
     (button,) = hero.content
     assert isinstance(button, fluent.Button)
     assert button.route == "products"
-    assert button.action_id == ""
+    # Java's Button.resolvedActionId: the declared id, else the one derived from the label
+    assert button.action_id == "browseProducts"
 
     dto = wire(button)["metadata"]
     assert dto["route"] == "products"

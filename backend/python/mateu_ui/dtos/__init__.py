@@ -28,6 +28,8 @@ from .layout import (  # noqa: F401
     FormSectionMetadata,
     HorizontalLayoutMetadata,
     PageMetadata,
+    PageTemplateRecord,
+    TemplateImageRecord,
     VerticalLayoutMetadata,
 )
 from .fields import (  # noqa: F401

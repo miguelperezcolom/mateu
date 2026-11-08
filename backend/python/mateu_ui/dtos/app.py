@@ -121,6 +121,25 @@ class AppMetadata(Wire):
     #: channel (``_agent-channel`` over the SSE endpoint) and shows "Connect AI" (mirrors
     #: AppDto.agentPush; conformance/mcp/README.md "Live UI push").
     agent_push: bool = False
+    # ── What a data-authored shell (a ``type: AppShell`` definition) also carries (AppDto) ──
+    logo: str | None = None
+    favicon: str | None = None
+    drawer_closed: bool = False
+    style: str | None = None
+    css_classes: str | None = None
+    #: The brand accent, a CSS colour (AppDto.accentColor).
+    accent_color: str | None = None
+    #: The AI assistant's MCP endpoint and upload url (``ai: {mcp, upload}``; AppDto.mcpUrl/uploadUrl).
+    mcp_url: str | None = None
+    upload_url: str | None = None
+    #: The shell's own FLOWS (``actions:`` with ``steps:``), each lowered to ``commands``: a menu
+    #: rule leaf running one of them runs it in the browser (AppDto.actions).
+    actions: list["Action"] = Field(default_factory=list)
+    #: The notification inbox and the palette search fed by REST sources (AppDto
+    #: notificationsSource / notificationsReadSource / globalSearchSource).
+    notifications_source: "RestDataSource | None" = None
+    notifications_read_source: "RestDataSource | None" = None
+    global_search_source: "RestDataSource | None" = None
 
 
 class AppContextSelector(Wire):
@@ -131,6 +150,9 @@ class AppContextSelector(Wire):
     field_name: str
     label: str
     options: list["Option"] = Field(default_factory=list)
+    #: Where the options come from instead (a data-authored shell's ``optionsSource:``): a REST
+    #: source the browser fetches (AppContextSelectorDto.optionsSource).
+    options_source: "RestDataSource | None" = None
 
 
 class AppHeaderAction(Wire):
@@ -141,6 +163,8 @@ class AppHeaderAction(Wire):
     label: str = ""
     icon: str | None = None
     children: list["AppHeaderAction"] | None = None
+    #: Where the button navigates inside the app (a data-authored shell); None runs action_id.
+    route: str | None = None
 
 
 class AppShortcut(Wire):

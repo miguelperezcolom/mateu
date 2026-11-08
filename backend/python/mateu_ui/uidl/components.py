@@ -42,7 +42,8 @@ class SkeletonVariant(Enum):
 class Text(Component):
     """A simple text block. ``size``: "xl" | "l" | "m" | "s" | "xs" — m (or None) applies
     nothing, the rest enlarge/reduce the font. ``no_margins`` drops the container's block
-    margins, independent of ``size``."""
+    margins, independent of ``size``. ``container`` is the element it renders as (div, p, h1…h6,
+    span…; None = div)."""
 
     text: str = ""
     size: str | None = None
@@ -50,6 +51,7 @@ class Text(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    container: str | None = None
 
 
 @dataclass(frozen=True)
@@ -225,6 +227,8 @@ class Button(Component):
     #: ``actionable: {type: RouteLink, route: products}``). Relative to the mount; may carry
     #: ``${state.x}`` templates the browser interpolates. None = the button runs ``action_id``.
     route: str | None = None
+    #: The button colour (normal | success | error | contrast); None = the renderer's default.
+    color: str | None = None
 
 
 @dataclass(frozen=True)
@@ -420,6 +424,39 @@ class Slotted(Component):
 
     slot: str = ""
     content: Component | None = None
+
+
+@dataclass(frozen=True)
+class Tab(Component):
+    """One tab of a :class:`TabLayout`: its ``label`` and the ``content`` it shows; ``active`` makes
+    it the tab selected on first render, ``shortcut`` (e.g. "alt+1") selects it from the keyboard.
+    The Python analogue of ``io.mateu.uidl.data.Tab``."""
+
+    label: str = ""
+    content: Component | None = None
+    active: bool = False
+    shortcut: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class TabLayout(Component):
+    """Tabs — one :class:`Tab` per group, one shown at a time. ``group_relationship``
+    (alternative | sequential | simultaneous) says how the groups relate; ``adaptable`` lets a
+    renderer degrade the tabs (e.g. to an accordion on a narrow screen). The Python analogue of
+    ``io.mateu.uidl.data.TabLayout``."""
+
+    tabs: tuple[Tab, ...] = ()
+    group_relationship: str | None = None
+    adaptable: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "tabs", tuple(self.tabs or ()))
 
 
 @dataclass(frozen=True)
@@ -725,24 +762,30 @@ class ProgressStep:
 
 @dataclass(frozen=True)
 class VerticalLayout(Component):
-    """Lays its children out vertically (the analogue of .NET's fluent VerticalLayout)."""
+    """Lays its children out vertically (the analogue of .NET's fluent VerticalLayout).
+    ``horizontal_alignment`` = START/CENTER/END/STRETCH (None: the renderer's default)."""
 
     content: tuple = ()
     spacing: bool = False
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    full_width: bool = False
+    horizontal_alignment: str | None = None
 
 
 @dataclass(frozen=True)
 class HorizontalLayout(Component):
-    """Lays its children out horizontally (the analogue of .NET's fluent HorizontalLayout)."""
+    """Lays its children out horizontally (the analogue of .NET's fluent HorizontalLayout);
+    ``wrap`` lets the items flow onto the next line."""
 
     content: tuple = ()
     spacing: bool = True
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    wrap: bool = False
+    full_width: bool = False
 
 
 @dataclass(frozen=True)
@@ -774,6 +817,8 @@ class FormField(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: How many columns a radio/checkbox option group spreads over (0 = the renderer's own).
+    options_columns: int = 1
 
 
 @dataclass(frozen=True)
@@ -2060,6 +2105,9 @@ class Form(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: The page template the form fills (a ``mateu_ui.uidl.page_templates`` ``FormTemplate``):
+    #: its slots are laid out around the content; None = a free page, its content as written.
+    template: Any = None
 
     def __post_init__(self):
         for name in ("content", "toolbar", "buttons", "badges", "kpis", "banners", "fabs"):
@@ -2348,5 +2396,7 @@ __all__ = [
     "ResponsiveGrid",
     "Separator",
     "Slotted",
+    "Tab",
+    "TabLayout",
     "VerticalLayout",
 ]

@@ -308,6 +308,22 @@ from .field_types import (  # noqa: F401
     FieldTypeCatalogSupplier,
     FieldTypeEntry,
 )
+from .page_templates import (  # noqa: F401
+    FormTemplate,
+    TemplateImage,
+    ItemOverviewPage,
+    WelcomePage,
+    DashboardLandingPage,
+    GeneralOverviewPage,
+    CollectionDetailPage,
+    FoldoutPage,
+    MultimediaContentPage,
+    AdvancedCreateEditPage,
+    GuidedProcessPage,
+    GuidedProcessStep,
+    DataManagementPage,
+    HeroSearchPage,
+)
 from .patterns import (  # noqa: F401
     CrudDisplay,
     DockedPanel,
@@ -329,6 +345,20 @@ PageWidthStyle = PageWidth  # Java / .NET PageWidthStyle (Python's @page_width t
 
 __all__ = [
     "ActionRequest",
+    "FormTemplate",
+    "TemplateImage",
+    "ItemOverviewPage",
+    "WelcomePage",
+    "DashboardLandingPage",
+    "GeneralOverviewPage",
+    "CollectionDetailPage",
+    "FoldoutPage",
+    "MultimediaContentPage",
+    "AdvancedCreateEditPage",
+    "GuidedProcessPage",
+    "GuidedProcessStep",
+    "DataManagementPage",
+    "HeroSearchPage",
     "Document",
     "DocumentDisposition",
     "Access",

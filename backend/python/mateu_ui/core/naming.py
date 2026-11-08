@@ -13,6 +13,24 @@ def camel_case(s: str) -> str:
     return head + "".join(p[:1].upper() + p[1:] for p in rest)
 
 
+def camelcasize(s: str | None) -> str | None:
+    """A label as the action id a button derives from it (Java's ``Button.camelcasize``):
+    ``"Save draft"`` -> ``"saveDraft"``, ``"Browse the characters"`` -> ``"browseTheCharacters"``."""
+    import re
+
+    if not s:
+        return s
+    s = s.replace(".", " ")
+    c = re.sub(
+        r"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])", " ", s
+    ).lower()
+    c = re.sub(r"[ ]+", " ", c)
+    if len(c) > 1:
+        parts = c.split(" ")
+        c = parts[0] + "".join(z[:1].upper() + z[1:] for z in parts[1:] if z)
+    return c
+
+
 def snake_case(s: str) -> str:
     """``camelCase`` -> ``snake_case``; ``"firstName" -> "first_name"``, ``"name" -> "name"``."""
     out = []
