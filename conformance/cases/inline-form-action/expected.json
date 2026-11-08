@@ -2,6 +2,7 @@
   "messages" : [ {
     "duration" : 3000,
     "persistence" : "toast",
+    "position" : "middle",
     "text" : "Verified Globex",
     "variant" : "success"
   } ],
