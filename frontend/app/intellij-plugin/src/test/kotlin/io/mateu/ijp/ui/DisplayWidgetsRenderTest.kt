@@ -139,8 +139,9 @@ class DisplayWidgetsRenderTest : RenderTestCase() {
         val quotes = render(ctx, """{"type":"Testimonials","items":[{"quote":"Great","author":"Ada","role":"CTO","rating":4,"avatar":"A"}]}""")
         assertTrue(texts(quotes).containsAll(listOf("★★★★☆", "<html><i>“Great”</i></html>", "A Ada · CTO")))
 
-        val faq = render(ctx, """{"type":"Faq","items":[{"question":"Why?","answer":"Because"}]}""")
-        assertEquals(listOf("Why?", "<html>Because</html>"), texts(faq))
+        val faq = render(ctx, """{"type":"Faq","items":[{"question":"Why?","answer":"Because **really**"}]}""")
+        // the answer is markdown
+        assertEquals(listOf("Why?", "<html>Because <b>really</b></html>"), texts(faq))
 
         val thread = render(ctx, """{"type":"CommentThread","comments":[{"author":"Ada","timestamp":"9:00","text":"Hi",
             "replies":[{"author":"Grace","text":"Hello"}]}]}""")
