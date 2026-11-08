@@ -1,0 +1,343 @@
+{
+  "commands" : [ {
+    "data" : "More components",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "children" : [ {
+            "children" : [ {
+              "children" : [ {
+                "metadata" : {
+                  "container" : "div",
+                  "text" : "Sales",
+                  "type" : "Text"
+                },
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "boardCols" : 2,
+                "type" : "BoardLayoutItem"
+              },
+              "type" : "ClientSide"
+            }, {
+              "children" : [ {
+                "metadata" : {
+                  "container" : "div",
+                  "text" : "Stock",
+                  "type" : "Text"
+                },
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "boardCols" : 1,
+                "type" : "BoardLayoutItem"
+              },
+              "type" : "ClientSide"
+            } ],
+            "metadata" : {
+              "type" : "BoardLayoutRow"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "type" : "BoardLayout"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Slide 1",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          }, {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Slide 2",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "auto" : true,
+            "dots" : true,
+            "duration" : 4000,
+            "loop" : true,
+            "type" : "CarouselLayout"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Contained",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "type" : "Container"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Wide",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "type" : "FullWidth"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Scrolled",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "type" : "Scroller"
+          },
+          "style" : "height: 10rem",
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Field",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "type" : "FormItem"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Street",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "title" : "Address",
+            "type" : "FormSubSection"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Master",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          }, {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Detail",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "type" : "MasterDetailLayout"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "activateOnLeftClick" : true,
+            "menu" : [ {
+              "label" : "Orders",
+              "path" : "/orders",
+              "visible" : true
+            } ],
+            "type" : "ContextMenu",
+            "wrapped" : {
+              "metadata" : {
+                "container" : "div",
+                "text" : "Right click me",
+                "type" : "Text"
+              },
+              "type" : "ClientSide"
+            }
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "menu" : [ {
+              "label" : "Sales",
+              "path" : "/sales",
+              "submenus" : [ {
+                "label" : "Orders",
+                "path" : "/sales/orders",
+                "visible" : true
+              } ],
+              "visible" : true
+            } ],
+            "type" : "Directory"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "options" : [ {
+              "label" : "Home",
+              "path" : "/home",
+              "visible" : true
+            }, {
+              "label" : "Help",
+              "path" : "/help",
+              "visible" : true
+            } ],
+            "type" : "MenuBar"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "content" : [ {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Name",
+                "stereotype" : "regular",
+                "type" : "GridColumn"
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "columns" : [ {
+                  "metadata" : {
+                    "align" : "end",
+                    "autoWidth" : true,
+                    "dataType" : "integer",
+                    "label" : "Adults",
+                    "stereotype" : "regular",
+                    "type" : "GridColumn"
+                  },
+                  "type" : "ClientSide"
+                }, {
+                  "metadata" : {
+                    "align" : "end",
+                    "autoWidth" : true,
+                    "dataType" : "integer",
+                    "label" : "Children",
+                    "stereotype" : "regular",
+                    "type" : "GridColumn"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "label" : "Occupancy",
+                "type" : "GridGroupColumn"
+              },
+              "type" : "ClientSide"
+            } ],
+            "page" : {
+              "content" : [ {
+                "adults" : 2,
+                "children" : 1,
+                "name" : "Ada"
+              } ],
+              "totalElements" : 1
+            },
+            "rowStripes" : true,
+            "type" : "Grid"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "sseUrl" : "/chat/sse",
+            "type" : "Chat"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "items" : [ {
+              "text" : "Hello",
+              "userName" : "Ada"
+            } ],
+            "type" : "MessageList"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "actionId" : "send",
+            "type" : "MessageInput"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "backLabel" : "Home",
+            "backRoute" : "/",
+            "message" : "That page does not exist",
+            "title" : "Not here",
+            "type" : "NotFound"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "page" : {
+              "content" : [ {
+                "metadata" : {
+                  "container" : "div",
+                  "text" : "Row 1",
+                  "type" : "Text"
+                }
+              }, {
+                "metadata" : {
+                  "container" : "div",
+                  "text" : "Row 2",
+                  "type" : "Text"
+                }
+              } ],
+              "totalElements" : 2
+            },
+            "type" : "VirtualList"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "dismiss" : "OK",
+            "message" : "We use cookies",
+            "position" : "Bottom",
+            "type" : "CookieConsent"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "type" : "FormEditor",
+            "value" : "{}"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "type" : "Workflow",
+            "value" : "<bpmn/>"
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "type" : "VerticalLayout"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

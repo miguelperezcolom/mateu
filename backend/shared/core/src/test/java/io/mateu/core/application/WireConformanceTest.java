@@ -573,6 +573,138 @@ class WireConformanceTest {
   }
 
   /**
+   * The last wire component types the ports lacked (3.0 GA parity): layouts (BoardLayout,
+   * CarouselLayout, Container, FullWidth, Scroller, FormItem, FormSubSection, MasterDetailLayout),
+   * navigation (ContextMenu, Directory, MenuBar), the fluent Grid with a column group, the chat and
+   * message pieces, a not-found page, a virtual list, the cookie banner and the two editors. Pins
+   * their member names and where their parts travel.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/more-components")
+  @Title("More components")
+  public static class MoreComponentsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      var t = (java.util.function.Function<String, Component>) io.mateu.uidl.data.Text::new;
+      return new io.mateu.uidl.data.VerticalLayout(
+          new io.mateu.uidl.data.BoardLayout(
+              "board",
+              List.of(
+                  new io.mateu.uidl.data.BoardLayoutRow(
+                      List.of(
+                          new io.mateu.uidl.data.BoardLayoutItem(t.apply("Sales"), null, null, 2),
+                          new io.mateu.uidl.data.BoardLayoutItem(t.apply("Stock"), null, null, 1)),
+                      null,
+                      null)),
+              null,
+              null),
+          io.mateu.uidl.data.CarouselLayout.builder()
+              .id("carousel")
+              .content(List.of(t.apply("Slide 1"), t.apply("Slide 2")))
+              .auto(true)
+              .duration(4000)
+              .dots(true)
+              .loop(true)
+              .build(),
+          new io.mateu.uidl.data.Container(t.apply("Contained"), null, null),
+          new io.mateu.uidl.data.FullWidth(t.apply("Wide"), null, null),
+          new io.mateu.uidl.data.Scroller(t.apply("Scrolled"), "height: 10rem", null),
+          new io.mateu.uidl.data.FormItem("item", List.of(t.apply("Field")), null, null),
+          new io.mateu.uidl.data.FormSubSection("Address", List.of(t.apply("Street")), null, null),
+          new io.mateu.uidl.data.MasterDetailLayout(
+              "md",
+              t.apply("Master"),
+              t.apply("Detail"),
+              io.mateu.uidl.data.Orientation.horizontal,
+              null,
+              null,
+              null),
+          io.mateu.uidl.data.ContextMenu.builder()
+              .menu(List.of(new io.mateu.uidl.data.RouteLink("/orders", "Orders")))
+              .wrapped(t.apply("Right click me"))
+              .activateOnLeftClick(true)
+              .build(),
+          new io.mateu.uidl.data.Directory(
+              List.of(
+                  new io.mateu.uidl.data.Menu(
+                      "/sales",
+                      "Sales",
+                      List.of(new io.mateu.uidl.data.RouteLink("/sales/orders", "Orders")))),
+              null,
+              null),
+          io.mateu.uidl.fluent.MenuBar.builder()
+              .option(new io.mateu.uidl.data.RouteLink("/home", "Home"))
+              .option(new io.mateu.uidl.data.RouteLink("/help", "Help"))
+              .build(),
+          io.mateu.uidl.data.Grid.builder()
+              .id("grid")
+              .content(
+                  List.of(
+                      io.mateu.uidl.data.GridColumn.builder()
+                          .id("name")
+                          .label("Name")
+                          .dataType(io.mateu.uidl.data.FieldDataType.string)
+                          .build(),
+                      new io.mateu.uidl.data.GridGroupColumn(
+                          "occupancy",
+                          "Occupancy",
+                          null,
+                          null,
+                          List.of(
+                              io.mateu.uidl.data.GridColumn.builder()
+                                  .id("adults")
+                                  .label("Adults")
+                                  .dataType(io.mateu.uidl.data.FieldDataType.integer)
+                                  .build(),
+                              io.mateu.uidl.data.GridColumn.builder()
+                                  .id("children")
+                                  .label("Children")
+                                  .dataType(io.mateu.uidl.data.FieldDataType.integer)
+                                  .build()))))
+              .page(
+                  new io.mateu.uidl.data.Page<>(
+                      "",
+                      10,
+                      0,
+                      1,
+                      List.of(java.util.Map.of("name", "Ada", "adults", 2, "children", 1))))
+              .rowStripes(true)
+              .build(),
+          new io.mateu.uidl.data.Chat("/chat/sse", null, null, null),
+          new io.mateu.uidl.data.MessageList(
+              "messages",
+              List.of(new io.mateu.uidl.data.MessageListItem("Hello", "Ada")),
+              null,
+              null),
+          new io.mateu.uidl.data.MessageInput("input", "send", null, null),
+          io.mateu.uidl.data.NotFound.builder()
+              .title("Not here")
+              .message("That page does not exist")
+              .backRoute("/")
+              .backLabel("Home")
+              .build(),
+          new io.mateu.uidl.data.VirtualList(
+              new io.mateu.uidl.data.Page<>(
+                  "", 10, 0, 2, List.of(t.apply("Row 1"), t.apply("Row 2"))),
+              null,
+              null),
+          io.mateu.uidl.data.CookieConsent.builder()
+              .message("We use cookies")
+              .dismiss("OK")
+              .position(io.mateu.uidl.data.CookieConsentPosition.Bottom)
+              .build(),
+          new io.mateu.uidl.data.FormEditor("{}", null, null),
+          new io.mateu.uidl.data.Workflow("<bpmn/>", null, null));
+    }
+  }
+
+  /**
    * Every trigger kind a view can declare, ported to .NET ({@code [Trigger]}) and Python
    * ({@code @trigger}) in 3.0-alpha.426 (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
    * another action (chained actions), OnValueChange of one field, and a {@code @SubscribeTo} on the
@@ -1287,7 +1419,8 @@ class WireConformanceTest {
           "field-help",
           "field-hints",
           "page-toolbar",
-          "form-columns");
+          "form-columns",
+          "more-components");
 
   static TestMateu mateu;
 
@@ -1342,7 +1475,8 @@ class WireConformanceTest {
             FieldHelpForm.class,
             FieldHintsPage.class,
             PageToolbarForm.class,
-            FormColumnsForm.class);
+            FormColumnsForm.class,
+            MoreComponentsPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
