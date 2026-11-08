@@ -70,6 +70,7 @@ public class ComponentRegistry implements io.mateu.core.infra.dev.SpecsCache {
   @Override
   public void invalidateSpecs() {
     catalog = null;
+    requestDependent.clear();
   }
 
   /** The merged catalogue (authored over derived), loaded once. */
@@ -93,6 +94,62 @@ public class ComponentRegistry implements io.mateu.core.infra.dev.SpecsCache {
   /** The entry a surface references, or empty when the catalogue does not name it. */
   public Optional<ComponentEntry> get(String name) {
     return catalog().get(name);
+  }
+
+  /**
+   * Authored entries whose composition depends on who asks or in which language (access keys,
+   * {@code ${i18n.…}}), by name: their source tree, re-derived per request by {@link #get(String,
+   * io.mateu.uidl.interfaces.HttpRequest)}.
+   */
+  private final java.util.concurrent.ConcurrentHashMap<
+          String, com.fasterxml.jackson.databind.JsonNode>
+      requestDependent = new java.util.concurrent.ConcurrentHashMap<>();
+
+  /**
+   * The entry AS THIS REQUEST SEES IT: an authored composition declaring {@code eyesOnly:} / {@code
+   * readOnlyUnless:} / {@code disabledUnless:} / {@code access:} or {@code ${i18n.…}} is rebuilt
+   * from its source for the caller's identity and locale — the same passes a YAML page gets, so a
+   * restricted piece of a business component never reaches a caller who may not see it. A failure
+   * applying the access keys yields an entry with NO component, never the unrestricted one.
+   */
+  public Optional<ComponentEntry> get(String name, io.mateu.uidl.interfaces.HttpRequest request) {
+    var entry = get(name);
+    var source = entry.isPresent() ? requestDependent.get(name) : null;
+    if (source == null) {
+      return entry;
+    }
+    try {
+      var tree =
+          io.mateu.core.application.security.YamlAccess.declaresAccess(source)
+              ? io.mateu.core.application.security.YamlAccess.apply(source, request, null).tree()
+              : source.deepCopy();
+      if (tree == null) {
+        return Optional.of(
+            new ComponentEntry(name, new io.mateu.uidl.data.VerticalLayout(List.of())));
+      }
+      if (!io.mateu.core.application.i18n.TranslationRegistry.isRaw(request)) {
+        try {
+          var translations =
+              MateuBeanProvider.getSingletonBean(
+                  io.mateu.core.application.i18n.TranslationRegistry.class);
+          if (translations != null) {
+            translations.translateTree(
+                tree, io.mateu.core.application.i18n.TranslationRegistry.localeOf(request));
+          }
+        } catch (Throwable t) {
+          // a translation problem is not an authorization one: served untranslated
+          log.debug("Business component '{}' not translated: {}", name, t.toString());
+        }
+      }
+      return Optional.of(
+          new ComponentEntry(
+              name,
+              yaml.treeToValue(FieldTypeRegistry.resolveWithAppTypes(tree), Component.class)));
+    } catch (Exception e) {
+      log.error("Could not apply the access keys of business component '{}'", name, e);
+      return Optional.of(
+          new ComponentEntry(name, new io.mateu.uidl.data.VerticalLayout(List.of())));
+    }
   }
 
   ComponentCatalog load(ClassLoader classLoader) {
@@ -292,6 +349,12 @@ public class ComponentRegistry implements io.mateu.core.infra.dev.SpecsCache {
     try {
       var component =
           yaml.treeToValue(FieldTypeRegistry.resolveWithAppTypes(componentNode), Component.class);
+      if (io.mateu.core.application.security.YamlAccess.declaresAccess(componentNode)
+          || io.mateu.core.application.i18n.TranslationRegistry.mentionsI18n(componentNode)) {
+        requestDependent.put(nameNode.asText(), componentNode.deepCopy());
+      } else {
+        requestDependent.remove(nameNode.asText());
+      }
       return new ComponentEntry(nameNode.asText(), component);
     } catch (Exception e) {
       log.warn(
