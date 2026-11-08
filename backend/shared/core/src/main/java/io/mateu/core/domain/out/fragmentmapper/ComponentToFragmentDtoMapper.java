@@ -218,6 +218,19 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof EmbeddedView embeddedView) {
       var view = embeddedView.view();
+      // an orchestrator (a crud…) is a mediator island routed relative to ITSELF — mapped through
+      // its own dto() it was bound to the host's route and loaded the host inside itself
+      if (view instanceof io.mateu.core.infra.declarative.orchestrators.MultiView) {
+        return mapComponentToDto(
+            null,
+            io.mateu.core.domain.out.componentmapper.EmbeddedOrchestratorFieldBuilder.embedded(
+                view, initiatorComponentId, httpRequest),
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
+      }
       if (view instanceof Component c) {
         return mapComponentToDto(
             null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
