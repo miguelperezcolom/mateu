@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-ol.js","assets/rolldown-runtime.js","assets/marked.esm.js","assets/vendor.js","assets/mateu-chat.js","assets/vendor-lit.js","assets/neutralChrome.js","assets/mateu-workflow.js","assets/mateu-form-editor.js","assets/mateu-planning-board.js","assets/mateu-gantt.js","assets/mateu-matrix-grid.js","assets/mateu-signature-pad.js","assets/mateu-camera-capture.js","assets/vendor-chartjs.js","assets/vendor-diagrams.js","assets/mateu-agent-connect-dialog.js","assets/mateu-mobile-qr-dialog.js","assets/vendor-editor.js","assets/vcf-date-range-picker.js","assets/vendor-vaadin.js"])))=>i.map(i=>d[i]);
-/* mateu sources 049ee5042781e552 */
+/* mateu sources 70c3320cc188a4c7 */
 import{t as e}from"./rolldown-runtime.js";import{B as t,C as n,O as r,R as i,S as a,T as o,V as s,_ as c,b as l,g as u,h as d,m as f,v as p,y as m}from"./vendor-vaadin.js";import{C as h,E as g,S as _,T as v,_ as y,a as b,f as ee,g as te,h as ne,i as x,j as re,k as S,l as ie,n as ae,o as C,p as w,r as oe,s as se,t as ce,v as le,x as T}from"./vendor-lit.js";import{a as ue,i as E,n as de,o as fe}from"./vendor.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),t.credentials=e.crossOrigin===`use-credentials`?`include`:e.crossOrigin===`anonymous`?`omit`:`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var pe=window.Vaadin=window.Vaadin||{},me=pe.suppressPostFinalizeStylesWarning;pe.suppressPostFinalizeStylesWarning=!0;try{i(`vaadin-card`,S`
         :host(.mateu-section) {
           --vaadin-card-border-width: 0 !important;
@@ -1377,7 +1377,7 @@ ${t}
             <div style="flex: 1; min-width: 0; min-height: 0;">${V(e,t.children[1],n,r,i,a,o)}</div>
         </div>
     `},Yf=(e,t,n,r,i,a,o)=>{let s=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,l=!!i?.hasDetail||!!s,u=c??s,d=t.metadata?.orientation===`vertical`?`column`:`row`;return v`
-        <div id="${t.id??_}" style="display: flex; flex-direction: ${d}; gap: var(--lumo-space-m, 1rem); ${t.style??``}" class="${t.cssClasses}" slot="${t.slot??_}">
+        <div id="${t.id??_}" style="display: flex; flex-direction: ${d}; gap: var(--lumo-space-m, 1rem); align-self: stretch; min-width: 0; ${t.style??``}" class="${t.cssClasses}" slot="${t.slot??_}">
             <div style="flex: 1; min-width: 0;">${V(e,t.children[0],n,r,i,a,o)}</div>
             ${l&&u?v`<div style="flex: 1; min-width: 0;">${V(e,u,n,r,i,a,o)}</div>`:v`<div style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-s, .875rem);">${O(`selectItemForDetails`)}</div>`}
         </div>
@@ -1420,11 +1420,11 @@ ${t}
             ${t.children?.map(t=>V(e,t,n,r,i,a,o))}
         </div>
     `,ip=(e,t,n,r,i,a,o)=>v`
-        <div style="display: flex; gap: ${If}; flex-wrap: wrap; ${t.style}" class="${t.cssClasses}">
+        <div style="display: flex; gap: ${If}; flex-wrap: wrap; ${t.style??``}" class="${t.cssClasses}">
             ${t.children?.map(t=>V(e,t,n,r,i,a,o))}
         </div>
     `,ap=(e,t,n,r,i,a,o)=>{let s=t.metadata;return v`
-        <div style="flex: ${s.boardCols??1} 1 0; min-width: min(100%, 12rem); ${t.style}" class="${t.cssClasses}">
+        <div style="flex: ${s.boardCols??1} 1 0; min-width: min(100%, 12rem); display: flex; flex-direction: column; align-items: stretch; ${t.style??``}" class="${t.cssClasses}">
             ${t.children?.map(t=>V(e,t,n,r,i,a,o))}
         </div>
     `},op=(e,t,n,r,i,a,o)=>{let s=t.metadata;return v`
@@ -9012,9 +9012,8 @@ ${t}
                    <master-content>${V(e,t.children[0],n,r,i,a,o)}</master-content>
                    <detail-content>${V(e,t.children[1],n,r,i,a,o)}</detail-content>
                </vaadin-split-layout>
-            `},uD=(e,t,n,r,i,a,o)=>{let s=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,l=!!i?.hasDetail||!!s,u=c??s;return v`
+            `},uD=(e,t,n,r,i,a,o)=>{if(t.metadata?.orientation===`vertical`)return Yf(e,t,n,r,i,a,o);let s=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,l=!!i?.hasDetail||!!s,u=c??s;return v`
                <vaadin-master-detail-layout ?has-detail="${l}"
-                                            orientation="${t.metadata?.orientation??_}"
                                             style="${t.style}"
                                             class="${t.cssClasses}"
                                             slot="${t.slot??_}">
