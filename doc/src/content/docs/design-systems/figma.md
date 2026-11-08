@@ -5,7 +5,7 @@ description: "Design screens in Figma with the Mateu component library and turn 
 
 :::caution[Preview]
 The Figma pipeline is a **preview** in Mateu 3.0: it is not covered by the stability promise (see
-[Known issues](/reference/known-issues/#tooling) and the [Support policy](/reference/support-policy/)).
+[Known issues](/reference/known-issues/#tooling) and the [Support policy](/reference/support-policy/#how-mature-each-part-is-in-30)).
 What is verified and what is not is listed under [Status](#status).
 :::
 

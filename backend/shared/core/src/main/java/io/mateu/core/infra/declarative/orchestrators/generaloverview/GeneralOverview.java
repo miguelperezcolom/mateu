@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.generaloverview;
 
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Experimental;
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.EmptyState;
 import io.mateu.uidl.data.GeneralOverviewDisplay;
@@ -80,6 +81,7 @@ public abstract class GeneralOverview<Row>
    * The context switcher's label ("Requisition", "Customer"…). Blank (the default) = no label: the
    * switcher's options say what they are.
    */
+  @Experimental("record switcher label (3.0 beta)")
   protected String recordLabel() {
     return "";
   }
@@ -88,6 +90,7 @@ public abstract class GeneralOverview<Row>
    * Labels the switcher with {@link #recordLabel()}: the {@code record} field lives here, where a
    * subclass cannot annotate it. A subclass that supplies labels of its own overrides this.
    */
+  @Experimental("record switcher label (3.0 beta)")
   @Override
   public String label(String memberName, HttpRequest httpRequest) {
     return "record".equals(memberName) ? recordLabel() : null;
@@ -112,6 +115,7 @@ public abstract class GeneralOverview<Row>
   private transient HttpRequest currentRequest;
 
   /** The request being served, handed over before the tree is built (see {@code RequestBound}). */
+  @Internal
   @Override
   public void bindRequest(HttpRequest httpRequest) {
     currentRequest = httpRequest;

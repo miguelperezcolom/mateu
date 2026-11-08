@@ -9,7 +9,9 @@ is ported. ✅ full · 🟡 partial (see note) · — not yet.
 
 ## Servers
 
-The Java server is the reference implementation; the .NET and Python servers emit the same wire
+The Java server is the reference implementation. In 3.0 the .NET and Python servers are
+**supported with documented gaps** ([what that means](/reference/support-policy/#how-mature-each-part-is-in-30)):
+they get the same fixes and API rules, and this page is where their gaps are documented. They emit the same wire
 for the surface below (verified by golden-JSON tests in `backend/dotnet/test` and
 `backend/python/tests`, and by the shared [conformance corpus](#the-conformance-gate)). A 🟡 row
 names what the ports lack; the gaps that are not features of their own — wire component types,

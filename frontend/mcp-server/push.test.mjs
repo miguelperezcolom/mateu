@@ -8,7 +8,7 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { handleRpc } from "./index.mjs";
-import { agentKey, mcpUrl } from "./push.mjs";
+import { agentKey, mcpUrl, withoutTrailingSlashes } from "./push.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const mcp = (file) => JSON.parse(readFileSync(join(here, "..", "..", "conformance", "mcp", file), "utf8"));
@@ -136,6 +136,18 @@ test("mcpUrl: MATEU_MCP_URL, else the base url's /mateu/mcp", () => {
   assert.equal(mcpUrl({ MATEU_BASE_URL: "http://h:8080//" }), "http://h:8080/mateu/mcp");
   assert.equal(mcpUrl({ MATEU_BASE_URL: "http://h", MATEU_MCP_URL: "http://m/x" }), "http://m/x");
   assert.equal(mcpUrl({}), null);
+});
+
+test("withoutTrailingSlashes: trims only the end, and stays linear on a long run of slashes", () => {
+  assert.equal(withoutTrailingSlashes("http://h:8080///"), "http://h:8080");
+  assert.equal(withoutTrailingSlashes("http://h/a/b"), "http://h/a/b");
+  assert.equal(withoutTrailingSlashes("///"), "");
+  assert.equal(withoutTrailingSlashes(""), "");
+  // The input that made /\/+$/ quadratic: many slashes, then a non-slash.
+  const hostile = "/".repeat(200_000) + "x";
+  const started = Date.now();
+  assert.equal(withoutTrailingSlashes(hostile), hostile);
+  assert.ok(Date.now() - started < 1000);
 });
 
 // ── failures on the way ──────────────────────────────────────────────────────────────────────

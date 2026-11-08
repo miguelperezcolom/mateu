@@ -91,9 +91,4 @@ class AnnotationDeclarationsTest {
       assertThat(head).as(name).doesNotContain("Created by");
     }
   }
-
-  @Test
-  void theDeadListAnnotationIsDeprecated() {
-    assertThat(io.mateu.uidl.annotations.List.class.isAnnotationPresent(Deprecated.class)).isTrue();
-  }
 }

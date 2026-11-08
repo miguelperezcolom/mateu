@@ -161,7 +161,7 @@ public class OrderEdit {
 }
 ```
 
-`@Aside` pulls the `context` panel out of the form body and composes a `ContentLayout` — the form is
+`@Aside` pulls the `context` panel out of the form body and composes a "main aside" `ResponsiveGrid` — the form is
 the `main` region, the panel the `aside`. On narrow viewports the panel stacks under the form.
 
 ![A form with a contextual detail panel beside it](/images/docs/redwood-templates/advanced-create-edit-5.png)
@@ -214,7 +214,7 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 | Redwood prop / slot | Mateu | |
 |---|---|---|
 | **Slot** `main` | the form body: `@Section` groups, zones, the fluent `FormField` | ✅ |
-| **Slot** `detail` (contextual side panel) | `@Aside` on a component-holder field → `ContentLayout` (`position`/`width`/`sticky`) | ✅ |
+| **Slot** `detail` (contextual side panel) | `@Aside` on a component-holder field → "main aside" `ResponsiveGrid` (`position`/`width`/`sticky`) | ✅ |
 | **Slot** `innerEnd` | — a second docked region is not available on a form; `DataManagement` has docked end/bottom panels (`DockedPanel`) | — |
 | **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
 | Section index | `@Toc` — the sticky section index (Redwood's vertical anchor navigator) | ✅ |

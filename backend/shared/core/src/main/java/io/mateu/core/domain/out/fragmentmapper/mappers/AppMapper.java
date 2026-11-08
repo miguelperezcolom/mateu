@@ -138,15 +138,9 @@ public final class AppMapper {
         null);
   }
 
-  /**
-   * The variant on the wire. Since 3.0-alpha.412 both spellings travel as {@code HAMBURGER_MENU}
-   * (the renderers accept both; they ship with the server).
-   */
-  @SuppressWarnings("removal")
+  /** The variant on the wire (the wire enum still accepts the old misspelling on read). */
   static AppVariantDto toDto(AppVariant variant) {
     if (variant == null) return null;
-    if (variant == AppVariant.HAMBURGER_MENU || variant == AppVariant.HAMBURGUER_MENU)
-      return AppVariantDto.HAMBURGER_MENU;
     return AppVariantDto.valueOf(variant.name());
   }
 

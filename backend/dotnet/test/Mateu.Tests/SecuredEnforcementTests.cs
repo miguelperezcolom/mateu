@@ -6,11 +6,9 @@ using Xunit;
 
 namespace Mateu.Tests;
 
-#pragma warning disable CS0618, MATEU001 // [Secured] is deprecated — these fixtures pin that it is still ENFORCED
-
-/// <summary>A view carrying the deprecated [Secured] — before 3.0-alpha.412 nothing read it, so it
-/// was open to everyone; now it means exactly [EyesOnly(Permissions = ["orders.read"])].</summary>
-[UI("sec-secured"), Title("Secured orders"), Secured("orders.read")]
+/// <summary>A view gated by a class-level permission — what the alpha-era [Secured("orders.read")]
+/// meant, which was removed for 3.0 in favour of exactly this.</summary>
+[UI("sec-secured"), Title("Secured orders"), EyesOnly(Permissions = new[] { "orders.read" })]
 public class SecSecuredView
 {
     public static volatile int Calls;
@@ -31,11 +29,9 @@ public class SecSecuredApp
     [MenuItem("Open")] public FreezeHome Open() => new();
 }
 
-#pragma warning restore CS0618, MATEU001
-
-/// <summary>[Secured] / @secured is ENFORCED with the semantics of [EyesOnly] (3.0-alpha.412): the
-/// view (and every action on it) is refused with 403 to a caller without the permission or with no
-/// principal at all, served to one holding it, and the menu entry leading to it is hidden.</summary>
+/// <summary>A class-level [EyesOnly(Permissions)] is ENFORCED: the view (and every action on it) is
+/// refused with 403 to a caller without the permission or with no principal at all, served to one
+/// holding it, and the menu entry leading to it is hidden.</summary>
 [Collection("ActionSecurity")]
 public class SecuredEnforcementTests
 {

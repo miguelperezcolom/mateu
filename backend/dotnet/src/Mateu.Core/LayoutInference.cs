@@ -37,8 +37,7 @@ internal static class LayoutInference
 
     /// <summary>Whether inference applies to the type: [AutoLayout] decides when present, otherwise
     /// the "Mateu.LayoutInference.Enabled" AppContext switch enables it globally (the C# analogue of
-    /// Java's mateu.layout.inference.enabled; the old "Mateu.LayoutInference" still works, deprecated —
-    /// see <see cref="InferenceSwitches"/>). Global default off.</summary>
+    /// Java's mateu.layout.inference.enabled — see <see cref="InferenceSwitches"/>). Global default off.</summary>
     public static bool Enabled(Type? type)
     {
         if (type is null) return false;

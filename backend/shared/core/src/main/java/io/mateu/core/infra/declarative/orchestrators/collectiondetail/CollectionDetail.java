@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.collectiondetail;
 
 import io.mateu.uidl.annotations.Hidden;
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Chip;
 import io.mateu.uidl.data.EmptyState;
@@ -104,6 +105,7 @@ public abstract class CollectionDetail<Row>
   private transient HttpRequest currentRequest;
 
   /** The request being served, handed over before the tree is built (see {@code RequestBound}). */
+  @Internal
   @Override
   public void bindRequest(HttpRequest httpRequest) {
     currentRequest = httpRequest;

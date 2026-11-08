@@ -199,32 +199,6 @@ public class InvoiceNumberGenerator implements ValueGenerator {
 
 ---
 
-## @GenericClass
-
-:::caution[Deprecated]
-`@GenericClass` is deprecated (since `3.0-alpha.410`) and will be removed: nothing ever read it.
-Mateu resolves type arguments from the declared generic type, so declare the field with its type
-argument instead — `List<MyDto> items`.
-:::
-
-**Target:** `FIELD`, `PARAMETER`
-
-Meant to provide the concrete generic type when Java type erasure hides it at runtime.
-
-```java
-public @interface GenericClass {
-    Class clazz();
-}
-```
-
-### Attributes
-
-| Attribute | Type | Description |
-|---|---|---|
-| `clazz` | `Class` | The concrete type argument (e.g. `MyDto.class`) |
-
----
-
 ## @Subresource
 
 No attributes. Marks a field as a sub-resource reference. Mateu renders it as a navigable link to a separate resource page rather than embedding it inline.

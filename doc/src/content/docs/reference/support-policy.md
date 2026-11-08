@@ -30,6 +30,20 @@ release are in [Known issues](/reference/known-issues/).
   renderers of one release share one version number; a fix is released for all of them at once.
   Never mix versions in one app (use the `io.mateu:mateu-bom`).
 
+## How mature each part is in 3.0
+
+Not every part of Mateu carries the same promise. The fixes table above applies to all of them; what
+changes is how complete each part is and whether its interface may still move.
+
+| Level | What it means | In 3.0 |
+|---|---|---|
+| **Stable** | Covered by [Stability & versioning](/reference/stability-and-versioning/): no breaking change within 3.x, deprecations first | The Java authoring API (`mateu-uidl`) and archetypes, the Java adapters (Spring MVC, WebFlux, Quarkus, Micronaut, Helidon MP), YAML authoring (`specs/ui/**` and its schemas), static bundles, the wire, the Vaadin and Redwood web renderers — minus what is marked `@Experimental` |
+| **Supported with documented gaps** | Fixed like everything else and under the same API rules, but it does not cover the whole Java surface yet; what it lacks is listed, row by row, in the [feature parity matrix](/reference/parity/) | The **.NET** (`Mateu.*`) and **Python** (`mateu-ui`) servers; the native renderers (React Native app, IntelliJ plugin / desktop app) |
+| **Preview** | Usable and tested, but its behaviour, files and commands may change in any release, including a patch, and it is not part of the 3.0 promise | The **Figma → YAML** pipeline ([Figma design-to-code](/design-systems/figma/)), the **visual editor** ([Authoring with the visual editor](/define/yaml/visual-editor/)) and the **VS Code extension** ([IDE tooling](/native/ide-tooling/)) |
+
+The YAML a preview tool writes is ordinary `specs/ui/**` YAML: the files are stable even where the
+tool is not, so nothing you author with one is locked to it.
+
 ## Supported platforms
 
 What a release is built and tested against. A version outside these ranges may work, but a problem
@@ -50,7 +64,8 @@ that only reproduces there is not treated as a bug.
 
 The supported range of a runtime follows its vendor: when Microsoft ends support for a .NET
 version, or Python for a Python version, Mateu drops it in the next minor and says so in the
-CHANGELOG. .NET 8 reaches its end of support on 10 November 2026.
+CHANGELOG. .NET 8 reaches its end of support on 10 November 2026: **3.0 keeps `net8.0`** (a GA does
+not drop a target its betas shipped), and **3.1 drops it** — move to .NET 10 before upgrading.
 
 ### Renderers and tools
 
@@ -58,7 +73,7 @@ CHANGELOG. .NET 8 reaches its end of support on 10 November 2026.
 |---|---|
 | **Web renderers** (Vaadin, Redwood) | current versions of Chrome, Edge, Firefox and Safari (desktop, and Safari on iOS / Chrome on Android). The Redwood renderer loads Oracle JET from Oracle's CDN, so the browser must reach it |
 | **React Native app** | iOS and Android as supported by Expo SDK 57 (React Native 0.86) |
-| **IntelliJ plugin** | IntelliJ IDEA 2025.2 and 2025.3 (builds `252`–`253.*`). The range is raised once the JetBrains plugin verifier passes on the next line |
+| **IntelliJ plugin** | IntelliJ IDEA 2025.2 and later (build `252` on, no upper bound). Verified with the JetBrains plugin verifier against 2025.2, 2025.3, 2026.1, 2026.2 and 2026.3 |
 | **VS Code extension** | VS Code 1.85 or later |
 | **Node.js** | not needed to *use* Mateu — the renderers ship pre-built inside their jars. Building the renderers, the docs or the e2e suite from source needs Node 24 |
 

@@ -17,7 +17,7 @@ import jakarta.inject.Named;
 import java.util.List;
 import java.util.Map;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.ComponentState.wrap;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 
 @Named

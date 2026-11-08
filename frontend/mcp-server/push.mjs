@@ -101,7 +101,17 @@ export const isPushTool = (name) => PUSH_TOOL_NAMES.has(name);
 export function mcpUrl(env = process.env) {
   if (env.MATEU_MCP_URL) return env.MATEU_MCP_URL;
   if (!env.MATEU_BASE_URL) return null;
-  return env.MATEU_BASE_URL.replace(/\/+$/, "") + "/mateu/mcp";
+  return withoutTrailingSlashes(env.MATEU_BASE_URL) + "/mateu/mcp";
+}
+
+/**
+ * `url` without its trailing slashes. A scan from the end, not `/\/+$/`: that regex backtracks
+ * quadratically on a long run of slashes followed by anything else (CodeQL js/polynomial-redos).
+ */
+export function withoutTrailingSlashes(url) {
+  let end = url.length;
+  while (end > 0 && url.charCodeAt(end - 1) === 47 /* "/" */) end--;
+  return url.slice(0, end);
 }
 
 let processAgentKey = null;
