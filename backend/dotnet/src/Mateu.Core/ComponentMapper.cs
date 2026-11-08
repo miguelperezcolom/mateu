@@ -364,7 +364,8 @@ internal static class ComponentMapper
         Notification nt => new ClientSideComponentDto(
             new NotificationMetadataDto(nt.Title, nt.Text), FieldIdOr(nt.Id), [], nt.Style, nt.CssClasses, null),
 
-        _ => throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
+        _ => MoreComponentMapper.MapOrNull(component)
+             ?? throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
     };
 
     /// <summary>Reusable mapper for a slotted content component (drawer/dialog Content): an
@@ -509,6 +510,7 @@ internal static class ComponentMapper
             case HorizontalLayout hl: foreach (var i in hl.Content) Collect(i, ids); break;
             case VerticalLayout vl: foreach (var i in vl.Content) Collect(i, ids); break;
             case TabLayout tl: foreach (var t in tl.Tabs) Collect(t.Content, ids); break;
+            default: foreach (var child in MoreComponentMapper.ChildrenOf(c, ids)) Collect(child, ids); break;
         }
     }
 

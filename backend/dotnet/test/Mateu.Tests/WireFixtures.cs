@@ -701,6 +701,75 @@ public class GenericComponentsPage : IComponentTreeSupplier
     public string? Style => null;
 }
 
+// The last component types that used to be Java-only, in one component tree (more-components).
+[UI("conformance/more-components"), Title("More components")]
+public class MoreComponentsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new VerticalLayout
+    {
+        Content =
+        [
+            new BoardLayout
+            {
+                Id = "board",
+                Rows = [new BoardLayoutRow { Content = [
+                    new BoardLayoutItem { Content = new Text("Sales"), BoardCols = 2 },
+                    new BoardLayoutItem { Content = new Text("Stock"), BoardCols = 1 }] }],
+            },
+            new CarouselLayout
+            {
+                Id = "carousel", Content = [new Text("Slide 1"), new Text("Slide 2")],
+                Auto = true, Duration = 4000, Dots = true, Loop = true,
+            },
+            new Container { Content = new Text("Contained") },
+            new FullWidth { Content = new Text("Wide") },
+            new Scroller { Content = new Text("Scrolled"), Style = "height: 10rem" },
+            new FormItem { Id = "item", Content = [new Text("Field")] },
+            new FormSubSection("Address") { Content = [new Text("Street")] },
+            new MasterDetailLayout(new Text("Master")) { Id = "md", Detail = new Text("Detail") },
+            new ContextMenu
+            {
+                Menu = [new MenuOption("Orders") { Path = "/orders" }],
+                Wrapped = new Text("Right click me"), ActivateOnLeftClick = true,
+            },
+            new DirectoryMenu
+            {
+                Menu = [new MenuOption("Sales") { Path = "/sales", Submenu = [new MenuOption("Orders") { Path = "/sales/orders" }] }],
+            },
+            new MenuBar { Options = [new MenuOption("Home") { Path = "/home" }, new MenuOption("Help") { Path = "/help" }] },
+            new Grid
+            {
+                Id = "grid",
+                Content =
+                [
+                    new GridColumn { Id = "name", Label = "Name" },
+                    new GridGroupColumn("Occupancy")
+                    {
+                        Id = "occupancy",
+                        Columns =
+                        [
+                            new GridColumn { Id = "adults", Label = "Adults", DataType = "integer" },
+                            new GridColumn { Id = "children", Label = "Children", DataType = "integer" },
+                        ],
+                    },
+                ],
+                Rows = [new Dictionary<string, object> { ["name"] = "Ada", ["adults"] = 2, ["children"] = 1 }],
+                RowStripes = true,
+            },
+            new Chat("/chat/sse"),
+            new MessageList { Id = "messages", Items = [new MessageListItem("Hello", "Ada")] },
+            new MessageInput("send") { Id = "input" },
+            new NotFound { Title = "Not here", Message = "That page does not exist", BackRoute = "/", BackLabel = "Home" },
+            new VirtualList { Content = [new Text("Row 1"), new Text("Row 2")] },
+            new CookieConsent { Message = "We use cookies", Dismiss = "OK", Position = CookieConsentPosition.Bottom },
+            new FormEditor("{}"),
+            new Workflow("<bpmn/>"),
+        ],
+    };
+
+    public string? Style => null;
+}
+
 // Every trigger kind a view can declare (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
 // another action, OnValueChange of one field, and a [SubscribeTo] on the global bus.
 [UI("conformance/triggers"), Title("Triggers")]

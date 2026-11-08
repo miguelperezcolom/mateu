@@ -270,6 +270,8 @@ internal static class YamlComponentBuilder
             "Form" => BuildForm(map, partials, chain),
             // A reference to a named business component (components.yaml / [BusinessComponent]).
             "ComponentRef" => new ComponentRef(Str(map, "ref") ?? ""),
+            // the wire type Directory is the C# DirectoryMenu (System.IO.Directory is in every implicit using)
+            "Directory" => Generic(nameof(DirectoryMenu), map, partials, chain),
             var other => Generic(other, map, partials, chain) ?? new Text($"Unsupported component: {other}"),
         };
     }

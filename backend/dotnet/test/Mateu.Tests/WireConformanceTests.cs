@@ -230,6 +230,7 @@ public class WireConformanceTests
         { "crud-edit", typeof(ProductsCrud) },
         { "crud-view", typeof(ProductsCrud) },
         { "generic-components", typeof(Wire.GenericComponentsPage) },
+        { "more-components", typeof(Wire.MoreComponentsPage) },
         { "triggers", typeof(Wire.TriggersForm) },
         { "field-help", typeof(Wire.FieldHelpForm) },
         { "field-hints", typeof(Wire.FieldHintsPage) },
