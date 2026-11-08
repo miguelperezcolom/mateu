@@ -10,15 +10,19 @@ what is specific to Mateu.
 
 ## 1. Package
 
-Package exactly as the framework expects; the renderer (`mateu-vaadin` or `mateu-redwood`) is a jar of static
-assets on the classpath and travels inside your artifact.
+Package exactly as the framework expects. On the Java runtimes the renderer (`mateu-vaadin` or
+`mateu-redwood`) is a jar of static assets on the classpath and travels inside your artifact; the
+.NET and Python servers do not package it — ship the renderer jar (or its extracted `static/`
+folder) next to the app and point `MATEU_UI` at it.
 
 | Runtime | Build | Run |
 |---|---|---|
-| Spring Boot (MVC / WebFlux) | `mvn package` | `java -jar target/app.jar` |
+| Spring Boot (MVC / WebFlux) | `mvn package` | `java -jar target/<artifactId>-<version>.jar` |
 | Quarkus | `mvn package` (fast-jar) | `java -jar target/quarkus-app/quarkus-run.jar` |
 | Micronaut | `mvn package` | `java -jar target/app.jar` |
 | Helidon MP | `mvn package` | `java -jar target/<artifactId>.jar` (the Helidon parent drops the version from the name) |
+| ASP.NET Core | `dotnet publish -c Release -o out` | `MATEU_UI=mateu-vaadin-<version>.jar dotnet out/<App>.dll` |
+| FastAPI | — | `MATEU_UI=mateu-vaadin-<version>.jar uvicorn main:app --host 0.0.0.0 --port 8080` |
 
 Checks before you ship:
 

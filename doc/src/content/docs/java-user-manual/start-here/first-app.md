@@ -21,9 +21,18 @@ public class Home {
 This defines a screen at the root path (`/`) with a title and a container-style layout.
 
 :::note[In a generated project]
-The generated project already has a class at the root (the app shell, `Shell`, `@UI("")`), and two `@UI`
-classes cannot share a path — the build fails saying so. Give this one its own path,
-`@UI("/hello")`, and open http://localhost:8080/hello.
+The generated project already has a class at the root (the app shell, `Shell`, `@UI("")`) and a
+class called `Home` (its home page). So call this one `Hello`, leave out `@UI`, and add a menu entry
+for it to `Shell`:
+
+```java
+@Menu Hello hello;
+```
+
+The screen then lives inside the shell, at http://localhost:8080/hello, with the menu around it.
+(Giving it `@UI("/hello")` instead makes it an app of its own: it builds, but a deep link to
+`/hello` shows it **without** the shell. Two `@UI` classes cannot share a path — the build fails
+saying so.)
 :::
 
 ---

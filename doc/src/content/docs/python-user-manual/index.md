@@ -41,8 +41,8 @@ pip install "mateu-ui[server]"     # the package + uvicorn (any ASGI server work
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); it
 installs one top-level package, `mateu_ui`, and you import `mateu_ui.uidl` (the authoring API),
 `mateu_ui.dtos` (the wire model), `mateu_ui.core` (the engine) and `mateu_ui.fastapi` (the adapter).
-Versions move in lockstep with the Java artifacts: the `v3.0-alpha.N` release publishes `3.0.0aN`.
-Python 3.11–3.13 are tested.
+Versions move in lockstep with the Java artifacts: the `v3.0-beta.N` release publishes `3.0.0bN`.
+Python 3.11–3.13 are tested in CI (3.14 has been seen to work too).
 
 :::note[Upgrading from 3.0-alpha.428 or earlier]
 Before 3.0-beta the wheel installed four top-level packages: `mateu_uidl`, `mateu_dtos`,
@@ -54,7 +54,87 @@ Type checkers only see the new paths. To migrate, replace the prefixes:
 `mateu_fastapi` → `mateu_ui.fastapi`. The aliases go away in Mateu 4.
 :::
 
-## Run it
+## Start a new project
+
+An app shell with a menu and a CRUD, from an empty folder (the IDE wizards — IntelliJ
+**File › New › Project… › Mateu**, VS Code **Mateu: New Project…**, runtime **Python** — generate
+the same kind of project):
+
+```bash
+mkdir my-app && cd my-app
+python3 -m venv .venv && . .venv/bin/activate
+pip install "mateu-ui[server]"
+```
+
+`views.py` — the entity, where its rows live, the CRUD over it and the app shell whose menu leads to
+it:
+
+```python
+from enum import Enum
+from typing import Annotated
+from mateu_ui.uidl import ui, title, app, menu_item, Crud, Required, Money
+
+
+class ProductStatus(Enum):
+    AVAILABLE = "AVAILABLE"
+    OUT_OF_STOCK = "OUT_OF_STOCK"
+
+
+class Product:
+    id: Annotated[str, Required()] = ""
+    name: Annotated[str, Required()] = ""
+    price: Annotated[float, Money()] = 0.0
+    status: ProductStatus = ProductStatus.AVAILABLE
+
+
+store: dict[str, Product] = {}   # shared: the view models are created fresh on every request
+
+
+@ui("products")
+@title("Products")
+class Products(Crud[Product]):
+    def fetch(self, search):
+        return [p for p in store.values() if not search or search.lower() in p.name.lower()]
+
+    def get(self, id): return store.get(id)
+    def save(self, entity): store[entity.id] = entity
+    def delete(self, id): store.pop(id, None)
+
+
+@app("My app")
+class Shell:
+    @menu_item("Products")
+    def products(self) -> Products: return Products()
+```
+
+`main.py`:
+
+```python
+from fastapi import FastAPI
+from mateu_ui.fastapi import add_mateu
+import views
+
+app = FastAPI()
+add_mateu(app, views)
+```
+
+The server answers the Mateu API; to open it in a **browser** it also needs the web renderer, a
+jar on Maven Central (`mateu-ui` does not package it). Download the one of your version and point
+`MATEU_UI` at it:
+
+```bash
+V=MATEU_VERSION
+curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
+MATEU_UI=mateu-vaadin-$V.jar uvicorn main:app --port 8594   # http://localhost:8594
+```
+
+**New** creates, a row opens the record, **Edit** edits; `Required()` is checked in the browser and
+on the server. Add a screen by writing its `@ui` class (see [Forms](#forms)) and a `@menu_item`
+method returning it. To deploy, run it like any ASGI app — `uvicorn main:app --host 0.0.0.0 --port
+8080` (uvicorn listens on `127.0.0.1` unless told otherwise) — with `MATEU_UI` pointing at the jar
+or at its extracted `static/` folder.
+
+## Run it from the repository
 
 ```bash
 cd backend/python
@@ -83,7 +163,8 @@ EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web` — or
 `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8594`; the server must list that origin in its CORS
 settings), the IntelliJ plugin, or the Vaadin renderer's dev server (`MATEU_BACKEND=http://localhost:8594
 npm run dev` in `frontend/web/monorepo/apps/vaadin`: its proxy forwards `/mateu` to the backend).
-The server binds to `0.0.0.0`, so the iOS simulator and Android emulator reach it too.
+Started with `--host 0.0.0.0` (uvicorn's default is `127.0.0.1`), the server is reachable from the
+iOS simulator and the Android emulator too.
 
 Wire it up:
 

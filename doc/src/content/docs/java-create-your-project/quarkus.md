@@ -4,7 +4,16 @@ title: "Quarkus"
 
 ## Step 1: Have a Quarkus project
 
-Obviously you need a valid Quarkus project.
+Use an existing one, or create one with Quarkus's own generator (or at
+[code.quarkus.io](https://code.quarkus.io)) — the REST + Jackson extension is the one Mateu needs:
+
+```bash
+mvn io.quarkus.platform:quarkus-maven-plugin:create \
+    -DprojectGroupId=com.acme -DprojectArtifactId=my-app -Dextensions=rest-jackson -DnoCode
+```
+
+Prefer a complete project? Copy [`starters/quarkus`](https://github.com/miguelperezcolom/mateu/tree/master/starters/quarkus)
+instead: the app shell, a home page and a CRUD, with this exact setup.
 
 ## Step 2: Add Mateu dependencies
 
@@ -105,7 +114,20 @@ public class HelloWorld {
 
 ```
 
-When you run your Quarkus application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
+Run it — in development mode, or packaged:
+
+```bash
+mvn quarkus:dev
+# or
+mvn package && java -jar target/quarkus-app/quarkus-run.jar
+```
+
+and the UI is at [http://localhost:8080](http://localhost:8080) (for the code above, an empty page
+titled *Hello world*). The rest is the same Java as on any other runtime: the
+[quickstart](/java-user-manual/start-here/quickstart/)'s `Shell`, `Home`, `Product`, `ProductStore`
+and `Products` classes compile and run here unchanged — leave out its Spring `Application` class
+(Quarkus needs no main class) and replace this `HelloWorld`, which takes the same root path as
+`Shell`.
 
 
 ### Views as CDI beans

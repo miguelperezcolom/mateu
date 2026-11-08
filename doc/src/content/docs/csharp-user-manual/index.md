@@ -25,8 +25,8 @@ The implementation lives at [`backend/dotnet`](https://github.com/miguelperezcol
 ## Install
 
 Mateu.NET ships as four NuGet packages, versioned in lockstep with the Java artifacts (the release
-`v3.0-alpha.N` is `3.0.0-alpha.N` on NuGet). They target **net8.0 and net10.0**. An ASP.NET Core app
-needs only the adapter — it brings the other three:
+`v3.0-beta.N` is `3.0.0-beta.N` on NuGet). They target **net8.0 and net10.0** (a net9.0 app uses
+the net8.0 build). An ASP.NET Core app needs only the adapter — it brings the other three:
 
 ```bash
 dotnet add package Mateu.AspNetCore --prerelease
@@ -38,6 +38,98 @@ dotnet add package Mateu.AspNetCore --prerelease
 | `Mateu.Uidl` | A class library holding only your views (the attributes and fluent components) — pass its assembly to `AddMateu` (see below) |
 | `Mateu.Core` | Never directly — the engine is internal; `Mateu.AspNetCore` brings it (it exports only a few knobs: `DevSpecs`, `PartialRegistry`, `DocumentStore`, `InferenceSwitches`) |
 | `Mateu.Dtos` | Reading or producing the wire model |
+
+## Start a new project
+
+An app shell with a menu, a form and a CRUD, from an empty folder (the IDE wizards — IntelliJ
+**File › New › Project… › Mateu**, VS Code **Mateu: New Project…**, runtime **.NET** — generate the
+same kind of project):
+
+```bash
+dotnet new web -n MyApp && cd MyApp
+dotnet add package Mateu.AspNetCore --prerelease
+```
+
+`Program.cs` — `AddMateu()` finds every `[UI]`/`[App]` class of the app:
+
+```csharp
+using Mateu.AspNetCore;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMateu();
+var app = builder.Build();
+app.MapMateu();
+app.Run("http://0.0.0.0:8593");
+```
+
+`Products.cs` — the entity, where its rows live, the CRUD over it and the app shell whose menu leads
+to it:
+
+```csharp
+using Mateu.Uidl;
+using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
+
+public class Product
+{
+    [Required] public string Id { get; set; } = "";
+    [Required] public string Name { get; set; } = "";
+    [Range(0, double.MaxValue), Money] public double Price { get; set; }
+    public ProductStatus Status { get; set; }
+}
+
+public enum ProductStatus { Available, OutOfStock, Discontinued }
+
+// One shared store: the view models are created fresh on every request.
+public static class Store
+{
+    static readonly ConcurrentDictionary<string, Product> db = new();
+    public static IEnumerable<Product> Search(string? s) =>
+        db.Values.Where(p => string.IsNullOrEmpty(s) || p.Name.Contains(s, StringComparison.OrdinalIgnoreCase))
+                 .OrderBy(p => p.Id);
+    public static Product? Get(string id) => db.GetValueOrDefault(id);
+    public static void Save(Product p) => db[p.Id] = p;
+    public static void Delete(string id) => db.TryRemove(id, out _);
+}
+
+[UI("products"), Title("Products")]
+public class Products : Crud<Product>
+{
+    public override IEnumerable<Product> Fetch(string? search) => Store.Search(search);
+    public override Product? Get(string id) => Store.Get(id);
+    public override void Save(Product p) => Store.Save(p);
+    public override void Delete(string id) => Store.Delete(id);
+}
+
+[App("My app")]
+public class Shell
+{
+    [MenuItem("Products")] public Products Products() => new();
+}
+```
+
+The server answers the Mateu API; to open it in a **browser** it also needs the web renderer, which
+is a jar on Maven Central (the NuGet packages do not include it). Download the one of your version
+and point `MATEU_UI` at it:
+
+```bash
+V=MATEU_VERSION
+curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
+MATEU_UI=mateu-vaadin-$V.jar dotnet run      # http://localhost:8593: the shell, opening on Products
+```
+
+**New** creates, a row opens the record, **Edit** edits; `[Required]` is checked in the browser and
+on the server. Add a screen by writing its `[UI]` class (see [Forms](#forms)) and a `[MenuItem]`
+method returning it. To deploy, publish as any ASP.NET Core app and keep `MATEU_UI` (or
+`app.MapMateu(ui: "…")`) pointing at the jar — or at its extracted `static/` folder:
+
+```bash
+dotnet publish -c Release -o out
+MATEU_UI=/srv/mateu-vaadin-$V.jar dotnet out/MyApp.dll
+```
+
+In the `Development` environment the page shows a small 🐛 button (bottom right): Mateu's debug
+panel with the app state and data. It is not there in `Production`.
 
 ## Run it from the repository
 
