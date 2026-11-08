@@ -224,6 +224,11 @@ class GeneralOverview(ComponentTreeSupplier):
     def load(self, record_id: str):
         raise NotImplementedError
 
+    def record_label(self) -> str:
+        """The label of the record switcher ("Customer", "Project"…), so its options say what they
+        are; "" (default) = unlabelled (Java's ``GeneralOverview.recordLabel``). EXPERIMENTAL."""
+        return ""
+
     def overview(self, row):
         raise NotImplementedError
 
@@ -284,7 +289,7 @@ class GeneralOverview(ComponentTreeSupplier):
         return fluent.VerticalLayout(
             spacing=True,
             content=(
-                fluent.FormField(field_id="record", label="", options=tuple(options)),
+                fluent.FormField(field_id="record", label=self.record_label(), options=tuple(options)),
                 self._overview_with_info(row) if row is not None else self.empty_overview(),
             ),
         )

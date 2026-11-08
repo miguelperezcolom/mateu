@@ -276,7 +276,7 @@ class EditableViewHandlerMixin(MixinBase):
             "actions": actions,
             "initial_data": state | self._orchestrator_state(instance, rq),
         })
-        return self.fragment_response(title, component, rq)
+        return self.fragment_response(title, component, rq, self.lookup_labels(cls, instance, instance))
 
 
 __all__ = ["EditableViewHandlerMixin", "MD_PICK", "MD_ROUTE", "MD_STATE"]
