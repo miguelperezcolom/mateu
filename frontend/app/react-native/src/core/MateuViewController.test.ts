@@ -634,6 +634,39 @@ test('a LongTask streams Progress commands into the session task center: cancel,
   assert.equal(streams, 3, 'Retry re-dispatched the same streamed action');
 });
 
+test('a LongTask stream that breaks while its task runs is resumed: _progress-tasks, then _progress-resume', async () => {
+  const { c, session, calls } = harness([fragment(ssc({ actions: [{ id: 'importAll', sse: true }] }))]);
+  await c.initialLoad('/orders');
+  const streamed: Json[] = [];
+  const base = { taskId: 'task-r', title: 'Import', blocking: false, state: 'running' };
+  (session as any).api.runActionStream = async (rq: Json, onIncrement: (i: unknown) => void) => {
+    streamed.push(rq);
+    if (rq.actionId === 'importAll') {
+      onIncrement({ commands: [{ type: 'Progress', data: { ...base, fraction: 0.2 } }] });
+      return; // the connection dropped
+    }
+    onIncrement({ commands: [{ type: 'Progress', data: { ...base, state: 'done', text: 'Imported' } }], messages: [{ text: 'Import finished', persistence: 'inbox', key: 'k1' }] });
+  };
+  (session as any).api.runAction = (rq: Json) => {
+    calls.push({ kind: 'action', ...rq });
+    return Promise.resolve(rq.actionId === '_progress-tasks'
+      ? { commands: [{ type: 'Progress', data: { ...base, fraction: 0.6, etaSeconds: 40 } }] }
+      : {});
+  };
+  assert.equal(await c.runAction('importAll'), true);
+  await tick();
+  const asked = calls.find((x) => x.actionId === '_progress-tasks');
+  assert.deepEqual(asked?.parameters, { taskIds: ['task-r'] });
+  assert.equal(asked?.route, '/orders');
+  assert.deepEqual(streamed.map((s) => s.actionId), ['importAll', '_progress-resume']);
+  assert.deepEqual(streamed[1].parameters, { taskId: 'task-r' });
+  const task = session.tasks.get('task-r')!;
+  assert.equal(task.state, 'done', 'the resumed stream told how it ended — not "connection lost"');
+  assert.ok(task.origin.retry, 'the screen that started it is still here: Retry stays');
+  assert.ok(session.inbox.items().some((i) => i.id === 'k1'), 'the resumed stream\'s inbox message lands in the inbox');
+  assert.equal(session.reattach.has('task-r'), false);
+});
+
 test('a message offers every action, dedups by key, and an inbox message lands in the session inbox', async () => {
   const { c, notes, calls, session } = harness([{}]);
   c.applyIncrement({

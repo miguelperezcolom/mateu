@@ -4,6 +4,10 @@ import { MateuApiClient, setStreamingFetch } from '../api/MateuApiClient';
 
 // LongTask progress is read as a stream: React Native's own fetch buffers the whole body.
 setStreamingFetch(expoFetch as unknown as typeof fetch);
+// OS-level notifications (App.osNotifications): expo-notifications, local only (core/osNotifications.ts)
+import { setLocalNotifier } from '../core/osNotifications';
+import { platformNotifier } from '../ui/localNotifications';
+setLocalNotifier(platformNotifier());
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';

@@ -385,8 +385,12 @@ export class MateuViewController {
           (increment) => this.applyIncrement(increment as Json, origin),
           );
         } finally {
-          // a stream that ended without saying how its tasks ended (the connection dropped): failed
-          this.announceTaskEvents(this.session.tasks.failRunning(origin.taskIds!, 'The connection was lost before the task finished'));
+          // a stream that ended without saying how its tasks ended (the connection dropped): the
+          // server keeps them running for a while — resumed if it still has them, else failed
+          for (const id of origin.taskIds!) this.session.reattach.streamEnded(id);
+          if ([...origin.taskIds!].some((id) => this.session.tasks.get(id)?.state === 'running')) {
+            await this.session.reattach.reattach(this.session.reattachHost());
+          }
         }
         this.polling.actionSucceeded(generation, actionId);
         return true;
@@ -1026,7 +1030,19 @@ export class MateuViewController {
         // a long-running task (LongTask): upserted in the session's task center by taskId
         const progress = progressOf(cmdData);
         if (!progress) break;
-        origin?.taskIds?.add(progress.taskId);
+        if (origin?.taskIds && !origin.taskIds.has(progress.taskId)) {
+          origin.taskIds.add(progress.taskId);
+          // remembered for this session: if the stream breaks, the task can be resumed
+          if (progress.state === 'running') {
+            this.session.reattach.remember(progress.taskId, {
+              api: this.session.api,
+              route: this.currentRoute,
+              serverSideType: this.resolveActionTarget(origin.actionId) || null,
+            });
+          }
+          this.session.reattach.streamStarted(progress.taskId);
+        }
+        if (progress.state !== 'running') this.session.reattach.forget(progress.taskId);
         const event = this.session.tasks.upsert(progress, {
           cancel: () => void this.cancelTask(progress.taskId),
           retry: origin ? () => void this.runAction(origin.actionId, origin.parameters) : undefined,

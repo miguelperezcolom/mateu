@@ -12,7 +12,9 @@ import { CredentialScope, appStateFor } from './credentialScope.ts';
 import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
 import { AgentPushState } from './agentPush.ts';
 import { TaskCenter } from './taskCenter.ts';
-import { InboxStore } from './inbox.ts';
+import { InboxStore, inboxChangeOf } from './inbox.ts';
+import { TaskReattach, type ReattachHost } from './taskReattach.ts';
+import { toastOf } from './componentContext.ts';
 import { skewTexts, type SkewNotice } from './buildSkew.ts';
 import { uiLocale } from './money.ts';
 import type { StaticBundle } from './staticBundle.ts';
@@ -98,6 +100,17 @@ export class MateuSession {
   readonly tasks: TaskCenter;
   /** The notification inbox: the server's list + this session's own entries. */
   readonly inbox: InboxStore;
+  /** The tasks this UI's streams reported, to resume them when a stream breaks (core/taskReattach.ts). */
+  readonly reattach: TaskReattach;
+  private ownOsNotifications = false;
+  /** The app opted in to OS-level notifications (App.osNotifications; core/osNotifications.ts). */
+  get osNotifications(): boolean {
+    return this.storesFromSession ? this.storesFromSession.osNotifications : this.ownOsNotifications;
+  }
+  set osNotifications(value: boolean) {
+    if (this.storesFromSession) this.storesFromSession.osNotifications = value;
+    else this.ownOsNotifications = value;
+  }
 
   /** Host hook: show a non-blocking message (toast/snackbar). */
   notify: (title: string | null, text: string, variant: MessageVariant, options?: NotifyOptions) => void = () => {};
@@ -211,12 +224,57 @@ export class MateuSession {
     // per UI too: an island's task (its LongTask) shows in the app's task center
     this.tasks = storesFrom?.tasks ?? new TaskCenter();
     this.inbox = storesFrom?.inbox ?? new InboxStore();
+    this.reattach = storesFrom?.reattach ?? new TaskReattach();
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.
     this.api.onWireMismatch = (message) => this.notify(null, message, 'error', { duration: 30000 });
     // A redeployed backend / a screen built by an older deployment: one sticky notice with Reload.
     this.noticeTarget = storesFrom?.noticeTarget ?? this;
     this.api.onBuildNotice = (kind) => this.noticeTarget.showBuildNotice(kind);
+  }
+
+  /**
+   * What a reattached task's stream may do here: its messages are toasts (an `inbox` one also an
+   * entry of the session's inbox), an inbox change lands in the bell, a route action navigates.
+   * The screen that started the task may be gone, so nothing else of the increment applies.
+   */
+  reattachHost(): ReattachHost {
+    const owner = this.storesFromSession ?? this;
+    return {
+      tasks: this.tasks,
+      appState: this.appState,
+      navigate: (route) => owner.openView({ label: '', route, consumedRoute: '', serverSideType: '' }),
+      applyPageLevel: (increment) => {
+        for (const msg of Array.isArray(increment['messages']) ? increment['messages'] : []) {
+          const toast = msg && typeof msg === 'object' ? toastOf(msg as Record<string, unknown>) : null;
+          if (!toast) continue;
+          const actions = toast.actions
+            .filter((a) => !!a.route)
+            .map((a) => ({ label: a.label, style: a.style, onPress: () => owner.openView({ label: '', route: a.route!, consumedRoute: '', serverSideType: '' }) }));
+          owner.notify(toast.title, toast.text, toast.variant, {
+            duration: toast.duration,
+            actions,
+            sticky: toast.persistence === 'sticky' ? true : undefined,
+            key: toast.key,
+          });
+          if (toast.persistence === 'inbox') {
+            this.inbox.addSession({
+              id: toast.key ?? `message-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              title: toast.title || toast.text,
+              text: toast.title ? toast.text : null,
+              unread: true,
+              variant: toast.variant,
+              actions: toast.actions.filter((a) => !!a.route),
+            });
+          }
+        }
+        for (const cmd of Array.isArray(increment['commands']) ? increment['commands'] : []) {
+          if (cmd && typeof cmd === 'object' && (cmd as Record<string, unknown>)['type'] === 'NotificationsChanged') {
+            this.inbox.apply(inboxChangeOf((cmd as Record<string, unknown>)['data']));
+          }
+        }
+      },
+    };
   }
 
   /** The version-skew notice (en/es by the UI's locale), sticky, with a Reload button. */
