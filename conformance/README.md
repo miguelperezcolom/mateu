@@ -34,7 +34,9 @@ cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view
 A case with a `specs/ui/` directory is a **YAML case**: no fixture type at all. Each runner serves
 that directory as its specs (Java through a classloader overlay on a Mateu booted for the case
 alone, the ports by pointing their specs directory at it) and loads the `request.json` route. The
-first one, `definition-actions`, pins a definition-only page that declares `actions:`.
+first one, `definition-actions`, pins a definition-only page that declares `actions:`;
+`definition-triggers` one that declares `triggers:`, and `definition-proxied-listing` one whose
+listing rows and select options come from proxied catalogue entries.
 
 ## The contract
 

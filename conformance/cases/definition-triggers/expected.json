@@ -1,0 +1,76 @@
+{
+  "commands" : [ {
+    "data" : "Watch",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "colspan" : 1,
+            "dataType" : "integer",
+            "fieldId" : "amount",
+            "label" : "Amount",
+            "stereotype" : "regular",
+            "type" : "FormField"
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "type" : "VerticalLayout"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "style" : "max-width:900px;margin: auto;",
+      "triggers" : [ {
+        "actionId" : "preload",
+        "background" : true,
+        "condition" : "state.amount == null",
+        "timeoutMillis" : 250,
+        "times" : 1,
+        "type" : "OnLoad"
+      }, {
+        "actionId" : "refresh",
+        "eventName" : "something-happened",
+        "source" : "DOCUMENT",
+        "type" : "OnCustomEvent"
+      }, {
+        "actionId" : "follow",
+        "condition" : "event.detail.id != null",
+        "eventName" : "picked",
+        "from" : "picker",
+        "source" : "COMPONENT",
+        "type" : "OnCustomEvent"
+      }, {
+        "actionId" : "recompute",
+        "condition" : "state.amount > 0",
+        "propertyName" : "amount",
+        "type" : "OnValueChange"
+      }, {
+        "actionId" : "announce",
+        "calledActionId" : "preload",
+        "timeoutMillis" : 100,
+        "type" : "OnSuccess"
+      }, {
+        "actionId" : "apologise",
+        "calledActionId" : "preload",
+        "type" : "OnError"
+      }, {
+        "actionId" : "save",
+        "debounceMillis" : 500,
+        "type" : "AutoSave"
+      }, {
+        "actionId" : "bubbled",
+        "eventName" : "from-below",
+        "source" : "SELF",
+        "type" : "OnCustomEvent"
+      } ],
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

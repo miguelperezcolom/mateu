@@ -1,0 +1,98 @@
+{
+  "commands" : [ {
+    "data" : "Products",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "id" : "__restfetch__"
+      } ],
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "colspan" : 1,
+            "dataType" : "string",
+            "fieldId" : "category",
+            "label" : "Category",
+            "optionsSource" : {
+              "ref" : "categories"
+            },
+            "stereotype" : "select",
+            "type" : "FormField"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "autoFocusOnSearchText" : true,
+            "columns" : [ {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "identifier" : true,
+                "label" : "Name",
+                "stereotype" : "regular",
+                "type" : "GridColumn"
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Price",
+                "stereotype" : "regular",
+                "type" : "GridColumn"
+              },
+              "type" : "ClientSide"
+            } ],
+            "crudlType" : "table",
+            "filtersLayout" : "auto",
+            "gridLayout" : "auto",
+            "pageSize" : 10,
+            "rowsSource" : {
+              "ref" : "products"
+            },
+            "searchOnEnter" : true,
+            "searchable" : false,
+            "title" : "Products",
+            "type" : "Crud"
+          },
+          "sizing" : "fill",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "type" : "VerticalLayout"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "style" : "max-width:900px;margin: auto;",
+      "type" : "ServerSide"
+    }
+  } ],
+  "restSources" : [ {
+    "name" : "products",
+    "provenance" : "existing",
+    "source" : {
+      "itemsPath" : "items",
+      "labelPath" : "label",
+      "method" : "GET",
+      "proxy" : true,
+      "url" : "https://api.example/products",
+      "valuePath" : "value"
+    }
+  }, {
+    "name" : "categories",
+    "provenance" : "existing",
+    "source" : {
+      "labelPath" : "name",
+      "method" : "GET",
+      "proxy" : true,
+      "url" : "https://api.example/categories",
+      "valuePath" : "code"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

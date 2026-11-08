@@ -1,0 +1,18 @@
+# A definition-only page whose listing rows and select options come from PROXIED catalogue entries:
+# the browser asks this server for them (__restfetch__), the server calls the API with its key.
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: category
+      label: Category
+      dataType: string
+      stereotype: select
+      optionsSource: {ref: categories}
+    - type: Listing
+      id: products
+      title: Products
+      rowsSource: {ref: products}
+      columns:
+        - {type: GridColumn, id: name, label: Name, identifier: true}
+        - {type: GridColumn, id: price, label: Price}
