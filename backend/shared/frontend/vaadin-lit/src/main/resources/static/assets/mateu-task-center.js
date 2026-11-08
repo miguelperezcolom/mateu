@@ -1,30 +1,31 @@
 
-import{S as e,T as t,i as n,k as r,o as i,x as a}from"./vendor-lit.js";import{C as o,Lt as s,i as c,x as l}from"./rowRoute.js";import{n as u,r as d}from"./chromeTexts.js";import{t as f}from"./announcer.js";import{F as p,N as m,O as h,a as g,c as _,d as v,f as y,i as b,l as x,n as S,o as C,p as w,r as T,s as E,t as D,u as O}from"./mateu-vaadin.js";var k=`_progress-cancel`,A=async e=>{let t=v.find(e);if(!t)return;let n=t.origin??{};try{let t=await o.runAction(n.baseUrl??``,n.route||`_no_route`,``,k,`mateu-task-center`,void 0,n.serverSideType??``,{},{taskId:e},n.initiator??document.body,!0);for(let e of t?.commands??[])D(e,n)}catch{s({text:u(`taskCancelFailed`),variant:`error`},document.body)}},j=e=>{let t=v.find(e);t?.origin?.retry&&(v.dismiss(e),t.origin.retry())},M=(e,t)=>{let n=v.find(e)?.origin?.initiator;if(n?.isConnected)w(t,n);else if(t.route){let e=S();e&&l.confirmLeave()&&c(e,t.route)}else console.debug?.(`mateu: the screen that started the task is gone; its action cannot run there`,t.actionId)},N=class extends a{constructor(...e){super(...e),this.tasks=v.state,this.listOpen=!1,this.now=Date.now(),this.announced=new Map}connectedCallback(){super.connectedCallback(),this.unsubscribe=v.subscribe(e=>this.onTasks(e)),this.onTasks(v.state)}disconnectedCallback(){super.disconnectedCallback(),this.unsubscribe?.(),this.unsubscribe=void 0,clearInterval(this.ticker),this.ticker=void 0,clearTimeout(this.closer),this.releaseTrap()}onTasks(e){this.tasks=e,this.now=Date.now();for(let t of e.entries)this.announceChange(t);let t=b(e).running>0;t&&!this.ticker?this.ticker=setInterval(()=>{this.now=Date.now()},1e3):!t&&this.ticker&&(clearInterval(this.ticker),this.ticker=void 0),this.scheduleAutoClose()}announceChange(e){let t=e.progress.taskId,n=e.progress.state??`running`;if(this.announced.get(t)===n)return;this.announced.set(t,n);let r=e.progress.title||u(`tasks`);f(d(n===`running`?`taskStarted`:n===`done`?`taskFinishedAnnounce`:n===`failed`?`taskFailedAnnounce`:`taskCancelledAnnounce`,{title:r}),{politeness:`polite`})}scheduleAutoClose(){clearTimeout(this.closer);let e=this.tasks.entries.filter(e=>e.progress.blocking&&E(e.progress)&&e.finishedAt!==void 0&&(e.progress.closeAfterSeconds??0)>0).map(e=>e.finishedAt+e.progress.closeAfterSeconds*1e3-Date.now()).filter(e=>e>0);e.length>0&&(this.closer=setTimeout(()=>{this.now=Date.now(),this.scheduleAutoClose()},Math.min(...e)+20))}updated(e){let t=T(this.tasks,this.now),n=this.renderRoot.querySelector(`.modal`);t&&n?this.trappedTask===t.progress.taskId?this.trap?.refresh():(this.releaseTrap(),this.trappedTask=t.progress.taskId,this.trap=h(n)):this.releaseTrap()}releaseTrap(){this.trap?.release(),this.trap=void 0,this.trappedTask=void 0}stateLabel(e){switch(e.progress.state){case`done`:return u(`taskDone`);case`failed`:return u(`taskFailed`);case`cancelled`:return u(`taskCancelled`);default:return u(`taskRunning`)}}renderBar(n){let r=n.progress,i=x(r),a=E(r)&&i===void 0?100:i,o=O(r),s=[r.text,o?d(`taskStepCount`,o):null].filter(Boolean).join(` · `);return t`
+import{S as e,T as t,i as n,k as r,o as i,x as a}from"./vendor-lit.js";import{C as o,Lt as s,i as c,x as l}from"./rowRoute.js";import{n as u,r as d}from"./chromeTexts.js";import{t as f}from"./announcer.js";import{B as p,F as m,H as h,_ as g,b as _,d as v,f as y,g as b,h as x,m as S,n as C,o as w,p as T,r as E,s as D,t as O,u as k,v as A,y as j}from"./mateu-vaadin.js";var M=`_progress-cancel`,N=async e=>{let t=A.find(e);if(!t)return;let n=t.origin??{};try{let t=await o.runAction(n.baseUrl??``,n.route||`_no_route`,``,M,`mateu-task-center`,void 0,n.serverSideType??``,{},{taskId:e},n.initiator??document.body,!0);for(let e of t?.commands??[])w(e,n)}catch{s({text:u(`taskCancelFailed`),variant:`error`},document.body)}},P=e=>{let t=A.find(e);t?.origin?.retry&&(A.dismiss(e),t.origin.retry())},F=(e,t)=>{let n=A.find(e)?.origin?.initiator;if(n?.isConnected)_(t,n);else if(t.route){let e=D();e&&l.confirmLeave()&&c(e,t.route)}else console.debug?.(`mateu: the screen that started the task is gone; its action cannot run there`,t.actionId)},I=(e,t)=>{if(typeof e!=`number`||!Number.isFinite(e)||e<=0)return null;if(e<60)return u(`taskEtaUnderMinute`,t);if(e<3600){let n=Math.max(1,Math.round(e/60));if(n<60)return d(`taskEtaMinutes`,{n},t)}return d(`taskEtaHours`,{n:Math.max(1,Math.round(e/3600))},t)},L=class extends a{constructor(...e){super(...e),this.tasks=A.state,this.listOpen=!1,this.now=Date.now(),this.announced=new Map}connectedCallback(){super.connectedCallback(),this.unsubscribe=A.subscribe(e=>this.onTasks(e)),this.onTasks(A.state),this.unsubscribeOs=C(()=>this.requestUpdate())}disconnectedCallback(){super.disconnectedCallback(),this.unsubscribe?.(),this.unsubscribe=void 0,this.unsubscribeOs?.(),this.unsubscribeOs=void 0,clearInterval(this.ticker),this.ticker=void 0,clearTimeout(this.closer),this.releaseTrap()}onTasks(e){this.tasks=e,this.now=Date.now();for(let t of e.entries)this.announceChange(t);let t=v(e).running>0;t&&!this.ticker?this.ticker=setInterval(()=>{this.now=Date.now()},1e3):!t&&this.ticker&&(clearInterval(this.ticker),this.ticker=void 0),this.scheduleAutoClose()}announceChange(e){let t=e.progress.taskId,n=e.progress.state??`running`;if(this.announced.get(t)===n)return;this.announced.set(t,n);let r=e.progress.title||u(`tasks`);f(d(n===`running`?`taskStarted`:n===`done`?`taskFinishedAnnounce`:n===`failed`?`taskFailedAnnounce`:`taskCancelledAnnounce`,{title:r}),{politeness:`polite`})}scheduleAutoClose(){clearTimeout(this.closer);let e=this.tasks.entries.filter(e=>e.progress.blocking&&S(e.progress)&&e.finishedAt!==void 0&&(e.progress.closeAfterSeconds??0)>0).map(e=>e.finishedAt+e.progress.closeAfterSeconds*1e3-Date.now()).filter(e=>e>0);e.length>0&&(this.closer=setTimeout(()=>{this.now=Date.now(),this.scheduleAutoClose()},Math.min(...e)+20))}updated(e){let t=k(this.tasks,this.now),n=this.renderRoot.querySelector(`.modal`);t&&n?this.trappedTask===t.progress.taskId?this.trap?.refresh():(this.releaseTrap(),this.trappedTask=t.progress.taskId,this.trap=m(n)):this.releaseTrap()}releaseTrap(){this.trap?.release(),this.trap=void 0,this.trappedTask=void 0}stateLabel(e){switch(e.progress.state){case`done`:return u(`taskDone`);case`failed`:return u(`taskFailed`);case`cancelled`:return u(`taskCancelled`);default:return u(`taskRunning`)}}renderBar(n){let r=n.progress,i=b(r),a=S(r)&&i===void 0?100:i,o=g(r),s=[r.text,o?d(`taskStepCount`,o):null].filter(Boolean).join(` · `);return t`
             <div class="bar ${a===void 0?`bar--indeterminate`:``} bar--${r.state??`running`}"
                  role="progressbar" aria-label="${r.title||u(`progress`)}"
                  aria-valuemin="0" aria-valuemax="100"
                  aria-valuenow="${a===void 0?e:a}"
                  aria-valuetext="${s||e}">
                 <div class="bar-fill" style="${a===void 0?``:`width: ${a}%`}"></div>
-            </div>`}renderMeta(n){let r=O(n.progress);return t`
+            </div>`}renderMeta(n){let r=g(n.progress),i=S(n.progress)?null:I(n.progress.etaSeconds);return t`
             <div class="meta">
                 ${r?t`<span>${d(`taskStepCount`,r)}</span>`:e}
-                <span>${d(`taskElapsed`,{time:C(g(n,this.now))})}</span>
+                <span>${d(`taskElapsed`,{time:T(y(n,this.now))})}</span>
+                ${i?t`<span class="eta">${i}</span>`:e}
                 <span class="state state--${n.progress.state??`running`}">${this.stateLabel(n)}</span>
-            </div>`}renderButtons(n,r){let i=n.progress,a=i.taskId;return E(i)?t`
+            </div>`}renderButtons(n,r){let i=n.progress,a=i.taskId;return S(i)?t`
             <div class="buttons">
                 ${(i.resultActions??[]).map((e,n)=>t`
                     <button class="btn ${n===0||e.style===`primary`?`btn--primary`:``}"
-                            @click="${()=>{M(a,e),v.dismiss(a)}}">${y(e)}</button>`)}
+                            @click="${()=>{F(a,e),A.dismiss(a)}}">${j(e)}</button>`)}
                 ${i.state===`failed`&&i.retryable&&n.origin?.retry?t`
-                    <button class="btn btn--primary" @click="${()=>j(a)}">${u(`retry`)}</button>`:e}
-                <button class="btn" @click="${()=>v.dismiss(a)}">${u(r?`close`:`dismiss`)}</button>
+                    <button class="btn btn--primary" @click="${()=>P(a)}">${u(`retry`)}</button>`:e}
+                <button class="btn" @click="${()=>A.dismiss(a)}">${u(r?`close`:`dismiss`)}</button>
             </div>`:t`
                 <div class="buttons">
                     ${r&&i.backgroundable?t`
-                        <button class="btn" @click="${()=>v.moveToBackground(a)}">${u(`taskBackground`)}</button>`:e}
+                        <button class="btn" @click="${()=>A.moveToBackground(a)}">${u(`taskBackground`)}</button>`:e}
                     ${i.cancellable?t`
-                        <button class="btn" @click="${()=>void A(a)}">${u(`cancel`)}</button>`:e}
+                        <button class="btn" @click="${()=>void N(a)}">${u(`cancel`)}</button>`:e}
                 </div>`}renderTask(n,r){let i=n.progress;return t`
             <div class="task task--${i.state??`running`}">
                 <div class="task-title" id="${r?`mateu-task-title`:e}">${i.title}</div>
@@ -41,13 +42,15 @@ import{S as e,T as t,i as n,k as r,o as i,x as a}from"./vendor-lit.js";import{C 
             <div class="list" role="region" aria-label="${u(`tasks`)}">
                 <div class="list-head">
                     <span class="list-title">${u(`tasks`)}</span>
-                    ${b(this.tasks).finished>0?t`
-                        <button class="link" @click="${()=>v.clearFinished()}">${u(`tasksClearFinished`)}</button>`:e}
+                    ${v(this.tasks).finished>0?t`
+                        <button class="link" @click="${()=>A.clearFinished()}">${u(`tasksClearFinished`)}</button>`:e}
                     <button class="icon" aria-label="${u(`close`)}" @click="${()=>{this.listOpen=!1}}">✕</button>
                 </div>
                 ${n.length===0?t`<div class="empty">${u(`tasksNone`)}</div>`:e}
                 ${n.map(e=>this.renderTask(e,!1))}
-            </div>`}render(){let n=T(this.tasks,this.now),r=_(this.tasks).filter(e=>e!==n),i=b(this.tasks),a=r.length>0;return t`
+                ${O()?t`
+                    <button class="link os-notify" @click="${()=>void E()}">${u(`osNotificationsEnable`)}</button>`:e}
+            </div>`}render(){let n=k(this.tasks,this.now),r=x(this.tasks).filter(e=>e!==n),i=v(this.tasks),a=r.length>0;return t`
             ${n?this.renderModal(n):e}
             ${a?t`
                 <div class="dock">
@@ -153,5 +156,5 @@ import{S as e,T as t,i as n,k as r,o as i,x as a}from"./vendor-lit.js";import{C 
         }
         .link { background: none; border: none; color: var(--lumo-primary-text-color, #1565c0); padding: 0.2rem; }
         .icon { background: none; border: none; color: inherit; padding: 0.2rem 0.4rem; }
-        ${m}
-    `}};p([n()],N.prototype,`tasks`,void 0),p([n()],N.prototype,`listOpen`,void 0),p([n()],N.prototype,`now`,void 0),N=p([i(`mateu-task-center`)],N);export{N as MateuTaskCenter};
+        ${p}
+    `}};h([n()],L.prototype,`tasks`,void 0),h([n()],L.prototype,`listOpen`,void 0),h([n()],L.prototype,`now`,void 0),L=h([i(`mateu-task-center`)],L);export{L as MateuTaskCenter};

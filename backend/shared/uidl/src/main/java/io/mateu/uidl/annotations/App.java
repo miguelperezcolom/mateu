@@ -172,6 +172,26 @@ public @interface App {
   boolean liveUpdates() default false;
 
   /**
+   * OS-LEVEL NOTIFICATIONS: while the app is not in front, a new unread inbox entry and a
+   * background task that finished are also shown as notifications of the operating system (the Web
+   * Notifications API in a browser, a local notification on a phone, a system notification from the
+   * IDE). Opt-in, and the renderer asks the user's permission only when the user asks for it (a
+   * "Notify me on this device" control in the bell / task center) — never on load.
+   */
+  @Experimental("progress and notifications (3.0)")
+  boolean osNotifications() default false;
+
+  /**
+   * The notification bell without a {@link io.mateu.uidl.interfaces.NotificationsSupplier}: the
+   * inbox lists what the {@link io.mateu.uidl.interfaces.InboxStore} keeps for the caller — every
+   * {@code Message} sent with persistence {@code inbox} to a signed-in user. An app that implements
+   * {@code NotificationsSupplier} has the bell anyway (the store's entries are merged into its
+   * list).
+   */
+  @Experimental("progress and notifications (3.0)")
+  boolean inbox() default false;
+
+  /**
    * IDLE-SESSION WARNING: after this many minutes without any activity (keyboard, pointer, scroll —
    * in ANY tab of the app) a modal warns that the session is about to end and counts down {@link
    * #idleWarningSeconds()}; "Stay signed in" runs the app-level {@code _keep-alive} action (hook it

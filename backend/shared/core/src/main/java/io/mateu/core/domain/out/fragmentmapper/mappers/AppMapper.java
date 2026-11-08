@@ -113,6 +113,7 @@ public final class AppMapper {
             .headerValues(AppShellExtrasMapper.headerValues(app, httpRequest))
             .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
             .agentPush(io.mateu.core.application.agentpush.AgentPush.enabled())
+            .osNotifications(AppShellExtrasMapper.osNotifications(app))
             .idleSession(AppShellExtrasMapper.idleSession(app))
             .notificationsSource(
                 app.notifications() != null
@@ -233,6 +234,9 @@ public final class AppMapper {
    */
   private static boolean isNotificationsEnabled(AppShell app) {
     if (app.notifications() != null && app.notifications().source() != null) {
+      return true;
+    }
+    if (AppShellExtrasMapper.inbox(app)) {
       return true;
     }
     if (app.serverSideType() == null) {

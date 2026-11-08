@@ -472,6 +472,9 @@
         "notificationsSource" : {
           "$ref" : "#/$defs/RestDataSourceDto"
         },
+        "osNotifications" : {
+          "type" : "boolean"
+        },
         "requiredCapabilities" : {
           "type" : "array",
           "items" : {

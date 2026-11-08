@@ -29,6 +29,7 @@ application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
 application -> infra: io/mateu/core/application/i18n/TranslationRegistry.java
 application -> infra: io/mateu/core/application/mcp/McpEndpoint.java
 application -> infra: io/mateu/core/application/mcp/McpJsonRpc.java
+application -> infra: io/mateu/core/application/notifications/Inbox.java
 application -> infra: io/mateu/core/application/progress/ProgressTasks.java
 application -> infra: io/mateu/core/application/runaction/ActionInstanceCreator.java
 application -> infra: io/mateu/core/application/runaction/ActionRegistry.java
