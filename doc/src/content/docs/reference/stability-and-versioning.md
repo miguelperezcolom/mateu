@@ -163,6 +163,11 @@ Experimental today:
 
 The exact list, type by type, is [generated from the code](#stable-and-experimental-api-by-package).
 
+Beyond the API, three **tools** are in **preview** in 3.0 — the Figma → YAML pipeline, the visual
+editor and the VS Code extension — and the .NET and Python servers are **supported with documented
+gaps**; [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30) says what
+that means.
+
 ### Stable and experimental API, by package
 
 Everything public in these packages is **stable** unless it is listed as experimental or internal
