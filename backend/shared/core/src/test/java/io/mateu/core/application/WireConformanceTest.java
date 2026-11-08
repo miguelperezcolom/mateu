@@ -476,6 +476,33 @@ class WireConformanceTest {
     public String caption = "Hello";
   }
 
+  /**
+   * Constraints on a field locked by permission: a {@code @ReadOnlyUnless(roles = "manager")}
+   * field, for an anonymous caller, and a class-level one locking the rest of the view.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation-unless")
+  @Title("Locked by permission")
+  public static class LockedByPermissionForm {
+    @NotEmpty public String name = "Ada";
+
+    @NotEmpty
+    @io.mateu.uidl.annotations.ReadOnlyUnless(roles = "manager")
+    public String notes = "n/a";
+  }
+
+  /** Constraints on a class-level {@code @ReadOnly} view. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation-read-only-view")
+  @Title("Read-only view")
+  @io.mateu.uidl.annotations.ReadOnly
+  public static class ReadOnlyValidatedView {
+    @NotEmpty public String name = "Ada";
+
+    @Size(min = 3)
+    public String code = "ABC";
+  }
+
   /** The stereotype vocabulary: slider/stars on ints, password/textarea on strings. */
   @SuppressWarnings("unused")
   @UI("/conformance/stereotypes")
@@ -1822,6 +1849,8 @@ class WireConformanceTest {
           "validation",
           "validation-text",
           "validation-locked",
+          "validation-unless",
+          "validation-read-only-view",
           "stereotypes",
           "lookup",
           "tree-select",
@@ -1911,6 +1940,8 @@ class WireConformanceTest {
             ValidatedForm.class,
             ValidatedTextForm.class,
             LockedFieldsForm.class,
+            LockedByPermissionForm.class,
+            ReadOnlyValidatedView.class,
             Stereotypes.class,
             LookupForm.class,
             TreeSelectForm.class,

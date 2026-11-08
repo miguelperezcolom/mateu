@@ -133,10 +133,11 @@ def test_a_conditionally_hidden_field_is_relaxed_while_hidden():
 
 def test_a_locked_field_keeps_its_constraint_like_the_java_reference():
     # Java's rendersAsInput does not drop a field-level @ReadOnly / @PlainText field (conformance
-    # validation-locked); a display-only Text field has no constraint to send, a read-only VIEW none
+    # validation-locked), nor a @read_only class (validation-read-only-view); a display-only Text
+    # field has no constraint to send
     assert ("locked", REQUIRED("locked"), "Cannot be empty") in entries(Constrained)
     assert not [e for e in entries(Constrained) if e[0] == "caption"]
-    assert entries(ReadOnlyView) == []
+    assert entries(ReadOnlyView) == [("name", REQUIRED("name"), "Cannot be empty")]
 
 
 def test_a_fractional_bound_keeps_its_decimals():

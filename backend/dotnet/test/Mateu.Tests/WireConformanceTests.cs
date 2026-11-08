@@ -208,6 +208,8 @@ public class WireConformanceTests
         { "validation", typeof(ValidatedForm) },
         { "validation-text", typeof(ValidatedTextForm) },
         { "validation-locked", typeof(LockedFieldsForm) },
+        { "validation-unless", typeof(LockedByPermissionForm) },
+        { "validation-read-only-view", typeof(ReadOnlyValidatedView) },
         { "stereotypes", typeof(Stereotypes) },
         { "lookup", typeof(LookupForm) },
         { "tree-select", typeof(TreeSelectForm) },
