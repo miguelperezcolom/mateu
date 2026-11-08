@@ -7,8 +7,11 @@ import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
 
 public class ActionOnRowActionHandler implements CrudOrchestratorActionHandler {
   @Override
@@ -42,6 +45,18 @@ public class ActionOnRowActionHandler implements CrudOrchestratorActionHandler {
                 rq.serverSideType(),
                 rq.serverSideComponentRoute());
         Object result = invoke(method, behaviour, command);
+        // a method that only TELLS the user something (a Message, or a list of them) changed the
+        // rows all the same: the listing refreshes and the message is shown — it used to keep
+        // showing the stale rows. Anything else (a navigation, a view, commands) is the method's
+        // own answer and is returned as it is.
+        var messages = messagesOnly(result);
+        if (messages != null) {
+          var refreshed = CrudActionResult.listingChanged(actionId, orchestrator);
+          for (var message : messages) {
+            refreshed = refreshed.withMessage(message);
+          }
+          return refreshed;
+        }
         if (result != null) {
           return result;
         }
@@ -49,5 +64,18 @@ public class ActionOnRowActionHandler implements CrudOrchestratorActionHandler {
       }
     }
     return CrudActionResult.listingChanged(actionId, orchestrator);
+  }
+
+  /** The messages when the result is nothing but messages; null otherwise. */
+  static List<Message> messagesOnly(Object result) {
+    if (result instanceof Message message) {
+      return List.of(message);
+    }
+    if (result instanceof Collection<?> collection
+        && !collection.isEmpty()
+        && collection.stream().allMatch(Message.class::isInstance)) {
+      return collection.stream().map(Message.class::cast).toList();
+    }
+    return null;
   }
 }
