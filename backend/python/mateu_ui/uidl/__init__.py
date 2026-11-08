@@ -211,6 +211,8 @@ from .listing import (  # noqa: F401
     E,
     Editable,
     F,
+    FilterCriterion,
+    FilterOperator,
     Filterable,
     GroupSummary,
     I,
@@ -416,4 +418,6 @@ __all__ = [
     # Editable views and master-detail views (Java's EditableView / AutoEditableView /
     # MasterDetailView orchestrators)
     "AutoEditableView", "DetailPart", "EditableView", "MasterDetailView", "NoSelection",
+    # typed crud search criteria (Java's FilterCriterion / FilterOperator)
+    "FilterCriterion", "FilterOperator",
 ]

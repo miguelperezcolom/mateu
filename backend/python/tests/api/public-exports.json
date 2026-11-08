@@ -61,6 +61,8 @@
   "FieldTypeCatalogSupplier",
   "FieldTypeEntry",
   "FileUpload",
+  "FilterCriterion",
+  "FilterOperator",
   "Filterable",
   "FlowStep",
   "Foldout",

@@ -283,7 +283,15 @@ class SearchHandlerMixin(MixinBase):
                 for s in sort
             ),
         )
-        found = crud.find(self.search_text(rq), state, pageable)
+        # a find declaring `criteria` gets the ranges / multi-selects TYPED and the equality values
+        # without their keys (Java's FilterCriteriaBuilder); an older 3-parameter one, the raw state
+        from .. import filter_criteria
+
+        if filter_criteria.accepts_criteria(crud.find):
+            criteria, example = filter_criteria.extract(element, state)
+            found = crud.find(self.search_text(rq), example, pageable, criteria=criteria)
+        else:
+            found = crud.find(self.search_text(rq), state, pageable)
         if found is not None:
             rows = _numbered(
                 [self._row_dict(item, props) for item in found.content], pageable.page, pageable.size

@@ -780,6 +780,11 @@
       "pageable",
       "POSITIONAL_OR_KEYWORD",
       false
+     ],
+     [
+      "criteria",
+      "POSITIONAL_OR_KEYWORD",
+      true
      ]
     ],
     "get": [
@@ -1447,6 +1452,33 @@
     ]
    ]
   },
+  "FilterCriterion": {
+   "class": [
+    [
+     "field",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "operator",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "values",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "FilterOperator": {
+   "enum": [
+    "between",
+    "gte",
+    "in_",
+    "lte"
+   ]
+  },
   "Filterable": {
    "class": [],
    "members": {
@@ -1839,6 +1871,11 @@
       "pageable",
       "POSITIONAL_OR_KEYWORD",
       false
+     ],
+     [
+      "criteria",
+      "POSITIONAL_OR_KEYWORD",
+      true
      ]
     ],
     "get": [
