@@ -3646,6 +3646,13 @@
       false
      ]
     ],
+    "step_applies": [
+     [
+      "step",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
     "step_skippable": [
      [
       "step",
