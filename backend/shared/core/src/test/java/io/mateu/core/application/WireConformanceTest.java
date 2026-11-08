@@ -572,6 +572,44 @@ class WireConformanceTest {
     }
   }
 
+  public static class Profile {
+    @NotEmpty public String name = "Ada";
+    public String city = "London";
+  }
+
+  /**
+   * An editable view: a read page with an Edit button that flips to the editor and back. Java's
+   * first load is a mediator, so the cases pin its two content loads (view and edit).
+   */
+  @UI("/conformance/editable-view")
+  @Title("Profile")
+  public static class ProfileView
+      extends io.mateu.core.infra.declarative.orchestrators.editableview.AutoEditableView<Profile> {
+    @Override
+    public Profile load(HttpRequest httpRequest) {
+      return new Profile();
+    }
+
+    @Override
+    public void persist(Profile entity, HttpRequest httpRequest) {}
+  }
+
+  /** A CRUD whose record view page leads its toolbar with a method of the crud. */
+  @UI("/conformance/view-toolbar-button")
+  @Title("Products")
+  public static class ProductsWithViewButton
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Product> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Product> store() {
+      return productStore();
+    }
+
+    @io.mateu.uidl.annotations.ViewToolbarButton(confirmationRequired = true)
+    public Message discontinue(Product product) {
+      return Message.success("Discontinued");
+    }
+  }
+
   /**
    * The {@code @Action} knobs the ports gained for 3.0 GA: a streamed background action, a
    * confirmation with its texts, a link, a client script and a custom event — each on the page's
@@ -1530,6 +1568,9 @@ class WireConformanceTest {
           java.util.Map.entry("dialog-placement", DialogPlacementPage.class),
           java.util.Map.entry("crud-hidden-in-edit", EmployeesCrud.class),
           java.util.Map.entry("crud-hidden-in-new", EmployeesCrud.class),
+          java.util.Map.entry("editable-view", ProfileView.class),
+          java.util.Map.entry("editable-view-edit", ProfileView.class),
+          java.util.Map.entry("view-toolbar-button", ProductsWithViewButton.class),
           java.util.Map.entry("rejected-save", RejectedSaveForm.class),
           java.util.Map.entry("error-boundary", FailingActionPage.class),
           java.util.Map.entry("wizard-step-2", SignUpWizard.class),
@@ -1600,7 +1641,10 @@ class WireConformanceTest {
           "section-options",
           "crud-hidden-in",
           "crud-hidden-in-edit",
-          "crud-hidden-in-new");
+          "crud-hidden-in-new",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button");
 
   static TestMateu mateu;
 
@@ -1662,7 +1706,9 @@ class WireConformanceTest {
             ActionExtrasPage.class,
             BrandedApp.class,
             SectionOptionsForm.class,
-            EmployeesCrud.class);
+            EmployeesCrud.class,
+            ProfileView.class,
+            ProductsWithViewButton.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -1833,7 +1879,10 @@ class WireConformanceTest {
           "crud-edit",
           "crud-view",
           "crud-hidden-in-edit",
-          "crud-hidden-in-new");
+          "crud-hidden-in-new",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button");
 
   private static JsonNode actual(String route) {
     var requested = REQUESTED.get(route);
@@ -1895,7 +1944,15 @@ class WireConformanceTest {
    * three runners.
    */
   static final Set<String> MEDIATED_FORMS =
-      Set.of("crud-new", "crud-edit", "crud-view", "crud-hidden-in-edit", "crud-hidden-in-new");
+      Set.of(
+          "crud-new",
+          "crud-edit",
+          "crud-view",
+          "crud-hidden-in-edit",
+          "crud-hidden-in-new",
+          "editable-view",
+          "editable-view-edit",
+          "view-toolbar-button");
 
   static JsonNode withoutMediatedRoute(JsonNode increment) {
     for (var fragment : increment.path("fragments")) {
