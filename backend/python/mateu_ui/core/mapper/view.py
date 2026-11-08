@@ -225,9 +225,13 @@ class ViewMapperMixin(MixinBase):
         # An Inline() embedded island blends into its host: a sub-heading title (level 1) and no
         # header badges/KPIs (Java's EditableView.isInline → PageView.level=1).
         inline = is_inline_request()
+        from .. import routed_tabs
+
         page_meta = PageMetadata(
             level=1 if inline else 0,
-            title=title,
+            # a routed tab's own page does not repeat the tab's label (Java's PageMapper +
+            # RouteChains.dedupeTitle)
+            title=routed_tabs.dedupe_title(title),
             # pageTitle is the humanized class name (the derived page identity); title is the
             # declared @title. They coincide when the class name humanizes to the @title (Java parity).
             page_title=humanize(cls.__name__),

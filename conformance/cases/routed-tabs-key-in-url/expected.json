@@ -1,0 +1,162 @@
+{
+  "commands" : [ {
+    "data" : "Network",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "id",
+                        "label" : "Id",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "children" : [ {
+                          "metadata" : {
+                            "colspan" : 1,
+                            "dataType" : "string",
+                            "fieldId" : "subnetsNote",
+                            "label" : "Subnets note",
+                            "optionsColumns" : 1,
+                            "sliderMax" : 100,
+                            "stereotype" : "regular",
+                            "type" : "FormField"
+                          },
+                          "type" : "ClientSide"
+                        } ],
+                        "metadata" : {
+                          "type" : "FormRow"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "autoResponsive" : true,
+                        "expandColumns" : true,
+                        "maxColumns" : 1,
+                        "type" : "FormLayout"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "label" : "Subnets",
+                      "routeKey" : "subnets",
+                      "type" : "Tab"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "children" : [ {
+                        "children" : [ {
+                          "metadata" : {
+                            "colspan" : 1,
+                            "dataType" : "string",
+                            "fieldId" : "gatewaysNote",
+                            "label" : "Gateways note",
+                            "optionsColumns" : 1,
+                            "sliderMax" : 100,
+                            "stereotype" : "regular",
+                            "type" : "FormField"
+                          },
+                          "type" : "ClientSide"
+                        } ],
+                        "metadata" : {
+                          "type" : "FormRow"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "autoResponsive" : true,
+                        "expandColumns" : true,
+                        "maxColumns" : 1,
+                        "type" : "FormLayout"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "active" : true,
+                      "label" : "Gateways",
+                      "routeKey" : "gateways",
+                      "type" : "Tab"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "groupRelationship" : "alternative",
+                    "type" : "TabLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Rt vcn page",
+          "pageType" : "form",
+          "title" : "Network",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "gatewaysNote" : "gateways",
+        "simulatorNote" : "simulator",
+        "subnetsNote" : "subnets"
+      },
+      "pageType" : "form",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "gatewaysNote" : "gateways",
+      "simulatorNote" : "simulator",
+      "subnetsNote" : "subnets"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

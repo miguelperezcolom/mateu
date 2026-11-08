@@ -877,6 +877,121 @@ class WireConformanceTest {
     }
   }
 
+  // ── Routed tabs: a record master whose registry children are its tabs (routed-tabs-*) ─────────
+
+  /**
+   * A record master: an {@code App(TABS)} with NO menu of its own, bound in code to {@code
+   * /conformance/rt/customers/:customerId} — its registry children are its tabs, each a page with
+   * its own URL.
+   */
+  @SuppressWarnings("unused")
+  @io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.TABS)
+  @Title("Customer")
+  public static class RtCustomerMaster {
+    public String customerId;
+  }
+
+  /**
+   * The master's {@code orders} tab: labelled by its {@code @Title}, which its page does not
+   * repeat.
+   */
+  @SuppressWarnings("unused")
+  @Title("Orders")
+  public static class RtOrdersTab {
+    public String customerId;
+    public String note = "orders";
+  }
+
+  /** The master's {@code notes} tab: no {@code @Title}, so labelled by its route segment. */
+  @SuppressWarnings("unused")
+  public static class RtNotesTab {
+    public String customerId;
+    public String text = "notes";
+  }
+
+  /** A master naming its default tab ({@code defaultChild: notes}). */
+  @SuppressWarnings("unused")
+  @io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.TABS)
+  @Title("Supplier")
+  public static class RtSupplierMaster {
+    public String supplierId;
+  }
+
+  /**
+   * In-page tabs that are URLs ({@code @Tab(key)}): {@code /conformance/rt/vcn/7/gateways} opens
+   * Gateways; a tab whose flag is off ({@code show}) is not offered.
+   */
+  @SuppressWarnings("unused")
+  @Title("Network")
+  public static class RtVcnPage {
+    public String id;
+
+    @Tab(value = "Subnets", key = "subnets")
+    public String subnetsNote = "subnets";
+
+    @Tab(value = "Gateways", key = "gateways")
+    public String gatewaysNote = "gateways";
+
+    @Tab(value = "Simulator", key = "simulator", show = "simulator")
+    public String simulatorNote = "simulator";
+  }
+
+  /** The routed-tabs chains, authored in code (the routes.yaml {@code children:} twin). */
+  public static class RoutedTabsRoutes implements io.mateu.uidl.interfaces.RouteEntrySupplier {
+    @Override
+    public List<io.mateu.uidl.data.RouteEntry> routes() {
+      return List.of(
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/rt/customers/:customerId",
+              null,
+              RtCustomerMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", RtOrdersTab.class.getName()),
+                  io.mateu.uidl.data.RouteEntry.of("notes", RtNotesTab.class.getName()),
+                  new io.mateu.uidl.data.RouteEntry(
+                      "audit",
+                      null,
+                      RtNotesTab.class.getName(),
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      "audit"))),
+          new io.mateu.uidl.data.RouteEntry(
+              "conformance/rt/suppliers/:supplierId",
+              null,
+              RtSupplierMaster.class.getName(),
+              null,
+              null,
+              null,
+              List.of(
+                  io.mateu.uidl.data.RouteEntry.of("orders", RtOrdersTab.class.getName()),
+                  io.mateu.uidl.data.RouteEntry.of("notes", RtNotesTab.class.getName())),
+              null,
+              null,
+              null,
+              null,
+              "notes"),
+          io.mateu.uidl.data.RouteEntry.of("conformance/rt/vcn/:id", RtVcnPage.class.getName()));
+    }
+  }
+
+  /** The deployment's flags: {@code audit} and {@code simulator} are off, the rest unknown (on). */
+  public static class ConformanceFlags implements io.mateu.uidl.interfaces.FeatureFlags {
+    @Override
+    public Boolean isEnabled(String flag, HttpRequest httpRequest) {
+      return "audit".equals(flag) || "simulator".equals(flag) ? Boolean.FALSE : null;
+    }
+  }
+
   /** The screen above the back-link app: its title labels the app's "← Parent" link. */
   @SuppressWarnings("unused")
   @UI("/conformance")
@@ -2171,7 +2286,15 @@ class WireConformanceTest {
           java.util.Map.entry("crud-nested-form", PurchaseOrdersCrud.class),
           // the record form's own component: its serverSideType is the ENTITY
           java.util.Map.entry("crud-nested-form-action", PurchaseOrder.class),
-          java.util.Map.entry("wizard-completion-error", RefusedSignUpWizard.class));
+          java.util.Map.entry("wizard-completion-error", RefusedSignUpWizard.class),
+          java.util.Map.entry("routed-tabs-master", RtCustomerMaster.class),
+          java.util.Map.entry("routed-tabs-master-on-tab", RtCustomerMaster.class),
+          java.util.Map.entry("routed-tabs-hidden-tab", RtCustomerMaster.class),
+          java.util.Map.entry("routed-tabs-default-child", RtSupplierMaster.class),
+          java.util.Map.entry("routed-tabs-tab", RtOrdersTab.class),
+          java.util.Map.entry("routed-tabs-segment-tab", RtNotesTab.class),
+          java.util.Map.entry("routed-tabs-keys", RtVcnPage.class),
+          java.util.Map.entry("routed-tabs-key-in-url", RtVcnPage.class));
 
   private static final List<String> CASES =
       List.of(
@@ -2268,7 +2391,15 @@ class WireConformanceTest {
           "crud-nested-form-action",
           "inline-form-rules",
           "page-back-link-chain-nested",
-          "page-back-link-code-shell");
+          "page-back-link-code-shell",
+          "routed-tabs-master",
+          "routed-tabs-master-on-tab",
+          "routed-tabs-hidden-tab",
+          "routed-tabs-default-child",
+          "routed-tabs-tab",
+          "routed-tabs-segment-tab",
+          "routed-tabs-keys",
+          "routed-tabs-key-in-url");
 
   static TestMateu mateu;
 
@@ -2284,7 +2415,7 @@ class WireConformanceTest {
     }
     mateu =
         TestMateu.withUisAndBeans(
-            List.of(new ConformanceRoutes()),
+            List.of(new ConformanceRoutes(), new RoutedTabsRoutes(), new ConformanceFlags()),
             SimpleForm.class,
             PageHeader.class,
             Tabs.class,

@@ -64,6 +64,7 @@
   "ExportFormat",
   "ExportedFile",
   "EyesOnly",
+  "FeatureFlags",
   "FieldType",
   "FieldTypeCatalogSupplier",
   "FieldTypeEntry",

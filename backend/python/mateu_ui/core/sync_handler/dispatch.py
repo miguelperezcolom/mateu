@@ -191,11 +191,25 @@ class DispatchMixin(MixinBase):
             if app_t is not None and self._app_menu_claims(app_t, rq.route, request_base_url):
                 return self.render_app(app_t, rq, request_base_url, home_route_override=rq.route)
 
+        # 0f. Routed tabs: an APP the client names by type that the AUTHORED route table binds under
+        # the request route (a record master, a deep link to one of its tabs) renders ITSELF — its
+        # tabs, the rest of the path as its home (Java's ActionInstanceCreator: the known type's
+        # mount, the app not on screen yet).
+        routed_mount = None
+        if not rq.action_id and rq.server_side_type:
+            from .. import routed_tabs
+
+            routed_mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
+            if routed_mount is not None:
+                master = self.registry.type_by_name(rq.server_side_type)
+                if master is not None and "__mateu_app__" in master.__dict__:
+                    return self.render_app(master, rq, request_base_url, routed_mount=routed_mount)
+
         # 0e. A menu leaf carries the APP's serverSideType (Java parity: there the app resolves its
         # own menu routes), so loading a menu route the app does not render itself — a route owned
         # by a registered view, or one of its CRUD sub-routes — loads that view, not the app again
         # (which the shell would nest inside its own content area).
-        if not rq.action_id and rq.server_side_type:
+        if not rq.action_id and rq.server_side_type and routed_mount is None:
             app_t = self.registry.resolve(rq.server_side_type, None)
             if app_t is not None and "__mateu_app__" in app_t.__dict__:
                 owner = self.registry.resolve_by_prefix(rq.route)
@@ -245,6 +259,15 @@ class DispatchMixin(MixinBase):
         # route resolution also runs in the browser (a statically deployed mount has no server to
         # ask) and a parameter pinned only there would be a suggestion, not a constraint.
         route_match = self.routes.match(rq.route)
+        if rq.server_side_type:
+            # the type the client names is resolved where it is MOUNTED in the route — the shortest
+            # prefix the authored table binds to it (Java's ActionInstanceCreator.mountOf): a page
+            # with routed in-page tabs on /vcn/7/gateways is the page answering /vcn/7
+            from .. import routed_tabs
+
+            mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
+            if mount is not None:
+                route_match = self.routes.match(mount)
         type_ = None
         client_state = dict(rq.component_state or {})
         route_seeds = False

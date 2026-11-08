@@ -48,6 +48,16 @@ page under a `:param` route that seeds nothing else (its BARE layout: a path par
 and `definition-path-params-seeded` the same page whose route also declares `defaultParams` (wrapped,
 its state carrying the path parameter too).
 
+The `routed-tabs-*` cases pin ROUTED TABS — a record master whose route-registry `children` are its
+tabs, and in-page `@Tab(key)` tabs that are URLs — over route chains authored in code
+(`RoutedTabsRoutes`, the routes.yaml `children:` twin) and a deployment's feature flags
+(`ConformanceFlags`, Java's `FeatureFlags` / .NET `IFeatureFlags` / Python `FeatureFlags`): the master
+offering its visible children as tabs and opening its default one (`-master`, `-default-child`), a deep
+link to a tab rendering the master with that tab as its home (`-master-on-tab`), a flagged-off tab left
+out of the bar while its route still answers (`-hidden-tab`), a tab's page not repeating the tab's
+label (`-tab`, `-segment-tab`: `RouteChains.dedupeTitle`), and the URL key opening an in-page tab
+(`-keys`, `-key-in-url`).
+
 ## The contract
 
 Each case names a **fixture** that every server implements with the same semantics — same route,

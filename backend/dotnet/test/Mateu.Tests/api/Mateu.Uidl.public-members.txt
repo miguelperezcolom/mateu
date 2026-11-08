@@ -22,9 +22,11 @@ Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyDictionary<Sy
 Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> FixedParams { get;init; }
 Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> State { get;init; }
 Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyList<Mateu.Core.RouteEntry> Children { get;init; }
+Mateu.Core.RouteEntry property System.String DefaultChild { get;init; }
 Mateu.Core.RouteEntry property System.String Definition { get;init; }
 Mateu.Core.RouteEntry property System.String Parent { get;init; }
 Mateu.Core.RouteEntry property System.String Route { get;init; }
+Mateu.Core.RouteEntry property System.String Show { get;init; }
 Mateu.Core.RouteEntry property System.String ViewModel { get;init; }
 Mateu.Core.RouteEntry static method Mateu.Core.RouteEntry Of(System.String, System.String)
 Mateu.Uidl.AIAttribute ctor(System.String)
@@ -1099,6 +1101,7 @@ Mateu.Uidl.IEditableView abstract method System.Object LoadEditor()
 Mateu.Uidl.IEditableView abstract method System.Object LoadView()
 Mateu.Uidl.IEditableView abstract method System.Void SaveEditor(System.Object)
 Mateu.Uidl.IEditableView property System.Boolean ReadOnly { get; }
+Mateu.Uidl.IFeatureFlags abstract method System.Boolean? IsEnabled(System.String)
 Mateu.Uidl.IFieldTypeCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FieldTypeEntry> FieldTypes()
 Mateu.Uidl.IFragmentCachePolicySupplier abstract method Mateu.Uidl.FragmentCachePolicy CachePolicy(Mateu.Uidl.IncomingRequest)
 Mateu.Uidl.IFragmentCacheStore abstract method System.String Get(System.String)
@@ -2096,7 +2099,9 @@ Mateu.Uidl.SwitcherType enum Context
 Mateu.Uidl.SwitcherType enum Object
 Mateu.Uidl.TabAttribute ctor(System.String)
 Mateu.Uidl.TabAttribute property System.Boolean Open { get;init; }
+Mateu.Uidl.TabAttribute property System.String Key { get;init; }
 Mateu.Uidl.TabAttribute property System.String Name { get; }
+Mateu.Uidl.TabAttribute property System.String Show { get;init; }
 Mateu.Uidl.TabLayout ctor()
 Mateu.Uidl.TabLayout property Mateu.Uidl.GroupRelationship? GroupRelationship { get;init; }
 Mateu.Uidl.TabLayout property System.Boolean Adaptable { get;init; }

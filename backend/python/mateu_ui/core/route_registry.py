@@ -103,6 +103,8 @@ def _flatten_node(
             data=_data_source_of(node, "data"),
             app_data=_data_source_of(node, "appData", "app_data"),
             access=_access_of(node.get("access")),
+            default_child=_normalize(node.get("defaultChild") or node.get("default_child")) or None,
+            show=node.get("show"),
         )
     )
     children = node.get("children")
@@ -178,6 +180,12 @@ class RouteEntry:
     #: Who may reach this route (``access:``). An unsatisfied restriction answers 403 — for this
     #: route AND every route nested under it — the same as a class-level ``@eyes_only``.
     access: Any = None
+    #: The child that opens when this route is reached on its own (its relative route); else the
+    #: first visible child (Java's RouteEntry.defaultChild).
+    default_child: str | None = None
+    #: A feature flag (optionally negated with ``!``): as a child route, the tab is offered only
+    #: while it is on — its route keeps answering (Java's RouteEntry.show).
+    show: str | None = None
 
     def restricts_access(self) -> bool:
         return self.access is not None and self.access.restricts()

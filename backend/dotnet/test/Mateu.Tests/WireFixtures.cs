@@ -859,6 +859,77 @@ public class BackLinkChainTab
     public string? Note { get; set; } = "orders";
 }
 
+// ── Routed tabs: a record master whose registry children are its tabs (routed-tabs-*) ─────────
+
+/// <summary>A record master with no menu of its own: its registry children are its tabs.</summary>
+[App("Customer", Variant = AppVariant.Tabs)]
+public class RtCustomerMaster
+{
+    public string? CustomerId { get; set; }
+}
+
+/// <summary>Labelled by its title, which its page does not repeat.</summary>
+[Title("Orders")]
+public class RtOrdersTab
+{
+    public string? CustomerId { get; set; }
+    public string? Note { get; set; } = "orders";
+}
+
+/// <summary>No title: labelled by its route segment.</summary>
+public class RtNotesTab
+{
+    public string? CustomerId { get; set; }
+    public string? Text { get; set; } = "notes";
+}
+
+/// <summary>A master naming its default tab (DefaultChild = "notes").</summary>
+[App("Supplier", Variant = AppVariant.Tabs)]
+public class RtSupplierMaster
+{
+    public string? SupplierId { get; set; }
+}
+
+/// <summary>In-page tabs that are URLs ([Tab(Key)]); a tab whose flag is off (Show) is not offered.</summary>
+[Title("Network")]
+public class RtVcnPage
+{
+    public string? Id { get; set; }
+    [Tab("Subnets", Key = "subnets")] public string? SubnetsNote { get; set; } = "subnets";
+    [Tab("Gateways", Key = "gateways")] public string? GatewaysNote { get; set; } = "gateways";
+    [Tab("Simulator", Key = "simulator", Show = "simulator")] public string? SimulatorNote { get; set; } = "simulator";
+}
+
+/// <summary>The routed-tabs chains, authored in code (Java's RoutedTabsRoutes).</summary>
+public class RoutedTabsRoutes : IRouteEntrySupplier
+{
+    private static readonly Dictionary<string, object?> None = new();
+
+    public IReadOnlyList<RouteEntry> Routes() =>
+    [
+        new("conformance/rt/customers/:customerId", null, typeof(RtCustomerMaster).FullName, None, None,
+            Children:
+            [
+                RouteEntry.Of("orders", typeof(RtOrdersTab).FullName!),
+                RouteEntry.Of("notes", typeof(RtNotesTab).FullName!),
+                RouteEntry.Of("audit", typeof(RtNotesTab).FullName!) with { Show = "audit" },
+            ]),
+        new RouteEntry("conformance/rt/suppliers/:supplierId", null, typeof(RtSupplierMaster).FullName, None, None,
+            Children:
+            [
+                RouteEntry.Of("orders", typeof(RtOrdersTab).FullName!),
+                RouteEntry.Of("notes", typeof(RtNotesTab).FullName!),
+            ]) { DefaultChild = "notes" },
+        RouteEntry.Of("conformance/rt/vcn/:id", typeof(RtVcnPage).FullName!),
+    ];
+}
+
+/// <summary>The deployment's flags: audit and simulator are off, the rest unknown (on).</summary>
+public class ConformanceFlags : IFeatureFlags
+{
+    public bool? IsEnabled(string flag) => flag is "audit" or "simulator" ? false : null;
+}
+
 /// <summary>The routes.yaml-equivalent chain of page-back-link-chain, authored in code (Java's
 /// ConformanceRoutes).</summary>
 public class ConformanceRoutes : IRouteEntrySupplier

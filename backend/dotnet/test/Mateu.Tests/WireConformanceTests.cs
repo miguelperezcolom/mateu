@@ -297,6 +297,14 @@ public class WireConformanceTests
         { "inline-form-rules", typeof(Wire.InlineFormRules) },
         { "page-back-link-chain-nested", typeof(Wire.BackLinkChainDeliveryTab) },
         { "page-back-link-code-shell", typeof(Wire.BackLinkChainTab) },
+        { "routed-tabs-master", typeof(Wire.RtCustomerMaster) },
+        { "routed-tabs-master-on-tab", typeof(Wire.RtCustomerMaster) },
+        { "routed-tabs-hidden-tab", typeof(Wire.RtCustomerMaster) },
+        { "routed-tabs-default-child", typeof(Wire.RtSupplierMaster) },
+        { "routed-tabs-tab", typeof(Wire.RtOrdersTab) },
+        { "routed-tabs-segment-tab", typeof(Wire.RtNotesTab) },
+        { "routed-tabs-keys", typeof(Wire.RtVcnPage) },
+        { "routed-tabs-key-in-url", typeof(Wire.RtVcnPage) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

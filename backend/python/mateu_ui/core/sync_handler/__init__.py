@@ -389,12 +389,19 @@ class SyncHandler(
             task_id = (rq.parameters or {}).get("taskId")
             identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
             return progress.cancel(None if task_id is None else str(task_id), identity)
+        from .. import routed_tabs
+
         pending, token = mfe.begin_pending()
+        # the request route + the deployment's flags, for the routed tabs deep in the mapping
+        routed = routed_tabs.begin(
+            rq.route, getattr(self.registry, "feature_flags", ()), self.routes, self.registry
+        )
         try:
             increment = self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))
             # a page under a back-link app (its routes.yaml chain) carries no trail of its own
             increment = with_back_link_breadcrumbs(increment, self.routes, self.registry, rq.route)
         finally:
+            routed_tabs.end(routed)
             mfe.end_pending(token)
         request = current_request()
         # the REMOTE side: a view other hosts embed declares on its loads whether they may cache it

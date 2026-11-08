@@ -289,8 +289,10 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // pageTitle is the humanized class name; title is the declared [Title] (falling back to the
         // same). Java derives pageTitle from the class, so a class whose [Title] differs from its
         // name emits two distinct header strings (mirrors ReflectionPageMapper).
+        // a routed tab's own page does not repeat the tab's label (Java's PageMapper +
+        // RouteChains.dedupeTitle)
         var pageMeta = new PageMetadataDto(
-            title, T(Naming.Humanize(type.Name)),
+            RoutedTabs.DedupeTitle(title), T(Naming.Humanize(type.Name)),
             OptT(type.Find<SubtitleAttribute>()?.Value), toolbar, buttons)
         {
             // an [Inline] island nests under the host section: its title demotes to a sub-heading

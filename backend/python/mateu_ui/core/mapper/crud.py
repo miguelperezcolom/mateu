@@ -11,6 +11,7 @@ from datetime import (
 )
 from decimal import Decimal
 
+from .. import routed_tabs
 from mateu_ui.dtos import (
     Action,
     Button,
@@ -192,7 +193,8 @@ class CrudMapperMixin(MixinBase):
         toolbar = bulk_buttons + toolbar
         crud = self.client(
             CrudMetadata(
-                title=title,
+                # a routed tab's own listing does not repeat the tab's label (Java's CrudlMapper)
+                title=routed_tabs.dedupe_title(title),
                 columns=columns,
                 toolbar=toolbar,
                 filters=self.crud_filters(element),
@@ -538,7 +540,7 @@ class CrudMapperMixin(MixinBase):
             )))
             actions.append(Action(id="action-on-row-select", validation_required=False))
         crud = self.client(
-            CrudMetadata(title=title if bridged else None, columns=columns, toolbar=toolbar,
+            CrudMetadata(title=routed_tabs.dedupe_title(title) if bridged else None, columns=columns, toolbar=toolbar,
                          filters_layout="auto" if bridged else "inline",
                          searchable=searchable,
                          can_edit=editable,

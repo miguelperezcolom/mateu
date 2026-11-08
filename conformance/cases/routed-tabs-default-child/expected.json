@@ -1,0 +1,39 @@
+{
+  "commands" : [ {
+    "data" : "Supplier",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "metadata" : {
+        "homeConsumedRoute" : "/conformance/rt/suppliers/3",
+        "homeRoute" : "/conformance/rt/suppliers/3/notes",
+        "layout" : "SINGLE_SLOT",
+        "menu" : [ {
+          "consumedRoute" : "/conformance/rt/suppliers/3",
+          "label" : "Orders",
+          "path" : "/orders",
+          "route" : "/conformance/rt/suppliers/3/orders",
+          "uriPrefix" : "/conformance/rt/suppliers/3",
+          "visible" : true
+        }, {
+          "consumedRoute" : "/conformance/rt/suppliers/3",
+          "label" : "Notes",
+          "path" : "/notes",
+          "route" : "/conformance/rt/suppliers/3/notes",
+          "uriPrefix" : "/conformance/rt/suppliers/3",
+          "visible" : true
+        } ],
+        "rootRoute" : "/conformance/rt/suppliers/3",
+        "route" : "/conformance/rt/suppliers/3",
+        "title" : "Supplier",
+        "totalMenuOptions" : 2,
+        "type" : "App",
+        "variant" : "TABS"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

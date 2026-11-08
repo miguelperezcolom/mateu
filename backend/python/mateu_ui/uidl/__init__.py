@@ -305,6 +305,7 @@ from .adapters import (  # noqa: F401
     ComponentAdapter,
 )
 from .i18n import Translations, TranslationsSupplier  # noqa: F401
+from .feature_flags import FeatureFlags  # noqa: F401
 from .request import ActionRequest  # noqa: F401
 from .editable_views import (  # noqa: F401
     AutoEditableView,
@@ -375,6 +376,7 @@ __all__ = [
     "Access",
     "Translations",
     "TranslationsSupplier",
+    "FeatureFlags",
     "Environment",
     "SourceOverride",
     "UserFacingException",

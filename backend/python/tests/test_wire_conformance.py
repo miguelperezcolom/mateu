@@ -1583,6 +1583,7 @@ class FluentCrudlOptionsPage(ComponentTreeSupplier):
 
 from mateu_ui.uidl import breadcrumbs, no_breadcrumbs  # noqa: E402
 from mateu_ui.core.route_registry import RouteEntry, RouteEntrySupplier  # noqa: E402
+from mateu_ui.uidl import FeatureFlags  # noqa: E402
 
 
 @ui("/conformance/page-no-breadcrumbs")
@@ -1638,6 +1639,73 @@ class BackLinkShellMaster(AppSupplier):
         return AppShell(title="Back link shell master", back_link=BackLink.PARENT)
 
 
+# ── Routed tabs: a record master whose registry children are its tabs (routed-tabs-*) ─────────
+
+
+@app("Customer", variant=AppVariant.TABS)
+class RtCustomerMaster:
+    """A record master with no menu of its own: its registry children are its tabs."""
+
+    customer_id: str | None = None
+
+
+@title("Orders")
+class RtOrdersTab:
+    """Labelled by its title, which its page does not repeat."""
+
+    customer_id: str | None = None
+    note: str | None = "orders"
+
+
+class RtNotesTab:
+    """No title: labelled by its route segment."""
+
+    customer_id: str | None = None
+    text: str | None = "notes"
+
+
+@app("Supplier", variant=AppVariant.TABS)
+class RtSupplierMaster:
+    """A master naming its default tab (default_child="notes")."""
+
+    supplier_id: str | None = None
+
+
+@title("Network")
+class RtVcnPage:
+    """In-page tabs that are URLs (Tab(key=…)); a tab whose flag is off (show=…) is not offered."""
+
+    id: str | None = None
+    subnets_note: Annotated[str, Tab("Subnets", key="subnets")] = "subnets"
+    gateways_note: Annotated[str, Tab("Gateways", key="gateways")] = "gateways"
+    simulator_note: Annotated[str, Tab("Simulator", key="simulator", show="simulator")] = "simulator"
+
+
+class RoutedTabsRoutes(RouteEntrySupplier):
+    """The routed-tabs chains, authored in code (Java's RoutedTabsRoutes)."""
+
+    def routes(self):
+        master = "conformance/rt/customers/:customerId"
+        suppliers = "conformance/rt/suppliers/:supplierId"
+        return [
+            RouteEntry(route=master, view_model=type_name(RtCustomerMaster)),
+            RouteEntry(route=master + "/orders", view_model=type_name(RtOrdersTab), parent=master),
+            RouteEntry(route=master + "/notes", view_model=type_name(RtNotesTab), parent=master),
+            RouteEntry(route=master + "/audit", view_model=type_name(RtNotesTab), parent=master, show="audit"),
+            RouteEntry(route=suppliers, view_model=type_name(RtSupplierMaster), default_child="notes"),
+            RouteEntry(route=suppliers + "/orders", view_model=type_name(RtOrdersTab), parent=suppliers),
+            RouteEntry(route=suppliers + "/notes", view_model=type_name(RtNotesTab), parent=suppliers),
+            RouteEntry(route="conformance/rt/vcn/:id", view_model=type_name(RtVcnPage)),
+        ]
+
+
+class ConformanceFlags(FeatureFlags):
+    """The deployment's flags: audit and simulator are off, the rest unknown (on)."""
+
+    def is_enabled(self, flag: str) -> bool | None:
+        return False if flag in ("audit", "simulator") else None
+
+
 class ConformanceRoutes(RouteEntrySupplier):
     """The routes.yaml-equivalent chain of page-back-link-chain, authored in code (Java's
     ConformanceRoutes; Python's RouteEntry is flat: the child names its parent)."""
@@ -1664,7 +1732,7 @@ class ConformanceRoutes(RouteEntrySupplier):
         ]
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules), ("page-back-link-chain-nested", BackLinkChainDeliveryTab), ("page-back-link-code-shell", BackLinkChainTab)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("validation-text", ValidatedTextForm), ("validation-locked", LockedFieldsForm), ("validation-unless", LockedByPermissionForm), ("validation-read-only-view", ReadOnlyValidatedView), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase), ("definition-triggers", YamlCase), ("definition-proxied-listing", YamlCase), ("bulk-actions", BulkProductsCrud), ("bulk-actions-listing", BulkBooks), ("bulk-actions-unlabeled", UnlabeledBulkBooks), ("wizard-completion-error", RefusedSignUpWizard), ("definition-path-params", YamlCase), ("definition-path-params-seeded", YamlCase), ("crud-nested-form", PurchaseOrdersCrud), ("crud-nested-form-action", PurchaseOrder), ("inline-form-rules", InlineFormRules), ("page-back-link-chain-nested", BackLinkChainDeliveryTab), ("page-back-link-code-shell", BackLinkChainTab), ("routed-tabs-master", RtCustomerMaster), ("routed-tabs-master-on-tab", RtCustomerMaster), ("routed-tabs-hidden-tab", RtCustomerMaster), ("routed-tabs-default-child", RtSupplierMaster), ("routed-tabs-tab", RtOrdersTab), ("routed-tabs-segment-tab", RtNotesTab), ("routed-tabs-keys", RtVcnPage), ("routed-tabs-key-in-url", RtVcnPage)]
 
 
 def test_every_case_of_the_corpus_is_wired():

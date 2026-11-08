@@ -1,0 +1,4 @@
+{
+  "route": "/conformance/rt/customers/7/orders",
+  "consumedRoute": "/conformance/rt/customers/7"
+}

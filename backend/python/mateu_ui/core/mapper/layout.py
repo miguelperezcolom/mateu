@@ -177,7 +177,7 @@ class LayoutMapperMixin(MixinBase):
         if any(f.has(Tab) for f in fields):
             # A tabbed form is wrapped in the same outlined section Card as a plain section (the
             # TabLayout nests under Div → VerticalLayout → TabLayout).
-            return [self._section_card_wrapper(self.tab_layout(cls, fields, instance, read_only))]
+            return [self._section_card_wrapper(*self.tabbed_body(cls, fields, instance, read_only))]
 
         # Group the declared fields into sections (title None = synthetic/unnamed section).
         sections: list[tuple[str | None, list]] = []
@@ -272,8 +272,29 @@ class LayoutMapperMixin(MixinBase):
             )]
         return cards
 
+    def tabbed_body(self, cls, fields, instance, read_only: bool) -> list[ClientSideComponent]:
+        """A tabbed form's body: the fields declared BEFORE the first Tab in a form layout of
+        their own above the tab strip, then the tabs (Java's FormTabArranger noTabFields +
+        FormLayoutBuilder)."""
+        first = next((i for i, f in enumerate(fields) if f.marker(Tab) is not None), len(fields))
+        untabbed, tabbed = fields[:first], fields[first:]
+        out: list[ClientSideComponent] = []
+        if untabbed:
+            max_columns = form_columns_inference.form_columns(cls)
+            out.append(self.client(
+                FormLayoutMetadata(max_columns=max_columns),
+                None,
+                self.form_rows(self.map_fields(untabbed, instance, read_only), max_columns),
+            ))
+        if tabbed:
+            out.append(self.tab_layout(cls, tabbed, instance, read_only))
+        return out
+
     def tab_layout(self, cls, fields, instance, read_only: bool) -> ClientSideComponent:
-        tabs: list[tuple[str, bool, list]] = []
+        from .. import routed_tabs
+
+        # (name, open, key, show, fields)
+        tabs: list[tuple[str, bool, str | None, str | None, list]] = []
         current = "Tab"
         for f in fields:
             tb = f.marker(Tab)
@@ -282,20 +303,34 @@ class LayoutMapperMixin(MixinBase):
             if not tabs or tabs[-1][0] != current:
                 # The field that opens a group carries its Tab.open flag (mirrors the Java
                 # pair.first().open() rule); fields before any Tab fall into the default group.
-                tabs.append((current, tb.open if tb is not None else False, []))
+                tabs.append((
+                    current,
+                    tb.open if tb is not None else False,
+                    tb.key if tb is not None else None,
+                    tb.show if tb is not None else None,
+                    [],
+                ))
             # map_fields: a SeparatorBefore() inside a tab paints its divider too (it was dropped)
-            tabs[-1][2].extend(self.map_fields([f], instance, read_only))
+            tabs[-1][4].extend(self.map_fields([f], instance, read_only))
+        # a tab whose `show` flag is off is not offered at all, its fields with it (Java's
+        # FormLayoutBuilder + FeatureFlagGate)
+        tabs = [t for t in tabs if routed_tabs.shows(t[3])]
+        # the tab the URL names (its key as the route's last segment) is the open one
+        routed_key = routed_tabs.routed_tab_key([t[2] for t in tabs])
         # A tab is marked active ONLY when it declares @Tab(open=True); the renderer defaults to
         # the first tab otherwise, so Java does not emit active on the default-selected tab.
         comps = []
         max_columns = form_columns_inference.form_columns(cls)
-        for i, (nm, is_open, fs) in enumerate(tabs):
+        for i, (nm, is_open, key, _show, fs) in enumerate(tabs):
             form_layout = self.client(
                 FormLayoutMetadata(max_columns=max_columns), None, self.form_rows(fs, max_columns)
             )
+            active = routed_key == key if routed_key is not None else bool(is_open)
             comps.append(
                 self.client(
-                    TabMetadata(label=self.T(nm), active=bool(is_open)), None, [form_layout]
+                    TabMetadata(label=self.T(nm), active=active, route_key=key or None),
+                    None,
+                    [form_layout],
                 )
             )
         # Developer-declared tabs always carry the group semantics; they are adaptable (renderers
@@ -510,7 +545,7 @@ class LayoutMapperMixin(MixinBase):
         if titled and title:
             card = self._titled_section_card(title, body, section, toolbar, footer)
         else:
-            card = self._section_card_wrapper(body, section)
+            card = self._section_card_wrapper(body, section=section)
         return _with_section_extras(card, section)
 
     def _affordance_button(self, kind: str, method: str, label: str) -> ClientSideComponent:
@@ -653,7 +688,7 @@ class LayoutMapperMixin(MixinBase):
 
     @staticmethod
     def _section_card_wrapper(
-        body: ClientSideComponent, section: Section | None = None
+        body: ClientSideComponent, *more: ClientSideComponent, section: Section | None = None
     ) -> ClientSideComponent:
         # A @Section maps to an outlined Card carrying the "mateu-section" marker class; its body
         # is nested under metadata.content as Div → VerticalLayout → <body> (mirrors Java's
@@ -662,7 +697,7 @@ class LayoutMapperMixin(MixinBase):
         # title member on the Card).
         vlayout = ClientSideComponent(
             metadata=VerticalLayoutMetadata(),
-            children=[body],
+            children=[body, *more],
             style="width: 100%;" + (section.style if section is not None and section.style else ""),
         )
         div = ClientSideComponent(

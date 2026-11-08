@@ -152,7 +152,7 @@ internal sealed partial class ReflectionMapper
             actions.Add(new ActionDto("action-on-row-" + button.ActionId, ValidationRequired: false));
         var gridLayout = viewType.GetMethod("GridLayout")!
             .Invoke(instance, []) as string ?? "auto";
-        var crud = Client(new CrudMetadataDto(hero is null ? title : null, columns, toolbar)
+        var crud = Client(new CrudMetadataDto(hero is null ? RoutedTabs.DedupeTitle(title) : null, columns, toolbar)
         {
             CanEdit = false,
             FiltersLayout = hero is null ? "auto" : "inline",
@@ -333,7 +333,7 @@ internal sealed partial class ReflectionMapper
         var (bulkButtons, bulkActions) = BulkToolbar(viewType, "action-on-row-", bubble: true);
         toolbar.InsertRange(0, bulkButtons);
         actions.AddRange(bulkActions);
-        var crudComponent = Client(new CrudMetadataDto(title, columns, toolbar)
+        var crudComponent = Client(new CrudMetadataDto(RoutedTabs.DedupeTitle(title), columns, toolbar)
         {
             Filters = MapCrudFilters(element),
             CrudlType = hero is not null ? "cards" : "table",
@@ -437,7 +437,7 @@ internal sealed partial class ReflectionMapper
         toolbar.InsertRange(0, bulkButtons);
         actions.InsertRange(1, bulkActions);
         var gridLayout = viewType.GetMethod("GridLayout", Type.EmptyTypes)?.Invoke(instance, []) as string ?? "auto";
-        var crud = Client(new CrudMetadataDto(bridged ? title : null, columns, toolbar)
+        var crud = Client(new CrudMetadataDto(bridged ? RoutedTabs.DedupeTitle(title) : null, columns, toolbar)
         {
             Searchable = profile.Searchable,
             FiltersLayout = bridged ? "auto" : "inline",
