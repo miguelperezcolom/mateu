@@ -36,6 +36,37 @@ export function slugify(name) {
   )
 }
 
+/** Every action id a converted value names: `actionId` and the `*ActionId` keys, at any depth. */
+export function actionIdsOf(value, out = new Set()) {
+  if (Array.isArray(value)) value.forEach((v) => actionIdsOf(v, out))
+  else if (isObject(value)) {
+    for (const [k, v] of Object.entries(value)) {
+      if (/^(actionId|.+ActionId)$/.test(k) && typeof v === 'string') out.add(v)
+      else actionIdsOf(v, out)
+    }
+  }
+  return out
+}
+
+/**
+ * A design can only NAME an action: what it does lives in the action catalogue (or a page's
+ * `actions:`, or a view model). A definition-only page advertises nothing else, so a button naming
+ * an undeclared id is dropped by the client without a word — this says so at conversion time.
+ * `declared` = the ids the specs/ui folder declares.
+ */
+export function undeclaredActionWarnings(files, declared) {
+  const warnings = []
+  for (const f of files) {
+    for (const id of actionIdsOf(f.value)) {
+      if (declared.has(id)) continue
+      warnings.push(
+        `${f.path}: action "${id}" is not declared in this specs/ui: declare it in actions.yaml (or bind a view model that handles it), or the button does nothing`,
+      )
+    }
+  }
+  return warnings
+}
+
 /** The contract, indexed for reading instances back. */
 export class Contract {
   constructor(json) {

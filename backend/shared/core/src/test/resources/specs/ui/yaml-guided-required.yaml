@@ -1,0 +1,20 @@
+type: Form
+title: Guided, with required fields
+toolbar:
+  - {type: Button, label: Finish, actionId: finish, buttonStyle: primary}
+template:
+  type: GuidedProcessPage
+  steps:
+    - id: one
+      title: One
+      content:
+        - {type: FormField, id: fullName, dataType: string, label: Name, required: true}
+    - id: two
+      title: Two
+      content:
+        - {type: FormField, id: nickname, dataType: string, label: Nickname, required: true}
+actions:
+  - id: finish
+    validationRequired: true
+    steps:
+      - {type: Navigate, route: about}

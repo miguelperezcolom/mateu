@@ -103,6 +103,13 @@ payload of seven Star Wars screens, built following the plugin's naming) against
 the real authoring validator and YAML loader in `backend/shared/core`
 (`FigmaYamlGoldenTest`), so the converter's output is pinned as a file Mateu actually reads.
 
+## A real file as a fixture (`e2e/`)
+
+`e2e/real-sample-screens.figma.json` is a file really composed in Figma with instances of the
+published kit (`GET /v1/files/:key`, trimmed by `e2e/trim.mjs`: no geometry, paint or file metadata):
+the REST shape of native slots and component properties as Figma answers it. `e2e/golden/` is its
+output, pinned by `to-yaml/test/real-sample.test.mjs` and read by `FigmaYamlGoldenTest`.
+
 ## Reading back (modux)
 
 modux's Figma importer (`model-driven-generator`, use case `importfigma`) downloads the file via

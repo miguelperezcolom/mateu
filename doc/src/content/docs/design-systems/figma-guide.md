@@ -187,6 +187,26 @@ menu:
     route: order
 ```
 
+**A button's `actionId` only names an action.** A generated page has no code behind it, so an action
+nobody declares does nothing when clicked. Declare it in your own `specs/ui/actions.yaml` (see
+[the action catalogue](/concepts/action-catalogue/)), which the converter never touches, or bind a
+view model to the route; the converter warns about every id it cannot find there. `required` fields
+are enforced by an action that declares `validationRequired: true`:
+
+```yaml
+type: Actions
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: contact-save}
+      successMessage: Saved
+```
+
+**What a design draws as a value is an illustration.** The `Value` of a `PropertyRow` or a
+`PlainText` is not written to the YAML: the real value comes from the page state (a route's `state:`
+or `data:`, a view model). Use a `Mateu/Display/Text` for text that really is fixed.
+
 Then run the app (`mvn spring-boot:run`) and open `http://localhost:8080/order`. The same files work
 on a .NET or Python backend, or as a [static bundle](/deploy/static-ui/) with no backend. What a
 design cannot say — the REST sources that feed a listing, the routes, actions beyond `actionId` /
