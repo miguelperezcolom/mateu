@@ -168,7 +168,10 @@ page that loads the row by its id, and a **New** button leads to a form whose sa
        sample: {ok: true}
    ```
 
-4. `product.yaml`, the record — read-only fields named like the response's keys:
+4. `product.yaml`, the record — read-only fields named like the response's keys. A REST value
+   arrives raw, so the page says what it is, as the listing's columns do: `stereotype: money`
+   formats the price, and `dataType: status` with its `options` shows `AVAILABLE` as an
+   "Available" chip:
 
    ```yaml
    type: Form
@@ -181,8 +184,15 @@ page that loads the row by its id, and a **New** button leads to a form whose sa
        content:
          - {type: FormField, id: id, label: Id, readOnly: true}
          - {type: FormField, id: name, label: Name, readOnly: true}
-         - {type: FormField, id: price, label: Price, readOnly: true}
-         - {type: FormField, id: status, label: Status, readOnly: true}
+         - {type: FormField, id: price, label: Price, stereotype: money, readOnly: true}
+         - type: FormField
+           id: status
+           label: Status
+           dataType: status
+           readOnly: true
+           options:
+             - {value: AVAILABLE, label: Available}
+             - {value: OUT_OF_STOCK, label: Out of stock}
    ```
 
 5. `product-new.yaml`, the form. Its **Save** runs the `create` action, which the page declares
