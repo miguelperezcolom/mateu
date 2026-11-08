@@ -127,21 +127,36 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
             .filter(c -> cl.getResource(c) != null)
             .findFirst()
             .orElse(candidates.isEmpty() ? "" : candidates.get(0));
+    String text = null;
     try (InputStream in = cl.getResourceAsStream(path)) {
       if (in == null) {
         log.warn("No partial definition for ref '{}' (looked for classpath:{})", ref, candidates);
         return NONE;
       }
-      var root = FieldTypeRegistry.resolveWithAppTypes(mapper.readTree(in));
+      text = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+      var root = FieldTypeRegistry.resolveWithAppTypes(mapper.readTree(text));
       if (root == null || root.isNull()) {
         return NONE;
       }
       if (root.has("content")) {
+        // Each component is read on its own: one that cannot be read is reported (file, path,
+        // reason) and left out, and the rest of the partial still renders.
         var content = new ArrayList<Component>();
-        for (var child : root.get("content")) {
-          var component = mapper.treeToValue(child, Component.class);
-          if (component != null) {
-            content.add(component);
+        var children = root.get("content");
+        for (int i = 0; i < children.size(); i++) {
+          try {
+            var component = mapper.treeToValue(children.get(i), Component.class);
+            if (component != null) {
+              content.add(component);
+            }
+          } catch (Exception e) {
+            var located =
+                com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(
+                    com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(
+                        e, children, i),
+                    root,
+                    "content");
+            content.addAll(unreadable(ref, path, text, located));
           }
         }
         return List.copyOf(content);
@@ -149,9 +164,27 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
       var single = mapper.treeToValue(root, Component.class);
       return single == null ? NONE : List.of(single);
     } catch (Exception e) {
-      log.error("Could not read partial '{}' from classpath:{}", ref, path, e);
+      return unreadable(ref, path, text, e);
+    }
+  }
+
+  /**
+   * A partial (or a component of it) that cannot be read: a WARN naming the file, the path inside
+   * it and the reason — the same one-paragraph diagnosis a broken page definition gets — and, in
+   * dev mode, a visible placeholder in its place. It used to vanish from the page, and the reason
+   * was buried in a stack trace that did not say where in the file the problem was.
+   */
+  private static List<Component> unreadable(String ref, String path, String text, Exception error) {
+    var problem = path + ", " + YamlSpecProblems.describeText(text, error);
+    log.warn("Could not read the partial '{}': {}. It is left out of the page.", ref, problem);
+    if (!io.mateu.core.infra.dev.DevMode.enabled()) {
       return NONE;
     }
+    return List.of(
+        io.mateu.uidl.data.Notice.builder()
+            .theme("danger")
+            .text("Could not read the partial " + problem)
+            .build());
   }
 
   private List<Component> fromClass(String ref, HttpRequest httpRequest) {
