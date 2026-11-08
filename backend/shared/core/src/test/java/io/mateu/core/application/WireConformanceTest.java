@@ -1661,6 +1661,25 @@ class WireConformanceTest {
     }
   }
 
+  /**
+   * A plain listing whose bulk method declares no {@code @Label}: Java labels the button with the
+   * bare method name (not humanised), in the listing's toolbar and in the page header's.
+   */
+  @UI("/conformance/bulk-actions-unlabeled")
+  @Title("Books")
+  public static class UnlabeledBulkBooks implements io.mateu.uidl.interfaces.Listing<Book> {
+    @Override
+    public io.mateu.uidl.data.ListingData<Book> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return books();
+    }
+
+    @io.mateu.uidl.annotations.ListToolbarButton
+    public Message markRead(List<Book> selection) {
+      return Message.success(selection.size() + " marked");
+    }
+  }
+
   /** A listing that is navigable: the id column becomes the link to the record. */
   @UI("/conformance/listing-navigable")
   @Title("Books")
@@ -1827,6 +1846,29 @@ class WireConformanceTest {
 
     @io.mateu.uidl.annotations.WizardCompletionAction
     public void signUp() {}
+  }
+
+  /**
+   * A wizard whose completion answers an error {@code Message}: the completion did not happen, so
+   * the wizard stays on its step and the answer is the message alone (no result step).
+   */
+  @UI("/conformance/wizard-completion-error")
+  @Title("Sign up")
+  public static class RefusedSignUpWizard
+      extends io.mateu.core.infra.declarative.orchestrators.wizard.Wizard {
+    public AccountStep account;
+    public PlanStep plan;
+    public DoneStep done;
+
+    @io.mateu.uidl.annotations.WizardCompletionAction
+    public Message signUp() {
+      // positioned like the ports' messages (a bare Message.error carries no position)
+      return Message.builder()
+          .variant(io.mateu.uidl.data.NotificationVariant.error)
+          .position(io.mateu.uidl.data.NotificationPosition.middle)
+          .text("No seats left on that plan.")
+          .build();
+    }
   }
 
   /**
@@ -2011,7 +2053,8 @@ class WireConformanceTest {
           java.util.Map.entry("crud-edit", ProductsCrud.class),
           java.util.Map.entry("crud-view", ProductsCrud.class),
           java.util.Map.entry("page-back-link-chain", BackLinkChainTab.class),
-          java.util.Map.entry("inline-form-action", InlineForm.class));
+          java.util.Map.entry("inline-form-action", InlineForm.class),
+          java.util.Map.entry("wizard-completion-error", RefusedSignUpWizard.class));
 
   private static final List<String> CASES =
       List.of(
@@ -2099,7 +2142,9 @@ class WireConformanceTest {
           "inline-form",
           "inline-form-action",
           "bulk-actions",
-          "bulk-actions-listing");
+          "bulk-actions-listing",
+          "bulk-actions-unlabeled",
+          "wizard-completion-error");
 
   static TestMateu mateu;
 
@@ -2187,7 +2232,9 @@ class WireConformanceTest {
             PageBreadcrumbs.class,
             InlineForm.class,
             BulkProductsCrud.class,
-            BulkBooks.class);
+            BulkBooks.class,
+            UnlabeledBulkBooks.class,
+            RefusedSignUpWizard.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

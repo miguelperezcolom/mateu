@@ -407,14 +407,20 @@ class CrudMapperMixin(MixinBase):
             display = replace(display, delete=Toggle.off)
         return display
 
-    def bulk_toolbar(self, cls, prefix: str, bubble: bool) -> tuple[list[Button], list[Action]]:
+    def bulk_toolbar(
+        self, cls, prefix: str, bubble: bool, plain: bool = False
+    ) -> tuple[list[Button], list[Action]]:
         """The ``@list_toolbar_button`` methods of ``cls`` as listing toolbar buttons and their
         advertised actions (Java's ``ToolbarButtons.listToolbarButton`` / ``toolbarAction``):
         dressed by a ``@toolbar`` on the same method (style, colour, size, separator; unset keeps
         the renderer's default), ordered by its ``order`` (stable), and behaving as an
         ``@action_options`` on it declares — confirmation texts, transport knobs — with the
         placement's confirmation/selection flags OR-ed in. Methods the caller may not see are
-        left out (refused on invocation anyway)."""
+        left out (refused on invocation anyway).
+
+        ``plain`` (a listing with no interaction capability, Java's PageListingBuilder): an
+        unlabelled button is labelled with the bare method name, as Java does there — the crud's
+        and a bridged listing's are humanised and translated (Java's FieldMetadataExtractor)."""
         from mateu_ui.uidl.method_decorators import ToolbarLook
 
         def look(fn) -> ToolbarLook:
@@ -432,8 +438,12 @@ class CrudMapperMixin(MixinBase):
             action_id = prefix + camel_case(name)
             style = getattr(fn, "__mateu_toolbar_style__", None)
             appearance = look(fn)
+            if plain:
+                label = marker.label if marker.label else camel_case(name)
+            else:
+                label = self.T(marker.label or humanize(name))
             buttons.append(Button(
-                label=self.T(marker.label or humanize(name)),
+                label=label,
                 action_id=action_id,
                 button_style=style if style and style != "none" else None,
                 color=appearance.button_color if appearance.button_color != "none" else None,
@@ -517,7 +527,7 @@ class CrudMapperMixin(MixinBase):
         # and lets them bubble (Java's CapabilityCrud → Crud.addButtonsToList); a plain one by
         # the method's own name, right after search (Java's Listing.actions + PageListingBuilder).
         bulk_buttons, bulk_actions = self.bulk_toolbar(
-            cls, "action-on-row-" if bridged else "", bubble=bridged)
+            cls, "action-on-row-" if bridged else "", bubble=bridged, plain=not bridged)
         toolbar = bulk_buttons + toolbar
         actions[1:1] = bulk_actions
         if issubclass(cls, Selector):

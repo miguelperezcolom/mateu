@@ -1,0 +1,10 @@
+{
+  "route": "/conformance/wizard-completion-error",
+  "actionId": "signUp",
+  "componentState": {
+    "position": 1,
+    "__step": 2,
+    "email": "ada@example.com",
+    "seats": 2
+  }
+}

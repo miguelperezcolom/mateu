@@ -722,6 +722,26 @@ public class WelcomeBannerPage
     public string? Name { get; set; } = "";
 }
 
+// The sign-up wizard whose completion is refused with an error Message: it stays on its step.
+// .NET's completion (OnNext) answers nothing, so the refusal is BeforeStepNavigate's — the hook
+// every completion passes through, whose answer becomes the response.
+[UI("conformance/wizard-completion-error"), Title("Sign up")]
+public class RefusedSignUpWizard : SignUpWizard
+{
+    public override object? BeforeStepNavigate(int from, int to) =>
+        to == 3 ? new Message("No seats left on that plan.", MessageVariant.Error) : null;
+}
+
+// A plain listing whose bulk method has no [Label]: Java labels it with the bare method name.
+[UI("conformance/bulk-actions-unlabeled"), Title("Books")]
+public class UnlabeledBulkBooks : IListing<Book>
+{
+    public ListingData<Book> Search(SearchRequest request) => ListingData.From(Books.All());
+
+    [ListToolbarButton]
+    public Message MarkRead(List<Book> selection) => new($"{selection.Count} marked");
+}
+
 // A three-step wizard: two data steps and the read-only result screen; the case pins step 1.
 [UI("conformance/wizard"), Title("Sign up")]
 public class SignUpWizard : Wizard

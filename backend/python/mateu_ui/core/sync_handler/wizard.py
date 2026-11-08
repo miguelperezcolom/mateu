@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from mateu_ui.dtos import UICommand, UIIncrement
-from mateu_ui.uidl import Draftable, Message, Step, Wizard
+from mateu_ui.uidl import Draftable, Message, MessageVariant, Step, Wizard
 from mateu_ui.uidl.progress import LongTaskRun
 
 from ..reflection import view_fields
@@ -65,6 +65,13 @@ class WizardHandlerMixin(MixinBase):
                 return self._long_task(outcome, rq, then=lambda: self.fragment_response(
                     self.title(type_), self.mapper.map_wizard(type_, wizard, route, total), rq
                 ))
+            if outcome is not None and not (
+                isinstance(outcome, Message) and outcome.variant != MessageVariant.ERROR
+            ):
+                # The completion did not complete: an error Message — or any other answer but a
+                # success/info Message — is the response, and the wizard stays on its step (Java's
+                # WizardActionDispatcher: only null or a non-error Message lands on the result step).
+                return self.map_result(outcome, rq)
             response = self.fragment_response(
                 self.title(type_), self.mapper.map_wizard(type_, wizard, route, total), rq
             )

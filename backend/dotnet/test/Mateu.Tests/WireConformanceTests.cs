@@ -278,6 +278,8 @@ public class WireConformanceTests
         { "inline-form-action", typeof(Wire.InlineForm) },
         { "bulk-actions", typeof(Wire.BulkProductsCrud) },
         { "bulk-actions-listing", typeof(Wire.BulkBooks) },
+        { "bulk-actions-unlabeled", typeof(Wire.UnlabeledBulkBooks) },
+        { "wizard-completion-error", typeof(Wire.RefusedSignUpWizard) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

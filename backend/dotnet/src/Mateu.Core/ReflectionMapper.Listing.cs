@@ -433,7 +433,7 @@ internal sealed partial class ReflectionMapper
         // LEADING the toolbar. A bridged listing (a CRUD) reaches them as action-on-row-<method>
         // and lets them bubble (Java's CapabilityCrud → Crud.addButtonsToList); a plain one by
         // the method's own name, right after search (Java's Listing.actions + PageListingBuilder).
-        var (bulkButtons, bulkActions) = BulkToolbar(viewType, bridged ? "action-on-row-" : "", bubble: bridged);
+        var (bulkButtons, bulkActions) = BulkToolbar(viewType, bridged ? "action-on-row-" : "", bubble: bridged, plain: !bridged);
         toolbar.InsertRange(0, bulkButtons);
         actions.InsertRange(1, bulkActions);
         var gridLayout = viewType.GetMethod("GridLayout", Type.EmptyTypes)?.Invoke(instance, []) as string ?? "auto";
