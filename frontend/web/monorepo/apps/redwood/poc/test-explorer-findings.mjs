@@ -66,4 +66,19 @@ test('a ProgressBar\'s theme tints its fill (the class was stamped and nothing p
   for (const tone of ['success', 'danger', 'warning', 'info']) assert.match(css, new RegExp('\\.mateu-tone-' + tone + ' \\{ --mateu-tone:'))
 })
 
+test('a StatusList draws its rows\' icon / avatar in every layout, and columns: N is at most N per line', () => {
+  const list = (metadata) => atomsOf(node({ type: 'VerticalLayout' }, [node({ type: 'StatusList', ...metadata })])).find((a) => a.isStatusList)
+  const plain = list({ items: [{ id: 'a', icon: '🔧', title: 'Room 305' }, { id: 'b', icon: 'vaadin:check', title: 'Done' }, { id: 'c', avatar: 'MR', title: 'Marta' }] })
+  assert.deepEqual(plain.items.map((i) => [i.icon, i.iconClass, i.avatar]), [['🔧', '', ''], ['', 'oj-ux-ico-check', ''], ['', '', 'MR']])
+  // every StatusList branch of the markup (plain row, grid cell, stacked item) draws the icon
+  for (const markup of [template(), page()]) {
+    const block = markup.split('<oj-bind-if test="[[ $current.data.isStatusList ]]">')[1].split('<oj-bind-if test="[[ $current.data.isOffer ]]">')[0]
+    assert.equal((block.match(/<oj-bind-if test="\[\[ !\$current\.data\.avatar && !!\$current\.data\.icon \]\]">/g) || []).length, 3)
+    assert.equal((block.match(/initials="\[\[ \$current\.data\.avatar \]\]"/g) || []).length, 3)
+    assert.match(block, /:style="\[\[ \$current\.data\.wrapStyle \]\]"/)
+  }
+  assert.deepEqual(list({ columns: 2, items: [{ id: 'r1', title: '101' }] }).wrapStyle, { maxWidth: 'calc(2 * 22rem + 1 * 40px)' })
+  assert.deepEqual(list({ items: [{ id: 'r1', title: '101' }] }).wrapStyle, {})
+})
+
 console.log(`\n${passed} explorer-findings tests OK`)

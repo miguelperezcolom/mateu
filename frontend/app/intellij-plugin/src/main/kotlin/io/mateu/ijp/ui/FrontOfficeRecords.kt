@@ -237,6 +237,14 @@ fun renderBulletedList(metadata: JsonNode): JComponent {
 
 /** One StatusList item as a CARD (the VB check-in anatomy): title + status chip on the first
  *  line, muted description under it, timeline lines, and the icon-action row at the bottom. */
+/** What leads a status item: its avatar (true) or else its emoji/text icon (false); null = nothing. */
+internal fun statusItemLead(item: JsonNode): Pair<String, Boolean>? {
+    val avatar = item.text("avatar")
+    if (avatar.isNotBlank()) return avatar to true
+    val icon = item.text("icon")
+    return if (icon.isNotBlank() && !icon.contains(':')) icon to false else null
+}
+
 private fun uxStatusCard(r: ComponentRenderer, item: JsonNode, rowActionId: String): JComponent {
     val card = verticalPanel(2)
     card.border = JBUI.Borders.compound(
@@ -244,8 +252,10 @@ private fun uxStatusCard(r: ComponentRenderer, item: JsonNode, rowActionId: Stri
         JBUI.Borders.empty(8, 10),
     )
     val head = JPanel(BorderLayout(JBUI.scale(8), 0)).apply { isOpaque = false }
-    val avatar = item.text("avatar")
-    if (avatar.isNotBlank()) head.add(JBLabel(plain(avatar)).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+    // the item's avatar, else its icon, like the plain rows (a card used to drop the icon)
+    statusItemLead(item)?.let { (text, isAvatar) ->
+        head.add(if (isAvatar) uxAvatar(text, 28) else JBLabel(plain(text)).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+    }
     head.add(JBLabel(plain(item.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, BorderLayout.CENTER)
     val status = item.text("status")
     if (status.isNotBlank()) head.add(uxChip(status, item.text("statusColor")), BorderLayout.EAST)

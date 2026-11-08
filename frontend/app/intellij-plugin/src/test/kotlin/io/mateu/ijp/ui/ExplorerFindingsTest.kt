@@ -39,4 +39,11 @@ class ExplorerFindingsTest : TestCase() {
         assertEquals("warning", progressBarStatus("warning"))
         assertNull(progressBarStatus(""))
     }
+
+    fun testAStatusCardLeadsWithItsAvatarElseItsIcon() {
+        assertEquals("MR" to true, statusItemLead(json.readTree("""{"avatar":"MR","icon":"x"}""")))
+        assertEquals("🔧" to false, statusItemLead(json.readTree("""{"icon":"🔧"}""")))
+        assertNull(statusItemLead(json.readTree("""{"icon":"vaadin:check"}""")))
+        assertNull(statusItemLead(json.readTree("{}")))
+    }
 }

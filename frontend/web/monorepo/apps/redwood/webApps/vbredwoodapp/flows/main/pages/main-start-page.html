@@ -1289,7 +1289,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -1313,6 +1313,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -1352,6 +1355,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -1401,6 +1407,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -3946,7 +3953,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -3970,6 +3977,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -4009,6 +4019,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -4058,6 +4071,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -5955,7 +5969,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -5979,6 +5993,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -6018,6 +6035,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -6067,6 +6087,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -7997,7 +8018,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -8021,6 +8042,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -8060,6 +8084,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -8109,6 +8136,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -10006,7 +10034,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -10030,6 +10058,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -10069,6 +10100,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -10118,6 +10152,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -12076,7 +12111,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -12100,6 +12135,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -12139,6 +12177,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -12188,6 +12229,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -14139,7 +14181,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -14163,6 +14205,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -14202,6 +14247,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -14251,6 +14299,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -16154,7 +16203,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -16178,6 +16227,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -16217,6 +16269,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -16266,6 +16321,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -18180,7 +18236,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -18204,6 +18260,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -18243,6 +18302,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -18292,6 +18354,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -20228,7 +20291,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -20252,6 +20315,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -20291,6 +20357,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -20340,6 +20409,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -22248,7 +22318,7 @@
                         </oj-bind-for-each>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                        <div :class="[[ $current.data.wrapClass ]]">
+                        <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
                           <template>
                             <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -22272,6 +22342,9 @@
                               <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                 <div class="oj-flex-item oj-sm-flex-initial">
                                   <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                    <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                    <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                     <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                     <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   </oj-bind-if>
@@ -22311,6 +22384,9 @@
                             <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                               <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <!-- no avatar: the name is the row's heading (the level below
                                        the section title, which paints as h2); it grows and pushes
                                        the badge to the item's right edge -->
@@ -22360,6 +22436,7 @@
                                 <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                   <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                 </oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <div class="oj-flex-item">
                                   <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -24286,7 +24363,7 @@
                         </oj-bind-for-each>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                        <div :class="[[ $current.data.wrapClass ]]">
+                        <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
                           <template>
                             <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -24310,6 +24387,9 @@
                               <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                 <div class="oj-flex-item oj-sm-flex-initial">
                                   <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                    <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                    <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                     <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                     <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   </oj-bind-if>
@@ -24349,6 +24429,9 @@
                             <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                               <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <!-- no avatar: the name is the row's heading (the level below
                                        the section title, which paints as h2); it grows and pushes
                                        the badge to the item's right edge -->
@@ -24398,6 +24481,7 @@
                                 <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                   <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                 </oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <div class="oj-flex-item">
                                   <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -26311,7 +26395,7 @@
                             </oj-bind-for-each>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                            <div :class="[[ $current.data.wrapClass ]]">
+                            <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                             <oj-bind-for-each data="[[ $current.data.items ]]">
                               <template>
                                 <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -26335,6 +26419,9 @@
                                   <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                     <div class="oj-flex-item oj-sm-flex-initial">
                                       <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                        <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                        <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                        <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                         <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                         <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                       </oj-bind-if>
@@ -26374,6 +26461,9 @@
                                 <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                                   <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                     <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                      <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                      <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                       <!-- no avatar: the name is the row's heading (the level below
                                            the section title, which paints as h2); it grows and pushes
                                            the badge to the item's right edge -->
@@ -26423,6 +26513,7 @@
                                     <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                       <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                     </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                     <div class="oj-flex-item">
                                       <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -28591,7 +28682,7 @@
                               </oj-bind-for-each>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                              <div :class="[[ $current.data.wrapClass ]]">
+                              <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                               <oj-bind-for-each data="[[ $current.data.items ]]">
                                 <template>
                                   <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -28615,6 +28706,9 @@
                                     <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                       <div class="oj-flex-item oj-sm-flex-initial">
                                         <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                          <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                          <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                          <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                           <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                           <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                         </oj-bind-if>
@@ -28654,6 +28748,9 @@
                                   <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                                     <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                       <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                        <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                        <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                        <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                         <!-- no avatar: the name is the row's heading (the level below
                                              the section title, which paints as h2); it grows and pushes
                                              the badge to the item's right edge -->
@@ -28703,6 +28800,7 @@
                                       <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                         <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                       </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                       <div class="oj-flex-item">
                                         <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -30616,7 +30714,7 @@
                               </oj-bind-for-each>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                              <div :class="[[ $current.data.wrapClass ]]">
+                              <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                               <oj-bind-for-each data="[[ $current.data.items ]]">
                                 <template>
                                   <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -30640,6 +30738,9 @@
                                     <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                       <div class="oj-flex-item oj-sm-flex-initial">
                                         <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                          <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                          <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                          <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                           <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                           <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                         </oj-bind-if>
@@ -30679,6 +30780,9 @@
                                   <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                                     <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                       <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                        <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                        <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                        <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                         <!-- no avatar: the name is the row's heading (the level below
                                              the section title, which paints as h2); it grows and pushes
                                              the badge to the item's right edge -->
@@ -30728,6 +30832,7 @@
                                       <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                         <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                       </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                       <div class="oj-flex-item">
                                         <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -32666,7 +32771,7 @@
                               </oj-bind-for-each>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                              <div :class="[[ $current.data.wrapClass ]]">
+                              <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                               <oj-bind-for-each data="[[ $current.data.items ]]">
                                 <template>
                                   <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -32690,6 +32795,9 @@
                                     <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                       <div class="oj-flex-item oj-sm-flex-initial">
                                         <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                          <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                          <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                          <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                           <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                           <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                         </oj-bind-if>
@@ -32729,6 +32837,9 @@
                                   <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                                     <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                       <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                        <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                        <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                        <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                         <!-- no avatar: the name is the row's heading (the level below
                                              the section title, which paints as h2); it grows and pushes
                                              the badge to the item's right edge -->
@@ -32778,6 +32889,7 @@
                                       <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                         <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                       </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                       <div class="oj-flex-item">
                                         <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -34938,7 +35050,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -34962,6 +35074,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -35001,6 +35116,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -35050,6 +35168,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -36952,7 +37071,7 @@
                         </oj-bind-for-each>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                        <div :class="[[ $current.data.wrapClass ]]">
+                        <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                         <oj-bind-for-each data="[[ $current.data.items ]]">
                           <template>
                             <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -36976,6 +37095,9 @@
                               <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                 <div class="oj-flex-item oj-sm-flex-initial">
                                   <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                    <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                    <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                     <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                     <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   </oj-bind-if>
@@ -37015,6 +37137,9 @@
                             <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                               <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <!-- no avatar: the name is the row's heading (the level below
                                        the section title, which paints as h2); it grows and pushes
                                        the badge to the item's right edge -->
@@ -37064,6 +37189,7 @@
                                 <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                   <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                 </oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <div class="oj-flex-item">
                                   <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -38966,7 +39092,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -38990,6 +39116,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -39029,6 +39158,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -39078,6 +39210,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -41005,7 +41138,7 @@
                 </oj-bind-for-each>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                <div :class="[[ $current.data.wrapClass ]]">
+                <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                 <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
                     <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -41029,6 +41162,9 @@
                       <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                         <div class="oj-flex-item oj-sm-flex-initial">
                           <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                            <!-- the item's avatar, else its icon (stacked items lost both) -->
+                            <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                             <oj-bind-if test="[[ !$current.data.isH4 ]]">
                             <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                           </oj-bind-if>
@@ -41068,6 +41204,9 @@
                     <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                       <div class="oj-sm-margin-4x-bottom mateu-list-item">
                         <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                          <!-- the item's avatar, else its icon (stacked items lost both) -->
+                          <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                           <!-- no avatar: the name is the row's heading (the level below
                                the section title, which paints as h2); it grows and pushes
                                the badge to the item's right edge -->
@@ -41117,6 +41256,7 @@
                         <oj-bind-if test="[[ !!$current.data.avatar ]]">
                           <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                         <div class="oj-flex-item">
                           <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                           <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -43030,7 +43170,7 @@
                 </oj-bind-for-each>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                <div :class="[[ $current.data.wrapClass ]]">
+                <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                 <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
                     <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -43054,6 +43194,9 @@
                       <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                         <div class="oj-flex-item oj-sm-flex-initial">
                           <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                            <!-- the item's avatar, else its icon (stacked items lost both) -->
+                            <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                             <oj-bind-if test="[[ !$current.data.isH4 ]]">
                             <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                           </oj-bind-if>
@@ -43093,6 +43236,9 @@
                     <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                       <div class="oj-sm-margin-4x-bottom mateu-list-item">
                         <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                          <!-- the item's avatar, else its icon (stacked items lost both) -->
+                          <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                           <!-- no avatar: the name is the row's heading (the level below
                                the section title, which paints as h2); it grows and pushes
                                the badge to the item's right edge -->
@@ -43142,6 +43288,7 @@
                         <oj-bind-if test="[[ !!$current.data.avatar ]]">
                           <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                         </oj-bind-if>
+                        <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                         <div class="oj-flex-item">
                           <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                           <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -45069,7 +45216,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -45093,6 +45240,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -45132,6 +45282,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -45181,6 +45334,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -47440,7 +47594,7 @@
                           </oj-bind-for-each>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                          <div :class="[[ $current.data.wrapClass ]]">
+                          <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                           <oj-bind-for-each data="[[ $current.data.items ]]">
                             <template>
                               <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -47464,6 +47618,9 @@
                                 <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                   <div class="oj-flex-item oj-sm-flex-initial">
                                     <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                      <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                      <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                       <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                       <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                     </oj-bind-if>
@@ -47503,6 +47660,9 @@
                               <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                                 <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                   <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                    <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                    <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                     <!-- no avatar: the name is the row's heading (the level below
                                          the section title, which paints as h2); it grows and pushes
                                          the badge to the item's right edge -->
@@ -47552,6 +47712,7 @@
                                   <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                     <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                   </oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <div class="oj-flex-item">
                                     <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                     <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -49867,7 +50028,7 @@
                           </oj-bind-for-each>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                          <div :class="[[ $current.data.wrapClass ]]">
+                          <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                           <oj-bind-for-each data="[[ $current.data.items ]]">
                             <template>
                               <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -49891,6 +50052,9 @@
                                 <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                   <div class="oj-flex-item oj-sm-flex-initial">
                                     <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                      <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                      <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                       <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                       <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                     </oj-bind-if>
@@ -49930,6 +50094,9 @@
                               <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                                 <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                   <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                    <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                    <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                     <!-- no avatar: the name is the row's heading (the level below
                                          the section title, which paints as h2); it grows and pushes
                                          the badge to the item's right edge -->
@@ -49979,6 +50146,7 @@
                                   <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                     <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                   </oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <div class="oj-flex-item">
                                     <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                     <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -52280,7 +52448,7 @@
                           </oj-bind-for-each>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                          <div :class="[[ $current.data.wrapClass ]]">
+                          <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                           <oj-bind-for-each data="[[ $current.data.items ]]">
                             <template>
                               <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -52304,6 +52472,9 @@
                                 <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                   <div class="oj-flex-item oj-sm-flex-initial">
                                     <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                      <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                      <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                       <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                       <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                     </oj-bind-if>
@@ -52343,6 +52514,9 @@
                               <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                                 <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                   <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                    <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                    <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                     <!-- no avatar: the name is the row's heading (the level below
                                          the section title, which paints as h2); it grows and pushes
                                          the badge to the item's right edge -->
@@ -52392,6 +52566,7 @@
                                   <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                     <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                   </oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <div class="oj-flex-item">
                                     <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                     <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -54672,7 +54847,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -54696,6 +54871,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -54735,6 +54913,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -54784,6 +54965,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -56679,7 +56861,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -56703,6 +56885,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -56742,6 +56927,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -56791,6 +56979,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -59516,7 +59705,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -59540,6 +59729,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -59579,6 +59771,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -59628,6 +59823,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -61523,7 +61719,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -61547,6 +61743,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -61586,6 +61785,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -61635,6 +61837,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -63609,7 +63812,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -63633,6 +63836,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -63672,6 +63878,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -63721,6 +63930,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -65618,7 +65828,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -65642,6 +65852,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -65681,6 +65894,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -65730,6 +65946,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -67641,7 +67858,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -67665,6 +67882,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -67704,6 +67924,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -67753,6 +67976,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -69650,7 +69874,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -69674,6 +69898,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -69713,6 +69940,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -69762,6 +69992,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -71725,7 +71956,7 @@
                             </oj-bind-for-each>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                            <div :class="[[ $current.data.wrapClass ]]">
+                            <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                             <oj-bind-for-each data="[[ $current.data.items ]]">
                               <template>
                                 <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -71749,6 +71980,9 @@
                                   <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                                     <div class="oj-flex-item oj-sm-flex-initial">
                                       <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                        <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                        <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                        <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                         <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                         <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                       </oj-bind-if>
@@ -71788,6 +72022,9 @@
                                 <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                                   <div class="oj-sm-margin-4x-bottom mateu-list-item">
                                     <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                      <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                      <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                       <!-- no avatar: the name is the row's heading (the level below
                                            the section title, which paints as h2); it grows and pushes
                                            the badge to the item's right edge -->
@@ -71837,6 +72074,7 @@
                                     <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                       <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                                     </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                     <div class="oj-flex-item">
                                       <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -74014,7 +74252,7 @@
                     </oj-bind-for-each>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                    <div :class="[[ $current.data.wrapClass ]]">
+                    <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                     <oj-bind-for-each data="[[ $current.data.items ]]">
                       <template>
                         <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -74038,6 +74276,9 @@
                           <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                             <div class="oj-flex-item oj-sm-flex-initial">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                 <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                               </oj-bind-if>
@@ -74077,6 +74318,9 @@
                         <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                           <div class="oj-sm-margin-4x-bottom mateu-list-item">
                             <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                              <!-- the item's avatar, else its icon (stacked items lost both) -->
+                              <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <!-- no avatar: the name is the row's heading (the level below
                                    the section title, which paints as h2); it grows and pushes
                                    the badge to the item's right edge -->
@@ -74126,6 +74370,7 @@
                             <oj-bind-if test="[[ !!$current.data.avatar ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                             </oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                             <div class="oj-flex-item">
                               <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -76041,7 +76286,7 @@
                     </oj-bind-for-each>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                    <div :class="[[ $current.data.wrapClass ]]">
+                    <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                     <oj-bind-for-each data="[[ $current.data.items ]]">
                       <template>
                         <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -76065,6 +76310,9 @@
                           <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                             <div class="oj-flex-item oj-sm-flex-initial">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                 <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                               </oj-bind-if>
@@ -76104,6 +76352,9 @@
                         <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                           <div class="oj-sm-margin-4x-bottom mateu-list-item">
                             <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                              <!-- the item's avatar, else its icon (stacked items lost both) -->
+                              <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <!-- no avatar: the name is the row's heading (the level below
                                    the section title, which paints as h2); it grows and pushes
                                    the badge to the item's right edge -->
@@ -76153,6 +76404,7 @@
                             <oj-bind-if test="[[ !!$current.data.avatar ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                             </oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                             <div class="oj-flex-item">
                               <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -78050,7 +78302,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -78074,6 +78326,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -78113,6 +78368,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -78162,6 +78420,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -80059,7 +80318,7 @@
                       </oj-bind-for-each>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isStatusList ]]">
-                      <div :class="[[ $current.data.wrapClass ]]">
+                      <div :class="[[ $current.data.wrapClass ]]" :style="[[ $current.data.wrapStyle ]]">
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
@@ -80083,6 +80342,9 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                  <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                  <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                   <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -80122,6 +80384,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- the item's avatar, else its icon (stacked items lost both) -->
+                                <oj-bind-if test="[[ !!$current.data.avatar ]]"><oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar></oj-bind-if>
+                                <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                                 <!-- no avatar: the name is the row's heading (the level below
                                      the section title, which paints as h2); it grows and pushes
                                      the badge to the item's right edge -->
@@ -80171,6 +80436,7 @@
                               <oj-bind-if test="[[ !!$current.data.avatar ]]">
                                 <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               </oj-bind-if>
+                              <oj-bind-if test="[[ !$current.data.avatar && !!$current.data.icon ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span></oj-bind-if><oj-bind-if test="[[ !$current.data.avatar && !!$current.data.iconClass ]]"><span class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end mateu-status-icon" :class="[[ $current.data.iconClass ]]" aria-hidden="true"></span></oj-bind-if>
                               <div class="oj-flex-item">
                                 <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
