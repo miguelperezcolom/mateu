@@ -1,9 +1,9 @@
 import { html, nothing, TemplateResult } from 'lit'
 import type { FieldLabel, FieldValue } from '../fieldEvents'
 import type { MateuField } from '../mateu-field'
-import { asSelectValue, selectValueChanged } from './select'
+import { asSelectValue, selectValueChanged, sourcedOptions } from './select'
 
-/** The radio stereotype, with inline or remote options. */
+/** The radio stereotype, with inline, remote or REST-sourced (`optionsSource`) options. */
 
 export function renderRadioField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
@@ -46,18 +46,19 @@ export function renderRadioField(host: MateuField, value: FieldValue, label: Fie
 </vaadin-radio-group>
         `
     }
+    const options = host.field.optionsSource ? sourcedOptions(host) : host.field.options
     return html`
         <vaadin-radio-group
                 id="${host.field.fieldId}"
                 label="${label}"
-                @value-changed="${selectValueChanged(host, host.field.options)}"
+                @value-changed="${selectValueChanged(host, options)}"
                 .value="${asSelectValue(value)}"
                 .helperText="${host.helperText()}"
                 ?autofocus="${host.field.wantsFocus}"
                 required="${host.field.required || nothing}"
                 data-colspan="${host.field.colspan}"
         >
-            ${host.field.options?.map(option => html`
+            ${options?.map(option => html`
                 <vaadin-radio-button value="${option.value}" label="${option.label}">
                     ${option.description || option.image || option.icon?html`
                         <label slot="label">

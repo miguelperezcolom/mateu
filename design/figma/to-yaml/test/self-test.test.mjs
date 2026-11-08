@@ -11,7 +11,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FigmaToYaml, SELF_TEST_PAGE } from '../src/convert.mjs'
-import { loadContract, loadSchema } from '../src/schema.mjs'
+import { loadContract, loadSchema } from '../src/load.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const converter = () => new FigmaToYaml({ contract: loadContract(), schema: loadSchema() })
@@ -88,19 +88,17 @@ test('a file without the page says so (the ordinary conversion still skips it)',
 })
 
 const real = join(here, 'fixtures/self-test.figma.json')
-// Entries the contract dropped AFTER the library file was captured: the capture still draws them, the
-// contract no longer knows them (ContentLayout was removed for 3.0.0 — CHANGELOG "Removed"). Drop a
-// name from here once the self-test page is downloaded again from a library regenerated from the
-// current contract.
-const REMOVED_SINCE_CAPTURE = new Set(['Mateu/Layout/ContentLayout'])
-const stillInTheContract = (r) => !REMOVED_SINCE_CAPTURE.has(r.name)
+const RETIRED = ['Mateu/Layout/ContentLayout']
+
 test('the REAL self-test page downloaded from the library file (when committed)', { skip: !existsSync(real) && 'no fixtures/self-test.figma.json yet' }, () => {
-  const results = converter().selfTest(JSON.parse(readFileSync(real, 'utf8'))).results.filter(stillInTheContract)
+  // the fixture was downloaded from a kit that still had components Mateu has since removed
+  const current = (r) => !RETIRED.includes(r.name)
+  const results = converter().selfTest(JSON.parse(readFileSync(real, 'utf8'))).results.filter(current)
   const failed = results.filter((r) => r.status === 'failed')
   assert.deepEqual(failed.map((r) => `${r.name} [${r.cell}]: ${r.warnings.join('; ')}`), [])
   const golden = join(here, 'golden-self-test/results.json')
   if (existsSync(golden)) {
-    const expected = JSON.parse(readFileSync(golden, 'utf8')).filter(stillInTheContract)
+    const expected = JSON.parse(readFileSync(golden, 'utf8')).filter(current)
     assert.deepEqual(results.map(({ name, cell, status, value, warnings }) => ({ name, cell, status, warnings, value })), expected)
   }
 })

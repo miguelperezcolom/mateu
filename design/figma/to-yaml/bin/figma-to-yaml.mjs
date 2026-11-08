@@ -10,8 +10,8 @@
 // routes.yaml or sources.yaml living in the same specs/ui.
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { FigmaToYaml } from '../src/convert.mjs'
-import { loadContract, loadSchema } from '../src/schema.mjs'
+import { FigmaToYaml, undeclaredActionWarnings } from '../src/convert.mjs'
+import { loadContract, loadSchema } from '../src/load.mjs'
 
 function usage(message) {
   if (message) console.error(message)
@@ -88,4 +88,11 @@ for (const f of files) {
   writeFileSync(target, f.text)
   console.log(`wrote ${target}  ← "${f.frame}"`)
 }
-for (const w of warnings) console.warn(`warning: ${w}`)
+// the ids this specs/ui declares: every `id:` entry of a `type: Actions` file
+const declaredActions = new Set()
+for (const p of yamlFiles(opts.out)) {
+  const text = readFileSync(p, 'utf8')
+  if (!/^type:\s*Actions\b/m.test(text)) continue
+  for (const m of text.matchAll(/^\s*-\s*(?:\{\s*)?id:\s*["']?([^\s,"'}]+)/gm)) declaredActions.add(m[1])
+}
+for (const w of [...warnings, ...undeclaredActionWarnings(files, declaredActions)]) console.warn(`warning: ${w}`)

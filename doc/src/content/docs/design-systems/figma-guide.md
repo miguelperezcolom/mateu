@@ -20,8 +20,8 @@ Who does what:
 
 ## 0. Get the Mateu UI Kit (the quick way)
 
-The library is published on Figma Community as **[Mateu UI Kit](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit)**. Open it and
-*Open in Figma* (Figma calls it **duplicating**): you get your own copy of the 161 components in your
+The library is published on Figma Community as **[Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777)**. Open it and
+*Open in Figma* (Figma calls it **duplicating**): you get your own copy of the components in your
 Drafts, with no plugin to build and on any Figma plan, the free Starter included. Then go to
 [2. Publish the library](#2-publish-the-library) to share it with your team, or straight to
 [3. Design screens](#3-design-screens) to design in that same file.
@@ -74,7 +74,7 @@ every property has one. They are never read as content; leave them as they are.
 
 1. Move the library file into a **team project** and *Assets › Publish library*. Publishing a team
    library needs a Figma **Professional, Organization or Education** plan. The publish dialog must
-   list **all ~161 components** (standalone components plus variant sets); if it lists fewer, see
+   list **all ~160 components** (standalone components plus variant sets); if it lists fewer, see
    [If something does not look right](#if-something-does-not-look-right).
 2. In each design file: *Assets › Libraries* and **enable** "Mateu library".
 
@@ -104,7 +104,9 @@ In your design file, with the library enabled:
 - **Properties — the right panel.** Select an instance: its labels, titles and config are in the
   right panel. Set `fieldId` (the field's id in the page state), `label`, `required`, `readOnly`
   for fields; `actionId` or `route` for buttons (`people/${state.id}/edit`); `rowsSource.ref` for a
-  listing… Variants (style, size, theme) are there too. A text left as its placeholder (`Label`,
+  listing; `stereotype` on a text or number field (`email`, `money`…) and `optionsSource.ref` on a
+  select or radio group, the name of the source its options come from… Variants (style, size,
+  theme) are there too. A text left as its placeholder (`Label`,
   `Title`) is not read.
 - **Page templates.** For a standard page, start from a `Mateu/Page Templates/<type>` instance
   (`ItemOverviewPage`, `WelcomePage`, `DashboardLandingPage`…), as the screen itself or inside the
@@ -187,11 +189,75 @@ menu:
     route: order
 ```
 
+**A button's `actionId` only names an action.** A generated page has no code behind it, so an action
+nobody declares does nothing when clicked. Declare it in your own `specs/ui/actions.yaml` (see
+[the action catalogue](/concepts/action-catalogue/)), which the converter never touches, or bind a
+view model to the route; the converter warns about every id it cannot find there. `required` fields
+are enforced by an action that declares `validationRequired: true`:
+
+```yaml
+type: Actions
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source: {ref: contact-save}
+      successMessage: Saved
+```
+
+**What a design draws as a value is an illustration.** The `Value` of a `PropertyRow` or a
+`PlainText` is not written to the YAML: the real value comes from the page state (a route's `state:`
+or `data:`, a view model). Use a `Mateu/Display/Text` for text that really is fixed.
+
 Then run the app (`mvn spring-boot:run`) and open `http://localhost:8080/order`. The same files work
 on a .NET or Python backend, or as a [static bundle](/deploy/static-ui/) with no backend. What a
 design cannot say — the REST sources that feed a listing, the routes, actions beyond `actionId` /
 `route` — goes in your own files: see [Routes and mounts](/concepts/routes-and-mounts/) and
 [Data sources](/concepts/data-sources/).
+
+## 6. Publish straight from Figma, with no backend
+
+A design can **be** the UI: a static site with no server behind it, published from inside Figma. The
+**Mateu Publish** plugin (`design/figma/publish/plugin`) reads the open file, needs no Figma token,
+no Java and no repository, and uploads the site to Netlify or Cloudflare Pages, or gives you a zip.
+
+1. Build it once (`cd design/figma/publish && npm ci && npm run build`) and import
+   `plugin/manifest.json` in Figma Desktop (*Plugins › Development › Import plugin from manifest…*).
+   A file you can edit is enough: a file you can only view has to be duplicated first.
+2. Run it in your design file. The panel starts from a working proposal for what a design cannot say:
+   - **Screens and routes**: one per top-level frame. A frame answers the route the screens navigate
+     to with a parameter: `artworks/${row.id}` is answered by the frame `artwork`, at `artworks/:id`.
+   - **Data**: the rows of each listing. They are published as a file of the site, or read from a
+     public API if you give its URL. A listing over a file shows no search box: a file cannot search.
+   - **What each button does**: confirm with a message, go to a screen, or send the form to a URL.
+     A primary button validates the required fields first.
+3. Choose where to publish.
+
+What the design draws as a field's value (a `PropertyRow`'s `Value`) is the data here: there is no
+other source for it.
+
+:::caution[Everything in a site with no backend is public]
+The site runs in the visitor's browser. An API it calls, and anything that call needs, can be read
+by anyone. Never put a key or a secret in a URL. If an action needs one, it needs a server: use
+[section 5](#5-serve-the-pages).
+:::
+
+**Netlify**: create a personal access token (*User settings › Applications*). The next publish
+updates the same site. The site's title comes from the panel's **Title** field, which starts as the file's name.
+
+**Cloudflare Pages**: Cloudflare's API cannot be called from a Figma plugin (it does not allow
+cross-origin calls), so the plugin goes through a small Worker that lives in **your own** account:
+
+1. Create a Worker on the free plan and paste `design/figma/publish/cloudflare-relay/worker.js`. It
+   stores nothing and forwards only the Pages API.
+2. Create an API token with *Cloudflare Pages: Edit*.
+3. In the panel, give the Worker's URL, your account ID, the token and a project name.
+
+If your network cannot reach `workers.dev`, or you would rather not run a Worker, choose **Download a
+zip** and drop it on a Cloudflare Pages project.
+
+Tokens stay on your device (Figma's client storage), never in the Figma file. Routes, data and
+button settings do travel in the file, so write nothing secret there.
 
 ## If something does not look right
 
@@ -205,6 +271,8 @@ design cannot say — the REST sources that feed a listing, the routes, actions 
 - **A component cannot take children or a property does not appear**: re-run *Generate the library*
   with the current plugin, re-publish and accept the update; then run the **Self-test** and check its
   table.
-- **Slot content is missing from the YAML**: Figma does not document yet how slot content appears
-  in the downloaded JSON. Send the developers the downloaded `design.json` (it contains no token) so
-  the converter can be checked against it.
+- **A warning says an instance "is not a Mateu component"**: a component the current Mateu has
+  removed (`ContentLayout`, for example, which older copies of the kit still draw). Replace it in the
+  design with what its page recommends.
+- **Slot content is missing from the YAML**: send the developers the downloaded `design.json` (it
+  contains no token), so the converter can be checked against it.

@@ -8,7 +8,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FigmaToYaml, slugify } from '../src/convert.mjs'
-import { loadContract, loadSchema } from '../src/schema.mjs'
+import { loadContract, loadSchema } from '../src/load.mjs'
 import { isPlain, toYaml } from '../src/yaml.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))

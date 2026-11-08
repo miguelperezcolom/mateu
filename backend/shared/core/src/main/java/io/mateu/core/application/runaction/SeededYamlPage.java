@@ -249,13 +249,19 @@ record SeededYamlPage(
       }
       return;
     }
-    if (!(node instanceof Component) || !node.getClass().isRecord()) {
+    // not only Components: a page template and its steps (Form.template → GuidedProcessStep) hold
+    // fields too, and those records are no Component
+    if (!node.getClass().isRecord() || !node.getClass().getName().startsWith("io.mateu.uidl")) {
       return;
     }
     for (var component : io.mateu.core.domain.Records.components(node.getClass())) {
       var type = component.getType();
-      if (!Component.class.isAssignableFrom(type)
-          && !java.util.Collection.class.isAssignableFrom(type)) {
+      // a scalar never holds a field (the record shapes are read once per class, #1091)
+      if (type.isPrimitive()
+          || type == String.class
+          || Number.class.isAssignableFrom(type)
+          || type == Boolean.class
+          || type.isEnum()) {
         continue;
       }
       try {

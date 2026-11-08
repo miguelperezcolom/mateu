@@ -1,6 +1,6 @@
 # Mateu ⇄ Figma — design-to-code pipeline
 
-**Published library:** [Mateu UI Kit on Figma Community](https://www.figma.com/community/file/1701264060329352693/mateu-ui-kit) (generated with this plugin; republish it with *Share › Publish to Community › Publish update* after regenerating).
+**Published library:** [Mateu UI Kit on Figma Community](https://www.figma.com/community/file/1701291643502429777) (generated with this plugin; republish it with *Share › Publish to Community › Publish update* after regenerating).
 
 ```
 contract.json ──► plugin (this repo) ──► Figma library ──► designer composes screens
@@ -103,6 +103,23 @@ payload of seven Star Wars screens, built following the plugin's naming) against
 the real authoring validator and YAML loader in `backend/shared/core`
 (`FigmaYamlGoldenTest`), so the converter's output is pinned as a file Mateu actually reads.
 
+## A real file as a fixture (`e2e/`)
+
+`e2e/real-sample-screens.figma.json` is a file really composed in Figma with instances of the
+published kit (`GET /v1/files/:key`, trimmed by `e2e/trim.mjs`: no geometry, paint or file metadata):
+the REST shape of native slots and component properties as Figma answers it. `e2e/golden/` is its
+output, pinned by `to-yaml/test/real-sample.test.mjs` and read by `FigmaYamlGoldenTest`.
+
+## Publishing with no backend (`publish/`)
+
+A Figma plugin that turns the open file into a static site and uploads it. `plugin/serialize.js`
+reads the document in the REST shape the converter takes; `src/site.mjs` writes the `specsOnly`
+manifest with no Java (rows as files of the site, so a reload never depends on sample mode);
+`src/hosts.mjs` talks to Netlify (direct, file by file: its zip endpoint answers CORS twice and a browser cannot read it) and Cloudflare Pages
+(through `cloudflare-relay/worker.js`, it answers none). The renderer is fetched from jsDelivr at the
+tag in `src/renderer.json`: bump it after a release (the tag and its `files` list, from `git ls-tree -r --name-only <tag> backend/shared/frontend/vaadin-lit/src/main/resources/static`). `bin/build-site.mjs` makes the same site with no
+Figma around. Guide: `design-systems/figma-guide.md`, section 6.
+
 ## Reading back (modux)
 
 modux's Figma importer (`model-driven-generator`, use case `importfigma`) downloads the file via
@@ -131,7 +148,7 @@ Linux client.
    `design/figma/plugin/manifest.json`.
 4. *Plugins → Development → Mateu Library Generator → Generate the library*. Expect one page per
    category (`Mateu · Field`, `Mateu · Layout`, `Mateu · Display`, `Mateu · Page Templates`…) and
-   the toast `Mateu library generated: 161 components, N properties, M native slots ✔`. If it
+   the toast `Mateu library generated: 160 components, N properties, M native slots ✔`. If it
    fails, the error is in *Plugins → Development → Show/Hide console*.
 4b. *Plugins → Development → Mateu Library Generator → Mateu Library Self-test* (the pure half is
    `plugin/src/selftest.ts`, tested in `plugin/test/selftest.test.mjs`): a `Mateu · Self-test` page

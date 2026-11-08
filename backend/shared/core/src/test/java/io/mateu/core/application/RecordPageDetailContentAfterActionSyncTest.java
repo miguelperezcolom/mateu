@@ -4,6 +4,7 @@ import static io.mateu.core.application.LayoutSyncTest.allMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ButtonDto;
@@ -130,11 +131,49 @@ class RecordPageDetailContentAfterActionSyncTest {
     }
   }
 
+  /** A crud whose record class only its view() knows: the listing's row and the record differ. */
+  @UI("/untyped-notes")
+  @Title("Untyped notes")
+  public static class UntypedNotes extends Crud<Object, Object, Note, Object, NoteRow, String> {
+    @Override
+    public ListingData<NoteRow> search(SearchRequest request, HttpRequest httpRequest) {
+      return ListingData.from(List.of(new NoteRow("1", "Note 1")));
+    }
+
+    @Override
+    public Object view(String id, HttpRequest httpRequest) {
+      return new Note(id, "Note " + id);
+    }
+
+    @Override
+    public Object edit(String id, HttpRequest httpRequest) {
+      return new Note(id, "Note " + id);
+    }
+
+    @Override
+    public Note creationForm(HttpRequest httpRequest) {
+      return new Note();
+    }
+
+    @Override
+    public String create(HttpRequest httpRequest) {
+      return "1";
+    }
+
+    @Override
+    public String save(HttpRequest httpRequest) {
+      return "1";
+    }
+
+    @Override
+    public void deleteAllById(List<String> ids, HttpRequest httpRequest) {}
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Notes.class, NoteList.class);
+    mateu = TestMateu.withUis(Notes.class, NoteList.class, UntypedNotes.class);
   }
 
   @AfterAll
@@ -147,6 +186,7 @@ class RecordPageDetailContentAfterActionSyncTest {
 
   static final Mount CRUD = new Mount("/notes", Notes.class);
   static final Mount LISTING = new Mount("/note-list", NoteList.class);
+  static final Mount UNTYPED = new Mount("/untyped-notes", UntypedNotes.class);
 
   private static UIIncrementDto open() {
     return open(CRUD);
@@ -276,5 +316,12 @@ class RecordPageDetailContentAfterActionSyncTest {
         .extracting(ButtonDto::actionId)
         .contains("action-on-view-extend", "cancel-view");
     assertThat(increment.messages()).anySatisfy(m -> assertThat(m.text()).isEqualTo("extended"));
+  }
+
+  @Test
+  void aCrudWhoseViewClassIsObjectRunsTheActionOnTheRealRecord() {
+    var fragment = pageFragment(press(UNTYPED, "action-on-view-extend", Map.of("days", 10)));
+    assertThat(fragment).as("the record page, re-rendered in place").isNotNull();
+    assertThat(texts(fragment)).contains("Custom content of Note 1 for 11 days");
   }
 }

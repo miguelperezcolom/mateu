@@ -164,6 +164,12 @@ describe('string fields', () => {
         expect(h.requestRemoteOptions).toHaveBeenCalledWith('search-f')
     })
 
+    it('a radio group fed by a REST source lists what it fetched', () => {
+        const h = host({ stereotype: 'radio', optionsSource: { url: '/teams.json' } },
+            { data: { f: { content: [{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }], sourceSignature: '/teams.json' } } })
+        expect(draw(renderRadioField(h, 'a', 'R')).querySelectorAll('vaadin-radio-button').length).toBe(2)
+    })
+
     it('a radio group of numeric options shows a numeric value and sends back the option\'s own value', () => {
         const valueChanged = vi.fn()
         const h = host({ stereotype: 'radio', options: [{ value: 1, label: 'One' }, { value: 2, label: 'Two' }] }, { valueChanged })

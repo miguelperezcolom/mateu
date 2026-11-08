@@ -1,0 +1,47 @@
+# Generated from the Figma frame "dashboard" (node 2:1096) by design/figma/to-yaml.
+# Regenerate it from the design rather than editing it by hand.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Panel de control
+subtitle: La actividad de hoy
+overline: Museo
+toolbar:
+  - type: Button
+    buttonStyle: primary
+    label: Actualizar
+    actionId: refresh
+template:
+  type: DashboardLandingPage
+  kpi:
+    - type: MetricCard
+      value: "1.284"
+      title: Visitantes
+      trendLabel: +12% esta semana
+    - type: MetricCard
+      value: "932"
+      title: Entradas vendidas
+      trendLabel: +4%
+    - type: MetricCard
+      value: "17"
+      title: Préstamos activos
+      trendLabel: 2 vencen hoy
+content:
+  - type: DashboardLayout
+    columns: 2
+    items:
+      - type: DashboardPanel
+        subtitle: En cartel
+        title: Exposiciones
+        content:
+          type: VerticalLayout
+          content:
+            - type: Text
+              text: Tres exposiciones temporales abiertas.
+      - type: DashboardPanel
+        subtitle: Sala 4
+        title: Avisos
+        content:
+          type: VerticalLayout
+          content:
+            - type: Text
+              text: Mantenimiento de climatización el jueves.

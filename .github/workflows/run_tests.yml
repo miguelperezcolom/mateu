@@ -252,6 +252,10 @@ jobs:
         run: |
           cd design/figma/to-yaml
           npm test
+          cd ../publish
+          npm ci --ignore-scripts
+          npm test
+          npm run build
 
       # The one-step import every front door runs (mateu-bundle:figma, IntelliJ, VS Code): frame
       # selection, file statuses, the Figma API errors. No dependencies to install.

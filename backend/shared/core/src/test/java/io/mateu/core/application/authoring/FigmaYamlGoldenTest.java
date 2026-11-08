@@ -47,12 +47,13 @@ class FigmaYamlGoldenTest {
   }
 
   /**
-   * The Star Wars screens ({@code golden}) and a screen made with the current library's native
-   * slots and component properties ({@code golden-native}).
+   * The Star Wars screens ({@code golden}), a screen made with the current library's native slots
+   * and component properties ({@code golden-native}), and the screens really composed in Figma with
+   * the published kit ({@code design/figma/e2e/golden}).
    */
   private static List<Path> files() throws Exception {
     var out = new ArrayList<Path>();
-    for (var dir : List.of("golden", "golden-native")) {
+    for (var dir : List.of("golden", "golden-native", "../../e2e/golden")) {
       try (Stream<Path> walk = Files.walk(tests().resolve(dir))) {
         walk.filter(p -> p.toString().endsWith(".yaml")).sorted().forEach(out::add);
       }
