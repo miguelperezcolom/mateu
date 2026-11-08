@@ -23,6 +23,7 @@ import io.mateu.uidl.annotations.UISpec;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.StateSupplier;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -107,6 +108,13 @@ public class ReflectionObjectToComponentMapper {
     var content =
         mapComponentToDto(
             null, component, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    // A StateSupplier says what its state is — behind a YAML layout too (it used to send the raw
+    // instance, so the supplied state never reached the page). Never the raw instance when an
+    // @EyesOnly field is hidden from this caller: getState strips those as well.
+    var state =
+        instance instanceof StateSupplier
+            ? io.mateu.core.domain.ComponentState.getState(instance, httpRequest)
+            : io.mateu.core.domain.ComponentState.withoutRestricted(instance, httpRequest);
     return new UIFragmentDto(
         initiatorComponentId,
         new ServerSideComponentDto(
@@ -114,8 +122,7 @@ public class ReflectionObjectToComponentMapper {
             instance.getClass().getName(),
             consumedRoute,
             List.of(content),
-            // never the raw instance when an @EyesOnly field is hidden from this caller
-            io.mateu.core.domain.ComponentState.withoutRestricted(instance, httpRequest),
+            state,
             "",
             "",
             io.mateu.core.domain.out.fragmentmapper.mappers.TreeActionHarvester.withTreeActions(
@@ -131,7 +138,7 @@ public class ReflectionObjectToComponentMapper {
             pageTypeOf(instance, route),
             StaticViewResolver.isStatic(instance),
             null),
-        io.mateu.core.domain.ComponentState.withoutRestricted(instance, httpRequest),
+        state,
         getData(httpRequest, instance),
         UIFragmentActionDto.Replace,
         null);
