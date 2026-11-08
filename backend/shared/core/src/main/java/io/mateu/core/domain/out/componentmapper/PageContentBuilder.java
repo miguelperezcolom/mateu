@@ -105,13 +105,31 @@ final class PageContentBuilder {
                 EmbeddedOrchestratorFieldBuilder.isOrchestrator(field.getType())
                     ? EmbeddedOrchestratorFieldBuilder.build(
                         "", field, instance, initiatorComponentId, httpRequest, 1)
-                    : mapToComponent(
-                        getValue(field, instance),
-                        baseUrl,
-                        route,
-                        initiatorComponentId,
-                        httpRequest))
+                    : labelled(
+                        field,
+                        mapToComponent(
+                            getValue(field, instance),
+                            baseUrl,
+                            route,
+                            initiatorComponentId,
+                            httpRequest)))
         .toList();
+  }
+
+  /**
+   * A component field of a page that is not a form, as declared: under its {@code @Label} when it
+   * has one — a labelled MicroFrontend among them, whose label used to be dropped because this path
+   * mapped every field bare. An unlabelled field keeps the bare shape it always had.
+   */
+  private static Component labelled(java.lang.reflect.Field field, Component component) {
+    if (component == null || !MetaAnnotations.isPresent(field, Label.class)) {
+      return component;
+    }
+    return io.mateu.uidl.data.CustomField.builder()
+        .label(FieldMetadataExtractor.getLabel(field))
+        .content(component)
+        .style("width: 100%;")
+        .build();
   }
 
   /**
