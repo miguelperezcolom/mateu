@@ -1320,6 +1320,10 @@ public sealed record ListingComponent : ComponentBase
     public string? GridLayout { get; init; }
     public bool Compact { get; init; }
     public string? EmptyStateMessage { get; init; }
+    /// <summary>The route a row opens (<c>people/${row.id}</c>, interpolated against the clicked row
+    /// by the renderer): an addressable record page for a listing with no view model. Null = rows do
+    /// not navigate. (Java's fluent Listing.rowRoute.)</summary>
+    public string? RowRoute { get; init; }
 }
 
 /// <summary>An outlined card wrapping a component.</summary>

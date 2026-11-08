@@ -528,6 +528,7 @@ internal static class YamlComponentBuilder
         }).ToList(),
         Filters = Maps(map, "filters").Select(f => Build(f, partials, chain)).OfType<FormField>().ToList(),
         RowsSource = SourceOf(map, "rowsSource"),
+        RowRoute = Str(map, "rowRoute") is { } rowRoute && !string.IsNullOrWhiteSpace(rowRoute) ? rowRoute.Trim() : null,
     };
 
     private static IEnumerable<IDictionary<object, object>> Maps(IDictionary<object, object> map, string key) =>

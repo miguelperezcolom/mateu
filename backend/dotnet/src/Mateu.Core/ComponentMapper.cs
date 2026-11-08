@@ -287,6 +287,7 @@ internal static class ComponentMapper
             GridLayout = l.GridLayout ?? "auto",
             Compact = l.Compact,
             EmptyStateMessage = l.EmptyStateMessage,
+            RowRoute = l.RowRoute,
         }) with { Id = l.Id ?? "crud", Sizing = "fill" },
         // a form that fills a page template carries its slots laid out (PageTemplateLayout)
         Form f => Dto(f, MapFormHeader(f), PageTemplateLayout.ContentOf(f, MapContent)),
