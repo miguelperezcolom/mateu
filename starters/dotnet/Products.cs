@@ -12,6 +12,9 @@ public class Product
     [Required] public string Name { get; set; } = "";
     [Range(0, double.MaxValue), Money] public double Price { get; set; }
     public ProductStatus Status { get; set; }
+
+    // The record's name: its page is titled "Espresso machine", not "Product".
+    public override string ToString() => string.IsNullOrWhiteSpace(Name) ? "New product" : Name;
 }
 
 /// <summary>A CRUD over <see cref="Product"/> at /products, reached from the Products menu entry

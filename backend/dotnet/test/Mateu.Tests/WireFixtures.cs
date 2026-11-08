@@ -411,6 +411,9 @@ public class Product
     public string Name { get; set; } = "";
     public double Price { get; set; }
     public ProductStatus Status { get; set; }
+
+    // like the starters': the record names itself, so its record pages are titled after it
+    public override string ToString() => string.IsNullOrWhiteSpace(Name) ? "New product" : Name;
 }
 
 // The plain CRUD the starters ship: listing with search + derived filters, New/Delete, the id

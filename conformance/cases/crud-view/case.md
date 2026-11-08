@@ -8,3 +8,10 @@ it belongs to the create flow (the toast confirming a create offers it). The por
 `pageType: collection` and Edit before Add another.
 
 The mediator protocol (`actions`, `initialData`/`state`, `route`) is left out as in `crud-new`.
+
+The record page is titled after the RECORD (2026-11): the fixture's Product names itself like the
+starters' (`toString()` / `ToString()` / `__str__` → its name, "New product" while blank), so the
+title — window title included — is "Espresso machine", marked `titleIsText` (data, rendered as
+text). A type that does not name itself (no override, or a generated record/dataclass dump) keeps
+the class name; that half is pinned by each port's own title tests. `crud-new` ("New product") and
+`crud-edit` pin the same rule.

@@ -35,6 +35,10 @@ class Product:
     price: Annotated[float, Money()] = 0.0
     status: ProductStatus = ProductStatus.Available
 
+    def __str__(self) -> str:
+        # The record's name: its page is titled "Espresso machine", not "Product".
+        return self.name if self.name and self.name.strip() else "New product"
+
 
 def _product(id: str, name: str, price: float, status: ProductStatus) -> Product:
     p = Product()
