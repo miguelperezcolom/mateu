@@ -97,8 +97,36 @@ const themeStyle = (metadata: Button): string => {
     return `${BASE}${variant}${pad}`
 }
 
-export const renderButton = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
+/** A Button carrying `children` is a GROUP (a `ButtonGroup` in content, or a toolbar group): one
+ * trigger opening its buttons. */
+export const isButtonGroup = (metadata: Button | undefined): boolean =>
+    (metadata?.children?.length ?? 0) > 0
+
+/** One button of a group as a content component of its own, so it renders (and dispatches) exactly
+ * like a lone button. */
+export const groupMember = (group: ClientSideComponent, child: Button, index: number): ClientSideComponent =>
+    ({ type: 'ClientSide', id: `${group.id}-${index}`, metadata: child, children: [] }) as unknown as ClientSideComponent
+
+/*
+ * A ButtonGroup in content, design-system neutral: a native <details> whose summary is the trigger
+ * and whose panel holds the group's buttons. Picking one closes the panel.
+ */
+const renderButtonGroup = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
     const metadata = component.metadata as Button
+    const label = interpolate(metadata.label, state, data)
+    return html`<details class="mateu-button-group ${component.cssClasses ?? ''}" id="${component.id}"
+            style="position:relative; display:inline-block;${component.style ?? ''}" slot="${component.slot ?? nothing}">
+        <summary style="${themeStyle(metadata)} list-style:none;">${metadata.iconOnLeft ? icon(metadata.iconOnLeft) : nothing}${label}${metadata.iconOnRight ? icon(metadata.iconOnRight) : nothing}<span aria-hidden="true">▾</span></summary>
+        <div class="mateu-button-group-items"
+             style="position:absolute; z-index:10; display:flex; flex-direction:column; gap:.25rem; padding:.25rem; margin-top:.25rem; background:var(--lumo-base-color,#fff); border:1px solid var(--lumo-contrast-20pct,rgba(0,0,0,.16)); border-radius:var(--lumo-border-radius-m,6px); box-shadow:var(--lumo-box-shadow-s,0 2px 6px rgba(0,0,0,.15));"
+             @click="${(e: Event) => { if ((e.target as HTMLElement).closest('button')) (e.currentTarget as HTMLElement).closest('details')?.removeAttribute('open') }}"
+        >${metadata.children.map((child, i) => renderButton(groupMember(component, child, i), state, data))}</div>
+    </details>`
+}
+
+export const renderButton = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData): ReturnType<typeof html> => {
+    const metadata = component.metadata as Button
+    if (isButtonGroup(metadata)) return renderButtonGroup(component, state, data)
     // a built-in archetype button whose English label came back untranslated → the UI's language
     const label = builtInButtonLabel(metadata, interpolate(metadata.label, state, data))
     const disabled = metadata.disabled || routeUnresolved(metadata, state, data)

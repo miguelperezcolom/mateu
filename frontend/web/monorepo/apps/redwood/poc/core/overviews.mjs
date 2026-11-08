@@ -803,8 +803,14 @@ export function itemOverviewOf(ctx) {
   // cards) was taken for an item overview and drawn as its first section + the tab bar — every
   // other section, and the form's buttons, were gone
   const parent = parentOfNode(ctx.tree, tabLayout)
-  const keyCard = ((parent && parent.children) || [])
+  const siblings = ((parent && parent.children) || []).filter(Boolean)
+  const keyCard = siblings
     .find((c) => c && c.metadata && c.metadata.type === 'Card' && !findByType(c, 'TabLayout'))
+  // …and the key card and the tab bar are ALL there is: a page whose content merely includes a
+  // card and some tabs among other blocks (the Mateu Explorer's entry page: a description, one card
+  // per example, a heading and the code tabs) is a page, not an item overview — claimed, it lost its
+  // header, its description and every card but the first
+  if (siblings.some((c) => c !== keyCard && c !== tabLayout)) return null
   // The archetype is key-data panel + tabs: without a panel this is not an item overview,
   // it is a FORM that happens to carry tabs inside. Claiming it anyway left the page
   // without its fields (there is no key card to paint) and the tabs reduced to their labels

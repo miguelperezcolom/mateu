@@ -35,9 +35,27 @@ public final class FluentHandlerButtons {
 
   /** Whether the button runs a handler of its own on the server. */
   public static boolean hasHandler(Button button) {
-    return button.actionId() != null
-        && !button.actionId().isBlank()
-        && (button.runnable() != null || button.callable() != null);
+    return (button.runnable() != null || button.callable() != null) && actionIdOf(button) != null;
+  }
+
+  /**
+   * The action id a button dispatches — the one the wire carries, the view advertises and the
+   * runner looks up: the declared {@code actionId}, else derived from the label ({@link
+   * Button#resolvedActionId()}), else — for a HANDLER button only, e.g. an icon-only one — its
+   * {@code id}. A handler button built with {@code Button.builder()} and no actionId used to have
+   * none, so it was never advertised and its click was never sent.
+   */
+  public static String actionIdOf(Button button) {
+    var resolved = button.resolvedActionId();
+    if (resolved != null && !resolved.isBlank()) {
+      return resolved;
+    }
+    if ((button.runnable() != null || button.callable() != null)
+        && button.id() != null
+        && !button.id().isBlank()) {
+      return button.id();
+    }
+    return resolved;
   }
 
   /** The first handler button whose action id is {@code actionId}, or null. */
@@ -50,7 +68,7 @@ public final class FluentHandlerButtons {
         root,
         root,
         button -> {
-          if (actionId.equals(button.actionId())) {
+          if (actionId.equals(actionIdOf(button))) {
             found[0] = button;
             return true;
           }
@@ -67,7 +85,7 @@ public final class FluentHandlerButtons {
         root,
         root,
         button -> {
-          ids.add(button.actionId());
+          ids.add(actionIdOf(button));
           return false;
         },
         new IdentityHashMap<>());

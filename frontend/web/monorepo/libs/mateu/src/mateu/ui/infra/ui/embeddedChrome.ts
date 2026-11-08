@@ -67,6 +67,26 @@ export const ownEmbeddedChromeOf = (node: Node | null | undefined): EmbeddedChro
     return undefined
 }
 
+const isComponent = (node: Node): boolean =>
+    (node as Element).tagName === 'MATEU-COMPONENT'
+
+/**
+ * Whether `node` lives in an ISLAND: a server-side component nested in another one's tree within
+ * the same page (an `EmbeddedView`), i.e. two `mateu-component`s (itself included) before the
+ * nearest `mateu-ux`. An island is a block of the host page — the window (its title) is the host's.
+ */
+export const insideIsland = (node: Node | null | undefined): boolean => {
+    let current: Node | null = node ?? null
+    let components = 0
+    let guard = 0
+    while (current && guard++ < 500) {
+        if (isUx(current)) return false
+        if (isComponent(current) && ++components >= 2) return true
+        current = parentOf(current)
+    }
+    return false
+}
+
 /** Whether a command must not be applied from where `node` lives. */
 export const isSuppressedWindowCommand = (type: string | undefined, node: Node | null | undefined): boolean =>
     !!type && WINDOW_COMMANDS.has(type) && embeddingChromeOf(node) !== undefined

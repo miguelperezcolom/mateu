@@ -5,14 +5,60 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { formatShortcut } from "@infra/ui/shortcuts.ts";
 import { builtInButtonLabel } from "@infra/ui/builtInButtonLabels.ts";
-import { handleButtonClick, resolvedRoute, routeUnresolved } from "@infra/ui/renderers/buttonRenderer.ts";
+import { handleButtonClick, isButtonGroup, resolvedRoute, routeUnresolved } from "@infra/ui/renderers/buttonRenderer.ts";
+import { leaveToRoute } from "@infra/ui/rowRoute.ts";
+import "@vaadin/menu-bar";
 
 /**
  * Vaadin adapter Button → vaadin-button (Lumo theme attribute + vaadin-icon). Lives in apps/vaadin so the
  * core stays @vaadin-free; registered by VaadinComponentRenderer (the core renders a native <button>).
  */
-export const renderButton = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
+/**
+ * A ButtonGroup in content (a Button with `children` on the wire) → a vaadin-menu-bar with one
+ * root item opening the group's buttons; picking one dispatches its action (or follows its route)
+ * from the menu bar, exactly like a lone button.
+ */
+const renderButtonGroup = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
     const metadata = component.metadata as Button
+    const label = builtInButtonLabel(metadata, interpolate(metadata.label, state, data))
+    const items = [{
+        text: label,
+        children: metadata.children.map(child => ({
+            text: builtInButtonLabel(child, interpolate(child.label, state, data)),
+            disabled: child.disabled || routeUnresolved(child, state, data),
+            button: child,
+        })),
+    }]
+    const selected = (e: CustomEvent) => {
+        const child = (e.detail as { value: { button?: Button } }).value?.button
+        if (!child) return
+        const el = e.currentTarget as HTMLElement
+        const route = resolvedRoute(child, state, data)
+        if (route) {
+            leaveToRoute(el, route)
+            return
+        }
+        if (child.route) return
+        el.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: child.actionId, parameters: child.parameters },
+            bubbles: true,
+            composed: true,
+        }))
+    }
+    return html`<vaadin-menu-bar
+            id="${component.id}"
+            class="mateu-button-group ${component.cssClasses ?? ''}"
+            style="${component.style ?? nothing}"
+            theme="${metadata.buttonStyle ?? nothing}"
+            slot="${component.slot ?? nothing}"
+            .items=${items}
+            @item-selected=${selected}
+    ></vaadin-menu-bar>`
+}
+
+export const renderButton = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData): ReturnType<typeof html> => {
+    const metadata = component.metadata as Button
+    if (isButtonGroup(metadata)) return renderButtonGroup(component, state, data)
     // a built-in archetype button whose English label came back untranslated → the UI's language
     const label = builtInButtonLabel(metadata, interpolate(metadata.label, state, data))
     let theme = '';
