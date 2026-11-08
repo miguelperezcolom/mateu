@@ -246,6 +246,23 @@ class CrudMetadata(Wire):
     #: The route a row opens, with ``${row.x}`` templates (``people/${row.id}``) — a listing
     #: without a view model's way into a record (mirrors CrudlDto.rowRoute).
     row_route: str | None = None
+    #: The fluent listing's grid options (mirror CrudlDto's members of the same names): the grid's
+    #: height in rows and its first page, the components above / below the rows, a button opening
+    #: the row detail, lazy column rendering, the cells' background and padding, infinite scrolling,
+    #: lazy loading, several rows selectable with an action on every change, a fixed content height.
+    size: int = 0
+    initial_page: int = 0
+    header: "list[Component] | None" = None
+    footer: "list[Component] | None" = None
+    use_button_for_detail: bool = False
+    lazy_column_rendering: bool = False
+    vaadin_grid_cell_background: str | None = None
+    vaadin_grid_cell_padding: str | None = None
+    infinite_scrolling: bool = False
+    lazy_loading: bool = False
+    multiple_row_selection_enabled: bool = False
+    on_row_selection_changed_action_id: str | None = None
+    content_height: str | None = None
 
 
 class ComponentEntryRecord(Wire):

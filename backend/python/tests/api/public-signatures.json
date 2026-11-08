@@ -1031,6 +1031,9 @@
     ]
    ]
   },
+  "Details": {
+   "class": []
+  },
   "Disabled": {
    "class": []
   },
@@ -8929,6 +8932,131 @@
     ],
     [
      "grid_style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "listing_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "toolbar",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "initial_page",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "pre_search",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "detail_path",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "use_button_for_detail",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "lazy_column_rendering",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "vaadin_grid_cell_background",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "vaadin_grid_cell_padding",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "infinite_scrolling",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "lazy_loading",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "multiple_row_selection_enabled",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "on_row_selection_changed_action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content_height",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "search_on_enter",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "auto_focus_on_search_text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "filters_layout",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group_by",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "group_actions",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "row_status_field",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "drag_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "rows_selection_enabled",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

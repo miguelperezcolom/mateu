@@ -289,10 +289,54 @@ class ListingComponent(Component):
     all_rows_visible: bool = False
     column_reordering_allowed: bool = False
     grid_style: str | None = None
+    #: The rest of Java's fluent Listing (3.0 GA parity). ``listing_type``: table | card; None =
+    #: table. ``toolbar``: buttons above the rows. ``size``: the grid's height in rows (0 = the
+    #: renderer's own). ``initial_page``: the page shown first (0-based).
+    listing_type: str | None = None
+    toolbar: tuple[Button, ...] = ()
+    size: int = 0
+    initial_page: int = 0
+    #: Components above / below the rows, and what shows in place of the results until the first
+    #: search has run (the Redwood smart-filter-search dashboard slot).
+    header: tuple[Component, ...] = ()
+    footer: tuple[Component, ...] = ()
+    pre_search: tuple[Component, ...] = ()
+    #: The row field that opens under the row instead of being a column, and whether a button
+    #: opens it.
+    detail_path: str | None = None
+    use_button_for_detail: bool = False
+    #: Columns render only when scrolled into view.
+    lazy_column_rendering: bool = False
+    #: The grid cells' background and padding (CSS values).
+    vaadin_grid_cell_background: str | None = None
+    vaadin_grid_cell_padding: str | None = None
+    #: Rows load as the user scrolls / page by page on demand.
+    infinite_scrolling: bool = False
+    lazy_loading: bool = False
+    #: Several rows selectable; ``on_row_selection_changed_action_id`` runs on every change.
+    multiple_row_selection_enabled: bool = False
+    on_row_selection_changed_action_id: str | None = None
+    #: A fixed height for the listing's content (CSS).
+    content_height: str | None = None
+    #: The search runs on Enter (and debounced while typing) and the search box takes the focus
+    #: on opening — both on by default, as in Java.
+    search_on_enter: bool = True
+    auto_focus_on_search_text: bool = True
+    #: How the filters lay out; None = auto (the smart search bar).
+    filters_layout: str | None = None
+    #: The row field the rows are grouped by, and the buttons on every group header row.
+    group_by: str | None = None
+    group_actions: tuple[Button, ...] = ()
+    #: The row field whose value (success | warning | danger | info | neutral) tones the row.
+    row_status_field: str | None = None
+    #: Rows can be dragged onto a DropZone accepting this type; None = not draggable.
+    drag_type: str | None = None
+    #: Row selection checkboxes.
+    rows_selection_enabled: bool = False
 
     def __post_init__(self):
-        object.__setattr__(self, "columns", tuple(self.columns))
-        object.__setattr__(self, "filters", tuple(self.filters))
+        for name in ("columns", "filters", "toolbar", "header", "footer", "pre_search", "group_actions"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
 
 
 @dataclass(frozen=True)

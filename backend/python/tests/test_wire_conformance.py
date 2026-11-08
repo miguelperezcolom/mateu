@@ -29,7 +29,7 @@ from enum import Enum  # noqa: E402
 from mateu_ui.dtos import Option  # noqa: E402
 from mateu_ui.uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
 from mateu_ui.uidl.components import Notice, StatusItem, StatusList  # noqa: E402
-from mateu_ui.uidl import Help, SliderMax, SliderMin, TriggerType, subscribe_to, toolbar, trigger  # noqa: E402
+from mateu_ui.uidl import DetailForm, Details, Help, SliderMax, SliderMin, TriggerType, subscribe_to, toolbar, trigger  # noqa: E402
 from mateu_ui.uidl import AutoEditableView, Message, auto_save, view_toolbar_button  # noqa: E402
 from decimal import Decimal  # noqa: E402
 from mateu_ui.dtos import MenuItem  # noqa: E402
@@ -1198,7 +1198,70 @@ def expected(case: str) -> dict:
 
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton)]
+class LineRow:
+    product: str = ""
+    notes: Annotated[str, Details()] = ""
+
+
+@ui("/conformance/grid-field-detail")
+@title("Order lines")
+class GridFieldDetail:
+    """A grid field whose row type has a Details() field and whose row editor is customised."""
+
+    lines: Annotated[
+        list[LineRow],
+        DetailForm(position="bottom", columns=1, style="padding: 1rem;", theme="compact",
+                   min_height_when_detail_visible="20rem"),
+    ] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        row = LineRow()
+        row.product, row.notes = "Desk", "Oak"
+        self.lines = [row]
+
+
+@ui("/conformance/fluent-crudl-options")
+@title("Fluent listing options")
+class FluentCrudlOptionsPage(ComponentTreeSupplier):
+    """Every option of the fluent listing the port did not carry before 3.0 GA, on one listing."""
+
+    def style(self) -> str | None:
+        return None
+
+    def component(self):
+        from mateu_ui.uidl import components as fl
+
+        return fl.ListingComponent(
+            id="orders",
+            title="Orders",
+            listing_type="card",
+            columns=(fl.ListingColumn(id="customer", label="Customer", data_type="string"),),
+            toolbar=(fl.Button(label="Export", action_id="export"),),
+            size=3,
+            initial_page=2,
+            header=(fl.Text(text="Head"),),
+            footer=(fl.Text(text="Foot"),),
+            pre_search=(fl.Text(text="Search to start"),),
+            detail_path="notes",
+            use_button_for_detail=True,
+            lazy_column_rendering=True,
+            lazy_loading=True,
+            infinite_scrolling=True,
+            vaadin_grid_cell_background="#fafafa",
+            vaadin_grid_cell_padding="4px",
+            on_row_selection_changed_action_id="rowsChanged",
+            content_height="20rem",
+            search_on_enter=False,
+            auto_focus_on_search_text=False,
+            group_by="status",
+            group_actions=(fl.Button(label="Close group", action_id="closeGroup"),),
+            row_status_field="status",
+            drag_type="order",
+            rows_selection_enabled=True,
+        )
+
+
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage)]
 
 
 def test_every_case_of_the_corpus_is_wired():

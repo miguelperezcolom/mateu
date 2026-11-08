@@ -516,6 +516,10 @@ def _listing(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.
             tones={str(k): str(v) for k, v in tones.items()} if isinstance(tones, dict) else None,
         )
 
+    def components(key: str) -> tuple:
+        built = (_build(c, partials, chain) for c in _maps(node, key))
+        return tuple(c for c in built if c is not None)
+
     filters = [_build(f, partials, chain) for f in _maps(node, "filters")]
     return fluent.ListingComponent(
         id=_str(node.get("id")),
@@ -540,6 +544,30 @@ def _listing(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.
         no_row_border=bool(node.get("noRowBorder", False)),
         all_rows_visible=bool(node.get("allRowsVisible", False)),
         column_reordering_allowed=bool(node.get("columnReorderingAllowed", False)),
+        listing_type=_str(node.get("listingType")),
+        size=_int(node.get("size")),
+        initial_page=_int(node.get("initialPage")),
+        header=components("header"),
+        footer=components("footer"),
+        pre_search=components("preSearch"),
+        detail_path=_str(node.get("detailPath")),
+        use_button_for_detail=bool(node.get("useButtonForDetail", False)),
+        lazy_column_rendering=bool(node.get("lazyColumnRendering", False)),
+        vaadin_grid_cell_background=_str(node.get("vaadinGridCellBackground")),
+        vaadin_grid_cell_padding=_str(node.get("vaadinGridCellPadding")),
+        infinite_scrolling=bool(node.get("infiniteScrolling", False)),
+        lazy_loading=bool(node.get("lazyLoading", False)),
+        multiple_row_selection_enabled=bool(node.get("multipleRowSelectionEnabled", False)),
+        on_row_selection_changed_action_id=_str(node.get("onRowSelectionChangedActionId")),
+        content_height=_str(node.get("contentHeight")),
+        # Java's fluent Listing: both default on when the YAML says nothing
+        search_on_enter=bool(node.get("searchOnEnter", True)),
+        auto_focus_on_search_text=bool(node.get("autoFocusOnSearchText", True)),
+        filters_layout=_str(node.get("filtersLayout")),
+        group_by=_str(node.get("groupBy")),
+        row_status_field=_str(node.get("rowStatusField")),
+        drag_type=_str(node.get("dragType")),
+        rows_selection_enabled=bool(node.get("rowsSelectionEnabled", False)),
     )
 
 

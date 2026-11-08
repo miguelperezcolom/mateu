@@ -131,6 +131,13 @@ class SliderMax:
 
 
 @dataclass(frozen=True)
+class Details:
+    """On a field of a grid's ROW type: the row's detail — what opens under the row, behind a
+    button, instead of a column of its own. The grid carries the field's camelCase name as its
+    ``detailPath`` and sets ``useButtonForDetail`` (Java's ``@Details`` on a row field)."""
+
+
+@dataclass(frozen=True)
 class DetailForm:
     """Customises a grid field's row editor (Java's ``@DetailFormCustomisation`` +
     ``@MasterDetail``): where it opens (``right``/``left``/``top``/``bottom``/``modal``), its column

@@ -29,7 +29,7 @@ from mateu_ui.dtos import (
     RestDataSource,
 )
 from mateu_ui.uidl import components as fluent
-from mateu_ui.uidl import Colspan, DetailForm, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
+from mateu_ui.uidl import Colspan, DetailForm, Details, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
 from mateu_ui.uidl.rest_sources import RestSourceSupplier
 from mateu_ui.uidl import Text as TextMarker
 from mateu_ui.uidl import ContentSlot as ContentSlotMarker
@@ -239,6 +239,10 @@ class FieldMapperMixin(MixinBase):
             )))
         on_row = f.marker(OnRowSelected)
         detail = f.marker(DetailForm) or DetailForm()
+        # the row type's Details() field opens under the row, behind a button (Java's @Details)
+        detail_path = next(
+            (camel_case(c.name) for c in view_fields(row_type) if c.has(Details)), None
+        )
         style = "min-width: 10rem; width: 100%;"
         meta = FormFieldMetadata(
             field_id=field_id,
@@ -264,6 +268,8 @@ class FieldMapperMixin(MixinBase):
             form_theme=detail.theme,
             form_columns=detail.columns or form_columns_inference.form_columns(row_type),
             min_height_when_detail_visible=detail.min_height_when_detail_visible,
+            detail_path=detail_path,
+            use_button_for_detail=detail_path is not None,
         )
         return ClientSideComponent(metadata=meta, id=field_id, children=[], style=style)
 

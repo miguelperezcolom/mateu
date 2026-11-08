@@ -1000,6 +1000,31 @@ class ComponentMapperMixin(MixinBase):
                 row_route=c.row_route,
                 grid_style=c.grid_style,
                 **{flag: getattr(c, flag) for flag in _LISTING_FLAGS},
+                crudl_type=c.listing_type or "table",
+                toolbar=[self._form_button(b) for b in c.toolbar],
+                size=c.size,
+                initial_page=c.initial_page,
+                header=[self.map_component(h) for h in c.header] or None,
+                footer=[self.map_component(f) for f in c.footer] or None,
+                pre_search=[self.map_component(p) for p in c.pre_search] or None,
+                detail_path=c.detail_path,
+                use_button_for_detail=c.use_button_for_detail,
+                lazy_column_rendering=c.lazy_column_rendering,
+                vaadin_grid_cell_background=c.vaadin_grid_cell_background,
+                vaadin_grid_cell_padding=c.vaadin_grid_cell_padding,
+                infinite_scrolling=c.infinite_scrolling,
+                lazy_loading=c.lazy_loading,
+                multiple_row_selection_enabled=c.multiple_row_selection_enabled,
+                on_row_selection_changed_action_id=c.on_row_selection_changed_action_id,
+                content_height=c.content_height,
+                search_on_enter=c.search_on_enter,
+                auto_focus_on_search_text=c.auto_focus_on_search_text,
+                filters_layout=c.filters_layout or "auto",
+                group_by=c.group_by,
+                group_actions=[self._form_button(b) for b in c.group_actions],
+                row_status_field=c.row_status_field,
+                drag_type=c.drag_type,
+                rows_selection_enabled=c.rows_selection_enabled,
             )
             out = self._fluent_client(meta, c)
             out.id = c.id or "crud"
@@ -1287,30 +1312,32 @@ class ComponentMapperMixin(MixinBase):
             children=[self._org_node(child) for child in n.children],
         )
 
+    def _form_button(self, b) -> Button:
+        # Java's FormMapper.mapToButtonDto: the resolved action id (declared, else derived from
+        # the label), the style/colour a well-known id implies, the route of a RouteLink button
+        action_id = b.action_id or camelcasize(b.label) or ""
+        style = b.button_style
+        if style is None and action_id in ("save", "create"):
+            style = "primary"
+        elif style is None and (
+            action_id.startswith("cancel") or action_id in ("back", "backToList")
+        ):
+            style = "tertiary"
+        color = getattr(b, "color", None)
+        if color in (None, "normal", "none"):
+            deleting = action_id in ("delete", "delete-edit") or action_id.startswith("delete-")
+            color = "error" if deleting else None
+        return Button(
+            label=self.T(b.label), action_id=action_id, disabled=b.disabled,
+            button_style=style, color=color, route=getattr(b, "route", None),
+        )
+
     def _form_header(self, c) -> FormMetadata:
         """A fluent Form's header as the "Form" wire metadata — the same field names a reflected
         page carries on PageMetadata (mirrors Java's FormMapper). An element the form does not
         declare stays None / empty."""
 
-        def button(b) -> Button:
-            # Java's FormMapper.mapToButtonDto: the resolved action id (declared, else derived from
-            # the label), the style/colour a well-known id implies, the route of a RouteLink button
-            action_id = b.action_id or camelcasize(b.label) or ""
-            style = b.button_style
-            if style is None and action_id in ("save", "create"):
-                style = "primary"
-            elif style is None and (
-                action_id.startswith("cancel") or action_id in ("back", "backToList")
-            ):
-                style = "tertiary"
-            color = getattr(b, "color", None)
-            if color in (None, "normal", "none"):
-                deleting = action_id in ("delete", "delete-edit") or action_id.startswith("delete-")
-                color = "error" if deleting else None
-            return Button(
-                label=self.T(b.label), action_id=action_id, disabled=b.disabled,
-                button_style=style, color=color, route=getattr(b, "route", None),
-            )
+        button = self._form_button
 
         switcher = None
         sw = c.record_switcher
