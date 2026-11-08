@@ -148,6 +148,25 @@ removable in 4.0) and the deprecated wire DTOs.
   every pull request and release now runs the JetBrains plugin verifier against 2025.2, 2025.3 and
   those three lines.
   The desktop app moves to IntelliJ IDEA Community 2025.2.6.4 (the latest patch of its base).
+- **Open items of the October UX review, closed before GA** (status table in
+  `design/ux-review/*-findings.md`, "Estado 2026-11-08"):
+  - **Nothing pushes a phone page sideways any more.** A form's row of buttons wraps, and a
+    `@FoldedLayout`'s sections stack under 20rem instead of the second one being cut off at the
+    screen edge (Java, .NET and Python lay the row out the same way).
+  - **Planning board blocks read on any colour**: when neither the light nor the dark ink reaches
+    4.5:1 on a block's own colour (violet), the text is black. Its scrolling frame takes the focus,
+    so a keyboard can scroll it.
+  - **A disabled resource-grid card is `aria-disabled` and out of the tab order**; the selected one
+    says it is pressed, and its status chip keeps its contrast.
+  - **The rich-text toolbar, the chat's attachments and the saved-view star use the icon set**, not
+    emoji; the star is a named toggle with its pressed state.
+  - **Phone app:** a listing's selection boxes are one named checkbox each again (the Material
+    migration had nested Paper's own checkbox, named by its icon glyph, inside ours) and a row's
+    chevron is no longer a button inside the row; a month calendar opens on its agenda on a phone,
+    the grid one tap away; a record pushed over its listing drops its «Back to list», which the
+    back arrow already is; every font size is a step of the type scale (pinned by a test).
+  - **An unreadable page in `specs/ui` is reported once**, by its own loader, instead of a second
+    warning that called it a "route file".
 - **A listing's page header sends each toolbar button once.** A button declared
   `@ListToolbarButton` + `@Toolbar` (the documented way to give a bulk button its look) reached the
   page toolbar through both annotations and was sent twice; the listing's copy, which carries the

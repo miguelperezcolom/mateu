@@ -92,7 +92,9 @@ describe('attachments', () => {
         expect(calls[0].url).toBe('/ai/upload')
         expect((calls[0].init.body as FormData).getAll('files')).toHaveLength(2)
         const chips = Array.from(el.shadowRoot!.querySelectorAll('.attachment-chip'))
-        expect(chips.map(c => c.textContent!.replace('✕', '').trim())).toEqual(['📎 a.pdf', '📎 b.pdf'])
+        // the paperclip and the remove ✕ come from the icon set now, not emoji (W-V-GLYPHS)
+        expect(chips.map(c => c.textContent!.trim())).toEqual(['a.pdf', 'b.pdf'])
+        expect(chips.every(c => c.querySelector('[data-icon="vaadin:paperclip"]'))).toBe(true)
         ;(chips[1].querySelector('.attachment-remove') as HTMLButtonElement).click()
         await el.updateComplete
         expect(el.shadowRoot!.querySelectorAll('.attachment-chip')).toHaveLength(1)

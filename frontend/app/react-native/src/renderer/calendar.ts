@@ -76,6 +76,27 @@ export const switcherViews = (meta: CalendarMeta): CalendarView[] => {
   return out;
 };
 
+/**
+ * A phone (compact width) opens a MONTH calendar on its agenda instead: seven columns of a 390dp
+ * screen leave ~50dp a day, and event titles came out as "Sprin…" (UX review RN-27, NN/g mobile).
+ * The grid stays one tap away — the switcher offers it beside the list.
+ */
+export const initialViewFor = (meta: CalendarMeta, phone: boolean): CalendarView => {
+  const view = initialView(meta);
+  return phone && view === 'month' ? 'list' : view;
+};
+
+/** The switcher on a phone: the wire's views, plus the agenda/month pair when the month grid is offered. */
+export const switcherViewsFor = (meta: CalendarMeta, phone: boolean): CalendarView[] => {
+  const views = switcherViews(meta);
+  if (!phone) return views;
+  const offersMonth = views.includes('month') || (views.length === 0 && initialView(meta) === 'month');
+  if (!offersMonth) return views;
+  const out = views.length === 0 ? ['month' as CalendarView] : [...views];
+  if (!out.includes('list')) out.push('list');
+  return out;
+};
+
 export const viewLabel = (view: CalendarView): string => view.charAt(0).toUpperCase() + view.slice(1);
 
 /** The dates a view covers, in order: the anchor's month (month, list), its Monday-to-Sunday week, or the anchor. */

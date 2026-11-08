@@ -32,6 +32,14 @@ describe('rich text editor', () => {
         expect((root.querySelector('.tool-bold') as HTMLButtonElement).disabled).toBe(false)
     })
 
+    it('quote and link use the icon set, not typographic / emoji glyphs (W-V-GLYPHS)', async () => {
+        const { root } = await mount({ value: '<p>x</p>' })
+        const toolbar = root.querySelector('[role=toolbar]')!
+        expect(toolbar.textContent).not.toMatch(/[❝🔗]/u)
+        expect(root.querySelector('.tool-quote [data-icon="vaadin:quote-left"]')).toBeTruthy()
+        expect(toolbar.querySelector('[data-icon="vaadin:link"]')).toBeTruthy()
+    })
+
     it('converts a legacy Quill Delta value to HTML when it opens', async () => {
         const { root } = await mount({ value: JSON.stringify([{ insert: 'Legacy', attributes: { bold: true } }, { insert: '\n' }]) })
         expect(root.querySelector('.ProseMirror')!.innerHTML).toContain('<strong>Legacy</strong>')

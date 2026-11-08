@@ -1,13 +1,14 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
+import { isPhoneWidth } from '../core/phoneLayout';
 import {
-  agenda, anchorOf, dayA11yLabel, dayInfo, dayOfMonth, dayParameters, eventA11yLabel, eventsOn, initialView,
-  isDayActionable, monthWeeks, periodDates, periodTitle, switcherViews, timeRange, todayIso, viewLabel, weekdayShort,
+  agenda, anchorOf, dayA11yLabel, dayInfo, dayOfMonth, dayParameters, eventA11yLabel, eventsOn, initialViewFor,
+  isDayActionable, monthWeeks, periodDates, periodTitle, switcherViewsFor, timeRange, todayIso, viewLabel, weekdayShort,
   WEEKDAY_HEADERS, type CalendarEventMeta, type CalendarMeta, type CalendarView, type Tone,
 } from './calendar';
 
@@ -35,8 +36,9 @@ export function CalendarRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const metadata = ((component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
   const meta = metadata as CalendarMeta;
-  const [view, setView] = React.useState<CalendarView>(() => initialView(meta));
-  React.useEffect(() => { setView(initialView(meta)); }, [metadata]); // eslint-disable-line react-hooks/exhaustive-deps
+  const phone = isPhoneWidth(useWindowDimensions().width);
+  const [view, setView] = React.useState<CalendarView>(() => initialViewFor(meta, phone));
+  React.useEffect(() => { setView(initialViewFor(meta, phone)); }, [metadata, phone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const anchor = anchorOf(meta);
   const today = todayIso();
@@ -46,7 +48,7 @@ export function CalendarRenderer({ component }: { component: unknown }) {
       <Text style={[style, date === today && styles.todayNumber]}>{dayOfMonth(date)}</Text>
     </View>
   );
-  const views = switcherViews(meta);
+  const views = switcherViewsFor(meta, phone);
   const dayActionable = isDayActionable(meta);
   const pressDay = (date: string) => void controller.runAction(meta.dayActionId!, { ...dayParameters(date) });
 

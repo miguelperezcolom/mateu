@@ -44,6 +44,10 @@ export class MateuResourceGrid extends LitElement {
             border-color: var(--lumo-primary-color, #1a73e8);
             background: var(--lumo-primary-color-10pct, rgba(26,115,232,.08));
         }
+        /* a status chip's tint laid over the selected card's tint fell under 4.5:1 for its ink
+           (axe, /resource-grid-demo, 2026-11-08): on the selected card the chip sits on the page's
+           own surface */
+        .cell.selected .chip { background-color: var(--lumo-base-color, #fff); }
         .tag {
             position: absolute; top: -.55rem; left: .6rem;
             font-size: .55rem; font-weight: 600; letter-spacing: .04em;
@@ -99,7 +103,7 @@ export class MateuResourceGrid extends LitElement {
         return html`
             <div class="grid" style="${gridStyle}">
                 ${this.items.map(item => html`
-                    <div role="button" tabindex="0" class="cell ${item.disabled ? 'disabled' : ''} ${item.recommended ? 'recommended' : ''} ${item.id === this.selectedId ? 'selected' : ''}"
+                    <div role="button" tabindex="${item.disabled ? -1 : 0}" aria-disabled="${item.disabled ? 'true' : nothing}" aria-pressed="${item.id === this.selectedId ? 'true' : 'false'}" class="cell ${item.disabled ? 'disabled' : ''} ${item.recommended ? 'recommended' : ''} ${item.id === this.selectedId ? 'selected' : ''}"
                          @click="${() => this.select(item)}" @keydown="${onActivate(() => this.select(item))}">
                         ${item.recommended ? html`<span class="tag">${this.recommendedLabel || 'Recommended'}</span>` : nothing}
                         <span class="title">${item.title}</span>
