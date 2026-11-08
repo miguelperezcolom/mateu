@@ -239,6 +239,8 @@ class ViewMapperMixin(MixinBase):
                 class_flag(cls, "__mateu_title_placeholder__", None)
             ),
             title_is_text=True if titled_by_data(cls, instance) else None,
+            breadcrumbs=self.declared_breadcrumbs(cls, instance),
+            no_breadcrumbs=True if getattr(cls, "__mateu_no_breadcrumbs__", False) else None,
         )
         if is_tree_supplier:
             # The tree is the fragment component: the ServerSide holds the mapped tree children

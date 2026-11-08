@@ -417,6 +417,12 @@
     "WARNING"
    ]
   },
+  "BreadcrumbsSupplier": {
+   "class": [],
+   "members": {
+    "breadcrumbs": []
+   }
+  },
   "BulletedList": {
    "class": []
   },
@@ -4720,6 +4726,15 @@
     ]
    ]
   },
+  "breadcrumbs": {
+   "function": [
+    [
+     "crumbs",
+     "VAR_POSITIONAL",
+     false
+    ]
+   ]
+  },
   "business_component": {
    "function": [
     [
@@ -5004,6 +5019,9 @@
      true
     ]
    ]
+  },
+  "no_breadcrumbs": {
+   "function": []
   },
   "overline": {
    "function": [

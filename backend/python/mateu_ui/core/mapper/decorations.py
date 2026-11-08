@@ -7,6 +7,7 @@ from typing import Any
 from mateu_ui.dtos import (
     Badge,
     Banner,
+    BreadcrumbRecord,
     CustomTrigger,
     OnErrorTrigger,
     OnLoadTrigger,
@@ -19,6 +20,7 @@ from mateu_ui.dtos import (
     RecordSwitcherRecord,
 )
 from mateu_ui.uidl import (
+    BreadcrumbsSupplier,
     HeaderBadge,
     Label,
     TriggerType,
@@ -86,6 +88,19 @@ class DecorationMapperMixin(MixinBase):
             value = getattr(instance, f.name, None)
             out.append(Kpi(title=marker.title, text="" if value is None else str(value)))
         return out
+
+    def declared_breadcrumbs(self, cls, instance) -> "list[BreadcrumbRecord] | None":
+        """The breadcrumb trail the page declares: a ``BreadcrumbsSupplier`` wins over its
+        ``@breadcrumbs``; None when it declares none (Java's PageSectionExtractor.getBreadcrumbs)."""
+        if isinstance(instance, BreadcrumbsSupplier):
+            supplied = instance.breadcrumbs()
+            if supplied is None:
+                return None
+            return [BreadcrumbRecord(text=b.text, link=b.link) for b in supplied]
+        declared = getattr(cls, "__mateu_breadcrumbs__", None)
+        if not declared:
+            return None
+        return [BreadcrumbRecord(text=b.text, link=b.link) for b in declared]
 
     def peer_nav(self, instance) -> "PeerNav | None":
         """Previous/next peer-object arrows (the Redwood "next/previous object" header element)

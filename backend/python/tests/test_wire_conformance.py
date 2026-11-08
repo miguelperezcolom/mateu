@@ -1356,7 +1356,58 @@ class FluentCrudlOptionsPage(ComponentTreeSupplier):
         )
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("definition-actions", YamlCase)]
+from mateu_ui.uidl import breadcrumbs, no_breadcrumbs  # noqa: E402
+from mateu_ui.core.route_registry import RouteEntry, RouteEntrySupplier  # noqa: E402
+
+
+@ui("/conformance/page-no-breadcrumbs")
+@title("Welcome")
+@no_breadcrumbs
+class PageNoBreadcrumbs:
+    """A page that turns the automatic breadcrumb trail off (page-no-breadcrumbs)."""
+
+    name: str | None = None
+
+
+@ui("/conformance/page-breadcrumbs")
+@title("Order 7")
+@breadcrumbs(("Home", "/"), ("Orders", "/orders"))
+class PageBreadcrumbs:
+    """A page that declares its own breadcrumb trail (page-breadcrumbs)."""
+
+    name: str | None = None
+
+
+@app("Back link chain master", back_link=BackLink.PARENT)
+class BackLinkChainMaster:
+    """A record master offering "← Parent", bound in code to conformance/bl-chain/:customerId with
+    a child ``orders`` route (page-back-link-chain): the pages under it carry no trail."""
+
+    customer_id: str | None = None
+
+
+class BackLinkChainTab:
+    """The master's ``orders`` tab (page-back-link-chain): its page says noBreadcrumbs."""
+
+    note: str | None = "orders"
+
+
+class ConformanceRoutes(RouteEntrySupplier):
+    """The routes.yaml-equivalent chain of page-back-link-chain, authored in code (Java's
+    ConformanceRoutes; Python's RouteEntry is flat: the child names its parent)."""
+
+    def routes(self):
+        return [
+            RouteEntry(route="conformance/bl-chain/:customerId", view_model=type_name(BackLinkChainMaster)),
+            RouteEntry(
+                route="conformance/bl-chain/:customerId/orders",
+                view_model=type_name(BackLinkChainTab),
+                parent="conformance/bl-chain/:customerId",
+            ),
+        ]
+
+
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("app-back-link", BackLinkApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("page-no-breadcrumbs", PageNoBreadcrumbs), ("page-breadcrumbs", PageBreadcrumbs), ("page-back-link-chain", BackLinkChainTab), ("definition-actions", YamlCase)]
 
 
 def test_every_case_of_the_corpus_is_wired():
