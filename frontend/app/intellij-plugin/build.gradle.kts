@@ -59,6 +59,14 @@ val idePath = findProperty("mateu.idePath") as String?
 // Community the desktop app (buildInstaller) repackages. JetBrains published no Community build after
 // 2025.3 (2026.x is the unified IntelliJ IDEA distribution), so 252 stays the base until 3.1 decides.
 val ideVersion = (findProperty("mateu.ideVersion") as String?) ?: "2025.2.6.4"
+// The IntelliJ build the DESKTOP APP is packaged on. By default it is the same Community release the
+// plugin compiles against, downloaded from download.jetbrains.com. The prototype in
+// .github/workflows/desktop-base.yml (see design/desktop-base-strategy.md) packages on another base:
+// an IntelliJ IDEA Open Source build (JetBrains' intellij-community GitHub release assets, or built
+// from source), passed with -Pinstaller.ideArchive=<file> + -Pinstaller.ideVersion=<its version>.
+// The value is baked into the app (`mateu.desktop.ideVersion`) and into the update feed, so a
+// different base asks installed apps to reinstall (UpdateCheck.ReinstallNeeded).
+val desktopIdeVersion = (findProperty("installer.ideVersion") as String?)?.trim()?.ifBlank { null } ?: ideVersion
 
 dependencies {
     intellijPlatform {
@@ -332,6 +340,12 @@ tasks.runIde {
 //                          [-Pmateu.variant=hub|fixed] [-Pmateu.productName=…]
 //                          [-Pmateu.baseUrl=… | -Pmateu.registryUrl=… -Pmateu.appId=…]   (fixed)
 //                          [-Pmateu.updateUrl=…|none] [-Pinstaller.ideArchive=<local IDE archive>]
+//                          [-Pinstaller.ideVersion=<the archive's IntelliJ version>]
+//
+// -Pinstaller.ideArchive takes JetBrains' release archives (macOS .dmg, linux .tar.gz, windows .win.zip)
+// and also what an intellij-community source build writes (macOS .sit/.zip of the .app; a win.zip
+// with or without a top-level folder). See .github/workflows/desktop-base.yml. NEVER run this task on
+// a developer machine: installers are built on CI only (CLAUDE.md, #1000).
 //
 // Variants: `hub` (the default) = the app keeps a list of UIs the user adds (and owns mateu:// links);
 // `fixed` = bound to ONE UI — a base URL or app-registry coordinates, required — and claims no links.
@@ -407,7 +421,7 @@ fun desktopVmOptions(o: DesktopOptions, installerKey: String): List<String> = li
     o.updateUrl?.let { "-Dmateu.updateUrl=$it" },
     // What the updater compares the feed with (and which installer of the feed fits this app).
     "-Dmateu.desktop.platform=$installerKey",
-    "-Dmateu.desktop.ideVersion=$ideVersion",
+    "-Dmateu.desktop.ideVersion=$desktopIdeVersion",
     // Never offer to update to IntelliJ IDEA: the platform's ExternalUpdateManager reads this property
     // (any value = "updates managed by <value>") and switches its own platform update off. The value is
     // the name the Settings page shows.
@@ -466,8 +480,11 @@ tasks.register("buildInstaller") {
             }
             return file
         }
+        // A file of the IDE layout we append to. It must already exist: appending to a file a newer
+        // base renamed would create one the IDE never reads, so the app would lose its settings silently.
+        fun layoutFile(f: File): File = f.also { check(it.isFile) { "unexpected IDE layout: missing ${it.path}" } }
         val pluginZip = tasks.buildPlugin.get().outputs.files.singleFile
-        logger.lifecycle("Desktop app: ${o.product} — ${o.variant} variant, plugin $version, IntelliJ $ideVersion")
+        logger.lifecycle("Desktop app: ${o.product} — ${o.variant} variant, plugin $version, IntelliJ $desktopIdeVersion")
 
         // ── macOS: build "<product>.app" from the Community .dmg (branded, plugin preinstalled) ──
         if (platform == "macos") {
@@ -479,14 +496,25 @@ tasks.register("buildInstaller") {
             val mnt = File(work, "mnt").apply { mkdirs() }
             val appName = "${o.product}.app"
             val app = File(work, appName)
-            logger.lifecycle("Mounting the IDE image…")
-            run("hdiutil", "attach", dmg.absolutePath, "-nobrowse", "-readonly", "-mountpoint", mnt.absolutePath, dir = work)
-            try {
-                val srcApp = mnt.listFiles()!!.first { it.name.endsWith(".app") }
-                logger.lifecycle("Copying ${srcApp.name} → $appName…")
-                run("cp", "-R", srcApp.absolutePath, app.absolutePath, dir = work)
-            } finally {
-                run("hdiutil", "detach", mnt.absolutePath, "-quiet", dir = work)
+            if (dmg.name.endsWith(".dmg")) {
+                logger.lifecycle("Mounting the IDE image…")
+                run("hdiutil", "attach", dmg.absolutePath, "-nobrowse", "-readonly", "-mountpoint", mnt.absolutePath, dir = work)
+                try {
+                    val srcApp = mnt.listFiles()!!.first { it.name.endsWith(".app") }
+                    logger.lifecycle("Copying ${srcApp.name} → $appName…")
+                    run("cp", "-R", srcApp.absolutePath, app.absolutePath, dir = work)
+                } finally {
+                    run("hdiutil", "detach", mnt.absolutePath, "-quiet", dir = work)
+                }
+            } else {
+                // A source build's .sit is a zip of the .app (so is a .zip). ditto keeps the
+                // permissions, symlinks and extended attributes a bundle needs.
+                logger.lifecycle("Unpacking ${dmg.name}…")
+                val unpacked = File(work, "unpacked").apply { mkdirs() }
+                run("ditto", "-x", "-k", dmg.absolutePath, unpacked.absolutePath, dir = work)
+                val srcApp = unpacked.walkTopDown().maxDepth(2).first { it.isDirectory && it.name.endsWith(".app") }
+                logger.lifecycle("Moving ${srcApp.name} → $appName…")
+                run("mv", srcApp.absolutePath, app.absolutePath, dir = work)
             }
 
             val contents = File(app, "Contents")
@@ -537,7 +565,7 @@ tasks.register("buildInstaller") {
             File(src, "updates.xml").copyTo(File(resources, "updates.xml"), overwrite = true)
 
             // Data dirs per product, skip first-boot prompts, error balloon off.
-            File(contents, "bin/idea.properties").appendText(
+            layoutFile(File(contents, "bin/idea.properties")).appendText(
                 "\n# ── ${o.product} ──\n" +
                     "idea.config.path=\${user.home}/Library/Application Support/${o.product}/config\n" +
                     "idea.system.path=\${user.home}/Library/Caches/${o.product}/system\n" +
@@ -545,7 +573,7 @@ tasks.register("buildInstaller") {
                     "idea.log.path=\${user.home}/Library/Logs/${o.product}\n" +
                     "idea.fatal.error.notification=disabled\n",
             )
-            File(contents, "bin/idea.vmoptions").appendText(desktopVmOptions(o, key).joinToString("\n", prefix = "\n", postfix = "\n"))
+            layoutFile(File(contents, "bin/idea.vmoptions")).appendText(desktopVmOptions(o, key).joinToString("\n", prefix = "\n", postfix = "\n"))
 
             // Bundled workspace + launcher wrapper: double-clicking the app opens Mateu directly
             // (the plugin boots per-project) instead of the Welcome / "open project" screen.
@@ -632,7 +660,14 @@ tasks.register("buildInstaller") {
             check(ideDir.renameTo(root)) { "could not rename ${ideDir.name}" }
         } else {
             root.mkdirs()
-            run("unzip", "-q", archive.absolutePath, dir = root) // the win zip has no top-level dir
+            run("unzip", "-q", archive.absolutePath, dir = root) // JetBrains' win zip has no top-level dir
+            // A source build's zip may have one: hoist it so bin/ sits at the bundle root either way.
+            val entries = root.listFiles()!!
+            if (!File(root, "bin").isDirectory && entries.size == 1 && entries[0].isDirectory) {
+                val top = entries[0]
+                top.listFiles()!!.forEach { check(it.renameTo(File(root, it.name))) { "could not move ${it.name}" } }
+                check(top.delete()) { "could not remove ${top.name}" }
+            }
         }
 
         // Install into the CUSTOM plugins dir (data/plugins = idea.plugins.path below), NOT the
@@ -643,7 +678,7 @@ tasks.register("buildInstaller") {
         run("unzip", "-q", "-o", pluginZip.absolutePath, "-d", pluginsDir.absolutePath, dir = root)
 
         // Portable mode: config/system/log live INSIDE the bundle, isolated from any installed IDE.
-        File(root, "bin/idea.properties").appendText(
+        layoutFile(File(root, "bin/idea.properties")).appendText(
             """
 
             # ── ${o.product} portable bundle ──
@@ -660,7 +695,7 @@ tasks.register("buildInstaller") {
 
         // Skip first-boot prompts, focused mode, variant, updater coordinates.
         val key = if (linux) "linux" else "windows"
-        File(root, if (linux) "bin/idea64.vmoptions" else "bin/idea64.exe.vmoptions")
+        layoutFile(File(root, if (linux) "bin/idea64.vmoptions" else "bin/idea64.exe.vmoptions"))
             .appendText(desktopVmOptions(o, key).joinToString("\n", prefix = "\n", postfix = "\n"))
 
         // Bundled workspace the launcher opens (the plugin boots per-project, so a project must open).
@@ -747,7 +782,7 @@ tasks.register("desktopUpdateFeed") {
             "version" to version,
             "plugin" to mapOf("url" to "$base/${zip.name}", "sha256" to sha),
             "platform" to mapOf(
-                "ideVersion" to ideVersion,
+                "ideVersion" to desktopIdeVersion,
                 "installers" to keys.associateWith { "$base/${installerFileName(o.slug, version, it)}" },
             ),
             "notes" to ((findProperty("feed.notes") as String?) ?: "${o.product} $version"),
