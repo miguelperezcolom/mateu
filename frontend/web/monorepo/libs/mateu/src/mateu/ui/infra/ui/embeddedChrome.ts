@@ -85,6 +85,15 @@ export const isInsideMicroFrontend = (node: Node | null | undefined): boolean =>
     return false
 }
 
+/**
+ * Whether `node` lives where the window is NOT its own: inside an embedded micro frontend (any
+ * chrome) or inside any micro frontend island at all. An island with the default chrome used to
+ * apply its own PushStateToHistory: a crud row opened inside it replaced the HOST page's address
+ * (and the host then reloaded what the island pushed).
+ */
+export const isWindowless = (node: Node | null | undefined): boolean =>
+    embeddingChromeOf(node) !== undefined || isInsideMicroFrontend(node)
+
 /** Whether a command must not be applied from where `node` lives. */
 export const isSuppressedWindowCommand = (type: string | undefined, node: Node | null | undefined): boolean =>
-    !!type && WINDOW_COMMANDS.has(type) && embeddingChromeOf(node) !== undefined
+    !!type && WINDOW_COMMANDS.has(type) && isWindowless(node)

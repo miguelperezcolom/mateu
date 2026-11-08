@@ -7289,7 +7289,7 @@ atest('embedded MicroFrontend resolved in the host: its first paint applies no w
   } finally { globalThis.fetch = original }
 })
 
-atest('a top-level MicroFrontend (no chrome) is as before: no marker, its title reaches the window', async () => {
+atest('a MicroFrontend with no chrome sends no marker, and still never names or moves the host window', async () => {
   const original = globalThis.fetch
   const seen = []
   globalThis.fetch = async (url, init) => {
@@ -7303,9 +7303,13 @@ atest('a top-level MicroFrontend (no chrome) is as before: no marker, its title 
     const reg = await mfeLoadSubresource('https://host', mfeHostReg(), sub, { appState: {} })
     assert.ok(seen.every((b) => !('embeddedChrome' in b)))
     assert.equal(reg.contexts[sub.id].outbound.embeddedChrome, undefined)
-    // what made ec-demo1's host page lose its title: a top-level island names the window
-    assert.equal(reg.effects.docTitle, 'Remote title')
-    assert.equal(reg.effects.urlPush, '/remote')
+    // an island is a block of the host page whatever its chrome: a crud row opened inside one
+    // replaced the HOST page's address with the island's record route
+    assert.equal(reg.effects.docTitle, 'Herramientas')
+    assert.equal(reg.effects.urlPush, null)
+    const after = await mfeRunSurfaceAction(reg, sub.id, 'refresh', {}, { appState: {} })
+    assert.equal(after.effects.urlPush, null, 'nor does a later action of the island')
+    assert.deepEqual(after.effects.announcements.map((a) => a.text), ['kept'])
   } finally { globalThis.fetch = original }
 })
 

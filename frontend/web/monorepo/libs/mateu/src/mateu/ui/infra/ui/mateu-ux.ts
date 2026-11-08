@@ -22,7 +22,7 @@ import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideCo
 import {nanoid} from "nanoid";
 import type UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {applyPreloaded} from "@infra/ui/preloadedIncrement.ts";
-import { embeddingChromeOf } from "@infra/ui/embeddedChrome.ts";
+import { embeddingChromeOf, isWindowless } from "@infra/ui/embeddedChrome.ts";
 import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
@@ -253,9 +253,9 @@ export class MateuUx extends ConnectedElement {
                 this.currentStructureHash = undefined
             }
 
-            // an EMBEDDED micro frontend (MicroFrontend.chrome) moves in place: the address bar
-            // is the host page's
-            if (embeddingChromeOf(this)) return
+            // a micro frontend island (embedded with a chrome or not) moves in place: the address
+            // bar is the host page's
+            if (isWindowless(this)) return
 
             let effectiveRoute = e.detail.route
 
