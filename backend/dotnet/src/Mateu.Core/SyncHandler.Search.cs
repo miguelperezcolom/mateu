@@ -267,8 +267,11 @@ internal sealed partial class SyncHandler
             ToInt(GetState(rq.ComponentState, "page"), 0),
             ToInt(GetState(rq.ComponentState, "size"), 10),
             sort.Select(s => new SortSpec(s.field, s.descending)).ToList());
-        var found = instance.GetType().GetMethod("Find")!
-            .Invoke(instance, [SearchText(rq), rq.ComponentState, pageable]);
+        // the four-argument Find: the range / multi-select conditions arrive TYPED (Java's
+        // FilterCriteriaBuilder); its default delegates to the three-argument one
+        var found = instance.GetType().GetMethod("Find",
+                [typeof(string), typeof(IReadOnlyDictionary<string, object?>), typeof(IReadOnlyList<FilterCriterion>), typeof(Pageable)])!
+            .Invoke(instance, [SearchText(rq), rq.ComponentState, FilterCriteria.Of(element, rq.ComponentState), pageable]);
         if (found is not null)
         {
             var content = (System.Collections.IEnumerable)found.GetType().GetProperty("Content")!.GetValue(found)!;

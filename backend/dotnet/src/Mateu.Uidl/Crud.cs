@@ -54,6 +54,18 @@ public abstract class Crud<T> :
     public virtual PageResult<T>? Find(
         string? searchText, IReadOnlyDictionary<string, object?> filters, Pageable pageable) => null;
 
+    /// <summary>The same database pushdown, with the smart search bar's range / multi-select
+    /// conditions already TYPED: a temporal or [RangeFilter] numeric's bounds as
+    /// <see cref="FilterOperator.Between"/>/<see cref="FilterOperator.Gte"/>/<see cref="FilterOperator.Lte"/>,
+    /// an enum's picked values as <see cref="FilterOperator.In"/> — values coerced to the property's
+    /// type, keyed by its camelCase name. This is the overload the framework calls; the default
+    /// delegates to the three-argument <see cref="Find(string?, IReadOnlyDictionary{string, object?}, Pageable)"/>,
+    /// so an existing override keeps working. (C# analogue of Java's
+    /// <c>CrudStore.find(searchText, filters, criteria, pageable)</c>.)</summary>
+    public virtual PageResult<T>? Find(
+        string? searchText, IReadOnlyDictionary<string, object?> filters,
+        IReadOnlyList<FilterCriterion> criteria, Pageable pageable) => Find(searchText, filters, pageable);
+
     /// <summary>Loads one entity by id (default: linear scan of <see cref="Fetch"/>).</summary>
     public virtual T? Get(string id) => Fetch(null).FirstOrDefault(e => IdOf(e) == id);
 
@@ -112,13 +124,13 @@ public abstract class Crud<T> :
     public virtual bool CanCreate => true;
     public virtual bool CanDelete => true;
 
-    /// <summary>The capability-listing search: an overridden <see cref="Find"/> (database
+    /// <summary>The capability-listing search: an overridden <c>Find</c> (database
     /// pushdown) answers the ready page — it receives the request's raw
     /// <see cref="SearchRequest.FilterState"/>, the same filters the classic crud search hands it —
     /// else the whole in-memory <see cref="Fetch"/> result is
     /// handed to the engine to sort + paginate.</summary>
     public virtual ListingData<T> Search(SearchRequest request) =>
-        Find(request.SearchText, request.FilterState, request.Pageable) is { } page
+        Find(request.SearchText, request.FilterState, request.Criteria, request.Pageable) is { } page
             ? new ListingData<T>(page.Content, page.TotalElements)
             : ListingData<T>.From(Fetch(request.SearchText));
 
@@ -281,5 +293,5 @@ public sealed record SortSpec(string Field, bool Descending);
 public sealed record Pageable(int Page, int Size, IReadOnlyList<SortSpec> Sort);
 
 /// <summary>One page of results plus the total count — what a database-backed
-/// <see cref="Crud{T}.Find"/> returns (run the count + page queries inside).</summary>
+/// <c>Crud&lt;T&gt;.Find</c> returns (run the count + page queries inside).</summary>
 public sealed record PageResult<T>(IReadOnlyList<T> Content, long TotalElements);

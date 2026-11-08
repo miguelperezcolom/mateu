@@ -418,6 +418,7 @@ Mateu.Uidl.Crud<T> property System.String SaveAndNextLabel { get; }
 Mateu.Uidl.Crud<T> static method System.String IdOf(T)
 Mateu.Uidl.Crud<T> virtual method Mateu.Uidl.ListingData<T> Search(Mateu.Uidl.SearchRequest)
 Mateu.Uidl.Crud<T> virtual method Mateu.Uidl.PageResult<T> Find(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>, Mateu.Uidl.Pageable)
+Mateu.Uidl.Crud<T> virtual method Mateu.Uidl.PageResult<T> Find(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FilterCriterion>, Mateu.Uidl.Pageable)
 Mateu.Uidl.Crud<T> virtual method System.String NextIdAfter(System.String)
 Mateu.Uidl.Crud<T> virtual method System.Void Delete(System.String)
 Mateu.Uidl.Crud<T> virtual method System.Void DeleteAllById(System.Collections.Generic.IReadOnlyList<System.String>)
