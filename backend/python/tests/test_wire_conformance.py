@@ -1106,6 +1106,47 @@ class HeroBooks(HeroSearchListing[BookFilters, Book]):
         return list(BOOKS)
 
 
+from mateu_ui.uidl import Inline, shortcut, toolbar  # noqa: E402
+
+
+class SupplierInfo:
+    """A nested data object: inlined into its section (its toolbar on the title row, its button
+    below the content, both dispatched as ``nested-form-action-supplier-<method>``)."""
+
+    name: str = "Acme"
+    email: str = "sales@acme.test"
+
+    @toolbar
+    @shortcut("ctrl+alt+v")
+    def verify(self):
+        return Message(f"Verified {self.name}", MessageVariant.SUCCESS)
+
+    @button
+    def contact(self):
+        return Message(f"Contacting {self.email}", MessageVariant.SUCCESS)
+
+
+class DeliveryInfo:
+    """A nested data object WITHOUT Inline(): a sub-form in an outlined card."""
+
+    city: str = "Palma"
+    days: int = 3
+
+
+@ui("/conformance/inline-form")
+@title("Inline form")
+class InlineForm:
+    """Inline() nested object + a plain nested object (Java's @Inline / nested sub-form)."""
+
+    reference: Annotated[str, Section("Order")] = "PO-1"
+    supplier: Annotated[SupplierInfo, Section("Supplier"), Inline()] = None  # type: ignore[assignment]
+    delivery: Annotated[DeliveryInfo, Section("Delivery")] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        self.supplier = SupplierInfo()
+        self.delivery = DeliveryInfo()
+
+
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
@@ -1314,7 +1355,7 @@ class FluentCrudlOptionsPage(ComponentTreeSupplier):
         )
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm), ("auto-save", AutoSaveForm), ("editable-view", ProfileView), ("editable-view-edit", ProfileView), ("view-toolbar-button", ProductsWithViewButton), ("grid-field-detail", GridFieldDetail), ("fluent-crudl-options", FluentCrudlOptionsPage), ("crud-hidden-constraints-edit", SeatsCrud), ("crud-hidden-constraints-new", SeatsCrud), ("hero-search-filters", HeroBooks), ("inline-form", InlineForm), ("inline-form-action", InlineForm)]
 
 
 def test_every_case_of_the_corpus_is_wired():
