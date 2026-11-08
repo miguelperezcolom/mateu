@@ -1836,6 +1836,61 @@ class WireConformanceTest {
   }
 
   /**
+   * A nested data object: inline into its section ({@code @Inline} — fields {@code supplier-name}…,
+   * the nested class's {@code @Toolbar} on the section title row, its {@code @Button} below the
+   * content, both dispatched as {@code nested-form-action-supplier-<method>}, an
+   * {@code @Action(shortcut)} collected as a component action) and, without {@code @Inline}, a
+   * sub-form in an outlined card.
+   */
+  @SuppressWarnings("unused")
+  public static class SupplierInfo {
+    public String name = "Acme";
+    public String email = "sales@acme.test";
+
+    @io.mateu.uidl.annotations.Toolbar
+    @io.mateu.uidl.annotations.Action(shortcut = "ctrl+alt+v")
+    public Object verify() {
+      return Message.builder()
+          .variant(io.mateu.uidl.data.NotificationVariant.success)
+          .position(io.mateu.uidl.data.NotificationPosition.middle)
+          .text("Verified " + name)
+          .duration(3000)
+          .build();
+    }
+
+    @io.mateu.uidl.annotations.Button
+    public Object contact() {
+      return Message.builder()
+          .variant(io.mateu.uidl.data.NotificationVariant.success)
+          .position(io.mateu.uidl.data.NotificationPosition.middle)
+          .text("Contacting " + email)
+          .duration(3000)
+          .build();
+    }
+  }
+
+  @SuppressWarnings("unused")
+  public static class DeliveryInfo {
+    public String city = "Palma";
+    public int days = 3;
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/conformance/inline-form")
+  @Title("Inline form")
+  public static class InlineForm {
+    @Section("Order")
+    public String reference = "PO-1";
+
+    @Section("Supplier")
+    @io.mateu.uidl.annotations.Inline
+    public SupplierInfo supplier = new SupplierInfo();
+
+    @Section("Delivery")
+    public DeliveryInfo delivery = new DeliveryInfo();
+  }
+
+  /**
    * Cases pinned on a SECOND request — a case directory with a {@code request.json} ({@code route},
    * {@code consumedRoute}, {@code actionId}, {@code componentState}) is rendered by sending that
    * request to the case's fixture type instead of the first load. Identical in the three runners.
@@ -1860,7 +1915,8 @@ class WireConformanceTest {
           java.util.Map.entry("crud-new", ProductsCrud.class),
           java.util.Map.entry("crud-edit", ProductsCrud.class),
           java.util.Map.entry("crud-view", ProductsCrud.class),
-          java.util.Map.entry("page-back-link-chain", BackLinkChainTab.class));
+          java.util.Map.entry("page-back-link-chain", BackLinkChainTab.class),
+          java.util.Map.entry("inline-form-action", InlineForm.class));
 
   private static final List<String> CASES =
       List.of(
@@ -1942,7 +1998,9 @@ class WireConformanceTest {
           "page-back-link-chain",
           "definition-actions",
           "definition-triggers",
-          "definition-proxied-listing");
+          "definition-proxied-listing",
+          "inline-form",
+          "inline-form-action");
 
   static TestMateu mateu;
 
@@ -2025,7 +2083,8 @@ class WireConformanceTest {
             SeatsCrud.class,
             HeroBooks.class,
             PageNoBreadcrumbs.class,
-            PageBreadcrumbs.class);
+            PageBreadcrumbs.class,
+            InlineForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

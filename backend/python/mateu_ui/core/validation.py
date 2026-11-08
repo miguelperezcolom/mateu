@@ -39,10 +39,10 @@ def _num(value: float) -> str:
     return str(int(value)) if float(value).is_integer() else str(value)
 
 
-def field_constraints(f) -> list[tuple[str, str]]:
+def field_constraints(f, prefix: str = "") -> list[tuple[str, str]]:
     """``(condition, message)`` pairs for a field, in Java's order (Length, Min, Max, Pattern, then the
-    not-empty constraint)."""
-    fid = camel_case(f.name)
+    not-empty constraint). ``prefix``: the field lives in an inline nested object (``guest-``)."""
+    fid = prefix + camel_case(f.name)
     ref = f"state['{fid}']"
     out: list[tuple[str, str]] = []
     size = f.marker(Length)
@@ -113,19 +113,52 @@ def client_validations(
             for v in instance.validations() or []
         ]
     out: list[ValidationRecord] = []
+    _add_client_validations(mapper, cls, instance, read_only, fields, "", out, 0)
+    for v in getattr(cls, "__mateu_validations__", ()) or ():
+        out.append(ValidationRecord(condition=v.condition, field_id=v.field_id, message=mapper.T(v.message)))
+    return out
+
+
+def _inline_nested(f) -> bool:
+    from mateu_ui.uidl import Inline
+
+    from .nested_forms import is_nested_form_field
+
+    return f.has(Inline) and is_nested_form_field(f)
+
+
+def _nested_of(instance, f):
+    value = getattr(instance, f.name, None) if instance is not None and not isinstance(instance, type) else None
+    if value is None:
+        try:
+            value = f.type()
+        except Exception:  # noqa: BLE001 - a class that cannot be built without args
+            return None
+    return value
+
+
+def _add_client_validations(mapper, cls, instance, read_only, fields, prefix, out, depth) -> None:
+    """The constraints of ``cls``'s fields under ``prefix``, descending into ``Inline()`` nested
+    objects: their fields render on the page as ``<field>-<nested>`` and are validated with it
+    (Java's ValidationMapper.addFieldValidations)."""
     for f in validated_fields(mapper, cls, read_only, fields):
+        if _inline_nested(f):
+            nested = _nested_of(instance, f)
+            if nested is not None and not isinstance(nested, ValidationSupplier) and depth < 8:
+                _add_client_validations(
+                    mapper, type(nested), nested, False, None,
+                    prefix + camel_case(f.name) + "-", out, depth + 1,
+                )
+            continue
         hidden = f.marker(Hidden)
-        for condition, message in field_constraints(f):
+        for condition, message in field_constraints(f, prefix):
             if hidden is not None and hidden.value:
                 condition = f"({hidden.value}) || ({condition})"
             out.append(
                 ValidationRecord(
-                    condition=condition, field_id=camel_case(f.name), message=mapper.T(message)
+                    condition=condition, field_id=prefix + camel_case(f.name), message=mapper.T(message)
                 )
             )
-    for v in getattr(cls, "__mateu_validations__", ()) or ():
-        out.append(ValidationRecord(condition=v.condition, field_id=v.field_id, message=mapper.T(v.message)))
-    return out
 
 
 def _authorized_to_edit(mapper, f, cls=None) -> bool:
@@ -195,12 +228,23 @@ def form_violations(mapper, cls, instance) -> list[str]:
     the fields the client checks (a ``Hidden(expr)`` field is the browser's to judge, and a
     ``ValidationSupplier`` replaces the field constraints). The server-side leg of a view action
     the client is told to validate: the browser is not to be trusted, nor the only client."""
+    return _violations(mapper, cls, instance, 0)
+
+
+def _violations(mapper, cls, instance, depth: int) -> list[str]:
     if isinstance(instance, ValidationSupplier):
         return []
     out = []
     for f in validated_fields(mapper, cls):
         hidden = f.marker(Hidden)
         if hidden is not None and hidden.value:
+            continue
+        if _inline_nested(f):
+            # an inline nested object's fields are the page's: checked with the page (Java's
+            # ServerConstraintCheck)
+            nested = getattr(instance, f.name, None)
+            if nested is not None and depth < 8:
+                out.extend(_violations(mapper, type(nested), nested, depth + 1))
             continue
         label = f.marker(Label).value if f.has(Label) else humanize(f.name)
         for message in field_violations(f, getattr(instance, f.name, None)):

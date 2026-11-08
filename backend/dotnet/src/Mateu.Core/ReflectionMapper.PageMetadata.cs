@@ -19,10 +19,27 @@ internal sealed partial class ReflectionMapper
     private List<ValidationDto> MapValidations(Type type, IReadOnlyCollection<PropertyInfo>? only = null)
     {
         var validations = new List<ValidationDto>();
+        AddValidations(type, only, "", validations, 0);
+        return validations;
+    }
+
+    /// <summary>The constraints of <paramref name="type"/>'s fields under <paramref name="prefix"/>,
+    /// in declaration order; an [Inline] nested object's fields are the page's and are added in place
+    /// under the prefixed ids, recursively (Java's ValidationMapper.addFieldValidations). A
+    /// non-inline nested object is not descended.</summary>
+    private void AddValidations(Type type, IReadOnlyCollection<PropertyInfo>? only, string prefix,
+        List<ValidationDto> validations, int depth)
+    {
         foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }
                      && (only is null || only.Contains(p))))
         {
-            var fieldId = Naming.CamelCase(p.Name);
+            if (IsInlineNestedForm(p))
+            {
+                if (depth < 8)
+                    AddValidations(p.PropertyType, null, prefix + Naming.CamelCase(p.Name) + "-", validations, depth + 1);
+                continue;
+            }
+            var fieldId = prefix + Naming.CamelCase(p.Name);
             var reference = $"state['{fieldId}']";
             var field = new List<ValidationDto>();
             // An absent value satisfies a bound (Bean Validation's reading — requiring it is
@@ -62,7 +79,6 @@ internal sealed partial class ReflectionMapper
                 field = field.Select(v => v with { Condition = $"({hidden}) || ({v.Condition})" }).ToList();
             validations.AddRange(field.Select(v => v with { Message = T(v.Message) }));
         }
-        return validations;
     }
 
     /// <summary>Java's <c>Integer.MAX_VALUE</c>: what an open maximum reads as in a length message
@@ -164,11 +180,30 @@ internal sealed partial class ReflectionMapper
         Func<PropertyInfo, bool>? include = null, bool includeRequired = true)
     {
         var broken = new List<(PropertyInfo, string)>();
+        AddViolations(type, instance, broken, 0, include, includeRequired);
+        return broken;
+    }
+
+    /// <summary>The broken constraints of <paramref name="instance"/>, an [Inline] nested object's
+    /// fields checked with the page (with their own labels; a fresh object when the field is null),
+    /// recursively (Java's ServerConstraintCheck.check).</summary>
+    private static void AddViolations(Type type, object instance, List<(PropertyInfo, string)> broken, int depth,
+        Func<PropertyInfo, bool>? include, bool includeRequired)
+    {
         var invariant = System.Globalization.CultureInfo.InvariantCulture;
         foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }))
         {
             if (include is not null && !include(p)) continue;
             if (p.Find<HiddenAttribute>()?.Value is { } hidden && !string.IsNullOrWhiteSpace(hidden)) continue;
+            if (IsInlineNestedForm(p))
+            {
+                if (depth < 8)
+                {
+                    var nested = p.GetValue(instance) ?? Activator.CreateInstance(p.PropertyType)!;
+                    AddViolations(nested.GetType(), nested, broken, depth + 1, include, includeRequired);
+                }
+                continue;
+            }
             var value = p.GetValue(instance);
             var absent = value is null || value is string { Length: 0 }
                          || (value is System.Collections.ICollection { Count: 0 });
@@ -216,7 +251,6 @@ internal sealed partial class ReflectionMapper
                 if (!matches) broken.Add((p, pattern.Message));
             }
         }
-        return broken;
     }
 
     /// <summary>A [Range] bound as an invariant number literal, or null for an open bound.</summary>

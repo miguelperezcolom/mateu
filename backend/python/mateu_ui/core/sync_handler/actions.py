@@ -24,7 +24,7 @@ from mateu_ui.uidl import (
     PageBanners,
 )
 
-from .. import action_guard, documents
+from .. import action_guard, documents, nested_forms
 from ..naming import camel_case
 from ..reflection import view_fields
 from ..request_context import current_request
@@ -37,6 +37,8 @@ class ActionHandlerMixin(MixinBase):
         """Runs a view action. The action id comes from the wire, so it only reaches a method
         DECLARED as an action (see :mod:`mateu_ui.core.action_guard`) and only when the caller
         passes its access gates; anything else answers 403."""
+        if rq.action_id and rq.action_id.startswith(nested_forms.NESTED_ACTION_PREFIX):
+            return self._run_nested_action(type_, instance, rq, layout_override)
         fn = action_guard.resolve_action(
             type_, rq.action_id,
             lambda: action_guard.advertised_ids(self.mapper, type_, instance, layout_override),
@@ -64,6 +66,50 @@ class ActionHandlerMixin(MixinBase):
             # FragmentListMapper over a returned Collection, .NET's RunAction). Mapped element by
             # element, the view itself maps to nothing: the toast showed, the screen did not change.
             rest = [item for item in result if item is not instance]
+            rendered = self.render(type_, instance, rq, layout_override)
+            return _merge(rendered, self.map_result(rest, rq)) if rest else rendered
+        return self.map_result(result, rq)
+
+    def _run_nested_action(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
+        """``nested-form-action-<field>-<method>``: a method of the nested data object a field of
+        the view holds, run ON that object — already rehydrated from the request's state (Java's
+        RunMethodActionRunner). The field must be a nested-form field the caller can see and the
+        method a declared action of the nested class; anything else answers 403, a crafted id
+        never reaches a view method."""
+        parts = nested_forms.split_action(rq.action_id or "")
+        if parts is None:
+            action_guard.deny(f"not a nested form action: {(rq.action_id or '')[:120]}")
+        field_id, method_id = parts
+        field = next(
+            (f for f in view_fields(type_) if camel_case(f.name) == field_id), None
+        )
+        if field is None or not nested_forms.is_nested_form_field(field) or not self.mapper.visible(field):
+            action_guard.deny(f"nested form field not allowed: {field_id[:60]}")
+        nested = nested_forms.nested_value(instance, field)
+        if nested is None:
+            action_guard.deny(f"nested form field not allowed: {field_id[:60]}")
+        nested_type = type(nested)
+        fn = action_guard.resolve_action(
+            nested_type, method_id,
+            lambda: action_guard.advertised_ids(self.mapper, nested_type, nested),
+        )
+        if fn is None:
+            action_guard.no_such_action(type_, rq.action_id)
+        action_guard.ensure_may_invoke(self.mapper, nested_type, fn, rq.action_id)
+        if getattr(fn, "__mateu_button__", None) or getattr(fn, "__mateu_toolbar__", None):
+            # the client validated the whole PAGE (nested fields included) before a
+            # validation_required action: the server re-checks the holding view
+            from ..validation import VALIDATION_TITLE, describe, form_violations
+
+            broken = form_violations(self.mapper, type_, instance)
+            if broken:
+                raise UserFacingException(describe(broken), title=VALIDATION_TITLE)
+        method = fn.__get__(nested, nested_type)
+        result = method(*self._build_arguments(method, rq))
+        if result is nested or result is instance:
+            return self.render(type_, instance, rq, layout_override)
+        if isinstance(result, (list, tuple)) and any(item is nested or item is instance for item in result):
+            rest = [item for item in result if item is not nested and item is not instance]
             rendered = self.render(type_, instance, rq, layout_override)
             return _merge(rendered, self.map_result(rest, rq)) if rest else rendered
         return self.map_result(result, rq)

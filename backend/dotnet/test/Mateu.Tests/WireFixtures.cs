@@ -1139,3 +1139,35 @@ public class FluentCrudlOptionsPage : IComponentTreeSupplier
 
     public string? Style => null;
 }
+
+// ── Nested data objects (inline-form, inline-form-action) ─────────────────────────────────────
+
+/// <summary>A nested data object shown [Inline]: a toolbar method (an action with a shortcut, not
+/// validated) and a button method (validated).</summary>
+public class SupplierInfo
+{
+    public string? Name { get; set; } = "Acme";
+    public string? Email { get; set; } = "sales@acme.test";
+
+    [Toolbar, Action, Shortcut("ctrl+alt+v")]
+    public Message Verify() => new($"Verified {Name}") { Duration = 3000 };
+
+    [Button]
+    public Message Contact() => new($"Contacting {Email}") { Duration = 3000 };
+}
+
+/// <summary>A nested data object without [Inline]: a sub-form.</summary>
+public class DeliveryInfo
+{
+    public string? City { get; set; } = "Palma";
+    public int Days { get; set; } = 3;
+}
+
+/// <summary>Nested data objects in a form: one [Inline], one as a sub-form.</summary>
+[UI("conformance/inline-form"), Title("Inline form")]
+public class InlineForm
+{
+    [Section("Order")] public string? Reference { get; set; } = "PO-1";
+    [Section("Supplier"), Inline] public SupplierInfo Supplier { get; set; } = new();
+    [Section("Delivery")] public DeliveryInfo Delivery { get; set; } = new();
+}

@@ -683,7 +683,7 @@ internal sealed partial class ReflectionMapper
     /// GridColumnBuilder.getFormFieldForArray.</summary>
     private ClientSideComponentDto MapGridField(PropertyInfo p, Type rowType, object instance, bool readOnly)
     {
-        var fieldId = Naming.CamelCase(p.Name);
+        var fieldId = PrefixedFieldId(p);
         // [InlineEditing] on the grid property: cells edit in place, commits accumulate in the
         // form state (the frontend's renderEditableCell form-grid path) and save with the form.
         var inline = !readOnly && p.Find<InlineEditingAttribute>() != null;
@@ -748,7 +748,10 @@ internal sealed partial class ReflectionMapper
             ItemIdPath = "_rowNumber",
             InlineEditing = inline,
             OnItemSelectionActionId = onRow is not null
-                ? Naming.CamelCase(onRow.Value)
+                // inside a nested object the row click runs the nested object's method
+                ? FieldPrefix.Length > 0
+                    ? NestedFormActionPrefix + FieldPrefix + Naming.CamelCase(onRow.Value)
+                    : Naming.CamelCase(onRow.Value)
                 // without [OnRowSelected] an editable grid keeps the legacy detail-edit binding
                 : readOnly ? null : fieldId + "_selected",
             RowSelectionShortcut = onRow is { Shortcut.Length: > 0 } ? onRow.Shortcut : null,

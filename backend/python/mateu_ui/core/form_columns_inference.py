@@ -57,8 +57,22 @@ def form_columns(cls, fields=None) -> int:
     return 1 if visible_field_count(counted) <= MAX_SINGLE_COLUMN_FIELDS else 2
 
 
-def visible_field_count(fields) -> int:
-    return sum(1 for f in fields if renders_in_any_form(f))
+def visible_field_count(fields, _visiting: frozenset = frozenset()) -> int:
+    """The fields that render; an ``Inline()`` nested data object counts its OWN visible fields,
+    since they render inline in this form (Java's FormColumnsInference)."""
+    from mateu_ui.uidl import Inline
+
+    from .nested_forms import is_nested_form_type
+
+    count = 0
+    for f in fields:
+        if not renders_in_any_form(f):
+            continue
+        if f.has(Inline) and is_nested_form_type(f.type) and f.type not in _visiting:
+            count += visible_field_count(view_fields(f.type), _visiting | {f.type})
+        else:
+            count += 1
+    return count
 
 
 def renders_in_any_form(f) -> bool:

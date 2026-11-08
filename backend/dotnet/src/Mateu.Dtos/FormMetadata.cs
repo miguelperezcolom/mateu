@@ -20,6 +20,15 @@ public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetada
     /// ButtonDto.route — a Button whose actionable is a RouteLink). Omitted when null.</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Route { get; init; }
+
+    /// <summary>The keyboard shortcut of the action the button runs (Java's ButtonDto.shortcut).
+    /// Omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Shortcut { get; init; }
+
+    /// <summary>The button size ("small"…; Java's ButtonDto.size). Omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Size { get; init; }
 }
 
 public record FormSectionMetadataDto(string Title) : ComponentMetadataDto;

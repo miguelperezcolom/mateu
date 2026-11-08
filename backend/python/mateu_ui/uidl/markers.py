@@ -94,7 +94,15 @@ class Text:
 
 @dataclass(frozen=True)
 class Inline:
-    """On a field holding a routed VIEW (an embedded island): the island renders without its own
+    """Java's ``@Inline``, with two meanings decided by the field's TYPE.
+
+    On a field holding a plain DATA object (a nested form): its fields expand straight into the
+    section, with ids prefixed ``<field>-`` (``supplier-name``); in a multi-section form the nested
+    class's ``@toolbar`` methods sit on the section's title row and its ``@button`` methods below
+    the content, dispatched as ``nested-form-action-<field>-<method>`` and run on the nested object.
+    Without ``Inline()`` such a field renders as a sub-form in an outlined card.
+
+    On a field holding a routed VIEW (an embedded island): the island renders without its own
     page chrome — its title drops to a sub-heading, no badges/KPIs — so it blends into the host
     section or tab (Java's ``@Inline`` on an embedded orchestrator field)."""
 

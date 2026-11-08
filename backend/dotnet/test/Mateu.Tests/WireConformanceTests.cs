@@ -272,6 +272,8 @@ public class WireConformanceTests
         { "definition-actions", typeof(YamlCase) },
         { "definition-triggers", typeof(YamlCase) },
         { "definition-proxied-listing", typeof(YamlCase) },
+        { "inline-form", typeof(Wire.InlineForm) },
+        { "inline-form-action", typeof(Wire.InlineForm) },
     };
 
     /// <summary>Stands for "no fixture type": the case is a <c>specs/ui/</c> directory of its own.</summary>

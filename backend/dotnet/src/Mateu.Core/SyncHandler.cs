@@ -352,6 +352,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // 4. A plain view.
         var instance = Activator.CreateInstance(type)!;
         BindState(instance, rq.ComponentState);
+        // A nested data object's method (nested-form-action-<field>-<method>).
+        if (rq.ActionId?.StartsWith(ReflectionMapper.NestedFormActionPrefix, StringComparison.Ordinal) == true)
+            return RunNestedFormAction(type, instance, rq, layoutOverride);
         // The row editing actions of a list property (grid "+", Edit, Save, Remove, move…).
         if (FieldCrudTarget(type, rq.ActionId) is { } fieldCrud)
             return HandleFieldCrud(fieldCrud.Property, fieldCrud.FieldId, fieldCrud.Suffix, rq);
@@ -726,6 +729,46 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             && _mapper.Violations(type, instance) is { Count: > 0 } broken)
             throw new UserFacingException(ReflectionMapper.ValidationTitle, string.Join("\n", broken));
         var result = method.Invoke(instance, BuildArguments(method, rq));
+        return ActionResult(result, rq);
+    }
+
+    /// <summary>Runs <c>nested-form-action-&lt;field&gt;-&lt;method&gt;</c>: the method of the nested
+    /// data object the view's <c>field</c> holds (hydrated from the state, or a fresh one), with the
+    /// same guard as any action — a field that is no nested form, a method that is no declared
+    /// action or a malformed id is refused (Java's RunMethodActionRunner nested-form branch).
+    /// Returning the nested object (or the view) re-renders the view.</summary>
+    private UIIncrementDto RunNestedFormAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
+    {
+        var actionId = rq.ActionId!;
+        var rest = actionId[ReflectionMapper.NestedFormActionPrefix.Length..];
+        var dash = rest.IndexOf('-');
+        if (dash <= 0 || dash == rest.Length - 1) throw ActionGuard.NoSuchAction(actionId);
+        var fieldName = rest[..dash];
+        var methodId = rest[(dash + 1)..];
+        var property = ReflectionMapper.EditableProperties(type)
+            .FirstOrDefault(p => Naming.CamelCase(p.Name) == fieldName && _mapper.IsNestedFormProperty(p));
+        if (property is null || !ActionGuard.Authorized(property.Find<EyesOnlyAttribute>()))
+            throw ActionGuard.NoSuchAction(actionId);
+        var nested = property.GetValue(instance) ?? Activator.CreateInstance(property.PropertyType)!;
+        if (property.CanWrite) property.SetValue(instance, nested);
+        var nestedType = nested.GetType();
+        var method = ActionGuard.ResolveAction(nestedType, nested, methodId, null);
+        if (method is null) throw ActionGuard.NoSuchAction(actionId);
+        ActionGuard.EnsureMayInvoke(nestedType, method, actionId);
+        // advertised validationRequired (a [Button]/[Toolbar] with no [Action]): the server checks too
+        if (method.Find<ActionAttribute>() is null
+            && (method.Find<ButtonAttribute>() != null || method.Find<ToolbarAttribute>() != null)
+            && _mapper.Violations(type, instance) is { Count: > 0 } broken)
+            throw new UserFacingException(ReflectionMapper.ValidationTitle, string.Join("\n", broken));
+        var result = method.Invoke(nested, BuildArguments(method, rq));
+        if (ReferenceEquals(result, nested) || ReferenceEquals(result, instance))
+            return Render(type, instance, rq, layoutOverride);
+        return ActionResult(result, rq);
+    }
+
+    /// <summary>What an action's result answers (shared by view and nested-object actions).</summary>
+    private UIIncrementDto ActionResult(object? result, RunActionRqDto rq)
+    {
         // An action returning a routed view (itself, or the model of the view's next state)
         // re-renders it in place — how a multi-state island switches between its states.
         if (IsRoutedViewResult(result)) return Render(result!.GetType(), result, rq);
@@ -909,7 +952,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
 
     private static object? StateOf(ComponentDto component) =>
         component is ServerSideComponentDto { InitialData: IReadOnlyDictionary<string, object?> data and { Count: > 0 } }
-            ? data
+            // a nested data object rides nested AND flattened under its prefixed ids (Java's
+            // FormViewSerializer) — the nested fields bind to the flattened keys
+            ? NestedFormState.Flatten(data)
             : null;
 
     /// <summary>Decorates a resolved route's increment with the route entry's APP-SCOPE seeds. State

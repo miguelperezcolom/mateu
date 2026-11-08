@@ -172,6 +172,8 @@ class ButtonMetadata(Wire):
     route: str | None = None
     #: The button colour (normal/success/error/contrast; mirrors ButtonDto.color).
     color: str | None = None
+    #: The keyboard shortcut the button answers (e.g. "ctrl+alt+v"; mirrors ButtonDto.shortcut).
+    shortcut: str | None = None
 
 
 class TabLayoutMetadata(Wire):

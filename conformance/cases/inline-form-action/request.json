@@ -1,0 +1,13 @@
+{
+  "route": "/conformance/inline-form",
+  "actionId": "nested-form-action-supplier-verify",
+  "componentState": {
+    "reference": "PO-7",
+    "supplier-name": "Globex",
+    "supplier-email": "hello@globex.test",
+    "delivery": {
+      "city": "Inca",
+      "days": 5
+    }
+  }
+}
