@@ -215,7 +215,11 @@ class RequestBudgetTest {
   }
 
   /** What one warm request costs: the lookups it made and the classes it walked for injection. */
-  record Cost(Map<String, Integer> lookups, long injectionFieldScans, long recordShapeReads) {
+  record Cost(
+      Map<String, Integer> lookups,
+      long injectionFieldScans,
+      long recordShapeReads,
+      long routedClassesScanned) {
     int totalLookups() {
       return lookups.values().stream().mapToInt(Integer::intValue).sum();
     }
@@ -226,11 +230,13 @@ class RequestBudgetTest {
     mateu.resetLookups();
     long scansBefore = ReflectionInstanceFactory.injectionFieldScans();
     long shapesBefore = io.mateu.core.domain.Records.shapeReads();
+    long routedBefore = io.mateu.core.application.DefaultRoutedClassResolver.providersScanned();
     assertThat(scenario.get()).isNotNull();
     return new Cost(
         new TreeMap<>(mateu.lookups()),
         ReflectionInstanceFactory.injectionFieldScans() - scansBefore,
-        io.mateu.core.domain.Records.shapeReads() - shapesBefore);
+        io.mateu.core.domain.Records.shapeReads() - shapesBefore,
+        io.mateu.core.application.DefaultRoutedClassResolver.providersScanned() - routedBefore);
   }
 
   static String bean(Class<?> type) {
@@ -266,6 +272,9 @@ class RequestBudgetTest {
     // the generic walks of the wire records read each record class's shape once per process
     // (io.mateu.core.domain.Records): reading it per node was 66% of a listing load's CPU
     assertThat(cost.recordShapeReads()).as(scenario + " record shapes read").isZero();
+    // route resolution looks the route up in an index built once per container: it used to ask
+    // every routed class of the app on each request (~8% of a request's CPU on the e2e SUT)
+    assertThat(cost.routedClassesScanned()).as(scenario + " routed classes scanned").isZero();
   }
 
   /**
@@ -374,6 +383,67 @@ class RequestBudgetTest {
         .append(p50Micros(RequestBudgetTest::wizardNext, 1000))
         .append('\n');
     System.out.println(report);
+  }
+
+  /**
+   * Informational, like {@link #printsTheMedianTimeOfAWarmRequest}: the same scenarios in an app
+   * the size of the e2e SUT — 200 more routed classes registered BEFORE the measured ones — whose
+   * settings come from a Spring Boot {@code Environment} (what the MVC/WebFlux adapters register),
+   * so the per-request costs that grow with the app (route resolution, settings reads) show.
+   */
+  @Test
+  @org.junit.jupiter.api.condition.EnabledIfSystemProperty(
+      named = "mateu.perf.timing",
+      matches = "true")
+  void printsTheMedianTimeOfAWarmRequestInALargeApp() throws Exception {
+    var classes = new ArrayList<Class<?>>(routeFillers(200));
+    classes.addAll(List.of(SimpleForm.class, ItemsCrud.class, PerfApp.class, PerfWizard.class));
+    var previous = mateu;
+    var env = new org.springframework.core.env.StandardEnvironment();
+    env.getPropertySources()
+        .addFirst(
+            new org.springframework.core.env.MapPropertySource(
+                "application.properties", Map.of("server.port", "8080", "spring.main.x", "y")));
+    org.springframework.boot.context.properties.source.ConfigurationPropertySources.attach(env);
+    try (var settings = io.mateu.core.infra.MateuSettings.register(env::getProperty);
+        var large = TestMateu.withUis(classes.toArray(Class<?>[]::new))) {
+      mateu = large;
+      var report = new StringBuilder("REQUEST TIMING, 204 routed classes (p50 of 1000, µs)\n");
+      report.append("simpleForm ").append(p50Micros(RequestBudgetTest::simpleForm, 1000));
+      report.append("\ncrudList ").append(p50Micros(RequestBudgetTest::crudList, 1000));
+      report.append("\ncrudSearch ").append(p50Micros(RequestBudgetTest::crudSearch, 1000));
+      report.append("\nappShell ").append(p50Micros(RequestBudgetTest::appShell, 1000));
+      report.append("\nwizardNext ").append(p50Micros(RequestBudgetTest::wizardNext, 1000));
+      System.out.println(report);
+    } finally {
+      mateu = previous;
+    }
+  }
+
+  /** {@code n} generated classes, each {@code @UI("/perf/filler/<i>")}. */
+  static List<Class<?>> routeFillers(int n) throws Exception {
+    var lookup =
+        java.lang.invoke.MethodHandles.privateLookupIn(
+            RequestBudgetTest.class, java.lang.invoke.MethodHandles.lookup());
+    var out = new ArrayList<Class<?>>();
+    for (int i = 0; i < n; i++) {
+      out.add(
+          new net.bytebuddy.ByteBuddy()
+              .subclass(Object.class)
+              .name("io.mateu.core.perf.RouteFiller" + i)
+              .annotateType(
+                  net.bytebuddy.description.annotation.AnnotationDescription.Builder.ofType(
+                          UI.class)
+                      .define("value", "/perf/filler/" + i)
+                      .build())
+              .defineField("name", String.class, java.lang.reflect.Modifier.PUBLIC)
+              .make()
+              .load(
+                  RequestBudgetTest.class.getClassLoader(),
+                  net.bytebuddy.dynamic.loading.ClassLoadingStrategy.UsingLookup.of(lookup))
+              .getLoaded());
+    }
+    return out;
   }
 
   static long p50Micros(Supplier<UIIncrementDto> scenario, int iterations) {

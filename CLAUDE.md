@@ -1014,6 +1014,16 @@ Durable rules and where they live:
   screen, `src/test/resources/perf/response-size-budget.json`, `-Dresponse.size.write=true`),
   `e2e/tests/shared/first-load-budget.spec.ts` (gzipped bundle, requests/bytes of a cold first load).
   No latency gate (shared runners are noise). Probes: `e2e/first-load-probe.mjs`, `e2e/sync-latency-probe.mjs`.
+- **Follow-ups (2026-11-08, same doc §4)**: route resolution goes through `RoutedClassIndex` (built
+  once per `DefaultRoutedClassResolver`; literal routes = map keys, `:param` ones tried in order,
+  candidates in the providers' order) — `RequestBudgetTest` pins 0 routed classes scanned per warm
+  request; `MateuSettings` memoises the framework source + env answer per key per registered source
+  (the `-D` property stays live; `MateuSettings.refresh()` — the Spring adapters call it on
+  `ContextRefreshedEvent`/Spring Cloud's `EnvironmentChangeEvent`); the .NET/Python asset serving
+  sends Java's weak ETag (+`-gzip` variant) + Last-Modified and answers 304; `mateu-bundle:bundle`
+  writes `.gz` siblings (`mateu.bundle.precompress`, nginx `gzip_static on` in the demo configs);
+  the Vaadin `_index.html` has a CSS-only pre-boot loader after `HASTAAQUIUI`, hidden by
+  `mateu-ui:defined ~ .mateu-preboot` — edit `apps/vaadin/index.html` AND the committed `_index.html`.
 
 ## New Mateu project — one generator, three front doors (2026-10-10)
 

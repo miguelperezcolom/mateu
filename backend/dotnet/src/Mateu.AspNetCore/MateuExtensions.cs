@@ -367,14 +367,31 @@ public static class MateuExtensions
             var path = ctx.Request.Path.Value ?? "/";
             // the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
             // Vaadin first load); Java's AssetCompression
-            if (UiPage.IsAsset(path) && UiPage.IsCompressible(path))
+            var isAsset = path != "/" && UiPage.IsAsset(path);
+            var gzip = false;
+            if (isAsset && UiPage.IsCompressible(path))
             {
                 ctx.Response.Headers.Vary = "Accept-Encoding";
-                if (body.Length >= UiPage.GzipMinBytes && UiPage.AcceptsGzip(ctx.Request.Headers.AcceptEncoding.ToString()))
+                gzip = body.Length >= UiPage.GzipMinBytes && UiPage.AcceptsGzip(ctx.Request.Headers.AcceptEncoding.ToString());
+            }
+            // validators, so a repeat visit (no-cache) costs a 304 and no body — Java's StaticAssetCaching
+            if (isAsset && renderer.Stamp(path) is { } stamp)
+            {
+                var etag = UiPage.WeakEtag(stamp.Size, stamp.ModifiedMs);
+                if (gzip) etag = UiPage.GzipEtag(etag);
+                if (etag is not null) ctx.Response.Headers.ETag = etag;
+                ctx.Response.Headers.LastModified = DateTimeOffset.FromUnixTimeMilliseconds(stamp.ModifiedMs).ToString("R");
+                if (UiPage.NotModified(ctx.Request.Headers.IfNoneMatch.ToString(), ctx.Request.Headers.IfModifiedSince.ToString(), etag, stamp.ModifiedMs))
                 {
-                    body = UiPage.Gzipped(path, body);
-                    ctx.Response.Headers.ContentEncoding = "gzip";
+                    ctx.Response.StatusCode = StatusCodes.Status304NotModified;
+                    if (cacheControl is not null) ctx.Response.Headers.CacheControl = cacheControl;
+                    return;
                 }
+            }
+            if (gzip)
+            {
+                body = UiPage.Gzipped(path, body);
+                ctx.Response.Headers.ContentEncoding = "gzip";
             }
             ctx.Response.StatusCode = StatusCodes.Status200OK;
             ctx.Response.ContentType = contentType;

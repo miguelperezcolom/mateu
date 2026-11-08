@@ -141,6 +141,15 @@ public class BundleMojo extends AbstractMojo {
   @Parameter(property = "mateu.bundle.pwa", defaultValue = "true")
   private boolean pwa = true;
 
+  /**
+   * Writes a {@code .gz} sibling of every text file of the bundle (JavaScript, CSS, HTML, JSON…),
+   * so a host serving pre-compressed files (nginx {@code gzip_static on}, Caddy {@code
+   * precompressed gzip}, most CDN origins) sends them gzipped without compressing per request. On
+   * by default; harmless on a host that ignores them.
+   */
+  @Parameter(property = "mateu.bundle.precompress", defaultValue = "true")
+  private boolean precompress = true;
+
   /** The renderer this bundle ships: explicit, else the project's, else the served one. */
   static ProjectRenderer chooseRenderer(String explicit, ClassLoader appLoader) {
     var named = ProjectRenderer.parse(explicit);
@@ -254,6 +263,17 @@ public class BundleMojo extends AbstractMojo {
         // the UI manifest the Mateu mobile app reads, as a file where a server would answer it
         MobileManifestFile.write(
             target.toPath(), MobileManifestFile.json(appLoader, discovered, pageTitle));
+        if (precompress) {
+          var gz = BundleWriter.precompress(target.toPath());
+          info(
+              "mateu-bundle: "
+                  + gz.files()
+                  + " text file(s) pre-compressed ("
+                  + gz.rawBytes() / 1024
+                  + " KB → "
+                  + gz.gzipBytes() / 1024
+                  + " KB as .gz siblings)");
+        }
 
         long ok = manifest.entries().stream().filter(BundleEntry::ok).count();
         manifest.entries().stream()

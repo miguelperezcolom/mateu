@@ -32,6 +32,21 @@ public class SpringBeanProvider
     settings.close();
   }
 
+  /**
+   * Mateu memoises its settings ({@code MateuSettings}); a refreshed context, or Spring Cloud's
+   * {@code EnvironmentChangeEvent} (matched by name: no Spring Cloud dependency), may carry new
+   * values, so the memo is dropped.
+   */
+  @EventListener
+  public void forgetSettingsOnEnvironmentChange(
+      org.springframework.context.ApplicationEvent event) {
+    if (event instanceof org.springframework.context.event.ContextRefreshedEvent
+        || "org.springframework.cloud.context.environment.EnvironmentChangeEvent"
+            .equals(event.getClass().getName())) {
+      io.mateu.core.infra.MateuSettings.refresh();
+    }
+  }
+
   /** Warns, once, when nothing will authenticate callers (no Spring Security, no resolver). */
   @EventListener(ApplicationReadyEvent.class)
   public void warnAboutSecurity() {

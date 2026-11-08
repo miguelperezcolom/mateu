@@ -222,7 +222,24 @@ create, edit and delete go through the `demo/demo-starwars` backend, which holds
   (`Access-Control-Allow-Origin`, and `-Methods`/`-Headers` for writes and custom headers). The
   zero-code alternative is a **same-origin reverse proxy** at the CDN (route `/api/*` to the API) —
   then the sources use relative URLs and there is no CORS at all.
-- **Re-pointing** an environment is an edit of `sources` in `manifest.json`.
+- **Re-pointing** an environment is an edit of `sources` in `manifest.json` — then re-create (or
+  delete) `manifest.json.gz`, or a host serving pre-compressed files keeps sending the old one.
+- **Compression.** The bundle ships a pre-compressed `<file>.gz` next to every text file of at
+  least 1 KB (JavaScript, CSS, HTML, JSON, SVG…; best gzip level, same modification time as the
+  original), so the host sends them compressed without compressing on every request. A Vaadin first
+  load is ~2.6 MB of JavaScript raw and ~0.65 MB gzipped: on a phone that is the difference between
+  ~14 s and ~5 s to the first screen. Most CDNs compress on their own; for a host that serves files
+  as they are, turn the pre-compressed ones on — nginx:
+
+  ```nginx
+  gzip_static on;   # serve app.js.gz for app.js when the browser accepts gzip
+  gzip on;          # and compress on the fly what has no .gz
+  gzip_types application/json application/javascript text/css image/svg+xml;
+  gzip_vary on;
+  ```
+
+  Caddy: `file_server { precompressed gzip }`. No Brotli files are written (the JDK has no
+  encoder). `-Dmateu.bundle.precompress=false` skips them.
 
 ## Install as a desktop or phone app
 
