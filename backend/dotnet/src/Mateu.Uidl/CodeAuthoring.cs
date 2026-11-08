@@ -67,6 +67,15 @@ public sealed record RouteEntry(
     /// <summary>Whether this route fills the slot of a parent screen rather than replacing the page.</summary>
     public bool HasParent() => !string.IsNullOrWhiteSpace(Parent);
 
+    /// <summary>The child that opens when this route is reached on its own (its route relative to
+    /// this one); null = the first visible child. (Mirrors Java's RouteEntry.defaultChild.)</summary>
+    public string? DefaultChild { get; init; }
+
+    /// <summary>A feature flag (optionally negated with <c>!</c>): as a child route, the tab is
+    /// offered only while it is on (an <see cref="Mateu.Uidl.IFeatureFlags"/> answers it); its route
+    /// keeps answering. (Mirrors Java's RouteEntry.show.)</summary>
+    public string? Show { get; init; }
+
     public IReadOnlyList<string> PathParams() =>
         Route.Split('/')
             .Where(s => s.StartsWith(':') && s.Length > 1)

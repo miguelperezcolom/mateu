@@ -1380,6 +1380,18 @@
     ]
    ]
   },
+  "FeatureFlags": {
+   "class": [],
+   "members": {
+    "is_enabled": [
+     [
+      "flag",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "FieldType": {
    "class": [
     [
@@ -4083,6 +4095,16 @@
     ],
     [
      "open",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "show",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

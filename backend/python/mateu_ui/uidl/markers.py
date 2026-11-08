@@ -56,6 +56,12 @@ class Tab:
     # When true this tab is the one selected when its strip first renders (instead of the default
     # first tab). If several tabs in the same strip set it, the first one wins.
     open: bool = False
+    #: The tab's URL key: the page's route followed by it opens this tab (``/vcn/7/gateways``
+    #: opens Gateways) — Java's @Tab(key); it travels as the tab's ``routeKey``.
+    key: str | None = None
+    #: A feature flag (optionally negated with ``!``): the tab is offered only while it is on
+    #: (a :class:`~mateu_ui.uidl.FeatureFlags` answers it) — Java's @Tab(show).
+    show: str | None = None
 
 
 @dataclass(frozen=True)

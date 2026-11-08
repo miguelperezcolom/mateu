@@ -29,6 +29,7 @@ class AppHandlerMixin(MixinBase):
         rq: RunActionRq | None = None,
         request_base_url: str | None = None,
         home_route_override: str | None = None,
+        routed_mount: str | None = None,
     ) -> UIIncrement:
         title = getattr(app_type, "__mateu_app__")
         # A reflected (@menu_item-method) app is a @UI-annotated instance → CommandMapper's isPage
@@ -52,7 +53,17 @@ class AppHandlerMixin(MixinBase):
             # a fresh deep link to one of the app's menu routes: the shell opens ON that route
             # (Java's AppMenuResolver answers the app with the deep-linked route as its home)
             meta.home_route = home_route_override
+        if routed_mount is not None and meta is not None and rq is not None:
+            self._as_routed_master(meta, app_type, routed_mount, rq)
         home_route = getattr(meta, "home_route", None) if meta is not None else None
+        if routed_mount is not None and meta is not None:
+            # the routed master's home is its TAB's screen (Java's RouteChains.screenFor)
+            from .. import routed_tabs
+
+            chain = routed_tabs.chain_links(self.routes, home_route)
+            if chain and chain[-1][0].view_model:
+                meta.home_server_side_type = chain[-1][0].view_model
+            home_route = None
         if home_route and not home_route.endswith("_page") and not home_route.endswith("_no_home_route"):
             home_type = self.registry.resolve(None, home_route)
             if home_type is not None:
@@ -63,6 +74,43 @@ class AppHandlerMixin(MixinBase):
             commands=commands,
             fragments=[UIFragment(target_component_id=self.target(rq), component=app_component, action="Replace")],
         )
+
+    def _as_routed_master(self, meta, app_type, mount: str, rq: RunActionRq) -> None:
+        """An app the authored route table binds at ``mount`` with CHILDREN (a record master): an
+        app with no menu of its own offers its visible children as its tabs (label = the child's
+        title, else its segment), its route is the mount, and its home is the rest of the request
+        path — or, reached on its own, its default tab (Java's AppMenuBuilder.childRouteTabs +
+        HomeRouteResolver.getHomeRoute + ActionInstanceCreator's app-not-on-screen branch)."""
+        from mateu_ui.dtos import MenuItem
+
+        from .. import routed_tabs
+        from ..registry import normalize
+
+        requested = "/" + normalize(rq.route)
+        children = routed_tabs.visible_children_of(self.routes, mount, self.mapper.authorized)
+        if not meta.menu and children:
+            meta.menu = [
+                MenuItem(
+                    label=routed_tabs.tab_label(self.registry, child.entry, child.relative),
+                    route=child.path,
+                    server_side_type=type_name(app_type),
+                    consumed_route=mount,
+                    path=child.relative,
+                    uri_prefix=mount,
+                    selected=child.path == requested,
+                )
+                for child in children
+            ]
+            meta.total_menu_options = len(meta.menu)
+        meta.route = mount
+        meta.root_route = mount
+        if len(requested) > len(mount):
+            meta.home_route = requested
+        else:
+            default_child = routed_tabs.default_child_path(self.routes, mount, self.mapper.authorized)
+            if default_child is not None:
+                meta.home_route = default_child
+        meta.home_consumed_route = mount
 
     # ── The "← Parent" link (@app(back_link=PARENT) / a YAML shell's backLink: PARENT) ──
     def with_back_link(self, app_component, parent: bool):

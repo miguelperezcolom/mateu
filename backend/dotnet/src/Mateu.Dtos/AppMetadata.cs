@@ -261,6 +261,9 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
     public string? ActionId { get; init; }
     public bool Separator { get; init; }
     public bool Visible { get; init; } = true;
+    /// <summary>The option the request route names — a record master's open tab (mirrors
+    /// io.mateu.dtos.MenuOptionDto.selected).</summary>
+    public bool Selected { get; init; }
     public IReadOnlyList<MenuItemDto> Submenus { get; init; } = [];
 
     /// <summary>Federated entry ([RemoteMenu]): the frontend fetches the remote backend's menu

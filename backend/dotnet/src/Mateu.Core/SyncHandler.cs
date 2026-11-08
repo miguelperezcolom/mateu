@@ -105,8 +105,13 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             : increment, rq);
     }
 
-    private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl) =>
-        StampFragmentCache(WithBackLinkBreadcrumbs(WithReferencedRestSources(HandleCore(rq, requestBaseUrl)), rq), LoadActionNormalised(rq));
+    private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl)
+    {
+        // the request route + the deployment's flags, for the routed tabs deep in the mapping
+        using var routed = RoutedTabs.Begin(rq.Route, registry.FeatureFlags, _routes, registry);
+        return StampFragmentCache(WithBackLinkBreadcrumbs(WithReferencedRestSources(HandleCore(rq, requestBaseUrl)), rq),
+            LoadActionNormalised(rq));
+    }
 
     private UIIncrementDto HandleCore(RunActionRqDto rq, string? requestBaseUrl)
     {
@@ -187,6 +192,19 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             return RenderApp(rootApp, rootAttr.Title, rq, requestBaseUrl, rq.Route, claimed.ServerSideType);
         }
 
+        // 0f. Routed tabs: an APP the client names by type that the AUTHORED route table binds under
+        // the request route (a record master, a deep link to one of its tabs) renders ITSELF — its
+        // tabs, the rest of the path as its home (Java's ActionInstanceCreator: the known type's
+        // mount, the app not on screen yet).
+        if (string.IsNullOrEmpty(rq.ActionId) && !string.IsNullOrEmpty(rq.ServerSideType)
+            && RoutedTabs.MountOf(_routes, rq.Route, rq.ServerSideType) is not null
+            && registry.TypeByName(rq.ServerSideType) is { } master
+            && master.GetCustomAttribute<AppAttribute>() is { } masterApp)
+        {
+            ActionGuard.EnsureViewVisible(master);
+            return RenderApp(master, masterApp.Title, rq, requestBaseUrl);
+        }
+
         // 1. App shell at the root route. NOT for the shell's content slot loading the home of an
         // app that declares none ("_no_home_route" / "_page"): Java renders the app class as a plain
         // page there (ActionInstanceCreator.isTerminalRoute) — answering the shell again nested it
@@ -235,7 +253,14 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         Type? type = null;
         var clientState = rq.ComponentState;
         var routeSeeds = false;
-        if (_routes.Match(rq.Route) is { } routeMatch)
+        var routeMatch = _routes.Match(rq.Route);
+        // the type the client names is resolved where it is MOUNTED in the route — the shortest
+        // prefix the authored table binds to it (Java's ActionInstanceCreator.mountOf): a page with
+        // routed in-page tabs on /vcn/7/gateways is the page answering /vcn/7
+        if (!string.IsNullOrEmpty(rq.ServerSideType)
+            && RoutedTabs.MountOf(_routes, rq.Route, rq.ServerSideType) is { } knownMount)
+            routeMatch = _routes.Match(knownMount);
+        if (routeMatch is not null)
         {
             var query = RequestQuery?.Invoke();
             // What makes a definition-only page's route SEED it (Java's seedBareLayout): a path
@@ -563,6 +588,12 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             };
         app = WithCatalogues(app);
         app = WithBackLink(app, ReflectionMapper.BackLinkParent(appType));
+        // a record master the authored table binds under the request route (its tabs, its home)
+        var routedMount = string.IsNullOrEmpty(rq.ActionId)
+            ? RoutedTabs.MountOf(_routes, rq.Route, appType.FullName)
+            : null;
+        if (routedMount is not null && app is { Metadata: AppMetadataDto routedMeta })
+            app = app with { Metadata = AsRoutedMaster(routedMeta, appType, routedMount, rq) };
         // AppData: a route entry's app-scope data source rides on the app metadata — the shell
         // fetches it once into the app-data store, shared across routes. Java attaches it only from
         // a route ON THIS APP'S MOUNT (AppDto.appDataSource); the .NET port has no route↔mount
@@ -570,6 +601,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // falls under this app's [UI] mount. (The .NET shell has no source catalogue, so a ref-only
         // source travels on the wire but is not resolved server-side here.)
         var mount = appType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "";
+        // a routed master is mounted where the authored table binds it (its route PATTERN)
+        if (routedMount is not null && _routes.Match(routedMount) is { } masterMatch)
+            mount = masterMatch.Entry.Route.Trim('/');
         var appMount = mount.Length == 0 ? "" : "/" + mount;
         if (app is { Metadata: AppMetadataDto meta }
             && _routes.Authored().Routes
@@ -594,7 +628,14 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // backing Screen (a bare menu link / sentinel route), or an unresolvable home keeps the
         // app's own type. Mirrors Java's AppHomeRouteResolver.getHomeServerSideType. Only the
         // conflated TYPE is fixed; the home-fragment mechanism is untouched.
-        if (app is { Metadata: AppMetadataDto homeMeta }
+        if (routedMount is not null && app is { Metadata: AppMetadataDto routedHome })
+        {
+            // the routed master's home is its TAB's screen (Java's RouteChains.screenFor)
+            if (RoutedTabs.ChainLinks(_routes, routedHome.HomeRoute) is { Count: > 0 } chain
+                && chain[^1].Entry.ViewModel is { Length: > 0 } tabType)
+                app = app with { Metadata = routedHome with { HomeServerSideType = tabType } };
+        }
+        else if (app is { Metadata: AppMetadataDto homeMeta }
             && !string.IsNullOrWhiteSpace(homeMeta.HomeRoute)
             && !homeMeta.HomeRoute!.EndsWith("_page", StringComparison.Ordinal)
             && !homeMeta.HomeRoute.EndsWith("_no_home_route", StringComparison.Ordinal)
@@ -613,9 +654,37 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             fragments: [new UIFragmentDto(Target(rq), app, null, null, "Replace", null)]);
     }
 
+    /// <summary>An app the authored route table binds at <paramref name="mount"/> with CHILDREN (a
+    /// record master): an app with no menu of its own offers its visible children as its tabs
+    /// (label = the child's [Title], else its segment), its route is the mount, and its home is the
+    /// rest of the request path — or, reached on its own, its default tab (Java's
+    /// AppMenuBuilder.childRouteTabs + HomeRouteResolver.getHomeRoute).</summary>
+    private AppMetadataDto AsRoutedMaster(AppMetadataDto meta, Type appType, string mount, RunActionRqDto rq)
+    {
+        var requested = "/" + RouteRegistry.Normalize((rq.Route ?? "").Split('?')[0]);
+        var children = RoutedTabs.VisibleChildrenOf(_routes, mount);
+        if (meta.Menu.Count == 0 && children.Count > 0)
+        {
+            var menu = children.Select(child =>
+                new MenuItemDto(RoutedTabs.TabLabel(registry, child.Entry, child.Relative), child.Path, appType.FullName!)
+                {
+                    ConsumedRoute = mount,
+                    Path = child.Relative,
+                    UriPrefix = mount,
+                    Selected = child.Path == requested,
+                }).ToList();
+            meta = meta with { Menu = menu, TotalMenuOptions = menu.Count };
+        }
+        var home = requested.Length > mount.Length
+            ? requested
+            : RoutedTabs.DefaultChildPath(_routes, mount) ?? meta.HomeRoute;
+        return meta with { Route = mount, RootRoute = mount, HomeRoute = home, HomeConsumedRoute = mount };
+    }
+
     private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride = null)
     {
-        var route = string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!;
+        // Java's DefaultMateuService: no consumed route is "_empty"; an EMPTY one stays ""
+        var route = rq.ConsumedRoute ?? "_empty";
         // A ComponentTreeSupplier view (an archetype, or an [AutoPage]-inferred dashboard/welcome) is
         // NOT a page: Java's ViewTypeClassifier.isPage returns false for it, so no SetWindowTitle
         // command rides the increment. A YAML-bound modelView (layoutOverride) stays a page.

@@ -127,7 +127,7 @@ internal sealed partial class ReflectionMapper
         // A tabbed form is wrapped in an (untitled) mateu-section Card just like a plain one — the
         // TabLayout is the card's body (Java parity: Card → Div → VerticalLayout → TabLayout).
         if (props.Any(p => p.Find<TabAttribute>() != null))
-            return [SectionCardOfBody((ClientSideComponentDto)TabLayout(type, props, instance, readOnly))];
+            return [SectionCardOfBody(TabbedBody(type, props, instance, readOnly))];
 
         var sections = new List<(string? Title, List<PropertyInfo> Props)>();
         var sectionZones = new List<string>();
@@ -251,9 +251,27 @@ internal sealed partial class ReflectionMapper
     // Groups consecutive fields sharing the same [Tab] name into the tabs of a single TabLayout.
     // Developer-declared tabs always carry the alternative group semantics; they are adaptable
     // (renderers may degrade them to an accordion) only when the class opted into [AutoLayout].
+    /// <summary>A tabbed form's body: the properties declared BEFORE the first [Tab] in a form layout
+    /// of their own above the tab strip, then the tabs (Java's FormTabArranger noTabFields +
+    /// FormLayoutBuilder).</summary>
+    private List<ComponentDto> TabbedBody(Type type, List<PropertyInfo> props, object instance, bool readOnly)
+    {
+        var first = props.FindIndex(p => p.Find<TabAttribute>() is not null);
+        if (first < 0) first = props.Count;
+        var body = new List<ComponentDto>();
+        if (first > 0)
+        {
+            var columns = FormColumns(type);
+            body.Add(Client(new FormLayoutMetadataDto { MaxColumns = columns }, null,
+                FormRows(MapFields(props.Take(first).ToList(), instance, readOnly), columns)));
+        }
+        if (first < props.Count) body.Add(TabLayout(type, props.Skip(first).ToList(), instance, readOnly));
+        return body;
+    }
+
     private ComponentDto TabLayout(Type type, List<PropertyInfo> props, object instance, bool readOnly)
     {
-        var tabs = new List<(string name, bool open, List<PropertyInfo> props, List<ClientSideComponentDto> fields)>();
+        var tabs = new List<(string name, bool open, string? key, string? show, List<PropertyInfo> props, List<ClientSideComponentDto> fields)>();
         var current = "Tab";
         foreach (var p in props)
         {
@@ -262,16 +280,26 @@ internal sealed partial class ReflectionMapper
             if (tabs.Count == 0 || tabs[^1].name != current)
                 // The field that opens a group carries its [Tab(Open=...)] flag (mirrors the Java
                 // pair.first().open() rule); fields before any [Tab] fall into the default group.
-                tabs.Add((current, attr?.Open ?? false, new List<PropertyInfo>(), new List<ClientSideComponentDto>()));
+                tabs.Add((current, attr?.Open ?? false, attr?.Key, attr?.Show, new List<PropertyInfo>(),
+                    new List<ClientSideComponentDto>()));
             tabs[^1].props.Add(p);
             // MapFields: a [SeparatorBefore] inside a tab paints its divider too (it was dropped)
             tabs[^1].fields.AddRange(MapFields([p], instance, readOnly));
         }
         // Only a tab explicitly marked [Tab(Open=true)] carries active on the wire; with none opened
         // the renderer defaults to the first tab (Java parity: the corpus emits no active by default).
+        // a tab whose Show flag is off is not offered at all, its fields with it (Java's
+        // FormLayoutBuilder + FeatureFlagGate); the tab the URL names (its Key as the route's last
+        // segment) is the open one
+        tabs = tabs.Where(tb => RoutedTabs.Shows(tb.show)).ToList();
+        var routedKey = RoutedTabs.RoutedTabKey(tabs.Select(tb => tb.key));
         var columns = FormColumns(type);
         var tabComps = tabs.Select((tb, i) => (ComponentDto)Client(
-            new TabMetadataDto(T(tb.name)) { Active = tb.open }, null,
+            new TabMetadataDto(T(tb.name))
+            {
+                Active = routedKey is not null ? routedKey == tb.key : tb.open,
+                RouteKey = string.IsNullOrWhiteSpace(tb.key) ? null : tb.key,
+            }, null,
             [Client(new FormLayoutMetadataDto
             {
                 MaxColumns = columns,
@@ -448,9 +476,12 @@ internal sealed partial class ReflectionMapper
 
     /// <summary>Wraps an arbitrary body component in an untitled mateu-section Card
     /// (Card → Div → VerticalLayout → body) — the shape a plain form section AND a tabbed form use.</summary>
-    private static ClientSideComponentDto SectionCardOfBody(ClientSideComponentDto body)
+    private static ClientSideComponentDto SectionCardOfBody(ClientSideComponentDto body) =>
+        SectionCardOfBody([body]);
+
+    private static ClientSideComponentDto SectionCardOfBody(IReadOnlyList<ComponentDto> body)
     {
-        var vlayout = Client(new VerticalLayoutMetadataDto(), null, [body]) with
+        var vlayout = Client(new VerticalLayoutMetadataDto(), null, body) with
         {
             Style = "width: 100%;",
         };

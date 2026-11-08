@@ -192,6 +192,8 @@ class TabMetadata(Wire):
     label: str
     active: bool = False
     shortcut: str | None = None
+    #: The tab's URL key (Java's TabDto.routeKey): the page's route followed by it opens the tab.
+    route_key: str | None = None
 
 
 class AccordionLayoutMetadata(Wire):

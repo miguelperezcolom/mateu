@@ -487,7 +487,11 @@ internal sealed class RouteRegistry : ISpecsCache
             Params(node, "appState", "app_state"),
             DataSourceOf(node, "data"),
             DataSourceOf(node, "appData", "app_data"),
-            YamlAccess.AccessOf(node.TryGetValue("access", out var access) ? access : null)));
+            YamlAccess.AccessOf(node.TryGetValue("access", out var access) ? access : null))
+        {
+            DefaultChild = Str(node, "defaultChild") ?? Str(node, "default_child"),
+            Show = Str(node, "show"),
+        });
         if (node.TryGetValue("children", out var raw) && raw is IEnumerable<object> children)
             foreach (var child in children)
                 if (child is IDictionary<object, object> childNode)

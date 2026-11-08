@@ -10,6 +10,27 @@ public sealed class TabAttribute(string name) : Attribute
     /// <summary>When true this tab is the one selected when its strip first renders (instead of the
     /// default first tab). If several tabs in the same strip set it, the first one wins.</summary>
     public bool Open { get; init; }
+
+    /// <summary>The tab's URL key: the page's route followed by it opens this tab
+    /// (<c>/vcn/7/gateways</c> opens Gateways); it travels as the tab's <c>routeKey</c>.
+    /// (Mirrors Java's @Tab(key).)</summary>
+    public string? Key { get; init; }
+
+    /// <summary>A feature flag (optionally negated with <c>!</c>): the tab is offered only while it is
+    /// on (an <see cref="IFeatureFlags"/> answers it). (Mirrors Java's @Tab(show).)</summary>
+    public string? Show { get; init; }
+}
+
+/// <summary>Answers whether a feature flag is on — the hook behind the data-driven <c>Show</c> of a
+/// routed tab (a <see cref="Mateu.Core.RouteEntry"/> child) and of an in-page <see cref="TabAttribute"/>.
+/// Implemented by any parameterless class in the scanned assemblies. With none, or none that knows
+/// the flag, the flag is ON: declaring a condition never hides a tab in an app that does not answer
+/// it. (Mirrors Java's FeatureFlags and Python's FeatureFlags.)</summary>
+public interface IFeatureFlags
+{
+    /// <summary>Whether <paramref name="flag"/> is on, or null when this supplier does not know it
+    /// (the next one is asked).</summary>
+    bool? IsEnabled(string flag);
 }
 
 /// <summary>Sets a field stereotype explicitly (textarea, password, money, plainText, …).</summary>

@@ -7,7 +7,7 @@ from typing import Any
 
 import dataclasses
 
-from .. import page_templates
+from .. import page_templates, routed_tabs
 from ..naming import camelcasize
 
 from mateu_ui.dtos import (
@@ -988,7 +988,7 @@ class ComponentMapperMixin(MixinBase):
                 for col in c.columns
             ]
             meta = CrudMetadata(
-                title=self.T(c.title) if c.title else None,
+                title=routed_tabs.dedupe_title(self.T(c.title)) if c.title else None,
                 subtitle=self.T(c.subtitle) if c.subtitle else None,
                 columns=grid_columns,
                 searchable=c.searchable,

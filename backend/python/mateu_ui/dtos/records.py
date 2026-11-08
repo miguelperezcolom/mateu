@@ -126,6 +126,9 @@ class MenuItem(Wire):
     action_id: str | None = None
     separator: bool = False
     visible: bool = True
+    #: The option the request route names (a record master's open tab — mirrors
+    #: MenuOptionDto.selected).
+    selected: bool = False
     submenus: list["MenuItem"] = Field(default_factory=list)
     #: Federated entry (@remote_menu): the frontend fetches the remote backend's menu from
     #: base_url and mounts its views under this option.
