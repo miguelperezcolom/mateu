@@ -49,6 +49,9 @@ class Spec:
     locked_fields: frozenset = field(default_factory=frozenset)
     #: The ``pageType:`` the definition declares (wire name), or None — inferred.
     page_type: str | None = None
+    #: The definition's own ``actions:`` (beside ``layout:``): client-runnable actions — a
+    #: ``restAction`` or ``steps`` — a definition-only page answers with (Java's SeededYamlPage).
+    actions: tuple = ()
 
     def depends_on_request(self) -> bool:
         return self.source is not None
@@ -184,7 +187,9 @@ class YamlSpecLoader:
             raise RuntimeError(
                 f"the definition for route '{route}' could not be personalised for the caller"
             ) from e
-        return Spec(spec.model_view, layout, delta, None, refused, locked, spec.page_type)
+        return Spec(
+            spec.model_view, layout, delta, None, refused, locked, spec.page_type, spec.actions
+        )
 
     def load_spec(self, route: str | None) -> Spec | None:
         key = _normalize(route)
@@ -240,10 +245,38 @@ class YamlSpecLoader:
             model_view = entry.view_model or None
         if layout is None and not model_view:
             return None  # a delta with no view model to infer from: nothing to render
-        return Spec(model_view, layout, delta, source, page_type=page_type_of(data))
+        return Spec(
+            model_view, layout, delta, source, page_type=page_type_of(data),
+            actions=declared_actions_of(data),
+        )
 
 
 _PAGE_TYPES = ("landing", "collection", "detail", "form", "process", "dashboard")
+
+
+def declared_actions_of(data: Any) -> tuple:
+    """The ``actions:`` a definition declares beside its ``layout:`` (Java's
+    ``YamlUidlLoader.actionsOf``) as catalogue actions — the same shape ``actions.yaml`` has: an
+    ``id`` and a ``restAction`` and/or ``steps``. Anything else is dropped with a warning."""
+    from .action_registry import _rest_action, _step, client_runnable_only
+    from mateu_ui.uidl.action_catalog import CatalogAction
+
+    nodes = data.get("actions") if isinstance(data, dict) else None
+    if not isinstance(nodes, list):
+        return ()
+    parsed = []
+    for node in nodes:
+        if not isinstance(node, dict) or not str(node.get("id") or "").strip():
+            continue
+        parsed.append(
+            CatalogAction(
+                id=str(node["id"]).strip(),
+                description=str(node.get("description") or ""),
+                steps=tuple(s for s in (_step(n) for n in node.get("steps") or []) if s is not None),
+                rest_action=_rest_action(node.get("restAction")),
+            )
+        )
+    return tuple(client_runnable_only(parsed, "a definition's actions:"))
 
 
 def page_type_of(data: Any) -> str | None:

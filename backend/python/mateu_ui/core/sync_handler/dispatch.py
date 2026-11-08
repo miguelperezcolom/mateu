@@ -305,7 +305,11 @@ class DispatchMixin(MixinBase):
                 return self.fragment_response(
                     _definition_window_title(yaml_spec.layout, seeded, rq.route),
                     _with_declared_page_type(
-                        self.mapper.map_component(yaml_spec.layout), yaml_spec.page_type, rq, seeded
+                        self.mapper.map_component(yaml_spec.layout),
+                        yaml_spec.page_type,
+                        rq,
+                        seeded,
+                        [a for a in yaml_spec.actions if a.id not in yaml_spec.refused_actions],
                     ),
                     rq,
                 )
@@ -505,13 +509,18 @@ class DispatchMixin(MixinBase):
         return None
 
 
-def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq, state: dict | None = None):
+def _with_declared_page_type(
+    layout, page_type: str | None, rq: RunActionRq, state: dict | None = None, actions=()
+):
     """A definition-only page that declares a ``pageType:`` or that its route SEEDS (``state:``,
     fixed/default/path params): the bare layout carries neither, so it is wrapped in a server-side
     page that does (Java's ``ActionInstanceCreator.seedBareLayout`` → ``SeededYamlPage``).
-    Neither → unchanged."""
-    if not page_type and not state:
+    A page that declares ``actions:`` is wrapped too, carrying THOSE actions — never the "*"
+    wildcard a class view advertises, which would claim every id for a server that has no
+    behaviour behind it (Java's SeededYamlPage.actions). Neither → unchanged."""
+    if not page_type and not state and not actions:
         return layout
+    from ..action_registry import to_dto
     import re
 
     from mateu_ui.dtos import ServerSideComponent
@@ -524,6 +533,7 @@ def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq, sta
         children=[layout],
         initial_data=dict(state or {}),
         page_type=page_type,
+        actions=[to_dto(a) for a in actions],
     )
 
 
