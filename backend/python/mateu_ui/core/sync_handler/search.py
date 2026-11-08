@@ -46,6 +46,7 @@ from mateu_ui.uidl import GroupActionVisibility
 
 from ..reflection import methods_with, view_fields
 from ..validation import violations
+from ..mapper.crud_modes import hidden_in_current_form
 from ._base import MixinBase
 from ._common import (
     _by_attr,
@@ -566,7 +567,7 @@ class SearchHandlerMixin(MixinBase):
     def required_missing(entity, element) -> list[str]:
         out = []
         for f in view_fields(element):
-            if f.has(Required):
+            if f.has(Required) and not hidden_in_current_form(f):
                 v = getattr(entity, f.name, None)
                 if v is None or (isinstance(v, str) and v.strip() == ""):
                     out.append(f.marker(Label).value if f.has(Label) else humanize(f.name))

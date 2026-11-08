@@ -18,6 +18,7 @@ from mateu_ui.uidl import (
     HiddenInList,
     HiddenInView,
     MainFilter,
+    Required,
     Section,
     action_options,
     app,
@@ -180,7 +181,7 @@ def test_a_fluent_form_field_carries_its_css_classes_in_the_metadata():
 
 
 class Guest:
-    id: Annotated[str, HiddenInCreate()] = ""
+    id: Annotated[str, HiddenInCreate(), Required()] = ""
     name: Annotated[str, MainFilter()] = ""
     city: str = ""
     notes: Annotated[str, HiddenInList()] = ""
@@ -267,3 +268,14 @@ def test_sections_honour_sticky_columns_and_style():
     sticky_layouts = [n["metadata"]["maxColumns"] for n in walk(sticky)
                       if isinstance(n.get("metadata"), dict) and n["metadata"].get("type") == "FormLayout"]
     assert sticky_layouts == [2]
+
+
+def test_a_required_field_the_create_form_hides_is_not_reported_missing():
+    from mateu_ui.core.mapper.crud_modes import crud_form_mode
+    from mateu_ui.core.sync_handler.search import SearchHandlerMixin
+
+    g = Guest()
+    with crud_form_mode("new"):
+        assert SearchHandlerMixin.required_missing(g, Guest) == []
+    with crud_form_mode("edit"):
+        assert SearchHandlerMixin.required_missing(g, Guest) == ["Id"]

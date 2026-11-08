@@ -276,6 +276,7 @@ def _action_extras(extras: dict | None) -> dict:
     event, detail = extras.get("custom_event"), extras.get("custom_event_detail")
     return {
         "background": bool(extras.get("background")),
+        **({"confirmation_required": True} if extras.get("confirmation_required") else {}),
         "sse": bool(extras.get("sse")),
         "href": extras.get("href") or None,
         "js": extras.get("js") or None,

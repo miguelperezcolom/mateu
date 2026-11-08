@@ -897,6 +897,115 @@ class DialogPlacementPage:
         )
 
 
+from mateu_ui.uidl import Crud, HiddenInCreate, HiddenInEditor, HiddenInList, HiddenInView, MainFilter, action_options  # noqa: E402
+
+
+@ui("/conformance/action-extras")
+@title("Action extras")
+class ActionExtrasPage:
+    """The rest of Java's @Action: a streamed background action, a confirmation with its texts, a
+    link, a client script and a custom event."""
+
+    name: str = "Ada"
+
+    # Declared in the order Java's golden lists them: Java advertises @Action methods in the
+    # JVM's getDeclaredMethods order (unspecified, not the source order), this port in
+    # declaration order — so the fixture is written in the order the reference produced.
+    @action
+    @action_options(
+        confirmation_required=True, confirmation_title="Delete?",
+        confirmation_message="It cannot be undone", confirmation_text="Delete",
+        confirmation_denial_text="Keep",
+    )
+    def remove(self):
+        return Message("Deleted")
+
+    @action
+    @action_options(sse=True, background=True)
+    def stream(self):
+        return Message("Done")
+
+    @action
+    @action_options(custom_event="order-picked")
+    def pick(self):
+        return None
+
+    @action
+    @action_options(href="https://mateu.io")
+    def open_docs(self):
+        return None
+
+    @action
+    @action_options(js="console.log('hi')")
+    def run_script(self):
+        return None
+
+@ui("/conformance/app-branding")
+@app("Branded app", layout="SPLIT", accent_color="#00796b", ask_label="Ask Mateu", ask_icon="vaadin:question")
+class BrandedApp:
+    """An app shell's presentation knobs: a split content area, an accent, the Ask button's brand."""
+
+    @menu_item("Home")
+    def home(self):
+        return None
+
+
+@ui("/conformance/section-options")
+@title("Section options")
+class SectionOptionsForm:
+    """The first section pinned while the page scrolls, the second forced to one column with a
+    style on its content."""
+
+    lead: Annotated[str | None, Section("Guests", sticky=True)] = None
+    second: str | None = None
+    third: str | None = None
+    fourth: str | None = None
+    first: Annotated[str | None, Section("Notes", columns=1, style="gap: 0;")] = None
+    other: str | None = None
+    more: str | None = None
+    last: str | None = None
+
+
+class Employee:
+    id: str = ""
+    name: Annotated[str, MainFilter()] = ""
+    notes: Annotated[str, HiddenInList()] = ""
+    salary_band: Annotated[str, HiddenInView()] = ""
+    created_by: Annotated[str, HiddenInEditor()] = ""
+    code: Annotated[str, HiddenInCreate()] = ""
+
+    def __init__(self, id="", name="", notes="", salary_band="", created_by="", code=""):
+        self.id, self.name, self.notes = id, name, notes
+        self.salary_band, self.created_by, self.code = salary_band, created_by, code
+
+    def __str__(self):
+        return self.name if self.name and self.name.strip() else "New employee"
+
+
+EMPLOYEES = [
+    Employee("E-1", "Ada", "Likes tea", "B2", "admin", "ADA"),
+    Employee("E-2", "Grace", "Navy", "B3", "admin", "GRC"),
+]
+
+
+@ui("/conformance/crud-hidden-in")
+@title("Employees")
+class EmployeesCrud(Crud[Employee]):
+    """A crud whose entity hides fields per surface and names its main filter."""
+
+    def fetch(self, search):
+        return list(EMPLOYEES)
+
+    def get(self, id):
+        return next((e for e in EMPLOYEES if e.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
 @ui("/conformance/rejected-save")
 @title("Rejected save")
 class RejectedSaveForm:
@@ -1002,13 +1111,13 @@ def normalise(node, in_actions: bool = False):
 #: The wizard is the same story: Java's is a mediator too (it advertises a ``*`` catch-all and
 #: keeps its position in its own state), the ports list next/back/skip/the completion and keep
 #: ``__step`` — so its actions and state stay out as well; everything it draws is pinned.
-MEDIATED = {"crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"}
+MEDIATED = {"crud-hidden-in", "crud-hidden-in-edit", "crud-hidden-in-new", "crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"}
 
 
 #: The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the ports on the
 #: record's (``/new``, ``/P-001/edit``) — the mediator protocol, left out on every side (Java's
 #: ``MEDIATED_FORMS``).
-MEDIATED_FORMS = {"crud-new", "crud-edit", "crud-view"}
+MEDIATED_FORMS = {"crud-hidden-in-edit", "crud-hidden-in-new", "crud-new", "crud-edit", "crud-view"}
 
 
 def without_mediated_route(increment: dict) -> dict:
@@ -1066,7 +1175,7 @@ def expected(case: str) -> dict:
 
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("dialog-placement", DialogPlacementPage), ("action-extras", ActionExtrasPage), ("app-branding", BrandedApp), ("section-options", SectionOptionsForm), ("crud-hidden-in", EmployeesCrud), ("crud-hidden-in-edit", EmployeesCrud), ("crud-hidden-in-new", EmployeesCrud), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("more-components", MoreComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm), ("form-columns", FormColumnsForm)]
 
 
 def test_every_case_of_the_corpus_is_wired():

@@ -189,6 +189,7 @@ def action_options(
     confirmation_message: str | None = None,
     confirmation_text: str | None = None,
     confirmation_denial_text: str | None = None,
+    confirmation_required: bool = False,
 ):
     """Per-action transport knobs. Composes with ``@button``/``@toolbar``/``@fab`` on the same
     method — it says nothing about the UI, only how the CLIENT should call this action.
@@ -207,7 +208,7 @@ def action_options(
     returns a ``LongTask``), ``href`` (the button navigates there), ``js`` (client JavaScript, only
     run when the page opts into RunJS), ``custom_event`` / ``custom_event_detail`` (a browser
     custom event dispatched instead of a server call) and the ``confirmation_*`` texts of the
-    confirmation dialog (shown when the action requires confirmation).
+    confirmation dialog, shown when ``confirmation_required`` (the client asks before sending).
     """
 
     def deco(fn):
@@ -223,6 +224,7 @@ def action_options(
             "confirmation_message": confirmation_message,
             "confirmation_text": confirmation_text,
             "confirmation_denial_text": confirmation_denial_text,
+            "confirmation_required": confirmation_required,
         })
         return fn
 

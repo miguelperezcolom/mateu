@@ -4181,6 +4181,11 @@
      "confirmation_denial_text",
      "KEYWORD_ONLY",
      true
+    ],
+    [
+     "confirmation_required",
+     "KEYWORD_ONLY",
+     true
     ]
    ]
   },

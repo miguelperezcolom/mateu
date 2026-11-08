@@ -100,6 +100,15 @@ class ViewMapperMixin(MixinBase):
         # actions, OnRowSelected() row clicks (the renderer drops a click whose action is not
         # advertised), Lookup() searches, Searchable() code lookups — then the @button methods.
         field_actions = self.field_actions(cls)
+        # @action methods come first, as in Java's FieldActionCollector (every @Action method is
+        # advertised, not validated, with its @action_options): the client only SENDS an
+        # advertised action, so a bare @action was reachable only from a component naming it.
+        declared_actions = [
+            with_action_options(Action(id=camel_case(n), validation_required=False), cls, camel_case(n))
+            for n, f in methods_with(cls, "__mateu_action__")
+            if offered(f) and not hasattr(f, "__mateu_button__") and not hasattr(f, "__mateu_toolbar__")
+        ]
+        field_actions = [a for a in declared_actions if all(a.id != b.id for b in field_actions)] + field_actions
         actions = field_actions + [a for a in actions if all(a.id != b.id for b in field_actions)]
         # @Section(add_action / edit_action / view_more_action): the section affordance buttons
         # dispatch the named methods — advertised so the client sends them (Java's

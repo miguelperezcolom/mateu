@@ -36,7 +36,7 @@ from ..reflection import class_flag, view_fields
 from ..registry import normalize
 from ..export import FORMATS
 from ..mapper.crud import _capable
-from ..mapper.crud_modes import without_hidden_inputs
+from ..mapper.crud_modes import crud_form_mode, without_hidden_inputs
 from ._base import MixinBase
 from ._common import (
     RunActionRq,
@@ -415,7 +415,10 @@ class CrudHandlerMixin(MixinBase):
         self.bind_state(entity, without_hidden_inputs(element, rq.component_state, id_ is None))
         if id_ is not None:
             setattr(entity, "id", id_)
-        missing = self.required_missing(entity, element)
+        # a required field the form does not render is not the user's to fill (Java's
+        # ServerConstraintCheck skips @HiddenInCreate / @HiddenInEditor fields)
+        with crud_form_mode("new" if id_ is None else "edit"):
+            missing = self.required_missing(entity, element)
         if missing:
             return self.error("Please fill: " + ", ".join(missing))
         broken = self.constraint_violations(entity, element)
