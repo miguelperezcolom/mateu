@@ -124,8 +124,57 @@ new unread entry also shows a toast. The same `id` replaces an entry (deduplicat
 in a cluster, publish on every node.
 
 The inbox a user sees is your list plus what this session added on its own — messages sent with
-persistence `inbox` and pushed entries the list does not have yet — deduplicated by id. Durable
-entries are yours: Mateu ships UI only.
+persistence `inbox` and pushed entries the list does not have yet — deduplicated by id.
+
+## Inbox messages are kept on the server 🧪
+
+A `Message` sent with persistence `inbox` to a SIGNED-IN user is also stored for that user, so it
+is still in the bell after a reload, in their other tabs and on their other devices:
+
+```java
+return Message.success("Export ready")
+        .withAction(MessageAction.open("Download", "/exports/7"))
+        .withPersistence(MessagePersistence.inbox);
+```
+
+The entry's id is the message's `key` (one is generated when it has none, and set on the message
+the browser receives, so the toast's own entry and the stored one are the same); its actions are
+the message's actions that open a ROUTE (an `actionId` belongs to the screen that sent it). It is
+pushed to the user's other sessions (apps with `@App(liveUpdates = true)`; otherwise it shows at
+the next list). An anonymous caller's inbox messages stay in that tab: there is no one to keep them
+for. The stored entries are listed after your `NotificationsSupplier`'s; reading and dismissing
+them works the same.
+
+Storage is yours — Mateu ships UI only. Out of the box an in-memory store is used (per process,
+100 entries per user, lost on restart); implement `InboxStore` as a bean to keep them anywhere:
+
+```java
+@Component
+class JdbcInbox implements InboxStore {
+    public void add(String principal, AppNotification entry) { … }
+    public List<AppNotification> list(String principal) { … }   // newest first
+    public void markRead(String principal, List<String> ids) { … }
+    public void dismiss(String principal, List<String> ids) { … }
+}
+```
+
+An app that does not implement `NotificationsSupplier` gets the bell — listing only the stored
+entries — with `@App(inbox = true)`. .NET: `IInboxStore` (register it as a service) and
+`[App(Inbox = true)]`; Python: `InboxStore` (`add_mateu(inbox_store=…)`) and `@app(inbox=True)`.
+
+## Operating-system notifications 🧪
+
+With `@App(osNotifications = true)` (.NET `[App(OsNotifications = true)]`, Python
+`@app(os_notifications=True)`) a new unread entry — and a background task that finished — also
+shows as a notification of the operating system while the app is not in front:
+
+- **browser**: the Web Notifications API. The bell and the task center offer "Notify me on this
+  device"; the browser asks the user only then, never on load. Shown while the tab is hidden; a click
+  brings the tab back and opens the entry's route.
+- **phone**: a LOCAL notification (no push service, no device token — nothing leaves the app), shown
+  while the app is in the background; permission is asked from the inbox / task sheet.
+- **IntelliJ / the desktop app**: a system notification while the IDE is not active (it follows
+  the IDE's "Use system notifications" setting).
 
 ## In YAML
 
@@ -136,14 +185,14 @@ through the server when the source is `proxy: true`). See
 
 ## Wire
 
-`AppDto.notificationsEnabled` turns the bell on; the actions answer
+`AppDto.notificationsEnabled` turns the bell on (`AppDto.osNotifications` the OS notifications); the actions answer
 `Data{_notifications: [{id, title, text, route, unread, when, category, variant, resolved,
 actions, hasDetail}]}` — same contract from the Java, .NET and Python servers. A push is the command
 `NotificationsChanged {notification, removedId}` (both null = refetch).
 
 On **IntelliJ / the desktop app** the entries are the platform's own notifications ("Mateu" group,
 the Notifications tool window), with their actions; on the **phone** the bell lists them with the
-same filters. Operating-system notifications (Web Notifications, phone push) are planned for 3.1.
+same filters.
 
 ## Where it works
 

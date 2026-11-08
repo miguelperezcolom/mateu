@@ -32,6 +32,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   resolved) and dismisses. `LiveNotifications.publish(user, entry)` pushes a change to that user's
   open sessions only (apps with `@App(liveUpdates = true)`). IntelliJ shows messages and inbox entries
   as platform notifications. Java, .NET and Python.
+- **A task survives a reload.** Reloading the page (or losing the connection, or sending the phone
+  app to the background) no longer cancels a running task: the renderer remembers its tasks for the
+  session, asks the server which are still there (`_progress-tasks`) and follows them again
+  (`_progress-resume`) — the task center fills up again. A task nobody follows is cancelled after a
+  grace period, 60 s by default (`mateu.progress.reattach-grace-seconds`; 0 = the old
+  cancel-on-close). Only the caller who started a task can see or follow it again. `@Experimental`;
+  Java, .NET, Python and every renderer.
+- **"About 2 min left".** A determinate task gets the server's estimate of the time left
+  (`ProgressDto.etaSeconds`), only once the observed rate makes it honest — never for an
+  indeterminate task. Same rules in the three backends (`conformance/progress/eta.json`), worded by
+  every renderer in English and Spanish.
+- **Notifications of the operating system.** `@App(osNotifications = true)`: a new inbox entry and a
+  background task that finished show as OS notifications while the app is not in front — the Web
+  Notifications API (permission asked only when the user clicks "Notify me on this device"), local
+  notifications on the phone app (`expo-notifications`; no push service — a new store build,
+  versionCode 200003), system notifications from IntelliJ. `@Experimental`.
+- **Inbox messages are kept.** A `Message` with persistence `inbox` to a signed-in user is stored
+  (`InboxStore` — implement it to keep entries anywhere; the default is in memory, bounded) and
+  pushed to the user's other sessions, so it is still in the bell after a reload. `@App(inbox =
+  true)` shows the bell without a `NotificationsSupplier`. `@Experimental`; Java, .NET and Python.
 
 - **Cards drag on the phone app.** On a kanban board a long press lifts a card; it follows the finger
   and the board scrolls near the edges. Dropping it runs the board's move action, as on the web.

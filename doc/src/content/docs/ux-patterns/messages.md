@@ -48,6 +48,12 @@ never saw why the save failed. Everything else is a toast. [Undo](/ux-patterns/u
 actions (style `undo`, labelled by the renderer's own "Undo" when unlabelled) — `Message.undoable`
 fills both the action and the older `undo*` fields.
 
+An `inbox` message to a signed-in user is also KEPT on the server 🧪 (Mateu's in-memory
+`InboxStore`, or yours), so it is still in the bell after a reload and in the user's other tabs
+and devices — see [Notification inbox](/ux-patterns/notification-inbox/#inbox-messages-are-kept-on-the-server).
+With `@App(osNotifications = true)` it also becomes a notification of the operating system while
+the app is not in front.
+
 ## Wire
 
 `MessageDto {variant, position, title, text, duration, persistence, actions: [{label, actionId,

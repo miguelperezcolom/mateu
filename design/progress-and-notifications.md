@@ -198,7 +198,9 @@ multicast to every subscriber of the task (the stream that started it, and any r
   screen that started the task, which the resuming client no longer has. Ends after the terminal
   `Progress`. A finished task: its terminal `Progress` + the messages of its terminal increment,
   then the end. Unknown / foreign: an empty stream. Neither reserved action is tracked again (a
-  resume stream ending is not a task ending).
+  resume stream ending is not a task ending). Renderers send it over SSE only; over the sync
+  endpoint the .NET and Python ports answer a one-increment snapshot, while Java's sync endpoint
+  drains the stream (it answers when the task ends) — use `_progress-tasks` for a snapshot.
 
 Client — each renderer remembers the tasks its streams report, for the SESSION only:
 
