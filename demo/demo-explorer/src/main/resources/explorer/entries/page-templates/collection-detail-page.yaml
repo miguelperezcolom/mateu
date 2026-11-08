@@ -1,0 +1,22 @@
+id: collection-detail-page
+area: page-templates
+group: templates
+title: Collection detail page
+covers: [template:CollectionDetailPage]
+description: |
+  `template: {type: CollectionDetailPage}`: the `list` slot is the collection — a `Listing` whose
+  `rowRoute` opens the selected page, here a partial shared by both pages — and the form's `content` is
+  the selected item's detail. **Selection is the URL**: a page with content has a selection, one without
+  shows the `noSelection` slot. Click an artist. The rows come from a REST source (`MuseumApi`); the
+  selected artist from the route's view model (`ArtistRecord`, reading `:id`).
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/collection-detail-page
+pages:
+  - {route: x/page-templates/collection-detail-page, layout: explorer/page-templates/collection-detail-page/artists.yaml}
+  - {route: x/page-templates/collection-detail-page/:id, layout: explorer/page-templates/collection-detail-page/artist.yaml, viewModel: io.mateu.explorer.examples.pagetemplates.collectiondetailpage.ArtistRecord}
+code:
+  - {label: REST source (MuseumApi), path: src/main/java/io/mateu/explorer/examples/pagetemplates/data/MuseumApi.java}
+  - {label: The shared list, path: src/main/resources/specs/ui/explorer/page-templates/collection-detail-page/artists-list.yaml}

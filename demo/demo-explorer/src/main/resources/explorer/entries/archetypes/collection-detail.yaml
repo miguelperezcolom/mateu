@@ -1,0 +1,18 @@
+id: collection-detail
+area: archetypes
+group: collections
+title: Collection detail
+covers: [archetype:CollectionDetail]
+description: |
+  Extend `CollectionDetail<Row>`: a searchable card list on the left (`rows`, `idOf`, `titleOf`, plus
+  `captionOf`, `badgesOf`, `listLabel`, `listWidth`), the selected item's `detail(row)` on the right and
+  `emptyDetail()` before anything is picked. Selecting a card and typing in the list's search box both
+  re-render in place.
+examples:
+  - title: Artists
+    java: io.mateu.explorer.examples.archetypes.collectiondetail.ArtistDirectory
+pages:
+  - {route: x/archetypes/collection-detail, viewModel: io.mateu.explorer.examples.archetypes.collectiondetail.ArtistDirectory}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/collection-detail/ArtistDirectory.cs}
+  - {label: Python, path: src/main/ports/archetypes/collection-detail/artist_directory.py}

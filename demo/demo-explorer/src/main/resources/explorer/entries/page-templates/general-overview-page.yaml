@@ -1,0 +1,16 @@
+id: general-overview-page
+area: page-templates
+group: templates
+title: General overview page
+covers: [template:GeneralOverviewPage]
+description: |
+  `template: {type: GeneralOverviewPage}`: the header — title, `recordSwitcher`, `kpis` (contextual
+  info), `timestamp`, toolbar — is the form's; the `info` slot is the complementary side panel and the
+  form's `content` is the main area. Values from the route's view model (`SmkMuseum.java`).
+  
+  YAML only for now: the .NET and Python YAML builders do not read `template:` yet.
+examples:
+  - title: The whole page
+    route: x/page-templates/general-overview-page
+pages:
+  - {route: x/page-templates/general-overview-page, layout: explorer/page-templates/general-overview-page/museum.yaml, viewModel: io.mateu.explorer.examples.pagetemplates.generaloverviewpage.SmkMuseum}

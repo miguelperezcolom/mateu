@@ -1,0 +1,35 @@
+# DashboardLandingPage: the `kpi` slot is the scoreboard (MetricCards); the form's content is the main
+# area — one DashboardPanel per chart or list. The header (title, subtitle, kpis, timestamp) is the form's.
+type: Form
+title: Operations at a glance
+subtitle: Visitors, loans and conservation across the three museums
+timestamp: Updated 5 minutes ago
+template:
+  type: DashboardLandingPage
+  kpi:
+    - {type: MetricCard, title: Visitors, value: "48,210", trend: up, trendLabel: "+6% vs last month", timeframe: This month}
+    - {type: MetricCard, title: Active loans, value: "37", trend: neutral, timeframe: Today}
+    - {type: MetricCard, title: Conservation backlog, value: "12", trend: down, trendLabel: "-4 this week", timeframe: Open tasks}
+content:
+  - type: DashboardLayout
+    columns: 2
+    items:
+      - type: DashboardPanel
+        title: Visitors per museum
+        subtitle: Last 30 days
+        content:
+          type: Chart
+          chartType: bar
+          chartData:
+            labels: [The Met, SMK, Cleveland]
+            datasets:
+              - {label: Visitors, data: [26400, 9800, 12010]}
+      - type: DashboardPanel
+        title: Tickets by type
+        content:
+          type: Chart
+          chartType: doughnut
+          chartData:
+            labels: [Adult, Student, Member, Free]
+            datasets:
+              - {label: Tickets, data: [52, 18, 21, 9]}

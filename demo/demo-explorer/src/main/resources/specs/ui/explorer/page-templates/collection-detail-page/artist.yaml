@@ -1,0 +1,16 @@
+# CollectionDetailPage WITH a selection: the same list, and the form's content is the selected item's
+# detail (the template's detailTemplate). The artist comes from the view model (ArtistRecord.java),
+# which reads the route's :id.
+type: Form
+title: Artists
+subtitle: One row per artist across the three museums
+template:
+  type: CollectionDetailPage
+  list:
+    - {type: Partial, ref: specs/ui/explorer/page-templates/collection-detail-page/artists-list.yaml}
+content:
+  - type: VerticalLayout
+    content:
+      - {type: Text, container: h2, text: "${state.name}"}
+      - {type: Text, text: "${state.nationality} · ${state.lived} · ${state.works} works in the collection"}
+      - {type: Text, text: "${state.bio}"}

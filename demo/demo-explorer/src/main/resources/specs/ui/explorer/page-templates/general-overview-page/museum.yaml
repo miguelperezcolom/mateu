@@ -1,0 +1,32 @@
+# GeneralOverviewPage: the header — title, kpis (contextual info), timestamp, toolbar — is the form's;
+# the `info` slot is the complementary side panel and the form's content is the main area. Values from
+# the route's view model (SmkMuseum.java).
+type: Form
+title: ${state.name}
+subtitle: ${state.city}, ${state.country}
+timestamp: Last updated yesterday
+kpis:
+  - {label: Founded, value: "${state.founded}"}
+  - {label: Works, value: "${state.works}"}
+  - {label: Departments, value: "${state.departments}"}
+toolbar:
+  - {type: Button, label: Its artworks, buttonStyle: primary, actionable: {type: RouteLink, route: x/page-templates/hero-search-page}}
+template:
+  type: GeneralOverviewPage
+  info:
+    - {type: Text, container: h4, text: Director}
+    - {type: Text, text: "${state.director}"}
+    - {type: FormField, id: website, label: Website, stereotype: link, readOnly: true}
+content:
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: About}
+    content: {type: Text, text: "${state.description}"}
+  - type: Card
+    cssClasses: mateu-section
+    title: {type: Text, container: h3, text: Location}
+    content:
+      type: FormLayout
+      content:
+        - {type: FormField, id: city, label: City, readOnly: true, propertyRow: true}
+        - {type: FormField, id: country, label: Country, readOnly: true, propertyRow: true}

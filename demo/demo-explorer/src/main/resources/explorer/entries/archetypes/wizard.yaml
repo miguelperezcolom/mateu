@@ -1,0 +1,21 @@
+id: wizard
+area: archetypes
+group: processes
+title: Wizard
+covers: [archetype:Wizard]
+description: |
+  Extend `Wizard` with one `WizardStep` field per step: state survives moving both ways, the
+  penultimate step offers the `@WizardCompletionAction` and the last step is the result. Every hook is
+  on show: **branching** (`stepApplies` — pick *INTERNATIONAL* and an Insurance step appears in the
+  rail), **Skip** on an optional step (`stepSkippable`), a **cancelable** move (`beforeStepNavigate` — an
+  institution containing "blocked" is refused), **drafts** (`Draftable`: Save / Save and close), an
+  **early finish** (`availableFromStep`) and the **RAIL** progress style (`@WizardProgress`: BAR, STEPS,
+  RAIL).
+examples:
+  - title: Request a loan
+    java: io.mateu.explorer.examples.archetypes.wizard.LoanRequestWizard
+pages:
+  - {route: x/archetypes/wizard, viewModel: io.mateu.explorer.examples.archetypes.wizard.LoanRequestWizard}
+code:
+  - {label: "C#", path: src/main/ports/archetypes/wizard/LoanRequestWizard.cs}
+  - {label: Python, path: src/main/ports/archetypes/wizard/loan_request_wizard.py}

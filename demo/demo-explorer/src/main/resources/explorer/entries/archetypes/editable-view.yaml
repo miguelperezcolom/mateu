@@ -1,0 +1,16 @@
+id: editable-view
+area: archetypes
+group: records
+title: Editable view
+covers: [archetype:EditableView]
+description: |
+  Extend `AutoEditableView<T>` (or `EditableView<View, Editor>` for two different models): a read-only
+  view with an **Edit** button that flips into an editor (**Save** / **Cancel**) and back, in place. You
+  write `load()` and `persist()`. Embedded `@Inline` in a larger page, each one edits on its own — the
+  partial-forms pattern. Java only: the ports have no editable views.
+examples:
+  - title: Wall label
+    description: Press Edit, change the text, Save — the view flips back with the new values.
+    route: x/archetypes/editable-view
+pages:
+  - {route: x/archetypes/editable-view, viewModel: io.mateu.explorer.examples.archetypes.editableview.WallLabelView}

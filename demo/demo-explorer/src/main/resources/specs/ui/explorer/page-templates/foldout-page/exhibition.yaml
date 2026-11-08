@@ -1,0 +1,36 @@
+# FoldoutPage: the `overview` slot is always in view; the form's content is the panels — FoldoutPanels
+# with a `title`, a `summary` (what the folded strip shows) and `open` (no `open:` = open while it fits
+# the row). `orientation` is vertical or horizontal. The page header (title, toolbar) is the layout's.
+type: Form
+title: Impressions of light
+subtitle: Galleries 5–6 · 12 Jan – 30 Apr 2027
+badges:
+  - {label: Planned, color: info}
+toolbar:
+  - {type: Button, label: Edit, buttonStyle: primary, actionable: {type: RouteLink, route: x/page-templates/advanced-create-edit-page}}
+template:
+  type: FoldoutPage
+  orientation: vertical
+  overview:
+    - {type: Text, text: "64 works from 11 lenders, curated by A. Lindqvist."}
+    - {type: Text, text: "Monet, Pissarro, Morisot and the light of the 1870s.", size: s}
+content:
+  - type: FoldoutPanel
+    title: The works
+    open: true
+    summary: {type: Text, text: 64 works}
+    content:
+      type: BulletedList
+      items: [Water Lilies — Claude Monet, Haystacks — Claude Monet, The Cradle — Berthe Morisot]
+  - type: FoldoutPanel
+    title: Budget
+    open: false
+    summary: {type: Text, text: 76% spent}
+    content: {type: Text, text: "Spent €182,000 of €240,000."}
+  - type: FoldoutPanel
+    title: Risks
+    open: false
+    summary: {type: Text, text: 2 open}
+    content:
+      type: BulletedList
+      items: [Courier strike in January, Gallery 6 humidity]
