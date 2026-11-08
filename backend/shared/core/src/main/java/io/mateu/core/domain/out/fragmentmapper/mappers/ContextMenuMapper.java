@@ -9,6 +9,8 @@ import io.mateu.dtos.MenuOptionDto;
 import io.mateu.uidl.data.ContextMenu;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
+import io.mateu.uidl.data.MethodLink;
+import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -47,6 +49,12 @@ public class ContextMenuMapper {
         null);
   }
 
+  /**
+   * The options of a menu a page carries in its content (MenuBar, ContextMenu, Directory). A leaf
+   * says what picking it does: a RouteLink its {@code route}, a MethodLink the {@code actionId} it
+   * runs. Both used to be dropped — the option only carried a {@code path} made from its label, and
+   * picking it did nothing.
+   */
   protected static List<MenuOptionDto> buildMenu(
       List<Actionable> menu,
       String baseUrl,
@@ -79,6 +87,9 @@ public class ContextMenuMapper {
                     .disabledOnClick(option.disabledOnClick())
                     .className(option.className())
                     .itemData(option.itemData())
+                    .route(option instanceof RouteLink routeLink ? routeLink.route() : null)
+                    .actionId(
+                        option instanceof MethodLink methodLink ? methodLink.methodName() : null)
                     .submenus(
                         option instanceof Menu asMenu
                             ? buildMenu(
