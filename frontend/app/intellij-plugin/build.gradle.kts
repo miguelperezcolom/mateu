@@ -81,7 +81,7 @@ dependencies {
         testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Plugin.Java)
     }
     // QR codes the desktop hub reads (from the screen, the clipboard or an image file) — Apache-2.0, pure Java
-    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.zxing:core:3.5.4")
     testImplementation("junit:junit:4.13.2")
 }
 
