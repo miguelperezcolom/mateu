@@ -9,6 +9,7 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import HorizontalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/HorizontalLayout";
 import VerticalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/VerticalLayout";
 import SplitLayout from "@mateu/shared/apiClients/dtos/componentmetadata/SplitLayout";
+import MasterDetailLayout from "@mateu/shared/apiClients/dtos/componentmetadata/MasterDetailLayout";
 import AccordionLayout, { AccordionLayoutVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionLayout";
 import TabLayout from "@mateu/shared/apiClients/dtos/componentmetadata/TabLayout";
 import BoardLayoutItem from "@mateu/shared/apiClients/dtos/componentmetadata/BoardLayout";
@@ -49,6 +50,9 @@ export const renderFormComponent = (form: FormLayout, container: LitElement, com
     if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormRow) {
         return renderFormRow(form, container, component as ClientSideComponent, baseUrl, state, data, appState, appData)
     }
+    if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormItem) {
+        return renderFormItem(form, container, component as ClientSideComponent, baseUrl, state, data, appState, appData)
+    }
     const colspan = fieldColspan(component)
     const cell = form.labelsAside
         ? wrapWithFormItem(container, component, baseUrl, state, data, appState, appData)
@@ -79,6 +83,43 @@ export const wrapWithFormItem = (container: LitElement, component: Component, ba
     }
     return renderComponent(container, component, baseUrl, state, data, appState, appData)
 }
+
+/**
+ * A FormItem: the components that make up ONE field, in one cell of the form layout (as wide as
+ * its widest field). With labels aside, the first labelled field's label heads the item. It is drawn
+ * by its form layout — the shared switch has no entry for it, and it used to fall through to
+ * "Unknown metadata type FormItem".
+ */
+export const renderFormItem = (form: FormLayout, container: LitElement, item: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+    const children = item.children ?? []
+    const colspan = Math.max(1, ...children.map(fieldColspan))
+    const labelled = form.labelsAside ? formItemLabelOf(children) : undefined
+    const body = html`<div style="display: flex; flex-direction: column; gap: var(--lumo-space-s, .5rem); min-width: 0; ${item.style ?? ''}" class="${item.cssClasses ?? nothing}">
+        ${children.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData, child === labelled?.field))}
+    </div>`
+    const cell = labelled
+        ? html`<div style="display: flex; gap: ${GAP}; align-items: baseline;">
+                <label style="flex: 0 0 var(--mateu-label-width, 10rem); color: var(--lumo-secondary-text-color, #667);">${formItemLabelText(container, labelled.label)}</label>
+                <div style="flex: 1; min-width: 0;">${body}</div>
+            </div>`
+        : body
+    return gridCell(colspan, cell, true)
+}
+
+/** The first child of a FormItem that is a labelled FormField — the item's label when labels sit aside. */
+export const formItemLabelOf = (children: Component[]): { field: Component, label: string } | undefined => {
+    for (const child of children) {
+        if (child.type == ComponentType.ClientSide && (child as ClientSideComponent).metadata?.type == ComponentMetadataType.FormField) {
+            const label = ((child as ClientSideComponent).metadata as FormField).label
+            if (label) return { field: child, label }
+        }
+    }
+    return undefined
+}
+
+/** A label as shown: its `${…}` interpolated by the container. */
+export const formItemLabelText = (container: LitElement, label: string): string =>
+    label.includes('${') ? (container as unknown as { _evalTemplate: (s: string) => string })._evalTemplate(label) : label
 
 export const renderFormRow = (form: FormLayout, container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     return html`
@@ -133,8 +174,10 @@ export const renderMasterDetailLayout = (container: LitElement, component: Compo
     const dynamicDetail = data?.detailComponent ?? null
     const hasDetail = !!(data?.hasDetail) || !!staticDetail
     const detailContent = dynamicDetail ?? staticDetail
+    // orientation vertical: the detail sits BELOW the master
+    const direction = ((component as ClientSideComponent).metadata as MasterDetailLayout)?.orientation === 'vertical' ? 'column' : 'row'
     return html`
-        <div id="${component.id ?? nothing}" style="display: flex; gap: var(--lumo-space-m, 1rem); ${component.style ?? ''}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div id="${component.id ?? nothing}" style="display: flex; flex-direction: ${direction}; gap: var(--lumo-space-m, 1rem); ${component.style ?? ''}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             <div style="flex: 1; min-width: 0;">${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</div>
             ${hasDetail && detailContent
                 ? html`<div style="flex: 1; min-width: 0;">${renderComponent(container, detailContent, baseUrl, state, data, appState, appData)}</div>`
@@ -209,9 +252,15 @@ export const renderScroller = (container: LitElement, component: Component, base
     `
 }
 
+/**
+ * FullWidth stretches its CONTENT across the row, not only its own box: a column flex that
+ * stretches its items (a button inside used to keep its natural width in a 100%-wide div).
+ */
+export const FULL_WIDTH_STYLE = 'width: 100%; display: flex; flex-direction: column; align-items: stretch;'
+
 export const renderFullWidth = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     return html`
-        <div style="width: 100%; ${component.style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div style="${FULL_WIDTH_STYLE} ${component.style ?? ''}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </div>
     `
@@ -225,9 +274,14 @@ export const renderContainer = (container: LitElement, component: Component, bas
     `
 }
 
+/**
+ * A board is a STACK of rows (each row's items share its width, see renderBoardLayoutRow). It used
+ * to be an auto-fit grid whose cells were the rows themselves, so the rows sat side by side and
+ * the board's row structure was lost.
+ */
 export const renderBoardLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     return html`
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: ${GAP}; ${component.style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div style="display: flex; flex-direction: column; gap: ${GAP}; width: 100%; ${component.style ?? ''}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </div>
     `

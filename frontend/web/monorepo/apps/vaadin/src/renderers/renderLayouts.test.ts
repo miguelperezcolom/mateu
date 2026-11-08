@@ -8,11 +8,24 @@ vi.hoisted(() => {
     if (!customElements.get('vaadin-form-layout')) {
         customElements.define('vaadin-form-layout', class extends HTMLElement {})
     }
+    // its disconnect cancels animations jsdom does not implement
+    if (!customElements.get('vaadin-master-detail-layout')) {
+        customElements.define('vaadin-master-detail-layout', class extends HTMLElement {})
+    }
+})
+
+// Children are painted by the component registry; a marker carrying the child's text stands in.
+vi.mock('@infra/ui/renderers/renderComponent.ts', async () => {
+    const { html } = await import('lit')
+    return {
+        renderComponent: (_c: unknown, comp: { id?: string, metadata?: { text?: string } }) =>
+            html`<i data-child="${comp?.id}">${comp?.metadata?.text ?? ''}</i>`,
+    }
 })
 
 import { render } from 'lit'
 import type { LitElement } from 'lit'
-import { renderAccordionLayout, renderFormLayout, renderTabLayout } from './renderLayouts'
+import { renderAccordionLayout, renderFormLayout, renderFullWidth, renderMasterDetailLayout, renderTabLayout } from './renderLayouts'
 
 /**
  * The Vaadin layouts' wire-driven details a user notices: labels beside the fields when the server
@@ -150,5 +163,54 @@ describe('renderAccordionLayout', () => {
         // vaadin-accordion's own default opened the first panel, so the optional fields the
         // layout inference folded away were shown expanded
         expect(openedOf([panel('More options', false)])).toBeNull()
+    })
+})
+
+describe('explorer findings: form rows, form items, master/detail, full width', () => {
+    const text = (id: string, t: string) => ({ type: 'ClientSide', id, children: [], metadata: { type: 'Text', text: t, container: 'span' } })
+    const formWith = (metadata: Record<string, unknown>, children: unknown[]) =>
+        ({ type: 'ClientSide', id: 'fl', children, metadata: { type: 'FormLayout', ...metadata } })
+
+    it('a FormItem in a form layout is drawn, not "Unknown metadata type FormItem"', () => {
+        const host = mountTemplate(renderFormLayout(container, formWith({ maxColumns: 2 }, [
+            { type: 'ClientSide', id: 'item', children: [text('a', 'Invoice to')], metadata: { type: 'FormItem' } },
+        ]) as never, '', {}, {}, {}, {}))
+        expect(host.textContent).not.toContain('Unknown metadata type')
+        expect(host.textContent).toContain('Invoice to')
+    })
+
+    it('a FormRow keeps its fields on one line in a form layout with responsive steps', () => {
+        const host = mountTemplate(renderFormLayout(container, formWith({ maxColumns: 2 }, [
+            { type: 'ClientSide', id: 'row', children: [text('a', 'Deposit'), text('b', 'Paid on')], metadata: { type: 'FormRow' } },
+        ]) as never, '', {}, {}, {}, {}))
+        // vaadin-form-row is ignored outside auto-responsive mode: a full-span flex band instead
+        expect(host.querySelector('vaadin-form-row')).toBeNull()
+        const band = host.querySelector('vaadin-form-layout > div') as HTMLElement
+        expect(band.getAttribute('data-colspan')).toBe('2')
+        expect(band.getAttribute('style')).toContain('display: flex')
+        expect(band.textContent).toContain('Deposit')
+        expect(band.textContent).toContain('Paid on')
+    })
+
+    it('an auto-responsive layout keeps vaadin-form-row', () => {
+        const host = mountTemplate(renderFormLayout(container, formWith({ autoResponsive: true }, [
+            { type: 'ClientSide', id: 'row', children: [text('a', 'x')], metadata: { type: 'FormRow' } },
+        ]) as never, '', {}, {}, {}, {}))
+        expect(host.querySelector('vaadin-form-row')).not.toBeNull()
+    })
+
+    it('a vertical MasterDetailLayout tells vaadin-master-detail-layout its orientation', () => {
+        const host = mountTemplate(renderMasterDetailLayout(container, {
+            type: 'ClientSide', id: 'md', metadata: { type: 'MasterDetailLayout', orientation: 'vertical' },
+            children: [text('m', 'master'), text('d', 'detail')],
+        } as never, '', {}, {}, {}, {}))
+        expect(host.querySelector('vaadin-master-detail-layout')!.getAttribute('orientation')).toBe('vertical')
+    })
+
+    it('FullWidth stretches its content', () => {
+        const host = mountTemplate(renderFullWidth(container, {
+            type: 'ClientSide', id: 'fw', metadata: { type: 'FullWidth' }, children: [text('b', 'Confirm')],
+        } as never, '', {}, {}, {}, {}))
+        expect((host.firstElementChild as HTMLElement).getAttribute('style')).toContain('align-items: stretch')
     })
 })
