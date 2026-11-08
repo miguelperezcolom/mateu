@@ -21692,11 +21692,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  /** An absolute base url on another origin than the page's (false outside a browser). */
+  function isForeignBase(base) {
+    if (!base || !/^https?:\/\//i.test(String(base))) return false
+    try {
+      return typeof location !== 'undefined' && !!location.origin && new URL(String(base)).origin !== location.origin
+    } catch {
+      return false
+    }
+  }
+
   /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
    *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
    *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
    *  remote menus) belong to no screen; `options.view` sets it by hand (null: none). */
   async function callMateu(base, body, options = {}) {
+    // A backend of ANOTHER origin (a micro frontend's server, a federated pod) that does not answer
+    // says nothing about the user's connection: its request is isolated from the connectivity tracker,
+    // as the web client does (AxiosMateuApiClient, isForeignBaseUrl). A down island used to raise the
+    // page-wide "no connection" band, and "connection restored" right after.
+    if (!options.isolated && isForeignBase(base)) options = { ...options, isolated: true }
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
     const bare = (body.route || '').replace(/^\//, '')
