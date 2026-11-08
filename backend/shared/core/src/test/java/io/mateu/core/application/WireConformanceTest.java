@@ -573,6 +573,33 @@ class WireConformanceTest {
   }
 
   /**
+   * An action that opens a placed dialog: draggable, resizable, at a given top/left, with its size
+   * — the members the ports never set before 3.0 GA.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/dialog-placement")
+  @Title("Dialog placement")
+  public static class DialogPlacementPage {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Action
+    public Object openNotes() {
+      return io.mateu.uidl.data.Dialog.builder()
+          .headerTitle("Notes")
+          .content(new io.mateu.uidl.data.Text("Free text"))
+          .top("4rem")
+          .left("2rem")
+          .draggable(true)
+          .resizable(true)
+          .width("30rem")
+          .height("20rem")
+          .modeless(true)
+          .closeButtonOnHeader(true)
+          .build();
+    }
+  }
+
+  /**
    * A class-level {@code @AutoSave}: every change runs the named action after the debounce — an
    * {@code AutoSave} trigger with its action id and debounce, and the action advertised (the client
    * only sends what the component advertises).
@@ -1377,6 +1404,7 @@ class WireConformanceTest {
           java.util.Map.entry("crud-search", ProductsCrud.class),
           java.util.Map.entry("action-effects", ActionEffectsPage.class),
           java.util.Map.entry("drawer", DrawerPage.class),
+          java.util.Map.entry("dialog-placement", DialogPlacementPage.class),
           java.util.Map.entry("rejected-save", RejectedSaveForm.class),
           java.util.Map.entry("error-boundary", FailingActionPage.class),
           java.util.Map.entry("wizard-step-2", SignUpWizard.class),
@@ -1440,7 +1468,8 @@ class WireConformanceTest {
           "page-toolbar",
           "form-columns",
           "more-components",
-          "auto-save");
+          "auto-save",
+          "dialog-placement");
 
   static TestMateu mateu;
 
@@ -1497,7 +1526,8 @@ class WireConformanceTest {
             PageToolbarForm.class,
             FormColumnsForm.class,
             MoreComponentsPage.class,
-            AutoSaveForm.class);
+            AutoSaveForm.class,
+            DialogPlacementPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
