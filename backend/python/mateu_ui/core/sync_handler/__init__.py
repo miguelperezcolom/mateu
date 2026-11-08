@@ -427,8 +427,16 @@ class SyncHandler(
         if refusing is not None:
             action_guard.deny(f"route '{refusing.route}' declares access: not satisfied")
         spec = self.yaml_specs.load_spec(rq.route)
-        if spec is None or not spec.depends_on_request():
+        if spec is None:
             return rq
+        # the business components (components.yaml) the layout names lock fields too: they are
+        # resolved while the tree is mapped, after the view model is bound
+        from ..component_registry import component_refs_in
+
+        refs = component_refs_in(spec.layout) if getattr(self, "components", None) is not None else set()
+        by_pieces = self.components.locked_for(refs, self.mapper.authorized) if refs else set()
+        if not spec.depends_on_request():
+            return self._without_locked(rq, by_pieces)
         from ..translations import locale_of
 
         personal = self.yaml_specs.load_spec_for(rq.route, self.mapper.authorized, locale_of(self.mapper))
@@ -440,9 +448,13 @@ class SyncHandler(
             source_id = (rq.parameters or {}).get("_sourceId")
             if source_id is not None and str(source_id) in personal.refused_actions:
                 action_guard.deny(f"action '{source_id}' declares access: not satisfied")
+        return self._without_locked(rq, set(personal.locked_fields) | by_pieces)
+
+    @staticmethod
+    def _without_locked(rq: RunActionRq, locked) -> RunActionRq:
         state = rq.component_state or {}
-        if personal.locked_fields and any(k in state for k in personal.locked_fields):
-            narrowed = {k: v for k, v in state.items() if k not in personal.locked_fields}
+        if locked and any(k in state for k in locked):
+            narrowed = {k: v for k, v in state.items() if k not in locked}
             rq = rq.model_copy(update={"component_state": narrowed})
         return rq
 

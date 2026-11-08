@@ -173,7 +173,7 @@ class ComponentMapperMixin(MixinBase):
             # RecursionError).
             chain = _RESOLVING.get()
             entry = (
-                self.components.get(c.ref)
+                self.components.get_for(c.ref, self.authorized)
                 if self.components is not None and c.ref not in chain and len(chain) < _MAX_REF_DEPTH
                 else None
             )

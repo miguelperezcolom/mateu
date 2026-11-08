@@ -31,6 +31,7 @@ from typing import Any, Callable, NoReturn
 
 from mateu_ui.uidl import (
     AppActionsSupplier,
+    DisabledUnless,
     EyesOnly,
     OnRowSelected,
     ReadOnlyUnless,
@@ -180,9 +181,13 @@ def deny(what: str) -> NoReturn:
 
 def may_write(mapper, f) -> bool:
     """Whether the wire may WRITE field ``f``: an ``EyesOnly`` field the caller cannot see or a
-    ``ReadOnlyUnless`` field the caller cannot edit is dropped, keeping the server-side value
+    ``ReadOnlyUnless``/``DisabledUnless`` field the caller cannot edit is dropped, keeping the server-side value
     (mirrors Java's Hydrater)."""
-    return mapper.authorized(f.marker(EyesOnly)) and mapper.authorized(f.marker(ReadOnlyUnless))
+    return (
+        mapper.authorized(f.marker(EyesOnly))
+        and mapper.authorized(f.marker(ReadOnlyUnless))
+        and mapper.authorized(f.marker(DisabledUnless))
+    )
 
 
 def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
