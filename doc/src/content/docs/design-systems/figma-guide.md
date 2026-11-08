@@ -21,7 +21,7 @@ Who does what:
 ## 0. Get the Mateu UI Kit (the quick way)
 
 The library is published on Figma Community as **[Mateu UI Kit](https://www.figma.com/community/file/1701291643502429777)**. Open it and
-*Open in Figma* (Figma calls it **duplicating**): you get your own copy of the 161 components in your
+*Open in Figma* (Figma calls it **duplicating**): you get your own copy of the components in your
 Drafts, with no plugin to build and on any Figma plan, the free Starter included. Then go to
 [2. Publish the library](#2-publish-the-library) to share it with your team, or straight to
 [3. Design screens](#3-design-screens) to design in that same file.
@@ -74,7 +74,7 @@ every property has one. They are never read as content; leave them as they are.
 
 1. Move the library file into a **team project** and *Assets › Publish library*. Publishing a team
    library needs a Figma **Professional, Organization or Education** plan. The publish dialog must
-   list **all ~161 components** (standalone components plus variant sets); if it lists fewer, see
+   list **all ~160 components** (standalone components plus variant sets); if it lists fewer, see
    [If something does not look right](#if-something-does-not-look-right).
 2. In each design file: *Assets › Libraries* and **enable** "Mateu library".
 
@@ -104,7 +104,9 @@ In your design file, with the library enabled:
 - **Properties — the right panel.** Select an instance: its labels, titles and config are in the
   right panel. Set `fieldId` (the field's id in the page state), `label`, `required`, `readOnly`
   for fields; `actionId` or `route` for buttons (`people/${state.id}/edit`); `rowsSource.ref` for a
-  listing… Variants (style, size, theme) are there too. A text left as its placeholder (`Label`,
+  listing; `stereotype` on a text or number field (`email`, `money`…) and `optionsSource.ref` on a
+  select or radio group, the name of the source its options come from… Variants (style, size,
+  theme) are there too. A text left as its placeholder (`Label`,
   `Title`) is not read.
 - **Page templates.** For a standard page, start from a `Mateu/Page Templates/<type>` instance
   (`ItemOverviewPage`, `WelcomePage`, `DashboardLandingPage`…), as the screen itself or inside the
@@ -221,6 +223,7 @@ no Java and no repository, and uploads the site to Netlify or Cloudflare Pages, 
 
 1. Build it once (`cd design/figma/publish && npm ci && npm run build`) and import
    `plugin/manifest.json` in Figma Desktop (*Plugins › Development › Import plugin from manifest…*).
+   A file you can edit is enough: a file you can only view has to be duplicated first.
 2. Run it in your design file. The panel starts from a working proposal for what a design cannot say:
    - **Screens and routes**: one per top-level frame. A frame answers the route the screens navigate
      to with a parameter: `artworks/${row.id}` is answered by the frame `artwork`, at `artworks/:id`.
@@ -240,7 +243,7 @@ by anyone. Never put a key or a secret in a URL. If an action needs one, it need
 :::
 
 **Netlify**: create a personal access token (*User settings › Applications*). The next publish
-updates the same site.
+updates the same site. The site's title comes from the panel's **Title** field, which starts as the file's name.
 
 **Cloudflare Pages**: Cloudflare's API cannot be called from a Figma plugin (it does not allow
 cross-origin calls), so the plugin goes through a small Worker that lives in **your own** account:
@@ -249,6 +252,9 @@ cross-origin calls), so the plugin goes through a small Worker that lives in **y
    stores nothing and forwards only the Pages API.
 2. Create an API token with *Cloudflare Pages: Edit*.
 3. In the panel, give the Worker's URL, your account ID, the token and a project name.
+
+If your network cannot reach `workers.dev`, or you would rather not run a Worker, choose **Download a
+zip** and drop it on a Cloudflare Pages project.
 
 Tokens stay on your device (Figma's client storage), never in the Figma file. Routes, data and
 button settings do travel in the file, so write nothing secret there.
@@ -265,6 +271,8 @@ button settings do travel in the file, so write nothing secret there.
 - **A component cannot take children or a property does not appear**: re-run *Generate the library*
   with the current plugin, re-publish and accept the update; then run the **Self-test** and check its
   table.
-- **Slot content is missing from the YAML**: Figma does not document yet how slot content appears
-  in the downloaded JSON. Send the developers the downloaded `design.json` (it contains no token) so
-  the converter can be checked against it.
+- **A warning says an instance "is not a Mateu component"**: a component the current Mateu has
+  removed (`ContentLayout`, for example, which older copies of the kit still draw). Replace it in the
+  design with what its page recommends.
+- **Slot content is missing from the YAML**: send the developers the downloaded `design.json` (it
+  contains no token), so the converter can be checked against it.

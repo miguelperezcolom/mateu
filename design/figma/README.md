@@ -117,7 +117,7 @@ reads the document in the REST shape the converter takes; `src/site.mjs` writes 
 manifest with no Java (rows as files of the site, so a reload never depends on sample mode);
 `src/hosts.mjs` talks to Netlify (direct, file by file: its zip endpoint answers CORS twice and a browser cannot read it) and Cloudflare Pages
 (through `cloudflare-relay/worker.js`, it answers none). The renderer is fetched from jsDelivr at the
-tag in `src/renderer.json`: bump it after a release. `bin/build-site.mjs` makes the same site with no
+tag in `src/renderer.json`: bump it after a release (the tag and its `files` list, from `git ls-tree -r --name-only <tag> backend/shared/frontend/vaadin-lit/src/main/resources/static`). `bin/build-site.mjs` makes the same site with no
 Figma around. Guide: `design-systems/figma-guide.md`, section 6.
 
 ## Reading back (modux)
@@ -148,7 +148,7 @@ Linux client.
    `design/figma/plugin/manifest.json`.
 4. *Plugins → Development → Mateu Library Generator → Generate the library*. Expect one page per
    category (`Mateu · Field`, `Mateu · Layout`, `Mateu · Display`, `Mateu · Page Templates`…) and
-   the toast `Mateu library generated: 161 components, N properties, M native slots ✔`. If it
+   the toast `Mateu library generated: 160 components, N properties, M native slots ✔`. If it
    fails, the error is in *Plugins → Development → Show/Hide console*.
 4b. *Plugins → Development → Mateu Library Generator → Mateu Library Self-test* (the pure half is
    `plugin/src/selftest.ts`, tested in `plugin/test/selftest.test.mjs`): a `Mateu · Self-test` page

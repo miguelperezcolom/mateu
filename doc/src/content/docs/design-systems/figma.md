@@ -63,24 +63,27 @@ flowchart LR
 
 ## Status
 
+- **Verified end to end**: six screens composed in a real Figma file with the published kit, downloaded
+  through the REST API, converted, served and exercised in a browser
+  (`design/figma/e2e`). That file also pins how the REST API answers native slots: a child of type
+  `SLOT`, which Figma does not document yet
+  ([figma/rest-api-spec#88](https://github.com/figma/rest-api-spec/issues/88)).
 - **Verified in this repository**: the contract against the generated schema (every authorable
-  component has an entry, every key a mapping writes exists); the converter against two Figma REST
-  payloads pinned file by file, whose output is then loaded by Mateu's real validator and YAML
-  loader (`FigmaYamlGoldenTest`); the plugin with the TypeScript compiler and unit tests of what it
-  creates for every entry.
-- **Not verified automatically**: the plugin itself — Figma cannot run headless. The library has
-  been generated and used in a real Figma file; the plugin's **self-test** command (see
-  [Checking the library](#checking-the-library-self-test)) checks the result inside Figma.
-- **Not documented by Figma yet**: how slot content appears in the REST API
-  ([figma/rest-api-spec#88](https://github.com/figma/rest-api-spec/issues/88)). The converter accepts
-  the two plausible shapes (a child of type `SLOT`, or a frame named `slot:<name>`); the test
-  fixture for it is synthetic until a real file confirms the shape.
+  component has an entry, every key a mapping writes exists); the converter's output, loaded by
+  Mateu's real validator and YAML loader (`FigmaYamlGoldenTest`); the plugin with the TypeScript
+  compiler and unit tests of what it creates for every entry.
+- **Mateu Publish** ([publishing with no backend](/design-systems/figma-guide/#6-publish-straight-from-figma-with-no-backend)):
+  run from Figma Desktop against Netlify. Against Cloudflare Pages, its calls were verified with the
+  real API from a browser, but not yet from inside Figma through the relay Worker on `workers.dev`.
+- **Not verified automatically**: the plugins themselves, because Figma cannot run headless. The library's
+  **self-test** command (see [Checking the library](#checking-the-library-self-test)) checks the
+  result inside Figma.
 
 ## Reference
 
 ### What the library holds
 
-- **Every authorable YAML component** — 161 entries: fields, layouts (sections, tabs, form layouts,
+- **Every authorable YAML component** — 160 entries: fields, layouts (sections, tabs, form layouts,
   dashboard and foldout layouts…), display components (notices, metric cards, charts, timelines,
   avatars, badges…), listings with their columns, buttons and toolbars, overlays (drawer, dialog,
   popover). Each component type of the YAML schema has an entry, except the ones that have nothing

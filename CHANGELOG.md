@@ -13,6 +13,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Publish a design from Figma as a UI with no backend.** The Mateu Publish plugin reads the open
+  file, builds a static site and uploads it to Netlify or Cloudflare Pages, or hands over a zip. It
+  needs no Figma token, no Java and no repository.
+
+- **The Mateu UI Kit says more.** A text or number field can name its stereotype (`email`, `money`…),
+  a select or radio group where its options come from, and native slots and component properties
+  replace the old `#config` layer. The kit is on [Figma Community](https://www.figma.com/community/file/1701291643502429777).
+
 - **Cards drag on the phone app.** On a kanban board a long press lifts a card; it follows the finger
   and the board scrolls near the edges. Dropping it runs the board's move action, as on the web.
   The Move menu stays, for screen readers and for whoever prefers it.
@@ -20,6 +28,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **About Mateu on the phone app.** An ⓘ on the hub's bar shows the app version and build, the Mateu
   release, and which code runs — the built-in bundle or an over-the-air update and when it was
   published. "Check for updates" downloads the latest update and restarts on it at once.
+
+### Fixed
+
+- **A required field inside a page template is validated.** A definition-only page with a
+  `template:` (a guided process, say) ran its action with the field empty.
+
+- **A radio group lists the options of its `optionsSource`.** It drew an empty group.
 
 ### Changed
 
