@@ -109,7 +109,7 @@ public class ActionInstanceCreator {
     // mount's root CLASS (a plain @UI("") page) claimed it by prefix and answered itself — the
     // browser showed the root page instead of the definition. An app on a prefix still answers
     // first (it draws the chrome and loads the content inside); otherwise the definition does.
-    if (isAuthoredDefinitionOnly(command.route())) {
+    if (isAuthoredDefinitionOnly(mountRoute(command))) {
       return routeInstanceCreator
           .findApp(command)
           .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
@@ -233,6 +233,16 @@ public class ActionInstanceCreator {
    * rendered ITSELF instead of the definition: /walk-yaml under a root {@code @UI("")} form showed
    * that form); an app on a prefix still answers first (it wraps the route in its chrome).
    */
+  /**
+   * The request's route as the authored table holds it: absolute when the request was served by a
+   * class-declared non-root mount whose {@code basePath:} route file authors it (see {@link
+   * YamlUidlLoader#authoredRouteIn}).
+   */
+  private String mountRoute(RunActionCommand command) {
+    return yamlUidlLoader.authoredRouteIn(
+        command.route(), io.mateu.core.application.MountPaths.mountOf(command));
+  }
+
   private boolean isAuthoredDefinitionOnly(String route) {
     if (route == null) {
       return false;
@@ -298,7 +308,7 @@ public class ActionInstanceCreator {
    * spec.
    */
   private Mono<?> loadYamlPage(RunActionCommand command) {
-    var spec = yamlUidlLoader.loadSpec(command.route(), command.httpRequest());
+    var spec = yamlUidlLoader.loadSpec(mountRoute(command), command.httpRequest());
     if (spec == null) {
       return Mono.empty();
     }
@@ -559,7 +569,16 @@ public class ActionInstanceCreator {
         app ->
             appMenuResolver
                 .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
-                .switchIfEmpty((Mono) routeInstanceCreator.findRouteResolver(finalCommand)));
+                .switchIfEmpty((Mono) routeInstanceCreator.findRouteResolver(finalCommand))
+                // the content load of a DEFINITION-ONLY route, typed with the app it is shown in
+                // (a menu click on the Vaadin shell): no class answers it — its page is the YAML
+                .switchIfEmpty(
+                    (Mono)
+                        Mono.defer(
+                            () ->
+                                isAuthoredDefinitionOnly(mountRoute(finalCommand))
+                                    ? loadYamlPage(finalCommand)
+                                    : Mono.empty())));
   }
 
   /**

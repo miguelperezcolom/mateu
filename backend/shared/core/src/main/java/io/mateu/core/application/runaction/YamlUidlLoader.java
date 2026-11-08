@@ -296,12 +296,68 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
    * @throws io.mateu.core.application.security.MateuForbiddenException when refused
    */
   public RunActionCommand guard(RunActionCommand command) {
+    return guardIn(command);
+  }
+
+  /**
+   * {@code route} as the AUTHORED table holds it, for a request served by the non-root mount {@code
+   * mount} ({@code shop}): routes of a class-declared mount are authored absolute (a {@code type:
+   * Routes} file tagged {@code basePath: /shop} is prefixed on load) while the browser asks
+   * relative to the mount ({@code /orders}). Every YAML lookup is by route, so a definition-only
+   * route of such a file answered "Page not found". Returned as it came when the mount is the root,
+   * the route already names it, or the mount authors nothing there.
+   */
+  public String authoredRouteIn(String route, String mount) {
+    if (route == null
+        || mount == null
+        || mount.isEmpty()
+        || io.mateu.core.application.MountPaths.startsWithMount(route, mount)) {
+      return route;
+    }
+    var query = route.indexOf('?');
+    var path = query < 0 ? route : route.substring(0, query);
+    if (path.replaceAll("^/+", "").isEmpty()) {
+      return route;
+    }
+    var absolute = io.mateu.core.application.MountPaths.withMount(mount, path);
+    return routeRegistry.authored().match(absolute.substring(1)).isPresent()
+            || routeRegistry.authored().match(absolute).isPresent()
+        ? (query < 0 ? absolute : absolute + route.substring(query))
+        : route;
+  }
+
+  /** {@link #authoredRouteIn(String, String)} for the mount the request was served by. */
+  public String authoredRouteFor(String route, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    if (httpRequest == null) {
+      return route;
+    }
+    try {
+      return authoredRouteIn(
+          route,
+          io.mateu.core.application.MountPaths.normalize(
+              httpRequest.getAttribute("baseUrl") instanceof String b ? b : null));
+    } catch (RuntimeException e) {
+      return route;
+    }
+  }
+
+  private RunActionCommand guardIn(RunActionCommand command) {
     var route = command.route();
     if (route == null) {
       return command;
     }
     var httpRequest = command.httpRequest();
     var refusing = routeRegistry.refusingEntry(route, httpRequest);
+    var mount = io.mateu.core.application.MountPaths.mountOf(command);
+    if (refusing == null
+        && !mount.isEmpty()
+        && !io.mateu.core.application.MountPaths.startsWithMount(route, mount)) {
+      // a class-declared non-root mount's routes are authored ABSOLUTE (basePath: /shop) while the
+      // browser asks relative to the mount: their access: applies to that spelling too
+      refusing =
+          routeRegistry.refusingEntry(
+              io.mateu.core.application.MountPaths.withMount(mount, route), httpRequest);
+    }
     if (refusing != null) {
       log.warn(
           "Refused request: route '{}' declares access: and the caller's token does not satisfy"
@@ -310,7 +366,7 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       throw new io.mateu.core.application.security.MateuForbiddenException(
           "route not allowed for caller: " + refusing.route());
     }
-    var path = normalize(route);
+    var path = normalize(authoredRouteIn(route, mount));
     var spec = loadSpec(path);
     if (spec == null || !spec.dependsOnRequest()) {
       return command;
