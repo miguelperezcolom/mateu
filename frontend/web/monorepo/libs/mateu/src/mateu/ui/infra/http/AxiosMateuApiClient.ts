@@ -188,16 +188,20 @@ export class AxiosMateuApiClient implements MateuApiClient {
      * the backend is reachable — a reply proves the path better than any browser flag.
      */
     private async sendWithRetry<T>(send: () => Promise<T>, idempotent: boolean, quiet = false,
-                                   isStale?: () => boolean): Promise<T> {
+                                   isStale?: () => boolean, foreign = false): Promise<T> {
+        // Only the page's OWN backend tells whether the user is connected: a federated remote or a
+        // micro frontend's server that is down (another origin) says nothing about the network,
+        // and counting it raised the page-wide "No connection" and then "Connection restored".
+        const teaches = !quiet && !foreign
         let attempt = 0
         for (;;) {
             try {
                 const response = await send()
-                if (!quiet) connectivity.noteReachable()
+                if (teaches) connectivity.noteReachable()
                 return response
             } catch (error) {
                 const failure = classifyRequestFailure(error, {online: connectivity.isOnline()})
-                if (failure.kind == 'offline' && !quiet) {
+                if (failure.kind == 'offline' && teaches) {
                     connectivity.noteUnreachable()
                 }
                 attempt++
@@ -378,7 +382,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
                 throw error
             })
         return await this.wrap<UIIncrement>(
-            () => this.sendWithRetry(send, idempotent, options.quiet, options.isStale), initiator, background,
+            () => this.sendWithRetry(send, idempotent, options.quiet, options.isStale, isForeignBaseUrl(baseUrl)), initiator, background,
             actionId, options.retry, options.quiet, options.isStale)
     }
 
