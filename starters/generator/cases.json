@@ -280,11 +280,11 @@
         ],
         "src/main/resources/specs/ui/products.yaml": [
           "pageType: collection",
-          "$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-alpha.999/backend/shared/uidl/uidl-schema.json"
+          "$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.53/backend/shared/uidl/uidl-schema.json"
         ],
         "src/main/resources/specs/ui/app.ui.yaml": [
           "home: home",
-          "$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-alpha.999/backend/shared/uidl/mount-schema.json"
+          "$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.53/backend/shared/uidl/mount-schema.json"
         ],
         "AGENTS.md": [
           "mvn mateu-bundle:dev",
